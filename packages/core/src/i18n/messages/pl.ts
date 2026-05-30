@@ -858,6 +858,7 @@ export const pl: MessageCatalog = {
   'wall.collect.status.complete': 'complete',
   'wall.collect.status.skipped': 'skipped',
   'wall.collect.due': 'Due: {date}',
+  'wall.scope.archive': 'Archive scope {condition}',
   'wall.gate.and': 'AND',
   'wall.gate.or': 'OR',
   'wall.gate.not': 'NOT',

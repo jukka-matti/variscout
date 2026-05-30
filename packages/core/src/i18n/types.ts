@@ -956,6 +956,7 @@ export interface MessageCatalog {
   'wall.problem.ariaLabel': string;
   'wall.scope.whatIf': string;
   'wall.scope.coverage': string;
+  'wall.scope.archive': string;
   'wall.evidence.supports': string;
   'wall.evidence.countsAgainst': string;
   'wall.evidence.contributingFactors': string;

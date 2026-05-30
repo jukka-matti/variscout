@@ -116,4 +116,45 @@ describe('parseMentions', () => {
     expect(result).toContain('user-carol');
     expect(result).toHaveLength(3);
   });
+
+  // ── Longest-match-wins for prefix-overlapping display names ──────────────────
+  describe('longest-match-wins (prefix-overlapping names)', () => {
+    const bobShort: ProjectMember = {
+      id: 'm-short',
+      userId: 'user-bob-short',
+      displayName: 'Bob',
+      role: 'member',
+      invitedAt: 1,
+      createdAt: 1,
+      deletedAt: null,
+    };
+    // bob (above) has displayName 'Bob Member' / userId 'user-bob'.
+    const overlapping: ReadonlyArray<ProjectMember> = [bobShort, bob];
+
+    it('resolves "@Bob Member" to the LONGER name only (Bob Member), not the prefix (Bob)', () => {
+      const result = parseMentions('@Bob Member please validate', overlapping);
+      expect(result).toEqual(['user-bob']);
+      expect(result).not.toContain('user-bob-short');
+    });
+
+    it('still resolves the SHORT name when only the prefix is @-tagged', () => {
+      // "@Bob," — the trailing comma is a boundary so "Bob" matches; "Bob Member"
+      // does not (no " member" follows), so only the short member resolves.
+      const result = parseMentions('@Bob, can you look?', overlapping);
+      expect(result).toEqual(['user-bob-short']);
+    });
+
+    it('resolves both when each is @-tagged in its own span', () => {
+      const result = parseMentions('@Bob and @Bob Member', overlapping);
+      expect(result).toContain('user-bob-short');
+      expect(result).toContain('user-bob');
+      expect(result).toHaveLength(2);
+    });
+
+    it('is order-independent — short member listed first still loses to the longer match', () => {
+      // overlapping lists bobShort BEFORE bob; longest-match sorting must still win.
+      const result = parseMentions('@Bob Member', [bobShort, bob]);
+      expect(result).toEqual(['user-bob']);
+    });
+  });
 });

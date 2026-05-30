@@ -268,23 +268,16 @@ describe('HypothesisCardWithPlans — onProjectIdea wiring (Flow 2, IM-1 re-moun
   });
 });
 
-// ── Flow 3: createHubFromFinding CTA (propose-hypothesis-from-finding) ─────────
+// ── Flow 3: createHubFromFinding — DESCOPED to IM-4c ──────────────────────────
+//
+// The propose-hypothesis-from-finding CTA (onProposeHypothesis +
+// createHubFromFinding) was removed from FindingChip in IM-4b. The apps
+// explicitly defer finding→hypothesis-on-Wall to the IM-4c bipartite
+// re-layout. The guard below pins the descope: FindingChip never renders a
+// "Propose hypothesis" affordance.
 
-describe('FindingChip — onProposeHypothesis (Flow 3, IM-1 re-mount)', () => {
-  it('fires onProposeHypothesis(findingId) when "Propose hypothesis" is clicked', () => {
-    const onProposeHypothesis = vi.fn();
-    render(
-      <svg>
-        <FindingChip finding={finding} x={0} y={0} onProposeHypothesis={onProposeHypothesis} />
-      </svg>
-    );
-    // FindingChip renders a "Propose hypothesis" button when onProposeHypothesis is wired
-    const btn = screen.getByRole('button', { name: /propose hypothesis/i });
-    fireEvent.click(btn);
-    expect(onProposeHypothesis).toHaveBeenCalledWith('f1');
-  });
-
-  it('does NOT render "Propose hypothesis" button when callback is omitted', () => {
+describe('FindingChip — propose-hypothesis affordance is descoped (IM-4c)', () => {
+  it('never renders a "Propose hypothesis" button', () => {
     render(
       <svg>
         <FindingChip finding={finding} x={0} y={0} />
@@ -293,24 +286,15 @@ describe('FindingChip — onProposeHypothesis (Flow 3, IM-1 re-mount)', () => {
     expect(screen.queryByRole('button', { name: /propose hypothesis/i })).toBeNull();
   });
 
-  it('existing onSelect still fires on click when onProposeHypothesis is also wired', () => {
+  it('still fires onSelect on chip click (unchanged behaviour)', () => {
     const onSelect = vi.fn();
-    const onProposeHypothesis = vi.fn();
     render(
       <svg>
-        <FindingChip
-          finding={finding}
-          x={0}
-          y={0}
-          onSelect={onSelect}
-          onProposeHypothesis={onProposeHypothesis}
-        />
+        <FindingChip finding={finding} x={0} y={0} onSelect={onSelect} />
       </svg>
     );
-    // The chip's own select gesture still works (regression guard for existing behaviour)
     fireEvent.click(screen.getByRole('button', { name: /finding/i }));
     expect(onSelect).toHaveBeenCalledWith('f1');
-    // The propose button does not accidentally trigger onSelect
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
 });

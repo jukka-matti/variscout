@@ -11,22 +11,9 @@
  * render the WHERE label. analyzeStore.archiveScope is the store-level owner of
  * the SCOPE_ARCHIVE side-effect (separate store-level tests in analyzeStore.test.ts).
  *
- * vi.mock() MUST be hoisted before production imports (Vitest hoists regardless,
- * but grouping here makes the contract visible).
+ * ScopeRail imports only @variscout/core + the local useWallLocale hook — it does
+ * NOT import @variscout/stores or @variscout/hooks, so no module mocks are needed.
  */
-
-// vi.mock calls before all other imports (Vitest hoisting contract).
-vi.mock('@variscout/stores', () => ({
-  useAnalyzeStore: Object.assign(vi.fn(), {
-    getState: () => ({
-      addFinding: vi.fn(() => ({ id: 'f-test' })),
-      connectFindingToHub: vi.fn(),
-    }),
-  }),
-  usePreferencesStore: Object.assign(vi.fn(), {
-    getState: () => ({ timeLens: { mode: 'rolling', windowSize: 50 } }),
-  }),
-}));
 
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';

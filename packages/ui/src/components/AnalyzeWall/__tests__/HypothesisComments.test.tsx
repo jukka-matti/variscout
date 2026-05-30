@@ -14,19 +14,12 @@
  * vi.mock() calls MUST be hoisted before any production imports (Vitest
  * hoists vi.mock to the top of the module regardless of textual position,
  * but to be safe we group them at the top before the non-mock imports).
+ *
+ * HypothesisComments wraps FindingComments → FindingEditor, which imports
+ * `useTranslation` from @variscout/hooks (the `finding.note` aria-label below
+ * depends on the identity `t` mock) and lucide-react icons. Those two mocks
+ * are load-bearing. It does NOT import @variscout/stores — no store mock needed.
  */
-
-vi.mock('@variscout/stores', () => ({
-  useAnalyzeStore: Object.assign(vi.fn(), {
-    getState: () => ({
-      addFinding: vi.fn(() => ({ id: 'f-test' })),
-      connectFindingToHub: vi.fn(),
-    }),
-  }),
-  usePreferencesStore: Object.assign(vi.fn(), {
-    getState: () => ({ timeLens: { mode: 'rolling', windowSize: 50 } }),
-  }),
-}));
 
 vi.mock('lucide-react', () => ({
   MessageSquare: (props: Record<string, unknown>) => (

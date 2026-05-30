@@ -16,25 +16,15 @@ export interface FindingChipProps {
   y: number;
   onSelect?: (id: string) => void;
   onDetach?: (id: string) => void;
-  /**
-   * Task 6 (IM-4b) — wire createHubFromFinding: propose-hypothesis-from-finding.
-   * When provided, renders a "Propose hypothesis" button below the chip.
-   * Receives (findingId). Parent dispatches createHubFromFinding.
-   */
-  onProposeHypothesis?: (findingId: string) => void;
+  // IM-4c: finding→hypothesis-on-Wall (createHubFromFinding) is deferred to the
+  // IM-4c bipartite re-layout. The propose-hypothesis affordance + its callback
+  // were intentionally removed here; do not re-add until IM-4c wires the seam.
 }
 
 const CHIP_W = 220;
 const CHIP_H = 44;
 
-export const FindingChip: React.FC<FindingChipProps> = ({
-  finding,
-  x,
-  y,
-  onSelect,
-  onDetach,
-  onProposeHypothesis,
-}) => {
+export const FindingChip: React.FC<FindingChipProps> = ({ finding, x, y, onSelect, onDetach }) => {
   const sourceLabel = finding.source?.chart ? `${finding.source.chart}` : 'observation';
   const label = `Finding: ${finding.text || sourceLabel}`;
   return (
@@ -59,28 +49,6 @@ export const FindingChip: React.FC<FindingChipProps> = ({
           {finding.text || '(no note)'}
         </text>
       </g>
-      {/* Task 6 (IM-4b) — propose-hypothesis-from-finding CTA */}
-      {onProposeHypothesis && (
-        <foreignObject
-          x={x - CHIP_W / 2}
-          y={y + CHIP_H}
-          width={CHIP_W}
-          height={28}
-          style={{ overflow: 'visible' }}
-        >
-          <button
-            type="button"
-            style={{ fontSize: '0.6875rem', padding: '2px 6px', cursor: 'pointer' }}
-            aria-label="Propose hypothesis"
-            onClick={e => {
-              e.stopPropagation();
-              onProposeHypothesis(finding.id);
-            }}
-          >
-            Propose hypothesis
-          </button>
-        </foreignObject>
-      )}
     </g>
   );
 };

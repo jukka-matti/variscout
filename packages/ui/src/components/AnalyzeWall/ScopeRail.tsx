@@ -10,11 +10,21 @@
  *   chip click (onScopeSelect) does NOT fire.
  * - The active scope chip carries aria-current="true".
  * - Condition text is rendered via formatConditionLeaves from @variscout/core.
+ *
+ * Accessibility: each scope is a `role="tab"` button. The archive affordance is
+ * a sibling `<button>` (NOT a nested button — invalid HTML) absolutely
+ * positioned over the chip's trailing edge, so it stays inside the rail's
+ * `role="tablist"` without producing an interactive-inside-interactive tree.
+ *
+ * Styling follows the sibling Wall chrome (semantic design tokens — `bg-surface`,
+ * `border-edge`, `text-content`) rather than raw palette classes.
  */
 
 import React from 'react';
 import type { ProblemStatementScope } from '@variscout/core';
 import { formatConditionLeaves } from '@variscout/core';
+import { getMessage } from '@variscout/core/i18n';
+import { useWallLocale } from './hooks/useWallLocale';
 
 export interface ScopeRailProps {
   /** The persisted scopes (active — deletedAt === null — already filtered by caller). */
@@ -37,40 +47,45 @@ export function ScopeRail({
   onScopeSelect,
   onScopeArchive,
 }: ScopeRailProps): React.ReactElement {
+  const locale = useWallLocale();
   return (
-    <div className="flex flex-row flex-wrap gap-2 items-center" role="tablist">
+    <div className="flex flex-row flex-wrap items-center gap-2" role="tablist">
       {scopes.map(scope => {
         const isActive = scope.id === activeScopeId;
         const conditionText = formatConditionLeaves(scope.predicates);
         return (
-          <button
-            key={scope.id}
-            role="tab"
-            data-testid={`scope-chip-${scope.id}`}
-            aria-current={isActive ? 'true' : undefined}
-            onClick={() => onScopeSelect(scope.id)}
-            className={[
-              'inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm border',
-              isActive
-                ? 'border-blue-500 bg-blue-50 text-blue-800 font-medium'
-                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-            ].join(' ')}
-            type="button"
-          >
-            <span className="truncate max-w-xs">{conditionText}</span>
-            <span
+          <div key={scope.id} className="relative inline-flex">
+            <button
+              role="tab"
+              data-testid={`scope-chip-${scope.id}`}
+              aria-current={isActive ? 'true' : undefined}
+              onClick={() => onScopeSelect(scope.id)}
+              className={[
+                'inline-flex items-center gap-1 rounded-full border py-1 pl-3 pr-7 text-sm',
+                isActive
+                  ? 'border-blue-500 bg-blue-50 font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'
+                  : 'border-edge bg-surface text-content-secondary hover:bg-surface-secondary',
+              ].join(' ')}
+              type="button"
+            >
+              <span className="max-w-xs truncate">{conditionText}</span>
+            </button>
+            <button
+              type="button"
               data-testid={`scope-archive-${scope.id}`}
-              role="button"
-              aria-label={`Archive scope ${conditionText}`}
+              aria-label={getMessage(locale, 'wall.scope.archive').replace(
+                '{condition}',
+                conditionText
+              )}
               onClick={e => {
                 e.stopPropagation();
                 onScopeArchive(scope.id);
               }}
-              className="ml-1 flex-shrink-0 rounded-full p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 cursor-pointer"
+              className="absolute right-1 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-content-tertiary hover:bg-surface-secondary hover:text-content"
             >
               &times;
-            </span>
-          </button>
+            </button>
+          </div>
         );
       })}
     </div>

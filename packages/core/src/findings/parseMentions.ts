@@ -7,8 +7,14 @@
  *
  * Strategy: scan the text for every `@`-prefixed word sequence that matches
  * a member's `displayName`. Member display names may contain spaces
- * (e.g. "Alice Lead") so we test each member's full name as a regex fragment
- * anchored to an `@` prefix.
+ * (e.g. "Alice Lead") so we test each member's full name as a token anchored
+ * to an `@` prefix.
+ *
+ * Resolution policy: LONGEST-MATCH-WINS. When two member names share a prefix
+ * (e.g. "Bob" and "Bob Member"), "@Bob Member" resolves ONLY to "Bob Member"
+ * — the shorter "Bob" does not also claim the same `@`-span. This is enforced
+ * by sorting candidates longest-first and marking each matched character span
+ * as consumed before a shorter prefix can match the same start position.
  */
 
 import type { ProjectMember } from '../projectMembership/types';
@@ -26,19 +32,29 @@ export function parseMentions(text: string, members: ReadonlyArray<ProjectMember
   const lower = text.toLowerCase();
   const found = new Set<string>();
 
-  for (const member of members) {
+  // Longest-match-wins: process the longest display names first so a longer
+  // name claims its `@`-span before any shorter prefix can match the same
+  // start index. `consumed[i] === true` means index `i` already belongs to a
+  // resolved (longer) mention's token span.
+  const consumed = new Array<boolean>(lower.length).fill(false);
+  const ordered = [...members].sort((a, b) => b.displayName.length - a.displayName.length);
+
+  for (const member of ordered) {
     const name = member.displayName.toLowerCase();
     // Match "@<displayName>" — the @ must immediately precede the name.
-    // We search in the lowercased text so matching is case-insensitive.
     const token = '@' + name;
     let idx = lower.indexOf(token);
     while (idx !== -1) {
-      // Ensure the character after the matched name is not a word character
-      // (prevents "@Alice Lead" matching inside "@Alice Leadbetter", etc.).
       const afterIdx = idx + token.length;
       const nextChar = lower[afterIdx];
-      if (nextChar === undefined || !/[a-z0-9_-]/.test(nextChar)) {
+      // Reject when the matched start was already consumed by a longer name
+      // (the shorter prefix loses), and when the char after the name is a word
+      // char (prevents "@Alice Lead" matching inside "@Alice Leadbetter").
+      const startConsumed = consumed[idx];
+      const boundaryOk = nextChar === undefined || !/[a-z0-9_-]/.test(nextChar);
+      if (!startConsumed && boundaryOk) {
         found.add(member.userId);
+        for (let i = idx; i < afterIdx; i++) consumed[i] = true;
       }
       idx = lower.indexOf(token, afterIdx);
     }
