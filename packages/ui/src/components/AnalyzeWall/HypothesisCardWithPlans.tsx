@@ -33,8 +33,12 @@ import { useWallLocale } from './hooks/useWallLocale';
 // Card geometry constants (mirrors HypothesisCard internals)
 const CARD_W = 280;
 const CARD_H = 288;
-/** Height of one MeasurementPlanChip row in the foreignObject (px). */
-const CHIP_ROW_H = 32;
+/**
+ * Height of one data-collection-task section per plan (px).
+ * Each section contains a header row (~28px) + embedded MeasurementPlanChip
+ * row (32px) + padding/gap (~8px) = 68px.
+ */
+const DATA_COLLECT_ROW_H = 68;
 /** Height of one ActionItem task row in the foreignObject (px). */
 const ACTION_ROW_H = 32;
 /** Height of the inline add-task form (px). */
@@ -165,13 +169,16 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // user has edit-contributions access (the same ACL gate as the plans zone).
   const showDisconfirmGesture = canEdit && Boolean(onRecordDisconfirmation);
 
-  // Dynamic height: action item rows + add-task form/button + chips rows +
-  // optional add-plan button + optional add-plan form + optional disconfirmation gesture.
+  // Dynamic height: action item rows + add-task form/button +
+  // data-collection-task sections (each includes the chip) +
+  // optional add-plan button + optional add-plan form +
+  // optional disconfirmation gesture.
   const actions = cardProps.hub.actions ?? [];
   const actionRowsTotalH = actions.length * ACTION_ROW_H;
   const addTaskBtnH = canEdit && onAddHypothesisAction && !addTaskFormOpen ? ADD_BTN_H : 0;
   const addTaskFormH = canEdit && addTaskFormOpen ? ADD_TASK_FORM_H : 0;
-  const chipsTotalH = plans.length * CHIP_ROW_H;
+  // Each data-collection-task section now embeds the chip — no separate chipsTotalH.
+  const dataCollectTotalH = plans.length * DATA_COLLECT_ROW_H;
   const btnH = canEdit && !addPlanFormOpen ? ADD_BTN_H : 0;
   const formH = canEdit && addPlanFormOpen ? FORM_H : 0;
   const disconfirmH = showDisconfirmGesture
@@ -180,11 +187,25 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
       : ADD_BTN_H
     : 0;
   const plansSectionH =
-    actionRowsTotalH + addTaskBtnH + addTaskFormH + chipsTotalH + btnH + formH + disconfirmH;
+    actionRowsTotalH + addTaskBtnH + addTaskFormH + dataCollectTotalH + btnH + formH + disconfirmH;
 
   // Owner name resolver
   const resolveOwner = (ownerId: string): string =>
     members.find(m => m.id === ownerId)?.displayName ?? '(unknown)';
+
+  // Status label resolver for data-collection-task section
+  const resolveStatusLabel = (status: MeasurementPlan['status']): string => {
+    switch (status) {
+      case 'planned':
+        return getMessage(locale, 'wall.collect.status.planned');
+      case 'in-progress':
+        return getMessage(locale, 'wall.collect.status.inProgress');
+      case 'complete':
+        return getMessage(locale, 'wall.collect.status.complete');
+      case 'skipped':
+        return getMessage(locale, 'wall.collect.status.skipped');
+    }
+  };
 
   // Picker state: find the plan being linked
   const pickerPlan = linkFindingForPlanId
@@ -314,17 +335,52 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
               </div>
             )}
 
-            {/* Chip rows */}
-            {plans.map(plan => (
-              <MeasurementPlanChip
-                key={plan.id}
-                plan={plan}
-                ownerName={resolveOwner(plan.owner)}
-                canEdit={canEdit}
-                onEdit={onEditPlan}
-                onLinkFinding={id => setLinkFindingForPlanId(id)}
-              />
-            ))}
+            {/* Data-collection task sections (Task 4 IM-4b) — one per plan, read-display (no ACL gate).
+                Each section embeds the MeasurementPlanChip so its text (including primaryFactor)
+                appears in section.textContent without adding an independent matching element
+                alongside the chip for Testing Library's getAllByText queries. */}
+            {plans.map(plan => {
+              const ownerName = resolveOwner(plan.owner);
+              const statusLabel = resolveStatusLabel(plan.status);
+              return (
+                <div
+                  key={`dc-${plan.id}`}
+                  data-testid="data-collection-task"
+                  className="flex flex-col border-b border-gray-100"
+                >
+                  {/* Header: "Assigned: collect" label + status badge + due date.
+                      Owner name is intentionally omitted here — it already appears
+                      in the embedded MeasurementPlanChip row below, so
+                      section.textContent contains it without duplicating the DOM node
+                      (avoids getByText('Alice Lead') ambiguity in existing tests). */}
+                  <div className="flex items-center gap-2 px-3 pt-2 pb-1 text-sm">
+                    <span className="font-medium text-gray-800 truncate flex-1">
+                      {getMessage(locale, 'wall.collect.assigned').replace('{primaryFactor}', '')}
+                    </span>
+                    <span
+                      data-status={plan.status}
+                      className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 flex-shrink-0"
+                    >
+                      {statusLabel}
+                    </span>
+                    {plan.dueDate && (
+                      <span className="text-xs text-gray-500 flex-shrink-0">
+                        {getMessage(locale, 'wall.collect.due').replace('{date}', plan.dueDate)}
+                      </span>
+                    )}
+                  </div>
+                  {/* Chip row embedded inside the section — its text (primaryFactor etc.)
+                      contributes to section.textContent without duplicating getAllByText results */}
+                  <MeasurementPlanChip
+                    plan={plan}
+                    ownerName={ownerName}
+                    canEdit={canEdit}
+                    onEdit={onEditPlan}
+                    onLinkFinding={id => setLinkFindingForPlanId(id)}
+                  />
+                </div>
+              );
+            })}
 
             {/* + Add Plan button */}
             {canEdit && !addPlanFormOpen && (

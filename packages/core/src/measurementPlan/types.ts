@@ -65,4 +65,10 @@ export interface MeasurementPlan extends EntityBase {
    */
   msaNote?: string;
   linkedFindingIds?: Finding['id'][];
+  /**
+   * Optional ISO-8601 date string (YYYY-MM-DD) by which the data-collection
+   * task should be completed. Surfaced prominently on the Wall card next to
+   * the status badge (Task 4, IM-4b).
+   */
+  dueDate?: string;
 }

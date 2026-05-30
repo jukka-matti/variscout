@@ -879,6 +879,13 @@ export const hr: MessageCatalog = {
   'wall.task.save': 'Save',
   'wall.task.cancel': 'Cancel',
   'wall.task.markDone': 'Mark Done',
+  // Plan-owner data-collection task surface (IM-4b Task 4)
+  'wall.collect.assigned': 'Assigned: collect {primaryFactor}',
+  'wall.collect.status.planned': 'planned',
+  'wall.collect.status.inProgress': 'in-progress',
+  'wall.collect.status.complete': 'complete',
+  'wall.collect.status.skipped': 'skipped',
+  'wall.collect.due': 'Due: {date}',
   'wall.gate.and': 'AND',
   'wall.gate.or': 'OR',
   'wall.gate.not': 'NOT',

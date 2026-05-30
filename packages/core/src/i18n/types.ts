@@ -973,6 +973,13 @@ export interface MessageCatalog {
   'wall.task.save': string;
   'wall.task.cancel': string;
   'wall.task.markDone': string;
+  // Plan-owner data-collection task surface (IM-4b Task 4)
+  'wall.collect.assigned': string;
+  'wall.collect.status.planned': string;
+  'wall.collect.status.inProgress': string;
+  'wall.collect.status.complete': string;
+  'wall.collect.status.skipped': string;
+  'wall.collect.due': string;
   'wall.gate.and': string;
   'wall.gate.or': string;
   'wall.gate.not': string;
