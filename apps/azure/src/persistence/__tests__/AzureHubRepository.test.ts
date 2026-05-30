@@ -52,6 +52,13 @@ vi.mock('../../db/schema', () => ({
       where: vi.fn(() => ({
         equals: vi.fn(() => ({ filter: vi.fn(() => ({ delete: vi.fn().mockResolvedValue(0) })) })),
       })),
+      // 1:1 hub↔IP: HUB_PERSIST_SNAPSHOT uses single-row put (not bulkPut);
+      // applyAction (mocked here) additionally uses add/get/update. Provide all
+      // the methods the production persistence calls so the table mock is faithful.
+      put: vi.fn().mockResolvedValue(undefined),
+      add: vi.fn().mockResolvedValue(undefined),
+      update: vi.fn().mockResolvedValue(0),
+      toArray: vi.fn().mockResolvedValue([]),
       bulkPut: vi.fn().mockResolvedValue([]),
       clear: vi.fn(),
     },
