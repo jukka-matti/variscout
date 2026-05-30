@@ -15,17 +15,12 @@ export interface ViewState {
   highlightedChartPoint: number | null;
   /** Finding ID highlighted for bidirectional navigation. */
   highlightedFindingId: string | null;
-  /** Question ID expanded in the PI panel questions tab. */
-  expandedQuestionId: string | null;
   /** Set by navigate_to tool; consumed by Editor to focus a chart via ViewState. */
   pendingChartFocus: string | null;
   /** Secondary overflow view within the PI panel. */
   piOverflowView: 'data' | 'whatif' | null;
   /** Modal open/close — closes on reload by intent. */
   isDataTableOpen: boolean;
-
-  /** Question id focused in investigation Wall (relocated from analyzeStore). */
-  focusedQuestionId: string | null;
 
   /** Idea highlighted in the prioritization matrix (relocated from improvementStore). */
   highlightedImprovementIdeaId: string | null;
@@ -44,13 +39,9 @@ export interface ViewActions {
   handleRowClick: (index: number) => void;
   setHighlightPoint: (index: number | null) => void;
   setHighlightedFindingId: (id: string | null) => void;
-  setExpandedQuestionId: (id: string | null) => void;
   setPendingChartFocus: (chart: string | null) => void;
   setPIOverflowView: (view: 'data' | 'whatif' | null) => void;
   toggleDataTable: () => void;
-
-  // Investigation
-  setFocusedQuestionId: (id: string | null) => void;
 
   // Improvement
   setHighlightedImprovementIdeaId: (id: string | null) => void;
@@ -81,11 +72,9 @@ export const getViewInitialState = (): ViewState => ({
   highlightRowIndex: null,
   highlightedChartPoint: null,
   highlightedFindingId: null,
-  expandedQuestionId: null,
   pendingChartFocus: null,
   piOverflowView: null,
   isDataTableOpen: false,
-  focusedQuestionId: null,
   highlightedImprovementIdeaId: null,
   improvementActiveView: 'plan',
   selectedPoints: new Set(),
@@ -99,12 +88,9 @@ export const useViewStore = create<ViewStore>(set => ({
   handleRowClick: index => set({ highlightedChartPoint: index }),
   setHighlightPoint: index => set({ highlightedChartPoint: index }),
   setHighlightedFindingId: id => set({ highlightedFindingId: id }),
-  setExpandedQuestionId: id => set({ expandedQuestionId: id }),
   setPendingChartFocus: chart => set({ pendingChartFocus: chart }),
   setPIOverflowView: view => set({ piOverflowView: view }),
   toggleDataTable: () => set(s => ({ isDataTableOpen: !s.isDataTableOpen })),
-
-  setFocusedQuestionId: id => set({ focusedQuestionId: id }),
 
   setHighlightedImprovementIdeaId: id => set({ highlightedImprovementIdeaId: id }),
   setImprovementActiveView: view => set({ improvementActiveView: view }),

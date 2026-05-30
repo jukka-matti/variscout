@@ -1,9 +1,13 @@
 /**
- * analyzeStore — Zustand store for findings, questions, and hypothesis hubs
+ * analyzeStore — Zustand store for findings, hypotheses, scopes, and causal links
  *
- * Consolidates CRUD from useFindings, useQuestions, and useHypotheses hooks
- * into a single store. No callbacks — persistence will be via store.subscribe().
+ * Consolidates CRUD from useFindings, useHypotheses hooks into a single store.
+ * No callbacks — persistence will be via store.subscribe().
  * No React imports — pure Zustand, framework-agnostic.
+ *
+ * ADR-085: Questions retired; ProblemStatementScope is the first-class WHERE.
+ *          Ideas re-homed to Hypothesis.ideas (keyed by hypothesisId).
+ *          Per-scope gateNode replaces the top-level problemContributionTree.
  */
 
 import { create } from 'zustand';
@@ -24,24 +28,23 @@ import type {
   PhotoUploadStatus,
   CommentAttachment,
   BenchmarkStats,
-  Question,
-  QuestionStatus,
-  QuestionValidationType,
   ImprovementIdea,
   AnalyzeCategory,
   Hypothesis,
   HypothesisEvidence,
   CausalLink,
   GateNode,
+  ProblemStatementScope,
+  ConditionLeaf,
 } from '@variscout/core';
 import {
   createFinding,
   createFindingComment,
   createActionItem,
-  createQuestion,
   createImprovementIdea,
   createHypothesis,
   createCausalLink,
+  createProblemStatementScope,
   insertHubAsAndChild,
   type GatePath,
 } from '@variscout/core';
@@ -49,21 +52,8 @@ import {
 export const STORE_LAYER = 'document' as const;
 
 type HypothesisUpdate = Partial<
-  Pick<
-    Hypothesis,
-    'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds' | 'checkQuestionIds'
-  >
+  Pick<Hypothesis, 'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds'>
 >;
-
-// ============================================================================
-// Tree constraints (mirrored from useQuestions.ts)
-// ============================================================================
-
-/** Maximum depth of question sub-tree (0 = root, 1 = child, 2 = grandchild) */
-export const MAX_QUESTION_DEPTH = 3;
-
-/** Maximum children per parent question */
-export const MAX_CHILDREN_PER_PARENT = 8;
 
 // ============================================================================
 // State + Actions
@@ -71,21 +61,16 @@ export const MAX_CHILDREN_PER_PARENT = 8;
 
 export interface AnalyzeState {
   findings: Finding[];
-  questions: Question[];
   hypotheses: Hypothesis[];
   causalLinks: CausalLink[];
   categories: AnalyzeCategory[];
-  problemContributionTree?: GateNode;
+  /** First-class WHERE entities (ADR-085). Each scope owns its own gateNode. */
+  scopes: ProblemStatementScope[];
 }
 
 export interface AnalyzeActions {
   // --- Finding actions ---
-  addFinding: (
-    text: string,
-    context: FindingContext,
-    source?: FindingSource,
-    questionId?: string
-  ) => Finding;
+  addFinding: (text: string, context: FindingContext, source?: FindingSource) => Finding;
   editFinding: (id: string, text: string) => void;
   deleteFinding: (id: string) => void;
   setFindingStatus: (id: string, status: FindingStatus) => void;
@@ -115,12 +100,6 @@ export interface AnalyzeActions {
     driveItemId?: string,
     webUrl?: string
   ) => void;
-  linkFindingToQuestion: (
-    findingId: string,
-    questionId: string,
-    validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
-  ) => void;
-  unlinkFindingFromQuestion: (findingId: string) => void;
   setFindingProjection: (findingId: string, projection: FindingProjection) => void;
   clearFindingProjection: (findingId: string) => void;
   addFindingAction: (
@@ -143,34 +122,19 @@ export interface AnalyzeActions {
   clearBenchmark: (findingId: string) => void;
   toggleScope: (findingId: string) => void;
 
-  // --- Question actions ---
-  addQuestion: (text: string, factor?: string, level?: string) => Question;
-  addSubQuestion: (
-    parentId: string,
-    text: string,
-    factor?: string,
-    level?: string,
-    validationType?: QuestionValidationType
-  ) => Question | null;
-  editQuestion: (id: string, updates: Partial<Pick<Question, 'text' | 'factor' | 'level'>>) => void;
-  deleteQuestion: (id: string) => string[];
-  setQuestionStatus: (id: string, status: QuestionStatus) => void;
-  linkFindingToQuestionList: (questionId: string, findingId: string) => void;
-  unlinkFindingFromQuestionList: (questionId: string, findingId: string) => void;
-  addIdea: (questionId: string, text: string) => ImprovementIdea | null;
-  updateIdea: (
-    questionId: string,
-    ideaId: string,
-    updates: Partial<
-      Pick<
-        ImprovementIdea,
-        'text' | 'timeframe' | 'cost' | 'impactOverride' | 'notes' | 'direction'
-      >
-    >
+  // --- Scope actions (ADR-085 — first-class WHERE) ---
+  addScope: (
+    investigationId: string,
+    outcome: string,
+    predicates?: ConditionLeaf[],
+    hypothesisIds?: string[]
+  ) => ProblemStatementScope;
+  updateScope: (
+    scopeId: string,
+    patch: Partial<Omit<ProblemStatementScope, 'id' | 'createdAt' | 'deletedAt'>>
   ) => void;
-  deleteIdea: (questionId: string, ideaId: string) => void;
-  selectIdea: (questionId: string, ideaId: string, selected: boolean) => void;
-  updateIdeaProjection: (questionId: string, ideaId: string, projection: FindingProjection) => void;
+  removeScope: (scopeId: string) => void;
+  addHypothesisToScope: (scopeId: string, hypothesisId: string) => void;
 
   // --- Hub actions ---
   createHub: (name: string, synthesis: string) => Hypothesis;
@@ -182,8 +146,6 @@ export interface AnalyzeActions {
   createHubFromFinding: (findingId: string) => Hypothesis | null;
   updateHub: (hubId: string, updates: HypothesisUpdate) => void;
   deleteHub: (hubId: string) => void;
-  connectQuestionToHub: (hubId: string, questionId: string) => void;
-  disconnectQuestionFromHub: (hubId: string, questionId: string) => void;
   connectFindingToHub: (hubId: string, findingId: string) => void;
   disconnectFindingFromHub: (hubId: string, findingId: string) => void;
   setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
@@ -199,6 +161,26 @@ export interface AnalyzeActions {
    * immediately without waiting for the network round-trip.
    */
   addHubComment: (hubId: string, text: string, author?: string) => Promise<FindingComment>;
+
+  // --- Ideas actions (F2 — keyed by hypothesisId, live on Hypothesis.ideas) ---
+  addIdea: (hypothesisId: string, text: string) => ImprovementIdea | null;
+  updateIdea: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<
+      Pick<
+        ImprovementIdea,
+        'text' | 'timeframe' | 'cost' | 'impactOverride' | 'notes' | 'direction'
+      >
+    >
+  ) => void;
+  deleteIdea: (hypothesisId: string, ideaId: string) => void;
+  selectIdea: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  updateIdeaProjection: (
+    hypothesisId: string,
+    ideaId: string,
+    projection: FindingProjection
+  ) => void;
 
   // --- Causal link actions ---
   addCausalLink: (
@@ -225,9 +207,7 @@ export interface AnalyzeActions {
       >
     >
   ) => void;
-  linkQuestionToCausalLink: (linkId: string, questionId: string) => void;
   linkFindingToCausalLink: (linkId: string, findingId: string) => void;
-  unlinkQuestionFromCausalLink: (linkId: string, questionId: string) => void;
   unlinkFindingFromCausalLink: (linkId: string, findingId: string) => void;
 
   // --- Category + bulk actions ---
@@ -235,31 +215,24 @@ export interface AnalyzeActions {
   loadAnalyzeState: (state: Partial<AnalyzeState>) => void;
   resetAll: () => void;
 
-  // --- Investigation Wall ---
-  setProblemContributionTree: (tree: GateNode | undefined) => void;
+  // --- Investigation Wall (per-scope gateNode) ---
   /**
-   * Compose a hub into the contribution tree at `path` via AND.
-   * No-op if the tree is undefined — caller must initialize via
-   * `setProblemContributionTree` first. Delegates to
-   * `insertHubAsAndChild` from `@variscout/core/findings`.
+   * Set the contribution tree for a specific scope. Pass `undefined` to clear.
+   * Terminology: "contribution tree", never "root cause" (P5 amended).
    */
-  composeGate: (path: GatePath, hubId: string) => void;
+  setScopeGateNode: (scopeId: string, tree: GateNode | undefined) => void;
+  /**
+   * Compose a hub into a scope's contribution tree at `path` via AND.
+   * No-op if the scope's gateNode is undefined — caller must initialize via
+   * `setScopeGateNode` first. Delegates to `insertHubAsAndChild` from
+   * `@variscout/core/findings`.
+   */
+  composeScopeGate: (scopeId: string, path: GatePath, hubId: string) => void;
 }
 
 // ============================================================================
 // Helpers
 // ============================================================================
-
-function getQuestionDepth(id: string, questions: Question[]): number {
-  let depth = 0;
-  let current = questions.find(q => q.id === id);
-  while (current?.parentId) {
-    depth++;
-    current = questions.find(q => q.id === current!.parentId);
-    if (depth > MAX_QUESTION_DEPTH + 1) break;
-  }
-  return depth;
-}
 
 /**
  * Simple DFS cycle detection for the causal DAG.
@@ -280,32 +253,16 @@ function wouldCreateCycle(links: CausalLink[], fromFactor: string, toFactor: str
   return false;
 }
 
-function collectDescendants(id: string, questions: Question[]): Set<string> {
-  const ids = new Set<string>([id]);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const q of questions) {
-      if (q.parentId && ids.has(q.parentId) && !ids.has(q.id)) {
-        ids.add(q.id);
-        changed = true;
-      }
-    }
-  }
-  return ids;
-}
-
 // ============================================================================
 // Initial state
 // ============================================================================
 
 const initialState: AnalyzeState = {
   findings: [],
-  questions: [],
   hypotheses: [],
   causalLinks: [],
   categories: [],
-  problemContributionTree: undefined,
+  scopes: [],
 };
 
 // ============================================================================
@@ -319,7 +276,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   // Finding actions
   // ========================================================================
 
-  addFinding: (text, context, source?, questionId?) => {
+  addFinding: (text, context, source?) => {
     const finding = createFinding(
       text,
       context.activeFilters,
@@ -329,9 +286,6 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
       source,
       'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
     );
-    if (questionId) {
-      finding.questionId = questionId;
-    }
     set(state => ({ findings: [finding, ...state.findings] }));
     return finding;
   },
@@ -499,24 +453,6 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     }));
   },
 
-  linkFindingToQuestion: (findingId, questionId, validationStatus?) => {
-    set(state => ({
-      findings: state.findings.map(f =>
-        f.id === findingId
-          ? { ...f, questionId, validationStatus: validationStatus ?? f.validationStatus }
-          : f
-      ),
-    }));
-  },
-
-  unlinkFindingFromQuestion: findingId => {
-    set(state => ({
-      findings: state.findings.map(f =>
-        f.id === findingId ? { ...f, questionId: undefined, validationStatus: undefined } : f
-      ),
-    }));
-  },
-
   setFindingProjection: (findingId, projection) => {
     set(state => ({
       findings: state.findings.map(f => (f.id === findingId ? { ...f, projection } : f)),
@@ -647,182 +583,40 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   },
 
   // ========================================================================
-  // Question actions
+  // Scope actions (ADR-085 — first-class WHERE)
   // ========================================================================
 
-  addQuestion: (text, factor?, level?) => {
-    const question = createQuestion(text, 'general-unassigned', factor, level);
-    set(state => ({ questions: [...state.questions, question] }));
-    return question;
+  addScope: (investigationId, outcome, predicates?, hypothesisIds?) => {
+    const scope = createProblemStatementScope(investigationId, outcome, predicates, hypothesisIds);
+    set(state => ({ scopes: [...state.scopes, scope] }));
+    return scope;
   },
 
-  addSubQuestion: (parentId, text, factor?, level?, validationType?) => {
-    const { questions } = get();
-    const parent = questions.find(q => q.id === parentId);
-    if (!parent) return null;
-
-    // Check depth constraint
-    const parentDepth = getQuestionDepth(parentId, questions);
-    if (parentDepth >= MAX_QUESTION_DEPTH - 1) return null;
-
-    // Check children count constraint
-    const childCount = questions.filter(q => q.parentId === parentId).length;
-    if (childCount >= MAX_CHILDREN_PER_PARENT) return null;
-
-    const question = createQuestion(
-      text,
-      'general-unassigned',
-      factor,
-      level,
-      parentId,
-      validationType
-    );
-    set(state => ({ questions: [...state.questions, question] }));
-    return question;
-  },
-
-  editQuestion: (id, updates) => {
+  updateScope: (scopeId, patch) => {
     set(state => ({
-      questions: state.questions.map(q =>
-        q.id === id ? { ...q, ...updates, updatedAt: Date.now() } : q
+      scopes: state.scopes.map(s =>
+        s.id === scopeId ? { ...s, ...patch, updatedAt: Date.now() } : s
       ),
     }));
   },
 
-  deleteQuestion: id => {
-    const { questions } = get();
-    const idsToDelete = collectDescendants(id, questions);
-
-    // Collect finding IDs that need unlinking
-    const unlinkedFindingIds: string[] = [];
-    for (const q of questions) {
-      if (idsToDelete.has(q.id)) {
-        unlinkedFindingIds.push(...q.linkedFindingIds);
-      }
-    }
-
+  removeScope: scopeId => {
     set(state => ({
-      questions: state.questions.filter(q => !idsToDelete.has(q.id)),
-      // Clear questionId from linked findings
-      findings: state.findings.map(f =>
-        f.questionId && idsToDelete.has(f.questionId)
-          ? { ...f, questionId: undefined, validationStatus: undefined }
-          : f
-      ),
-      // Remove deleted question IDs from causal link references
-      causalLinks: state.causalLinks.map(l => {
-        const filtered = l.questionIds.filter(qid => !idsToDelete.has(qid));
-        return filtered.length === l.questionIds.length
-          ? l
-          : { ...l, questionIds: filtered, updatedAt: Date.now() };
+      scopes: state.scopes.filter(s => s.id !== scopeId),
+    }));
+  },
+
+  addHypothesisToScope: (scopeId, hypothesisId) => {
+    set(state => ({
+      scopes: state.scopes.map(s => {
+        if (s.id !== scopeId) return s;
+        if (s.hypothesisIds.includes(hypothesisId)) return s;
+        return {
+          ...s,
+          hypothesisIds: [...s.hypothesisIds, hypothesisId],
+          updatedAt: Date.now(),
+        };
       }),
-    }));
-
-    return unlinkedFindingIds;
-  },
-
-  setQuestionStatus: (id, status) => {
-    set(state => ({
-      questions: state.questions.map(q =>
-        q.id === id ? { ...q, status, updatedAt: Date.now() } : q
-      ),
-    }));
-  },
-
-  linkFindingToQuestionList: (questionId, findingId) => {
-    set(state => ({
-      questions: state.questions.map(q =>
-        q.id === questionId && !q.linkedFindingIds.includes(findingId)
-          ? {
-              ...q,
-              linkedFindingIds: [...q.linkedFindingIds, findingId],
-              updatedAt: Date.now(),
-            }
-          : q
-      ),
-    }));
-  },
-
-  unlinkFindingFromQuestionList: (questionId, findingId) => {
-    set(state => ({
-      questions: state.questions.map(q =>
-        q.id === questionId
-          ? {
-              ...q,
-              linkedFindingIds: q.linkedFindingIds.filter(fid => fid !== findingId),
-              updatedAt: Date.now(),
-            }
-          : q
-      ),
-    }));
-  },
-
-  addIdea: (questionId, text) => {
-    const { questions } = get();
-    const question = questions.find(q => q.id === questionId);
-    if (!question) return null;
-    const idea = createImprovementIdea(text);
-    set(state => ({
-      questions: state.questions.map(q =>
-        q.id === questionId ? { ...q, ideas: [...(q.ideas ?? []), idea], updatedAt: Date.now() } : q
-      ),
-    }));
-    return idea;
-  },
-
-  updateIdea: (questionId, ideaId, updates) => {
-    set(state => ({
-      questions: state.questions.map(q =>
-        q.id === questionId && q.ideas
-          ? {
-              ...q,
-              ideas: q.ideas.map(i => (i.id === ideaId ? { ...i, ...updates } : i)),
-              updatedAt: Date.now(),
-            }
-          : q
-      ),
-    }));
-  },
-
-  deleteIdea: (questionId, ideaId) => {
-    set(state => ({
-      questions: state.questions.map(q =>
-        q.id === questionId && q.ideas
-          ? {
-              ...q,
-              ideas: q.ideas.filter(i => i.id !== ideaId),
-              updatedAt: Date.now(),
-            }
-          : q
-      ),
-    }));
-  },
-
-  selectIdea: (questionId, ideaId, selected) => {
-    set(state => ({
-      questions: state.questions.map(q =>
-        q.id === questionId && q.ideas
-          ? {
-              ...q,
-              ideas: q.ideas.map(i => (i.id === ideaId ? { ...i, selected } : i)),
-              updatedAt: Date.now(),
-            }
-          : q
-      ),
-    }));
-  },
-
-  updateIdeaProjection: (questionId, ideaId, projection) => {
-    set(state => ({
-      questions: state.questions.map(q =>
-        q.id === questionId && q.ideas
-          ? {
-              ...q,
-              ideas: q.ideas.map(i => (i.id === ideaId ? { ...i, projection } : i)),
-              updatedAt: Date.now(),
-            }
-          : q
-      ),
     }));
   },
 
@@ -841,7 +635,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     if (!finding) return null;
     const excerpt = finding.text.trim().slice(0, 80);
     const name = excerpt.length > 0 ? `Suspected mechanism: ${excerpt}` : 'New mechanism branch';
-    const hub = createHypothesis(name, '', [], [findingId]);
+    const hub = createHypothesis(name, '', [findingId]);
     set(state => ({ hypotheses: [...state.hypotheses, hub] }));
     return hub;
   },
@@ -861,34 +655,15 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
       causalLinks: state.causalLinks.map(l =>
         l.hypothesisId === hubId ? { ...l, hypothesisId: undefined, updatedAt: Date.now() } : l
       ),
-    }));
-  },
-
-  connectQuestionToHub: (hubId, questionId) => {
-    set(state => ({
-      hypotheses: state.hypotheses.map(h => {
-        if (h.id !== hubId) return h;
-        if (h.questionIds.includes(questionId)) return h;
+      // Remove hub from all scope hypothesisIds lists
+      scopes: state.scopes.map(s => {
+        if (!s.hypothesisIds.includes(hubId)) return s;
         return {
-          ...h,
-          questionIds: [...h.questionIds, questionId],
+          ...s,
+          hypothesisIds: s.hypothesisIds.filter((id: string) => id !== hubId),
           updatedAt: Date.now(),
         };
       }),
-    }));
-  },
-
-  disconnectQuestionFromHub: (hubId, questionId) => {
-    set(state => ({
-      hypotheses: state.hypotheses.map(h =>
-        h.id !== hubId
-          ? h
-          : {
-              ...h,
-              questionIds: h.questionIds.filter(id => id !== questionId),
-              updatedAt: Date.now(),
-            }
-      ),
     }));
   },
 
@@ -1004,6 +779,81 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   },
 
   // ========================================================================
+  // Ideas actions (F2 — keyed by hypothesisId, live on Hypothesis.ideas)
+  // ========================================================================
+
+  addIdea: (hypothesisId, text) => {
+    const { hypotheses } = get();
+    const hypothesis = hypotheses.find(h => h.id === hypothesisId);
+    if (!hypothesis) return null;
+    const idea = createImprovementIdea(text);
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hypothesisId
+          ? { ...h, ideas: [...(h.ideas ?? []), idea], updatedAt: Date.now() }
+          : h
+      ),
+    }));
+    return idea;
+  },
+
+  updateIdea: (hypothesisId, ideaId, updates) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hypothesisId && h.ideas
+          ? {
+              ...h,
+              ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, ...updates } : i)),
+              updatedAt: Date.now(),
+            }
+          : h
+      ),
+    }));
+  },
+
+  deleteIdea: (hypothesisId, ideaId) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hypothesisId && h.ideas
+          ? {
+              ...h,
+              ideas: h.ideas.filter(i => i.id !== ideaId),
+              updatedAt: Date.now(),
+            }
+          : h
+      ),
+    }));
+  },
+
+  selectIdea: (hypothesisId, ideaId, selected) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hypothesisId && h.ideas
+          ? {
+              ...h,
+              ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, selected } : i)),
+              updatedAt: Date.now(),
+            }
+          : h
+      ),
+    }));
+  },
+
+  updateIdeaProjection: (hypothesisId, ideaId, projection) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hypothesisId && h.ideas
+          ? {
+              ...h,
+              ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, projection } : i)),
+              updatedAt: Date.now(),
+            }
+          : h
+      ),
+    }));
+  },
+
+  // ========================================================================
   // Causal link actions
   // ========================================================================
 
@@ -1029,20 +879,6 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     }));
   },
 
-  linkQuestionToCausalLink: (linkId, questionId) => {
-    set(state => ({
-      causalLinks: state.causalLinks.map(l => {
-        if (l.id !== linkId) return l;
-        if (l.questionIds.includes(questionId)) return l;
-        return {
-          ...l,
-          questionIds: [...l.questionIds, questionId],
-          updatedAt: Date.now(),
-        };
-      }),
-    }));
-  },
-
   linkFindingToCausalLink: (linkId, findingId) => {
     set(state => ({
       causalLinks: state.causalLinks.map(l => {
@@ -1054,20 +890,6 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
           updatedAt: Date.now(),
         };
       }),
-    }));
-  },
-
-  unlinkQuestionFromCausalLink: (linkId, questionId) => {
-    set(state => ({
-      causalLinks: state.causalLinks.map(l =>
-        l.id !== linkId
-          ? l
-          : {
-              ...l,
-              questionIds: l.questionIds.filter(id => id !== questionId),
-              updatedAt: Date.now(),
-            }
-      ),
     }));
   },
 
@@ -1096,11 +918,10 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   loadAnalyzeState: partial => {
     set(state => ({
       findings: partial.findings ?? state.findings,
-      questions: partial.questions ?? state.questions,
       hypotheses: partial.hypotheses ?? state.hypotheses,
       causalLinks: partial.causalLinks ?? state.causalLinks,
       categories: partial.categories ?? state.categories,
-      problemContributionTree: partial.problemContributionTree ?? state.problemContributionTree,
+      scopes: partial.scopes ?? state.scopes,
     }));
   },
 
@@ -1109,21 +930,33 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   },
 
   // ========================================================================
-  // Investigation Wall actions
+  // Investigation Wall actions (per-scope gateNode)
   // ========================================================================
 
-  setProblemContributionTree: tree => set({ problemContributionTree: tree }),
+  setScopeGateNode: (scopeId, tree) => {
+    set(state => ({
+      scopes: state.scopes.map(s =>
+        s.id === scopeId ? { ...s, gateNode: tree, updatedAt: Date.now() } : s
+      ),
+    }));
+  },
 
-  composeGate: (path, hubId) =>
+  composeScopeGate: (scopeId, path, hubId) =>
     set(state => {
-      const current = state.problemContributionTree;
+      const scope = state.scopes.find(s => s.id === scopeId);
+      if (!scope) return {};
+      const current = scope.gateNode;
       // Tree must be initialized first — silent no-op matches the
       // UX contract (drag-drop fires frequently; we don't want to
       // create an implicit root).
       if (!current) return {};
       const next = insertHubAsAndChild(current, path, hubId);
       if (next === current) return {};
-      return { problemContributionTree: next };
+      return {
+        scopes: state.scopes.map(s =>
+          s.id === scopeId ? { ...s, gateNode: next, updatedAt: Date.now() } : s
+        ),
+      };
     }),
 }));
 

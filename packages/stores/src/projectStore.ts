@@ -20,7 +20,6 @@ import type {
   EntryScenario,
   AnalyzeCategory,
   Finding,
-  Question,
   Hypothesis,
   CausalLink,
   ParetoRow,
@@ -93,7 +92,6 @@ export interface SerializedProject {
   entryScenario?: EntryScenario;
   viewState?: ViewState | null;
   findings?: Finding[];
-  questions?: Question[];
   categories?: AnalyzeCategory[];
   hypotheses?: Hypothesis[];
   causalLinks?: CausalLink[];
@@ -160,9 +158,8 @@ export interface ProjectState {
   // View state (for restoring analyst's working context on project load)
   viewState: ViewState | null;
 
-  // Findings and questions (stored here for serialization; feature stores manage editing)
+  // Findings (stored here for serialization; feature stores manage editing)
   findings: Finding[];
-  questions: Question[];
   categories: AnalyzeCategory[];
 }
 
@@ -227,9 +224,8 @@ export interface ProjectActions {
   // View state
   setViewState: (state: ViewState | null) => void;
 
-  // Findings and questions
+  // Findings
   setFindings: (findings: Finding[]) => void;
-  setQuestions: (questions: Question[]) => void;
   setCategories: (categories: AnalyzeCategory[]) => void;
 }
 
@@ -285,7 +281,6 @@ const initialState: ProjectState = {
   entryScenario: null,
   viewState: null,
   findings: [],
-  questions: [],
   categories: [],
 };
 
@@ -357,7 +352,6 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
       entryScenario: serialized.entryScenario ?? null,
       viewState: serialized.viewState ?? null,
       findings: serialized.findings ?? [],
-      questions: serialized.questions ?? [],
       categories: serialized.categories ?? [],
       hasUnsavedChanges: false,
     }));
@@ -433,10 +427,9 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
 
   setViewState: setAndMark(set, 'viewState'),
 
-  // --- Findings and questions ---
+  // --- Findings ---
 
   setFindings: setAndMark(set, 'findings'),
-  setQuestions: setAndMark(set, 'questions'),
   setCategories: setAndMark(set, 'categories'),
 }));
 

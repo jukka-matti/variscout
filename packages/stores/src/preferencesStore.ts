@@ -27,7 +27,8 @@ export type WorkspaceView =
   | 'investigation'
   | 'improvement'
   | 'report';
-export type PITab = 'stats' | 'questions' | 'journal';
+/** PI panel tabs — 'questions' retired (ADR-085); 'scope' replaces it. */
+export type PITab = 'stats' | 'scope' | 'journal';
 
 export interface PreferencesState {
   // Workspace
@@ -46,7 +47,6 @@ export interface PreferencesState {
   aiEnabled: boolean;
   aiPreferences: Record<string, boolean>;
   knowledgeSearchFolder: string | null;
-  skipQuestionLinkPrompt: boolean;
 
   // Analysis lens
   timeLens: TimeLens;
@@ -80,7 +80,6 @@ export interface PreferencesActions {
   setAIEnabled: (enabled: boolean) => void;
   setAIPreferences: (prefs: Record<string, boolean>) => void;
   setKnowledgeSearchFolder: (folder: string | null) => void;
-  setSkipQuestionLinkPrompt: (value: boolean) => void;
 
   // Lens
   setTimeLens: (lens: TimeLens) => void;
@@ -105,7 +104,6 @@ export const getPreferencesInitialState = (): PreferencesState => ({
   aiEnabled: true,
   aiPreferences: {},
   knowledgeSearchFolder: null,
-  skipQuestionLinkPrompt: false,
   timeLens: DEFAULT_TIME_LENS,
   riskAxisConfig: DEFAULT_RISK_AXIS_CONFIG,
   budgetConfig: {},
@@ -124,7 +122,7 @@ export const usePreferencesStore = create<PreferencesStore>()(
         set({
           activeView: 'investigation',
           isPISidebarOpen: true,
-          piActiveTab: 'questions',
+          piActiveTab: 'scope',
         }),
       showImprovement: () =>
         set({
@@ -146,7 +144,6 @@ export const usePreferencesStore = create<PreferencesStore>()(
       setAIEnabled: (enabled: boolean) => set({ aiEnabled: enabled }),
       setAIPreferences: (prefs: Record<string, boolean>) => set({ aiPreferences: prefs }),
       setKnowledgeSearchFolder: (folder: string | null) => set({ knowledgeSearchFolder: folder }),
-      setSkipQuestionLinkPrompt: (value: boolean) => set({ skipQuestionLinkPrompt: value }),
 
       // Lens
       setTimeLens: (lens: TimeLens) => set({ timeLens: lens }),
@@ -173,7 +170,6 @@ export const usePreferencesStore = create<PreferencesStore>()(
         aiEnabled: state.aiEnabled,
         aiPreferences: state.aiPreferences,
         knowledgeSearchFolder: state.knowledgeSearchFolder,
-        skipQuestionLinkPrompt: state.skipQuestionLinkPrompt,
         timeLens: state.timeLens,
         riskAxisConfig: state.riskAxisConfig,
         budgetConfig: state.budgetConfig,

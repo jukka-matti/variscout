@@ -26,8 +26,6 @@ export type { StageOrderMode } from '@variscout/core';
 export {
   useAnalyzeStore,
   getAnalyzeInitialState,
-  MAX_QUESTION_DEPTH,
-  MAX_CHILDREN_PER_PARENT,
   STORE_LAYER as INVESTIGATION_STORE_LAYER,
 } from './analyzeStore';
 export type { AnalyzeState, AnalyzeActions } from './analyzeStore';
@@ -65,12 +63,7 @@ export type {
   CanvasDocumentSnapshot,
   CanvasHistoryEntry,
 } from './canvasStore';
-export {
-  selectHubCommentStream,
-  selectHypothesisTributaries,
-  selectOpenQuestionsWithoutHub,
-  selectQuestionsForHub,
-} from './wallSelectors';
+export { selectHubCommentStream, selectHypothesisTributaries } from './wallSelectors';
 export type { HubCommentEntry } from './wallSelectors';
 export { useViewStore, getViewInitialState, STORE_LAYER as VIEW_STORE_LAYER } from './viewStore';
 export type { ViewState as ViewStoreState, ViewActions, ViewStore } from './viewStore';
