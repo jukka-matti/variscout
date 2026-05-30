@@ -653,3 +653,255 @@ describe('canvasStore dispatch', () => {
     expect(dispatchedNode?.order).toBe(directNode?.order);
   });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// IM-0b-2 (ADR-087 §5): canvasStore becomes the SINGLE authoring authority for
+// the rich-map fields previously mutated by `ProcessMapBase` → `onChange`.
+// Each action mirrors the ProcessMapBase mutator it replaces, runs through
+// `applyUndoable` (version bump + undo entry), and is method-only (NOT in the
+// `CanvasAction` union — mirrors `addStepsFromColumn`). Ids/timestamps are
+// minted deterministically by the store (no `Date.now()` / `Math.random()`).
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('canvasStore setStepCtq (IM-0b-2 — per-step CTQ authoring)', () => {
+  it('sets the ctqColumn on a step as one undoable change', () => {
+    const stepId = addStepAndGetId('Fill');
+    const version = useCanvasStore.getState().canonicalMapVersion;
+
+    useCanvasStore.getState().setStepCtq(stepId, 'Fill_Weight');
+
+    const node = useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId);
+    expect(node?.ctqColumn).toBe('Fill_Weight');
+    expect(useCanvasStore.getState().canonicalMapVersion).not.toBe(version);
+    expect(useCanvasStore.getState().historyDepth()).toBe(2);
+  });
+
+  it('clears the ctqColumn when called with undefined', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().setStepCtq(stepId, 'Fill_Weight');
+
+    useCanvasStore.getState().setStepCtq(stepId, undefined);
+
+    const node = useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId);
+    expect(node?.ctqColumn).toBeUndefined();
+  });
+
+  it('is a no-op (no version bump, no history) for a missing step or unchanged value', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().setStepCtq(stepId, 'Fill_Weight');
+    const version = useCanvasStore.getState().canonicalMapVersion;
+    const depth = useCanvasStore.getState().historyDepth();
+
+    useCanvasStore.getState().setStepCtq('missing-step', 'X');
+    useCanvasStore.getState().setStepCtq(stepId, 'Fill_Weight');
+
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(version);
+    expect(useCanvasStore.getState().historyDepth()).toBe(depth);
+  });
+
+  it('round-trips through undo / redo', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().setStepCtq(stepId, 'Fill_Weight');
+
+    useCanvasStore.getState().undo();
+    expect(
+      useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId)?.ctqColumn
+    ).toBeUndefined();
+
+    useCanvasStore.getState().redo();
+    expect(useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId)?.ctqColumn).toBe(
+      'Fill_Weight'
+    );
+  });
+});
+
+describe('canvasStore tributary authoring (IM-0b-2)', () => {
+  it('adds a tributary with a deterministic id and the supplied step + column', () => {
+    const stepId = addStepAndGetId('Fill');
+
+    useCanvasStore.getState().addTributary(stepId, 'Machine');
+
+    const tributaries = useCanvasStore.getState().canonicalMap.tributaries;
+    expect(tributaries).toHaveLength(1);
+    expect(tributaries[0]).toMatchObject({ stepId, column: 'Machine' });
+    expect(tributaries[0].id).toEqual(expect.any(String));
+    expect(tributaries[0].id).not.toBe('');
+    expect(useCanvasStore.getState().historyDepth()).toBe(2);
+  });
+
+  it('mints unique deterministic tributary ids (no Math.random / crypto)', () => {
+    const stepId = addStepAndGetId('Fill');
+
+    useCanvasStore.getState().addTributary(stepId, 'Machine');
+    useCanvasStore.getState().addTributary(stepId, 'Shift');
+
+    const ids = useCanvasStore.getState().canonicalMap.tributaries.map(t => t.id);
+    expect(new Set(ids).size).toBe(2);
+  });
+
+  it('removes a tributary and cascades subgroupAxes + hunch refs', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().addTributary(stepId, 'Machine');
+    const tributaryId = useCanvasStore.getState().canonicalMap.tributaries[0].id;
+    useCanvasStore.getState().toggleSubgroupAxis(tributaryId);
+    // A tributary-pinned hunch — must cascade away with the tributary.
+    useCanvasStore.getState().addHunch('Pinned hunch', { tributaryId });
+
+    useCanvasStore.getState().removeTributary(tributaryId);
+
+    const map = useCanvasStore.getState().canonicalMap;
+    expect(map.tributaries.some(t => t.id === tributaryId)).toBe(false);
+    expect(map.subgroupAxes ?? []).not.toContain(tributaryId);
+    expect((map.hunches ?? []).some(h => h.tributaryId === tributaryId)).toBe(false);
+  });
+
+  it('removeTributary is a no-op for an unknown id', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().addTributary(stepId, 'Machine');
+    const version = useCanvasStore.getState().canonicalMapVersion;
+    const depth = useCanvasStore.getState().historyDepth();
+
+    useCanvasStore.getState().removeTributary('trib-missing');
+
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(version);
+    expect(useCanvasStore.getState().historyDepth()).toBe(depth);
+  });
+
+  it('round-trips addTributary through undo / redo', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().addTributary(stepId, 'Machine');
+
+    useCanvasStore.getState().undo();
+    expect(useCanvasStore.getState().canonicalMap.tributaries).toEqual([]);
+
+    useCanvasStore.getState().redo();
+    expect(useCanvasStore.getState().canonicalMap.tributaries).toHaveLength(1);
+  });
+});
+
+describe('canvasStore toggleSubgroupAxis (IM-0b-2)', () => {
+  it('adds the tributary id to subgroupAxes when toggled on', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().addTributary(stepId, 'Machine');
+    const tributaryId = useCanvasStore.getState().canonicalMap.tributaries[0].id;
+
+    useCanvasStore.getState().toggleSubgroupAxis(tributaryId);
+
+    expect(useCanvasStore.getState().canonicalMap.subgroupAxes).toEqual([tributaryId]);
+  });
+
+  it('removes the tributary id from subgroupAxes when toggled off', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().addTributary(stepId, 'Machine');
+    const tributaryId = useCanvasStore.getState().canonicalMap.tributaries[0].id;
+    useCanvasStore.getState().toggleSubgroupAxis(tributaryId);
+
+    useCanvasStore.getState().toggleSubgroupAxis(tributaryId);
+
+    expect(useCanvasStore.getState().canonicalMap.subgroupAxes).toEqual([]);
+  });
+
+  it('round-trips toggleSubgroupAxis through undo / redo', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().addTributary(stepId, 'Machine');
+    const tributaryId = useCanvasStore.getState().canonicalMap.tributaries[0].id;
+
+    useCanvasStore.getState().toggleSubgroupAxis(tributaryId);
+    useCanvasStore.getState().undo();
+    expect(useCanvasStore.getState().canonicalMap.subgroupAxes ?? []).toEqual([]);
+
+    useCanvasStore.getState().redo();
+    expect(useCanvasStore.getState().canonicalMap.subgroupAxes).toEqual([tributaryId]);
+  });
+});
+
+describe('canvasStore hunch authoring (IM-0b-2)', () => {
+  it('adds a hunch with deterministic id and trimmed text', () => {
+    useCanvasStore.getState().addHunch('Nozzle wear on night shift');
+
+    const hunches = useCanvasStore.getState().canonicalMap.hunches ?? [];
+    expect(hunches).toHaveLength(1);
+    expect(hunches[0].text).toBe('Nozzle wear on night shift');
+    expect(hunches[0].id).toEqual(expect.any(String));
+    expect(hunches[0].id).not.toBe('');
+  });
+
+  it('preserves the step / tributary pin passed by the UI', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().addTributary(stepId, 'Machine');
+    const tributaryId = useCanvasStore.getState().canonicalMap.tributaries[0].id;
+
+    useCanvasStore.getState().addHunch('Step hunch', { stepId });
+    useCanvasStore.getState().addHunch('Trib hunch', { tributaryId });
+
+    const hunches = useCanvasStore.getState().canonicalMap.hunches ?? [];
+    expect(hunches.find(h => h.text === 'Step hunch')?.stepId).toBe(stepId);
+    expect(hunches.find(h => h.text === 'Trib hunch')?.tributaryId).toBe(tributaryId);
+  });
+
+  it('does not add an empty hunch (no version bump, no history)', () => {
+    const version = useCanvasStore.getState().canonicalMapVersion;
+    useCanvasStore.getState().addHunch('   ');
+
+    expect(useCanvasStore.getState().canonicalMap.hunches ?? []).toEqual([]);
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(version);
+    expect(useCanvasStore.getState().historyDepth()).toBe(0);
+  });
+
+  it('mints unique deterministic hunch ids', () => {
+    useCanvasStore.getState().addHunch('First');
+    useCanvasStore.getState().addHunch('Second');
+
+    const ids = (useCanvasStore.getState().canonicalMap.hunches ?? []).map(h => h.id);
+    expect(new Set(ids).size).toBe(2);
+  });
+
+  it('removes a hunch by id', () => {
+    useCanvasStore.getState().addHunch('Nozzle wear');
+    const hunchId = (useCanvasStore.getState().canonicalMap.hunches ?? [])[0].id;
+
+    useCanvasStore.getState().removeHunch(hunchId);
+
+    expect(useCanvasStore.getState().canonicalMap.hunches ?? []).toEqual([]);
+  });
+
+  it('removeHunch is a no-op for an unknown id', () => {
+    useCanvasStore.getState().addHunch('Nozzle wear');
+    const version = useCanvasStore.getState().canonicalMapVersion;
+    const depth = useCanvasStore.getState().historyDepth();
+
+    useCanvasStore.getState().removeHunch('hunch-missing');
+
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(version);
+    expect(useCanvasStore.getState().historyDepth()).toBe(depth);
+  });
+
+  it('round-trips addHunch through undo / redo', () => {
+    useCanvasStore.getState().addHunch('Nozzle wear');
+
+    useCanvasStore.getState().undo();
+    expect(useCanvasStore.getState().canonicalMap.hunches ?? []).toEqual([]);
+
+    useCanvasStore.getState().redo();
+    expect(useCanvasStore.getState().canonicalMap.hunches ?? []).toHaveLength(1);
+  });
+
+  it('resets the deterministic id minters via getInitialState (no cross-test bleed)', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().addTributary(stepId, 'Machine');
+    useCanvasStore.getState().addHunch('First');
+    const firstTribId = useCanvasStore.getState().canonicalMap.tributaries[0].id;
+    const firstHunchId = (useCanvasStore.getState().canonicalMap.hunches ?? [])[0].id;
+
+    resetCanvasStore();
+
+    const stepId2 = addStepAndGetId('Fill');
+    useCanvasStore.getState().addTributary(stepId2, 'Machine');
+    useCanvasStore.getState().addHunch('First');
+    const secondTribId = useCanvasStore.getState().canonicalMap.tributaries[0].id;
+    const secondHunchId = (useCanvasStore.getState().canonicalMap.hunches ?? [])[0].id;
+
+    expect(secondTribId).toBe(firstTribId);
+    expect(secondHunchId).toBe(firstHunchId);
+  });
+});

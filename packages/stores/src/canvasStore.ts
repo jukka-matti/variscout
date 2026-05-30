@@ -58,6 +58,25 @@ export interface CanvasStoreActions {
   disconnectSteps: (fromStepId: string, toStepId: string) => void;
   groupIntoSubStep: (stepIds: string[], parentStepId: string) => void;
   ungroupSubStep: (stepId: string) => void;
+  /**
+   * IM-0b-2 (ADR-087 §5): rich-map authoring actions. These migrate the
+   * mutators that `ProcessMapBase` used to apply by building a `next: ProcessMap`
+   * and calling `onChange` — making `canvasStore` the SINGLE authoring authority
+   * for the canonical map. Method-only (NOT in the `CanvasAction` union, like
+   * `addStepsFromColumn`); each runs through `applyUndoable`.
+   */
+  /** Set (or clear, with `undefined`) the CTQ column measured at a step. */
+  setStepCtq: (stepId: string, ctqColumn: string | undefined) => void;
+  /** Add a tributary (an x) feeding a step. Deterministic id. */
+  addTributary: (stepId: string, column: string) => void;
+  /** Remove a tributary; cascades its `subgroupAxes` + pinned-`hunches` refs. */
+  removeTributary: (tributaryId: string) => void;
+  /** Toggle a tributary's nomination as a rational-subgroup axis. */
+  toggleSubgroupAxis: (tributaryId: string) => void;
+  /** Add a pre-data hunch, optionally pinned to a step or tributary. */
+  addHunch: (text: string, pin?: { stepId?: string; tributaryId?: string }) => void;
+  /** Remove a hunch by id. */
+  removeHunch: (hunchId: string) => void;
 }
 
 export type CanvasStore = CanvasStoreState & CanvasHistoryControls & CanvasStoreActions;
@@ -79,10 +98,17 @@ export interface CanvasHistoryEntry {
 
 let versionSequence = 0;
 let generatedStepSequence = 1;
+// IM-0b-2: deterministic id minters for rich-map authoring (tributaries +
+// hunches), mirroring `generatedStepSequence`. Never `crypto.randomUUID()` /
+// `Math.random()` — keeps store output reproducible for tests + undo snapshots.
+let generatedTributarySequence = 1;
+let generatedHunchSequence = 1;
 
 function resetCanvasLocalState() {
   versionSequence = 0;
   generatedStepSequence = 1;
+  generatedTributarySequence = 1;
+  generatedHunchSequence = 1;
 }
 
 function cloneJson<T>(value: T): T {
@@ -162,6 +188,31 @@ function nextStepId(nodes: ProcessMapNode[], stepName: string): string {
 
 function arrowId(fromStepId: string, toStepId: string): string {
   return `arrow-${fromStepId}-to-${toStepId}`;
+}
+
+// IM-0b-2: deterministic minters for tributary / hunch ids. The old
+// `ProcessMapBase` `uid(prefix)` used `crypto.randomUUID()`; moving authoring
+// into the store means ids must be reproducible (undo snapshots + tests), so
+// they mint from monotonic sequences reset by `resetCanvasLocalState`. They
+// skip any id already present to stay collision-free after hydration.
+function nextTributaryId(tributaries: ProcessMap['tributaries']): string {
+  const existing = new Set(tributaries.map(t => t.id));
+  let candidate = '';
+  do {
+    candidate = `trib-${generatedTributarySequence}`;
+    generatedTributarySequence += 1;
+  } while (existing.has(candidate));
+  return candidate;
+}
+
+function nextHunchId(hunches: NonNullable<ProcessMap['hunches']>): string {
+  const existing = new Set(hunches.map(h => h.id));
+  let candidate = '';
+  do {
+    candidate = `hunch-${generatedHunchSequence}`;
+    generatedHunchSequence += 1;
+  } while (existing.has(candidate));
+  return candidate;
 }
 
 export function getCanvasInitialState(): CanvasStoreState {
@@ -452,6 +503,90 @@ export const useCanvasStore = create<CanvasStore>()(
             const node = draft.canonicalMap.nodes.find(candidate => candidate.id === stepId);
             if (!node || node.parentStepId == null) return false;
             node.parentStepId = null;
+            return true;
+          });
+        },
+
+        // ─ IM-0b-2: rich-map authoring (migrated from ProcessMapBase mutators) ─
+
+        setStepCtq: (stepId, ctqColumn) => {
+          applyUndoable('canvas/setStepCtq', draft => {
+            const node = draft.canonicalMap.nodes.find(candidate => candidate.id === stepId);
+            if (!node || node.ctqColumn === ctqColumn) return false;
+            if (ctqColumn === undefined) {
+              delete node.ctqColumn;
+            } else {
+              node.ctqColumn = ctqColumn;
+            }
+            return true;
+          });
+        },
+
+        addTributary: (stepId, column) => {
+          applyUndoable('canvas/addTributary', draft => {
+            const id = nextTributaryId(draft.canonicalMap.tributaries);
+            draft.canonicalMap.tributaries.push({ id, stepId, column });
+            return true;
+          });
+        },
+
+        removeTributary: tributaryId => {
+          applyUndoable('canvas/removeTributary', draft => {
+            const exists = draft.canonicalMap.tributaries.some(t => t.id === tributaryId);
+            if (!exists) return false;
+
+            // Mirror ProcessMapBase's cascade: drop the tributary AND any
+            // subgroupAxis nomination + pinned hunches that reference it.
+            draft.canonicalMap.tributaries = draft.canonicalMap.tributaries.filter(
+              t => t.id !== tributaryId
+            );
+            if (draft.canonicalMap.subgroupAxes) {
+              draft.canonicalMap.subgroupAxes = draft.canonicalMap.subgroupAxes.filter(
+                id => id !== tributaryId
+              );
+            }
+            if (draft.canonicalMap.hunches) {
+              draft.canonicalMap.hunches = draft.canonicalMap.hunches.filter(
+                h => h.tributaryId !== tributaryId
+              );
+            }
+            return true;
+          });
+        },
+
+        toggleSubgroupAxis: tributaryId => {
+          applyUndoable('canvas/toggleSubgroupAxis', draft => {
+            const current = draft.canonicalMap.subgroupAxes ?? [];
+            draft.canonicalMap.subgroupAxes = current.includes(tributaryId)
+              ? current.filter(id => id !== tributaryId)
+              : [...current, tributaryId];
+            return true;
+          });
+        },
+
+        addHunch: (text, pin) => {
+          applyUndoable('canvas/addHunch', draft => {
+            const trimmed = text.trim();
+            if (!trimmed) return false;
+
+            draft.canonicalMap.hunches ??= [];
+            const id = nextHunchId(draft.canonicalMap.hunches);
+            draft.canonicalMap.hunches.push({
+              id,
+              text: trimmed,
+              ...(pin?.stepId !== undefined && { stepId: pin.stepId }),
+              ...(pin?.tributaryId !== undefined && { tributaryId: pin.tributaryId }),
+            });
+            return true;
+          });
+        },
+
+        removeHunch: hunchId => {
+          applyUndoable('canvas/removeHunch', draft => {
+            const hunches = draft.canonicalMap.hunches ?? [];
+            const next = hunches.filter(h => h.id !== hunchId);
+            if (next.length === hunches.length) return false;
+            draft.canonicalMap.hunches = next;
             return true;
           });
         },
