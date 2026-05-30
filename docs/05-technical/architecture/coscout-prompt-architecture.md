@@ -15,7 +15,7 @@ layer: L4
 
 ## Overview
 
-The CoScout prompt system uses a modular, phase-adaptive architecture introduced in the cognitive redesign (Phase 2). The monolithic `buildCoScoutSystemPrompt()` function (now in `legacy.ts`) has been replaced by `assembleCoScoutPrompt()`, which composes from focused sub-modules. Each module has a single responsibility, making the system testable, extensible, and easier to reason about.
+The CoScout prompt system uses a modular, phase-adaptive architecture introduced in the cognitive redesign (Phase 2). The monolithic `buildCoScoutSystemPrompt()` function (deleted 2026-05-30, ADR-068 complete) was replaced by `assembleCoScoutPrompt()`, which composes from focused sub-modules. Each module has a single responsibility, making the system testable, extensible, and easier to reason about.
 
 ## Directory Structure
 
@@ -25,7 +25,6 @@ packages/core/src/ai/prompts/coScout/
 ├── role.ts           — Tier 1: CoScout identity, investigation principles, security, REF markers
 ├── types.ts          — CoScoutPromptTiers, CoScoutSurface, AssembleCoScoutPromptOptions
 ├── messages.ts       — buildCoScoutMessageInput() — Responses API input array builder
-├── legacy.ts         — Original monolith functions (deprecated, test-only backward compat)
 ├── tools/
 │   ├── index.ts      — Barrel: TOOL_REGISTRY, getToolsForPhase(), ToolRegistryEntry, ToolName
 │   └── registry.ts   — 27 tools defined once with phase/mode/tier gating + condition functions
@@ -161,13 +160,7 @@ Managed by `getCoScoutReasoningEffort()` in `packages/core/src/ai/reasoningConfi
 
 ## Legacy Functions
 
-`coScout/legacy.ts` preserves the original monolith for test backward-compatibility:
-
-- `buildCoScoutSystemPrompt()` — flat string system prompt (deprecated, use `assembleCoScoutPrompt()`)
-- `buildCoScoutInput()` — legacy Responses API input builder (use `buildCoScoutMessageInput()`)
-- `buildCoScoutTools()` — legacy tool array builder (use `getToolsForPhase()`)
-
-Do not call legacy functions from new production code. They exist only to avoid breaking existing tests during the migration period.
+The pre-redesign monolith (`coScout/legacy.ts` — `buildCoScoutSystemPrompt()` / `buildCoScoutInput()` / `buildCoScoutTools()`) was **deleted 2026-05-30** (ADR-068 complete). Use `assembleCoScoutPrompt()` (assembly), `buildCoScoutMessageInput()` (Responses API input), and `getToolsForPhase()` (tools).
 
 ## References
 

@@ -78,7 +78,7 @@ Enforcement tiers:
 
 ### CoScout prompts
 
-- **Entry point is `assembleCoScoutPrompt()`** — `buildCoScoutSystemPrompt()` in `legacy.ts` is deprecated (test backward-compat only).
+- **Entry point is `assembleCoScoutPrompt()`** — the sole prompt-assembly entry point (`legacy.ts` / `buildCoScoutSystemPrompt()` deleted 2026-05-30, ADR-068 complete).
   - Canonical: [`.claude/invariants/coscout-prompts.md`](invariants/coscout-prompts.md).
   - Enforced: convention + code review.
 

@@ -8,7 +8,7 @@ related: [coscout-ax-design]
 
 # CoScout prompts — non-negotiables
 
-- **Entry point: `assembleCoScoutPrompt()`.** `buildCoScoutSystemPrompt()` in `legacy.ts` is deprecated (test backward-compat only).
+- **Entry point: `assembleCoScoutPrompt()`** — the sole prompt-assembly entry point (`legacy.ts` deleted 2026-05-30, ADR-068 complete).
 - **Every new tool in `tools/registry.ts` declares `phases`** + optional `tier: 'team'`. Ungated tools leak across phases/tiers.
 - **REF markers reference chart elements**, never raw data values (ADR-057, customer-owned data).
 - **Never "root cause"** — say "contribution" / "suspected cause" / "mechanism" (P5 amended). ESLint `no-root-cause-language` enforces.

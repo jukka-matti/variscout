@@ -116,7 +116,7 @@ Canonical prompt engineering rules live in `.claude/invariants/coscout-prompts.m
 
 **Key constraints (brief summary):**
 
-- Entry point is `assembleCoScoutPrompt()` — `buildCoScoutSystemPrompt()` in `legacy.ts` is deprecated (test backward-compat only)
+- Entry point is `assembleCoScoutPrompt()` — the sole prompt-assembly entry point (`legacy.ts` / `buildCoScoutSystemPrompt()` deleted 2026-05-30, ADR-068 complete)
 - Every tool in `tools/registry.ts` declares `phases` + optional `tier: 'team'`; ungated tools leak across phases/tiers
 - Tier 1 is session-invariant — content that moves between tier 1 and tier 3 breaks prompt-cache hit rate (10x token cost)
 - Never "root cause" language (ESLint-enforced across prompts and CoScout code)
