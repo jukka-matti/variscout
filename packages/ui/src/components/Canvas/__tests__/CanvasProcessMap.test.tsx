@@ -196,7 +196,28 @@ describe('Canvas internal process map — step CRUD', () => {
     expect(next.assignments).toEqual({ Operator: 'step-1' });
   });
 
-  it('sets the CTQ column on a step via the dropdown', () => {
+  // IM-0b-2 (ADR-087 §5): ctqColumn authoring now dispatches `onSetStepCtq`
+  // (canvasStore-backed) when the prop is provided — canvasStore is the single
+  // authoring authority. The legacy `onChange` map-build is the fallback when no
+  // dispatch prop is wired (covered separately below).
+  it('dispatches onSetStepCtq when the CTQ dropdown changes (canvasStore path)', () => {
+    const onSetStepCtq = vi.fn();
+    const onChange = vi.fn();
+    render(
+      <ProcessMapBase
+        map={mapWithOneStep()}
+        availableColumns={COLUMNS}
+        onChange={onChange}
+        onSetStepCtq={onSetStepCtq}
+      />
+    );
+    const select = screen.getByTestId('process-map-step-ctq-step-1') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'Fill_Weight' } });
+    expect(onSetStepCtq).toHaveBeenCalledWith('step-1', 'Fill_Weight');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('falls back to onChange map-build for CTQ when onSetStepCtq is absent (back-compat)', () => {
     const onChange = vi.fn();
     render(
       <ProcessMapBase map={mapWithOneStep()} availableColumns={COLUMNS} onChange={onChange} />
@@ -208,8 +229,89 @@ describe('Canvas internal process map — step CRUD', () => {
   });
 });
 
-describe('Canvas internal process map — tributary CRUD', () => {
-  it('adds a tributary to a step via the inline selector', () => {
+// IM-0b-2 (ADR-087 §5): tributary + subgroup-axis authoring now dispatches the
+// canvasStore-backed props (onAddTributary / onRemoveTributary /
+// onToggleSubgroupAxis). The removeTributary subgroupAxes+hunches cascade lives
+// in the canvasStore action (asserted in canvasStore.test.ts), not in the
+// component — the component only fires the dispatch. Legacy onChange map-build
+// fallbacks are covered below.
+describe('Canvas internal process map — tributary CRUD (canvasStore dispatch)', () => {
+  it('dispatches onAddTributary with the step id + column when confirming the inline selector', () => {
+    const onChange = vi.fn();
+    const onAddTributary = vi.fn();
+    render(
+      <ProcessMapBase
+        map={mapWithOneStep()}
+        availableColumns={COLUMNS}
+        onChange={onChange}
+        onAddTributary={onAddTributary}
+      />
+    );
+    const selector = screen.getByTestId(
+      'process-map-step-add-tributary-select-step-1'
+    ) as HTMLSelectElement;
+    fireEvent.change(selector, { target: { value: 'Machine' } });
+    fireEvent.click(screen.getByLabelText('Confirm add tributary to Fill'));
+    expect(onAddTributary).toHaveBeenCalledWith('step-1', 'Machine');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('dispatches onRemoveTributary with the tributary id', () => {
+    const onChange = vi.fn();
+    const onRemoveTributary = vi.fn();
+    const map: ProcessMap = {
+      ...mapWithTwoSteps(),
+      subgroupAxes: ['trib-1'],
+    };
+    render(
+      <ProcessMapBase
+        map={map}
+        availableColumns={COLUMNS}
+        onChange={onChange}
+        onRemoveTributary={onRemoveTributary}
+      />
+    );
+    fireEvent.click(screen.getByLabelText('Remove tributary Machine'));
+    expect(onRemoveTributary).toHaveBeenCalledWith('trib-1');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('dispatches onToggleSubgroupAxis when toggled on', () => {
+    const onChange = vi.fn();
+    const onToggleSubgroupAxis = vi.fn();
+    render(
+      <ProcessMapBase
+        map={mapWithTwoSteps()}
+        availableColumns={COLUMNS}
+        onChange={onChange}
+        onToggleSubgroupAxis={onToggleSubgroupAxis}
+      />
+    );
+    fireEvent.click(screen.getByLabelText('Use Machine as subgroup axis'));
+    expect(onToggleSubgroupAxis).toHaveBeenCalledWith('trib-1');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('dispatches onToggleSubgroupAxis when toggled off (store owns add/remove logic)', () => {
+    const onChange = vi.fn();
+    const onToggleSubgroupAxis = vi.fn();
+    const map: ProcessMap = { ...mapWithTwoSteps(), subgroupAxes: ['trib-1'] };
+    render(
+      <ProcessMapBase
+        map={map}
+        availableColumns={COLUMNS}
+        onChange={onChange}
+        onToggleSubgroupAxis={onToggleSubgroupAxis}
+      />
+    );
+    fireEvent.click(screen.getByLabelText('Use Machine as subgroup axis'));
+    expect(onToggleSubgroupAxis).toHaveBeenCalledWith('trib-1');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('Canvas internal process map — tributary CRUD (legacy onChange fallback)', () => {
+  it('builds the next map via onChange when no dispatch props are wired (add)', () => {
     const onChange = vi.fn();
     render(
       <ProcessMapBase map={mapWithOneStep()} availableColumns={COLUMNS} onChange={onChange} />
@@ -225,7 +327,7 @@ describe('Canvas internal process map — tributary CRUD', () => {
     expect(next.tributaries[0].stepId).toBe('step-1');
   });
 
-  it('removes a tributary and also clears it from subgroupAxes', () => {
+  it('clears subgroupAxes through onChange when removing a tributary without dispatch props', () => {
     const onChange = vi.fn();
     const map: ProcessMap = {
       ...mapWithTwoSteps(),
@@ -235,25 +337,6 @@ describe('Canvas internal process map — tributary CRUD', () => {
     fireEvent.click(screen.getByLabelText('Remove tributary Machine'));
     const next = onChange.mock.calls[0][0] as ProcessMap;
     expect(next.tributaries).toHaveLength(0);
-    expect(next.subgroupAxes).toEqual([]);
-  });
-
-  it('adds the tributary to subgroupAxes when toggled on', () => {
-    const onChange = vi.fn();
-    render(
-      <ProcessMapBase map={mapWithTwoSteps()} availableColumns={COLUMNS} onChange={onChange} />
-    );
-    fireEvent.click(screen.getByLabelText('Use Machine as subgroup axis'));
-    const next = onChange.mock.calls[0][0] as ProcessMap;
-    expect(next.subgroupAxes).toEqual(['trib-1']);
-  });
-
-  it('removes the tributary from subgroupAxes when toggled off', () => {
-    const onChange = vi.fn();
-    const map: ProcessMap = { ...mapWithTwoSteps(), subgroupAxes: ['trib-1'] };
-    render(<ProcessMapBase map={map} availableColumns={COLUMNS} onChange={onChange} />);
-    fireEvent.click(screen.getByLabelText('Use Machine as subgroup axis'));
-    const next = onChange.mock.calls[0][0] as ProcessMap;
     expect(next.subgroupAxes).toEqual([]);
   });
 });
@@ -333,8 +416,74 @@ describe('Canvas internal process map — CTS / ocean', () => {
   });
 });
 
-describe('Canvas internal process map — hunches', () => {
-  it('adds a hunch via the text input + "+ hunch" button', () => {
+// IM-0b-2 (ADR-087 §5): hunch authoring now dispatches onAddHunch / onRemoveHunch
+// (canvasStore-backed) carrying the trimmed text + pin. The HunchList still
+// guards empty text before dispatching. Legacy onChange map-build fallback is
+// covered below.
+describe('Canvas internal process map — hunches (canvasStore dispatch)', () => {
+  it('dispatches onAddHunch with the trimmed text + tributary pin', () => {
+    const onChange = vi.fn();
+    const onAddHunch = vi.fn();
+    render(
+      <ProcessMapBase
+        map={mapWithTwoSteps()}
+        availableColumns={COLUMNS}
+        onChange={onChange}
+        onAddHunch={onAddHunch}
+      />
+    );
+    fireEvent.change(screen.getByTestId('process-map-hunch-text'), {
+      target: { value: 'Nozzle wear on night shift' },
+    });
+    fireEvent.change(screen.getByTestId('process-map-hunch-pin'), {
+      target: { value: 'trib:trib-1' },
+    });
+    fireEvent.click(screen.getByTestId('process-map-hunch-add'));
+    expect(onAddHunch).toHaveBeenCalledWith('Nozzle wear on night shift', {
+      tributaryId: 'trib-1',
+    });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch onAddHunch for an empty hunch (HunchList guard)', () => {
+    const onChange = vi.fn();
+    const onAddHunch = vi.fn();
+    render(
+      <ProcessMapBase
+        map={mapWithOneStep()}
+        availableColumns={COLUMNS}
+        onChange={onChange}
+        onAddHunch={onAddHunch}
+      />
+    );
+    fireEvent.click(screen.getByTestId('process-map-hunch-add'));
+    expect(onAddHunch).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('dispatches onRemoveHunch with the hunch id', () => {
+    const onChange = vi.fn();
+    const onRemoveHunch = vi.fn();
+    const map: ProcessMap = {
+      ...mapWithOneStep(),
+      hunches: [{ id: 'h-1', text: 'Nozzle wear', stepId: 'step-1' }],
+    };
+    render(
+      <ProcessMapBase
+        map={map}
+        availableColumns={COLUMNS}
+        onChange={onChange}
+        onRemoveHunch={onRemoveHunch}
+      />
+    );
+    fireEvent.click(screen.getByLabelText('Remove hunch Nozzle wear'));
+    expect(onRemoveHunch).toHaveBeenCalledWith('h-1');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('Canvas internal process map — hunches (legacy onChange fallback)', () => {
+  it('builds the next map via onChange when no dispatch props are wired (add)', () => {
     const onChange = vi.fn();
     render(
       <ProcessMapBase map={mapWithTwoSteps()} availableColumns={COLUMNS} onChange={onChange} />
@@ -352,16 +501,7 @@ describe('Canvas internal process map — hunches', () => {
     expect(next.hunches?.[0].tributaryId).toBe('trib-1');
   });
 
-  it('does not add an empty hunch', () => {
-    const onChange = vi.fn();
-    render(
-      <ProcessMapBase map={mapWithOneStep()} availableColumns={COLUMNS} onChange={onChange} />
-    );
-    fireEvent.click(screen.getByTestId('process-map-hunch-add'));
-    expect(onChange).not.toHaveBeenCalled();
-  });
-
-  it('removes a hunch via the per-item × button', () => {
+  it('removes a hunch through onChange when no dispatch props are wired', () => {
     const onChange = vi.fn();
     const map: ProcessMap = {
       ...mapWithOneStep(),

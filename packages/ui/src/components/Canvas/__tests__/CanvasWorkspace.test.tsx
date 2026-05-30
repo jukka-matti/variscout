@@ -1208,6 +1208,67 @@ describe('CanvasWorkspace', () => {
     expect(useCanvasStore.getState().canonicalMap.nodes).toEqual(mapWithSecondStep().nodes);
   });
 
+  // IM-0b-2 (#1 regression risk): a ctqColumn edit dispatches `onSetStepCtq`
+  // (canvasStore) -> persistCanvasStoreMap -> setProcessContext, which feeds the
+  // updated map back as the controlled `processContext` prop. This MUST NOT
+  // re-trigger the hydration effect and clobber the canvasStore edit (back to
+  // the old ctqColumn / dropping undo history). `persistCanvasStoreMap` sets
+  // `lastHydratedMapSignature` to the post-edit map BEFORE handleChange, so the
+  // ensuing prop change is already "seen" and the effect early-returns.
+  it('IM-0b-2: a ctqColumn edit persists without re-hydrating / clobbering the canvasStore', () => {
+    const originalHydrate = useCanvasStore.getState().hydrateCanvasDocument;
+    const hydrateCanvasDocument = vi.fn(originalHydrate);
+    useCanvasStore.setState({ hydrateCanvasDocument });
+
+    const Harness = () => {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: mapWithStep() });
+
+      return (
+        <CanvasWorkspace
+          rawData={rawData}
+          outcome="Fill_Weight"
+          factors={[]}
+          measureSpecs={{}}
+          processContext={processContext}
+          canEditCanvas={false}
+          setOutcome={vi.fn()}
+          setFactors={vi.fn()}
+          setMeasureSpec={vi.fn()}
+          setProcessContext={next => setProcessContext(next ?? { processMap: mapWithStep() })}
+          onSeeData={vi.fn()}
+        />
+      );
+    };
+
+    render(<Harness />);
+
+    // The authoring ProcessMapBase (canvas-authoring-map) renders the step CTQ
+    // dropdown. Edit it: Bake_Time -> Machine.
+    const callsAfterInitialHydration = hydrateCanvasDocument.mock.calls.length;
+    const select = screen.getByTestId('process-map-step-ctq-step-1') as HTMLSelectElement;
+
+    act(() => {
+      fireEvent.change(select, { target: { value: 'Machine' } });
+    });
+
+    // The edit landed on the canvasStore (single authoring authority) ...
+    const step1 = useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === 'step-1');
+    expect(step1?.ctqColumn).toBe('Machine');
+
+    // ... it flowed to processContext (the controlled prop round-trip) ...
+    expect(useCanvasStore.getState().historyDepth()).toBeGreaterThan(0);
+
+    // ... and the controlled-prop round-trip did NOT re-hydrate: no extra
+    // hydrateCanvasDocument call beyond the initial mount hydration, and the
+    // store still carries the new ctqColumn (not clobbered back to Bake_Time).
+    expect(hydrateCanvasDocument).toHaveBeenCalledTimes(callsAfterInitialHydration);
+    expect(
+      useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === 'step-1')?.ctqColumn
+    ).toBe('Machine');
+  });
+
   it('LV1-H: renders OutcomeSummaryPill in header when scope.yColumn is set', () => {
     useAnalysisScopeStore.setState({ yColumn: 'Fill_Weight' });
     renderWorkspace({ processContext: { processMap: mapWithStep() } });
