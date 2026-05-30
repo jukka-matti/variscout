@@ -1,5 +1,10 @@
 import React from 'react';
-import type { ProcessHub, ControlRecord, ControlHandoff } from '@variscout/core';
+import type {
+  ProcessHub,
+  ControlRecord,
+  ControlHandoff,
+  ProcessParticipantRef,
+} from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { HubAction } from '@variscout/core/actions';
 import type { ProjectMember } from '@variscout/core/projectMembership';
@@ -33,6 +38,23 @@ interface ProjectsTabViewProps {
 function liveProjects(hub: ProcessHub | undefined): ImprovementProject[] {
   const p = hub?.improvementProject;
   return p && p.deletedAt === null ? [p] : [];
+}
+
+/**
+ * Resolve the acting user as the sign-off approver. Sign-off is decoupled from
+ * the process owner (IM-7 Task 3): the approver is whoever is acting now,
+ * resolved from project membership by the signed-in user id, with a generic
+ * fallback when the user is unknown (no auth context in tests).
+ */
+function actingApprover(
+  project: ImprovementProject,
+  currentUserId: string | undefined
+): ProcessParticipantRef {
+  const me = project.metadata.members?.find(m => m.userId === currentUserId);
+  if (me) {
+    return { userId: me.userId, displayName: me.displayName };
+  }
+  return { userId: currentUserId, displayName: 'Reviewer' };
 }
 
 function mergeProjectPatch(
@@ -152,9 +174,18 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         actions={approachInputs?.actions}
         now={now}
         currentUserId={currentUserId}
-        onMembersChange={(members: ProjectMember[]) =>
-          applyProjectPatch(selected, { metadata: { ...selected.metadata, members } })
-        }
+        onMembersChange={(members: ProjectMember[]) => {
+          const prevCount = selected.metadata.members?.length ?? 0;
+          // Set the durable collaboration marker ONCE, when the roster first
+          // grows beyond its solo creator (first invite). Never re-stamped and
+          // never cleared on removal — see ImprovementProject.collaboratedAt.
+          const markFirstInvite =
+            members.length > prevCount && !selected.collaboratedAt ? { collaboratedAt: now } : {};
+          applyProjectPatch(selected, {
+            metadata: { ...selected.metadata, members },
+            ...markFirstInvite,
+          });
+        }}
         onRequestSignoff={() =>
           applyProjectPatch(selected, {
             signoff: {
@@ -172,7 +203,8 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
               ...(selected.signoff ?? {}),
               requestedAt: selected.signoff?.requestedAt ?? Date.now(),
               approvedAt: Date.now(),
-              approvedBy: activeHub.processOwner ?? { displayName: 'Process owner' },
+              // Acting user, not the process owner (sign-off decoupled, IM-7 Task 3).
+              approvedBy: actingApprover(selected, currentUserId),
             },
           })
         }

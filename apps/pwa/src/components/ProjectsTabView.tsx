@@ -28,7 +28,7 @@ interface ProjectsTabViewProps {
     projectId: ImprovementProject['id'],
     patch: Extract<HubAction, { kind: 'IMPROVEMENT_PROJECT_UPDATE' }>['patch']
   ) => void;
-  onNudgeSignoff?: (projectId: ImprovementProject['id']) => void;
+  // PWA never exposes sign-off (IM-7 §9.2): no onNudgeSignoff / onApproveSignoff.
   onStartNewProject?: () => void;
 }
 
@@ -86,7 +86,6 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onOpenLegacyControl,
   onNudgeProcessOwner,
   onProjectPatch,
-  onNudgeSignoff,
   onStartNewProject,
 }) => {
   const [now] = React.useState(() => Date.now());
@@ -153,30 +152,24 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         actions={approachInputs?.actions}
         now={now}
         currentUserId={PWA_USER_ID}
-        onMembersChange={(members: ProjectMember[]) =>
-          applyProjectPatch(selected, { metadata: { ...selected.metadata, members } })
-        }
-        onRequestSignoff={() =>
+        onMembersChange={(members: ProjectMember[]) => {
+          const prevCount = selected.metadata.members?.length ?? 0;
+          // Set the durable collaboration marker ONCE, when the roster first
+          // grows beyond its solo creator (first invite). Never re-stamped and
+          // never cleared on removal — see ImprovementProject.collaboratedAt.
+          const markFirstInvite =
+            members.length > prevCount && !selected.collaboratedAt ? { collaboratedAt: now } : {};
           applyProjectPatch(selected, {
-            signoff: {
-              ...(selected.signoff ?? {}),
-              requestedAt: Date.now(),
-              approvedAt: undefined,
-              approvedBy: undefined,
-            },
-          })
-        }
-        onNudgeSignoff={() => onNudgeSignoff?.(selected.id)}
-        onApproveSignoff={() =>
-          applyProjectPatch(selected, {
-            signoff: {
-              ...(selected.signoff ?? {}),
-              requestedAt: selected.signoff?.requestedAt ?? Date.now(),
-              approvedAt: Date.now(),
-              approvedBy: activeHub.processOwner ?? { displayName: 'Process owner' },
-            },
-          })
-        }
+            metadata: { ...selected.metadata, members },
+            ...markFirstInvite,
+          });
+        }}
+        // PWA never exposes sign-off (IM-7 §9.2): it is a single-user, Mode-1
+        // solo surface. No onRequestSignoff / onNudgeSignoff / onApproveSignoff
+        // is wired here. The team rail gates the sign-off section on BOTH
+        // isCollaborative(ip) AND at least one sign-off callback being present,
+        // so the section is fully absent — even after collaboratedAt is stamped
+        // by a local invite — because no callbacks are wired in the PWA.
       />
     );
   }

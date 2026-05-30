@@ -73,8 +73,7 @@ describe('ProjectsTabView', () => {
     expect(onStartNewProject).toHaveBeenCalledTimes(1);
   });
 
-  it('updates the project store and emits a patch from detail signoff actions', () => {
-    const onProjectPatch = vi.fn();
+  it('never exposes a sign-off section — PWA is a Mode-1 solo surface (IM-7 §9.2)', () => {
     const hub: ProcessHub = {
       ...baseHub,
       processOwner: { displayName: 'Pat Process', upn: 'pat@example.com' },
@@ -86,21 +85,54 @@ describe('ProjectsTabView', () => {
         activeHub={hub}
         selectedProjectId="ip-1"
         onSelectProject={() => {}}
-        onProjectPatch={onProjectPatch}
+        onProjectPatch={() => {}}
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /request approval/i }));
+    // Solo project has no collaboratedAt marker → the team-rail sign-off
+    // section self-hides, and PWA wires no sign-off callbacks at all.
+    expect(screen.queryByRole('button', { name: /request approval/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Signoff' })).not.toBeInTheDocument();
+  });
 
-    expect(onProjectPatch).toHaveBeenCalledWith(
-      'ip-1',
-      expect.objectContaining({
-        signoff: expect.objectContaining({ requestedAt: expect.any(Number) }),
-      })
+  it('sign-off section stays absent even after collaboratedAt is stamped (no PWA callbacks wired)', () => {
+    // After a local invite the PWA stamps collaboratedAt, but PWA never wires
+    // onRequestSignoff / onNudgeSignoff / onApproveSignoff (§9.2 solo contract).
+    // The team-rail must NOT render the Signoff section in this state — the
+    // gating is on callbacks present, not just collaboratedAt.
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        collaboratedAt: 1_700_000_000_000,
+        metadata: {
+          title: 'Post-invite PWA project',
+          members: [
+            {
+              id: 'pm-1',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'member@example.com',
+              displayName: 'Member',
+              role: 'member',
+              invitedAt: 0,
+            },
+          ],
+        },
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={() => {}}
+        // Intentionally no sign-off callbacks — PWA never passes them.
+      />
     );
-    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.signoff).toEqual(
-      expect.objectContaining({ requestedAt: expect.any(Number) })
-    );
+
+    expect(screen.queryByRole('button', { name: /request approval/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Signoff' })).not.toBeInTheDocument();
   });
 
   it('threads PWA_USER_ID into IPDetailPage — charter team section is visible', () => {
@@ -168,6 +200,138 @@ describe('ProjectsTabView', () => {
       expect.arrayContaining([
         expect.objectContaining({ userId: 'lead@example.com', role: 'lead' }),
       ])
+    );
+  });
+
+  it('sets collaboratedAt once on the first invite (roster grows from solo)', () => {
+    const onProjectPatch = vi.fn();
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({ status: 'draft', metadata: { title: 'First invite' } }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /invite team/i }));
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'lead@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'lead' } });
+    fireEvent.click(screen.getByRole('button', { name: /^invite$/i }));
+
+    expect(onProjectPatch).toHaveBeenCalledWith(
+      'ip-1',
+      expect.objectContaining({ collaboratedAt: expect.any(Number) })
+    );
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.collaboratedAt).toEqual(
+      expect.any(Number)
+    );
+  });
+
+  it('does not re-stamp collaboratedAt on a second invite (idempotent)', () => {
+    const onProjectPatch = vi.fn();
+    const existingMarker = 1_700_000_000_000;
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        status: 'draft',
+        metadata: {
+          title: 'Already collaborative',
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'analyst@local',
+              displayName: 'Analyst',
+              role: 'lead',
+              invitedAt: 0,
+            },
+          ],
+        },
+        collaboratedAt: existingMarker,
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /invite team/i }));
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'member@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'member' } });
+    fireEvent.click(screen.getByRole('button', { name: /^invite$/i }));
+
+    const lastPatch = onProjectPatch.mock.calls.at(-1)?.[1] ?? {};
+    expect(lastPatch).not.toHaveProperty('collaboratedAt');
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.collaboratedAt).toBe(
+      existingMarker
+    );
+  });
+
+  it('does not clear collaboratedAt when a member is removed (durable marker)', () => {
+    const onProjectPatch = vi.fn();
+    const existingMarker = 1_700_000_000_000;
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        status: 'draft',
+        metadata: {
+          title: 'Removal keeps marker',
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'analyst@local',
+              displayName: 'Analyst',
+              role: 'lead',
+              invitedAt: 0,
+            },
+            {
+              id: 'pm-member',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'member@example.com',
+              displayName: 'Member',
+              role: 'member',
+              invitedAt: 0,
+            },
+          ],
+        },
+        collaboratedAt: existingMarker,
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Member' }));
+
+    const lastPatch = onProjectPatch.mock.calls.at(-1)?.[1] ?? {};
+    expect(lastPatch).not.toHaveProperty('collaboratedAt');
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.collaboratedAt).toBe(
+      existingMarker
     );
   });
 });

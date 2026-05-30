@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
 import type { ControlHandoff, ProcessHub, ControlRecord } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import { isCollaborative } from '@variscout/core/improvementProject';
 import type { ProjectMember, ProjectRole } from '@variscout/core/projectMembership';
 import IPDetailAvatar from './IPDetailAvatar';
 import { deriveIPActivityEvents, type IPActivityEvent } from './activityEvents';
@@ -88,7 +89,9 @@ function ActivityList({ events }: { events: IPActivityEvent[] }) {
 const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
   ip,
   raciOverrides = {},
-  activeHub,
+  // `activeHub` stays on the props contract (callers still pass it) but the rail
+  // no longer reads `processOwner`: sign-off is decoupled from the process owner
+  // (IM-7 Task 3). Intentionally not destructured here.
   ideas = [],
   actions = [],
   controlRecord,
@@ -115,9 +118,19 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
     [actions, controlHandoff, effectiveNow, ideas, ip, controlRecord]
   );
   const recentEvents = events.slice(0, 5);
-  const approver = activeHub?.processOwner;
   const pendingSignoff = Boolean(ip.signoff?.requestedAt && !ip.signoff.approvedAt);
-  const canApprove = pendingSignoff && Boolean(approver);
+  // Sign-off is decoupled from the process owner and never blocks closure:
+  // any acting reviewer may approve while a request is pending. The approver
+  // identity is captured at the dispatch site (the acting user), not here.
+  const canApprove = pendingSignoff;
+  // Sign-off section is shown only when the project is collaborative (has a
+  // collaboratedAt marker) AND the rendering surface has wired at least one
+  // sign-off callback. The PWA wires none (§9.2 solo surface contract), so this
+  // evaluates to false even after an invite stamps collaboratedAt — the section
+  // is fully absent, not disabled. Azure wires all three callbacks so it always
+  // shows the section once the project is collaborative.
+  const collaborative =
+    isCollaborative(ip) && (!!onRequestSignoff || !!onApproveSignoff || !!onNudgeSignoff);
 
   return (
     <aside className={className} data-testid="ip-detail-team-rail" aria-label="Team workspace">
@@ -170,61 +183,62 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
         </div>
       </section>
 
-      <section
-        className="mt-5 rounded-md border border-edge bg-surface p-3"
-        aria-labelledby="ip-signoff-heading"
-      >
-        <h2
-          id="ip-signoff-heading"
-          className="text-[11px] font-semibold uppercase tracking-wide text-content-tertiary"
+      {collaborative ? (
+        <section
+          className="mt-5 rounded-md border border-edge bg-surface p-3"
+          aria-labelledby="ip-signoff-heading"
         >
-          Signoff
-        </h2>
-        {ip.signoff?.approvedAt ? (
-          <p className="mt-2 text-content-secondary">
-            Approved by {ip.signoff.approvedBy?.displayName ?? 'Approver'} ·{' '}
-            {formatDate(ip.signoff.approvedAt)}
-          </p>
-        ) : pendingSignoff ? (
-          <div className="mt-2 space-y-2">
-            <p className="text-content-secondary">
-              {approver?.displayName ?? 'Approver'} awaiting ·{' '}
-              {daysAgo(ip.signoff!.requestedAt!, effectiveNow)} days ago
+          <h2
+            id="ip-signoff-heading"
+            className="text-[11px] font-semibold uppercase tracking-wide text-content-tertiary"
+          >
+            Signoff
+          </h2>
+          {ip.signoff?.approvedAt ? (
+            <p className="mt-2 text-content-secondary">
+              Approved by {ip.signoff.approvedBy?.displayName ?? 'Approver'} ·{' '}
+              {formatDate(ip.signoff.approvedAt)}
             </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="rounded-md border border-edge px-2 py-1 text-[11px] text-content-secondary hover:text-content"
-                onClick={onNudgeSignoff}
-                disabled={!onNudgeSignoff}
-              >
-                Nudge
-              </button>
-              {canApprove ? (
+          ) : pendingSignoff ? (
+            <div className="mt-2 space-y-2">
+              <p className="text-content-secondary">
+                Awaiting approval · {daysAgo(ip.signoff!.requestedAt!, effectiveNow)} days ago
+              </p>
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className="rounded-md bg-[var(--vs-accent)] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[var(--vs-accent-hover)]"
-                  onClick={onApproveSignoff}
-                  disabled={!onApproveSignoff}
+                  className="rounded-md border border-edge px-2 py-1 text-[11px] text-content-secondary hover:text-content"
+                  onClick={onNudgeSignoff}
+                  disabled={!onNudgeSignoff}
                 >
-                  Approve
+                  Nudge
                 </button>
-              ) : null}
+                {canApprove ? (
+                  <button
+                    type="button"
+                    className="rounded-md bg-[var(--vs-accent)] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[var(--vs-accent-hover)]"
+                    onClick={onApproveSignoff}
+                    disabled={!onApproveSignoff}
+                  >
+                    Approve
+                  </button>
+                ) : null}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="mt-2">
-            <button
-              type="button"
-              className="rounded-md bg-[var(--vs-accent)] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[var(--vs-accent-hover)]"
-              onClick={onRequestSignoff}
-              disabled={!onRequestSignoff}
-            >
-              Request approval
-            </button>
-          </div>
-        )}
-      </section>
+          ) : (
+            <div className="mt-2">
+              <button
+                type="button"
+                className="rounded-md bg-[var(--vs-accent)] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[var(--vs-accent-hover)]"
+                onClick={onRequestSignoff}
+                disabled={!onRequestSignoff}
+              >
+                Request approval
+              </button>
+            </div>
+          )}
+        </section>
+      ) : null}
 
       {activityOpen ? (
         <div

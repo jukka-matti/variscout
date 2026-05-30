@@ -189,7 +189,7 @@ function makeHandoff(
 }
 
 describe('applyAction (Azure) — control handoffs', () => {
-  it('creates, updates, acknowledges, signs off, marks operational, and archives handoffs', async () => {
+  it('creates, updates, acknowledges, marks operational, and archives handoffs', async () => {
     await db.processHubs.put(makeHub('hub-handoff'));
 
     await applyAction({
@@ -210,11 +210,6 @@ describe('applyAction (Azure) — control handoffs', () => {
       notes: 'Accepted',
     });
     await applyAction({
-      kind: 'CONTROL_HANDOFF_SIGNOFF',
-      handoffId: 'handoff-1',
-      signoff: { approvedAt: NOW + 2, approvedBy: { displayName: 'Sponsor' } },
-    });
-    await applyAction({
       kind: 'CONTROL_HANDOFF_MARK_OPERATIONAL',
       handoffId: 'handoff-1',
       operationalAt: NOW + 3,
@@ -232,7 +227,6 @@ describe('applyAction (Azure) — control handoffs', () => {
         acknowledgedBy: { displayName: 'Process owner' },
         notes: 'Accepted',
       },
-      signoff: { approvedAt: NOW + 2, approvedBy: { displayName: 'Sponsor' } },
     });
     expect(stored?.deletedAt).toEqual(expect.any(Number));
   });

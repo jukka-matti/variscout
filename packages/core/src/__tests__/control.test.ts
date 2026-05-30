@@ -60,7 +60,7 @@ describe('nextDueFromCadence', () => {
 });
 
 describe('ControlHandoff V1 lifecycle shape', () => {
-  it('supports pending, acknowledged, and operational lifecycle state plus signoff metadata', () => {
+  it('supports pending, acknowledged, and operational lifecycle state', () => {
     const states: ControlHandoffStatus[] = ['pending', 'acknowledged', 'operational'];
     const handoff: ControlHandoff = {
       id: 'handoff-1',
@@ -81,18 +81,13 @@ describe('ControlHandoff V1 lifecycle shape', () => {
       },
       escalationPath: 'Escalate misses to the production manager.',
       reactionPlan: 'Restore standard work and open a focused investigation if drift repeats.',
-      signoff: {
-        requestedAt: 1_746_353_000_000,
-        approvedAt: 1_746_353_100_000,
-        approvedBy: { displayName: 'Sponsor' },
-      },
       createdAt: 1_746_352_800_000,
       deletedAt: null,
     };
 
     expect(states).toHaveLength(3);
     expect(handoff.status).toBe('acknowledged');
-    expect(handoff.signoff?.approvedBy?.displayName).toBe('Sponsor');
+    expect(handoff.acknowledgedAt).toBe(1_746_352_900_000);
   });
 });
 

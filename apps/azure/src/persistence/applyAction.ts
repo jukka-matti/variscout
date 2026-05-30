@@ -449,18 +449,6 @@ export async function applyAction(action: HubAction): Promise<void> {
       return;
     }
 
-    case 'CONTROL_HANDOFF_SIGNOFF': {
-      const existing = await db.controlHandoffs.get(action.handoffId);
-      if (!existing) return;
-      const operationalAt = existing.operationalAt ?? action.signoff.approvedAt ?? Date.now();
-      await db.controlHandoffs.update(action.handoffId, {
-        status: 'operational',
-        operationalAt,
-        signoff: { ...(existing.signoff ?? {}), ...action.signoff },
-      });
-      return;
-    }
-
     // -------------------------------------------------------------------------
     // Session-only — Azure has no dedicated Dexie table today; F3 normalizes.
     // -------------------------------------------------------------------------

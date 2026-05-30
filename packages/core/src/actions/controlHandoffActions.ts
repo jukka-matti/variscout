@@ -1,6 +1,5 @@
 import type { ProcessHub, ProcessParticipantRef } from '../processHub';
 import type { ControlHandoff } from '../control';
-import type { ImprovementProjectSignoff } from '../improvementProject';
 
 export type ControlHandoffAction =
   | {
@@ -14,7 +13,7 @@ export type ControlHandoffAction =
       patch: Partial<
         Omit<
           ControlHandoff,
-          'id' | 'createdAt' | 'hubId' | 'investigationId' | 'updatedAt' | 'deletedAt' | 'signoff'
+          'id' | 'createdAt' | 'hubId' | 'investigationId' | 'updatedAt' | 'deletedAt'
         >
       >;
     }
@@ -33,9 +32,4 @@ export type ControlHandoffAction =
       kind: 'CONTROL_HANDOFF_MARK_OPERATIONAL';
       handoffId: ControlHandoff['id'];
       operationalAt?: number;
-    }
-  | {
-      kind: 'CONTROL_HANDOFF_SIGNOFF';
-      handoffId: ControlHandoff['id'];
-      signoff: ImprovementProjectSignoff;
     };

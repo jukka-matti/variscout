@@ -82,7 +82,8 @@ describe('ProjectsTabView', () => {
     const hub: ProcessHub = {
       ...baseHub,
       processOwner: { displayName: 'Pat Process', upn: 'pat@example.com' },
-      improvementProject: makeIP(),
+      // collaboratedAt makes the sign-off section visible (collaboration affordance).
+      improvementProject: makeIP({ collaboratedAt: 1_700_000_000_000 }),
     };
 
     render(
@@ -104,6 +105,55 @@ describe('ProjectsTabView', () => {
     );
     expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.signoff).toEqual(
       expect.objectContaining({ requestedAt: expect.any(Number) })
+    );
+  });
+
+  it('approves with the acting user (not the process owner) and works with no process owner set', () => {
+    const onProjectPatch = vi.fn();
+    const hub: ProcessHub = {
+      ...baseHub,
+      // No processOwner on the hub — sign-off must still be approvable.
+      improvementProject: makeIP({
+        collaboratedAt: 1_700_000_000_000,
+        signoff: { requestedAt: 1_700_000_100_000 },
+        metadata: {
+          title: 'Approve without owner',
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'analyst@contoso.com',
+              displayName: 'Analyst Lead',
+              role: 'lead',
+              invitedAt: 0,
+            },
+          ],
+        },
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+        currentUserId="analyst@contoso.com"
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+
+    // approvedBy is the acting user (resolved from membership), never the process owner.
+    expect(onProjectPatch).toHaveBeenCalledWith(
+      'ip-1',
+      expect.objectContaining({
+        signoff: expect.objectContaining({
+          approvedAt: expect.any(Number),
+          approvedBy: expect.objectContaining({ displayName: 'Analyst Lead' }),
+        }),
+      })
     );
   });
 
@@ -174,6 +224,143 @@ describe('ProjectsTabView', () => {
       expect.arrayContaining([
         expect.objectContaining({ userId: 'lead@contoso.com', role: 'lead' }),
       ])
+    );
+  });
+
+  it('sets collaboratedAt once on the first invite (roster grows from solo)', () => {
+    const onProjectPatch = vi.fn();
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({ status: 'draft', metadata: { title: 'First invite' } }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+        currentUserId="analyst@contoso.com"
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /invite team/i }));
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'lead@contoso.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'lead' } });
+    fireEvent.click(screen.getByRole('button', { name: /^invite$/i }));
+
+    expect(onProjectPatch).toHaveBeenCalledWith(
+      'ip-1',
+      expect.objectContaining({ collaboratedAt: expect.any(Number) })
+    );
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.collaboratedAt).toEqual(
+      expect.any(Number)
+    );
+  });
+
+  it('does not re-stamp collaboratedAt on a second invite (idempotent)', () => {
+    const onProjectPatch = vi.fn();
+    const existingMarker = 1_700_000_000_000;
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        status: 'draft',
+        metadata: {
+          title: 'Already collaborative',
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'analyst@contoso.com',
+              displayName: 'Analyst Lead',
+              role: 'lead',
+              invitedAt: 0,
+            },
+          ],
+        },
+        collaboratedAt: existingMarker,
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+        currentUserId="analyst@contoso.com"
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /invite team/i }));
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'member@contoso.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'member' } });
+    fireEvent.click(screen.getByRole('button', { name: /^invite$/i }));
+
+    // The second invite patches members but must NOT carry a collaboratedAt key
+    // (the marker is set-once; re-stamping would move the durable timestamp).
+    const lastPatch = onProjectPatch.mock.calls.at(-1)?.[1] ?? {};
+    expect(lastPatch).not.toHaveProperty('collaboratedAt');
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.collaboratedAt).toBe(
+      existingMarker
+    );
+  });
+
+  it('does not clear collaboratedAt when a member is removed (durable marker)', () => {
+    const onProjectPatch = vi.fn();
+    const existingMarker = 1_700_000_000_000;
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        status: 'draft',
+        metadata: {
+          title: 'Removal keeps marker',
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'analyst@contoso.com',
+              displayName: 'Analyst Lead',
+              role: 'lead',
+              invitedAt: 0,
+            },
+            {
+              id: 'pm-member',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'member@contoso.com',
+              displayName: 'Member',
+              role: 'member',
+              invitedAt: 0,
+            },
+          ],
+        },
+        collaboratedAt: existingMarker,
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+        currentUserId="analyst@contoso.com"
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Member' }));
+
+    const lastPatch = onProjectPatch.mock.calls.at(-1)?.[1] ?? {};
+    expect(lastPatch).not.toHaveProperty('collaboratedAt');
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.collaboratedAt).toBe(
+      existingMarker
     );
   });
 });

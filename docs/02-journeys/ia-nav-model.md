@@ -48,7 +48,7 @@ The solid arrows are the workflow walk (left-to-right). The dotted arrows are th
 
 ### Project
 
-**Purpose**: project-scoped Charter, member roster, lifecycle stage view (Charter → Approach → Control), and Project-level metadata. Sign-off gates (Charter approval, Control cadence) live here.
+**Purpose**: project-scoped Charter, member roster, lifecycle stage view (Charter → Approach → Control), and Project-level metadata. Optional, non-blocking sign-off (Azure collaboration affordance; hidden solo) lives here.
 **Primary action**: read the Charter; advance stage (Lead-only); approve (Sponsor for Charter; Lead for hypothesis closure).
 
 ### Process
@@ -73,12 +73,12 @@ The solid arrows are the workflow walk (left-to-right). The dotted arrows are th
 
 ### Report
 
-**Purpose**: terminal compilation surface. Findings, Hypotheses, Actions, and Control status compile into a Report the Sponsor signs off and the team can share. Read-mostly for everyone except the Lead during compilation.
+**Purpose**: terminal compilation surface. Findings, Hypotheses, Actions, and Control status compile into a Report the Sponsor reviews (sign-off optional/out-of-band) and the team can share. Read-mostly for everyone except the Lead during compilation.
 **Primary action**: review interim status during Control; sign off final Report (Sponsor).
 
 ## Active-IP cascade rules
 
-An **active IP** is the Improvement Project the Lead has selected as their current working focus. IPs are created via Charter ceremony (see Project tab); the active IP is then selected from the Lead's portfolio. At most one IP is active at a time per persona session. When an IP is active:
+An **active IP** is the Improvement Project the Lead has selected as their current working focus. Project = collaboration via invite; no Charter ceremony — the Lead creates the Project from Home and invites Members directly. The active IP is then selected from the Lead's portfolio. At most one IP is active at a time per persona session. When an IP is active:
 
 - **Project tab** filters its Charter / roster view to the IP's scope. The Project-level Charter remains accessible; the IP's working Charter sits underneath.
 - **Process tab** highlights the process steps the IP touches; non-IP scope dims.

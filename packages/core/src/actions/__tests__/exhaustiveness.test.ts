@@ -138,8 +138,6 @@ function _exhaustive(action: HubAction): void {
       return;
     case 'CONTROL_HANDOFF_MARK_OPERATIONAL':
       return;
-    case 'CONTROL_HANDOFF_SIGNOFF':
-      return;
     default:
       return assertNever(action);
   }
