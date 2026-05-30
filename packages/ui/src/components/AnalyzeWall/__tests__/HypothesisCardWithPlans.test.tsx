@@ -85,11 +85,15 @@ const sponsorMember: ProjectMember = {
 const plan1: MeasurementPlan = {
   id: 'mp1',
   hypothesisId: 'h1',
-  factor: 'Temperature',
+  outcome: 'Fill Weight',
+  primaryFactor: 'Temperature',
+  neededFactors: [],
   method: 'sensor',
   sampleSize: 30,
   owner: 'm1',
   status: 'planned',
+  scope: [],
+  processLocation: '',
   linkedFindingIds: [],
   createdAt: 1,
   deletedAt: null,
@@ -98,11 +102,15 @@ const plan1: MeasurementPlan = {
 const plan2: MeasurementPlan = {
   id: 'mp2',
   hypothesisId: 'h1',
-  factor: 'Manual settings',
+  outcome: 'Fill Weight',
+  primaryFactor: 'Manual settings',
+  neededFactors: [],
   method: 'gemba-walk',
   sampleSize: 10,
   owner: 'm1',
   status: 'complete',
+  scope: [],
+  processLocation: '',
   linkedFindingIds: ['f1'],
   createdAt: 2,
   deletedAt: null,
@@ -291,8 +299,8 @@ describe('HypothesisCardWithPlans — AddPlanForm open/close/save', () => {
       />
     );
     fireEvent.click(screen.getByRole('button', { name: /add plan/i }));
-    // AddPlanForm has a "Factor" label
-    expect(screen.getByLabelText(/factor/i)).toBeInTheDocument();
+    // AddPlanForm has a "Primary factor" label
+    expect(screen.getByLabelText(/primary factor/i)).toBeInTheDocument();
   });
 
   it('form Cancel closes the form without calling onAddPlan', () => {
@@ -313,10 +321,10 @@ describe('HypothesisCardWithPlans — AddPlanForm open/close/save', () => {
       />
     );
     fireEvent.click(screen.getByRole('button', { name: /add plan/i }));
-    expect(screen.getByLabelText(/factor/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/primary factor/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
-    expect(screen.queryByLabelText(/factor/i)).toBeNull();
+    expect(screen.queryByLabelText(/primary factor/i)).toBeNull();
     expect(onAddPlan).not.toHaveBeenCalled();
   });
 
@@ -339,15 +347,17 @@ describe('HypothesisCardWithPlans — AddPlanForm open/close/save', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: /add plan/i }));
 
-    // Fill in factor (required)
-    fireEvent.change(screen.getByLabelText(/factor/i), { target: { value: 'Nozzle temp' } });
+    // Fill in primary factor (required)
+    fireEvent.change(screen.getByLabelText(/primary factor/i), {
+      target: { value: 'Nozzle temp' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     expect(onAddPlan).toHaveBeenCalledOnce();
     const payload = onAddPlan.mock.calls[0][0];
-    // Must have hypothesisId, factor, method, sampleSize, owner, status
+    // Must have hypothesisId, primaryFactor, method, sampleSize, owner, status
     expect(payload.hypothesisId).toBe('h1');
-    expect(payload.factor).toBe('Nozzle temp');
+    expect(payload.primaryFactor).toBe('Nozzle temp');
     expect(payload.status).toBe('planned');
     // Must NOT have id, createdAt, deletedAt (parent stamps)
     expect(payload).not.toHaveProperty('id');

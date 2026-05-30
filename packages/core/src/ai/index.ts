@@ -46,7 +46,6 @@ export {
 } from './buildAIContext';
 export type {
   ChartInsightData,
-  BuildCoScoutSystemPromptOptions,
   BuildCoScoutToolsOptions,
   CoScoutSurface,
   CoScoutPromptTiers,

@@ -480,7 +480,6 @@ export type {
   CoScoutError,
   BuildAIContextOptions,
   AIStatsInput,
-  BuildCoScoutSystemPromptOptions,
   BuildCoScoutToolsOptions,
   CoScoutSurface,
   CoScoutPromptTiers,

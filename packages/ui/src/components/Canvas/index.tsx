@@ -192,6 +192,15 @@ export interface CanvasProps {
   onDisconnectSteps?: (fromStepId: string, toStepId: string) => void;
   onGroupIntoSubStep?: (stepIds: string[], parentStepId: string) => void;
   onUngroupSubStep?: (stepId: string) => void;
+  // IM-0b-2 (ADR-087 §5): rich-map authoring dispatch props, forwarded to
+  // ProcessMapBase so ctqColumn / tributary / subgroupAxis / hunch edits flow
+  // through canvasStore instead of the legacy onChange -> setProcessContext path.
+  onSetStepCtq?: (stepId: string, ctqColumn: string | undefined) => void;
+  onAddTributary?: (stepId: string, column: string) => void;
+  onRemoveTributary?: (tributaryId: string) => void;
+  onToggleSubgroupAxis?: (tributaryId: string) => void;
+  onAddHunch?: (text: string, pin: { stepId?: string; tributaryId?: string }) => void;
+  onRemoveHunch?: (hunchId: string) => void;
   chips?: ChipRailEntry[];
   onPlaceChip?: (chipId: string, stepId: string) => void;
   onCreateStepFromChip?: (chipId: string) => void;
@@ -262,6 +271,12 @@ export const Canvas: React.FC<CanvasProps> = ({
   onDisconnectSteps,
   onGroupIntoSubStep,
   onUngroupSubStep,
+  onSetStepCtq,
+  onAddTributary,
+  onRemoveTributary,
+  onToggleSubgroupAxis,
+  onAddHunch,
+  onRemoveHunch,
   chips = EMPTY_CHIPS,
   onPlaceChip,
   onCreateStepFromChip,
@@ -695,6 +710,12 @@ export const Canvas: React.FC<CanvasProps> = ({
             onConnectSteps={onConnectSteps}
             onDisconnectSteps={onDisconnectSteps}
             onUngroupSubStep={onUngroupSubStep}
+            onSetStepCtq={onSetStepCtq}
+            onAddTributary={onAddTributary}
+            onRemoveTributary={onRemoveTributary}
+            onToggleSubgroupAxis={onToggleSubgroupAxis}
+            onAddHunch={onAddHunch}
+            onRemoveHunch={onRemoveHunch}
             onKeyboardChipDrop={handleKeyboardChipDrop}
             keyboardChipLabel={keyboardChip?.label ?? null}
           />

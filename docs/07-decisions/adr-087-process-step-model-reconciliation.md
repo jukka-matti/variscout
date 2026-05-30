@@ -101,6 +101,18 @@ Concretely:
    actions plus the Canvas Edit-mode UI. `onFactorControlAdd` (currently passed `undefined`)
    gets wired.
 
+   > [!NOTE]
+   > **Stale as of IM-0b / IM-0b-2 (2026-05-30).** `onFactorControlAdd` is **already wired**
+   > (IM-0b — `CanvasWorkspace.handleFactorControlAdd` → `IP.goal.factorControls`); the
+   > "currently passed `undefined`" phrasing is historical. **IM-0b-2** moved `ctqColumn` /
+   > `tributaries` / `subgroupAxes` / hunch authoring into `canvasStore` actions dispatched
+   > by `ProcessMapBase` (the second persistence path is retired). **Scope cut:** per-step
+   > `capabilityScope` (`SpecRule[]`) authoring was **deferred** — the per-step specs editor
+   > keeps routing to project-wide `measureSpecs` via `setMeasureSpec`; canvasStore has **no**
+   > `setStepCapabilityScope` action. Deferred to the IM-5/IM-6 holistic design. The full
+   > visual retirement of `ProcessMapBase` is also deferred (it is now a thin dispatcher).
+   > See `investigations.md` "IM-0b-2 deferrals".
+
 **Scope note (WHERE ≠ WHY).** A `stepId` answers _where in the process_ a measure, outcome,
 factor, or condition sits — it is a location key, not a cause. Steps locate evidence; they do
 not explain it. A suspected contribution (Hypothesis) is a mechanism nested **within** a
@@ -154,6 +166,11 @@ vocabulary only; it makes no causal claim.
 - Rich-map authoring (`ctqColumn` / `capabilityScope` / `tributaries`) moves off the deprecated
   `ProcessMapBase` into `canvasStore` actions + Canvas Edit-mode UI. `onFactorControlAdd`,
   currently passed `undefined`, is wired.
+  <!-- STALE as of IM-0b / IM-0b-2 (2026-05-30): onFactorControlAdd is already wired (IM-0b).
+       IM-0b-2 moved ctqColumn/tributaries/subgroupAxes/hunch authoring into canvasStore
+       (ProcessMapBase dispatches; second persistence path retired). Per-step capabilityScope
+       authoring was DEFERRED to IM-5/IM-6 (specs still route to project-wide measureSpecs);
+       full visual retirement of ProcessMapBase also deferred. See investigations.md. -->
 - The read-only join engine (`getStepColumnAssignments` at `frame/stepColumns.ts:40`,
   `conditionReferencesStep` at `findings/hypothesisCondition.ts:160`) is unchanged — it already
   resolves against rich-map nodes.

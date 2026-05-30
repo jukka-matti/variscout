@@ -17,7 +17,7 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 - The stats engine is the authority for numeric claims. CoScout receives stat results; it does not recompute.
 - Numeric safety has three boundaries (ADR-069): B1 parser rejects NaN via `toNumericValue`; B2 stats functions return `undefined`; B3 display uses `formatStatistic`.
 - Registering locale loaders (`registerLocaleLoaders`) is an app responsibility — core no longer calls `import.meta.glob` directly.
-- The `ai/prompts/coScout/` directory is the canonical CoScout prompt architecture. Entry point is `assembleCoScoutPrompt()` — `buildCoScoutSystemPrompt()` in legacy.ts is deprecated.
+- The `ai/prompts/coScout/` directory is the canonical CoScout prompt architecture. Entry point is `assembleCoScoutPrompt()` — `legacy.ts` was deleted 2026-05-30 (ADR-068 complete).
 - `EvidenceSnapshot.provenance?: RowProvenanceTag[]` (envelope facet) is the canonical home for row-source metadata per ADR-077 amendment 2026-05-07. The runtime sidecar `Map<rowKey, RowProvenanceTag>` from slice 3 is retired; persistence + in-memory access converge on `snapshot.provenance` directly.
 
 ## Domain modeling invariants
@@ -37,7 +37,7 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 
 ## CoScout prompt invariants
 
-- Entry point is `assembleCoScoutPrompt()`; `buildCoScoutSystemPrompt()` in `ai/prompts/coScout/legacy.ts` is deprecated (test backward-compat only).
+- Entry point is `assembleCoScoutPrompt()`; `legacy.ts` deleted (ADR-068 migration complete 2026-05-30). `BuildCoScoutToolsOptions` lives in `ai/prompts/coScout/tools/registry.ts`.
 - Tier 1 (role + glossary) must stay session-invariant — it is the prompt-cacheable prefix (Azure AI Foundry, ≥1024 tokens). Moving content tier1 ↔ tier3 breaks cache hit rate or embeds ephemeral state.
 - Every tool in `ai/prompts/coScout/tools/registry.ts` MUST declare `phases`. The `tier` field is an internal prompt-cache phasing signal per ADR-068 (Tier 1 session-invariant vs Tier 3 per-session) — NOT customer-facing pricing tier. Ungated tools (missing `phases`) leak across investigation phases.
 - CoScout references chart elements via REF markers (`REF:boxplot:productLine`), never raw data values — upholds customer-owned-data + contribution-not-causation framing.

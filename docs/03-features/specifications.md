@@ -129,7 +129,7 @@ Both investigation starting points converge on the Wall:
 | **Data-first (exploratory)**     | Paste → explore in Analyze → notice patterns → create Findings → group into Hypotheses on the Wall.                                                                          |
 | **Hypothesis-first (deductive)** | Open Wall → create Hypothesis → add Measurement Plans (what evidence is needed) → collect out-of-product → re-paste → Findings link to Plans → Hypothesis status progresses. |
 
-Measurement Plan fields (V1): factor, method, sample size, owner, status, hypothesis link, optional linked-findings, optional MSA-required flag (informational only). Formal MSA / Gage R&R workflow + statistical sample-size calculator defer to V2.
+Measurement Plan fields (V1 DCP shape — IM-2): `primaryFactor`, `outcome`, `neededFactors[]` (dataset column names — IM-3 join contract), `scope: ConditionLeaf[]` (WHERE snapshot), `processLocation` (ProcessMap step id), `method`, `sampleSize`, `owner`, `status`, `hypothesisId` (required + immutable), optional `opDef`/`msaNote` notes (informational — not gates). `msaRequired` flag removed; formal MSA / Gage R&R workflow defers to V2. Full field reference: [Measurement Plan DCP](workflows/measurement-plan-dcp.md).
 
 ---
 

@@ -16,6 +16,18 @@ import type { JourneyPhase, AnalyzePhase } from '../../../types';
 import type { AnalysisMode } from '../../../../types';
 import type { Hypothesis } from '../../../../findings/types';
 
+// ── Consumer-facing options type ────────────────────────────────────────
+
+/** Options for building phase-gated CoScout tools (formerly in legacy.ts) */
+export interface BuildCoScoutToolsOptions {
+  /** Current journey phase — determines which tools are available */
+  phase?: JourneyPhase;
+  /** Current investigation phase — used for fine-grained tool gating within INVESTIGATE */
+  analyzePhase?: AnalyzePhase;
+  /** Existing Hypothesis hubs — enables connect_hub_evidence when non-empty */
+  existingHubs?: Hypothesis[];
+}
+
 // ── Registry entry type ────────────────────────────────────────────────
 
 export interface ToolRegistryEntry {
@@ -785,6 +797,11 @@ export type ToolName = keyof typeof TOOL_REGISTRY;
  * @param mode - Current analysis mode (unused for now, reserved for future mode-specific tools)
  * @param options - Investigation phase and existing hubs for dynamic gating
  * @returns Filtered array of ToolDefinition for the Responses API
+ *
+ * Two tools are conditionally gated (excluded unless their condition is met):
+ *   - suggest_hypothesis: requires options.analyzePhase ∈ {validating, converging}
+ *   - connect_hub_evidence: requires options.existingHubs non-empty
+ * Hence the improve phase yields 21 tools unconditionally / 23 with both conditions met.
  */
 export function getToolsForPhase(
   phase: JourneyPhase,

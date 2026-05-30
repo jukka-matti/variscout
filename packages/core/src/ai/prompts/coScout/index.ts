@@ -2,8 +2,7 @@
  * CoScout prompt module — modular directory with tiered assembler.
  *
  * The assembler composes from extracted modules (role, phases, modes, context, tools).
- * Legacy functions (buildCoScoutSystemPrompt, buildCoScoutInput, buildCoScoutTools)
- * remain in legacy.ts for direct import by tests that validate legacy behavior.
+ * legacy.ts has been deleted (ADR-068 complete — 2026-05-30).
  *
  * Consumers should use:
  *   - `assembleCoScoutPrompt()` for prompt construction
@@ -11,13 +10,13 @@
  *   - `getToolsForPhase()` for tool definitions
  */
 
-// Legacy types still needed by consumers (BuildCoScoutToolsOptions used by useAICoScout options interface)
-export type { BuildCoScoutSystemPromptOptions, BuildCoScoutToolsOptions } from './legacy';
+// BuildCoScoutToolsOptions relocated from legacy.ts to tools/registry.ts (ADR-068 migration)
+export type { BuildCoScoutToolsOptions } from './tools';
 
 // New formatKnowledgeContext — single source of truth
 export { formatKnowledgeContext } from './context';
 
-// Message input builder (extracted from legacy buildCoScoutInput)
+// Message input builder for Responses API
 export { buildCoScoutMessageInput } from './messages';
 
 // ── New types ───────────────────────────────────────────────────────────

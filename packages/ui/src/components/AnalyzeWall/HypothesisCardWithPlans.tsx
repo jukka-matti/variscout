@@ -19,12 +19,13 @@
 
 import React, { useState } from 'react';
 import type { Finding } from '@variscout/core';
+import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { canAccess } from '@variscout/core/projectMembership';
 import { HypothesisCard, type HypothesisCardProps } from './HypothesisCard';
 import { MeasurementPlanChip } from './MeasurementPlanChip';
-import { AddPlanForm } from './AddPlanForm';
+import { AddPlanForm, type StepOption } from './AddPlanForm';
 import { LinkFindingPicker } from './LinkFindingPicker';
 
 // Card geometry constants (mirrors HypothesisCard internals)
@@ -34,8 +35,12 @@ const CARD_H = 288;
 const CHIP_ROW_H = 32;
 /** Height of the + Add Plan button row (px). */
 const ADD_BTN_H = 32;
-/** Height of AddPlanForm when expanded (px). */
-const FORM_H = 280;
+/**
+ * Height of AddPlanForm when expanded (px).
+ * The form currently has ~8 fields + 2 textareas (opDef, msaNote) + error row +
+ * Save/Cancel — update this value whenever fields are added/removed.
+ */
+const FORM_H = 660;
 /** Vertical gap between card bottom and the plans section (user-space units). */
 const PLANS_GAP = 8;
 /** Horizontal offset of the foreignObject from the card's center-top anchor. */
@@ -69,6 +74,22 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    * V1: pass-through — parent decides behaviour (edit UI not in this PR).
    */
   onEditPlan: (planId: string) => void;
+  /**
+   * Process steps for the processLocation picker in AddPlanForm.
+   * Derived at WallCanvas level from `deriveProcessSteps(processMap)`.
+   * Pass `undefined` when processMap is absent; AddPlanForm hides the step picker.
+   */
+  stepOptions?: StepOption[];
+  /**
+   * Active drill-chip scope conditions (snapshot) for AddPlanForm's `scope` field.
+   * Pass `undefined` to default to `[]`.
+   */
+  defaultScope?: ConditionLeaf[];
+  /**
+   * Pre-fill for AddPlanForm's outcome field.
+   * Pass `undefined` to default to `''`.
+   */
+  defaultOutcome?: string;
 }
 
 export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = ({
@@ -79,6 +100,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onAddPlan,
   onLinkFinding,
   onEditPlan,
+  stepOptions,
+  defaultScope,
+  defaultOutcome,
   ...cardProps
 }) => {
   const [addPlanFormOpen, setAddPlanFormOpen] = useState(false);
@@ -129,6 +153,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
           y={cardProps.y + plansSectionY}
           width={CARD_W}
           height={plansSectionH}
+          style={{ overflow: 'visible' }}
           data-testid="plans-section"
         >
           <div className="bg-white border border-gray-200 rounded-b shadow-sm overflow-visible">
@@ -166,6 +191,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                   setAddPlanFormOpen(false);
                 }}
                 onCancel={() => setAddPlanFormOpen(false)}
+                stepOptions={stepOptions}
+                defaultScope={defaultScope}
+                defaultOutcome={defaultOutcome}
               />
             )}
           </div>
