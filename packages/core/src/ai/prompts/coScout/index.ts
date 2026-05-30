@@ -11,8 +11,8 @@
  *   - `getToolsForPhase()` for tool definitions
  */
 
-// Legacy types still needed by consumers (BuildCoScoutToolsOptions used by useAICoScout options interface)
-export type { BuildCoScoutSystemPromptOptions, BuildCoScoutToolsOptions } from './legacy';
+// BuildCoScoutToolsOptions relocated from legacy.ts to tools/registry.ts (ADR-068 migration)
+export type { BuildCoScoutToolsOptions } from './tools';
 
 // New formatKnowledgeContext — single source of truth
 export { formatKnowledgeContext } from './context';

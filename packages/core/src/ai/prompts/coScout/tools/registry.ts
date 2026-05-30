@@ -16,6 +16,18 @@ import type { JourneyPhase, AnalyzePhase } from '../../../types';
 import type { AnalysisMode } from '../../../../types';
 import type { Hypothesis } from '../../../../findings/types';
 
+// ── Consumer-facing options type ────────────────────────────────────────
+
+/** Options for building phase-gated CoScout tools (formerly in legacy.ts) */
+export interface BuildCoScoutToolsOptions {
+  /** Current journey phase — determines which tools are available */
+  phase?: JourneyPhase;
+  /** Current investigation phase — used for fine-grained tool gating within INVESTIGATE */
+  analyzePhase?: AnalyzePhase;
+  /** Existing Hypothesis hubs — enables connect_hub_evidence when non-empty */
+  existingHubs?: Hypothesis[];
+}
+
 // ── Registry entry type ────────────────────────────────────────────────
 
 export interface ToolRegistryEntry {

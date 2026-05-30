@@ -6,4 +6,4 @@
  */
 
 export { TOOL_REGISTRY, getToolsForPhase } from './registry';
-export type { ToolRegistryEntry, ToolName } from './registry';
+export type { ToolRegistryEntry, ToolName, BuildCoScoutToolsOptions } from './registry';
