@@ -274,21 +274,26 @@ The drill-down sequence:
 Each step does two things simultaneously:
 
 - **Reduces the problem space** — fewer factors remain to investigate
-- **Quantifies progress** — the cumulative variation bar shows how much of total variation is now in scope
+- **Quantifies progress** — the scope bar shows how much of the problem the current condition accounts for
 
-**Why contribution to TOTAL variation matters.** This is a critical design choice. If the analyst filters to Night Shift (67% of total variation) and then sees Machine explains 36% of the Night Shift subset, the local eta-squared is 36%. But the answer to "how much of my TOTAL problem does Machine explain?" is 24% (36% of the 67% Night Shift portion).
+**The scope bar is an anchor, not a multiplied-η² chain (ADR-088).** Earlier drafts of this section described a "cumulative variation bar" computed by multiplying marginal η² down the drill (e.g. "Machine explains 36% of the Night-Shift subset, so 36% × 67% = 24% of the total"). That product is **not a valid variance decomposition** — chaining marginal η² this way would require nested ANOVA / variance components, formal machinery the method deliberately avoids, and it silently conflates WHERE (the condition) with the spread it carries. We do not surface that number.
 
-Local eta-squared disconnects from the original problem. Contribution to total keeps the analyst anchored at every step. The cumulative variation bar reflects this: it shows how much of the original, unfiltered variation is captured by the current filter combination. When it crosses 50%, the analyst has isolated more than half of the total problem — a meaningful threshold for action.
+Instead, the bar answers "how much of the problem does this condition account for" two honest ways, **neither a multiplication**:
 
-**The variation bar as a progress indicator:**
+- **What-If "if-fixed" projection** — a _simulation_: "if this drilled {factor=level} condition were brought in line with the rest, the overall Cpk would move 0.7 → 1.2." This is the actionable cross-level number, computed by `computeCumulativeProjection()` (reused via `computeScopeWhatIfProjection()`), fed the live drill chip's condition. It is shown as text alongside the bar.
+- **Descriptive coverage %** — a _prevalence_ fact: "this condition holds for N% of the units." A count, not an inferential share, computed by `computeConditionCoverage()`. This drives the bar's fill and banding.
 
-- Above 50% (green): Strong isolation — enough evidence to act
-- 30-50% (amber): Moderate — investigation is progressing but needs more
+The level-local native shares (η² per factor at L2, Cpk-per-group, Pareto count-%, …) are shown **per level and are never chained across levels** (ADR-088 #2/#4). For "do these factors _together_ explain the spread," the honest figure is the **R²adj of the combined model** (`computeBestSubsets()`), a real model R² — not a multiplied chain.
+
+**The scope bar as a progress indicator (coverage %):**
+
+- Above 50% (green): Strong prevalence — the condition holds for most of the problem; enough to act
+- 30-50% (amber): Moderate — investigation is progressing but the condition is narrower
 - Below 30% (blue): Early stage — keep drilling or consider interaction effects
 
-This directly implements the thesis's Evaluation step. At each iteration, the analyst evaluates: "Have I found enough? Should I drill deeper? Should I investigate a different factor?" The variation bar quantifies this judgment.
+This directly implements the thesis's Evaluation step. At each iteration, the analyst evaluates: "Have I found enough? Should I drill deeper? Should I investigate a different factor?" The coverage bar and the What-If projection together quantify this judgment — descriptive prevalence plus the simulated payoff of fixing the condition.
 
-**When progressive stratification is not enough.** One-factor-at-a-time drill-down captures main effects — how much variation each factor explains independently. But it can miss interactions where two factors together behave differently than either alone. This is why Factor Intelligence Layer 3 exists: it detects interaction effects that sequential drill-down may overlook. The cumulative variation bar below 30% after exhausting all individual factors is a signal that interactions may be at play.
+**When progressive stratification is not enough.** One-factor-at-a-time drill-down captures main effects — how much variation each factor explains independently. But it can miss interactions where two factors together behave differently than either alone. This is why Factor Intelligence Layer 3 exists: it detects interaction effects that sequential drill-down may overlook. A low coverage / weak What-If gain after exhausting all individual factors is a signal that interactions may be at play — the honest "together" figure is the combined-model R²adj, not a product of marginals.
 
 ### 3.4 Probability Plot
 
@@ -667,7 +672,7 @@ The EDA Mental Model is not a feature — it is the analytical philosophy that i
 
 3. **Parallel, not sequential.** The Four Lenses show the same data through four perspectives simultaneously. The analyst sees the whole story, not one chapter at a time.
 
-4. **Progress is measurable.** The cumulative variation bar quantifies how much of the total problem is understood. The question checklist tracks how many questions have been answered.
+4. **Progress is measurable.** The scope bar quantifies how much of the problem the current condition accounts for — descriptive coverage % plus the What-If "if-fixed" projection (ADR-088), never a multiplied-η² chain. The question checklist tracks how many questions have been answered.
 
 5. **Multiple causes are normal.** Real processes have multiple sources of variation. The model embraces this rather than forcing a single root cause.
 

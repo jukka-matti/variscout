@@ -110,6 +110,14 @@ function findBestValueForFactor(
  * This enables drill-down investigation by identifying the 1-3 factors
  * that explain ~70% of total variation.
  *
+ * ADR-088: not surfaced — the `cumulativePct` it produces multiplies marginal η²
+ * down the drill, which is **not a valid variance decomposition** (it would need
+ * nested ANOVA / variance components). This function is intentionally UI-DEAD:
+ * it has zero component/app callers and must stay that way. The cross-level
+ * "how much of the problem" question is answered instead by the What-If
+ * projection (`computeScopeWhatIfProjection`) + descriptive coverage %
+ * (`computeConditionCoverage`) — neither a multiplied chain. Do NOT wire this.
+ *
  * @param data - Raw data array
  * @param factors - Available factor columns to analyze
  * @param outcome - The outcome column name
