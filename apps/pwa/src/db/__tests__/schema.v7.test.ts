@@ -5,6 +5,7 @@
 //   v7  — PR-CCJ-E1 (ImprovementProject gained 5 optional flat root fields)
 //   v8  — IM-0a (Hub↔Project 1:1 collapse)
 //   v9  — IM-0b (process-step model reconciliation, ADR-087)
+//   v10 — IM-1 (drop Question entity / questions table, ADR-085)
 //
 // Mirrors the Azure schema test pattern at
 // apps/azure/src/db/__tests__/schema.v6.test.ts.
@@ -13,7 +14,7 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../schema';
 
-const LATEST_SCHEMA_VERSION = 9;
+const LATEST_SCHEMA_VERSION = 10;
 
 describe('PWA IndexedDB schema (latest version)', () => {
   beforeEach(async () => {

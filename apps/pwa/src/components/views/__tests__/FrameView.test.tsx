@@ -11,7 +11,7 @@ const showAnalyzeMock = vi.fn();
 const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
 const showHomeMock = vi.fn();
-const expandToQuestionMock = vi.fn();
+const expandToHypothesisMock = vi.fn();
 const setWallViewModeMock = vi.fn();
 const addCausalLinkMock = vi.fn();
 const linkQuestionToCausalLinkMock = vi.fn();
@@ -249,7 +249,10 @@ vi.mock('@variscout/ui', async () => {
           {
             type: 'button',
             'data-testid': 'overlay-question',
-            onClick: () => props.onOpenInvestigationFocus?.({ questionId: 'q-1' }),
+            // IM-1: CanvasAnalyzeFocus is a discriminated union with `kind` + `id`;
+            // `questionId` shape is retired. Pass kind:'question' so FrameView's
+            // handler branch fires and calls expandToHypothesis(focus.id).
+            onClick: () => props.onOpenInvestigationFocus?.({ kind: 'question', id: 'q-1' }),
           },
           'Overlay question'
         ),
@@ -288,7 +291,8 @@ vi.mock('../../../features/panels/panelsStore', () => ({
 vi.mock('../../../features/analyze/analyzeStore', () => ({
   useAnalyzeFeatureStore: Object.assign(vi.fn(), {
     getState: () => ({
-      expandToQuestion: expandToQuestionMock,
+      // IM-1: expandToQuestion retired; FrameView now calls expandToHypothesis.
+      expandToHypothesis: expandToHypothesisMock,
     }),
   }),
 }));
@@ -333,7 +337,7 @@ describe('FrameView (PWA shell)', () => {
     showCharterMock.mockClear();
     showSustainmentMock.mockClear();
     showHomeMock.mockClear();
-    expandToQuestionMock.mockClear();
+    expandToHypothesisMock.mockClear();
     setWallViewModeMock.mockClear();
     addCausalLinkMock.mockReset();
     linkQuestionToCausalLinkMock.mockReset();
@@ -397,7 +401,7 @@ describe('FrameView (PWA shell)', () => {
         setMeasureSpec: setMeasureSpecMock,
         setProcessContext: setProcessContextMock,
         findings: [{ id: 'f-1' }],
-        questions: [{ id: 'q-1' }],
+        // IM-1: Question entity retired; `questions` prop no longer forwarded to CanvasWorkspace.
         hypotheses: [{ id: 'hub-1' }],
         causalLinks: [{ id: 'link-1' }],
       })
@@ -640,12 +644,14 @@ describe('FrameView (PWA shell)', () => {
     expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
   });
 
-  it('opens Investigation and expands a question for overlay focus', () => {
+  it('opens Investigation and expands a hypothesis for overlay focus', () => {
+    // IM-1: Question entity retired. FrameView.handleOpenInvestigationFocus maps
+    // focus.kind === 'question' | 'suspected-cause' to expandToHypothesis(focus.id).
     render(<FrameView />);
 
     fireEvent.click(screen.getByTestId('overlay-question'));
 
-    expect(expandToQuestionMock).toHaveBeenCalledWith('q-1');
+    expect(expandToHypothesisMock).toHaveBeenCalledWith('q-1');
     expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
   });
 
@@ -659,15 +665,16 @@ describe('FrameView (PWA shell)', () => {
   });
 
   it('wires causal-link mutation callbacks to the investigation store', () => {
+    // IM-1: Question entity retired. onAddCausalLink ignores questionIds and calls
+    // addCausalLink(from, to, why) directly; linkQuestionToCausalLink is no longer
+    // invoked. The options argument is accepted but silently ignored per IM-1 contract.
     render(<FrameView />);
 
     const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
     expect(props?.onAddCausalLink).toEqual(expect.any(Function));
     expect(props?.onRemoveCausalLink).toEqual(expect.any(Function));
 
-    props.onAddCausalLink('Machine', 'Fill_Weight', 'Machine drift changes fill weight', {
-      questionIds: ['q-1', 'q-2'],
-    });
+    props.onAddCausalLink('Machine', 'Fill_Weight', 'Machine drift changes fill weight');
     props.onRemoveCausalLink('link-created');
 
     expect(addCausalLinkMock).toHaveBeenCalledWith(
@@ -675,8 +682,7 @@ describe('FrameView (PWA shell)', () => {
       'Fill_Weight',
       'Machine drift changes fill weight'
     );
-    expect(linkQuestionToCausalLinkMock).toHaveBeenCalledWith('link-created', 'q-1');
-    expect(linkQuestionToCausalLinkMock).toHaveBeenCalledWith('link-created', 'q-2');
+    expect(linkQuestionToCausalLinkMock).not.toHaveBeenCalled();
     expect(removeCausalLinkMock).toHaveBeenCalledWith('link-created');
   });
 

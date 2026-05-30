@@ -39,7 +39,6 @@ describe('getEntry', () => {
     expect(getEntry('boxplot')).toBeDefined();
     expect(getEntry('paretoChart')).toBeDefined();
     expect(getEntry('capabilityAnalysis')).toBeDefined();
-    expect(getEntry('question')).toBeDefined();
     expect(getEntry('median')).toBeDefined();
   });
 });

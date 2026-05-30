@@ -74,6 +74,6 @@ describe('FindingsExportMenu', () => {
     render(<FindingsExportMenu findings={[mockFinding]} />);
     fireEvent.click(screen.getByTitle('Export findings'));
     fireEvent.click(screen.getByText('Download CSV'));
-    expect(downloadFindingsCSV).toHaveBeenCalledWith([mockFinding], undefined);
+    expect(downloadFindingsCSV).toHaveBeenCalledWith([mockFinding]);
   });
 });
