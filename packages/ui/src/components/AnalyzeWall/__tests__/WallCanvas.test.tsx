@@ -1110,4 +1110,85 @@ describe('WallCanvas', () => {
       expect(screen.queryByTestId('problem-scope-projection')).toBeNull();
     });
   });
+
+  describe('evidence band + per-hypothesis HOLDS (IM-4a Task 5)', () => {
+    const evidenceRows = [
+      { SHIFT: 'night', lead_time: 50 },
+      { SHIFT: 'night', lead_time: 52 },
+      { SHIFT: 'day', lead_time: 20 },
+      { SHIFT: 'day', lead_time: 22 },
+    ];
+    const condHub: Hypothesis = {
+      ...hub,
+      id: 'h-evid',
+      name: 'Night shift effect',
+      condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+      findingIds: ['f-support'],
+      counterFindingIds: ['f-counter'],
+    };
+    const bandFindings: Finding[] = [
+      { ...evidencedFindings[0], id: 'f-support', text: 'Night runs spike' } as Finding,
+      { ...evidencedFindings[0], id: 'f-counter', text: 'Day batch also high' } as Finding,
+    ];
+
+    it('renders a per-hypothesis GateBadge with HOLDS over the hub condition', () => {
+      render(
+        <WallCanvas
+          hubs={[condHub]}
+          findings={bandFindings}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={evidenceRows}
+        />
+      );
+      // condition SHIFT=night → 2 of 4 rows.
+      const badge = screen.getByTestId(`hub-holds-${condHub.id}`);
+      expect(badge).toHaveTextContent('2/4');
+    });
+
+    it('renders FindingChips tethered to their parent hypothesis', () => {
+      const { container } = render(
+        <WallCanvas
+          hubs={[condHub]}
+          findings={bandFindings}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={evidenceRows}
+        />
+      );
+      // Each linked finding renders a chip + a dashed tether line.
+      expect(screen.getByText(/Night runs spike/)).toBeInTheDocument();
+      expect(screen.getByText(/Day batch also high/)).toBeInTheDocument();
+      expect(
+        container.querySelectorAll(`[data-evidence-tether="${condHub.id}"]`).length
+      ).toBeGreaterThanOrEqual(2);
+    });
+
+    it('labels supporting vs counter evidence (Supports / Counts against)', () => {
+      render(
+        <WallCanvas
+          hubs={[condHub]}
+          findings={bandFindings}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={evidenceRows}
+        />
+      );
+      expect(screen.getByText(/Supports/)).toBeInTheDocument();
+      expect(screen.getByText(/Counts against/)).toBeInTheDocument();
+    });
+
+    it('omits the per-hypothesis HOLDS badge when the hub has no condition', () => {
+      render(
+        <WallCanvas
+          hubs={[{ ...hub, id: 'h-no-cond', condition: undefined }]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={evidenceRows}
+        />
+      );
+      expect(screen.queryByTestId('hub-holds-h-no-cond')).toBeNull();
+    });
+  });
 });
