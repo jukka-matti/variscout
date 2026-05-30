@@ -49,11 +49,22 @@ describe('useActiveIPContext', () => {
   });
 
   it('clears active state when the stored IP is not live on the hub', () => {
+    // Under the 1:1 invariant a hub carries at most one IP, and a single live IP
+    // is auto-activated. To isolate the "stored IP is not live → clear" behavior
+    // without the auto-activate confound, give the hub a soft-deleted IP (so
+    // liveProjects is empty) and point the store at that now-non-live IP.
+    const hubWithDeletedIP: ProcessHub = {
+      ...baseHub,
+      improvementProject: {
+        ...baseHub.improvementProject!,
+        deletedAt: 99,
+      },
+    };
     useActiveIPStore
       .getState()
-      .setActiveIP({ hubId: 'hub-1', userId: 'mira@example.com' }, 'missing', 123);
+      .setActiveIP({ hubId: 'hub-1', userId: 'mira@example.com' }, 'ip-1', 123);
 
-    const { result } = renderHook(() => useActiveIPContext(baseHub, 'mira@example.com'));
+    const { result } = renderHook(() => useActiveIPContext(hubWithDeletedIP, 'mira@example.com'));
 
     expect(result.current.activeIP).toBeNull();
     expect(result.current.isIPScoped).toBe(false);
