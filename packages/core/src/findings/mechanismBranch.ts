@@ -1,4 +1,5 @@
-import type { Finding, Hypothesis, HypothesisStatus, Question } from './types';
+import type { Finding, Hypothesis, HypothesisStatus } from './types';
+import { collectReferencedColumns } from './hypothesisCondition';
 import type { ProcessMap, ProcessMapTributary } from '../frame/types';
 import { buildBranchSignalWarnings } from '../signalCards';
 import type { BranchSignalWarning, SignalCard } from '../signalCards';
@@ -7,14 +8,6 @@ export type { BranchSignalWarning } from '../signalCards';
 
 export interface MechanismBranchProcessContext {
   tributaries: Array<Pick<ProcessMapTributary, 'id' | 'column' | 'label'>>;
-}
-
-export interface MechanismBranchQuestionView {
-  id: string;
-  text: string;
-  status: Question['status'];
-  factor?: string;
-  level?: string;
 }
 
 export interface MechanismBranchClueView {
@@ -41,14 +34,11 @@ export interface MechanismBranchViewModel {
   supportingClues: MechanismBranchClueView[];
   counterClues: MechanismBranchClueView[];
   notTestedClues: MechanismBranchClueView[];
-  openChecks: MechanismBranchQuestionView[];
-  linkedQuestions: MechanismBranchQuestionView[];
   processContext?: MechanismBranchProcessContext;
   signalWarnings?: BranchSignalWarning[];
 }
 
 export interface MechanismBranchProjectionOptions {
-  questions: Question[];
   findings: Finding[];
   processContext?: {
     processMap?: ProcessMap;
@@ -63,16 +53,6 @@ const READINESS_LABELS: Record<MechanismBranchActionStateView['value'], string> 
   'ready-to-act': 'Ready to act',
   closed: 'Closed',
 };
-
-function toQuestionView(question: Question): MechanismBranchQuestionView {
-  return {
-    id: question.id,
-    text: question.text,
-    status: question.status,
-    factor: question.factor,
-    level: question.level,
-  };
-}
 
 function toClueView(finding: Finding): MechanismBranchClueView {
   return {
@@ -90,34 +70,52 @@ function deriveBranchStatus(hub: Hypothesis): HypothesisStatus {
 function deriveReadiness(
   hub: Hypothesis,
   supportingClues: MechanismBranchClueView[],
-  counterClues: MechanismBranchClueView[],
-  openChecks: MechanismBranchQuestionView[]
+  counterClues: MechanismBranchClueView[]
 ): MechanismBranchActionStateView {
   if (hub.status === 'refuted') return { value: 'closed', label: READINESS_LABELS.closed };
   if (hub.status === 'confirmed') {
     return { value: 'ready-to-act', label: READINESS_LABELS['ready-to-act'] };
   }
-  if (supportingClues.length > 0 && openChecks.length === 0 && counterClues.length === 0) {
+  if (supportingClues.length > 0 && counterClues.length === 0) {
     return { value: 'evidence-backed', label: READINESS_LABELS['evidence-backed'] };
   }
-  if (supportingClues.length > 0 || counterClues.length > 0 || openChecks.length > 0) {
+  if (supportingClues.length > 0 || counterClues.length > 0) {
     return { value: 'needs-check', label: READINESS_LABELS['needs-check'] };
   }
   return { value: 'not-tested', label: READINESS_LABELS['not-tested'] };
 }
 
+/**
+ * Columns this branch is "about" — derived from the hub's disconfirmable
+ * `condition` (ADR-085: factor identity comes from the condition tree), falling
+ * back to the columns of its linked findings' `activeFilters` snapshots.
+ */
+function deriveBranchColumns(hub: Hypothesis, findings: Finding[]): Set<string> {
+  if (hub.condition) {
+    return collectReferencedColumns(hub.condition);
+  }
+  const columns = new Set<string>();
+  const linkedIds = new Set(hub.findingIds);
+  for (const finding of findings) {
+    if (!linkedIds.has(finding.id)) continue;
+    for (const column of Object.keys(finding.context.activeFilters)) {
+      columns.add(column);
+    }
+  }
+  return columns;
+}
+
 function projectProcessContext(
   hub: Hypothesis,
-  linkedQuestions: Question[],
+  branchColumns: Set<string>,
   processMap: ProcessMap | undefined
 ): MechanismBranchProcessContext | undefined {
   if (!processMap) return undefined;
 
   const explicitTributaryIds = new Set(hub.tributaryIds ?? []);
-  const linkedFactors = new Set(linkedQuestions.map(question => question.factor).filter(Boolean));
   const tributaries = processMap.tributaries
     .filter(
-      tributary => explicitTributaryIds.has(tributary.id) || linkedFactors.has(tributary.column)
+      tributary => explicitTributaryIds.has(tributary.id) || branchColumns.has(tributary.column)
     )
     .map(tributary => ({
       id: tributary.id,
@@ -132,22 +130,12 @@ export function projectMechanismBranch(
   hub: Hypothesis,
   options: MechanismBranchProjectionOptions
 ): MechanismBranchViewModel {
-  const questionById = new Map(options.questions.map(question => [question.id, question]));
   const findingById = new Map(options.findings.map(finding => [finding.id, finding]));
   const explicitCounterIds = new Set(hub.counterFindingIds ?? []);
-  const explicitCheckIds = new Set(hub.checkQuestionIds ?? []);
-  const orderedQuestionIds = [
-    ...hub.questionIds,
-    ...(hub.checkQuestionIds ?? []).filter(id => !hub.questionIds.includes(id)),
-  ];
   const orderedFindingIds = [
     ...hub.findingIds,
     ...(hub.counterFindingIds ?? []).filter(id => !hub.findingIds.includes(id)),
   ];
-
-  const linkedQuestions = orderedQuestionIds
-    .map(id => questionById.get(id))
-    .filter((question): question is Question => Boolean(question));
 
   const supportingClues: MechanismBranchClueView[] = [];
   const counterClues: MechanismBranchClueView[] = [];
@@ -166,14 +154,7 @@ export function projectMechanismBranch(
     }
   }
 
-  const openChecks = linkedQuestions
-    .filter(
-      question =>
-        explicitCheckIds.has(question.id) ||
-        question.status === 'open' ||
-        question.status === 'investigating'
-    )
-    .map(toQuestionView);
+  const branchColumns = deriveBranchColumns(hub, options.findings);
 
   return {
     id: hub.id,
@@ -182,14 +163,12 @@ export function projectMechanismBranch(
     synthesis: hub.synthesis,
     status: hub.status,
     branchStatus: deriveBranchStatus(hub),
-    readiness: deriveReadiness(hub, supportingClues, counterClues, openChecks),
+    readiness: deriveReadiness(hub, supportingClues, counterClues),
     nextMove: hub.nextMove,
     supportingClues,
     counterClues,
     notTestedClues,
-    openChecks,
-    linkedQuestions: linkedQuestions.map(toQuestionView),
-    processContext: projectProcessContext(hub, linkedQuestions, options.processContext?.processMap),
+    processContext: projectProcessContext(hub, branchColumns, options.processContext?.processMap),
     signalWarnings: buildBranchSignalWarnings(hub.signalCardIds, options.signalCards),
   };
 }

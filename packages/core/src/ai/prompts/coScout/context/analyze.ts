@@ -104,8 +104,8 @@ export function formatAnalyzeContext(
   if (investigation.hypothesisHubs && investigation.hypothesisHubs.length > 0) {
     const hubLines = investigation.hypothesisHubs.map(hub => {
       const parts = [`  - "${hub.name}" [${hub.status}]`];
-      if (hub.questionCount > 0 || hub.findingCount > 0) {
-        parts.push(`(${hub.questionCount}Q, ${hub.findingCount}F)`);
+      if (hub.findingCount > 0) {
+        parts.push(`(${hub.findingCount}F)`);
       }
       if (hub.evidence) {
         parts.push(`evidence: ${hub.evidence.label}`);

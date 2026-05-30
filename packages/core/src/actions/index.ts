@@ -3,7 +3,7 @@ export type { EvidenceAction } from './evidenceActions';
 export type { EvidenceSourceAction } from './evidenceSourceActions';
 export type { AnalyzeAction } from './analyzeActions';
 export type { FindingAction } from './findingActions';
-export type { QuestionAction } from './questionActions';
+export type { ScopeAction } from './scopeActions';
 export type { CausalLinkAction } from './causalLinkActions';
 export type { HypothesisAction } from './hypothesisActions';
 export type { HubMetaAction } from './hubMetaActions';

@@ -272,18 +272,15 @@ function buildPowerItems(
   const processMap = input.processMap ?? input.processContext?.processMap;
   const subgroupAxes = processMap?.subgroupAxes ?? [];
   const branches = input.branches ?? [];
-  const questions = input.questions ?? [];
-  const openBranchChecks = branches.reduce((count, branch) => {
-    const explicitChecks = new Set(branch.checkQuestionIds ?? []);
-    return (
-      count +
-      questions.filter(
-        question =>
-          (branch.questionIds.includes(question.id) || explicitChecks.has(question.id)) &&
-          (question.status === 'open' || question.status === 'investigating')
-      ).length
-    );
-  }, 0);
+  // ADR-085 retired Question-derived "open checks"; a branch needs counter-check
+  // coverage when it has supporting clues but no recorded counter clue.
+  const branchViews = projectMechanismBranches(branches, {
+    findings: input.findings ?? [],
+    processContext: processMap ? { processMap } : undefined,
+  });
+  const openBranchChecks = branchViews.filter(
+    view => view.supportingClues.length > 0 && view.counterClues.length === 0
+  ).length;
 
   return [
     {
@@ -616,7 +613,6 @@ function addBranchRecommendations(
   if (branches.length === 0) return;
 
   const projected = projectMechanismBranches(branches, {
-    questions: input.questions ?? [],
     findings: input.findings ?? [],
     processContext: {
       processMap: input.processMap ?? input.processContext?.processMap,
@@ -644,17 +640,19 @@ function addBranchRecommendations(
       });
     }
 
+    // ADR-085 retired Question-derived "open checks"; an untested branch (no
+    // clues yet) now signals the need to gather evidence.
     if (
       branchView.branchStatus !== 'confirmed' &&
       branchView.branchStatus !== 'refuted' &&
-      branchView.openChecks.length > 0
+      branchView.readiness.value === 'not-tested'
     ) {
       store.add({
-        id: `branch:${branchView.id}:complete-open-checks`,
+        id: `branch:${branchView.id}:gather-evidence`,
         kind: 'add-counter-check',
-        title: `Complete open checks for ${branchView.suspectedMechanism}`,
-        detail: `${branchView.openChecks.length} branch check${branchView.openChecks.length === 1 ? '' : 's'} still needs evidence.`,
-        actionText: 'Complete or close the open branch checks before acting on this mechanism.',
+        title: `Gather evidence for ${branchView.suspectedMechanism}`,
+        detail: 'This branch has no linked clues yet.',
+        actionText: 'Link supporting or counter evidence before acting on this mechanism.',
         status: 'ask-for-next',
         priority: priority + 1,
         source: 'mechanism-branch',

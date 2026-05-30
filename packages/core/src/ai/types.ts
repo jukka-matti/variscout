@@ -329,7 +329,6 @@ export interface AIContext {
       name: string;
       synthesis: string;
       status: HypothesisStatus;
-      questionCount: number;
       findingCount: number;
       evidence?: {
         value: number;

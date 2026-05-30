@@ -207,7 +207,6 @@ export function computeImprovementProgress(
 
     contributions.push({
       findingId: finding.id,
-      questionId: finding.questionId,
       projected: improvement,
       actual: actualImprovement,
       percentOfGap: gap !== 0 ? (improvement / gap) * 100 : 0,

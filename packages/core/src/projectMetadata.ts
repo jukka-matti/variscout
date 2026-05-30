@@ -6,7 +6,7 @@
  * for the Portfolio view. Pure function — no React, no storage.
  */
 
-import type { Finding, FindingStatus, Question, QuestionStatus } from './findings';
+import type { Finding, FindingStatus } from './findings';
 import type { JourneyPhase, ProcessContext } from './ai/types';
 import type { HubReviewSignal } from './processReviewSignal';
 import {
@@ -26,8 +26,12 @@ export interface ProjectMetadata {
   phase: JourneyPhase;
   /** Finding counts keyed by FindingStatus values */
   findingCounts: Partial<Record<FindingStatus, number>>;
-  /** Question counts keyed by QuestionStatus values (root questions only) */
-  questionCounts: Partial<Record<QuestionStatus, number>>;
+  /**
+   * Question counts — retained as an always-empty map after ADR-085 dropped the
+   * `Question` entity. Kept for persisted-metadata shape stability; consumers
+   * should migrate to scope/hypothesis counts.
+   */
+  questionCounts: Record<string, number>;
   /** Action item progress across all findings */
   actionCounts: { total: number; completed: number; overdue: number };
   /** Number of tasks assigned to the requesting userId */
@@ -113,14 +117,15 @@ function summarizeProcessMap(
  * Build a ProjectMetadata snapshot from current project state.
  *
  * @param findings - All findings for the project
- * @param questions - All questions for the project
+ * @param _questions - Retired Question list (ADR-085); accepted + ignored for
+ *   call-site stability across the 5 existing consumers.
  * @param hasData - Whether the project has data loaded
  * @param userId - The requesting user's ID (UPN or 'local')
  * @param existingLastViewedAt - Existing lastViewedAt map to preserve
  */
 export function buildProjectMetadata(
   findings: Finding[],
-  questions: Question[],
+  _questions: readonly unknown[],
   hasData: boolean,
   userId: string,
   existingLastViewedAt?: Record<string, number>,
@@ -139,13 +144,8 @@ export function buildProjectMetadata(
     findingCounts[finding.status] = (findingCounts[finding.status] ?? 0) + 1;
   }
 
-  // --- Question counts by status (root questions only) ---
-  const questionCounts: Partial<Record<QuestionStatus, number>> = {};
-  for (const question of questions) {
-    if (question.parentId === undefined) {
-      questionCounts[question.status] = (questionCounts[question.status] ?? 0) + 1;
-    }
-  }
+  // --- Question counts retired (ADR-085) — always empty ---
+  const questionCounts: Record<string, number> = {};
 
   // --- Action counts across all findings ---
   let totalActions = 0;

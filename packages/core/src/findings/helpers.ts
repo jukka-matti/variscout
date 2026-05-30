@@ -7,12 +7,34 @@ import type {
   FindingContext,
   FindingSource,
   AnalyzeCategory,
-  Question,
   Hypothesis,
   HypothesisEvidence,
 } from './types';
+import { collectReferencedColumns } from './hypothesisCondition';
 import type { BestSubsetsResult, BestSubsetResult, LevelChange } from '../stats/bestSubsets';
 import { predictFromModel, predictFromUnifiedModel } from '../stats/bestSubsets';
+
+/**
+ * Derive the factor columns a Hypothesis hub is "about" (ADR-085 F1).
+ *
+ * Factor identity comes from the hub's disconfirmable `condition` tree; when the
+ * hub has no condition yet, fall back to the columns of its linked findings'
+ * `activeFilters` snapshots.
+ */
+function deriveHubFactors(hub: Hypothesis, findings: Finding[]): string[] {
+  if (hub.condition) {
+    return [...collectReferencedColumns(hub.condition)];
+  }
+  const columns = new Set<string>();
+  const linkedIds = new Set(hub.findingIds);
+  for (const finding of findings) {
+    if (!linkedIds.has(finding.id)) continue;
+    for (const column of Object.keys(finding.context.activeFilters)) {
+      columns.add(column);
+    }
+  }
+  return [...columns];
+}
 
 /**
  * Get finding status
@@ -146,8 +168,6 @@ export function getScopedFindings(findings: Finding[]): Finding[] {
 /** Statistical evidence via Best Subsets R²adj (standard + capability modes) */
 function computeStatisticalEvidence(
   hubFactors: string[],
-  questions: Question[],
-  questionIds: string[],
   bestSubsetsResult: BestSubsetsResult | null
 ): number {
   if (bestSubsetsResult && hubFactors.length > 0) {
@@ -167,41 +187,26 @@ function computeStatisticalEvidence(
     if (partial.length > 0) return partial[0].rSquaredAdj;
   }
 
-  // Fallback: capped sum of individual evidence
-  const hubQIds = new Set(questionIds);
-  let sum = 0;
-  for (const q of questions) {
-    if (!hubQIds.has(q.id)) continue;
-    sum += q.evidence?.etaSquared ?? q.evidence?.rSquaredAdj ?? 0;
-  }
-  return Math.min(sum, 1.0);
+  // No model match — no derivable contribution.
+  return 0;
 }
 
-/** Channel evidence from channel Cpk (performance mode) */
-function computeChannelEvidence(questions: Question[], questionIds: string[]): number {
-  // For now, same fallback as lean — will be refined when channel ranking is implemented
-  const hubQIds = new Set(questionIds);
-  let sum = 0;
-  for (const q of questions) {
-    if (!hubQIds.has(q.id)) continue;
-    sum += q.evidence?.etaSquared ?? q.evidence?.rSquaredAdj ?? 0;
-  }
-  return Math.min(sum, 1.0);
+/** Channel evidence (performance mode) — falls back to statistical for now */
+function computeChannelEvidence(
+  hubFactors: string[],
+  bestSubsetsResult: BestSubsetsResult | null
+): number {
+  return computeStatisticalEvidence(hubFactors, bestSubsetsResult);
 }
 
 /** Mode-specific evidence computation — follows analysisStrategy.ts pattern */
 const evidenceComputers: Record<
   HypothesisEvidence['mode'],
-  (
-    hubFactors: string[],
-    questions: Question[],
-    questionIds: string[],
-    bestSubsets: BestSubsetsResult | null
-  ) => number
+  (hubFactors: string[], bestSubsets: BestSubsetsResult | null) => number
 > = {
-  standard: (hf, q, qIds, bs) => computeStatisticalEvidence(hf, q, qIds, bs),
-  capability: (hf, q, qIds, bs) => computeStatisticalEvidence(hf, q, qIds, bs),
-  performance: (_hf, q, qIds) => computeChannelEvidence(q, qIds),
+  standard: (hf, bs) => computeStatisticalEvidence(hf, bs),
+  capability: (hf, bs) => computeStatisticalEvidence(hf, bs),
+  performance: (hf, bs) => computeChannelEvidence(hf, bs),
 };
 
 const EVIDENCE_LABELS: Record<HypothesisEvidence['mode'], string> = {
@@ -218,31 +223,24 @@ const EVIDENCE_LABELS: Record<HypothesisEvidence['mode'], string> = {
  * falling back to a capped sum of individual η² values. Performance mode
  * uses mode-appropriate evidence and skips Best Subsets.
  *
- * Duplicate factors across connected questions are deduplicated before lookup
- * to prevent match failures when multiple questions share the same factor.
+ * The hub's factor columns are derived from its `condition` tree (ADR-085 F1),
+ * falling back to its linked findings' `activeFilters` columns.
  *
  * @param hub - The Hypothesis hub to compute evidence for
- * @param questions - All questions in scope (e.g. from the investigation store)
+ * @param findings - All findings in scope (used to re-derive hub factors)
  * @param bestSubsetsResult - Best Subsets analysis result, or null for fallback
  * @param mode - Analysis mode (default: 'standard')
  * @returns Structured HypothesisEvidence object
  */
 export function computeHubEvidence(
   hub: Hypothesis,
-  questions: Question[],
+  findings: Finding[],
   bestSubsetsResult: BestSubsetsResult | null,
   mode: HypothesisEvidence['mode'] = 'standard'
 ): HypothesisEvidence {
-  // Collect unique factors linked to hub questions (dedup prevents match failures)
-  const hubFactors = [
-    ...new Set(
-      hub.questionIds
-        .map(id => questions.find(q => q.id === id)?.factor)
-        .filter((f): f is string => f != null)
-    ),
-  ];
+  const hubFactors = deriveHubFactors(hub, findings);
 
-  const value = evidenceComputers[mode](hubFactors, questions, hub.questionIds, bestSubsetsResult);
+  const value = evidenceComputers[mode](hubFactors, bestSubsetsResult);
   const pct = Math.round(value * 100);
 
   return {
@@ -291,7 +289,7 @@ export interface HubProjection {
  * numeric values map.
  *
  * @param hub - The Hypothesis hub
- * @param questions - All questions in scope
+ * @param findings - All findings in scope (used to re-derive hub factors)
  * @param bestSubsetsResult - Best Subsets analysis result (null → return null)
  * @param currentWorstLevels - Current worst factor levels (factor → level string).
  *   For continuous factors, this is used only as fallback display labels.
@@ -299,7 +297,7 @@ export interface HubProjection {
  */
 export function computeHubProjection(
   hub: Hypothesis,
-  questions: Question[],
+  findings: Finding[],
   bestSubsetsResult: BestSubsetsResult | null,
   currentWorstLevels: Record<string, string>,
   options?: {
@@ -313,14 +311,7 @@ export function computeHubProjection(
 ): HubProjection | null {
   if (!bestSubsetsResult) return null;
 
-  // Collect unique factors from connected questions
-  const hubFactors = [
-    ...new Set(
-      hub.questionIds
-        .map(id => questions.find(q => q.id === id)?.factor)
-        .filter((f): f is string => f != null)
-    ),
-  ];
+  const hubFactors = deriveHubFactors(hub, findings);
 
   if (hubFactors.length === 0) return null;
 
@@ -502,67 +493,73 @@ export function computeHubProjection(
 // Evidence clustering (factor overlap detection)
 // ============================================================================
 
-/** A cluster of questions sharing factors that could form a Hypothesis hub */
+/** A cluster of findings sharing a factor column that could form a Hypothesis hub */
 export interface EvidenceCluster {
-  /** Factors shared by the clustered questions */
+  /** Factor columns shared by the clustered findings */
   factors: string[];
-  /** Question IDs in the cluster */
-  questionIds: string[];
-  /** Finding IDs linked to clustered questions */
+  /** Finding IDs in the cluster */
   findingIds: string[];
-  /** Combined R²adj of the cluster */
+  /** Combined R²adj of the cluster (from the best-subsets model, when available) */
   rSquaredAdj: number;
 }
 
 /**
- * Detect clusters of answered questions that share factors and could
- * form new Hypothesis hubs.
+ * Detect clusters of in-scope findings that share a factor column and could
+ * form new Hypothesis hubs (ADR-085 — factor identity comes from findings, not
+ * a separate Question entity).
  *
- * Groups answered questions by their factor, excludes factors already
- * covered by existing hubs, and returns clusters with 2+ questions
- * sorted by combined R²adj.
+ * Groups investigating/analyzed findings by the columns of their
+ * `activeFilters` snapshot, excludes columns already covered by existing hubs,
+ * and returns clusters with 2+ findings sorted by combined R²adj.
  *
- * @param questions - All questions in scope
  * @param findings - All findings in scope
- * @param existingHubs - Existing Hypothesis hubs (factors excluded)
+ * @param existingHubs - Existing Hypothesis hubs (covered columns excluded)
+ * @param bestSubsetsResult - Best Subsets result for per-factor R²adj, or null
  */
 export function detectEvidenceClusters(
-  questions: Question[],
   findings: Finding[],
-  existingHubs: Hypothesis[]
+  existingHubs: Hypothesis[],
+  bestSubsetsResult: BestSubsetsResult | null = null
 ): EvidenceCluster[] {
-  // Collect factors already covered by existing hubs
+  // Collect columns already covered by existing hubs
   const coveredFactors = new Set<string>();
   for (const hub of existingHubs) {
-    for (const qId of hub.questionIds) {
-      const q = questions.find(qq => qq.id === qId);
-      if (q?.factor) coveredFactors.add(q.factor);
+    for (const factor of deriveHubFactors(hub, findings)) {
+      coveredFactors.add(factor);
     }
   }
 
-  // Group answered questions by factor
-  const factorQuestions = new Map<string, Question[]>();
-  for (const q of questions) {
-    if (q.status !== 'answered' && q.status !== 'investigating') continue;
-    if (!q.factor) continue;
-    if (coveredFactors.has(q.factor)) continue;
-
-    if (!factorQuestions.has(q.factor)) factorQuestions.set(q.factor, []);
-    factorQuestions.get(q.factor)!.push(q);
+  // Per-factor R²adj lookup from single-factor subsets, when a model is present
+  const factorRSquared = new Map<string, number>();
+  if (bestSubsetsResult) {
+    for (const subset of bestSubsetsResult.subsets) {
+      if (subset.factors.length === 1) {
+        factorRSquared.set(subset.factors[0], subset.rSquaredAdj);
+      }
+    }
   }
 
-  // Build clusters from factors with 2+ questions
-  const clusters: EvidenceCluster[] = [];
-  for (const [factor, qs] of factorQuestions.entries()) {
-    if (qs.length < 2) continue;
+  // Group eligible findings by each referenced factor column
+  const factorFindings = new Map<string, Finding[]>();
+  for (const finding of findings) {
+    if (finding.status !== 'analyzed' && finding.status !== 'investigating') continue;
+    for (const column of Object.keys(finding.context.activeFilters)) {
+      if (coveredFactors.has(column)) continue;
+      if (!factorFindings.has(column)) factorFindings.set(column, []);
+      factorFindings.get(column)!.push(finding);
+    }
+  }
 
-    const questionIds = qs.map(q => q.id);
-    const findingIds = [...new Set(qs.flatMap(q => q.linkedFindingIds ?? []))];
-    const rSquaredAdj = qs.reduce((sum, q) => sum + (q.evidence?.rSquaredAdj ?? 0), 0);
+  // Build clusters from columns with 2+ findings
+  const clusters: EvidenceCluster[] = [];
+  for (const [factor, fs] of factorFindings.entries()) {
+    if (fs.length < 2) continue;
+
+    const findingIds = [...new Set(fs.map(f => f.id))];
+    const rSquaredAdj = factorRSquared.get(factor) ?? 0;
 
     clusters.push({
       factors: [factor],
-      questionIds,
       findingIds,
       rSquaredAdj,
     });

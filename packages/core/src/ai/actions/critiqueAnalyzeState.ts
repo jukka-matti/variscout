@@ -1,66 +1,74 @@
 /**
- * Aggregates investigation-state gaps for the CoScout
- * `critique_investigation_state` tool. Returns a structured array of gap
- * entries. One read tool powers the whole Wall rail critique feed.
+ * critiqueAnalyzeState — Diagnostic gap-finder for investigation state.
  *
- * Gap kinds:
- * - missing-disconfirmation: hub has ≥3 supporting findings and no contradictor
- * - hub-without-question: hub with no linked guiding questions
- * - orphan-question: open question with no hub membership
- * - stale-question: open question older than STALE_DAYS
+ * Pure function that inspects findings and hypotheses to surface gaps an analyst
+ * (or CoScout) should address: hypotheses with no evidence, orphan findings, etc.
+ *
+ * Used by the deterministic AI-assist surface — no LLM call here, just
+ * structured heuristics over the current investigation graph.
  */
 
-import type { Hypothesis, Question, Finding } from '../..';
+import type { Hypothesis, Finding } from '../..';
 
-const MIN_SUPPORTERS_FOR_DISCONFIRMATION_GAP = 3;
-const STALE_DAYS = 7;
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+export interface AnalyzeStateCritique {
+  /** Hypotheses with no linked findings (untested theories) */
+  hypothesesWithoutEvidence: string[];
+  /** Findings not linked to any hypothesis (orphan observations) */
+  orphanFindings: Array<{ kind: 'orphan-finding'; findingId: string; findingText: string }>;
+  /** Findings open too long (stale) */
+  staleFindings: Array<{
+    kind: 'stale-finding';
+    findingId: string;
+    findingText: string;
+    daysOpen: number;
+  }>;
+}
 
-export type AnalyzeGap =
-  | { kind: 'missing-disconfirmation'; hubId: string; hubName: string }
-  | { kind: 'hub-without-question'; hubId: string; hubName: string }
-  | { kind: 'orphan-question'; questionId: string; questionText: string }
-  | { kind: 'stale-question'; questionId: string; questionText: string; daysOpen: number };
-
-export interface CritiqueInput {
+interface CritiqueInput {
   hubs: Hypothesis[];
-  questions: Question[];
   findings: Finding[];
+  now?: number;
 }
 
-export interface CritiqueResult {
-  gaps: AnalyzeGap[];
-}
+const STALE_DAYS_THRESHOLD = 14;
 
-export function critiqueAnalyzeState(input: CritiqueInput): CritiqueResult {
-  const gaps: AnalyzeGap[] = [];
-  const findingById = new Map(input.findings.map(f => [f.id, f]));
+export function critiqueAnalyzeState(input: CritiqueInput): AnalyzeStateCritique {
+  const orphanFindings: AnalyzeStateCritique['orphanFindings'] = [];
+  const staleFindings: AnalyzeStateCritique['staleFindings'] = [];
+  const hypothesesWithoutEvidence: string[] = [];
 
+  // Hypotheses with no linked findings
   for (const hub of input.hubs) {
-    const supporters = hub.findingIds
-      .map(id => findingById.get(id))
-      .filter((f): f is Finding => !!f);
-    const hasContradictor = supporters.some(f => f.validationStatus === 'contradicts');
-    if (supporters.length >= MIN_SUPPORTERS_FOR_DISCONFIRMATION_GAP && !hasContradictor) {
-      gaps.push({ kind: 'missing-disconfirmation', hubId: hub.id, hubName: hub.name });
-    }
-    if (hub.questionIds.length === 0) {
-      gaps.push({ kind: 'hub-without-question', hubId: hub.id, hubName: hub.name });
+    if (hub.findingIds.length === 0) {
+      hypothesesWithoutEvidence.push(hub.id);
     }
   }
 
-  const hubQuestionIds = new Set(input.hubs.flatMap(h => h.questionIds));
-  const now = Date.now();
-  for (const q of input.questions) {
-    if (q.status !== 'open') continue;
-    if (!hubQuestionIds.has(q.id)) {
-      gaps.push({ kind: 'orphan-question', questionId: q.id, questionText: q.text });
+  // Orphan + stale findings
+  const hubFindingIds = new Set(input.hubs.flatMap(h => h.findingIds));
+  const now = input.now ?? Date.now();
+
+  for (const f of input.findings) {
+    if (!hubFindingIds.has(f.id)) {
+      orphanFindings.push({ kind: 'orphan-finding', findingId: f.id, findingText: f.text });
     }
-    const daysOpen = Math.floor((now - q.createdAt) / MS_PER_DAY);
-    if (daysOpen > STALE_DAYS) {
-      gaps.push({ kind: 'stale-question', questionId: q.id, questionText: q.text, daysOpen });
+    const daysOpen = (now - f.createdAt) / (1000 * 60 * 60 * 24);
+    if (
+      (f.status === 'observed' || f.status === 'investigating') &&
+      daysOpen > STALE_DAYS_THRESHOLD
+    ) {
+      staleFindings.push({
+        kind: 'stale-finding',
+        findingId: f.id,
+        findingText: f.text,
+        daysOpen: Math.floor(daysOpen),
+      });
     }
   }
 
-  return { gaps };
+  return {
+    hypothesesWithoutEvidence,
+    orphanFindings,
+    staleFindings,
+  };
 }

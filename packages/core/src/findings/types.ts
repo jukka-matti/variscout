@@ -1,9 +1,9 @@
 /**
  * Findings domain types — data model for analyst-captured findings,
- * questions, improvement ideas, and investigation workflow.
+ * hypotheses, problem-statement scopes, improvement ideas, and investigation workflow.
  */
 
-import type { HypothesisCondition } from './hypothesisCondition';
+import type { HypothesisCondition, ConditionLeaf } from './hypothesisCondition';
 import type { TimelineWindow } from '../timeline';
 import type { TimeLens } from '../stats/timeLens';
 import type { EntityBase } from '../identity';
@@ -307,87 +307,6 @@ export interface ImprovementIdea extends EntityBase {
 export type IdeaDirection = 'prevent' | 'detect' | 'simplify' | 'eliminate';
 
 // ============================================================================
-// Question Types (formerly "Hypothesis" — renamed per ADR-053 question-driven model)
-// ============================================================================
-
-/** Investigation question status */
-export type QuestionStatus = 'open' | 'investigating' | 'answered' | 'ruled-out';
-
-/** Ordered list of question statuses */
-export const QUESTION_STATUSES: QuestionStatus[] = [
-  'open',
-  'investigating',
-  'answered',
-  'ruled-out',
-];
-
-/** Human-readable labels for question statuses */
-export const QUESTION_STATUS_LABELS: Record<QuestionStatus, string> = {
-  open: 'Open',
-  investigating: 'Investigating',
-  answered: 'Answered',
-  'ruled-out': 'Ruled out',
-};
-
-/** Validation type for question evidence gathering */
-export type QuestionValidationType = 'data' | 'gemba' | 'expert';
-
-/**
- * An investigation question — a testable claim about a factor's role in variation.
- *
- * In the question-driven model (ADR-053), questions are generated from Factor Intelligence
- * and form a tree structure. The analyst investigates by linking findings as evidence.
- * Supports tree structure via parentId for sub-questions.
- */
-export interface Question extends EntityBase {
-  /** Question text (e.g., "Does shift affect fill weight?") */
-  text: string;
-  /** Linked factor column name */
-  factor?: string;
-  /** Specific factor level (e.g., "Night") */
-  level?: string;
-  /** Investigation status */
-  status: QuestionStatus;
-  /** IDs of findings that link to this question */
-  linkedFindingIds: Finding['id'][];
-  /** Timestamp of last update (Unix ms) */
-  updatedAt: number;
-  /** FK to the owning investigation. Required for normalized storage. */
-  investigationId: ProcessHubAnalyze['id'];
-
-  // --- Tree structure (sub-questions) ---
-  /** Parent question ID — enables tree (sub-questions). Undefined for root questions. */
-  parentId?: Question['id'];
-  /** How this question is validated: data (auto η²), gemba (go-and-see), or expert opinion */
-  validationType?: QuestionValidationType;
-  /** Task description for gemba/expert validation */
-  validationTask?: string;
-  /** Whether the gemba/expert task has been completed */
-  taskCompleted?: boolean;
-  /** Analyst's note when manually setting status (gemba/expert validation) */
-  manualNote?: string;
-  /** Improvement ideas for answered/investigating questions */
-  ideas?: ImprovementIdea[];
-  /**
-   * Role in investigation conclusion — multiple 'suspected-cause' allowed per tree.
-   *
-   * Co-exists with Hypothesis hubs during the hub-model transition. UI surfaces
-   * (ReportView, IdeaGroupCard, FindingsLog, QuestionNode) still read this field
-   * for grouping and display; the canonical mechanism is Hypothesis hub membership
-   * via `questionIds`. Don't remove this field without first refactoring those
-   * consumers to read hub membership instead.
-   */
-  causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
-  /** Source of this question: how it was generated */
-  questionSource?: 'factor-intel' | 'heuristic' | 'coscout' | 'analyst';
-  /** Statistical evidence for auto-answered questions */
-  evidence?: {
-    rSquaredAdj?: number;
-    etaSquared?: number;
-  };
-}
-
-// ============================================================================
 // Finding Projection Types
 // ============================================================================
 
@@ -574,9 +493,12 @@ export interface Finding extends EntityBase {
   source?: FindingSource;
   /** Optional assignee for Team plan @mention workflow */
   assignee?: FindingAssignee;
-  /** Link to a question (replaces deprecated hypothesis linkage) */
-  questionId?: Question['id'];
-  /** How this finding relates to its linked question */
+  /**
+   * How this finding relates to the hypothesis branch it is attached to.
+   * Drives the Investigation Wall's supporting / counter / not-tested clue split
+   * (see `projectMechanismBranch`). Not a `Question` FK — retained after ADR-085
+   * dropped the `Question` entity.
+   */
   validationStatus?: 'supports' | 'contradicts' | 'inconclusive';
   /** What-If projection attached to this finding */
   projection?: FindingProjection;
@@ -603,7 +525,7 @@ export interface Finding extends EntityBase {
 /**
  * A user-defined investigation category that groups factor columns.
  *
- * Three-level investigation tree: Category → Factor → Question
+ * Two-level grouping: Category → Factor
  */
 export interface AnalyzeCategory extends EntityBase {
   /** User-defined name: "Equipment", "Drying Method", "Staff", etc. */
@@ -724,7 +646,7 @@ export interface DisconfirmationAttempt {
 
 /**
  * A hypothesis — a named mechanism that connects multiple evidence
- * threads (questions, findings) into one coherent story.
+ * threads (findings) into one coherent story.
  *
  * This is the primary output of the Investigation Diamond. Each hypothesis drives
  * one HMW brainstorm session in the IMPROVE phase.
@@ -736,8 +658,6 @@ export interface Hypothesis extends EntityBase {
   name: string;
   /** Analyst's synthesis: how the evidence connects */
   synthesis: string;
-  /** Connected question IDs */
-  questionIds: Question['id'][];
   /** Connected finding IDs */
   findingIds: Finding['id'][];
   /** IDs of MeasurementPlans designed to gather evidence for this hypothesis. Parallel to findingIds.
@@ -760,8 +680,6 @@ export interface Hypothesis extends EntityBase {
   nextMove?: string;
   /** Explicit finding IDs that should render as counter-clues for this branch. */
   counterFindingIds?: Finding['id'][];
-  /** Explicit question IDs that should render as open branch checks. */
-  checkQuestionIds?: Question['id'][];
   /** Predicate tree used by the Investigation Wall to evaluate HOLDS X/Y.
    * Auto-derived from the first finding's `findingSource` on creation; analyst-editable.
    * Absent for hubs created before Wall ships. */
@@ -780,6 +698,12 @@ export interface Hypothesis extends EntityBase {
    * See `hypothesisEvidence.hasUnresolvedDisconfirmation`.
    */
   disconfirmationAttempts?: DisconfirmationAttempt[];
+  /**
+   * Improvement ideas that address this suspected cause (ADR-085 F2). Re-homed
+   * from the retired `Question` entity — ideas belong to the mechanism they fix,
+   * not to an investigation prompt.
+   */
+  ideas?: ImprovementIdea[];
 }
 
 // ============================================================================
@@ -795,7 +719,6 @@ export interface CausalLink extends EntityBase {
   whyStatement: string; // "Night shift runs cause thermal drift"
   direction: 'drives' | 'modulates' | 'confounds';
   evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
-  questionIds: Question['id'][]; // Questions supporting this link
   findingIds: Finding['id'][]; // Findings supporting this link
   /** The Hypothesis this link belongs to. */
   hypothesisId?: Hypothesis['id'];
@@ -841,13 +764,51 @@ export type GateNode =
   | { kind: 'not'; child: GateNode };
 
 // ============================================================================
+// Problem-Statement Scope (ADR-085 — the WHERE, first-class)
+// ============================================================================
+
+/**
+ * The first-class WHERE of an investigation (ADR-085): an outcome (Y) sharpened
+ * by a flat AND of `{factor=level}` drill predicates, with the many suspected
+ * causes nested per-scope via `hypothesisIds`.
+ *
+ * WHERE (this scope) and WHY (the causes nested within it) stay strictly
+ * separate — a scope is not a mechanism. `predicates` reuse the
+ * `hypothesisCondition` leaf shape (`eq/in/...`); the cause's own disconfirmable
+ * claim lives on `Hypothesis.condition`, never re-asserting the scope.
+ */
+export interface ProblemStatementScope extends EntityBase {
+  /** FK to the owning investigation. */
+  investigationId: ProcessHubAnalyze['id'];
+  /** The Y this scope sharpens. */
+  outcome: string;
+  /** The `{factor=level}` WHERE — a flat AND of drill-chip leaves. */
+  predicates: ConditionLeaf[];
+  /** The MANY suspected causes nested within this scope (the WHY). */
+  hypothesisIds: Hypothesis['id'][];
+  /**
+   * Per-scope contribution tree (re-homed from `analyzeStore.problemContributionTree`).
+   * Leaves reference `Hypothesis` hubs; branches compose with boolean gates.
+   * Terminology: "contribution tree", never "root cause" (P5 amended).
+   */
+  gateNode?: GateNode;
+  /**
+   * Optional 'if-fixed' overall impact projection. Field only — the computation
+   * lands in IM-5.
+   */
+  whatIfProjection?: number;
+  /** Updated timestamp (Unix ms). */
+  updatedAt: number;
+}
+
+// ============================================================================
 // Analysis Brief (Stage 5 modal — investigation entry context)
 // ============================================================================
 
 /**
  * Investigation-level brief captured by Stage 5 modal (and historically by ColumnMapping).
- * Per D7 (slice 3): stays as a flat shape; "Open investigation →" creates Investigation +
- * Question entities via store mutation; "Skip" lands on canvas with no active investigation.
+ * Per D7 (slice 3): stays as a flat shape; "Open investigation →" lands on the canvas
+ * with an active investigation; "Skip" lands with none.
  *
  * `target.metric` aligns with the existing `TargetMetric` type from the UI package; this
  * file owns the canonical definition now.
@@ -857,8 +818,6 @@ export type AnalysisBriefTargetMetric = 'mean' | 'cpk' | 'defectRate' | 'cycleTi
 export interface AnalysisBrief {
   /** What is being investigated (max 500 chars) */
   issueStatement?: string;
-  /** Upfront question entries */
-  questions?: Array<{ text: string; factor?: string; level?: string }>;
   /**
    * Optional draft hypothesis text entered at Stage 5.
    * Stored as-is; consumer apps decide how to surface it.

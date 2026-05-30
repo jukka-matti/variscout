@@ -689,13 +689,7 @@ export {
   critiqueAnalyzeState,
   detectBestSubsetsCandidates,
 } from './ai/actions';
-export type {
-  SuggestedBrush,
-  AnalyzeGap,
-  CritiqueInput,
-  CritiqueResult,
-  BestSubsetsCandidate,
-} from './ai/actions';
+export type { SuggestedBrush, AnalyzeStateCritique, BestSubsetsCandidate } from './ai/actions';
 
 // Category keyword matching and inference
 export {
@@ -731,9 +725,6 @@ export type {
   CommentAttachment,
   ActionItem,
   FindingOutcome,
-  Question,
-  QuestionStatus,
-  QuestionValidationType,
   AnalyzeCategory,
   ImprovementIdea,
   IdeaTimeframe,
@@ -755,7 +746,6 @@ export type {
   MechanismBranchClueView,
   MechanismBranchProcessContext,
   MechanismBranchProjectionOptions,
-  MechanismBranchQuestionView,
   MechanismBranchActionStateView,
   MechanismBranchViewModel,
   // Causal link types (analyze DAG)
@@ -801,8 +791,6 @@ export {
   FINDING_STATUS_DESCRIPTIONS,
   FINDING_TAGS,
   FINDING_TAG_LABELS,
-  QUESTION_STATUSES,
-  QUESTION_STATUS_LABELS,
   PWA_STATUSES,
   CATEGORY_COLORS,
   generateId,
@@ -812,12 +800,11 @@ export {
   createCommentAttachment,
   createActionItem,
   createFindingOutcome,
-  createQuestion,
   createImprovementIdea,
-  createFactorFinding,
   createInvestigationCategory,
   createHypothesis,
   createCausalLink,
+  createProblemStatementScope,
   deriveIPReportMiniChartType,
   // HypothesisCondition evaluator
   evaluateCondition,
@@ -827,14 +814,21 @@ export {
   collectStepColumns,
   conditionHasMissingColumn,
   conditionReferencesStep,
+  // Drill-chip → ConditionLeaf[] bridges (ADR-085 scope capture)
+  buildConditionFromCategoricalFilters,
+  activeFiltersToCondition,
   // GateNode path-based tree ops (Investigation Wall contribution tree)
   getAt,
   updateAt,
   insertHubAsAndChild,
   removeAt,
 } from './findings';
-export type { GatePath, IPReportMiniChartType } from './findings';
-export type { FactorFindingInput, FactorFindingBundle } from './findings';
+export type {
+  GatePath,
+  IPReportMiniChartType,
+  ProblemStatementScope,
+  ConditionLeaf,
+} from './findings';
 export {
   getCategoryForFactor,
   getFindingStatus,
@@ -947,7 +941,7 @@ export type {
   EvidenceSourceAction,
   AnalyzeAction,
   FindingAction,
-  QuestionAction,
+  ScopeAction,
   CausalLinkAction,
   HypothesisAction,
   HubMetaAction,

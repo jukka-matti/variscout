@@ -12,50 +12,17 @@ import {
   type FindingAssignee,
   type ActionItem,
   type ActionItemQuickActionFields,
-  type Question,
-  type QuestionValidationType,
   type ImprovementIdea,
   type PhotoAttachment,
   type AnalyzeCategory,
   type Hypothesis,
   type CausalLink,
+  type ProblemStatementScope,
 } from './types';
+import type { ConditionLeaf } from './hypothesisCondition';
 
 import { generateDeterministicId } from '../identity';
 export { generateDeterministicId as generateId } from '../identity';
-
-/**
- * Create a new Question with a unique ID.
- *
- * @param text - Question text
- * @param investigationId - FK to the owning investigation. Callers must pass
- *   explicitly; use 'general-unassigned' as a sentinel until investigations
- *   become first-class (F6 named-future, tracked in docs/investigations.md).
- */
-export function createQuestion(
-  text: string,
-  investigationId: string,
-  factor?: string,
-  level?: string,
-  parentId?: string,
-  validationType?: QuestionValidationType
-): Question {
-  const now = Date.now();
-  return {
-    id: generateDeterministicId(),
-    text,
-    investigationId,
-    factor,
-    level,
-    status: 'open',
-    linkedFindingIds: [],
-    createdAt: now,
-    updatedAt: now,
-    deletedAt: null,
-    parentId,
-    validationType,
-  };
-}
 
 /**
  * Create a new Finding with a unique ID.
@@ -226,104 +193,21 @@ export function createImprovementIdea(text: string): ImprovementIdea {
   };
 }
 
-// ============================================================================
-// Factor Intelligence → Findings bridge
-// ============================================================================
-
-/** Input from FactorMainEffect for creating a factor-based finding. */
-export interface FactorFindingInput {
-  factor: string;
-  bestLevel: string;
-  worstLevel: string;
-  etaSquared: number;
-  effectRange: number;
-  pValue: number;
-}
-
-/** Bundle returned by createFactorFinding. */
-export interface FactorFindingBundle {
-  finding: Finding;
-  question: Question;
-  idea: ImprovementIdea;
-}
-
-/**
- * Create a Finding + Question + ImprovementIdea from Factor Intelligence output.
- *
- * The question is auto-set to:
- *   - factor: the factor column name
- *   - level: the worst-performing level (the one to change)
- *   - status: 'answered' (statistically validated by η²)
- *   - validationType: 'data' (evidence is from data analysis)
- *
- * The improvement idea targets the factor change: worst → best.
- */
-export function createFactorFinding(
-  input: FactorFindingInput,
-  investigationId: string = 'general-unassigned'
-): FactorFindingBundle {
-  const { factor, bestLevel, worstLevel, etaSquared, effectRange, pValue } = input;
-
-  const etaPct = Number.isFinite(etaSquared) ? (etaSquared * 100).toFixed(1) : '—';
-  const etaStr = Number.isFinite(etaSquared) ? etaSquared.toFixed(3) : '—';
-  const pStr = pValue < 0.001 ? '<0.001' : Number.isFinite(pValue) ? pValue.toFixed(3) : '—';
-  const rangeStr = Number.isFinite(effectRange) ? effectRange.toFixed(1) : '—';
-  const findingText = `${factor} explains ${etaPct}% of variation (η²=${etaStr}, p=${pStr}). Effect range: ${rangeStr}.`;
-
-  const finding = createFinding(
-    findingText,
-    {}, // no active filters — observation comes from Factor Intelligence
-    null,
-    undefined,
-    'investigating', // skip 'observed' — Factor Intelligence already validated statistically
-    undefined,
-    investigationId
-  );
-
-  const question = createQuestion(
-    `${factor} level "${worstLevel}" causes worse outcome — target: change to "${bestLevel}"`,
-    investigationId,
-    factor,
-    worstLevel,
-    undefined,
-    'data' // validated by data analysis, not gemba/expert
-  );
-  question.status = 'answered'; // Factor Intelligence provides statistical evidence
-  question.linkedFindingIds = [finding.id];
-
-  // Link finding to question
-  finding.questionId = question.id;
-  finding.validationStatus = 'supports';
-
-  // Seed improvement idea
-  const idea = createImprovementIdea(
-    `Change ${factor} from "${worstLevel}" to "${bestLevel}" (expected improvement: ${Number.isFinite(effectRange) ? effectRange.toFixed(1) : '—'} units)`
-  );
-  idea.direction = 'eliminate';
-
-  // Attach idea to question
-  question.ideas = [idea];
-
-  return { finding, question, idea };
-}
-
 /**
  * Create a new Hypothesis with a unique ID.
  *
- * A hypothesis groups one or more questions (and their findings) under a named
- * mechanism, enabling the analyst to synthesize multiple evidence streams into a
- * coherent explanation. The aggregate evidence contribution is computed separately
- * via `computeHubEvidence` in helpers.
+ * A hypothesis groups one or more findings under a named mechanism, enabling the
+ * analyst to synthesize multiple evidence streams into a coherent explanation.
+ * The aggregate evidence contribution is computed separately via
+ * `computeHubEvidence` in helpers.
  *
  * @param name - Analyst-chosen label, e.g. "Nozzle wear on night shift"
  * @param synthesis - Free-text explanation connecting the evidence
- * @param questionIds - IDs of questions linked to this hub
  * @param findingIds - IDs of findings linked to this hub
  */
 export function createHypothesis(
   name: string,
   synthesis: string,
-  questionIds: string[] = [],
   findingIds: string[] = [],
   investigationId = 'general-unassigned' // callers must pass explicitly; sentinel until F6 first-class investigations
 ): Hypothesis {
@@ -332,7 +216,6 @@ export function createHypothesis(
     id: generateDeterministicId(),
     name,
     synthesis,
-    questionIds,
     findingIds,
     investigationId,
     status: 'proposed',
@@ -377,11 +260,37 @@ export function createCausalLink(
     whyStatement,
     direction: options?.direction ?? 'drives',
     evidenceType: options?.evidenceType ?? 'unvalidated',
-    questionIds: [],
     findingIds: [],
     strength: options?.strength,
     relationshipType: options?.relationshipType,
     source: options?.source ?? 'analyst',
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+  };
+}
+
+/**
+ * Create a new ProblemStatementScope (the WHERE) with a unique ID (ADR-085).
+ *
+ * @param investigationId - FK to the owning investigation.
+ * @param outcome - The Y this scope sharpens.
+ * @param predicates - The `{factor=level}` WHERE (flat AND of drill-chip leaves).
+ * @param hypothesisIds - The suspected causes nested within this scope (the WHY).
+ */
+export function createProblemStatementScope(
+  investigationId: string,
+  outcome: string,
+  predicates: ConditionLeaf[] = [],
+  hypothesisIds: string[] = []
+): ProblemStatementScope {
+  const now = Date.now();
+  return {
+    id: generateDeterministicId(),
+    investigationId,
+    outcome,
+    predicates,
+    hypothesisIds,
     createdAt: now,
     updatedAt: now,
     deletedAt: null,

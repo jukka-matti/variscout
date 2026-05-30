@@ -1,7 +1,7 @@
 import type { DetectedColumns } from '../parser';
 import type { DefectDetection, DefectMapping } from '../defect';
 import type { ProcessContext } from '../ai';
-import type { Finding, Question, Hypothesis } from '../findings';
+import type { Finding, Hypothesis } from '../findings';
 import type { DataRow, SpecLimits, WideFormatDetection } from '../types';
 import type { Gap, InferredMode, ModeInferenceResult, ProcessMap } from '../frame';
 import type {
@@ -136,7 +136,6 @@ export interface SurveyEvaluationInput {
     ProcessContext,
     'processMap' | 'description' | 'measurement' | 'signalCards'
   >;
-  questions?: Question[];
   findings?: Finding[];
   branches?: Hypothesis[];
 }
