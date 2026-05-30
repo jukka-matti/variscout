@@ -102,7 +102,10 @@ export function AddPlanForm({
 
     onSave({
       hypothesisId,
-      outcome: outcome.trim() || defaultOutcome || '',
+      // Use the user's current outcome value directly (state is seeded from defaultOutcome).
+      // Do NOT fall back to defaultOutcome here — that would prevent the user from clearing
+      // a prefilled outcome (outcome.trim() || defaultOutcome would always re-substitute it).
+      outcome: outcome.trim(),
       primaryFactor: primaryFactor.trim(),
       neededFactors,
       method,

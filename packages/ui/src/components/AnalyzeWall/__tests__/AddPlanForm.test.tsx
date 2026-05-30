@@ -251,4 +251,67 @@ describe('<AddPlanForm />', () => {
     const payload = onSave.mock.calls[0][0];
     expect(payload).not.toHaveProperty('opDef');
   });
+
+  it('includes msaNote in onSave payload when entered', () => {
+    const onSave = vi.fn();
+    render(<AddPlanForm hypothesisId="h-1" members={members} onSave={onSave} onCancel={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText(/primary factor/i), { target: { value: 'Temp' } });
+    fireEvent.change(screen.getByLabelText(/msa/i), {
+      target: { value: 'Calibrate gauge monthly' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    const payload = onSave.mock.calls[0][0];
+    expect(payload.msaNote).toBe('Calibrate gauge monthly');
+  });
+
+  it('omits msaNote from onSave payload when blank', () => {
+    const onSave = vi.fn();
+    render(<AddPlanForm hypothesisId="h-1" members={members} onSave={onSave} onCancel={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText(/primary factor/i), { target: { value: 'Temp' } });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    const payload = onSave.mock.calls[0][0];
+    expect(payload).not.toHaveProperty('msaNote');
+  });
+
+  it('parses whitespace-padded and empty comma segments in neededFactors correctly', () => {
+    const onSave = vi.fn();
+    render(<AddPlanForm hypothesisId="h-1" members={members} onSave={onSave} onCancel={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText(/primary factor/i), { target: { value: 'Temp' } });
+    fireEvent.change(screen.getByLabelText(/needed factors/i), {
+      target: { value: ' SHIFT , , Operator, ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    const payload = onSave.mock.calls[0][0];
+    expect(payload.neededFactors).toEqual(['SHIFT', 'Operator']);
+  });
+
+  it('produces empty neededFactors array when input is blank', () => {
+    const onSave = vi.fn();
+    render(<AddPlanForm hypothesisId="h-1" members={members} onSave={onSave} onCancel={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText(/primary factor/i), { target: { value: 'Temp' } });
+    // leave neededFactors blank (default '')
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    const payload = onSave.mock.calls[0][0];
+    expect(payload.neededFactors).toEqual([]);
+  });
+
+  it('uses the cleared outcome value (not the prefill) when user erases a prefilled outcome', () => {
+    const onSave = vi.fn();
+    render(
+      <AddPlanForm
+        hypothesisId="h-1"
+        members={members}
+        onSave={onSave}
+        onCancel={vi.fn()}
+        defaultOutcome="Fill Weight (g)"
+      />
+    );
+    fireEvent.change(screen.getByLabelText(/primary factor/i), { target: { value: 'Temp' } });
+    // User clears the pre-filled outcome field
+    fireEvent.change(screen.getByLabelText(/outcome/i), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    const payload = onSave.mock.calls[0][0];
+    // outcome must be '' — NOT the defaultOutcome re-substituted
+    expect(payload.outcome).toBe('');
+  });
 });

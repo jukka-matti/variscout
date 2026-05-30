@@ -844,5 +844,87 @@ describe('WallCanvas', () => {
       expect(screen.getByText(/ActiveFactor/i)).toBeInTheDocument();
       expect(screen.queryByText(/DeletedFactor/i)).not.toBeInTheDocument();
     });
+
+    it('derives step options from processMap and renders the step select inside AddPlanForm', () => {
+      // The single-node processMap fixture has node 'Fill' (id='n1').
+      // planningStepOptions useMemo should derive [{id:'n1', label:'Fill'}]
+      // and forward it through hubPlanningProps to HypothesisCardWithPlans.
+      const onAddPlan = vi.fn();
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          planningProps={{
+            plans: [],
+            members: [
+              {
+                id: 'pm-test',
+                userId: 'test-user',
+                displayName: 'Test User',
+                role: 'lead',
+                invitedAt: 1,
+                createdAt: 1,
+                deletedAt: null,
+              },
+            ],
+            currentUserId: 'test-user',
+            onAddPlan,
+            onLinkFinding: vi.fn(),
+            onEditPlan: vi.fn(),
+          }}
+        />
+      );
+
+      // Open the AddPlanForm
+      fireEvent.click(screen.getByRole('button', { name: /add plan/i }));
+
+      // The Process step select should be rendered with the derived 'Fill' option
+      const stepSelect = screen.getByLabelText(/process step/i) as HTMLSelectElement;
+      const stepValues = Array.from(stepSelect.options).map(o => o.value);
+      expect(stepValues).toContain('n1');
+      expect(stepValues.some(v => v === 'n1')).toBe(true);
+      // Confirm label is rendered as option text
+      expect(screen.getByRole('option', { name: 'Fill' })).toBeInTheDocument();
+    });
+
+    it('hides step select in AddPlanForm when processMap is absent (undefined fallback path)', () => {
+      const onAddPlan = vi.fn();
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          // processMap intentionally omitted
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          planningProps={{
+            plans: [],
+            members: [
+              {
+                id: 'pm-test',
+                userId: 'test-user',
+                displayName: 'Test User',
+                role: 'lead',
+                invitedAt: 1,
+                createdAt: 1,
+                deletedAt: null,
+              },
+            ],
+            currentUserId: 'test-user',
+            onAddPlan,
+            onLinkFinding: vi.fn(),
+            onEditPlan: vi.fn(),
+          }}
+        />
+      );
+
+      // Open the AddPlanForm
+      fireEvent.click(screen.getByRole('button', { name: /add plan/i }));
+
+      // No process step select should appear — planningStepOptions is undefined
+      expect(screen.queryByLabelText(/process step/i)).not.toBeInTheDocument();
+    });
   });
 });

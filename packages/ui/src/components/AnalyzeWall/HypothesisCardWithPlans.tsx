@@ -35,8 +35,12 @@ const CARD_H = 288;
 const CHIP_ROW_H = 32;
 /** Height of the + Add Plan button row (px). */
 const ADD_BTN_H = 32;
-/** Height of AddPlanForm when expanded (px). */
-const FORM_H = 280;
+/**
+ * Height of AddPlanForm when expanded (px).
+ * The form currently has ~8 fields + 2 textareas (opDef, msaNote) + error row +
+ * Save/Cancel — update this value whenever fields are added/removed.
+ */
+const FORM_H = 660;
 /** Vertical gap between card bottom and the plans section (user-space units). */
 const PLANS_GAP = 8;
 /** Horizontal offset of the foreignObject from the card's center-top anchor. */
@@ -149,6 +153,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
           y={cardProps.y + plansSectionY}
           width={CARD_W}
           height={plansSectionH}
+          style={{ overflow: 'visible' }}
           data-testid="plans-section"
         >
           <div className="bg-white border border-gray-200 rounded-b shadow-sm overflow-visible">
