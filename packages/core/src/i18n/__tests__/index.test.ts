@@ -203,6 +203,12 @@ describe('Investigation Wall keys', () => {
     'canvas.wall.overlayLabel',
     'canvas.wall.overlayDescription',
     'canvas.wall.shortcutLabel',
+    // IM-4a scope + evidence keys
+    'wall.scope.whatIf',
+    'wall.scope.coverage',
+    'wall.evidence.supports',
+    'wall.evidence.countsAgainst',
+    'wall.evidence.contributingFactors',
   ] as const;
 
   it('has English values for all wall keys', () => {
@@ -251,7 +257,7 @@ describe('Investigation Wall keys', () => {
         cpk: '0.78',
         count: 42,
       })
-    ).toBe('Problem condition: FILL, Cpk 0.78, 42 events per week');
+    ).toBe('Problem condition: FILL, Cpk 0.78, 42 events');
   });
 });
 

@@ -515,6 +515,17 @@ export async function applyAction(action: HubAction): Promise<void> {
       // Azure has no 'hypothesis' table today; F3 normalizes — no-op.
       return;
 
+    case 'HYPOTHESIS_RECORD_DISCONFIRMATION':
+      // `disconfirmationAttempts` (like the Hypothesis itself) is in-session-only
+      // / F5-DEFERRED — it does NOT survive a reload. There is no dedicated Azure
+      // Dexie 'hypothesis' table (F3); hypotheses round-trip via the analyze blob,
+      // but `serialize`/`deserialize` have zero non-test callers today (IM-4a).
+      // Mirror: HYPOTHESIS_ADD is also a no-op for the same reason.
+      // See investigations.md §"stored-vs-derived status deferral (IM-4a)" for the
+      // open IM-4b/IM-6 question: migrate stored-status readers to
+      // `deriveHypothesisStatus` OR persist the derived value.
+      return;
+
     // -------------------------------------------------------------------------
     // MeasurementPlan actions — dedicated measurementPlans Dexie table.
     // -------------------------------------------------------------------------

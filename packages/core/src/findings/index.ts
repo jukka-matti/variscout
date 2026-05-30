@@ -32,6 +32,10 @@ export {
   deriveConditionFromFindingSource,
   buildConditionFromCategoricalFilters,
   activeFiltersToCondition,
+  categoricalFiltersToActiveFilters,
+  formatConditionLeaves,
+  predicateSetKey,
+  predicateSetsEqual,
 } from './hypothesisCondition';
 export type { AndCheckResult } from './hypothesisConditionEvaluator';
 export { evaluateCondition, runAndCheck } from './hypothesisConditionEvaluator';

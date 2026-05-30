@@ -379,6 +379,74 @@ describe('analyzeStore — scopes', () => {
 });
 
 // ============================================================================
+// Drill → scope producer (IM-4a Task 1 — the active compound drill becomes a
+// persisted ProblemStatementScope; idempotent on the predicate set)
+// ============================================================================
+
+describe('analyzeStore — syncScopeFromDrill (IM-4a)', () => {
+  const compoundFilters = [
+    { column: 'Machine', values: ['B'] },
+    { column: 'Product', values: ['X'] },
+  ];
+
+  it('produces a ProblemStatementScope from a compound drill condition', () => {
+    const scope = useAnalyzeStore
+      .getState()
+      .syncScopeFromDrill('inv-1', 'lead_time', compoundFilters);
+    expect(scope).not.toBeNull();
+    const state = useAnalyzeStore.getState();
+    expect(state.scopes).toHaveLength(1);
+    expect(state.scopes[0].outcome).toBe('lead_time');
+    expect(state.scopes[0].investigationId).toBe('inv-1');
+    expect(state.scopes[0].predicates).toEqual([
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
+      { kind: 'leaf', column: 'Product', op: 'eq', value: 'X' },
+    ]);
+  });
+
+  it('does NOT duplicate when re-fired on the same compound condition', () => {
+    const first = useAnalyzeStore
+      .getState()
+      .syncScopeFromDrill('inv-1', 'lead_time', compoundFilters);
+    // Re-fire with the SAME condition (different chip order — still the same set)
+    const reordered = [
+      { column: 'Product', values: ['X'] },
+      { column: 'Machine', values: ['B'] },
+    ];
+    const second = useAnalyzeStore.getState().syncScopeFromDrill('inv-1', 'lead_time', reordered);
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(1);
+    expect(second?.id).toBe(first?.id);
+  });
+
+  it('creates a second scope for a distinct compound condition', () => {
+    useAnalyzeStore.getState().syncScopeFromDrill('inv-1', 'lead_time', compoundFilters);
+    useAnalyzeStore
+      .getState()
+      .syncScopeFromDrill('inv-1', 'lead_time', [{ column: 'Line', values: ['A'] }]);
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(2);
+  });
+
+  it('returns undefined and adds nothing for an empty drill', () => {
+    const scope = useAnalyzeStore.getState().syncScopeFromDrill('inv-1', 'lead_time', []);
+    expect(scope).toBeUndefined();
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(0);
+  });
+
+  it('multi-value chips become in-leaves and stay idempotent', () => {
+    const multi = [{ column: 'Line', values: ['1', '2'] }];
+    const first = useAnalyzeStore.getState().syncScopeFromDrill('inv-1', 'lead_time', multi);
+    expect(first?.predicates).toEqual([
+      { kind: 'leaf', column: 'Line', op: 'in', value: ['1', '2'] },
+    ]);
+    // Re-fire with the values in a different order — still one scope.
+    useAnalyzeStore
+      .getState()
+      .syncScopeFromDrill('inv-1', 'lead_time', [{ column: 'Line', values: ['2', '1'] }]);
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(1);
+  });
+});
+
+// ============================================================================
 // Scope What-If projection (IM-5 — persist whatIfProjection)
 // ============================================================================
 
@@ -610,12 +678,6 @@ describe('analyzeStore — hypothesis hubs', () => {
     expect(useAnalyzeStore.getState().hypotheses).toHaveLength(0);
   });
 
-  it('sets hub status', () => {
-    const hub = useAnalyzeStore.getState().createHub('Test', 'Synth');
-    useAnalyzeStore.getState().setHubStatus(hub.id, 'confirmed');
-    expect(useAnalyzeStore.getState().hypotheses[0].status).toBe('confirmed');
-  });
-
   it('sets hub evidence', () => {
     const hub = useAnalyzeStore.getState().createHub('Test', 'Synth');
     const evidence = {
@@ -650,6 +712,53 @@ describe('analyzeStore — hypothesis hubs', () => {
     ];
     useAnalyzeStore.getState().resetHubs(newHubs);
     expect(useAnalyzeStore.getState().hypotheses).toEqual(newHubs);
+  });
+
+  it('recordDisconfirmation appends a DisconfirmationAttempt to the hub', () => {
+    const hub = useAnalyzeStore.getState().createHub('Worn spindle', 'Night shift');
+    const attempt = {
+      id: 'd-1',
+      attemptedAt: '2026-05-30T00:00:00.000Z',
+      attemptedBy: { displayName: 'Analyst' },
+      description: 'Checked against day-shift data',
+      verdict: 'survived' as const,
+      linkedFindingIds: [] as string[],
+    };
+    useAnalyzeStore.getState().recordDisconfirmation(hub.id, attempt);
+    const updated = useAnalyzeStore.getState().hypotheses[0];
+    expect(updated.disconfirmationAttempts).toEqual([attempt]);
+    expect(updated.updatedAt).toBeGreaterThanOrEqual(hub.updatedAt);
+  });
+
+  it('recordDisconfirmation appends without dropping prior attempts', () => {
+    const hub = useAnalyzeStore.getState().createHub('Worn spindle', 'Night shift');
+    const a1 = {
+      id: 'd-1',
+      attemptedAt: '2026-05-30T00:00:00.000Z',
+      attemptedBy: { displayName: 'A' },
+      description: 'first',
+      verdict: 'pending' as const,
+      linkedFindingIds: [] as string[],
+    };
+    const a2 = { ...a1, id: 'd-2', description: 'second', verdict: 'survived' as const };
+    useAnalyzeStore.getState().recordDisconfirmation(hub.id, a1);
+    useAnalyzeStore.getState().recordDisconfirmation(hub.id, a2);
+    expect(useAnalyzeStore.getState().hypotheses[0].disconfirmationAttempts).toEqual([a1, a2]);
+  });
+
+  it('recordDisconfirmation is a no-op for an unknown hub id', () => {
+    useAnalyzeStore.getState().createHub('X', '');
+    expect(() =>
+      useAnalyzeStore.getState().recordDisconfirmation('does-not-exist', {
+        id: 'd',
+        attemptedAt: '2026-05-30T00:00:00.000Z',
+        attemptedBy: { displayName: 'A' },
+        description: 'x',
+        verdict: 'pending',
+        linkedFindingIds: [],
+      })
+    ).not.toThrow();
+    expect(useAnalyzeStore.getState().hypotheses[0].disconfirmationAttempts).toBeUndefined();
   });
 });
 

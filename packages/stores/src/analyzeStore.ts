@@ -36,6 +36,8 @@ import type {
   GateNode,
   ProblemStatementScope,
   ConditionLeaf,
+  CategoricalFilterInput,
+  DisconfirmationAttempt,
 } from '@variscout/core';
 import {
   createFinding,
@@ -45,6 +47,8 @@ import {
   createHypothesis,
   createCausalLink,
   createProblemStatementScope,
+  buildConditionFromCategoricalFilters,
+  predicateSetKey,
   insertHubAsAndChild,
   type GatePath,
 } from '@variscout/core';
@@ -130,6 +134,25 @@ export interface AnalyzeActions {
     predicates?: ConditionLeaf[],
     hypothesisIds?: string[]
   ) => ProblemStatementScope;
+  /**
+   * IM-4a Task 1 — Drill → scope producer. Materialize the active compound
+   * drill (the `categoricalFilters` chips) into a persisted
+   * `ProblemStatementScope`.
+   *
+   * Called imperatively by the app on drill-commit (cross-store imperative read
+   * is permitted; a reactive subscription from this Document store to the View
+   * `analysisScopeStore` is forbidden — so the app passes the chips in).
+   *
+   * IDEMPOTENT on the predicate set (`predicateSetKey`): re-firing on the same
+   * compound condition (regardless of chip order) returns the existing scope
+   * rather than creating a duplicate. An empty drill is a no-op and returns
+   * `undefined`. Single-value chips become `eq` leaves, multi-value become `in`.
+   */
+  syncScopeFromDrill: (
+    investigationId: string,
+    outcome: string,
+    filters: ReadonlyArray<CategoricalFilterInput>
+  ) => ProblemStatementScope | undefined;
   updateScope: (
     scopeId: string,
     patch: Partial<Omit<ProblemStatementScope, 'id' | 'createdAt' | 'deletedAt'>>
@@ -161,7 +184,15 @@ export interface AnalyzeActions {
   deleteHub: (hubId: string) => void;
   connectFindingToHub: (hubId: string, findingId: string) => void;
   disconnectFindingFromHub: (hubId: string, findingId: string) => void;
-  setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
+  /**
+   * IM-4a Task 4 — append a falsification attempt to a hypothesis. The caller
+   * stamps the attempt's id + timestamps (deterministic — mirrors the
+   * MEASUREMENT_PLAN_ADD pattern; no Date.now/RNG inside the store). The derived
+   * status (`deriveHypothesisStatus`) then reflects it: a `survived` attempt +
+   * ≥2 evidence types promotes to `confirmed`; a `pending` attempt holds at
+   * `needs-disconfirmation`. No-op for an unknown hub id.
+   */
+  recordDisconfirmation: (hubId: string, attempt: DisconfirmationAttempt) => void;
   setHubEvidence: (hubId: string, evidence: HypothesisEvidence) => void;
   resetHubs: (hubs: Hypothesis[]) => void;
   /**
@@ -605,6 +636,31 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     return scope;
   },
 
+  syncScopeFromDrill: (investigationId, outcome, filters) => {
+    // Reactive-on-condition-change with set-keyed idempotency (see AnalyzeWorkspace.tsx
+    // §"Drill → scope spine" comment). Called from a useEffect on [categoricalFilters,
+    // outcome] — NOT on an imperative commit gesture. Intermediate scopes accumulate
+    // here; stale/superseded ones are pruned via the IM-4b scope rail (SCOPE_ARCHIVE).
+    const predicates = buildConditionFromCategoricalFilters(filters);
+    // Empty drill → no scope (the active chips ARE the active scope; no chips,
+    // no compound WHERE to persist).
+    if (predicates.length === 0) return undefined;
+
+    // Idempotency: key on the predicate SET, scoped to this investigation +
+    // outcome. Re-firing on the same compound condition returns the existing
+    // scope (regardless of chip order) rather than duplicating it.
+    const key = predicateSetKey(predicates);
+    const existing = get().scopes.find(
+      s =>
+        s.investigationId === investigationId &&
+        s.outcome === outcome &&
+        predicateSetKey(s.predicates) === key
+    );
+    if (existing) return existing;
+
+    return get().addScope(investigationId, outcome, predicates);
+  },
+
   updateScope: (scopeId, patch) => {
     set(state => ({
       scopes: state.scopes.map(s =>
@@ -731,10 +787,16 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     }));
   },
 
-  setHubStatus: (hubId, status) => {
+  recordDisconfirmation: (hubId, attempt) => {
     set(state => ({
       hypotheses: state.hypotheses.map(h =>
-        h.id !== hubId ? h : { ...h, status, updatedAt: Date.now() }
+        h.id !== hubId
+          ? h
+          : {
+              ...h,
+              disconfirmationAttempts: [...(h.disconfirmationAttempts ?? []), attempt],
+              updatedAt: Date.now(),
+            }
       ),
     }));
   },

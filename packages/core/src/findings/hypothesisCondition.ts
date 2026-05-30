@@ -136,6 +136,104 @@ export function activeFiltersToCondition(
 }
 
 /**
+ * Snapshot transient drill-chip filters → a `Record<column, values[]>` map,
+ * the shape a `Finding.context.activeFilters` expects.
+ *
+ * This is the capture-as-Finding bridge (IM-4a Task 1): a Finding captured
+ * during a drilldown should snapshot the DRILL condition (the active scope
+ * chips), not the legacy row-level `projectStore.filters` map. Empty chips are
+ * dropped so an absent value never lands in the snapshot.
+ */
+export function categoricalFiltersToActiveFilters(
+  filters: ReadonlyArray<CategoricalFilterInput>
+): Record<string, (string | number)[]> {
+  const map: Record<string, (string | number)[]> = {};
+  for (const filter of filters) {
+    if (filter.values.length === 0) continue;
+    map[filter.column] = [...filter.values];
+  }
+  return map;
+}
+
+/** Human-readable symbol for each leaf comparison op. */
+const OP_SYMBOL: Record<ComparisonOp, string> = {
+  eq: '=',
+  neq: '≠',
+  lt: '<',
+  lte: '≤',
+  gt: '>',
+  gte: '≥',
+  between: '∈',
+  in: '∈',
+};
+
+/**
+ * Format a flat `ConditionLeaf[]` (a scope's compound WHERE) as a single
+ * human-readable line, e.g. `"Machine = B ∩ Product = X"`. Leaves are joined
+ * with `∩` (set intersection — the predicates are a flat AND). `in`/`between`
+ * render their membership/range; empty list → empty string.
+ *
+ * Locale-free (math symbols + raw values) so it is safe to use as a display
+ * fallback without a catalog key.
+ */
+export function formatConditionLeaves(predicates: ReadonlyArray<ConditionLeaf>): string {
+  const leafText = (leaf: ConditionLeaf): string => {
+    const symbol = OP_SYMBOL[leaf.op];
+    if (leaf.op === 'in' && Array.isArray(leaf.value)) {
+      return `${leaf.column} ${symbol} {${leaf.value.join(', ')}}`;
+    }
+    if (leaf.op === 'between' && Array.isArray(leaf.value)) {
+      return `${leaf.column} ${symbol} [${leaf.value.join(', ')}]`;
+    }
+    return `${leaf.column} ${symbol} ${String(leaf.value)}`;
+  };
+  return predicates.map(leafText).join(' ∩ ');
+}
+
+/**
+ * A canonical, order-independent key for a flat list of `ConditionLeaf`
+ * predicates — the identity of a `ProblemStatementScope`'s WHERE.
+ *
+ * Used by the drill→scope producer for idempotency: re-firing on the same
+ * compound condition (same `{column, op, value}` set, regardless of chip
+ * order) yields the same key, so no duplicate scope is created.
+ *
+ * Value encoding preserves type (numeric `1` ≠ string `"1"`) via a tagged
+ * `JSON.stringify`; array values (`in`, `between`) are sorted for membership
+ * sets but preserved-in-order for `between` ranges (a 2-tuple where order is
+ * semantic). Empty list → empty string.
+ */
+export function predicateSetKey(predicates: ReadonlyArray<ConditionLeaf>): string {
+  const leafKey = (leaf: ConditionLeaf): string => {
+    let valuePart: string;
+    if (leaf.op === 'between') {
+      // `between` is an ordered [min, max] tuple — order is semantic, keep as-is.
+      valuePart = JSON.stringify(leaf.value);
+    } else if (Array.isArray(leaf.value)) {
+      // `in` is a membership set — order is irrelevant; sort by tagged encoding.
+      const sorted = [...leaf.value].map(v => `${typeof v}:${String(v)}`).sort();
+      valuePart = JSON.stringify(sorted);
+    } else {
+      // Scalar — tag with the runtime type so numeric 1 ≠ string "1".
+      valuePart = `${typeof leaf.value}:${String(leaf.value)}`;
+    }
+    return `${leaf.column}|${leaf.op}|${valuePart}`;
+  };
+  return predicates.map(leafKey).sort().join('&&');
+}
+
+/**
+ * True iff two predicate lists describe the same compound condition
+ * (order-independent). Thin wrapper over `predicateSetKey`.
+ */
+export function predicateSetsEqual(
+  a: ReadonlyArray<ConditionLeaf>,
+  b: ReadonlyArray<ConditionLeaf>
+): boolean {
+  return predicateSetKey(a) === predicateSetKey(b);
+}
+
+/**
  * Coerce a mixed `(string | number)[]` chip-value array into the homogeneous
  * `string[] | number[]` an `in` leaf requires. All-numeric stays numeric;
  * otherwise everything is stringified.

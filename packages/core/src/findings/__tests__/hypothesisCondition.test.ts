@@ -1,11 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import type { HypothesisCondition } from '../hypothesisCondition';
+import type { ConditionLeaf, HypothesisCondition } from '../hypothesisCondition';
 import type { ProcessMap } from '../../frame/types';
 import {
+  categoricalFiltersToActiveFilters,
   collectReferencedColumns,
   conditionHasMissingColumn,
   conditionReferencesStep,
   deriveConditionFromFindingSource,
+  formatConditionLeaves,
+  predicateSetKey,
 } from '../hypothesisCondition';
 import type { FindingSource } from '../types';
 
@@ -364,5 +367,119 @@ describe('conditionReferencesStep', () => {
     };
 
     expect(conditionReferencesStep(cond, processMap, 'step-fill')).toBe(false);
+  });
+});
+
+describe('predicateSetKey', () => {
+  it('produces the same key regardless of leaf order', () => {
+    const a: ConditionLeaf[] = [
+      { kind: 'leaf', column: 'MACHINE', op: 'eq', value: 'B' },
+      { kind: 'leaf', column: 'PRODUCT', op: 'eq', value: 'X' },
+    ];
+    const b: ConditionLeaf[] = [
+      { kind: 'leaf', column: 'PRODUCT', op: 'eq', value: 'X' },
+      { kind: 'leaf', column: 'MACHINE', op: 'eq', value: 'B' },
+    ];
+    expect(predicateSetKey(a)).toBe(predicateSetKey(b));
+  });
+
+  it('produces different keys for different values', () => {
+    const a: ConditionLeaf[] = [{ kind: 'leaf', column: 'MACHINE', op: 'eq', value: 'B' }];
+    const b: ConditionLeaf[] = [{ kind: 'leaf', column: 'MACHINE', op: 'eq', value: 'C' }];
+    expect(predicateSetKey(a)).not.toBe(predicateSetKey(b));
+  });
+
+  it('produces different keys for different ops on the same column+value', () => {
+    const a: ConditionLeaf[] = [{ kind: 'leaf', column: 'TEMP', op: 'gt', value: 100 }];
+    const b: ConditionLeaf[] = [{ kind: 'leaf', column: 'TEMP', op: 'gte', value: 100 }];
+    expect(predicateSetKey(a)).not.toBe(predicateSetKey(b));
+  });
+
+  it('is order-independent for in-leaf values', () => {
+    const a: ConditionLeaf[] = [{ kind: 'leaf', column: 'LINE', op: 'in', value: ['1', '2', '3'] }];
+    const b: ConditionLeaf[] = [{ kind: 'leaf', column: 'LINE', op: 'in', value: ['3', '1', '2'] }];
+    expect(predicateSetKey(a)).toBe(predicateSetKey(b));
+  });
+
+  it('distinguishes numeric 1 from string "1"', () => {
+    const a: ConditionLeaf[] = [{ kind: 'leaf', column: 'LINE', op: 'eq', value: 1 }];
+    const b: ConditionLeaf[] = [{ kind: 'leaf', column: 'LINE', op: 'eq', value: '1' }];
+    expect(predicateSetKey(a)).not.toBe(predicateSetKey(b));
+  });
+
+  it('handles between-range values', () => {
+    const a: ConditionLeaf[] = [{ kind: 'leaf', column: 'Y', op: 'between', value: [10, 20] }];
+    const b: ConditionLeaf[] = [{ kind: 'leaf', column: 'Y', op: 'between', value: [10, 20] }];
+    const c: ConditionLeaf[] = [{ kind: 'leaf', column: 'Y', op: 'between', value: [10, 21] }];
+    expect(predicateSetKey(a)).toBe(predicateSetKey(b));
+    expect(predicateSetKey(a)).not.toBe(predicateSetKey(c));
+  });
+
+  it('empty list yields an empty key', () => {
+    expect(predicateSetKey([])).toBe('');
+  });
+});
+
+describe('categoricalFiltersToActiveFilters', () => {
+  it('maps drill chips to a Record<column, values[]>', () => {
+    const result = categoricalFiltersToActiveFilters([
+      { column: 'Machine', values: ['B'] },
+      { column: 'Line', values: ['1', '2'] },
+    ]);
+    expect(result).toEqual({ Machine: ['B'], Line: ['1', '2'] });
+  });
+
+  it('drops empty chips', () => {
+    const result = categoricalFiltersToActiveFilters([
+      { column: 'Machine', values: ['B'] },
+      { column: 'Empty', values: [] },
+    ]);
+    expect(result).toEqual({ Machine: ['B'] });
+  });
+
+  it('returns an empty object for no chips', () => {
+    expect(categoricalFiltersToActiveFilters([])).toEqual({});
+  });
+
+  it('round-trips through activeFiltersToCondition predicate-set identity', () => {
+    const chips = [
+      { column: 'Machine', values: ['B'] },
+      { column: 'Line', values: ['1', '2'] },
+    ];
+    const map = categoricalFiltersToActiveFilters(chips);
+    expect(Object.keys(map)).toEqual(['Machine', 'Line']);
+  });
+});
+
+describe('formatConditionLeaves', () => {
+  it('joins eq leaves with ∩', () => {
+    const text = formatConditionLeaves([
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
+      { kind: 'leaf', column: 'Product', op: 'eq', value: 'X' },
+    ]);
+    expect(text).toBe('Machine = B ∩ Product = X');
+  });
+
+  it('renders in-leaves as a membership list', () => {
+    const text = formatConditionLeaves([
+      { kind: 'leaf', column: 'Line', op: 'in', value: ['1', '2'] },
+    ]);
+    expect(text).toBe('Line ∈ {1, 2}');
+  });
+
+  it('renders comparison ops with their symbols', () => {
+    expect(formatConditionLeaves([{ kind: 'leaf', column: 'T', op: 'gt', value: 100 }])).toBe(
+      'T > 100'
+    );
+    expect(formatConditionLeaves([{ kind: 'leaf', column: 'T', op: 'gte', value: 100 }])).toBe(
+      'T ≥ 100'
+    );
+    expect(
+      formatConditionLeaves([{ kind: 'leaf', column: 'T', op: 'between', value: [10, 20] }])
+    ).toBe('T ∈ [10, 20]');
+  });
+
+  it('returns an empty string for no leaves', () => {
+    expect(formatConditionLeaves([])).toBe('');
   });
 });

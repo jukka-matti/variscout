@@ -25,6 +25,9 @@ const capturedWallCanvasProps = vi.hoisted(() => ({
 const capturedFindingsLogProps = vi.hoisted(() => ({
   current: null as Record<string, unknown> | null,
 }));
+const capturedMapViewProps = vi.hoisted(() => ({
+  current: null as Record<string, unknown> | null,
+}));
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -100,7 +103,10 @@ vi.mock('@variscout/ui', async importOriginal => {
 });
 
 vi.mock('../AnalyzeMapView', () => ({
-  AnalyzeMapView: () => <div data-testid="analyze-map-view" />,
+  AnalyzeMapView: (props: Record<string, unknown>) => {
+    capturedMapViewProps.current = props;
+    return <div data-testid="analyze-map-view" />;
+  },
 }));
 
 vi.mock('../CoScoutSection', () => ({
@@ -167,6 +173,17 @@ vi.mock('@variscout/core', async importOriginal => {
     computeMainEffects: () => null,
     computeInteractionEffects: () => null,
     inferCharacteristicType: () => 'continuous',
+    // Provide categoricalFiltersToActiveFilters explicitly — the `...actual`
+    // spread sometimes doesn't carry deep re-exports under the test mock runtime.
+    categoricalFiltersToActiveFilters: (
+      filters: Array<{ column: string; values: (string | number)[] }>
+    ) => {
+      const map: Record<string, (string | number)[]> = {};
+      for (const f of filters) {
+        if (f.values.length > 0) map[f.column] = [...f.values];
+      }
+      return map;
+    },
   };
 });
 
@@ -191,7 +208,11 @@ vi.mock('@variscout/core/stats', () => ({
 
 // ── 2. Component + store imports AFTER mocks ───────────────────────────────
 
-import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
+import {
+  getCanvasViewportInitialState,
+  useCanvasViewportStore,
+  useAnalysisScopeStore,
+} from '@variscout/stores';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import { usePanelsStore } from '../../../features/panels/panelsStore';
 import { AnalyzeWorkspace } from '../AnalyzeWorkspace';
@@ -235,6 +256,8 @@ function makeMinimalProps(): React.ComponentProps<typeof AnalyzeWorkspace> {
       connectFinding: noOp,
       disconnectFinding: noOp,
       resetHubs: noOp,
+      getHubForFinding: vi.fn(() => undefined),
+      recordDisconfirmation: noOp,
     } as never,
   };
 }
@@ -446,6 +469,81 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
         />
       );
       expect(capturedFindingsLogProps.current?.onAddPhoto).toBeDefined();
+    });
+  });
+
+  describe('capture-as-finding: addFinding called with drill-snapshot activeFilters', () => {
+    /**
+     * IM-4a adversarial review — Capture-as-Finding app assertion.
+     *
+     * `handleMapCreateFinding` in AnalyzeWorkspace must snapshot the DRILL
+     * condition (analysisScopeStore.categoricalFilters) at capture time, NOT
+     * the legacy projectStore.filters map. This test seeds a drill chip, then
+     * triggers `onCreateFinding` via the AnalyzeMapView prop, and asserts that
+     * `findingsState.addFinding` was called with `context.activeFilters`
+     * matching the drill snapshot.
+     */
+    beforeEach(() => {
+      capturedMapViewProps.current = null;
+      // Ensure we're on Map view (default) so AnalyzeMapView renders.
+      // Reset wallViewMode to 'map' (not 'wall') so the map branch renders.
+      useCanvasViewportStore.setState(getCanvasViewportInitialState());
+      // Reset panelsStore analyzeViewMode to 'map' — canAccess photo gate tests
+      // set it to 'findings' and the mock variable persists across describe blocks.
+      usePanelsStore.getState().setAnalyzeViewMode('map');
+      // Reset analysisScopeStore to empty state
+      useAnalysisScopeStore.setState({ categoricalFilters: [] });
+    });
+
+    it('seeds activeFilters from analysisScopeStore.categoricalFilters at capture time', () => {
+      const addFinding = vi.fn(() => ({ id: 'f-new' }) as never);
+      const props = makeMinimalProps();
+      props.findingsState = { ...props.findingsState, addFinding } as never;
+
+      // Seed a drill chip: column 'Machine', value 'A'
+      useAnalysisScopeStore.getState().addCategoricalValue('Machine', 'A');
+
+      render(<AnalyzeWorkspace {...props} />);
+
+      // AnalyzeMapView should have received onCreateFinding
+      expect(capturedMapViewProps.current?.onCreateFinding).toBeDefined();
+
+      // Fire the callback as if Evidence Map triggered it for factor 'Machine'
+      const onCreateFinding = capturedMapViewProps.current!.onCreateFinding as (
+        factor: string
+      ) => void;
+      onCreateFinding('Machine');
+
+      expect(addFinding).toHaveBeenCalledTimes(1);
+      const callArgs = addFinding.mock.calls[0] as unknown as [
+        unknown,
+        { activeFilters: Record<string, string[]> },
+        unknown,
+      ];
+      // The captured activeFilters must reflect the drill chip (Machine=A),
+      // not the legacy projectStore.filters map (which is empty in this test).
+      expect(callArgs[1].activeFilters).toEqual({ Machine: ['A'] });
+    });
+
+    it('passes empty activeFilters when no drill chips are set', () => {
+      const addFinding = vi.fn(() => ({ id: 'f-new' }) as never);
+      const props = makeMinimalProps();
+      props.findingsState = { ...props.findingsState, addFinding } as never;
+
+      render(<AnalyzeWorkspace {...props} />);
+
+      const onCreateFinding = capturedMapViewProps.current!.onCreateFinding as (
+        factor: string
+      ) => void;
+      onCreateFinding('Temperature');
+
+      expect(addFinding).toHaveBeenCalledTimes(1);
+      const callArgs = addFinding.mock.calls[0] as unknown as [
+        unknown,
+        { activeFilters: Record<string, string[]> },
+        unknown,
+      ];
+      expect(callArgs[1].activeFilters).toEqual({});
     });
   });
 });

@@ -523,3 +523,95 @@ describe('HypothesisCardWithPlans — ACL gate', () => {
     expect(screen.getByRole('button', { name: /add plan/i })).toBeInTheDocument();
   });
 });
+
+describe('HypothesisCardWithPlans — disconfirmation gesture (IM-4a)', () => {
+  it('shows the disconfirmation gesture when canEdit + onRecordDisconfirmation provided', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans
+        hub={hub}
+        displayStatus="needs-disconfirmation"
+        x={0}
+        y={0}
+        plans={[]}
+        members={[leadMember]}
+        currentUserId="user-lead"
+        findings={[]}
+        onAddPlan={vi.fn()}
+        onLinkFinding={vi.fn()}
+        onEditPlan={vi.fn()}
+        onRecordDisconfirmation={vi.fn()}
+      />
+    );
+    expect(screen.getByRole('button', { name: /tried to break/i })).toBeInTheDocument();
+  });
+
+  it('hides the disconfirmation gesture when canEdit is false', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans
+        hub={hub}
+        displayStatus="needs-disconfirmation"
+        x={0}
+        y={0}
+        plans={[]}
+        members={[leadMember]}
+        currentUserId="user-not-a-member"
+        findings={[]}
+        onAddPlan={vi.fn()}
+        onLinkFinding={vi.fn()}
+        onEditPlan={vi.fn()}
+        onRecordDisconfirmation={vi.fn()}
+      />
+    );
+    expect(screen.queryByRole('button', { name: /tried to break/i })).toBeNull();
+  });
+
+  it('omits the gesture entirely when onRecordDisconfirmation is not provided', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans
+        hub={hub}
+        displayStatus="needs-disconfirmation"
+        x={0}
+        y={0}
+        plans={[]}
+        members={[leadMember]}
+        currentUserId="user-lead"
+        findings={[]}
+        onAddPlan={vi.fn()}
+        onLinkFinding={vi.fn()}
+        onEditPlan={vi.fn()}
+      />
+    );
+    expect(screen.queryByRole('button', { name: /tried to break/i })).toBeNull();
+  });
+
+  it('fires onRecordDisconfirmation with description + verdict on save', () => {
+    const onRecord = vi.fn();
+    renderInSvg(
+      <HypothesisCardWithPlans
+        hub={hub}
+        displayStatus="needs-disconfirmation"
+        x={0}
+        y={0}
+        plans={[]}
+        members={[leadMember]}
+        currentUserId="user-lead"
+        findings={[]}
+        onAddPlan={vi.fn()}
+        onLinkFinding={vi.fn()}
+        onEditPlan={vi.fn()}
+        onRecordDisconfirmation={onRecord}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /tried to break/i }));
+    fireEvent.change(screen.getByLabelText(/what did you try/i), {
+      target: { value: 'Re-ran on day shift; effect persisted' },
+    });
+    fireEvent.change(screen.getByLabelText(/did it hold/i), { target: { value: 'survived' } });
+    fireEvent.click(screen.getByRole('button', { name: /^record$/i }));
+    expect(onRecord).toHaveBeenCalledTimes(1);
+    expect(onRecord).toHaveBeenCalledWith('h1', {
+      description: 'Re-ran on day shift; effect persisted',
+      verdict: 'survived',
+    });
+  });
+});

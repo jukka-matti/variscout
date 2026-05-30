@@ -231,16 +231,32 @@ describe('WallCanvas', () => {
     expect(screen.getByText(/Fill weight excursions/i)).toBeInTheDocument();
   });
 
-  it('renders canonical needs-disconfirmation status stored on a hub', () => {
-    const needsDisconfirmationHub: Hypothesis = {
+  it('derives needs-disconfirmation from evidence (≥2 types, no survived disconfirmation)', () => {
+    // IM-4a Task 3: status comes from deriveHypothesisStatus, not a stored echo.
+    // ≥2 distinct evidence types + no survived disconfirmation → needs-disconfirmation.
+    const evidencedHub: Hypothesis = {
       ...hub,
       id: 'h-needs-disconfirmation',
-      status: 'needs-disconfirmation',
+      // Stored status deliberately differs from the derived one to prove the echo is gone.
+      status: 'proposed',
+      findingIds: ['f-data', 'f-gemba'],
     };
+    const twoTypeFindings: Finding[] = [
+      {
+        ...evidencedFindings[0],
+        id: 'f-data',
+        evidenceType: 'data',
+      } as Finding,
+      {
+        ...evidencedFindings[0],
+        id: 'f-gemba',
+        evidenceType: 'gemba',
+      } as Finding,
+    ];
     const { container } = render(
       <WallCanvas
-        hubs={[needsDisconfirmationHub]}
-        findings={[]}
+        hubs={[evidencedHub]}
+        findings={twoTypeFindings}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -249,6 +265,61 @@ describe('WallCanvas', () => {
 
     expect(screen.getByText(/Needs disconfirmation/i)).toBeInTheDocument();
     expect(container.querySelector('[data-status="needs-disconfirmation"]')).toBeTruthy();
+  });
+
+  it('derives confirmed only with ≥2 evidence types AND a survived disconfirmation', () => {
+    const confirmedHub: Hypothesis = {
+      ...hub,
+      id: 'h-confirmed',
+      // Stored echo says proposed; derivation must override to confirmed.
+      status: 'proposed',
+      findingIds: ['f-data', 'f-gemba'],
+      disconfirmationAttempts: [
+        {
+          id: 'd1',
+          attemptedAt: '2026-05-30T00:00:00.000Z',
+          attemptedBy: { displayName: 'Analyst' },
+          description: 'Checked against day shift',
+          verdict: 'survived',
+          linkedFindingIds: [],
+        },
+      ],
+    };
+    const twoTypeFindings: Finding[] = [
+      { ...evidencedFindings[0], id: 'f-data', evidenceType: 'data' } as Finding,
+      { ...evidencedFindings[0], id: 'f-gemba', evidenceType: 'gemba' } as Finding,
+    ];
+    const { container } = render(
+      <WallCanvas
+        hubs={[confirmedHub]}
+        findings={twoTypeFindings}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+    expect(container.querySelector('[data-status="confirmed"]')).toBeTruthy();
+  });
+
+  it('derives evidenced (not confirmed) with only 1 evidence type, ignoring a stored confirmed echo', () => {
+    const oneTypeHub: Hypothesis = {
+      ...hub,
+      id: 'h-one-type',
+      status: 'confirmed', // stale echo — must NOT survive derivation
+      findingIds: ['f-data'],
+    };
+    const oneTypeFindings: Finding[] = [
+      { ...evidencedFindings[0], id: 'f-data', evidenceType: 'data' } as Finding,
+    ];
+    const { container } = render(
+      <WallCanvas
+        hubs={[oneTypeHub]}
+        findings={oneTypeFindings}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+    expect(container.querySelector('[data-status="evidenced"]')).toBeTruthy();
+    expect(container.querySelector('[data-status="confirmed"]')).toBeNull();
   });
 
   it('renders branch cards without a process map', () => {
@@ -925,6 +996,199 @@ describe('WallCanvas', () => {
 
       // No process step select should appear — planningStepOptions is undefined
       expect(screen.queryByLabelText(/process step/i)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('scope anchor (IM-4a)', () => {
+    // 10 rows: Machine B subset (4 rows, low values) vs complement (6 rows).
+    const scopeRows = [
+      { Machine: 'B', lead_time: 50 },
+      { Machine: 'B', lead_time: 52 },
+      { Machine: 'B', lead_time: 48 },
+      { Machine: 'B', lead_time: 51 },
+      { Machine: 'A', lead_time: 20 },
+      { Machine: 'A', lead_time: 22 },
+      { Machine: 'A', lead_time: 19 },
+      { Machine: 'C', lead_time: 21 },
+      { Machine: 'C', lead_time: 23 },
+      { Machine: 'C', lead_time: 18 },
+    ];
+
+    const scope = {
+      id: 'scope-1',
+      investigationId: 'inv-test',
+      outcome: 'lead_time',
+      predicates: [{ kind: 'leaf' as const, column: 'Machine', op: 'eq' as const, value: 'B' }],
+      hypothesisIds: [],
+      createdAt: 1,
+      updatedAt: 1,
+      deletedAt: null,
+    };
+
+    it('renders the compound condition text from the active scope', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+          activeScope={scope}
+        />
+      );
+      expect(screen.getByTestId('problem-scope-condition')).toHaveTextContent('Machine = B');
+    });
+
+    it('renders coverage % matching computeConditionCoverage', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+          activeScope={scope}
+        />
+      );
+      // 4 of 10 rows match Machine=B → 40%.
+      expect(screen.getByTestId('problem-scope-projection')).toHaveTextContent('40%');
+    });
+
+    it('renders HOLDS N/M matching runAndCheck over the scope gateNode', () => {
+      const gatedScope = {
+        ...scope,
+        gateNode: { kind: 'hub' as const, hubId: 'h-cond' },
+      };
+      const condHub: Hypothesis = {
+        ...hub,
+        id: 'h-cond',
+        condition: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
+      };
+      render(
+        <WallCanvas
+          hubs={[condHub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+          activeScope={gatedScope}
+        />
+      );
+      // gateNode = hub h-cond whose condition is Machine=B → HOLDS 4/10.
+      expect(screen.getByTestId('problem-scope-holds')).toHaveTextContent('4/10');
+    });
+
+    it('renders the What-If projected Cpk when specs are provided', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+          activeScope={scope}
+          activeScopeSpecs={{ usl: 60, lsl: 0 }}
+        />
+      );
+      // What-If row renders (a Cpk value present) — projection is non-null for
+      // this subset/complement split with specs.
+      expect(screen.getByTestId('problem-scope-projection')).toHaveTextContent(/Cpk/);
+    });
+
+    it('omits scope rows entirely when no activeScope is passed', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+        />
+      );
+      expect(screen.queryByTestId('problem-scope-condition')).toBeNull();
+      expect(screen.queryByTestId('problem-scope-holds')).toBeNull();
+      expect(screen.queryByTestId('problem-scope-projection')).toBeNull();
+    });
+  });
+
+  describe('evidence band + per-hypothesis HOLDS (IM-4a Task 5)', () => {
+    const evidenceRows = [
+      { SHIFT: 'night', lead_time: 50 },
+      { SHIFT: 'night', lead_time: 52 },
+      { SHIFT: 'day', lead_time: 20 },
+      { SHIFT: 'day', lead_time: 22 },
+    ];
+    const condHub: Hypothesis = {
+      ...hub,
+      id: 'h-evid',
+      name: 'Night shift effect',
+      condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
+      findingIds: ['f-support'],
+      counterFindingIds: ['f-counter'],
+    };
+    const bandFindings: Finding[] = [
+      { ...evidencedFindings[0], id: 'f-support', text: 'Night runs spike' } as Finding,
+      { ...evidencedFindings[0], id: 'f-counter', text: 'Day batch also high' } as Finding,
+    ];
+
+    it('renders a per-hypothesis GateBadge with HOLDS over the hub condition', () => {
+      render(
+        <WallCanvas
+          hubs={[condHub]}
+          findings={bandFindings}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={evidenceRows}
+        />
+      );
+      // condition SHIFT=night → 2 of 4 rows.
+      const badge = screen.getByTestId(`hub-holds-${condHub.id}`);
+      expect(badge).toHaveTextContent('2/4');
+    });
+
+    it('renders FindingChips tethered to their parent hypothesis', () => {
+      const { container } = render(
+        <WallCanvas
+          hubs={[condHub]}
+          findings={bandFindings}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={evidenceRows}
+        />
+      );
+      // Each linked finding renders a chip + a dashed tether line.
+      expect(screen.getByText(/Night runs spike/)).toBeInTheDocument();
+      expect(screen.getByText(/Day batch also high/)).toBeInTheDocument();
+      expect(
+        container.querySelectorAll(`[data-evidence-tether="${condHub.id}"]`).length
+      ).toBeGreaterThanOrEqual(2);
+    });
+
+    it('labels supporting vs counter evidence (Supports / Counts against)', () => {
+      render(
+        <WallCanvas
+          hubs={[condHub]}
+          findings={bandFindings}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={evidenceRows}
+        />
+      );
+      expect(screen.getByText(/Supports/)).toBeInTheDocument();
+      expect(screen.getByText(/Counts against/)).toBeInTheDocument();
+    });
+
+    it('omits the per-hypothesis HOLDS badge when the hub has no condition', () => {
+      render(
+        <WallCanvas
+          hubs={[{ ...hub, id: 'h-no-cond', condition: undefined }]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={evidenceRows}
+        />
+      );
+      expect(screen.queryByTestId('hub-holds-h-no-cond')).toBeNull();
     });
   });
 });

@@ -20,6 +20,7 @@ import type {
   ProcessContext,
   StatsResult,
   Hypothesis,
+  DisconfirmationAttempt,
 } from '@variscout/core';
 
 // ── Interfaces ────────────────────────────────────────────────────────────
@@ -58,8 +59,8 @@ export interface UseAnalyzeOrchestrationReturn {
     resetHubs: (newHubs: Hypothesis[]) => void;
     connectFinding: (hubId: string, findingId: string) => void;
     disconnectFinding: (hubId: string, findingId: string) => void;
-    setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
     getHubForFinding: (findingId: string) => Hypothesis | undefined;
+    recordDisconfirmation: (hubId: string, attempt: DisconfirmationAttempt) => void;
   };
   /** Computed idea impacts keyed by idea ID */
   ideaImpacts: Record<string, IdeaImpact | undefined>;

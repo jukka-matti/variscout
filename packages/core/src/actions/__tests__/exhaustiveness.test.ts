@@ -63,6 +63,8 @@ function _exhaustive(action: HubAction): void {
       return;
     case 'HYPOTHESIS_ARCHIVE':
       return;
+    case 'HYPOTHESIS_RECORD_DISCONFIRMATION':
+      return;
     // Hub meta
     case 'HUB_UPDATE_GOAL':
       return;
@@ -176,6 +178,28 @@ describe('ACTION_ITEM_ADD action', () => {
     expect(action.kind).toBe('ACTION_ITEM_ADD');
     expect(action.hubId).toBe('hub-1');
     expect(action.actionItem.stepId).toBe('step-1');
+  });
+});
+
+describe('HYPOTHESIS_RECORD_DISCONFIRMATION action', () => {
+  it('compiles under the HubAction discriminated union and carries the attempt', () => {
+    const action: HubAction = {
+      kind: 'HYPOTHESIS_RECORD_DISCONFIRMATION',
+      hypothesisId: 'h-1',
+      attempt: {
+        id: 'd-1',
+        attemptedAt: '2026-05-30T00:00:00.000Z',
+        attemptedBy: { displayName: 'Analyst' },
+        description: 'Checked against day-shift data',
+        verdict: 'survived',
+        linkedFindingIds: ['f-1'],
+      },
+    };
+    expect(action.kind).toBe('HYPOTHESIS_RECORD_DISCONFIRMATION');
+    if (action.kind === 'HYPOTHESIS_RECORD_DISCONFIRMATION') {
+      expect(action.hypothesisId).toBe('h-1');
+      expect(action.attempt.verdict).toBe('survived');
+    }
   });
 });
 

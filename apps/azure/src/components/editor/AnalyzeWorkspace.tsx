@@ -37,6 +37,9 @@ import {
   inferCharacteristicType,
   computeMainEffects,
   computeInteractionEffects,
+  categoricalFiltersToActiveFilters,
+  buildConditionFromCategoricalFilters,
+  predicateSetKey,
 } from '@variscout/core';
 import { computeBestSubsets } from '@variscout/core/stats';
 import { detectEvidenceClusters } from '@variscout/core/findings';
@@ -52,6 +55,7 @@ import { GripVertical } from 'lucide-react';
 import {
   useProjectStore,
   useAnalyzeStore,
+  useAnalysisScopeStore,
   usePreferencesStore,
   useCanvasViewportStore,
 } from '@variscout/stores';
@@ -203,6 +207,51 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   }, [rawData]);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
+
+  // ── Drill → scope spine (IM-4a) ──────────────────────────────────────────
+  // The active drill chips ARE the active scope (design §2). Materialize them
+  // into a persisted ProblemStatementScope (idempotent) and select the scope
+  // matching the current compound condition so the Problem card anchors on it.
+  //
+  // Execution model: reactive-on-condition-change with set-keyed idempotency.
+  // `syncScopeFromDrill` runs every time `categoricalFilters` or `outcome`
+  // changes (not on an imperative "commit" gesture). Intermediate scopes
+  // accumulate in the store; stale ones are pruned via the IM-4b scope rail
+  // (SCOPE_ARCHIVE) — not here.
+  const categoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const scopes = useAnalyzeStore(s => s.scopes);
+  const scopeInvestigationId = 'general-unassigned'; // sentinel until F6 first-class investigations
+  useEffect(() => {
+    if (!outcome) return;
+    useAnalyzeStore
+      .getState()
+      .syncScopeFromDrill(scopeInvestigationId, outcome, categoricalFilters);
+  }, [categoricalFilters, outcome]);
+  const activeScope = useMemo(() => {
+    if (!outcome) return undefined;
+    const predicates = buildConditionFromCategoricalFilters(categoricalFilters);
+    if (predicates.length === 0) return undefined;
+    const key = predicateSetKey(predicates);
+    return scopes.find(
+      s =>
+        s.investigationId === scopeInvestigationId &&
+        s.outcome === outcome &&
+        predicateSetKey(s.predicates) === key
+    );
+  }, [categoricalFilters, outcome, scopes]);
+  // Per-outcome spec limits for the scope's What-If projection (IM-5).
+  const activeScopeSpecs = useMemo(
+    () => (outcome ? (measureSpecs[outcome] ?? specs) : undefined),
+    [measureSpecs, outcome, specs]
+  );
+  // Live Problem-card base values for the scoped subset (no longer hardcoded):
+  // Cpk from the filtered-data stats, and the out-of-spec event COUNT as the
+  // "events" proxy (no reliable weekly cadence in V1 — count of occurrences).
+  const problemCpk = stats?.cpk ?? 0;
+  const problemEvents = useMemo(() => {
+    if (!stats || !filteredData?.length) return 0;
+    return Math.round((stats.outOfSpecPercentage / 100) * filteredData.length);
+  }, [stats, filteredData]);
   const scopedHubIds = useMemo(
     () => new Set(activeIPLineage?.hypothesisIds ?? []),
     [activeIPLineage]
@@ -417,6 +466,14 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // (confirmed) and ruledOut (refuted) sets gate the conclusion panel today;
   // IM-1: the `contributing` set derivation is removed — the level-native
   // contribution view that renders it arrives in IM-5.
+  //
+  // NOTE: this reads `h.status` (the stored value) directly, not
+  // `deriveHypothesisStatus`. On main, `setHubStatus` has zero prod callers
+  // and factories.ts seeds 'proposed', so `h.status === 'confirmed'` is a dead
+  // branch here until IM-4b/IM-6 persists the derived value. The Wall surface
+  // (WallCanvas + MobileCardList) correctly calls `deriveHypothesisStatus`.
+  // See investigations.md §"stored-vs-derived status deferral (IM-4a)" for the
+  // open question: migrate these readers OR persist the derived value in IM-4b/IM-6.
   const { hypotheses, ruledOut } = useMemo(() => {
     const suspected: Hypothesis[] = [];
     const ruled: Hypothesis[] = [];
@@ -538,10 +595,9 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       const hub = hubs.find(h => h.id === hubId);
       if (hub) {
         hypothesesState.updateHub(hubId, {});
-        // Toggle selectedForImprovement via setHubStatus or direct update
-        // The useHypotheses hook manages the selectedForImprovement toggle
-        // through the hub's status — but for selection we toggle the flag directly.
-        // Since updateHub only accepts name/synthesis, use the store sync approach:
+        // selectedForImprovement is a flag toggle, not a status change (status is
+        // now derived via deriveHypothesisStatus — IM-4a). updateHub only accepts
+        // name/synthesis, so use the store-sync approach to flip the flag:
         const updated = hubs.map(h =>
           h.id === hubId ? { ...h, selectedForImprovement: !h.selectedForImprovement } : h
         );
@@ -567,10 +623,15 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 
   const handleMapCreateFinding = useCallback(
     (factor: string) => {
-      const filters = useProjectStore.getState().filters;
+      // IM-4a: snapshot the DRILL condition (the active scope chips), not the
+      // legacy row-level projectStore.filters map — the captured Finding should
+      // reflect the WHERE the analyst is investigating.
+      const activeFilters = categoricalFiltersToActiveFilters(
+        useAnalysisScopeStore.getState().categoricalFilters
+      );
       findingsState.addFinding(
         `Observation about ${factor}`,
-        { activeFilters: filters, cumulativeScope: null },
+        { activeFilters, cumulativeScope: null },
         { chart: 'boxplot', category: factor, timeLens: usePreferencesStore.getState().timeLens }
       );
     },
@@ -820,8 +881,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   hubs={scopedHubs}
                   findings={scopedWallFindings}
                   processMap={processMap}
-                  problemCpk={0}
-                  eventsPerWeek={0}
+                  problemCpk={problemCpk}
+                  eventsPerWeek={problemEvents}
+                  activeScope={activeScope}
+                  activeScopeSpecs={activeScopeSpecs}
                   activeColumns={wallActiveColumns}
                   rows={rawData}
                   columnTypes={columnTypes}

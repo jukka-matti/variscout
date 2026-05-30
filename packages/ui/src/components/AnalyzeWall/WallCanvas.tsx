@@ -16,23 +16,30 @@ import type { ProcessHubId } from '@variscout/core/processHub';
 import type {
   Hypothesis,
   Finding,
-  HypothesisStatus,
   ProcessMap,
   GateNode,
   GatePath,
+  ProblemStatementScope,
 } from '@variscout/core';
+import type { DataRow } from '@variscout/core';
 import type { ColumnTypeMap, ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import {
   conditionHasMissingColumn,
   conditionReferencesStep,
+  formatConditionLeaves,
   projectMechanismBranch,
+  runAndCheck,
 } from '@variscout/core';
+import { computeScopeWhatIfProjection, computeConditionCoverage } from '@variscout/core/variation';
 import { deriveProcessSteps } from '@variscout/core/frame';
 import { getMessage } from '@variscout/core/i18n';
-import { surveyWallRules } from '@variscout/core/survey';
+import { surveyWallRules, deriveHypothesisStatus } from '@variscout/core/survey';
+import { chartColors } from '@variscout/charts';
 import { ProblemConditionCard } from './ProblemConditionCard';
+import { GateBadge } from './GateBadge';
+import { FindingChip } from './FindingChip';
 import { HypothesisCard } from './HypothesisCard';
 import { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
 import { DraggableHypothesisCard } from './DraggableHypothesisCard';
@@ -87,6 +94,16 @@ export interface WallCanvasPlanningProps {
    * Pass `undefined` when not readily available; form defaults to `''`.
    */
   defaultOutcome?: string;
+  /**
+   * IM-4a — record a falsification attempt on a hypothesis. When provided AND
+   * the user has edit-contributions access, each card shows the disconfirmation
+   * gesture. The app stamps id + timestamps + attemptedBy and dispatches
+   * HYPOTHESIS_RECORD_DISCONFIRMATION. Omit to hide the gesture.
+   */
+  onRecordDisconfirmation?: (
+    hypothesisId: string,
+    input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
+  ) => void;
 }
 
 export interface WallCanvasProps {
@@ -97,6 +114,20 @@ export interface WallCanvasProps {
   problemCpk: number;
   eventsPerWeek: number;
   problemContributionTree?: GateNode;
+  /**
+   * The active `ProblemStatementScope` (the compound WHERE the analyst drilled
+   * into). When provided, the Problem-condition card renders as the SCOPE
+   * ANCHOR (IM-4a): the compound condition text, the HOLDS N/M gate (the
+   * scope's `gateNode` evaluated over `rows` via `runAndCheck`), and the IM-5
+   * What-If projected Cpk + coverage %. Omit for the legacy global render.
+   */
+  activeScope?: ProblemStatementScope;
+  /**
+   * Spec limits for the active scope's outcome — required by
+   * `computeScopeWhatIfProjection` to project the if-fixed Cpk. Pass `undefined`
+   * when no specs are set; the What-If row is then omitted.
+   */
+  activeScopeSpecs?: { usl?: number; lsl?: number };
   /**
    * Column keys present in the active dataset. When provided, each hub whose
    * `condition` references a column absent from this set renders a
@@ -179,24 +210,6 @@ function shouldHandleWallPanInput(event: Event): boolean {
   return !(event.target instanceof Element && event.target.closest(WALL_PAN_IGNORED_TARGET));
 }
 
-const CANONICAL_HYPOTHESIS_STATUSES = new Set<HypothesisStatus>([
-  'proposed',
-  'evidenced',
-  'confirmed',
-  'refuted',
-  'needs-disconfirmation',
-]);
-
-function deriveDisplayStatus(hub: Hypothesis, findings: Finding[]): HypothesisStatus {
-  if (CANONICAL_HYPOTHESIS_STATUSES.has(hub.status)) return hub.status;
-  const supporting = hub.findingIds
-    .map(id => findings.find(f => f.id === id))
-    .filter((f): f is Finding => !!f);
-  const hasContradictor = supporting.some(f => f.validationStatus === 'contradicts');
-  if (supporting.length >= 1 && !hasContradictor) return 'evidenced';
-  return 'proposed';
-}
-
 export const WallCanvas: React.FC<WallCanvasProps> = ({
   hubId,
   hubs,
@@ -204,6 +217,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   processMap,
   problemCpk,
   eventsPerWeek,
+  activeScope,
+  activeScopeSpecs,
   activeColumns,
   onSelectHub,
   onWriteHypothesis,
@@ -284,6 +299,44 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     return [...buckets, unassigned].filter(b => b.hubs.length > 0);
   }, [filteredHubs, groupByTributary, processMap]);
 
+  // Scope-anchor (IM-4a): derive the Problem-condition card's live display
+  // values from the active scope + data window. Reuses the shipped IM-5 math +
+  // the HOLDS evaluator — nothing is hardcoded. Within ONE homogeneous outcome
+  // (ADR-073); no roll-up.
+  const scopeAnchor = useMemo(() => {
+    if (!activeScope) return undefined;
+    // Materialize a mutable array for the core helpers (they read, never
+    // mutate). The `rows` prop is ReadonlyArray; spread into a fresh array.
+    const dataRows: Record<string, unknown>[] = rows ? [...rows] : [];
+    // HOLDS N/M: evaluate the scope's gateNode (the per-scope contribution tree)
+    // over the active data window. Absent gateNode → no HOLDS row.
+    const holdsResult =
+      activeScope.gateNode && dataRows.length > 0
+        ? runAndCheck(activeScope.gateNode, hubs, dataRows)
+        : undefined;
+    // What-If projected Cpk (if-fixed) — null when unprojectable (no specs /
+    // insufficient data); the card omits the row. The IM-5 helpers type rows as
+    // the core `DataRow` (constrained cell values); the Wall's `rows` prop is
+    // looser (`Record<string, unknown>`) so cast for the call.
+    const im5Rows = dataRows as unknown as DataRow[];
+    const whatIfCpk = computeScopeWhatIfProjection(
+      activeScope.predicates,
+      im5Rows,
+      activeScope.outcome,
+      activeScopeSpecs
+    );
+    // Coverage %: prevalence of the compound condition in the dataset.
+    const coveragePct =
+      dataRows.length > 0 ? computeConditionCoverage(activeScope.predicates, im5Rows) : undefined;
+    return {
+      conditionText: formatConditionLeaves(activeScope.predicates),
+      holds: holdsResult?.holds,
+      total: holdsResult?.total,
+      whatIfCpk,
+      coveragePct,
+    };
+  }, [activeScope, activeScopeSpecs, hubs, rows]);
+
   // stepOptions for AddPlanForm: derived once from processMap so renderHubAt can use it.
   // Returns undefined (not []) when processMap is absent so AddPlanForm hides the picker.
   const planningStepOptions = useMemo(() => {
@@ -350,11 +403,102 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const hubY = 400;
   const hubSpacing = CANVAS_W / (filteredHubs.length + 1);
 
+  // Evidence band (IM-4a Task 5): per-hub HOLDS GateBadge + the hub's linked
+  // findings as FindingChips tethered (dashed) to the hub anchor. Rendered ABOVE
+  // the hub card (between the y=280 divider and the hub at hubY) so it never
+  // collides with the plans/disconfirmation foreignObject below. The full
+  // bipartite re-layout is IM-4b.
+  const dataRowsForBand: Record<string, unknown>[] = rows ? [...rows] : [];
+  const renderHubEvidence = (hub: Hypothesis, x: number) => {
+    // Per-hub HOLDS: evaluate the hub's own condition over the active window.
+    const holds =
+      hub.condition && dataRowsForBand.length > 0
+        ? runAndCheck({ kind: 'hub', hubId: hub.id }, [hub], dataRowsForBand)
+        : undefined;
+    // Supporting + counter findings linked to this hub.
+    const counterIds = new Set(hub.counterFindingIds ?? []);
+    const supporting = hub.findingIds
+      .filter(id => !counterIds.has(id))
+      .map(id => findings.find(f => f.id === id))
+      .filter((f): f is Finding => !!f);
+    const counter = [...counterIds]
+      .map(id => findings.find(f => f.id === id))
+      .filter((f): f is Finding => !!f);
+
+    const CHIP_GAP = 52;
+    const bandTop = 296;
+    // Supporting chips climb to the LEFT of the hub anchor; counter to the RIGHT.
+    const renderChips = (
+      chips: Finding[],
+      side: 'support' | 'counter',
+      labelKey: 'wall.evidence.supports' | 'wall.evidence.countsAgainst'
+    ) => {
+      if (chips.length === 0) return null;
+      const colX = side === 'support' ? x - 130 : x + 130;
+      return (
+        <g key={`${hub.id}-${side}`}>
+          {/* Counts-against label is styled LOUD (§7): bold + warning fill. */}
+          <text
+            x={colX}
+            y={bandTop - 8}
+            textAnchor="middle"
+            className={
+              side === 'counter'
+                ? 'text-[10px] font-bold uppercase'
+                : 'fill-content-muted text-[10px] font-semibold uppercase'
+            }
+            fill={side === 'counter' ? chartColors.warning : undefined}
+          >
+            {getMessage(locale, labelKey)}
+          </text>
+          {chips.map((finding, i) => {
+            const chipY = bandTop + i * CHIP_GAP;
+            return (
+              <g key={finding.id}>
+                <line
+                  x1={colX}
+                  y1={chipY + 22}
+                  x2={x}
+                  y2={hubY}
+                  stroke={side === 'counter' ? chartColors.warning : undefined}
+                  className={side === 'counter' ? undefined : 'stroke-edge'}
+                  strokeDasharray="4 4"
+                  data-evidence-tether={hub.id}
+                  data-evidence-kind={side}
+                />
+                <FindingChip finding={finding} x={colX} y={chipY} onSelect={onSelectHub} />
+              </g>
+            );
+          })}
+        </g>
+      );
+    };
+
+    return (
+      <g key={`${hub.id}-evidence`} data-hub-evidence={hub.id}>
+        {holds && (
+          <g data-testid={`hub-holds-${hub.id}`}>
+            <GateBadge
+              kind="and"
+              gatePath={`hub:${hub.id}`}
+              holds={holds.holds}
+              total={holds.total}
+              x={x}
+              y={hubY - 26}
+            />
+          </g>
+        )}
+        {renderChips(supporting, 'support', 'wall.evidence.supports')}
+        {renderChips(counter, 'counter', 'wall.evidence.countsAgainst')}
+      </g>
+    );
+  };
+
   const renderHubAt = (hub: Hypothesis, x: number) => {
     const hubProps = {
       hub,
       branch: branchByHubId.get(hub.id),
-      displayStatus: deriveDisplayStatus(hub, findings),
+      displayStatus: deriveHypothesisStatus(hub, findings),
       x,
       y: hubY,
       hasGap: hubsWithGap.has(hub.id),
@@ -379,21 +523,28 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onAddPlan: planningProps.onAddPlan,
           onLinkFinding: planningProps.onLinkFinding,
           onEditPlan: planningProps.onEditPlan,
+          onRecordDisconfirmation: planningProps.onRecordDisconfirmation,
           stepOptions: planningStepOptions,
           defaultScope: planningProps.defaultScope,
           defaultOutcome: planningProps.defaultOutcome,
         }
       : undefined;
 
-    if (dndEnabled) {
-      return (
-        <DraggableHypothesisCard key={hub.id} {...hubProps} planningProps={hubPlanningProps} />
-      );
-    }
-    if (hubPlanningProps) {
-      return <HypothesisCardWithPlans key={hub.id} {...hubProps} {...hubPlanningProps} />;
-    }
-    return <HypothesisCard key={hub.id} {...hubProps} />;
+    const card = dndEnabled ? (
+      <DraggableHypothesisCard {...hubProps} planningProps={hubPlanningProps} />
+    ) : hubPlanningProps ? (
+      <HypothesisCardWithPlans {...hubProps} {...hubPlanningProps} />
+    ) : (
+      <HypothesisCard {...hubProps} />
+    );
+
+    // Card + its evidence band (per-hub HOLDS + tethered FindingChips, IM-4a T5).
+    return (
+      <g key={hub.id}>
+        {renderHubEvidence(hub, x)}
+        {card}
+      </g>
+    );
   };
 
   const body = (
@@ -411,6 +562,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             ctsColumn={problemLabel}
             cpk={problemCpk}
             eventsPerWeek={eventsPerWeek}
+            conditionText={scopeAnchor?.conditionText}
+            holds={scopeAnchor?.holds}
+            total={scopeAnchor?.total}
+            whatIfCpk={scopeAnchor?.whatIfCpk}
+            coveragePct={scopeAnchor?.coveragePct}
             x={CANVAS_W / 2}
             y={40}
           />

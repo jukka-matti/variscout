@@ -26,6 +26,27 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Stored-vs-derived `hub.status` split (IM-4a adversarial review) [LOGGED 2026-05-30]
+
+**Surfaced by:** IM-4a adversarial review. IM-4a makes `WallCanvas` + `MobileCardList` call `deriveHypothesisStatus` (the live Survey-rule derivation) rather than reading `hub.status`. This creates a structural split: the Wall derives status correctly, but ~8 other readers across the codebase still trust the stored `hub.status` field.
+
+**What was verified as safe (not a regression):** on `main`, `setHubStatus` has zero production callers. `factories.ts:~221` seeds `'proposed'`. Nothing writes `status: 'confirmed'` in production paths. The ~8 `hub.status === 'confirmed'` readers are therefore already dead branches:
+
+- `apps/azure/src/components/editor/AnalyzeWorkspace.tsx:~580` (`hypotheses`/`ruledOut` gate for AnalyzeConclusion)
+- `apps/azure/src/features/analyze/useImprovementOrchestration.ts:~303`
+- `packages/ui/src/components/Wall/GoalSection.tsx:~51`
+- `packages/ui/src/components/Wall/IdeaGroupCard.tsx:~326`
+- `packages/core/src/survey/mechanismBranch.ts:~76`
+- `packages/hooks/src/useCanvasAnalyzeOverlays.ts:~294`
+- `packages/ui/src/components/AnalyzeWall/AnalyzeWorkspace.tsx:~468` (if present)
+- `apps/pwa/src/pages/AnalyzeView.tsx:~193`
+
+IM-4a makes the split structural (Wall derives; others still read stored). The AnalyzeWorkspace.tsx `hypotheses`/`ruledOut` memo has an inline comment pointing here.
+
+**Open question for IM-4b / IM-6:** two options — (A) migrate the ~8 readers to call `deriveHypothesisStatus(h, findings)` at their call site (requires threading `findings`); (B) persist the derived value back to `hub.status` on each Wall render (simpler consumers, but adds a write path). PWA `onRecordDisconfirmation` is Azure-only (consistent with the LV1 PWA-Mount-Deferral); no PWA wiring needed until PWA tab expands.
+
+**Severity:** low — readers are already dead branches. Not blocking IM-4a. Resolution is IM-4b/IM-6 scope.
+
 ### IM-1 execution deferrals + tech-debt (drop-Question cascade) [LOGGED 2026-05-30]
 
 **Surfaced by:** IM-1 (PR #249, drop `Question` + `ProblemStatementScope`) execution + its 4-dimension adversarial review. Net-new follow-ups beyond the master-plan IM-4/IM-5 scope, captured so they aren't lost. Full build context: [[investigation-surface-build]] memory.
