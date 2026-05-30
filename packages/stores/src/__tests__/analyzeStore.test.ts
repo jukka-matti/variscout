@@ -1508,4 +1508,73 @@ describe('analyzeStore — relocation assertions (IM-1)', () => {
     expect('removeScope' in state).toBe(true);
     expect('addHypothesisToScope' in state).toBe(true);
   });
+
+  it('owns archiveScope action (new in IM-4b Task 5 — scope rail)', () => {
+    // archiveScope is the store-level owner of the SCOPE_ARCHIVE side-effect.
+    // This test FAILS until the implementer adds archiveScope to AnalyzeActions.
+    const state = useAnalyzeStore.getState() as unknown as Record<string, unknown>;
+    expect('archiveScope' in state).toBe(true);
+  });
+});
+
+// ============================================================================
+// archiveScope (IM-4b Task 5 — SCOPE_ARCHIVE via scope rail)
+//
+// The acceptance requires that SCOPE_ARCHIVE prunes a scope from the rail.
+// archiveScope is a soft-delete (sets deletedAt) so the HubRepository can
+// persist the tombstone; the store filters deleted scopes out of the
+// presentation slice OR marks them deleted — tests cover both observable
+// effects (the scope no longer appears in the active listing).
+// ============================================================================
+
+describe('analyzeStore — archiveScope (IM-4b Task 5)', () => {
+  it('archiveScope removes the scope from the active scopes list', () => {
+    const sA = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Scope A', [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' }]);
+    const sB = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Scope B', [{ kind: 'leaf', column: 'Line', op: 'eq', value: '1' }]);
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(2);
+
+    useAnalyzeStore.getState().archiveScope(sA.id);
+
+    // After archive, scope A must not appear in the active listing.
+    const remaining = useAnalyzeStore.getState().scopes;
+    expect(remaining.some(s => s.id === sA.id && !s.deletedAt)).toBe(false);
+    // Scope B is untouched.
+    expect(remaining.some(s => s.id === sB.id)).toBe(true);
+  });
+
+  it('archiveScope is a no-op for an unknown scope id', () => {
+    useAnalyzeStore.getState().addScope('inv-1', 'Scope A');
+    expect(() => useAnalyzeStore.getState().archiveScope('does-not-exist')).not.toThrow();
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(1);
+  });
+
+  it('archiveScope on the last scope leaves an empty active listing', () => {
+    const s = useAnalyzeStore.getState().addScope('inv-1', 'Only scope');
+    useAnalyzeStore.getState().archiveScope(s.id);
+    // Active (non-deleted) scopes must be empty.
+    const active = useAnalyzeStore.getState().scopes.filter(sc => !sc.deletedAt);
+    expect(active).toHaveLength(0);
+  });
+
+  it('archiveScope does not affect the sibling scope predicates or hypothesisIds', () => {
+    const sA = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Scope A', [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' }]);
+    const sB = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Scope B', [{ kind: 'leaf', column: 'Product', op: 'eq', value: 'X' }]);
+    useAnalyzeStore.getState().addHypothesisToScope(sB.id, 'h-1');
+
+    useAnalyzeStore.getState().archiveScope(sA.id);
+
+    const sibling = useAnalyzeStore.getState().scopes.find(s => s.id === sB.id);
+    expect(sibling?.predicates).toEqual([
+      { kind: 'leaf', column: 'Product', op: 'eq', value: 'X' },
+    ]);
+    expect(sibling?.hypothesisIds).toEqual(['h-1']);
+  });
 });
