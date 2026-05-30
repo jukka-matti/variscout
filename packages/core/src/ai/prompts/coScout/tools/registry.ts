@@ -797,6 +797,11 @@ export type ToolName = keyof typeof TOOL_REGISTRY;
  * @param mode - Current analysis mode (unused for now, reserved for future mode-specific tools)
  * @param options - Investigation phase and existing hubs for dynamic gating
  * @returns Filtered array of ToolDefinition for the Responses API
+ *
+ * Two tools are conditionally gated (excluded unless their condition is met):
+ *   - suggest_hypothesis: requires options.analyzePhase ∈ {validating, converging}
+ *   - connect_hub_evidence: requires options.existingHubs non-empty
+ * Hence the improve phase yields 21 tools unconditionally / 23 with both conditions met.
  */
 export function getToolsForPhase(
   phase: JourneyPhase,

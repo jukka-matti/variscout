@@ -18,6 +18,7 @@ import { assembleCoScoutPrompt } from '../prompts/coScout';
 import { getToolsForPhase } from '../prompts/coScout/tools';
 import { buildAIContext } from '../buildAIContext';
 import type { AIContext } from '../types';
+import type { Hypothesis } from '../../findings/types';
 
 // ── Safety instruction presence ─────────────────────────────────────────
 
@@ -237,9 +238,9 @@ describe('tool schema strictness', () => {
     // With analyzePhase: converging AND existingHubs: 2 conditional tools added → 23 total
     const tools = getToolsForPhase('improve', 'standard', {
       analyzePhase: 'converging',
-      existingHubs: [
-        { id: 'h1', name: 'Hub', synthesis: '', questionIds: [], findingIds: [] },
-      ] as never,
+      // connect_hub_evidence only checks existingHubs.length > 0; a minimal
+      // partial fixture cast to Hypothesis is sufficient (matches toolRegistry.test).
+      existingHubs: [{ id: 'h1', name: 'Hub' } as unknown as Hypothesis],
     });
     expect(tools.length).toBe(23);
   });

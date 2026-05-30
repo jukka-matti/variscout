@@ -2,7 +2,7 @@
  * CoScout tool registry — barrel export.
  *
  * Provides typed tool definitions with phase/mode/tier gating
- * as an alternative to the legacy `buildCoScoutTools()` function.
+ * (replaces the former `buildCoScoutTools()` from the deleted legacy.ts).
  */
 
 export { TOOL_REGISTRY, getToolsForPhase } from './registry';

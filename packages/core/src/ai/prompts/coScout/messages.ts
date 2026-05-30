@@ -1,8 +1,8 @@
 /**
  * Message input builder for the Responses API.
  *
- * Extracts the message-formatting concern from the legacy `buildCoScoutInput`
- * function. The assembler handles prompt construction (tiers 1-3 → instructions);
+ * Extracts the message-formatting concern formerly handled by `buildCoScoutInput`
+ * (in the deleted legacy.ts). The assembler handles prompt construction (tiers 1-3 → instructions);
  * this module handles the variable `input` array: conversation history + user message.
  */
 
