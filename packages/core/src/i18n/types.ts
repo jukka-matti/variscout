@@ -954,6 +954,8 @@ export interface MessageCatalog {
   'wall.problem.title': string;
   'wall.problem.eventsPerWeek': string;
   'wall.problem.ariaLabel': string;
+  'wall.scope.whatIf': string;
+  'wall.scope.coverage': string;
   'wall.gate.and': string;
   'wall.gate.or': string;
   'wall.gate.not': string;

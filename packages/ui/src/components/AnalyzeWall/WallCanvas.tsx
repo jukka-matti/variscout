@@ -20,15 +20,20 @@ import type {
   ProcessMap,
   GateNode,
   GatePath,
+  ProblemStatementScope,
 } from '@variscout/core';
+import type { DataRow } from '@variscout/core';
 import type { ColumnTypeMap, ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import {
   conditionHasMissingColumn,
   conditionReferencesStep,
+  formatConditionLeaves,
   projectMechanismBranch,
+  runAndCheck,
 } from '@variscout/core';
+import { computeScopeWhatIfProjection, computeConditionCoverage } from '@variscout/core/variation';
 import { deriveProcessSteps } from '@variscout/core/frame';
 import { getMessage } from '@variscout/core/i18n';
 import { surveyWallRules } from '@variscout/core/survey';
@@ -97,6 +102,20 @@ export interface WallCanvasProps {
   problemCpk: number;
   eventsPerWeek: number;
   problemContributionTree?: GateNode;
+  /**
+   * The active `ProblemStatementScope` (the compound WHERE the analyst drilled
+   * into). When provided, the Problem-condition card renders as the SCOPE
+   * ANCHOR (IM-4a): the compound condition text, the HOLDS N/M gate (the
+   * scope's `gateNode` evaluated over `rows` via `runAndCheck`), and the IM-5
+   * What-If projected Cpk + coverage %. Omit for the legacy global render.
+   */
+  activeScope?: ProblemStatementScope;
+  /**
+   * Spec limits for the active scope's outcome — required by
+   * `computeScopeWhatIfProjection` to project the if-fixed Cpk. Pass `undefined`
+   * when no specs are set; the What-If row is then omitted.
+   */
+  activeScopeSpecs?: { usl?: number; lsl?: number };
   /**
    * Column keys present in the active dataset. When provided, each hub whose
    * `condition` references a column absent from this set renders a
@@ -204,6 +223,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   processMap,
   problemCpk,
   eventsPerWeek,
+  activeScope,
+  activeScopeSpecs,
   activeColumns,
   onSelectHub,
   onWriteHypothesis,
@@ -283,6 +304,44 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     }
     return [...buckets, unassigned].filter(b => b.hubs.length > 0);
   }, [filteredHubs, groupByTributary, processMap]);
+
+  // Scope-anchor (IM-4a): derive the Problem-condition card's live display
+  // values from the active scope + data window. Reuses the shipped IM-5 math +
+  // the HOLDS evaluator — nothing is hardcoded. Within ONE homogeneous outcome
+  // (ADR-073); no roll-up.
+  const scopeAnchor = useMemo(() => {
+    if (!activeScope) return undefined;
+    // Materialize a mutable array for the core helpers (they read, never
+    // mutate). The `rows` prop is ReadonlyArray; spread into a fresh array.
+    const dataRows: Record<string, unknown>[] = rows ? [...rows] : [];
+    // HOLDS N/M: evaluate the scope's gateNode (the per-scope contribution tree)
+    // over the active data window. Absent gateNode → no HOLDS row.
+    const holdsResult =
+      activeScope.gateNode && dataRows.length > 0
+        ? runAndCheck(activeScope.gateNode, hubs, dataRows)
+        : undefined;
+    // What-If projected Cpk (if-fixed) — null when unprojectable (no specs /
+    // insufficient data); the card omits the row. The IM-5 helpers type rows as
+    // the core `DataRow` (constrained cell values); the Wall's `rows` prop is
+    // looser (`Record<string, unknown>`) so cast for the call.
+    const im5Rows = dataRows as unknown as DataRow[];
+    const whatIfCpk = computeScopeWhatIfProjection(
+      activeScope.predicates,
+      im5Rows,
+      activeScope.outcome,
+      activeScopeSpecs
+    );
+    // Coverage %: prevalence of the compound condition in the dataset.
+    const coveragePct =
+      dataRows.length > 0 ? computeConditionCoverage(activeScope.predicates, im5Rows) : undefined;
+    return {
+      conditionText: formatConditionLeaves(activeScope.predicates),
+      holds: holdsResult?.holds,
+      total: holdsResult?.total,
+      whatIfCpk,
+      coveragePct,
+    };
+  }, [activeScope, activeScopeSpecs, hubs, rows]);
 
   // stepOptions for AddPlanForm: derived once from processMap so renderHubAt can use it.
   // Returns undefined (not []) when processMap is absent so AddPlanForm hides the picker.
@@ -411,6 +470,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             ctsColumn={problemLabel}
             cpk={problemCpk}
             eventsPerWeek={eventsPerWeek}
+            conditionText={scopeAnchor?.conditionText}
+            holds={scopeAnchor?.holds}
+            total={scopeAnchor?.total}
+            whatIfCpk={scopeAnchor?.whatIfCpk}
+            coveragePct={scopeAnchor?.coveragePct}
             x={CANVAS_W / 2}
             y={40}
           />

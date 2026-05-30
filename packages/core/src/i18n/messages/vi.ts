@@ -815,6 +815,8 @@ export const vi: MessageCatalog = {
   'wall.problem.title': 'Problem condition',
   'wall.problem.eventsPerWeek': '{count} events/wk',
   'wall.problem.ariaLabel': 'Problem condition: {column}, Cpk {cpk}, {count} events per week',
+  'wall.scope.whatIf': 'If fixed: Cpk {value}',
+  'wall.scope.coverage': 'Covers {value}%',
   'wall.gate.and': 'AND',
   'wall.gate.or': 'OR',
   'wall.gate.not': 'NOT',

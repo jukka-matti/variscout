@@ -7,6 +7,7 @@ import {
   conditionHasMissingColumn,
   conditionReferencesStep,
   deriveConditionFromFindingSource,
+  formatConditionLeaves,
   predicateSetKey,
 } from '../hypothesisCondition';
 import type { FindingSource } from '../types';
@@ -446,7 +447,39 @@ describe('categoricalFiltersToActiveFilters', () => {
       { column: 'Line', values: ['1', '2'] },
     ];
     const map = categoricalFiltersToActiveFilters(chips);
-    // The activeFilters map preserves the same compound condition.
     expect(Object.keys(map)).toEqual(['Machine', 'Line']);
+  });
+});
+
+describe('formatConditionLeaves', () => {
+  it('joins eq leaves with ∩', () => {
+    const text = formatConditionLeaves([
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
+      { kind: 'leaf', column: 'Product', op: 'eq', value: 'X' },
+    ]);
+    expect(text).toBe('Machine = B ∩ Product = X');
+  });
+
+  it('renders in-leaves as a membership list', () => {
+    const text = formatConditionLeaves([
+      { kind: 'leaf', column: 'Line', op: 'in', value: ['1', '2'] },
+    ]);
+    expect(text).toBe('Line ∈ {1, 2}');
+  });
+
+  it('renders comparison ops with their symbols', () => {
+    expect(formatConditionLeaves([{ kind: 'leaf', column: 'T', op: 'gt', value: 100 }])).toBe(
+      'T > 100'
+    );
+    expect(formatConditionLeaves([{ kind: 'leaf', column: 'T', op: 'gte', value: 100 }])).toBe(
+      'T ≥ 100'
+    );
+    expect(
+      formatConditionLeaves([{ kind: 'leaf', column: 'T', op: 'between', value: [10, 20] }])
+    ).toBe('T ∈ [10, 20]');
+  });
+
+  it('returns an empty string for no leaves', () => {
+    expect(formatConditionLeaves([])).toBe('');
   });
 });

@@ -155,6 +155,41 @@ export function categoricalFiltersToActiveFilters(
   return map;
 }
 
+/** Human-readable symbol for each leaf comparison op. */
+const OP_SYMBOL: Record<ComparisonOp, string> = {
+  eq: '=',
+  neq: '≠',
+  lt: '<',
+  lte: '≤',
+  gt: '>',
+  gte: '≥',
+  between: '∈',
+  in: '∈',
+};
+
+/**
+ * Format a flat `ConditionLeaf[]` (a scope's compound WHERE) as a single
+ * human-readable line, e.g. `"Machine = B ∩ Product = X"`. Leaves are joined
+ * with `∩` (set intersection — the predicates are a flat AND). `in`/`between`
+ * render their membership/range; empty list → empty string.
+ *
+ * Locale-free (math symbols + raw values) so it is safe to use as a display
+ * fallback without a catalog key.
+ */
+export function formatConditionLeaves(predicates: ReadonlyArray<ConditionLeaf>): string {
+  const leafText = (leaf: ConditionLeaf): string => {
+    const symbol = OP_SYMBOL[leaf.op];
+    if (leaf.op === 'in' && Array.isArray(leaf.value)) {
+      return `${leaf.column} ${symbol} {${leaf.value.join(', ')}}`;
+    }
+    if (leaf.op === 'between' && Array.isArray(leaf.value)) {
+      return `${leaf.column} ${symbol} [${leaf.value.join(', ')}]`;
+    }
+    return `${leaf.column} ${symbol} ${String(leaf.value)}`;
+  };
+  return predicates.map(leafText).join(' ∩ ');
+}
+
 /**
  * A canonical, order-independent key for a flat list of `ConditionLeaf`
  * predicates — the identity of a `ProblemStatementScope`'s WHERE.

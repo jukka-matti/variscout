@@ -817,6 +817,8 @@ export {
   buildConditionFromCategoricalFilters,
   activeFiltersToCondition,
   categoricalFiltersToActiveFilters,
+  // Compound-condition display (scope-anchor card, IM-4a)
+  formatConditionLeaves,
   // Predicate-set identity (drill→scope producer idempotency, IM-4a)
   predicateSetKey,
   predicateSetsEqual,

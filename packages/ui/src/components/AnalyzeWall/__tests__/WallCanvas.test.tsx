@@ -927,4 +927,116 @@ describe('WallCanvas', () => {
       expect(screen.queryByLabelText(/process step/i)).not.toBeInTheDocument();
     });
   });
+
+  describe('scope anchor (IM-4a)', () => {
+    // 10 rows: Machine B subset (4 rows, low values) vs complement (6 rows).
+    const scopeRows = [
+      { Machine: 'B', lead_time: 50 },
+      { Machine: 'B', lead_time: 52 },
+      { Machine: 'B', lead_time: 48 },
+      { Machine: 'B', lead_time: 51 },
+      { Machine: 'A', lead_time: 20 },
+      { Machine: 'A', lead_time: 22 },
+      { Machine: 'A', lead_time: 19 },
+      { Machine: 'C', lead_time: 21 },
+      { Machine: 'C', lead_time: 23 },
+      { Machine: 'C', lead_time: 18 },
+    ];
+
+    const scope = {
+      id: 'scope-1',
+      investigationId: 'inv-test',
+      outcome: 'lead_time',
+      predicates: [{ kind: 'leaf' as const, column: 'Machine', op: 'eq' as const, value: 'B' }],
+      hypothesisIds: [],
+      createdAt: 1,
+      updatedAt: 1,
+      deletedAt: null,
+    };
+
+    it('renders the compound condition text from the active scope', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+          activeScope={scope}
+        />
+      );
+      expect(screen.getByTestId('problem-scope-condition')).toHaveTextContent('Machine = B');
+    });
+
+    it('renders coverage % matching computeConditionCoverage', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+          activeScope={scope}
+        />
+      );
+      // 4 of 10 rows match Machine=B → 40%.
+      expect(screen.getByTestId('problem-scope-projection')).toHaveTextContent('40%');
+    });
+
+    it('renders HOLDS N/M matching runAndCheck over the scope gateNode', () => {
+      const gatedScope = {
+        ...scope,
+        gateNode: { kind: 'hub' as const, hubId: 'h-cond' },
+      };
+      const condHub: Hypothesis = {
+        ...hub,
+        id: 'h-cond',
+        condition: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
+      };
+      render(
+        <WallCanvas
+          hubs={[condHub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+          activeScope={gatedScope}
+        />
+      );
+      // gateNode = hub h-cond whose condition is Machine=B → HOLDS 4/10.
+      expect(screen.getByTestId('problem-scope-holds')).toHaveTextContent('4/10');
+    });
+
+    it('renders the What-If projected Cpk when specs are provided', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+          activeScope={scope}
+          activeScopeSpecs={{ usl: 60, lsl: 0 }}
+        />
+      );
+      // What-If row renders (a Cpk value present) — projection is non-null for
+      // this subset/complement split with specs.
+      expect(screen.getByTestId('problem-scope-projection')).toHaveTextContent(/Cpk/);
+    });
+
+    it('omits scope rows entirely when no activeScope is passed', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+        />
+      );
+      expect(screen.queryByTestId('problem-scope-condition')).toBeNull();
+      expect(screen.queryByTestId('problem-scope-holds')).toBeNull();
+      expect(screen.queryByTestId('problem-scope-projection')).toBeNull();
+    });
+  });
 });

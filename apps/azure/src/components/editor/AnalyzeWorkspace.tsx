@@ -38,6 +38,8 @@ import {
   computeMainEffects,
   computeInteractionEffects,
   categoricalFiltersToActiveFilters,
+  buildConditionFromCategoricalFilters,
+  predicateSetKey,
 } from '@variscout/core';
 import { computeBestSubsets } from '@variscout/core/stats';
 import { detectEvidenceClusters } from '@variscout/core/findings';
@@ -205,6 +207,45 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   }, [rawData]);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
+
+  // ── Drill → scope spine (IM-4a) ──────────────────────────────────────────
+  // The active drill chips ARE the active scope (design §2). Materialize them
+  // into a persisted ProblemStatementScope (idempotent) and select the scope
+  // matching the current compound condition so the Problem card anchors on it.
+  const categoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const scopes = useAnalyzeStore(s => s.scopes);
+  const scopeInvestigationId = 'general-unassigned'; // sentinel until F6 first-class investigations
+  useEffect(() => {
+    if (!outcome) return;
+    useAnalyzeStore
+      .getState()
+      .syncScopeFromDrill(scopeInvestigationId, outcome, categoricalFilters);
+  }, [categoricalFilters, outcome]);
+  const activeScope = useMemo(() => {
+    if (!outcome) return undefined;
+    const predicates = buildConditionFromCategoricalFilters(categoricalFilters);
+    if (predicates.length === 0) return undefined;
+    const key = predicateSetKey(predicates);
+    return scopes.find(
+      s =>
+        s.investigationId === scopeInvestigationId &&
+        s.outcome === outcome &&
+        predicateSetKey(s.predicates) === key
+    );
+  }, [categoricalFilters, outcome, scopes]);
+  // Per-outcome spec limits for the scope's What-If projection (IM-5).
+  const activeScopeSpecs = useMemo(
+    () => (outcome ? (measureSpecs[outcome] ?? specs) : undefined),
+    [measureSpecs, outcome, specs]
+  );
+  // Live Problem-card base values for the scoped subset (no longer hardcoded):
+  // Cpk from the filtered-data stats, and the out-of-spec event COUNT as the
+  // "events" proxy (no reliable weekly cadence in V1 — count of occurrences).
+  const problemCpk = stats?.cpk ?? 0;
+  const problemEvents = useMemo(() => {
+    if (!stats || !filteredData?.length) return 0;
+    return Math.round((stats.outOfSpecPercentage / 100) * filteredData.length);
+  }, [stats, filteredData]);
   const scopedHubIds = useMemo(
     () => new Set(activeIPLineage?.hypothesisIds ?? []),
     [activeIPLineage]
@@ -827,8 +868,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   hubs={scopedHubs}
                   findings={scopedWallFindings}
                   processMap={processMap}
-                  problemCpk={0}
-                  eventsPerWeek={0}
+                  problemCpk={problemCpk}
+                  eventsPerWeek={problemEvents}
+                  activeScope={activeScope}
+                  activeScopeSpecs={activeScopeSpecs}
                   activeColumns={wallActiveColumns}
                   rows={rawData}
                   columnTypes={columnTypes}
