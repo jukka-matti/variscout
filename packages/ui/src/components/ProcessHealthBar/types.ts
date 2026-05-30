@@ -71,6 +71,19 @@ export interface ProcessHealthBarProps {
   /** Called when user accepts spec suggestion (pre-fills spec editor) */
   onAcceptSpecSuggestion?: (lsl: number, usl: number) => void;
 
+  // --- IM-5: scope coverage bar (eda §3.3 reinterpreted, ADR-088 #4) ---
+
+  /**
+   * Descriptive coverage % (0–100) of the active drilled scope condition.
+   * When provided, ProcessHealthBar renders the banded coverage bar
+   * (blue<30 / amber30–50 / green>50). A prevalence count, not a variance share.
+   */
+  scopeCoverage?: number | null;
+  /** What-If projected overall Cpk if the scope condition were fixed (text alongside the bar). */
+  scopeWhatIfCpk?: number;
+  /** Current overall Cpk (before the fix), for the "Cpk X → Y" What-If text. */
+  scopeCurrentCpk?: number;
+
   // --- Capability mode props ---
 
   /** Whether capability mode (Cpk I-Chart) is active */

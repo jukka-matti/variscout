@@ -11,6 +11,7 @@ import {
   Clock,
 } from 'lucide-react';
 import type { ProcessHealthBarProps } from './types';
+import { ScopeCoverageBar } from './ScopeCoverageBar';
 import { FilterChipDropdown } from '../FilterChipDropdown';
 import { gradeCpk, sourceLabelFor } from '@variscout/core/capability';
 import { assertNever } from '@variscout/core';
@@ -89,6 +90,9 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   specSuggestion,
   activeProjection,
   onAcceptSpecSuggestion,
+  scopeCoverage,
+  scopeWhatIfCpk,
+  scopeCurrentCpk,
   isCapabilityMode = false,
   capabilityStats,
 }) => {
@@ -505,6 +509,22 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
 
       {/* Stats section */}
       <div className="shrink-0">{renderStats()}</div>
+
+      {/* IM-5 scope coverage bar (eda §3.3) — coverage % banded + What-If Cpk text */}
+      {scopeCoverage != null && (
+        <>
+          <span className="text-edge shrink-0 hidden sm:inline" aria-hidden>
+            |
+          </span>
+          <div className="shrink-0">
+            <ScopeCoverageBar
+              coverage={scopeCoverage}
+              currentCpk={scopeCurrentCpk}
+              whatIfCpk={scopeWhatIfCpk}
+            />
+          </div>
+        </>
+      )}
 
       {/* Filter chips — shown when drilling */}
       {isDrilling && (

@@ -45,6 +45,9 @@ export {
   computeBenchmarkProjection,
 } from './projection';
 
+// Scope-level contribution (IM-5 — What-If projection + descriptive coverage %)
+export { computeScopeWhatIfProjection, computeConditionCoverage } from './scopeContribution';
+
 // Direction-aware category coloring
 export type { DirectionColor } from './directionColors';
 export { computeCategoryDirectionColors } from './directionColors';

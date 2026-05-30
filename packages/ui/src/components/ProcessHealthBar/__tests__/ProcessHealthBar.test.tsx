@@ -544,4 +544,26 @@ describe('ProcessHealthBar', () => {
       expect(setTimeLens).toHaveBeenCalledWith({ mode: 'openEnded', anchor: 0 });
     });
   });
+
+  describe('IM-5 scope coverage bar', () => {
+    it('renders the coverage bar + What-If text when scopeCoverage is provided', () => {
+      render(
+        <ProcessHealthBar
+          {...defaultProps}
+          scopeCoverage={45}
+          scopeCurrentCpk={0.7}
+          scopeWhatIfCpk={1.2}
+        />
+      );
+      expect(screen.getByTestId('scope-coverage-bar')).toBeDefined();
+      const whatIf = screen.getByTestId('scope-whatif-text').textContent ?? '';
+      expect(whatIf).toContain('0.7');
+      expect(whatIf).toContain('1.2');
+    });
+
+    it('does not render the coverage bar when scopeCoverage is null/undefined', () => {
+      render(<ProcessHealthBar {...defaultProps} scopeCoverage={null} />);
+      expect(screen.queryByTestId('scope-coverage-bar')).toBeNull();
+    });
+  });
 });

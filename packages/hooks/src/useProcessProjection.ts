@@ -48,6 +48,14 @@ export interface UseProcessProjectionOptions {
   filterStack: FilterAction[];
   /** Scoped findings for cumulative projection (optional, Azure only) */
   scopedFindings?: Finding[];
+  /**
+   * Live drill-chip scope (IM-5) — the active `analysisScopeStore.categoricalFilters`
+   * shape, passed in by the consumer (hooks stay store-agnostic). A single drilled
+   * {factor=level} condition that drives the `liveScopeProjection` "if fixed" memo.
+   * Distinct from `scopedFindings`: this is the live, in-progress drill, not pinned
+   * findings — and it has NO 2-finding floor.
+   */
+  liveScopeFilters?: ReadonlyArray<{ column: string; values: ReadonlyArray<string | number> }>;
   /** Benchmark stats + label (Phase 3) */
   benchmark?: { stats: BenchmarkStats; label: string } | null;
   /** Current journey phase (Phase 4) */
@@ -79,6 +87,8 @@ export interface UseProcessProjectionReturn {
   specSuggestion: SpecSuggestion | null;
   /** Cumulative projection from multiple findings */
   cumulativeProjection: ProcessProjection | null;
+  /** Live drill-chip projection ("if fixed") from the single in-progress scope (IM-5) */
+  liveScopeProjection: ProcessProjection | null;
   /** Improvement phase projection from ideas */
   improvementProjection: ProcessProjection | null;
   /** Actual measured projection from resolved findings */
@@ -128,6 +138,7 @@ export function useProcessProjection(
     stats,
     filterStack,
     scopedFindings,
+    liveScopeFilters,
     benchmark,
     journeyPhase,
     improvementProjectedCpk,
@@ -190,6 +201,21 @@ export function useProcessProjection(
     if (findingFilters.length < 2) return null;
     return computeCumulativeProjection(findingFilters, rawData, outcome, specs);
   }, [scopedFindings, rawData, outcome, hasSpecs, specs]);
+
+  // IM-5: Live drill-chip projection — the single in-progress {factor=level}
+  // scope from analysisScopeStore.categoricalFilters. DISTINCT from the
+  // cumulativeProjection memo above (no 2-finding floor — this is the live drill,
+  // not pinned findings). Reuses computeCumulativeProjection with one filter entry,
+  // so the "if fixed" label and engine math are identical (ADR-088 #3).
+  const liveScopeProjection = useMemo(() => {
+    if (!liveScopeFilters || !outcome || !hasSpecs) return null;
+    const activeFilters: Record<string, (string | number)[]> = {};
+    for (const filter of liveScopeFilters) {
+      if (filter.values.length > 0) activeFilters[filter.column] = [...filter.values];
+    }
+    if (Object.keys(activeFilters).length === 0) return null;
+    return computeCumulativeProjection([{ activeFilters }], rawData, outcome, specs);
+  }, [liveScopeFilters, rawData, outcome, hasSpecs, specs]);
 
   // MODEL: Equation-driven projection from best subsets regression
   const modelProjection = useMemo((): ProcessProjection | null => {
@@ -301,14 +327,16 @@ export function useProcessProjection(
   // 1. resolved (actual measurements trump all projections)
   // 2. improvement (IMPROVE phase, ideas have projections)
   // 3. cumulative (2+ scoped findings, INVESTIGATE)
-  // 4. benchmark (benchmark pinned, drilling)
-  // 5. drill complement ("if fixed")
-  // 6. model (equation-driven, more precise than centering but less specific than drill)
-  // 7. null → centering shown separately
+  // 4. live scope (single in-progress drill condition, IM-5 "if fixed")
+  // 5. benchmark (benchmark pinned, drilling)
+  // 6. drill complement ("if fixed")
+  // 7. model (equation-driven, more precise than centering but less specific than drill)
+  // 8. null → centering shown separately
   const activeProjection = useMemo(() => {
     if (resolvedProjection) return resolvedProjection;
     if (improvementProjection) return improvementProjection;
     if (cumulativeProjection) return cumulativeProjection;
+    if (liveScopeProjection) return liveScopeProjection;
     if (benchmarkProjection) return benchmarkProjection;
     if (drillProjection) return drillProjection;
     if (modelProjection) return modelProjection;
@@ -317,6 +345,7 @@ export function useProcessProjection(
     resolvedProjection,
     improvementProjection,
     cumulativeProjection,
+    liveScopeProjection,
     benchmarkProjection,
     drillProjection,
     modelProjection,
@@ -328,6 +357,7 @@ export function useProcessProjection(
     centeringOpportunity,
     specSuggestion,
     cumulativeProjection,
+    liveScopeProjection,
     improvementProjection,
     resolvedProjection,
     modelProjection,

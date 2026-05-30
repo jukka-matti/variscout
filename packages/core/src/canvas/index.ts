@@ -15,6 +15,11 @@ export {
   FIT_TO_CONTENT_ZOOM_BY_LEVEL,
   type CanvasLevel,
 } from './viewport';
+export {
+  canvasLevelToProcessLevel,
+  processLevelToCanvasLevel,
+  type ProcessLevel,
+} from './processLevel';
 export const NUMERIC_TIME_SERIES_DISTINCT_THRESHOLD = 30;
 export const SPARKLINE_LTTB_THRESHOLD = 100;
 export {

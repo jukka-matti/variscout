@@ -48,6 +48,7 @@ import {
   insertHubAsAndChild,
   type GatePath,
 } from '@variscout/core';
+import { computeScopeWhatIfProjection } from '@variscout/core/variation';
 
 export const STORE_LAYER = 'document' as const;
 
@@ -135,6 +136,18 @@ export interface AnalyzeActions {
   ) => void;
   removeScope: (scopeId: string) => void;
   addHypothesisToScope: (scopeId: string, hypothesisId: string) => void;
+  /**
+   * IM-5: recompute and persist the scope's `whatIfProjection` (projected overall
+   * Cpk if the scope's drilled condition were fixed) from the live project data.
+   *
+   * Pulls `rawData` + per-outcome specs from `useProjectStore`, runs the What-If
+   * simulation (`computeScopeWhatIfProjection`, which reuses
+   * `computeCumulativeProjection`), and patches the scope via `updateScope`.
+   * Sets `whatIfProjection` to `undefined` when the projection is unavailable
+   * (no specs / insufficient data) so a stale value is never left behind.
+   * No-op for an unknown scope id. ADR-088 #3; nothing is multiplied across levels.
+   */
+  recomputeScopeWhatIf: (scopeId: string) => void;
 
   // --- Hub actions ---
   createHub: (name: string, synthesis: string) => Hypothesis;
@@ -618,6 +631,29 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
         };
       }),
     }));
+  },
+
+  recomputeScopeWhatIf: scopeId => {
+    const scope = get().scopes.find(s => s.id === scopeId);
+    if (!scope) return;
+
+    // Pull the live project data imperatively (cross-store read is permitted;
+    // reactive subscriptions are not). The scope owns its own outcome, so prefer
+    // the per-outcome spec entry, falling back to the project-wide specs.
+    const { rawData, specs, measureSpecs } = useProjectStore.getState();
+    const outcomeSpecs = measureSpecs[scope.outcome] ?? specs;
+
+    // What-If simulation (ADR-088 #3): reuse computeScopeWhatIfProjection →
+    // computeCumulativeProjection. Returns null when unprojectable; we store
+    // `undefined` so a stale number is never left behind.
+    const projected = computeScopeWhatIfProjection(
+      scope.predicates,
+      rawData,
+      scope.outcome,
+      outcomeSpecs
+    );
+
+    get().updateScope(scopeId, { whatIfProjection: projected ?? undefined });
   },
 
   // ========================================================================
