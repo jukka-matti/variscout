@@ -230,11 +230,6 @@ describe('applyAction — control handoffs', () => {
       notes: 'Accepted',
     });
     await applyAction(db, {
-      kind: 'CONTROL_HANDOFF_SIGNOFF',
-      handoffId: 'handoff-1',
-      signoff: { approvedAt: NOW + 2, approvedBy: { displayName: 'Sponsor' } },
-    });
-    await applyAction(db, {
       kind: 'CONTROL_HANDOFF_MARK_OPERATIONAL',
       handoffId: 'handoff-1',
       operationalAt: NOW + 3,
@@ -252,7 +247,6 @@ describe('applyAction — control handoffs', () => {
         acknowledgedBy: { displayName: 'Process owner' },
         notes: 'Accepted',
       },
-      signoff: { approvedAt: NOW + 2, approvedBy: { displayName: 'Sponsor' } },
     });
     expect(stored?.deletedAt).toEqual(expect.any(Number));
   });

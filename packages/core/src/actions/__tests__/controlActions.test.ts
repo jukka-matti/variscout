@@ -101,11 +101,6 @@ describe('ControlAction', () => {
         acknowledgedBy: { displayName: 'Owner' },
       },
       { kind: 'CONTROL_HANDOFF_MARK_OPERATIONAL', handoffId: 'handoff-1' },
-      {
-        kind: 'CONTROL_HANDOFF_SIGNOFF',
-        handoffId: 'handoff-1',
-        signoff: { approvedAt: 2, approvedBy: { displayName: 'Sponsor' } },
-      },
     ];
 
     expect(actions.map(action => action.kind)).toEqual([
@@ -114,7 +109,6 @@ describe('ControlAction', () => {
       'CONTROL_HANDOFF_ARCHIVE',
       'CONTROL_HANDOFF_ACKNOWLEDGE',
       'CONTROL_HANDOFF_MARK_OPERATIONAL',
-      'CONTROL_HANDOFF_SIGNOFF',
     ]);
   });
 });

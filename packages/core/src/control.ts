@@ -8,7 +8,7 @@ import type {
   ProcessParticipantRef,
 } from './processHub';
 import type { EvidenceSnapshot } from './evidenceSources';
-import type { ImprovementProjectGoal, ImprovementProjectSignoff } from './improvementProject';
+import type { ImprovementProjectGoal } from './improvementProject';
 
 export type ControlCadence =
   | 'weekly'
@@ -109,7 +109,6 @@ export interface ControlHandoff extends EntityBase {
   };
   escalationPath?: string;
   reactionPlan?: string;
-  signoff?: ImprovementProjectSignoff;
 }
 
 export interface ControlMetadataProjection {

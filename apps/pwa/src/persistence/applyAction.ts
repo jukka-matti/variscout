@@ -369,18 +369,6 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
       return;
     }
 
-    case 'CONTROL_HANDOFF_SIGNOFF': {
-      const existing = await db.controlHandoffs.get(action.handoffId);
-      if (!existing) return;
-      const operationalAt = existing.operationalAt ?? action.signoff.approvedAt ?? Date.now();
-      await db.controlHandoffs.update(action.handoffId, {
-        status: 'operational',
-        operationalAt,
-        signoff: { ...(existing.signoff ?? {}), ...action.signoff },
-      });
-      return;
-    }
-
     // -----------------------------------------------------------------------
     // Investigation entity actions (investigation / finding / scope /
     // causalLink / hypothesis) — F5 wires these when the investigation

@@ -913,7 +913,9 @@ function AppMain() {
   const projectsClosureInputs = projectsControlHandoff
     ? {
         controlPlanDocumented: false,
-        trainingDelivered: Boolean(projectsControlHandoff.signoff?.approvedBy),
+        // Re-pointed from the deleted handoff.signoff to the handoff lifecycle
+        // (IM-7 §11 #6): "operational" is the fully-handed-off milestone.
+        trainingDelivered: projectsControlHandoff.status === 'operational',
         cadenceAssigned: Boolean(projectsControlRecord?.cadence),
         processOwnerAcknowledged: projectsControlHandoff.status !== 'pending',
         trainingRef: projectsControlHandoff.referenceUri,
