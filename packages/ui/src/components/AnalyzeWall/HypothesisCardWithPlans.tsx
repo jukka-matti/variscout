@@ -591,6 +591,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
             onSelectIdea={onSelectIdea}
             onProjectIdea={onProjectIdea}
             hypothesisText={cardProps.hub.name}
+            canEdit={canEdit}
           />
         </foreignObject>
       )}

@@ -221,6 +221,68 @@ describe('HypothesisCardWithPlans — ImprovementIdeasSection (Flow 1, IM-1 re-m
   });
 });
 
+// ── ACL gate: ideas section is read-only for non-editors ───────────────────────
+//
+// The Wall is per-project. A viewer who is NOT in the member roster (i.e.
+// canAccess(..., 'edit-contributions') === false) must see existing ideas but
+// get no data-mutating affordance — mirrors the read-for-all / write-for-editors
+// pattern used by HypothesisComments and the plans/tasks zone.
+
+describe('HypothesisCardWithPlans — ImprovementIdeasSection ACL gate (non-member viewer)', () => {
+  // members populated AND current user not among them => canEdit === false
+  const viewerProps = () =>
+    makeCardProps({ members: [leadMember], currentUserId: 'user-stranger' });
+
+  it('still renders existing ideas + impact badges for a non-member viewer (read view preserved)', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans
+        {...viewerProps()}
+        ideaImpacts={ideaImpacts}
+        onAddIdea={vi.fn()}
+        onProjectIdea={vi.fn()}
+        onRemoveIdea={vi.fn()}
+      />
+    );
+    expect(screen.getByText('Reduce coolant flow by 10%')).toBeInTheDocument();
+    expect(screen.getByText('Switch to night-shift heat trace')).toBeInTheDocument();
+    expect(screen.getByTestId('idea-impact-idea-1')).toBeInTheDocument();
+  });
+
+  it('hides the Add idea input even when onAddIdea is wired', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans {...viewerProps()} ideaImpacts={ideaImpacts} onAddIdea={vi.fn()} />
+    );
+    expect(screen.queryByTestId('add-idea-input-h1')).toBeNull();
+  });
+
+  it('hides the Project button even when onProjectIdea is wired', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans
+        {...viewerProps()}
+        ideaImpacts={ideaImpacts}
+        onProjectIdea={vi.fn()}
+      />
+    );
+    expect(screen.queryByRole('button', { name: /project idea with what-if/i })).toBeNull();
+  });
+
+  it('hides the Remove button and renders the select toggle as a non-interactive indicator', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans
+        {...viewerProps()}
+        ideaImpacts={ideaImpacts}
+        onRemoveIdea={vi.fn()}
+        onSelectIdea={vi.fn()}
+      />
+    );
+    expect(screen.queryByRole('button', { name: /remove idea/i })).toBeNull();
+    // The select toggle is a static <span> (not a button) for viewers.
+    expect(screen.queryByRole('button', { name: /select idea|deselect idea/i })).toBeNull();
+    // idea-2 is selected — its static indicator is still shown.
+    expect(screen.getByLabelText('Selected idea')).toBeInTheDocument();
+  });
+});
+
 // ── Flow 2: handleProjectIdea / onProjectIdea wired ───────────────────────────
 
 describe('HypothesisCardWithPlans — onProjectIdea wiring (Flow 2, IM-1 re-mount)', () => {
