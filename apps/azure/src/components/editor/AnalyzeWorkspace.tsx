@@ -212,6 +212,12 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // The active drill chips ARE the active scope (design §2). Materialize them
   // into a persisted ProblemStatementScope (idempotent) and select the scope
   // matching the current compound condition so the Problem card anchors on it.
+  //
+  // Execution model: reactive-on-condition-change with set-keyed idempotency.
+  // `syncScopeFromDrill` runs every time `categoricalFilters` or `outcome`
+  // changes (not on an imperative "commit" gesture). Intermediate scopes
+  // accumulate in the store; stale ones are pruned via the IM-4b scope rail
+  // (SCOPE_ARCHIVE) — not here.
   const categoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
   const scopes = useAnalyzeStore(s => s.scopes);
   const scopeInvestigationId = 'general-unassigned'; // sentinel until F6 first-class investigations
@@ -460,6 +466,14 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // (confirmed) and ruledOut (refuted) sets gate the conclusion panel today;
   // IM-1: the `contributing` set derivation is removed — the level-native
   // contribution view that renders it arrives in IM-5.
+  //
+  // NOTE: this reads `h.status` (the stored value) directly, not
+  // `deriveHypothesisStatus`. On main, `setHubStatus` has zero prod callers
+  // and factories.ts seeds 'proposed', so `h.status === 'confirmed'` is a dead
+  // branch here until IM-4b/IM-6 persists the derived value. The Wall surface
+  // (WallCanvas + MobileCardList) correctly calls `deriveHypothesisStatus`.
+  // See investigations.md §"stored-vs-derived status deferral (IM-4a)" for the
+  // open question: migrate these readers OR persist the derived value in IM-4b/IM-6.
   const { hypotheses, ruledOut } = useMemo(() => {
     const suspected: Hypothesis[] = [];
     const ruled: Hypothesis[] = [];

@@ -637,6 +637,10 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   },
 
   syncScopeFromDrill: (investigationId, outcome, filters) => {
+    // Reactive-on-condition-change with set-keyed idempotency (see AnalyzeWorkspace.tsx
+    // §"Drill → scope spine" comment). Called from a useEffect on [categoricalFilters,
+    // outcome] — NOT on an imperative commit gesture. Intermediate scopes accumulate
+    // here; stale/superseded ones are pruned via the IM-4b scope rail (SCOPE_ARCHIVE).
     const predicates = buildConditionFromCategoricalFilters(filters);
     // Empty drill → no scope (the active chips ARE the active scope; no chips,
     // no compound WHERE to persist).

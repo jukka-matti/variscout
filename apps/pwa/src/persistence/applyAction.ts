@@ -392,10 +392,14 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     case 'HYPOTHESIS_UPDATE':
     case 'HYPOTHESIS_ARCHIVE':
     case 'HYPOTHESIS_RECORD_DISCONFIRMATION': {
-      // ProblemStatementScope (SCOPE_*) has zero Dexie footprint (ADR-085) —
-      // scopes round-trip via the serialized blob slot `questions` vacated.
-      // Hypotheses (incl. disconfirmationAttempts) likewise round-trip via the
-      // analyze blob — no dedicated PWA Dexie table; no IDB bump (IM-4a).
+      // `disconfirmationAttempts` (like hypotheses) is in-session-only /
+      // F5-DEFERRED — it does NOT survive a reload. There is no dedicated PWA
+      // Dexie 'hypothesis' table; hypotheses (incl. disconfirmationAttempts)
+      // are intended to round-trip via the analyze blob, but `serialize`/
+      // `deserialize` have zero non-test callers (IM-4a).
+      // See investigations.md §"stored-vs-derived status deferral (IM-4a)" for
+      // the open IM-4b/IM-6 question: persist the derived value OR migrate
+      // stored-status readers to `deriveHypothesisStatus`.
       return;
     }
 
