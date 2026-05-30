@@ -19,12 +19,13 @@
 
 import React, { useState } from 'react';
 import type { Finding } from '@variscout/core';
+import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { canAccess } from '@variscout/core/projectMembership';
 import { HypothesisCard, type HypothesisCardProps } from './HypothesisCard';
 import { MeasurementPlanChip } from './MeasurementPlanChip';
-import { AddPlanForm } from './AddPlanForm';
+import { AddPlanForm, type StepOption } from './AddPlanForm';
 import { LinkFindingPicker } from './LinkFindingPicker';
 
 // Card geometry constants (mirrors HypothesisCard internals)
@@ -69,6 +70,22 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    * V1: pass-through — parent decides behaviour (edit UI not in this PR).
    */
   onEditPlan: (planId: string) => void;
+  /**
+   * Process steps for the processLocation picker in AddPlanForm.
+   * Derived at WallCanvas level from `deriveProcessSteps(processMap)`.
+   * Pass `undefined` when processMap is absent; AddPlanForm hides the step picker.
+   */
+  stepOptions?: StepOption[];
+  /**
+   * Active drill-chip scope conditions (snapshot) for AddPlanForm's `scope` field.
+   * Pass `undefined` to default to `[]`.
+   */
+  defaultScope?: ConditionLeaf[];
+  /**
+   * Pre-fill for AddPlanForm's outcome field.
+   * Pass `undefined` to default to `''`.
+   */
+  defaultOutcome?: string;
 }
 
 export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = ({
@@ -79,6 +96,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onAddPlan,
   onLinkFinding,
   onEditPlan,
+  stepOptions,
+  defaultScope,
+  defaultOutcome,
   ...cardProps
 }) => {
   const [addPlanFormOpen, setAddPlanFormOpen] = useState(false);
@@ -166,6 +186,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                   setAddPlanFormOpen(false);
                 }}
                 onCancel={() => setAddPlanFormOpen(false)}
+                stepOptions={stepOptions}
+                defaultScope={defaultScope}
+                defaultOutcome={defaultOutcome}
               />
             )}
           </div>
