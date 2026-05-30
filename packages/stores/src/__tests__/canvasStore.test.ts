@@ -747,6 +747,12 @@ describe('canvasStore tributary authoring (IM-0b-2)', () => {
     // A tributary-pinned hunch — must cascade away with the tributary.
     useCanvasStore.getState().addHunch('Pinned hunch', { tributaryId });
 
+    // Pre-state: the cascade targets must exist before removal, else the
+    // post-removal not.toContain / !some assertions would pass vacuously.
+    const before = useCanvasStore.getState().canonicalMap;
+    expect(before.subgroupAxes ?? []).toContain(tributaryId);
+    expect((before.hunches ?? []).some(h => h.tributaryId === tributaryId)).toBe(true);
+
     useCanvasStore.getState().removeTributary(tributaryId);
 
     const map = useCanvasStore.getState().canonicalMap;
@@ -784,10 +790,16 @@ describe('canvasStore toggleSubgroupAxis (IM-0b-2)', () => {
     const stepId = addStepAndGetId('Fill');
     useCanvasStore.getState().addTributary(stepId, 'Machine');
     const tributaryId = useCanvasStore.getState().canonicalMap.tributaries[0].id;
+    const versionBefore = useCanvasStore.getState().canonicalMapVersion;
+    const depthBefore = useCanvasStore.getState().historyDepth();
 
     useCanvasStore.getState().toggleSubgroupAxis(tributaryId);
 
     expect(useCanvasStore.getState().canonicalMap.subgroupAxes).toEqual([tributaryId]);
+    // IM-0b-2: parity with sibling actions — a toggle bumps the map version and
+    // records exactly one undo entry (guards a direct mutation that skips applyUndoable).
+    expect(useCanvasStore.getState().canonicalMapVersion).not.toBe(versionBefore);
+    expect(useCanvasStore.getState().historyDepth()).toBe(depthBefore + 1);
   });
 
   it('removes the tributary id from subgroupAxes when toggled off', () => {

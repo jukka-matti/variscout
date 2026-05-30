@@ -1212,9 +1212,10 @@ describe('CanvasWorkspace', () => {
   // (canvasStore) -> persistCanvasStoreMap -> setProcessContext, which feeds the
   // updated map back as the controlled `processContext` prop. This MUST NOT
   // re-trigger the hydration effect and clobber the canvasStore edit (back to
-  // the old ctqColumn / dropping undo history). `persistCanvasStoreMap` sets
-  // `lastHydratedMapSignature` to the post-edit map BEFORE handleChange, so the
-  // ensuing prop change is already "seen" and the effect early-returns.
+  // the old ctqColumn / dropping undo history). A LAYERED guard prevents it:
+  // `persistCanvasStoreMap` pre-sets `lastHydratedMapSignature` to the post-edit
+  // map before handleChange, AND the hydration effect early-returns when the
+  // incoming map's signature already equals the canonicalMap signature.
   it('IM-0b-2: a ctqColumn edit persists without re-hydrating / clobbering the canvasStore', () => {
     const originalHydrate = useCanvasStore.getState().hydrateCanvasDocument;
     const hydrateCanvasDocument = vi.fn(originalHydrate);
