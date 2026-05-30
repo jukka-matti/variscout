@@ -42,7 +42,7 @@ Replace the monolithic `coScout.ts` with a modular `coScout/` directory. Key cha
 - Every coaching instruction grounded in visible data context
 - ~430-530 lines per request instead of 1,691
 - Prompt caching (10x token savings) protected by type system
-- Legacy functions preserved for backward compatibility during migration
+- ~~Legacy functions preserved for backward compatibility during migration~~ **DONE 2026-05-30**: `legacy.ts` deleted; `BuildCoScoutToolsOptions` relocated to `tools/registry.ts`; `assembleCoScoutPrompt` is the sole entry point.
 
 ## Implementation
 
