@@ -205,6 +205,16 @@ export interface AnalyzeActions {
    * immediately without waiting for the network round-trip.
    */
   addHubComment: (hubId: string, text: string, author?: string) => Promise<FindingComment>;
+  /**
+   * Edit a comment's text in place on a hypothesis hub.
+   * Twin of `editFindingComment`. No-op when hubId or commentId does not exist.
+   */
+  editHubComment: (hubId: string, commentId: string, text: string) => void;
+  /**
+   * Remove a comment from a hypothesis hub.
+   * Twin of `deleteFindingComment`. No-op when hubId or commentId does not exist.
+   */
+  deleteHubComment: (hubId: string, commentId: string) => void;
 
   // --- Ideas actions (F2 — keyed by hypothesisId, live on Hypothesis.ideas) ---
   addIdea: (hypothesisId: string, text: string) => ImprovementIdea | null;
@@ -874,6 +884,27 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     }
 
     return comment;
+  },
+
+  editHubComment: (hubId, commentId, text) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId
+          ? {
+              ...h,
+              comments: (h.comments ?? []).map(c => (c.id === commentId ? { ...c, text } : c)),
+            }
+          : h
+      ),
+    }));
+  },
+
+  deleteHubComment: (hubId, commentId) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId ? { ...h, comments: (h.comments ?? []).filter(c => c.id !== commentId) } : h
+      ),
+    }));
   },
 
   // ========================================================================

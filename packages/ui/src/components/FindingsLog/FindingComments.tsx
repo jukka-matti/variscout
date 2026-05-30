@@ -29,6 +29,12 @@ export interface FindingCommentsProps {
   showAuthors?: boolean;
   /** Optional Azure-only voice input that transcribes into the comment draft */
   voiceInput?: VoiceInputConfig;
+  /**
+   * Controls whether add/edit/delete affordances are rendered.
+   * Defaults to `true` (open access) — pass `false` to hide all write surfaces.
+   * Used by HypothesisComments to apply the ACL gate without re-implementing the thread UI.
+   */
+  canEdit?: boolean;
 }
 
 /** Format a relative time string (e.g., "2h ago", "3d ago") */
@@ -82,6 +88,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
   onCaptureFromTeams,
   showAuthors,
   voiceInput,
+  canEdit = true,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
@@ -318,48 +325,50 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                       )}
                       {relativeTime(comment.createdAt)}
                     </span>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover/comment:opacity-100 touch-show transition-opacity">
-                      {onAddPhoto && (
+                    {canEdit && (
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover/comment:opacity-100 touch-show transition-opacity">
+                        {onAddPhoto && (
+                          <button
+                            onClick={e => handlePhotoClick(e, comment.id)}
+                            className="p-0.5 rounded text-content-muted hover:text-content transition-colors"
+                            title="Add photo"
+                            aria-label="Add photo to comment"
+                          >
+                            <Camera size={10} />
+                          </button>
+                        )}
                         <button
-                          onClick={e => handlePhotoClick(e, comment.id)}
+                          onClick={e => {
+                            e.stopPropagation();
+                            setEditingId(comment.id);
+                          }}
                           className="p-0.5 rounded text-content-muted hover:text-content transition-colors"
-                          title="Add photo"
-                          aria-label="Add photo to comment"
+                          title="Edit comment"
+                          aria-label="Edit comment"
                         >
-                          <Camera size={10} />
+                          <Pencil size={10} />
                         </button>
-                      )}
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          setEditingId(comment.id);
-                        }}
-                        className="p-0.5 rounded text-content-muted hover:text-content transition-colors"
-                        title="Edit comment"
-                        aria-label="Edit comment"
-                      >
-                        <Pencil size={10} />
-                      </button>
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          onDelete(findingId, comment.id);
-                        }}
-                        className="p-0.5 rounded text-content-muted hover:text-red-400 transition-colors"
-                        title="Delete comment"
-                        aria-label="Delete comment"
-                      >
-                        <Trash2 size={10} />
-                      </button>
-                    </div>
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            onDelete(findingId, comment.id);
+                          }}
+                          className="p-0.5 rounded text-content-muted hover:text-red-400 transition-colors"
+                          title="Delete comment"
+                          aria-label="Delete comment"
+                        >
+                          <Trash2 size={10} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
             </div>
           ))}
 
-          {/* Add comment input */}
-          {isAdding ? (
+          {/* Add comment input — only rendered for users with edit-contributions access */}
+          {canEdit && isAdding ? (
             <div className="space-y-1">
               {/* Pending attachment preview */}
               {pendingAttachment && (
@@ -415,7 +424,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                 </button>
               </div>
             </div>
-          ) : (
+          ) : canEdit ? (
             <div className="flex items-center gap-1">
               <button
                 onClick={e => {
@@ -440,7 +449,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                 <Paperclip size={10} />
               </button>
             </div>
-          )}
+          ) : null}
         </div>
       )}
     </div>
