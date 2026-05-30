@@ -820,6 +820,8 @@ export {
   categoricalFiltersToActiveFilters,
   // Compound-condition display (scope-anchor card, IM-4a)
   formatConditionLeaves,
+  // @mention resolution (hub comment composer, IM-4b)
+  parseMentions,
   // Predicate-set identity (drill→scope producer idempotency, IM-4a)
   predicateSetKey,
   predicateSetsEqual,

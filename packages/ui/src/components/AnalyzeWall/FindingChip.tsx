@@ -16,6 +16,9 @@ export interface FindingChipProps {
   y: number;
   onSelect?: (id: string) => void;
   onDetach?: (id: string) => void;
+  // IM-4c: finding→hypothesis-on-Wall (createHubFromFinding) is deferred to the
+  // IM-4c bipartite re-layout. The propose-hypothesis affordance + its callback
+  // were intentionally removed here; do not re-add until IM-4c wires the seam.
 }
 
 const CHIP_W = 220;
@@ -25,26 +28,27 @@ export const FindingChip: React.FC<FindingChipProps> = ({ finding, x, y, onSelec
   const sourceLabel = finding.source?.chart ? `${finding.source.chart}` : 'observation';
   const label = `Finding: ${finding.text || sourceLabel}`;
   return (
-    <g
-      role="button"
-      tabIndex={0}
-      aria-label={label}
-      transform={`translate(${x - CHIP_W / 2}, ${y})`}
-      onClick={() => onSelect?.(finding.id)}
-      onContextMenu={e => {
-        e.preventDefault();
-        onDetach?.(finding.id);
-      }}
-      className="cursor-pointer"
-      data-validation={finding.validationStatus ?? 'none'}
-    >
-      <rect width={CHIP_W} height={CHIP_H} rx={6} className="fill-surface stroke-edge" />
-      <text x={12} y={18} className="fill-content-subtle text-[9px] uppercase font-mono">
-        {sourceLabel}
-      </text>
-      <text x={12} y={34} className="fill-content text-xs">
-        {finding.text || '(no note)'}
-      </text>
+    <g data-validation={finding.validationStatus ?? 'none'}>
+      <g
+        role="button"
+        tabIndex={0}
+        aria-label={label}
+        transform={`translate(${x - CHIP_W / 2}, ${y})`}
+        onClick={() => onSelect?.(finding.id)}
+        onContextMenu={e => {
+          e.preventDefault();
+          onDetach?.(finding.id);
+        }}
+        className="cursor-pointer"
+      >
+        <rect width={CHIP_W} height={CHIP_H} rx={6} className="fill-surface stroke-edge" />
+        <text x={12} y={18} className="fill-content-subtle text-[9px] uppercase font-mono">
+          {sourceLabel}
+        </text>
+        <text x={12} y={34} className="fill-content text-xs">
+          {finding.text || '(no note)'}
+        </text>
+      </g>
     </g>
   );
 };

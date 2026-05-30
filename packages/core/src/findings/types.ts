@@ -123,6 +123,12 @@ export interface FindingComment extends EntityBase {
   photos?: PhotoAttachment[];
   /** Non-image file attachments (PDF, XLSX, CSV, TXT). Team plan: OneDrive upload. Standard: local reference. */
   attachments?: CommentAttachment[];
+  /**
+   * Resolved userId strings for @-tagged members in this comment.
+   * Populated by parseMentions(text, members) at the call site (composer or store action).
+   * Absent/empty for comments with no @mentions (backward compatible).
+   */
+  mentionedUserIds?: string[];
 }
 
 // ============================================================================
@@ -692,6 +698,12 @@ export interface Hypothesis extends EntityBase {
   signalCardIds?: string[];
   /** Timestamped hypothesis-level team discussion. Same shape as FindingComment. */
   comments?: FindingComment[];
+  /**
+   * ActionItem tasks assigned to this hypothesis (Task 3).
+   * Reuses the same `ActionItem` shape as `Finding.actions` + canvas steps.
+   * Distinct from `MeasurementPlan` (no primaryFactor/method).
+   */
+  actions?: ActionItem[];
   /**
    * Recorded falsification attempts. Empty/absent + ≥2 evidence types triggers
    * the Survey confirm-gate rule (status auto-derives to `needs-disconfirmation`).

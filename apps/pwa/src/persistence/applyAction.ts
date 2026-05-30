@@ -391,6 +391,9 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     case 'HYPOTHESIS_ADD':
     case 'HYPOTHESIS_UPDATE':
     case 'HYPOTHESIS_ARCHIVE':
+    case 'HYPOTHESIS_ACTION_ADD':
+    case 'HYPOTHESIS_ACTION_UPDATE':
+    case 'HYPOTHESIS_ACTION_COMPLETE':
     case 'HYPOTHESIS_RECORD_DISCONFIRMATION': {
       // `disconfirmationAttempts` (like hypotheses) is in-session-only /
       // F5-DEFERRED — it does NOT survive a reload. There is no dedicated PWA

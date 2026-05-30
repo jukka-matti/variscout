@@ -956,6 +956,7 @@ export interface MessageCatalog {
   'wall.problem.ariaLabel': string;
   'wall.scope.whatIf': string;
   'wall.scope.coverage': string;
+  'wall.scope.archive': string;
   'wall.evidence.supports': string;
   'wall.evidence.countsAgainst': string;
   'wall.evidence.contributingFactors': string;
@@ -967,6 +968,19 @@ export interface MessageCatalog {
   'wall.disconfirm.verdictRefuted': string;
   'wall.disconfirm.record': string;
   'wall.disconfirm.cancel': string;
+  // ActionItem tasks on hypotheses (IM-4b Task 3)
+  'wall.task.addButton': string;
+  'wall.task.taskLabel': string;
+  'wall.task.save': string;
+  'wall.task.cancel': string;
+  'wall.task.markDone': string;
+  // Plan-owner data-collection task surface (IM-4b Task 4)
+  'wall.collect.assigned': string;
+  'wall.collect.status.planned': string;
+  'wall.collect.status.inProgress': string;
+  'wall.collect.status.complete': string;
+  'wall.collect.status.skipped': string;
+  'wall.collect.due': string;
   'wall.gate.and': string;
   'wall.gate.or': string;
   'wall.gate.not': string;

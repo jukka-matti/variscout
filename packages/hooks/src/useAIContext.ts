@@ -16,7 +16,13 @@ import type {
   EntryScenario,
   Hypothesis,
 } from '@variscout/core';
-import type { StatsResult, SpecLimits, Finding, AnalysisMode } from '@variscout/core';
+import type {
+  StatsResult,
+  SpecLimits,
+  Finding,
+  AnalysisMode,
+  FindingComment,
+} from '@variscout/core';
 
 export interface UseAIContextOptions {
   /** Whether AI is enabled */
@@ -77,6 +83,15 @@ export interface UseAIContextOptions {
   hypotheses?: Hypothesis[];
   /** Best subsets result for model equation and interaction effects context */
   bestSubsetsResult?: BuildAIContextOptions['bestSubsetsResult'];
+  /**
+   * IM-4b — hub comments (parentKind='hypothesis') for `investigation.recentComments`.
+   * Only comments created today (>= todayStartMs) are surfaced to CoScout.
+   */
+  hubComments?: FindingComment[];
+  /** IM-4b — finding comments (parentKind='finding') for `investigation.recentComments`. */
+  findingComments?: FindingComment[];
+  /** IM-4b — start-of-today UTC ms (injected for deterministic tests). */
+  todayStartMs?: number;
 }
 
 export interface UseAIContextReturn {
@@ -115,6 +130,9 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     evidenceMapTopology,
     hypotheses,
     bestSubsetsResult,
+    hubComments,
+    findingComments,
+    todayStartMs,
   } = options;
 
   const context = useMemo<AIContext | null>(() => {
@@ -142,6 +160,9 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       evidenceMapTopology,
       hypotheses,
       bestSubsetsResult,
+      hubComments,
+      findingComments,
+      todayStartMs,
     };
 
     // Map StatsResult to AIStatsInput
@@ -187,6 +208,9 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     evidenceMapTopology,
     hypotheses,
     bestSubsetsResult,
+    hubComments,
+    findingComments,
+    todayStartMs,
   ]);
 
   return { context };

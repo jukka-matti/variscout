@@ -160,6 +160,13 @@ export interface AnalyzeActions {
   removeScope: (scopeId: string) => void;
   addHypothesisToScope: (scopeId: string, hypothesisId: string) => void;
   /**
+   * IM-4b Task 5 — soft-delete a scope (sets `deletedAt` to the current
+   * timestamp). The scope is retained in the store for the HubRepository
+   * tombstone; the presentation layer filters by `!deletedAt`. No-op for an
+   * unknown scope id.
+   */
+  archiveScope: (scopeId: string) => void;
+  /**
    * IM-5: recompute and persist the scope's `whatIfProjection` (projected overall
    * Cpk if the scope's drilled condition were fixed) from the live project data.
    *
@@ -171,6 +178,22 @@ export interface AnalyzeActions {
    * No-op for an unknown scope id. ADR-088 #3; nothing is multiplied across levels.
    */
   recomputeScopeWhatIf: (scopeId: string) => void;
+
+  // --- Hub ActionItem task actions (Task 3 IM-4b) ---
+  addHypothesisAction: (
+    hubId: string,
+    text: string,
+    assignee?: FindingAssignee,
+    dueDate?: string
+  ) => ActionItem | null;
+  updateHypothesisAction: (
+    hubId: string,
+    actionId: string,
+    patch: Partial<Pick<ActionItem, 'text' | 'assignee' | 'dueDate'>>
+  ) => void;
+  completeHypothesisAction: (hubId: string, actionId: string) => void;
+  toggleHypothesisActionComplete: (hubId: string, actionId: string) => void;
+  deleteHypothesisAction: (hubId: string, actionId: string) => void;
 
   // --- Hub actions ---
   createHub: (name: string, synthesis: string) => Hypothesis;
@@ -204,7 +227,22 @@ export interface AnalyzeActions {
    * Returns the locally generated FindingComment so callers can render
    * immediately without waiting for the network round-trip.
    */
-  addHubComment: (hubId: string, text: string, author?: string) => Promise<FindingComment>;
+  addHubComment: (
+    hubId: string,
+    text: string,
+    author?: string,
+    mentionedUserIds?: string[]
+  ) => Promise<FindingComment>;
+  /**
+   * Edit a comment's text in place on a hypothesis hub.
+   * Twin of `editFindingComment`. No-op when hubId or commentId does not exist.
+   */
+  editHubComment: (hubId: string, commentId: string, text: string) => void;
+  /**
+   * Remove a comment from a hypothesis hub.
+   * Twin of `deleteFindingComment`. No-op when hubId or commentId does not exist.
+   */
+  deleteHubComment: (hubId: string, commentId: string) => void;
 
   // --- Ideas actions (F2 — keyed by hypothesisId, live on Hypothesis.ideas) ---
   addIdea: (hypothesisId: string, text: string) => ImprovementIdea | null;
@@ -689,6 +727,16 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     }));
   },
 
+  archiveScope: scopeId => {
+    const exists = get().scopes.some(s => s.id === scopeId);
+    if (!exists) return;
+    set(state => ({
+      scopes: state.scopes.map(s =>
+        s.id === scopeId ? { ...s, deletedAt: Date.now(), updatedAt: Date.now() } : s
+      ),
+    }));
+  },
+
   recomputeScopeWhatIf: scopeId => {
     const scope = get().scopes.find(s => s.id === scopeId);
     if (!scope) return;
@@ -813,11 +861,15 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     set({ hypotheses: hubs });
   },
 
-  addHubComment: async (hubId, text, author) => {
+  addHubComment: async (hubId, text, author, mentionedUserIds) => {
     // 1. Build the comment locally so optimistic append + server payload
     //    share the same id — keeps the SSE echo idempotent (server dedupes
     //    by id, so the echo that fans back via the stream is a no-op).
     const comment = createFindingComment(text, hubId, 'hypothesis', author);
+    // Attach resolved mention targets (parsed externally via parseMentions).
+    if (mentionedUserIds && mentionedUserIds.length > 0) {
+      comment.mentionedUserIds = mentionedUserIds;
+    }
 
     // 2. Optimistic update: append to the hub's comments array.
     set(state => ({
@@ -850,6 +902,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
           id: comment.id,
           text: comment.text,
           author: comment.author,
+          ...(mentionedUserIds && mentionedUserIds.length > 0 ? { mentionedUserIds } : {}),
         }),
       });
       if (!res.ok) {
@@ -874,6 +927,104 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     }
 
     return comment;
+  },
+
+  editHubComment: (hubId, commentId, text) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId
+          ? {
+              ...h,
+              comments: (h.comments ?? []).map(c => (c.id === commentId ? { ...c, text } : c)),
+            }
+          : h
+      ),
+    }));
+  },
+
+  deleteHubComment: (hubId, commentId) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId ? { ...h, comments: (h.comments ?? []).filter(c => c.id !== commentId) } : h
+      ),
+    }));
+  },
+
+  // ========================================================================
+  // Hub ActionItem task actions (Task 3 IM-4b) — mirrors Finding action item methods
+  // ========================================================================
+
+  addHypothesisAction: (hubId, text, assignee?, dueDate?) => {
+    const { hypotheses } = get();
+    const hypothesis = hypotheses.find(h => h.id === hubId);
+    if (!hypothesis) return null;
+    const action = createActionItem(text, assignee, dueDate);
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId
+          ? { ...h, actions: [...(h.actions ?? []), action], updatedAt: Date.now() }
+          : h
+      ),
+    }));
+    return action;
+  },
+
+  updateHypothesisAction: (hubId, actionId, patch) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId
+          ? {
+              ...h,
+              actions: h.actions?.map(a => (a.id === actionId ? { ...a, ...patch } : a)),
+              updatedAt: Date.now(),
+            }
+          : h
+      ),
+    }));
+  },
+
+  completeHypothesisAction: (hubId, actionId) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId
+          ? {
+              ...h,
+              actions: h.actions?.map(a =>
+                a.id === actionId ? { ...a, completedAt: Date.now() } : a
+              ),
+              updatedAt: Date.now(),
+            }
+          : h
+      ),
+    }));
+  },
+
+  toggleHypothesisActionComplete: (hubId, actionId) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h => {
+        if (h.id !== hubId) return h;
+        return {
+          ...h,
+          actions: h.actions?.map(a => {
+            if (a.id !== actionId) return a;
+            return a.completedAt
+              ? { ...a, completedAt: undefined }
+              : { ...a, completedAt: Date.now() };
+          }),
+          updatedAt: Date.now(),
+        };
+      }),
+    }));
+  },
+
+  deleteHypothesisAction: (hubId, actionId) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId
+          ? { ...h, actions: h.actions?.filter(a => a.id !== actionId), updatedAt: Date.now() }
+          : h
+      ),
+    }));
   },
 
   // ========================================================================

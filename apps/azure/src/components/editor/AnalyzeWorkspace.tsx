@@ -4,6 +4,7 @@ import {
   AnalyzeConclusion,
   FindingsLog,
   WallCanvas,
+  ScopeRail,
   CommandPalette,
   Minimap,
   CANVAS_W,
@@ -29,6 +30,7 @@ import type {
   CurrentUnderstanding,
   FindingStatus,
   Hypothesis,
+  IdeaImpact,
   ProblemCondition,
   ProcessContext,
 } from '@variscout/core';
@@ -40,6 +42,7 @@ import {
   categoricalFiltersToActiveFilters,
   buildConditionFromCategoricalFilters,
   predicateSetKey,
+  parseMentions,
 } from '@variscout/core';
 import { computeBestSubsets } from '@variscout/core/stats';
 import { detectEvidenceClusters } from '@variscout/core/findings';
@@ -112,8 +115,17 @@ interface AnalyzeWorkspaceProps {
    * Optional measurement-plan affordances threaded into WallCanvas.
    * When provided, hub cards render HypothesisCardWithPlans.
    * When omitted (default), hub cards render bare HypothesisCard.
+   *
+   * IM-4b: AnalyzeWorkspace ENRICHES this with the hub comment-thread, ActionItem,
+   * and improvement-idea callbacks (sourced from `hypothesesState` + `ideaImpacts`)
+   * before passing the merged bag to WallCanvas — Editor's base bag carries only
+   * the measurement-plan + disconfirmation callbacks (TDZ-bound there).
    */
   planningProps?: WallCanvasPlanningProps;
+  /** IM-4b — computed IdeaImpact map keyed by ideaId, for the Wall ideas section. */
+  ideaImpacts?: Record<string, IdeaImpact | undefined>;
+  /** IM-4b — open What-If for an improvement idea (handleProjectIdea). */
+  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
 }
 
 /**
@@ -149,6 +161,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   viewMode: externalViewMode,
   onViewModeChange,
   planningProps,
+  ideaImpacts,
+  onProjectIdea,
 }) => {
   const voiceInput = isSpeechToTextAvailable() ? { isAvailable: true, transcribeAudio } : undefined;
   const outcome = useProjectStore(s => s.outcome);
@@ -244,6 +258,81 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     () => (outcome ? (measureSpecs[outcome] ?? specs) : undefined),
     [measureSpecs, outcome, specs]
   );
+
+  // ── IM-4b Task 5 — multi-scope rail ──────────────────────────────────────
+  // Active (non-archived) scopes for the current investigation + outcome.
+  const railScopes = useMemo(
+    () => scopes.filter(s => s.investigationId === scopeInvestigationId && s.deletedAt === null),
+    [scopes]
+  );
+  // Re-anchor: selecting a scope chip rewrites the drill filters to that scope's
+  // compound WHERE (IM-4a's predicateSetKey-matched producer then re-selects the
+  // scope, re-anchoring the Problem card). Reconstruct categoricalFilters from the
+  // scope's eq-predicates, grouped by column.
+  const handleScopeSelect = useCallback(
+    (scopeId: string) => {
+      const scope = scopes.find(s => s.id === scopeId);
+      if (!scope) return;
+      const byColumn = new Map<string, (string | number)[]>();
+      for (const leaf of scope.predicates) {
+        if (leaf.op !== 'eq') continue;
+        const vals = byColumn.get(leaf.column) ?? [];
+        vals.push(leaf.value as string | number);
+        byColumn.set(leaf.column, vals);
+      }
+      const scopeStore = useAnalysisScopeStore.getState();
+      scopeStore.clearScope();
+      for (const [column, values] of byColumn) {
+        scopeStore.setCategoricalValues(column, values);
+      }
+    },
+    [scopes]
+  );
+  const handleScopeArchive = useCallback((scopeId: string) => {
+    useAnalyzeStore.getState().archiveScope(scopeId);
+  }, []);
+
+  // ── IM-4b — enrich the base measurement-plan bag with the comment-thread,
+  // ActionItem, and improvement-idea callbacks. Routes through `hypothesesState`
+  // (the Wall's source of truth — updating it re-renders the Wall live; its
+  // onHubsChange syncs useAnalyzeStore for the analyze blob). The author display
+  // name resolves from the active members against `userId`.
+  const wallAuthorName = useMemo(() => {
+    if (!userId) return undefined;
+    return members.find(m => m.userId === userId)?.displayName ?? userId;
+  }, [members, userId]);
+  const enrichedPlanningProps = useMemo<WallCanvasPlanningProps | undefined>(() => {
+    if (!planningProps) return undefined;
+    return {
+      ...planningProps,
+      // Task 1 — comment thread (parseMentions runs here; mentions ride the comment)
+      onAddHubComment: (hubId: string, text: string) => {
+        const mentionedUserIds = parseMentions(text, members);
+        hypothesesState.addComment(hubId, text, wallAuthorName, mentionedUserIds);
+      },
+      onEditHubComment: (hubId: string, commentId: string, text: string) =>
+        hypothesesState.editComment(hubId, commentId, text),
+      onDeleteHubComment: (hubId: string, commentId: string) =>
+        hypothesesState.deleteComment(hubId, commentId),
+      showCommentAuthors: members.length > 0,
+      // Task 3 — ActionItem tasks
+      onAddHypothesisAction: (hypothesisId: string, text: string) =>
+        hypothesesState.addAction(hypothesisId, text),
+      onCompleteHypothesisAction: (hypothesisId: string, actionId: string) =>
+        hypothesesState.completeAction(hypothesisId, actionId, Date.now()),
+      // Task 6 — improvement ideas
+      ideaImpacts: ideaImpacts ?? {},
+      onProjectIdea,
+      onAddIdea: (hypothesisId: string, text: string) =>
+        hypothesesState.addIdea(hypothesisId, text),
+      onUpdateIdea: (hypothesisId, ideaId, updates) =>
+        hypothesesState.updateIdea(hypothesisId, ideaId, updates),
+      onRemoveIdea: (hypothesisId: string, ideaId: string) =>
+        hypothesesState.removeIdea(hypothesisId, ideaId),
+      onSelectIdea: (hypothesisId: string, ideaId: string, selected: boolean) =>
+        hypothesesState.selectIdea(hypothesisId, ideaId, selected),
+    };
+  }, [planningProps, members, wallAuthorName, hypothesesState, ideaImpacts, onProjectIdea]);
   // Live Problem-card base values for the scoped subset (no longer hardcoded):
   // Cpk from the filtered-data stats, and the out-of-spec event COUNT as the
   // "events" proxy (no reliable weekly cadence in V1 — count of occurrences).
@@ -876,6 +965,20 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           {analyzeViewMode === 'map' ? (
             wallViewMode === 'wall' ? (
               <div className="relative flex-1 flex flex-col min-h-0">
+                {/* IM-4b Task 5 — multi-scope rail above the canvas. Selecting a
+                    chip re-anchors the Problem card (rewrites the drill filters
+                    → IM-4a's producer re-selects the scope). Hidden when no scopes
+                    have been captured yet. */}
+                {!wallIsMobile && railScopes.length > 0 && (
+                  <div className="border-edge bg-surface-secondary/40 border-b px-3 py-2">
+                    <ScopeRail
+                      scopes={railScopes}
+                      activeScopeId={activeScope?.id}
+                      onScopeSelect={handleScopeSelect}
+                      onScopeArchive={handleScopeArchive}
+                    />
+                  </div>
+                )}
                 <WallCanvas
                   hubId={wallHubId}
                   hubs={scopedHubs}
@@ -892,7 +995,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   zoom={wallZoom}
                   pan={wallPan}
                   groupByTributary={Boolean(processMap && wallGroupByTributary)}
-                  planningProps={planningProps}
+                  planningProps={enrichedPlanningProps}
                 />
                 {/* Minimap + CommandPalette are desktop-only. WallCanvas
                   self-gates to MobileCardList below 768px, so these

@@ -69,8 +69,10 @@ import {
   DEFAULT_PROCESS_HUB_ID,
   normalizeProcessHubId,
   type ExclusionReason,
+  type ImprovementIdea,
   toNumericValue,
   extractHubName,
+  parseMentions,
 } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -884,9 +886,45 @@ function AppMain() {
       onEditPlan: (planId: string) => {
         console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);
       },
+      // IM-4b Task 1 — hub comment thread. The PWA Wall (AnalyzeView) reads hubs
+      // from useAnalyzeStore, so comment/task/idea writes route through the store
+      // (its source of truth). parseMentions resolves @-tags against members.
+      onAddHubComment: (hubId: string, text: string) => {
+        const mentionedUserIds = parseMentions(text, wallActiveIPMembers);
+        void useAnalyzeStore
+          .getState()
+          .addHubComment(hubId, text, PWA_WALL_USER_ID, mentionedUserIds);
+      },
+      onEditHubComment: (hubId: string, commentId: string, text: string) =>
+        useAnalyzeStore.getState().editHubComment(hubId, commentId, text),
+      onDeleteHubComment: (hubId: string, commentId: string) =>
+        useAnalyzeStore.getState().deleteHubComment(hubId, commentId),
+      showCommentAuthors: wallActiveIPMembers.length > 0,
+      // IM-4b Task 3 — ActionItem tasks
+      onAddHypothesisAction: (hypothesisId: string, text: string) => {
+        useAnalyzeStore.getState().addHypothesisAction(hypothesisId, text);
+      },
+      onCompleteHypothesisAction: (hypothesisId: string, actionId: string) =>
+        useAnalyzeStore.getState().completeHypothesisAction(hypothesisId, actionId),
+      // IM-4b Task 6 — improvement ideas
+      ideaImpacts: investigation.ideaImpacts,
+      onProjectIdea: (hypothesisId: string, ideaId: string) =>
+        investigation.handleProjectIdea(hypothesisId, ideaId),
+      onAddIdea: (hypothesisId: string, text: string) => {
+        useAnalyzeStore.getState().addIdea(hypothesisId, text);
+      },
+      onUpdateIdea: (
+        hypothesisId: string,
+        ideaId: string,
+        updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
+      ) => useAnalyzeStore.getState().updateIdea(hypothesisId, ideaId, updates),
+      onRemoveIdea: (hypothesisId: string, ideaId: string) =>
+        useAnalyzeStore.getState().deleteIdea(hypothesisId, ideaId),
+      onSelectIdea: (hypothesisId: string, ideaId: string, selected: boolean) =>
+        useAnalyzeStore.getState().selectIdea(hypothesisId, ideaId, selected),
     }),
 
-    [wallMeasurementPlans, wallActiveIPMembers]
+    [wallMeasurementPlans, wallActiveIPMembers, PWA_WALL_USER_ID, investigation]
   );
 
   const activeIPAnalyzeFactorRequest = useMemo(

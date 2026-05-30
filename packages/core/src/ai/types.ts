@@ -386,6 +386,11 @@ export interface AIContext {
     problemStatementStage?: 'partial' | 'actionable' | 'with-causes';
     /** Live problem statement text (auto-synthesized) */
     liveStatement?: string;
+    /**
+     * Recent comment text (hub + finding comments created today, capped at 10,
+     * sorted newest-first). Absent when no comments were made today.
+     */
+    recentComments?: string[];
   };
   /** Focus context from "Ask CoScout about this" actions */
   focusContext?: {

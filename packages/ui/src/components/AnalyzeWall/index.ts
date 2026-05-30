@@ -56,3 +56,7 @@ export { LinkFindingPicker } from './LinkFindingPicker';
 export type { LinkFindingPickerProps } from './LinkFindingPicker';
 export { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
 export type { HypothesisCardWithPlansProps } from './HypothesisCardWithPlans';
+export { HypothesisComments } from './HypothesisComments';
+export type { HypothesisCommentsProps } from './HypothesisComments';
+export { ScopeRail } from './ScopeRail';
+export type { ScopeRailProps } from './ScopeRail';

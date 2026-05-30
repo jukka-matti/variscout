@@ -161,6 +161,17 @@ export function useAIOrchestration({
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
 
+  // IM-4b — flatten hub + finding comments so CoScout sees today's team
+  // discussion (buildAIContext filters to >= todayStartMs and caps at 10).
+  const hubComments = useMemo(
+    () => hypotheses.flatMap(h => (h.comments ?? []).filter(c => c.deletedAt === null)),
+    [hypotheses]
+  );
+  const findingComments = useMemo(
+    () => findings.flatMap(f => (f.comments ?? []).filter(c => c.deletedAt === null)),
+    [findings]
+  );
+
   // Per-component preferences (default all on)
   const prefs = aiPreferences ?? { narration: true, insights: true, coscout: true };
 
@@ -292,6 +303,8 @@ export function useAIOrchestration({
     evidenceMapTopology: effectiveTopology,
     hypotheses,
     bestSubsetsResult,
+    hubComments,
+    findingComments,
   });
 
   // AI narration (disabled when per-component toggle is off)

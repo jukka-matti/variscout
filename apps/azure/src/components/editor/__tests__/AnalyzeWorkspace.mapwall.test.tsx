@@ -184,6 +184,10 @@ vi.mock('@variscout/core', async importOriginal => {
       }
       return map;
     },
+    // ScopeRail (mounted by AnalyzeWorkspace) consumes formatConditionLeaves —
+    // another deep re-export the `...actual` spread can drop under the mock runtime.
+    formatConditionLeaves: (predicates: Array<{ column: string; value: unknown }>) =>
+      predicates.map(p => `${p.column} = ${String(p.value)}`).join(' ∩ '),
   };
 });
 
@@ -212,7 +216,9 @@ import {
   getCanvasViewportInitialState,
   useCanvasViewportStore,
   useAnalysisScopeStore,
+  useAnalyzeStore,
 } from '@variscout/stores';
+import type { ProblemStatementScope } from '@variscout/core';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import { usePanelsStore } from '../../../features/panels/panelsStore';
 import { AnalyzeWorkspace } from '../AnalyzeWorkspace';
@@ -545,5 +551,81 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
       ];
       expect(callArgs[1].activeFilters).toEqual({});
     });
+  });
+});
+
+// ── IM-4b Task 5 — ScopeRail SEAM (production mount in AnalyzeWorkspace) ────────
+//
+// NOT an injected-prop ScopeRail unit test — renders the real AnalyzeWorkspace
+// (ScopeRail is preserved via `...actual` in the @variscout/ui mock; WallCanvas
+// is stubbed) and asserts the rail RENDERS from useAnalyzeStore.scopes and that
+// selecting a chip RE-ANCHORS by rewriting analysisScopeStore.categoricalFilters
+// (which IM-4a's producer consumes to re-select the active scope / Problem card),
+// and archiving soft-deletes via analyzeStore.archiveScope.
+
+describe('AnalyzeWorkspace ScopeRail seam (IM-4b Task 5)', () => {
+  const SCOPE_INV = 'general-unassigned'; // matches AnalyzeWorkspace.scopeInvestigationId
+
+  const scopeA: ProblemStatementScope = {
+    id: 'scope-a',
+    investigationId: SCOPE_INV,
+    outcome: 'Fill Weight',
+    predicates: [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' }],
+    hypothesisIds: [],
+    createdAt: 1,
+    updatedAt: 1,
+    deletedAt: null,
+  };
+  const scopeB: ProblemStatementScope = {
+    id: 'scope-b',
+    investigationId: SCOPE_INV,
+    outcome: 'Fill Weight',
+    predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' }],
+    hypothesisIds: [],
+    createdAt: 2,
+    updatedAt: 2,
+    deletedAt: null,
+  };
+
+  beforeEach(() => {
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    useCanvasViewportStore.getState().setViewMode('wall');
+    usePanelsStore.getState().setAnalyzeViewMode('map');
+    useAnalysisScopeStore.setState({ categoricalFilters: [] });
+    useAnalyzeStore.setState({ scopes: [scopeA, scopeB] });
+  });
+
+  it('renders one ScopeRail chip per active (non-archived) scope', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    expect(screen.getByTestId('scope-chip-scope-a')).toBeInTheDocument();
+    expect(screen.getByTestId('scope-chip-scope-b')).toBeInTheDocument();
+    expect(screen.getByTestId('scope-chip-scope-a')).toHaveTextContent('Machine = B');
+  });
+
+  it('does NOT render the rail when no scopes are captured', () => {
+    useAnalyzeStore.setState({ scopes: [] });
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    expect(screen.queryByTestId(/scope-chip-/)).toBeNull();
+  });
+
+  it('selecting a chip re-anchors by rewriting analysisScopeStore.categoricalFilters', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    // No drill filters before selection.
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([]);
+
+    fireEvent.click(screen.getByTestId('scope-chip-scope-b'));
+
+    // The Problem card re-anchors because the drill filters now equal scope-b's
+    // compound WHERE (Shift = Night) — IM-4a's producer matches by predicateSetKey.
+    const filters = useAnalysisScopeStore.getState().categoricalFilters;
+    expect(filters).toEqual([{ column: 'Shift', values: ['Night'] }]);
+  });
+
+  it('archiving a chip soft-deletes the scope via analyzeStore.archiveScope', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    fireEvent.click(screen.getByTestId('scope-archive-scope-a'));
+
+    const archived = useAnalyzeStore.getState().scopes.find(s => s.id === 'scope-a');
+    expect(archived?.deletedAt).not.toBeNull();
   });
 });

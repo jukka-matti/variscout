@@ -1178,18 +1178,18 @@ export const Editor: React.FC<EditorProps> = ({
   );
 
   // Investigation workflow (IM-1: hypothesis-driven, Question entity retired)
-  // IM-1: handleProjectIdea + ideaImpacts (improvement-idea projection, now
-  // keyed by hypothesisId) are not destructured here — their render target was
-  // the Question-driven FindingsLog ideas surface that IM-1 dismantled. The
-  // replacement, ImprovementIdeasSection (built in @variscout/ui, keyed by
-  // hypothesisId), is not yet mounted in any app render path; wiring it into the
-  // Wall / hypothesis-card surface is owned by IM-4/IM-5. The orchestration hook
-  // still returns both so the surface can re-consume them once mounted.
+  // IM-4b: handleProjectIdea + ideaImpacts (improvement-idea projection, keyed by
+  // hypothesisId) are now consumed — they feed the ImprovementIdeasSection that
+  // mounts on the hypothesis card via the WallCanvas production seam (the IM-1
+  // Question-driven FindingsLog ideas surface they originally targeted was
+  // dismantled; the replacement is the Wall hypothesis card).
   const {
     handleSaveIdeaProjection,
     clearProjectionTarget,
     handleSetFindingStatus,
     hypothesesState,
+    handleProjectIdea,
+    ideaImpacts,
   } = useAnalyzeOrchestration({
     findingsState,
     processContext,
@@ -1197,6 +1197,9 @@ export const Editor: React.FC<EditorProps> = ({
   });
   // Keep the latest-ref current so wallPlanningProps.onRecordDisconfirmation
   // routes through the hook rather than the store (see declaration above).
+  // The hub comment/task/idea collab callbacks are built inside AnalyzeWorkspace,
+  // where `hypothesesState`, `ideaImpacts`, and `handleProjectIdea` are reactively
+  // in scope (Editor's wallPlanningProps memo is TDZ-bound before the hook).
   recordDisconfirmationRef.current = hypothesesState.recordDisconfirmation;
 
   const projectionTarget = useAnalyzeFeatureStore(s => s.projectionTarget);
@@ -1926,6 +1929,8 @@ export const Editor: React.FC<EditorProps> = ({
                 }
                 hypothesesState={hypothesesState}
                 planningProps={wallPlanningProps}
+                ideaImpacts={ideaImpacts}
+                onProjectIdea={handleProjectIdea}
               />
             ) : activeView === 'projects' ? (
               <ProjectsTabView

@@ -873,6 +873,146 @@ describe('analyzeStore — addHubComment', () => {
 });
 
 // ============================================================================
+// editHubComment / deleteHubComment — task 1 failing tests
+// ============================================================================
+
+describe('analyzeStore — editHubComment', () => {
+  it('edits the comment text in place, leaving other comments unchanged', () => {
+    const hub = useAnalyzeStore.getState().createHub('Nozzle wear', 'Night shift');
+    // Seed two comments directly (bypassing async addHubComment)
+    const c1 = {
+      id: 'c1',
+      text: 'Original text',
+      createdAt: 1,
+      deletedAt: null,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    const c2 = {
+      id: 'c2',
+      text: 'Another comment',
+      createdAt: 2,
+      deletedAt: null,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    useAnalyzeStore.setState(state => ({
+      hypotheses: state.hypotheses.map(h => (h.id === hub.id ? { ...h, comments: [c1, c2] } : h)),
+    }));
+
+    useAnalyzeStore.getState().editHubComment(hub.id, 'c1', 'Edited text');
+
+    const updated = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(updated.comments).toHaveLength(2);
+    expect(updated.comments!.find(c => c.id === 'c1')!.text).toBe('Edited text');
+    // second comment unchanged
+    expect(updated.comments!.find(c => c.id === 'c2')!.text).toBe('Another comment');
+  });
+
+  it('is a no-op when the commentId does not exist', () => {
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    const c1 = {
+      id: 'c1',
+      text: 'Stays the same',
+      createdAt: 1,
+      deletedAt: null,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    useAnalyzeStore.setState(state => ({
+      hypotheses: state.hypotheses.map(h => (h.id === hub.id ? { ...h, comments: [c1] } : h)),
+    }));
+
+    useAnalyzeStore.getState().editHubComment(hub.id, 'c-does-not-exist', 'Ignored');
+
+    const updated = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(updated.comments![0].text).toBe('Stays the same');
+  });
+
+  it('is a no-op when the hubId does not exist', () => {
+    // Just confirm it doesn't throw
+    expect(() =>
+      useAnalyzeStore.getState().editHubComment('no-such-hub', 'c1', 'text')
+    ).not.toThrow();
+  });
+});
+
+describe('analyzeStore — deleteHubComment', () => {
+  it('removes the comment identified by commentId', () => {
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    const c1 = {
+      id: 'c1',
+      text: 'Keep',
+      createdAt: 1,
+      deletedAt: null,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    const c2 = {
+      id: 'c2',
+      text: 'Delete me',
+      createdAt: 2,
+      deletedAt: null,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    useAnalyzeStore.setState(state => ({
+      hypotheses: state.hypotheses.map(h => (h.id === hub.id ? { ...h, comments: [c1, c2] } : h)),
+    }));
+
+    useAnalyzeStore.getState().deleteHubComment(hub.id, 'c2');
+
+    const updated = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(updated.comments).toHaveLength(1);
+    expect(updated.comments![0].id).toBe('c1');
+  });
+
+  it('empties the comments array when the last comment is deleted', () => {
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    const c1 = {
+      id: 'c1',
+      text: 'Only one',
+      createdAt: 1,
+      deletedAt: null,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    useAnalyzeStore.setState(state => ({
+      hypotheses: state.hypotheses.map(h => (h.id === hub.id ? { ...h, comments: [c1] } : h)),
+    }));
+
+    useAnalyzeStore.getState().deleteHubComment(hub.id, 'c1');
+
+    const updated = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(updated.comments).toHaveLength(0);
+  });
+
+  it('is a no-op when the commentId does not exist', () => {
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    const c1 = {
+      id: 'c1',
+      text: 'Stays',
+      createdAt: 1,
+      deletedAt: null,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    useAnalyzeStore.setState(state => ({
+      hypotheses: state.hypotheses.map(h => (h.id === hub.id ? { ...h, comments: [c1] } : h)),
+    }));
+
+    useAnalyzeStore.getState().deleteHubComment(hub.id, 'c-ghost');
+
+    const updated = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(updated.comments).toHaveLength(1);
+  });
+
+  it('is a no-op when the hubId does not exist', () => {
+    expect(() => useAnalyzeStore.getState().deleteHubComment('no-such-hub', 'c1')).not.toThrow();
+  });
+});
+
+// ============================================================================
 // Bulk + category tests
 // ============================================================================
 
@@ -1263,6 +1403,91 @@ describe('analyzeStore — composeScopeGate', () => {
 // Relocation assertions (IM-1 / F4)
 // ============================================================================
 
+// ============================================================================
+// @mentions — task 2 failing tests (RED)
+// addHubComment stores mentionedUserIds when text contains @DisplayName tokens
+// ============================================================================
+
+describe('analyzeStore — addHubComment with @mentions', () => {
+  // mentionedUserIds are resolved externally (via parseMentions) and passed into
+  // addHubComment so the store stays transport-agnostic. The resulting
+  // FindingComment.mentionedUserIds must be persisted verbatim.
+  //
+  // Acceptance: "typing @<member> yields a mention" — the stored comment carries
+  // the resolved userId(s) so the SSE fan-out and UI badge can reference them.
+
+  beforeEach(() => {
+    useAnalyzeStore.setState(getAnalyzeInitialState());
+  });
+
+  it('stores mentionedUserIds on the comment when passed to addHubComment', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+
+    const hub = useAnalyzeStore.getState().createHub('Nozzle wear', 'Night shift');
+    const comment = await useAnalyzeStore
+      .getState()
+      .addHubComment(hub.id, '@Alice Lead — can you validate?', 'Bob', ['user-alice']);
+
+    expect(comment.mentionedUserIds).toEqual(['user-alice']);
+
+    const liveHub = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(liveHub.comments?.[0]?.mentionedUserIds).toEqual(['user-alice']);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('stores multiple mentionedUserIds when several members are mentioned', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+
+    const hub = useAnalyzeStore.getState().createHub('Coolant temp', 'Day shift');
+    const comment = await useAnalyzeStore
+      .getState()
+      .addHubComment(hub.id, '@Alice Lead and @Bob Member please validate', 'Carol', [
+        'user-alice',
+        'user-bob',
+      ]);
+
+    expect(comment.mentionedUserIds).toEqual(['user-alice', 'user-bob']);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('stores no mentionedUserIds when none are provided (backward-compatible)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    const comment = await useAnalyzeStore
+      .getState()
+      .addHubComment(hub.id, 'Plain comment without any mentions', 'Bob');
+
+    // mentionedUserIds should be absent or empty — not an error
+    expect(comment.mentionedUserIds ?? []).toEqual([]);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('includes mentionedUserIds in the POST body sent to the server', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', mockFetch);
+    useProjectStore.setState({ projectId: 'proj-mention-test' });
+
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    await useAnalyzeStore
+      .getState()
+      .addHubComment(hub.id, '@Alice Lead check this', 'Carol', ['user-alice']);
+
+    const callArgs = mockFetch.mock.calls[0];
+    const body = JSON.parse(callArgs[1].body) as { mentionedUserIds?: string[] };
+    expect(body.mentionedUserIds).toEqual(['user-alice']);
+
+    vi.unstubAllGlobals();
+  });
+});
+
+// ============================================================================
+// Relocation assertions (IM-1 / F4)
+// ============================================================================
+
 describe('analyzeStore — relocation assertions (IM-1)', () => {
   it('does not own questions (retired in ADR-085)', () => {
     const state = useAnalyzeStore.getState() as unknown as Record<string, unknown>;
@@ -1289,5 +1514,74 @@ describe('analyzeStore — relocation assertions (IM-1)', () => {
     expect('updateScope' in state).toBe(true);
     expect('removeScope' in state).toBe(true);
     expect('addHypothesisToScope' in state).toBe(true);
+  });
+
+  it('owns archiveScope action (new in IM-4b Task 5 — scope rail)', () => {
+    // archiveScope is the store-level owner of the SCOPE_ARCHIVE side-effect.
+    // This test FAILS until the implementer adds archiveScope to AnalyzeActions.
+    const state = useAnalyzeStore.getState() as unknown as Record<string, unknown>;
+    expect('archiveScope' in state).toBe(true);
+  });
+});
+
+// ============================================================================
+// archiveScope (IM-4b Task 5 — SCOPE_ARCHIVE via scope rail)
+//
+// The acceptance requires that SCOPE_ARCHIVE prunes a scope from the rail.
+// archiveScope is a soft-delete (sets deletedAt) so the HubRepository can
+// persist the tombstone; the store filters deleted scopes out of the
+// presentation slice OR marks them deleted — tests cover both observable
+// effects (the scope no longer appears in the active listing).
+// ============================================================================
+
+describe('analyzeStore — archiveScope (IM-4b Task 5)', () => {
+  it('archiveScope removes the scope from the active scopes list', () => {
+    const sA = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Scope A', [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' }]);
+    const sB = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Scope B', [{ kind: 'leaf', column: 'Line', op: 'eq', value: '1' }]);
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(2);
+
+    useAnalyzeStore.getState().archiveScope(sA.id);
+
+    // After archive, scope A must not appear in the active listing.
+    const remaining = useAnalyzeStore.getState().scopes;
+    expect(remaining.some(s => s.id === sA.id && !s.deletedAt)).toBe(false);
+    // Scope B is untouched.
+    expect(remaining.some(s => s.id === sB.id)).toBe(true);
+  });
+
+  it('archiveScope is a no-op for an unknown scope id', () => {
+    useAnalyzeStore.getState().addScope('inv-1', 'Scope A');
+    expect(() => useAnalyzeStore.getState().archiveScope('does-not-exist')).not.toThrow();
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(1);
+  });
+
+  it('archiveScope on the last scope leaves an empty active listing', () => {
+    const s = useAnalyzeStore.getState().addScope('inv-1', 'Only scope');
+    useAnalyzeStore.getState().archiveScope(s.id);
+    // Active (non-deleted) scopes must be empty.
+    const active = useAnalyzeStore.getState().scopes.filter(sc => !sc.deletedAt);
+    expect(active).toHaveLength(0);
+  });
+
+  it('archiveScope does not affect the sibling scope predicates or hypothesisIds', () => {
+    const sA = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Scope A', [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' }]);
+    const sB = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Scope B', [{ kind: 'leaf', column: 'Product', op: 'eq', value: 'X' }]);
+    useAnalyzeStore.getState().addHypothesisToScope(sB.id, 'h-1');
+
+    useAnalyzeStore.getState().archiveScope(sA.id);
+
+    const sibling = useAnalyzeStore.getState().scopes.find(s => s.id === sB.id);
+    expect(sibling?.predicates).toEqual([
+      { kind: 'leaf', column: 'Product', op: 'eq', value: 'X' },
+    ]);
+    expect(sibling?.hypothesisIds).toEqual(['h-1']);
   });
 });
