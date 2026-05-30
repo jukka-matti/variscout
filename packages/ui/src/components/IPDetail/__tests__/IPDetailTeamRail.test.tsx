@@ -182,7 +182,10 @@ describe('IPDetailTeamRail', () => {
     expect(onApproveSignoff).toHaveBeenCalledTimes(1);
   });
 
-  it('renders approved signoff state', () => {
+  it('renders approved signoff state (surface must wire at least one sign-off callback)', () => {
+    // The section is gated on isCollaborative + at least one sign-off callback wired.
+    // A surface that never wants sign-off (e.g. PWA) passes no callbacks → section hidden.
+    // Azure wires onApproveSignoff (even for an already-approved project) so the status shows.
     render(
       <IPDetailTeamRail
         ip={makeIP({
@@ -194,6 +197,7 @@ describe('IPDetailTeamRail', () => {
           },
         })}
         activeHub={activeHub}
+        onApproveSignoff={vi.fn()}
         now={now}
       />
     );

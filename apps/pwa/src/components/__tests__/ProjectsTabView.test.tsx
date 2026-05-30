@@ -95,6 +95,46 @@ describe('ProjectsTabView', () => {
     expect(screen.queryByRole('heading', { name: 'Signoff' })).not.toBeInTheDocument();
   });
 
+  it('sign-off section stays absent even after collaboratedAt is stamped (no PWA callbacks wired)', () => {
+    // After a local invite the PWA stamps collaboratedAt, but PWA never wires
+    // onRequestSignoff / onNudgeSignoff / onApproveSignoff (§9.2 solo contract).
+    // The team-rail must NOT render the Signoff section in this state — the
+    // gating is on callbacks present, not just collaboratedAt.
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        collaboratedAt: 1_700_000_000_000,
+        metadata: {
+          title: 'Post-invite PWA project',
+          members: [
+            {
+              id: 'pm-1',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'member@example.com',
+              displayName: 'Member',
+              role: 'member',
+              invitedAt: 0,
+            },
+          ],
+        },
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={() => {}}
+        // Intentionally no sign-off callbacks — PWA never passes them.
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: /request approval/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Signoff' })).not.toBeInTheDocument();
+  });
+
   it('threads PWA_USER_ID into IPDetailPage — charter team section is visible', () => {
     // Use 'draft' status so charter is the default active stage (deriveStageState returns
     // charter: 'current' for drafts, approach: 'current' for active which shifts the default).

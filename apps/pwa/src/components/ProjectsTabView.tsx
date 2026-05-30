@@ -165,10 +165,11 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
           });
         }}
         // PWA never exposes sign-off (IM-7 §9.2): it is a single-user, Mode-1
-        // solo surface. The collaboration affordance lives only in the Azure
-        // app, so no onRequestSignoff / onNudgeSignoff / onApproveSignoff is
-        // wired here. The team rail's sign-off section additionally self-hides
-        // for solo projects via isCollaborative().
+        // solo surface. No onRequestSignoff / onNudgeSignoff / onApproveSignoff
+        // is wired here. The team rail gates the sign-off section on BOTH
+        // isCollaborative(ip) AND at least one sign-off callback being present,
+        // so the section is fully absent — even after collaboratedAt is stamped
+        // by a local invite — because no callbacks are wired in the PWA.
       />
     );
   }

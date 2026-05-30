@@ -123,9 +123,14 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
   // any acting reviewer may approve while a request is pending. The approver
   // identity is captured at the dispatch site (the acting user), not here.
   const canApprove = pendingSignoff;
-  // Sign-off is a collaboration affordance: hidden entirely for solo projects
-  // (no collaboratedAt marker). A solo investigation closes without sign-off.
-  const collaborative = isCollaborative(ip);
+  // Sign-off section is shown only when the project is collaborative (has a
+  // collaboratedAt marker) AND the rendering surface has wired at least one
+  // sign-off callback. The PWA wires none (§9.2 solo surface contract), so this
+  // evaluates to false even after an invite stamps collaboratedAt — the section
+  // is fully absent, not disabled. Azure wires all three callbacks so it always
+  // shows the section once the project is collaborative.
+  const collaborative =
+    isCollaborative(ip) && (!!onRequestSignoff || !!onApproveSignoff || !!onNudgeSignoff);
 
   return (
     <aside className={className} data-testid="ip-detail-team-rail" aria-label="Team workspace">
