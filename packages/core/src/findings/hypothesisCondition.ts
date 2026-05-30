@@ -85,6 +85,69 @@ export function deriveConditionFromFindingSource(
 }
 
 /**
+ * Structural shape of one categorical filter chip — mirrors the View-layer
+ * `CategoricalFilter` from `@variscout/stores` without importing it (core may not
+ * depend on stores). A `{column, values}` pair from the Process↔Explore bridge.
+ */
+export interface CategoricalFilterInput {
+  column: string;
+  values: ReadonlyArray<string | number>;
+}
+
+/**
+ * Bridge transient drill-chip filters → a flat `ConditionLeaf[]` (ADR-085).
+ *
+ * Single-value chips become `eq` leaves; multi-value chips become `in` leaves.
+ * Empty chips are dropped. Equality membership only — range/comparison ops are
+ * out of scope for scope capture (the leaf shape would still carry them later).
+ */
+export function buildConditionFromCategoricalFilters(
+  filters: ReadonlyArray<CategoricalFilterInput>
+): ConditionLeaf[] {
+  const leaves: ConditionLeaf[] = [];
+  for (const filter of filters) {
+    if (filter.values.length === 0) continue;
+    if (filter.values.length === 1) {
+      leaves.push({ kind: 'leaf', column: filter.column, op: 'eq', value: filter.values[0] });
+    } else {
+      leaves.push({
+        kind: 'leaf',
+        column: filter.column,
+        op: 'in',
+        value: normalizeInValues(filter.values),
+      });
+    }
+  }
+  return leaves;
+}
+
+/**
+ * Bridge a `FindingContext.activeFilters` map (`Record<column, values[]>`) →
+ * a flat `ConditionLeaf[]`. Same equality-membership semantics as
+ * `buildConditionFromCategoricalFilters`; used to re-derive a scope's WHERE from
+ * a linked finding's snapshot.
+ */
+export function activeFiltersToCondition(
+  activeFilters: Record<string, (string | number)[]>
+): ConditionLeaf[] {
+  return buildConditionFromCategoricalFilters(
+    Object.entries(activeFilters).map(([column, values]) => ({ column, values }))
+  );
+}
+
+/**
+ * Coerce a mixed `(string | number)[]` chip-value array into the homogeneous
+ * `string[] | number[]` an `in` leaf requires. All-numeric stays numeric;
+ * otherwise everything is stringified.
+ */
+function normalizeInValues(values: ReadonlyArray<string | number>): string[] | number[] {
+  if (values.every(v => typeof v === 'number')) {
+    return values as number[];
+  }
+  return values.map(String);
+}
+
+/**
  * Collect the set of column names referenced by a hypothesis condition tree.
  * Returns an empty set for unknown kinds — defensive against future schema growth.
  */

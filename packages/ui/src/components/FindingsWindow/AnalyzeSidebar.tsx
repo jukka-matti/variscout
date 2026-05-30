@@ -1,36 +1,19 @@
 import React, { useState, useCallback } from 'react';
 import { Copy, Check, PanelRightClose, PanelRightOpen } from 'lucide-react';
-import type { Question, AnalyzePhase } from '@variscout/core';
+import type { AnalyzePhase } from '@variscout/core';
 import { formatForMobile } from '@variscout/core/ai';
 import { useTranslation } from '@variscout/hooks';
 import { useIsMobile } from '../../hooks';
 import { AnalyzePhaseBadge } from '../AnalyzePhaseBadge';
-import { QuestionChecklist } from './QuestionChecklist';
-import { AnalyzeConclusion } from './AnalyzeConclusion';
 
 export interface AnalyzeSidebarProps {
   phase?: AnalyzePhase;
-  treeQuestions?: Question[];
   factorRoles?: Record<string, string>;
   suggestedQuestions?: string[];
   collapsed: boolean;
   onToggle: () => void;
   /** When true and phase is 'improving', shows a verification checklist */
   hasStagedData?: boolean;
-  /** Factor Intelligence questions (Question objects with questionSource set) */
-  questions?: Question[];
-  /** Current issue statement text */
-  issueStatement?: string;
-  /** Callback when issue statement is edited */
-  onIssueStatementChange?: (text: string) => void;
-  /** Callback when a question is clicked — should switch dashboard to show evidence */
-  onQuestionClick?: (question: Question) => void;
-  /** CoScout-suggested sharpened issue statement */
-  suggestedIssueStatement?: string;
-  /** Callback when user accepts the suggested sharpening */
-  onAcceptSuggestion?: () => void;
-  /** Callback when user dismisses the suggestion */
-  onDismissSuggestion?: () => void;
   /** Formulated problem statement */
   problemStatement?: string;
   /** Whether problem statement is complete */
@@ -59,21 +42,11 @@ const VERIFICATION_CHECKLIST_KEYS: Array<keyof import('@variscout/core').Message
 
 const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
   phase,
-  treeQuestions,
   factorRoles,
   suggestedQuestions,
   collapsed,
   onToggle,
   hasStagedData,
-  questions,
-  issueStatement,
-  onIssueStatementChange,
-  onQuestionClick,
-  suggestedIssueStatement,
-  onAcceptSuggestion,
-  onDismissSuggestion,
-  problemStatement,
-  isProblemStatementComplete,
 }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -85,35 +58,13 @@ const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
     setTimeout(() => setCopiedIndex(null), 2000);
   }, []);
 
-  // Find uncovered factor roles (roles with no question linked)
+  // Surface every known factor role. The Question entity that previously linked
+  // a role to investigation work was retired (IM-1); the read-only popout now
+  // lists the factor roles directly.
   const uncoveredRoles = React.useMemo(() => {
     if (!factorRoles) return [];
-    const coveredFactors = new Set((treeQuestions ?? []).filter(h => h.factor).map(h => h.factor!));
-    return Object.entries(factorRoles)
-      .filter(([factor]) => !coveredFactors.has(factor))
-      .map(([factor, role]) => ({ factor, role }));
-  }, [factorRoles, treeQuestions]);
-
-  // Compute conclusion data from questions (must be before early return)
-  const hypotheses = React.useMemo(
-    () => (questions ?? []).filter(q => q.causeRole === 'suspected-cause'),
-    [questions]
-  );
-  const ruledOut = React.useMemo(
-    () =>
-      (questions ?? []).filter(
-        q =>
-          q.causeRole === 'ruled-out' ||
-          (q.status === 'ruled-out' && q.questionSource === 'factor-intel')
-      ),
-    [questions]
-  );
-  const contributing = React.useMemo(
-    () => (questions ?? []).filter(q => q.causeRole === 'contributing'),
-    [questions]
-  );
-  const hasConclusionData = hypotheses.length > 0 || ruledOut.length > 0;
-  const hasQuestions = questions && questions.length > 0;
+    return Object.entries(factorRoles).map(([factor, role]) => ({ factor, role }));
+  }, [factorRoles]);
 
   // Toggle button (always visible)
   const toggleButton = (
@@ -139,8 +90,6 @@ const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
   const hasContent =
     phase ||
     uncoveredRoles.length > 0 ||
-    hasQuestions ||
-    hasConclusionData ||
     (suggestedQuestions && suggestedQuestions.length > 0) ||
     (phase === 'improving' && hasStagedData);
 
@@ -210,34 +159,8 @@ const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
           </div>
         )}
 
-        {/* Factor Intelligence question checklist */}
-        {hasQuestions && (
-          <QuestionChecklist
-            questions={questions!}
-            issueStatement={issueStatement}
-            onIssueStatementChange={onIssueStatementChange}
-            onQuestionClick={onQuestionClick}
-            suggestedIssueStatement={suggestedIssueStatement}
-            onAcceptSuggestion={onAcceptSuggestion}
-            onDismissSuggestion={onDismissSuggestion}
-            problemStatement={problemStatement}
-            isProblemStatementComplete={isProblemStatementComplete}
-          />
-        )}
-
-        {/* Investigation conclusions (hypotheses, ruled out) */}
-        {hasConclusionData && (
-          <AnalyzeConclusion
-            hypotheses={hypotheses}
-            ruledOut={ruledOut}
-            contributing={contributing}
-            problemStatement={problemStatement}
-            hasConclusions={hasConclusionData}
-          />
-        )}
-
-        {/* Suggested questions — fallback when no Factor Intelligence questions */}
-        {!hasQuestions && suggestedQuestions && suggestedQuestions.length > 0 && (
+        {/* Suggested questions to ask CoScout */}
+        {suggestedQuestions && suggestedQuestions.length > 0 && (
           <div>
             <div className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium mb-1.5">
               Ask CoScout

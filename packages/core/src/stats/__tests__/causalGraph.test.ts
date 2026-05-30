@@ -20,7 +20,7 @@ function makeLink(from: string, to: string, id?: string): CausalLink {
     whyStatement: `${from} drives ${to}`,
     direction: 'drives',
     evidenceType: 'data',
-    questionIds: [],
+
     findingIds: [],
     source: 'analyst',
     createdAt: 1714000000000,

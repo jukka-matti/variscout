@@ -598,15 +598,15 @@ export const glossaryTerms: GlossaryTerm[] = [
   },
 
   {
-    id: 'question',
-    label: 'Question',
+    id: 'hypothesis',
+    label: 'Hypothesis',
     definition:
-      'An Analyze question linked to a specific factor, driving systematic root cause exploration. Answered through data, Gemba observation, or expert input.',
+      'A named mechanism that connects several findings into one coherent story about which factor contributes to the variation. Evidenced through data, Gemba observation, or expert input.',
     description:
-      'Questions are the building blocks of Analyze in VariScout. Each question probes why a particular factor drives variation. Answers can be automatic (η² thresholds: ≥15% answered, <5% ruled out, 5-15% investigating), manual via Gemba inspection, or by expert assessment. Multiple questions form a tree structure for systematic root cause exploration.',
+      'Hypotheses are the synthesis output of Analyze in VariScout. Each hypothesis proposes how a particular factor contributes to variation and gathers the findings that support or refute it. Evidence can be automatic (η² thresholds: ≥15% strong, <5% weak, 5-15% moderate), via Gemba inspection, or by expert assessment. A hypothesis moves through statuses — proposed, evidenced, needs-disconfirmation, confirmed, refuted — as evidence accumulates.',
     category: 'analyze',
     learnMorePath: '/learn/analyze',
-    relatedTerms: ['finding', 'etaSquared', 'rootCauseAnalysis'],
+    relatedTerms: ['finding', 'etaSquared'],
   },
 ];
 

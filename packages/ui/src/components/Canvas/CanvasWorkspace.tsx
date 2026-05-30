@@ -30,7 +30,6 @@ import {
   type ProcessContext,
   type ProcessHubId,
   type ProcessHubAnalyze,
-  type Question,
   type SpecLimits,
   type StepCapabilityStamp,
   type StepTimingBinding,
@@ -103,7 +102,6 @@ export interface CanvasWorkspaceProps {
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
-  questions?: readonly Question[];
   findings?: readonly Finding[];
   hypotheses?: readonly Hypothesis[];
   causalLinks?: readonly CausalLink[];
@@ -116,6 +114,7 @@ export interface CanvasWorkspaceProps {
     fromFactor: string,
     toFactor: string,
     whyStatement: string,
+    // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
     options?: { questionIds?: string[] }
   ) => void;
   onRemoveCausalLink?: (linkId: string) => void;
@@ -291,7 +290,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
-  questions = [],
   findings = [],
   hypotheses = [],
   causalLinks = [],
@@ -509,7 +507,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
 
   const { overlays: investigationOverlays } = useCanvasAnalyzeOverlays({
     map,
-    questions,
     findings,
     hypotheses,
     causalLinks,
@@ -1146,10 +1143,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onOverlayToggle={toggleCanvasOverlay}
       activeCanvasTool={activeCanvasTool}
       onCanvasToolChange={setActiveCanvasTool}
-      systemQuestions={questions}
       hypotheses={hypotheses}
       investigationOverlays={investigationOverlays}
-      questions={questions}
       findings={findings}
       problemCpk={problemCpk}
       eventsPerWeek={eventsPerWeek}

@@ -17,7 +17,6 @@ export function StageFiveModal({
   onClose,
 }: StageFiveModalProps) {
   const [issue, setIssue] = useState('');
-  const [question, setQuestion] = useState('');
   const [hypothesis, setHypothesis] = useState('');
 
   if (!open) return null;
@@ -25,7 +24,6 @@ export function StageFiveModal({
   const submit = () => {
     const brief: AnalysisBrief = {};
     if (issue.trim()) brief.issueStatement = issue.trim();
-    if (question.trim()) brief.questions = [{ text: question.trim() }];
     if (hypothesis.trim()) brief.hypothesisDraft = hypothesis.trim();
     onOpenInvestigation(brief);
   };
@@ -55,18 +53,6 @@ export function StageFiveModal({
             rows={2}
             data-testid="stage-five-issue-input"
             aria-label="Issue — what's happening?"
-          />
-        </label>
-
-        <label className="block mb-3">
-          <span className="text-sm font-medium">Question — what would tell us?</span>
-          <textarea
-            value={question}
-            onChange={e => setQuestion(e.target.value)}
-            className="w-full mt-1 p-2 border rounded"
-            rows={2}
-            data-testid="stage-five-question-input"
-            aria-label="Question — what would tell us?"
           />
         </label>
 

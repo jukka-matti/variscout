@@ -361,18 +361,6 @@ describe('useProjectActions', () => {
     it('should hydrate investigation store on load', async () => {
       const persistence = createMockPersistence();
       const findings = [makeFinding('f1', 'Finding 1')];
-      const questions = [
-        {
-          id: 'q1',
-          text: 'Why?',
-          status: 'open' as const,
-          createdAt: 1714000000000,
-          updatedAt: 1714000000000,
-          deletedAt: null as null,
-          investigationId: 'inv-test-001',
-          linkedFindingIds: [],
-        },
-      ];
 
       (persistence.loadProject as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: 'proj-5',
@@ -386,7 +374,6 @@ describe('useProjectActions', () => {
           filters: {},
           axisSettings: {},
           findings,
-          questions,
         } satisfies AnalysisState,
         savedAt: '2026-03-01T00:00:00Z',
         rowCount: 4,
@@ -401,8 +388,6 @@ describe('useProjectActions', () => {
       const is = useAnalyzeStore.getState();
       expect(is.findings).toHaveLength(1);
       expect(is.findings[0].text).toBe('Finding 1');
-      expect(is.questions).toHaveLength(1);
-      expect(is.questions[0].text).toBe('Why?');
     });
 
     it('should hydrate processContext on load', async () => {
@@ -727,7 +712,7 @@ describe('useProjectActions', () => {
 
       const is = useAnalyzeStore.getState();
       expect(is.findings).toEqual([]);
-      expect(is.questions).toEqual([]);
+      expect(is.scopes).toEqual([]);
       expect(is.categories).toEqual([]);
     });
   });

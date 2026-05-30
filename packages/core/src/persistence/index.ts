@@ -6,7 +6,7 @@ export type {
   EvidenceSourceReadAPI,
   AnalyzeReadAPI,
   FindingReadAPI,
-  QuestionReadAPI,
+  ScopeReadAPI,
   CausalLinkReadAPI,
   HypothesisReadAPI,
   CanvasStateReadAPI,

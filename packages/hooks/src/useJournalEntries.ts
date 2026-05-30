@@ -1,35 +1,22 @@
 import { useMemo, useRef } from 'react';
-import type { Finding, Question } from '@variscout/core';
-import { formatStatistic } from '@variscout/core/i18n';
+import type { Finding } from '@variscout/core';
 
 export interface JournalEntry {
   id: string;
   timestamp: string;
-  type:
-    | 'finding-created'
-    | 'question-answered'
-    | 'question-ruled-out'
-    | 'question-investigating'
-    | 'questions-generated'
-    | 'note-added'
-    | 'gemba-observation'
-    | 'observation-linked'
-    | 'problem-statement';
+  type: 'finding-created' | 'note-added' | 'problem-statement';
   text: string;
   detail?: string;
-  relatedQuestionId?: string;
   relatedFindingId?: string;
 }
 
 interface UseJournalEntriesOptions {
   findings: Finding[];
-  questions: Question[];
   problemStatement?: string;
 }
 
 export function useJournalEntries({
   findings,
-  questions,
   problemStatement,
 }: UseJournalEntriesOptions): JournalEntry[] {
   const problemTimestampRef = useRef<string | null>(null);
@@ -63,54 +50,6 @@ export function useJournalEntries({
       }
     }
 
-    if (questions.length > 0) {
-      const earliest = questions.reduce(
-        (min, q) => (q.createdAt < min ? q.createdAt : min),
-        questions[0].createdAt
-      );
-      entries.push({
-        id: 'j-qg',
-        timestamp: new Date(earliest).toISOString(),
-        type: 'questions-generated',
-        text: `${questions.length} questions generated`,
-        detail: questions
-          .slice(0, 3)
-          .map(q => q.factor ?? q.text)
-          .join(', '),
-      });
-    }
-
-    for (const q of questions) {
-      if (q.status === 'answered') {
-        entries.push({
-          id: `j-qa-${q.id}`,
-          timestamp: new Date(q.updatedAt).toISOString(),
-          type: 'question-answered',
-          text: `${q.factor ?? q.text} → Answered`,
-          detail: q.evidence?.rSquaredAdj
-            ? `R²adj ${formatStatistic(q.evidence.rSquaredAdj * 100, 'en', 0)}%`
-            : undefined,
-          relatedQuestionId: q.id,
-        });
-      } else if (q.status === 'ruled-out') {
-        entries.push({
-          id: `j-qr-${q.id}`,
-          timestamp: new Date(q.updatedAt).toISOString(),
-          type: 'question-ruled-out',
-          text: `${q.factor ?? q.text} → Ruled out`,
-          relatedQuestionId: q.id,
-        });
-      } else if (q.status === 'investigating') {
-        entries.push({
-          id: `j-qi-${q.id}`,
-          timestamp: new Date(q.updatedAt).toISOString(),
-          type: 'question-investigating',
-          text: `${q.factor ?? q.text} → Investigating`,
-          relatedQuestionId: q.id,
-        });
-      }
-    }
-
     if (problemStatement) {
       entries.push({
         id: 'j-ps',
@@ -123,5 +62,5 @@ export function useJournalEntries({
 
     entries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
     return entries;
-  }, [findings, questions, problemStatement]);
+  }, [findings, problemStatement]);
 }

@@ -6,6 +6,8 @@ import {
   type CascadeRuleset,
 } from '../cascadeRules';
 
+// ADR-085: 'question' retired → 'scope' (ProblemStatementScope). Cascade rules
+// are updated accordingly: hub → investigation → [finding, scope, causalLink, hypothesis].
 const ALL_KINDS: EntityKind[] = [
   'hub',
   'outcome',
@@ -15,7 +17,7 @@ const ALL_KINDS: EntityKind[] = [
   'evidenceSourceCursor',
   'investigation',
   'finding',
-  'question',
+  'scope',
   'causalLink',
   'hypothesis',
   'canvasState',
@@ -57,7 +59,7 @@ describe('transitiveCascade', () => {
       'rowProvenance',
       'evidenceSourceCursor',
       'finding',
-      'question',
+      'scope',
       'causalLink',
       'hypothesis',
     ];
@@ -76,7 +78,7 @@ describe('transitiveCascade', () => {
     const result = transitiveCascade('investigation');
     const resultSet = new Set(result);
     expect(resultSet.has('finding')).toBe(true);
-    expect(resultSet.has('question')).toBe(true);
+    expect(resultSet.has('scope')).toBe(true);
     expect(resultSet.has('causalLink')).toBe(true);
     expect(resultSet.has('hypothesis')).toBe(true);
     expect(result).toHaveLength(4);
@@ -98,7 +100,7 @@ describe('transitiveCascade', () => {
       'rowProvenance',
       'evidenceSourceCursor',
       'finding',
-      'question',
+      'scope',
       'causalLink',
       'hypothesis',
       'canvasState',

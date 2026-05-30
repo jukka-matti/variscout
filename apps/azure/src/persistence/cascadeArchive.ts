@@ -171,11 +171,10 @@ async function archiveKindRows(
       return;
 
     // -----------------------------------------------------------------------
-    // question — no Azure Dexie table today; F3 normalizes.
+    // scope (ProblemStatementScope, ADR-085) — no Azure Dexie table; scopes
+    // persist via the analyze blob, so there is nothing to cascade-archive.
     // -----------------------------------------------------------------------
-    case 'question':
-      // Azure has no 'question' table today; F3 normalization will add
-      // the table; updating this helper is part of F3.
+    case 'scope':
       return;
 
     // -----------------------------------------------------------------------

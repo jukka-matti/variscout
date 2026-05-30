@@ -16,7 +16,7 @@ import type {
   SpecLimits,
   DataRow,
   Finding,
-  Question,
+  Hypothesis,
   FilterAction,
   CausalLink,
 } from '@variscout/core';
@@ -36,7 +36,8 @@ export interface UseToolHandlersOptions {
   outcome?: string | null;
   specs?: SpecLimits;
   findings: Finding[];
-  questions: Question[];
+  /** Hypothesis hubs (the suspected causes) — IM-1: replaces the retired questions. */
+  hypotheses: Hypothesis[];
   factors: string[];
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
@@ -53,7 +54,7 @@ export function useToolHandlers({
   outcome,
   specs,
   findings,
-  questions,
+  hypotheses,
   factors,
   filters,
   filterStack,
@@ -69,7 +70,7 @@ export function useToolHandlers({
       outcome,
       specs,
       findings,
-      questions,
+      hypotheses,
       factors,
       filters,
       knowledgeSearch,
@@ -82,7 +83,7 @@ export function useToolHandlers({
       outcome,
       specs,
       findings,
-      questions,
+      hypotheses,
       filters,
       filterStack,
       causalLinks,
@@ -107,7 +108,7 @@ export function useToolHandlers({
     filterStack,
     specs,
     findings,
-    questions,
+    hypotheses,
     knowledgeSearch,
     causalLinks,
   ]);

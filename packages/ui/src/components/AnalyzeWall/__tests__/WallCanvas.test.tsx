@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
-import type { Hypothesis, ProcessMap, Question, Finding } from '@variscout/core';
+import type { Hypothesis, ProcessMap, Finding } from '@variscout/core';
 import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
@@ -74,20 +74,8 @@ const hub: Hypothesis = {
   id: 'h1',
   name: 'Nozzle runs hot',
   synthesis: '',
-  questionIds: [],
   findingIds: ['f1', 'f2', 'f3'],
   status: 'confirmed',
-  createdAt: 1,
-  updatedAt: 1,
-  deletedAt: null,
-  investigationId: 'inv-test',
-};
-
-const openQuestion: Question = {
-  id: 'q1',
-  text: 'Does fill temperature drive this?',
-  status: 'open',
-  linkedFindingIds: [],
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
@@ -110,11 +98,13 @@ const evidencedFindings: Finding[] = [
     id: 'f-data-1',
     text: 'Data finding',
     evidenceType: 'data',
-    refutes: false,
     createdAt: 1,
-    updatedAt: 1,
     deletedAt: null,
     investigationId: 'inv-test',
+    context: { activeFilters: {}, cumulativeScope: null },
+    status: 'observed',
+    comments: [],
+    statusChangedAt: 1,
   } as unknown as Finding,
 ];
 
@@ -128,7 +118,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -142,7 +131,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hub]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -170,7 +158,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[fillHub, packHub]}
         findings={[]}
-        questions={[]}
         processMap={{
           ...processMap,
           nodes: [...processMap.nodes, { id: 'n2', name: 'Pack', order: 1 }],
@@ -203,7 +190,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[fillHub, packHub]}
         findings={[]}
-        questions={[]}
         processMap={{
           ...processMap,
           nodes: [...processMap.nodes, { id: 'n2', name: 'Pack', order: 1 }],
@@ -231,7 +217,6 @@ describe('WallCanvas', () => {
           },
         ]}
         findings={[]}
-        questions={[]}
         processMap={{
           ...processMap,
           nodes: [{ id: 'n1', name: 'Fill', order: 0, ctqColumn: 'Fill Weight' }],
@@ -246,60 +231,6 @@ describe('WallCanvas', () => {
     expect(screen.getByText(/Fill weight excursions/i)).toBeInTheDocument();
   });
 
-  it('keeps filtered open questions scoped to focal columns without leaking hidden hub questions', () => {
-    const visibleHub: Hypothesis = {
-      ...hub,
-      id: 'h-fill',
-      name: 'Fill shift effect',
-      condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' },
-    };
-    const hiddenHub: Hypothesis = {
-      ...hub,
-      id: 'h-pack',
-      name: 'Pack operator effect',
-      questionIds: ['q-hidden'],
-      condition: { kind: 'leaf', column: 'Operator', op: 'eq', value: 'alice' },
-    };
-    const focalQuestion: Question = {
-      ...openQuestion,
-      id: 'q-focal',
-      text: 'Does shift explain fill?',
-      factor: 'SHIFT',
-    };
-    const hiddenQuestion: Question = {
-      ...openQuestion,
-      id: 'q-hidden',
-      text: 'Does operator explain pack?',
-      factor: 'Operator',
-    };
-    const unrelatedQuestion: Question = {
-      ...openQuestion,
-      id: 'q-unrelated',
-      text: 'Does supplier explain pack?',
-      factor: 'Supplier',
-    };
-
-    render(
-      <WallCanvas
-        hubs={[visibleHub, hiddenHub]}
-        findings={[]}
-        questions={[focalQuestion, hiddenQuestion, unrelatedQuestion]}
-        processMap={{
-          ...processMap,
-          nodes: [...processMap.nodes, { id: 'n2', name: 'Pack', order: 1 }],
-          assignments: { Operator: 'n2' },
-        }}
-        filterByStepId="n1"
-        problemCpk={0.78}
-        eventsPerWeek={42}
-      />
-    );
-
-    expect(screen.getByText(/Does shift explain fill/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Does operator explain pack/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Does supplier explain pack/i)).not.toBeInTheDocument();
-  });
-
   it('renders canonical needs-disconfirmation status stored on a hub', () => {
     const needsDisconfirmationHub: Hypothesis = {
       ...hub,
@@ -310,7 +241,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[needsDisconfirmationHub]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -326,7 +256,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[{ ...hub, nextMove: 'Check nozzle temperature.' }]}
         findings={[]}
-        questions={[]}
         problemCpk={0.78}
         eventsPerWeek={42}
       />
@@ -342,7 +271,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hub]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -366,7 +294,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hubWithCondition]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0}
         eventsPerWeek={0}
@@ -391,7 +318,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hubWithCondition]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0}
         eventsPerWeek={0}
@@ -416,7 +342,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hubWithCondition]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0}
         eventsPerWeek={0}
@@ -431,7 +356,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hub]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -447,7 +371,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hub]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -463,7 +386,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[hubWithEvidenced]}
           findings={evidencedFindings}
-          questions={[]}
           processMap={processMap}
           problemCpk={0}
           eventsPerWeek={0}
@@ -477,7 +399,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[hubWithEvidenced]}
           findings={evidencedFindings}
-          questions={[]}
           processMap={processMap}
           problemCpk={0}
           eventsPerWeek={0}
@@ -492,7 +413,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[]}
           findings={[]}
-          questions={[]}
           processMap={processMap}
           problemCpk={0}
           eventsPerWeek={0}
@@ -506,30 +426,12 @@ describe('WallCanvas', () => {
       expect(container.querySelector('svg')).toBeInTheDocument();
     });
 
-    it('mode=overlay renders open question-only Wall content instead of a blank SVG', () => {
-      render(
-        <WallCanvas
-          hubs={[]}
-          findings={[]}
-          questions={[openQuestion]}
-          processMap={processMap}
-          problemCpk={0}
-          eventsPerWeek={0}
-          mode="overlay"
-        />
-      );
-
-      expect(screen.queryByText(/write a hypothesis/i)).not.toBeInTheDocument();
-      expect(screen.getByText(/Does fill temperature drive this/i)).toBeInTheDocument();
-    });
-
     it('mode=overlay renders static hubs even when onComposeGate is provided', () => {
       const onComposeGate = vi.fn();
       const { container } = render(
         <WallCanvas
           hubs={[hub]}
           findings={[]}
-          questions={[]}
           processMap={processMap}
           problemCpk={0.78}
           eventsPerWeek={42}
@@ -546,7 +448,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hub]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -565,7 +466,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hubA, hubB]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -584,7 +484,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hubA]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -599,7 +498,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hubA]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -614,7 +512,6 @@ describe('WallCanvas', () => {
       <WallCanvas
         hubs={[hub]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -634,7 +531,6 @@ describe('WallCanvas', () => {
         hubId={hubId}
         hubs={[hub]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -667,7 +563,6 @@ describe('WallCanvas', () => {
         hubId={hubId}
         hubs={[hub]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -706,7 +601,6 @@ describe('WallCanvas', () => {
         hubId={h('wall-overlay-hub')}
         hubs={[hub]}
         findings={[]}
-        questions={[]}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -734,7 +628,6 @@ describe('WallCanvas', () => {
           hubId={h('wall-mobile-hub')}
           hubs={[hub]}
           findings={[]}
-          questions={[]}
           processMap={processMap}
           problemCpk={0.78}
           eventsPerWeek={42}
@@ -767,7 +660,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[fillHub, packHub]}
           findings={[]}
-          questions={[]}
           processMap={{
             ...processMap,
             nodes: [...processMap.nodes, { id: 'n2', name: 'Pack', order: 1 }],
@@ -789,7 +681,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[hubWithEvidenced]}
           findings={evidencedFindings}
-          questions={[]}
           processMap={processMap}
           problemCpk={0.78}
           eventsPerWeek={42}
@@ -806,7 +697,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[]}
           findings={[]}
-          questions={[]}
           processMap={processMap}
           problemCpk={0}
           eventsPerWeek={0}
@@ -824,7 +714,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[hub]}
           findings={[]}
-          questions={[]}
           processMap={processMap}
           problemCpk={0.78}
           eventsPerWeek={42}
@@ -858,7 +747,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[hub]}
           findings={[]}
-          questions={[]}
           processMap={processMap}
           problemCpk={0.78}
           eventsPerWeek={42}
@@ -881,7 +769,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[hub]}
           findings={[]}
-          questions={[]}
           processMap={processMap}
           problemCpk={0.78}
           eventsPerWeek={42}
@@ -904,7 +791,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[hub, hub2]}
           findings={[]}
-          questions={[]}
           processMap={processMap}
           problemCpk={0.78}
           eventsPerWeek={42}
@@ -937,7 +823,6 @@ describe('WallCanvas', () => {
         <WallCanvas
           hubs={[hub]}
           findings={[]}
-          questions={[]}
           processMap={processMap}
           problemCpk={0.78}
           eventsPerWeek={42}

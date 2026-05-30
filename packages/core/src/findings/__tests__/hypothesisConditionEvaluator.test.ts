@@ -205,7 +205,6 @@ function hub(id: string, cond: HypothesisCondition | undefined): Hypothesis {
     id,
     name: id,
     synthesis: '',
-    questionIds: [],
     findingIds: [],
     status: 'proposed',
     condition: cond,

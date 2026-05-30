@@ -166,7 +166,7 @@ describe('PrioritizationMatrix', () => {
     const ideas: MatrixIdea[] = [
       makeIdea({
         id: 'colored',
-        questionId: 'q1',
+        hypothesisId: 'q1',
         projection: makeProjection(1.5),
       }),
     ];
@@ -185,7 +185,7 @@ describe('PrioritizationMatrix', () => {
     const ideas: MatrixIdea[] = [
       makeIdea({
         id: 'fallback',
-        questionId: 'q1',
+        hypothesisId: 'q1',
         projection: makeProjection(1.5),
       }),
     ];
@@ -238,7 +238,7 @@ describe('PrioritizationMatrix', () => {
     const ideas: MatrixIdea[] = [
       makeIdea({
         id: 'x',
-        questionId: 'q1',
+        hypothesisId: 'q1',
         projection: makeProjection(1.5),
       }),
     ];

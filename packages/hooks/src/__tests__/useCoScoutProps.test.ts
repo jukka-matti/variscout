@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { useAnalyzeStore } from '@variscout/stores';
 import { useCoScoutProps } from '../useCoScoutProps';
 import type { UseCoScoutPropsOptions } from '../useCoScoutProps';
 import type { CoScoutMessage, CoScoutError, ActionProposal } from '@variscout/core';
@@ -89,23 +90,6 @@ const mockFindingsState = {
   updatePhotoStatus: vi.fn(),
 } as unknown as UseCoScoutPropsOptions['findingsState'];
 
-const mockAddIdea = vi.fn();
-
-const mockQuestionsState = {
-  questions: [{ id: 'q-1', text: 'Question one' }],
-  addIdea: mockAddIdea,
-  addQuestion: vi.fn(),
-  editQuestion: vi.fn(),
-  deleteQuestion: vi.fn(),
-  setQuestionStatus: vi.fn(),
-  linkFinding: vi.fn(),
-  unlinkFinding: vi.fn(),
-  createHubFromQuestion: vi.fn(),
-  editIdea: vi.fn(),
-  deleteIdea: vi.fn(),
-  setIdeaStatus: vi.fn(),
-} as unknown as UseCoScoutPropsOptions['questionsState'];
-
 const mockHandleExecuteAction = vi.fn();
 const mockHandleDismissAction = vi.fn();
 
@@ -128,7 +112,6 @@ function makeOptions(overrides?: Partial<UseCoScoutPropsOptions>): UseCoScoutPro
       resizeConfig: mockResizeConfig,
     },
     findingsState: mockFindingsState,
-    questionsState: mockQuestionsState,
     actionProposalsState: mockActionProposalsState,
     filters: { Machine: ['A', 'B'] },
     stats: { mean: 10, median: 9.5, cpk: 1.2 },
@@ -239,9 +222,9 @@ describe('useCoScoutProps', () => {
       expect(result.current.insightFindings).toEqual([{ id: 'f-1', text: 'Finding one' }]);
     });
 
-    it('builds insightQuestions from questionsState.questions', () => {
+    it('insightQuestions is empty (questions retired in IM-1)', () => {
       const { result } = renderHook(() => useCoScoutProps(makeOptions()));
-      expect(result.current.insightQuestions).toEqual([{ id: 'q-1', text: 'Question one' }]);
+      expect(result.current.insightQuestions).toEqual([]);
     });
 
     it('wires onRefActivate to visualGroundingHighlight', () => {
@@ -364,14 +347,25 @@ describe('useCoScoutProps', () => {
   });
 
   describe('onAddCommentToHypothesis', () => {
-    it('calls questionsState.addIdea with question id and text', () => {
-      const { result } = renderHook(() => useCoScoutProps(makeOptions()));
+    it('delegates to analyzeStore.addIdea with hypothesis id and text', () => {
+      // onAddCommentToHypothesis routes hypothesis-level commentary to
+      // useAnalyzeStore(s => s.addIdea) (IM-1 re-homed ideas onto Hypothesis).
+      // Spy on the real store action before render so the selector captures it.
+      const original = useAnalyzeStore.getState().addIdea;
+      const mockAddIdea = vi.fn().mockReturnValue(null);
+      useAnalyzeStore.setState({ addIdea: mockAddIdea });
 
-      act(() => {
-        result.current.onAddCommentToHypothesis('q-1', 'An idea');
-      });
+      try {
+        const { result } = renderHook(() => useCoScoutProps(makeOptions()));
 
-      expect(mockAddIdea).toHaveBeenCalledWith('q-1', 'An idea');
+        act(() => {
+          result.current.onAddCommentToHypothesis('hub-1', 'An idea about this hub');
+        });
+
+        expect(mockAddIdea).toHaveBeenCalledWith('hub-1', 'An idea about this hub');
+      } finally {
+        useAnalyzeStore.setState({ addIdea: original });
+      }
     });
   });
 

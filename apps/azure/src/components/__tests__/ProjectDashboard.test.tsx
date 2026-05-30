@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import type { Finding, Question } from '@variscout/core';
+import type { Finding, Hypothesis } from '@variscout/core';
 
 // vi.mock MUST come before component imports to prevent import ordering issues
 
@@ -18,7 +18,7 @@ vi.mock('@variscout/stores', () => ({
   useAnalyzeStore: vi.fn((selector: (s: any) => unknown) =>
     selector({
       findings: [],
-      questions: [],
+      hypotheses: [],
     })
   ),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,18 +95,19 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   };
 }
 
-function makeQuestion(overrides: Partial<Question> = {}): Question {
+function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
     id: 'h-1',
-    text: 'Night shift causes drift',
-    status: 'open',
-    linkedFindingIds: [],
+    name: 'Night shift causes drift',
+    synthesis: '',
+    status: 'proposed',
+    findingIds: [],
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
     investigationId: 'general-unassigned',
     ...overrides,
-  };
+  } as Hypothesis;
 }
 
 const defaultStoreState = {
@@ -117,7 +118,7 @@ const defaultStoreState = {
   },
   investigation: {
     findings: [] as Finding[],
-    questions: [] as Question[],
+    hypotheses: [] as Hypothesis[],
   },
   session: {
     aiEnabled: false,
@@ -158,7 +159,7 @@ describe('ProjectStatusCard', () => {
     lastEdited: '2 hours ago',
     journeyPhase: 'scout' as const,
     findings: [] as Finding[],
-    questions: [] as Question[],
+    hypotheses: [] as Hypothesis[],
     filterStack: [],
     viewState: {},
     onNavigateToFindings: vi.fn(),
@@ -209,29 +210,23 @@ describe('ProjectStatusCard', () => {
     expect(onNavigateToFindings).toHaveBeenCalledWith('observed');
   });
 
-  it('renders root questions with status icons', () => {
-    const questions = [
-      makeQuestion({ id: 'h-1', text: 'Night shift causes drift', status: 'answered' }),
-      makeQuestion({
-        id: 'h-2',
-        text: 'Temperature variation',
-        status: 'open',
-        parentId: 'h-1',
-      }),
+  it('renders hypothesis hubs with status icons', () => {
+    const hypotheses = [
+      makeHypothesis({ id: 'h-1', name: 'Night shift causes drift', status: 'evidenced' }),
+      makeHypothesis({ id: 'h-2', name: 'Temperature variation', status: 'proposed' }),
     ];
-    render(<ProjectStatusCard {...defaultProps} questions={questions} />);
-    // Only root question (h-1) should appear, not child (h-2)
+    render(<ProjectStatusCard {...defaultProps} hypotheses={hypotheses} />);
     expect(screen.getByText('Night shift causes drift')).toBeInTheDocument();
-    expect(screen.queryByText('Temperature variation')).not.toBeInTheDocument();
+    expect(screen.getByText('Temperature variation')).toBeInTheDocument();
   });
 
-  it('calls onNavigateToQuestion when clicking a question', () => {
+  it('calls onNavigateToQuestion when clicking a hypothesis hub', () => {
     const onNavigateToQuestion = vi.fn();
-    const questions = [makeQuestion({ id: 'h-1', text: 'Night shift drift' })];
+    const hypotheses = [makeHypothesis({ id: 'h-1', name: 'Night shift drift' })];
     render(
       <ProjectStatusCard
         {...defaultProps}
-        questions={questions}
+        hypotheses={hypotheses}
         onNavigateToQuestion={onNavigateToQuestion}
       />
     );
@@ -360,7 +355,7 @@ describe('ProjectDashboard', () => {
   });
 
   it('shows View report button when findings exist', () => {
-    setStoreState({ investigation: { findings: [makeFinding()], questions: [] } });
+    setStoreState({ investigation: { findings: [makeFinding()], hypotheses: [] } });
 
     render(<ProjectDashboard {...defaultProps} />);
     expect(screen.getByTestId('action-report')).toBeInTheDocument();
@@ -379,7 +374,7 @@ describe('ProjectDashboard', () => {
             actions: [{ id: 'a-1', text: 'Fix', createdAt: 1714000000000, deletedAt: null }],
           }),
         ],
-        questions: [],
+        hypotheses: [],
       },
     });
 
@@ -421,7 +416,7 @@ describe('ProjectDashboard', () => {
 
   it('calls onNavigate with report when View report is clicked', () => {
     const onNavigate = vi.fn();
-    setStoreState({ investigation: { findings: [makeFinding()], questions: [] } });
+    setStoreState({ investigation: { findings: [makeFinding()], hypotheses: [] } });
 
     render(<ProjectDashboard {...defaultProps} onNavigate={onNavigate} />);
     fireEvent.click(screen.getByTestId('action-report'));

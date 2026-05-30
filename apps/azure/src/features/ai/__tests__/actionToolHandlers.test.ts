@@ -1,25 +1,28 @@
 import { describe, it, expect } from 'vitest';
 import { buildActionToolHandlers } from '../actionToolHandlers';
 import type { ActionToolDeps } from '../actionToolHandlers';
-import type { Question, Finding } from '@variscout/core';
+import type { Finding, Hypothesis } from '@variscout/core';
 
-function makeQuestion(overrides: Partial<Question> = {}): Question {
+function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
-    id: 'q-1',
-    text: 'Is Machine A the main contributor?',
-    status: 'open',
-    level: 1,
-    validationType: 'data',
+    id: 'h-1',
+    name: 'Nozzle wear on night shift',
+    synthesis: 'Evidence confirms nozzle degradation.',
+    status: 'proposed',
+    findingIds: [],
     createdAt: Date.now(),
+    updatedAt: Date.now(),
+    deletedAt: null,
+    investigationId: 'general-unassigned',
     ...overrides,
-  } as Question;
+  } as Hypothesis;
 }
 
 function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
     id: 'f-1',
     text: 'Machine A Cpk = 0.85',
-    status: 'observed',
+    status: 'analyzed',
     createdAt: Date.now(),
     ...overrides,
   } as Finding;
@@ -29,127 +32,253 @@ function buildDeps(overrides: Partial<ActionToolDeps> = {}): ActionToolDeps {
   return {
     filteredData: [],
     findings: [],
-    questions: [],
     filters: {},
     filterStack: [],
     ...overrides,
   };
 }
 
-describe('answer_question handler', () => {
-  it('returns a proposal with question data for a valid question', async () => {
-    const question = makeQuestion({ id: 'q-1', text: 'Is Machine A the main contributor?' });
-    const handlers = buildActionToolHandlers(buildDeps({ questions: [question] }));
+// ---------------------------------------------------------------------------
+// suggest_hypothesis handler (IM-1: keyed by findingIds, no questionIds)
+// ---------------------------------------------------------------------------
 
-    const result = await handlers.answer_question!({
-      question_id: 'q-1',
-      status: 'answered',
-      note: 'ANOVA eta-squared 0.42 confirms Machine A as primary contributor.',
+describe('suggest_hypothesis handler', () => {
+  it('returns a proposal for valid inputs', async () => {
+    const finding = makeFinding({ id: 'f-1' });
+    const handlers = buildActionToolHandlers(buildDeps({ findings: [finding] }));
+
+    const result = await handlers.suggest_hypothesis!({
+      name: 'Nozzle wear',
+      synthesis: 'Confirmed by finding F-1.',
+      findingIds: ['f-1'],
     });
 
     const parsed = JSON.parse(result);
     expect(parsed.proposal).toBe(true);
-    expect(parsed.tool).toBe('answer_question');
-    expect(parsed.preview.questionText).toBe('Is Machine A the main contributor?');
-    expect(parsed.preview.proposedStatus).toBe('answered');
-    expect(parsed.preview.note).toBe(
-      'ANOVA eta-squared 0.42 confirms Machine A as primary contributor.'
-    );
-    expect(parsed.preview.currentStatus).toBe('open');
+    expect(parsed.tool).toBe('suggest_hypothesis');
+    expect(parsed.preview.name).toBe('Nozzle wear');
+    expect(parsed.preview.findingCount).toBe(1);
     expect(parsed.status).toBe('pending');
   });
 
-  it('returns error for unknown question_id', async () => {
-    const handlers = buildActionToolHandlers(buildDeps({ questions: [] }));
+  it('returns error when name is missing', async () => {
+    const finding = makeFinding({ id: 'f-1' });
+    const handlers = buildActionToolHandlers(buildDeps({ findings: [finding] }));
 
-    const result = await handlers.answer_question!({
-      question_id: 'nonexistent',
-      status: 'ruled-out',
-      note: 'No evidence found.',
-    });
-
-    const parsed = JSON.parse(result);
-    expect(parsed.error).toContain('Question not found');
-  });
-
-  it('returns error for missing required fields', async () => {
-    const handlers = buildActionToolHandlers(buildDeps({ questions: [] }));
-
-    const result = await handlers.answer_question!({
-      question_id: '',
-      status: 'answered',
-      note: '',
+    const result = await handlers.suggest_hypothesis!({
+      name: '',
+      synthesis: '',
+      findingIds: ['f-1'],
     });
 
     const parsed = JSON.parse(result);
     expect(parsed.error).toBeDefined();
   });
 
-  it('includes finding_id in preview when supporting finding is provided', async () => {
-    const question = makeQuestion({ id: 'q-1' });
+  it('returns error when findingIds is empty', async () => {
+    const handlers = buildActionToolHandlers(buildDeps({ findings: [] }));
+
+    const result = await handlers.suggest_hypothesis!({
+      name: 'Nozzle wear',
+      synthesis: 'No findings linked.',
+      findingIds: [],
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.error).toContain('findingId');
+  });
+
+  it('returns error when referenced finding does not exist', async () => {
+    const handlers = buildActionToolHandlers(buildDeps({ findings: [] }));
+
+    const result = await handlers.suggest_hypothesis!({
+      name: 'Nozzle wear',
+      synthesis: 'Based on finding.',
+      findingIds: ['f-nonexistent'],
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.error).toContain('not found');
+  });
+
+  it('generates a unique proposal id per call', async () => {
     const finding = makeFinding({ id: 'f-1' });
-    const handlers = buildActionToolHandlers(
-      buildDeps({ questions: [question], findings: [finding] })
-    );
-
-    const result = await handlers.answer_question!({
-      question_id: 'q-1',
-      status: 'answered',
-      note: 'Confirmed by Finding F-1.',
-      finding_id: 'f-1',
-    });
-
-    const parsed = JSON.parse(result);
-    expect(parsed.proposal).toBe(true);
-    expect(parsed.preview.findingId).toBe('f-1');
-    expect(parsed.params.finding_id).toBe('f-1');
-  });
-
-  it('returns error when finding_id references a non-existent finding', async () => {
-    const question = makeQuestion({ id: 'q-1' });
-    const handlers = buildActionToolHandlers(buildDeps({ questions: [question], findings: [] }));
-
-    const result = await handlers.answer_question!({
-      question_id: 'q-1',
-      status: 'answered',
-      note: 'Based on finding.',
-      finding_id: 'f-nonexistent',
-    });
-
-    const parsed = JSON.parse(result);
-    expect(parsed.error).toContain('Finding not found');
-  });
-
-  it('supports ruled-out status', async () => {
-    const question = makeQuestion({ id: 'q-2', text: 'Does humidity affect output?' });
-    const handlers = buildActionToolHandlers(buildDeps({ questions: [question] }));
-
-    const result = await handlers.answer_question!({
-      question_id: 'q-2',
-      status: 'ruled-out',
-      note: 'eta-squared 0.01 — no meaningful contribution from humidity.',
-    });
-
-    const parsed = JSON.parse(result);
-    expect(parsed.preview.proposedStatus).toBe('ruled-out');
-    expect(parsed.editableText).toBe(
-      'eta-squared 0.01 — no meaningful contribution from humidity.'
-    );
-  });
-
-  it('generates a unique proposal id', async () => {
-    const question = makeQuestion({ id: 'q-1' });
-    const handlers = buildActionToolHandlers(buildDeps({ questions: [question] }));
+    const handlers = buildActionToolHandlers(buildDeps({ findings: [finding] }));
 
     const r1 = JSON.parse(
-      await handlers.answer_question!({ question_id: 'q-1', status: 'answered', note: 'Note A' })
+      await handlers.suggest_hypothesis!({ name: 'H1', synthesis: '', findingIds: ['f-1'] })
     );
     const r2 = JSON.parse(
-      await handlers.answer_question!({ question_id: 'q-1', status: 'answered', note: 'Note B' })
+      await handlers.suggest_hypothesis!({ name: 'H2', synthesis: '', findingIds: ['f-1'] })
     );
 
     expect(r1.id).toBeDefined();
     expect(r2.id).toBeDefined();
     expect(r1.id).not.toBe(r2.id);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// suggest_improvement_idea handler (IM-1: keyed by hypothesis_id)
+// ---------------------------------------------------------------------------
+
+describe('suggest_improvement_idea handler', () => {
+  it('returns a proposal for a valid hypothesis_id', async () => {
+    const hub = makeHypothesis({ id: 'h-1', status: 'proposed' });
+    const handlers = buildActionToolHandlers(buildDeps({ hypotheses: [hub] }));
+
+    const result = await handlers.suggest_improvement_idea!({
+      hypothesis_id: 'h-1',
+      text: 'Replace nozzle tip weekly',
+      direction: 'prevent',
+      timeframe: 'weeks',
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.proposal).toBe(true);
+    expect(parsed.tool).toBe('suggest_improvement_idea');
+    expect(parsed.preview.hypothesisText).toBe('Nozzle wear on night shift');
+    expect(parsed.preview.direction).toBe('prevent');
+    expect(parsed.status).toBe('pending');
+  });
+
+  it('returns error for unknown hypothesis_id', async () => {
+    const handlers = buildActionToolHandlers(buildDeps({ hypotheses: [] }));
+
+    const result = await handlers.suggest_improvement_idea!({
+      hypothesis_id: 'h-nonexistent',
+      text: 'Fix it',
+      direction: 'prevent',
+      timeframe: 'weeks',
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.error).toContain('not found');
+  });
+
+  it('returns error for refuted hypothesis', async () => {
+    const hub = makeHypothesis({ id: 'h-refuted', status: 'refuted' });
+    const handlers = buildActionToolHandlers(buildDeps({ hypotheses: [hub] }));
+
+    const result = await handlers.suggest_improvement_idea!({
+      hypothesis_id: 'h-refuted',
+      text: 'Should not apply',
+      direction: 'prevent',
+      timeframe: 'weeks',
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.error).toContain('refuted');
+  });
+
+  it('returns error when hypothesis_id is missing', async () => {
+    const handlers = buildActionToolHandlers(buildDeps({ hypotheses: [] }));
+
+    const result = await handlers.suggest_improvement_idea!({
+      hypothesis_id: '',
+      text: 'Fix it',
+      direction: 'prevent',
+      timeframe: 'weeks',
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.error).toBeDefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// connect_hub_evidence handler (IM-1: keyed by hypothesisId)
+// ---------------------------------------------------------------------------
+
+describe('connect_hub_evidence handler', () => {
+  it('returns a proposal for a valid hub and findings', async () => {
+    const hub = makeHypothesis({ id: 'h-1' });
+    const finding = makeFinding({ id: 'f-1' });
+    const handlers = buildActionToolHandlers(buildDeps({ hypotheses: [hub], findings: [finding] }));
+
+    const result = await handlers.connect_hub_evidence!({
+      hubId: 'h-1',
+      findingIds: ['f-1'],
+      reason: 'Statistical association (ANOVA p<0.01)',
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.proposal).toBe(true);
+    expect(parsed.tool).toBe('connect_hub_evidence');
+    expect(parsed.preview.hubName).toBe('Nozzle wear on night shift');
+    expect(parsed.preview.findingCount).toBe(1);
+  });
+
+  it('returns error when hub is not found', async () => {
+    const handlers = buildActionToolHandlers(buildDeps({ hypotheses: [] }));
+
+    const result = await handlers.connect_hub_evidence!({
+      hubId: 'h-nonexistent',
+      findingIds: ['f-1'],
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.error).toContain('not found');
+  });
+
+  it('returns error when findingIds is empty', async () => {
+    const hub = makeHypothesis({ id: 'h-1' });
+    const handlers = buildActionToolHandlers(buildDeps({ hypotheses: [hub] }));
+
+    const result = await handlers.connect_hub_evidence!({
+      hubId: 'h-1',
+      findingIds: [],
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.error).toBeDefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// suggest_action handler (unchanged in IM-1)
+// ---------------------------------------------------------------------------
+
+describe('suggest_action handler', () => {
+  it('returns a proposal for a valid finding in analyzed status', async () => {
+    const finding = makeFinding({ id: 'f-1', status: 'analyzed' });
+    const handlers = buildActionToolHandlers(buildDeps({ findings: [finding] }));
+
+    const result = await handlers.suggest_action!({
+      finding_id: 'f-1',
+      text: 'Retrain operators',
+      source: 'analyst',
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.proposal).toBe(true);
+    expect(parsed.tool).toBe('suggest_action');
+    expect(parsed.preview.findingText).toBe('Machine A Cpk = 0.85');
+    expect(parsed.status).toBe('pending');
+  });
+
+  it('returns error for unknown finding_id', async () => {
+    const handlers = buildActionToolHandlers(buildDeps({ findings: [] }));
+
+    const result = await handlers.suggest_action!({
+      finding_id: 'f-nonexistent',
+      text: 'Fix it',
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.error).toContain('not found');
+  });
+
+  it('returns error when finding is not at analyzed/improving status', async () => {
+    const finding = makeFinding({ id: 'f-1', status: 'observed' });
+    const handlers = buildActionToolHandlers(buildDeps({ findings: [finding] }));
+
+    const result = await handlers.suggest_action!({
+      finding_id: 'f-1',
+      text: 'Should fail',
+    });
+
+    const parsed = JSON.parse(result);
+    expect(parsed.error).toContain('analyzed');
   });
 });

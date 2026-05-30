@@ -89,7 +89,6 @@ export interface CausalEdgeData {
   whyStatement: string;
   direction: 'drives' | 'modulates' | 'confounds';
   evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
-  questionCount: number;
   findingCount: number;
   fromX: number;
   fromY: number;

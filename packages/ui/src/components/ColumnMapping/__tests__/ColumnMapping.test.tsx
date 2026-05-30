@@ -637,14 +637,13 @@ describe('ColumnMapping', () => {
       expect(screen.queryByTestId('issue-statement-simple')).toBeNull();
     });
 
-    it('expands brief and shows question/target fields', () => {
+    it('expands brief and shows issue statement + target metric fields', () => {
       render(<ColumnMapping {...richProps} showBrief={true} />);
 
       fireEvent.click(screen.getByTestId('brief-toggle'));
 
       expect(screen.getByTestId('brief-fields')).toBeTruthy();
       expect(screen.getByTestId('brief-issue-statement')).toBeTruthy();
-      expect(screen.getByTestId('brief-add-question')).toBeTruthy();
       expect(screen.getByTestId('brief-target-metric')).toBeTruthy();
     });
 

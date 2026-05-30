@@ -7,7 +7,6 @@ import {
   ExternalLink,
   List,
   LayoutGrid,
-  GitBranch,
   User,
 } from 'lucide-react';
 import type {
@@ -15,9 +14,6 @@ import type {
   FindingSource,
   FindingStatus,
   FindingTag,
-  Question,
-  ImprovementIdea,
-  IdeaImpact,
   CoScoutMessage,
   CoScoutError,
   AnalyzePhase,
@@ -26,7 +22,6 @@ import type { DrillStep } from '@variscout/hooks';
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
 import { CoScoutInline } from '../CoScoutInline';
-import { QuestionChecklist } from '../FindingsWindow/QuestionChecklist';
 import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingsPanelResizeConfig {
@@ -62,9 +57,6 @@ export interface FindingsPanelBaseProps {
 
   // 5-status investigation (Azure only)
   maxStatuses?: number;
-  onLinkQuestion?: (findingId: string, questionId: string) => void;
-  onCreateQuestion?: (findingId: string, text: string, factor?: string, level?: string) => void;
-  questionsMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   onAddAction?: (
     id: string,
     text: string,
@@ -93,57 +85,11 @@ export interface FindingsPanelBaseProps {
   onPopout?: () => void;
 
   // View mode (uncontrolled by default, controlled when both provided)
-  viewMode?: 'list' | 'board' | 'tree';
-  onViewModeChange?: (mode: 'list' | 'board' | 'tree') => void;
+  viewMode?: 'list' | 'board';
+  onViewModeChange?: (mode: 'list' | 'board') => void;
 
-  // Tree view props (passed through to FindingsLog → QuestionTreeView)
-  treeQuestions?: import('@variscout/core').Question[];
-  onSelectQuestion?: (question: import('@variscout/core').Question) => void;
-  onAddSubQuestion?: (
-    parentId: string,
-    text: string,
-    factor?: string,
-    validationType?: 'data' | 'gemba' | 'expert'
-  ) => void;
-  /** Available factor columns for sub-question factor picker */
-  factors?: string[];
-  getChildrenSummary?: (parentId: string) => {
-    answered: number;
-    'ruled-out': number;
-    open: number;
-    investigating: number;
-    total: number;
-  };
-
-  // --- Validation Task (passed through to FindingsLog → QuestionTreeView) ---
-  onSetValidationTask?: (id: string, task: string) => void;
-  onCompleteTask?: (id: string) => void;
-  onSetManualStatus?: (
-    id: string,
-    status: import('@variscout/core').QuestionStatus,
-    note?: string
-  ) => void;
-  // --- Improvement Ideas (passed through to FindingsLog → QuestionTreeView) ---
-  ideaImpacts?: Record<string, IdeaImpact | undefined>;
-  onAddIdea?: (questionId: string, text: string) => void;
-  onUpdateIdea?: (
-    questionId: string,
-    ideaId: string,
-    updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
-  ) => void;
-  onRemoveIdea?: (questionId: string, ideaId: string) => void;
-  onSelectIdea?: (questionId: string, ideaId: string, selected: boolean) => void;
-  onProjectIdea?: (questionId: string, ideaId: string) => void;
-  onAskCoScout?: (question: string) => void;
-  /** Set cause role on a question */
-  onSetCauseRole?: (
-    questionId: string,
-    role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
-  ) => void;
   /** Ask CoScout about a specific finding (from FindingCard action button) */
-  onAskCoScoutAboutFinding?: (focusContext: {
-    finding: { text: string; status: string; question?: string };
-  }) => void;
+  onAskCoScoutAboutFinding?: (focusContext: { finding: { text: string; status: string } }) => void;
 
   // Resize config
   resizeConfig: FindingsPanelResizeConfig;
@@ -169,28 +115,6 @@ export interface FindingsPanelBaseProps {
   linkedFindings?: Array<{ id: string; text: string }>;
   /** Optional Azure-only voice input that transcribes into finding/comment editors */
   voiceInput?: VoiceInputConfig;
-
-  // --- Question-driven investigation (ADR-053) ---
-  /** Factor Intelligence questions (Question objects with questionSource) */
-  questions?: Question[];
-  /** Current issue statement */
-  issueStatement?: string;
-  /** Callback when issue statement is edited */
-  onIssueStatementChange?: (text: string) => void;
-  /** Callback when a question is clicked — switch dashboard to show evidence */
-  onQuestionClick?: (question: Question) => void;
-  /** CoScout-suggested sharpened issue statement */
-  suggestedIssueStatement?: string;
-  /** Accept the suggested issue statement */
-  onAcceptIssueSuggestion?: () => void;
-  /** Dismiss the suggested issue statement */
-  onDismissIssueSuggestion?: () => void;
-  /** Formulated problem statement */
-  problemStatement?: string;
-  /** Whether the problem statement is complete */
-  isProblemStatementComplete?: boolean;
-  /** Mode-specific evidence label (e.g., "R²adj", "Cpk impact", "Waste %") */
-  evidenceLabel?: string;
 }
 
 const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
@@ -217,9 +141,6 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   renderAssignSlot,
   onNavigateToChart,
   maxStatuses,
-  onLinkQuestion,
-  onCreateQuestion,
-  questionsMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -227,22 +148,6 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   renderActionAssigneePicker,
   viewMode: externalViewMode,
   onViewModeChange,
-  treeQuestions,
-  onSelectQuestion,
-  onAddSubQuestion,
-  factors,
-  getChildrenSummary,
-  onSetValidationTask,
-  onCompleteTask,
-  onSetManualStatus,
-  ideaImpacts,
-  onAddIdea,
-  onUpdateIdea,
-  onRemoveIdea,
-  onSelectIdea,
-  onProjectIdea,
-  onAskCoScout,
-  onSetCauseRole,
   onAskCoScoutAboutFinding,
   resizeConfig,
   coScoutMessages,
@@ -259,21 +164,11 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   synthesis,
   linkedFindings,
   voiceInput,
-  questions,
-  issueStatement,
-  onIssueStatementChange,
-  onQuestionClick,
-  suggestedIssueStatement,
-  onAcceptIssueSuggestion,
-  onDismissIssueSuggestion,
-  problemStatement,
-  isProblemStatementComplete,
-  evidenceLabel,
 }) => {
   const { t, formatStat } = useTranslation();
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [coScoutExpanded, setCoScoutExpanded] = useState(false);
-  const [localViewMode, setLocalViewMode] = useState<'list' | 'board' | 'tree'>('list');
+  const [localViewMode, setLocalViewMode] = useState<'list' | 'board'>('list');
   const viewMode = externalViewMode ?? localViewMode;
   const [showAssignedToMe, setShowAssignedToMe] = useState(false);
 
@@ -286,7 +181,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
         )
       : findings;
 
-  const handleViewModeChange = (mode: 'list' | 'board' | 'tree') => {
+  const handleViewModeChange = (mode: 'list' | 'board') => {
     setLocalViewMode(mode);
     onViewModeChange?.(mode);
   };
@@ -389,20 +284,6 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
                 >
                   <LayoutGrid size={12} />
                 </button>
-                {treeQuestions && treeQuestions.length > 0 && (
-                  <button
-                    onClick={() => handleViewModeChange('tree')}
-                    className={`p-1.5 transition-colors ${
-                      viewMode === 'tree'
-                        ? 'bg-surface-tertiary text-content'
-                        : 'text-content-muted hover:text-content-secondary'
-                    }`}
-                    title={t('view.tree')}
-                    aria-label={t('view.tree')}
-                  >
-                    <GitBranch size={12} />
-                  </button>
-                )}
               </div>
             )}
             {findings.length > 0 && (
@@ -440,24 +321,6 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           </div>
         </div>
 
-        {/* Question checklist (ADR-053) — shows when Factor Intelligence questions exist */}
-        {questions && questions.length > 0 && (
-          <div className="px-3 py-2 border-b border-edge">
-            <QuestionChecklist
-              questions={questions}
-              issueStatement={issueStatement}
-              onIssueStatementChange={onIssueStatementChange}
-              onQuestionClick={onQuestionClick}
-              suggestedIssueStatement={suggestedIssueStatement}
-              onAcceptSuggestion={onAcceptIssueSuggestion}
-              onDismissSuggestion={onDismissIssueSuggestion}
-              problemStatement={problemStatement}
-              isProblemStatementComplete={isProblemStatementComplete}
-              evidenceLabel={evidenceLabel}
-            />
-          </div>
-        )}
-
         {/* Findings list/board */}
         <FindingsLog
           findings={displayFindings}
@@ -479,31 +342,12 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           renderAssignSlot={renderAssignSlot}
           onNavigateToChart={onNavigateToChart}
           viewMode={viewMode}
-          questions={treeQuestions}
-          onSelectQuestion={onSelectQuestion}
-          onAddSubQuestion={onAddSubQuestion}
-          factors={factors}
-          getChildrenSummary={getChildrenSummary}
-          onSetValidationTask={onSetValidationTask}
-          onCompleteTask={onCompleteTask}
-          onSetManualStatus={onSetManualStatus}
           maxStatuses={maxStatuses}
-          onLinkQuestion={onLinkQuestion}
-          onCreateQuestion={onCreateQuestion}
-          questionsMap={questionsMap}
           onAddAction={onAddAction}
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
           onSetOutcome={onSetOutcome}
           renderActionAssigneePicker={renderActionAssigneePicker}
-          ideaImpacts={ideaImpacts}
-          onAddIdea={onAddIdea}
-          onUpdateIdea={onUpdateIdea}
-          onRemoveIdea={onRemoveIdea}
-          onSelectIdea={onSelectIdea}
-          onProjectIdea={onProjectIdea}
-          onAskCoScout={onAskCoScout}
-          onSetCauseRole={onSetCauseRole}
           onAskCoScoutAboutFinding={onAskCoScoutAboutFinding}
           projectedCpkMap={projectedCpkMap}
           synthesis={synthesis}

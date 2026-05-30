@@ -21,7 +21,7 @@ export type MatrixDimension = 'benefit' | 'timeframe' | 'cost' | 'risk';
 export interface MatrixIdea {
   id: string;
   text: string;
-  questionId?: string;
+  hypothesisId?: string;
   timeframe?: IdeaTimeframe;
   cost?: IdeaCost;
   risk?: IdeaRiskAssessment;
@@ -49,9 +49,9 @@ export interface PrioritizationMatrixProps {
   presets?: MatrixPreset[];
   activePreset?: string;
   onPresetChange?: (presetId: string) => void;
-  /** Map of questionId → hex color for cause grouping */
+  /** Map of hypothesisId → hex color for cause grouping */
   causeColors?: Map<string, string>;
-  /** Labels for cause legend (questionId → display name) */
+  /** Labels for cause legend (hypothesisId → display name) */
   causeLabels?: Map<string, string>;
   /** ID of idea being actively projected (pulsing dot) */
   projectingIdeaId?: string;
@@ -479,7 +479,7 @@ export const PrioritizationMatrix: React.FC<PrioritizationMatrixProps> = ({
         const yFrac = getPosition(yAxis, idea, yRange);
         if (xFrac == null || yFrac == null) return null;
         const isGhost = !idea.projection && !idea.impactOverride;
-        const resolvedColor = causeColors?.get(idea.questionId ?? '') ?? getColor(colorBy, idea);
+        const resolvedColor = causeColors?.get(idea.hypothesisId ?? '') ?? getColor(colorBy, idea);
         return {
           idea,
           index: index + 1,

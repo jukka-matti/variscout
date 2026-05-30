@@ -352,90 +352,6 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
 
   // ── INVESTIGATE+ action tools ────────────────────────────────────────
 
-  create_question: {
-    definition: {
-      type: 'function',
-      name: 'create_question',
-      description:
-        'Propose adding a question to the investigation tree. Root question (parent_id=null) for new lines of inquiry; sub-question (parent_id=existing_id) for breaking down causes. The user can edit the text before confirming.',
-      parameters: {
-        type: 'object',
-        properties: {
-          text: {
-            type: 'string',
-            description: 'Question text describing the hypothesis to investigate',
-          },
-          factor: {
-            type: ['string', 'null'],
-            description:
-              'Factor column linked to this question (for auto-answering via eta-squared). Null if not data-testable.',
-          },
-          level: {
-            type: ['string', 'null'],
-            description:
-              'Specific category level within the factor. Null if testing the whole factor.',
-          },
-          parent_id: {
-            type: ['string', 'null'],
-            description: 'Parent question ID for sub-questions. Null for root questions.',
-          },
-          validation_type: {
-            type: 'string',
-            enum: ['data', 'gemba', 'expert'],
-            description:
-              'How this question should be answered: "data" = auto-answer with ANOVA, "gemba" = physical inspection needed, "expert" = expert opinion needed.',
-          },
-          validation_task: {
-            type: ['string', 'null'],
-            description:
-              'For gemba/expert: description of what to check. Null for data-testable questions.',
-          },
-        },
-        required: ['text', 'factor', 'level', 'parent_id', 'validation_type', 'validation_task'],
-        additionalProperties: false,
-        strict: true,
-      },
-    },
-    classification: 'action',
-    phases: ['analyze', 'improve'],
-  },
-
-  answer_question: {
-    definition: {
-      type: 'function',
-      name: 'answer_question',
-      description:
-        'Propose marking an investigation question as answered or ruled-out based on evidence. The analyst will review and confirm before the status changes.',
-      parameters: {
-        type: 'object',
-        properties: {
-          question_id: {
-            type: 'string',
-            description: 'ID of the question to answer',
-          },
-          status: {
-            type: 'string',
-            enum: ['answered', 'ruled-out'],
-            description: 'Proposed status based on evidence',
-          },
-          note: {
-            type: 'string',
-            description: 'Evidence-based explanation for the proposed answer',
-          },
-          finding_id: {
-            type: ['string', 'null'] as const,
-            description: 'ID of supporting finding (recommended when evidence exists)',
-          },
-        },
-        required: ['question_id', 'status', 'note', 'finding_id'],
-        additionalProperties: false,
-        strict: true,
-      },
-    },
-    classification: 'action',
-    phases: ['analyze', 'improve'],
-  },
-
   propose_hypothesis_from_finding: {
     definition: {
       type: 'function',
@@ -468,7 +384,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'suggest_hypothesis',
       description:
-        'Suggest a Hypothesis hub that connects related questions and findings into a named mechanism. Use when you notice 2+ answered questions pointing to the same contributing factor during validating or converging phase.',
+        'Suggest a Hypothesis hub that connects related findings into a named mechanism. Use when you notice 2+ findings pointing to the same contributing factor during validating or converging phase.',
       parameters: {
         type: 'object',
         properties: {
@@ -481,18 +397,13 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
             type: 'string',
             description: 'Brief explanation of how the evidence connects',
           },
-          questionIds: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'IDs of questions to connect to this hub',
-          },
           findingIds: {
             type: 'array',
             items: { type: 'string' },
             description: 'IDs of findings to connect to this hub',
           },
         },
-        required: ['name', 'synthesis', 'questionIds', 'findingIds'],
+        required: ['name', 'synthesis', 'findingIds'],
         additionalProperties: false,
         strict: true,
       },
@@ -507,16 +418,11 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'connect_hub_evidence',
       description:
-        'Connect newly answered questions or findings to an existing Hypothesis hub. Use when new evidence supports an already-named mechanism.',
+        'Connect newly recorded findings to an existing Hypothesis hub. Use when new evidence supports an already-named mechanism.',
       parameters: {
         type: 'object',
         properties: {
           hubId: { type: 'string', description: 'ID of the existing Hypothesis hub' },
-          questionIds: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Question IDs to connect',
-          },
           findingIds: {
             type: 'array',
             items: { type: 'string' },
@@ -527,7 +433,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
             description: 'Brief explanation of why this evidence belongs to this hub',
           },
         },
-        required: ['hubId', 'questionIds', 'findingIds', 'reason'],
+        required: ['hubId', 'findingIds', 'reason'],
         additionalProperties: false,
         strict: true,
       },
@@ -542,13 +448,13 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'suggest_improvement_idea',
       description:
-        'Propose an improvement idea for an answered question. Ideas bridge investigation findings and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Use the Four Ideation Directions to classify the approach. Prefer lean improvements \u2014 simplest fix that addresses the contributing factor.',
+        'Propose an improvement idea for a confirmed/contributing hypothesis hub. Ideas bridge investigation findings and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Use the Four Ideation Directions to classify the approach. Prefer lean improvements \u2014 simplest fix that addresses the contributing factor.',
       parameters: {
         type: 'object',
         properties: {
-          question_id: {
+          hypothesis_id: {
             type: 'string',
-            description: 'ID of the answered question to attach the idea to',
+            description: 'ID of the confirmed/contributing hypothesis hub to attach the idea to',
           },
           text: {
             type: 'string',
@@ -587,7 +493,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
           },
         },
         required: [
-          'question_id',
+          'hypothesis_id',
           'text',
           'direction',
           'timeframe',

@@ -8,7 +8,6 @@ const hub: Hypothesis = {
   id: 'h1',
   name: 'Nozzle runs hot',
   synthesis: '',
-  questionIds: [],
   findingIds: [],
   status: 'proposed',
   createdAt: 1,

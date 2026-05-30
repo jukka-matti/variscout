@@ -14,6 +14,7 @@ import type {
   ImprovementIdea,
   IdeaTimeframe,
   IdeaDirection,
+  HypothesisStatus,
   MessageCatalog,
 } from '@variscout/core';
 
@@ -25,13 +26,34 @@ export interface ReportImprovementSummaryProps {
   questions: Array<{
     id: string;
     text: string;
-    causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
+    /** Hypothesis lifecycle status; drives the status badge (causeRole retired — IM-1). */
+    status?: HypothesisStatus;
     ideas: ImprovementIdea[];
   }>;
   /** Show only the summary bar (for summary audience mode) */
   summaryOnly?: boolean;
   targetCpk?: number;
 }
+
+// ============================================================================
+// Hypothesis status badge styling
+// ============================================================================
+
+const STATUS_BADGE_LABELS: Record<HypothesisStatus, string> = {
+  proposed: 'Proposed',
+  evidenced: 'Evidenced',
+  confirmed: 'Confirmed',
+  refuted: 'Refuted',
+  'needs-disconfirmation': 'Needs disconfirmation',
+};
+
+const STATUS_BADGE_COLORS: Record<HypothesisStatus, string> = {
+  proposed: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  evidenced: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  confirmed: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+  refuted: 'bg-slate-100 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300',
+  'needs-disconfirmation': 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+};
 
 // ============================================================================
 // Constants
@@ -235,17 +257,11 @@ export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> =
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 {h.text}
               </span>
-              {h.causeRole && (
+              {h.status && (
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[0.625rem] font-medium ${
-                    h.causeRole === 'suspected-cause'
-                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                      : h.causeRole === 'ruled-out'
-                        ? 'bg-slate-100 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300'
-                        : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-                  }`}
+                  className={`px-1.5 py-0.5 rounded text-[0.625rem] font-medium ${STATUS_BADGE_COLORS[h.status]}`}
                 >
-                  {h.causeRole}
+                  {STATUS_BADGE_LABELS[h.status]}
                 </span>
               )}
             </div>

@@ -4,7 +4,6 @@ import {
   type DataRow,
   type Finding,
   type Hypothesis,
-  type Question,
   type SpecLimits,
   type ProcessHubId,
 } from '@variscout/core';
@@ -21,7 +20,6 @@ export interface SystemLevelViewProps {
   map: ProcessMap;
   rows: readonly DataRow[];
   stepCards?: readonly CanvasStepCardModel[];
-  questions?: ReadonlyArray<Question>;
   hypotheses?: ReadonlyArray<Hypothesis>;
   findings?: ReadonlyArray<Finding>;
   activeLens?: CanvasLensId;
@@ -96,7 +94,6 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
   hubId,
   map,
   rows,
-  questions = [],
   hypotheses = [],
   findings = [],
   activeLens,
@@ -111,7 +108,6 @@ export const SystemLevelView: React.FC<SystemLevelViewProps> = ({
     rows,
     outcomeColumn: map.ctsColumn,
     specLimits: resolvedSpecLimits,
-    questions,
     hypotheses,
     findings,
   });

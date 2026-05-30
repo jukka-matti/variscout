@@ -87,7 +87,6 @@ function buildSerializedProject(
     processContext: state.processContext,
     viewState,
     findings: state.findings ?? [],
-    questions: state.questions ?? [],
     categories: state.categories ?? [],
     hypotheses: state.hypotheses ?? [],
     causalLinks: state.causalLinks ?? [],
@@ -151,7 +150,6 @@ function getCurrentStateFromStores(): Omit<AnalysisState, 'version'> {
   // Investigation data — read from analyzeStore (authoritative source)
   // projectStore copies are stale after Zustand-first migration
   if (is.findings.length > 0) state.findings = is.findings;
-  if (is.questions.length > 0) state.questions = is.questions;
   if (is.categories.length > 0) state.categories = is.categories;
   if (is.hypotheses.length > 0) state.hypotheses = is.hypotheses;
   if (is.causalLinks.length > 0) state.causalLinks = is.causalLinks;
@@ -202,7 +200,6 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
       // Hydrate investigation store
       useAnalyzeStore.getState().loadAnalyzeState({
         findings: state.findings ?? [],
-        questions: state.questions ?? [],
         categories: state.categories ?? [],
         hypotheses: state.hypotheses ?? [],
         causalLinks: state.causalLinks ?? [],
@@ -273,7 +270,6 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
       // Hydrate investigation store
       useAnalyzeStore.getState().loadAnalyzeState({
         findings: state.findings ?? [],
-        questions: state.questions ?? [],
         categories: state.categories ?? [],
         hypotheses: state.hypotheses ?? [],
         causalLinks: state.causalLinks ?? [],

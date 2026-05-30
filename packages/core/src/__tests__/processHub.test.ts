@@ -1023,7 +1023,7 @@ describe('buildProcessHubRollups', () => {
           hunchCount: 2,
         },
       },
-      questions: { open: 1, answered: 2, ruledOut: 1, evidenceGaps: 1 },
+      questions: { open: 0, answered: 0, ruledOut: 0, evidenceGaps: 0 },
       findings: { total: 3, confirmed: 3 },
       actions: { total: 2, completed: 1, overdue: 1 },
       verification: { waiting: 1 },

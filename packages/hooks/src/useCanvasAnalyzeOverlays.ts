@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { CausalLink, Finding, Question, Hypothesis } from '@variscout/core';
+import type { CausalLink, Finding, Hypothesis } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import { selectHypothesisTributaries } from '@variscout/stores';
 
@@ -66,15 +66,15 @@ export function coerceCanvasOverlays(values: readonly unknown[]): CanvasOverlayI
 }
 
 export type CanvasAnalyzeFocus =
-  | { kind: 'question'; id: string; questionId: string }
-  | { kind: 'finding'; id: string; questionId?: string }
-  | { kind: 'suspected-cause'; id: string; questionId?: string }
-  | { kind: 'causal-link'; id: string; questionId?: string };
+  | { kind: 'question'; id: string }
+  | { kind: 'finding'; id: string }
+  | { kind: 'suspected-cause'; id: string }
+  | { kind: 'causal-link'; id: string };
 
 export interface CanvasOverlayQuestionItem {
   id: string;
   text: string;
-  status: Question['status'];
+  status: string;
   factor?: string;
   focus: CanvasAnalyzeFocus;
 }
@@ -83,7 +83,6 @@ export interface CanvasOverlayFindingItem {
   id: string;
   text: string;
   status: Finding['status'];
-  questionId?: string;
   focus: CanvasAnalyzeFocus;
 }
 
@@ -91,7 +90,6 @@ export interface CanvasOverlayHypothesisItem {
   id: string;
   name: string;
   status: Hypothesis['status'];
-  questionId?: string;
   focus: CanvasAnalyzeFocus;
 }
 
@@ -100,7 +98,6 @@ export interface CanvasOverlayCausalLinkItem {
   fromStepId: string;
   toStepId: string;
   label: string;
-  questionId?: string;
   focus: CanvasAnalyzeFocus;
 }
 
@@ -130,7 +127,6 @@ export interface CanvasAnalyzeOverlayModel {
 
 export interface BuildCanvasInvestigationOverlaysArgs {
   map: ProcessMap;
-  questions?: readonly Question[];
   findings?: readonly Finding[];
   hypotheses?: readonly Hypothesis[];
   causalLinks?: readonly CausalLink[];
@@ -189,20 +185,14 @@ function addUnique<T extends { id: string }>(items: T[], item: T): void {
   if (!items.some(existing => existing.id === item.id)) items.push(item);
 }
 
-function primaryQuestionId(ids: readonly string[]): string | undefined {
-  return ids.length > 0 ? ids[0] : undefined;
-}
-
 function hubStepIds({
   hub,
   findings,
-  questions,
   map,
   columnMap,
 }: {
   hub: Hypothesis;
   findings: readonly Finding[];
-  questions: readonly Question[];
   map: ProcessMap;
   columnMap: Map<string, Set<string>>;
 }): string[] {
@@ -215,16 +205,10 @@ function hubStepIds({
   if (tributaries.length > 0) return uniqueStepIds(tributaries.map(t => t.stepId));
 
   const columns = new Set<string>();
-  for (const questionId of hub.questionIds) {
-    const question = questions.find(q => q.id === questionId);
-    if (question?.factor) columns.add(question.factor);
-  }
   for (const findingId of hub.findingIds) {
     const finding = findings.find(f => f.id === findingId);
     if (!finding) continue;
     for (const column of Object.keys(finding.context?.activeFilters ?? {})) columns.add(column);
-    const question = finding.questionId ? questions.find(q => q.id === finding.questionId) : null;
-    if (question?.factor) columns.add(question.factor);
   }
   return stepsForColumns(columns, columnMap);
 }
@@ -235,15 +219,11 @@ function isPromotedHub(hub: Hypothesis): boolean {
 
 function hubOwnsLink(hub: Hypothesis, link: CausalLink): boolean {
   if (link.hypothesisId && link.hypothesisId === hub.id) return true;
-  return (
-    link.questionIds.some(id => hub.questionIds.includes(id)) ||
-    link.findingIds.some(id => hub.findingIds.includes(id))
-  );
+  return link.findingIds.some(id => hub.findingIds.includes(id));
 }
 
 export function buildCanvasAnalyzeOverlays({
   map,
-  questions = [],
   findings = [],
   hypotheses = [],
   causalLinks = [],
@@ -261,34 +241,9 @@ export function buildCanvasAnalyzeOverlays({
 
   const hubSteps = new Map<string, string[]>();
   for (const hub of hypotheses) {
-    const steps = validStepIds(hubStepIds({ hub, findings, questions, map, columnMap }), byStep);
+    const steps = validStepIds(hubStepIds({ hub, findings, map, columnMap }), byStep);
     hubSteps.set(hub.id, steps);
     if (steps.length === 0) unresolved.hypotheses.push(hub.id);
-  }
-
-  for (const question of questions) {
-    const steps = question.factor
-      ? validStepIds(stepsForColumns([question.factor], columnMap), byStep)
-      : [];
-    if (steps.length === 0) {
-      unresolved.questions.push(question.id);
-      continue;
-    }
-    const item: CanvasOverlayQuestionItem = {
-      id: question.id,
-      text: question.text,
-      status: question.status,
-      factor: question.factor,
-      focus: { kind: 'question', id: question.id, questionId: question.id },
-    };
-    for (const stepId of steps) {
-      const step = byStep[stepId];
-      if (!step) continue;
-      addUnique(step.questions, item);
-      if (question.status === 'ruled-out') step.investigationCounts.refuted += 1;
-      else if (question.status === 'answered') step.investigationCounts.supported += 1;
-      else step.investigationCounts.open += 1;
-    }
   }
 
   for (const finding of findings) {
@@ -296,12 +251,6 @@ export function buildCanvasAnalyzeOverlays({
       stepsForColumns(Object.keys(finding.context?.activeFilters ?? {}), columnMap),
       byStep
     );
-    const linkedQuestion = finding.questionId
-      ? questions.find(question => question.id === finding.questionId)
-      : undefined;
-    if (steps.length === 0 && linkedQuestion?.factor) {
-      steps = validStepIds(stepsForColumns([linkedQuestion.factor], columnMap), byStep);
-    }
     if (steps.length === 0) {
       const linkedHubSteps = hypotheses
         .filter(hub => hub.findingIds.includes(finding.id))
@@ -316,8 +265,7 @@ export function buildCanvasAnalyzeOverlays({
       id: finding.id,
       text: finding.text,
       status: finding.status,
-      questionId: finding.questionId,
-      focus: { kind: 'finding', id: finding.id, questionId: finding.questionId },
+      focus: { kind: 'finding', id: finding.id },
     };
     for (const stepId of steps) {
       const step = byStep[stepId];
@@ -333,11 +281,9 @@ export function buildCanvasAnalyzeOverlays({
       id: hub.id,
       name: hub.name,
       status: hub.status,
-      questionId: primaryQuestionId(hub.questionIds),
       focus: {
         kind: 'suspected-cause',
         id: hub.id,
-        questionId: primaryQuestionId(hub.questionIds),
       },
     };
     for (const stepId of steps) {
@@ -367,8 +313,7 @@ export function buildCanvasAnalyzeOverlays({
       fromStepId,
       toStepId,
       label: link.whyStatement,
-      questionId: primaryQuestionId(link.questionIds),
-      focus: { kind: 'causal-link', id: link.id, questionId: primaryQuestionId(link.questionIds) },
+      focus: { kind: 'causal-link', id: link.id },
     };
     arrows.push(item);
     addUnique(byStep[fromStepId].causalLinks, item);
@@ -387,7 +332,7 @@ export function useCanvasAnalyzeOverlays(
 ): UseCanvasAnalyzeOverlaysResult {
   const overlays = useMemo(
     () => buildCanvasAnalyzeOverlays(args),
-    [args.map, args.questions, args.findings, args.hypotheses, args.causalLinks]
+    [args.map, args.findings, args.hypotheses, args.causalLinks]
   );
   return { overlays };
 }

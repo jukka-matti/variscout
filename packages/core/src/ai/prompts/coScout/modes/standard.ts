@@ -29,12 +29,12 @@ Focus: Name what you see. Formulate a clear issue statement grounded in the data
 Focus: Systematic factor-by-factor stratification. Evidence strength = R-squared-adj from Best Subsets.`,
 
   analyze: `Workflow steps:
-1. Create questions for top factors — each question targets a specific factor or level
+1. Open a line of inquiry for each top factor — target a specific factor or level
 2. Validate with three evidence types: data (auto eta-squared), gemba (go-see), expert knowledge
-3. Synthesize answered questions into hypotheses — name the mechanism, not just the factor
+3. Synthesize validated evidence into hypotheses — name the mechanism, not just the factor
 4. Use the Evidence Map to visualize factor relationships and causal links
 
-Focus: Question-driven investigation. Each question narrows the search space.`,
+Focus: Evidence-driven investigation. Each line of inquiry narrows the search space.`,
 
   improve: `Workflow steps:
 1. HMW brainstorm per hypothesis — How Might We prevent, detect, simplify, or eliminate?

@@ -15,7 +15,6 @@ import {
   type Hypothesis,
   type HypothesisStatus,
   type Finding,
-  type Question,
 } from '@variscout/core';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
@@ -25,17 +24,9 @@ import { useWallLocale } from './hooks/useWallLocale';
 export interface MobileCardListProps {
   hubs: Hypothesis[];
   findings: Finding[];
-  /**
-   * Question list. Currently only `hub.questionIds.length` (linked questions)
-   * is shown — the full list is passed through for future mobile affordances
-   * (e.g., expanding a hub to reveal its linked question text) without
-   * another prop break.
-   */
-  questions: Question[];
   processMap?: ProcessMap;
   onSelectHub?: (hubId: string) => void;
   onWriteHypothesis?: () => void;
-  onPromoteFromQuestion?: () => void;
   onSeedFromFactorIntel?: () => void;
 }
 
@@ -86,11 +77,9 @@ function deriveDisplayStatus(hub: Hypothesis, findings: Finding[]): HypothesisSt
 export const MobileCardList: React.FC<MobileCardListProps> = ({
   hubs,
   findings,
-  questions: _questions,
   processMap,
   onSelectHub,
   onWriteHypothesis,
-  onPromoteFromQuestion,
   onSeedFromFactorIntel,
 }) => {
   const locale = useWallLocale();
@@ -99,7 +88,6 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
     return (
       <EmptyState
         onWriteHypothesis={onWriteHypothesis}
-        onPromoteFromQuestion={onPromoteFromQuestion}
         onSeedFromFactorIntel={onSeedFromFactorIntel}
       />
     );
@@ -116,17 +104,12 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
       {hubs.map(hub => {
         const status = deriveDisplayStatus(hub, findings);
         const branch = projectMechanismBranch(hub, {
-          questions: _questions,
           findings,
           processContext: processMap ? { processMap } : undefined,
         });
         const statusLabel = getMessage(locale, STATUS_KEY[status]);
         const findingsLabel = formatMessage(locale, 'wall.card.findings', {
           count: hub.findingIds.length,
-        });
-        // Linked questions only — `questionIds` is the canonical link list.
-        const questionsLabel = formatMessage(locale, 'wall.card.questions', {
-          count: hub.questionIds.length,
         });
         const ariaLabel = formatMessage(locale, 'wall.card.ariaLabel', {
           name: branch.suspectedMechanism,
@@ -135,7 +118,8 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
         });
         const supportingLabel = `${branch.supportingClues.length} supporting clue${branch.supportingClues.length === 1 ? '' : 's'}`;
         const counterLabel = `${branch.counterClues.length} counter-clue${branch.counterClues.length === 1 ? '' : 's'}`;
-        const openChecksLabel = `${branch.openChecks.length} open check${branch.openChecks.length === 1 ? '' : 's'}`;
+        // "Open checks" derive from not-yet-tested clues (Question retired — IM-1).
+        const openChecksLabel = `${branch.notTestedClues.length} open check${branch.notTestedClues.length === 1 ? '' : 's'}`;
         return (
           <li
             key={hub.id}
@@ -173,7 +157,6 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
             )}
             <div className="text-xs font-mono text-content-muted mt-1 flex gap-3">
               <span data-testid={`wall-mobile-hub-${hub.id}-findings`}>{findingsLabel}</span>
-              <span data-testid={`wall-mobile-hub-${hub.id}-questions`}>{questionsLabel}</span>
             </div>
           </li>
         );

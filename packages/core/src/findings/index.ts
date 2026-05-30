@@ -9,7 +9,6 @@
 export * from './types';
 export * from './factories';
 export * from './helpers';
-export { QUESTION_STATUS_COLORS } from './questionStatus';
 export { buildProblemStatement } from './problemStatement';
 export type { ProblemStatementInput } from './problemStatement';
 export { assignCauseColors } from './causeColors';
@@ -24,12 +23,15 @@ export type {
   HypothesisCondition,
   FindingSourceColumnHints,
 } from './hypothesisCondition';
+export type { CategoricalFilterInput } from './hypothesisCondition';
 export {
   collectReferencedColumns,
   collectStepColumns,
   conditionHasMissingColumn,
   conditionReferencesStep,
   deriveConditionFromFindingSource,
+  buildConditionFromCategoricalFilters,
+  activeFiltersToCondition,
 } from './hypothesisCondition';
 export type { AndCheckResult } from './hypothesisConditionEvaluator';
 export { evaluateCondition, runAndCheck } from './hypothesisConditionEvaluator';
@@ -39,7 +41,6 @@ export type {
   MechanismBranchClueView,
   MechanismBranchProcessContext,
   MechanismBranchProjectionOptions,
-  MechanismBranchQuestionView,
   MechanismBranchActionStateView,
   MechanismBranchViewModel,
   BranchSignalWarning,

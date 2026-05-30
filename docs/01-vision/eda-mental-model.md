@@ -9,6 +9,8 @@ related: [methodology, four-lenses, progressive-stratification, factor-intellige
 layer: L1
 ---
 
+> **Supersession notice (2026-05-30, ADR-085).** The "Question-Driven Analysis" framing used throughout this document reflects the pre-IM-1 model where `Question` was a first-class persisted entity. As of [ADR-085](../07-decisions/adr-085-drop-question-problem-statement-scope.md) and the [investigation-surface design spec (2026-05-29)](../superpowers/specs/2026-05-29-investigation-surface-design.md), `Question` is retired as a tracked entity. Question generation is now transient ranked factor-node metadata (nothing persisted). The **WHERE** of investigation is a first-class `ProblemStatementScope` (outcome + `{factor=level}` predicates); the **WHY** is a `Hypothesis` nested within that scope. The Wall (Findings + Hypotheses) subsumes the completeness-tracking role that the question checklist played. References to "Question entities", "question trees", "question pills", and "SuspectedCause hubs" in this document should be read in their historical context; the canonical current model is the investigation-surface spec + ADR-085 through ADR-089. This document is retained for its EDA methodology grounding (Turtiainen 2019) and the diamond-pattern description, which remain valid.
+
 # EDA Mental Model — Question-Driven Analysis
 
 How VariScout implements Exploratory Data Analysis as a structured, question-driven methodology for process improvement — grounded in academic research, validated by Lean Six Sigma practitioners, and designed for quality professionals at every skill level.
@@ -172,11 +174,13 @@ After the SCOUT and INVESTIGATE phases, the analyst typically identifies:
 - **Contributing factors** — evidence threads that amplify or enable a suspected cause (e.g., Shift x Head interaction, delta-R-squared=4%)
 - **Ruled-out factors** — factors checked and found not relevant (e.g., Material batch, R-squared-adjusted=2%)
 
-VariScout implements this as **SuspectedCause hubs**: named entities that group related questions and findings into one coherent causal story. A hub is not a label on a single question — it is the "connected story" that collects all the evidence threads pointing toward the same mechanism. Multiple independent hubs coexist in one investigation, each driving its own improvement focus.
+VariScout implements this as **Hypothesis entities** nested within a `ProblemStatementScope` (the WHERE): named mechanisms that group related findings into one coherent causal story. A hypothesis is not a label on a single question — it is the "connected story" that collects all the evidence threads pointing toward the same mechanism. Multiple independent hypotheses coexist within one scope, each driving its own improvement focus.
 
 This grouping mechanism is the key difference between "we found three significant factors" and "we understand that nozzle wear and temperature drift are two independent mechanisms, each needing its own corrective action."
 
-All three categories are valuable. The suspected cause hubs drive improvement actions. The contributing evidence refines those actions. The ruled-out factors are negative learnings — they document what was checked and dismissed, which is essential for audit trails and for preventing future teams from re-investigating the same dead ends.
+All three categories are valuable. Evidenced / confirmed hypotheses drive improvement actions. Contributing evidence refines those actions. Refuted hypotheses are negative learnings — they document what was checked and dismissed, which is essential for audit trails and for preventing future teams from re-investigating the same dead ends.
+
+> **Model note (ADR-085):** "SuspectedCause hubs" was the pre-IM-1 terminology. The current entity model uses `Hypothesis` (with `status: proposed | evidenced | confirmed | refuted | needs-disconfirmation`) nested within a `ProblemStatementScope`. `Question` as a tracked entity has been retired; question generation is transient factor-node metadata.
 
 This is a deliberate departure from the traditional "single root cause" model. When a process has multiple independent sources of variation, forcing a single root cause oversimplifies the problem and leads to incomplete solutions.
 
@@ -390,19 +394,20 @@ The problem statement is assembled live from these three answers and is visible 
 
 This is a direct implementation of the thesis's progressive sharpening pattern (Section 2.3): each EDA loop adds precision to the scope, but the measure and direction are stable from the moment the analysis is framed.
 
-### 4.7 SuspectedCause Hubs as Investigation Output
+### 4.7 Investigation Output — Scope + Hypotheses
 
 The complete investigation output includes:
 
 1. **Problem Statement** — precise, answering all three questions (assembled progressively)
-2. **SuspectedCause hubs** — named mechanisms, each grouping multiple evidence threads; ranked by total evidence strength (eta-squared or R-squared-adjusted)
-3. **Contributing evidence** — questions and findings that amplify or enable each hub mechanism
-4. **Ruled-out factors** — negative learnings, documented for audit and future reference
-5. **Issue Statement evolution** — the trail from vague concern to precise understanding
+2. **`ProblemStatementScope`** — the WHERE: outcome + `{factor=level}` predicates (first-class persisted entity; see [ADR-085](../07-decisions/adr-085-drop-question-problem-statement-scope.md))
+3. **Hypotheses** — named suspected mechanisms nested within the scope, each grouping multiple evidence threads; ranked by `Hypothesis.status` + contribution (eta-squared or R-squared-adjusted)
+4. **Contributing evidence** — Findings that support or refute each hypothesis
+5. **Refuted hypotheses** — negative learnings, documented for audit and future reference
+6. **Issue Statement evolution** — the trail from vague concern to precise understanding
 
-Each hub is a named causal story — not just a factor name, but a mechanism description (e.g., "Worn nozzle tip" rather than "Fill Head"). This naming step is what transforms statistical evidence into actionable understanding.
+Each hypothesis is a named causal story — not just a factor name, but a mechanism description (e.g., "Worn nozzle tip" rather than "Fill Head"). This naming step is what transforms statistical evidence into actionable understanding.
 
-This output becomes the input to the IMPROVE phase. Each SuspectedCause hub is a target for improvement brainstorming (one HMW session per hub). Hub confirmation only comes when the corresponding improvement is verified effective — the hub transitions from "suspected" to "confirmed" at `resolved` finding status.
+This output becomes the input to the IMPROVE phase. Each evidenced or confirmed hypothesis is a target for improvement brainstorming. Confirmation only comes when the corresponding improvement is verified effective — the hypothesis transitions to `confirmed` at `resolved` finding status.
 
 ### 4.8 Example: Fill Weight Investigation
 
@@ -612,37 +617,32 @@ The EDA mental model described above assumes Standard mode — continuous measur
 
 ### 7.1 How the Issue Statement Adapts
 
-| Mode            | Issue Statement Focus                     | Example                                   |
-| --------------- | ----------------------------------------- | ----------------------------------------- |
-| **Standard**    | Variation in outcome                      | "Fill weight on line 3 is too variable"   |
-| **Capability**  | Gap between performance and specification | "Cpk on line 3 is 0.62, target is 1.33"   |
-| **Yamazumi**    | Waste in process flow                     | "Assembly line 2 cycle time exceeds takt" |
-| **Performance** | Channel-level inconsistency               | "Channels 5-8 have lower Cpk than 1-4"    |
+| Mode            | Issue Statement Focus                     | Example                                 |
+| --------------- | ----------------------------------------- | --------------------------------------- |
+| **Standard**    | Variation in outcome                      | "Fill weight on line 3 is too variable" |
+| **Capability**  | Gap between performance and specification | "Cpk on line 3 is 0.62, target is 1.33" |
+| **Performance** | Channel-level inconsistency               | "Channels 5-8 have lower Cpk than 1-4"  |
 
 The sharpening process is the same (vague → precise through evidence), but the language and metrics differ.
 
+> **Note:** Yamazumi mode was retired in wedge V1 (ADR-034 superseded). It is no longer a user-facing analysis mode. The flow-analysis use case is covered by the Process Flow view; activity-classified time-study data is deferred to a future capability.
+
 ### 7.2 How the Four Lenses Map to Modes
 
-| Lens                      | Standard                         | Capability                                | Yamazumi                     | Performance                       |
-| ------------------------- | -------------------------------- | ----------------------------------------- | ---------------------------- | --------------------------------- |
-| **CHANGE** (I-Chart)      | Time-based stability             | Cpk trend across subgroups                | Waste metric trend over time | Per-channel Cpk trend             |
-| **FLOW** (Boxplot)        | Factor comparison                | Factor comparison still drives drill-down | Activity composition by step | Channel distribution              |
-| **FAILURE** (Pareto)      | Category ranking by count/impact | Ranking view when meaningful              | Waste type ranking           | Channel Cpk ranking (worst first) |
-| **VALUE** (Stats/Summary) | Statistical overview             | Capability + Probability lens             | VA ratio, takt compliance    | Worst-channel summary             |
+| Lens                      | Standard                         | Capability                                | Performance                       |
+| ------------------------- | -------------------------------- | ----------------------------------------- | --------------------------------- |
+| **CHANGE** (I-Chart)      | Time-based stability             | Cpk trend across subgroups                | Per-channel Cpk trend             |
+| **FLOW** (Boxplot)        | Factor comparison                | Factor comparison still drives drill-down | Channel distribution              |
+| **FAILURE** (Pareto)      | Category ranking by count/impact | Ranking view when meaningful              | Channel Cpk ranking (worst first) |
+| **VALUE** (Stats/Summary) | Statistical overview             | Capability + Probability lens             | Worst-channel summary             |
 
-In Yamazumi mode, the **VALUE** lens is primary — lean practitioners start with "are we meeting takt?" and "what is our VA ratio?" before drilling into specific waste types. In Capability mode, the **CHANGE** lens is primary — the Cpk trend reveals whether the process is improving or degrading.
+In Capability mode, the **CHANGE** lens is primary — the Cpk trend reveals whether the process is improving or degrading.
+
+> **Note:** Yamazumi mode has been retired (see § 7.1 note). The Yamazumi column has been removed from this table.
 
 ### 7.3 How Factor Intelligence Adapts
 
-Factor Intelligence Layer 1 (Best Subsets R²adj) applies to Standard, Capability, and Performance modes — the data structure is the same (continuous outcome × categorical factors). For Capability mode, the adapter rewords questions: "Which factor affects Cpk?" instead of "Which factor explains variation?"
-
-**Yamazumi mode requires a different approach.** The data is time composition by activity type, not continuous measurements. R²adj ranking does not apply. Instead, a waste composition generator produces lean-specific questions:
-
-1. "Which steps exceed takt time?" (from takt compliance analysis)
-2. "Which waste type dominates?" (from Pareto of waste reasons)
-3. "Is waste increasing over time?" (from I-Chart of waste metric)
-
-The evidence metric changes too: waste contribution percentage replaces R²adj. The question checklist shows "Waste %" badges instead of "R²adj" badges.
+Factor Intelligence Layer 1 (Best Subsets R²adj) applies to Standard, Capability, and Performance modes — the data structure is the same (continuous outcome × categorical factors). For Capability mode, the adapter reframes the ranked factor nodes: "Which factor affects Cpk?" instead of "Which factor explains variation?"
 
 ### 7.4 Principle Preservation
 

@@ -10,8 +10,7 @@ import type { EvidenceCluster } from '@variscout/core/findings';
 function makeCluster(overrides: Partial<EvidenceCluster> = {}): EvidenceCluster {
   return {
     factors: ['Shift', 'Head'],
-    questionIds: ['q1', 'q2', 'q3'],
-    findingIds: ['f1'],
+    findingIds: ['f1', 'f2', 'f3'],
     rSquaredAdj: 0.42,
     ...overrides,
   };
@@ -22,11 +21,11 @@ function makeCluster(overrides: Partial<EvidenceCluster> = {}): EvidenceCluster 
 // ---------------------------------------------------------------------------
 
 describe('SynthesisPrompt', () => {
-  it('renders cluster info: factor names, question count, R\u00b2adj', () => {
+  it('renders cluster info: factor names, finding count, R\u00b2adj', () => {
     render(<SynthesisPrompt cluster={makeCluster()} onNameCause={vi.fn()} onDismiss={vi.fn()} />);
 
     expect(screen.getByText(/Shift \+ Head/)).toBeInTheDocument();
-    expect(screen.getByText(/3 answered questions/)).toBeInTheDocument();
+    expect(screen.getByText(/3 findings/)).toBeInTheDocument();
     expect(screen.getByText(/R\u00b2adj 42%/)).toBeInTheDocument();
   });
 

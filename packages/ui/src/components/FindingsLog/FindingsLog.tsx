@@ -1,17 +1,8 @@
 import React from 'react';
 import { Pin } from 'lucide-react';
-import type {
-  Finding,
-  FindingStatus,
-  FindingTag,
-  Question,
-  ImprovementIdea,
-  IdeaImpact,
-  ProcessContext,
-} from '@variscout/core';
+import type { Finding, FindingStatus, FindingTag, ProcessContext } from '@variscout/core';
 import FindingCard from './FindingCard';
 import FindingBoardView from './FindingBoardView';
-import QuestionTreeView from './QuestionTreeView';
 import FindingsExportMenu from './FindingsExportMenu';
 import type { VoiceInputConfig } from '../VoiceInput';
 
@@ -30,29 +21,8 @@ export interface FindingsLogProps {
   columnAliases?: Record<string, string>;
   /** ID of the finding that matches current active filters (if any) */
   activeFindingId?: string | null;
-  /** View mode: 'list' (flat), 'board' (grouped by status), or 'tree' (question tree) */
-  viewMode?: 'list' | 'board' | 'tree';
-  /** All questions for tree view */
-  questions?: Question[];
-  /** Callback when a question node is selected in tree view */
-  onSelectQuestion?: (question: Question) => void;
-  /** Add a sub-question under a parent */
-  onAddSubQuestion?: (
-    parentId: string,
-    text: string,
-    factor?: string,
-    validationType?: 'data' | 'gemba' | 'expert'
-  ) => void;
-  /** Available factor columns for sub-question factor picker */
-  factors?: string[];
-  /** Get children summary for tree display */
-  getChildrenSummary?: (parentId: string) => {
-    answered: number;
-    'ruled-out': number;
-    open: number;
-    investigating: number;
-    total: number;
-  };
+  /** View mode: 'list' (flat) or 'board' (grouped by status). */
+  viewMode?: 'list' | 'board';
   /** Change finding investigation status */
   onSetFindingStatus?: (id: string, status: FindingStatus) => void;
   /** Set a finding's classification tag */
@@ -79,12 +49,6 @@ export interface FindingsLogProps {
   onNavigateToChart?: (source: import('@variscout/core').FindingSource) => void;
   /** Maximum statuses to show in status badge dropdown (3=PWA, 5=Azure). Default: all. */
   maxStatuses?: number;
-  /** Link a question to a finding */
-  onLinkQuestion?: (findingId: string, questionId: string) => void;
-  /** Create a new question and link to a finding */
-  onCreateQuestion?: (findingId: string, text: string, factor?: string, level?: string) => void;
-  /** Map of question IDs to question objects for display */
-  questionsMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   /** Add an action item */
   onAddAction?: (
     id: string,
@@ -114,35 +78,8 @@ export interface FindingsLogProps {
   onProjectImprovement?: (findingId: string) => void;
   /** Whether spec limits exist (affects projection display metrics) */
   hasSpecs?: boolean;
-  // --- Validation Task (passed through to QuestionTreeView) ---
-  onSetValidationTask?: (id: string, task: string) => void;
-  onCompleteTask?: (id: string) => void;
-  onSetManualStatus?: (
-    id: string,
-    status: import('@variscout/core').QuestionStatus,
-    note?: string
-  ) => void;
-  // --- Improvement Ideas (passed through to QuestionTreeView) ---
-  ideaImpacts?: Record<string, IdeaImpact | undefined>;
-  onAddIdea?: (questionId: string, text: string) => void;
-  onUpdateIdea?: (
-    questionId: string,
-    ideaId: string,
-    updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
-  ) => void;
-  onRemoveIdea?: (questionId: string, ideaId: string) => void;
-  onSelectIdea?: (questionId: string, ideaId: string, selected: boolean) => void;
-  onProjectIdea?: (questionId: string, ideaId: string) => void;
-  onAskCoScout?: (question: string) => void;
-  /** Set cause role on a question */
-  onSetCauseRole?: (
-    questionId: string,
-    role: 'suspected-cause' | 'contributing' | 'ruled-out' | undefined
-  ) => void;
   /** Ask CoScout about a specific finding (from FindingCard action button) */
-  onAskCoScoutAboutFinding?: (focusContext: {
-    finding: { text: string; status: string; question?: string };
-  }) => void;
+  onAskCoScoutAboutFinding?: (focusContext: { finding: { text: string; status: string } }) => void;
   /** Process context for JSON export */
   processContext?: ProcessContext;
   /** Callback for AI report generation (requires AI endpoint) */
@@ -171,11 +108,6 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   columnAliases,
   activeFindingId,
   viewMode = 'list',
-  questions,
-  onSelectQuestion,
-  onAddSubQuestion,
-  factors,
-  getChildrenSummary,
   onSetFindingStatus,
   onSetFindingTag,
   onAddComment,
@@ -189,9 +121,6 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   renderAssignSlot,
   onNavigateToChart,
   maxStatuses,
-  onLinkQuestion,
-  onCreateQuestion,
-  questionsMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -199,17 +128,6 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onProjectImprovement,
   hasSpecs,
   renderActionAssigneePicker,
-  onSetValidationTask,
-  onCompleteTask,
-  onSetManualStatus,
-  ideaImpacts,
-  onAddIdea,
-  onUpdateIdea,
-  onRemoveIdea,
-  onSelectIdea,
-  onProjectIdea,
-  onAskCoScout,
-  onSetCauseRole,
   onAskCoScoutAboutFinding,
   processContext,
   onGenerateAIReport,
@@ -218,33 +136,6 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   linkedFindings,
   voiceInput,
 }) => {
-  // Tree view renders questions even without findings — show tree before empty guard
-  if (viewMode === 'tree' && questions && questions.length > 0) {
-    return (
-      <div className={`flex-1 min-h-0 flex flex-col ${className ?? ''}`}>
-        <QuestionTreeView
-          questions={questions}
-          findings={findings}
-          onSelectQuestion={onSelectQuestion}
-          onAddSubQuestion={onAddSubQuestion}
-          factors={factors}
-          getChildrenSummary={getChildrenSummary}
-          onSetValidationTask={onSetValidationTask}
-          onCompleteTask={onCompleteTask}
-          onSetManualStatus={onSetManualStatus}
-          ideaImpacts={ideaImpacts}
-          onAddIdea={onAddIdea}
-          onUpdateIdea={onUpdateIdea}
-          onRemoveIdea={onRemoveIdea}
-          onSelectIdea={onSelectIdea}
-          onProjectIdea={onProjectIdea}
-          onAskCoScout={onAskCoScout}
-          onSetCauseRole={onSetCauseRole}
-        />
-      </div>
-    );
-  }
-
   if (findings.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
@@ -282,9 +173,6 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           renderAssignSlot={renderAssignSlot}
           onNavigateToChart={onNavigateToChart}
           maxStatuses={maxStatuses}
-          onLinkQuestion={onLinkQuestion}
-          onCreateQuestion={onCreateQuestion}
-          questionsMap={questionsMap}
           synthesis={synthesis}
           linkedFindings={linkedFindings}
           projectedCpkMap={projectedCpkMap}
@@ -303,7 +191,6 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
       <div className="flex items-center justify-end px-3 pt-2 pb-0">
         <FindingsExportMenu
           findings={findings}
-          questions={questions}
           processContext={processContext}
           onGenerateAIReport={onGenerateAIReport}
           columnAliases={columnAliases}
@@ -332,9 +219,6 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
             renderAssignSlot={renderAssignSlot?.(finding.id)}
             onNavigateToChart={onNavigateToChart}
             maxStatuses={maxStatuses}
-            onLinkQuestion={onLinkQuestion}
-            onCreateQuestion={onCreateQuestion}
-            questionsMap={questionsMap}
             onAddAction={onAddAction}
             onCompleteAction={onCompleteAction}
             onDeleteAction={onDeleteAction}

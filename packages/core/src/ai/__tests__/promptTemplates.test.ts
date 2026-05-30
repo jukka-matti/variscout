@@ -18,7 +18,7 @@ import {
 } from '../prompts/coScout/legacy';
 import { narrationResponseSchema, chartInsightResponseSchema } from '../schemas';
 import type { AIContext, CoScoutMessage } from '../types';
-import type { Finding, Question } from '../../findings';
+import type { Finding } from '../../findings';
 
 describe('buildNarrationSystemPrompt', () => {
   it('returns a system prompt string', () => {
@@ -1331,19 +1331,6 @@ describe('buildReportPrompt', () => {
     tag: 'key-driver',
     comments: [],
     statusChangedAt: 1714000000000,
-    questionId: 'q1',
-  };
-
-  const mockQuestion: Question = {
-    id: 'q1',
-    text: 'Machine B calibration drift',
-    factor: 'Machine',
-    status: 'answered',
-    linkedFindingIds: ['f1'],
-    createdAt: 1714000000000,
-    updatedAt: 1714000000000,
-    investigationId: 'inv-test-001',
-    deletedAt: null,
   };
 
   it('includes process description when provided', () => {
@@ -1351,7 +1338,7 @@ describe('buildReportPrompt', () => {
       process: { description: 'Fill weight on Line 3' },
       filters: [],
     };
-    const prompt = buildReportPrompt(ctx, [], []);
+    const prompt = buildReportPrompt(ctx, []);
     expect(prompt).toContain('Fill weight on Line 3');
     expect(prompt).toContain('## Process');
   });
@@ -1361,7 +1348,7 @@ describe('buildReportPrompt', () => {
       process: { issueStatement: 'Yield dropping in Q1' },
       filters: [],
     };
-    const prompt = buildReportPrompt(ctx, [], []);
+    const prompt = buildReportPrompt(ctx, []);
     expect(prompt).toContain('Yield dropping in Q1');
     expect(prompt).toContain('## Issue / Concern');
   });
@@ -1376,7 +1363,7 @@ describe('buildReportPrompt', () => {
       },
       filters: [],
     };
-    const prompt = buildReportPrompt(ctx, [], []);
+    const prompt = buildReportPrompt(ctx, []);
     expect(prompt).toContain('## Current Understanding');
     expect(prompt).toContain('Problem condition: Cpk is 0.87 against target 1.33.');
     expect(prompt).toContain('## Approved Problem Statement');
@@ -1389,7 +1376,7 @@ describe('buildReportPrompt', () => {
       filters: [],
       stats: { mean: 10.5, stdDev: 0.5, samples: 100, cpk: 1.1 },
     };
-    const prompt = buildReportPrompt(ctx, [], []);
+    const prompt = buildReportPrompt(ctx, []);
     expect(prompt).toContain('Mean=10.50');
     expect(prompt).toContain('Cpk=1.10');
     expect(prompt).toContain('## Current Statistics');
@@ -1397,23 +1384,24 @@ describe('buildReportPrompt', () => {
 
   it('includes findings in the prompt', () => {
     const ctx: AIContext = { process: {}, filters: [] };
-    const prompt = buildReportPrompt(ctx, [mockFinding], [mockQuestion]);
+    const prompt = buildReportPrompt(ctx, [mockFinding]);
     expect(prompt).toContain('High variation in Machine B');
     expect(prompt).toContain('ANALYZED');
     expect(prompt).toContain('key-driver');
     expect(prompt).toContain('## Findings');
   });
 
-  it('resolves question text for findings', () => {
+  it('includes filter context for findings (ADR-085: no questionId cross-reference)', () => {
     const ctx: AIContext = { process: {}, filters: [] };
-    const prompt = buildReportPrompt(ctx, [mockFinding], [mockQuestion]);
-    expect(prompt).toContain('Machine B calibration drift');
-    expect(prompt).toContain('answered');
+    const prompt = buildReportPrompt(ctx, [mockFinding]);
+    // Finding text and filter context should be present
+    expect(prompt).toContain('High variation in Machine B');
+    expect(prompt).toContain('Machine');
   });
 
   it('includes cpk from finding context', () => {
     const ctx: AIContext = { process: {}, filters: [] };
-    const prompt = buildReportPrompt(ctx, [mockFinding], []);
+    const prompt = buildReportPrompt(ctx, [mockFinding]);
     expect(prompt).toContain('Cpk: 0.85');
   });
 
@@ -1426,7 +1414,7 @@ describe('buildReportPrompt', () => {
       createdAt: mockFinding.createdAt + 1000,
     };
     const ctx: AIContext = { process: {}, filters: [] };
-    const prompt = buildReportPrompt(ctx, [regularFinding, mockFinding], []);
+    const prompt = buildReportPrompt(ctx, [regularFinding, mockFinding]);
     const keyDriverPos = prompt.indexOf('High variation in Machine B');
     const regularPos = prompt.indexOf('Regular observation');
     expect(keyDriverPos).toBeLessThan(regularPos);
@@ -1440,13 +1428,13 @@ describe('buildReportPrompt', () => {
       tag: undefined,
     }));
     const ctx: AIContext = { process: {}, filters: [] };
-    const prompt = buildReportPrompt(ctx, manyFindings, []);
+    const prompt = buildReportPrompt(ctx, manyFindings);
     expect(prompt).toContain('20 of 25');
   });
 
   it('includes report generation instructions', () => {
     const ctx: AIContext = { process: {}, filters: [] };
-    const prompt = buildReportPrompt(ctx, [], []);
+    const prompt = buildReportPrompt(ctx, []);
     expect(prompt).toContain('Executive Summary');
     expect(prompt).toContain('Contributing Factors');
     expect(prompt).not.toContain('Root Causes');
@@ -1455,7 +1443,7 @@ describe('buildReportPrompt', () => {
 
   it('handles empty findings and questions gracefully', () => {
     const ctx: AIContext = { process: {}, filters: [] };
-    const prompt = buildReportPrompt(ctx, [], []);
+    const prompt = buildReportPrompt(ctx, []);
     expect(typeof prompt).toBe('string');
     expect(prompt).toContain('## Findings (0 of 0)');
   });
@@ -1471,7 +1459,7 @@ describe('buildReportPrompt', () => {
       },
     };
     const ctx: AIContext = { process: {}, filters: [] };
-    const prompt = buildReportPrompt(ctx, [findingWithOutcome], []);
+    const prompt = buildReportPrompt(ctx, [findingWithOutcome]);
     expect(prompt).toContain('Outcome: yes');
     expect(prompt).toContain('Cpk after: 1.45');
   });

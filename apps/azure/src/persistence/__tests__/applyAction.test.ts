@@ -603,9 +603,9 @@ describe('applyAction — session-only no-ops', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('QUESTION_ARCHIVE resolves cleanly', async () => {
+  it('SCOPE_ARCHIVE resolves cleanly', async () => {
     await expect(
-      applyAction({ kind: 'QUESTION_ARCHIVE', questionId: 'q-1' })
+      applyAction({ kind: 'SCOPE_ARCHIVE', scopeId: 'scope-1' })
     ).resolves.toBeUndefined();
   });
 
@@ -833,9 +833,9 @@ describe('exhaustiveness — every HubAction kind has a handler', () => {
     { kind: 'FINDING_ADD', investigationId: 'inv-x', finding: { id: 'f-1' } } as HubAction,
     { kind: 'FINDING_UPDATE', findingId: 'f-1', patch: {} } as HubAction,
     { kind: 'FINDING_ARCHIVE', findingId: 'f-1' },
-    { kind: 'QUESTION_ADD', investigationId: 'inv-x', question: { id: 'q-1' } } as HubAction,
-    { kind: 'QUESTION_UPDATE', questionId: 'q-1', patch: {} } as HubAction,
-    { kind: 'QUESTION_ARCHIVE', questionId: 'q-1' },
+    { kind: 'SCOPE_ADD', investigationId: 'inv-x', scope: { id: 'scope-1' } } as HubAction,
+    { kind: 'SCOPE_UPDATE', scopeId: 'scope-1', patch: {} } as HubAction,
+    { kind: 'SCOPE_ARCHIVE', scopeId: 'scope-1' },
     { kind: 'CAUSAL_LINK_ADD', investigationId: 'inv-x', link: { id: 'link-1' } } as HubAction,
     { kind: 'CAUSAL_LINK_UPDATE', linkId: 'link-1', patch: {} } as HubAction,
     { kind: 'CAUSAL_LINK_ARCHIVE', linkId: 'link-1' },

@@ -1,32 +1,13 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { ProcessContext, Question, Hypothesis } from '@variscout/core';
+import type { ProcessContext, Hypothesis } from '@variscout/core';
 import { useCurrentUnderstanding } from '../useCurrentUnderstanding';
-
-function makeQuestion(overrides: Partial<Question> = {}): Question {
-  return {
-    id: 'q-1',
-    text: 'Does Shift explain the high fill weight?',
-    status: 'answered',
-    linkedFindingIds: [],
-    createdAt: 1714000000000,
-    updatedAt: 1714000000000,
-    deletedAt: null,
-    investigationId: 'inv-test-001',
-    causeRole: 'suspected-cause',
-    factor: 'Shift',
-    level: 'Night',
-    evidence: { etaSquared: 0.34 },
-    ...overrides,
-  };
-}
 
 function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
     id: 'hub-1',
     name: 'Changeover setup',
     synthesis: 'The first hour after changeover shows the highest mean shift.',
-    questionIds: ['q-1'],
     findingIds: [],
     selectedForImprovement: false,
     status: 'proposed',
@@ -56,7 +37,6 @@ describe('useCurrentUnderstanding', () => {
           draft: null,
           generatedDraft: null,
         },
-        questions: [makeQuestion()],
         hypothesisHubs: [makeHub()],
       })
     );
@@ -100,7 +80,6 @@ describe('useCurrentUnderstanding', () => {
         useCurrentUnderstanding({
           processContext: context,
           stats: { cpk: 0.87 },
-          questions: [makeQuestion()],
           onCurrentUnderstandingChange,
         }),
       { initialProps: { context: processContext } }
@@ -130,7 +109,7 @@ describe('useCurrentUnderstanding', () => {
     expect(onCurrentUnderstandingChange).toHaveBeenCalledTimes(2);
   });
 
-  it('uses suspected-cause questions as mechanisms before hubs are named', () => {
+  it('uses hypothesis hubs as mechanisms', () => {
     const { result } = renderHook(() =>
       useCurrentUnderstanding({
         processContext: {
@@ -139,12 +118,11 @@ describe('useCurrentUnderstanding', () => {
           targetValue: 98,
         },
         stats: { yield: 92 },
-        questions: [
-          makeQuestion({
-            factor: 'Shift',
-            level: 'Night',
-            text: 'Night shift has lower yield',
-            evidence: { rSquaredAdj: 0.22 },
+        hypothesisHubs: [
+          makeHub({
+            id: 'hub-shift',
+            name: 'Shift effect',
+            synthesis: 'Night shift has lower yield',
           }),
         ],
       })
@@ -152,10 +130,9 @@ describe('useCurrentUnderstanding', () => {
 
     expect(result.current.currentUnderstanding?.activeSuspectedMechanisms).toEqual([
       {
-        id: 'q-1',
-        name: 'Shift = Night',
+        id: 'hub-shift',
+        name: 'Shift effect',
         synthesis: 'Night shift has lower yield',
-        evidenceLabel: 'R2adj 22%',
       },
     ]);
   });

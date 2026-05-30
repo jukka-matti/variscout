@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useReportSections } from '../useReportSections';
-import type { Finding, Question } from '@variscout/core';
+import type { Finding } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -23,23 +23,8 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   };
 }
 
-function makeQuestion(overrides: Partial<Question> = {}): Question {
-  return {
-    id: 'q-1',
-    text: 'Test question',
-    status: 'open',
-    linkedFindingIds: [],
-    createdAt: 1714000000000,
-    updatedAt: 1714000000000,
-    deletedAt: null,
-    investigationId: 'inv-test-001',
-    ...overrides,
-  };
-}
-
 const baseOptions = {
   findings: [] as Finding[],
-  questions: [] as Question[],
   stagedComparison: false,
   aiEnabled: false,
 };
@@ -297,20 +282,11 @@ describe('useReportSections — section ordering', () => {
 // ---------------------------------------------------------------------------
 
 describe('useReportSections — evidence trail title', () => {
-  it('uses default title when no questions', () => {
+  it('uses default title for analysis with findings', () => {
     const findings = [makeFinding()];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
     const evidenceSection = result.current.sections.find(s => s.id === 'evidence-trail');
     expect(evidenceSection?.title).toBe('Why is this happening?');
-  });
-
-  it('uses question text in title when questions exist', () => {
-    const findings = [makeFinding()];
-    const questions = [makeQuestion({ text: 'machine vibration' })];
-    const { result } = renderHook(() => useReportSections({ ...baseOptions, findings, questions }));
-    const evidenceSection = result.current.sections.find(s => s.id === 'evidence-trail');
-    expect(evidenceSection?.title).toMatch(/^What causes/);
-    expect(evidenceSection?.title).toContain('machine vibration');
   });
 
   it('improvement-story evidence trail uses "What did we find?" title', () => {

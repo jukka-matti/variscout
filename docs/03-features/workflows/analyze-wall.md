@@ -6,7 +6,16 @@ audience: human
 category: workflow
 status: active
 last-reviewed: 2026-04-29
-related: [investigation-spine, evidence-map, suspected-cause, question-driven-eda, hmw-brainstorm]
+related:
+  [
+    investigation-spine,
+    evidence-map,
+    problem-statement-scope,
+    hypothesis,
+    hmw-brainstorm,
+    adr-085,
+    adr-086,
+  ]
 layer: L3
 kind: ui
 serves:
@@ -16,7 +25,7 @@ serves:
 
 # Investigation Wall
 
-The Investigation Wall is a hypothesis-centric projection of the investigation graph. Where the Evidence Map asks _"which factors matter?"_, the Wall asks _"which hypotheses are we betting on, what evidence holds them, and what's missing?"_ Both are projections of the same `SuspectedCause + CausalLink + Finding + Question` graph — same data, different lens.
+The Investigation Wall is a hypothesis-centric projection of the investigation graph. Where the Evidence Map asks _"which factors contribute to variation?"_, the Wall asks _"which hypotheses are we betting on, what evidence holds them, and what's missing?"_ Both are projections of the same `ProblemStatementScope + Hypothesis + CausalLink + Finding` graph — same data, different lens. See [ADR-085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md) and [ADR-086](../../07-decisions/adr-086-unified-investigation-canvas.md).
 
 ## What the Wall does
 
@@ -26,13 +35,13 @@ The Wall turns suspected causes into **disconfirmable claims**, not labels. It s
 
 Five horizontal bands stack vertically inside the Investigation workspace canvas:
 
-| Band                 | Contents                                                                                                                                                                    |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Problem**          | Problem condition card — CTS column, live Cpk, events/wk                                                                                                                    |
-| **Waterline**        | Dashed labeled divider                                                                                                                                                      |
-| **Hypothesis**       | Hub cards with embedded interactive mini-charts and status-tinted borders; question pills; AND / OR / NOT gate nodes connecting down from Problem into convergence branches |
-| **Evidence**         | Finding chips, gemba chips, best-subsets suggestion cards, tethered by dashed lines to their parent hub                                                                     |
-| **Tributary footer** | Live chip row from `processMap.tributaries`; each chip labeled with column and referencing hypotheses (derived); orphan tributaries dimmed                                  |
+| Band                 | Contents                                                                                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Problem**          | Problem condition card — CTS column, live Cpk, events/wk                                                                                                                        |
+| **Waterline**        | Dashed labeled divider                                                                                                                                                          |
+| **Hypothesis**       | Hypothesis cards with embedded interactive mini-charts and `Hypothesis.status`-tinted borders; AND / OR / NOT gate nodes connecting down from Problem into convergence branches |
+| **Evidence**         | Finding chips, gemba chips, best-subsets suggestion cards, tethered by dashed lines to their parent hub                                                                         |
+| **Tributary footer** | Live chip row from `processMap.tributaries`; each chip labeled with column and referencing hypotheses (derived); orphan tributaries dimmed                                      |
 
 A collapsed "missing evidence" digest bar sits below the canvas. Per-hypothesis warning badges are the primary gap signal; the digest bar is a secondary expandable list.
 
@@ -65,9 +74,10 @@ The Investigation workspace has a `Map | Wall` view toggle in its header (persis
 
 | Surface            | Lens               | Best for                                                                 |
 | ------------------ | ------------------ | ------------------------------------------------------------------------ |
-| Evidence Map       | Factor-centric     | "Which columns / factors explain variation?"                             |
+| Evidence Map       | Factor-centric     | "Which columns / factors contribute to variation?"                       |
 | Investigation Wall | Hypothesis-centric | "What hypotheses do we hold, what backs each, what would contradict it?" |
-| Question framework | Question-centric   | "What are we trying to answer, and have we answered it yet?"             |
+
+> **Note (ADR-085):** The Question framework is no longer a third projection surface. `Question` as a tracked entity has been retired; question generation is transient ranked factor-node metadata. The Wall subsumes the completeness-tracking role the question checklist previously played.
 
 ## Interactions
 
@@ -85,4 +95,4 @@ Azure-only (single €120 SKU). Shipped via PRs #75 and #76, merged 2026-04-24. 
 - [Investigation Wall design spec](../../superpowers/specs/2026-04-19-investigation-wall-design.md) — full design, including non-goals (live presence, per-step Cpk).
 - [Evidence Map design](../../archive/specs/2026-04-05-evidence-map-design.md) — the factor-centric companion projection.
 - [Investigation Spine](../../superpowers/specs/2026-04-04-investigation-spine-design.md) — three threads, the methodology backbone the Wall plugs into.
-- [Methodology — three projections](../../01-vision/methodology.md) — how Map / Wall / Question framework relate as projections of one graph.
+- [Methodology — two projections](../../01-vision/methodology.md) — how Map / Wall relate as projections of one investigation graph (ADR-085/ADR-086).

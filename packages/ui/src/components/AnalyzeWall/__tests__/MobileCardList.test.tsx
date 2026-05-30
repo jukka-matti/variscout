@@ -1,13 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MobileCardList } from '../MobileCardList';
-import type { Hypothesis, Finding, Question } from '@variscout/core';
+import type { Hypothesis, Finding } from '@variscout/core';
 
 const makeHub = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   id: 'h1',
   name: 'Nozzle runs hot',
   synthesis: '',
-  questionIds: [],
   findingIds: [],
   status: 'proposed',
   createdAt: 1,
@@ -21,7 +20,6 @@ const hubA: Hypothesis = makeHub({
   id: 'hA',
   name: 'Nozzle runs hot',
   findingIds: ['f1', 'f2', 'f3'],
-  questionIds: ['q1'],
   status: 'confirmed',
 });
 
@@ -29,19 +27,18 @@ const hubB: Hypothesis = makeHub({
   id: 'hB',
   name: 'Operator variance',
   findingIds: [],
-  questionIds: [],
   status: 'proposed',
 });
 
 describe('MobileCardList', () => {
   it('renders one card per hub with a data-testid per hub id', () => {
-    render(<MobileCardList hubs={[hubA, hubB]} findings={[]} questions={[]} />);
+    render(<MobileCardList hubs={[hubA, hubB]} findings={[]} />);
     expect(screen.getByTestId('wall-mobile-hub-hA')).toBeInTheDocument();
     expect(screen.getByTestId('wall-mobile-hub-hB')).toBeInTheDocument();
   });
 
   it('shows status label derived from hub.status (Confirmed)', () => {
-    render(<MobileCardList hubs={[hubA]} findings={[]} questions={[]} />);
+    render(<MobileCardList hubs={[hubA]} findings={[]} />);
     const card = screen.getByTestId('wall-mobile-hub-hA');
     expect(card).toHaveAttribute('data-status', 'confirmed');
     expect(card.textContent).toMatch(/Confirmed/);
@@ -53,7 +50,7 @@ describe('MobileCardList', () => {
       status: 'needs-disconfirmation',
     });
 
-    render(<MobileCardList hubs={[hub]} findings={[]} questions={[]} />);
+    render(<MobileCardList hubs={[hub]} findings={[]} />);
 
     const card = screen.getByTestId('wall-mobile-hub-h-needs-disconfirmation');
     expect(card).toHaveAttribute('data-status', 'needs-disconfirmation');
@@ -64,27 +61,32 @@ describe('MobileCardList', () => {
     const findings: Finding[] = [
       {
         id: 'f1',
-        source: { kind: 'boxplot', column: 'SHIFT' },
-        summary: 's',
-        createdAt: '',
+        text: 'SHIFT finding',
+        createdAt: 1,
+        deletedAt: null,
+        investigationId: 'inv-test',
+        context: { activeFilters: {}, cumulativeScope: null },
+        evidenceType: 'data',
+        status: 'observed',
+        comments: [],
+        statusChangedAt: 1,
         validationStatus: 'supports',
       } as unknown as Finding,
     ];
     const hub = makeHub({ id: 'h-ev', findingIds: ['f1'], status: 'evidenced' });
-    render(<MobileCardList hubs={[hub]} findings={findings} questions={[]} />);
+    render(<MobileCardList hubs={[hub]} findings={findings} />);
     expect(screen.getByTestId('wall-mobile-hub-h-ev')).toHaveAttribute('data-status', 'evidenced');
   });
 
   it('renders findings count via i18n', () => {
-    render(<MobileCardList hubs={[hubA]} findings={[]} questions={[]} />);
+    render(<MobileCardList hubs={[hubA]} findings={[]} />);
     expect(screen.getByTestId('wall-mobile-hub-hA-findings')).toHaveTextContent('3 findings');
   });
 
-  it('renders structured branch sections with clues, checks, readiness, and next move', () => {
+  it('renders structured branch sections with clues, readiness, and next move', () => {
     const branchHub = makeHub({
       id: 'h-branch',
       findingIds: ['f1', 'f2'],
-      questionIds: ['q1'],
       nextMove: 'Run a late-shift temperature check.',
     });
     const findings: Finding[] = [
@@ -115,47 +117,24 @@ describe('MobileCardList', () => {
         validationStatus: 'contradicts',
       },
     ];
-    const questions: Question[] = [
-      {
-        id: 'q1',
-        text: 'Check nozzle temperature after four hours',
-        status: 'open',
-        linkedFindingIds: [],
-        createdAt: 1,
-        updatedAt: 1,
-        deletedAt: null,
-        investigationId: 'inv-test',
-      },
-    ];
 
-    render(<MobileCardList hubs={[branchHub]} findings={findings} questions={questions} />);
+    render(<MobileCardList hubs={[branchHub]} findings={findings} />);
 
     expect(screen.getByText(/Mechanism Branch/i)).toBeInTheDocument();
     expect(screen.getByText(/1 supporting clue/i)).toBeInTheDocument();
     expect(screen.getByText(/1 counter-clue/i)).toBeInTheDocument();
-    expect(screen.getByText(/1 open check/i)).toBeInTheDocument();
-    expect(screen.getByText(/Needs check/i)).toBeInTheDocument();
     expect(screen.getByText(/Next: Run a late-shift temperature check/i)).toBeInTheDocument();
-  });
-
-  it('renders linked question count from hub.questionIds.length', () => {
-    render(<MobileCardList hubs={[hubA]} findings={[]} questions={[] as Question[]} />);
-    // hubA has one linked question
-    expect(screen.getByTestId('wall-mobile-hub-hA-questions')).toHaveTextContent('1 questions');
-    // hubB has zero
-    render(<MobileCardList hubs={[hubB]} findings={[]} questions={[] as Question[]} />);
-    expect(screen.getByTestId('wall-mobile-hub-hB-questions')).toHaveTextContent('0 questions');
   });
 
   it('fires onSelectHub when a card is clicked', () => {
     const onSelectHub = vi.fn();
-    render(<MobileCardList hubs={[hubA]} findings={[]} questions={[]} onSelectHub={onSelectHub} />);
+    render(<MobileCardList hubs={[hubA]} findings={[]} onSelectHub={onSelectHub} />);
     fireEvent.click(screen.getByTestId('wall-mobile-hub-hA'));
     expect(onSelectHub).toHaveBeenCalledWith('hA');
   });
 
   it('shows the EmptyState when hubs is empty', () => {
-    render(<MobileCardList hubs={[]} findings={[]} questions={[]} />);
+    render(<MobileCardList hubs={[]} findings={[]} />);
     expect(screen.queryByTestId('wall-mobile-card-list')).toBeNull();
     // EmptyState heading comes from the shared component
     expect(screen.getByText(/Start a Mechanism Branch/i)).toBeInTheDocument();

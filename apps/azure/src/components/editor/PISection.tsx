@@ -20,7 +20,6 @@ import { GripVertical } from 'lucide-react';
 import {
   PIPanelBase,
   StatsTabContent,
-  QuestionsTabContent,
   JournalTabContent,
   SurveyNotebookBase,
   DocumentShelfBase,
@@ -35,9 +34,8 @@ import {
   useAnalysisStats,
   useDocumentShelf,
 } from '@variscout/hooks';
-import type { UseFindingsReturn, UseQuestionsReturn } from '@variscout/hooks';
+import type { UseFindingsReturn } from '@variscout/hooks';
 import type { BestSubsetsResult, FactorMainEffect } from '@variscout/core/stats';
-import type { Question } from '@variscout/core/findings';
 import { evaluateSurvey, isPreviewEnabled } from '@variscout/core';
 import type { SurveyRecommendation } from '@variscout/core/survey';
 import { useAnalyzeStore, useProjectStore } from '@variscout/stores';
@@ -58,18 +56,14 @@ const PI_SIDEBAR_DEFAULT = 320;
 // ---------------------------------------------------------------------------
 
 export interface PISectionProps {
-  /** Pre-computed best subsets from useQuestionGeneration — avoids double computation */
+  /** Pre-computed best subsets (Factor Intelligence) — avoids double computation */
   bestSubsets: BestSubsetsResult | null;
-  /** Per-question projected Cpk map from useQuestionGeneration */
+  /** Per-finding projected Cpk map */
   projectedCpkMap: Record<string, number>;
-  /** Called when a question row is clicked (navigates chart focus) */
-  handleQuestionClick: (q: Question) => void;
   /** Called when "Investigate" is clicked on a Factor Intelligence factor */
   onInvestigateFactor?: (effect: FactorMainEffect) => void;
   /** Journey phase badge text from useJourneyPhase (e.g. "INVESTIGATE") */
   phaseBadge?: string;
-  /** Questions state from useQuestions — used for add/link callbacks */
-  questionsState: UseQuestionsReturn;
   /** Findings state from useFindings — used for add observation callback */
   findingsState: UseFindingsReturn;
   /** Project ID for Document Shelf scoping */
@@ -82,12 +76,10 @@ export interface PISectionProps {
 
 export const PISection: React.FC<PISectionProps> = ({
   bestSubsets,
-  projectedCpkMap,
-  handleQuestionClick,
+  projectedCpkMap: _projectedCpkMap,
   onInvestigateFactor,
-  phaseBadge,
-  questionsState,
-  findingsState,
+  phaseBadge: _phaseBadge,
+  findingsState: _findingsState,
   projectId,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
@@ -99,7 +91,6 @@ export const PISection: React.FC<PISectionProps> = ({
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
   const timeColumn = useProjectStore(s => s.timeColumn);
-  const filters = useProjectStore(s => s.filters);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
   const processContext = useProjectStore(s => s.processContext);
@@ -108,17 +99,8 @@ export const PISection: React.FC<PISectionProps> = ({
 
   // Panel visibility and tab state from panelsStore
   const isPISidebarOpen = usePanelsStore(s => s.isPISidebarOpen);
-  const highlightedFactor = usePanelsStore(s => s.highlightedFactor);
   const piActiveTab = usePanelsStore(s => s.piActiveTab);
   const setPIActiveTab = usePanelsStore(s => s.setPIActiveTab);
-
-  // Open question count for badge
-  const openQuestionCount = useMemo(
-    () =>
-      questionsState.questions.filter(q => q.status === 'open' || q.status === 'investigating')
-        .length,
-    [questionsState.questions]
-  );
 
   // Sidebar resize
   const piSidebar = useResizablePanel(
@@ -166,8 +148,7 @@ export const PISection: React.FC<PISectionProps> = ({
         specs,
         defectMapping,
         processContext: processContext ?? undefined,
-        questions: questionsState.questions,
-        findings: findingsState.findings,
+        findings: _findingsState.findings,
         branches: hypotheses,
       }),
     [
@@ -178,8 +159,7 @@ export const PISection: React.FC<PISectionProps> = ({
       specs,
       defectMapping,
       processContext,
-      questionsState.questions,
-      findingsState.findings,
+      _findingsState.findings,
       hypotheses,
     ]
   );
@@ -189,33 +169,6 @@ export const PISection: React.FC<PISectionProps> = ({
       ...(processContext ?? {}),
       nextMove: recommendation.actionText,
     });
-  };
-
-  // Callbacks for QuestionsTabContent
-  const handleAddQuestion = (text: string): void => {
-    questionsState.addQuestion(text);
-  };
-
-  const handleAddObservation = (text: string): void => {
-    const newFinding = findingsState.addFinding(text, {
-      activeFilters: filters,
-      cumulativeScope: null,
-      stats: stats
-        ? {
-            mean: stats.mean,
-            median: stats.median,
-            cpk: stats.cpk ?? undefined,
-            samples: filteredData?.length ?? 0,
-          }
-        : undefined,
-    });
-    if (questionsState.focusedQuestionId) {
-      questionsState.linkFinding(questionsState.focusedQuestionId, newFinding.id);
-    }
-  };
-
-  const handleLinkObservation = (findingId: string, questionId: string): void => {
-    questionsState.linkFinding(questionId, findingId);
   };
 
   // Don't render on phone or when closed
@@ -235,25 +188,6 @@ export const PISection: React.FC<PISectionProps> = ({
           onEditSpecs={() => setIsEditingSpecs(true)}
           onInvestigateFactor={onInvestigateFactor}
           showCpk={true}
-        />
-      ),
-    },
-    {
-      id: 'questions',
-      label: 'Questions',
-      badge: openQuestionCount,
-      content: (
-        <QuestionsTabContent
-          bestSubsets={bestSubsets}
-          projectedCpkMap={projectedCpkMap}
-          phaseBadge={phaseBadge}
-          onQuestionClick={handleQuestionClick}
-          onAddQuestion={handleAddQuestion}
-          onAddObservation={handleAddObservation}
-          onLinkObservation={handleLinkObservation}
-          highlightedFactor={highlightedFactor}
-          onClearHighlight={() => usePanelsStore.getState().setHighlightedFactor(null)}
-          onNavigateToInvestigation={() => usePanelsStore.getState().showAnalyze()}
         />
       ),
     },

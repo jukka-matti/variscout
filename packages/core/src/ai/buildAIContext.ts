@@ -11,7 +11,7 @@
 
 import type { AIContext, ProcessContext, TargetMetric, AnalyzePhase } from './types';
 import type { InsightChartType } from './chartInsights';
-import type { Finding, Question, AnalyzeCategory, Hypothesis } from '../findings';
+import type { Finding, AnalyzeCategory, Hypothesis } from '../findings';
 import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { computeOptimum } from '../stats/safeMath';
@@ -50,9 +50,9 @@ export interface BuildAIContextOptions {
     nelsonRule3Count?: number;
   };
   findings?: Finding[];
-  /** Questions for investigation context */
-  questions?: Question[];
-  /** ID of the question currently focused in the PI panel */
+  /** Retired Question list (ADR-085) — accepted + ignored for call-site stability. */
+  questions?: readonly unknown[];
+  /** Retired (ADR-085) — accepted + ignored. */
   focusedQuestionId?: string;
   /** Investigation progress data */
   investigationProgress?: {
@@ -108,9 +108,9 @@ export interface BuildAIContextOptions {
   hypotheses?: Hypothesis[];
   /** R²adj-weighted coverage percentage (0-100) */
   coveragePercent?: number;
-  /** Number of questions that have been checked (answered or ruled-out) */
+  /** Retired (ADR-085) — accepted + ignored. */
   questionsChecked?: number;
-  /** Total number of questions in the investigation */
+  /** Retired (ADR-085) — accepted + ignored. */
   questionsTotal?: number;
   /** Problem statement maturity stage */
   problemStatementStage?: 'partial' | 'actionable' | 'with-causes';
@@ -140,8 +140,6 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     categories: categoriesOpt,
     violations,
     findings,
-    questions,
-    focusedQuestionId,
     investigationProgress,
     activeChart,
     variationContributions,
@@ -358,16 +356,16 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     };
   }
 
-  // Add investigation context if issue/problem statement or questions exist
+  // Add investigation context if issue/problem statement, findings, or progress exist
   if (
     process.issueStatement ||
     process.problemStatement ||
     process.currentUnderstanding ||
     process.problemCondition ||
-    (questions && questions.length > 0) ||
+    (findings && findings.length > 0) ||
     investigationProgress ||
     selectedFinding ||
-    focusedQuestionId ||
+    (options.hypotheses && options.hypotheses.length > 0) ||
     options.evidenceMapTopology
   ) {
     context.investigation = {};
@@ -399,104 +397,16 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       context.investigation.progressPercent = investigationProgress.progressPercent;
     }
 
-    if (questions && questions.length > 0) {
-      context.investigation.allQuestions = questions.map(q => ({
-        id: q.id,
-        text: q.text,
-        status: q.status,
-        questionSource: q.questionSource,
-        causeRole: q.causeRole,
-        manualNote: q.manualNote,
-        linkedFindingIds: q.linkedFindingIds,
-        ideas:
-          q.ideas && q.ideas.length > 0
-            ? q.ideas.map(idea => ({
-                text: idea.text,
-                selected: idea.selected,
-                projection: idea.projection
-                  ? { meanDelta: idea.projection.meanDelta, sigmaDelta: idea.projection.sigmaDelta }
-                  : undefined,
-                direction: idea.direction,
-                timeframe: idea.timeframe,
-                riskLevel: idea.risk?.computed,
-              }))
-            : undefined,
+    // Add categories for completeness prompting
+    if (categoriesOpt && categoriesOpt.length > 0) {
+      context.investigation.categories = categoriesOpt.map(c => ({
+        name: c.name,
+        factorNames: c.factorNames,
       }));
-
-      // Build question tree for root questions with children
-      const roots = questions.filter(q => !q.parentId);
-      if (roots.length > 0) {
-        context.investigation.questionTree = roots.map(root => {
-          const children = questions.filter(q => q.parentId === root.id);
-          const cat =
-            root.factor && categoriesOpt
-              ? getCategoryForFactor(categoriesOpt, root.factor)
-              : undefined;
-          return {
-            id: root.id,
-            text: root.text,
-            status: root.status,
-            factor: root.factor,
-            category: cat?.name,
-            validationType: root.validationType,
-            children:
-              children.length > 0
-                ? children.map(c => ({
-                    text: c.text,
-                    status: c.status,
-                    validationType: c.validationType,
-                    factor: c.factor,
-                    level: c.level,
-                    ideas:
-                      c.ideas && c.ideas.length > 0
-                        ? c.ideas.map(idea => ({ text: idea.text, selected: idea.selected }))
-                        : undefined,
-                    validationTask: c.validationTask,
-                    taskCompleted: c.validationTask ? c.status !== 'open' : undefined,
-                  }))
-                : undefined,
-          };
-        });
-      }
-
-      // Add categories for completeness prompting
-      if (categoriesOpt && categoriesOpt.length > 0) {
-        context.investigation.categories = categoriesOpt.map(c => ({
-          name: c.name,
-          factorNames: c.factorNames,
-        }));
-      }
-
-      // Detect investigation phase
-      context.investigation.phase = detectInvestigationPhase(questions, findings);
-
-      // Collect ALL questions with a causeRole (suspected-cause, contributing, ruled-out)
-      const hypotheses = questions
-        .filter(q => q.causeRole)
-        .map(q => ({
-          id: q.id,
-          text: q.text,
-          causeRole: q.causeRole!,
-          factor: q.factor,
-          status: q.status,
-          evidence: q.evidence,
-        }));
-      if (hypotheses.length > 0) {
-        context.investigation.hypotheses = hypotheses;
-      }
-
-      // Wire focused question from PI panel
-      if (focusedQuestionId) {
-        context.investigation.focusedQuestionId = focusedQuestionId;
-        const focusedQuestion = questions.find(q => q.id === focusedQuestionId);
-        if (focusedQuestion) {
-          context.investigation.focusedQuestionText = focusedQuestion.text;
-        }
-      }
-    } else if (focusedQuestionId) {
-      // focusedQuestionId provided without a questions list
-      context.investigation.focusedQuestionId = focusedQuestionId;
     }
+
+    // Detect investigation phase from findings (ADR-085 dropped the Question tree)
+    context.investigation.phase = detectInvestigationPhase(findings ?? []);
 
     // Hypothesis hubs (Phase 6 — CoScout as Investigation Partner)
     if (options.hypotheses && options.hypotheses.length > 0) {
@@ -505,7 +415,6 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
         name: hub.name,
         synthesis: hub.synthesis,
         status: hub.status,
-        questionCount: hub.questionIds.length,
         findingCount: hub.findingIds.length,
         evidence: hub.evidence
           ? {
@@ -521,10 +430,6 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     // Coverage and progress metrics
     if (options.coveragePercent !== undefined) {
       context.investigation.coveragePercent = options.coveragePercent;
-    }
-    if (options.questionsChecked !== undefined && options.questionsTotal !== undefined) {
-      context.investigation.questionsChecked = options.questionsChecked;
-      context.investigation.questionsTotal = options.questionsTotal;
     }
 
     // Problem statement maturity
@@ -679,28 +584,23 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 }
 
 /**
- * Deterministic investigation phase detection based on question tree state.
+ * Deterministic investigation phase detection based on findings (ADR-085
+ * dropped the Question tree; phase now derives from finding-status maturity).
  */
-export function detectInvestigationPhase(
-  questions: Question[],
-  findings?: Finding[]
-): AnalyzePhase {
-  if (questions.length === 0) return 'initial';
+export function detectInvestigationPhase(findings: Finding[]): AnalyzePhase {
+  if (findings.length === 0) return 'initial';
 
-  const hasChildren = questions.some(q => q.parentId);
-  const answered = questions.filter(q => q.status !== 'open');
-  const open = questions.filter(q => q.status === 'open');
-  const hasActions =
-    findings?.some(
-      f =>
-        (f.status === 'improving' || f.status === 'resolved') && f.actions && f.actions.length > 0
-    ) ?? false;
-
+  const hasActions = findings.some(
+    f => (f.status === 'improving' || f.status === 'resolved') && f.actions && f.actions.length > 0
+  );
   if (hasActions) return 'improving';
-  if (answered.length > open.length) return 'converging';
-  if (hasChildren && open.length >= answered.length) return 'diverging';
-  if (answered.length > 0 && open.length > 0) return 'validating';
 
-  // Roots only, mostly open
-  return hasChildren ? 'diverging' : 'initial';
+  const matured = findings.filter(
+    f => f.status === 'analyzed' || f.status === 'improving' || f.status === 'resolved'
+  );
+  const open = findings.filter(f => f.status === 'observed' || f.status === 'investigating');
+
+  if (matured.length > open.length) return 'converging';
+  if (matured.length > 0 && open.length > 0) return 'validating';
+  return 'diverging';
 }

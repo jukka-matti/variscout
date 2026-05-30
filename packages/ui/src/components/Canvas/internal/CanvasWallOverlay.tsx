@@ -82,9 +82,7 @@ export function CanvasWallOverlay({
         {...wallProps}
         mode="overlay"
         onSelectHub={handleOpenWall}
-        onPromoteQuestion={handleOpenWall}
         onWriteHypothesis={handleOpenWall}
-        onPromoteFromQuestion={handleOpenWall}
         onSeedFromFactorIntel={handleOpenWall}
         onFocusHubFromGap={handleOpenWall}
       />

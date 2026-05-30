@@ -17,7 +17,6 @@ import type {
   ProcessHub,
   ProcessHubSurveyReadinessSummary,
   ProjectMetadata,
-  Question,
   SpecLimits,
   ControlMetadataProjection,
   ControlRecord,
@@ -60,7 +59,9 @@ export function extractMetadataInputs(
     const p = project as Record<string, unknown> | null;
     if (!p || typeof p !== 'object') return null;
     const findings = (Array.isArray(p.findings) ? p.findings : []) as Finding[];
-    const questions = (Array.isArray(p.questions) ? p.questions : []) as Question[];
+    // IM-1: Question entity retired. buildProjectMetadata's 2nd arg is vestigial
+    // (typed `readonly unknown[]`); pass any legacy `questions` blob untouched.
+    const questions: readonly unknown[] = Array.isArray(p.questions) ? p.questions : [];
     const rawData = Array.isArray(p.rawData) ? (p.rawData as DataRow[]) : [];
     const hasData = rawData.length > 0;
     const processContext =
@@ -92,7 +93,6 @@ export function extractMetadataInputs(
         timeColumn,
         specs,
         processContext,
-        questions,
         findings,
       })
     );

@@ -81,8 +81,7 @@ describe('formatAnalyzeContext', () => {
         {
           id: 'sc1',
           text: 'Temperature drift',
-          causeRole: 'suspected-cause',
-          status: 'investigating',
+          status: 'proposed',
         },
       ],
       // Hub-based hypotheses — should be INCLUDED
@@ -92,7 +91,6 @@ describe('formatAnalyzeContext', () => {
           name: 'Raw material moisture',
           synthesis: 'Incoming moisture varies by supplier',
           status: 'evidenced',
-          questionCount: 3,
           findingCount: 2,
           evidence: { value: 0.45, label: 'Strong (R²adj=45%)', description: 'test' },
           selectedForImprovement: true,
@@ -104,7 +102,7 @@ describe('formatAnalyzeContext', () => {
     expect(result).toContain('Hypotheses:');
     expect(result).toContain('Raw material moisture');
     expect(result).toContain('[evidenced]');
-    expect(result).toContain('3Q, 2F');
+    expect(result).toContain('(2F)');
     expect(result).toContain('Strong (R²adj=45%)');
     expect(result).toContain('[selected for improvement]');
 
@@ -116,19 +114,17 @@ describe('formatAnalyzeContext', () => {
     const result = formatAnalyzeContext({
       evidenceMapTopology: {
         factorNodes: [
-          { factor: 'Roast', rSquaredAdj: 0.35, explored: true, questionCount: 2, findingCount: 1 },
+          { factor: 'Roast', rSquaredAdj: 0.35, explored: true, findingCount: 1 },
           {
             factor: 'Grind',
             rSquaredAdj: 0.12,
             explored: false,
-            questionCount: 0,
             findingCount: 0,
           },
           {
             factor: 'Origin',
             rSquaredAdj: 0.08,
             explored: true,
-            questionCount: 1,
             findingCount: 0,
           },
         ],
@@ -164,11 +160,10 @@ describe('formatAnalyzeContext', () => {
   it('includes coverage percentage', () => {
     const result = formatAnalyzeContext({
       coveragePercent: 68,
-      questionsChecked: 5,
-      questionsTotal: 8,
     });
     expect(result).toContain('Investigation coverage: 68%');
-    expect(result).toContain('5/8 questions checked');
+    // ADR-085: the Question entity is retired — no "N/M questions checked" suffix.
+    expect(result).not.toContain('questions checked');
   });
 
   // Phase transition tests (Task 3)
@@ -211,27 +206,24 @@ describe('formatAnalyzeContext', () => {
   });
 
   // Evidence sufficiency tests (Task 4)
-  it('includes evidence warning for hub when coveragePercent < 25', () => {
+  it('includes evidence warning when coveragePercent < 25', () => {
     const result = formatAnalyzeContext({
       coveragePercent: 12,
-      questionsChecked: 2,
-      questionsTotal: 5,
       hypothesisHubs: [
         {
           id: 'hub1',
           name: 'Nozzle Wear',
           synthesis: 'Nozzle degradation varies by shift',
           status: 'evidenced',
-          questionCount: 2,
           findingCount: 1,
         },
       ],
     });
     expect(result).toContain('⚠ Evidence note:');
-    expect(result).toContain('Nozzle Wear');
     expect(result).toContain('~12% of variation');
     expect(result).toContain('significant sources may remain unexplored');
-    expect(result).toContain('3 remaining open questions');
+    // ADR-085: no open-question suffix (Question entity retired).
+    expect(result).not.toContain('remaining open question');
   });
 
   it('omits evidence warning when coveragePercent >= 25', () => {
@@ -243,7 +235,6 @@ describe('formatAnalyzeContext', () => {
           name: 'Machine Setup',
           synthesis: 'Setup variation across shifts',
           status: 'evidenced',
-          questionCount: 3,
           findingCount: 2,
         },
       ],
@@ -259,7 +250,6 @@ describe('formatAnalyzeContext', () => {
           name: 'Nozzle Wear',
           synthesis: 'Nozzle degradation',
           status: 'evidenced',
-          questionCount: 1,
           findingCount: 0,
           evidence: { value: 0.12, label: 'Weak (R²adj=12%)', description: 'test' },
         },
@@ -278,7 +268,6 @@ describe('formatAnalyzeContext', () => {
           name: 'Machine Setup',
           synthesis: 'Setup variation',
           status: 'evidenced',
-          questionCount: 3,
           findingCount: 2,
           evidence: { value: 0.38, label: 'Strong (R²adj=38%)', description: 'test' },
         },
@@ -287,7 +276,7 @@ describe('formatAnalyzeContext', () => {
     expect(result).not.toContain('⚠ Evidence note:');
   });
 
-  it('omits open question count suffix when questionsTotal and questionsChecked are absent', () => {
+  it('never appends an open-question suffix to the evidence note (ADR-085)', () => {
     const result = formatAnalyzeContext({
       coveragePercent: 8,
       hypothesisHubs: [
@@ -296,13 +285,13 @@ describe('formatAnalyzeContext', () => {
           name: 'Raw Material',
           synthesis: 'Incoming moisture varies',
           status: 'evidenced',
-          questionCount: 0,
           findingCount: 0,
         },
       ],
     });
     expect(result).toContain('⚠ Evidence note:');
     expect(result).not.toContain('remaining open question');
+    expect(result).not.toContain('open question');
   });
 });
 

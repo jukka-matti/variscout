@@ -16,11 +16,9 @@ describe('useViewStore', () => {
     expect(s.highlightRowIndex).toBeNull();
     expect(s.highlightedChartPoint).toBeNull();
     expect(s.highlightedFindingId).toBeNull();
-    expect(s.expandedQuestionId).toBeNull();
     expect(s.pendingChartFocus).toBeNull();
     expect(s.piOverflowView).toBeNull();
     expect(s.isDataTableOpen).toBe(false);
-    expect(s.focusedQuestionId).toBeNull();
     expect(s.highlightedImprovementIdeaId).toBeNull();
     expect(s.improvementActiveView).toBe('plan');
     expect(s.selectedPoints.size).toBe(0);
@@ -95,15 +93,15 @@ describe('useViewStore — rich selection actions (spec D1 relocation from proje
   });
 });
 
-describe('useViewStore.focusedQuestionId (relocated from analyzeStore in F4)', () => {
-  it('starts as null', () => {
-    expect(useViewStore.getState().focusedQuestionId).toBeNull();
+describe('useViewStore — relocation assertions (ADR-085 / IM-1)', () => {
+  it('does not own focusedQuestionId (Questions retired in ADR-085)', () => {
+    const state = useViewStore.getState() as unknown as Record<string, unknown>;
+    expect('focusedQuestionId' in state).toBe(false);
+    expect('setFocusedQuestionId' in state).toBe(false);
   });
 
-  it('setFocusedQuestionId updates focused id', () => {
-    useViewStore.getState().setFocusedQuestionId('q-1');
-    expect(useViewStore.getState().focusedQuestionId).toBe('q-1');
-    useViewStore.getState().setFocusedQuestionId(null);
-    expect(useViewStore.getState().focusedQuestionId).toBeNull();
+  it('does not own expandedQuestionId (Questions retired in ADR-085)', () => {
+    const state = useViewStore.getState() as unknown as Record<string, unknown>;
+    expect('expandedQuestionId' in state).toBe(false);
   });
 });

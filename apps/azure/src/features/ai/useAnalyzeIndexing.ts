@@ -1,7 +1,7 @@
 /**
  * useAnalyzeIndexing — Wire investigation serializer to Blob Storage
  *
- * ADR-060 Pillar 2: Automatically serializes findings and questions to
+ * ADR-060 Pillar 2: Automatically serializes findings and scopes to
  * JSONL blobs in Blob Storage so Foundry IQ can index them for CoScout
  * knowledge retrieval.
  *
@@ -15,7 +15,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { createInvestigationSerializer } from '../../services/analyzeSerializer';
 import { uploadTextBlob } from '../../services/blobClient';
-import type { Finding, Question } from '@variscout/core';
+import type { Finding, ProblemStatementScope } from '@variscout/core';
 
 export interface UseInvestigationIndexingOptions {
   /** The current project ID — determines blob path prefix */
@@ -27,8 +27,8 @@ export interface UseInvestigationIndexingOptions {
 export interface UseInvestigationIndexingReturn {
   /** Call after findings array changes to schedule a debounced JSONL upload */
   onFindingsChange: (findings: Finding[]) => void;
-  /** Call after questions array changes to schedule a debounced JSONL upload */
-  onQuestionsChange: (questions: Question[]) => void;
+  /** Call after scopes array changes to schedule a debounced JSONL upload */
+  onScopesChange: (scopes: ProblemStatementScope[]) => void;
 }
 
 export function useAnalyzeIndexing({
@@ -61,9 +61,9 @@ export function useAnalyzeIndexing({
     serializerRef.current?.onFindingsChange(findings);
   }, []);
 
-  const onQuestionsChange = useCallback((questions: Question[]) => {
-    serializerRef.current?.onQuestionsChange(questions);
+  const onScopesChange = useCallback((scopes: ProblemStatementScope[]) => {
+    serializerRef.current?.onScopesChange(scopes);
   }, []);
 
-  return { onFindingsChange, onQuestionsChange };
+  return { onFindingsChange, onScopesChange };
 }

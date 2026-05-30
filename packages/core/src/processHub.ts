@@ -1,6 +1,6 @@
 import type { JourneyPhase } from './ai/types';
 import type { EvidenceLatestSignal, EvidenceSnapshot } from './evidenceSources';
-import type { FindingStatus, QuestionStatus } from './findings/types';
+import type { FindingStatus } from './findings/types';
 import type { ProcessMap } from './frame/types';
 import type { EntityBase } from './identity';
 import { buildReviewItem } from './processHubReview';
@@ -213,7 +213,6 @@ export interface ProcessHubAnalyzeMetadata {
   analyzeDepth?: AnalyzeDepth;
   analyzeStatus?: AnalyzeStatus;
   findingCounts?: Partial<Record<FindingStatus, number>>;
-  questionCounts?: Partial<Record<QuestionStatus, number>>;
   actionCounts?: { total: number; completed: number; overdue: number };
   processDescription?: string;
   customerRequirementSummary?: string;
@@ -970,11 +969,13 @@ export function buildProcessHubContext<TAnalyze extends ProcessHubAnalyze>(
   let totalActions = 0;
   let completedActions = 0;
   let overdueActions = 0;
-  let openQuestions = 0;
-  let answeredQuestions = 0;
-  let ruledOutQuestions = 0;
   let totalFindings = 0;
   let confirmedFindings = 0;
+  // ADR-085 dropped the Question entity; the contract's `questions` block is
+  // retained as a zeroed shape until consumers migrate to scope/hypothesis counts.
+  const openQuestions = 0;
+  const answeredQuestions = 0;
+  const ruledOutQuestions = 0;
 
   const metrics: ProcessHubMetricContext[] = [];
   const variationConcentrations: ProcessHubVariationConcentration[] = [];
@@ -987,10 +988,6 @@ export function buildProcessHubContext<TAnalyze extends ProcessHubAnalyze>(
     totalActions += metadata?.actionCounts?.total ?? 0;
     completedActions += metadata?.actionCounts?.completed ?? 0;
     overdueActions += metadata?.actionCounts?.overdue ?? 0;
-
-    openQuestions += metadata?.questionCounts?.open ?? 0;
-    answeredQuestions += metadata?.questionCounts?.answered ?? 0;
-    ruledOutQuestions += metadata?.questionCounts?.['ruled-out'] ?? 0;
 
     totalFindings += countValues(metadata?.findingCounts);
     confirmedFindings +=

@@ -6,7 +6,7 @@
  * See: docs/superpowers/plans/2026-04-19-investigation-wall.md, Task 4.4
  */
 
-import type { Hypothesis, Finding, FindingComment, Question } from '@variscout/core';
+import type { Hypothesis, Finding, FindingComment } from '@variscout/core';
 import type { ProcessMap, ProcessMapTributary } from '@variscout/core/frame';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -96,39 +96,4 @@ export function selectHypothesisTributaries(
       const bi = processMap.nodes.findIndex(n => n.id === b.stepId);
       return ai - bi;
     });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Orphan questions
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Returns open questions that are not referenced by any suspected-cause hub.
- * Useful for the Investigation Wall "unlinked questions" rail.
- */
-export function selectOpenQuestionsWithoutHub(
-  questions: Question[],
-  hubs: Hypothesis[]
-): Question[] {
-  const inHub = new Set(hubs.flatMap(h => h.questionIds));
-  return questions.filter(q => q.status === 'open' && !inHub.has(q.id));
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Questions for a specific hub
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Returns the questions referenced by the given hub, preserving hub order.
- * Returns [] if hubId is not found.
- */
-export function selectQuestionsForHub(
-  hubId: string,
-  hubs: Hypothesis[],
-  questions: Question[]
-): Question[] {
-  const hub = hubs.find(h => h.id === hubId);
-  if (!hub) return [];
-  const ids = new Set(hub.questionIds);
-  return questions.filter(q => ids.has(q.id));
 }

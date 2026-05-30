@@ -10,19 +10,7 @@ function getDotClass(type: JournalEntry['type']): string {
   switch (type) {
     case 'finding-created':
       return 'bg-purple-500';
-    case 'question-answered':
-      return 'bg-green-500';
-    case 'question-ruled-out':
-      return 'bg-red-400';
-    case 'question-investigating':
-      return 'bg-blue-500';
-    case 'questions-generated':
-      return 'bg-blue-500';
     case 'note-added':
-      return 'bg-slate-400';
-    case 'gemba-observation':
-      return 'bg-amber-500';
-    case 'observation-linked':
       return 'bg-slate-400';
     case 'problem-statement':
       return 'bg-purple-700 ring-2 ring-purple-400/40';

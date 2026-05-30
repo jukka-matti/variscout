@@ -1,6 +1,6 @@
 import type {
   Finding,
-  Question,
+  ProblemStatementScope,
   Hypothesis,
   HypothesisEvidence,
   HypothesisStatus,
@@ -12,12 +12,16 @@ import type {
 
 /**
  * Structured representation of the investigation state saved as JSON.
- * The `hypotheses` field is optional. Old project files without hubs
- * deserialize to an empty hubs array (no back-compat migration per wedge V1).
+ *
+ * `scopes` (ProblemStatementScope — the first-class WHERE, ADR-085) occupies
+ * the slot the retired `questions` field vacated; it persists via the blob,
+ * not a Dexie table. The `hypotheses` field is optional. Old project files
+ * without hubs deserialize to an empty hubs array (no back-compat migration
+ * per wedge V1).
  */
 export interface SerializedInvestigationState {
   findings: Finding[];
-  questions: Question[];
+  scopes: ProblemStatementScope[];
   hypotheses?: Hypothesis[];
 }
 
@@ -62,10 +66,10 @@ function assertHypothesisStatus(status: HypothesisStatus): HypothesisStatus {
  */
 export function serializeInvestigationState(
   findings: Finding[],
-  questions: Question[],
+  scopes: ProblemStatementScope[],
   hypotheses: Hypothesis[]
 ): SerializedInvestigationState {
-  const state: SerializedInvestigationState = { findings, questions };
+  const state: SerializedInvestigationState = { findings, scopes };
   if (hypotheses.length > 0) {
     state.hypotheses = hypotheses;
   }
@@ -84,17 +88,17 @@ export function serializeInvestigationState(
  * compatibility), unknown status values throw rather than being silently
  * translated.
  *
- * Per wedge V1 no-back-compat: there is no migration from legacy
- * `causeRole === 'suspected-cause'` questions to hubs. Investigations without
- * hubs return an empty hubs array.
+ * Per wedge V1 no-back-compat: hubs are first-class (there is no legacy
+ * Question source to migrate from — `Question` was dropped in IM-1, ADR-085).
+ * Investigations without hubs return an empty hubs array.
  */
 export function deserializeInvestigationState(raw: SerializedInvestigationState): {
   findings: Finding[];
-  questions: Question[];
+  scopes: ProblemStatementScope[];
   hypotheses: Hypothesis[];
 } {
   const findings = raw.findings ?? [];
-  const questions = raw.questions ?? [];
+  const scopes = raw.scopes ?? [];
 
   if (raw.hypotheses !== undefined) {
     // Data already has hubs — apply field-level migration then return
@@ -121,11 +125,11 @@ export function deserializeInvestigationState(raw: SerializedInvestigationState)
 
       return hub;
     });
-    return { findings, questions, hypotheses: migratedHubs };
+    return { findings, scopes, hypotheses: migratedHubs };
   }
 
   // No hubs in stored data — return empty hubs array per wedge V1 no-back-compat.
-  return { findings, questions, hypotheses: [] };
+  return { findings, scopes, hypotheses: [] };
 }
 
 // ---------------------------------------------------------------------------
@@ -155,35 +159,27 @@ export function serializeFindings(findings: Finding[]): string {
           assignee: a.assignee?.displayName,
           completed: !!a.completedAt,
         })),
-        questionId: f.questionId,
         createdAt: f.createdAt,
       })
     )
     .join('\n');
 }
 
-/** Serialize answered/ruled-out questions to JSONL */
-export function serializeQuestions(questions: Question[]): string {
-  return questions
-    .filter(q => q.status === 'answered' || q.status === 'ruled-out')
-    .map(q =>
+/**
+ * Serialize problem-statement scopes (the WHERE, ADR-085) to JSONL for
+ * Foundry IQ indexing. Each scope carries the outcome it sharpens, its drill
+ * predicates, and the suspected causes (hypotheses) nested within it.
+ */
+export function serializeScopes(scopes: ProblemStatementScope[]): string {
+  return scopes
+    .map(s =>
       JSON.stringify({
-        id: q.id,
-        type: q.status === 'answered' ? 'answer' : 'ruled-out',
-        text: q.text,
-        status: q.status,
-        factor: q.factor,
-        manualNote: q.manualNote,
-        causeRole: q.causeRole,
-        evidence: q.evidence,
-        linkedFindingIds: q.linkedFindingIds,
-        ideas: q.ideas
-          ?.filter(i => i.selected)
-          .map(i => ({
-            text: i.text,
-            direction: i.direction,
-            timeframe: i.timeframe,
-          })),
+        id: s.id,
+        type: 'scope',
+        outcome: s.outcome,
+        predicates: s.predicates,
+        hypothesisIds: s.hypothesisIds,
+        whatIfProjection: s.whatIfProjection,
       })
     )
     .join('\n');
@@ -203,7 +199,6 @@ export function serializeHypotheses(hubs: Hypothesis[]): string {
         name: h.name,
         synthesis: h.synthesis,
         status: h.status,
-        questionIds: h.questionIds,
         findingIds: h.findingIds,
         evidence: h.evidence,
         selectedForImprovement: h.selectedForImprovement,
@@ -222,10 +217,10 @@ interface SerializerOptions {
   uploadBlob: (path: string, content: string) => Promise<void>;
 }
 
-/** Debounced serialization — call after findings/questions/hubs change */
+/** Debounced serialization — call after findings/scopes/hubs change */
 export function createInvestigationSerializer(options: SerializerOptions) {
   let findingsTimer: ReturnType<typeof setTimeout> | null = null;
-  let questionsTimer: ReturnType<typeof setTimeout> | null = null;
+  let scopesTimer: ReturnType<typeof setTimeout> | null = null;
   let hypothesesTimer: ReturnType<typeof setTimeout> | null = null;
   const DEBOUNCE_MS = 5000;
 
@@ -242,14 +237,14 @@ export function createInvestigationSerializer(options: SerializerOptions) {
       }, DEBOUNCE_MS);
     },
 
-    onQuestionsChange(questions: Question[]) {
-      if (questionsTimer) clearTimeout(questionsTimer);
-      questionsTimer = setTimeout(async () => {
+    onScopesChange(scopes: ProblemStatementScope[]) {
+      if (scopesTimer) clearTimeout(scopesTimer);
+      scopesTimer = setTimeout(async () => {
         try {
-          const jsonl = serializeQuestions(questions);
-          await options.uploadBlob(`${options.projectId}/analyze/questions.jsonl`, jsonl);
+          const jsonl = serializeScopes(scopes);
+          await options.uploadBlob(`${options.projectId}/analyze/scopes.jsonl`, jsonl);
         } catch (err) {
-          console.warn('[KB] Failed to serialize questions:', err);
+          console.warn('[KB] Failed to serialize scopes:', err);
         }
       }, DEBOUNCE_MS);
     },
@@ -268,7 +263,7 @@ export function createInvestigationSerializer(options: SerializerOptions) {
 
     dispose() {
       if (findingsTimer) clearTimeout(findingsTimer);
-      if (questionsTimer) clearTimeout(questionsTimer);
+      if (scopesTimer) clearTimeout(scopesTimer);
       if (hypothesesTimer) clearTimeout(hypothesesTimer);
     },
   };

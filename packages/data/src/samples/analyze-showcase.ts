@@ -1,6 +1,6 @@
 import type { SampleDataset } from '../types';
 import { seedRandom, generateNormal, round } from '../utils';
-import type { Finding, Question, Hypothesis, AnalyzeCategory } from '@variscout/core';
+import type { Finding, Hypothesis, AnalyzeCategory } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 // ============================================================================
@@ -8,13 +8,6 @@ import { DEFAULT_TIME_LENS } from '@variscout/core';
 // ============================================================================
 
 const IDS = {
-  // Questions
-  Q_LINE: 'q-line-effect',
-  Q_LINE_NOZZLE: 'q-line2-nozzle',
-  Q_SHIFT: 'q-shift-effect',
-  Q_SHIFT_FATIGUE: 'q-shift-fatigue',
-  Q_BATCH: 'q-batch-effect',
-  Q_OPERATOR: 'q-operator-effect',
   // Findings
   F_LINE2_HIGH: 'f-line2-high',
   F_NIGHT_SPREAD: 'f-night-spread',
@@ -117,142 +110,6 @@ function generateFillWeightData(): Record<string, unknown>[] {
 // Pre-populated Investigation State
 // ============================================================================
 
-function buildQuestions(): Question[] {
-  return [
-    // Q1: Line effect — ANSWERED (key driver)
-    {
-      id: IDS.Q_LINE,
-      text: 'Does the filling line affect fill weight?',
-      factor: 'Line',
-      status: 'answered',
-      linkedFindingIds: [IDS.F_LINE2_HIGH, IDS.F_LINE2_NIGHT],
-      createdAt: epoch(0),
-      updatedAt: epoch(24),
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      validationType: 'data',
-      questionSource: 'factor-intel',
-      evidence: {
-        etaSquared: 0.25,
-        rSquaredAdj: 0.23,
-      },
-      ideas: [
-        {
-          id: IDS.IDEA_REPLACE,
-          text: 'Replace worn nozzle on Line 2 and calibrate to 500g target',
-          timeframe: 'days',
-          cost: { category: 'low' },
-          direction: 'eliminate',
-          selected: true,
-          notes: 'Maintenance team estimates 4-hour downtime for replacement',
-          createdAt: epoch(26),
-          deletedAt: null,
-        },
-        {
-          id: IDS.IDEA_SCHEDULE,
-          text: 'Add Line 2 nozzle to weekly preventive maintenance checklist',
-          timeframe: 'days',
-          cost: { category: 'none' },
-          direction: 'prevent',
-          selected: false,
-          createdAt: epoch(26),
-          deletedAt: null,
-        },
-      ],
-    },
-    // Q2: Line 2 nozzle — sub-question, INVESTIGATING (gemba pending)
-    {
-      id: IDS.Q_LINE_NOZZLE,
-      text: "Is Line 2's mean shift caused by nozzle wear?",
-      factor: 'Line',
-      level: 'Line 2',
-      status: 'investigating',
-      linkedFindingIds: [IDS.F_LINE2_HIGH],
-      createdAt: epoch(2),
-      updatedAt: epoch(48),
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      parentId: IDS.Q_LINE,
-      validationType: 'gemba',
-      validationTask: 'Inspect Line 2 nozzle for wear marks and measure orifice diameter',
-      taskCompleted: false,
-      questionSource: 'analyst',
-    },
-    // Q3: Shift effect — INVESTIGATING
-    {
-      id: IDS.Q_SHIFT,
-      text: 'Does shift affect fill weight variation?',
-      factor: 'Shift',
-      status: 'investigating',
-      linkedFindingIds: [IDS.F_NIGHT_SPREAD],
-      createdAt: epoch(1),
-      updatedAt: epoch(36),
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      validationType: 'data',
-      questionSource: 'factor-intel',
-      evidence: {
-        etaSquared: 0.08,
-      },
-    },
-    // Q4: Shift fatigue sub-question — OPEN
-    {
-      id: IDS.Q_SHIFT_FATIGUE,
-      text: 'Is night shift variation due to operator fatigue or reduced maintenance coverage?',
-      factor: 'Shift',
-      level: 'Night',
-      status: 'open',
-      linkedFindingIds: [],
-      createdAt: epoch(38),
-      updatedAt: epoch(38),
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      parentId: IDS.Q_SHIFT,
-      validationType: 'gemba',
-      validationTask: 'Interview night shift operators about workload and break schedule',
-      questionSource: 'analyst',
-    },
-    // Q5: Batch effect — RULED OUT
-    {
-      id: IDS.Q_BATCH,
-      text: 'Does material batch affect fill weight?',
-      factor: 'Material_Batch',
-      status: 'ruled-out',
-      linkedFindingIds: [IDS.F_BATCHC_LOW],
-      createdAt: epoch(1),
-      updatedAt: epoch(30),
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      validationType: 'data',
-      questionSource: 'factor-intel',
-      evidence: {
-        etaSquared: 0.02,
-      },
-      manualNote:
-        'η² = 2% — effect is statistically detectable but too small to be practically significant. Batch C mean is only 0.5g below target, well within spec.',
-    },
-    // Q6: Operator effect — RULED OUT
-    {
-      id: IDS.Q_OPERATOR,
-      text: 'Does operator affect fill weight?',
-      factor: 'Operator',
-      status: 'ruled-out',
-      linkedFindingIds: [],
-      createdAt: epoch(1),
-      updatedAt: epoch(24),
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      validationType: 'data',
-      questionSource: 'factor-intel',
-      evidence: {
-        etaSquared: 0.005,
-      },
-      manualNote:
-        'No significant operator effect (η² < 1%, p > 0.3). All operators perform equivalently.',
-    },
-  ];
-}
-
 function buildFindings(): Finding[] {
   return [
     // F1: Line 2 runs high — ANALYZED, key-driver
@@ -290,7 +147,6 @@ function buildFindings(): Finding[] {
       ],
       statusChangedAt: epoch(25),
       source: { chart: 'boxplot', category: 'Line 2', timeLens: DEFAULT_TIME_LENS },
-      questionId: IDS.Q_LINE,
       validationStatus: 'supports',
       projection: {
         baselineMean: 502.1,
@@ -338,7 +194,6 @@ function buildFindings(): Finding[] {
       ],
       statusChangedAt: epoch(36),
       source: { chart: 'boxplot', category: 'Night', timeLens: DEFAULT_TIME_LENS },
-      questionId: IDS.Q_SHIFT,
       validationStatus: 'supports',
     },
     // F3: Batch C slightly low — OBSERVED
@@ -358,7 +213,6 @@ function buildFindings(): Finding[] {
       comments: [],
       statusChangedAt: epoch(8),
       source: { chart: 'boxplot', category: 'Batch C', timeLens: DEFAULT_TIME_LENS },
-      questionId: IDS.Q_BATCH,
       validationStatus: 'inconclusive',
     },
     // F4: Line 2 + Night worst combination — INVESTIGATING
@@ -386,7 +240,6 @@ function buildFindings(): Finding[] {
         },
       ],
       statusChangedAt: epoch(36),
-      questionId: IDS.Q_LINE,
       validationStatus: 'supports',
     },
     // F5: Benchmark — Line 1 Morning
@@ -427,7 +280,6 @@ function buildHypotheses(): Hypothesis[] {
         'Line 2 consistently overfills by ~2g with approximately twice the variation of other lines. ' +
         'Combined with night shift reduced oversight, this produces the worst Cpk readings in the plant. ' +
         'Gemba inspection of the Line 2 nozzle orifice is pending to confirm physical wear.',
-      questionIds: [IDS.Q_LINE, IDS.Q_LINE_NOZZLE, IDS.Q_SHIFT],
       findingIds: [IDS.F_LINE2_HIGH, IDS.F_NIGHT_SPREAD, IDS.F_LINE2_NIGHT],
       evidence: {
         mode: 'standard',
@@ -488,7 +340,6 @@ export const analyzeShowcase: SampleDataset = {
     subgroupConfig: { method: 'fixed-size', size: 5 },
     investigation: {
       findings: buildFindings(),
-      questions: buildQuestions(),
       hypotheses: buildHypotheses(),
       categories: buildCategories(),
     },

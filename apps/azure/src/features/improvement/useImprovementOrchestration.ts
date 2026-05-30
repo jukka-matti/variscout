@@ -1,18 +1,27 @@
 /**
  * useImprovementOrchestration - Improvement workspace orchestration for Azure Editor
  *
- * Owns the improvement workspace data assembly: filters questions with ideas,
- * computes linked findings, selected idea IDs, projected Cpk map, and converted
- * idea IDs. Syncs computed state to the Zustand improvementStore for selector-based
- * reads, and provides DataContext-dependent action callbacks (popout sync,
- * synthesis change, idea-to-action conversion).
+ * Owns the improvement workspace data assembly: filters hypotheses (suspected
+ * causes) with ideas, computes linked findings, selected idea IDs, projected Cpk
+ * map, and converted idea IDs. Syncs computed state to the improvement popout,
+ * and provides DataContext-dependent action callbacks (popout sync, synthesis
+ * change, idea-to-action conversion).
+ *
+ * IM-1 (ADR-085): the workspace operates on `Hypothesis` hubs (with re-homed
+ * `ideas`) rather than the retired `Question` entity. Findings link to a
+ * hypothesis via `Hypothesis.findingIds`; cause badges derive from
+ * `Hypothesis.status` (no `causeRole`).
  */
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import type {
   Finding,
   FindingAssignee,
   FindingOutcome,
-  Question,
+  Hypothesis,
+  ImprovementIdea,
+  IdeaTimeframe,
+  IdeaDirection,
+  IdeaCostCategory,
   ProcessContext,
   DataRow,
   SpecLimits,
@@ -21,14 +30,14 @@ import type {
 import { calculateStats, toNumericValue } from '@variscout/core';
 import { calculateStagedComparison, toVerificationData } from '@variscout/core/stats';
 import { assignCauseColors } from '@variscout/core/findings';
+import type { HypothesisCondition } from '@variscout/core/findings';
 import { useAnalyzeFeatureStore } from '../analyze/analyzeStore';
-import type { UseQuestionsReturn } from '@variscout/hooks';
 import type { MatrixIdea, CauseSummary, TrackedAction, SelectedIdea } from '@variscout/ui';
 import { openImprovementPopout, updateImprovementPopout } from '../../components/ImprovementWindow';
 import type { ImprovementSyncData, ImprovementActionMessage } from '@variscout/hooks';
 import { usePopoutChannel } from '@variscout/hooks';
-import type { ImprovementQuestion } from './improvementStore';
-export type { ImprovementQuestion } from './improvementStore';
+import type { ImprovementHypothesis } from './improvementStore';
+export type { ImprovementHypothesis } from './improvementStore';
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -44,10 +53,24 @@ interface FindingsStateSlice {
   setOutcome: (findingId: string, outcome: FindingOutcome) => void;
 }
 
+/** Idea write callbacks, keyed by hypothesisId (IM-1 — ideas live on Hypothesis). */
+export interface IdeaActions {
+  addIdea: (hypothesisId: string, text: string) => void;
+  updateIdea: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'timeframe' | 'direction' | 'cost'>>
+  ) => void;
+  selectIdea: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  removeIdea: (hypothesisId: string, ideaId: string) => void;
+}
+
 export interface UseImprovementOrchestrationOptions {
-  questionsState: UseQuestionsReturn;
+  /** Persisted hypothesis hubs (the suspected causes) carrying re-homed ideas */
+  hypotheses: Hypothesis[];
+  /** Idea write callbacks keyed by hypothesisId */
+  ideaActions: IdeaActions;
   findingsState: FindingsStateSlice;
-  persistedQuestions: Question[] | undefined;
   processContext: ProcessContext | undefined;
   setProcessContext: (ctx: ProcessContext) => void;
   /** Raw (unfiltered) data rows for reference context computation */
@@ -67,19 +90,19 @@ export interface UseImprovementOrchestrationReturn {
   handleOpenImprovementPopout: () => void;
   /** Synthesis text change handler */
   handleSynthesisChange: (text: string) => void;
-  /** Questions with answered/investigating status that have ideas */
-  improvementQuestions: ImprovementQuestion[];
-  /** Findings linked to any question with ideas */
+  /** Hypotheses (suspected causes) that have ideas */
+  improvementHypotheses: ImprovementHypothesis[];
+  /** Findings linked to any hypothesis with ideas */
   improvementLinkedFindings: Array<{ id: string; text: string }>;
-  /** Set of selected idea IDs across all questions */
+  /** Set of selected idea IDs across all hypotheses */
   selectedIdeaIds: Set<string>;
   /** Projected Cpk map: finding ID -> projected Cpk */
   projectedCpkMap: Record<string, number>;
   /** Ideas that already have matching action items */
   convertedIdeaIds: Set<string>;
-  /** Map of questionId → hex color for cause grouping */
+  /** Map of hypothesisId → hex color for cause grouping */
   causeColors: Map<string, string>;
-  /** Labels for cause legend (questionId → display name) */
+  /** Labels for cause legend (hypothesisId → display name) */
   causeLabels: Map<string, string>;
   /** Cause summaries for context panel */
   causeSummaries: CauseSummary[];
@@ -120,12 +143,58 @@ export interface UseImprovementOrchestrationReturn {
   handleOutcomeNotesChange: (notes: string) => void;
 }
 
+// ── Helpers ─────────────────────────────────────────────────────────────
+
+/** Find the finding linked to a hypothesis (first of its findingIds present). */
+function findLinkedFinding(hub: Hypothesis, findings: Finding[]): Finding | undefined {
+  return findings.find(f => hub.findingIds.includes(f.id));
+}
+
+/** Extract the standard-mode R²adj contribution from a hypothesis evidence facet. */
+function evidenceDisplay(
+  hub: Hypothesis
+): { rSquaredAdj?: number; etaSquared?: number } | undefined {
+  if (!hub.evidence) return undefined;
+  const value = hub.evidence.contribution.value;
+  // contribution.value is mode-aware; in standard mode it is R²adj (0-1).
+  return hub.evidence.mode === 'standard' ? { rSquaredAdj: value } : undefined;
+}
+
+/**
+ * Find the first `eq` leaf (column = scalar) anywhere in a HypothesisCondition
+ * tree. Drives the What-If subset-vs-complement reference context now that the
+ * factor/level no longer live on a Question entity (IM-1).
+ */
+function firstEqLeaf(
+  condition: HypothesisCondition | undefined
+): { factor: string; level: string } | undefined {
+  if (!condition) return undefined;
+  if (condition.kind === 'leaf') {
+    if (
+      condition.op === 'eq' &&
+      (typeof condition.value === 'string' || typeof condition.value === 'number')
+    ) {
+      return { factor: condition.column, level: String(condition.value) };
+    }
+    return undefined;
+  }
+  if (condition.kind === 'not') {
+    return firstEqLeaf(condition.child);
+  }
+  // and / or
+  for (const child of condition.children) {
+    const hit = firstEqLeaf(child);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
 // ── Hook ──────────────────────────────────────────────────────────────────
 
 export function useImprovementOrchestration({
-  questionsState,
+  hypotheses,
+  ideaActions,
   findingsState,
-  persistedQuestions,
   processContext,
   setProcessContext,
   rawData,
@@ -133,46 +202,47 @@ export function useImprovementOrchestration({
   specs,
   stagedStats,
 }: UseImprovementOrchestrationOptions): UseImprovementOrchestrationReturn {
-  // Questions with answered/investigating status that have ideas -> feed workspace
-  const improvementQuestions = useMemo(() => {
-    return (persistedQuestions ?? [])
-      .filter(h => (h.status === 'answered' || h.status === 'investigating') && h.ideas?.length)
+  // Hypotheses with ideas -> feed workspace
+  const improvementHypotheses = useMemo<ImprovementHypothesis[]>(() => {
+    return hypotheses
+      .filter(h => h.ideas?.length)
       .map(h => ({
         id: h.id,
-        text: h.text,
-        causeRole: h.causeRole,
-        factor: h.factor,
+        text: h.name,
+        status: h.status,
         ideas: h.ideas ?? [],
-        linkedFindingName: findingsState.findings
-          .find(f => f.questionId === h.id)
-          ?.text?.slice(0, 60),
+        linkedFindingName: findLinkedFinding(h, findingsState.findings)?.text?.slice(0, 60),
+        evidence: evidenceDisplay(h),
       }));
-  }, [persistedQuestions, findingsState.findings]);
+  }, [hypotheses, findingsState.findings]);
 
-  // Findings linked to any question with ideas
+  // Findings linked to any hypothesis with ideas
   const improvementLinkedFindings = useMemo(() => {
-    const questionIds = new Set(improvementQuestions.map(h => h.id));
+    const linkedIds = new Set(improvementHypotheses.flatMap(h => h.id));
+    const findingIds = new Set(
+      hypotheses.filter(h => linkedIds.has(h.id)).flatMap(h => h.findingIds)
+    );
     return findingsState.findings
-      .filter(f => f.questionId && questionIds.has(f.questionId))
+      .filter(f => findingIds.has(f.id))
       .map(f => ({ id: f.id, text: f.text }));
-  }, [improvementQuestions, findingsState.findings]);
+  }, [improvementHypotheses, hypotheses, findingsState.findings]);
 
-  // Set of selected idea IDs across all questions
+  // Set of selected idea IDs across all hypotheses
   const selectedIdeaIds = useMemo(() => {
     const ids = new Set<string>();
-    for (const h of persistedQuestions ?? []) {
+    for (const h of hypotheses) {
       for (const idea of h.ideas ?? []) {
         if (idea.selected) ids.add(idea.id);
       }
     }
     return ids;
-  }, [persistedQuestions]);
+  }, [hypotheses]);
 
   // Projected Cpk map: finding ID -> projected Cpk from linked improvement idea
   const projectedCpkMap = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const h of persistedQuestions ?? []) {
-      const linkedFinding = findingsState.findings.find(f => f.questionId === h.id);
+    for (const h of hypotheses) {
+      const linkedFinding = findLinkedFinding(h, findingsState.findings);
       if (!linkedFinding) continue;
       const projectedIdea =
         (h.ideas ?? []).find(i => i.selected && i.projection?.projectedCpk != null) ??
@@ -182,7 +252,7 @@ export function useImprovementOrchestration({
       }
     }
     return map;
-  }, [persistedQuestions, findingsState.findings]);
+  }, [hypotheses, findingsState.findings]);
 
   // Ideas that already have matching action items
   const convertedIdeaIds = useMemo(() => {
@@ -197,57 +267,59 @@ export function useImprovementOrchestration({
 
   // ── Cause colors, labels, summaries for split layout ────────────────────
 
-  // Cause colors for matrix dots and context panel
+  // Cause colors for matrix dots and context panel — keyed by hypothesis id
+  // (IM-1: causeRole retired; every hypothesis with ideas is a cause node).
   const causeColors = useMemo(() => {
-    const ids = (persistedQuestions ?? [])
-      .filter(q => q.causeRole === 'suspected-cause' || q.causeRole === 'contributing')
-      .map(q => q.id);
+    const ids = hypotheses.filter(h => h.ideas?.length).map(h => h.id);
     return assignCauseColors(ids);
-  }, [persistedQuestions]);
+  }, [hypotheses]);
 
   // Cause labels for matrix legend
   const causeLabels = useMemo(() => {
     const map = new Map<string, string>();
-    (persistedQuestions ?? [])
-      .filter(q => q.causeRole === 'suspected-cause' || q.causeRole === 'contributing')
-      .forEach(q => {
-        map.set(q.id, q.factor ?? q.text);
+    hypotheses
+      .filter(h => h.ideas?.length)
+      .forEach(h => {
+        map.set(h.id, h.name);
       });
     return map;
-  }, [persistedQuestions]);
+  }, [hypotheses]);
 
   // Cause summaries for context panel
   const causeSummaries: CauseSummary[] = useMemo(() => {
-    return (persistedQuestions ?? [])
-      .filter(q => q.causeRole === 'suspected-cause' || q.causeRole === 'contributing')
-      .map(q => ({
-        id: q.id,
-        factor: q.factor ?? q.text,
-        evidence:
-          q.evidence?.rSquaredAdj != null
-            ? `R\u00B2adj ${Math.round(q.evidence.rSquaredAdj * 100)}%`
-            : q.evidence?.etaSquared != null
-              ? `\u03B7\u00B2 ${Math.round(q.evidence.etaSquared * 100)}%`
-              : '',
-        role: (q.causeRole ?? 'suspected-cause') as
-          | 'suspected-cause'
-          | 'contributing'
-          | 'ruled-out',
-        ideaCount: q.ideas?.length ?? 0,
-        actionCount: findingsState.findings
-          .filter(f => f.questionId === q.id)
-          .reduce((sum, f) => sum + (f.actions?.length ?? 0), 0),
-        color: causeColors.get(q.id) ?? '#94a3b8',
-      }));
-  }, [persistedQuestions, causeColors, findingsState.findings]);
+    return hypotheses
+      .filter(h => h.ideas?.length)
+      .map(h => {
+        const display = evidenceDisplay(h);
+        return {
+          id: h.id,
+          factor: h.name,
+          evidence:
+            display?.rSquaredAdj != null
+              ? `R²adj ${Math.round(display.rSquaredAdj * 100)}%`
+              : display?.etaSquared != null
+                ? `η² ${Math.round(display.etaSquared * 100)}%`
+                : '',
+          role: (h.status === 'confirmed' ? 'suspected-cause' : 'contributing') as
+            | 'suspected-cause'
+            | 'contributing'
+            | 'ruled-out',
+          ideaCount: h.ideas?.length ?? 0,
+          actionCount: findingsState.findings
+            .filter(f => h.findingIds.includes(f.id))
+            .reduce((sum, f) => sum + (f.actions?.length ?? 0), 0),
+          color: causeColors.get(h.id) ?? '#94a3b8',
+        };
+      });
+  }, [hypotheses, causeColors, findingsState.findings]);
 
-  // Matrix ideas (transform improvement questions to MatrixIdea shape)
+  // Matrix ideas (transform improvement hypotheses to MatrixIdea shape)
   const matrixIdeas: MatrixIdea[] = useMemo(() => {
-    return improvementQuestions.flatMap(q =>
-      (q.ideas ?? []).map(idea => ({
+    return improvementHypotheses.flatMap(h =>
+      (h.ideas ?? []).map(idea => ({
         id: idea.id,
         text: idea.text,
-        questionId: q.id,
+        hypothesisId: h.id,
         timeframe: idea.timeframe,
         cost: idea.cost,
         risk: idea.risk,
@@ -256,7 +328,7 @@ export function useImprovementOrchestration({
         selected: selectedIdeaIds.has(idea.id),
       }))
     );
-  }, [improvementQuestions, selectedIdeaIds]);
+  }, [improvementHypotheses, selectedIdeaIds]);
 
   // ── Aggregated actions for Track view ────────────────────────────────────
 
@@ -265,7 +337,7 @@ export function useImprovementOrchestration({
       .filter(f => f.actions && f.actions.length > 0)
       .flatMap(f =>
         f.actions!.map(a => {
-          const q = (persistedQuestions ?? []).find(q => q.id === f.questionId);
+          const hub = hypotheses.find(h => h.findingIds.includes(f.id));
           return {
             id: a.id,
             text: a.text,
@@ -277,28 +349,28 @@ export function useImprovementOrchestration({
             createdAt: a.createdAt,
             ideaId: a.ideaId,
             findingId: f.id,
-            causeColor: q ? causeColors.get(q.id) : undefined,
-            causeName: q?.factor ?? undefined,
+            causeColor: hub ? causeColors.get(hub.id) : undefined,
+            causeName: hub?.name ?? undefined,
             projectedCpk: projectedCpkMap[f.id],
           };
         })
       );
-  }, [findingsState.findings, persistedQuestions, causeColors, projectedCpkMap]);
+  }, [findingsState.findings, hypotheses, causeColors, projectedCpkMap]);
 
   // ── Selected ideas recap for Track view PlanRecap ──────────────────────
 
   const selectedIdeasForRecap = useMemo((): SelectedIdea[] => {
-    return improvementQuestions.flatMap(q =>
-      (q.ideas ?? [])
+    return improvementHypotheses.flatMap(h =>
+      (h.ideas ?? [])
         .filter(i => selectedIdeaIds.has(i.id))
         .map(i => ({
           id: i.id,
           text: i.text,
-          causeColor: causeColors.get(q.id),
+          causeColor: causeColors.get(h.id),
           projectedCpk: i.projection?.projectedCpk,
         }))
     );
-  }, [improvementQuestions, selectedIdeaIds, causeColors]);
+  }, [improvementHypotheses, selectedIdeaIds, causeColors]);
 
   // ── Focus finding, verification data, and outcome state ─────────────────
 
@@ -358,8 +430,8 @@ export function useImprovementOrchestration({
 
   // Convert all selected ideas to action items on their linked findings
   const handleConvertIdeasToActions = useCallback(() => {
-    for (const h of persistedQuestions ?? []) {
-      const linkedFinding = findingsState.findings.find(f => f.questionId === h.id);
+    for (const h of hypotheses) {
+      const linkedFinding = findLinkedFinding(h, findingsState.findings);
       if (!linkedFinding) continue;
       for (const idea of h.ideas ?? []) {
         if (!idea.selected) continue;
@@ -367,7 +439,7 @@ export function useImprovementOrchestration({
         findingsState.addAction(linkedFinding.id, idea.text, undefined, undefined, idea.id);
       }
     }
-  }, [persistedQuestions, findingsState]);
+  }, [hypotheses, findingsState]);
 
   // ── Improvement Popout ─────────────────────────────────────────────────
   const improvementPopoutRef = React.useRef<Window | null>(null);
@@ -375,7 +447,14 @@ export function useImprovementOrchestration({
   const buildImprovementSyncData = useCallback(
     (): ImprovementSyncData => ({
       synthesis: processContext?.synthesis,
-      questions: improvementQuestions,
+      hypotheses: improvementHypotheses.map(h => ({
+        id: h.id,
+        name: h.text,
+        status: h.status ?? 'proposed',
+        factor: h.factor,
+        ideas: h.ideas,
+        linkedFindingName: h.linkedFindingName,
+      })),
       linkedFindings: improvementLinkedFindings,
       selectedIdeaIds: Array.from(selectedIdeaIds),
       convertedIdeaIds: Array.from(convertedIdeaIds),
@@ -383,7 +462,7 @@ export function useImprovementOrchestration({
     }),
     [
       processContext,
-      improvementQuestions,
+      improvementHypotheses,
       improvementLinkedFindings,
       selectedIdeaIds,
       convertedIdeaIds,
@@ -414,28 +493,28 @@ export function useImprovementOrchestration({
         setProcessContext({ ...processContext, synthesis: action.text });
         break;
       case 'toggle-select':
-        questionsState.selectIdea(action.questionId, action.ideaId, action.selected);
+        ideaActions.selectIdea(action.hypothesisId, action.ideaId, action.selected);
         break;
       case 'update-timeframe':
-        questionsState.updateIdea(action.questionId, action.ideaId, {
-          timeframe: action.timeframe,
+        ideaActions.updateIdea(action.hypothesisId, action.ideaId, {
+          timeframe: action.timeframe as IdeaTimeframe | undefined,
         });
         break;
       case 'update-direction':
-        questionsState.updateIdea(action.questionId, action.ideaId, {
-          direction: action.direction,
+        ideaActions.updateIdea(action.hypothesisId, action.ideaId, {
+          direction: action.direction as IdeaDirection | undefined,
         });
         break;
       case 'update-cost':
-        questionsState.updateIdea(action.questionId, action.ideaId, {
-          cost: action.cost,
+        ideaActions.updateIdea(action.hypothesisId, action.ideaId, {
+          cost: action.cost as { category: IdeaCostCategory } | undefined,
         });
         break;
       case 'remove-idea':
-        questionsState.removeIdea(action.questionId, action.ideaId);
+        ideaActions.removeIdea(action.hypothesisId, action.ideaId);
         break;
       case 'add-idea':
-        questionsState.addIdea(action.questionId, action.text);
+        ideaActions.addIdea(action.hypothesisId, action.text);
         break;
       case 'convert-to-actions':
         handleConvertIdeasToActions();
@@ -445,7 +524,7 @@ export function useImprovementOrchestration({
     improvementLastMessage,
     processContext,
     setProcessContext,
-    questionsState,
+    ideaActions,
     handleConvertIdeasToActions,
   ]);
 
@@ -462,11 +541,14 @@ export function useImprovementOrchestration({
     const projTarget = useAnalyzeFeatureStore.getState().projectionTarget;
     if (!projTarget || !rawData?.length || !outcome) return undefined;
 
-    const question = (persistedQuestions ?? []).find(q => q.id === projTarget.questionId);
-    if (!question?.factor || !question?.level) return undefined;
+    // The What-If projection target carries a factor=level subset derived from
+    // the hypothesis's condition. Resolve it from the linked hypothesis's first
+    // equality leaf (IM-1: factor/level no longer live on a Question).
+    const hub = hypotheses.find(h => h.id === projTarget.hypothesisId);
+    const eqLeaf = firstEqLeaf(hub?.condition);
+    if (!eqLeaf) return undefined;
 
-    const factor = question.factor;
-    const level = question.level;
+    const { factor, level } = eqLeaf;
 
     const subset = rawData.filter(row => String(row[factor]) === String(level));
     const complement = rawData.filter(row => String(row[factor]) !== String(level));
@@ -493,7 +575,7 @@ export function useImprovementOrchestration({
       referenceCount: complement.length,
       referenceCpk: compStats.cpk,
     };
-  }, [rawData, outcome, specs, persistedQuestions]);
+  }, [rawData, outcome, specs, hypotheses]);
 
   // Pre-fill synthesis from problem statement on first visit to Improvement workspace
   const hasPreFilled = useRef(false);
@@ -508,7 +590,7 @@ export function useImprovementOrchestration({
     handleConvertIdeasToActions,
     handleOpenImprovementPopout,
     handleSynthesisChange,
-    improvementQuestions,
+    improvementHypotheses,
     improvementLinkedFindings,
     selectedIdeaIds,
     projectedCpkMap,

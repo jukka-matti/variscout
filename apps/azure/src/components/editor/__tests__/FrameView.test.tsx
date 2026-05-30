@@ -11,11 +11,10 @@ const showAnalyzeMock = vi.fn();
 const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
 const showDashboardMock = vi.fn();
-const expandToQuestionMock = vi.fn();
+const expandToHypothesisMock = vi.fn();
 const setWallViewModeMock = vi.fn();
 const setAnalyzeViewModeMock = vi.fn();
 const addCausalLinkMock = vi.fn();
-const linkQuestionToCausalLinkMock = vi.fn();
 const removeCausalLinkMock = vi.fn();
 
 // LV1-D: minimal analysisScopeStore mock — tracks setY mutations so the
@@ -53,11 +52,9 @@ const storeStateRef: { current: Record<string, unknown> } = {
 const investigationStateRef: { current: Record<string, unknown> } = {
   current: {
     findings: [],
-    questions: [],
     hypotheses: [],
     causalLinks: [],
     addCausalLink: addCausalLinkMock,
-    linkQuestionToCausalLink: linkQuestionToCausalLinkMock,
     removeCausalLink: removeCausalLinkMock,
   },
 };
@@ -176,7 +173,7 @@ vi.mock('@variscout/ui', async () => {
       ) => void;
       onFocusedInvestigation?: (stepId: string) => void;
       onOpenWall?: () => void;
-      onOpenInvestigationFocus?: (focus: { questionId?: string }) => void;
+      onOpenInvestigationFocus?: (focus: { kind: string; id: string }) => void;
       onAddCausalLink?: (
         fromFactor: string,
         toFactor: string,
@@ -227,7 +224,7 @@ vi.mock('@variscout/ui', async () => {
           {
             type: 'button',
             'data-testid': 'overlay-question',
-            onClick: () => props.onOpenInvestigationFocus?.({ questionId: 'q-1' }),
+            onClick: () => props.onOpenInvestigationFocus?.({ kind: 'question', id: 'q-1' }),
           },
           'Overlay question'
         ),
@@ -291,7 +288,7 @@ vi.mock('../../../features/panels/panelsStore', () => ({
 vi.mock('../../../features/analyze/analyzeStore', () => ({
   useAnalyzeFeatureStore: Object.assign(vi.fn(), {
     getState: () => ({
-      expandToQuestion: expandToQuestionMock,
+      expandToHypothesis: expandToHypothesisMock,
     }),
   }),
 }));
@@ -348,11 +345,10 @@ describe('FrameView (Azure shell)', () => {
     showCharterMock.mockClear();
     showSustainmentMock.mockClear();
     showDashboardMock.mockClear();
-    expandToQuestionMock.mockClear();
+    expandToHypothesisMock.mockClear();
     setWallViewModeMock.mockClear();
     setAnalyzeViewModeMock.mockClear();
     addCausalLinkMock.mockReset();
-    linkQuestionToCausalLinkMock.mockReset();
     removeCausalLinkMock.mockReset();
     addCausalLinkMock.mockReturnValue({ id: 'link-created' });
     hoisted.listByHubMock.mockReset();
@@ -383,11 +379,9 @@ describe('FrameView (Azure shell)', () => {
     };
     investigationStateRef.current = {
       findings: [{ id: 'f-1' }],
-      questions: [{ id: 'q-1' }],
       hypotheses: [{ id: 'hub-1' }],
       causalLinks: [{ id: 'link-1' }],
       addCausalLink: addCausalLinkMock,
-      linkQuestionToCausalLink: linkQuestionToCausalLinkMock,
       removeCausalLink: removeCausalLinkMock,
     };
   });
@@ -408,7 +402,6 @@ describe('FrameView (Azure shell)', () => {
         setMeasureSpec: setMeasureSpecMock,
         setProcessContext: setProcessContextMock,
         findings: [{ id: 'f-1' }],
-        questions: [{ id: 'q-1' }],
         hypotheses: [{ id: 'hub-1' }],
         causalLinks: [{ id: 'link-1' }],
       })
@@ -648,12 +641,12 @@ describe('FrameView (Azure shell)', () => {
     expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
   });
 
-  it('opens Investigation and expands a question for overlay focus', () => {
+  it('opens Investigation and expands a hypothesis hub for overlay focus', () => {
     render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
     fireEvent.click(screen.getByTestId('overlay-question'));
 
-    expect(expandToQuestionMock).toHaveBeenCalledWith('q-1');
+    expect(expandToHypothesisMock).toHaveBeenCalledWith('q-1');
     expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
   });
 
@@ -674,9 +667,8 @@ describe('FrameView (Azure shell)', () => {
     expect(props?.onAddCausalLink).toEqual(expect.any(Function));
     expect(props?.onRemoveCausalLink).toEqual(expect.any(Function));
 
-    props.onAddCausalLink('Machine', 'Fill_Weight', 'Machine drift changes fill weight', {
-      questionIds: ['q-1', 'q-2'],
-    });
+    // IM-1: questionIds are dropped — the optional fourth argument is ignored.
+    props.onAddCausalLink('Machine', 'Fill_Weight', 'Machine drift changes fill weight');
     props.onRemoveCausalLink('link-created');
 
     expect(addCausalLinkMock).toHaveBeenCalledWith(
@@ -684,8 +676,7 @@ describe('FrameView (Azure shell)', () => {
       'Fill_Weight',
       'Machine drift changes fill weight'
     );
-    expect(linkQuestionToCausalLinkMock).toHaveBeenCalledWith('link-created', 'q-1');
-    expect(linkQuestionToCausalLinkMock).toHaveBeenCalledWith('link-created', 'q-2');
+    // linkQuestionToCausalLink is retired in IM-1 — no longer called.
     expect(removeCausalLinkMock).toHaveBeenCalledWith('link-created');
   });
 

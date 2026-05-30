@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { ProcessHubId } from '@variscout/core/processHub';
-import type { DataRow, Finding, Hypothesis, Question } from '@variscout/core';
+import type { DataRow, Finding, Hypothesis } from '@variscout/core';
 import { SystemLevelView } from '../SystemLevelView';
 
 // Cast helper: acceptable inside test files per project convention
@@ -55,35 +55,18 @@ const findings = [
   },
 ] as Finding[];
 
-const question = (id: string, status: Question['status']): Question => ({
-  id,
-  createdAt: 1,
-  deletedAt: null,
-  text: `${id}?`,
-  status,
-  linkedFindingIds: [],
-  updatedAt: 1,
-  investigationId: 'inv-1',
-});
-
 const hypothesis = (id: string, status: Hypothesis['status']): Hypothesis => ({
   id,
   createdAt: 1,
   deletedAt: null,
   name: id,
   synthesis: 'Candidate mechanism',
-  questionIds: [],
   findingIds: [],
   updatedAt: 1,
   investigationId: 'inv-1',
   status,
 });
 
-const questions = [
-  question('question-1', 'open'),
-  question('question-2', 'investigating'),
-  question('question-3', 'answered'),
-];
 const hypotheses = [
   hypothesis('hypothesis-1', 'proposed'),
   hypothesis('hypothesis-2', 'evidenced'),
@@ -98,7 +81,6 @@ describe('SystemLevelView', () => {
         map={map}
         rows={rows}
         measureSpecs={{ 'Fill Weight': { lsl: 99, usl: 101, target: 100, cpkTarget: 1.33 } }}
-        questions={questions}
         hypotheses={hypotheses}
         findings={findings}
       />
@@ -114,7 +96,7 @@ describe('SystemLevelView', () => {
     // ADR-084: Pp/Ppk must not leak back into the L1 row.
     expect(screen.getByTestId('outcome-capability')).not.toHaveTextContent(/\bPpk?\b/);
     expect(screen.getByTestId('inbox-digest')).toHaveTextContent('1 prompt');
-    expect(screen.getByTestId('active-analyzes-summary')).toHaveTextContent('2 open questions');
+    // IM-1: activeSummary now counts hypotheses + findings (Question entity retired)
     expect(screen.getByTestId('active-analyzes-summary')).toHaveTextContent('2 active hypotheses');
     expect(screen.getByTestId('active-analyzes-summary')).toHaveTextContent('1 open finding');
     expect(screen.getByRole('button', { name: /Open SCOUT/i })).toBeDisabled();
@@ -132,7 +114,6 @@ describe('SystemLevelView', () => {
         hubId={h('hub-unframed')}
         map={{ ...map, ctsColumn: undefined }}
         rows={rows}
-        questions={[]}
         hypotheses={[]}
         findings={[]}
         onOpenScout={onOpenScout}
@@ -161,7 +142,6 @@ describe('SystemLevelView', () => {
           map={map}
           rows={rows}
           measureSpecs={{ 'Fill Weight': { lsl: 98, usl: 102, cpkTarget: 1.33 } }}
-          questions={[]}
           hypotheses={[]}
           findings={[]}
         />
@@ -183,7 +163,6 @@ describe('SystemLevelView', () => {
           map={map}
           rows={rows}
           measureSpecs={{ 'Fill Weight': { lsl: 98, usl: 102, cpkTarget: 1.33 } }}
-          questions={[]}
           hypotheses={[]}
           findings={[]}
         />
@@ -198,7 +177,6 @@ describe('SystemLevelView', () => {
           map={map}
           rows={rows}
           measureSpecs={{ 'Step Mix Diameter': { lsl: 0, usl: 1, cpkTarget: 1.67 } }}
-          questions={[]}
           hypotheses={[]}
           findings={[]}
         />

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useEvidenceMapData } from '../useEvidenceMapData';
 import type { BestSubsetsResult } from '@variscout/core/stats';
-import type { Question } from '@variscout/core/findings';
+import type { Finding } from '@variscout/core/findings';
 
 // ============================================================================
 // Helpers
@@ -88,15 +88,18 @@ function makeBestSubsets(overrides?: Partial<BestSubsetsResult>): BestSubsetsRes
   };
 }
 
-function makeQuestion(overrides: Partial<Question> & Pick<Question, 'id' | 'status'>): Question {
+function makeFinding(id: string, activeFilters: Record<string, (string | number)[]>): Finding {
   return {
-    text: 'Does the factor affect the outcome?',
-    linkedFindingIds: [],
+    id,
+    text: `Finding ${id}`,
+    status: 'observed',
+    evidenceType: 'data',
+    comments: [],
     createdAt: 1714000000000,
-    updatedAt: 1714000000000,
+    statusChangedAt: 1714000000000,
     deletedAt: null,
     investigationId: 'inv-test-001',
-    ...overrides,
+    context: { activeFilters, cumulativeScope: null },
   };
 }
 
@@ -107,7 +110,7 @@ const defaultContainerSize = { width: 800, height: 600 };
 // ============================================================================
 
 describe('useEvidenceMapData — explored node state', () => {
-  it('leaves explored undefined when no questions provided', () => {
+  it('leaves explored undefined when no findings provided', () => {
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -115,7 +118,7 @@ describe('useEvidenceMapData — explored node state', () => {
         interactions: null,
         containerSize: defaultContainerSize,
         mode: 'standard',
-        questions: [],
+        findings: [],
       })
     );
     for (const node of result.current.factorNodes) {
@@ -138,10 +141,8 @@ describe('useEvidenceMapData — explored node state', () => {
     expect((result.current as unknown as Record<string, unknown>).exploredFactors).toBeUndefined();
   });
 
-  it('marks a factor as explored when it has an answered question', () => {
-    const questions: Question[] = [
-      makeQuestion({ id: 'q1', status: 'answered', factor: 'Temperature' }),
-    ];
+  it('marks a factor as explored when a finding has that factor in activeFilters', () => {
+    const findings: Finding[] = [makeFinding('f1', { Temperature: ['High'] })];
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -149,7 +150,7 @@ describe('useEvidenceMapData — explored node state', () => {
         interactions: null,
         containerSize: defaultContainerSize,
         mode: 'standard',
-        questions,
+        findings,
       })
     );
     const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
@@ -158,10 +159,8 @@ describe('useEvidenceMapData — explored node state', () => {
     expect(pressNode?.explored).toBe(false);
   });
 
-  it('marks a factor as explored when it has a ruled-out question (any status)', () => {
-    const questions: Question[] = [
-      makeQuestion({ id: 'q1', status: 'open', factor: 'Pressure', causeRole: 'ruled-out' }),
-    ];
+  it('marks a factor as explored when any finding contains it in activeFilters', () => {
+    const findings: Finding[] = [makeFinding('f1', { Pressure: ['Low'] })];
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -169,7 +168,7 @@ describe('useEvidenceMapData — explored node state', () => {
         interactions: null,
         containerSize: defaultContainerSize,
         mode: 'standard',
-        questions,
+        findings,
       })
     );
     const pressNode = result.current.factorNodes.find(n => n.factor === 'Pressure');
@@ -178,10 +177,8 @@ describe('useEvidenceMapData — explored node state', () => {
     expect(tempNode?.explored).toBe(false);
   });
 
-  it('leaves explored undefined when only open questions exist (no concluded investigation)', () => {
-    const questions: Question[] = [
-      makeQuestion({ id: 'q1', status: 'open', factor: 'Temperature' }),
-    ];
+  it('leaves explored undefined when findings have empty activeFilters', () => {
+    const findings: Finding[] = [makeFinding('f1', {})];
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -189,18 +186,19 @@ describe('useEvidenceMapData — explored node state', () => {
         interactions: null,
         containerSize: defaultContainerSize,
         mode: 'standard',
-        questions,
+        findings,
       })
     );
-    // No answered/ruled-out questions → exploration hasn't started → normal colors
+    // No factor filters in findings → exploration hasn't started → normal colors
     for (const node of result.current.factorNodes) {
       expect(node.explored).toBeUndefined();
     }
   });
 
-  it('leaves explored undefined when only investigating questions exist', () => {
-    const questions: Question[] = [
-      makeQuestion({ id: 'q1', status: 'investigating', factor: 'Temperature' }),
+  it('stamps explored on all factors when findings cover both', () => {
+    const findings: Finding[] = [
+      makeFinding('f1', { Temperature: ['High'] }),
+      makeFinding('f2', { Pressure: ['Low'] }),
     ];
     const { result } = renderHook(() =>
       useEvidenceMapData({
@@ -209,27 +207,7 @@ describe('useEvidenceMapData — explored node state', () => {
         interactions: null,
         containerSize: defaultContainerSize,
         mode: 'standard',
-        questions,
-      })
-    );
-    for (const node of result.current.factorNodes) {
-      expect(node.explored).toBeUndefined();
-    }
-  });
-
-  it('stamps explored on all factors when both have qualifying questions', () => {
-    const questions: Question[] = [
-      makeQuestion({ id: 'q1', status: 'answered', factor: 'Temperature' }),
-      makeQuestion({ id: 'q2', status: 'open', factor: 'Pressure', causeRole: 'ruled-out' }),
-    ];
-    const { result } = renderHook(() =>
-      useEvidenceMapData({
-        bestSubsets: makeBestSubsets(),
-        mainEffects: null,
-        interactions: null,
-        containerSize: defaultContainerSize,
-        mode: 'standard',
-        questions,
+        findings,
       })
     );
     const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
@@ -238,10 +216,10 @@ describe('useEvidenceMapData — explored node state', () => {
     expect(pressNode?.explored).toBe(true);
   });
 
-  it('deduplicates — multiple answered questions for same factor still produce explored: true', () => {
-    const questions: Question[] = [
-      makeQuestion({ id: 'q1', status: 'answered', factor: 'Temperature' }),
-      makeQuestion({ id: 'q2', status: 'answered', factor: 'Temperature' }),
+  it('deduplicates — multiple findings for same factor still produce explored: true', () => {
+    const findings: Finding[] = [
+      makeFinding('f1', { Temperature: ['High'] }),
+      makeFinding('f2', { Temperature: ['Low'] }),
     ];
     const { result } = renderHook(() =>
       useEvidenceMapData({
@@ -250,15 +228,15 @@ describe('useEvidenceMapData — explored node state', () => {
         interactions: null,
         containerSize: defaultContainerSize,
         mode: 'standard',
-        questions,
+        findings,
       })
     );
     const tempNode = result.current.factorNodes.find(n => n.factor === 'Temperature');
     expect(tempNode?.explored).toBe(true);
   });
 
-  it('ignores questions with no factor field', () => {
-    const questions: Question[] = [makeQuestion({ id: 'q1', status: 'answered' })];
+  it('ignores findings with no matching factor in the map', () => {
+    const findings: Finding[] = [makeFinding('f1', { UnknownFactor: ['x'] })];
     const { result } = renderHook(() =>
       useEvidenceMapData({
         bestSubsets: makeBestSubsets(),
@@ -266,11 +244,12 @@ describe('useEvidenceMapData — explored node state', () => {
         interactions: null,
         containerSize: defaultContainerSize,
         mode: 'standard',
-        questions,
+        findings,
       })
     );
+    // The unknown factor is explored but has no node; known nodes remain unexplored
     for (const node of result.current.factorNodes) {
-      expect(node.explored).toBeUndefined();
+      expect(node.explored).toBe(false);
     }
   });
 });

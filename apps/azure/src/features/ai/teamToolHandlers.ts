@@ -80,7 +80,8 @@ export function buildNavTeamToolHandlers({
         case 'question':
           panels.showAnalyze();
           if (targetId) {
-            useAnalyzeFeatureStore.getState().expandToQuestion(targetId);
+            // IM-1: the focused-node slot is a hypothesis hub (Question retired).
+            useAnalyzeFeatureStore.getState().expandToHypothesis(targetId);
           }
           break;
         case 'chart':

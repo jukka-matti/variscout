@@ -14,8 +14,9 @@ import EquationDisplay from './EquationDisplay';
 
 export interface StatsTabContentProps {
   /**
-   * Pre-computed best subsets — provided by the caller (e.g. from useQuestionGeneration)
-   * to avoid double computation. When null/undefined, factor intelligence is not shown.
+   * Pre-computed best subsets — provided by the caller (e.g. from factor-ranking
+   * derivation) to avoid double computation. When null/undefined, factor
+   * intelligence is not shown.
    */
   bestSubsets?: BestSubsetsResult | null;
   /** Opens the spec editor (app-specific, can't come from a store) */

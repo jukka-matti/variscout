@@ -4,7 +4,7 @@
  */
 
 import type { SpecLimits } from './types';
-import type { Finding, Question } from './findings';
+import type { Finding } from './findings';
 import type { ProcessContext } from './ai/types';
 import { FINDING_STATUS_LABELS, FINDING_TAG_LABELS } from './findings';
 import { formatStatistic } from './i18n/format';
@@ -158,10 +158,8 @@ export function downloadCSV(
  * Generate CSV content from findings array.
  * One row per finding with key investigation data.
  */
-export function generateFindingsCSV(findings: Finding[], questions?: Question[]): string {
+export function generateFindingsCSV(findings: Finding[], _questions?: readonly unknown[]): string {
   if (findings.length === 0) return '';
-
-  const questionMap = new Map(questions?.map(q => [q.id, q]) ?? []);
 
   const headers = [
     'id',
@@ -181,8 +179,8 @@ export function generateFindingsCSV(findings: Finding[], questions?: Question[])
   const rows: string[] = [headers.join(',')];
 
   for (const f of findings) {
-    const question = f.questionId ? questionMap.get(f.questionId) : undefined;
-    const factor = question?.factor ?? getFirstFilterFactor(f);
+    // Question column retired (ADR-085); factor derives from the finding's filter snapshot.
+    const factor = getFirstFilterFactor(f);
     const etaSquared =
       f.context.cumulativeScope !== null
         ? formatStatistic(f.context.cumulativeScope / 100, 'en', 3)
@@ -206,7 +204,7 @@ export function generateFindingsCSV(findings: Finding[], questions?: Question[])
         etaSquared,
         cpkBefore,
         cpkAfter,
-        escapeCSVValue(question?.text ?? ''),
+        escapeCSVValue(''), // question column retired (ADR-085)
         escapeCSVValue(actionsStr),
         escapeCSVValue(outcomeStr),
         new Date(f.createdAt).toISOString(),
@@ -228,7 +226,7 @@ function getFirstFilterFactor(f: Finding): string {
  */
 export function generateFindingsJSON(
   findings: Finding[],
-  questions?: Question[],
+  _questions?: readonly unknown[],
   processContext?: ProcessContext
 ): string {
   const summary = {
@@ -247,7 +245,6 @@ export function generateFindingsJSON(
     exportedAt: new Date().toISOString(),
     process: processContext ?? null,
     findings,
-    questions: questions ?? [],
     summary,
   };
 
@@ -257,8 +254,8 @@ export function generateFindingsJSON(
 /**
  * Trigger download of findings as CSV file.
  */
-export function downloadFindingsCSV(findings: Finding[], questions?: Question[]): void {
-  const csv = generateFindingsCSV(findings, questions);
+export function downloadFindingsCSV(findings: Finding[], _questions?: readonly unknown[]): void {
+  const csv = generateFindingsCSV(findings);
   if (!csv) return;
 
   const BOM = '\uFEFF';
@@ -278,10 +275,10 @@ export function downloadFindingsCSV(findings: Finding[], questions?: Question[])
  */
 export function downloadFindingsJSON(
   findings: Finding[],
-  questions?: Question[],
+  _questions?: readonly unknown[],
   processContext?: ProcessContext
 ): void {
-  const json = generateFindingsJSON(findings, questions, processContext);
+  const json = generateFindingsJSON(findings, undefined, processContext);
 
   const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
   const filename = `variscout-findings-${new Date().toISOString().split('T')[0]}.json`;

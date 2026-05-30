@@ -157,7 +157,6 @@ describe('ImprovementProjectPanel (Azure)', () => {
           updatedAt: 1,
           deletedAt: null,
           synthesis: '',
-          questionIds: [],
           findingIds: [],
           investigationId: 'inv-1',
         },

@@ -31,9 +31,6 @@ export interface FindingBoardViewProps {
   renderAssignSlot?: (findingId: string) => React.ReactNode;
   onNavigateToChart?: (source: FindingSource) => void;
   maxStatuses?: number;
-  onLinkQuestion?: (findingId: string, questionId: string) => void;
-  onCreateQuestion?: (findingId: string, text: string, factor?: string, level?: string) => void;
-  questionsMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   /** Synthesis narrative for header card */
   synthesis?: string;
   /** Linked findings for synthesis card badges */
@@ -83,9 +80,6 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   renderAssignSlot,
   onNavigateToChart,
   maxStatuses,
-  onLinkQuestion,
-  onCreateQuestion,
-  questionsMap,
   synthesis,
   linkedFindings,
   projectedCpkMap,
@@ -175,9 +169,6 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     renderAssignSlot={renderAssignSlot?.(finding.id)}
                     onNavigateToChart={onNavigateToChart}
                     maxStatuses={maxStatuses}
-                    onLinkQuestion={onLinkQuestion}
-                    onCreateQuestion={onCreateQuestion}
-                    questionsMap={questionsMap}
                     projectedCpk={projectedCpkMap?.[finding.id]}
                     onAddAction={onAddAction}
                     onCompleteAction={onCompleteAction}

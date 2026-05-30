@@ -1,18 +1,18 @@
 /**
  * CommandPalette — ⌘K search palette for the Investigation Wall.
  *
- * Controlled modal. Filters across hubs (name), questions (text), and
- * findings (id or statement). Keyboard navigation:
+ * Controlled modal. Filters across hubs (name) and findings (id or statement).
+ * Keyboard navigation:
  *  - Up/Down cycles the highlighted result (wraps)
  *  - Enter fires onPanTo(selectedId) + onClose
  *  - Escape fires onClose
  *
  * No fuzzy search dep — case-insensitive substring match is enough at the
- * expected scale (tens of hubs/questions on the Wall).
+ * expected scale (tens of hubs/findings on the Wall).
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { Finding, MessageCatalog, Question, Hypothesis } from '@variscout/core';
+import type { Finding, MessageCatalog, Hypothesis } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { useWallLocale } from './hooks/useWallLocale';
 
@@ -22,11 +22,10 @@ export interface CommandPaletteProps {
   /** Called with the id of the selected result when Enter is pressed. */
   onPanTo: (nodeId: string) => void;
   hubs: Hypothesis[];
-  questions: Question[];
   findings: Finding[];
 }
 
-type ResultKind = 'hub' | 'question' | 'finding';
+type ResultKind = 'hub' | 'finding';
 interface Result {
   id: string;
   kind: ResultKind;
@@ -35,14 +34,12 @@ interface Result {
 
 const RESULT_KIND_KEY: Record<ResultKind, keyof MessageCatalog> = {
   hub: 'wall.palette.kind.hub',
-  question: 'wall.palette.kind.question',
   finding: 'wall.palette.kind.finding',
 };
 
-function buildResults(hubs: Hypothesis[], questions: Question[], findings: Finding[]): Result[] {
+function buildResults(hubs: Hypothesis[], findings: Finding[]): Result[] {
   return [
     ...hubs.map<Result>(h => ({ id: h.id, kind: 'hub', label: h.name })),
-    ...questions.map<Result>(q => ({ id: q.id, kind: 'question', label: q.text })),
     ...findings.map<Result>(f => ({
       id: f.id,
       kind: 'finding',
@@ -56,7 +53,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onClose,
   onPanTo,
   hubs,
-  questions,
   findings,
 }) => {
   const [query, setQuery] = useState('');
@@ -74,10 +70,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
   }, [open]);
 
-  const allResults = useMemo(
-    () => buildResults(hubs, questions, findings),
-    [hubs, questions, findings]
-  );
+  const allResults = useMemo(() => buildResults(hubs, findings), [hubs, findings]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

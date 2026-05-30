@@ -7,7 +7,7 @@
  */
 
 import { useMemo } from 'react';
-import type { Finding, Question, AnalysisMode } from '@variscout/core';
+import type { Finding, AnalysisMode } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
 
@@ -39,13 +39,11 @@ export interface ReportSectionDescriptor {
   status: SectionStatus;
   workspace: ReportWorkspace;
   findings: Finding[];
-  questions: Question[];
   hasAIContent: boolean;
 }
 
 export interface UseReportSectionsOptions {
   findings: Finding[];
-  questions: Question[];
   /** True when staged comparison data is present */
   stagedComparison: boolean;
   /** Whether AI narration/insights are available */
@@ -79,16 +77,9 @@ function deriveReportType(findings: Finding[]): ReportType {
   return 'investigation-report';
 }
 
-/** Build the title for the evidence trail section, adapting to primary cause or first question text. */
-function buildEvidenceTrailTitle(questions: Question[]): string {
-  if (questions.length === 0) return 'Why is this happening?';
-
-  // Prefer the primary cause question if one is marked
-  const primary = questions.find(q => q.causeRole === 'suspected-cause');
-  const subject = primary ? primary.text.trim() : questions[0].text?.trim() || null;
-
-  if (!subject) return 'Why is this happening?';
-  return `What causes ${subject}?`;
+/** Build the title for the evidence trail section. */
+function buildEvidenceTrailTitle(): string {
+  return 'Why is this happening?';
 }
 
 /** Determine per-section status based on report type and section id. */
@@ -152,7 +143,6 @@ const driversTitles: Record<ResolvedMode, string> = {
 
 export function useReportSections({
   findings,
-  questions,
   stagedComparison,
   aiEnabled,
   audienceMode = 'technical',
@@ -176,8 +166,7 @@ export function useReportSections({
       title: currentConditionTitles[resolved],
       status: sectionStatus('current-condition', reportType),
       workspace: sectionWorkspace('current-condition'),
-      findings: findings.filter(f => !f.questionId),
-      questions: [],
+      findings,
       hasAIContent: aiEnabled,
     });
 
@@ -190,8 +179,7 @@ export function useReportSections({
           : driversTitles[resolved],
       status: sectionStatus('drivers', reportType),
       workspace: sectionWorkspace('drivers'),
-      findings: findings.filter(f => !f.questionId),
-      questions: [],
+      findings,
       hasAIContent: aiEnabled || stagedComparison,
     });
 
@@ -200,14 +188,10 @@ export function useReportSections({
       allSections.push({
         id: 'evidence-trail',
         stepNumber: 3,
-        title:
-          reportType === 'improvement-story'
-            ? 'What did we find?'
-            : buildEvidenceTrailTitle(questions),
+        title: reportType === 'improvement-story' ? 'What did we find?' : buildEvidenceTrailTitle(),
         status: sectionStatus('evidence-trail', reportType),
         workspace: sectionWorkspace('evidence-trail'),
-        findings: findings.filter(f => f.questionId != null),
-        questions,
+        findings,
         hasAIContent: aiEnabled,
       });
     }
@@ -223,7 +207,6 @@ export function useReportSections({
         findings: findings.filter(
           f => f.actions && f.actions.length > 0 && f.actions.some(a => a.ideaId)
         ),
-        questions: questions.filter(q => q.ideas && q.ideas.length > 0),
         hasAIContent: false,
       });
 
@@ -234,7 +217,6 @@ export function useReportSections({
         status: sectionStatus('actions-taken', reportType),
         workspace: sectionWorkspace('actions-taken'),
         findings: findings.filter(f => f.actions && f.actions.length > 0),
-        questions: [],
         hasAIContent: false,
       });
 
@@ -245,19 +227,10 @@ export function useReportSections({
         status: sectionStatus('verification', reportType),
         workspace: sectionWorkspace('verification'),
         findings: findings.filter(f => f.outcome != null),
-        questions: [],
         hasAIContent: aiEnabled || stagedComparison,
       });
     }
 
     return { reportType, sections: allSections, audienceMode };
-  }, [
-    findings,
-    questions,
-    stagedComparison,
-    aiEnabled,
-    audienceMode,
-    analysisMode,
-    isCapabilityMode,
-  ]);
+  }, [findings, stagedComparison, aiEnabled, audienceMode, analysisMode, isCapabilityMode]);
 }

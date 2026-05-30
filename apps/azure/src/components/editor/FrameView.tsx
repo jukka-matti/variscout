@@ -98,7 +98,6 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
   const processContext = useProjectStore(s => s.processContext);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
   const findings = useAnalyzeStore(s => s.findings);
-  const questions = useAnalyzeStore(s => s.questions);
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
   const activeHubId = useProjectStore(s => s.processContext?.processHubId ?? null);
@@ -291,7 +290,11 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
   }, []);
 
   const handleOpenInvestigationFocus = React.useCallback((focus: CanvasAnalyzeFocus) => {
-    if (focus.questionId) useAnalyzeFeatureStore.getState().expandToQuestion(focus.questionId);
+    // IM-1: focus a hypothesis hub node (the 'question'/'suspected-cause' kinds
+    // both resolve to a hub id now that the Question entity is retired).
+    if (focus.kind === 'question' || focus.kind === 'suspected-cause') {
+      useAnalyzeFeatureStore.getState().expandToHypothesis(focus.id);
+    }
     usePanelsStore.getState().showAnalyze();
   }, []);
 
@@ -300,15 +303,10 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
       fromFactor: string,
       toFactor: string,
       whyStatement: string,
-      options?: { questionIds?: string[] }
+      _options?: { questionIds?: string[] }
     ) => {
-      const link = useAnalyzeStore.getState().addCausalLink(fromFactor, toFactor, whyStatement);
-
-      if (!link || !options?.questionIds) return;
-
-      for (const questionId of options.questionIds) {
-        useAnalyzeStore.getState().linkQuestionToCausalLink(link.id, questionId);
-      }
+      // IM-1: causal links no longer carry questionIds (Question entity retired).
+      useAnalyzeStore.getState().addCausalLink(fromFactor, toFactor, whyStatement);
     },
     []
   );
@@ -390,7 +388,6 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
         onLogQuickAction={handleLogQuickAction}
         onFocusedInvestigation={handleFocusedInvestigation}
         findings={findings}
-        questions={questions}
         hypotheses={hypotheses}
         causalLinks={causalLinks}
         onOpenWall={handleOpenWall}

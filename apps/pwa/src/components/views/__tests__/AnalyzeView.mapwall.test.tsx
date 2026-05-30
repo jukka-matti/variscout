@@ -129,27 +129,11 @@ function makeMinimalProps(
     handleRestoreFinding: noOp,
     handleSetFindingStatus: noOp,
     drillPath: [],
-    questionsState: {
-      questions: [],
-      addQuestion: noOp,
-      addSubQuestion: noOp,
-      getChildrenSummary: vi.fn(() => null),
-      setValidationTask: noOp,
-      completeTask: noOp,
-      setManualStatus: noOp,
-      addIdea: noOp,
-      updateIdea: noOp,
-      removeIdea: noOp,
-      selectIdea: noOp,
-      setCauseRole: noOp,
-    } as never,
-    handleCreateQuestion: noOp,
-    factorIntelQuestions: [],
-    handleQuestionClick: noOp,
+    // IM-1 (ADR-085): questionsState / handleCreateQuestion / factorIntelQuestions /
+    // handleQuestionClick / questionsMap / ideaImpacts are all removed from
+    // AnalyzeViewProps — they were tied to the retired Question entity.
     columnAliases: {},
     resolvedMode: 'standard' as never,
-    questionsMap: {},
-    ideaImpacts: {},
     ...overrides,
   };
 }
@@ -254,15 +238,16 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     ).toBeTruthy();
   });
 
-  it('list/board/tree sub-toggle is visible in Map mode', () => {
+  it('list/board sub-toggle is visible in Map mode', () => {
+    // IM-1: the `tree` sub-toggle was removed — AnalyzeView now only renders
+    // list + board sub-toggles in Map mode (question-tree view retired with Question entity).
     render(<AnalyzeView {...makeMinimalProps()} />);
-    // All three sub-toggle buttons should be present in Map mode
     expect(screen.getByRole('button', { name: /^list$/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /^board$/i })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /^tree$/i })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^tree$/i })).toBeNull();
   });
 
-  it('list/board/tree sub-toggle is hidden in Wall mode', () => {
+  it('list/board sub-toggle is hidden in Wall mode', () => {
     useCanvasViewportStore.getState().setViewMode('wall');
 
     render(<AnalyzeView {...makeMinimalProps()} />);

@@ -11,11 +11,11 @@ const CAUSE_PALETTE = [
 ];
 
 /**
- * Assign consistent colors to question IDs for cause grouping.
+ * Assign consistent colors to hypothesis IDs for cause grouping.
  * Colors are assigned in sorted order for stability across renders.
  */
-export function assignCauseColors(questionIds: string[]): Map<string, string> {
-  const sorted = [...questionIds].sort();
+export function assignCauseColors(hypothesisIds: string[]): Map<string, string> {
+  const sorted = [...hypothesisIds].sort();
   const map = new Map<string, string>();
   sorted.forEach((id, i) => {
     map.set(id, CAUSE_PALETTE[i % CAUSE_PALETTE.length]);

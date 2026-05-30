@@ -3,7 +3,7 @@
  *
  * Pure data queries with no side effects or store mutations.
  */
-import type { StatsResult, SpecLimits, DataRow, Finding, Question } from '@variscout/core';
+import type { StatsResult, SpecLimits, DataRow, Finding, Hypothesis } from '@variscout/core';
 import {
   getEtaSquared,
   groupDataByFactor,
@@ -20,7 +20,8 @@ export interface ReadToolDeps {
   outcome?: string | null;
   specs?: SpecLimits;
   findings: Finding[];
-  questions: Question[];
+  /** Hypothesis hubs (the suspected causes) — IM-1: replaces the retired questions. */
+  hypotheses: Hypothesis[];
   factors: string[];
   filters: Record<string, (string | number)[]>;
   knowledgeSearch: UseKnowledgeSearchReturn;
@@ -32,7 +33,7 @@ export function buildReadToolHandlers({
   outcome,
   specs,
   findings,
-  questions,
+  hypotheses,
   factors,
   filters,
   knowledgeSearch,
@@ -180,16 +181,16 @@ export function buildReadToolHandlers({
       const results = searchProjectArtifacts({
         query: (args.query as string) ?? '',
         findings,
-        questions,
+        hypotheses,
         artifactType: args.artifact_type as string as
           | 'finding'
-          | 'question'
+          | 'hypothesis'
           | 'idea'
           | 'action'
           | 'all'
           | undefined,
         findingStatus: (args.finding_status as string) ?? 'any',
-        questionStatus: (args.question_status as string) ?? 'any',
+        hypothesisStatus: (args.hypothesis_status as string) ?? 'any',
       });
       return JSON.stringify({ results });
     },

@@ -1,98 +1,34 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import { AnalyzeConclusion } from '../AnalyzeConclusion';
-import type { Question } from '@variscout/core';
-
-const makeQuestion = (overrides: Partial<Question> = {}): Question => ({
-  id: 'h1',
-  text: 'Temperature causes defects',
-  status: 'answered' as const,
-  linkedFindingIds: [],
-  createdAt: 1714000000000,
-  updatedAt: 1714000000000,
-  deletedAt: null,
-  investigationId: 'general-unassigned',
-  ...overrides,
-});
+import { createHypothesis } from '@variscout/core';
 
 describe('AnalyzeConclusion', () => {
   it('returns null when hasConclusions is false', () => {
-    const { container } = render(
-      <AnalyzeConclusion
-        hypotheses={[makeQuestion()]}
-        ruledOut={[]}
-        contributing={[]}
-        hasConclusions={false}
-      />
-    );
+    const { container } = render(<AnalyzeConclusion hasConclusions={false} />);
     expect(container.innerHTML).toBe('');
   });
 
-  it('renders hypotheses section', () => {
-    const causes = [
-      makeQuestion({
-        id: 'h1',
-        text: 'Shift changeover procedure',
-        factor: 'Shift',
-        evidence: { etaSquared: 0.35 },
-      }),
-    ];
-    render(
-      <AnalyzeConclusion hypotheses={causes} ruledOut={[]} contributing={[]} hasConclusions />
-    );
-    expect(screen.getByTestId('hypothesis-hubs')).toBeDefined();
-    expect(screen.getByText('Shift changeover procedure')).toBeDefined();
-  });
-
-  it('renders ruled-out section collapsed by default', () => {
-    const ruledOut = [
-      makeQuestion({
-        id: 'h2',
-        text: 'Material batch variation',
-        status: 'ruled-out',
-        evidence: { rSquaredAdj: 0.01 },
-      }),
-    ];
-    render(
-      <AnalyzeConclusion hypotheses={[]} ruledOut={ruledOut} contributing={[]} hasConclusions />
-    );
-    expect(screen.getByTestId('ruled-out')).toBeDefined();
-    // The ruled-out items should not be visible until expanded
-    expect(screen.queryByText('Material batch variation')).toBeNull();
-
-    // Expand
-    fireEvent.click(screen.getByTestId('ruled-out-toggle'));
-    expect(screen.getByText('Material batch variation')).toBeDefined();
+  it('renders the investigation conclusions header when hasConclusions is true', () => {
+    render(<AnalyzeConclusion hasConclusions hubs={[]} onCreateHub={vi.fn()} findings={[]} />);
+    expect(screen.getByTestId('analyze-conclusion')).toBeDefined();
+    expect(screen.getByText(/Investigation Conclusions/i)).toBeDefined();
   });
 
   it('shows problem statement when provided', () => {
     render(
       <AnalyzeConclusion
-        hypotheses={[]}
-        ruledOut={[]}
-        contributing={[]}
-        problemStatement="Mean fill weight increased 3g since January"
         hasConclusions
+        problemStatement="Mean fill weight increased 3g since January"
       />
     );
-    expect(screen.getByTestId('problem-statement')).toBeDefined();
-    expect(screen.getByText('Approved Problem Statement')).toBeDefined();
+    expect(screen.getByTestId('analyze-conclusion')).toBeDefined();
     expect(screen.getByText('Mean fill weight increased 3g since January')).toBeDefined();
   });
 
-  it('renders contributing factors section', () => {
-    const contributing = [
-      makeQuestion({
-        id: 'h3',
-        text: 'Ambient temperature',
-        factor: 'Temp',
-        evidence: { etaSquared: 0.12 },
-      }),
-    ];
-    render(
-      <AnalyzeConclusion hypotheses={[]} ruledOut={[]} contributing={contributing} hasConclusions />
-    );
-    expect(screen.getByTestId('contributing-factors')).toBeDefined();
-    expect(screen.getByText('Ambient temperature')).toBeDefined();
+  it('renders hub cards when hubs provided', () => {
+    const hub = createHypothesis('Shift changeover procedure', '');
+    render(<AnalyzeConclusion hasConclusions hubs={[hub]} onCreateHub={vi.fn()} findings={[]} />);
+    expect(screen.getByText('Shift changeover procedure')).toBeDefined();
   });
 });

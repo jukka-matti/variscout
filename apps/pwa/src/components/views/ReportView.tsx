@@ -11,7 +11,6 @@ import {
   ReportSection,
   ReportKPIGrid,
   ReportDefectKPIGrid,
-  ReportQuestionSummary,
   ReportImprovementSummary,
   ReportCpkLearningLoop,
   ActiveIPScopeRibbon,
@@ -28,7 +27,6 @@ import type {
   Finding,
   Hypothesis,
   ProcessHub,
-  Question,
   SpecLimits,
   StatsResult,
   AnalysisMode,
@@ -51,7 +49,6 @@ interface ReportViewProps {
   stats: StatsResult | null;
   specs: SpecLimits;
   findings: Finding[];
-  questions: Question[];
   columnAliases: Record<string, string>;
   dataFilename: string | null;
   sampleCount: number;
@@ -76,7 +73,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   stats,
   specs,
   findings,
-  questions,
   columnAliases,
   dataFilename,
   sampleCount,
@@ -109,12 +105,11 @@ const ReportView: React.FC<ReportViewProps> = ({
             ip: activeIP,
             hypotheses,
             findings,
-            questions,
             controlRecords,
             controlHandoffs,
           })
         : null,
-    [activeIP, controlHandoffs, findings, hypotheses, questions, controlRecords]
+    [activeIP, controlHandoffs, findings, hypotheses, controlRecords]
   );
 
   const ipNarrative = useMemo(
@@ -124,7 +119,6 @@ const ReportView: React.FC<ReportViewProps> = ({
             ip: activeIP,
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
-            questions: ipReportScope.questions,
             controlRecord: ipReportScope.controlRecord,
             controlHandoff: ipReportScope.controlHandoff,
           })
@@ -139,7 +133,6 @@ const ReportView: React.FC<ReportViewProps> = ({
             ip: activeIP,
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
-            questions: ipReportScope.questions,
             controlRecord: ipReportScope.controlRecord,
           })
         : [],
@@ -148,7 +141,8 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   const hubPortfolio = useMemo(() => (hub ? deriveHubPortfolioReport({ hub }) : null), [hub]);
   const reportFindings = activeIP && ipReportScope ? ipReportScope.findings : findings;
-  const reportQuestions = activeIP && ipReportScope ? ipReportScope.questions : questions;
+  // IM-1: improvement summary derives from hypothesis hubs (Question entity retired).
+  const reportHypotheses = activeIP && ipReportScope ? ipReportScope.hypotheses : hypotheses;
   const technicalOutcomeSeries = useMemo(
     () =>
       outcome
@@ -191,7 +185,6 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   const { reportType, sections } = useReportSections({
     findings: reportFindings,
-    questions: reportQuestions,
     stagedComparison: false,
     aiEnabled: false,
     audienceMode,
@@ -403,31 +396,13 @@ const ReportView: React.FC<ReportViewProps> = ({
         );
       }
 
-      // Evidence trail: question summary
-      if (sectionId === 'evidence-trail' && reportQuestions.length > 0) {
-        return (
-          <ReportSection
-            key={sectionId}
-            id={sectionId}
-            stepNumber={section.stepNumber}
-            title={section.title}
-            status={section.status}
-            workspace={section.workspace}
-            sectionRef={ref}
-          >
-            <ReportQuestionSummary questions={reportQuestions} />
-          </ReportSection>
-        );
-      }
+      // Evidence trail — IM-1 (ADR-085): the Question entity is retired, so the
+      // standalone question-tree summary is gone. Findings carry the trail.
 
-      // Improvement plan
+      // Improvement plan — ideas live on hypothesis hubs; cause "role" derives
+      // from Hypothesis.status.
       if (sectionId === 'improvement-plan') {
-        const withIdeas = reportQuestions.filter(
-          q =>
-            (q.status === 'answered' || q.status === 'investigating') &&
-            q.ideas &&
-            q.ideas.length > 0
-        );
+        const withIdeas = reportHypotheses.filter(h => (h.ideas?.length ?? 0) > 0);
         if (withIdeas.length > 0) {
           return (
             <ReportSection
@@ -440,11 +415,11 @@ const ReportView: React.FC<ReportViewProps> = ({
               sectionRef={ref}
             >
               <ReportImprovementSummary
-                questions={withIdeas.map(q => ({
-                  id: q.id,
-                  text: q.text,
-                  causeRole: q.causeRole,
-                  ideas: q.ideas ?? [],
+                questions={withIdeas.map(h => ({
+                  id: h.id,
+                  text: h.name,
+                  status: h.status,
+                  ideas: h.ideas ?? [],
                 }))}
               />
             </ReportSection>
@@ -495,7 +470,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       specs,
       sampleCount,
       reportFindings,
-      reportQuestions,
+      reportHypotheses,
       columnAliases,
       strategy,
       sectionRefs,

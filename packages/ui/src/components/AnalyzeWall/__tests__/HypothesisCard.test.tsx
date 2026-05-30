@@ -11,18 +11,12 @@ vi.mock('@variscout/stores', () => ({
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { HypothesisCard } from '../HypothesisCard';
-import {
-  projectMechanismBranch,
-  type Finding,
-  type Question,
-  type Hypothesis,
-} from '@variscout/core';
+import { projectMechanismBranch, type Finding, type Hypothesis } from '@variscout/core';
 
 const hub: Hypothesis = {
   id: 'h1',
   name: 'Nozzle runs hot on night shift',
   synthesis: '',
-  questionIds: [],
   findingIds: ['f1', 'f2', 'f3'],
   status: 'confirmed',
   createdAt: 1,
@@ -180,26 +174,29 @@ describe('HypothesisCard', () => {
         validationStatus: 'contradicts',
       },
     ];
-    const questions: Question[] = [
-      {
-        id: 'q1',
-        text: 'Check nozzle temperature after four hours',
-        status: 'open',
-        linkedFindingIds: [],
-        createdAt: 1,
-        updatedAt: 1,
-        deletedAt: null,
-        investigationId: 'inv-test',
-      },
-    ];
+    // "Not-tested" clue represents an inconclusive finding (open check in IM-1).
+    const notTestedFinding: Finding = {
+      id: 'f-not-tested',
+      text: 'Inconclusive check — needs more runs',
+      createdAt: 4,
+      deletedAt: null,
+      investigationId: 'inv-test',
+      context: { activeFilters: {}, cumulativeScope: null },
+      evidenceType: 'data',
+      status: 'analyzed',
+      comments: [],
+      statusChangedAt: 4,
+      validationStatus: 'inconclusive',
+    };
+    const allFindings = [...findings, notTestedFinding];
     const branch = projectMechanismBranch(
       {
         ...hub,
         status: 'proposed',
         nextMove: 'Run a late-shift temperature check.',
-        questionIds: ['q1'],
+        findingIds: [...hub.findingIds, 'f-not-tested'],
       },
-      { findings, questions }
+      { findings: allFindings }
     );
 
     render(

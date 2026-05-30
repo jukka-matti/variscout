@@ -14,7 +14,7 @@ export type EntityKind =
   | 'evidenceSourceCursor'
   | 'investigation'
   | 'finding'
-  | 'question'
+  | 'scope'
   | 'causalLink'
   | 'hypothesis'
   | 'canvasState';
@@ -34,9 +34,9 @@ export const cascadeRules: CascadeRuleset = {
   rowProvenance: { cascadesTo: [] },
   evidenceSource: { cascadesTo: ['evidenceSourceCursor'] },
   evidenceSourceCursor: { cascadesTo: [] },
-  investigation: { cascadesTo: ['finding', 'question', 'causalLink', 'hypothesis'] },
+  investigation: { cascadesTo: ['finding', 'scope', 'causalLink', 'hypothesis'] },
   finding: { cascadesTo: [] },
-  question: { cascadesTo: [] },
+  scope: { cascadesTo: [] },
   causalLink: { cascadesTo: [] },
   hypothesis: { cascadesTo: [] },
   canvasState: { cascadesTo: [] },

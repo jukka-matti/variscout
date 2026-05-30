@@ -1,33 +1,34 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useProblemStatement } from '../useProblemStatement';
-import type { Question } from '@variscout/core';
+import type { Hypothesis } from '@variscout/core';
 import type { LocationFactor } from '../useProblemStatement';
 
-function makeQuestion(overrides: Partial<Question> = {}): Question {
+function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
     id: 'h-1',
-    text: 'Test question',
-    status: 'answered',
-    linkedFindingIds: [],
+    name: 'Shift',
+    synthesis: '',
+    findingIds: [],
+    status: 'confirmed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
     investigationId: 'inv-test-001',
-    causeRole: 'suspected-cause',
-    factor: 'Shift',
-    level: 'Night',
-    evidence: { etaSquared: 0.34 },
+    evidence: {
+      mode: 'standard',
+      contribution: { value: 0.34, label: 'R²adj', description: 'Explains 34% of variation' },
+    },
     ...overrides,
   };
 }
 
 describe('useProblemStatement', () => {
-  it('returns isReady=true when outcome and hypotheses exist', () => {
+  it('returns isReady=true when outcome and hypothesisHubs exist', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Fill Weight',
-        questions: [makeQuestion()],
+        hypothesisHubs: [makeHub()],
       })
     );
     expect(result.current.isReady).toBe(true);
@@ -38,28 +39,18 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: null,
-        questions: [makeQuestion()],
+        hypothesisHubs: [makeHub()],
       })
     );
     expect(result.current.isReady).toBe(false);
     expect(result.current.generatedDraft).toBeNull();
   });
 
-  it('returns isReady=false when no hypotheses', () => {
+  it('returns isReady=false when no non-refuted hubs', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Weight',
-        questions: [makeQuestion({ causeRole: 'ruled-out' })],
-      })
-    );
-    expect(result.current.isReady).toBe(false);
-  });
-
-  it('filters questions without factor', () => {
-    const { result } = renderHook(() =>
-      useProblemStatement({
-        outcome: 'Weight',
-        questions: [makeQuestion({ factor: undefined })],
+        hypothesisHubs: [makeHub({ status: 'refuted' })],
       })
     );
     expect(result.current.isReady).toBe(false);
@@ -69,7 +60,7 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Fill Weight',
-        questions: [makeQuestion()],
+        hypothesisHubs: [makeHub()],
       })
     );
     expect(result.current.draft).toBeNull();
@@ -83,7 +74,7 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Fill Weight',
-        questions: [makeQuestion()],
+        hypothesisHubs: [makeHub()],
         onStatementChange: onChange,
       })
     );
@@ -99,7 +90,7 @@ describe('useProblemStatement', () => {
     const { result } = renderHook(() =>
       useProblemStatement({
         outcome: 'Fill Weight',
-        questions: [makeQuestion()],
+        hypothesisHubs: [makeHub()],
         onStatementChange: onChange,
       })
     );
@@ -115,25 +106,11 @@ describe('useProblemStatement', () => {
         outcome: 'Weight',
         currentCpk: 0.62,
         targetCpk: 1.33,
-        questions: [makeQuestion()],
+        hypothesisHubs: [makeHub()],
       })
     );
     expect(result.current.generatedDraft).toContain('0.62');
     expect(result.current.generatedDraft).toContain('1.33');
-  });
-
-  it('prefers rSquaredAdj over etaSquared', () => {
-    const { result } = renderHook(() =>
-      useProblemStatement({
-        outcome: 'Weight',
-        questions: [
-          makeQuestion({
-            evidence: { rSquaredAdj: 0.5, etaSquared: 0.3 },
-          }),
-        ],
-      })
-    );
-    expect(result.current.generatedDraft).toContain('50%');
   });
 
   // Early formation tests — Watson Q1+Q2+Q3 without hypotheses
@@ -146,7 +123,7 @@ describe('useProblemStatement', () => {
           outcome: 'Fill Weight',
           characteristicType: 'nominal',
           locationFactor,
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.isFormable).toBe(true);
@@ -158,7 +135,7 @@ describe('useProblemStatement', () => {
           outcome: null,
           characteristicType: 'nominal',
           locationFactor,
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.isFormable).toBe(false);
@@ -169,7 +146,7 @@ describe('useProblemStatement', () => {
         useProblemStatement({
           outcome: 'Fill Weight',
           locationFactor,
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.isFormable).toBe(false);
@@ -180,7 +157,7 @@ describe('useProblemStatement', () => {
         useProblemStatement({
           outcome: 'Fill Weight',
           characteristicType: 'nominal',
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.isFormable).toBe(false);
@@ -188,13 +165,15 @@ describe('useProblemStatement', () => {
 
     it('q1Ready is true when outcome is set', () => {
       const { result } = renderHook(() =>
-        useProblemStatement({ outcome: 'Fill Weight', questions: [] })
+        useProblemStatement({ outcome: 'Fill Weight', hypothesisHubs: [] })
       );
       expect(result.current.q1Ready).toBe(true);
     });
 
     it('q1Ready is false when outcome is null', () => {
-      const { result } = renderHook(() => useProblemStatement({ outcome: null, questions: [] }));
+      const { result } = renderHook(() =>
+        useProblemStatement({ outcome: null, hypothesisHubs: [] })
+      );
       expect(result.current.q1Ready).toBe(false);
     });
 
@@ -203,7 +182,7 @@ describe('useProblemStatement', () => {
         useProblemStatement({
           outcome: 'Fill Weight',
           characteristicType: 'smaller',
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.q2Ready).toBe(true);
@@ -211,7 +190,7 @@ describe('useProblemStatement', () => {
 
     it('q2Ready is false when characteristicType is absent', () => {
       const { result } = renderHook(() =>
-        useProblemStatement({ outcome: 'Fill Weight', questions: [] })
+        useProblemStatement({ outcome: 'Fill Weight', hypothesisHubs: [] })
       );
       expect(result.current.q2Ready).toBe(false);
     });
@@ -221,24 +200,24 @@ describe('useProblemStatement', () => {
         useProblemStatement({
           outcome: 'Fill Weight',
           locationFactor,
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.hasScope).toBe(true);
     });
 
-    it('hasScope is false when locationFactor is absent and no hypotheses', () => {
+    it('hasScope is false when locationFactor is absent and no non-refuted hubs', () => {
       const { result } = renderHook(() =>
-        useProblemStatement({ outcome: 'Fill Weight', questions: [] })
+        useProblemStatement({ outcome: 'Fill Weight', hypothesisHubs: [] })
       );
       expect(result.current.hasScope).toBe(false);
     });
 
-    it('hasScope is true when there are hypotheses (backward compat)', () => {
+    it('hasScope is true when there are non-refuted hubs (backward compat)', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
-          questions: [makeQuestion()],
+          hypothesisHubs: [makeHub()],
         })
       );
       expect(result.current.hasScope).toBe(true);
@@ -250,7 +229,7 @@ describe('useProblemStatement', () => {
           outcome: 'Fill Weight',
           characteristicType: 'nominal',
           locationFactor,
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.liveStatement).toBeTruthy();
@@ -262,7 +241,7 @@ describe('useProblemStatement', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.liveStatement).toBeNull();
@@ -274,7 +253,7 @@ describe('useProblemStatement', () => {
           outcome: 'Yield',
           characteristicType: 'larger',
           locationFactor: { factor: 'Machine' },
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.liveStatement).toContain('Increase');
@@ -286,32 +265,32 @@ describe('useProblemStatement', () => {
           outcome: 'Defect Rate',
           characteristicType: 'smaller',
           locationFactor: { factor: 'Line' },
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.liveStatement).toContain('Decrease');
     });
 
-    it('liveStatement includes hypotheses after locationFactor', () => {
+    it('liveStatement includes hub causes after locationFactor', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
           characteristicType: 'nominal',
           locationFactor,
-          questions: [makeQuestion({ factor: 'Operator', causeRole: 'suspected-cause' })],
+          hypothesisHubs: [makeHub({ name: 'Operator', status: 'confirmed' })],
         })
       );
       expect(result.current.liveStatement).toContain('Shift');
       expect(result.current.liveStatement).toContain('Operator');
     });
 
-    it('liveStatement skips hypotheses that duplicate locationFactor factor name', () => {
+    it('liveStatement skips hubs that duplicate locationFactor factor name', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
           characteristicType: 'nominal',
           locationFactor,
-          questions: [makeQuestion({ factor: 'Shift', causeRole: 'suspected-cause' })],
+          hypothesisHubs: [makeHub({ name: 'Shift', status: 'confirmed' })],
         })
       );
       // Should contain Shift only once (from locationFactor)
@@ -320,16 +299,16 @@ describe('useProblemStatement', () => {
       expect(shiftCount).toBe(1);
     });
 
-    it('legacy isReady still requires hypotheses (backward compat)', () => {
+    it('legacy isReady still requires non-refuted hubs (backward compat)', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
           characteristicType: 'nominal',
           locationFactor,
-          questions: [],
+          hypothesisHubs: [],
         })
       );
-      // isFormable is true (Q1+Q2+Q3), but isReady is false (no question hypotheses)
+      // isFormable is true (Q1+Q2+Q3), but isReady is false (no active hubs)
       expect(result.current.isFormable).toBe(true);
       expect(result.current.isReady).toBe(false);
     });
@@ -343,7 +322,7 @@ describe('useProblemStatement', () => {
         useProblemStatement({
           outcome: 'Fill Weight',
           locationFactor,
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.q1Ready).toBe(true);
@@ -351,11 +330,11 @@ describe('useProblemStatement', () => {
       expect(result.current.canGenerateDraft).toBe(true);
     });
 
-    it('canGenerateDraft should be true from legacy path (hypothesis questions)', () => {
+    it('canGenerateDraft should be true from legacy path (active hubs)', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
-          questions: [makeQuestion()],
+          hypothesisHubs: [makeHub()],
         })
       );
       expect(result.current.q1Ready).toBe(true);
@@ -368,18 +347,18 @@ describe('useProblemStatement', () => {
         useProblemStatement({
           outcome: null,
           locationFactor,
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.q1Ready).toBe(false);
       expect(result.current.canGenerateDraft).toBe(false);
     });
 
-    it('canGenerateDraft should be false without scope (no locationFactor, no hypotheses)', () => {
+    it('canGenerateDraft should be false without scope (no locationFactor, no active hubs)', () => {
       const { result } = renderHook(() =>
         useProblemStatement({
           outcome: 'Fill Weight',
-          questions: [],
+          hypothesisHubs: [],
         })
       );
       expect(result.current.hasScope).toBe(false);

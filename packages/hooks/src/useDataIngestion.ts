@@ -33,7 +33,6 @@ import {
   type SpecLimits,
   type TimeExtractionConfig,
   type Finding,
-  type Question,
   type AnalyzeCategory,
   type Hypothesis,
   type CausalLink,
@@ -68,8 +67,6 @@ export interface DataIngestionActions {
   setDefectMapping?: (mapping: DefectMapping | null) => void;
   /** Set pre-populated findings (for showcase/demo datasets) */
   setFindings?: (findings: Finding[]) => void;
-  /** Set pre-populated questions (for showcase/demo datasets) */
-  setQuestions?: (questions: Question[]) => void;
   /** Set pre-populated investigation categories (for showcase/demo datasets) */
   setCategories?: (categories: AnalyzeCategory[]) => void;
   /** Replace Hypothesis hubs with a seeded set (showcase/demo datasets) */
@@ -172,7 +169,6 @@ export function useDataIngestion(
     setAnalysisMode,
     setDefectMapping,
     setFindings,
-    setQuestions,
     setCategories,
     setHypotheses,
     setCausalLinks,
@@ -428,14 +424,12 @@ export function useDataIngestion(
       if (sample.config.investigation) {
         const inv = sample.config.investigation;
         if (inv.findings?.length && setFindings) setFindings(inv.findings);
-        if (inv.questions?.length && setQuestions) setQuestions(inv.questions);
         if (inv.categories?.length && setCategories) setCategories(inv.categories);
         if (inv.hypotheses?.length && setHypotheses) setHypotheses(inv.hypotheses);
         if (inv.causalLinks?.length && setCausalLinks) setCausalLinks(inv.causalLinks);
       } else {
         // Clear stale investigation state from a previous showcase sample
         if (setFindings) setFindings([]);
-        if (setQuestions) setQuestions([]);
         if (setCategories) setCategories([]);
         if (setHypotheses) setHypotheses([]);
         if (setCausalLinks) setCausalLinks([]);
@@ -467,7 +461,6 @@ export function useDataIngestion(
       setAnalysisMode,
       setDefectMapping,
       setFindings,
-      setQuestions,
       setCategories,
       setHypotheses,
       setCausalLinks,

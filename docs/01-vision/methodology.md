@@ -31,9 +31,9 @@ The distinction matters in practice:
 | Prove with math                  | See with eyes                    |
 | Analysis as end goal             | Analysis as starting point       |
 
-> VariScout finds WHERE to focus. Apply Lean thinking to find WHY — and what to do about it.
+> VariScout finds WHERE to focus — the scope (outcome + conditions). Suspected causes (WHY) nest within that scope and are carried by Hypotheses.
 
-VariScout identifies **factors driving variation**, not root causes. EDA shows _which_ factors explain variation. The _why_ requires further investigation (5 Whys, experimentation, Gemba walks). This is intentional: we quantify contribution, not causation.
+VariScout identifies **factors contributing to variation**, not causes in a strict sense. EDA shows _which_ factors explain variation. Suspected causes (mechanisms) require further investigation (Gemba walks, expert input, disconfirmation). This is intentional: we quantify contribution, not causation.
 
 ---
 
@@ -41,20 +41,20 @@ VariScout identifies **factors driving variation**, not root causes. EDA shows _
 
 VariScout now uses a nested methodology model:
 
-| Layer                                | Job                                                                 |
-| ------------------------------------ | ------------------------------------------------------------------- |
-| **Process Hub**                      | Operating spine for process-owner cadence and team improvement      |
-| **Process Measurement System**       | Designed measure, evidence, snapshot, trust, and cadence layer      |
-| **Current Process State**            | Latest review of outcome, flow, known x-control, and trust measures |
-| **Evidence Sources / Data Profiles** | Recurring hub evidence workflow and deterministic source adapters   |
-| **Process learning levels**          | Outcome, flow, and local-mechanism levels of process understanding  |
-| **Investigation journey**            | Reasoning loop from Current Process State to response               |
-| **Response paths**                   | Quick action, focused investigation, charter, sustainment, handoff  |
-| **Question-driven EDA**              | Reasoning spine that sharpens concern into Current Understanding    |
-| **Survey**                           | Horizontal readiness check across phases and hub reviews            |
-| **Signal Cards**                     | Signal-level trust records quoted by Survey, branches, and reports  |
-| **Process moments**                  | Process-rational Cp/Cpk windows for verification and learning       |
-| **Sustainment handoff**              | Decision on what stays in VariScout or moves to operational systems |
+| Layer                                | Job                                                                                          |
+| ------------------------------------ | -------------------------------------------------------------------------------------------- |
+| **Process Hub**                      | Operating spine for process-owner cadence and team improvement                               |
+| **Process Measurement System**       | Designed measure, evidence, snapshot, trust, and cadence layer                               |
+| **Current Process State**            | Latest review of outcome, flow, known x-control, and trust measures                          |
+| **Evidence Sources / Data Profiles** | Recurring hub evidence workflow and deterministic source adapters                            |
+| **Process learning levels**          | Outcome, flow, and local-mechanism levels of process understanding                           |
+| **Investigation journey**            | Reasoning loop from Current Process State to response                                        |
+| **Response paths**                   | Quick action, focused investigation, charter, sustainment, handoff                           |
+| **Scope-first investigation**        | Drill to a `ProblemStatementScope` (WHERE), then collect `Hypothesis` causes (WHY) within it |
+| **Survey**                           | Horizontal readiness check across phases and hub reviews                                     |
+| **Signal Cards**                     | Signal-level trust records quoted by Survey, branches, and reports                           |
+| **Process moments**                  | Process-rational Cp/Cpk windows for verification and learning                                |
+| **Sustainment handoff**              | Decision on what stays in VariScout or moves to operational systems                          |
 
 This is not a replacement for the original journey. Process Hub organizes the
 work; the Process Measurement System defines what the process reviews and
@@ -71,6 +71,8 @@ Process Hub = operating home for one process
 Process Measurement System = designed evidence/measure layer
 Current Process State = process-owner review surface
 Investigation = structured reasoning loop from state to response
+ProblemStatementScope = the WHERE (outcome + {factor=level} predicates; first-class persisted type)
+Hypothesis = a suspected cause (the WHY) nested within a scope
 Response Path = quick action / focused investigation / charter / sustain / handoff
 CoScout = product assistant grounded in shared process context
 ```
@@ -206,9 +208,9 @@ Progressive stratification converts a multidimensional variation problem into a 
 
 **The endpoint** is specific and actionable: "Operator Kim on Machine C during Night Shift accounts for 46% of all variation" — not a vague recommendation.
 
-### 3. Question-Driven Investigation
+### 3. Scope-First Investigation
 
-Once variation drivers are identified through drill-down, the investigation moves into structured exploration. VariScout uses a **question-driven** approach grounded in Turtiainen's EDA Mental Model (2019) — where questions come first, and evidence answers them.
+Once variation drivers are identified through drill-down, the investigation moves into structured exploration. VariScout uses a **scope-first** approach grounded in Turtiainen's EDA Mental Model (2019) — drill to a specific condition (the WHERE), then collect suspected causes (the WHY) within that scope.
 
 #### Issue Statement vs. Problem Statement
 
@@ -217,42 +219,42 @@ A critical distinction underpins the investigation flow:
 - **Issue Statement** (the input): A vague concern that initiates the investigation. Example: _"Fill weight on line 3 seems too variable."_ Watson (2019a) defines an issue as a concern arising from a gap between customer expectation and observation.
 - **Problem Statement** (the output): A precise declaration answering Watson's three questions: (1) What measure needs to change? (2) How should it change? (3) What is the scope? Example: _"Reduce fill weight variation on line 3, night shift, heads 5-8, from Cpk 0.62 to target Cpk 1.33."_
 
-**Temporal scope is part of the third question.** The "when does this happen?" dimension is captured by a **timeline window** on the investigation — a tagged variant of fixed, rolling, open-ended, or cumulative — that travels with every chart, every Finding, and every drift comparison. Without an explicit window, "scope" stays vague; with one, the analysis can answer "this happens during these dates, on this rolling horizon, since this start" precisely. See [Timeline Windows in Investigations](../03-features/analysis/timeline-window-investigations.md).
+**The scope is first-class.** The "where does this happen?" dimension is captured as a `ProblemStatementScope` — an outcome (Y) plus a set of `{factor=level}` predicates — not merely a filter chip. Suspected causes (Hypotheses) nest within a scope; a scope's WHERE and its nested WHY (mechanism hypotheses) are always kept strictly separate. **Temporal scope** is further captured by a **timeline window** on the investigation — fixed, rolling, open-ended, or cumulative — that travels with every chart and Finding. See [Timeline Windows in Investigations](../03-features/analysis/timeline-window-investigations.md) and [ADR-085](../07-decisions/adr-085-drop-question-problem-statement-scope.md).
 
-The gap between the two is the entire EDA journey. Every question asked and answered in VariScout exists to close this gap.
+The gap between the two is the entire EDA journey. Every drill and hypothesis tested in VariScout exists to close this gap.
 
-#### Question Generation
+#### Factor Intelligence as the Exploration Engine
 
-Questions are generated from two complementary sources:
+Factor exploration is driven from two complementary sources:
 
-1. **Factor Intelligence** (deterministic, always available) — R²adj ranking from Best Subsets analysis generates evidence-ranked questions automatically. Factors with R²adj < 5% are auto-answered as "ruled out" — negative learnings captured without analyst effort. Follow-up questions emerge as earlier questions are answered (Layer 2 main effects, Layer 3 interactions).
+1. **Factor Intelligence** (deterministic, always available) — R²adj ranking from Best Subsets analysis surfaces evidence-ranked factor nodes automatically. Factors with R²adj < 5% are flagged as "examined, no contribution" — negative learnings captured without analyst effort. Follow-up exploration emerges as earlier factors are drilled (Layer 2 main effects, Layer 3 interactions). **Factor node ranking is transient** — it guides the analyst but nothing is persisted as a `Question` entity; the Investigation Wall and Evidence Map subsume completeness tracking.
 
-2. **CoScout** (AI layer, Azure only) — generates additional questions from the issue statement text, upfront hypotheses in the Analysis Brief, factor role detection, and data patterns. These complement the statistical questions with contextual questions that the numbers alone cannot generate.
+2. **CoScout** (AI layer, Azure only) — generates additional exploration directions from the issue statement text, upfront hypotheses in the Analysis Brief, factor role detection, and data patterns. These complement the statistical signals with contextual directions that the numbers alone cannot generate.
 
 #### The Diamond Pattern
 
-Investigation follows the same **diamond pattern** as before, reframed around questions:
+Investigation follows the same **diamond pattern**, now anchored to scopes and hypotheses rather than a question tree:
 
-| Phase          | Purpose                                                 | Analyst Activity                                                                           |
-| -------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| **Initial**    | Variation found, questions generated                    | Factor Intelligence generates ranked questions; analyst reviews the question checklist     |
-| **Diverging**  | Explore possible causes                                 | Answer questions, spawn follow-up questions — the question tree grows                      |
-| **Validating** | Gather evidence                                         | Answer each question — Data (ANOVA auto-validate), Gemba (go inspect), Expert input        |
-| **Converging** | Build understanding, identify multiple suspected causes | Mark suspected causes (multiple allowed); formulate the Problem Statement from the answers |
+| Phase          | Purpose                                                 | Analyst Activity                                                                                           |
+| -------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Initial**    | Variation found, factor nodes ranked                    | Factor Intelligence surfaces ranked factor nodes; analyst reviews the Evidence Map                         |
+| **Diverging**  | Drill to scope, explore possible causes                 | Capture a `ProblemStatementScope` (the WHERE); add `Hypothesis` entries for suspected mechanisms (the WHY) |
+| **Validating** | Gather evidence for each hypothesis                     | Data (ANOVA auto-validate), Gemba (go inspect), Expert input — each updates `Hypothesis.status`            |
+| **Converging** | Build understanding, identify multiple suspected causes | Hypotheses move to `evidenced` / `confirmed` / `refuted`; Problem Statement assembles from scope + causes  |
 
-The diamond is a **structured learning** process — a disciplined way to build understanding through multiple evidence types. It is not pure hypothesis testing; the three validation types (data, Gemba, expert) reflect that understanding comes from statistical evidence, physical observation, and domain knowledge alike. The exit is when enough questions are answered to formulate a Problem Statement with suspected causes.
+The diamond is a **structured learning** process — a disciplined way to build understanding through multiple evidence types. It is not pure hypothesis testing; the three validation types (data, Gemba, expert) reflect that understanding comes from statistical evidence, physical observation, and domain knowledge alike. The exit is when enough hypotheses are resolved to formulate a Problem Statement with suspected causes.
 
-**Multiple suspected causes** are the natural outcome of real investigations. When a process has multiple independent sources of variation, forcing a single root cause oversimplifies the problem. Each suspected cause becomes an improvement target in the IMPROVE phase. Ruled-out factors are preserved as negative learnings (essential for audit trails and preventing re-investigation of dead ends).
+**Multiple suspected causes** are the natural outcome of real investigations. When a process has multiple independent sources of variation, forcing a single suspected cause oversimplifies the problem. Each confirmed or evidenced hypothesis becomes an improvement target in the IMPROVE phase. Refuted hypotheses are preserved as negative learnings (essential for audit trails and preventing re-investigation of dead ends).
 
 After the diamond converges, the investigation is complete. What follows — ideating improvements, selecting corrective actions, implementing, and verifying — belongs to the **IMPROVE** phase, which follows PDCA (Plan-Do-Check-Act). See [Analysis Journey Map § Phase 4: IMPROVE](../03-features/workflows/analysis-journey-map.md#phase-4-improve).
 
-**Three validation types** reflect that not every question can be answered with data:
+**Three validation types** reflect that not every hypothesis can be answered with data:
 
-| Validation | When to Use                                    | How It Works                                                                |
-| ---------- | ---------------------------------------------- | --------------------------------------------------------------------------- |
-| Data       | Question links to a factor in the dataset      | ANOVA η² auto-sets status (≥15% supported, <5% contradicted, 5–15% partial) |
-| Gemba      | Requires physical inspection on the shop floor | Define task, inspect, record findings, set status manually                  |
-| Expert     | Requires domain knowledge beyond the data      | Consult expert, record assessment, set status manually                      |
+| Validation | When to Use                                    | How It Works                                                                        |
+| ---------- | ---------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Data       | Hypothesis links to a factor in the dataset    | ANOVA η² auto-sets `Hypothesis.status` (≥15% evidenced, <5% refuted, 5–15% partial) |
+| Gemba      | Requires physical inspection on the shop floor | Define task, inspect, record findings, set status manually                          |
+| Expert     | Requires domain knowledge beyond the data      | Consult expert, record assessment, set status manually                              |
 
 For the full methodology behind this approach, see [EDA Mental Model](eda-mental-model.md).
 
@@ -331,13 +333,13 @@ for the capability mode details.
 
 **Contribution, Not Causation.** ANOVA η² quantifies how much of the total variation a factor explains. It does not prove that factor causes the variation. Causation requires domain knowledge and further investigation.
 
-**Iterative Exploration.** Each analysis cycle reveals new questions. A finding answers a question and may spawn follow-up questions, which may need new data or a Gemba visit. The loop continues until the solution space is bounded.
+**Iterative Exploration.** Each analysis cycle deepens understanding. A finding evidences or refutes a hypothesis and may motivate new hypotheses or a deeper drill, which may need new data or a Gemba visit. The Measure⇄Analyze loop continues until the scope and its suspected causes are bounded.
 
 **AI Augments, Never Replaces (Azure App only).** VariScout's statistical engine computes the conclusion. AI translates it into language and adds context — it does not generate competing statistics. The conclusion is reproducible and auditable. The PWA stays AI-free by design; the "guided frustration" pedagogy requires the analyst to do the thinking.
 
 **Distribution, Not Aggregation.** When capability indices come from heterogeneous units — different specs, different contexts, different process families, different hubs — VariScout shows their **distribution**, typically as a per-step boxplot, rather than collapsing them into a single number. A `mean Cpk` across hubs running different products is mathematically meaningless: each Cpk is interpretable only against the spec that produced it. The structural enforcement is design absence: the engine exposes no function that combines Cp/Cpk across heterogeneous units. The legitimate visualization is a per-step boxplot of per-`(node × context-tuple)` Cpks, side-by-side across hubs when needed; the analyst's eye does the pattern recognition. See ADR-073 and the [investigation-scope-and-drill-semantics spec](../archive/specs/2026-04-29-investigation-scope-and-drill-semantics-design.md).
 
-**One Graph, Three Projections.** An investigation graph (`SuspectedCause` + `CausalLink` + `Finding` + `Question`) admits three projections — _factor-centric_ ([Evidence Map](../archive/specs/2026-04-05-evidence-map-design.md): which factors matter?), _hypothesis-centric_ ([Investigation Wall](../03-features/workflows/analyze-wall.md): which hypotheses are we betting on, what evidence holds them, what's missing?), and _question-centric_ (the Question framework: what are we trying to answer?). Each projection is the same data, different lens. Skilled investigators move fluently between them — the Map to find which columns explain variation, the Wall to ask what would _contradict_ the leading hypothesis, the Question framework to verify nothing important was left unanswered.
+**One Graph, Two Projections.** The investigation graph (`ProblemStatementScope` + `Hypothesis` + `CausalLink` + `Finding`) admits two projections — _factor-centric_ ([Evidence Map](../archive/specs/2026-04-05-evidence-map-design.md): which factors contribute to variation?) and _hypothesis-centric_ ([Investigation Wall](../03-features/workflows/analyze-wall.md): which hypotheses are we betting on, what evidence holds them, what's missing?). Each projection is the same data, different lens. Skilled investigators move fluently between them — the Map to identify which columns explain variation, the Wall to ask what would _contradict_ the leading hypothesis. Question generation is transient ranked factor-node metadata (nothing persisted); the Wall subsumes the "what to answer" tracking role. See [ADR-085](../07-decisions/adr-085-drop-question-problem-statement-scope.md) and [ADR-086](../07-decisions/adr-086-unified-investigation-canvas.md).
 
 ---
 
@@ -362,6 +364,6 @@ VariScout is **the first step** — finding where to focus before investing in d
 - [Two Voices](two-voices/index.md) — Control limits vs spec limits, four scenarios
 - [Progressive Stratification](progressive-stratification.md) — Design rationale for filter chip drill-down, tensions, alternative patterns
 - [Investigation to Action](../03-features/workflows/analyze-to-action.md) — Findings panel, What-If Simulator, full analyst workflow
-- [Question-Driven Investigation](../03-features/workflows/question-driven-analyze.md) — Diamond pattern, validation types, tree view
+- [Question-Driven Investigation](../03-features/workflows/question-driven-analyze.md) — Diamond pattern, validation types (historical; superseded by ADR-085 scope-first model)
 - [Mental Model Hierarchy](../05-technical/architecture/mental-model-hierarchy.md) — How all conceptual frameworks (journey, investigation diamond, lenses, report steps) relate and nest
 - [Multi-level SCOUT design](../archive/specs/2026-04-29-multi-level-scout-design.md) — How the three Process Learning Levels above are operationalized as a level-spanning surface architecture (each surface owns one level, lenses the others); boundary policy in [ADR-074](../07-decisions/adr-074-scout-level-spanning-surface-boundary-policy.md).

@@ -42,12 +42,12 @@ function _exhaustive(action: HubAction): void {
       return;
     case 'FINDING_ARCHIVE':
       return;
-    // Question
-    case 'QUESTION_ADD':
+    // Scope (Problem-Statement scope — replaces retired Question entity, ADR-085)
+    case 'SCOPE_ADD':
       return;
-    case 'QUESTION_UPDATE':
+    case 'SCOPE_UPDATE':
       return;
-    case 'QUESTION_ARCHIVE':
+    case 'SCOPE_ARCHIVE':
       return;
     // Causal link
     case 'CAUSAL_LINK_ADD':
@@ -100,6 +100,19 @@ function _exhaustive(action: HubAction): void {
       return;
     // Action Item
     case 'ACTION_ITEM_ADD':
+      return;
+    case 'ACTION_ITEM_UPDATE':
+      return;
+    case 'ACTION_ITEM_REMOVE':
+      return;
+    // Measurement Plan
+    case 'MEASUREMENT_PLAN_ADD':
+      return;
+    case 'MEASUREMENT_PLAN_UPDATE':
+      return;
+    case 'MEASUREMENT_PLAN_REMOVE':
+      return;
+    case 'MEASUREMENT_PLAN_LINK_FINDING':
       return;
     // Control
     case 'SUSTAINMENT_RECORD_CREATE':

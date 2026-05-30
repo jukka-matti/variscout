@@ -723,98 +723,20 @@ describe('useFindings', () => {
     });
   });
 
-  // --- Question linking ---
+  // --- Hypothesis linking via validationStatus ---
 
-  describe('linkQuestion', () => {
-    it('sets questionId on a finding', () => {
-      const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
-      const onChange = vi.fn();
-      const { result } = renderHook(() =>
-        useFindings({ initialFindings: initial, onFindingsChange: onChange })
-      );
+  describe('validationStatus on addFinding', () => {
+    it('addFinding sets validationStatus when provided', () => {
+      const { result } = renderHook(() => useFindings());
+      const ctx = makeContext();
 
+      let finding: Finding;
       act(() => {
-        result.current.linkQuestion('f-1', 'hyp-42');
+        finding = result.current.addFinding('Supports Shift hypothesis', ctx, undefined);
       });
 
-      expect(result.current.findings[0].questionId).toBe('hyp-42');
-      expect(onChange).toHaveBeenCalled();
-    });
-
-    it('sets questionId and validationStatus together', () => {
-      const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
-      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
-
-      act(() => {
-        result.current.linkQuestion('f-1', 'hyp-99', 'supports');
-      });
-
-      expect(result.current.findings[0].questionId).toBe('hyp-99');
-      expect(result.current.findings[0].validationStatus).toBe('supports');
-    });
-
-    it('accepts all valid validationStatus values', () => {
-      const initial = [
-        makeFinding({ id: 'f-1', text: 'Test', context: makeContext() }),
-        makeFinding({ id: 'f-2', text: 'Test 2', createdAt: 2000, context: makeContext() }),
-        makeFinding({ id: 'f-3', text: 'Test 3', createdAt: 3000, context: makeContext() }),
-      ];
-      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
-
-      act(() => {
-        result.current.linkQuestion('f-1', 'h-1', 'supports');
-      });
-      act(() => {
-        result.current.linkQuestion('f-2', 'h-1', 'contradicts');
-      });
-      act(() => {
-        result.current.linkQuestion('f-3', 'h-1', 'inconclusive');
-      });
-
-      expect(result.current.findings[0].validationStatus).toBe('supports');
-      expect(result.current.findings[1].validationStatus).toBe('contradicts');
-      expect(result.current.findings[2].validationStatus).toBe('inconclusive');
-    });
-  });
-
-  describe('unlinkQuestion', () => {
-    it('clears questionId and validationStatus from a finding', () => {
-      const initial = [
-        makeFinding({
-          id: 'f-1',
-          text: 'Test',
-          context: makeContext(),
-          questionId: 'hyp-10',
-          validationStatus: 'supports',
-        } as Finding & { questionId: string; validationStatus: 'supports' }),
-      ];
-      const onChange = vi.fn();
-      const { result } = renderHook(() =>
-        useFindings({ initialFindings: initial, onFindingsChange: onChange })
-      );
-
-      act(() => {
-        result.current.unlinkQuestion('f-1');
-      });
-
-      expect(result.current.findings[0].questionId).toBeUndefined();
-      expect(result.current.findings[0].validationStatus).toBeUndefined();
-      expect(onChange).toHaveBeenCalled();
-    });
-
-    it('is a no-op for finding without a question link', () => {
-      const initial = [makeFinding({ id: 'f-1', text: 'No link', context: makeContext() })];
-      const onChange = vi.fn();
-      const { result } = renderHook(() =>
-        useFindings({ initialFindings: initial, onFindingsChange: onChange })
-      );
-
-      act(() => {
-        result.current.unlinkQuestion('f-1');
-      });
-
-      expect(result.current.findings[0].questionId).toBeUndefined();
-      expect(onChange).toHaveBeenCalled();
+      // validationStatus is not set by addFinding (no questionId param), stays undefined
+      expect(finding!.validationStatus).toBeUndefined();
     });
   });
 
@@ -1319,21 +1241,8 @@ describe('useFindings', () => {
     });
   });
 
-  describe('questionId linking', () => {
-    it('addFinding with questionId sets questionId on the created finding', () => {
-      const { result } = renderHook(() => useFindings());
-      const ctx = makeContext();
-
-      let finding: Finding;
-      act(() => {
-        finding = result.current.addFinding('Answer to question', ctx, undefined, 'q-42');
-      });
-
-      expect(finding!.questionId).toBe('q-42');
-      expect(result.current.findings[0].questionId).toBe('q-42');
-    });
-
-    it('addFinding without questionId leaves questionId undefined', () => {
+  describe('addFinding returns a Finding', () => {
+    it('addFinding returns the created finding with correct text', () => {
       const { result } = renderHook(() => useFindings());
       const ctx = makeContext();
 
@@ -1342,8 +1251,8 @@ describe('useFindings', () => {
         finding = result.current.addFinding('Regular observation', ctx);
       });
 
-      expect(finding!.questionId).toBeUndefined();
-      expect(result.current.findings[0].questionId).toBeUndefined();
+      expect(finding!.text).toBe('Regular observation');
+      expect(result.current.findings[0].text).toBe('Regular observation');
     });
   });
 });

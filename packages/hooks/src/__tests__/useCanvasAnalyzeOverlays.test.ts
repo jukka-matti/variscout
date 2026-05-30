@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CausalLink, Finding, Question, Hypothesis } from '@variscout/core';
+import type { CausalLink, Finding, Hypothesis } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import {
   CANVAS_OVERLAY_REGISTRY,
@@ -28,20 +28,6 @@ const map: ProcessMap = {
   updatedAt: '2026-05-05T00:00:00.000Z',
 };
 
-function question(overrides: Partial<Question> & { id: string; factor?: string }): Question {
-  const { id } = overrides;
-  return {
-    text: `Question ${id}`,
-    status: 'open',
-    linkedFindingIds: [],
-    createdAt: 1714000000000,
-    updatedAt: 1714000000000,
-    deletedAt: null,
-    investigationId: 'inv-test-001',
-    ...overrides,
-  };
-}
-
 function finding(overrides: Partial<Finding> & { id: string }): Finding {
   const { id } = overrides;
   return {
@@ -63,7 +49,6 @@ function hub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
   return {
     name: `Hub ${id}`,
     synthesis: 'Evidence connects here.',
-    questionIds: [],
     findingIds: [],
     status: 'proposed',
     createdAt: 1714000000000,
@@ -81,7 +66,6 @@ function link(overrides: Partial<CausalLink> & { id: string }): CausalLink {
     whyStatement: 'Machine drives fill head behavior',
     direction: 'drives',
     evidenceType: 'unvalidated',
-    questionIds: [],
     findingIds: [],
     source: 'analyst',
     createdAt: 1714000000000,
@@ -129,10 +113,9 @@ describe('CanvasOverlayId — wall overlay', () => {
 });
 
 describe('buildCanvasAnalyzeOverlays', () => {
-  it('binds questions through factor columns and findings through active filters', () => {
+  it('binds findings through active filters and populates step overlay', () => {
     const overlays = buildCanvasAnalyzeOverlays({
       map,
-      questions: [question({ id: 'q-machine', factor: 'Machine' })],
       findings: [
         finding({
           id: 'f-defect',
@@ -142,23 +125,23 @@ describe('buildCanvasAnalyzeOverlays', () => {
       ],
     });
 
-    expect(overlays.byStep.mix.questions.map(item => item.id)).toEqual(['q-machine']);
     expect(overlays.byStep.pack.findings.map(item => item.id)).toEqual(['f-defect']);
-    expect(overlays.unresolved.questions).toEqual([]);
     expect(overlays.unresolved.findings).toEqual([]);
   });
 
-  it('binds findings through their linked question when active filters do not resolve', () => {
+  it('binds findings through linked hub findingIds when active filters do not resolve', () => {
     const overlays = buildCanvasAnalyzeOverlays({
       map,
-      questions: [question({ id: 'q-fill', factor: 'Fill Head' })],
-      findings: [finding({ id: 'f-linked', questionId: 'q-fill' })],
+      findings: [finding({ id: 'f-linked' })],
+      hypotheses: [
+        hub({ id: 'hub-fill', tributaryIds: ['trib-fill-head'], findingIds: ['f-linked'] }),
+      ],
     });
 
     expect(overlays.byStep.fill.findings.map(item => item.id)).toEqual(['f-linked']);
   });
 
-  it('projects hypotheses from explicit tributary ids before fallback derivation', () => {
+  it('projects hypotheses from explicit tributary ids', () => {
     const overlays = buildCanvasAnalyzeOverlays({
       map,
       hypotheses: [
@@ -166,13 +149,12 @@ describe('buildCanvasAnalyzeOverlays', () => {
           id: 'hub-explicit',
           status: 'confirmed',
           tributaryIds: ['trib-fill-head'],
-          questionIds: ['q-fill'],
         }),
       ],
     });
 
     expect(overlays.byStep.fill.hypotheses).toEqual([
-      expect.objectContaining({ id: 'hub-explicit', status: 'confirmed', questionId: 'q-fill' }),
+      expect.objectContaining({ id: 'hub-explicit', status: 'confirmed' }),
     ]);
     expect(overlays.byStep.fill.investigationCounts.supported).toBe(1);
   });
@@ -193,15 +175,15 @@ describe('buildCanvasAnalyzeOverlays', () => {
     expect(overlays.byStep.mix.hypotheses.map(item => item.id)).toEqual(['hub-derived']);
   });
 
-  it('renders draft causal links as arrows unless a promoted hub owns the link', () => {
+  it('renders draft causal links as arrows unless a promoted hub owns the link via hypothesisId', () => {
     const draft = buildCanvasAnalyzeOverlays({
       map,
-      causalLinks: [link({ id: 'link-draft', questionIds: ['q-1'] })],
+      causalLinks: [link({ id: 'link-draft' })],
     });
     const promoted = buildCanvasAnalyzeOverlays({
       map,
-      hypotheses: [hub({ id: 'hub-promoted', questionIds: ['q-1'] })],
-      causalLinks: [link({ id: 'link-promoted', questionIds: ['q-1'] })],
+      hypotheses: [hub({ id: 'hub-promoted', status: 'confirmed' })],
+      causalLinks: [link({ id: 'link-promoted', hypothesisId: 'hub-promoted' })],
     });
 
     expect(draft.arrows).toEqual([
@@ -213,7 +195,6 @@ describe('buildCanvasAnalyzeOverlays', () => {
   it('omits unresolved entities from markers while tracking them for tests/debugging', () => {
     const overlays = buildCanvasAnalyzeOverlays({
       map,
-      questions: [question({ id: 'q-missing', factor: 'Unknown' })],
       findings: [
         finding({
           id: 'f-missing',
@@ -225,13 +206,9 @@ describe('buildCanvasAnalyzeOverlays', () => {
       causalLinks: [link({ id: 'link-missing', toFactor: 'Unknown' })],
     });
 
-    expect(overlays.unresolved).toEqual({
-      questions: ['q-missing'],
-      findings: ['f-missing'],
-      hypotheses: ['hub-missing'],
-      causalLinks: ['link-missing'],
-    });
-    expect(overlays.byStep.mix.questions).toEqual([]);
+    expect(overlays.unresolved.findings).toContain('f-missing');
+    expect(overlays.unresolved.hypotheses).toContain('hub-missing');
+    expect(overlays.unresolved.causalLinks).toContain('link-missing');
     expect(overlays.byStep.mix.findings).toEqual([]);
     expect(overlays.byStep.mix.hypotheses).toEqual([]);
     expect(overlays.arrows).toEqual([]);

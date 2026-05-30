@@ -1,7 +1,13 @@
 import type { HubAction } from '../actions/HubAction';
 import type { ProcessHub, OutcomeSpec, ProcessHubAnalyze } from '../processHub';
 import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '../evidenceSources';
-import type { Finding, Question, CausalLink, Hypothesis, ActionItem } from '../findings/types';
+import type {
+  Finding,
+  ProblemStatementScope,
+  CausalLink,
+  Hypothesis,
+  ActionItem,
+} from '../findings/types';
 import type { ProcessMap } from '../frame/types';
 import type { ControlHandoff, ControlRecord, ControlReview } from '../control';
 import type { MeasurementPlan } from '../measurementPlan/types';
@@ -40,9 +46,9 @@ export interface FindingReadAPI {
   listByInvestigation(investigationId: ProcessHubAnalyze['id']): Promise<Finding[]>;
 }
 
-export interface QuestionReadAPI {
-  get(id: Question['id']): Promise<Question | undefined>;
-  listByInvestigation(investigationId: ProcessHubAnalyze['id']): Promise<Question[]>;
+export interface ScopeReadAPI {
+  get(id: ProblemStatementScope['id']): Promise<ProblemStatementScope | undefined>;
+  listByInvestigation(investigationId: ProcessHubAnalyze['id']): Promise<ProblemStatementScope[]>;
 }
 
 export interface CausalLinkReadAPI {
@@ -103,7 +109,7 @@ export interface HubRepository {
   evidenceSources: EvidenceSourceReadAPI;
   investigations: AnalyzeReadAPI;
   findings: FindingReadAPI;
-  questions: QuestionReadAPI;
+  scopes: ScopeReadAPI;
   causalLinks: CausalLinkReadAPI;
   hypotheses: HypothesisReadAPI;
   canvasState: CanvasStateReadAPI;

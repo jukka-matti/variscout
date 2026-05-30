@@ -17,7 +17,6 @@ const hub: Hypothesis = {
   id: 'h-1',
   name: 'Test Hypothesis',
   synthesis: '',
-  questionIds: [],
   findingIds: ['f1', 'f2'],
   disconfirmationAttempts: [],
   status: 'evidenced',

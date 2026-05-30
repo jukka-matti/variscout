@@ -10,7 +10,6 @@ const baseH = (overrides: Partial<Hypothesis>): Hypothesis =>
     investigationId: 'inv',
     name: '',
     synthesis: '',
-    questionIds: [],
     findingIds: [],
     status: 'proposed',
     createdAt: 0,

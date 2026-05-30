@@ -159,10 +159,4 @@ export {
   critiqueAnalyzeState,
   detectBestSubsetsCandidates,
 } from './actions';
-export type {
-  SuggestedBrush,
-  AnalyzeGap,
-  CritiqueInput,
-  CritiqueResult,
-  BestSubsetsCandidate,
-} from './actions';
+export type { SuggestedBrush, AnalyzeStateCritique, BestSubsetsCandidate } from './actions';

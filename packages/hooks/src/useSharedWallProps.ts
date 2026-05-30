@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useCanvasViewportStore, useAnalyzeStore } from '@variscout/stores';
-import type { Finding, Question, Hypothesis } from '@variscout/core';
+import type { Finding, Hypothesis } from '@variscout/core';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import type { ProcessMap } from '@variscout/core/frame';
 
@@ -18,7 +18,6 @@ export interface UseSharedWallPropsArgs {
 export interface UseSharedWallPropsReturn {
   hubs: Hypothesis[];
   findings: Finding[];
-  questions: Question[];
   processMap: ProcessMap | undefined;
   problemCpk: number;
   eventsPerWeek: number;
@@ -30,7 +29,6 @@ export interface UseSharedWallPropsReturn {
 
 export function useSharedWallProps(args: UseSharedWallPropsArgs): UseSharedWallPropsReturn {
   const hubs = useAnalyzeStore(s => s.hypotheses);
-  const questions = useAnalyzeStore(s => s.questions);
   const zoom = useCanvasViewportStore(s => s.viewports[args.hubId]?.zoom ?? 1);
   const pan = useCanvasViewportStore(s => s.viewports[args.hubId]?.pan ?? DEFAULT_WALL_PAN);
   const groupByTributary = useCanvasViewportStore(
@@ -41,7 +39,6 @@ export function useSharedWallProps(args: UseSharedWallPropsArgs): UseSharedWallP
     () => ({
       hubs,
       findings: args.findings,
-      questions,
       processMap: args.processMap,
       problemCpk: args.problemCpk,
       eventsPerWeek: args.eventsPerWeek,
@@ -52,7 +49,6 @@ export function useSharedWallProps(args: UseSharedWallPropsArgs): UseSharedWallP
     }),
     [
       hubs,
-      questions,
       args.findings,
       args.processMap,
       args.problemCpk,

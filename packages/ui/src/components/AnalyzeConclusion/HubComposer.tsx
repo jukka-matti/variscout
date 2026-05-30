@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, ChevronDown, ChevronRight } from 'lucide-react';
-import type { Question, Finding, Hypothesis, HypothesisEvidence } from '@variscout/core';
+import type { Finding, Hypothesis, HypothesisEvidence } from '@variscout/core';
 import type { HubProjection } from '@variscout/core/findings';
 
 export interface HubComposerBranchFields {
@@ -8,12 +8,8 @@ export interface HubComposerBranchFields {
 }
 
 export interface HubComposerProps {
-  /** Pre-populated question IDs (from synthesis prompt or CoScout) */
-  prefilledQuestionIds?: string[];
   /** Pre-populated finding IDs */
   prefilledFindingIds?: string[];
-  /** All available questions for connection */
-  questions: Question[];
   /** All available findings for connection */
   findings: Finding[];
   /** Existing hub to edit (undefined = creating new) */
@@ -26,7 +22,6 @@ export interface HubComposerProps {
   onSave: (
     name: string,
     synthesis: string,
-    questionIds: string[],
     findingIds: string[],
     branchFields: HubComposerBranchFields
   ) => void;
@@ -34,15 +29,8 @@ export interface HubComposerProps {
   onCancel: () => void;
 }
 
-/** Sort by R²adj or η² descending */
-function evidenceValue(q: Question): number {
-  return q.evidence?.rSquaredAdj ?? q.evidence?.etaSquared ?? 0;
-}
-
 const HubComposer: React.FC<HubComposerProps> = ({
-  prefilledQuestionIds = [],
   prefilledFindingIds = [],
-  questions,
   findings,
   editingHub,
   evidence,
@@ -53,22 +41,12 @@ const HubComposer: React.FC<HubComposerProps> = ({
   const [name, setName] = useState(editingHub?.name ?? '');
   const [synthesis, setSynthesis] = useState(editingHub?.synthesis ?? '');
   const [nextMove, setNextMove] = useState(editingHub?.nextMove ?? '');
-  const [questionIds, setQuestionIds] = useState<string[]>(
-    editingHub?.questionIds ?? prefilledQuestionIds
-  );
   const [findingIds, setFindingIds] = useState<string[]>(
     editingHub?.findingIds ?? prefilledFindingIds
   );
   const [connectExpanded, setConnectExpanded] = useState(false);
 
-  const connectedQuestions = questions.filter(q => questionIds.includes(q.id));
   const connectedFindings = findings.filter(f => findingIds.includes(f.id));
-
-  const unconnectedQuestions = questions
-    .filter(
-      q => !questionIds.includes(q.id) && (q.status === 'answered' || q.status === 'investigating')
-    )
-    .sort((a, b) => evidenceValue(b) - evidenceValue(a));
 
   const unconnectedFindings = findings
     .filter(f => !findingIds.includes(f.id))
@@ -76,15 +54,12 @@ const HubComposer: React.FC<HubComposerProps> = ({
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onSave(name.trim(), synthesis.trim(), questionIds, findingIds, {
+    onSave(name.trim(), synthesis.trim(), findingIds, {
       nextMove: nextMove.trim() || undefined,
     });
   };
 
-  const removeQuestion = (id: string) => setQuestionIds(prev => prev.filter(x => x !== id));
   const removeFinding = (id: string) => setFindingIds(prev => prev.filter(x => x !== id));
-  const toggleQuestion = (id: string) =>
-    setQuestionIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
   const toggleFinding = (id: string) =>
     setFindingIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
 
@@ -132,20 +107,8 @@ const HubComposer: React.FC<HubComposerProps> = ({
       />
 
       {/* Connected evidence */}
-      {(connectedQuestions.length > 0 || connectedFindings.length > 0) && (
+      {connectedFindings.length > 0 && (
         <div className="space-y-1">
-          {connectedQuestions.map(q => (
-            <div key={q.id} className="flex items-center gap-1.5 text-xs text-content-secondary">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-              <span className="flex-1 min-w-0 truncate">{q.text}</span>
-              <button
-                onClick={() => removeQuestion(q.id)}
-                className="text-content-muted hover:text-content shrink-0"
-              >
-                <X size={10} />
-              </button>
-            </div>
-          ))}
           {connectedFindings.map(f => (
             <div key={f.id} className="flex items-center gap-1.5 text-xs text-content-secondary">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
@@ -162,7 +125,7 @@ const HubComposer: React.FC<HubComposerProps> = ({
       )}
 
       {/* Connect more expandable */}
-      {(unconnectedQuestions.length > 0 || unconnectedFindings.length > 0) && (
+      {unconnectedFindings.length > 0 && (
         <div>
           <button
             onClick={() => setConnectExpanded(!connectExpanded)}
@@ -173,26 +136,6 @@ const HubComposer: React.FC<HubComposerProps> = ({
           </button>
           {connectExpanded && (
             <div className="mt-1.5 max-h-32 overflow-y-auto space-y-0.5">
-              {unconnectedQuestions.map(q => (
-                <label
-                  key={q.id}
-                  className="flex items-center gap-1.5 text-xs text-content-secondary cursor-pointer hover:bg-surface rounded px-1 py-0.5"
-                >
-                  <input
-                    type="checkbox"
-                    checked={questionIds.includes(q.id)}
-                    onChange={() => toggleQuestion(q.id)}
-                    className="rounded border-edge"
-                  />
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                  <span className="flex-1 min-w-0 truncate">{q.text}</span>
-                  {q.evidence?.rSquaredAdj != null && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-secondary text-content-muted shrink-0">
-                      R²adj {Math.round(q.evidence.rSquaredAdj * 100)}%
-                    </span>
-                  )}
-                </label>
-              ))}
               {unconnectedFindings.map(f => (
                 <label
                   key={f.id}

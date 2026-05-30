@@ -6,7 +6,7 @@ export interface KnowledgeDocumentEntry {
   id: string;
   fileName?: string;
   sourceType: KnowledgeSourceType;
-  sourceId?: string; // findingId, questionId, etc.
+  sourceId?: string; // findingId, hypothesisId, etc.
   uploadedBy?: string;
   uploadedAt: string;
   fileSize?: number;
@@ -27,7 +27,6 @@ export interface KnowledgeSearchResult {
     page?: number;
     section?: string;
     findingId?: string;
-    questionId?: string;
   };
 }
 

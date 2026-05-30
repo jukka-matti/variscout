@@ -25,7 +25,6 @@ import {
   CapabilityHistogram,
   VerificationEvidenceBase,
   SynthesisCard,
-  ReportQuestionSummary,
   ReportImprovementSummary,
   ReportCpkLearningLoop,
   ReportCapabilityKPIGrid,
@@ -167,7 +166,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   const { stagedStats } = useStagedAnalysis();
   const performanceResult = usePerformanceAnalysis();
   const findings = useAnalyzeStore(s => s.findings);
-  const questions = useAnalyzeStore(s => s.questions);
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
   const scopedFindingIds = useMemo(
@@ -189,24 +187,6 @@ const ReportView: React.FC<ReportViewProps> = ({
         : hypotheses,
     [activeIPScope, hypotheses, scopedHypothesisIds]
   );
-  const reportQuestionIds = useMemo(() => {
-    if (!activeIPScope) return null;
-    const ids = new Set<string>();
-    for (const hypothesis of reportHypotheses) {
-      for (const id of hypothesis.questionIds) ids.add(id);
-    }
-    for (const finding of reportFindings) {
-      if (finding.questionId) ids.add(finding.questionId);
-    }
-    return ids;
-  }, [activeIPScope, reportFindings, reportHypotheses]);
-  const reportQuestions = useMemo(
-    () =>
-      reportQuestionIds
-        ? questions.filter(question => reportQuestionIds.has(question.id))
-        : questions,
-    [questions, reportQuestionIds]
-  );
   const activeIP = activeIPScope ? (providedActiveIP ?? null) : null;
   const ipReportScope = useMemo(
     () =>
@@ -215,19 +195,11 @@ const ReportView: React.FC<ReportViewProps> = ({
             ip: activeIP,
             hypotheses,
             findings,
-            questions,
             controlRecords: activeHub?.controlRecords,
             controlHandoffs: activeHub?.controlHandoffs,
           })
         : null,
-    [
-      activeHub?.controlHandoffs,
-      activeHub?.controlRecords,
-      activeIP,
-      findings,
-      hypotheses,
-      questions,
-    ]
+    [activeHub?.controlHandoffs, activeHub?.controlRecords, activeIP, findings, hypotheses]
   );
   const ipNarrative = useMemo(
     () =>
@@ -236,7 +208,6 @@ const ReportView: React.FC<ReportViewProps> = ({
             ip: activeIP,
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
-            questions: ipReportScope.questions,
             controlRecord: ipReportScope.controlRecord,
             controlHandoff: ipReportScope.controlHandoff,
           })
@@ -250,7 +221,6 @@ const ReportView: React.FC<ReportViewProps> = ({
             ip: activeIP,
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
-            questions: ipReportScope.questions,
             controlRecord: ipReportScope.controlRecord,
           })
         : [],
@@ -293,14 +263,12 @@ const ReportView: React.FC<ReportViewProps> = ({
     containerSize: REPORT_MAP_SIZE,
     mode: resolved,
     causalLinks,
-    questions: reportQuestions,
     findings: reportFindings,
     hypotheses: reportHypotheses ?? [],
   });
 
   const timeline = useEvidenceMapTimeline({
     causalLinks,
-    questions: reportQuestions,
     findings: reportFindings,
     hypotheses: reportHypotheses ?? [],
   });
@@ -528,7 +496,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   // ---------------------------------------------------------------------------
   const bestProjectedCpk = useMemo(() => {
     const projections: number[] = [];
-    for (const h of reportQuestions) {
+    for (const h of reportHypotheses) {
       if (h.ideas) {
         for (const idea of h.ideas) {
           if (idea.selected && idea.projection?.projectedCpk != null) {
@@ -538,7 +506,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       }
     }
     return projections.length > 0 ? Math.max(...projections) : undefined;
-  }, [reportQuestions]);
+  }, [reportHypotheses]);
 
   // ---------------------------------------------------------------------------
   // First finding with outcome (for learning loop verdict)
@@ -568,7 +536,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   // Derive report sections from analysis state
   const { reportType, sections: derivedSections } = useReportSections({
     findings: reportFindings,
-    questions: reportQuestions,
     stagedComparison: hasStagedComparison,
     aiEnabled: aiEnabled ?? false,
     audienceMode,
@@ -589,7 +556,6 @@ const ReportView: React.FC<ReportViewProps> = ({
                 ? ('findings' as const)
                 : ('improvement' as const),
           findings: [],
-          questions: [],
           hasAIContent: false,
         }))
       : hubPortfolioReport
@@ -601,7 +567,6 @@ const ReportView: React.FC<ReportViewProps> = ({
               status: 'active' as const,
               workspace: 'analysis' as const,
               findings: [],
-              questions: [],
               hasAIContent: false,
             },
           ]
@@ -1122,11 +1087,6 @@ const ReportView: React.FC<ReportViewProps> = ({
               </div>
             )}
 
-            {/* Question tree (technical only) */}
-            {!isSummary && (extendedSection?.questions ?? []).length > 0 && (
-              <ReportQuestionSummary questions={extendedSection?.questions ?? []} />
-            )}
-
             {/* Finding snapshots (technical only) */}
             {!isSummary && (extendedSection?.findings ?? []).length > 0 ? (
               (extendedSection?.findings ?? []).map(finding => (
@@ -1147,17 +1107,20 @@ const ReportView: React.FC<ReportViewProps> = ({
           </div>
         )}
 
-        {/* Step 4: Improvement Plan (Improvement Story only) */}
+        {/* Step 4: Improvement Plan (Improvement Story only). IM-1: ideas live on
+            hypothesis hubs; the cause "role" derives from Hypothesis.status. */}
         {section.id === 'improvement-plan' && (
           <div className="space-y-3">
-            {(extendedSection?.questions ?? []).length > 0 ? (
+            {reportHypotheses.some(h => (h.ideas?.length ?? 0) > 0) ? (
               <ReportImprovementSummary
-                questions={(extendedSection?.questions ?? []).map(h => ({
-                  id: h.id,
-                  text: h.text,
-                  causeRole: h.causeRole,
-                  ideas: h.ideas ?? [],
-                }))}
+                questions={reportHypotheses
+                  .filter(h => (h.ideas?.length ?? 0) > 0)
+                  .map(h => ({
+                    id: h.id,
+                    text: h.name,
+                    status: h.status,
+                    ideas: h.ideas ?? [],
+                  }))}
                 summaryOnly={isSummary}
                 targetCpk={cpkTarget}
               />

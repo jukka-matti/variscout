@@ -28,12 +28,11 @@ describe('HypothesisStatus', () => {
 });
 
 describe('Hypothesis', () => {
-  it('supports the canonical minimal entity shape and theme tags', () => {
+  it('supports the canonical minimal entity shape and theme tags (ADR-085: no questionIds)', () => {
     const hypothesis: Hypothesis = {
       id: 'hypothesis-1',
       name: 'Nozzle wear on night shift',
       synthesis: 'Worn nozzles overheat during long night runs',
-      questionIds: ['question-1'],
       findingIds: ['finding-1'],
       investigationId: 'investigation-1',
       status: 'evidenced',
@@ -41,7 +40,6 @@ describe('Hypothesis', () => {
       selectedForImprovement: true,
       nextMove: 'Run disconfirmation check',
       counterFindingIds: ['finding-2'],
-      checkQuestionIds: ['question-2'],
       condition: undefined,
       tributaryIds: ['tributary-1'],
       signalCardIds: ['signal-card-1'],
@@ -53,6 +51,31 @@ describe('Hypothesis', () => {
     expect(hypothesis.status).toBe('evidenced');
     expect(hypothesis.themeTags).toEqual(['equipment', 'night-shift']);
   });
+
+  it('accepts optional ideas array (ADR-085: ideas re-homed from retired Question entity)', () => {
+    const hypothesis: Hypothesis = {
+      id: 'h-ideas',
+      name: 'Nozzle heat drift',
+      synthesis: 'Thermal drift during night runs',
+      findingIds: ['f-1'],
+      investigationId: 'investigation-1',
+      status: 'confirmed',
+      ideas: [
+        {
+          id: 'idea-1',
+          text: 'Retune nozzle temperature set-point',
+          createdAt: 1714000000000,
+          deletedAt: null,
+        },
+      ],
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
+    };
+
+    expect(hypothesis.ideas).toHaveLength(1);
+    expect(hypothesis.ideas![0].text).toBe('Retune nozzle temperature set-point');
+  });
 });
 
 describe('createHypothesis', () => {
@@ -60,7 +83,6 @@ describe('createHypothesis', () => {
     const hypothesis = createHypothesis(
       'Nozzle wear on night shift',
       'Worn nozzles overheat during long night runs',
-      ['question-1', 'question-2'],
       ['finding-1'],
       'investigation-1'
     );
@@ -68,7 +90,6 @@ describe('createHypothesis', () => {
     expect(hypothesis.id).toBeTruthy();
     expect(hypothesis.name).toBe('Nozzle wear on night shift');
     expect(hypothesis.synthesis).toBe('Worn nozzles overheat during long night runs');
-    expect(hypothesis.questionIds).toEqual(['question-1', 'question-2']);
     expect(hypothesis.findingIds).toEqual(['finding-1']);
     expect(hypothesis.investigationId).toBe('investigation-1');
     expect(hypothesis.status).toBe('proposed');
@@ -76,10 +97,9 @@ describe('createHypothesis', () => {
     expect(hypothesis.updatedAt).toBeTruthy();
   });
 
-  it('defaults connected IDs to empty arrays', () => {
+  it('defaults findingIds to empty array', () => {
     const hypothesis = createHypothesis('Test', '');
 
-    expect(hypothesis.questionIds).toEqual([]);
     expect(hypothesis.findingIds).toEqual([]);
   });
 });
@@ -94,7 +114,6 @@ describe('Hypothesis — measurementPlanIds field', () => {
       deletedAt: null,
       name: 'Test',
       synthesis: '',
-      questionIds: [],
       findingIds: ['f-1'],
       measurementPlanIds: [planId],
       status: 'proposed',
@@ -111,7 +130,6 @@ describe('Hypothesis — measurementPlanIds field', () => {
       deletedAt: null,
       name: 'Test',
       synthesis: '',
-      questionIds: [],
       findingIds: [],
       status: 'proposed',
       investigationId: 'inv-1',

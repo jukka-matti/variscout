@@ -10,8 +10,8 @@ import {
   createFindingComment,
   createActionItem,
   createFindingOutcome,
-  createQuestion,
   createImprovementIdea,
+  createProblemStatementScope,
   getFindingStatus,
   groupFindingsByStatus,
   FINDING_STATUSES,
@@ -461,9 +461,9 @@ describe('Finding 5-status extensions', () => {
 
   it('new fields default to undefined (backward compat)', () => {
     const f = createFinding('test', {}, null);
-    expect(f.questionId).toBeUndefined();
     expect(f.actions).toBeUndefined();
     expect(f.outcome).toBeUndefined();
+    expect(f.validationStatus).toBeUndefined();
   });
 });
 
@@ -471,31 +471,36 @@ describe('Finding 5-status extensions', () => {
 // createHypothesis Tests
 // ============================================================================
 
-describe('createQuestion', () => {
-  it('creates a question with required fields', () => {
-    const q = createQuestion('Worn bearing on head 3', 'inv-test-001');
-    expect(q.id).toBeTruthy();
-    expect(q.text).toBe('Worn bearing on head 3');
-    expect(q.createdAt).toBeTruthy();
-    expect(q.updatedAt).toBeTruthy();
-    expect(q.linkedFindingIds).toEqual([]);
+// ADR-085: createQuestion deleted — createProblemStatementScope is the replacement.
+
+describe('createProblemStatementScope', () => {
+  it('creates a scope with required fields', () => {
+    const scope = createProblemStatementScope('inv-test-001', 'Fill Weight');
+    expect(scope.id).toBeTruthy();
+    expect(scope.investigationId).toBe('inv-test-001');
+    expect(scope.outcome).toBe('Fill Weight');
+    expect(scope.createdAt).toBeTruthy();
+    expect(scope.updatedAt).toBeTruthy();
+    expect(scope.predicates).toEqual([]);
+    expect(scope.hypothesisIds).toEqual([]);
   });
 
-  it('generates unique ids for each question', () => {
-    const q1 = createQuestion('Cause A', 'inv-test-001');
-    const q2 = createQuestion('Cause B', 'inv-test-001');
-    expect(q1.id).not.toBe(q2.id);
+  it('generates unique ids for each scope', () => {
+    const s1 = createProblemStatementScope('inv-001', 'Fill Weight');
+    const s2 = createProblemStatementScope('inv-001', 'Cycle Time');
+    expect(s1.id).not.toBe(s2.id);
   });
 
-  it('accepts optional factor and level', () => {
-    const q = createQuestion('Tool wear', 'general-unassigned', 'Machine', 'A');
-    expect(q.factor).toBe('Machine');
-    expect(q.level).toBe('A');
+  it('accepts predicates and hypothesisIds', () => {
+    const predicate = { kind: 'leaf' as const, column: 'Machine', op: 'eq' as const, value: 'B' };
+    const scope = createProblemStatementScope('inv-001', 'Fill Weight', [predicate], ['hyp-1']);
+    expect(scope.predicates).toEqual([predicate]);
+    expect(scope.hypothesisIds).toEqual(['hyp-1']);
   });
 
-  it('defaults status to open', () => {
-    const q = createQuestion('Vibration', 'inv-test-001');
-    expect(q.status).toBe('open');
+  it('sets deletedAt to null by default', () => {
+    const scope = createProblemStatementScope('inv-001', 'Fill Weight');
+    expect(scope.deletedAt).toBeNull();
   });
 });
 

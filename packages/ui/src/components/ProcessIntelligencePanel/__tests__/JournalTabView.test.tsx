@@ -15,14 +15,14 @@ const entries: JournalEntry[] = [
   makeEntry({ id: 'j-1', text: 'Cpk dropped below 1.0 on Line 3', type: 'finding-created' }),
   makeEntry({
     id: 'j-2',
-    text: 'Machine speed → Ruled out',
-    type: 'question-ruled-out',
+    text: 'Added problem statement',
+    type: 'problem-statement',
     timestamp: '2026-04-01T09:15:00.000Z',
   }),
   makeEntry({
     id: 'j-3',
-    text: 'Temperature → Answered',
-    type: 'question-answered',
+    text: 'Additional observation logged',
+    type: 'note-added',
     detail: 'R²adj 62%',
     timestamp: '2026-04-01T09:30:00.000Z',
   }),
@@ -35,8 +35,8 @@ describe('JournalTabView', () => {
     const rows = screen.getAllByTestId('journal-entry-row');
     expect(rows).toHaveLength(3);
     expect(screen.getByText('Cpk dropped below 1.0 on Line 3')).toBeDefined();
-    expect(screen.getByText('Machine speed → Ruled out')).toBeDefined();
-    expect(screen.getByText('Temperature → Answered')).toBeDefined();
+    expect(screen.getByText('Added problem statement')).toBeDefined();
+    expect(screen.getByText('Additional observation logged')).toBeDefined();
   });
 
   it('shows detail line when present', () => {

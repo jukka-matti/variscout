@@ -446,11 +446,6 @@ export const AnalyzeMapView: React.FC<AnalyzeMapViewProps> = ({
               >
                 {selectedEdge.evidenceType}
               </span>
-              {selectedEdge.questionCount > 0 && (
-                <span>
-                  {selectedEdge.questionCount} question{selectedEdge.questionCount !== 1 ? 's' : ''}
-                </span>
-              )}
               {selectedEdge.findingCount > 0 && (
                 <span>
                   {selectedEdge.findingCount} finding{selectedEdge.findingCount !== 1 ? 's' : ''}

@@ -106,12 +106,12 @@ export const concepts: readonly Concept[] = [
     id: 'iterativeExploration',
     label: 'Iterative Exploration',
     definition:
-      'Each analysis cycle reveals new questions. A finding triggers follow-up questions, which may need new data or a Gemba visit.',
+      'Each analysis cycle reveals new lines of inquiry. A finding triggers follow-up questions, which may need new data or a Gemba visit.',
     description:
-      "EDA is inherently iterative. VariScout's investigation workflow formalizes this: findings spawn questions, questions require answers (data, Gemba, expert), answers spawn new questions. The loop continues until the solution space is bounded and actionable improvements are identified.",
+      "EDA is inherently iterative. VariScout's investigation workflow formalizes this: findings raise new questions, those questions require evidence (data, Gemba, expert), and evidence is synthesized into hypotheses. The loop continues until the solution space is bounded and actionable improvements are identified.",
     conceptCategory: 'principle',
     relations: [
-      { targetId: 'question', type: 'uses' },
+      { targetId: 'hypothesis', type: 'uses' },
       { targetId: 'finding', type: 'uses' },
     ],
   },

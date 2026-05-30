@@ -28,9 +28,7 @@ vi.mock('../../../AnalyzeWall', () => ({
     hubs: Hypothesis[];
     findings: Finding[];
     onSelectHub?: (id: string) => void;
-    onPromoteQuestion?: (id: string) => void;
     onWriteHypothesis?: () => void;
-    onPromoteFromQuestion?: () => void;
     onSeedFromFactorIntel?: () => void;
     onFocusHubFromGap?: (id: string) => void;
     onComposeGate?: unknown;
@@ -49,14 +47,8 @@ vi.mock('../../../AnalyzeWall', () => ({
       <button type="button" onClick={() => props.onSelectHub?.(h('hub-1'))}>
         open hub
       </button>
-      <button type="button" onClick={() => props.onPromoteQuestion?.('q-1')}>
-        promote question
-      </button>
       <button type="button" onClick={() => props.onWriteHypothesis?.()}>
         write hypothesis
-      </button>
-      <button type="button" onClick={() => props.onPromoteFromQuestion?.()}>
-        promote from question
       </button>
       <button type="button" onClick={() => props.onSeedFromFactorIntel?.()}>
         seed factor intel
@@ -75,7 +67,6 @@ const sampleHub: Hypothesis = {
   name: 'Thermal drift',
   synthesis: '',
   status: 'proposed',
-  questionIds: [],
   findingIds: [],
   createdAt: 1714000000000,
   updatedAt: 1714000000000,
@@ -350,37 +341,24 @@ describe('CanvasWallOverlay', () => {
     });
   });
 
-  it.each([
-    'open hub',
-    'promote question',
-    'write hypothesis',
-    'promote from question',
-    'seed factor intel',
-    'focus gap',
-  ])('funnels the "%s" WallCanvas callback into onOpenWall exactly once', buttonName => {
-    const onOpenWall = vi.fn();
-    useAnalyzeStore.setState({ hypotheses: [sampleHub] });
+  it.each(['open hub', 'write hypothesis', 'seed factor intel', 'focus gap'])(
+    'funnels the "%s" WallCanvas callback into onOpenWall exactly once',
+    buttonName => {
+      const onOpenWall = vi.fn();
+      useAnalyzeStore.setState({ hypotheses: [sampleHub] });
 
-    renderOverlay({ onOpenWall });
+      renderOverlay({ onOpenWall });
 
-    fireEvent.click(screen.getByRole('button', { name: buttonName }));
+      fireEvent.click(screen.getByRole('button', { name: buttonName }));
 
-    expect(onOpenWall).toHaveBeenCalledTimes(1);
-    expect(onOpenWall).toHaveBeenCalledWith();
-  });
+      expect(onOpenWall).toHaveBeenCalledTimes(1);
+      expect(onOpenWall).toHaveBeenCalledWith();
+    }
+  );
 
   it('does not mount for finding-only content because findings have no standalone Wall visual', () => {
     renderOverlay({ findings: [sampleFinding] });
 
     expect(screen.queryByTestId('wall-canvas')).toBeNull();
-  });
-
-  it('mounts for open question-only content even when there are no hubs', () => {
-    useAnalyzeStore.getState().addQuestion('Does shift handoff explain the change?');
-
-    renderOverlay();
-
-    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-hubs-count', '0');
-    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-findings-count', '0');
   });
 });

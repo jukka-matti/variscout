@@ -2,8 +2,8 @@
  * Investigation context formatter for CoScout Tier 2 (semi-static context).
  *
  * Formats investigation state into human-readable text blocks.
- * CRITICAL: Uses ONLY hypothesisHubs — ignores legacy causeRole-based
- * hypotheses from question fields (contradiction resolution #1).
+ * CRITICAL: Uses ONLY hypothesisHubs — ignores the flat `hypotheses`
+ * summary array (contradiction resolution #1).
  *
  * PR-WV1-NAV cleanup deferral (2026-05-27): "investigation" methodology
  * references in this file are intentionally preserved pending a design call.
@@ -25,7 +25,7 @@ export const EVIDENCE_SUFFICIENCY_THRESHOLD = 0.25;
  * - Current understanding / problem condition
  * - Problem statement with stage
  * - Question tree summary (counts by status, top 3 by priority)
- * - Hypothesis hubs (ONLY hub entities, not legacy causeRole)
+ * - Hypothesis hubs (ONLY hub entities, not the flat `hypotheses` summary)
  * - Evidence Map topology summary
  * - Causal links
  *
@@ -100,12 +100,12 @@ export function formatAnalyzeContext(
     }
   }
 
-  // Hypothesis hubs (ONLY hub entities — not legacy causeRole)
+  // Hypothesis hubs (ONLY hub entities — not the flat `hypotheses` summary)
   if (investigation.hypothesisHubs && investigation.hypothesisHubs.length > 0) {
     const hubLines = investigation.hypothesisHubs.map(hub => {
       const parts = [`  - "${hub.name}" [${hub.status}]`];
-      if (hub.questionCount > 0 || hub.findingCount > 0) {
-        parts.push(`(${hub.questionCount}Q, ${hub.findingCount}F)`);
+      if (hub.findingCount > 0) {
+        parts.push(`(${hub.findingCount}F)`);
       }
       if (hub.evidence) {
         parts.push(`evidence: ${hub.evidence.label}`);
@@ -120,16 +120,8 @@ export function formatAnalyzeContext(
     // Evidence sufficiency warning: check coveragePercent or per-hub rSquaredAdj
     const coverage = investigation.coveragePercent;
     if (coverage !== undefined && coverage < EVIDENCE_SUFFICIENCY_THRESHOLD * 100) {
-      const openCount =
-        investigation.questionsTotal !== undefined && investigation.questionsChecked !== undefined
-          ? investigation.questionsTotal - investigation.questionsChecked
-          : undefined;
-      const openSuffix =
-        openCount !== undefined && openCount > 0
-          ? ` Consider investigating the ${openCount} remaining open question${openCount === 1 ? '' : 's'}.`
-          : '';
       lines.push(
-        `⚠ Evidence note: Combined hypotheses explain ~${Math.round(coverage)}% of variation — significant sources may remain unexplored.${openSuffix}`
+        `⚠ Evidence note: Combined hypotheses explain ~${Math.round(coverage)}% of variation — significant sources may remain unexplored.`
       );
     } else if (coverage === undefined) {
       // Fall back to per-hub rSquaredAdj when coveragePercent is not set
@@ -137,17 +129,8 @@ export function formatAnalyzeContext(
         const hubR2 = hub.evidence?.value;
         if (hubR2 !== undefined && hubR2 < EVIDENCE_SUFFICIENCY_THRESHOLD) {
           const pct = Math.round(hubR2 * 100);
-          const openCount =
-            investigation.questionsTotal !== undefined &&
-            investigation.questionsChecked !== undefined
-              ? investigation.questionsTotal - investigation.questionsChecked
-              : undefined;
-          const openSuffix =
-            openCount !== undefined && openCount > 0
-              ? ` Consider investigating the ${openCount} remaining open question${openCount === 1 ? '' : 's'}.`
-              : '';
           lines.push(
-            `⚠ Evidence note: Hub "${hub.name}" explains ~${pct}% of variation — significant sources may remain unexplored.${openSuffix}`
+            `⚠ Evidence note: Hub "${hub.name}" explains ~${pct}% of variation — significant sources may remain unexplored.`
           );
         }
       }
@@ -200,11 +183,7 @@ export function formatAnalyzeContext(
 
   // Coverage and progress
   if (investigation.coveragePercent !== undefined) {
-    const checked =
-      investigation.questionsChecked !== undefined && investigation.questionsTotal !== undefined
-        ? ` (${investigation.questionsChecked}/${investigation.questionsTotal} questions checked)`
-        : '';
-    lines.push(`Investigation coverage: ${Math.round(investigation.coveragePercent)}%${checked}`);
+    lines.push(`Investigation coverage: ${Math.round(investigation.coveragePercent)}%`);
   }
 
   if (lines.length === 0) return '';

@@ -32,7 +32,6 @@ import {
   type Finding,
   type Hypothesis,
   type SpecLimits,
-  type Question,
 } from '@variscout/core';
 import type { ActionItem, ColumnTypeMap } from '@variscout/core/findings';
 import type { CanvasLevel } from '@variscout/core/canvas';
@@ -207,12 +206,12 @@ export interface CanvasProps {
   activeCanvasTool?: CanvasToolId;
   onCanvasToolChange?: (next: CanvasToolId) => void;
   questions?: ReadonlyArray<CanvasQuestionOption>;
-  systemQuestions?: ReadonlyArray<Question>;
   hypotheses?: ReadonlyArray<Hypothesis>;
   onAddCausalLink?: (
     fromFactor: string,
     toFactor: string,
     whyStatement: string,
+    // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
     options?: { questionIds?: string[] }
   ) => void;
   investigationOverlays?: CanvasAnalyzeOverlayModel;
@@ -274,7 +273,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   activeCanvasTool = 'select',
   onCanvasToolChange,
   questions = EMPTY_QUESTIONS,
-  systemQuestions = [],
   hypotheses = [],
   onAddCausalLink,
   investigationOverlays,
@@ -510,6 +508,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       drawTool.reset();
       if (!fromFactor || !toFactor) return;
       onAddCausalLink?.(fromFactor, toFactor, payload.whyStatement, {
+        // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
         questionIds: payload.questionId ? [payload.questionId] : [],
       });
       onCanvasToolChange?.('select');
@@ -716,7 +715,6 @@ export const Canvas: React.FC<CanvasProps> = ({
       l2Content={canvasContent}
       rows={rows ?? []}
       stepCards={stepCards}
-      systemQuestions={systemQuestions}
       hypotheses={hypotheses}
       findings={findings}
       usl={usl}

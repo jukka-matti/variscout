@@ -1,5 +1,5 @@
 /**
- * CommandPalette — ⌘K search over hubs/questions/findings on the Wall.
+ * CommandPalette — ⌘K search over hubs/findings on the Wall.
  *
  * Tests exercise the externally-observable behavior: filter on input,
  * arrow-key navigation, Enter → onPanTo(id) + onClose, Escape → onClose.
@@ -8,14 +8,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CommandPalette } from '../CommandPalette';
-import type { Hypothesis, Question, Finding } from '@variscout/core';
+import type { Hypothesis, Finding } from '@variscout/core';
 
 const hubs: Hypothesis[] = [
   {
     id: 'h-night',
     name: 'Night shift thermal drift',
     synthesis: '',
-    questionIds: [],
     findingIds: [],
     status: 'proposed',
     createdAt: 1,
@@ -27,7 +26,6 @@ const hubs: Hypothesis[] = [
     id: 'h-nozzle',
     name: 'Nozzle runs hot on pack line',
     synthesis: '',
-    questionIds: [],
     findingIds: [],
     status: 'proposed',
     createdAt: 1,
@@ -39,32 +37,8 @@ const hubs: Hypothesis[] = [
     id: 'h-cal',
     name: 'Calibration drift on Friday',
     synthesis: '',
-    questionIds: [],
     findingIds: [],
     status: 'proposed',
-    createdAt: 1,
-    updatedAt: 1,
-    deletedAt: null,
-    investigationId: 'inv-test',
-  },
-];
-
-const questions: Question[] = [
-  {
-    id: 'q-1',
-    text: 'What does the night shift do differently?',
-    status: 'open',
-    linkedFindingIds: [],
-    createdAt: 1,
-    updatedAt: 1,
-    deletedAt: null,
-    investigationId: 'inv-test',
-  },
-  {
-    id: 'q-2',
-    text: 'Is Cpk trending?',
-    status: 'open',
-    linkedFindingIds: [],
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,
@@ -90,7 +64,6 @@ describe('CommandPalette', () => {
         onClose={onClose}
         onPanTo={onPanTo}
         hubs={hubs}
-        questions={questions}
         findings={findings}
       />
     );
@@ -99,73 +72,40 @@ describe('CommandPalette', () => {
 
   it('renders the modal when open=true', () => {
     render(
-      <CommandPalette
-        open
-        onClose={onClose}
-        onPanTo={onPanTo}
-        hubs={hubs}
-        questions={questions}
-        findings={findings}
-      />
+      <CommandPalette open onClose={onClose} onPanTo={onPanTo} hubs={hubs} findings={findings} />
     );
     expect(screen.getByTestId('wall-command-palette')).toBeInTheDocument();
   });
 
   it('filters results by case-insensitive substring match', () => {
     render(
-      <CommandPalette
-        open
-        onClose={onClose}
-        onPanTo={onPanTo}
-        hubs={hubs}
-        questions={questions}
-        findings={findings}
-      />
+      <CommandPalette open onClose={onClose} onPanTo={onPanTo} hubs={hubs} findings={findings} />
     );
     const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: 'night' } });
-    // Hub "Night shift thermal drift" + question "What does the night shift..."
+    // Hub "Night shift thermal drift" matches
     expect(screen.getByText(/Night shift thermal drift/)).toBeInTheDocument();
-    expect(screen.getByText(/What does the night shift do differently\?/)).toBeInTheDocument();
-    // Non-matching hubs/questions disappear
+    // Non-matching hubs disappear
     expect(screen.queryByText(/Nozzle runs hot/)).toBeNull();
-    expect(screen.queryByText(/Is Cpk trending\?/)).toBeNull();
   });
 
   it('Arrow Down + Enter pans to the second result', () => {
     render(
-      <CommandPalette
-        open
-        onClose={onClose}
-        onPanTo={onPanTo}
-        hubs={hubs}
-        questions={questions}
-        findings={findings}
-      />
+      <CommandPalette open onClose={onClose} onPanTo={onPanTo} hubs={hubs} findings={findings} />
     );
     const input = screen.getByRole('textbox');
-    // No filter — all 5 items (3 hubs + 2 questions) listed. First item is
-    // the first hub in the ordered result list.
+    // No filter — all 3 hubs listed. First item is hubs[0].
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onPanTo).toHaveBeenCalledTimes(1);
-    // With default ordering (hubs first, then questions), ArrowDown twice
-    // lands on hubs[1] = 'h-nozzle'. Because we issued only one ArrowDown,
-    // the initial selection moves from index 0 to 1 → hubs[1].
+    // One ArrowDown moves from index 0 to 1 → hubs[1].
     expect(onPanTo).toHaveBeenCalledWith('h-nozzle');
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('Enter on the (default-selected) first result pans to it', () => {
     render(
-      <CommandPalette
-        open
-        onClose={onClose}
-        onPanTo={onPanTo}
-        hubs={hubs}
-        questions={questions}
-        findings={findings}
-      />
+      <CommandPalette open onClose={onClose} onPanTo={onPanTo} hubs={hubs} findings={findings} />
     );
     const input = screen.getByRole('textbox');
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -175,14 +115,7 @@ describe('CommandPalette', () => {
 
   it('Escape closes the palette without panning', () => {
     render(
-      <CommandPalette
-        open
-        onClose={onClose}
-        onPanTo={onPanTo}
-        hubs={hubs}
-        questions={questions}
-        findings={findings}
-      />
+      <CommandPalette open onClose={onClose} onPanTo={onPanTo} hubs={hubs} findings={findings} />
     );
     const input = screen.getByRole('textbox');
     fireEvent.keyDown(input, { key: 'Escape' });
@@ -192,19 +125,12 @@ describe('CommandPalette', () => {
 
   it('ArrowUp wraps to the last result', () => {
     render(
-      <CommandPalette
-        open
-        onClose={onClose}
-        onPanTo={onPanTo}
-        hubs={hubs}
-        questions={questions}
-        findings={findings}
-      />
+      <CommandPalette open onClose={onClose} onPanTo={onPanTo} hubs={hubs} findings={findings} />
     );
     const input = screen.getByRole('textbox');
     fireEvent.keyDown(input, { key: 'ArrowUp' });
     fireEvent.keyDown(input, { key: 'Enter' });
-    // Wraps to the last question
-    expect(onPanTo).toHaveBeenCalledWith('q-2');
+    // Wraps to the last hub
+    expect(onPanTo).toHaveBeenCalledWith('h-cal');
   });
 });

@@ -5,7 +5,7 @@
  */
 
 import type { AIContext } from '../types';
-import type { Finding, Question } from '../../findings';
+import type { Finding } from '../../findings';
 import type { Locale } from '../../i18n/types';
 import { formatStatistic } from '../../i18n/format';
 import { buildLocaleHint } from './shared';
@@ -25,11 +25,7 @@ Use professional quality engineering language. Use evidence-calibrated language:
  * Build the user prompt for generating an AI findings report.
  * Caps at 20 most significant findings (key-drivers + resolved first).
  */
-export function buildReportPrompt(
-  context: AIContext,
-  findings: Finding[],
-  questions: Question[]
-): string {
+export function buildReportPrompt(context: AIContext, findings: Finding[]): string {
   const parts: string[] = [];
 
   // Process context
@@ -64,12 +60,9 @@ export function buildReportPrompt(
   });
 
   const top = sorted.slice(0, 20);
-  const questionMap = new Map(questions.map(q => [q.id, q]));
 
   const findingLines = top.map((f, i) => {
-    const q = f.questionId ? questionMap.get(f.questionId) : undefined;
     let line = `${i + 1}. [${f.status.toUpperCase()}${f.tag ? ` · ${f.tag}` : ''}] ${f.text}`;
-    if (q) line += `\n   Question: "${q.text}" (${q.status})`;
     if (f.context.stats?.cpk !== undefined)
       line += `\n   Cpk: ${formatStatistic(f.context.stats.cpk, 'en', 2)}`;
     if (f.outcome) {
@@ -89,7 +82,7 @@ export function buildReportPrompt(
   parts.push(`Generate a quality engineering report with these sections:
 1. Executive Summary (2-3 sentences)
 2. Key Findings (bullet points)
-3. Contributing Factors (from questions)
+3. Contributing Factors (from suspected causes)
 4. Actions Taken (from action items)
 5. Outcomes (effectiveness)
 6. Recommendations (next steps)`);

@@ -1,4 +1,4 @@
-import type { Finding, Hypothesis, Question } from '../findings/types';
+import type { Finding, Hypothesis } from '../findings/types';
 import { deriveIPReportMiniChartType, type IPReportMiniChartType } from '../findings/miniChart';
 import type { ImprovementProject } from '../improvementProject';
 import type { ProcessHub } from '../processHub';
@@ -20,7 +20,6 @@ export interface IPReportScopeInput {
   ip: ImprovementProject;
   hypotheses: readonly Hypothesis[];
   findings: readonly Finding[];
-  questions: readonly Question[];
   controlRecords?: readonly ControlRecord[];
   controlHandoffs?: readonly ControlHandoff[];
 }
@@ -28,7 +27,6 @@ export interface IPReportScopeInput {
 export interface IPReportScope {
   hypotheses: Hypothesis[];
   findings: Finding[];
-  questions: Question[];
   controlRecord?: ControlRecord;
   controlHandoff?: ControlHandoff;
 }
@@ -125,31 +123,24 @@ export function selectIPReportScope(input: IPReportScopeInput): IPReportScope {
   const hypotheses = input.hypotheses.filter(hypothesis => hypothesisIds.has(hypothesis.id));
   const findingIds = linkedFindingIds(input.ip, hypotheses);
   const findings = input.findings.filter(finding => findingIds.has(finding.id));
-  const questionIds = new Set<string>();
-  for (const hypothesis of hypotheses) {
-    for (const id of hypothesis.questionIds) questionIds.add(id);
-  }
-  for (const finding of findings) {
-    if (finding.questionId) questionIds.add(finding.questionId);
-  }
-  const questions = input.questions.filter(question => questionIds.has(question.id));
   const controlRecord = selectControlRecord(input.ip, input.controlRecords);
   const controlHandoff = selectControlHandoff(input.ip, input.controlHandoffs, controlRecord);
 
-  return { hypotheses, findings, questions, controlRecord, controlHandoff };
+  return { hypotheses, findings, controlRecord, controlHandoff };
 }
 
-function selectedIdeaText(question: Question): string | undefined {
-  return question.ideas?.find(idea => idea.selected)?.text ?? question.ideas?.[0]?.text;
+function selectedIdeaText(hypothesis: Hypothesis): string | undefined {
+  return hypothesis.ideas?.find(idea => idea.selected)?.text ?? hypothesis.ideas?.[0]?.text;
 }
 
+/** Actions across the findings linked to a hypothesis (ADR-085: cause ↔ findings). */
 function actionsForCause(
   findings: readonly Finding[],
-  questionIds: readonly string[]
+  findingIds: readonly string[]
 ): NonNullable<Finding['actions']> {
-  const questionIdSet = new Set(questionIds);
+  const findingIdSet = new Set(findingIds);
   return findings
-    .filter(finding => (finding.questionId ? questionIdSet.has(finding.questionId) : false))
+    .filter(finding => findingIdSet.has(finding.id))
     .flatMap(finding => finding.actions ?? []);
 }
 
@@ -171,25 +162,21 @@ export function deriveIPCauseRows(input: {
   ip: ImprovementProject;
   hypotheses: readonly Hypothesis[];
   findings: readonly Finding[];
-  questions: readonly Question[];
   controlRecord?: ControlRecord;
 }): IPCauseRow[] {
   const hypothesisIds = linkedHypothesisIds(input.ip);
   return input.hypotheses
     .filter(hypothesis => hypothesisIds.has(hypothesis.id))
     .map(hypothesis => {
-      const causeQuestions = input.questions.filter(question =>
-        hypothesis.questionIds.includes(question.id)
-      );
       const causeFindings = input.findings.filter(finding =>
         hypothesis.findingIds.includes(finding.id)
       );
-      const actions = actionsForCause(input.findings, hypothesis.questionIds);
+      const actions = actionsForCause(input.findings, hypothesis.findingIds);
       return {
         hypothesisId: hypothesis.id,
         title: hypothesis.name,
         synthesis: hypothesis.synthesis,
-        selectedIdea: causeQuestions.map(selectedIdeaText).find(Boolean),
+        selectedIdea: selectedIdeaText(hypothesis),
         actionProgressLabel: actionProgressLabel(actions),
         verificationLabel: verificationLabel(input.controlRecord),
         findingCount: causeFindings.length,
@@ -221,7 +208,6 @@ export function deriveIPReportNarrative(input: {
   ip: ImprovementProject;
   hypotheses: readonly Hypothesis[];
   findings: readonly Finding[];
-  questions: readonly Question[];
   controlRecord?: ControlRecord;
   controlHandoff?: ControlHandoff;
 }): IPReportOverviewSection[] {

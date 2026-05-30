@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildAIContext, detectInvestigationPhase } from '../buildAIContext';
 import type { AIStatsInput } from '../buildAIContext';
-import { createQuestion, type Finding, type Question } from '../../findings';
+import { type Finding } from '../../findings';
 import type { ProcessContext } from '../types';
 import { DEFAULT_TIME_LENS } from '../../stats';
 
@@ -236,58 +236,6 @@ describe('buildAIContext', () => {
     expect(ctx.stats!.passRate).toBe(95);
   });
 
-  it('populates questionTree with root questions and children', () => {
-    const root = createQuestion('Root cause', 'general-unassigned', 'Machine');
-    const child = createQuestion(
-      'Sub cause',
-      'general-unassigned',
-      'Shift',
-      undefined,
-      root.id,
-      'gemba'
-    );
-    const ctx = buildAIContext({
-      process: { issueStatement: 'Cpk below target' },
-      questions: [root, child],
-    });
-    expect(ctx.investigation?.questionTree).toHaveLength(1);
-    expect(ctx.investigation?.questionTree?.[0].children).toHaveLength(1);
-    expect(ctx.investigation?.questionTree?.[0].children?.[0].validationType).toBe('gemba');
-  });
-
-  it('populates ideas from questions', () => {
-    const root = createQuestion('Root cause', 'general-unassigned', 'Machine');
-    root.status = 'answered';
-    root.ideas = [
-      {
-        id: 'idea-1',
-        text: 'Simplify setup',
-        timeframe: 'just-do',
-        selected: true,
-        createdAt: 1714000000000,
-        deletedAt: null,
-        projection: {
-          baselineMean: 10,
-          baselineSigma: 0.5,
-          projectedMean: 9.5,
-          projectedSigma: 0.4,
-          meanDelta: -0.5,
-          sigmaDelta: -0.1,
-          simulationParams: { meanAdjustment: -0.5, variationReduction: 20 },
-          createdAt: '2026-03-15T00:00:00Z',
-        },
-      },
-    ];
-    const ctx = buildAIContext({
-      process: { issueStatement: 'Test' },
-      questions: [root],
-    });
-    expect(ctx.investigation?.allQuestions?.[0].ideas).toHaveLength(1);
-    expect(ctx.investigation?.allQuestions?.[0].ideas?.[0].text).toBe('Simplify setup');
-    expect(ctx.investigation?.allQuestions?.[0].ideas?.[0].selected).toBe(true);
-    expect(ctx.investigation?.allQuestions?.[0].ideas?.[0].projection).toBeDefined();
-  });
-
   it('includes methodology concepts in glossary fragment', () => {
     const ctx = buildAIContext({});
     expect(ctx.glossaryFragment).toContain('Methodology Concepts');
@@ -457,15 +405,16 @@ describe('buildAIContext', () => {
     expect(ctx.investigation!.selectedFinding!.question).toBe('Worn nozzle');
   });
 
-  it('detects investigation phase', () => {
-    const root = createQuestion('Root', 'inv-test-001');
-    root.status = 'answered';
-    const child = createQuestion('Child', 'inv-test-001', undefined, undefined, root.id);
-    child.status = 'answered';
+  it('detects investigation phase from findings (ADR-085: Question tree retired)', () => {
+    // Phase derives from finding statuses — analyzed/improving/resolved = matured
+    const f1 = makeFinding({ id: 'f1', createdAt: 1714000000000, status: 'analyzed' });
+    const f2 = makeFinding({ id: 'f2', createdAt: 1714000000000, status: 'analyzed' });
+    const f3 = makeFinding({ id: 'f3', createdAt: 1714000000000, status: 'observed' });
     const ctx = buildAIContext({
       process: { issueStatement: 'Test' },
-      questions: [root, child],
+      findings: [f1, f2, f3],
     });
+    // 2 matured > 1 open → converging
     expect(ctx.investigation?.phase).toBe('converging');
   });
 
@@ -547,38 +496,45 @@ describe('buildAIContext stagedComparison', () => {
   });
 });
 
+/**
+ * detectInvestigationPhase tests — ADR-085: now takes Finding[] only.
+ * Phase detection derives from finding status maturity (no Question tree).
+ *
+ * Mapping:
+ *   - no findings → 'initial'
+ *   - only observed/investigating → 'diverging'
+ *   - matured (analyzed/improving/resolved) > open (observed/investigating) → 'converging'
+ *   - matured > 0 && open > 0 → 'validating'
+ *   - any improving/resolved with actions → 'improving'
+ */
 describe('detectInvestigationPhase', () => {
-  it('returns initial when no questions', () => {
+  it('returns initial when no findings', () => {
     expect(detectInvestigationPhase([])).toBe('initial');
   });
 
-  it('returns initial for root-only open questions', () => {
-    const q = createQuestion('Test', 'inv-test-001');
-    expect(detectInvestigationPhase([q])).toBe('initial');
+  it('returns diverging when findings are all observed/investigating', () => {
+    const findings: Finding[] = [
+      makeFinding({ id: 'f1', createdAt: 1714000000000, status: 'observed' }),
+      makeFinding({ id: 'f2', createdAt: 1714000000000, status: 'investigating' }),
+    ];
+    expect(detectInvestigationPhase(findings)).toBe('diverging');
   });
 
-  it('returns diverging when children exist and mostly open', () => {
-    const root = createQuestion('Root', 'inv-test-001');
-    const c1 = createQuestion('C1', 'inv-test-001', undefined, undefined, root.id);
-    const c2 = createQuestion('C2', 'inv-test-001', undefined, undefined, root.id);
-    expect(detectInvestigationPhase([root, c1, c2])).toBe('diverging');
+  it('returns converging when majority of findings are matured', () => {
+    const findings: Finding[] = [
+      makeFinding({ id: 'f1', createdAt: 1714000000000, status: 'analyzed' }),
+      makeFinding({ id: 'f2', createdAt: 1714000000000, status: 'analyzed' }),
+      makeFinding({ id: 'f3', createdAt: 1714000000000, status: 'observed' }),
+    ];
+    // 2 matured > 1 open → converging
+    expect(detectInvestigationPhase(findings)).toBe('converging');
   });
 
-  it('returns converging when most are answered', () => {
-    const root = createQuestion('Root', 'inv-test-001');
-    root.status = 'answered';
-    const child = createQuestion('Child', 'inv-test-001', undefined, undefined, root.id);
-    child.status = 'ruled-out';
-    expect(detectInvestigationPhase([root, child])).toBe('converging');
-  });
-
-  it('returns acting when findings have actions', () => {
-    const q = createQuestion('Test', 'inv-test-001');
-    q.status = 'answered';
-    const findings = [
+  it('returns improving when an improving finding has actions', () => {
+    const findings: Finding[] = [
       {
         id: 'f1',
-        text: 'finding',
+        text: 'Drift in machine B',
         createdAt: 1714000000000,
         deletedAt: null,
         investigationId: 'general-unassigned',
@@ -590,43 +546,34 @@ describe('detectInvestigationPhase', () => {
         actions: [{ id: 'a1', text: 'Fix it', createdAt: 1714000000000, deletedAt: null }],
       },
     ];
-    expect(detectInvestigationPhase([q], findings)).toBe('improving');
+    expect(detectInvestigationPhase(findings)).toBe('improving');
   });
 
-  it('returns validating when 1 root answered and 1 root open (no children)', () => {
-    const q1 = createQuestion('Answered root', 'inv-test-001');
-    q1.status = 'answered';
-    const q2 = createQuestion('Open root', 'inv-test-001');
-    // q2 is open by default
-    expect(detectInvestigationPhase([q1, q2])).toBe('validating');
+  it('returns validating when there are both matured and open findings', () => {
+    const findings: Finding[] = [
+      makeFinding({ id: 'f1', createdAt: 1714000000000, status: 'analyzed' }),
+      makeFinding({ id: 'f2', createdAt: 1714000000000, status: 'observed' }),
+    ];
+    // 1 matured, 1 open → validating (not strictly more matured)
+    expect(detectInvestigationPhase(findings)).toBe('validating');
   });
 
-  it('returns validating at 50/50 boundary (2 answered + 2 open, no children)', () => {
-    const q1 = createQuestion('Answered 1', 'inv-test-001');
-    q1.status = 'answered';
-    const q2 = createQuestion('Answered 2', 'inv-test-001');
-    q2.status = 'ruled-out';
-    const q3 = createQuestion('Open 1', 'inv-test-001');
-    const q4 = createQuestion('Open 2', 'inv-test-001');
-    // 2 answered vs 2 open — not strictly more answered, so falls through to validating
-    expect(detectInvestigationPhase([q1, q2, q3, q4])).toBe('validating');
+  it('returns converging when all findings are matured', () => {
+    const findings: Finding[] = [
+      makeFinding({ id: 'f1', createdAt: 1714000000000, status: 'analyzed' }),
+      makeFinding({ id: 'f2', createdAt: 1714000000000, status: 'resolved' }),
+    ];
+    expect(detectInvestigationPhase(findings)).toBe('converging');
   });
 
-  it('does not return acting with empty findings array and answered questions', () => {
-    const q = createQuestion('Test', 'inv-test-001');
-    q.status = 'answered';
-    const phase = detectInvestigationPhase([q], []);
+  it('does not return improving with no actions even if status is improving', () => {
+    const findings: Finding[] = [
+      makeFinding({ id: 'f1', createdAt: 1714000000000, status: 'improving', actions: [] }),
+    ];
+    // No actions → falls through to converging (matured > 0, open = 0)
+    const phase = detectInvestigationPhase(findings);
     expect(phase).not.toBe('improving');
-    // With 1 answered and 0 open → converging
     expect(phase).toBe('converging');
-  });
-
-  it('returns converging when all questions are ruled out', () => {
-    const q1 = createQuestion('Question A', 'inv-test-001');
-    q1.status = 'ruled-out';
-    const q2 = createQuestion('Question B', 'inv-test-001');
-    q2.status = 'ruled-out';
-    expect(detectInvestigationPhase([q1, q2])).toBe('converging');
   });
 });
 
@@ -713,19 +660,6 @@ function makeFinding(overrides: Partial<Finding> & { id: string; createdAt: numb
     evidenceType: 'data',
     comments: [],
     statusChangedAt: overrides.createdAt,
-    ...overrides,
-  };
-}
-
-function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
-  return {
-    text: 'Does factor X affect Y?',
-    status: 'open',
-    linkedFindingIds: [],
-    investigationId: 'inv-test-001',
-    createdAt: 1714000000000,
-    updatedAt: 1714000000000,
-    deletedAt: null,
     ...overrides,
   };
 }
@@ -1035,113 +969,6 @@ describe('ADR-060 Pillar 1', () => {
     });
   });
 
-  describe('Task 4: focusedQuestionId', () => {
-    it('sets focusedQuestionId and focusedQuestionText from questions array', () => {
-      const questions: Question[] = [
-        makeQuestion({ id: 'q1', text: 'Does shift affect fill weight?' }),
-        makeQuestion({ id: 'q2', text: 'Is material batch a factor?' }),
-      ];
-
-      const ctx = buildAIContext({ questions, focusedQuestionId: 'q2' });
-
-      expect(ctx.investigation?.focusedQuestionId).toBe('q2');
-      expect(ctx.investigation?.focusedQuestionText).toBe('Is material batch a factor?');
-    });
-
-    it('sets focusedQuestionId even when question text not found', () => {
-      const questions: Question[] = [makeQuestion({ id: 'q1', text: 'Test' })];
-
-      const ctx = buildAIContext({ questions, focusedQuestionId: 'q-unknown' });
-
-      expect(ctx.investigation?.focusedQuestionId).toBe('q-unknown');
-      expect(ctx.investigation?.focusedQuestionText).toBeUndefined();
-    });
-
-    it('does not set focusedQuestionId when not provided', () => {
-      const questions: Question[] = [makeQuestion({ id: 'q1', text: 'Test' })];
-      const ctx = buildAIContext({ questions });
-      expect(ctx.investigation?.focusedQuestionId).toBeUndefined();
-    });
-  });
-
-  // Task 5: question answer visibility
-  describe('Task 5: question answer visibility', () => {
-    it('includes manualNote in allQuestions', () => {
-      const questions: Question[] = [
-        makeQuestion({
-          id: 'q1',
-          manualNote: 'Confirmed by operator interview on site visit',
-          linkedFindingIds: [],
-        }),
-      ];
-
-      const ctx = buildAIContext({ questions });
-      expect(ctx.investigation?.allQuestions![0].manualNote).toBe(
-        'Confirmed by operator interview on site visit'
-      );
-    });
-
-    it('includes linkedFindingIds in allQuestions', () => {
-      const questions: Question[] = [makeQuestion({ id: 'q1', linkedFindingIds: ['f1', 'f2'] })];
-
-      const ctx = buildAIContext({ questions });
-      expect(ctx.investigation?.allQuestions![0].linkedFindingIds).toEqual(['f1', 'f2']);
-    });
-
-    it('includes idea direction and timeframe', () => {
-      const questions: Question[] = [
-        makeQuestion({
-          id: 'q1',
-          status: 'answered',
-          linkedFindingIds: [],
-          ideas: [
-            {
-              id: 'idea1',
-              text: 'Standardize setup procedure',
-              direction: 'prevent',
-              timeframe: 'days',
-              createdAt: 1714000000000,
-              deletedAt: null,
-            },
-          ],
-        }),
-      ];
-
-      const ctx = buildAIContext({ questions });
-      const idea = ctx.investigation?.allQuestions![0].ideas![0];
-      expect(idea?.direction).toBe('prevent');
-      expect(idea?.timeframe).toBe('days');
-    });
-
-    it('includes idea riskLevel from risk.computed', () => {
-      const questions: Question[] = [
-        makeQuestion({
-          id: 'q1',
-          status: 'answered',
-          linkedFindingIds: [],
-          ideas: [
-            {
-              id: 'idea1',
-              text: 'Change supplier',
-              risk: { axis1: 3, axis2: 2, computed: 'high' },
-              createdAt: 1714000000000,
-              deletedAt: null,
-            },
-          ],
-        }),
-      ];
-
-      const ctx = buildAIContext({ questions });
-      expect(ctx.investigation?.allQuestions![0].ideas![0].riskLevel).toBe('high');
-    });
-
-    it('does not set manualNote when undefined', () => {
-      const questions: Question[] = [makeQuestion({ id: 'q1', linkedFindingIds: [] })];
-      const ctx = buildAIContext({ questions });
-      expect(ctx.investigation?.allQuestions![0].manualNote).toBeUndefined();
-    });
-  });
-
   it('should include evidenceMapTopology when provided', () => {
     const context = buildAIContext({
       evidenceMapTopology: {
@@ -1150,14 +977,12 @@ describe('ADR-060 Pillar 1', () => {
             factor: 'Machine',
             rSquaredAdj: 0.34,
             explored: true,
-            questionCount: 3,
             findingCount: 1,
           },
           {
             factor: 'Shift',
             rSquaredAdj: 0.22,
             explored: false,
-            questionCount: 0,
             findingCount: 0,
           },
         ],

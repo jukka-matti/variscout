@@ -28,7 +28,6 @@ const hub: Hypothesis = {
   id: 'h1',
   name: 'Nozzle runs hot on night shift',
   synthesis: '',
-  questionIds: [],
   findingIds: ['f1', 'f2'],
   status: 'proposed',
   createdAt: 1,

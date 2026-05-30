@@ -17,7 +17,7 @@
 //     EVIDENCE_SOURCE_ADD, EVIDENCE_SOURCE_UPDATE_CURSOR, EVIDENCE_SOURCE_REMOVE
 //
 //   Session-only / no Azure Dexie table today (F3 normalizes):
-//     INVESTIGATION_*, FINDING_*, QUESTION_*, CAUSAL_LINK_*, HYPOTHESIS_*
+//     INVESTIGATION_*, FINDING_*, SCOPE_*, CAUSAL_LINK_*, HYPOTHESIS_*
 //
 //   Canvas mutations (flow through canvasStore → HUB_PERSIST_SNAPSHOT):
 //     PLACE_CHIP_ON_STEP, UNASSIGN_CHIP, REORDER_CHIP_IN_STEP, ADD_STEP,
@@ -489,16 +489,18 @@ export async function applyAction(action: HubAction): Promise<void> {
       // Azure has no 'finding' table today; F3 normalizes — no-op.
       return;
 
-    case 'QUESTION_ADD':
-      // Azure has no 'question' table today; F3 normalizes — no-op.
+    case 'SCOPE_ADD':
+      // ProblemStatementScope has zero Dexie footprint (session + blob only,
+      // ADR-085) — scopes round-trip via the serialized blob slot `questions`
+      // vacated. No-op here, mirroring FINDING_*/HYPOTHESIS_*.
       return;
 
-    case 'QUESTION_UPDATE':
-      // Azure has no 'question' table today; F3 normalizes — no-op.
+    case 'SCOPE_UPDATE':
+      // Scope mutations persist via the analyze blob; no Azure Dexie table.
       return;
 
-    case 'QUESTION_ARCHIVE':
-      // Azure has no 'question' table today; F3 normalizes — no-op.
+    case 'SCOPE_ARCHIVE':
+      // Scope mutations persist via the analyze blob; no Azure Dexie table.
       return;
 
     case 'CAUSAL_LINK_ADD':

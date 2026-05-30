@@ -14,7 +14,7 @@ import type { TargetMetric } from '../ai/types';
 
 export interface FindingContribution {
   findingId: string;
-  questionId?: string;
+  hypothesisId?: string;
   /** Projected improvement for this finding's target metric */
   projected: number;
   /** Actual improvement (from outcome verification) */
@@ -207,7 +207,6 @@ export function computeImprovementProgress(
 
     contributions.push({
       findingId: finding.id,
-      questionId: finding.questionId,
       projected: improvement,
       actual: actualImprovement,
       percentOfGap: gap !== 0 ? (improvement / gap) * 100 : 0,

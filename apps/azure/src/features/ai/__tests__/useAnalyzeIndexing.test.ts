@@ -7,17 +7,17 @@ vi.mock('../../../services/blobClient');
 
 import { useAnalyzeIndexing } from '../useAnalyzeIndexing';
 import { createInvestigationSerializer } from '../../../services/analyzeSerializer';
-import type { Finding, Question } from '@variscout/core';
+import type { Finding, ProblemStatementScope } from '@variscout/core';
 
 const mockOnFindingsChange = vi.fn();
-const mockOnQuestionsChange = vi.fn();
+const mockOnScopesChange = vi.fn();
 const mockDispose = vi.fn();
 
 const mockOnHypothesesChange = vi.fn();
 
 const mockSerializerInstance = {
   onFindingsChange: mockOnFindingsChange,
-  onQuestionsChange: mockOnQuestionsChange,
+  onScopesChange: mockOnScopesChange,
   onHypothesesChange: mockOnHypothesesChange,
   dispose: mockDispose,
 };
@@ -111,19 +111,19 @@ describe('useAnalyzeIndexing', () => {
       expect(mockOnFindingsChange).toHaveBeenCalledWith(findings);
     });
 
-    it('onQuestionsChange forwards to the serializer instance', () => {
+    it('onScopesChange forwards to the serializer instance', () => {
       const { result } = renderHook(() =>
         useAnalyzeIndexing({ projectId: 'proj-123', enabled: true })
       );
 
-      const questions: Question[] = [];
+      const scopes: ProblemStatementScope[] = [];
 
       act(() => {
-        result.current.onQuestionsChange(questions);
+        result.current.onScopesChange(scopes);
       });
 
-      expect(mockOnQuestionsChange).toHaveBeenCalledOnce();
-      expect(mockOnQuestionsChange).toHaveBeenCalledWith(questions);
+      expect(mockOnScopesChange).toHaveBeenCalledOnce();
+      expect(mockOnScopesChange).toHaveBeenCalledWith(scopes);
     });
 
     it('onFindingsChange is a no-op when serializer is not active (disabled)', () => {
@@ -138,16 +138,16 @@ describe('useAnalyzeIndexing', () => {
       expect(mockOnFindingsChange).not.toHaveBeenCalled();
     });
 
-    it('onQuestionsChange is a no-op when serializer is not active (no projectId)', () => {
+    it('onScopesChange is a no-op when serializer is not active (no projectId)', () => {
       const { result } = renderHook(() =>
         useAnalyzeIndexing({ projectId: undefined, enabled: true })
       );
 
       act(() => {
-        result.current.onQuestionsChange([]);
+        result.current.onScopesChange([]);
       });
 
-      expect(mockOnQuestionsChange).not.toHaveBeenCalled();
+      expect(mockOnScopesChange).not.toHaveBeenCalled();
     });
   });
 });

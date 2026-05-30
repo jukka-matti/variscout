@@ -36,7 +36,6 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setAnalysisMode: useProjectStore(s => s.setAnalysisMode),
     setDefectMapping: useProjectStore(s => s.setDefectMapping),
     setFindings: useProjectStore(s => s.setFindings),
-    setQuestions: useProjectStore(s => s.setQuestions),
     setCategories: useProjectStore(s => s.setCategories),
     setHypotheses: (hubs: Hypothesis[]) => useAnalyzeStore.getState().resetHubs(hubs),
     setCausalLinks: (links: CausalLink[]) =>

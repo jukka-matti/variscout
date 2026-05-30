@@ -16,7 +16,7 @@ import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
-import type { UseQuestionsReturn, UseFindingsReturn } from '@variscout/hooks';
+import type { UseFindingsReturn } from '@variscout/hooks';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
 import type { AzureFindingsCallbacks, ActiveIPScopeLabels } from '@variscout/ui';
 import type { ViewState } from '@variscout/hooks';
@@ -32,8 +32,6 @@ export interface DashboardSectionProps {
   dataFlow: UseEditorDataFlowReturn;
   /** Filter navigation state — breadcrumb chips, drill-down */
   filterNav: UseFilterNavigationReturn;
-  /** Questions state — for any question-triggered chart navigation */
-  questionsState: UseQuestionsReturn;
   /** Findings state — for chart annotation/observation creation */
   findingsState: UseFindingsReturn;
   /** AI orchestration — narration, CoScout integration, chart insights */
@@ -79,7 +77,6 @@ export interface DashboardSectionProps {
 export const DashboardSection: React.FC<DashboardSectionProps> = ({
   dataFlow,
   filterNav,
-  questionsState: _questionsState,
   findingsState,
   aiOrch,
   factorRequest,

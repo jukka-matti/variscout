@@ -15,7 +15,7 @@ import { useMemo } from 'react';
 import { computeHubEvidence, computeHubProjection } from '@variscout/core/findings';
 import type { BestSubsetsResult } from '@variscout/core/stats';
 import type { HubProjection, HypothesisEvidence } from '@variscout/core/findings';
-import type { Question } from '@variscout/core';
+import type { Finding } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import { useAnalyzeStore, useProjectStore } from '@variscout/stores';
 
@@ -33,15 +33,14 @@ export interface UseHubComputationsReturn {
  * investigation workspace views.
  *
  * @param bestSubsets - Best subsets regression result, or null if unavailable
- * @param questions - All questions currently in scope
+ * @param findings - All findings currently in scope (used to derive hub factor membership)
  */
 export function useHubComputations(
   bestSubsets: BestSubsetsResult | null,
-  questions: Question[]
+  findings: Finding[]
 ): UseHubComputationsReturn {
   const hubs = useAnalyzeStore(s => s.hypotheses);
   const analysisMode = useProjectStore(s => s.analysisMode);
-  const specs = useProjectStore(s => s.specs);
 
   const resolved = resolveMode(analysisMode);
 
@@ -57,10 +56,10 @@ export function useHubComputations(
 
     const map = new Map<string, HypothesisEvidence>();
     for (const hub of hubs) {
-      map.set(hub.id, computeHubEvidence(hub, questions, bestSubsets, evidenceMode));
+      map.set(hub.id, computeHubEvidence(hub, findings, bestSubsets, evidenceMode));
     }
     return map;
-  }, [hubs, questions, bestSubsets, resolved]);
+  }, [hubs, findings, bestSubsets, resolved]);
 
   const worstLevels = useMemo((): Record<string, string> => {
     if (!bestSubsets) return {};
@@ -91,11 +90,11 @@ export function useHubComputations(
 
     const map = new Map<string, HubProjection>();
     for (const hub of hubs) {
-      const proj = computeHubProjection(hub, questions, bestSubsets, worstLevels, specs);
+      const proj = computeHubProjection(hub, findings, bestSubsets, worstLevels);
       if (proj) map.set(hub.id, proj);
     }
     return map;
-  }, [hubs, questions, bestSubsets, worstLevels, specs]);
+  }, [hubs, findings, bestSubsets, worstLevels]);
 
   return { hubEvidences, worstLevels, hubProjections };
 }

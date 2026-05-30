@@ -2,7 +2,7 @@
  * Test setup — mock idb-keyval for Zustand persist middleware.
  * In tests, persist uses in-memory storage instead of IndexedDB.
  */
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 
 const store = new Map<string, unknown>();
 

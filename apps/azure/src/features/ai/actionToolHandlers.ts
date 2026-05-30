@@ -9,18 +9,12 @@ import type {
   SpecLimits,
   DataRow,
   Finding,
-  Question,
   FilterAction,
   ActionProposal,
   Hypothesis,
   CausalLink,
 } from '@variscout/core';
-import {
-  getEtaSquared,
-  computeFilterPreview,
-  hashFilterStack,
-  generateProposalId,
-} from '@variscout/core';
+import { computeFilterPreview, hashFilterStack, generateProposalId } from '@variscout/core';
 import { wouldCreateCycle } from '@variscout/core/stats';
 import type { ToolHandlerMap } from '@variscout/core';
 
@@ -31,11 +25,10 @@ export interface ActionToolDeps {
   outcome?: string | null;
   specs?: SpecLimits;
   findings: Finding[];
-  questions: Question[];
+  /** Existing hypothesis hubs — the suspected causes that own improvement ideas (IM-1). */
+  hypotheses?: Hypothesis[];
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
-  /** Existing hypothesis hubs — used by connect_hub_evidence handler */
-  hypotheses?: Hypothesis[];
   /** Existing causal links — used by suggest_causal_link handler */
   causalLinks?: CausalLink[];
   /** Available factor column names — used for validation */
@@ -49,13 +42,13 @@ export function buildActionToolHandlers({
   outcome,
   specs,
   findings,
-  questions,
+  hypotheses,
   filters,
   filterStack,
-  hypotheses,
   causalLinks,
   factors,
 }: ActionToolDeps): Partial<ToolHandlerMap> {
+  const hubs = hypotheses ?? [];
   return {
     apply_filter: async (args: Record<string, unknown>) => {
       const factor = args.factor as string;
@@ -122,56 +115,10 @@ export function buildActionToolHandlers({
       return JSON.stringify({ proposal: true, ...proposal });
     },
 
-    create_question: async (args: Record<string, unknown>) => {
-      const text = args.text as string;
-      const factor = (args.factor as string | null) ?? undefined;
-      const level = (args.level as string | null) ?? undefined;
-      const parentId = (args.parent_id as string | null) ?? undefined;
-      const validationType = (args.validation_type as string) || 'data';
-      const validationTask = (args.validation_task as string | null) ?? undefined;
-
-      if (!text) return JSON.stringify({ error: 'Missing question text' });
-
-      let predictedStatus: string | undefined;
-      let etaSquared: number | undefined;
-      if (factor && outcome && filteredData.length > 0) {
-        etaSquared = getEtaSquared(filteredData, factor, outcome);
-        if (etaSquared >= 0.15) predictedStatus = 'answered';
-        else if (etaSquared < 0.05) predictedStatus = 'ruled-out';
-        else predictedStatus = 'investigating';
-      }
-
-      const parentQuestion = parentId ? questions.find(h => h.id === parentId) : undefined;
-
-      const proposal: ActionProposal = {
-        id: generateProposalId(),
-        tool: 'create_question',
-        params: {
-          text,
-          factor,
-          level,
-          parent_id: parentId,
-          validation_type: validationType,
-          validation_task: validationTask,
-        },
-        preview: {
-          predictedStatus,
-          etaSquared: etaSquared !== undefined ? Math.round(etaSquared * 1000) / 1000 : undefined,
-          parentText: parentQuestion?.text,
-          depth: parentQuestion ? 2 : 1,
-          validationType,
-          validationTask,
-        },
-        status: 'pending',
-        filterStackHash: hashFilterStack(filterStack),
-        timestamp: Date.now(),
-        editableText: text,
-      };
-      return JSON.stringify({ proposal: true, ...proposal });
-    },
-
     suggest_improvement_idea: async (args: Record<string, unknown>) => {
-      const questionId = args.question_id as string;
+      // IM-1 (ADR-085): ideas re-home onto Hypothesis hubs. Accept hypothesis_id
+      // (preferred) with a question_id fallback for older callers.
+      const hypothesisId = (args.hypothesis_id as string) ?? (args.question_id as string);
       const text = args.text as string;
       const direction = args.direction as string;
       const timeframe = args.timeframe as string;
@@ -179,17 +126,17 @@ export function buildActionToolHandlers({
       const riskAxis1 = args.risk_axis1 as number | null | undefined;
       const riskAxis2 = args.risk_axis2 as number | null | undefined;
 
-      if (!questionId || !text || !direction) {
-        return JSON.stringify({ error: 'Missing question_id, text, or direction' });
+      if (!hypothesisId || !text || !direction) {
+        return JSON.stringify({ error: 'Missing hypothesis_id, text, or direction' });
       }
 
-      const targetQuestion = questions.find(h => h.id === questionId);
-      if (!targetQuestion) {
-        return JSON.stringify({ error: `Question not found: ${questionId}` });
+      const targetHub = hubs.find(h => h.id === hypothesisId);
+      if (!targetHub) {
+        return JSON.stringify({ error: `Hypothesis not found: ${hypothesisId}` });
       }
-      if (targetQuestion.status !== 'answered' && targetQuestion.status !== 'investigating') {
+      if (targetHub.status === 'refuted') {
         return JSON.stringify({
-          error: `Question must be 'answered' or 'investigating', currently '${targetQuestion.status}'`,
+          error: `Hypothesis is refuted; ideas only apply to live hubs`,
         });
       }
 
@@ -197,7 +144,7 @@ export function buildActionToolHandlers({
         id: generateProposalId(),
         tool: 'suggest_improvement_idea',
         params: {
-          question_id: questionId,
+          hypothesis_id: hypothesisId,
           text,
           direction,
           timeframe,
@@ -206,8 +153,8 @@ export function buildActionToolHandlers({
           risk_axis2: riskAxis2 ?? undefined,
         },
         preview: {
-          questionText: targetQuestion.text,
-          existingIdeasCount: targetQuestion.ideas?.length ?? 0,
+          hypothesisText: targetHub.name,
+          existingIdeasCount: targetHub.ideas?.length ?? 0,
           direction,
           timeframe,
           cost: cost ?? undefined,
@@ -222,24 +169,15 @@ export function buildActionToolHandlers({
 
     suggest_save_finding: async (args: Record<string, unknown>) => {
       const insightText = args.insight_text as string;
-      const suggestedQuestionId = (args.suggested_question_id as string | null) ?? undefined;
       const category = (args.category as string | null) ?? undefined;
 
       if (!insightText) return JSON.stringify({ error: 'Missing insight_text' });
-
-      if (suggestedQuestionId) {
-        const targetQuestion = questions.find(h => h.id === suggestedQuestionId);
-        if (!targetQuestion) {
-          return JSON.stringify({ error: `Question not found: ${suggestedQuestionId}` });
-        }
-      }
 
       const proposal: ActionProposal = {
         id: generateProposalId(),
         tool: 'suggest_save_finding',
         params: {
           insight_text: insightText,
-          suggested_question_id: suggestedQuestionId,
           category: category,
         },
         preview: {
@@ -249,59 +187,12 @@ export function buildActionToolHandlers({
             mean: stats?.mean,
             cpk: stats?.cpk,
           },
-          suggestedQuestionText: suggestedQuestionId
-            ? questions.find(h => h.id === suggestedQuestionId)?.text
-            : undefined,
           category,
         },
         status: 'pending',
         filterStackHash: hashFilterStack(filterStack),
         timestamp: Date.now(),
         editableText: insightText,
-      };
-      return JSON.stringify({ proposal: true, ...proposal });
-    },
-
-    answer_question: async (args: Record<string, unknown>) => {
-      const questionId = args.question_id as string;
-      const status = args.status as 'answered' | 'ruled-out';
-      const note = args.note as string;
-      const findingId = (args.finding_id as string | undefined) ?? undefined;
-
-      if (!questionId || !status || !note) {
-        return JSON.stringify({ error: 'Missing question_id, status, or note' });
-      }
-
-      const question = questions.find(q => q.id === questionId);
-      if (!question) return JSON.stringify({ error: `Question not found: ${questionId}` });
-
-      if (findingId) {
-        const supportingFinding = findings.find(f => f.id === findingId);
-        if (!supportingFinding) {
-          return JSON.stringify({ error: `Finding not found: ${findingId}` });
-        }
-      }
-
-      const proposal: ActionProposal = {
-        id: generateProposalId(),
-        tool: 'answer_question',
-        params: {
-          question_id: questionId,
-          status,
-          note,
-          finding_id: findingId,
-        },
-        preview: {
-          questionText: question.text,
-          proposedStatus: status,
-          note,
-          findingId,
-          currentStatus: question.status,
-        },
-        status: 'pending',
-        filterStackHash: hashFilterStack(filterStack),
-        timestamp: Date.now(),
-        editableText: note,
       };
       return JSON.stringify({ proposal: true, ...proposal });
     },
@@ -341,18 +232,11 @@ export function buildActionToolHandlers({
     suggest_hypothesis: async (args: Record<string, unknown>) => {
       const name = args.name as string;
       const synthesis = args.synthesis as string;
-      const questionIds = args.questionIds as string[];
       const findingIds = (args.findingIds as string[] | undefined) ?? [];
 
       if (!name) return JSON.stringify({ error: 'Missing name' });
-      if (!questionIds || questionIds.length === 0) {
-        return JSON.stringify({ error: 'At least one questionId is required' });
-      }
-
-      // Validate that referenced questions exist
-      const missingQuestions = questionIds.filter(id => !questions.find(q => q.id === id));
-      if (missingQuestions.length > 0) {
-        return JSON.stringify({ error: `Questions not found: ${missingQuestions.join(', ')}` });
+      if (findingIds.length === 0) {
+        return JSON.stringify({ error: 'At least one findingId is required' });
       }
 
       // Validate that referenced findings exist
@@ -364,13 +248,12 @@ export function buildActionToolHandlers({
       const proposal: ActionProposal = {
         id: generateProposalId(),
         tool: 'suggest_hypothesis',
-        params: { name, synthesis, questionIds, findingIds },
+        params: { name, synthesis, findingIds },
         preview: {
           name,
           synthesis,
-          questionCount: questionIds.length,
           findingCount: findingIds.length,
-          previewText: `Create hypothesis: "${name}"\nConnecting ${questionIds.length} question${questionIds.length !== 1 ? 's' : ''} + ${findingIds.length} finding${findingIds.length !== 1 ? 's' : ''}`,
+          previewText: `Create hypothesis: "${name}"\nConnecting ${findingIds.length} finding${findingIds.length !== 1 ? 's' : ''}`,
         },
         status: 'pending',
         filterStackHash: hashFilterStack(filterStack),
@@ -382,30 +265,27 @@ export function buildActionToolHandlers({
 
     connect_hub_evidence: async (args: Record<string, unknown>) => {
       const hubId = args.hubId as string;
-      const questionIds = (args.questionIds as string[] | undefined) ?? [];
       const findingIds = (args.findingIds as string[] | undefined) ?? [];
       const reason = (args.reason as string) ?? '';
 
       if (!hubId) return JSON.stringify({ error: 'Missing hubId' });
 
-      const hub = hypotheses?.find(h => h.id === hubId);
+      const hub = hubs.find(h => h.id === hubId);
       if (!hub) return JSON.stringify({ error: `Suspected cause hub not found: ${hubId}` });
 
-      const totalNew = questionIds.length + findingIds.length;
-      if (totalNew === 0) {
-        return JSON.stringify({ error: 'At least one questionId or findingId is required' });
+      if (findingIds.length === 0) {
+        return JSON.stringify({ error: 'At least one findingId is required' });
       }
 
       const proposal: ActionProposal = {
         id: generateProposalId(),
         tool: 'connect_hub_evidence',
-        params: { hubId, questionIds, findingIds, reason },
+        params: { hubId, findingIds, reason },
         preview: {
           hubName: hub.name,
-          questionCount: questionIds.length,
           findingCount: findingIds.length,
           reason,
-          previewText: `Connect ${totalNew} item${totalNew !== 1 ? 's' : ''} to hub "${hub.name}"${reason ? ` \u2014 ${reason}` : ''}`,
+          previewText: `Connect ${findingIds.length} finding${findingIds.length !== 1 ? 's' : ''} to hub "${hub.name}"${reason ? ` \u2014 ${reason}` : ''}`,
         },
         status: 'pending',
         filterStackHash: hashFilterStack(filterStack),

@@ -16,7 +16,7 @@ registerLocaleLoaders(
 import { StageFiveModal } from '../index';
 
 describe('StageFiveModal', () => {
-  it('renders the issue + question fields when open', () => {
+  it('renders the issue + hypothesis fields when open', () => {
     render(
       <StageFiveModal
         open
@@ -28,7 +28,7 @@ describe('StageFiveModal', () => {
     );
     expect(screen.getByTestId('stage-five-modal')).toBeInTheDocument();
     expect(screen.getByLabelText(/issue/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/question/i)).toBeInTheDocument();
+    expect(screen.getByTestId('stage-five-hypothesis-input')).toBeInTheDocument();
     expect(screen.getByTestId('stage-five-open-analyze')).toBeInTheDocument();
     expect(screen.getByTestId('stage-five-skip')).toBeInTheDocument();
   });
@@ -62,13 +62,9 @@ describe('StageFiveModal interactions', () => {
     fireEvent.change(screen.getByTestId('stage-five-issue-input'), {
       target: { value: 'Defect rate spiked Tuesday' },
     });
-    fireEvent.change(screen.getByTestId('stage-five-question-input'), {
-      target: { value: 'Was the new resin lot the cause?' },
-    });
     fireEvent.click(screen.getByTestId('stage-five-open-analyze'));
     expect(onOpenInvestigation).toHaveBeenCalledWith({
       issueStatement: 'Defect rate spiked Tuesday',
-      questions: [{ text: 'Was the new resin lot the cause?' }],
     });
   });
 
@@ -164,16 +160,12 @@ describe('StageFiveModal interactions', () => {
     fireEvent.change(screen.getByTestId('stage-five-issue-input'), {
       target: { value: 'Issue' },
     });
-    fireEvent.change(screen.getByTestId('stage-five-question-input'), {
-      target: { value: 'Question?' },
-    });
     fireEvent.change(screen.getByTestId('stage-five-hypothesis-input'), {
       target: { value: 'Resin lot drift' },
     });
     fireEvent.click(screen.getByTestId('stage-five-open-analyze'));
     expect(onOpenInvestigation).toHaveBeenCalledWith({
       issueStatement: 'Issue',
-      questions: [{ text: 'Question?' }],
       hypothesisDraft: 'Resin lot drift',
     });
   });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateSurvey } from '../index';
-import type { DataRow, Finding, ProcessMap, Question, Hypothesis } from '../../index';
+import type { DataRow, Finding, ProcessMap, Hypothesis } from '../../index';
 
 const data: DataRow[] = [
   { SampleTime: '2026-04-01T08:00:00Z', Fill_Weight: 10.1, Machine: 'M1', Shift: 'Day' },
@@ -20,19 +20,6 @@ const processMap = (overrides: Partial<ProcessMap> = {}): ProcessMap => ({
   ...overrides,
 });
 
-const question = (overrides: Partial<Question> = {}): Question => ({
-  id: 'q-1',
-  text: 'Does Machine M2 drive fill weight?',
-  factor: 'Machine',
-  status: 'answered',
-  linkedFindingIds: ['f-1'],
-  createdAt: 1745625600000,
-  updatedAt: 1745625600000,
-  investigationId: 'inv-test-001',
-  deletedAt: null,
-  ...overrides,
-});
-
 const finding = (overrides: Partial<Finding> = {}): Finding => ({
   id: 'f-1',
   text: 'Machine M2 has the highest fill-weight spread.',
@@ -44,7 +31,6 @@ const finding = (overrides: Partial<Finding> = {}): Finding => ({
   status: 'analyzed',
   comments: [],
   statusChangedAt: 1760000000000,
-  questionId: 'q-1',
   validationStatus: 'supports',
   ...overrides,
 });
@@ -53,7 +39,6 @@ const branch = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   id: 'hub-1',
   name: 'Nozzle wear on M2',
   synthesis: 'M2 behaves differently after warmup.',
-  questionIds: ['q-1'],
   findingIds: ['f-1'],
   status: 'proposed',
   createdAt: 1745625600000,
@@ -136,28 +121,17 @@ describe('evaluateSurvey', () => {
     ).toBe(true);
   });
 
-  it('recommends counter-check work for mechanism branches with open checks or no counter clues', () => {
+  it('recommends add-counter-check when branch has supporting clues but no counter clues (ADR-085: no checkQuestionIds)', () => {
+    // Branch has a supporting finding (validationStatus=supports) → add-counter-check fires
     const survey = evaluateSurvey({
       data,
       outcomeColumn: 'Fill_Weight',
       factorColumns: ['Machine'],
-      questions: [
-        question(),
-        question({
-          id: 'q-counter',
-          text: 'Does M2 still separate during Day shift only?',
-          status: 'open',
-          linkedFindingIds: [],
-        }),
-      ],
-      findings: [finding()],
-      branches: [branch({ checkQuestionIds: ['q-counter'] })],
+      findings: [finding()], // validationStatus: 'supports'
+      branches: [branch()], // findingIds: ['f-1']
     });
 
     expect(survey.recommendations.map(rec => rec.id)).toContain('branch:hub-1:add-counter-check');
-    expect(survey.recommendations.map(rec => rec.id)).toContain(
-      'branch:hub-1:complete-open-checks'
-    );
   });
 
   it('keeps counter-check recommendations for evidenced and disconfirmation-ready hypotheses', () => {
@@ -165,7 +139,6 @@ describe('evaluateSurvey', () => {
       data,
       outcomeColumn: 'Fill_Weight',
       factorColumns: ['Machine'],
-      questions: [question()],
       findings: [finding()],
     };
 
@@ -184,29 +157,17 @@ describe('evaluateSurvey', () => {
       data,
       outcomeColumn: 'Fill_Weight',
       factorColumns: ['Machine'],
-      questions: [
-        question(),
-        question({
-          id: 'q-counter',
-          text: 'Does M2 still separate during Day shift only?',
-          status: 'open',
-          linkedFindingIds: [],
-        }),
-      ],
       findings: [finding()],
     };
 
     for (const status of ['confirmed', 'refuted'] as const) {
       const survey = evaluateSurvey({
         ...baseInput,
-        branches: [branch({ status, checkQuestionIds: ['q-counter'] })],
+        branches: [branch({ status })],
       });
 
       expect(survey.recommendations.map(rec => rec.id)).not.toContain(
         'branch:hub-1:add-counter-check'
-      );
-      expect(survey.recommendations.map(rec => rec.id)).not.toContain(
-        'branch:hub-1:complete-open-checks'
       );
     }
   });
@@ -220,7 +181,6 @@ describe('evaluateSurvey', () => {
         nodes: [{ id: 'step-fill', name: 'Fill', order: 0 }],
         tributaries: [],
       }),
-      questions: [question({ status: 'open' })],
       findings: [finding()],
       branches: [branch()],
     };

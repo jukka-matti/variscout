@@ -42,7 +42,6 @@ const baseHub: Hypothesis = {
   id: 'h-test',
   name: 'Test hub',
   synthesis: '',
-  questionIds: [],
   findingIds: [],
   status: 'proposed',
   investigationId: 'inv-test',

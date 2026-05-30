@@ -20,10 +20,11 @@
 //      `hubId` foreign key (already on `OutcomeSpec` via core).
 //
 // All other tables (evidenceSnapshots, evidenceSources, evidenceSourceCursors,
-// rowProvenance, investigations, findings, questions, causalLinks,
+// rowProvenance, investigations, findings, causalLinks,
 // hypotheses) start empty in F3 — the dispatch boundary will be wired by
-// F3.5 (evidence) and F5 (investigation/finding/question/causalLink/
-// hypothesis + canvas action coverage).
+// F3.5 (evidence) and F5 (investigation/finding/causalLink/
+// hypothesis + canvas action coverage). The `questions` table (IM-1, ADR-085)
+// was dropped at v10 — ProblemStatementScope persists via the analyze blob.
 //
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
@@ -38,13 +39,7 @@ import type {
   ControlReview,
   ControlHandoff,
 } from '@variscout/core';
-import type {
-  Finding,
-  Question,
-  CausalLink,
-  Hypothesis,
-  ActionItem,
-} from '@variscout/core/findings';
+import type { Finding, CausalLink, Hypothesis, ActionItem } from '@variscout/core/findings';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
@@ -89,7 +84,6 @@ export type EvidenceSourceCursorRow = EvidenceSourceCursor;
 export type RowProvenanceRow = RowProvenanceTag;
 export type InvestigationRow = ProcessHubAnalyze;
 export type FindingRow = Finding;
-export type QuestionRow = Question;
 export type CausalLinkRow = CausalLink;
 export type HypothesisRow = Hypothesis;
 export type ImprovementProjectRow = ImprovementProject;
@@ -112,7 +106,6 @@ export class PwaDatabase extends Dexie {
   evidenceSourceCursors!: Table<EvidenceSourceCursorRow, string>;
   investigations!: Table<InvestigationRow, string>;
   findings!: Table<FindingRow, string>;
-  questions!: Table<QuestionRow, string>;
   causalLinks!: Table<CausalLinkRow, string>;
   hypotheses!: Table<HypothesisRow, string>;
   improvementProjects!: Table<ImprovementProjectRow, string>;
@@ -137,6 +130,9 @@ export class PwaDatabase extends Dexie {
       findings: '&id, investigationId, deletedAt',
       questions: '&id, investigationId, deletedAt',
       causalLinks: '&id, investigationId, deletedAt',
+      // NOTE: `questions` is declared at v1 to preserve the historical version
+      // chain, then dropped at v10 below (IM-1, ADR-085). Rewriting v1 to omit
+      // it would change the schema delta for any on-disk v1..v9 DB.
       hypotheses: '&id, investigationId, deletedAt',
       improvementProjects: '&id, hubId, deletedAt, status, updatedAt',
       canvasState: '&hubId',
@@ -199,6 +195,14 @@ export class PwaDatabase extends Dexie {
     // Per wedge V1 no-users / no-migration stance (ADR-082), NO upgrade
     // callback. The bump flushes cached schema; no destructive re-init.
     this.version(9).stores({});
+
+    // Version 10: IM-1 — drop the `Question` entity (ADR-085). The `questions`
+    // table was declared at v1 but never written (its QUESTION_* dispatch cases
+    // were always no-ops); ProblemStatementScope replaces Question and persists
+    // via the analyze blob, not Dexie. Declaring `questions: null` removes the
+    // store. Per wedge V1 no-back-compat policy, no data migration — the table
+    // was empty.
+    this.version(10).stores({ questions: null });
   }
 }
 

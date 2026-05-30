@@ -24,7 +24,7 @@
 //
 // Out of scope (no-op with comments):
 //   - EVIDENCE_SOURCE_ADD / EVIDENCE_SOURCE_REMOVE — pending future use.
-//   - INVESTIGATION_* / FINDING_* / QUESTION_* / CAUSAL_LINK_* /
+//   - INVESTIGATION_* / FINDING_* / SCOPE_* / CAUSAL_LINK_* /
 //     HYPOTHESIS_* — F5 wires this when investigation entity action
 //     coverage lands.
 //   - CANVAS_* — canvasStore remains the canonical mutation surface;
@@ -382,7 +382,7 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     }
 
     // -----------------------------------------------------------------------
-    // Investigation entity actions (investigation / finding / question /
+    // Investigation entity actions (investigation / finding / scope /
     // causalLink / hypothesis) — F5 wires these when the investigation
     // entity action coverage lands. The corresponding tables already exist
     // (declared by F3 P1) but writes are not yet routed here.
@@ -394,15 +394,17 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     case 'FINDING_ADD':
     case 'FINDING_UPDATE':
     case 'FINDING_ARCHIVE':
-    case 'QUESTION_ADD':
-    case 'QUESTION_UPDATE':
-    case 'QUESTION_ARCHIVE':
+    case 'SCOPE_ADD':
+    case 'SCOPE_UPDATE':
+    case 'SCOPE_ARCHIVE':
     case 'CAUSAL_LINK_ADD':
     case 'CAUSAL_LINK_UPDATE':
     case 'CAUSAL_LINK_ARCHIVE':
     case 'HYPOTHESIS_ADD':
     case 'HYPOTHESIS_UPDATE':
     case 'HYPOTHESIS_ARCHIVE': {
+      // ProblemStatementScope (SCOPE_*) has zero Dexie footprint (ADR-085) —
+      // scopes round-trip via the serialized blob slot `questions` vacated.
       return;
     }
 

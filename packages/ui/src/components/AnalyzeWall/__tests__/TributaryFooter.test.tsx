@@ -33,7 +33,6 @@ describe('TributaryFooter', () => {
       id: 'h1',
       name: '',
       synthesis: '',
-      questionIds: [],
       findingIds: [],
       status: 'proposed',
       tributaryIds: ['t1'],

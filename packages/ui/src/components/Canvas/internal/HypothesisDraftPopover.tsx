@@ -47,6 +47,7 @@ export function HypothesisDraftPopover({
   onCancel,
 }: HypothesisDraftPopoverProps) {
   const [whyStatement, setWhyStatement] = React.useState('');
+  // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
   const [questionId, setQuestionId] = React.useState('');
   const { top, left } = computePosition(releaseAt);
   const trimmed = whyStatement.trim();

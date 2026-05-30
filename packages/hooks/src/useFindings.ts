@@ -33,13 +33,8 @@ export interface UseFindingsOptions {
 export interface UseFindingsReturn {
   /** Current findings list */
   findings: Finding[];
-  /** Add a new finding with the given note and context, optionally linked to a chart source and/or question */
-  addFinding: (
-    text: string,
-    context: FindingContext,
-    source?: FindingSource,
-    questionId?: string
-  ) => Finding;
+  /** Add a new finding with the given note and context, optionally linked to a chart source */
+  addFinding: (text: string, context: FindingContext, source?: FindingSource) => Finding;
   /** Update an existing finding's note text */
   editFinding: (id: string, text: string) => void;
   /** Delete a finding */
@@ -89,14 +84,6 @@ export interface UseFindingsReturn {
     driveItemId?: string,
     webUrl?: string
   ) => void;
-  /** Link a finding to a question */
-  linkQuestion: (
-    id: string,
-    questionId: string,
-    validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
-  ) => void;
-  /** Unlink a finding from its question */
-  unlinkQuestion: (id: string) => void;
   /** Set a projection on a finding */
   setProjection: (id: string, projection: FindingProjection) => void;
   /** Clear a finding's projection */
@@ -144,12 +131,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
   const [findings, setFindings] = useState<Finding[]>(() => initialFindings ?? []);
 
   const addFinding = useCallback(
-    (
-      text: string,
-      context: FindingContext,
-      source?: FindingSource,
-      questionId?: string
-    ): Finding => {
+    (text: string, context: FindingContext, source?: FindingSource): Finding => {
       const finding = createFinding(
         text,
         context.activeFilters,
@@ -159,9 +141,6 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
         source,
         'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
       );
-      if (questionId) {
-        finding.questionId = questionId;
-      }
       setFindings(prev => {
         const next = [finding, ...prev];
         onFindingsChange?.(next);
@@ -427,38 +406,6 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
-  const linkQuestion = useCallback(
-    (
-      id: string,
-      questionId: string,
-      validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
-    ) => {
-      setFindings(prev => {
-        const next = prev.map(f =>
-          f.id === id
-            ? { ...f, questionId, validationStatus: validationStatus ?? f.validationStatus }
-            : f
-        );
-        onFindingsChange?.(next);
-        return next;
-      });
-    },
-    [onFindingsChange]
-  );
-
-  const unlinkQuestion = useCallback(
-    (id: string) => {
-      setFindings(prev => {
-        const next = prev.map(f =>
-          f.id === id ? { ...f, questionId: undefined, validationStatus: undefined } : f
-        );
-        onFindingsChange?.(next);
-        return next;
-      });
-    },
-    [onFindingsChange]
-  );
-
   const setProjection = useCallback(
     (id: string, projection: FindingProjection) => {
       setFindings(prev => {
@@ -669,8 +616,6 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     updatePhotoStatus,
     addAttachmentToComment,
     updateAttachmentStatus,
-    linkQuestion,
-    unlinkQuestion,
     setProjection,
     clearProjection,
     addAction,

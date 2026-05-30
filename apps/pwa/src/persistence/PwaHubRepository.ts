@@ -19,9 +19,11 @@
 //   - `outcomes.get` / `outcomes.listByHub` filter by `deletedAt === null`.
 //   - `canvasState.getByHub` returns the row, stripped of the `hubId` FK.
 //   - `evidenceSnapshots` / `evidenceSources` / `investigations` /
-//     `findings` / `questions` / `causalLinks` / `hypotheses` query the
+//     `findings` / `causalLinks` / `hypotheses` query the
 //     real (empty) tables. Until F3.5 (evidence) and F5 (investigation
 //     entities) wire writes, these consistently return empty rows.
+//   - `scopes` (ProblemStatementScope, ADR-085) has no Dexie table — it is
+//     stubbed empty and persists via the analyze blob.
 
 import type {
   HubRepository,
@@ -31,7 +33,7 @@ import type {
   EvidenceSourceReadAPI,
   AnalyzeReadAPI,
   FindingReadAPI,
-  QuestionReadAPI,
+  ScopeReadAPI,
   CausalLinkReadAPI,
   HypothesisReadAPI,
   CanvasStateReadAPI,
@@ -237,15 +239,15 @@ export class PwaHubRepository implements HubRepository {
     },
   };
 
-  questions: QuestionReadAPI = {
-    get: async id => {
-      const row = await db.questions.get(id);
-      if (!row || row.deletedAt !== null) return undefined;
-      return row;
+  scopes: ScopeReadAPI = {
+    // ProblemStatementScope (ADR-085) has zero Dexie footprint — scopes persist
+    // via the analyze blob, not a table. Stubbed empty, mirroring the Azure
+    // repository; reads come from the analyzeStore.scopes slice in-session.
+    get: async _id => {
+      return undefined;
     },
-    listByInvestigation: async investigationId => {
-      const rows = await db.questions.where('investigationId').equals(investigationId).toArray();
-      return rows.filter(r => r.deletedAt === null);
+    listByInvestigation: async _investigationId => {
+      return [];
     },
   };
 

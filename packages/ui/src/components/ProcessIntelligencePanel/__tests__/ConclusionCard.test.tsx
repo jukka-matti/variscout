@@ -12,7 +12,6 @@ function makeHub(id: string, name: string, status: Hypothesis['status'] = 'propo
     id,
     name,
     status,
-    questionIds: [],
     findingIds: [],
     createdAt: 1714000000000,
     updatedAt: 1714000000000,

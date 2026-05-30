@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Finding, Hypothesis, Question } from '../../findings/types';
+import type { Finding, Hypothesis } from '../../findings/types';
 import type { ImprovementProject } from '../../improvementProject';
 import type { ProcessHub } from '../../processHub';
 import type { ControlHandoff, ControlRecord } from '../../control';
@@ -50,52 +50,12 @@ function hypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
     id: 'hyp-1',
     name: 'Night shift nozzle drift',
     synthesis: 'Night shift settings explain the shortfall.',
-    questionIds: ['q-1'],
     findingIds: ['find-1'],
     updatedAt: now,
     investigationId: 'inv-1',
     status: 'confirmed',
     selectedForImprovement: true,
-    createdAt: now,
-    deletedAt: null,
-    ...overrides,
-  };
-}
-
-function finding(overrides: Partial<Finding> = {}): Finding {
-  return {
-    id: 'find-1',
-    text: 'Fill Cpk improves when nozzle temperature is stable.',
-    context: { activeFilters: {}, cumulativeScope: null },
-    evidenceType: 'data',
-    status: 'analyzed',
-    tag: 'key-driver',
-    comments: [],
-    statusChangedAt: now,
-    investigationId: 'inv-1',
-    questionId: 'q-1',
-    actions: [
-      {
-        id: 'act-1',
-        text: 'Retune the night shift recipe',
-        status: 'done',
-        completedAt: now - 2 * 86_400_000,
-        createdAt: now - 3 * 86_400_000,
-        deletedAt: null,
-      },
-    ],
-    ...overrides,
-  } as Finding;
-}
-
-function question(overrides: Partial<Question> = {}): Question {
-  return {
-    id: 'q-1',
-    text: 'Does night shift drive fill variation?',
-    status: 'answered',
-    linkedFindingIds: ['find-1'],
-    updatedAt: now,
-    investigationId: 'inv-1',
+    // ADR-085: ideas re-homed from retired Question entity to Hypothesis
     ideas: [
       {
         id: 'idea-1',
@@ -117,8 +77,35 @@ function question(overrides: Partial<Question> = {}): Question {
         deletedAt: null,
       },
     ],
+    createdAt: now,
+    deletedAt: null,
     ...overrides,
-  } as Question;
+  };
+}
+
+function finding(overrides: Partial<Finding> = {}): Finding {
+  return {
+    id: 'find-1',
+    text: 'Fill Cpk improves when nozzle temperature is stable.',
+    context: { activeFilters: {}, cumulativeScope: null },
+    evidenceType: 'data',
+    status: 'analyzed',
+    tag: 'key-driver',
+    comments: [],
+    statusChangedAt: now,
+    investigationId: 'inv-1',
+    actions: [
+      {
+        id: 'act-1',
+        text: 'Retune the night shift recipe',
+        status: 'done',
+        completedAt: now - 2 * 86_400_000,
+        createdAt: now - 3 * 86_400_000,
+        deletedAt: null,
+      },
+    ],
+    ...overrides,
+  } as Finding;
 }
 
 function sustainment(overrides: Partial<ControlRecord> = {}): ControlRecord {
@@ -162,12 +149,11 @@ function handoff(overrides: Partial<ControlHandoff> = {}): ControlHandoff {
 }
 
 describe('selectIPReportScope', () => {
-  it('selects linked hypotheses, findings, questions, sustainment record, and handoff', () => {
+  it('selects linked hypotheses, findings, sustainment record, and handoff (ADR-085: no questions)', () => {
     const scope = selectIPReportScope({
       ip: project(),
       hypotheses: [hypothesis(), hypothesis({ id: 'hyp-other', findingIds: ['find-other'] })],
-      findings: [finding(), finding({ id: 'find-other', questionId: undefined })],
-      questions: [question(), question({ id: 'q-other', linkedFindingIds: [] })],
+      findings: [finding(), finding({ id: 'find-other' })],
       controlRecords: [
         sustainment(),
         sustainment({ id: 'sus-other', improvementProjectId: 'ip-other' }),
@@ -177,7 +163,6 @@ describe('selectIPReportScope', () => {
 
     expect(scope.hypotheses.map(h => h.id)).toEqual(['hyp-1']);
     expect(scope.findings.map(f => f.id)).toEqual(['find-1']);
-    expect(scope.questions.map(q => q.id)).toEqual(['q-1']);
     expect(scope.controlRecord?.id).toBe('sus-1');
     expect(scope.controlHandoff?.id).toBe('handoff-1');
   });
@@ -192,7 +177,6 @@ describe('deriveIPReportNarrative', () => {
         hypothesis({ id: 'hyp-ruled', name: 'Supplier batch', status: 'refuted' }),
       ],
       findings: [finding()],
-      questions: [question()],
       controlRecord: sustainment(),
       controlHandoff: handoff(),
     });
@@ -213,7 +197,6 @@ describe('deriveIPCauseRows', () => {
       ip: project(),
       hypotheses: [hypothesis()],
       findings: [finding()],
-      questions: [question()],
       controlRecord: sustainment(),
     });
 
