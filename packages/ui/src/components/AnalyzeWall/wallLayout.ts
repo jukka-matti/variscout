@@ -126,7 +126,7 @@ export function buildWallLayoutArgs(input: BuildWallLayoutArgsInput): WallLayout
   let grouping: 'linear' | 'tributary' = 'linear';
   let groups: WallLayoutGroup[] | undefined;
 
-  if (groupByTributary && processMap) {
+  if (groupByTributary && processMap && Array.isArray(processMap.tributaries)) {
     const tributaryIds = new Set(processMap.tributaries.map(t => t.id));
     const buckets: WallLayoutGroup[] = processMap.tributaries.map(t => ({ id: t.id, hubIds: [] }));
     const unassigned: WallLayoutGroup = { id: '__unassigned__', hubIds: [] };
