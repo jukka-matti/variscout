@@ -873,6 +873,139 @@ describe('analyzeStore — addHubComment', () => {
 });
 
 // ============================================================================
+// editHubComment / deleteHubComment — task 1 failing tests
+// ============================================================================
+
+describe('analyzeStore — editHubComment', () => {
+  it('edits the comment text in place, leaving other comments unchanged', () => {
+    const hub = useAnalyzeStore.getState().createHub('Nozzle wear', 'Night shift');
+    // Seed two comments directly (bypassing async addHubComment)
+    const c1 = {
+      id: 'c1',
+      text: 'Original text',
+      createdAt: 1,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    const c2 = {
+      id: 'c2',
+      text: 'Another comment',
+      createdAt: 2,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    useAnalyzeStore.setState(state => ({
+      hypotheses: state.hypotheses.map(h => (h.id === hub.id ? { ...h, comments: [c1, c2] } : h)),
+    }));
+
+    useAnalyzeStore.getState().editHubComment(hub.id, 'c1', 'Edited text');
+
+    const updated = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(updated.comments).toHaveLength(2);
+    expect(updated.comments!.find(c => c.id === 'c1')!.text).toBe('Edited text');
+    // second comment unchanged
+    expect(updated.comments!.find(c => c.id === 'c2')!.text).toBe('Another comment');
+  });
+
+  it('is a no-op when the commentId does not exist', () => {
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    const c1 = {
+      id: 'c1',
+      text: 'Stays the same',
+      createdAt: 1,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    useAnalyzeStore.setState(state => ({
+      hypotheses: state.hypotheses.map(h => (h.id === hub.id ? { ...h, comments: [c1] } : h)),
+    }));
+
+    useAnalyzeStore.getState().editHubComment(hub.id, 'c-does-not-exist', 'Ignored');
+
+    const updated = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(updated.comments![0].text).toBe('Stays the same');
+  });
+
+  it('is a no-op when the hubId does not exist', () => {
+    // Just confirm it doesn't throw
+    expect(() =>
+      useAnalyzeStore.getState().editHubComment('no-such-hub', 'c1', 'text')
+    ).not.toThrow();
+  });
+});
+
+describe('analyzeStore — deleteHubComment', () => {
+  it('removes the comment identified by commentId', () => {
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    const c1 = {
+      id: 'c1',
+      text: 'Keep',
+      createdAt: 1,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    const c2 = {
+      id: 'c2',
+      text: 'Delete me',
+      createdAt: 2,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    useAnalyzeStore.setState(state => ({
+      hypotheses: state.hypotheses.map(h => (h.id === hub.id ? { ...h, comments: [c1, c2] } : h)),
+    }));
+
+    useAnalyzeStore.getState().deleteHubComment(hub.id, 'c2');
+
+    const updated = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(updated.comments).toHaveLength(1);
+    expect(updated.comments![0].id).toBe('c1');
+  });
+
+  it('empties the comments array when the last comment is deleted', () => {
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    const c1 = {
+      id: 'c1',
+      text: 'Only one',
+      createdAt: 1,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    useAnalyzeStore.setState(state => ({
+      hypotheses: state.hypotheses.map(h => (h.id === hub.id ? { ...h, comments: [c1] } : h)),
+    }));
+
+    useAnalyzeStore.getState().deleteHubComment(hub.id, 'c1');
+
+    const updated = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(updated.comments).toHaveLength(0);
+  });
+
+  it('is a no-op when the commentId does not exist', () => {
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    const c1 = {
+      id: 'c1',
+      text: 'Stays',
+      createdAt: 1,
+      parentId: hub.id,
+      parentKind: 'hypothesis' as const,
+    };
+    useAnalyzeStore.setState(state => ({
+      hypotheses: state.hypotheses.map(h => (h.id === hub.id ? { ...h, comments: [c1] } : h)),
+    }));
+
+    useAnalyzeStore.getState().deleteHubComment(hub.id, 'c-ghost');
+
+    const updated = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(updated.comments).toHaveLength(1);
+  });
+
+  it('is a no-op when the hubId does not exist', () => {
+    expect(() => useAnalyzeStore.getState().deleteHubComment('no-such-hub', 'c1')).not.toThrow();
+  });
+});
+
+// ============================================================================
 // Bulk + category tests
 // ============================================================================
 
