@@ -503,6 +503,14 @@ export async function applyAction(action: HubAction): Promise<void> {
       // Azure has no 'causalLink' table today; F3 normalizes — no-op.
       return;
 
+    case 'HYPOTHESIS_ACTION_ADD':
+    case 'HYPOTHESIS_ACTION_UPDATE':
+    case 'HYPOTHESIS_ACTION_COMPLETE':
+      // Hypothesis ActionItems (Task 3, IM-4b) are in-session-only / F5-DEFERRED,
+      // like the Hypothesis they hang off — they live in analyzeStore for the
+      // session and ride the analyze blob (no callers yet). No Azure table — no-op.
+      return;
+
     case 'HYPOTHESIS_ADD':
       // Azure has no 'hypothesis' table today; F3 normalizes — no-op.
       return;
