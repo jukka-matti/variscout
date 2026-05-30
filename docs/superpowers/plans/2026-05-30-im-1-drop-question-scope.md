@@ -77,3 +77,7 @@ interface ProblemStatementScope extends EntityBase {
 
 - **IM-4:** unified bipartite canvas + Focus lens + LOD + ACH toggle + disconfirmation-recording write-path (`HYPOTHESIS_RECORD_DISCONFIRMATION`); `ScopeFilter` full retirement.
 - **IM-3:** auto-link engine. **IM-5:** the `whatIfProjection` computation (field only here).
+
+## Execution checkpoint
+
+Live layer-by-layer resume state: [IM-1-RESUME-STATE.md](IM-1-RESUME-STATE.md).
