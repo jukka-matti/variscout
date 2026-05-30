@@ -47,6 +47,12 @@ describe('ControlRecordEditor', () => {
     const onSave = vi.fn();
     const onCancel = vi.fn();
 
+    // The "Next review due" input enforces min={today} via HTML5 constraint
+    // validation, which blocks form submit (the submit event never fires) when
+    // the chosen date is in the past. Compute a date safely in the future
+    // relative to the current clock so this test never becomes a time bomb.
+    const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
     render(
       <ControlRecordEditor
         investigationId="inv-abc"
@@ -60,7 +66,7 @@ describe('ControlRecordEditor', () => {
     fireEvent.change(screen.getByLabelText('Cadence'), { target: { value: 'monthly' } });
     fireEvent.change(screen.getByLabelText('Owner'), { target: { value: 'Jane Doe' } });
     fireEvent.change(screen.getByLabelText('Next review due'), {
-      target: { value: '2026-05-27' },
+      target: { value: futureDate },
     });
     fireEvent.change(screen.getByLabelText('Open concerns'), {
       target: { value: 'Watch the variance trend' },
@@ -77,7 +83,7 @@ describe('ControlRecordEditor', () => {
     expect(saved.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(saved.owner?.displayName).toBe('Jane Doe');
     expect(saved.owner?.userId).toBe(FIXTURE_USER.userId);
-    expect(saved.nextReviewDue).toMatch(/^2026-05-27T/);
+    expect(saved.nextReviewDue).toMatch(new RegExp(`^${futureDate}T`));
     expect(saved.openConcerns).toBe('Watch the variance trend');
     expect(onSave).toHaveBeenCalledWith(saved);
   });
