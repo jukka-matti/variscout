@@ -160,6 +160,13 @@ export interface AnalyzeActions {
   removeScope: (scopeId: string) => void;
   addHypothesisToScope: (scopeId: string, hypothesisId: string) => void;
   /**
+   * IM-4b Task 5 — soft-delete a scope (sets `deletedAt` to the current
+   * timestamp). The scope is retained in the store for the HubRepository
+   * tombstone; the presentation layer filters by `!deletedAt`. No-op for an
+   * unknown scope id.
+   */
+  archiveScope: (scopeId: string) => void;
+  /**
    * IM-5: recompute and persist the scope's `whatIfProjection` (projected overall
    * Cpk if the scope's drilled condition were fixed) from the live project data.
    *
@@ -717,6 +724,16 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
           updatedAt: Date.now(),
         };
       }),
+    }));
+  },
+
+  archiveScope: scopeId => {
+    const exists = get().scopes.some(s => s.id === scopeId);
+    if (!exists) return;
+    set(state => ({
+      scopes: state.scopes.map(s =>
+        s.id === scopeId ? { ...s, deletedAt: Date.now(), updatedAt: Date.now() } : s
+      ),
     }));
   },
 
