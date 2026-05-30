@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  QuestionChecklist,
   AnalyzePhaseBadge,
   AnalyzeConclusion,
   FindingsLog,
-  QuestionLinkPrompt,
   WallCanvas,
   CommandPalette,
   Minimap,
@@ -18,7 +16,6 @@ import {
 import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
 import {
   useResizablePanel,
-  useQuestionGeneration,
   useProblemStatement,
   useCurrentUnderstanding,
   useHubComputations,
@@ -27,15 +24,13 @@ import {
   useReturnNavigation,
   type DefectMapView,
   type UseFindingsReturn,
-  type UseQuestionsReturn,
 } from '@variscout/hooks';
-import type { DefectQuestionInput } from '@variscout/core/defect';
 import type {
   CurrentUnderstanding,
   FindingStatus,
+  Hypothesis,
   ProblemCondition,
   ProcessContext,
-  Question,
 } from '@variscout/core';
 import {
   normalizeProcessHubId,
@@ -43,13 +38,14 @@ import {
   computeMainEffects,
   computeInteractionEffects,
 } from '@variscout/core';
+import { computeBestSubsets } from '@variscout/core/stats';
 import { detectEvidenceClusters } from '@variscout/core/findings';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { detectColumns } from '@variscout/core/parser';
 import { detectInvestigationPhase } from '@variscout/core/ai';
-import { resolveMode, getStrategy } from '@variscout/core/strategy';
+import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { wouldCreateCycle } from '@variscout/core/stats';
 import { GripVertical } from 'lucide-react';
@@ -66,10 +62,6 @@ import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechS
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
-import {
-  useAnalyzeFeatureStore,
-  type QuestionDisplayData,
-} from '../../features/analyze/analyzeStore';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import { useAIStore } from '../../features/ai/aiStore';
 import type { UseAIOrchestrationReturn, UseActionProposalsReturn } from '../../features/ai';
@@ -90,10 +82,6 @@ interface AnalyzeWorkspaceProps {
   handleNavigateToChart: UseFindingsOrchestrationReturn['handleNavigateToChart'];
   handleShareFinding: UseFindingsOrchestrationReturn['handleShareFinding'];
   drillPath: UseFindingsOrchestrationReturn['drillPath'];
-  // Questions
-  questionsState: UseQuestionsReturn;
-  handleCreateQuestion: (findingId: string, text: string, factor?: string, level?: string) => void;
-  handleProjectIdea: (questionId: string, ideaId: string) => void;
   // Comments
   handleAddCommentWithAuthor: (
     findingId: string,
@@ -113,12 +101,9 @@ interface AnalyzeWorkspaceProps {
   columnAliases: Record<string, string>;
   // Hub model (Hypothesis CRUD from useAnalyzeOrchestration)
   hypothesesState: UseAnalyzeOrchestrationReturn['hypothesesState'];
-  // Derived investigation data (from orchestration hook)
-  questionsMap: Record<string, QuestionDisplayData>;
-  ideaImpacts: Record<string, import('@variscout/core').IdeaImpact | undefined>;
   // View state
-  viewMode?: 'list' | 'board' | 'tree';
-  onViewModeChange?: (mode: 'list' | 'board' | 'tree') => void;
+  viewMode?: 'list' | 'board';
+  onViewModeChange?: (mode: 'list' | 'board') => void;
   /**
    * Optional measurement-plan affordances threaded into WallCanvas.
    * When provided, hub cards render HypothesisCardWithPlans.
@@ -128,11 +113,14 @@ interface AnalyzeWorkspaceProps {
 }
 
 /**
- * Investigation workspace (ADR-055): Three-column layout for question-driven EDA.
+ * Investigation workspace (ADR-055, IM-1): hypothesis-driven EDA.
  *
- * Left: QuestionChecklist + PhaseBadge + AnalyzeConclusion
- * Center: FindingsLog (list / board / tree)
+ * Left: PhaseBadge + AnalyzeConclusion (hub composer)
+ * Center: Evidence Map / Wall (hubs + findings) | FindingsLog (list / board)
  * Right: CoScout (optional)
+ *
+ * IM-1 (ADR-085): the Question entity is retired. Suspected causes are
+ * `Hypothesis` hubs; the Wall renders hubs + findings (no question column).
  */
 export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   activeIPScope,
@@ -142,10 +130,9 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   handleSetFindingStatus,
   handleNavigateToChart,
   handleShareFinding,
-  drillPath,
-  questionsState,
-  handleCreateQuestion,
-  handleProjectIdea,
+  // IM-1: drillPath no longer consumed (drillFactors derivation removed); kept on
+  // the props interface for API stability + the call site that still passes it.
+  drillPath: _drillPath,
   handleAddCommentWithAuthor,
   handleAddPhoto,
   userId,
@@ -155,8 +142,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   handleSearchKnowledge,
   columnAliases,
   hypothesesState,
-  questionsMap,
-  ideaImpacts,
   viewMode: externalViewMode,
   onViewModeChange,
   planningProps,
@@ -180,7 +165,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const { stats } = useAnalysisStats();
 
   const analyzeViewMode = usePanelsStore(s => s.analyzeViewMode);
-  const highlightedFactor = usePanelsStore(s => s.highlightedFactor);
+  // IM-1: highlightedFactor read removed here; its only consumer was the retired
+  // Question-driven evidence header. AnalyzeMapView reads the store field directly.
   const setAnalyzeViewMode = usePanelsStore(s => s.setAnalyzeViewMode);
 
   // Map/Wall sub-toggle (within the Evidence Map view)
@@ -244,50 +230,26 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     },
   });
 
-  // Question-link prompt for map context menu findings
-  const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
-  const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
-  const linkFindingToQuestion = useAnalyzeStore(s => s.linkFindingToQuestion);
-  const mapQuestions = useAnalyzeStore(s => s.questions);
-  const [mapPromptOpen, setMapPromptOpen] = useState(false);
-  const [mapPromptFindingId, setMapPromptFindingId] = useState<string>('');
-
-  // Investigation phase (deterministic, from question/findings state)
+  // Investigation phase (deterministic, from findings state)
   const analyzePhase = useMemo(
-    () => detectInvestigationPhase(questionsState.questions, findingsState.findings),
-    [questionsState.questions, findingsState.findings]
+    () => detectInvestigationPhase(findingsState.findings),
+    [findingsState.findings]
   );
 
-  // Defect mode transform for question generation
+  // Defect mode transform
   const defectResult = useDefectTransform(filteredData, defectMapping, analysisMode ?? 'standard');
 
-  // Question generation (ADR-053) — computed from data context
   const resolved = resolveMode(analysisMode ?? 'standard');
-  const strategy = getStrategy(resolved);
+  // IM-1: strategy (getStrategy) derivation removed; its only consumer was the
+  // retired Question-strategy evidence label. resolved still drives defect mode.
 
-  // Build defect data input for question generator when in defect mode
-  const defectData: DefectQuestionInput | undefined =
-    resolved === 'defect' && defectResult
-      ? {
-          transformedData: defectResult.data,
-          outcomeColumn: defectResult.outcomeColumn,
-          defectTypeColumn: defectMapping?.defectTypeColumn,
-          factors: defectResult.factors,
-        }
-      : undefined;
-
-  const {
-    questions: factorIntelQuestions,
-    handleQuestionClick,
-    bestSubsets,
-  } = useQuestionGeneration({
-    filteredData: filteredData ?? [],
-    outcome,
-    factors,
-    questionsState,
-    mode: resolved,
-    defectData,
-  });
+  // Best-subsets regression — drives hub evidence/projection + Evidence Map
+  // (IM-1: was sourced from the retired useQuestionGeneration; now computed
+  // directly from the filtered dataset).
+  const bestSubsets = useMemo(() => {
+    if (!filteredData?.length || !outcome || factors.length === 0) return null;
+    return computeBestSubsets(filteredData, outcome, factors);
+  }, [filteredData, outcome, factors]);
 
   // Sync factor type metadata to aiStore for CoScout context enrichment
   useEffect(() => {
@@ -368,24 +330,33 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // Characteristic type derived from spec configuration (for Watson Q2)
   const characteristicType = useMemo(() => inferCharacteristicType(specs), [specs]);
 
-  // Location factor: first significant single-factor question from Factor Intelligence (for Watson Q3)
-  // Picks the first factor-intel question that has a factor and is not ruled out — ordered by
-  // evidence (rSquaredAdj) descending. This is available as soon as bestSubsets runs.
+  // Location factor for Watson Q3 (IM-1: derived from best-subsets directly,
+  // not from the retired factor-intel questions). Picks the strongest
+  // single-factor model and its worst level (largest positive level effect).
   const locationFactor = useMemo(() => {
-    const topQuestion = factorIntelQuestions
-      .filter(q => q.factor && q.causeRole !== 'ruled-out' && q.questionSource === 'factor-intel')
-      .sort(
-        (a, b) =>
-          (b.evidence?.rSquaredAdj ?? b.evidence?.etaSquared ?? 0) -
-          (a.evidence?.rSquaredAdj ?? a.evidence?.etaSquared ?? 0)
-      )[0];
-    if (!topQuestion?.factor) return undefined;
+    if (!bestSubsets) return undefined;
+    const singleFactor = bestSubsets.subsets
+      .filter(s => s.factors.length === 1)
+      .sort((a, b) => b.rSquaredAdj - a.rSquaredAdj)[0];
+    if (!singleFactor) return undefined;
+    const factor = singleFactor.factors[0];
+    const levelEffects = singleFactor.levelEffects.get(factor);
+    let worstLevel: string | undefined;
+    let worstEffect = -Infinity;
+    if (levelEffects) {
+      for (const [level, effect] of levelEffects) {
+        if (effect > worstEffect) {
+          worstEffect = effect;
+          worstLevel = level;
+        }
+      }
+    }
     return {
-      factor: topQuestion.factor,
-      level: topQuestion.level,
-      evidence: topQuestion.evidence?.rSquaredAdj ?? topQuestion.evidence?.etaSquared,
+      factor,
+      level: worstLevel,
+      evidence: singleFactor.rSquaredAdj,
     };
-  }, [factorIntelQuestions]);
+  }, [bestSubsets]);
 
   // ── Hub model computations (Hypothesis hubs) ───────────────────────
   const hubs = hypothesesState.hubs;
@@ -402,7 +373,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   );
 
   // Phase 13 — pan-to-node: replicate WallCanvas's deterministic layout so the
-  // command palette can center the viewport on a hub/question by id.
+  // command palette can center the viewport on a hub by id. (IM-1: the
+  // question row is gone; only hub nodes are pan-targets.)
   const handleWallPanToNode = useCallback(
     (nodeId: string) => {
       const hubIndex = scopedHubs.findIndex(h => h.id === nodeId);
@@ -412,17 +384,9 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
           y: CANVAS_H / 2 - 400,
         });
-        return;
-      }
-      const questionIndex = questionsState.questions.findIndex(q => q.id === nodeId);
-      if (questionIndex >= 0) {
-        setWallPan(wallHubId, {
-          x: CANVAS_W / 2 - (200 + questionIndex * 240),
-          y: CANVAS_H / 2 - 900,
-        });
       }
     },
-    [scopedHubs, questionsState.questions, wallHubId, setWallPan]
+    [scopedHubs, wallHubId, setWallPan]
   );
 
   const handleReturnToImprovementProject = useCallback(() => {
@@ -432,39 +396,40 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     }
   }, [returnNavigation]);
 
-  const { hubEvidences, hubProjections } = useHubComputations(
-    bestSubsets,
-    questionsState.questions
-  );
+  const { hubEvidences, hubProjections } = useHubComputations(bestSubsets, findingsState.findings);
 
   // Detect evidence clusters for synthesis prompts
   const evidenceClusters = useMemo(
-    () => detectEvidenceClusters(questionsState.questions, findingsState.findings, scopedHubs),
-    [questionsState.questions, findingsState.findings, scopedHubs]
+    () => detectEvidenceClusters(findingsState.findings, scopedHubs, bestSubsets),
+    [findingsState.findings, scopedHubs, bestSubsets]
   );
 
   // Left panel resizable
   const leftPanel = useResizablePanel('variscout-analyze-left-width', 260, 420, 320, 'left');
 
   // Internal view mode (if not controlled)
-  const [internalViewMode, setInternalViewMode] = useState<'list' | 'board' | 'tree'>('board');
+  const [internalViewMode, setInternalViewMode] = useState<'list' | 'board'>('board');
   const viewMode = externalViewMode ?? internalViewMode;
   const handleViewMode = onViewModeChange ?? setInternalViewMode;
 
-  // Categorize questions for AnalyzeConclusion
-  const { hypotheses, contributing, ruledOut } = useMemo(() => {
-    const suspected: Question[] = [];
-    const contrib: Question[] = [];
-    const ruled: Question[] = [];
-    for (const h of questionsState.questions) {
-      if (h.causeRole === 'suspected-cause') suspected.push(h);
-      else if (h.causeRole === 'contributing') contrib.push(h);
-      else if (h.causeRole === 'ruled-out') ruled.push(h);
+  // Categorize hypothesis hubs for AnalyzeConclusion (IM-1: status-derived,
+  // replacing the retired Question causeRole split). Only the suspected
+  // (confirmed) and ruledOut (refuted) sets gate the conclusion panel today;
+  // IM-1: the `contributing` set derivation is removed — the level-native
+  // contribution view that renders it arrives in IM-5.
+  const { hypotheses, ruledOut } = useMemo(() => {
+    const suspected: Hypothesis[] = [];
+    const ruled: Hypothesis[] = [];
+    for (const h of hypothesesState.hubs) {
+      if (h.status === 'refuted') ruled.push(h);
+      else if (h.status === 'confirmed') suspected.push(h);
     }
-    return { hypotheses: suspected, contributing: contrib, ruledOut: ruled };
-  }, [questionsState.questions]);
+    return { hypotheses: suspected, ruledOut: ruled };
+  }, [hypothesesState.hubs]);
 
-  const drillFactors = useMemo(() => drillPath.map(d => d.factor), [drillPath]);
+  // IM-1: drillFactors derivation removed; its only consumer was the retired
+  // Question-driven evidence panel (factors={drillFactors}). The `drillPath`
+  // prop is retained on the interface for API stability but no longer read here.
 
   // Problem statement auto-synthesis (Watson's 3 questions)
   const handleProblemStatementChange = useCallback(
@@ -480,7 +445,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     currentCpk: stats?.cpk ?? undefined,
     characteristicType,
     locationFactor,
-    questions: questionsState.questions,
+    hypothesisHubs: hypothesesState.hubs,
     existingStatement: processContext?.problemStatement,
     onStatementChange: handleProblemStatementChange,
   });
@@ -516,7 +481,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         stats?.outOfSpecPercentage !== undefined ? 100 - stats.outOfSpecPercentage : undefined,
     },
     problemStatement,
-    questions: questionsState.questions,
     hypothesisHubs: hubs,
     onCurrentUnderstandingChange: handleCurrentUnderstandingChange,
   });
@@ -526,23 +490,15 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     setProcessContext({ ...processContext, issueStatement: text });
   };
 
-  // Question click: switch to Analysis workspace with factor focused (round-trip pattern)
-  const handleQuestionClickWithSwitch = (question: Question) => {
-    handleQuestionClick(question);
-    usePanelsStore.getState().showExplore();
-  };
-
-  // ── Hub CRUD callbacks ──────────────────────────────────────────────────
+  // ── Hub CRUD callbacks (IM-1: hubs connect findings only — Question retired) ──
   const handleCreateHub = useCallback(
     (
       name: string,
       synthesis: string,
-      questionIds: string[],
       findingIds: string[],
       branchFields: HubComposerBranchFields
     ) => {
       const hub = hypothesesState.createHub(name, synthesis);
-      for (const qId of questionIds) hypothesesState.connectQuestion(hub.id, qId);
       for (const fId of findingIds) hypothesesState.connectFinding(hub.id, fId);
       if (branchFields.nextMove) hypothesesState.updateHub(hub.id, branchFields);
     },
@@ -554,20 +510,13 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       hubId: string,
       name: string,
       synthesis: string,
-      questionIds: string[],
       findingIds: string[],
       branchFields: HubComposerBranchFields
     ) => {
       hypothesesState.updateHub(hubId, { name, synthesis, ...branchFields });
-      // Sync connections: disconnect removed, connect added
+      // Sync finding connections: disconnect removed, connect added
       const existing = hubs.find(h => h.id === hubId);
       if (existing) {
-        for (const qId of existing.questionIds) {
-          if (!questionIds.includes(qId)) hypothesesState.disconnectQuestion(hubId, qId);
-        }
-        for (const qId of questionIds) {
-          if (!existing.questionIds.includes(qId)) hypothesesState.connectQuestion(hubId, qId);
-        }
         for (const fId of existing.findingIds) {
           if (!findingIds.includes(fId)) hypothesesState.disconnectFinding(hubId, fId);
         }
@@ -608,45 +557,25 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   }, []);
 
   // ── Evidence Map context menu callbacks ──────────────────────────────────
+  // IM-1: "ask question" routes to CoScout (no Question entity to create).
   const handleMapAskQuestion = useCallback(
     (factor: string) => {
-      questionsState.addQuestion(`What is the effect of ${factor}?`, factor);
+      aiOrch.handleAskCoScoutFromCategory({ category: { name: factor } });
     },
-    [questionsState]
+    [aiOrch]
   );
 
   const handleMapCreateFinding = useCallback(
     (factor: string) => {
-      if (mapPromptOpen) return; // prevent re-trigger while prompt is open
       const filters = useProjectStore.getState().filters;
-      const newFinding = findingsState.addFinding(
+      findingsState.addFinding(
         `Observation about ${factor}`,
         { activeFilters: filters, cumulativeScope: null },
         { chart: 'boxplot', category: factor, timeLens: usePreferencesStore.getState().timeLens }
       );
-      if (!skipQuestionLinkPrompt) {
-        setMapPromptFindingId(newFinding.id);
-        setMapPromptOpen(true);
-      }
     },
-    [findingsState, skipQuestionLinkPrompt, mapPromptOpen]
+    [findingsState]
   );
-
-  // Map finding question-link prompt handlers
-  const handleMapPromptLink = useCallback(
-    (questionId: string) => {
-      linkFindingToQuestion(mapPromptFindingId, questionId);
-    },
-    [mapPromptFindingId, linkFindingToQuestion]
-  );
-
-  const handleMapPromptSkipForever = useCallback(() => {
-    setSkipQuestionLinkPrompt(true);
-  }, [setSkipQuestionLinkPrompt]);
-
-  const handleMapPromptClose = useCallback(() => {
-    setMapPromptOpen(false);
-  }, []);
 
   const handleMapAskCoScout = useCallback(
     (factor: string) => {
@@ -715,7 +644,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         />
       ) : null}
       <div className="flex flex-1 min-h-0 relative">
-        {/* Left panel: Question checklist + phase + conclusions */}
+        {/* Left panel: phase + issue statement + hub conclusions (IM-1: the
+            question checklist is retired; suspected causes live as hubs). */}
         <div
           className="relative flex flex-col border-r border-edge overflow-hidden bg-surface flex-shrink-0"
           style={{ width: leftPanel.width }}
@@ -727,27 +657,29 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
             </div>
           )}
 
-          {/* Question checklist */}
+          {/* Issue statement */}
           <div className="flex-1 overflow-y-auto px-3 py-2">
-            <QuestionChecklist
-              questions={questionsState.questions}
-              issueStatement={processContext?.issueStatement}
-              onIssueStatementChange={handleIssueStatementChange}
-              onQuestionClick={handleQuestionClickWithSwitch}
-              currentUnderstanding={currentUnderstandingState.currentUnderstanding}
-              problemStatement={processContext?.problemStatement}
-              evidenceLabel={strategy.questionStrategy.evidenceLabel}
-              highlightedFactor={highlightedFactor}
+            <label className="block text-xs font-medium text-content-secondary mb-1">
+              Issue statement
+            </label>
+            <textarea
+              className="w-full rounded border border-edge bg-surface-secondary px-2 py-1.5 text-sm text-content resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+              rows={3}
+              value={processContext?.issueStatement ?? ''}
+              onChange={e => handleIssueStatementChange(e.target.value)}
+              placeholder="Describe the issue under investigation…"
             />
+            {currentUnderstandingState.currentUnderstanding && (
+              <p className="mt-2 text-xs text-content-secondary">
+                {currentUnderstandingState.currentUnderstanding.summary}
+              </p>
+            )}
           </div>
 
           {/* Investigation conclusion */}
           {(hypotheses.length > 0 || ruledOut.length > 0 || scopedHubs.length > 0) && (
             <div className="border-t border-edge px-3 py-2 flex-shrink-0">
               <AnalyzeConclusion
-                hypotheses={hypotheses}
-                ruledOut={ruledOut}
-                contributing={contributing}
                 problemStatement={processContext?.problemStatement}
                 hasConclusions={hypotheses.length > 0 || scopedHubs.length > 0}
                 problemStatementDraft={problemStatement.draft}
@@ -764,7 +696,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onToggleHubSelect={handleToggleHubSelect}
                 onBrainstormHub={handleBrainstormHub}
                 evidenceClusters={evidenceClusters}
-                questions={questionsState.questions}
                 findings={scopedWallFindings}
               />
             </div>
@@ -854,11 +785,11 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
               </button>
             )}
 
-            {/* Sub-toggle: list/board/tree (only when Findings is active) */}
+            {/* Sub-toggle: list/board (only when Findings is active) */}
             {analyzeViewMode === 'findings' && (
               <>
                 <div className="w-px h-4 bg-edge mx-1" />
-                {(['list', 'board', 'tree'] as const).map(mode => (
+                {(['list', 'board'] as const).map(mode => (
                   <button
                     key={mode}
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
@@ -888,7 +819,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   hubId={wallHubId}
                   hubs={scopedHubs}
                   findings={scopedWallFindings}
-                  questions={questionsState.questions}
                   processMap={processMap}
                   problemCpk={0}
                   eventsPerWeek={0}
@@ -909,7 +839,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                     <div className="absolute bottom-4 right-4 pointer-events-auto">
                       <Minimap
                         hubs={scopedHubs}
-                        questions={questionsState.questions}
                         zoom={wallZoom}
                         pan={wallPan}
                         onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
@@ -920,7 +849,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                       onClose={() => setWallPaletteOpen(false)}
                       onPanTo={handleWallPanToNode}
                       hubs={scopedHubs}
-                      questions={questionsState.questions}
                       findings={scopedWallFindings}
                     />
                   </>
@@ -934,7 +862,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   interactions,
                   mode: resolved,
                   causalLinks,
-                  questions: questionsState.questions,
                   findings: scopedWallFindings,
                   hypotheses: scopedHubs,
                 }}
@@ -960,11 +887,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onDeleteFinding={findingsState.deleteFinding}
                 onRestoreFinding={handleRestoreFinding}
                 viewMode={viewMode}
-                questions={questionsState.questions}
-                onSelectQuestion={h => useAnalyzeFeatureStore.getState().expandToQuestion(h.id)}
-                onAddSubQuestion={questionsState.addSubQuestion}
-                factors={drillFactors}
-                getChildrenSummary={questionsState.getChildrenSummary}
                 onSetFindingStatus={handleSetFindingStatus}
                 onSetFindingTag={findingsState.setFindingTag}
                 onAddComment={(id: string, text: string) => handleAddCommentWithAuthor(id, text)}
@@ -979,22 +901,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                       }
                     : undefined
                 }
-                onCreateQuestion={handleCreateQuestion}
-                questionsMap={questionsMap}
-                onSetValidationTask={questionsState.setValidationTask}
-                onCompleteTask={questionsState.completeTask}
-                onSetManualStatus={questionsState.setManualStatus}
                 onAddAction={findingsState.addAction}
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}
                 onSetOutcome={findingsState.setOutcome}
-                ideaImpacts={ideaImpacts}
-                onAddIdea={questionsState.addIdea}
-                onUpdateIdea={questionsState.updateIdea}
-                onRemoveIdea={questionsState.removeIdea}
-                onSelectIdea={questionsState.selectIdea}
-                onProjectIdea={handleProjectIdea}
-                onSetCauseRole={questionsState.setCauseRole}
                 onShareFinding={handleShareFinding}
                 onNavigateToChart={handleNavigateToChart}
                 showAuthors
@@ -1008,21 +918,9 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         <CoScoutSection
           aiOrch={aiOrch}
           findingsState={findingsState}
-          questionsState={questionsState}
           actionProposalsState={actionProposalsState}
           handleSearchKnowledge={handleSearchKnowledge}
           handleAddCommentWithAuthor={handleAddCommentWithAuthor}
-        />
-
-        {/* Question-Link Prompt — shown after map context-menu creates a Finding */}
-        <QuestionLinkPrompt
-          isOpen={mapPromptOpen}
-          findingId={mapPromptFindingId}
-          questions={mapQuestions}
-          onLink={handleMapPromptLink}
-          onSkip={handleMapPromptClose}
-          onSkipForever={handleMapPromptSkipForever}
-          onClose={handleMapPromptClose}
         />
       </div>
     </div>

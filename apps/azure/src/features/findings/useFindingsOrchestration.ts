@@ -7,7 +7,7 @@
  * as hook return values since they need filter/data context.
  */
 
-import { useMemo, useCallback, useEffect, useRef } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import {
   useFindings,
   useDrillPath,
@@ -20,14 +20,7 @@ import { usePanelsStore } from '../panels/panelsStore';
 import { usePopoutSync } from './usePopoutSync';
 import type { UseFilterNavigationReturn } from '../../hooks/useFilterNavigation';
 import type { AzureFindingsCallbacks } from '@variscout/ui';
-import type {
-  Finding,
-  FindingSource,
-  SpecLimits,
-  DataRow,
-  Question,
-  ProcessContext,
-} from '@variscout/core';
+import type { Finding, FindingSource, SpecLimits, DataRow, ProcessContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 
 export interface UseFindingsOrchestrationOptions {
@@ -57,8 +50,6 @@ export interface UseFindingsOrchestrationOptions {
   canMentionInChannel: boolean;
   /** View state change handler (for navigate-to-chart) */
   onViewStateChange: (partial: Partial<ViewState>) => void;
-  /** Questions for popout sync */
-  questions?: Question[];
   /** Process context for popout sync */
   processContext?: ProcessContext;
   /** Current Cpk or mean value for popout sync */
@@ -73,10 +64,6 @@ export interface UseFindingsOrchestrationOptions {
   addNotification?: (message: string, type: 'success' | 'error') => void;
   /** Current project name for deep link construction */
   projectName?: string;
-  /** Currently focused question ID (for auto-linking new findings) */
-  focusedQuestionId?: string | null;
-  /** Link a finding to a question */
-  linkFinding?: (questionId: string, findingId: string) => void;
 }
 
 export interface UseFindingsOrchestrationReturn {
@@ -120,7 +107,6 @@ export function useFindingsOrchestration({
   shareFinding,
   canMentionInChannel,
   onViewStateChange,
-  questions,
   processContext,
   currentValue,
   projectedValue,
@@ -128,16 +114,7 @@ export function useFindingsOrchestration({
   aiAvailable,
   addNotification: _addNotification,
   projectName: _projectName,
-  focusedQuestionId,
-  linkFinding,
 }: UseFindingsOrchestrationOptions): UseFindingsOrchestrationReturn {
-  // Refs for question auto-linking: read latest values in callbacks
-  // without adding them to dependency arrays (avoids circular hook ordering)
-  const focusedQuestionIdRef = useRef(focusedQuestionId);
-  focusedQuestionIdRef.current = focusedQuestionId;
-  const linkFindingRef = useRef(linkFinding);
-  linkFindingRef.current = linkFinding;
-
   // Core findings state (CRUD engine from @variscout/hooks)
   const findingsState = useFindings({
     initialFindings: persistedFindings,
@@ -175,9 +152,6 @@ export function useFindingsOrchestration({
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText || '', context);
-      if (focusedQuestionIdRef.current && linkFindingRef.current) {
-        linkFindingRef.current(focusedQuestionIdRef.current, newFinding.id);
-      }
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
     },
@@ -219,9 +193,6 @@ export function useFindingsOrchestration({
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText ?? '', context, source);
-      if (focusedQuestionIdRef.current && linkFindingRef.current) {
-        linkFindingRef.current(focusedQuestionIdRef.current, newFinding.id);
-      }
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
       return newFinding;
@@ -270,7 +241,6 @@ export function useFindingsOrchestration({
     columnAliases,
     drillPath,
     findingsState,
-    questions,
     processContext,
     currentValue,
     projectedValue,

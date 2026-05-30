@@ -1,16 +1,18 @@
 /**
- * AnalyzeView - Question-driven investigation workspace for PWA
+ * AnalyzeView - Hypothesis-driven investigation workspace for PWA
  *
  * Simplified version of Azure's AnalyzeWorkspace:
- * - Left panel: QuestionChecklist + AnalyzePhaseBadge + AnalyzeConclusion
- * - Center: Map/Wall toggle → FindingsLog (list/board/tree) | WallCanvas
+ * - Left panel: AnalyzePhaseBadge + AnalyzeConclusion (hub composer)
+ * - Center: Map/Wall toggle → FindingsLog (list/board) | WallCanvas (hubs+findings)
  * - No CoScout (PWA has no AI)
  * - No Teams integration (no photos, no assignees)
  * - 3-status findings (not 5)
+ *
+ * IM-1 (ADR-085): the Question entity is retired. Suspected causes are
+ * `Hypothesis` hubs; the Wall renders hubs + findings (no question column).
  */
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  QuestionChecklist,
   AnalyzePhaseBadge,
   AnalyzeConclusion,
   FindingsLog,
@@ -24,16 +26,10 @@ import {
   useWallIsMobile,
 } from '@variscout/ui';
 import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
-import {
-  useResizablePanel,
-  useReturnNavigation,
-  type UseFindingsReturn,
-  type UseQuestionsReturn,
-} from '@variscout/hooks';
+import { useResizablePanel, useReturnNavigation, type UseFindingsReturn } from '@variscout/hooks';
 import type { WallCanvasPlanningProps } from '@variscout/ui';
-import { type FindingStatus, type Question } from '@variscout/core';
+import { type FindingStatus, type Hypothesis } from '@variscout/core';
 import { detectInvestigationPhase } from '@variscout/core/ai';
-import { getStrategy } from '@variscout/core/strategy';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { detectColumns } from '@variscout/core/parser';
 import type { ColumnTypeMap } from '@variscout/core/findings';
@@ -42,10 +38,6 @@ import { GripVertical } from 'lucide-react';
 import { useCanvasViewportStore, useProjectStore, useAnalyzeStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import { useFindingsStore } from '../../features/findings/findingsStore';
-import {
-  useAnalyzeFeatureStore,
-  type QuestionDisplayData,
-} from '../../features/analyze/analyzeStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 
 const DEFAULT_WALL_PAN = { x: 0, y: 0 };
@@ -63,19 +55,10 @@ interface AnalyzeViewProps {
   handleRestoreFinding: (id: string) => void;
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
   drillPath: DrillStep[];
-  // Questions
-  questionsState: UseQuestionsReturn;
-  handleCreateQuestion: (findingId: string, text: string, factor?: string, level?: string) => void;
-  // Question generation
-  factorIntelQuestions: Question[];
-  handleQuestionClick: (question: Question) => void;
   // Column aliases
   columnAliases: Record<string, string>;
   // Strategy
   resolvedMode: ResolvedMode;
-  // Derived investigation data (from orchestration hook)
-  questionsMap: Record<string, QuestionDisplayData>;
-  ideaImpacts: Record<string, import('@variscout/core').IdeaImpact | undefined>;
   /**
    * Optional measurement-plan affordances threaded into WallCanvas.
    * When provided, hub cards render HypothesisCardWithPlans.
@@ -91,15 +74,9 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   findingsState,
   handleRestoreFinding,
   handleSetFindingStatus,
-  drillPath,
-  questionsState,
-  handleCreateQuestion,
-  factorIntelQuestions,
-  handleQuestionClick,
+  drillPath: _drillPath,
   columnAliases,
-  resolvedMode,
-  questionsMap,
-  ideaImpacts,
+  resolvedMode: _resolvedMode,
   planningProps,
 }) => {
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
@@ -139,7 +116,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   }, [rawData]);
   const hubs = useAnalyzeStore(s => s.hypotheses);
   const wallFindings = useAnalyzeStore(s => s.findings);
-  const wallQuestions = useAnalyzeStore(s => s.questions);
   const scopedHubIds = useMemo(
     () => new Set(activeIPLineage?.hypothesisIds ?? []),
     [activeIPLineage]
@@ -156,38 +132,18 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     () => (activeIPScope ? wallFindings.filter(f => scopedFindingIds.has(f.id)) : wallFindings),
     [activeIPScope, scopedFindingIds, wallFindings]
   );
-  const scopedWallQuestionIds = useMemo(() => {
-    if (!activeIPScope) return null;
-    const ids = new Set<string>();
-    for (const hub of scopedWallHubs) {
-      for (const id of hub.questionIds) ids.add(id);
-    }
-    for (const finding of scopedWallFindings) {
-      if (finding.questionId) ids.add(finding.questionId);
-    }
-    return ids;
-  }, [activeIPScope, scopedWallFindings, scopedWallHubs]);
-  const scopedWallQuestions = useMemo(
-    () =>
-      scopedWallQuestionIds
-        ? wallQuestions.filter(q => scopedWallQuestionIds.has(q.id))
-        : wallQuestions,
-    [scopedWallQuestionIds, wallQuestions]
-  );
 
-  // Investigation phase detection (deterministic)
+  // Investigation phase detection (deterministic, from findings)
   const analyzePhase = useMemo(
-    () => detectInvestigationPhase(questionsState.questions, findingsState.findings),
-    [questionsState.questions, findingsState.findings]
+    () => detectInvestigationPhase(findingsState.findings),
+    [findingsState.findings]
   );
-
-  const strategy = getStrategy(resolvedMode);
 
   // Left panel resizable
   const leftPanel = useResizablePanel('variscout-pwa-analyze-left-width', 220, 400, 280, 'left');
 
-  // View mode (list/board/tree)
-  const [viewMode, setViewMode] = useState<'list' | 'board' | 'tree'>('board');
+  // View mode (list/board)
+  const [viewMode, setViewMode] = useState<'list' | 'board'>('board');
 
   // Phase 13 — ⌘K command palette trigger. Only active when Wall is visible.
   // Phase 14.1 — Minimap + palette gate on desktop only; MobileCardList
@@ -214,17 +170,9 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
           x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
           y: CANVAS_H / 2 - 400,
         });
-        return;
-      }
-      const questionIndex = scopedWallQuestions.findIndex(q => q.id === nodeId);
-      if (questionIndex >= 0) {
-        setWallPan(wallHubId, {
-          x: CANVAS_W / 2 - (200 + questionIndex * 240),
-          y: CANVAS_H / 2 - 900,
-        });
       }
     },
-    [scopedWallHubs, wallHubId, scopedWallQuestions, setWallPan]
+    [scopedWallHubs, wallHubId, setWallPan]
   );
 
   const handleReturnToImprovementProject = useCallback(() => {
@@ -234,26 +182,19 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     }
   }, [returnNavigation]);
 
-  // Categorize questions for AnalyzeConclusion
+  // Categorize hypothesis hubs for AnalyzeConclusion (IM-1: status-derived,
+  // replacing the retired Question causeRole split).
   const { hypotheses, contributing, ruledOut } = useMemo(() => {
-    const suspected: Question[] = [];
-    const contrib: Question[] = [];
-    const ruled: Question[] = [];
-    for (const q of questionsState.questions) {
-      if (q.causeRole === 'suspected-cause') suspected.push(q);
-      else if (q.causeRole === 'contributing') contrib.push(q);
-      else if (q.causeRole === 'ruled-out') ruled.push(q);
+    const suspected: Hypothesis[] = [];
+    const contrib: Hypothesis[] = [];
+    const ruled: Hypothesis[] = [];
+    for (const h of scopedWallHubs) {
+      if (h.status === 'refuted') ruled.push(h);
+      else if (h.status === 'confirmed') suspected.push(h);
+      else contrib.push(h);
     }
     return { hypotheses: suspected, contributing: contrib, ruledOut: ruled };
-  }, [questionsState.questions]);
-
-  const drillFactors = useMemo(() => drillPath.map(d => d.factor), [drillPath]);
-
-  // Question click: switch back to Analysis workspace with factor focused
-  const handleQuestionClickWithSwitch = (question: Question) => {
-    handleQuestionClick(question);
-    usePanelsStore.getState().showExplore();
-  };
+  }, [scopedWallHubs]);
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">
@@ -277,23 +218,13 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
             </div>
           )}
 
-          {/* Question checklist */}
-          <div className="flex-1 overflow-y-auto px-3 py-2">
-            <QuestionChecklist
-              questions={factorIntelQuestions}
-              onQuestionClick={handleQuestionClickWithSwitch}
-              evidenceLabel={strategy.questionStrategy.evidenceLabel}
-            />
-          </div>
-
-          {/* Investigation conclusion */}
-          {(hypotheses.length > 0 || ruledOut.length > 0) && (
-            <div className="border-t border-edge px-3 py-2 flex-shrink-0">
+          {/* Investigation conclusion (IM-1: hub-driven, question checklist retired) */}
+          {(hypotheses.length > 0 || ruledOut.length > 0 || contributing.length > 0) && (
+            <div className="flex-1 overflow-y-auto border-t border-edge px-3 py-2">
               <AnalyzeConclusion
-                hypotheses={hypotheses}
-                ruledOut={ruledOut}
-                contributing={contributing}
-                hasConclusions={hypotheses.length > 0}
+                hubs={scopedWallHubs}
+                findings={scopedWallFindings}
+                hasConclusions={hypotheses.length > 0 || scopedWallHubs.length > 0}
               />
             </div>
           )}
@@ -337,11 +268,11 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
               ))}
             </div>
 
-            {/* List/board/tree sub-toggle (only in Map/Findings view) */}
+            {/* List/board sub-toggle (only in Map/Findings view) */}
             {wallViewMode === 'map' && (
               <>
                 <div className="w-px h-4 bg-edge mx-1" />
-                {(['list', 'board', 'tree'] as const).map(mode => (
+                {(['list', 'board'] as const).map(mode => (
                   <button
                     key={mode}
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
@@ -399,7 +330,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 hubId={wallHubId}
                 hubs={scopedWallHubs}
                 findings={scopedWallFindings}
-                questions={scopedWallQuestions}
                 processMap={processMap}
                 problemCpk={0}
                 eventsPerWeek={0}
@@ -419,7 +349,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                   <div className="absolute bottom-4 right-4 pointer-events-auto">
                     <Minimap
                       hubs={scopedWallHubs}
-                      questions={scopedWallQuestions}
                       zoom={wallZoom}
                       pan={wallPan}
                       onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
@@ -430,7 +359,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                     onClose={() => setPaletteOpen(false)}
                     onPanTo={handlePanToNode}
                     hubs={scopedWallHubs}
-                    questions={scopedWallQuestions}
                     findings={scopedWallFindings}
                   />
                 </>
@@ -444,13 +372,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 onDeleteFinding={findingsState.deleteFinding}
                 onRestoreFinding={handleRestoreFinding}
                 viewMode={viewMode}
-                questions={scopedWallQuestions}
-                onSelectQuestion={(q: Question) =>
-                  useAnalyzeFeatureStore.getState().expandToQuestion(q.id)
-                }
-                onAddSubQuestion={questionsState.addSubQuestion}
-                factors={drillFactors}
-                getChildrenSummary={questionsState.getChildrenSummary}
                 onSetFindingStatus={handleSetFindingStatus}
                 onSetFindingTag={findingsState.setFindingTag}
                 onAddComment={(id: string, text: string) =>
@@ -458,21 +379,10 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 }
                 columnAliases={columnAliases}
                 activeFindingId={highlightedFindingId}
-                onCreateQuestion={handleCreateQuestion}
-                questionsMap={questionsMap}
-                onSetValidationTask={questionsState.setValidationTask}
-                onCompleteTask={questionsState.completeTask}
-                onSetManualStatus={questionsState.setManualStatus}
                 onAddAction={findingsState.addAction}
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}
                 onSetOutcome={findingsState.setOutcome}
-                ideaImpacts={ideaImpacts}
-                onAddIdea={questionsState.addIdea}
-                onUpdateIdea={questionsState.updateIdea}
-                onRemoveIdea={questionsState.removeIdea}
-                onSelectIdea={questionsState.selectIdea}
-                onSetCauseRole={questionsState.setCauseRole}
               />
             </div>
           )}

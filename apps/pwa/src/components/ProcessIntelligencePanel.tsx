@@ -17,12 +17,8 @@ interface ProcessIntelligencePanelProps {
   onCpkClick?: () => void;
   subgroupsMeetingTarget?: number;
   subgroupCount?: number;
-  /** PI panel: Questions tab render prop */
-  renderQuestionsTab?: () => React.ReactNode;
   /** PI panel: Journal tab render prop */
   renderJournalTab?: () => React.ReactNode;
-  /** PI panel: open question count for badge */
-  openQuestionCount?: number;
 }
 
 const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
@@ -37,9 +33,7 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
   onCpkClick,
   subgroupsMeetingTarget,
   subgroupCount,
-  renderQuestionsTab,
   renderJournalTab,
-  openQuestionCount,
 }) => {
   const setSpecs = useProjectStore(s => s.setSpecs);
   const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
@@ -82,14 +76,6 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
         ),
       },
     ];
-    if (renderQuestionsTab) {
-      result.push({
-        id: 'questions',
-        label: 'Questions',
-        badge: openQuestionCount,
-        content: renderQuestionsTab(),
-      });
-    }
     if (renderJournalTab) {
       result.push({
         id: 'journal',
@@ -98,15 +84,7 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
       });
     }
     return result;
-  }, [
-    cpkTarget,
-    onCpkClick,
-    subgroupsMeetingTarget,
-    subgroupCount,
-    renderQuestionsTab,
-    renderJournalTab,
-    openQuestionCount,
-  ]);
+  }, [cpkTarget, onCpkClick, subgroupsMeetingTarget, subgroupCount, renderJournalTab]);
 
   // Build overflow items
   const overflowItems: PIOverflowItem[] = useMemo(() => {

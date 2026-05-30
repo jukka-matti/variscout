@@ -40,7 +40,6 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setMeasureLabel: useProjectStore(s => s.setMeasureLabel),
     setAnalysisMode: useProjectStore(s => s.setAnalysisMode),
     setFindings: useProjectStore(s => s.setFindings),
-    setQuestions: useProjectStore(s => s.setQuestions),
     setCategories: useProjectStore(s => s.setCategories),
     setDefectMapping: useProjectStore(s => s.setDefectMapping),
     setHypotheses: (hubs: Hypothesis[]) => useAnalyzeStore.getState().resetHubs(hubs),

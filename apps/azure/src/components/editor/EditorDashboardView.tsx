@@ -14,19 +14,12 @@
  * - AIOnboardingTooltip
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { AIOnboardingTooltip } from '@variscout/ui';
-import { createFactorFinding } from '@variscout/core';
-import { resolveMode } from '@variscout/core/strategy';
+import { computeBestSubsets } from '@variscout/core';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
-import type { UseQuestionsReturn, ViewState, UseFindingsReturn } from '@variscout/hooks';
-import {
-  useQuestionGeneration,
-  useJourneyPhase,
-  useFilteredData,
-  useDefectTransform,
-} from '@variscout/hooks';
-import type { DefectQuestionInput } from '@variscout/core/defect';
+import type { ViewState, UseFindingsReturn } from '@variscout/hooks';
+import { useJourneyPhase, useFilteredData } from '@variscout/hooks';
 import { isAIAvailable } from '../../services/aiService';
 import { useProjectStore, usePreferencesStore } from '@variscout/stores';
 import { usePanelsStore } from '../../features/panels/panelsStore';
@@ -61,8 +54,6 @@ interface EditorDashboardViewProps {
   findingsCallbacks: AzureFindingsCallbacks;
   handlePinFinding: UseFindingsOrchestrationReturn['handlePinFinding'];
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
-  // Questions
-  questionsState: UseQuestionsReturn;
   // Photo comments
   handleAddCommentWithAuthor: (
     findingId: string,
@@ -111,7 +102,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   findingsCallbacks,
   handlePinFinding,
   handleSetFindingStatus,
-  questionsState,
   handleAddCommentWithAuthor,
   aiOrch,
   actionProposalsState,
@@ -131,37 +121,16 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const factors = useProjectStore(s => s.factors);
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
-  const analysisMode = useProjectStore(s => s.analysisMode);
-  const defectMapping = useProjectStore(s => s.defectMapping);
   const aiEnabled = usePreferencesStore(s => s.aiEnabled);
   const { filteredData } = useFilteredData();
 
-  // Defect mode transform for question generation
-  const defectResult = useDefectTransform(filteredData, defectMapping, analysisMode ?? 'standard');
-
-  // ── Question generation (shared across PISection + DashboardSection) ────
-  const resolved = resolveMode(analysisMode ?? 'standard');
-
-  // Build defect data input for question generator when in defect mode
-  const defectData: DefectQuestionInput | undefined =
-    resolved === 'defect' && defectResult
-      ? {
-          transformedData: defectResult.data,
-          outcomeColumn: defectResult.outcomeColumn,
-          defectTypeColumn: defectMapping?.defectTypeColumn,
-          factors: defectResult.factors,
-        }
-      : undefined;
-
-  const { bestSubsets, handleQuestionClick, factorRequest } = useQuestionGeneration({
-    filteredData: filteredData ?? [],
-    outcome,
-    factors,
-    questionsState,
-    mode: resolved,
-    defectData,
-  });
-  const effectiveFactorRequest = activeIPFactorRequest ?? factorRequest;
+  // ── Factor Intelligence (best subsets) — shared across PISection + Dashboard.
+  // IM-1: computed directly (was sourced from the retired useQuestionGeneration).
+  const bestSubsets = useMemo(() => {
+    if (!filteredData?.length || !outcome || factors.length === 0) return null;
+    return computeBestSubsets(filteredData, outcome, factors);
+  }, [filteredData, outcome, factors]);
+  const effectiveFactorRequest = activeIPFactorRequest ?? null;
 
   // ── Journey phase badge ─────────────────────────────────────────────────
   const journeyPhase = useJourneyPhase(!!rawData?.length, findingsState.findings);
@@ -170,39 +139,32 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   const aiAvailable = aiEnabled && isAIAvailable();
 
   // ── Factor Intelligence → Findings bridge ──────────────────────────────
+  // IM-1 (ADR-085): the Question entity is retired. Investigating a factor now
+  // records a Finding only (the analyst promotes it to a hypothesis hub on the
+  // Wall). The finding captures the factor's worst level as a boxplot source.
   const handleInvestigateFactor = useCallback(
     (effect: import('@variscout/core/stats').FactorMainEffect) => {
       if (!outcome || !filteredData || filteredData.length === 0) return;
 
-      const bundle = createFactorFinding({
-        factor: effect.factor,
-        bestLevel: effect.bestLevel,
-        worstLevel: effect.worstLevel,
-        etaSquared: effect.etaSquared,
-        effectRange: effect.effectRange,
-        pValue: effect.pValue,
-      });
+      const filters = useProjectStore.getState().filters;
+      const pct = Math.round(effect.etaSquared * 100);
+      const text = `${effect.factor} explains ~${pct}% of variation (worst at ${effect.worstLevel}).`;
 
       const addedFinding = findingsState.addFinding(
-        bundle.finding.text,
-        bundle.finding.context,
-        undefined
+        text,
+        { activeFilters: filters, cumulativeScope: null },
+        {
+          chart: 'boxplot',
+          category: effect.factor,
+          timeLens: usePreferencesStore.getState().timeLens,
+        }
       );
-
-      const addedQuestion = questionsState.addQuestion(
-        bundle.question.text,
-        bundle.question.factor,
-        bundle.question.level
-      );
-      questionsState.setManualStatus(addedQuestion.id, 'answered');
-      findingsState.linkQuestion(addedFinding.id, addedQuestion.id, 'supports');
-      questionsState.addIdea(addedQuestion.id, bundle.idea.text);
 
       handleSetFindingStatus(addedFinding.id, 'investigating');
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(addedFinding.id);
     },
-    [outcome, filteredData, findingsState, questionsState, handleSetFindingStatus]
+    [outcome, filteredData, findingsState, handleSetFindingStatus]
   );
 
   // ── Data Table state ────────────────────────────────────────────────────
@@ -216,10 +178,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
         <PISection
           bestSubsets={bestSubsets}
           projectedCpkMap={projectedCpkMap}
-          handleQuestionClick={handleQuestionClick}
           onInvestigateFactor={handleInvestigateFactor}
           phaseBadge={journeyPhase ?? undefined}
-          questionsState={questionsState}
           findingsState={findingsState}
           projectId={projectId}
         />
@@ -228,7 +188,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
         <DashboardSection
           dataFlow={dataFlow}
           filterNav={filterNav}
-          questionsState={questionsState}
           findingsState={findingsState}
           aiOrch={aiOrch}
           factorRequest={effectiveFactorRequest}
@@ -256,7 +215,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
         <CoScoutSection
           aiOrch={aiOrch}
           findingsState={findingsState}
-          questionsState={questionsState}
           actionProposalsState={actionProposalsState}
           handleSearchKnowledge={handleSearchKnowledge}
           handleAddCommentWithAuthor={handleAddCommentWithAuthor}

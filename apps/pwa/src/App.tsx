@@ -15,9 +15,7 @@ import {
   type MobileTab,
   useIsMobile,
   BREAKPOINTS,
-  QuestionsTabView,
   JournalTabView,
-  QuestionLinkPrompt,
   GoalBanner,
   HubGoalForm,
   OutcomePin,
@@ -41,7 +39,6 @@ import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
   useFindings,
-  useQuestions,
   useDrillPath,
   buildFindingContext,
   buildFindingSource,
@@ -71,14 +68,12 @@ import {
   DEFAULT_PROCESS_HUB_ID,
   normalizeProcessHubId,
   type ExclusionReason,
-  type Question,
   toNumericValue,
   extractHubName,
 } from '@variscout/core';
-import { resolveMode, getStrategy } from '@variscout/core/strategy';
+import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { computeCenteringOpportunity } from '@variscout/core/variation';
-import { useQuestionGeneration } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { EvidenceMapPopout } from './components/EvidenceMapPopout';
 import { useAppPanels } from './hooks/useAppPanels';
@@ -209,10 +204,8 @@ function AppMain() {
   const processContext = useProjectStore(s => s.processContext);
   const defectMapping = useProjectStore(s => s.defectMapping);
 
-  // Investigation store (domain — questions, hypotheses)
-  const questions = useAnalyzeStore(s => s.questions);
+  // Investigation store (domain — hypotheses). IM-1: Question entity retired.
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
-  const linkFindingToQuestion = useAnalyzeStore(s => s.linkFindingToQuestion);
 
   // Measurement plans — loaded from IndexedDB for all current hypotheses.
   // Re-loads whenever the hypothesis list changes (new hub added or removed).
@@ -235,10 +228,6 @@ function AppMain() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hypothesisIdsKey]);
-
-  // Preferences store — question-link prompt opt-out flag
-  const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
-  const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
 
   // Project membership store — pending invitations for the Home view banner.
   // PWA is single-user; use 'analyst@local' as the stable per-user key.
@@ -281,9 +270,12 @@ function AppMain() {
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const setCpkTarget = useProjectStore(s => s.setCpkTarget);
   const setDefectMapping = useProjectStore(s => s.setDefectMapping);
-  const setQuestions = useCallback((qs: Question[]) => {
-    useAnalyzeStore.getState().loadAnalyzeState({ questions: qs });
-  }, []);
+  // IM-1: addIdea (keyed by hypothesisId) is not read here — the PWA ideas surface
+  // was the Question-driven FindingsLog/ImprovementIdeasSection path that IM-1
+  // dismantled; its hypothesisId-keyed replacement (ImprovementIdeasSection in
+  // @variscout/ui) is not yet mounted in AnalyzeView. Wiring it lands in IM-4/IM-5.
+  // The `scopes` slice is persisted by PwaHubRepository reading the store directly,
+  // so no local read is needed here either.
 
   // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
   // The onWideFormatDetected/onTimeColumnDetected callbacks use importFlow setters,
@@ -342,38 +334,16 @@ function AppMain() {
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
 
-  // Questions + orchestration
-  const questionsState = useQuestions({
-    initialQuestions: questions,
-    onQuestionsChange: setQuestions,
-  });
-
-  // Question-driven investigation (ADR-053)
   const resolved = resolveMode(analysisMode ?? 'standard');
-  const {
-    questions: factorIntelQuestions,
-    handleQuestionClick,
-    factorRequest,
-  } = useQuestionGeneration({
-    filteredData: filteredData ?? [],
-    outcome,
-    factors,
-    questionsState,
-    mode: resolved,
-  });
 
   // PI Panel: journal entries (session-only; clears on refresh — PWA has no persistence)
   const journalEntries = useJournalEntries({
     findings: findingsState.findings,
-    questions: factorIntelQuestions,
   });
 
-  // PI Panel: open question count for badge
-  const openQuestionCount = useMemo(
-    () =>
-      factorIntelQuestions.filter(q => q.status === 'open' || q.status === 'investigating').length,
-    [factorIntelQuestions]
-  );
+  // IM-1: openQuestionCount removed — the PI Panel Questions tab + its count
+  // badge were the consumer, and both were retired with the Question entity.
+  // The PWA PI Panel now surfaces stats + journal only.
 
   const canvasViewportHubId =
     processContext?.processHubId ??
@@ -381,11 +351,10 @@ function AppMain() {
     (rawData.length > 0 ? DEFAULT_PROCESS_HUB_ID : null);
   useCanvasViewportLifecycle(canvasViewportHubId);
 
+  // Investigation orchestration (IM-1: hypothesis-driven, Question entity retired)
   const investigation = useAnalyzeOrchestration({
-    questionsState,
     findingsState: {
       findings: findingsState.findings,
-      linkQuestion: findingsState.linkQuestion,
       setFindingStatus: findingsState.setFindingStatus,
       addAction: findingsState.addAction,
     },
@@ -395,8 +364,6 @@ function AppMain() {
 
   // Stage 5 modal — opens after Mode B Stage 3 confirm and via on-demand button.
   const stageFive = useStageFiveOpener();
-
-  const investigationQuestionsMap = investigation.questionsMap;
 
   // Mobile tab bar (phone only, <640px)
   const isPhone = useIsMobile(BREAKPOINTS.phone);
@@ -430,10 +397,6 @@ function AppMain() {
   // Capability suggestion modal state
   const [showCapabilitySuggestion, setShowCapabilitySuggestion] = useState(false);
   const [capabilitySuggestionDismissed, setCapabilitySuggestionDismissed] = useState(false);
-
-  // Question-link prompt state (shown after chart observation creates a Finding)
-  const [questionLinkPromptOpen, setQuestionLinkPromptOpen] = useState(false);
-  const [questionLinkFindingId, setQuestionLinkFindingId] = useState<string>('');
 
   // Embed mode state
   const [isEmbedMode, setIsEmbedMode] = useState(false);
@@ -619,22 +582,10 @@ function AppMain() {
       const newFinding = findingsState.addFinding('', context, source);
       panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(newFinding.id);
-      // Show question-link prompt unless user opted out
-      if (!skipQuestionLinkPrompt) {
-        setQuestionLinkFindingId(newFinding.id);
-        setQuestionLinkPromptOpen(true);
-      }
+      // IM-1 (ADR-085): the post-observation question-link prompt is retired
+      // (Question entity gone); analysts promote findings to hubs on the Wall.
     },
-    [
-      filters,
-      drillPath,
-      filteredData,
-      outcome,
-      specs,
-      findingsState,
-      panels,
-      skipQuestionLinkPrompt,
-    ]
+    [filters, drillPath, filteredData, outcome, specs, findingsState, panels]
   );
 
   // Chart findings grouped by chart type for inline annotation display
@@ -664,25 +615,6 @@ function AppMain() {
   const handleOpenFindingsPopout = useCallback(() => {
     popupRef.current = openFindingsPopout(findingsState.findings, columnAliases, drillPath);
   }, [findingsState.findings, columnAliases, drillPath]);
-
-  // Question-link prompt handlers — stable callbacks so QuestionLinkPrompt never
-  // re-renders due to inline arrow functions changing identity each render.
-  // NOTE: QuestionLinkPrompt already calls onClose() after onLink() and after
-  // onSkip()/onSkipForever(), so these handlers must NOT also close the prompt.
-  const handleQuestionLink = useCallback(
-    (questionId: string) => {
-      linkFindingToQuestion(questionLinkFindingId, questionId);
-    },
-    [questionLinkFindingId, linkFindingToQuestion]
-  );
-
-  const handleQuestionSkipForever = useCallback(() => {
-    setSkipQuestionLinkPrompt(true);
-  }, [setSkipQuestionLinkPrompt]);
-
-  const handleQuestionPromptClose = useCallback(() => {
-    setQuestionLinkPromptOpen(false);
-  }, []);
 
   // Mode B: when ColumnMapping confirms, fold the Stage 1 narrative + Stage 3
   // Hub-shaped payload (outcomes, primaryScopeDimensions) into the session Hub
@@ -797,15 +729,11 @@ function AppMain() {
     }
   }, []);
 
-  // Wall-variant propose-hypothesis CTA
-  const wallViewMode = useCanvasViewportStore(s => s.viewMode);
-  const createHubFromFinding = useAnalyzeStore(s => s.createHubFromFinding);
-  const handleProposeHypothesisFromFinding = useCallback(
-    (findingId: string) => {
-      createHubFromFinding(findingId);
-    },
-    [createHubFromFinding]
-  );
+  // IM-1: the propose-hypothesis-from-finding CTA (createHubFromFinding) + its
+  // `wallViewMode` read are removed here — their render target was the retired
+  // QuestionLinkPrompt (wallActive / onProposeHypothesis). AnalyzeView reads
+  // wallViewMode from the store itself for its own toggle. Promoting a finding to
+  // a Hypothesis hub on the Wall is owned by the unified Wall re-layout in IM-4/IM-5.
 
   // Findings popout: sync data when findings/drillPath change
   useEffect(() => {
@@ -875,45 +803,16 @@ function AppMain() {
     () => new Set(activeIPLineage?.findingIds ?? []),
     [activeIPLineage]
   );
-  const activeIPLineageHypothesisIds = useMemo(
-    () => new Set(activeIPLineage?.hypothesisIds ?? []),
-    [activeIPLineage]
-  );
+  // IM-1: activeIPLineageHypothesisIds + the scopedHypotheses memo are removed.
+  // On main scopedHypotheses existed only to derive the now-retired
+  // scopedQuestionIds; AnalyzeView scopes hubs internally from the activeIPLineage
+  // prop, so no scoped-hypothesis set needs threading from here.
   const scopedFindings = useMemo(
     () =>
       activeIPContext.isIPScoped
         ? findingsState.findings.filter(finding => activeIPLineageFindingIds.has(finding.id))
         : findingsState.findings,
     [activeIPContext.isIPScoped, activeIPLineageFindingIds, findingsState.findings]
-  );
-  const scopedHypotheses = useMemo(
-    () =>
-      activeIPContext.isIPScoped
-        ? hypotheses.filter(hypothesis => activeIPLineageHypothesisIds.has(hypothesis.id))
-        : hypotheses,
-    [activeIPContext.isIPScoped, activeIPLineageHypothesisIds, hypotheses]
-  );
-  const scopedQuestionIds = useMemo(() => {
-    if (!activeIPContext.isIPScoped) return null;
-    const ids = new Set<string>();
-    for (const hypothesis of scopedHypotheses) {
-      for (const id of hypothesis.questionIds) ids.add(id);
-    }
-    for (const finding of scopedFindings) {
-      if (finding.questionId) ids.add(finding.questionId);
-    }
-    return ids;
-  }, [activeIPContext.isIPScoped, scopedFindings, scopedHypotheses]);
-  const scopedQuestions = useMemo(
-    () =>
-      scopedQuestionIds
-        ? questions.filter(question => scopedQuestionIds.has(question.id))
-        : questions,
-    [questions, scopedQuestionIds]
-  );
-  const scopedQuestionsState = useMemo(
-    () => (scopedQuestionIds ? { ...questionsState, questions: scopedQuestions } : questionsState),
-    [questionsState, scopedQuestionIds, scopedQuestions]
   );
   const scopedFindingsState = useMemo(
     () =>
@@ -983,12 +882,11 @@ function AppMain() {
             factor: activeIPScopeLabels.factorLabels[0],
             seq: activeIPContext.activeState?.setAt ?? 0,
           }
-        : factorRequest,
+        : null,
     [
       activeIPContext.activeState?.setAt,
       activeIPContext.isIPScoped,
       activeIPScopeLabels?.factorLabels,
-      factorRequest,
     ]
   );
 
@@ -1206,17 +1104,7 @@ function AppMain() {
                 filteredData={filteredData}
                 outcome={outcome}
                 cpkTarget={cpkTarget}
-                renderQuestionsTab={() => (
-                  <QuestionsTabView
-                    questions={factorIntelQuestions}
-                    findings={findingsState.findings}
-                    currentUnderstanding={processContext?.currentUnderstanding}
-                    onQuestionClick={handleQuestionClick}
-                    evidenceLabel={getStrategy(resolved).questionStrategy.evidenceLabel}
-                  />
-                )}
                 renderJournalTab={() => <JournalTabView entries={journalEntries} />}
-                openQuestionCount={openQuestionCount}
               />
             </Suspense>
           </div>
@@ -1362,14 +1250,8 @@ function AppMain() {
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={investigation.handleSetFindingStatus}
                 drillPath={drillPath}
-                questionsState={scopedQuestionsState}
-                handleCreateQuestion={investigation.handleCreateQuestion}
-                factorIntelQuestions={factorIntelQuestions}
-                handleQuestionClick={handleQuestionClick}
                 columnAliases={columnAliases}
                 resolvedMode={resolved}
-                questionsMap={investigation.questionsMap}
-                ideaImpacts={investigation.ideaImpacts}
                 planningProps={wallPlanningProps}
               />
             ) : panels.activeView === 'projects' ? (
@@ -1394,7 +1276,7 @@ function AppMain() {
                 }}
                 approachInputs={{
                   hypotheses,
-                  ideas: questions.flatMap(q => q.ideas ?? []),
+                  ideas: hypotheses.flatMap(h => h.ideas ?? []),
                   actions: findingsState.findings.flatMap(f => f.actions ?? []),
                 }}
                 onOpenCauseWorkbench={_cause => {
@@ -1444,7 +1326,6 @@ function AppMain() {
                 stats={stats}
                 specs={specs}
                 findings={findingsState.findings}
-                questions={questionsState.questions}
                 columnAliases={columnAliases}
                 dataFilename={dataFilename}
                 sampleCount={lensedSampleCount}
@@ -1535,11 +1416,6 @@ function AppMain() {
                 activeFindingId={highlightedFindingId}
                 onPopout={handleOpenFindingsPopout}
                 maxStatuses={3}
-                onCreateQuestion={investigation.handleCreateQuestion}
-                questionsMap={investigationQuestionsMap}
-                questions={factorIntelQuestions}
-                evidenceLabel={getStrategy(resolved).questionStrategy.evidenceLabel}
-                onQuestionClick={handleQuestionClick}
               />
             )}
         </Suspense>
@@ -1643,19 +1519,6 @@ function AppMain() {
         />
       )}
 
-      {/* Question-Link Prompt — shown after chart observation creates a Finding */}
-      <QuestionLinkPrompt
-        isOpen={questionLinkPromptOpen}
-        findingId={questionLinkFindingId}
-        questions={factorIntelQuestions}
-        onLink={handleQuestionLink}
-        onSkip={handleQuestionPromptClose}
-        onSkipForever={handleQuestionSkipForever}
-        onClose={handleQuestionPromptClose}
-        wallActive={wallViewMode === 'wall'}
-        onProposeHypothesis={handleProposeHypothesisFromFinding}
-      />
-
       {/* Stage 5 modal — investigation context capture.
           Opens after Mode B Stage 3 confirm (openModeB) and via on-demand button
           on the canvas chrome (openOnDemand). Does NOT log brief contents to console
@@ -1663,21 +1526,10 @@ function AppMain() {
       <StageFiveModal
         open={stageFive.open}
         mode={stageFive.mode}
-        onOpenInvestigation={brief => {
-          // Persist issueStatement + questions from the brief into the investigation.
-          // PWA has no AnalysisBrief field on processContext (session-only store);
-          // we wire questions via questionsState.addQuestion (the domain store setter).
-          // issueStatement is logged as a first question with a sentinel prefix so it
-          // is visible in the Questions panel — a dedicated issueStatement field on
-          // the domain store is deferred to a later slice.
-          if (brief.issueStatement) {
-            questionsState.addQuestion(brief.issueStatement);
-          }
-          if (brief.questions) {
-            for (const q of brief.questions) {
-              questionsState.addQuestion(q.text, q.factor, q.level);
-            }
-          }
+        onOpenInvestigation={_brief => {
+          // IM-1 (F5, ADR-085): AnalysisBrief no longer seeds Question entities —
+          // the Question entity is retired. Brief capture is informational only;
+          // the analyst forms hypothesis hubs on the Wall.
           // TODO slice 4: persist brief.hypothesisDraft to investigation as a draft Hypothesis entity.
           // TODO (slice 4): wire brief.target into processContext once PWA gains a
           // processContext or equivalent improvement-target store field.

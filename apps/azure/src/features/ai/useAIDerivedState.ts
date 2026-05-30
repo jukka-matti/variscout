@@ -14,7 +14,7 @@ import {
   type SpecLimits,
   type DataRow,
   type Finding,
-  type Question,
+  type Hypothesis,
   type AIContext,
   type StagedStatsResult,
 } from '@variscout/core';
@@ -25,7 +25,8 @@ export interface UseAIDerivedStateOptions {
   outcome?: string | null;
   specs?: SpecLimits;
   findings: Finding[];
-  questions: Question[];
+  /** Hypothesis hubs (the suspected causes) — IM-1: replaces the retired questions. */
+  hypotheses: Hypothesis[];
   factors: string[];
   highlightedFindingId?: string | null;
   stagedStats?: StagedStatsResult | null;
@@ -45,7 +46,7 @@ export function useAIDerivedState({
   outcome,
   specs,
   findings,
-  questions,
+  hypotheses,
   factors,
   highlightedFindingId,
   stagedStats,
@@ -92,7 +93,8 @@ export function useAIDerivedState({
     if (!highlightedFindingId || !findings) return undefined;
     const f = findings.find(fi => fi.id === highlightedFindingId);
     if (!f) return undefined;
-    const question = f.questionId ? questions.find(h => h.id === f.questionId) : undefined;
+    // IM-1: findings link to a hypothesis hub via Hypothesis.findingIds.
+    const hub = hypotheses.find(h => h.findingIds.includes(f.id));
 
     // eslint-disable-next-line react-hooks/purity -- Date.now() intentional for overdue calculation
     const now = Date.now();
@@ -109,7 +111,7 @@ export function useAIDerivedState({
     return {
       text: f.text,
       status: f.status,
-      question: question?.text,
+      question: hub?.name,
       projection: f.projection
         ? {
             meanDelta: f.projection.projectedMean - f.projection.baselineMean,
@@ -119,7 +121,7 @@ export function useAIDerivedState({
       actions,
       actionProgress: total > 0 ? { total, done, overdueCount } : undefined,
     };
-  }, [highlightedFindingId, findings, questions]);
+  }, [highlightedFindingId, findings, hypotheses]);
 
   // Team contributors for AI context
   const aiTeamContributors = useMemo(() => {
@@ -131,14 +133,13 @@ export function useAIDerivedState({
       for (const c of f.comments ?? []) {
         if (c.author) authors.add(c.author);
       }
-      if (f.questionId) {
-        const h = questions.find(hy => hy.id === f.questionId);
-        if (h?.factor) areas.add(h.factor);
-      }
+      // IM-1: investigation "area" derives from the owning hypothesis hub's name.
+      const hub = hypotheses.find(hy => hy.findingIds.includes(f.id));
+      if (hub?.name) areas.add(hub.name);
     }
     if (authors.size === 0) return undefined;
     return { count: authors.size, questionAreas: Array.from(areas) };
-  }, [findings, questions]);
+  }, [findings, hypotheses]);
 
   // Staged comparison for AI verification narrative
   const stagedComparison = useMemo(

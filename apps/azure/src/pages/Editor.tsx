@@ -30,7 +30,6 @@ import ManualEntry from '../components/data/ManualEntry';
 import {
   VerificationPrompt,
   BrainstormModal,
-  QuestionLinkPrompt,
   SurveyNotebookBase,
   type ColumnMappingConfirmPayload,
   StageFiveModal,
@@ -48,7 +47,6 @@ import {
 import { useStageFiveOpener } from '../features/hubCreation/useStageFiveOpener';
 import {
   useControlViolations,
-  useQuestions,
   useJourneyPhase,
   detectEntryScenario,
   useCapabilityIChartData,
@@ -72,7 +70,6 @@ import { useDataMerge } from '../hooks/useDataMerge';
 import type {
   ExclusionReason,
   Finding,
-  Question,
   IdeaDirection,
   AnalyzeDepth,
   AnalyzeStatus,
@@ -350,12 +347,16 @@ export const Editor: React.FC<EditorProps> = ({
   const defectMapping = useProjectStore(s => s.defectMapping);
   const processContext = useProjectStore(s => s.processContext) ?? undefined;
 
-  // Investigation store (domain — findings/questions/categories)
+  // Investigation store (domain — findings/hypotheses/categories). IM-1: the
+  // Question entity is retired; suspected causes live as hypotheses.
   const persistedFindings = useAnalyzeStore(s => s.findings);
-  const persistedQuestions = useAnalyzeStore(s => s.questions);
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
   const categories = useAnalyzeStore(s => s.categories);
-  const linkFindingToQuestion = useAnalyzeStore(s => s.linkFindingToQuestion);
+  // Idea write callbacks (keyed by hypothesisId, IM-1 F2) for the AI + improvement flows.
+  const addIdea = useAnalyzeStore(s => s.addIdea);
+  const updateIdea = useAnalyzeStore(s => s.updateIdea);
+  const selectIdea = useAnalyzeStore(s => s.selectIdea);
+  const deleteIdea = useAnalyzeStore(s => s.deleteIdea);
 
   // Measurement plans — loaded from IndexedDB for all hypotheses in the active investigation.
   // Re-loads when the hypothesis list changes. Passed into WallCanvas planningProps.
@@ -380,8 +381,6 @@ export const Editor: React.FC<EditorProps> = ({
   // Preferences store (annotation-per-user)
   const aiEnabled = usePreferencesStore(s => s.aiEnabled);
   const knowledgeSearchFolder = usePreferencesStore(s => s.knowledgeSearchFolder) ?? undefined;
-  const skipQuestionLinkPrompt = usePreferencesStore(s => s.skipQuestionLinkPrompt);
-  const setSkipQuestionLinkPrompt = usePreferencesStore(s => s.setSkipQuestionLinkPrompt);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData, filteredIndexMap } = useFilteredData();
@@ -415,9 +414,6 @@ export const Editor: React.FC<EditorProps> = ({
   // Investigation store setters (via loadAnalyzeState for bulk updates)
   const setPersistedFindings = useCallback((findings: Finding[]) => {
     useAnalyzeStore.getState().loadAnalyzeState({ findings });
-  }, []);
-  const setPersistedQuestions = useCallback((questions: Question[]) => {
-    useAnalyzeStore.getState().loadAnalyzeState({ questions });
   }, []);
 
   // Persistence actions (local IndexedDB via adapter)
@@ -619,10 +615,9 @@ export const Editor: React.FC<EditorProps> = ({
     () => new Set(activeIPLineage?.findingIds ?? []),
     [activeIPLineage]
   );
-  const activeIPLineageHypothesisIds = useMemo(
-    () => new Set(activeIPLineage?.hypothesisIds ?? []),
-    [activeIPLineage]
-  );
+  // IM-1: activeIPLineageHypothesisIds removed — its only consumer was the
+  // Editor-level scopedHypotheses memo (also removed). AnalyzeWorkspace derives
+  // its own scoped hub set from the activeIPLineage prop.
 
   // Wall measurement-plan callbacks — mirrors PWA App.tsx wallPlanningProps pattern
   const wallActiveIPMembers = useMemo(
@@ -810,7 +805,6 @@ export const Editor: React.FC<EditorProps> = ({
         specs,
         defectMapping,
         processContext,
-        questions: persistedQuestions,
         findings: persistedFindings,
         branches: hypotheses,
       }),
@@ -822,7 +816,6 @@ export const Editor: React.FC<EditorProps> = ({
       specs,
       defectMapping,
       processContext,
-      persistedQuestions,
       persistedFindings,
       hypotheses,
     ]
@@ -899,7 +892,7 @@ export const Editor: React.FC<EditorProps> = ({
       useFindingsStore.getState().setStatusFilter(targetId);
     } else if (target === 'question' && targetId) {
       ps.showAnalyze();
-      useAnalyzeFeatureStore.getState().expandToQuestion(targetId);
+      useAnalyzeFeatureStore.getState().expandToHypothesis(targetId);
     } else if (target === 'improvement' || target === 'actions') {
       ps.showImprovement();
     } else if (target === 'report') {
@@ -949,14 +942,15 @@ export const Editor: React.FC<EditorProps> = ({
   // Share handlers
   const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
 
-  // Compute projected metric value from selected improvement ideas
+  // Compute projected metric value from selected improvement ideas (IM-1: ideas
+  // live on hypothesis hubs).
   const projectedFromIdeas = useMemo(() => {
     if (!processContext?.targetMetric || processContext?.targetValue === undefined)
       return undefined;
     if (!stats) return undefined;
     let totalMeanShift = 0;
     let totalSigmaReduction = 0;
-    for (const h of persistedQuestions ?? []) {
+    for (const h of hypotheses) {
       for (const idea of h.ideas ?? []) {
         if (idea.selected && idea.projection) {
           totalMeanShift += idea.projection.meanDelta;
@@ -969,12 +963,7 @@ export const Editor: React.FC<EditorProps> = ({
     if (metric === 'mean') return stats.mean + totalMeanShift;
     if (metric === 'sigma') return stats.stdDev + totalSigmaReduction;
     return undefined;
-  }, [persistedQuestions, processContext, stats]);
-
-  // Question auto-link refs: updated after questionsState is created (below),
-  // read lazily inside useFindingsOrchestration callbacks via internal refs
-  const focusedQuestionIdRef = React.useRef<string | null>(null);
-  const linkFindingRef = React.useRef<((hId: string, fId: string) => void) | undefined>(undefined);
+  }, [hypotheses, processContext, stats]);
 
   // Findings orchestration
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
@@ -1002,77 +991,22 @@ export const Editor: React.FC<EditorProps> = ({
     shareFinding,
     canMentionInChannel,
     onViewStateChange: handleViewStateChange,
-    questions: persistedQuestions,
     processContext,
     currentValue: stats?.cpk ?? stats?.mean,
     projectedValue: projectedFromIdeas,
     factorRoles: processContext?.factorRoles,
     aiAvailable: aiEnabled && isAIAvailable(),
-    focusedQuestionId: focusedQuestionIdRef.current,
-    linkFinding: linkFindingRef.current,
   });
 
-  // Question-link prompt state (shown after chart observation creates a Finding)
-  const [questionLinkPromptOpen, setQuestionLinkPromptOpen] = useState(false);
-  const [questionLinkFindingId, setQuestionLinkFindingId] = useState<string>('');
+  // IM-1 (ADR-085): the Question entity is retired, so the post-observation
+  // question-link prompt is gone. Chart observations create a Finding directly;
+  // the analyst promotes findings to hypothesis hubs on the Wall.
+  const findingsCallbacksWithPrompt = findingsCallbacks;
 
-  // Intercept chart observation to show prompt if user has not opted out
-  const wrappedOnAddChartObservation = useCallback(
-    (
-      chartType: 'boxplot' | 'pareto' | 'ichart',
-      categoryKey?: string,
-      noteText?: string,
-      anchorX?: number,
-      anchorY?: number
-    ) => {
-      const result = findingsCallbacks.onAddChartObservation?.(
-        chartType,
-        categoryKey,
-        noteText,
-        anchorX,
-        anchorY
-      );
-      if (result && !skipQuestionLinkPrompt) {
-        setQuestionLinkFindingId(result.id);
-        setQuestionLinkPromptOpen(true);
-      }
-      return result;
-    },
-    [findingsCallbacks, skipQuestionLinkPrompt]
-  );
-
-  // Stable wrapped findingsCallbacks with intercepted onAddChartObservation
-  const findingsCallbacksWithPrompt = useMemo(
-    () => ({ ...findingsCallbacks, onAddChartObservation: wrappedOnAddChartObservation }),
-    [findingsCallbacks, wrappedOnAddChartObservation]
-  );
-
-  // Question-link prompt handlers
-  const handleQuestionLink = useCallback(
-    (questionId: string) => {
-      linkFindingToQuestion(questionLinkFindingId, questionId);
-    },
-    [questionLinkFindingId, linkFindingToQuestion]
-  );
-
-  const handleQuestionSkipForever = useCallback(() => {
-    setSkipQuestionLinkPrompt(true);
-  }, [setSkipQuestionLinkPrompt]);
-
-  const handleQuestionPromptClose = useCallback(() => {
-    setQuestionLinkPromptOpen(false);
-  }, []);
-
-  // Wall-variant propose-hypothesis CTA — creates a new Hypothesis hub seeded
-  // from the finding and links the finding as the first piece of evidence.
-  const wallViewMode = useCanvasViewportStore(s => s.viewMode);
-  const createHubFromFinding = useAnalyzeStore(s => s.createHubFromFinding);
-  const handleProposeHypothesisFromFinding = useCallback(
-    (findingId: string) => {
-      createHubFromFinding(findingId);
-    },
-    [createHubFromFinding]
-  );
+  // IM-1: the propose-hypothesis-from-finding CTA + its `wallViewMode` read are
+  // removed here — their render target was the retired QuestionLinkPrompt
+  // (wallActive / onProposeHypothesis). Promoting a finding to a Hypothesis hub
+  // on the Wall is owned by the unified Wall re-layout in IM-4/IM-5.
 
   // Deep link: auto-open findings panel and highlight target finding (one-shot)
   // Also set activeView to 'dashboard' on project load unless deep-linked
@@ -1101,15 +1035,17 @@ export const Editor: React.FC<EditorProps> = ({
       });
     }
     if (initialQuestionId) {
-      if (!questionsState.questions.some(h => h.id === initialQuestionId)) {
+      // IM-1: deep links carry a focused-node id; the Question entity is retired,
+      // so we route to Analyze and focus the matching hypothesis hub (if any).
+      if (!hypotheses.some(h => h.id === initialQuestionId)) {
         showToast({
           type: 'warning',
-          message: 'The linked question was not found',
+          message: 'The linked item was not found',
           dismissAfter: 5000,
         });
       } else {
         usePanelsStore.getState().showAnalyze();
-        useAnalyzeFeatureStore.getState().expandToQuestion(initialQuestionId);
+        useAnalyzeFeatureStore.getState().expandToHypothesis(initialQuestionId);
       }
     }
     if (initialMode === 'analyze') {
@@ -1170,29 +1106,27 @@ export const Editor: React.FC<EditorProps> = ({
     author: currentUser?.name,
   });
 
-  // Question CRUD
-  const questionsState = useQuestions({
-    initialQuestions: persistedQuestions,
-    onQuestionsChange: setPersistedQuestions,
-    findings: findingsState.findings,
-  });
+  // Idea write callbacks (keyed by hypothesisId, IM-1 F2) shared by the AI +
+  // improvement flows.
+  const ideaActions = useMemo(
+    () => ({ addIdea, updateIdea, selectIdea, removeIdea: deleteIdea }),
+    [addIdea, updateIdea, selectIdea, deleteIdea]
+  );
 
-  // Update question auto-link refs (consumed by useFindingsOrchestration callbacks)
-  focusedQuestionIdRef.current = questionsState.focusedQuestionId;
-  linkFindingRef.current = questionsState.linkFinding;
-
-  // Investigation workflow
+  // Investigation workflow (IM-1: hypothesis-driven, Question entity retired)
+  // IM-1: handleProjectIdea + ideaImpacts (improvement-idea projection, now
+  // keyed by hypothesisId) are not destructured here — their render target was
+  // the Question-driven FindingsLog ideas surface that IM-1 dismantled. The
+  // replacement, ImprovementIdeasSection (built in @variscout/ui, keyed by
+  // hypothesisId), is not yet mounted in any app render path; wiring it into the
+  // Wall / hypothesis-card surface is owned by IM-4/IM-5. The orchestration hook
+  // still returns both so the surface can re-consume them once mounted.
   const {
-    handleCreateQuestion,
-    handleProjectIdea,
     handleSaveIdeaProjection,
     clearProjectionTarget,
     handleSetFindingStatus,
     hypothesesState,
-    questionsMap,
-    ideaImpacts,
   } = useAnalyzeOrchestration({
-    questionsState,
     findingsState,
     processContext,
     stats,
@@ -1215,38 +1149,37 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Investigation indexing for Foundry IQ (ADR-060 Pillar 2)
   // Active only when Team plan + KB preview enabled + project is open
-  const { onFindingsChange: indexFindings, onQuestionsChange: indexQuestions } = useAnalyzeIndexing(
-    {
-      projectId: projectId ?? undefined,
-      enabled: isKnowledgeBaseAvailable(),
-    }
-  );
+  const { onFindingsChange: indexFindings, onScopesChange: indexScopes } = useAnalyzeIndexing({
+    projectId: projectId ?? undefined,
+    enabled: isKnowledgeBaseAvailable(),
+  });
+  const scopes = useAnalyzeStore(s => s.scopes);
 
   const canvasViewportHubId =
     processContext?.processHubId ?? activeHub?.id ?? DEFAULT_PROCESS_HUB_ID;
   useCanvasViewportLifecycle(canvasViewportHubId);
 
-  // Trigger indexing side-effects whenever findings or questions change
+  // Trigger indexing side-effects whenever findings or scopes change
   useEffect(() => {
     indexFindings(findingsState.findings);
   }, [findingsState.findings, indexFindings]);
 
   useEffect(() => {
-    indexQuestions(questionsState.questions);
-  }, [questionsState.questions, indexQuestions]);
+    indexScopes(scopes);
+  }, [scopes, indexScopes]);
 
   // Improvement workspace
   const {
     handleConvertIdeasToActions,
     aggregatedActions,
     hasVerification: improvHasVerification,
-    improvementQuestions,
+    improvementHypotheses,
     selectedIdeaIds,
     projectedCpkMap: improvementProjectedCpkMap,
   } = useImprovementOrchestration({
-    questionsState,
+    hypotheses,
+    ideaActions,
     findingsState,
-    persistedQuestions: persistedQuestions,
     processContext,
     setProcessContext,
     rawData,
@@ -1261,35 +1194,10 @@ export const Editor: React.FC<EditorProps> = ({
         : findingsState.findings,
     [activeIPContext.isIPScoped, activeIPLineageFindingIds, findingsState.findings]
   );
-  const scopedHypotheses = useMemo(
-    () =>
-      activeIPContext.isIPScoped
-        ? hypotheses.filter(hypothesis => activeIPLineageHypothesisIds.has(hypothesis.id))
-        : hypotheses,
-    [activeIPContext.isIPScoped, activeIPLineageHypothesisIds, hypotheses]
-  );
-  const scopedQuestionIds = useMemo(() => {
-    if (!activeIPContext.isIPScoped) return null;
-    const ids = new Set<string>();
-    for (const hypothesis of scopedHypotheses) {
-      for (const id of hypothesis.questionIds) ids.add(id);
-    }
-    for (const finding of scopedFindings) {
-      if (finding.questionId) ids.add(finding.questionId);
-    }
-    return ids;
-  }, [activeIPContext.isIPScoped, scopedFindings, scopedHypotheses]);
-  const scopedQuestions = useMemo(
-    () =>
-      scopedQuestionIds
-        ? questionsState.questions.filter(question => scopedQuestionIds.has(question.id))
-        : questionsState.questions,
-    [questionsState.questions, scopedQuestionIds]
-  );
-  const scopedQuestionsState = useMemo(
-    () => (scopedQuestionIds ? { ...questionsState, questions: scopedQuestions } : questionsState),
-    [questionsState, scopedQuestionIds, scopedQuestions]
-  );
+  // IM-1: the Editor-level scopedHypotheses memo is removed. On main it existed
+  // only to derive the now-retired scopedQuestionIds; AnalyzeWorkspace scopes
+  // hypotheses internally from activeIPLineage (scopedHubIds → scopedHubs), so
+  // no scoped-hypothesis set needs threading from here.
   const scopedFindingsState = useMemo(
     () =>
       activeIPContext.isIPScoped ? { ...findingsState, findings: scopedFindings } : findingsState,
@@ -1363,9 +1271,9 @@ export const Editor: React.FC<EditorProps> = ({
   // Verification prompt: show when new data is uploaded while findings are improving
   const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
 
-  // Brainstorm modal state
+  // Brainstorm modal state. IM-1: brainstorm targets a hypothesis hub.
   const [brainstormQuestionId, setBrainstormQuestionId] = useState<string | null>(null);
-  const brainstormQuestion = improvementQuestions.find(q => q.id === brainstormQuestionId);
+  const brainstormQuestion = improvementHypotheses.find(q => q.id === brainstormQuestionId);
   const hmwPrompts = useHMWPrompts(
     brainstormQuestion?.text ?? '',
     processContext?.problemStatement
@@ -1455,7 +1363,6 @@ export const Editor: React.FC<EditorProps> = ({
     outcome,
     specs,
     findings: findingsState.findings,
-    questions: questionsState.questions,
     factors,
     filters,
     filterStack: filterNav.filterStack,
@@ -1466,7 +1373,6 @@ export const Editor: React.FC<EditorProps> = ({
     categories,
     stagedStats,
     drillPath,
-    persistedQuestions,
     locale,
     knowledgeSearchFolder,
     journeyPhase,
@@ -1495,7 +1401,7 @@ export const Editor: React.FC<EditorProps> = ({
     messages: aiOrch.coscout.messages,
     filterNav,
     findingsState,
-    questionsState,
+    ideaActions,
     filters,
     stats,
     filteredDataLength: filteredData.length,
@@ -1548,11 +1454,7 @@ export const Editor: React.FC<EditorProps> = ({
           updatedContext.targetDirection = brief.target.direction;
         }
         setProcessContext(updatedContext);
-        if (brief.questions) {
-          for (const h of brief.questions) {
-            questionsState.addQuestion(h.text, h.factor, h.level);
-          }
-        }
+        // IM-1 (F5): AnalysisBrief no longer seeds Question entities.
       }
 
       // Persist outcomes + primaryScopeDimensions to the active Hub.
@@ -1587,7 +1489,6 @@ export const Editor: React.FC<EditorProps> = ({
       setCategories,
       processContext,
       setProcessContext,
-      questionsState,
       processHubs,
       saveProcessHub,
       stageFive,
@@ -1638,7 +1539,7 @@ export const Editor: React.FC<EditorProps> = ({
   // Auto-save on key state changes (Phase 3)
   useAutoSave(
     handleSave,
-    [persistedFindings, persistedQuestions, processContext, specs, displayOptions],
+    [persistedFindings, hypotheses, scopes, processContext, specs, displayOptions],
     rawData.length > 0 && !!projectId
   );
 
@@ -1734,7 +1635,7 @@ export const Editor: React.FC<EditorProps> = ({
             projectionTarget
               ? {
                   ideaText: projectionTarget.ideaText,
-                  questionText: projectionTarget.questionText,
+                  questionText: projectionTarget.hypothesisText,
                 }
               : undefined
           }
@@ -1759,7 +1660,7 @@ export const Editor: React.FC<EditorProps> = ({
           activeView === 'charter' || activeView === 'sustainment' ? undefined : activeView
         }
         openQuestionCount={
-          questionsState.questions.filter(h => h.questionSource && h.status === 'open').length
+          hypotheses.filter(h => h.status !== 'confirmed' && h.status !== 'refuted').length
         }
         selectedIdeaCount={selectedIdeaIds.size}
         isPISidebarOpen={isPISidebarOpen}
@@ -1939,9 +1840,6 @@ export const Editor: React.FC<EditorProps> = ({
                 handleNavigateToChart={handleNavigateToChart}
                 handleShareFinding={handleShareFinding}
                 drillPath={drillPath}
-                questionsState={scopedQuestionsState}
-                handleCreateQuestion={handleCreateQuestion}
-                handleProjectIdea={handleProjectIdea}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
                 handleAddPhoto={handleAddPhoto}
                 userId={currentUser?.email ?? null}
@@ -1950,13 +1848,15 @@ export const Editor: React.FC<EditorProps> = ({
                 actionProposalsState={actionProposalsState}
                 handleSearchKnowledge={handleSearchKnowledge}
                 columnAliases={columnAliases}
-                viewMode={viewState?.findingsViewMode}
-                onViewModeChange={(mode: 'list' | 'board' | 'tree') =>
+                viewMode={
+                  viewState?.findingsViewMode === 'tree'
+                    ? 'board'
+                    : (viewState?.findingsViewMode as 'list' | 'board' | undefined)
+                }
+                onViewModeChange={(mode: 'list' | 'board') =>
                   handleViewStateChange({ findingsViewMode: mode })
                 }
                 hypothesesState={hypothesesState}
-                questionsMap={questionsMap}
-                ideaImpacts={ideaImpacts}
                 planningProps={wallPlanningProps}
               />
             ) : activeView === 'projects' ? (
@@ -1982,7 +1882,7 @@ export const Editor: React.FC<EditorProps> = ({
                 }}
                 approachInputs={{
                   hypotheses,
-                  ideas: persistedQuestions.flatMap(q => q.ideas ?? []),
+                  ideas: hypotheses.flatMap(h => h.ideas ?? []),
                   actions: persistedFindings.flatMap(f => f.actions ?? []),
                 }}
                 onOpenCauseWorkbench={_cause => {
@@ -2079,7 +1979,6 @@ export const Editor: React.FC<EditorProps> = ({
                 findingsCallbacks={findingsCallbacksWithPrompt}
                 handlePinFinding={handlePinFinding}
                 handleSetFindingStatus={handleSetFindingStatus}
-                questionsState={questionsState}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
                 aiOrch={aiOrch}
                 actionProposalsState={actionProposalsState}
@@ -2220,19 +2119,6 @@ export const Editor: React.FC<EditorProps> = ({
         />
       )}
 
-      {/* Question-Link Prompt — shown after chart observation creates a Finding */}
-      <QuestionLinkPrompt
-        isOpen={questionLinkPromptOpen}
-        findingId={questionLinkFindingId}
-        questions={persistedQuestions}
-        onLink={handleQuestionLink}
-        onSkip={handleQuestionPromptClose}
-        onSkipForever={handleQuestionSkipForever}
-        onClose={handleQuestionPromptClose}
-        wallActive={wallViewMode === 'wall'}
-        onProposeHypothesis={handleProposeHypothesisFromFinding}
-      />
-
       {/* Brainstorm modal: hoisted to top-level so it survives view navigation */}
       <BrainstormModal
         isOpen={brainstormQuestionId !== null}
@@ -2257,7 +2143,8 @@ export const Editor: React.FC<EditorProps> = ({
           if (brainstormQuestionId) {
             const selected = brainstormIdeas.filter(i => selectedIds.includes(i.id));
             for (const idea of selected) {
-              questionsState.addIdea(brainstormQuestionId, idea.text);
+              // IM-1: brainstormQuestionId is a hypothesis hub id; ideas re-home there.
+              addIdea(brainstormQuestionId, idea.text);
             }
           }
           setBrainstormQuestionId(null);
@@ -2276,7 +2163,7 @@ export const Editor: React.FC<EditorProps> = ({
           // Wire issueStatement into processContext (same path as brief.issueStatement
           // in handleMappingConfirmWithCategories — the existing setter accepts this).
           // NOTE: brief contents must NOT be logged to App Insights (PII).
-          if (brief.issueStatement || brief.target || brief.questions) {
+          if (brief.issueStatement || brief.target) {
             const updatedContext = { ...(processContext ?? {}) };
             if (brief.issueStatement) updatedContext.issueStatement = brief.issueStatement;
             if (brief.target) {
@@ -2286,11 +2173,7 @@ export const Editor: React.FC<EditorProps> = ({
               updatedContext.targetDirection = brief.target.direction;
             }
             setProcessContext(updatedContext);
-            if (brief.questions) {
-              for (const q of brief.questions) {
-                questionsState.addQuestion(q.text, q.factor, q.level);
-              }
-            }
+            // IM-1 (F5): AnalysisBrief no longer seeds Question entities.
           }
           // TODO slice 4: persist brief.hypothesisDraft to investigation as a draft Hypothesis entity.
           stageFive.close();

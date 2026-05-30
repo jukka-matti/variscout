@@ -24,7 +24,7 @@ import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { usePreferencesStore } from '@variscout/stores';
 import { useVisualGrounding } from '@variscout/hooks';
 import { useCoScoutProps } from '@variscout/hooks';
-import type { UseFindingsReturn, UseQuestionsReturn } from '@variscout/hooks';
+import type { UseFindingsReturn } from '@variscout/hooks';
 import { isAIAvailable } from '../../services/aiService';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
 import { usePanelsStore } from '../../features/panels/panelsStore';
@@ -54,8 +54,6 @@ export interface CoScoutSectionProps {
   aiOrch: UseAIOrchestrationReturn;
   /** Findings state for insight capture callbacks */
   findingsState: UseFindingsReturn;
-  /** Questions state for insight capture callbacks */
-  questionsState: UseQuestionsReturn;
   /** Action proposals state — Azure-only, required for close-prompt logic */
   actionProposalsState: UseActionProposalsReturn;
   /** Triggers on-demand KB search */
@@ -78,7 +76,6 @@ export interface CoScoutSectionProps {
 export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
   aiOrch,
   findingsState,
-  questionsState,
   actionProposalsState,
   handleSearchKnowledge,
   handleAddCommentWithAuthor,
@@ -99,15 +96,13 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
     onFocusChart: chartType => {
       usePanelsStore.getState().setPendingChartFocus(chartType);
     },
-    onExpandPanel: (panelId, targetId) => {
+    onExpandPanel: (panelId, _targetId) => {
       if (panelId === 'question' || panelId === 'finding') {
         usePanelsStore.getState().setPIActiveTab('questions');
         if (!usePanelsStore.getState().isPISidebarOpen) {
           usePanelsStore.getState().togglePISidebar();
         }
-        if (panelId === 'question' && targetId) {
-          questionsState.setFocusedQuestion(targetId);
-        }
+        // IM-1: Question entity retired — no per-question focus target to set.
       } else if (panelId === 'stats') {
         usePanelsStore.getState().setPIActiveTab('stats');
         if (!usePanelsStore.getState().isPISidebarOpen) {
@@ -128,7 +123,6 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
       resizeConfig: COSCOUT_RESIZE_CONFIG,
     },
     findingsState,
-    questionsState,
     actionProposalsState: {
       actionProposals: actionProposalsState.actionProposals,
       handleExecuteAction: actionProposalsState.handleExecuteAction,

@@ -1,4 +1,4 @@
-export type { ImprovementQuestion } from './improvementStore';
+export type { ImprovementHypothesis } from './improvementStore';
 export { useImprovementOrchestration } from './useImprovementOrchestration';
 export type {
   UseImprovementOrchestrationOptions,

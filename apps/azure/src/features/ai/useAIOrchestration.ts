@@ -34,7 +34,6 @@ import {
   type SpecLimits,
   type DataRow,
   type Finding,
-  type Question,
   type ProcessContext,
   type StagedStatsResult,
 } from '@variscout/core';
@@ -79,7 +78,6 @@ export interface UseAIOrchestrationOptions {
   outcome?: string | null;
   specs?: SpecLimits;
   findings: Finding[];
-  questions: Question[];
   factors: string[];
   filters: Record<string, (string | number)[]>;
   filterStack: FilterAction[];
@@ -90,7 +88,6 @@ export interface UseAIOrchestrationOptions {
   categories?: import('@variscout/core').AnalyzeCategory[];
   stagedStats?: StagedStatsResult | null;
   drillPath: DrillStep[];
-  persistedQuestions?: Question[];
   locale?: Locale;
   knowledgeSearchFolder?: string;
   journeyPhase?: JourneyPhase;
@@ -136,7 +133,6 @@ export function useAIOrchestration({
   outcome,
   specs,
   findings,
-  questions,
   factors,
   filters,
   filterStack,
@@ -147,7 +143,6 @@ export function useAIOrchestration({
   categories,
   stagedStats,
   drillPath,
-  persistedQuestions,
   locale,
   knowledgeSearchFolder,
   journeyPhase,
@@ -182,7 +177,7 @@ export function useAIOrchestration({
     outcome,
     specs,
     findings,
-    questions,
+    hypotheses,
     factors,
     highlightedFindingId,
     stagedStats,
@@ -208,7 +203,6 @@ export function useAIOrchestration({
     const contribMap = new Map(aiVariationContributions?.map(c => [c.factor, c.etaSquared]) ?? []);
 
     const factorNodes = factors.map(factor => {
-      const fQuestions = questions.filter(q => q.factor === factor);
       const fFindings = findings.filter(f => {
         const src = f.source;
         return src && 'category' in src && src.category === factor;
@@ -216,15 +210,16 @@ export function useAIOrchestration({
       return {
         factor,
         rSquaredAdj: contribMap.get(factor) ?? 0,
-        explored: fQuestions.length > 0 || fFindings.length > 0,
-        questionCount: fQuestions.length,
+        // IM-1: factor exploration is now finding-driven (Question entity retired).
+        explored: fFindings.length > 0,
+        questionCount: 0,
         findingCount: fFindings.length,
       };
     });
 
     const convergencePoints = (hypotheses ?? []).map(hub => ({
       factor: hub.name,
-      incomingCount: hub.questionIds.length + hub.findingIds.length,
+      incomingCount: hub.findingIds.length,
       hubName: hub.name,
       hubStatus: hub.status,
     }));
@@ -239,7 +234,7 @@ export function useAIOrchestration({
       }>,
       convergencePoints,
     };
-  }, [evidenceMapTopology, factors, questions, findings, aiVariationContributions, hypotheses]);
+  }, [evidenceMapTopology, factors, findings, aiVariationContributions, hypotheses]);
 
   // Responses API config (resolved async)
   const [responsesConfig, setResponsesConfig] = useState<ResponsesApiConfig | undefined>(undefined);
@@ -268,8 +263,9 @@ export function useAIOrchestration({
   // Focus context state for "Ask CoScout about this" actions
   const [focusContext, setFocusContext] = useState<AIContext['focusContext']>(undefined);
 
-  // Read focused question ID from investigation store (ADR-060 Pillar 1)
-  const focusedQuestionId = useAnalyzeFeatureStore(s => s.expandedQuestionId ?? undefined);
+  // Read focused hypothesis ID from the feature store (ADR-060 Pillar 1).
+  // IM-1: the slot is a generic focused-node id (Question entity retired).
+  const focusedQuestionId = useAnalyzeFeatureStore(s => s.expandedHypothesisId ?? undefined);
 
   // AI context
   const aiContext = useAIContext({
@@ -282,7 +278,6 @@ export function useAIOrchestration({
     categories,
     violations: violationCounts,
     findings,
-    questions,
     activeChart: viewState?.focusedChart as InsightChartType | undefined,
     variationContributions: enrichedContributions,
     drillPath: filterStack.filter(a => a.type === 'filter' && a.factor).map(a => a.factor!),
@@ -323,7 +318,7 @@ export function useAIOrchestration({
     outcome,
     specs,
     findings,
-    questions,
+    hypotheses,
     factors,
     filters,
     filterStack,
@@ -358,7 +353,6 @@ export function useAIOrchestration({
     const phase = aiContext.context?.investigation?.phase;
     if (!phase && suggestedQuestions.length === 0) return;
     updateFindingsPopout(findings, columnAliases, drillPath, {
-      questions: persistedQuestions,
       processContext,
       currentValue: stats?.cpk ?? stats?.mean,
       analyzePhase: phase,
@@ -372,7 +366,6 @@ export function useAIOrchestration({
     findings,
     columnAliases,
     drillPath,
-    persistedQuestions,
     processContext,
     stats,
     aiAvailable,

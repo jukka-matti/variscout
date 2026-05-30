@@ -13,7 +13,7 @@
  * SharePoint folder, forming the team's knowledge base.
  */
 
-import type { Finding, Question, ProcessContext, StatsResult, Locale } from '@variscout/core';
+import type { Finding, ProcessContext, StatsResult, Locale } from '@variscout/core';
 import { formatStatistic } from '@variscout/core/i18n';
 import type { ReportSectionDescriptor, ReportType, ReportWorkspace } from '@variscout/hooks';
 
@@ -138,53 +138,13 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
       parts.push('');
     }
 
-    // Render questions for evidence-trail and improvement-plan sections
-    if (
-      (section.id === 'evidence-trail' || section.id === 'improvement-plan') &&
-      section.questions.length > 0
-    ) {
-      parts.push('**Questions:**');
-      parts.push('');
-      for (const h of section.questions) {
-        const roleTag = h.causeRole ? ` [${h.causeRole}]` : '';
-        parts.push(`- **${h.text}** (${h.status})${roleTag}`);
-
-        // Render ideas for improvement-plan section
-        if (section.id === 'improvement-plan' && h.ideas && h.ideas.length > 0) {
-          for (const idea of h.ideas) {
-            const selected = idea.selected ? '✅' : '⬜';
-            const direction = idea.direction ? ` [${idea.direction}]` : '';
-            const timeframe = idea.timeframe ?? '';
-            const projCpk =
-              idea.projection?.projectedCpk != null
-                ? ` — Cpk ${fmt(idea.projection.projectedCpk)}`
-                : '';
-            parts.push(`  - ${selected} ${idea.text}${direction} (${timeframe})${projCpk}`);
-          }
-        }
-      }
-      parts.push('');
-
-      // Skip orphan question rendering for improvement-plan (already covered above)
-      if (section.id === 'improvement-plan') continue;
-    }
+    // IM-1 (ADR-085): the Question entity is retired — sections no longer
+    // carry a `questions` array. Findings render directly; improvement ideas
+    // live on hypothesis hubs (surfaced in the in-app Report view).
 
     // Render findings
     for (const finding of section.findings) {
-      parts.push(renderFinding(finding, section.questions, locale));
-    }
-
-    // Render standalone questions (not already covered by findings)
-    const orphanQuestions = section.questions.filter(
-      h => !section.findings.some(f => f.questionId === h.id)
-    );
-    if (orphanQuestions.length > 0 && section.id !== 'improvement-plan') {
-      parts.push('**Questions:**');
-      parts.push('');
-      for (const h of orphanQuestions) {
-        parts.push(`- **${h.text}** (${h.status})`);
-      }
-      parts.push('');
+      parts.push(renderFinding(finding, locale));
     }
   }
 
@@ -205,7 +165,7 @@ export function renderReportMarkdown(options: RenderReportOptions): string {
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
-function renderFinding(finding: Finding, questions: Question[], locale: Locale = 'en'): string {
+function renderFinding(finding: Finding, locale: Locale = 'en'): string {
   const fmt = (n: number, d: number = 2) => formatStatistic(n, locale, d);
   const lines: string[] = [];
   const statusTag = `[${finding.status.toUpperCase()}]`;
@@ -213,15 +173,6 @@ function renderFinding(finding: Finding, questions: Question[], locale: Locale =
 
   lines.push(`#### ${statusTag}${tagSuffix} ${finding.text}`);
   lines.push('');
-
-  // Linked question
-  if (finding.questionId) {
-    const question = questions.find(h => h.id === finding.questionId);
-    if (question) {
-      lines.push(`**Question:** "${question.text}" (${question.status})`);
-      lines.push('');
-    }
-  }
 
   // Stats snapshot
   if (finding.context.stats?.cpk !== undefined) {

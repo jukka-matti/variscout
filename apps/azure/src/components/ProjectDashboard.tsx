@@ -50,7 +50,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
   const filterStack = useProjectStore(s => s.filterStack);
   const viewState = useProjectStore(s => s.viewState);
   const findings = useAnalyzeStore(s => s.findings);
-  const questions = useAnalyzeStore(s => s.questions);
+  const hypotheses = useAnalyzeStore(s => s.hypotheses);
   const aiEnabled = usePreferencesStore(s => s.aiEnabled);
 
   // Journey phase
@@ -109,7 +109,11 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
       {/* What's New — top on mobile for maximum visibility */}
       {lastViewedAt != null && lastViewedAt > 0 && (
         <div className="lg:hidden">
-          <WhatsNewSection findings={findings} questions={questions} lastViewedAt={lastViewedAt} />
+          <WhatsNewSection
+            findings={findings}
+            hypotheses={hypotheses}
+            lastViewedAt={lastViewedAt}
+          />
         </div>
       )}
 
@@ -120,7 +124,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
           <div className="hidden lg:block">
             <WhatsNewSection
               findings={findings}
-              questions={questions}
+              hypotheses={hypotheses}
               lastViewedAt={lastViewedAt}
             />
           </div>
@@ -131,7 +135,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
           lastEdited={lastEdited}
           journeyPhase={journeyPhase}
           findings={findings}
-          questions={questions}
+          hypotheses={hypotheses}
           filterStack={filterStack}
           viewState={viewState}
           onNavigateToFindings={handleNavigateToFindings}

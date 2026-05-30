@@ -1,15 +1,17 @@
 /**
- * useAnalyzeOrchestration - Investigation/question orchestration for PWA
+ * useAnalyzeOrchestration - Hypothesis-hub orchestration for PWA
  *
- * Owns the investigation workflow: calls useQuestions (CRUD engine from @variscout/hooks),
- * computes derived state (questionsMap, ideaImpacts) as useMemo values returned from the hook,
- * and provides DataContext-dependent action callbacks.
+ * IM-1 (ADR-085): the Question entity is retired. This hook owns the
+ * hypothesis-hub workflow: drives `useHypotheses` (hub CRUD from
+ * @variscout/hooks, synced to the domain analyze store), computes derived idea
+ * impacts from the hubs' re-homed ideas, and provides What-If projection
+ * callbacks (keyed by hypothesisId).
  */
 import { useMemo, useCallback } from 'react';
-import { useAnalyzeFeatureStore, buildQuestionsMap, buildIdeaImpacts } from './analyzeStore';
-import type { QuestionDisplayData } from './analyzeStore';
+import { useAnalyzeFeatureStore, buildIdeaImpacts } from './analyzeStore';
 import { usePanelsStore } from '../panels/panelsStore';
 import { useHypotheses, type HypothesisUpdate } from '@variscout/hooks';
+import { useAnalyzeStore } from '@variscout/stores';
 import type {
   Finding,
   FindingProjection,
@@ -19,29 +21,27 @@ import type {
   StatsResult,
   Hypothesis,
 } from '@variscout/core';
-import type { UseQuestionsReturn } from '@variscout/hooks';
 
 // ── Interfaces ────────────────────────────────────────────────────────────
 
 interface FindingsStateSlice {
   findings: Finding[];
-  linkQuestion: (findingId: string, questionId: string) => void;
   setFindingStatus: (id: string, status: FindingStatus) => void;
   addAction: (findingId: string, text: string) => void;
 }
 
 export interface UseAnalyzeOrchestrationOptions {
-  questionsState: UseQuestionsReturn;
   findingsState: FindingsStateSlice;
   processContext: ProcessContext | undefined;
   stats: StatsResult | null;
 }
 
 export interface UseAnalyzeOrchestrationReturn {
-  /** Create question and link to finding */
-  handleCreateQuestion: (findingId: string, text: string, factor?: string, level?: string) => void;
-  /** Open What-If pre-loaded for a specific improvement idea */
-  handleProjectIdea: (questionId: string, ideaId: string) => void;
+  /**
+   * Open What-If pre-loaded for a specific improvement idea. Keyed by
+   * hypothesisId (IM-1).
+   */
+  handleProjectIdea: (hypothesisId: string, ideaId: string) => void;
   /** Save projection from What-If back to idea */
   handleSaveIdeaProjection: (projection: FindingProjection) => void;
   /** Clear the projection target (e.g., when closing What-If without saving) */
@@ -55,16 +55,11 @@ export interface UseAnalyzeOrchestrationReturn {
     updateHub: (hubId: string, updates: HypothesisUpdate) => void;
     deleteHub: (hubId: string) => void;
     resetHubs: (newHubs: Hypothesis[]) => void;
-    connectQuestion: (hubId: string, questionId: string) => void;
-    disconnectQuestion: (hubId: string, questionId: string) => void;
     connectFinding: (hubId: string, findingId: string) => void;
     disconnectFinding: (hubId: string, findingId: string) => void;
     setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
-    getHubForQuestion: (questionId: string) => Hypothesis | undefined;
     getHubForFinding: (findingId: string) => Hypothesis | undefined;
   };
-  /** Map of question ID to display data for FindingCard */
-  questionsMap: Record<string, QuestionDisplayData>;
   /** Computed idea impacts keyed by idea ID */
   ideaImpacts: Record<string, IdeaImpact | undefined>;
 }
@@ -72,55 +67,43 @@ export interface UseAnalyzeOrchestrationReturn {
 // ── Hook ──────────────────────────────────────────────────────────────────
 
 export function useAnalyzeOrchestration({
-  questionsState,
   findingsState,
   processContext,
   stats,
 }: UseAnalyzeOrchestrationOptions): UseAnalyzeOrchestrationReturn {
-  // ── Suspected cause hubs ──────────────────────────────────────────────
+  // ── Suspected cause hubs (synced to the domain analyze store) ───────────
   const hypothesesState = useHypotheses({
     initialHubs: [],
+    onHubsChange: useAnalyzeStore.getState().resetHubs,
   });
 
-  // ── Compute derived data (returned from hook, not synced to store) ────
-  const questionsMap = useMemo(
-    () => buildQuestionsMap(questionsState.questions),
-    [questionsState.questions]
-  );
+  // Idea actions (keyed by hypothesisId) live on the domain analyze store (IM-1 F2).
+  const updateIdeaProjection = useAnalyzeStore(s => s.updateIdeaProjection);
 
+  // ── Compute derived data ──────────────────────────────────────────────
   const ideaImpacts = useMemo(
-    () => buildIdeaImpacts(questionsState.questions, processContext, stats),
-    [questionsState.questions, processContext, stats]
+    () => buildIdeaImpacts(hypothesesState.hubs, processContext, stats),
+    [hypothesesState.hubs, processContext, stats]
   );
 
   // ── DataContext-dependent actions ─────────────────────────────────────
 
-  // Question creation from finding cards
-  const handleCreateQuestion = useCallback(
-    (findingId: string, text: string, factor?: string, level?: string) => {
-      const question = questionsState.addQuestion(text, factor, level);
-      questionsState.linkFinding(question.id, findingId);
-      findingsState.linkQuestion(findingId, question.id);
-    },
-    [questionsState, findingsState]
-  );
-
   // Open What-If pre-loaded for a specific improvement idea
   const handleProjectIdea = useCallback(
-    (questionId: string, ideaId: string) => {
-      const question = questionsState.getQuestion(questionId);
-      const idea = question?.ideas?.find(i => i.id === ideaId);
-      if (question && idea) {
+    (hypothesisId: string, ideaId: string) => {
+      const hub = hypothesesState.hubs.find(h => h.id === hypothesisId);
+      const idea = hub?.ideas?.find(i => i.id === ideaId);
+      if (hub && idea) {
         useAnalyzeFeatureStore.getState().setProjectionTarget({
-          questionId,
+          hypothesisId,
           ideaId,
           ideaText: idea.text,
-          questionText: question.text,
+          hypothesisText: hub.name,
         });
       }
       usePanelsStore.getState().setWhatIfOpen(true);
     },
-    [questionsState]
+    [hypothesesState.hubs]
   );
 
   // Clear the projection target
@@ -133,44 +116,40 @@ export function useAnalyzeOrchestration({
     (projection: FindingProjection) => {
       const target = useAnalyzeFeatureStore.getState().projectionTarget;
       if (target) {
-        questionsState.setIdeaProjection(target.questionId, target.ideaId, projection);
+        updateIdeaProjection(target.hypothesisId, target.ideaId, projection);
         useAnalyzeFeatureStore.getState().setProjectionTarget(null);
         usePanelsStore.getState().setWhatIfOpen(false);
       }
     },
-    [questionsState]
+    [updateIdeaProjection]
   );
 
-  // Idea -> Action conversion: when a finding moves to 'improving', convert selected ideas
+  // Idea -> Action conversion: when a finding moves to 'improving', convert
+  // selected ideas from the hub that owns the finding.
   const handleSetFindingStatus = useCallback(
     (id: string, status: FindingStatus) => {
       if (status === 'improving') {
-        const finding = findingsState.findings.find(f => f.id === id);
-        if (finding?.questionId) {
-          const question = questionsState.getQuestion(finding.questionId);
-          const selectedIdeas = question?.ideas?.filter(i => i.selected) ?? [];
-          if (selectedIdeas.length > 0) {
-            findingsState.setFindingStatus(id, status);
-            for (const idea of selectedIdeas) {
-              findingsState.addAction(id, idea.text);
-            }
-            return;
+        const hub = hypothesesState.hubs.find(h => h.findingIds.includes(id));
+        const selectedIdeas = hub?.ideas?.filter(i => i.selected) ?? [];
+        if (selectedIdeas.length > 0) {
+          findingsState.setFindingStatus(id, status);
+          for (const idea of selectedIdeas) {
+            findingsState.addAction(id, idea.text);
           }
+          return;
         }
       }
       findingsState.setFindingStatus(id, status);
     },
-    [findingsState, questionsState]
+    [findingsState, hypothesesState.hubs]
   );
 
   return {
-    handleCreateQuestion,
     handleProjectIdea,
     handleSaveIdeaProjection,
     clearProjectionTarget,
     handleSetFindingStatus,
     hypothesesState,
-    questionsMap,
     ideaImpacts,
   };
 }

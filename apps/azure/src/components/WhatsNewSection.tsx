@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
-import type { Finding, Question } from '@variscout/core';
+import type { Finding, Hypothesis } from '@variscout/core';
 import { FINDING_STATUS_LABELS } from '@variscout/core';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface WhatsNewSectionProps {
   findings: Finding[];
-  questions: Question[];
+  /** Hypothesis hubs (the suspected causes) — IM-1: replaces the retired questions. */
+  hypotheses: Hypothesis[];
   /** Epoch ms — show items newer than this timestamp */
   lastViewedAt: number;
 }
@@ -45,7 +46,11 @@ function truncate(text: string, maxLength: number = 40): string {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const WhatsNewSection: React.FC<WhatsNewSectionProps> = ({ findings, questions, lastViewedAt }) => {
+const WhatsNewSection: React.FC<WhatsNewSectionProps> = ({
+  findings,
+  hypotheses,
+  lastViewedAt,
+}) => {
   const items = useMemo<WhatsNewItem[]>(() => {
     const result: WhatsNewItem[] = [];
 
@@ -95,11 +100,11 @@ const WhatsNewSection: React.FC<WhatsNewSectionProps> = ({ findings, questions, 
     }
 
     // Question status changes — updatedAt is now a Unix ms number
-    for (const h of questions) {
+    for (const h of hypotheses) {
       if (h.updatedAt > lastViewedAt) {
         result.push({
           type: 'question-status',
-          text: `\u2018${truncate(h.text)}\u2019 question \u2192 ${h.status}`,
+          text: `\u2018${truncate(h.name)}\u2019 hypothesis \u2192 ${h.status}`,
           timestamp: h.updatedAt,
         });
       }
@@ -108,7 +113,7 @@ const WhatsNewSection: React.FC<WhatsNewSectionProps> = ({ findings, questions, 
     // Sort newest first, cap at MAX_ITEMS
     result.sort((a, b) => b.timestamp - a.timestamp);
     return result.slice(0, MAX_ITEMS);
-  }, [findings, questions, lastViewedAt]);
+  }, [findings, hypotheses, lastViewedAt]);
 
   const sinceLabel = formatShortDate(lastViewedAt);
 

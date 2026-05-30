@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import type {
   Finding,
   FindingStatus,
-  Question,
+  Hypothesis,
   FilterAction,
-  QuestionStatus,
+  HypothesisStatus,
 } from '@variscout/core';
 import { FINDING_STATUSES, FINDING_STATUS_LABELS } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
@@ -18,7 +18,8 @@ export interface ProjectStatusCardProps {
   lastEdited?: string;
   journeyPhase: 'frame' | 'scout' | 'analyze' | 'improve';
   findings: Finding[];
-  questions: Question[];
+  /** Hypothesis hubs (the suspected causes) — IM-1: replaces the retired questions. */
+  hypotheses: Hypothesis[];
   filterStack: FilterAction[];
   viewState?: ViewState | null;
   onNavigateToFindings: (status?: string) => void;
@@ -41,11 +42,12 @@ const STATUS_DOT_COLORS: Record<FindingStatus, string> = {
 
 // ── Question status icons ────────────────────────────────────────────────────
 
-const QUESTION_STATUS_ICONS: Record<QuestionStatus, string> = {
-  answered: '\u2713',
-  'ruled-out': '\u2717',
-  open: '?',
-  investigating: '\u25D0',
+const QUESTION_STATUS_ICONS: Record<HypothesisStatus, string> = {
+  proposed: '?',
+  evidenced: '\u25D0',
+  confirmed: '\u2713',
+  refuted: '\u2717',
+  'needs-disconfirmation': '!',
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -55,7 +57,7 @@ const ProjectStatusCard: React.FC<ProjectStatusCardProps> = ({
   lastEdited,
   journeyPhase,
   findings,
-  questions,
+  hypotheses,
   filterStack,
   onNavigateToFindings,
   onNavigateToQuestion,
@@ -74,8 +76,8 @@ const ProjectStatusCard: React.FC<ProjectStatusCardProps> = ({
     return counts;
   }, [findings]);
 
-  // Root questions (no parentId)
-  const rootQuestions = useMemo(() => questions.filter(h => !h.parentId), [questions]);
+  // Hypothesis hubs are flat (no parent) — all are top-level (IM-1).
+  const rootQuestions = useMemo(() => hypotheses, [hypotheses]);
 
   // Action progress across all findings
   const actionProgress = useMemo(() => {
@@ -182,10 +184,10 @@ const ProjectStatusCard: React.FC<ProjectStatusCardProps> = ({
         </div>
       )}
 
-      {/* Root questions */}
+      {/* Suspected causes (hypothesis hubs) */}
       {rootQuestions.length > 0 && (
         <div>
-          <p className="text-xs text-content-secondary mb-2">Questions</p>
+          <p className="text-xs text-content-secondary mb-2">Suspected causes</p>
           <ul className="space-y-1">
             {rootQuestions.map(h => (
               <li key={h.id}>
@@ -200,10 +202,7 @@ const ProjectStatusCard: React.FC<ProjectStatusCardProps> = ({
                   >
                     {QUESTION_STATUS_ICONS[h.status]}
                   </span>
-                  <span className="text-content flex-1 truncate">{h.text}</span>
-                  {h.factor && (
-                    <span className="text-xs text-content-secondary shrink-0">{h.factor}</span>
-                  )}
+                  <span className="text-content flex-1 truncate">{h.name}</span>
                 </button>
               </li>
             ))}

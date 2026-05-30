@@ -15,8 +15,8 @@ import type {
   FindingSource,
   Finding,
   FindingComment,
+  ImprovementIdea,
 } from '@variscout/core';
-import type { UseQuestionsReturn } from '@variscout/hooks';
 import { usePreferencesStore } from '@variscout/stores';
 
 // ── Interfaces ────────────────────────────────────────────────────────────
@@ -47,12 +47,17 @@ interface FindingsStateSlice {
     source?: FindingSource
   ) => Finding;
   addAction: (findingId: string, text: string) => void;
-  linkQuestion: (
-    findingId: string,
-    questionId: string,
-    validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
-  ) => void;
   addFindingComment: (findingId: string, text: string, author?: string) => FindingComment;
+}
+
+/** Idea write callbacks keyed by hypothesisId (IM-1 — ideas live on Hypothesis). */
+interface IdeaActionsSlice {
+  addIdea: (hypothesisId: string, text: string) => ImprovementIdea | null;
+  updateIdea: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'timeframe' | 'direction' | 'cost'>>
+  ) => void;
 }
 
 interface StatsSlice {
@@ -68,8 +73,8 @@ export interface UseActionProposalsOptions {
   filterNav: FilterNavSlice;
   /** Findings state for create_finding / suggest_action actions */
   findingsState: FindingsStateSlice;
-  /** Questions state for create_question / suggest_improvement_idea actions */
-  questionsState: UseQuestionsReturn;
+  /** Idea write callbacks (keyed by hypothesisId) for suggest_improvement_idea */
+  ideaActions: IdeaActionsSlice;
   /** Current filters for finding context */
   filters: Record<string, (string | number)[]>;
   /** Current stats for finding context */
@@ -93,7 +98,7 @@ export function useActionProposals({
   messages,
   filterNav,
   findingsState,
-  questionsState,
+  ideaActions,
   filters,
   stats,
   filteredDataLength,
@@ -170,27 +175,6 @@ export function useActionProposals({
           }
           break;
         }
-        case 'create_question': {
-          const text = editedText || (proposal.params.text as string);
-          const factor = proposal.params.factor as string | undefined;
-          const level = proposal.params.level as string | undefined;
-          const parentId = proposal.params.parent_id as string | undefined;
-          const validationType = (proposal.params.validation_type as string) || 'data';
-          if (text) {
-            if (parentId) {
-              questionsState.addSubQuestion(
-                parentId,
-                text,
-                factor,
-                level,
-                validationType as 'data' | 'gemba' | 'expert'
-              );
-            } else {
-              questionsState.addQuestion(text, factor, level);
-            }
-          }
-          break;
-        }
         case 'suggest_action': {
           const findingId = proposal.params.finding_id as string;
           const text = editedText || (proposal.params.text as string);
@@ -199,7 +183,6 @@ export function useActionProposals({
         }
         case 'suggest_save_finding': {
           const text = editedText || (proposal.params.insight_text as string);
-          const suggestedQuestionId = proposal.params.suggested_question_id as string | undefined;
           if (text) {
             const findingContext = {
               activeFilters: filters,
@@ -221,23 +204,22 @@ export function useActionProposals({
               messageId: `tool-${proposal.id}`,
               timeLens: usePreferencesStore.getState().timeLens,
             };
-            const newFinding = findingsState.addFinding(text, findingContext, source);
-            // Link to question if suggested
-            if (suggestedQuestionId && newFinding) {
-              findingsState.linkQuestion(newFinding.id, suggestedQuestionId);
-            }
+            findingsState.addFinding(text, findingContext, source);
           }
           break;
         }
         case 'suggest_improvement_idea': {
-          const questionId = proposal.params.question_id as string;
+          // IM-1: ideas re-home onto Hypothesis hubs (accept hypothesis_id with
+          // a question_id fallback for older markers).
+          const hypothesisId =
+            (proposal.params.hypothesis_id as string) ?? (proposal.params.question_id as string);
           const ideaText = editedText || (proposal.params.text as string);
           const direction = proposal.params.direction as string;
           const timeframe = proposal.params.timeframe as string;
-          if (questionId && ideaText) {
-            const idea = questionsState.addIdea(questionId, ideaText);
+          if (hypothesisId && ideaText) {
+            const idea = ideaActions.addIdea(hypothesisId, ideaText);
             if (idea) {
-              questionsState.updateIdea(questionId, idea.id, {
+              ideaActions.updateIdea(hypothesisId, idea.id, {
                 ...(direction && {
                   direction: direction as 'prevent' | 'detect' | 'simplify' | 'eliminate',
                 }),
@@ -258,7 +240,7 @@ export function useActionProposals({
         prev.map(p => (p.id === proposal.id ? { ...p, status: 'applied' as const } : p))
       );
     },
-    [filterNav, findingsState, questionsState, filters, stats, filteredDataLength]
+    [filterNav, findingsState, ideaActions, filters, stats, filteredDataLength]
   );
 
   const handleDismissAction = useCallback((proposalId: string) => {

@@ -1,17 +1,22 @@
 /**
- * ImprovementQuestion type — shared between the orchestration hook and UI components.
+ * ImprovementHypothesis type — shared between the orchestration hook and UI components.
  *
  * The Zustand store has been removed: all synced state is now returned from
  * useImprovementOrchestration, and UI state (activeImprovementView, highlightedIdeaId)
  * lives in panelsStore.
+ *
+ * IM-1 (ADR-085): improvement ideas re-home onto `Hypothesis` (the suspected
+ * cause they fix). The retired `Question` entity + `causeRole` are gone; the
+ * badge derives from `Hypothesis.status`.
  */
-import type { Question } from '@variscout/core';
+import type { Hypothesis, HypothesisStatus } from '@variscout/core';
 
-export interface ImprovementQuestion {
+export interface ImprovementHypothesis {
   id: string;
   text: string;
-  causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
+  status?: HypothesisStatus;
   factor?: string;
-  ideas: NonNullable<Question['ideas']>;
+  ideas: NonNullable<Hypothesis['ideas']>;
   linkedFindingName?: string;
+  evidence?: { rSquaredAdj?: number; etaSquared?: number };
 }
