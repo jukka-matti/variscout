@@ -106,6 +106,8 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 
 ## IM-1 · Drop `Question` + `ProblemStatementScope` first-class (ATOMIC)
 
+**Sub-plan:** [`2026-05-30-im-1-drop-question-scope.md`](2026-05-30-im-1-drop-question-scope.md) · resolved forks: ideas→Hypothesis, generation→transient.
+
 - **Goal:** Delete `Question` as a tracked entity; introduce `ProblemStatementScope` (the WHERE = `ConditionLeaf[]`); retire `causeRole`; re-home Question's three jobs.
 - **ADR:** [085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md).
 - **Depends on:** none. **Gates:** IM-2, IM-4, IM-5.
