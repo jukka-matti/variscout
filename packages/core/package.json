@@ -41,7 +41,8 @@
     "./projectMembership": "./src/projectMembership/index.ts",
     "./measurementPlan": "./src/measurementPlan/index.ts",
     "./exploreRouting": "./src/exploreRouting/index.ts",
-    "./binning": "./src/binning/index.ts"
+    "./binning": "./src/binning/index.ts",
+    "./autoLink": "./src/autoLink/index.ts"
   },
   "scripts": {
     "test": "vitest",
