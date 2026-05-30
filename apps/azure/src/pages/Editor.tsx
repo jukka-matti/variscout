@@ -19,6 +19,7 @@ import {
   useStagedAnalysis,
   useProjectActions,
   filterCategoricalValuesByColumn,
+  useReingestAutoLink,
 } from '@variscout/hooks';
 import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
 import { useStatsWorker } from '../workers/useStatsWorker';
@@ -377,6 +378,11 @@ export const Editor: React.FC<EditorProps> = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hypothesisIdsKey]);
+
+  // IM-3: reactive auto-link cascade. On re-ingest, match newly-available columns
+  // to MeasurementPlans (link + progress planned→in-progress) and flag hypotheses
+  // referencing now-absent columns. Shared engine with PWA; idempotent.
+  useReingestAutoLink(azureHubRepository);
 
   // Preferences store (annotation-per-user)
   const aiEnabled = usePreferencesStore(s => s.aiEnabled);

@@ -49,6 +49,7 @@ import {
   usePopoutChannel,
   useDefectTransform,
   useDefectSummary,
+  useReingestAutoLink,
 } from '@variscout/hooks';
 import type { FindingsActionMessage } from '@variscout/hooks';
 import {
@@ -228,6 +229,11 @@ function AppMain() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hypothesisIdsKey]);
+
+  // IM-3: reactive auto-link cascade (shared engine with Azure; idempotent). On
+  // re-ingest, match newly-available columns to MeasurementPlans (link + progress
+  // planned→in-progress) and flag hypotheses referencing now-absent columns.
+  useReingestAutoLink(pwaHubRepository);
 
   // Project membership store — pending invitations for the Home view banner.
   // PWA is single-user; use 'analyst@local' as the stable per-user key.
