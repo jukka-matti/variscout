@@ -315,12 +315,12 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
           properties: {
             text: {
               type: 'string',
-              description: 'Question text describing the hypothesis to investigate',
+              description: 'Text describing the hypothesis or factor to investigate',
             },
             factor: {
               type: ['string', 'null'],
               description:
-                'Factor column linked to this question (for auto-answering via eta-squared). Null if not data-testable.',
+                'Factor column linked to this line of inquiry (for auto-answering via eta-squared). Null if not data-testable.',
             },
             level: {
               type: ['string', 'null'],
@@ -621,7 +621,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         type: 'function',
         name: 'suggest_hypothesis',
         description:
-          'Suggest a Hypothesis hub that connects related questions and findings into a named mechanism. Use when you notice 2+ answered questions pointing to the same contribution during validating or converging phase.',
+          'Suggest a Hypothesis hub that connects related findings into a named mechanism. Use when you notice 2+ findings pointing to the same contribution during validating or converging phase.',
         parameters: {
           type: 'object',
           properties: {
@@ -634,18 +634,13 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
               type: 'string',
               description: 'Brief explanation of how the evidence connects',
             },
-            questionIds: {
-              type: 'array',
-              items: { type: 'string' },
-              description: 'IDs of questions to connect to this hub',
-            },
             findingIds: {
               type: 'array',
               items: { type: 'string' },
               description: 'IDs of findings to connect to this hub',
             },
           },
-          required: ['name', 'synthesis', 'questionIds', 'findingIds'],
+          required: ['name', 'synthesis', 'findingIds'],
           additionalProperties: false,
           strict: true,
         },
@@ -658,16 +653,11 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         type: 'function',
         name: 'connect_hub_evidence',
         description:
-          'Connect newly answered questions or findings to an existing Hypothesis hub. Use when new evidence supports an already-named mechanism.',
+          'Connect newly recorded findings to an existing Hypothesis hub. Use when new evidence supports an already-named mechanism.',
         parameters: {
           type: 'object',
           properties: {
             hubId: { type: 'string', description: 'ID of the existing Hypothesis hub' },
-            questionIds: {
-              type: 'array',
-              items: { type: 'string' },
-              description: 'Question IDs to connect',
-            },
             findingIds: {
               type: 'array',
               items: { type: 'string' },
@@ -678,7 +668,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
               description: 'Brief explanation of why this evidence belongs to this hub',
             },
           },
-          required: ['hubId', 'questionIds', 'findingIds', 'reason'],
+          required: ['hubId', 'findingIds', 'reason'],
           additionalProperties: false,
           strict: true,
         },
@@ -946,8 +936,7 @@ Never invent data or statistics. If the context does not contain enough informat
       const questionList = investigation.allQuestions
         .map(h => {
           const tag = sourceTag(h);
-          const causeInfo = h.causeRole ? ` {${h.causeRole}}` : '';
-          return `- [${h.id}] ${tag ? tag + ' ' : ''}"${h.text}" (${h.status})${causeInfo}`;
+          return `- [${h.id}] ${tag ? tag + ' ' : ''}"${h.text}" (${h.status})`;
         })
         .join('\n');
       invParts.push(`Investigation questions:\n${questionList}`);
@@ -1004,20 +993,22 @@ Never invent data or statistics. If the context does not contain enough informat
       if (investigation.hypotheses && investigation.hypotheses.length > 0) {
         const causes = investigation.hypotheses;
 
-        // Group by causeRole
-        const suspected = causes.filter(c => c.causeRole === 'suspected-cause');
-        const contributing = causes.filter(c => c.causeRole === 'contributing');
-        const ruledOut = causes.filter(c => c.causeRole === 'ruled-out');
+        // Group by Hypothesis.status (causeRole retired — IM-1)
+        const confirmed = causes.filter(c => c.status === 'confirmed' || c.status === 'evidenced');
+        const contributing = causes.filter(
+          c => c.status === 'proposed' || c.status === 'needs-disconfirmation'
+        );
+        const refuted = causes.filter(c => c.status === 'refuted');
 
         const parts: string[] = [];
-        if (suspected.length > 0) {
-          parts.push(`Hypotheses: ${suspected.map(c => `"${c.text}"`).join(', ')}`);
+        if (confirmed.length > 0) {
+          parts.push(`Supported hypotheses: ${confirmed.map(c => `"${c.text}"`).join(', ')}`);
         }
         if (contributing.length > 0) {
-          parts.push(`Contributing: ${contributing.map(c => `"${c.text}"`).join(', ')}`);
+          parts.push(`Under investigation: ${contributing.map(c => `"${c.text}"`).join(', ')}`);
         }
-        if (ruledOut.length > 0) {
-          parts.push(`Ruled out: ${ruledOut.map(c => `"${c.text}"`).join(', ')}`);
+        if (refuted.length > 0) {
+          parts.push(`Refuted: ${refuted.map(c => `"${c.text}"`).join(', ')}`);
         }
         const causesSummary = parts.join('. ') + '.';
 
@@ -1523,15 +1514,15 @@ function buildToolRoutingInstructions(): string {
 - Use switch_factor after apply_filter to show remaining factors within the filtered subset. Call get_available_factors first to verify the factor name.
 - Prefer compare_categories over apply_filter when the user is exploring (SCOUT phase).
 
-Question guidance (Investigation Diamond):
-- Use create_question to create investigation questions.
-- Root question: use with parent_id=null when starting a new line of inquiry or when the analyst raises a new question to check.
-- Follow-up question: use with parent_id="<existing_id>" when an answered question spawns deeper questions.
-- Factor-linked questions get auto-answered by Factor Intelligence (R²adj ranking). Recommend linking to factors whenever possible.
-- When a question can't be tested with data (physical inspection needed), set validation_type to "gemba" or "expert" and provide a clear validation_task.
-- Never create sub-questions more than 3 levels deep or more than 8 siblings per parent.
+Inquiry guidance (Investigation Diamond):
+- Use create_question to open a line of inquiry.
+- Root inquiry: use with parent_id=null when starting a new line of investigation or when the analyst raises a new question to check.
+- Follow-up inquiry: use with parent_id="<existing_id>" when an answered inquiry spawns deeper questions.
+- Factor-linked inquiries get auto-answered by Factor Intelligence (R²adj ranking). Recommend linking to factors whenever possible.
+- When an inquiry can't be tested with data (physical inspection needed), set validation_type to "gemba" or "expert" and provide a clear validation_task.
+- Never nest follow-ups more than 3 levels deep or more than 8 siblings per parent.
 - When factor and level are specified, VariScout auto-answers using ANOVA (η² >=15% answered, <5% ruled out, 5-15% investigating).
-- When a data-answered question has weak evidence (p >= 0.05), suggest gemba or expert validation. Never advise 'collect more data and wait.'
+- When a data-answered inquiry has weak evidence (p >= 0.05), suggest gemba or expert validation. Never advise 'collect more data and wait.'
 
 Finding guidance:
 - Use create_finding when the user identifies a notable pattern worth recording.
@@ -1611,10 +1602,10 @@ Issue statement sharpening:
 
 Multiple hypotheses:
 - Real investigations often identify multiple contributing factors, not a single key contribution.
-- When setting causeRole, use 'suspected-cause' for factors with strong evidence (eta-squared > 15% or R²adj contribution), 'contributing' for moderate, 'ruled-out' for tested and eliminated.
-- Multiple 'suspected-cause' entries are valid — each becomes an improvement target.
-- Ruled-out factors are valuable negative learnings. Always acknowledge what was checked and eliminated.
-- When the user asks about a factor that appears in the question tree as ruled-out, reference its evidence so the analyst can cite it to stakeholders.
+- A hypothesis is well-supported when it has strong evidence (eta-squared > 15% or R²adj contribution), still under investigation with moderate evidence, or refuted once tested and eliminated.
+- Multiple well-supported hypotheses are valid — each becomes an improvement target.
+- Refuted hypotheses are valuable negative learnings. Always acknowledge what was checked and eliminated.
+- When the user asks about a factor whose hypothesis was refuted, reference its evidence so the analyst can cite it to stakeholders.
 - When synthesizing results, list hypotheses ranked by evidence strength.
 
 The entry scenario may have changed since the previous turn. Always reference the current scenario in your tool decisions.

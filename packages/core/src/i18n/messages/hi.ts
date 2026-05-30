@@ -94,8 +94,6 @@ export const hi: MessageCatalog = {
   // Investigation
   'analyze.brief': 'जांच सारांश',
   'analyze.assignedToMe': 'मुझे सौंपा गया',
-  'analyze.question': 'Question',
-  'analyze.questions': 'Questions',
   'analyze.pinAsFinding': 'निष्कर्ष के रूप में पिन करें',
   'analyze.addObservation': 'प्रेक्षण जोड़ें',
 
@@ -179,7 +177,6 @@ export const hi: MessageCatalog = {
   'data.metric': 'Metric',
   'data.startAnalysis': 'Start Analysis',
   'data.applyChanges': 'Apply Changes',
-  'data.addQuestion': 'Add question',
   'data.back': 'Back',
 
   // Paste screen
@@ -859,7 +856,6 @@ export const hi: MessageCatalog = {
   'wall.status.needsDisconfirmation': 'Needs disconfirmation',
   'wall.card.hypothesisLabel': 'Mechanism Branch',
   'wall.card.findings': '{count} findings',
-  'wall.card.questions': '{count} questions',
   'wall.card.evidenceGap': 'Evidence gap',
   'wall.card.missingColumn': '⚠ Condition references missing column',
   'wall.card.missingColumnAria': 'Condition references missing column',
@@ -880,7 +876,6 @@ export const hi: MessageCatalog = {
   'wall.empty.title': 'Start a Mechanism Branch',
   'wall.empty.subtitle': 'Start from a suspected mechanism, question, or Factor Intelligence.',
   'wall.empty.writeHypothesis': 'Write a suspected mechanism',
-  'wall.empty.promoteFromQuestion': 'Promote from a question',
   'wall.empty.seedFromFactorIntel': 'Seed 3 from Factor Intelligence',
   'wall.rail.title': 'CoScout',
   'wall.rail.openAria': 'Open narrator rail',
@@ -903,7 +898,6 @@ export const hi: MessageCatalog = {
   'wall.palette.placeholder': 'Search hubs, questions, findings…',
   'wall.palette.empty': 'No matches',
   'wall.palette.kind.hub': 'BRANCH',
-  'wall.palette.kind.question': 'QUESTION',
   'wall.palette.kind.finding': 'FINDING',
   'wall.minimap.ariaLabel': 'Investigation Wall minimap',
   // Brush-to-finding confirmation flow (RPS V1 PR4 Task 17) — TODO(i18n): translate

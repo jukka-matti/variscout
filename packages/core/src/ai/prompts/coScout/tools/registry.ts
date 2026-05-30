@@ -363,12 +363,12 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
         properties: {
           text: {
             type: 'string',
-            description: 'Question text describing the hypothesis to investigate',
+            description: 'Text describing the hypothesis or factor to investigate',
           },
           factor: {
             type: ['string', 'null'],
             description:
-              'Factor column linked to this question (for auto-answering via eta-squared). Null if not data-testable.',
+              'Factor column linked to this line of inquiry (for auto-answering via eta-squared). Null if not data-testable.',
           },
           level: {
             type: ['string', 'null'],
@@ -468,7 +468,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'suggest_hypothesis',
       description:
-        'Suggest a Hypothesis hub that connects related questions and findings into a named mechanism. Use when you notice 2+ answered questions pointing to the same contributing factor during validating or converging phase.',
+        'Suggest a Hypothesis hub that connects related findings into a named mechanism. Use when you notice 2+ findings pointing to the same contributing factor during validating or converging phase.',
       parameters: {
         type: 'object',
         properties: {
@@ -481,18 +481,13 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
             type: 'string',
             description: 'Brief explanation of how the evidence connects',
           },
-          questionIds: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'IDs of questions to connect to this hub',
-          },
           findingIds: {
             type: 'array',
             items: { type: 'string' },
             description: 'IDs of findings to connect to this hub',
           },
         },
-        required: ['name', 'synthesis', 'questionIds', 'findingIds'],
+        required: ['name', 'synthesis', 'findingIds'],
         additionalProperties: false,
         strict: true,
       },
@@ -507,16 +502,11 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'connect_hub_evidence',
       description:
-        'Connect newly answered questions or findings to an existing Hypothesis hub. Use when new evidence supports an already-named mechanism.',
+        'Connect newly recorded findings to an existing Hypothesis hub. Use when new evidence supports an already-named mechanism.',
       parameters: {
         type: 'object',
         properties: {
           hubId: { type: 'string', description: 'ID of the existing Hypothesis hub' },
-          questionIds: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Question IDs to connect',
-          },
           findingIds: {
             type: 'array',
             items: { type: 'string' },
@@ -527,7 +517,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
             description: 'Brief explanation of why this evidence belongs to this hub',
           },
         },
-        required: ['hubId', 'questionIds', 'findingIds', 'reason'],
+        required: ['hubId', 'findingIds', 'reason'],
         additionalProperties: false,
         strict: true,
       },

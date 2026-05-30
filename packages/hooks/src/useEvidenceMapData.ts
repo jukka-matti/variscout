@@ -162,7 +162,6 @@ function mapCausalEdge(
     whyStatement: link.whyStatement,
     direction: link.direction,
     evidenceType: link.evidenceType,
-    questionCount: 0, // Question entity retired (ADR-085); field kept for interface compat until IM-4
     findingCount,
     fromX: fromPos.x,
     fromY: fromPos.y,

@@ -1118,12 +1118,7 @@ const ReportView: React.FC<ReportViewProps> = ({
                   .map(h => ({
                     id: h.id,
                     text: h.name,
-                    causeRole:
-                      h.status === 'refuted'
-                        ? ('ruled-out' as const)
-                        : h.status === 'confirmed'
-                          ? ('suspected-cause' as const)
-                          : ('contributing' as const),
+                    status: h.status,
                     ideas: h.ideas ?? [],
                   }))}
                 summaryOnly={isSummary}

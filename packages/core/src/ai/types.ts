@@ -258,8 +258,6 @@ export interface AIContext {
       contribution?: number;
       /** Source of this question */
       questionSource?: 'factor-intel' | 'heuristic' | 'coscout' | 'analyst';
-      /** Cause role from question-driven investigation */
-      causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
       /** Free-text note added by the analyst */
       manualNote?: string;
       /** IDs of findings linked to this question */
@@ -303,13 +301,12 @@ export interface AIContext {
     transitionReason?: string;
     /** Investigation categories for completeness prompting */
     categories?: Array<{ name: string; factorNames: string[] }>;
-    /** Hypotheses from questions with causeRole (supports multiple) */
+    /** Suspected mechanisms ranked by evidence (supports multiple), grouped by `status` */
     hypotheses?: Array<{
       id: string;
       text: string;
-      causeRole: 'suspected-cause' | 'contributing' | 'ruled-out';
       factor?: string;
-      status: string;
+      status: HypothesisStatus;
       evidence?: { rSquaredAdj?: number; etaSquared?: number };
     }>;
     /** Structured problem statement synthesized from Watson's 3 questions */
@@ -323,7 +320,8 @@ export interface AIContext {
     focusedQuestionId?: string;
     /** Text of the question currently in focus in the PI panel */
     focusedQuestionText?: string;
-    /** Hypothesis hubs (Phase 6 — distinct from legacy causeRole-based hypotheses) */
+    /** Hypothesis hubs (Phase 6 — status-driven mechanisms, distinct from the
+     *  flat `hypotheses` summary above) */
     hypothesisHubs?: Array<{
       id: string;
       name: string;
@@ -359,7 +357,6 @@ export interface AIContext {
         factor: string;
         rSquaredAdj: number;
         explored: boolean;
-        questionCount: number;
         findingCount: number;
         /** Factor measurement type: categorical (group comparison) or continuous (regression) */
         type?: 'categorical' | 'continuous';

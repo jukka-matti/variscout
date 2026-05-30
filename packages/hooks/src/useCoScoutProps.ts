@@ -97,7 +97,7 @@ export interface UseCoScoutPropsReturn {
   onDismissAction: (proposalId: string) => void;
   onSaveAsNewFinding: (text: string, sourceMessageId: string) => void;
   onAddCommentToFinding: (findingId: string, text: string, attachment?: File) => void;
-  onAddCommentToHypothesis: (questionId: string, text: string) => void;
+  onAddCommentToHypothesis: (hypothesisId: string, text: string) => void;
   insightFindings: Array<{ id: string; text: string }>;
   insightQuestions: Array<{ id: string; text: string }>;
   onRefActivate: (targetType: string, targetId?: string) => void;

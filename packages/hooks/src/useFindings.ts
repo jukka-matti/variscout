@@ -84,14 +84,6 @@ export interface UseFindingsReturn {
     driveItemId?: string,
     webUrl?: string
   ) => void;
-  /** Link a finding to a question */
-  linkQuestion: (
-    id: string,
-    questionId: string,
-    validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
-  ) => void;
-  /** Unlink a finding from its question */
-  unlinkQuestion: (id: string) => void;
   /** Set a projection on a finding */
   setProjection: (id: string, projection: FindingProjection) => void;
   /** Clear a finding's projection */
@@ -414,38 +406,6 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
-  const linkQuestion = useCallback(
-    (
-      id: string,
-      questionId: string,
-      validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
-    ) => {
-      setFindings(prev => {
-        const next = prev.map(f =>
-          f.id === id
-            ? { ...f, questionId, validationStatus: validationStatus ?? f.validationStatus }
-            : f
-        );
-        onFindingsChange?.(next);
-        return next;
-      });
-    },
-    [onFindingsChange]
-  );
-
-  const unlinkQuestion = useCallback(
-    (id: string) => {
-      setFindings(prev => {
-        const next = prev.map(f =>
-          f.id === id ? { ...f, questionId: undefined, validationStatus: undefined } : f
-        );
-        onFindingsChange?.(next);
-        return next;
-      });
-    },
-    [onFindingsChange]
-  );
-
   const setProjection = useCallback(
     (id: string, projection: FindingProjection) => {
       setFindings(prev => {
@@ -656,8 +616,6 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     updatePhotoStatus,
     addAttachmentToComment,
     updateAttachmentStatus,
-    linkQuestion,
-    unlinkQuestion,
     setProjection,
     clearProjection,
     addAction,

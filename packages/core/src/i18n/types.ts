@@ -206,8 +206,6 @@ export interface MessageCatalog {
   // Investigation
   'analyze.brief': string;
   'analyze.assignedToMe': string;
-  'analyze.question': string;
-  'analyze.questions': string;
   'analyze.pinAsFinding': string;
   'analyze.addObservation': string;
 
@@ -295,7 +293,6 @@ export interface MessageCatalog {
   'data.metric': string;
   'data.startAnalysis': string;
   'data.applyChanges': string;
-  'data.addQuestion': string;
   'data.back': string;
 
   // Paste screen
@@ -968,7 +965,6 @@ export interface MessageCatalog {
   'wall.empty.title': string;
   'wall.empty.subtitle': string;
   'wall.empty.writeHypothesis': string;
-  'wall.empty.promoteFromQuestion': string;
   'wall.empty.seedFromFactorIntel': string;
   'wall.rail.title': string;
   'wall.rail.openAria': string;
@@ -993,9 +989,7 @@ export interface MessageCatalog {
   'wall.palette.placeholder': string;
   'wall.palette.empty': string;
   'wall.palette.kind.hub': string;
-  'wall.palette.kind.question': string;
   'wall.palette.kind.finding': string;
-  'wall.card.questions': string;
   'wall.minimap.ariaLabel': string;
   // Brush-to-finding confirmation flow (RPS V1 PR4 Task 17)
   'wall.brush.confirmIChart': string;

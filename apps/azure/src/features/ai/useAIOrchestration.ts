@@ -212,7 +212,6 @@ export function useAIOrchestration({
         rSquaredAdj: contribMap.get(factor) ?? 0,
         // IM-1: factor exploration is now finding-driven (Question entity retired).
         explored: fFindings.length > 0,
-        questionCount: 0,
         findingCount: fFindings.length,
       };
     });

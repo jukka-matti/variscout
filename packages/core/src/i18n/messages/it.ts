@@ -96,8 +96,6 @@ export const it: MessageCatalog = {
   // Investigation
   'analyze.brief': 'Riepilogo indagine',
   'analyze.assignedToMe': 'Assegnati a me',
-  'analyze.question': 'Question',
-  'analyze.questions': 'Questions',
   'analyze.pinAsFinding': 'Fissa come risultanza',
   'analyze.addObservation': 'Aggiungi osservazione',
 
@@ -175,7 +173,6 @@ export const it: MessageCatalog = {
   'data.metric': 'Metric',
   'data.startAnalysis': 'Start Analysis',
   'data.applyChanges': 'Apply Changes',
-  'data.addQuestion': 'Add question',
   'data.back': 'Back',
   'data.pasteInstructions': 'Paste your data here',
   'data.pasteSubtitle': 'Copy from Excel, CSV, or any spreadsheet',
@@ -831,7 +828,6 @@ export const it: MessageCatalog = {
   'wall.status.needsDisconfirmation': 'Needs disconfirmation',
   'wall.card.hypothesisLabel': 'Mechanism Branch',
   'wall.card.findings': '{count} findings',
-  'wall.card.questions': '{count} questions',
   'wall.card.evidenceGap': 'Evidence gap',
   'wall.card.missingColumn': '⚠ Condition references missing column',
   'wall.card.missingColumnAria': 'Condition references missing column',
@@ -852,7 +848,6 @@ export const it: MessageCatalog = {
   'wall.empty.title': 'Start a Mechanism Branch',
   'wall.empty.subtitle': 'Start from a suspected mechanism, question, or Factor Intelligence.',
   'wall.empty.writeHypothesis': 'Write a suspected mechanism',
-  'wall.empty.promoteFromQuestion': 'Promote from a question',
   'wall.empty.seedFromFactorIntel': 'Seed 3 from Factor Intelligence',
   'wall.rail.title': 'CoScout',
   'wall.rail.openAria': 'Open narrator rail',
@@ -875,7 +870,6 @@ export const it: MessageCatalog = {
   'wall.palette.placeholder': 'Search hubs, questions, findings…',
   'wall.palette.empty': 'No matches',
   'wall.palette.kind.hub': 'BRANCH',
-  'wall.palette.kind.question': 'QUESTION',
   'wall.palette.kind.finding': 'FINDING',
   'wall.minimap.ariaLabel': 'Investigation Wall minimap',
   // Brush-to-finding confirmation flow (RPS V1 PR4 Task 17) — TODO(i18n): translate

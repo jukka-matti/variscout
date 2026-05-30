@@ -1,7 +1,7 @@
 /**
- * INVESTIGATE phase coaching — question-driven EDA, Evidence Map, hub synthesis.
+ * INVESTIGATE phase coaching — inquiry-driven EDA, Evidence Map, hub synthesis.
  *
- * The analyst is building an investigation tree, validating evidence, and
+ * The analyst is pursuing lines of inquiry, validating evidence, and
  * synthesizing hypotheses. This is the longest phase with three sub-phases:
  * diverging (explore), validating (assess evidence), converging (synthesize).
  */
@@ -10,24 +10,24 @@ import type { AnalysisMode } from '../../../../types';
 import type { AnalyzePhase, EntryScenario } from '../../../types';
 
 const MODE_QUESTION_GUIDANCE: Record<AnalysisMode, string> = {
-  standard: `Question and evidence guidance:
-- Factor-linked questions get auto-answered by ANOVA: eta-squared >= 15% = answered, < 5% = ruled-out, 5-15% = investigating.
+  standard: `Investigation and evidence guidance:
+- Factor-linked inquiries get auto-answered by ANOVA: eta-squared >= 15% = answered, < 5% = ruled-out, 5-15% = investigating.
 - Rank investigation priorities by R-squared-adj from Best Subsets regression.
-- When a data-answered question has weak evidence (p >= 0.05), suggest gemba or expert validation.
+- When a data-answered inquiry has weak evidence (p >= 0.05), suggest gemba or expert validation.
 - Evidence strength = R-squared-adj contribution from the factor in the regression model.`,
 
-  defect: `Question and evidence guidance:
-- Frame questions around defect contribution: "Does [defect type] dominate the defect rate?" and "Does [factor] drive variation in [defect type]?"
+  defect: `Investigation and evidence guidance:
+- Frame inquiries around defect contribution: "Does [defect type] dominate the defect rate?" and "Does [factor] drive variation in [defect type]?"
 - Evidence strength = R-squared-adj contribution from ANOVA on the aggregated defect rates.
-- Factor-linked questions get auto-answered: eta-squared >= 15% = answered, < 5% = ruled-out, 5-15% = investigating.
+- Factor-linked inquiries get auto-answered: eta-squared >= 15% = answered, < 5% = ruled-out, 5-15% = investigating.
 - When data evidence is inconclusive, suggest gemba validation — go observe the process during high-defect periods.
-- Composition questions: "What machines/products/shifts are present during spike periods?" — use brush selection to investigate.`,
+- Composition inquiries: "What machines/products/shifts are present during spike periods?" — use brush selection to investigate.`,
 
-  performance: `Question and evidence guidance:
-- Frame questions around channel health: "Why does channel [X] have lower Cpk than its neighbors?"
+  performance: `Investigation and evidence guidance:
+- Frame inquiries around channel health: "Why does channel [X] have lower Cpk than its neighbors?"
 - Evidence strength = Cpk deviation from the fleet average.
 - Suggest checking whether bad channels share maintenance history, position, or operating conditions.
-- Cross-channel questions: "Is the same contribution affecting multiple channels?"`,
+- Cross-channel inquiries: "Is the same contribution affecting multiple channels?"`,
 };
 
 const SUB_PHASE_COACHING: Record<AnalyzePhase, string> = {
@@ -81,13 +81,13 @@ ${MODE_QUESTION_GUIDANCE[mode]}`);
     parts.push(SUB_PHASE_COACHING[analyzePhase]);
   }
 
-  // Question tree mechanics
-  parts.push(`Question tree guidance:
-- Root questions (parent_id=null) start new lines of inquiry.
-- Sub-questions (parent_id=existing_id) break down causes into deeper layers.
-- Never create sub-questions more than 3 levels deep or more than 8 siblings per parent.
-- Link questions to factors whenever possible — this enables auto-answering via ANOVA.
-- For questions that cannot be tested with data, set validation_type to "gemba" or "expert" with a clear validation_task.
+  // Inquiry mechanics
+  parts.push(`Inquiry guidance:
+- Root inquiries (parent_id=null) start new lines of investigation.
+- Follow-up inquiries (parent_id=existing_id) break down causes into deeper layers.
+- Never nest follow-ups more than 3 levels deep or more than 8 siblings per parent.
+- Link inquiries to factors whenever possible — this enables auto-answering via ANOVA.
+- For inquiries that cannot be tested with data, set validation_type to "gemba" or "expert" with a clear validation_task.
 - Never advise "collect more data and wait" — suggest gemba or expert validation instead.`);
 
   // Evidence Map coaching
@@ -105,8 +105,8 @@ ${MODE_QUESTION_GUIDANCE[mode]}`);
 - Each Hypothesis hub connects related questions and findings into a named mechanism.
 - Evidence validation types: data (auto eta-squared), gemba (go-see + photos), expert (domain knowledge).
 - Multiple hypotheses are normal — real investigations often identify several contributing factors.
-- Use causeRole classification: "suspected-cause" for strong evidence, "contributing" for moderate, "ruled-out" for eliminated.
-- Ruled-out factors are valuable negative learnings — always acknowledge what was checked and eliminated.`);
+- Weigh each hypothesis by evidence: strong evidence (eta-squared > 15% or R²adj contribution) makes it well-supported, moderate evidence keeps it under investigation, and a failed test refutes it.
+- Refuted hypotheses are valuable negative learnings — always acknowledge what was checked and eliminated.`);
   }
 
   // Entry scenario routing for INVESTIGATE

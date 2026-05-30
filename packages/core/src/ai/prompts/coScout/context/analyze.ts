@@ -2,8 +2,8 @@
  * Investigation context formatter for CoScout Tier 2 (semi-static context).
  *
  * Formats investigation state into human-readable text blocks.
- * CRITICAL: Uses ONLY hypothesisHubs — ignores legacy causeRole-based
- * hypotheses from question fields (contradiction resolution #1).
+ * CRITICAL: Uses ONLY hypothesisHubs — ignores the flat `hypotheses`
+ * summary array (contradiction resolution #1).
  *
  * PR-WV1-NAV cleanup deferral (2026-05-27): "investigation" methodology
  * references in this file are intentionally preserved pending a design call.
@@ -25,7 +25,7 @@ export const EVIDENCE_SUFFICIENCY_THRESHOLD = 0.25;
  * - Current understanding / problem condition
  * - Problem statement with stage
  * - Question tree summary (counts by status, top 3 by priority)
- * - Hypothesis hubs (ONLY hub entities, not legacy causeRole)
+ * - Hypothesis hubs (ONLY hub entities, not the flat `hypotheses` summary)
  * - Evidence Map topology summary
  * - Causal links
  *
@@ -100,7 +100,7 @@ export function formatAnalyzeContext(
     }
   }
 
-  // Hypothesis hubs (ONLY hub entities — not legacy causeRole)
+  // Hypothesis hubs (ONLY hub entities — not the flat `hypotheses` summary)
   if (investigation.hypothesisHubs && investigation.hypothesisHubs.length > 0) {
     const hubLines = investigation.hypothesisHubs.map(hub => {
       const parts = [`  - "${hub.name}" [${hub.status}]`];

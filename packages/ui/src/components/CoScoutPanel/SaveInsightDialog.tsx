@@ -18,8 +18,8 @@ export interface SaveInsightDialogProps {
   ) => void;
   /** Called when adding comment to existing finding */
   onAddCommentToFinding?: (findingId: string, text: string) => void;
-  /** Called when adding comment to existing question */
-  onAddCommentToQuestion?: (questionId: string, text: string) => void;
+  /** Called when adding comment to existing hypothesis */
+  onAddCommentToHypothesis?: (hypothesisId: string, text: string) => void;
   onClose: () => void;
 }
 
@@ -38,7 +38,7 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
   questions,
   onSaveAsNewFinding,
   onAddCommentToFinding,
-  onAddCommentToQuestion,
+  onAddCommentToHypothesis,
   onClose,
 }) => {
   // Derive initial values from props (reset when messageId changes)
@@ -116,8 +116,8 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
         }
         break;
       case 'comment-question':
-        if (selectedQuestionId && onAddCommentToQuestion) {
-          onAddCommentToQuestion(selectedQuestionId, trimmed);
+        if (selectedQuestionId && onAddCommentToHypothesis) {
+          onAddCommentToHypothesis(selectedQuestionId, trimmed);
         }
         break;
     }
@@ -131,14 +131,14 @@ const SaveInsightDialog: React.FC<SaveInsightDialogProps> = ({
     selectedQuestionId,
     onSaveAsNewFinding,
     onAddCommentToFinding,
-    onAddCommentToQuestion,
+    onAddCommentToHypothesis,
     onClose,
   ]);
 
   if (!isOpen) return null;
 
   const hasFindings = findings && findings.length > 0 && onAddCommentToFinding;
-  const hasQuestions = questions && questions.length > 0 && onAddCommentToQuestion;
+  const hasQuestions = questions && questions.length > 0 && onAddCommentToHypothesis;
 
   return (
     <div

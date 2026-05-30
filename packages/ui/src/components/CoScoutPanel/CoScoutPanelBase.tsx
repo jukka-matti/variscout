@@ -77,7 +77,7 @@ export interface CoScoutPanelBaseProps {
   /** ADR-049: Insight capture — save message as finding or comment */
   onSaveAsNewFinding?: (text: string, sourceMessageId: string) => void;
   onAddCommentToFinding?: (findingId: string, text: string) => void;
-  onAddCommentToQuestion?: (questionId: string, text: string) => void;
+  onAddCommentToHypothesis?: (hypothesisId: string, text: string) => void;
   /** Existing findings for insight dialog target selection */
   insightFindings?: Array<{ id: string; text: string }>;
   /** Existing questions for insight dialog target selection */
@@ -118,7 +118,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   onDismissAction,
   onSaveAsNewFinding,
   onAddCommentToFinding,
-  onAddCommentToQuestion,
+  onAddCommentToHypothesis,
   insightFindings,
   insightQuestions,
   onRefActivate,
@@ -493,7 +493,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
           onDismissAction={onDismissAction}
           onSaveAsNewFinding={onSaveAsNewFinding}
           onAddCommentToFinding={onAddCommentToFinding}
-          onAddCommentToQuestion={onAddCommentToQuestion}
+          onAddCommentToHypothesis={onAddCommentToHypothesis}
           insightFindings={insightFindings}
           insightQuestions={insightQuestions}
         />

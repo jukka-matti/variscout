@@ -216,9 +216,6 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
     return null;
   }
 
-  // Destructure onAddCommentToHypothesis from hook (name differs from CoScoutPanelBase prop)
-  const { onAddCommentToHypothesis, ...restCoScoutProps } = coScoutProps;
-
   return (
     <>
       {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}
@@ -238,8 +235,7 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
           <CoScoutPanelBase
             isOpen={true}
             onClose={handleCoScoutClose}
-            {...restCoScoutProps}
-            onAddCommentToQuestion={onAddCommentToHypothesis}
+            {...coScoutProps}
             voiceInput={voiceInput}
           />
         </div>
@@ -247,8 +243,7 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
         <CoScoutPanelBase
           isOpen={isCoScoutOpen}
           onClose={handleCoScoutClose}
-          {...restCoScoutProps}
-          onAddCommentToQuestion={onAddCommentToHypothesis}
+          {...coScoutProps}
           voiceInput={voiceInput}
         />
       )}
