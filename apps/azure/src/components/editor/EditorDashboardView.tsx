@@ -16,12 +16,12 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { AIOnboardingTooltip } from '@variscout/ui';
-import { computeBestSubsets } from '@variscout/core';
+import { computeBestSubsets, categoricalFiltersToActiveFilters } from '@variscout/core';
 import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import type { ViewState, UseFindingsReturn } from '@variscout/hooks';
 import { useJourneyPhase, useFilteredData } from '@variscout/hooks';
 import { isAIAvailable } from '../../services/aiService';
-import { useProjectStore, usePreferencesStore } from '@variscout/stores';
+import { useProjectStore, useAnalysisScopeStore, usePreferencesStore } from '@variscout/stores';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
@@ -146,13 +146,17 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     (effect: import('@variscout/core/stats').FactorMainEffect) => {
       if (!outcome || !filteredData || filteredData.length === 0) return;
 
-      const filters = useProjectStore.getState().filters;
+      // IM-4a: snapshot the DRILL condition (the active scope chips), not the
+      // legacy row-level projectStore.filters map.
+      const activeFilters = categoricalFiltersToActiveFilters(
+        useAnalysisScopeStore.getState().categoricalFilters
+      );
       const pct = Math.round(effect.etaSquared * 100);
       const text = `${effect.factor} explains ~${pct}% of variation (worst at ${effect.worstLevel}).`;
 
       const addedFinding = findingsState.addFinding(
         text,
-        { activeFilters: filters, cumulativeScope: null },
+        { activeFilters, cumulativeScope: null },
         {
           chart: 'boxplot',
           category: effect.factor,

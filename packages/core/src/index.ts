@@ -816,6 +816,10 @@ export {
   // Drill-chip → ConditionLeaf[] bridges (ADR-085 scope capture)
   buildConditionFromCategoricalFilters,
   activeFiltersToCondition,
+  categoricalFiltersToActiveFilters,
+  // Predicate-set identity (drill→scope producer idempotency, IM-4a)
+  predicateSetKey,
+  predicateSetsEqual,
   // GateNode path-based tree ops (Investigation Wall contribution tree)
   getAt,
   updateAt,
@@ -827,6 +831,7 @@ export type {
   IPReportMiniChartType,
   ProblemStatementScope,
   ConditionLeaf,
+  CategoricalFilterInput,
 } from './findings';
 export {
   getCategoryForFactor,

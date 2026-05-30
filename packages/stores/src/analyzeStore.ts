@@ -36,6 +36,7 @@ import type {
   GateNode,
   ProblemStatementScope,
   ConditionLeaf,
+  CategoricalFilterInput,
 } from '@variscout/core';
 import {
   createFinding,
@@ -45,6 +46,8 @@ import {
   createHypothesis,
   createCausalLink,
   createProblemStatementScope,
+  buildConditionFromCategoricalFilters,
+  predicateSetKey,
   insertHubAsAndChild,
   type GatePath,
 } from '@variscout/core';
@@ -130,6 +133,25 @@ export interface AnalyzeActions {
     predicates?: ConditionLeaf[],
     hypothesisIds?: string[]
   ) => ProblemStatementScope;
+  /**
+   * IM-4a Task 1 — Drill → scope producer. Materialize the active compound
+   * drill (the `categoricalFilters` chips) into a persisted
+   * `ProblemStatementScope`.
+   *
+   * Called imperatively by the app on drill-commit (cross-store imperative read
+   * is permitted; a reactive subscription from this Document store to the View
+   * `analysisScopeStore` is forbidden — so the app passes the chips in).
+   *
+   * IDEMPOTENT on the predicate set (`predicateSetKey`): re-firing on the same
+   * compound condition (regardless of chip order) returns the existing scope
+   * rather than creating a duplicate. An empty drill is a no-op and returns
+   * `undefined`. Single-value chips become `eq` leaves, multi-value become `in`.
+   */
+  syncScopeFromDrill: (
+    investigationId: string,
+    outcome: string,
+    filters: ReadonlyArray<CategoricalFilterInput>
+  ) => ProblemStatementScope | undefined;
   updateScope: (
     scopeId: string,
     patch: Partial<Omit<ProblemStatementScope, 'id' | 'createdAt' | 'deletedAt'>>
@@ -603,6 +625,27 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     const scope = createProblemStatementScope(investigationId, outcome, predicates, hypothesisIds);
     set(state => ({ scopes: [...state.scopes, scope] }));
     return scope;
+  },
+
+  syncScopeFromDrill: (investigationId, outcome, filters) => {
+    const predicates = buildConditionFromCategoricalFilters(filters);
+    // Empty drill → no scope (the active chips ARE the active scope; no chips,
+    // no compound WHERE to persist).
+    if (predicates.length === 0) return undefined;
+
+    // Idempotency: key on the predicate SET, scoped to this investigation +
+    // outcome. Re-firing on the same compound condition returns the existing
+    // scope (regardless of chip order) rather than duplicating it.
+    const key = predicateSetKey(predicates);
+    const existing = get().scopes.find(
+      s =>
+        s.investigationId === investigationId &&
+        s.outcome === outcome &&
+        predicateSetKey(s.predicates) === key
+    );
+    if (existing) return existing;
+
+    return get().addScope(investigationId, outcome, predicates);
   },
 
   updateScope: (scopeId, patch) => {

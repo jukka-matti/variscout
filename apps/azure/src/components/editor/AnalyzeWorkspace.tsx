@@ -37,6 +37,7 @@ import {
   inferCharacteristicType,
   computeMainEffects,
   computeInteractionEffects,
+  categoricalFiltersToActiveFilters,
 } from '@variscout/core';
 import { computeBestSubsets } from '@variscout/core/stats';
 import { detectEvidenceClusters } from '@variscout/core/findings';
@@ -52,6 +53,7 @@ import { GripVertical } from 'lucide-react';
 import {
   useProjectStore,
   useAnalyzeStore,
+  useAnalysisScopeStore,
   usePreferencesStore,
   useCanvasViewportStore,
 } from '@variscout/stores';
@@ -567,10 +569,15 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 
   const handleMapCreateFinding = useCallback(
     (factor: string) => {
-      const filters = useProjectStore.getState().filters;
+      // IM-4a: snapshot the DRILL condition (the active scope chips), not the
+      // legacy row-level projectStore.filters map — the captured Finding should
+      // reflect the WHERE the analyst is investigating.
+      const activeFilters = categoricalFiltersToActiveFilters(
+        useAnalysisScopeStore.getState().categoricalFilters
+      );
       findingsState.addFinding(
         `Observation about ${factor}`,
-        { activeFilters: filters, cumulativeScope: null },
+        { activeFilters, cumulativeScope: null },
         { chart: 'boxplot', category: factor, timeLens: usePreferencesStore.getState().timeLens }
       );
     },
