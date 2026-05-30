@@ -25,7 +25,8 @@
  *   - columns that DISAPPEARED (removed) → REPLACE re-evaluation: compute
  *     missing-column flags (FLAG, never delete). The badge itself renders reactively
  *     from `conditionHasMissingColumn` in WallCanvas; the hook surfaces the report
- *     via `onMissingColumns` for logging/telemetry.
+ *     via `onMissingColumns` for logging/telemetry ONLY (telemetry-only contract —
+ *     see the REPLACE branch below).
  * A single re-ingest can do both at once (some columns added, some removed).
  *
  * # IDEMPOTENCY (the #1 risk)
@@ -40,6 +41,26 @@
  *      same id is a no-op).
  *   4. The status bump fires only for `planned` plans, so a plan already
  *      `in-progress` is never re-progressed even though it re-matches.
+ *
+ * # AUTO-LINK IS RE-INGEST-ONLY (link-at-creation boundary)
+ *
+ * The auto-link cascade fires exclusively on rawData changes (re-ingests). A plan
+ * created AFTER the current column universe is already present will NOT be auto-linked
+ * until a fresh re-ingest changes the column universe (no link-at-creation path).
+ * This is intentional: link-at-creation would require a separate plan-creation
+ * subscription with different idempotency semantics. The analyst can trigger a
+ * re-ingest (or re-load the same file) to pick up plans created against already-present
+ * columns.
+ *
+ * # CROSS-SESSION IDEMPOTENCY NOTE
+ *
+ * The in-session duplicate-finding guard (step 2 above) depends on the auto-Finding
+ * being present in `useAnalyzeStore.findings` when the hook re-fires. In Azure, the
+ * `applyAction` path treats `FINDING_*` as a no-op (ADR-085), so findings survive only
+ * while the store is live. After a full page reload the store is re-hydrated from the
+ * blob, which means the auto-Finding must have been committed to the analyze blob before
+ * the session ended for the cross-session idempotency guarantee to hold. Do not overstate
+ * this guarantee: it is best-effort across sessions, strong within a session.
  */
 
 import { useEffect } from 'react';
@@ -66,12 +87,41 @@ export interface UseReingestAutoLinkOptions {
    * never deletes. Defaults to a console.info breadcrumb when omitted.
    */
   onMissingColumns?: (flags: MissingColumnFlags) => void;
+  /**
+   * Called AFTER the APPEND-cascade dispatches at least one plan link or status
+   * action (i.e. the cascade actually wrote something — not fired on a no-op run).
+   *
+   * Use this to invalidate any UI state that reads MeasurementPlans directly from
+   * IndexedDB but is NOT keyed on the hypothesis-id list. Without this callback,
+   * a plan's status advance (`planned → in-progress`) or a new `linkedFindingIds`
+   * entry written to Dexie will be stale in any `wallMeasurementPlans` state that
+   * only reloads on hypothesis-list changes.
+   *
+   * Both apps wire this to bump a refresh nonce that is included in the
+   * `wallMeasurementPlans` load-effect deps so that `listByHypothesis` re-fires
+   * across all hypotheses and the Wall reflects the updated plan status.
+   */
+  onPlansChanged?: () => void;
 }
 
-/** Column universe of a row set: the keys of the first row (or empty). */
+/**
+ * Column universe of a row set: the UNION of all keys across ALL rows.
+ *
+ * Using only `rows[0]` would silently miss columns that appear in later rows but
+ * not the first (sparse rows after a merge/backfill/overlap ingestion). Union-key
+ * scanning matches the `collectColumnNames` logic in `parsingProfile.ts` and
+ * prevents false-negative auto-links (a column present in rows 2..N but absent in
+ * row 0 would be invisible to the APPEND-cascade if we only checked `rows[0]`).
+ */
 function columnsOf(rows: ReadonlyArray<Record<string, unknown>>): string[] {
   if (rows.length === 0) return [];
-  return Object.keys(rows[0]);
+  const seen = new Set<string>();
+  for (const row of rows) {
+    for (const key of Object.keys(row)) {
+      seen.add(key);
+    }
+  }
+  return Array.from(seen);
 }
 
 /** Load all live plans across the investigation's hypotheses (the established pattern). */
@@ -97,7 +147,7 @@ export function useReingestAutoLink(
   repository: HubRepository | null | undefined,
   options: UseReingestAutoLinkOptions = {}
 ): void {
-  const { debounceMs = DEFAULT_DEBOUNCE_MS, onMissingColumns } = options;
+  const { debounceMs = DEFAULT_DEBOUNCE_MS, onMissingColumns, onPlansChanged } = options;
 
   useEffect(() => {
     if (!repository) return;
@@ -129,7 +179,18 @@ export function useReingestAutoLink(
       const hypotheses = analyzeState.hypotheses;
 
       // --- REPLACE re-evaluation: columns removed → flag (never delete) ---
-      if (removedColumns.length > 0) {
+      //
+      // TELEMETRY-ONLY CONTRACT: this branch surfaces the missing-column report via
+      // `onMissingColumns` (logging/telemetry) but does NOT persist a missing-column
+      // record or dispatch any HubAction. The durable no-silent-orphan guarantee (spec
+      // §7.2) is provided by the REACTIVE WallCanvas badge (`conditionHasMissingColumn`
+      // in WallCanvas.tsx), not by this hook. IM-3 is intentionally non-destructive
+      // on the REPLACE path — see decision-log 2026-05-30 IM-3 entry.
+      //
+      // TEARDOWN GUARD: when rawData → [] (full teardown / clear), `removedColumns`
+      // would equal ALL prior columns — this is a teardown, not a replace-orphan event.
+      // Skip the missing-column check entirely when `currentColumns` is empty.
+      if (removedColumns.length > 0 && currentColumns.size > 0) {
         const flags = computeMissingColumnFlags(hypotheses, currentColumns);
         if (flags.hypothesisIds.length > 0) {
           if (onMissingColumns) {
@@ -184,6 +245,15 @@ export function useReingestAutoLink(
         if (cancelled) return;
         await repository.dispatch(action);
       }
+
+      // Notify the app that plans have been written (link + status actions dispatched).
+      // Without this callback, any `wallMeasurementPlans` state keyed only on the
+      // hypothesis-id list will not see the plan status advance (planned → in-progress)
+      // because the cascade does NOT change the hypothesis-id list. The app increments
+      // a nonce to force a re-read of `listByHypothesis` across all hypotheses.
+      if (!cancelled) {
+        onPlansChanged?.();
+      }
     };
 
     const scheduleRun = (): void => {
@@ -202,5 +272,5 @@ export function useReingestAutoLink(
       if (timer !== undefined) clearTimeout(timer);
       unsubscribe();
     };
-  }, [repository, debounceMs, onMissingColumns]);
+  }, [repository, debounceMs, onMissingColumns, onPlansChanged]);
 }

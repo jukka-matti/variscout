@@ -360,8 +360,11 @@ export const Editor: React.FC<EditorProps> = ({
   const deleteIdea = useAnalyzeStore(s => s.deleteIdea);
 
   // Measurement plans — loaded from IndexedDB for all hypotheses in the active investigation.
-  // Re-loads when the hypothesis list changes. Passed into WallCanvas planningProps.
+  // Re-loads when the hypothesis list changes OR when the IM-3 auto-link cascade writes
+  // plan updates (link + status advance). planLoadNonce is bumped by onPlansChanged so that
+  // the Wall reflects `status:'in-progress'` after a re-ingest without a hypothesis-list change.
   const [wallMeasurementPlans, setWallMeasurementPlans] = useState<MeasurementPlan[]>([]);
+  const [planLoadNonce, setPlanLoadNonce] = useState(0);
   const hypothesisIds = useMemo(() => hypotheses.map(h => h.id), [hypotheses]);
   // Key on joined string to avoid re-firing on array reference changes (Fix 5 — plan-load deps)
   const hypothesisIdsKey = hypothesisIds.join('|');
@@ -377,12 +380,18 @@ export const Editor: React.FC<EditorProps> = ({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hypothesisIdsKey]);
+  }, [hypothesisIdsKey, planLoadNonce]);
 
   // IM-3: reactive auto-link cascade. On re-ingest, match newly-available columns
   // to MeasurementPlans (link + progress planned→in-progress) and flag hypotheses
   // referencing now-absent columns. Shared engine with PWA; idempotent.
-  useReingestAutoLink(azureHubRepository);
+  // onPlansChanged bumps planLoadNonce so wallMeasurementPlans reloads after the
+  // cascade writes status/link updates — without this the Wall is stale until the
+  // next hypothesis-list change (the effect is keyed on hypothesisIdsKey, which the
+  // cascade never touches).
+  useReingestAutoLink(azureHubRepository, {
+    onPlansChanged: () => setPlanLoadNonce(n => n + 1),
+  });
 
   // Preferences store (annotation-per-user)
   const aiEnabled = usePreferencesStore(s => s.aiEnabled);

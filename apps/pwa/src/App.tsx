@@ -209,10 +209,14 @@ function AppMain() {
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
 
   // Measurement plans — loaded from IndexedDB for all current hypotheses.
-  // Re-loads whenever the hypothesis list changes (new hub added or removed).
+  // Re-loads whenever the hypothesis list changes (new hub added or removed) OR when
+  // the IM-3 auto-link cascade writes plan updates. planLoadNonce is bumped by
+  // onPlansChanged so the Wall reflects `status:'in-progress'` after a re-ingest
+  // that matches a new column without changing the hypothesis-id list.
   // Passed into WallCanvas planningProps so plan chips stay in sync with
   // the underlying store without requiring a separate Zustand layer.
   const [wallMeasurementPlans, setWallMeasurementPlans] = useState<MeasurementPlan[]>([]);
+  const [planLoadNonce, setPlanLoadNonce] = useState(0);
   const hypothesisIds = useMemo(() => hypotheses.map(h => h.id), [hypotheses]);
   // Key on joined string to avoid re-firing on array reference changes (Fix 5 — plan-load deps)
   const hypothesisIdsKey = hypothesisIds.join('|');
@@ -228,12 +232,16 @@ function AppMain() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hypothesisIdsKey]);
+  }, [hypothesisIdsKey, planLoadNonce]);
 
   // IM-3: reactive auto-link cascade (shared engine with Azure; idempotent). On
   // re-ingest, match newly-available columns to MeasurementPlans (link + progress
   // planned→in-progress) and flag hypotheses referencing now-absent columns.
-  useReingestAutoLink(pwaHubRepository);
+  // onPlansChanged bumps planLoadNonce so wallMeasurementPlans reloads after the
+  // cascade writes status/link updates without a hypothesis-list change.
+  useReingestAutoLink(pwaHubRepository, {
+    onPlansChanged: () => setPlanLoadNonce(n => n + 1),
+  });
 
   // Project membership store — pending invitations for the Home view banner.
   // PWA is single-user; use 'analyst@local' as the stable per-user key.

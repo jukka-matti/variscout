@@ -156,7 +156,11 @@ describe('useReingestAutoLink — APPEND-cascade (columns added)', () => {
     expect(dispatched.some(a => a.kind === 'MEASUREMENT_PLAN_LINK_FINDING')).toBe(true);
   });
 
-  it('IDEMPOTENT: re-firing on the same added column does NOT double-add the finding', async () => {
+  it('IDEMPOTENT (column-delta guard): re-firing with the same column set no-ops (empty delta short-circuit)', async () => {
+    // This test covers the COLUMN-DELTA short-circuit guard (`addedColumns.length === 0`),
+    // NOT the existing-id dedupe gate. When rawData changes but the column universe is
+    // unchanged (e.g. row append), the cascade exits early before touching the store.
+    // The removed-then-re-added test below covers the existing-id dedupe gate.
     const { repo } = makeFakeRepo({ 'hyp-1': [plan({})] });
     renderHook(() => useReingestAutoLink(repo, { debounceMs: DEBOUNCE }));
 
@@ -168,8 +172,7 @@ describe('useReingestAutoLink — APPEND-cascade (columns added)', () => {
     expect(useAnalyzeStore.getState().findings).toHaveLength(1);
 
     // Second re-ingest re-supplies the SAME column set (e.g. row append). The
-    // column delta is empty, so the cascade no-ops — but even forcing a re-run with
-    // the column present again must not duplicate (stable id + existing-id gate).
+    // column delta is empty → cascade short-circuits before even checking existing ids.
     act(() => {
       // New array reference, same columns + one extra row → triggers subscription.
       useProjectStore.setState({
@@ -267,5 +270,76 @@ describe('useReingestAutoLink — no plans / no hypotheses', () => {
 
     expect(useAnalyzeStore.getState().findings).toHaveLength(0);
     expect(dispatched).toHaveLength(0);
+  });
+});
+
+describe('useReingestAutoLink — onPlansChanged callback (Wall visibility)', () => {
+  beforeEach(() => {
+    // Seed prior column universe WITHOUT the to-be-added "Shift".
+    useProjectStore.setState({ rawData: rowsWith(['Fill Weight']) });
+    useAnalyzeStore.setState({ hypotheses: [sampleHyp] });
+  });
+
+  it('calls onPlansChanged after a re-ingest that writes plan link + status actions', async () => {
+    // This test guards the MAJOR-1 fix: the Wall's wallMeasurementPlans state must
+    // reflect plan status 'in-progress' after a re-ingest that adds a matched column
+    // WITHOUT a hypothesis-list change. onPlansChanged fires the nonce bump that
+    // triggers the re-read of listByHypothesis.
+    const onPlansChanged = vi.fn();
+    const { repo } = makeFakeRepo({ 'hyp-1': [plan({})] });
+
+    renderHook(() => useReingestAutoLink(repo, { debounceMs: DEBOUNCE, onPlansChanged }));
+
+    act(() => {
+      useProjectStore.setState({ rawData: rowsWith(['Fill Weight', 'Shift']) });
+    });
+    await flush(DEBOUNCE);
+
+    // A finding was added and plan actions dispatched → callback must fire.
+    expect(onPlansChanged).toHaveBeenCalledTimes(1);
+    // Confirm the cascade actually wrote something (finding present; status advanced).
+    expect(useAnalyzeStore.getState().findings).toHaveLength(1);
+  });
+
+  it('does NOT call onPlansChanged when the cascade is a no-op (no matched plans)', async () => {
+    // Column added but no plan references it → no dispatch → callback must NOT fire.
+    // (firing on a no-op would cause unnecessary listByHypothesis re-reads)
+    const onPlansChanged = vi.fn();
+    const { repo } = makeFakeRepo({ 'hyp-1': [plan({ neededFactors: ['Operator'] })] });
+
+    renderHook(() => useReingestAutoLink(repo, { debounceMs: DEBOUNCE, onPlansChanged }));
+
+    act(() => {
+      // Add 'Shift', but the plan only needs 'Operator' → no match.
+      useProjectStore.setState({ rawData: rowsWith(['Fill Weight', 'Shift']) });
+    });
+    await flush(DEBOUNCE);
+
+    expect(onPlansChanged).not.toHaveBeenCalled();
+  });
+});
+
+describe('useReingestAutoLink — teardown guard (rawData → [])', () => {
+  it('does NOT flag missing columns when rawData is cleared to empty (teardown, not replace)', async () => {
+    // Guard: when rawData → [], removedColumns === ALL prior columns. This is a
+    // teardown/clear, NOT a replace-orphan event. The REPLACE branch must be skipped
+    // (currentColumns.size === 0 guard) to avoid spurious onMissingColumns calls.
+    useProjectStore.setState({ rawData: rowsWith(['Fill Weight', 'Shift']) });
+    useAnalyzeStore.setState({ hypotheses: [sampleHyp] });
+    const onMissingColumns = vi.fn();
+    const { repo } = makeFakeRepo({ 'hyp-1': [plan({})] });
+
+    renderHook(() => useReingestAutoLink(repo, { debounceMs: DEBOUNCE, onMissingColumns }));
+
+    // Clear rawData entirely.
+    act(() => {
+      useProjectStore.setState({ rawData: [] });
+    });
+    await flush(DEBOUNCE);
+
+    // Teardown → no spurious missing-column flag.
+    expect(onMissingColumns).not.toHaveBeenCalled();
+    // Hypotheses still intact — nothing was deleted.
+    expect(useAnalyzeStore.getState().hypotheses).toHaveLength(1);
   });
 });

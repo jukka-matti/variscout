@@ -3,10 +3,22 @@
  *
  * When a re-ingest REPLACES data and some columns disappear, conditions that
  * reference a now-absent column become un-evaluable. Per LOCKED #3 we FLAG these,
- * NEVER delete them — no silent orphaning. The flag itself is already rendered
- * reactively in `WallCanvas` (`conditionHasMissingColumn(hub.condition, columnSet)`),
- * so this helper is the pure, testable computation behind that surface plus the
- * hook's logging/telemetry.
+ * NEVER delete them — no silent orphaning.
+ *
+ * # TELEMETRY-ONLY CONTRACT (REPLACE branch)
+ *
+ * The no-silent-orphan guarantee (spec §7.2) is provided by the REACTIVE WallCanvas
+ * badge: `conditionHasMissingColumn(hub.condition, columnSet)` in `WallCanvas.tsx`
+ * re-evaluates on every render against the live column set, so the badge is always
+ * current without any persisted record. This helper is the pure, testable computation
+ * behind that badge + the hook's `onMissingColumns` logging/telemetry callback.
+ *
+ * IM-3 does NOT persist a missing-column record for the REPLACE path, and does NOT
+ * dispatch any HubAction from this branch. Persisting a separate missing-column
+ * record would be redundant with the reactive badge and would add a second source of
+ * truth that can drift (decision-log 2026-05-30 IM-3 entry). If a future initiative
+ * needs persisted column-gap alerts (e.g. push notifications to plan owners), that
+ * is an explicit scope extension — not implicit in the current design.
  *
  * PLANS ONLY auto-link (LOCKED #1) — but the missing-column FLAG legitimately covers
  * hypotheses/findings (the things that own conditions). This helper only REPORTS
