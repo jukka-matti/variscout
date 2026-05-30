@@ -379,6 +379,100 @@ describe('analyzeStore — scopes', () => {
 });
 
 // ============================================================================
+// Scope What-If projection (IM-5 — persist whatIfProjection)
+// ============================================================================
+
+describe('analyzeStore — recomputeScopeWhatIf (IM-5)', () => {
+  beforeEach(() => {
+    useProjectStore.setState(getProjectInitialState());
+  });
+
+  afterEach(() => {
+    useProjectStore.setState(getProjectInitialState());
+  });
+
+  // Deterministic dataset: Machine A runs hotter than B against USL=13.
+  const makeRawData = () => {
+    const rows: { Value: number; Machine: string }[] = [];
+    for (let i = 0; i < 30; i++) rows.push({ Value: 12 + (i % 5) * 0.1, Machine: 'A' });
+    for (let i = 0; i < 30; i++) rows.push({ Value: 10 + (i % 5) * 0.1, Machine: 'B' });
+    return rows;
+  };
+
+  it('computes and persists whatIfProjection from the scope condition + project data', () => {
+    useProjectStore.setState({
+      rawData: makeRawData(),
+      outcome: 'Value',
+      specs: { lsl: 8, usl: 13 },
+    });
+    const scope = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Value', [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }]);
+
+    useAnalyzeStore.getState().recomputeScopeWhatIf(scope.id);
+
+    const updated = useAnalyzeStore.getState().scopes[0];
+    expect(typeof updated.whatIfProjection).toBe('number');
+    expect(updated.whatIfProjection as number).toBeGreaterThan(0);
+  });
+
+  it('prefers the per-outcome measureSpecs entry over the global specs', () => {
+    useProjectStore.setState({
+      rawData: makeRawData(),
+      outcome: 'Value',
+      specs: {},
+      measureSpecs: { Value: { lsl: 8, usl: 13 } },
+    });
+    const scope = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Value', [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }]);
+
+    useAnalyzeStore.getState().recomputeScopeWhatIf(scope.id);
+
+    expect(typeof useAnalyzeStore.getState().scopes[0].whatIfProjection).toBe('number');
+  });
+
+  it('leaves whatIfProjection undefined when no specs are available', () => {
+    useProjectStore.setState({ rawData: makeRawData(), outcome: 'Value', specs: {} });
+    const scope = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Value', [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }]);
+
+    useAnalyzeStore.getState().recomputeScopeWhatIf(scope.id);
+
+    expect(useAnalyzeStore.getState().scopes[0].whatIfProjection).toBeUndefined();
+  });
+
+  it('clears a stale whatIfProjection when the condition no longer projects', () => {
+    useProjectStore.setState({
+      rawData: makeRawData(),
+      outcome: 'Value',
+      specs: { lsl: 8, usl: 13 },
+    });
+    const scope = useAnalyzeStore
+      .getState()
+      .addScope('inv-1', 'Value', [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }]);
+    useAnalyzeStore.getState().recomputeScopeWhatIf(scope.id);
+    expect(typeof useAnalyzeStore.getState().scopes[0].whatIfProjection).toBe('number');
+
+    // Drop specs → recompute should clear the stored number rather than keep it stale.
+    useProjectStore.setState({ specs: {}, measureSpecs: {} });
+    useAnalyzeStore.getState().recomputeScopeWhatIf(scope.id);
+    expect(useAnalyzeStore.getState().scopes[0].whatIfProjection).toBeUndefined();
+  });
+
+  it('is a no-op for an unknown scope id', () => {
+    useProjectStore.setState({
+      rawData: makeRawData(),
+      outcome: 'Value',
+      specs: { lsl: 8, usl: 13 },
+    });
+    expect(() => useAnalyzeStore.getState().recomputeScopeWhatIf('does-not-exist')).not.toThrow();
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(0);
+  });
+});
+
+// ============================================================================
 // Hypothesis ideas tests (F2 — keyed by hypothesisId on Hypothesis.ideas)
 // ============================================================================
 
