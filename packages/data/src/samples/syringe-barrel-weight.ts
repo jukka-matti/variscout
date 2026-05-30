@@ -14,7 +14,7 @@
  */
 import type { SampleDataset } from '../types';
 import { mulberry32 } from '../utils';
-import type { Finding, Question, Hypothesis, CausalLink, AnalyzeCategory } from '@variscout/core';
+import type { Finding, Hypothesis, CausalLink, AnalyzeCategory } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
 
 // ============================================================================
@@ -22,16 +22,6 @@ import { DEFAULT_TIME_LENS } from '@variscout/core';
 // ============================================================================
 
 const IDS = {
-  // Questions
-  Q_CAPABILITY: 'q-sbw-capability',
-  Q_LOT: 'q-sbw-lot',
-  Q_PRESSURE: 'q-sbw-pressure',
-  Q_INTERACTION: 'q-sbw-lot-pressure',
-  Q_CAVITY: 'q-sbw-cavity',
-  Q_OPERATOR: 'q-sbw-operator',
-  Q_SHIFT: 'q-sbw-shift',
-  Q_DEFECT_MIX: 'q-sbw-defect-mix',
-  Q_IMPROVEMENT: 'q-sbw-improvement',
   // Findings
   F_CAPABILITY_GAP: 'f-sbw-capability-gap',
   F_LOT3_LIGHT: 'f-sbw-lot3-light',
@@ -167,203 +157,6 @@ function generateData(): Record<string, unknown>[] {
 // Investigation payload
 // ============================================================================
 
-function buildQuestions(): Question[] {
-  return [
-    // Q1 — capability assessment (Define/Measure)
-    {
-      id: IDS.Q_CAPABILITY,
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      text: 'Is the barrel-weight process capable to spec (Cpk ≥ 1.33)?',
-      status: 'answered',
-      linkedFindingIds: [IDS.F_CAPABILITY_GAP],
-      createdAt: epochAt(0),
-      updatedAt: epochAt(4),
-      validationType: 'data',
-      questionSource: 'analyst',
-      manualNote:
-        'Baseline Cpk ≈ 0.76 (within-subgroup sigma, n=5 rational subgroups) against USL 12.30 / LSL 11.70. ~4% of parts fall below LSL. Probability plot shows a clear left tail — underweight parts dominate the failure mode.',
-    },
-    // Q2 — Lot effect (Analyze)
-    {
-      id: IDS.Q_LOT,
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      text: 'Does material Lot (L1/L2/L3) affect barrel weight?',
-      factor: 'Lot_ID',
-      status: 'answered',
-      linkedFindingIds: [IDS.F_LOT3_LIGHT],
-      createdAt: epochAt(6),
-      updatedAt: epochAt(10),
-      validationType: 'data',
-      questionSource: 'factor-intel',
-      evidence: {
-        etaSquared: 0.18,
-        rSquaredAdj: 0.17,
-      },
-    },
-    // Q3 — Hold Pressure effect (Analyze)
-    {
-      id: IDS.Q_PRESSURE,
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      text: 'Does Hold Pressure influence barrel weight?',
-      factor: 'Hold_Pressure_bar',
-      status: 'answered',
-      linkedFindingIds: [IDS.F_PRESSURE_SLOPE],
-      createdAt: epochAt(8),
-      updatedAt: epochAt(12),
-      validationType: 'data',
-      questionSource: 'factor-intel',
-      evidence: {
-        rSquaredAdj: 0.31,
-      },
-    },
-    // Q4 — Lot × Pressure interaction (Analyze, the "aha")
-    {
-      id: IDS.Q_INTERACTION,
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      text: 'Does the Lot moderate the Hold-Pressure effect on weight?',
-      status: 'answered',
-      linkedFindingIds: [IDS.F_INTERACTION],
-      createdAt: epochAt(12),
-      updatedAt: epochAt(20),
-      validationType: 'data',
-      questionSource: 'analyst',
-      manualNote:
-        'Interaction plot shows disordinal crossing: Lot 3 is much more sensitive to pressure than L1/L2 — it needs ~5 bar more to hit target weight.',
-    },
-    // Q5 — Cavity effect (Analyze)
-    {
-      id: IDS.Q_CAVITY,
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      text: 'Does Cavity (Cav1 vs Cav2) affect weight?',
-      factor: 'Cavity',
-      status: 'answered',
-      linkedFindingIds: [IDS.F_CAVITY2_LIGHT],
-      createdAt: epochAt(10),
-      updatedAt: epochAt(14),
-      validationType: 'data',
-      questionSource: 'factor-intel',
-      evidence: {
-        etaSquared: 0.1,
-      },
-      ideas: [
-        {
-          id: IDS.IDEA_CAVITY2_GATE,
-          deletedAt: null,
-          text: 'Rebalance Cavity 2 gate — adjust fill pattern to match Cav1',
-          timeframe: 'weeks',
-          cost: { category: 'medium' },
-          direction: 'prevent',
-          selected: false,
-          notes:
-            'Small persistent main effect (~0.05 g lower on Cav2). Mold tech can rebalance during next scheduled maintenance.',
-          createdAt: epochAt(22),
-        },
-      ],
-    },
-    // Q6 — Operator (Analyze, ruled-out red herring)
-    {
-      id: IDS.Q_OPERATOR,
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      text: 'Does Operator affect weight?',
-      factor: 'Operator',
-      status: 'ruled-out',
-      linkedFindingIds: [],
-      createdAt: epochAt(10),
-      updatedAt: epochAt(14),
-      validationType: 'data',
-      questionSource: 'factor-intel',
-      evidence: {
-        etaSquared: 0.003,
-      },
-      manualNote:
-        'No meaningful operator effect (η² < 1%). Both operators run equivalent weight distributions.',
-    },
-    // Q7 — Shift (Analyze, ruled-out red herring)
-    {
-      id: IDS.Q_SHIFT,
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      text: 'Does Shift (Day vs Eve) affect weight?',
-      factor: 'Shift',
-      status: 'ruled-out',
-      linkedFindingIds: [],
-      createdAt: epochAt(10),
-      updatedAt: epochAt(14),
-      validationType: 'data',
-      questionSource: 'factor-intel',
-      evidence: {
-        etaSquared: 0.002,
-      },
-      manualNote:
-        'Shift is not a driver (η² < 1%). Rule out and refocus on material + process parameters.',
-    },
-    // Q8 — QC defect mix (Analyze/Improve — focuses the 80/20)
-    {
-      id: IDS.Q_DEFECT_MIX,
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      text: 'Which defect mode should we attack first (Pareto priority)?',
-      factor: 'Defect_Type',
-      status: 'answered',
-      linkedFindingIds: [IDS.F_DEFECT_PARETO],
-      createdAt: epochAt(14),
-      updatedAt: epochAt(18),
-      validationType: 'data',
-      questionSource: 'analyst',
-      manualNote:
-        'Underweight dominates the defect Pareto (34 of 80 non-OK events, 42%). Short shots and flash follow but each <20. Prioritizing underweight is the 80/20 call — and it ties directly to the capability gap and the Lot 3 hub.',
-    },
-    // Q9 — Improvement (Improve/Control)
-    {
-      id: IDS.Q_IMPROVEMENT,
-      deletedAt: null,
-      investigationId: 'general-unassigned',
-      text: 'How do we reach Cpk ≥ 1.33 within the next 4 weeks?',
-      status: 'investigating',
-      linkedFindingIds: [],
-      createdAt: epochAt(24),
-      updatedAt: epochAt(26),
-      validationType: 'gemba',
-      validationTask:
-        'Pilot lot-specific pressure recipe on Lot 3 (raise setpoint to ~88 bar), measure 1 shift, compare to baseline.',
-      taskCompleted: false,
-      questionSource: 'analyst',
-      ideas: [
-        {
-          id: IDS.IDEA_LOT3_RECIPE,
-          deletedAt: null,
-          text: 'Lot-specific pressure recipe: raise Lot 3 hold pressure to 88 bar (from 83 bar)',
-          timeframe: 'days',
-          cost: { category: 'low' },
-          direction: 'eliminate',
-          selected: true,
-          notes:
-            'Directly counters the interaction. Expected to recover the low tail and move projected Cpk from ~0.76 to ~1.4.',
-          createdAt: epochAt(25),
-        },
-        {
-          id: IDS.IDEA_INSPECT_L3,
-          deletedAt: null,
-          text: 'Interim: 100% weight check during Lot 3 runs until recipe is validated',
-          timeframe: 'just-do',
-          cost: { category: 'low' },
-          direction: 'detect',
-          selected: true,
-          notes:
-            'Containment while the pressure-recipe pilot runs. Catches underweight before shipment.',
-          createdAt: epochAt(25),
-        },
-      ],
-    },
-  ];
-}
-
 function buildFindings(): Finding[] {
   return [
     // F1 — capability gap (Define/Measure finding)
@@ -393,7 +186,6 @@ function buildFindings(): Finding[] {
       ],
       statusChangedAt: epochAt(4),
       source: { chart: 'probability', anchorX: 11.7, anchorY: 0.02, timeLens: DEFAULT_TIME_LENS },
-      questionId: IDS.Q_CAPABILITY,
       validationStatus: 'supports',
     },
     // F2 — Lot 3 runs light (boxplot by Lot)
@@ -423,7 +215,6 @@ function buildFindings(): Finding[] {
       ],
       statusChangedAt: epochAt(10),
       source: { chart: 'boxplot', category: 'L3', timeLens: DEFAULT_TIME_LENS },
-      questionId: IDS.Q_LOT,
       validationStatus: 'supports',
     },
     // F3 — Hold Pressure positive slope (scatter / regression)
@@ -452,7 +243,6 @@ function buildFindings(): Finding[] {
         },
       ],
       statusChangedAt: epochAt(12),
-      questionId: IDS.Q_PRESSURE,
       validationStatus: 'supports',
     },
     // F4 — Lot × Pressure interaction (the "aha" finding)
@@ -481,7 +271,6 @@ function buildFindings(): Finding[] {
         },
       ],
       statusChangedAt: epochAt(20),
-      questionId: IDS.Q_INTERACTION,
       validationStatus: 'supports',
     },
     // F5 — Cavity 2 slightly light (boxplot by Cavity)
@@ -510,7 +299,6 @@ function buildFindings(): Finding[] {
       ],
       statusChangedAt: epochAt(14),
       source: { chart: 'boxplot', category: 'Cav2', timeLens: DEFAULT_TIME_LENS },
-      questionId: IDS.Q_CAVITY,
       validationStatus: 'supports',
     },
     // F6 — Defect Pareto (80/20 priority)
@@ -540,7 +328,6 @@ function buildFindings(): Finding[] {
       ],
       statusChangedAt: epochAt(18),
       source: { chart: 'pareto', category: 'Underweight', timeLens: DEFAULT_TIME_LENS },
-      questionId: IDS.Q_DEFECT_MIX,
       validationStatus: 'supports',
     },
     // F7 — Within-lot Cpk variation (capability mode insight)
@@ -568,7 +355,6 @@ function buildFindings(): Finding[] {
         },
       ],
       statusChangedAt: epochAt(20),
-      questionId: IDS.Q_LOT,
       validationStatus: 'supports',
     },
   ];
@@ -583,7 +369,6 @@ function buildHypotheses(): Hypothesis[] {
       name: 'Lot 3 under-pressurized — regrind-rich material needs +5 bar',
       synthesis:
         'Lot 3 contains more regrind than Lots 1 and 2, which raises melt viscosity and makes weight more sensitive to hold pressure. At the current 83 bar setpoint, L3 barrels fall ~0.10 g light on average, producing the left tail that drives Cpk below 1.0. QC-caught "Underweight" defects cluster on the same population, confirming this is the 80/20 priority. A lot-specific pressure recipe (L3 → ~88 bar) is expected to recover the tail, collapse the Underweight Pareto bar, and restore capability. Cavity 2 contributes a secondary ~0.10 g main effect.',
-      questionIds: [IDS.Q_LOT, IDS.Q_PRESSURE, IDS.Q_INTERACTION, IDS.Q_DEFECT_MIX],
       findingIds: [
         IDS.F_LOT3_LIGHT,
         IDS.F_PRESSURE_SLOPE,
@@ -618,7 +403,6 @@ function buildCausalLinks(): CausalLink[] {
         'Higher hold pressure packs more melt into the cavity before freeze-off, increasing barrel weight.',
       direction: 'drives',
       evidenceType: 'data',
-      questionIds: [IDS.Q_PRESSURE],
       findingIds: [IDS.F_PRESSURE_SLOPE],
       hypothesisId: IDS.HUB_LOT3_PRESSURE,
       strength: 0.31,
@@ -635,7 +419,6 @@ function buildCausalLinks(): CausalLink[] {
         'Lot 3 has higher regrind content, which lowers effective fill density at current pressure.',
       direction: 'drives',
       evidenceType: 'data',
-      questionIds: [IDS.Q_LOT],
       findingIds: [IDS.F_LOT3_LIGHT],
       hypothesisId: IDS.HUB_LOT3_PRESSURE,
       strength: 0.18,
@@ -652,7 +435,6 @@ function buildCausalLinks(): CausalLink[] {
         'Regrind content changes viscosity, which changes how much hold pressure is needed to reach target weight (disordinal interaction).',
       direction: 'modulates',
       evidenceType: 'data',
-      questionIds: [IDS.Q_INTERACTION],
       findingIds: [IDS.F_INTERACTION],
       hypothesisId: IDS.HUB_LOT3_PRESSURE,
       source: 'analyst',
@@ -669,7 +451,6 @@ function buildCausalLinks(): CausalLink[] {
         'Cavity 2 gate geometry restricts melt flow slightly, producing a ~0.05 g persistent underfill.',
       direction: 'drives',
       evidenceType: 'data',
-      questionIds: [IDS.Q_CAVITY],
       findingIds: [IDS.F_CAVITY2_LIGHT],
       strength: 0.04,
       source: 'analyst',
@@ -753,7 +534,6 @@ export const syringeBarrelWeight: SampleDataset = {
     ],
     investigation: {
       findings: buildFindings(),
-      questions: buildQuestions(),
       hypotheses: buildHypotheses(),
       causalLinks: buildCausalLinks(),
       categories: buildCategories(),
