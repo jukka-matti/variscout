@@ -75,16 +75,18 @@ IMPROVE (Purple #8b5cf6)
 
 ## Investigation Thread
 
-The investigation flows through all 4 phases as a continuous thread, driven by questions rather than hypotheses:
+The investigation flows through all 4 phases as a continuous thread, driven by scopes and hypotheses:
 
 | Phase       | Investigation Thread Role                                                                                                                                                                                                                                                            |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| FRAME       | Analyst captures issue statement + upfront questions in analysis brief (Azure). Q1 (measure) and Q2 (direction) of Problem Statement answered here                                                                                                                                   |
-| SCOUT       | Factor Intelligence generates evidence-ranked questions from R²adj; analyst answers questions through drill-down                                                                                                                                                                     |
-| INVESTIGATE | Questions from SCOUT seed the question tree. Tree grows with follow-up questions, answers accumulate. Converging phase: analyst creates `SuspectedCauseHub` entities grouping evidence threads into named mechanisms. Q3 (scope) of Problem Statement fills in as each hub is named. |
-| IMPROVE     | Each SuspectedCause hub drives one HMW brainstorm. Confirmation only comes when the fix works (hub transitions from suspected → confirmed at `resolved`).                                                                                                                            |
+| FRAME       | Analyst captures issue statement + upfront hypotheses in analysis brief (Azure). Q1 (measure) and Q2 (direction) of Problem Statement answered here.                                                                                                                                 |
+| SCOUT       | Factor Intelligence surfaces evidence-ranked factor nodes from R²adj; analyst drills and narrows toward a `ProblemStatementScope` (the WHERE — outcome + `{factor=level}` predicates).                                                                                               |
+| INVESTIGATE | Scope is captured as a `ProblemStatementScope`. `Hypothesis` entities (the WHY) are added within the scope. Each hypothesis is validated (Data / Gemba / Expert) and its `status` updated. Q3 (scope) of Problem Statement assembles from the scope predicates + hypothesis results. |
+| IMPROVE     | Each evidenced / confirmed hypothesis drives improvement ideas (`ImprovementIdea` on `Hypothesis`). Confirmation comes when the fix is verified effective — hypothesis transitions to `confirmed` at `resolved` finding status.                                                      |
 
-The thread is not always linear — Routine Check entries may never reach INVESTIGATE, and Discovery entries generate questions during SCOUT rather than before.
+The thread is not always linear — Routine Check entries may never reach INVESTIGATE, and Discovery entries explore factor nodes during SCOUT rather than following a pre-set question list.
+
+> **Model note (ADR-085):** The pre-IM-1 model used `Question` entities and `SuspectedCauseHub` entities. These have been retired. `Question` generation is now transient factor-node metadata (nothing persisted); suspected causes are `Hypothesis` entries nested within a `ProblemStatementScope`.
 
 **Issue Statement vs. Problem Statement:** The issue statement (vague concern) is the INPUT captured during FRAME. The problem statement (precise: what measure, how to change, what scope) is the OUTPUT that emerges when enough questions are answered during SCOUT/INVESTIGATE. See [EDA Mental Model](../../01-vision/eda-mental-model.md) for details.
 
@@ -131,7 +133,7 @@ Each mode is a view configuration, not a separate workflow. The analyst switches
 
 | Aspect   | Detail                                                                                                                                     |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Goal     | Understand why — structured learning through question answering in the investigation diamond                                               |
+| Goal     | Understand why — structured learning through scope capture + hypothesis validation in the investigation diamond                            |
 | Method   | Investigation Diamond: Initial → Diverging → Validating → Converging (see detail below); Evidence Map as primary workspace                 |
 | AI       | Phase-aware diamond prompts in CoScout; investigation sidebar with uncovered factor suggestions                                            |
 | Key Code | `useFindings`, `useHypotheses`, `FindingsLog`, `FindingBoardView`, `InvestigationPhaseBadge`, `InvestigationMapView`, `useEvidenceMapData` |
@@ -171,18 +173,18 @@ See [Improvement Workspace](../../03-features/workflows/improvement-workspace.md
 
 The diamond is a **structured learning** process within the INVESTIGATE phase, driven by questions:
 
-| Phase      | Purpose                                                 | Analyst Activity                                                                                                                             |
-| ---------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Initial    | Variation found, questions generated                    | Factor Intelligence generates ranked questions; upfront questions from FRAME seed the question tree                                          |
-| Diverging  | Explore possible causes                                 | Answer questions, spawn follow-up questions — the question tree grows                                                                        |
-| Validating | Gather evidence                                         | Answer each question — Data (ANOVA auto-validate), Gemba (go inspect), Expert input                                                          |
-| Converging | Build understanding, identify multiple suspected causes | Rule out answered-no branches; create `SuspectedCauseHub` entities linking evidence threads; Problem Statement assembles live from hub names |
+| Phase      | Purpose                                                 | Analyst Activity                                                                                                                                   |
+| ---------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Initial    | Variation found, factor nodes ranked                    | Factor Intelligence surfaces ranked factor nodes; upfront hypotheses from FRAME are reviewed                                                       |
+| Diverging  | Drill to scope, explore possible causes                 | Capture a `ProblemStatementScope` (outcome + `{factor=level}` predicates — the WHERE); add `Hypothesis` entries for suspected mechanisms (the WHY) |
+| Validating | Gather evidence for each hypothesis                     | Data (ANOVA auto-validate), Gemba (go inspect), Expert input — each updates `Hypothesis.status`                                                    |
+| Converging | Build understanding, identify multiple suspected causes | Hypotheses reach `evidenced` / `confirmed` / `refuted`; Problem Statement assembles from scope predicates + hypothesis outcomes                    |
 
 The diamond closes at Converging. What follows — improvement ideation, actions, implementation, and verification — belongs to the IMPROVE phase (PDCA).
 
 **In code:** `InvestigationPhase` type (4 diamond phases + `'improving'` for IMPROVE), `InvestigationPhaseBadge` component, CoScout phase-aware prompts.
 
-**Question answering** within the diamond uses `ValidationStatus`: `open → answered-yes / partial / ruled-out`. Auto-validation triggers when η² exceeds thresholds. Factor Intelligence auto-answers questions where R²adj < 5% as "ruled out."
+**Hypothesis validation** uses `Hypothesis.status` (`proposed → evidenced / confirmed / refuted / needs-disconfirmation`). Auto-validation triggers when η² exceeds thresholds. Factor Intelligence flags factor nodes where R²adj < 5% as "no contribution" — surfaces on the Evidence Map without creating a persisted `Question` entity.
 
 ---
 
@@ -313,20 +315,20 @@ These are product/business concepts that were previously listed as mental models
 
 ## What's In Code
 
-| Concept               | In Code? | Code Location                                                                                                |
-| --------------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
-| Journey Phases        | YES      | `JourneyPhase` type, `useJourneyPhase` (AI tool gating), [screen mapping](./journey-phase-screen-mapping.md) |
-| Watson's EDA          | YES      | Chart components, stats engine                                                                               |
-| Investigation Diamond | YES      | `InvestigationPhase` type (4 + `'improving'`), `InvestigationPhaseBadge`, CoScout prompts                    |
-| Finding Status        | YES      | `FindingStatus` type, board columns, tier gating                                                             |
-| AI Layers             | YES      | NarrativeBar, ChartInsightChip, CoScoutPanel                                                                 |
-| Report Steps          | YES      | `useReportSections`, `ReportStepMarker`                                                                      |
-| Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                                    |
-| Three Entry Paths     | YES      | `EntryScenario` type, `detectEntryScenario()` (AI context)                                                   |
-| Question Validation   | YES      | `ValidationStatus` type (semantic: open/answered-yes/ruled-out/partial)                                      |
-| Knowledge Layer       | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup` (Team only, preview-gated)                   |
-| Value Levers          | Indirect | Tier gating                                                                                                  |
-| Four Lenses           | NO       | Teaching/marketing only (intentional)                                                                        |
+| Concept               | In Code? | Code Location                                                                                                                       |
+| --------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Journey Phases        | YES      | `JourneyPhase` type, `useJourneyPhase` (AI tool gating), [screen mapping](./journey-phase-screen-mapping.md)                        |
+| Watson's EDA          | YES      | Chart components, stats engine                                                                                                      |
+| Investigation Diamond | YES      | `InvestigationPhase` type (4 + `'improving'`), `InvestigationPhaseBadge`, CoScout prompts                                           |
+| Finding Status        | YES      | `FindingStatus` type, board columns, tier gating                                                                                    |
+| AI Layers             | YES      | NarrativeBar, ChartInsightChip, CoScoutPanel                                                                                        |
+| Report Steps          | YES      | `useReportSections`, `ReportStepMarker`                                                                                             |
+| Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                                                           |
+| Three Entry Paths     | YES      | `EntryScenario` type, `detectEntryScenario()` (AI context)                                                                          |
+| Hypothesis Status     | YES      | `Hypothesis.status` (`proposed/evidenced/confirmed/refuted/needs-disconfirmation`); `ProblemStatementScope` for the WHERE (ADR-085) |
+| Knowledge Layer       | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup` (Team only, preview-gated)                                          |
+| Value Levers          | Indirect | Tier gating                                                                                                                         |
+| Four Lenses           | NO       | Teaching/marketing only (intentional)                                                                                               |
 
 ---
 
@@ -348,9 +350,9 @@ The Knowledge Catalyst (Phase 2+) will support Azure AI Search over organization
 
 A future enhancement could allow process document references during FRAME, so the AI context includes SOP knowledge from the earliest analysis phases. This was identified in the AI readiness review as a "Level 2 proactive extraction" capability.
 
-### 4. Upfront Questions → Question Tree Connection (ADR-027, ADR-053)
+### 4. Upfront Hypotheses → Investigation Scope Connection (ADR-027, ADR-053, ADR-085)
 
-The analysis brief captures upfront questions (formerly "upfront hypotheses") during FRAME. With the question-driven model (ADR-053), upfront questions merge with Factor Intelligence-generated questions into a ranked checklist during SCOUT. Factor Intelligence adds evidence (R²adj) to upfront questions when the factor matches, confirming or ruling out the analyst's initial intuition with data. This closes the gap between the brief and the question tree — upfront questions flow naturally into the investigation.
+The analysis brief captures upfront hypotheses during FRAME. With the scope-first model (ADR-085), upfront hypotheses flow directly into `Hypothesis` entries added to the `ProblemStatementScope` during INVESTIGATE. Factor Intelligence surfaces ranked factor nodes (R²adj) that inform which hypotheses to prioritize, confirming or refuting the analyst's initial intuitions with data. This closes the gap between the brief and the investigation — upfront hypotheses flow naturally into the scope's WHY layer.
 
 ---
 
