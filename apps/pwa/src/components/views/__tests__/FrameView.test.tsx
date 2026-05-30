@@ -200,7 +200,7 @@ vi.mock('@variscout/ui', async () => {
       ) => void;
       onFocusedInvestigation?: (stepId: string) => void;
       onOpenWall?: () => void;
-      onOpenInvestigationFocus?: (focus: { questionId?: string }) => void;
+      onOpenInvestigationFocus?: (focus: { kind: string; id: string }) => void;
       onAddCausalLink?: (
         fromFactor: string,
         toFactor: string,
