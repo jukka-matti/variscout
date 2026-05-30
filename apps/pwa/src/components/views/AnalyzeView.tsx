@@ -21,6 +21,8 @@ import {
   Minimap,
   CANVAS_W,
   CANVAS_H,
+  computeWallLayout,
+  buildWallLayoutArgs,
   ActiveIPScopeRibbon,
   useWallKeyboard,
   useWallIsMobile,
@@ -157,22 +159,29 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   });
 
   // Phase 13 — resolve a CommandPalette result id to a canvas-space pan target.
-  // Positioning mirrors WallCanvas's deterministic layout (hubs row at y=400,
-  // questions row at y=900). WallCanvas doesn't expose node positions, so this
-  // recomputation is a controlled duplication — refactor if the layout ever
-  // becomes dynamic.
+  // IM-4c: consumes the SHARED computeWallLayout authority with the SAME inputs
+  // WallCanvas + the Minimap use (incl. tributary grouping), so the pan target
+  // always lands on the rendered card — no recomputed duplicate.
   const handlePanToNode = useCallback(
     (nodeId: string) => {
-      const hubIndex = scopedWallHubs.findIndex(h => h.id === nodeId);
-      if (hubIndex >= 0) {
-        const hubSpacing = CANVAS_W / (scopedWallHubs.length + 1);
+      const layout = computeWallLayout(
+        buildWallLayoutArgs({
+          hubs: scopedWallHubs,
+          processMap,
+          groupByTributary: Boolean(processMap && wallGroupByTributary),
+          canvasW: CANVAS_W,
+          canvasH: CANVAS_H,
+        })
+      );
+      const pos = layout.hubPositions.get(nodeId);
+      if (pos) {
         setWallPan(wallHubId, {
-          x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
-          y: CANVAS_H / 2 - 400,
+          x: CANVAS_W / 2 - pos.x,
+          y: CANVAS_H / 2 - pos.y,
         });
       }
     },
-    [scopedWallHubs, wallHubId, setWallPan]
+    [scopedWallHubs, processMap, wallGroupByTributary, wallHubId, setWallPan]
   );
 
   const handleReturnToImprovementProject = useCallback(() => {
@@ -352,6 +361,8 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                       zoom={wallZoom}
                       pan={wallPan}
                       onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
+                      processMap={processMap}
+                      groupByTributary={Boolean(processMap && wallGroupByTributary)}
                     />
                   </div>
                   <CommandPalette

@@ -39,7 +39,7 @@ import { deriveProcessSteps } from '@variscout/core/frame';
 import { getMessage } from '@variscout/core/i18n';
 import { surveyWallRules, deriveHypothesisStatus } from '@variscout/core/survey';
 import { chartColors } from '@variscout/charts';
-import { computeWallLayout } from './wallLayout';
+import { computeWallLayout, buildWallLayoutArgs } from './wallLayout';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { GateBadge } from './GateBadge';
 import { FindingChip } from './FindingChip';
@@ -363,25 +363,19 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   // authority and the DOM never drift.
   const wallLayout = useMemo(
     () =>
-      computeWallLayout({
-        hubs: filteredHubs.map(h => ({
-          id: h.id,
-          findingIds: h.findingIds,
-          counterFindingIds: h.counterFindingIds,
-        })),
-        findings: findings.map(f => ({ id: f.id })),
-        factors: [],
-        grouping: tributaryGroups ? 'tributary' : 'linear',
-        groups: tributaryGroups
-          ? tributaryGroups.map(g => ({
-              id: g.tributary?.id ?? '__unassigned__',
-              hubIds: g.hubs.map(h => h.id),
-            }))
-          : undefined,
-        canvasW: CANVAS_W,
-        canvasH: CANVAS_H,
-      }),
-    [filteredHubs, findings, tributaryGroups]
+      computeWallLayout(
+        buildWallLayoutArgs({
+          hubs: filteredHubs,
+          findings,
+          processMap,
+          // tributaryGroups already encodes the groupByTributary && processMap
+          // gate; pass the boolean so the shared bucketing rule reproduces it.
+          groupByTributary: Boolean(tributaryGroups),
+          canvasW: CANVAS_W,
+          canvasH: CANVAS_H,
+        })
+      ),
+    [filteredHubs, findings, processMap, tributaryGroups]
   );
 
   // Scope-anchor (IM-4a): derive the Problem-condition card's live display

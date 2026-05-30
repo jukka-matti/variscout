@@ -10,7 +10,10 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import { Minimap } from '../Minimap';
 import { CANVAS_W, CANVAS_H } from '../WallCanvas';
-import type { Hypothesis } from '@variscout/core';
+import { computeWallLayout, buildWallLayoutArgs } from '../wallLayout';
+import type { Hypothesis, ProcessMap } from '@variscout/core';
+
+const MINIMAP_W = 160;
 
 const hubs: Hypothesis[] = [
   {
@@ -95,5 +98,64 @@ describe('Minimap', () => {
       <Minimap hubs={hubs} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={vi.fn()} />
     );
     expect(container.querySelector('[data-minimap-viewport]')).toBeTruthy();
+  });
+
+  // IM-4c — proof that the Minimap consumes the SHARED computeWallLayout
+  // authority (not a recomputed linear duplicate): under tributary grouping the
+  // dot x must equal the authority's tributary hub x, which differs from the
+  // old linear `CANVAS_W/(N+1)` column.
+  it('positions dots from computeWallLayout under tributary grouping (not the linear duplicate)', () => {
+    const processMap: ProcessMap = {
+      version: 1,
+      nodes: [
+        { id: 'n1', name: 'Fill', order: 0 },
+        { id: 'n2', name: 'Pack', order: 1 },
+      ],
+      tributaries: [
+        { id: 't1', stepId: 'n1', column: 'SHIFT' },
+        { id: 't2', stepId: 'n2', column: 'LINE' },
+      ],
+      ctsColumn: 'FILL',
+      createdAt: '2026-05-09T00:00:00.000Z',
+      updatedAt: '2026-05-09T00:00:00.000Z',
+    };
+    const groupedHubs: Hypothesis[] = [
+      { ...hubs[0], id: 'h-1', tributaryIds: ['t1'] },
+      { ...hubs[1], id: 'h-2', tributaryIds: ['t2'] },
+    ];
+
+    const { container } = render(
+      <Minimap
+        hubs={groupedHubs}
+        zoom={1}
+        pan={{ x: 0, y: 0 }}
+        onPanTo={vi.fn()}
+        processMap={processMap}
+        groupByTributary
+      />
+    );
+
+    const layout = computeWallLayout(
+      buildWallLayoutArgs({
+        hubs: groupedHubs,
+        processMap,
+        groupByTributary: true,
+        canvasW: CANVAS_W,
+        canvasH: CANVAS_H,
+      })
+    );
+
+    const dot1 = container.querySelector('[data-minimap-node-id="h-1"]');
+    const dot2 = container.querySelector('[data-minimap-node-id="h-2"]');
+    const expected1 = (layout.hubPositions.get('h-1')!.x / CANVAS_W) * MINIMAP_W;
+    const expected2 = (layout.hubPositions.get('h-2')!.x / CANVAS_W) * MINIMAP_W;
+    expect(Number(dot1!.getAttribute('cx'))).toBeCloseTo(expected1);
+    expect(Number(dot2!.getAttribute('cx'))).toBeCloseTo(expected2);
+
+    // Sanity: the tributary layout x differs from the old linear duplicate
+    // (CANVAS_W/(N+1)*(i+1) → 160*(i+1)/3 in minimap units), proving the dots
+    // follow the bands, not the linear row.
+    const linearDot2 = (((CANVAS_W / 3) * 2) / CANVAS_W) * MINIMAP_W;
+    expect(Number(dot2!.getAttribute('cx'))).not.toBeCloseTo(linearDot2);
   });
 });

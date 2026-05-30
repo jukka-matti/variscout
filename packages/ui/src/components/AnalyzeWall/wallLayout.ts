@@ -75,6 +75,87 @@ export interface WallLayoutArgs {
   canvasH: number;
 }
 
+/** Minimal hub shape `buildWallLayoutArgs` needs (a structural subset of `Hypothesis`). */
+export interface WallLayoutHubLike {
+  id: string;
+  findingIds: string[];
+  counterFindingIds?: string[];
+  tributaryIds?: readonly string[];
+}
+
+/** Minimal process-map shape `buildWallLayoutArgs` needs for tributary bucketing. */
+export interface WallLayoutProcessMapLike {
+  tributaries: readonly { id: string }[];
+}
+
+export interface BuildWallLayoutArgsInput {
+  hubs: readonly WallLayoutHubLike[];
+  findings?: readonly { id: string }[];
+  factors?: readonly { key: string; contribution: number }[];
+  processMap?: WallLayoutProcessMapLike;
+  groupByTributary?: boolean;
+  canvasW: number;
+  canvasH: number;
+}
+
+/**
+ * Build `WallLayoutArgs` from the raw Wall inputs — the SINGLE place that owns
+ * the tributary-bucketing rule (mirrors WallCanvas's `tributaryGroups` memo:
+ * bucket each hub by its first matching tributary id, preserve processMap order,
+ * unassigned bucket last, drop empty buckets). WallCanvas, Minimap, and both
+ * apps' pan-to-node all call this → `computeWallLayout`, so positions can never
+ * diverge between renderer, minimap, and pan target.
+ */
+export function buildWallLayoutArgs(input: BuildWallLayoutArgsInput): WallLayoutArgs {
+  const {
+    hubs,
+    findings = [],
+    factors = [],
+    processMap,
+    groupByTributary,
+    canvasW,
+    canvasH,
+  } = input;
+
+  const hubInputs: WallLayoutHubInput[] = hubs.map(h => ({
+    id: h.id,
+    findingIds: h.findingIds,
+    counterFindingIds: h.counterFindingIds,
+  }));
+
+  let grouping: 'linear' | 'tributary' = 'linear';
+  let groups: WallLayoutGroup[] | undefined;
+
+  if (groupByTributary && processMap) {
+    const tributaryIds = new Set(processMap.tributaries.map(t => t.id));
+    const buckets: WallLayoutGroup[] = processMap.tributaries.map(t => ({ id: t.id, hubIds: [] }));
+    const unassigned: WallLayoutGroup = { id: '__unassigned__', hubIds: [] };
+    for (const hub of hubs) {
+      const matchId = hub.tributaryIds?.find(id => tributaryIds.has(id));
+      if (matchId) {
+        buckets.find(b => b.id === matchId)!.hubIds.push(hub.id);
+      } else {
+        unassigned.hubIds.push(hub.id);
+      }
+    }
+    const nonEmpty = [...buckets, unassigned].filter(b => b.hubIds.length > 0);
+    if (nonEmpty.length > 0) {
+      grouping = 'tributary';
+      groups = nonEmpty;
+    }
+  }
+
+  return {
+    hubs: hubInputs,
+    findings: findings.map(f => ({ id: f.id })),
+    factors: factors.map(f => ({ key: f.key, contribution: f.contribution })),
+    grouping,
+    groups,
+    canvasW,
+    canvasH,
+  };
+}
+
 // ── Layout constants (lifted verbatim from WallCanvas inline math) ───────────
 const HUB_Y = 400;
 const BAND_TOP = 296;

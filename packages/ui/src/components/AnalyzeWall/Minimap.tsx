@@ -13,19 +13,17 @@
  * viewport or translates it directly.
  */
 
-import React from 'react';
-import type { Hypothesis } from '@variscout/core';
+import React, { useMemo } from 'react';
+import type { Hypothesis, ProcessMap } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
 import { CANVAS_W, CANVAS_H } from './WallCanvas';
+import { computeWallLayout, buildWallLayoutArgs } from './wallLayout';
 import { useWallLocale } from './hooks/useWallLocale';
 
 /** Minimap SVG dimensions in pixels (also the CSS size). */
 const MINIMAP_W = 160;
 const MINIMAP_H = 100;
-
-/** Match the layout constants inside WallCanvas so dot positions align. */
-const HUB_Y = 400;
 
 export interface MinimapProps {
   hubs: Hypothesis[];
@@ -44,21 +42,52 @@ export interface MinimapProps {
    * to center the viewport on the clicked point.
    */
   onPanTo: (x: number, y: number) => void;
+  /**
+   * IM-4c — process map + tributary toggle. When `groupByTributary` is on AND a
+   * processMap is supplied, the Minimap dots follow the SAME tributary bands
+   * WallCanvas draws (via the shared `computeWallLayout` authority) instead of
+   * the old linear-row duplicate. Omit for the default linear layout.
+   */
+  processMap?: ProcessMap;
+  groupByTributary?: boolean;
 }
 
-export const Minimap: React.FC<MinimapProps> = ({ hubs, zoom, pan, onPanTo }) => {
+export const Minimap: React.FC<MinimapProps> = ({
+  hubs,
+  zoom,
+  pan,
+  onPanTo,
+  processMap,
+  groupByTributary,
+}) => {
   const locale = useWallLocale();
 
-  // Positions mirror WallCanvas hub placement math (hubs on row 400). Done
-  // here rather than threading positions through props because the Minimap
-  // only needs dots, not the full card layout.
-  const hubSpacing = CANVAS_W / (hubs.length + 1);
-  const hubDots = hubs.map((hub, idx) => ({
-    id: hub.id,
-    kind: 'hub' as const,
-    cx: ((hubSpacing * (idx + 1)) / CANVAS_W) * MINIMAP_W,
-    cy: (HUB_Y / CANVAS_H) * MINIMAP_H,
-  }));
+  // Dot positions come from the SAME position authority WallCanvas renders from
+  // (computeWallLayout) — no recomputation, so the minimap can never drift from
+  // the cards, including under tributary grouping.
+  const hubDots = useMemo(() => {
+    const layout = computeWallLayout(
+      buildWallLayoutArgs({
+        hubs,
+        processMap,
+        groupByTributary,
+        canvasW: CANVAS_W,
+        canvasH: CANVAS_H,
+      })
+    );
+    return hubs
+      .map(hub => {
+        const pos = layout.hubPositions.get(hub.id);
+        if (!pos) return null;
+        return {
+          id: hub.id,
+          kind: 'hub' as const,
+          cx: (pos.x / CANVAS_W) * MINIMAP_W,
+          cy: (pos.y / CANVAS_H) * MINIMAP_H,
+        };
+      })
+      .filter((d): d is { id: string; kind: 'hub'; cx: number; cy: number } => d !== null);
+  }, [hubs, processMap, groupByTributary]);
 
   // Viewport rectangle. The main canvas is CANVAS_W × CANVAS_H. With a zoom
   // factor z, the visible window in canvas-space is (CANVAS_W/z × CANVAS_H/z)
@@ -98,6 +127,7 @@ export const Minimap: React.FC<MinimapProps> = ({ hubs, zoom, pan, onPanTo }) =>
         <circle
           key={`${d.kind}:${d.id}`}
           data-minimap-node={d.kind}
+          data-minimap-node-id={d.id}
           cx={d.cx}
           cy={d.cy}
           r={3}

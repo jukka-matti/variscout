@@ -9,6 +9,8 @@ import {
   Minimap,
   CANVAS_W,
   CANVAS_H,
+  computeWallLayout,
+  buildWallLayoutArgs,
   ActiveIPScopeRibbon,
   useWallKeyboard,
   useWallIsMobile,
@@ -510,21 +512,30 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     [activeIPScope, scopedFindingIds, findingsState.findings]
   );
 
-  // Phase 13 — pan-to-node: replicate WallCanvas's deterministic layout so the
-  // command palette can center the viewport on a hub by id. (IM-1: the
-  // question row is gone; only hub nodes are pan-targets.)
+  // Phase 13 — pan-to-node: center the viewport on a hub by id. IM-4c: consumes
+  // the SHARED computeWallLayout authority with the SAME inputs WallCanvas + the
+  // Minimap use (incl. tributary grouping), so the pan target always lands on the
+  // rendered card — no more linear-only duplicate that drifted under grouping.
   const handleWallPanToNode = useCallback(
     (nodeId: string) => {
-      const hubIndex = scopedHubs.findIndex(h => h.id === nodeId);
-      if (hubIndex >= 0) {
-        const hubSpacing = CANVAS_W / (scopedHubs.length + 1);
+      const layout = computeWallLayout(
+        buildWallLayoutArgs({
+          hubs: scopedHubs,
+          processMap,
+          groupByTributary: Boolean(processMap && wallGroupByTributary),
+          canvasW: CANVAS_W,
+          canvasH: CANVAS_H,
+        })
+      );
+      const pos = layout.hubPositions.get(nodeId);
+      if (pos) {
         setWallPan(wallHubId, {
-          x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
-          y: CANVAS_H / 2 - 400,
+          x: CANVAS_W / 2 - pos.x,
+          y: CANVAS_H / 2 - pos.y,
         });
       }
     },
-    [scopedHubs, wallHubId, setWallPan]
+    [scopedHubs, processMap, wallGroupByTributary, wallHubId, setWallPan]
   );
 
   const handleReturnToImprovementProject = useCallback(() => {
@@ -1008,6 +1019,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                         zoom={wallZoom}
                         pan={wallPan}
                         onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
+                        processMap={processMap}
+                        groupByTributary={Boolean(processMap && wallGroupByTributary)}
                       />
                     </div>
                     <CommandPalette
