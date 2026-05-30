@@ -28,6 +28,7 @@ import { HypothesisCard, type HypothesisCardProps } from './HypothesisCard';
 import { MeasurementPlanChip } from './MeasurementPlanChip';
 import { AddPlanForm, type StepOption } from './AddPlanForm';
 import { LinkFindingPicker } from './LinkFindingPicker';
+import { HypothesisComments } from './HypothesisComments';
 import { useWallLocale } from './hooks/useWallLocale';
 import ImprovementIdeasSection from '../FindingsLog/ImprovementIdeasSection';
 
@@ -58,6 +59,10 @@ const FORM_H = 660;
 const PLANS_GAP = 8;
 /** Horizontal offset of the foreignObject from the card's center-top anchor. */
 const FO_X = -(CARD_W / 2);
+/** Fixed height reserved for the ImprovementIdeasSection foreignObject (px). */
+const IDEAS_SECTION_H = 300;
+/** Fixed height reserved for the HypothesisComments foreignObject (px). */
+const COMMENTS_SECTION_H = 320;
 
 export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
   /** All measurement plans for this hypothesis (non-deleted). */
@@ -158,6 +163,19 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    * Task 6 (IM-4b) — called when the user selects/deselects an improvement idea.
    */
   onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  /**
+   * Task 1 (IM-4b) — called when the user submits a new comment on this hub's
+   * team thread. Receives (hubId, text, attachment?). Parent dispatches
+   * addHubComment (which runs parseMentions on the text). When omitted, the
+   * comment thread is not mounted.
+   */
+  onAddHubComment?: (hubId: string, text: string, attachment?: File) => void;
+  /** Task 1 (IM-4b) — called when the user saves an edited comment. */
+  onEditHubComment?: (hubId: string, commentId: string, text: string) => void;
+  /** Task 1 (IM-4b) — called when the user deletes a comment. */
+  onDeleteHubComment?: (hubId: string, commentId: string) => void;
+  /** Task 1 (IM-4b) — show author names on the comment thread (default false). */
+  showCommentAuthors?: boolean;
 }
 
 export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = ({
@@ -177,6 +195,10 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onUpdateIdea,
   onRemoveIdea,
   onSelectIdea,
+  onAddHubComment,
+  onEditHubComment,
+  onDeleteHubComment,
+  showCommentAuthors,
   stepOptions,
   defaultScope,
   defaultOutcome,
@@ -207,6 +229,11 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // Disconfirmation gesture is shown when the parent wires the callback AND the
   // user has edit-contributions access (the same ACL gate as the plans zone).
   const showDisconfirmGesture = canEdit && Boolean(onRecordDisconfirmation);
+
+  // ImprovementIdeasSection mounts when the parent wires the impacts map AND the
+  // hub carries at least one idea (Task 6 IM-4b). Hoisted so the comments
+  // foreignObject can offset itself below the ideas section.
+  const showIdeasSection = ideaImpacts !== undefined && (cardProps.hub.ideas?.length ?? 0) > 0;
 
   // Dynamic height: action item rows + add-task form/button +
   // data-collection-task sections (each includes the chip) +
@@ -387,14 +414,17 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                   data-testid="data-collection-task"
                   className="flex flex-col border-b border-gray-100"
                 >
-                  {/* Header: "Assigned: collect" label + status badge + due date.
+                  {/* Header: "Assigned: collect {primaryFactor}" label + status badge + due date.
                       Owner name is intentionally omitted here — it already appears
                       in the embedded MeasurementPlanChip row below, so
                       section.textContent contains it without duplicating the DOM node
                       (avoids getByText('Alice Lead') ambiguity in existing tests). */}
                   <div className="flex items-center gap-2 px-3 pt-2 pb-1 text-sm">
                     <span className="font-medium text-gray-800 truncate flex-1">
-                      {getMessage(locale, 'wall.collect.assigned').replace('{primaryFactor}', '')}
+                      {getMessage(locale, 'wall.collect.assigned').replace(
+                        '{primaryFactor}',
+                        plan.primaryFactor
+                      )}
                     </span>
                     <span
                       data-status={plan.status}
@@ -542,25 +572,51 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
       {/* Task 6 (IM-4b) — ImprovementIdeasSection: re-mount the detached IM-1 flow.
           Rendered only when hub.ideas is non-empty AND ideaImpacts is provided.
           Positioned below the plans section in a foreignObject. */}
-      {ideaImpacts !== undefined && (cardProps.hub.ideas?.length ?? 0) > 0 && (
+      {showIdeasSection && (
         <foreignObject
           x={cardProps.x + FO_X}
           y={cardProps.y + plansSectionY + plansSectionH}
           width={CARD_W}
-          height={300}
+          height={IDEAS_SECTION_H}
           style={{ overflow: 'visible' }}
           data-testid={`ideas-fo-${cardProps.hub.id}`}
         >
           <ImprovementIdeasSection
             hypothesisId={cardProps.hub.id}
             ideas={cardProps.hub.ideas ?? []}
-            ideaImpacts={ideaImpacts}
+            ideaImpacts={ideaImpacts ?? {}}
             onAddIdea={onAddIdea}
             onUpdateIdea={onUpdateIdea}
             onRemoveIdea={onRemoveIdea}
             onSelectIdea={onSelectIdea}
             onProjectIdea={onProjectIdea}
             hypothesisText={cardProps.hub.name}
+          />
+        </foreignObject>
+      )}
+
+      {/* Task 1 (IM-4b) — HypothesisComments: team discussion thread. Mounted
+          via the production seam when the parent wires onAddHubComment (the
+          presence of the add callback is the "comments enabled" signal). The
+          ACL gate lives inside HypothesisComments (mirrors the plans-zone gate).
+          Positioned below the plans + ideas sections. */}
+      {onAddHubComment && (
+        <foreignObject
+          x={cardProps.x + FO_X}
+          y={cardProps.y + plansSectionY + plansSectionH + (showIdeasSection ? IDEAS_SECTION_H : 0)}
+          width={CARD_W}
+          height={COMMENTS_SECTION_H}
+          style={{ overflow: 'visible' }}
+          data-testid={`comments-fo-${cardProps.hub.id}`}
+        >
+          <HypothesisComments
+            hub={cardProps.hub}
+            members={members}
+            currentUserId={currentUserId}
+            onAdd={onAddHubComment}
+            onEdit={onEditHubComment ?? (() => {})}
+            onDelete={onDeleteHubComment ?? (() => {})}
+            showAuthors={showCommentAuthors}
           />
         </foreignObject>
       )}

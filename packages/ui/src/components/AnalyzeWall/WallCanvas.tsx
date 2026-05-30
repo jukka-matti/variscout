@@ -20,6 +20,8 @@ import type {
   GateNode,
   GatePath,
   ProblemStatementScope,
+  ImprovementIdea,
+  IdeaImpact,
 } from '@variscout/core';
 import type { DataRow } from '@variscout/core';
 import type { ColumnTypeMap, ConditionLeaf } from '@variscout/core/findings';
@@ -104,6 +106,49 @@ export interface WallCanvasPlanningProps {
     hypothesisId: string,
     input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
   ) => void;
+  /**
+   * IM-4b Task 1 — team comment thread on each hub. When `onAddHubComment` is
+   * provided, the card mounts `HypothesisComments`; the ACL gate lives inside
+   * that component. The app calls `addHubComment` (which runs `parseMentions`
+   * on the text + dispatches HUB_COMMENT_ADD).
+   */
+  onAddHubComment?: (hubId: string, text: string, attachment?: File) => void;
+  /** IM-4b Task 1 — edit a hub comment (calls `editHubComment`). */
+  onEditHubComment?: (hubId: string, commentId: string, text: string) => void;
+  /** IM-4b Task 1 — delete a hub comment (calls `deleteHubComment`). */
+  onDeleteHubComment?: (hubId: string, commentId: string) => void;
+  /** IM-4b Task 1 — show author names on the comment thread (default false). */
+  showCommentAuthors?: boolean;
+  /**
+   * IM-4b Task 3 — add an ActionItem task to a hub. When provided AND the user
+   * has edit-contributions access, the card renders the "+ Add Task" affordance.
+   * The app dispatches HYPOTHESIS_ACTION_ADD.
+   */
+  onAddHypothesisAction?: (hypothesisId: string, text: string) => void;
+  /**
+   * IM-4b Task 3 — mark an open ActionItem done. When provided, each open task
+   * row renders a "Mark Done" control. The app dispatches HYPOTHESIS_ACTION_COMPLETE.
+   */
+  onCompleteHypothesisAction?: (hypothesisId: string, actionId: string) => void;
+  /**
+   * IM-4b Task 6 — IdeaImpact map keyed by ideaId. When provided, hubs with
+   * `ideas` mount `ImprovementIdeasSection`. Pass `{}` when no impacts are known.
+   */
+  ideaImpacts?: Record<string, IdeaImpact | undefined>;
+  /** IM-4b Task 6 — project an idea through What-If (handleProjectIdea). */
+  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  /** IM-4b Task 6 — add a new improvement idea. */
+  onAddIdea?: (hypothesisId: string, text: string) => void;
+  /** IM-4b Task 6 — update an improvement idea. */
+  onUpdateIdea?: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
+  ) => void;
+  /** IM-4b Task 6 — remove an improvement idea. */
+  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
+  /** IM-4b Task 6 — select/deselect an improvement idea. */
+  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
 }
 
 export interface WallCanvasProps {
@@ -524,6 +569,21 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onLinkFinding: planningProps.onLinkFinding,
           onEditPlan: planningProps.onEditPlan,
           onRecordDisconfirmation: planningProps.onRecordDisconfirmation,
+          // IM-4b Task 1 — comment thread
+          onAddHubComment: planningProps.onAddHubComment,
+          onEditHubComment: planningProps.onEditHubComment,
+          onDeleteHubComment: planningProps.onDeleteHubComment,
+          showCommentAuthors: planningProps.showCommentAuthors,
+          // IM-4b Task 3 — ActionItem tasks
+          onAddHypothesisAction: planningProps.onAddHypothesisAction,
+          onCompleteHypothesisAction: planningProps.onCompleteHypothesisAction,
+          // IM-4b Task 6 — improvement ideas
+          ideaImpacts: planningProps.ideaImpacts,
+          onProjectIdea: planningProps.onProjectIdea,
+          onAddIdea: planningProps.onAddIdea,
+          onUpdateIdea: planningProps.onUpdateIdea,
+          onRemoveIdea: planningProps.onRemoveIdea,
+          onSelectIdea: planningProps.onSelectIdea,
           stepOptions: planningStepOptions,
           defaultScope: planningProps.defaultScope,
           defaultOutcome: planningProps.defaultOutcome,
