@@ -52,7 +52,7 @@ sequenceDiagram
     Lead->>Analyze: Group Findings into Hypotheses on the Wall
     Note over Analyze: Lead defines Measurement Plans,<br/>tags suspected contributions
     Analyze->>Analyze: Members contribute evidence
-    Lead->>Improve: Elevate work into a Project via Charter (hypotheses inherited as context if any)
+    Lead->>Improve: Project = collaboration via invite (create from Home, invite Members; hypotheses auto-scope to the active IP)
     Note over Improve: Active-IP cascade lights up<br/>downstream tabs (Project / Process /<br/>Explore / Analyze filtered to IP)
     Lead->>Improve: Define improvement actions, owners, dates
     Lead->>Improve: Advance to Control (cadence + drift watch)

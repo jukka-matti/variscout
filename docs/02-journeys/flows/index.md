@@ -24,3 +24,4 @@ End-to-end journey flows from discovery through daily use.
 - [Flow 10: Azure App — Admin Operations](azure-admin-operations.md)
 - [Azure Teams Mobile Flow](azure-teams-mobile.md)
 - [Wide-Form Data Analysis](wide-form-analysis.md)
+- [PWA Solo Investigation (Mode-1)](pwa-solo-investigation.md) — single-user investigation without invite or sign-off; solo PWA ceiling + upgrade path

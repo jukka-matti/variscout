@@ -1,5 +1,5 @@
 ---
-title: 'Sustainment Phase'
+title: 'Control Phase'
 purpose: design
 tier: living
 status: draft
@@ -8,20 +8,20 @@ layer: L3
 kind: workflow
 serves:
   - docs/02-journeys/index.md
-last-reviewed: 2026-05-18
+last-reviewed: 2026-05-30
 ---
 
 > **L3 feature stub** — created 2026-05-18 as part of M0 SDD migration inventory (Option A). Body to be expanded in M3 audit or on next feature edit.
 
-# Sustainment Phase
+# Control Phase
 
 ## Problem
 
-Improvement projects fail when the team stops monitoring after the fix lands — drift returns, the change is silently rolled back, or the control surface (MES recipe, SCADA alarm, work instruction) goes stale; the third Project stage in the wedge V1 `Charter → Approach → Sustainment` model exists to keep the proof going.
+Improvement projects fail when the team stops monitoring after the fix lands — drift returns, the change is silently rolled back, or the control surface (MES recipe, SCADA alarm, work instruction) goes stale; the third Project stage in the wedge V1 `Charter → Approach → Control` model exists to keep the proof going.
 
 ## Capability claim
 
-Sustainment domain types live in `packages/core/src/sustainment.ts` (`SustainmentCadence` weekly through annual, `SustainmentVerdict` of `'holding' | 'drifting' | 'broken' | 'inconclusive'`, `SustainmentStatus`, and `ControlHandoffSurface` enumerating `'mes-recipe' | 'scada-alarm' | 'qms-procedure' | 'work-instruction'`), with Azure UI in `apps/azure/src/components/sustainment/SustainmentPanel.tsx` + editors and CoScout auto-fire on Sustainment events per ADR-080.
+Control domain types live in `packages/core/src/sustainment.ts` (`SustainmentCadence` weekly through annual, `SustainmentVerdict` of `'holding' | 'drifting' | 'broken' | 'inconclusive'`, `SustainmentStatus`, and `ControlHandoffSurface` enumerating `'mes-recipe' | 'scada-alarm' | 'qms-procedure' | 'work-instruction'`), with Azure UI in `apps/azure/src/components/sustainment/SustainmentPanel.tsx` + editors and CoScout auto-fire on Control events per ADR-080. Note: code identifiers (`sustainment`, `SustainmentCadence`, etc.) are preserved as stable tokens per Task #40 rename discipline.
 
 ## Intent diagram
 
@@ -41,7 +41,7 @@ flowchart LR
     Continue --> Cadence
 ```
 
-Third Project stage in the wedge V1 `Charter → Approach → Sustainment` model. `SustainmentVerdict` drives the branch (`holding | drifting | broken | inconclusive`); CoScout auto-fires on Sustainment events per ADR-080.
+Third Project stage in the wedge V1 `Charter → Approach → Control` model. `SustainmentVerdict` drives the branch (`holding | drifting | broken | inconclusive`); CoScout auto-fires on Control events per ADR-080.
 
 ## Acceptance signals
 

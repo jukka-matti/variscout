@@ -16,7 +16,7 @@ last-reviewed: 2026-05-27
 
 ## Persona statement
 
-The **Sponsor** is the executive accountable for the Project's outcome. They authorize the Charter, hold the team accountable through **Control**, and accept the final Report. They do not run the analysis, propose hypotheses, or own action items — those are Lead and Member work. The Sponsor's interaction is read-mostly + approval gates.
+The **Sponsor** is the executive accountable for the Project's outcome. They review the Charter, hold the team accountable through **Control**, and accept the final Report. They do not run the analysis, propose hypotheses, or own action items — those are Lead and Member work. The Sponsor's interaction is read-mostly; sign-off and acknowledgement happen out-of-band (the Lead records the result as a note).
 
 Real-world counterparts: VP of Operations, Plant Manager, Quality Director, executive Champion. The Sponsor often has many Projects in flight; their VariScout time is bounded.
 
@@ -24,11 +24,11 @@ A Sponsor is invited to specific Projects. They see only those on Home. They nev
 
 ## JTBD
 
-> **When I** sponsor a Project, **I want to** approve the Charter + review **Control** cadence, **so I can** hold the team accountable for the improvement outcome.
+> **When I** sponsor a Project, **I want to** review the Charter + follow the **Control** cadence, **so I can** hold the team accountable for the improvement outcome.
 
 Supporting jobs:
 
-- When the Lead opens a Project, I want to confirm the problem is worth solving and the scope is right.
+- When the Lead opens a Project, I want to read the problem statement and confirm the scope makes sense.
 - When the team commits to improvement actions, I want to know what success looks like + when to expect results.
 - When **Control** surfaces a drift signal, I want to see it without digging through the Wall.
 - When the Project is done, I want a Report I can share upward and to my peers.
@@ -48,17 +48,17 @@ sequenceDiagram
 
     Sponsor->>Home: Open VariScout, see Projects I sponsor
     Sponsor->>Project: Open Project (read Charter)
-    Note over Project: Sponsor signs off Charter scope<br/>(approval gate)
+    Note over Project: Sponsor reviews Charter scope<br/>(out-of-band; Lead records result)
     Sponsor->>Explore: Read (optional engagement)
     Sponsor->>Analyze: Read — see Wall, evidence, Measurement Plans
     Sponsor->>Improve: Review proposed actions + owners
-    Note over Improve: Sponsor sees active-IP cascade<br/>(read-only), approves IP scope
+    Note over Improve: Sponsor sees active-IP cascade<br/>(read-only), reviews IP scope
     Sponsor->>Report: Read interim status during Control
     Note over Report: Control drift signal<br/>surfaces to Sponsor
-    Sponsor->>Report: Sign off final Report (approval gate)
+    Sponsor->>Report: Review final Report (out-of-band sign-off; Lead records)
 ```
 
-The Sponsor reads Explore + Analyze when they want to engage with the analysis directly. Their active gestures are bounded to approval gates which happen out-of-band per wedge V1 (Lead records the signoff as a note). The Sponsor's primary touch-points are **Home** (project list), **Project** (Charter sign-off), **Improve** (action review), and **Report** (interim + final review).
+The Sponsor reads Explore + Analyze when they want to engage with the analysis directly. Their active gestures are review and acknowledgement — sign-off happens out-of-band (the Lead records the result as a note). The Sponsor's primary touch-points are **Home** (project list), **Project** (Charter review), **Improve** (action review), and **Report** (interim + final review).
 
 ## Feature touch-points
 
@@ -72,13 +72,13 @@ Supporting reference: [`flows/enterprise.md`](../flows/enterprise.md), [`flows/a
 
 A Sponsor has succeeded when:
 
-- **Charter is approved.** Sponsor agreed the problem is worth solving and the scope is correct.
+- **Charter is reviewed.** Sponsor has read the problem statement and agreed on scope (out-of-band; the Lead notes the result).
 - **Action plan is sanctioned.** Sponsor saw the proposed improvement actions and accepted them.
 - **Drift is visible.** During **Control**, the Sponsor sees signals without digging — surfaced to Home or via the Report.
-- **Final Report is signed off.** Sponsor accepts the outcome and can share it upward.
+- **Final Report is reviewed.** Sponsor has read the outcome; sign-off is out-of-band and the Lead records the result.
 
 Failure modes the journey is designed to prevent:
 
 - Sponsor making structural edits they shouldn't (ACL gates: Sponsor cannot author canvas, close hypotheses, compile Report, or advance stages — Lead-only per 2-tier ACL §4.1; Sponsor may contribute Findings, evidence, comments)
 - Sponsor missing drift signals (**Control** surfaces them to the Sponsor explicitly, not buried in the Wall)
-- Sign-off untracked (sign-off is out-of-band per wedge V1; Lead records the result as a note in the relevant stage)
+- Sign-off untracked (sign-off is optional, non-blocking, and out-of-band; Lead records the result as a note in the relevant stage — the sign-off section is hidden when the Project has no collaborators)
