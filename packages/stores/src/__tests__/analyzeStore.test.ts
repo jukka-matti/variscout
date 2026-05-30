@@ -1396,6 +1396,91 @@ describe('analyzeStore — composeScopeGate', () => {
 // Relocation assertions (IM-1 / F4)
 // ============================================================================
 
+// ============================================================================
+// @mentions — task 2 failing tests (RED)
+// addHubComment stores mentionedUserIds when text contains @DisplayName tokens
+// ============================================================================
+
+describe('analyzeStore — addHubComment with @mentions', () => {
+  // mentionedUserIds are resolved externally (via parseMentions) and passed into
+  // addHubComment so the store stays transport-agnostic. The resulting
+  // FindingComment.mentionedUserIds must be persisted verbatim.
+  //
+  // Acceptance: "typing @<member> yields a mention" — the stored comment carries
+  // the resolved userId(s) so the SSE fan-out and UI badge can reference them.
+
+  beforeEach(() => {
+    useAnalyzeStore.setState(getAnalyzeInitialState());
+  });
+
+  it('stores mentionedUserIds on the comment when passed to addHubComment', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+
+    const hub = useAnalyzeStore.getState().createHub('Nozzle wear', 'Night shift');
+    const comment = await useAnalyzeStore
+      .getState()
+      .addHubComment(hub.id, '@Alice Lead — can you validate?', 'Bob', ['user-alice']);
+
+    expect(comment.mentionedUserIds).toEqual(['user-alice']);
+
+    const liveHub = useAnalyzeStore.getState().hypotheses.find(h => h.id === hub.id)!;
+    expect(liveHub.comments?.[0]?.mentionedUserIds).toEqual(['user-alice']);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('stores multiple mentionedUserIds when several members are mentioned', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+
+    const hub = useAnalyzeStore.getState().createHub('Coolant temp', 'Day shift');
+    const comment = await useAnalyzeStore
+      .getState()
+      .addHubComment(hub.id, '@Alice Lead and @Bob Member please validate', 'Carol', [
+        'user-alice',
+        'user-bob',
+      ]);
+
+    expect(comment.mentionedUserIds).toEqual(['user-alice', 'user-bob']);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('stores no mentionedUserIds when none are provided (backward-compatible)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    const comment = await useAnalyzeStore
+      .getState()
+      .addHubComment(hub.id, 'Plain comment without any mentions', 'Bob');
+
+    // mentionedUserIds should be absent or empty — not an error
+    expect(comment.mentionedUserIds ?? []).toEqual([]);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('includes mentionedUserIds in the POST body sent to the server', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', mockFetch);
+    useProjectStore.setState({ projectId: 'proj-mention-test' });
+
+    const hub = useAnalyzeStore.getState().createHub('Hub', 'Synth');
+    await useAnalyzeStore
+      .getState()
+      .addHubComment(hub.id, '@Alice Lead check this', 'Carol', ['user-alice']);
+
+    const callArgs = mockFetch.mock.calls[0];
+    const body = JSON.parse(callArgs[1].body) as { mentionedUserIds?: string[] };
+    expect(body.mentionedUserIds).toEqual(['user-alice']);
+
+    vi.unstubAllGlobals();
+  });
+});
+
+// ============================================================================
+// Relocation assertions (IM-1 / F4)
+// ============================================================================
+
 describe('analyzeStore — relocation assertions (IM-1)', () => {
   it('does not own questions (retired in ADR-085)', () => {
     const state = useAnalyzeStore.getState() as unknown as Record<string, unknown>;

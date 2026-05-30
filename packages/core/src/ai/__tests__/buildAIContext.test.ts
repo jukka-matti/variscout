@@ -998,3 +998,162 @@ describe('ADR-060 Pillar 1', () => {
     expect(context.investigation?.evidenceMapTopology?.relationships).toHaveLength(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Task 2 — AIContext.investigation.recentComments (task 2 failing tests — RED)
+//
+// Acceptance: AIContext.investigation.recentComments includes recent comment TEXT.
+// Today only `commentCount` exists on topFindings — this adds the field.
+//
+// Semantics:
+//   - "recent" = created today (ms timestamp ≥ start of today in UTC).
+//   - Includes hub comments (parentKind='hypothesis') AND finding comments.
+//   - Capped at a sensible number (≤10) to keep tokens bounded.
+//   - Comment text is included as-is (no truncation guard tested here).
+//   - Absent when no comments were made today.
+//
+// NOTE: These tests use a FIXED reference timestamp so they are fully
+// deterministic (no wall-clock dependency). `todayStartMs` is passed as an
+// option so the implementer can inject it; the option defaults to
+// `new Date().setUTCHours(0,0,0,0)` in production.
+// ---------------------------------------------------------------------------
+
+describe('buildAIContext — investigation.recentComments (task 2)', () => {
+  // Fixed reference: 2024-01-15T12:00:00.000Z
+  const TODAY_NOON = 1705320000000; // 2024-01-15T12:00:00Z
+  const TODAY_START = 1705276800000; // 2024-01-15T00:00:00Z
+  const YESTERDAY_END = TODAY_START - 1; // 2024-01-14T23:59:59.999Z
+
+  const makeHubComment = (
+    id: string,
+    text: string,
+    createdAt: number
+  ): import('../../findings/types').FindingComment => ({
+    id,
+    text,
+    createdAt,
+    parentId: 'hub-1',
+    parentKind: 'hypothesis',
+    deletedAt: null,
+  });
+
+  const makeFindingComment = (
+    id: string,
+    text: string,
+    createdAt: number
+  ): import('../../findings/types').FindingComment => ({
+    id,
+    text,
+    createdAt,
+    parentId: 'f-1',
+    parentKind: 'finding',
+    deletedAt: null,
+  });
+
+  it('populates recentComments with hub comment text created today', () => {
+    const todayComment = makeHubComment('c1', 'Nozzle gap is 0.3mm — too wide', TODAY_NOON);
+
+    const ctx = buildAIContext({
+      process: { issueStatement: 'Nozzle wear' },
+      hubComments: [todayComment],
+      todayStartMs: TODAY_START,
+    });
+
+    expect(ctx.investigation?.recentComments).toBeDefined();
+    expect(ctx.investigation?.recentComments).toHaveLength(1);
+    expect(ctx.investigation?.recentComments![0]).toBe('Nozzle gap is 0.3mm — too wide');
+  });
+
+  it('excludes hub comments created before today', () => {
+    const oldComment = makeHubComment('c1', 'Yesterday observation', YESTERDAY_END);
+    const todayComment = makeHubComment('c2', 'Today observation', TODAY_NOON);
+
+    const ctx = buildAIContext({
+      process: { issueStatement: 'Nozzle wear' },
+      hubComments: [oldComment, todayComment],
+      todayStartMs: TODAY_START,
+    });
+
+    expect(ctx.investigation?.recentComments).toHaveLength(1);
+    expect(ctx.investigation?.recentComments![0]).toBe('Today observation');
+  });
+
+  it('omits recentComments when no comments were made today', () => {
+    const oldComment = makeHubComment('c1', 'Old comment', YESTERDAY_END);
+
+    const ctx = buildAIContext({
+      process: { issueStatement: 'Test' },
+      hubComments: [oldComment],
+      todayStartMs: TODAY_START,
+    });
+
+    expect(ctx.investigation?.recentComments).toBeUndefined();
+  });
+
+  it('omits recentComments when hubComments is not provided', () => {
+    const ctx = buildAIContext({
+      process: { issueStatement: 'Test' },
+      todayStartMs: TODAY_START,
+    });
+
+    expect(ctx.investigation?.recentComments).toBeUndefined();
+  });
+
+  it('includes finding comments created today alongside hub comments', () => {
+    const hubComment = makeHubComment('c1', 'Hub comment today', TODAY_NOON);
+    const findingComment = makeFindingComment('c2', 'Finding comment today', TODAY_NOON);
+
+    const ctx = buildAIContext({
+      process: { issueStatement: 'Test' },
+      hubComments: [hubComment],
+      findingComments: [findingComment],
+      todayStartMs: TODAY_START,
+    });
+
+    expect(ctx.investigation?.recentComments).toHaveLength(2);
+    expect(ctx.investigation?.recentComments).toContain('Hub comment today');
+    expect(ctx.investigation?.recentComments).toContain('Finding comment today');
+  });
+
+  it('caps recentComments at 10 entries (token budget)', () => {
+    // 12 comments today — only the 10 most recent should appear
+    const manyComments = Array.from({ length: 12 }, (_, i) =>
+      makeHubComment(`c${i}`, `Comment number ${i}`, TODAY_NOON + i * 1000)
+    );
+
+    const ctx = buildAIContext({
+      process: { issueStatement: 'Test' },
+      hubComments: manyComments,
+      todayStartMs: TODAY_START,
+    });
+
+    expect(ctx.investigation?.recentComments).toHaveLength(10);
+  });
+
+  it('includes the most recent 10 when capped (sorted by createdAt desc)', () => {
+    // 12 comments — most recent should be c11 .. c2
+    const manyComments = Array.from({ length: 12 }, (_, i) =>
+      makeHubComment(`c${i}`, `Comment number ${i}`, TODAY_NOON + i * 1000)
+    );
+
+    const ctx = buildAIContext({
+      process: { issueStatement: 'Test' },
+      hubComments: manyComments,
+      todayStartMs: TODAY_START,
+    });
+
+    // The 10 most recent (c11 down to c2) — order may be desc
+    expect(ctx.investigation?.recentComments).toContain('Comment number 11');
+    expect(ctx.investigation?.recentComments).not.toContain('Comment number 0');
+    expect(ctx.investigation?.recentComments).not.toContain('Comment number 1');
+  });
+
+  it('does not require hubComments to trigger investigation context (process.issueStatement suffices)', () => {
+    const ctx = buildAIContext({
+      process: { issueStatement: 'Cpk below target' },
+    });
+    // investigation is set; recentComments absent — not an error
+    expect(ctx.investigation).toBeDefined();
+    expect(ctx.investigation?.recentComments).toBeUndefined();
+  });
+});
