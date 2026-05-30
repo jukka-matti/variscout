@@ -1307,11 +1307,6 @@ function AppMain() {
                       );
                     });
                 }}
-                onNudgeSignoff={projectId => {
-                  console.info(
-                    `[projects] Nudge signoff for ${projectId} — EngagementEvent webhook boundary`
-                  );
-                }}
                 onStartNewProject={panels.showCharter}
               />
             ) : panels.activeView === 'improvement' ? (

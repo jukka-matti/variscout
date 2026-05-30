@@ -73,8 +73,7 @@ describe('ProjectsTabView', () => {
     expect(onStartNewProject).toHaveBeenCalledTimes(1);
   });
 
-  it('updates the project store and emits a patch from detail signoff actions', () => {
-    const onProjectPatch = vi.fn();
+  it('never exposes a sign-off section — PWA is a Mode-1 solo surface (IM-7 §9.2)', () => {
     const hub: ProcessHub = {
       ...baseHub,
       processOwner: { displayName: 'Pat Process', upn: 'pat@example.com' },
@@ -86,21 +85,14 @@ describe('ProjectsTabView', () => {
         activeHub={hub}
         selectedProjectId="ip-1"
         onSelectProject={() => {}}
-        onProjectPatch={onProjectPatch}
+        onProjectPatch={() => {}}
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /request approval/i }));
-
-    expect(onProjectPatch).toHaveBeenCalledWith(
-      'ip-1',
-      expect.objectContaining({
-        signoff: expect.objectContaining({ requestedAt: expect.any(Number) }),
-      })
-    );
-    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.signoff).toEqual(
-      expect.objectContaining({ requestedAt: expect.any(Number) })
-    );
+    // Solo project has no collaboratedAt marker → the team-rail sign-off
+    // section self-hides, and PWA wires no sign-off callbacks at all.
+    expect(screen.queryByRole('button', { name: /request approval/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Signoff' })).not.toBeInTheDocument();
   });
 
   it('threads PWA_USER_ID into IPDetailPage — charter team section is visible', () => {

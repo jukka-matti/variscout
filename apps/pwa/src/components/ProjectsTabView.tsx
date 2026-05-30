@@ -28,7 +28,7 @@ interface ProjectsTabViewProps {
     projectId: ImprovementProject['id'],
     patch: Extract<HubAction, { kind: 'IMPROVEMENT_PROJECT_UPDATE' }>['patch']
   ) => void;
-  onNudgeSignoff?: (projectId: ImprovementProject['id']) => void;
+  // PWA never exposes sign-off (IM-7 §9.2): no onNudgeSignoff / onApproveSignoff.
   onStartNewProject?: () => void;
 }
 
@@ -86,7 +86,6 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onOpenLegacyControl,
   onNudgeProcessOwner,
   onProjectPatch,
-  onNudgeSignoff,
   onStartNewProject,
 }) => {
   const [now] = React.useState(() => Date.now());
@@ -165,27 +164,11 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
             ...markFirstInvite,
           });
         }}
-        onRequestSignoff={() =>
-          applyProjectPatch(selected, {
-            signoff: {
-              ...(selected.signoff ?? {}),
-              requestedAt: Date.now(),
-              approvedAt: undefined,
-              approvedBy: undefined,
-            },
-          })
-        }
-        onNudgeSignoff={() => onNudgeSignoff?.(selected.id)}
-        onApproveSignoff={() =>
-          applyProjectPatch(selected, {
-            signoff: {
-              ...(selected.signoff ?? {}),
-              requestedAt: selected.signoff?.requestedAt ?? Date.now(),
-              approvedAt: Date.now(),
-              approvedBy: activeHub.processOwner ?? { displayName: 'Process owner' },
-            },
-          })
-        }
+        // PWA never exposes sign-off (IM-7 §9.2): it is a single-user, Mode-1
+        // solo surface. The collaboration affordance lives only in the Azure
+        // app, so no onRequestSignoff / onNudgeSignoff / onApproveSignoff is
+        // wired here. The team rail's sign-off section additionally self-hides
+        // for solo projects via isCollaborative().
       />
     );
   }

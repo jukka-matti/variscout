@@ -82,7 +82,8 @@ describe('ProjectsTabView', () => {
     const hub: ProcessHub = {
       ...baseHub,
       processOwner: { displayName: 'Pat Process', upn: 'pat@example.com' },
-      improvementProject: makeIP(),
+      // collaboratedAt makes the sign-off section visible (collaboration affordance).
+      improvementProject: makeIP({ collaboratedAt: 1_700_000_000_000 }),
     };
 
     render(
@@ -104,6 +105,55 @@ describe('ProjectsTabView', () => {
     );
     expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.signoff).toEqual(
       expect.objectContaining({ requestedAt: expect.any(Number) })
+    );
+  });
+
+  it('approves with the acting user (not the process owner) and works with no process owner set', () => {
+    const onProjectPatch = vi.fn();
+    const hub: ProcessHub = {
+      ...baseHub,
+      // No processOwner on the hub — sign-off must still be approvable.
+      improvementProject: makeIP({
+        collaboratedAt: 1_700_000_000_000,
+        signoff: { requestedAt: 1_700_000_100_000 },
+        metadata: {
+          title: 'Approve without owner',
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'analyst@contoso.com',
+              displayName: 'Analyst Lead',
+              role: 'lead',
+              invitedAt: 0,
+            },
+          ],
+        },
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+        currentUserId="analyst@contoso.com"
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+
+    // approvedBy is the acting user (resolved from membership), never the process owner.
+    expect(onProjectPatch).toHaveBeenCalledWith(
+      'ip-1',
+      expect.objectContaining({
+        signoff: expect.objectContaining({
+          approvedAt: expect.any(Number),
+          approvedBy: expect.objectContaining({ displayName: 'Analyst Lead' }),
+        }),
+      })
     );
   });
 

@@ -118,21 +118,35 @@ describe('IPDetailTeamRail', () => {
     expect(dialog).toHaveTextContent('System updated Background · 7h ago');
   });
 
-  it('exposes an active Request approval button (wedge V1 single SKU)', () => {
+  it('hides the signoff section entirely for a solo project (no collaboratedAt)', () => {
+    render(<IPDetailTeamRail ip={makeIP()} activeHub={activeHub} now={now} />);
+    expect(screen.queryByRole('heading', { name: 'Signoff' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Request approval' })).not.toBeInTheDocument();
+  });
+
+  it('exposes an active Request approval button once the project is collaborative', () => {
     const onRequestSignoff = vi.fn();
     render(
-      <IPDetailTeamRail ip={makeIP()} activeHub={activeHub} onRequestSignoff={onRequestSignoff} />
+      <IPDetailTeamRail
+        ip={makeIP({ collaboratedAt: now - 24 * hour })}
+        activeHub={activeHub}
+        onRequestSignoff={onRequestSignoff}
+        now={now}
+      />
     );
     fireEvent.click(screen.getByRole('button', { name: 'Request approval' }));
     expect(onRequestSignoff).toHaveBeenCalledTimes(1);
   });
 
-  it('renders pending signoff nudge and process-owner approve actions', () => {
+  it('renders pending signoff nudge and approve actions', () => {
     const onNudgeSignoff = vi.fn();
     const onApproveSignoff = vi.fn();
     render(
       <IPDetailTeamRail
-        ip={makeIP({ signoff: { requestedAt: now - 48 * hour } })}
+        ip={makeIP({
+          collaboratedAt: now - 72 * hour,
+          signoff: { requestedAt: now - 48 * hour },
+        })}
         activeHub={activeHub}
         onNudgeSignoff={onNudgeSignoff}
         onApproveSignoff={onApproveSignoff}
@@ -140,10 +154,31 @@ describe('IPDetailTeamRail', () => {
       />
     );
 
-    expect(screen.getByText('Pat Process awaiting · 2 days ago')).toBeInTheDocument();
+    expect(screen.getByText('Awaiting approval · 2 days ago')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Nudge' }));
     fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
     expect(onNudgeSignoff).toHaveBeenCalledTimes(1);
+    expect(onApproveSignoff).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows Approve even when no process owner is set (sign-off is decoupled, non-blocking)', () => {
+    const onApproveSignoff = vi.fn();
+    const hubNoOwner: ProcessHub = { ...activeHub, processOwner: undefined };
+    render(
+      <IPDetailTeamRail
+        ip={makeIP({
+          collaboratedAt: now - 72 * hour,
+          signoff: { requestedAt: now - 24 * hour },
+        })}
+        activeHub={hubNoOwner}
+        onApproveSignoff={onApproveSignoff}
+        now={now}
+      />
+    );
+
+    // The pending message no longer names a process owner as the gatekeeper.
+    expect(screen.getByText('Awaiting approval · 1 days ago')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
     expect(onApproveSignoff).toHaveBeenCalledTimes(1);
   });
 
@@ -151,6 +186,7 @@ describe('IPDetailTeamRail', () => {
     render(
       <IPDetailTeamRail
         ip={makeIP({
+          collaboratedAt: now - 72 * hour,
           signoff: {
             requestedAt: now - 5 * hour,
             approvedAt: now - hour,
