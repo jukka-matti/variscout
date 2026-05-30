@@ -80,4 +80,4 @@ interface ProblemStatementScope extends EntityBase {
 
 ## Execution checkpoint
 
-Live layer-by-layer resume state: [IM-1-RESUME-STATE.md](IM-1-RESUME-STATE.md).
+**DELIVERED 2026-05-30 — PR #249.** The drop-Question + ProblemStatementScope cascade landed across all layers (preceded by Bucket-2 pre-existing-fix PR #245 for a green baseline). The ephemeral layer-by-layer resume file has been removed; post-IM-1 deferrals are tracked in `docs/ephemeral/investigations.md` + the `investigation-surface-build` memory.

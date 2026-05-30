@@ -26,6 +26,19 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### IM-1 execution deferrals + tech-debt (drop-Question cascade) [LOGGED 2026-05-30]
+
+**Surfaced by:** IM-1 (PR #249, drop `Question` + `ProblemStatementScope`) execution + its 4-dimension adversarial review. Net-new follow-ups beyond the master-plan IM-4/IM-5 scope, captured so they aren't lost. Full build context: [[investigation-surface-build]] memory.
+
+- **3 detached UI flows → re-mount on the IM-4 unified Wall.** IM-1 deleted the Question components that wired (a) inline improvement-idea projection (`handleProjectIdea`/`ideaImpacts` in Editor/AnalyzeWorkspace), (b) the inline add-idea surface (`ImprovementIdeasSection` — rebuilt + re-keyed by `hypothesisId` in `@variscout/ui`, currently UNMOUNTED), (c) propose-finding→Hypothesis (`createHubFromFinding`, previously wired via the deleted `QuestionLinkPrompt`). Handlers/components still exist; re-mount on the bipartite Wall in IM-4. Primary Improve workflow (`ImprovementWorkspaceBase`) is intact. Marked with `// IM-1:` comments at deletion sites.
+- **Scope blob round-trip (F3).** azure `serializeInvestigationState`/`serializeScopes` has no production callers + drops `gateNode`; Azure scopes live in session state. Real blob wiring deferred.
+- **`ProcessHubContext.questions`** retained as a hardcoded-zero stub (ADR-085 transitional) — drop/replace when consumers migrate to scope/hypothesis counts.
+- **Hooks test-tsc debt:** `packages/hooks/src/__tests__/{useBoxplotData,timeLensWiring}.test.ts` have `Record<string,unknown>[]` vs `DataRow[]` tsc errors — gate-invisible (hooks build excludes tests; vitest no strict-tsc). **Pre-existing, NOT IM-1** (0 IM-1 commits touched them); fix opportunistically.
+- **`IdeaGroupCard`** badges only `confirmed`/`evidenced`; `proposed`/`refuted` get none (diverges from `ReportImprovementSummary`, which maps all five `Hypothesis.status` values). Cosmetic IM-4 polish.
+- **CoScout `legacy.ts` / ADR-068** retirement — see the `decision-log.md` §1 2026-05-30 entry (scheduled as a Wave-1 PR before IM-3).
+
+**Promotion path:** the IM-4/IM-5 items graduate (mark `[RESOLVED]`) when those PRs land; the hooks test-tsc + IdeaGroupCard items are opportunistic. **Severity:** low–medium; none block IM-1; primary user flows intact.
+
 ### Investigation-model design direction (Clusters A + B + C) — unified canvas · drill-to-condition · level×lens · Measurement-Plan-as-DCP [PROMOTED 2026-05-29]
 
 **Surfaced by:** Holistic design conversation 2026-05-29 (visual-companion brainstorm, opus). Settled the V1 investigation-model spine across **Cluster A** (PWA/Azure seam, #12 closure) + **Cluster C** (Findings/Hypotheses domain + canvas) + **Cluster B** (analysis surfaces — #11/#50/#51, resolved; see the Cluster B block below). Grounded against code (6 grounding workflows) + the methodology author's GB "Measure" decks (~144 pp).
