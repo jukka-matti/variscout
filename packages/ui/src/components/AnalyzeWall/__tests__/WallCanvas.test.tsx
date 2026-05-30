@@ -730,11 +730,15 @@ describe('WallCanvas', () => {
     const basePlan: MeasurementPlan = {
       id: 'plan-1',
       hypothesisId: 'h1',
-      factor: 'Nozzle Temp',
+      outcome: 'Fill Weight',
+      primaryFactor: 'Nozzle Temp',
+      neededFactors: [],
       method: 'sensor',
       sampleSize: 30,
       owner: 'user-1',
       status: 'planned',
+      scope: [],
+      processLocation: '',
       createdAt: 1,
       deletedAt: null,
     };
@@ -781,7 +785,7 @@ describe('WallCanvas', () => {
       const hub2: Hypothesis = { ...hub, id: 'h2', name: 'Other hub' };
       const planForH1: MeasurementPlan = {
         ...basePlan,
-        factor: 'Nozzle Temp',
+        primaryFactor: 'Nozzle Temp',
         hypothesisId: 'h1',
       };
       const onAddPlan = vi.fn();
@@ -809,11 +813,11 @@ describe('WallCanvas', () => {
     });
 
     it('filters out soft-deleted plans (deletedAt !== null) — deleted plan chip absent', () => {
-      const activePlan: MeasurementPlan = { ...basePlan, factor: 'ActiveFactor' };
+      const activePlan: MeasurementPlan = { ...basePlan, primaryFactor: 'ActiveFactor' };
       const deletedPlan: MeasurementPlan = {
         ...basePlan,
         id: 'plan-deleted',
-        factor: 'DeletedFactor',
+        primaryFactor: 'DeletedFactor',
         deletedAt: Date.now(),
       };
       const onAddPlan = vi.fn();

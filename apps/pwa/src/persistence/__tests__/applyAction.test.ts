@@ -639,11 +639,15 @@ function makeMeasurementPlan(id: string, hypothesisId: string): MeasurementPlan 
     createdAt: NOW,
     deletedAt: null,
     hypothesisId,
-    factor: 'X',
+    outcome: 'Y',
+    primaryFactor: 'X',
+    neededFactors: [],
     method: 'sensor',
     sampleSize: 10,
     owner: 'pm-1',
     status: 'planned',
+    scope: [],
+    processLocation: '',
   };
 }
 

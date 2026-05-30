@@ -3,18 +3,51 @@
  *
  * Pure DOM component (no SVG). Props-based — no store access. Mounted inside
  * <HypothesisCard> via foreignObject in Task 8.
+ *
+ * DCP-aligned fields (spec §7.1):
+ *   - primaryFactor (required) — renamed from `factor`
+ *   - outcome (optional pre-fill via defaultOutcome prop; else user-entered)
+ *   - neededFactors[] — comma-separated tag entry; stored as dataset column names
+ *   - processLocation — select from stepOptions ('' = no step assigned)
+ *   - opDef? — optional operational-definition note
+ *   - msaNote? — optional MSA/Gage R&R comment (replaces removed msaRequired checkbox)
+ *   - scope — snapshot of active WHERE drill chips (passed as defaultScope; not user-editable)
  */
 
 import { useState } from 'react';
 import type { Hypothesis } from '@variscout/core';
 import type { MeasurementPlan, MeasurementMethod } from '@variscout/core/measurementPlan';
+import type { ConditionLeaf } from '@variscout/core/findings';
 import type { ProjectMember } from '@variscout/core/projectMembership';
+
+/** A process-step option for the processLocation picker. */
+export interface StepOption {
+  id: string;
+  label: string;
+}
 
 export interface AddPlanFormProps {
   hypothesisId: Hypothesis['id'];
   members: ProjectMember[];
   onSave: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => void;
   onCancel: () => void;
+  /**
+   * Process steps derived from `deriveProcessSteps(processMap)` at the WallCanvas level.
+   * When provided, renders a select for processLocation.
+   * When absent/empty, processLocation is set to `''` (no step).
+   */
+  stepOptions?: StepOption[];
+  /**
+   * Active WHERE drill-chip conditions captured at form-open time.
+   * Stored as a snapshot on the plan `scope` field — NOT user-editable in the form.
+   * Defaults to `[]` when absent.
+   */
+  defaultScope?: ConditionLeaf[];
+  /**
+   * Pre-fill for the outcome field (e.g. from the project/hypothesis outcome).
+   * User can override. Defaults to `''` when absent.
+   */
+  defaultOutcome?: string;
 }
 
 const METHODS: ReadonlyArray<MeasurementMethod> = [
@@ -25,18 +58,30 @@ const METHODS: ReadonlyArray<MeasurementMethod> = [
   'other',
 ];
 
-export function AddPlanForm({ hypothesisId, members, onSave, onCancel }: AddPlanFormProps) {
+export function AddPlanForm({
+  hypothesisId,
+  members,
+  onSave,
+  onCancel,
+  stepOptions,
+  defaultScope,
+  defaultOutcome,
+}: AddPlanFormProps) {
   const eligibleOwners = members.filter(m => m.role !== 'sponsor' && m.deletedAt === null);
-  const [factor, setFactor] = useState('');
+  const [primaryFactor, setPrimaryFactor] = useState('');
+  const [outcome, setOutcome] = useState(defaultOutcome ?? '');
+  const [neededFactorsRaw, setNeededFactorsRaw] = useState('');
   const [method, setMethod] = useState<MeasurementMethod>('sensor');
   const [sampleSize, setSampleSize] = useState(30);
   const [owner, setOwner] = useState<string>(eligibleOwners[0]?.id ?? '');
-  const [msaRequired, setMsaRequired] = useState(false);
+  const [processLocation, setProcessLocation] = useState('');
+  const [opDef, setOpDef] = useState('');
+  const [msaNote, setMsaNote] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const handleSave = () => {
-    if (!factor.trim()) {
-      setError('Factor is required');
+    if (!primaryFactor.trim()) {
+      setError('Primary factor is required');
       return;
     }
     if (sampleSize < 1) {
@@ -48,30 +93,70 @@ export function AddPlanForm({ hypothesisId, members, onSave, onCancel }: AddPlan
       return;
     }
     setError(null);
+
+    // Parse comma-separated neededFactors into trimmed non-empty strings.
+    const neededFactors = neededFactorsRaw
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
     onSave({
       hypothesisId,
-      factor: factor.trim(),
+      outcome: outcome.trim() || defaultOutcome || '',
+      primaryFactor: primaryFactor.trim(),
+      neededFactors,
       method,
       sampleSize,
       owner,
       status: 'planned',
+      scope: defaultScope ?? [],
+      processLocation,
+      ...(opDef.trim() ? { opDef: opDef.trim() } : {}),
+      ...(msaNote.trim() ? { msaNote: msaNote.trim() } : {}),
       linkedFindingIds: [],
-      msaRequired,
     });
   };
+
+  const hasStepOptions = stepOptions && stepOptions.length > 0;
 
   return (
     <div className="p-3 bg-gray-50 border border-gray-200 rounded space-y-2">
       <div className="flex flex-col gap-1">
-        <label htmlFor="add-plan-factor" className="text-sm font-medium">
-          Factor
+        <label htmlFor="add-plan-primary-factor" className="text-sm font-medium">
+          Primary factor
         </label>
         <input
-          id="add-plan-factor"
+          id="add-plan-primary-factor"
           type="text"
           className="border border-gray-300 rounded px-2 py-1 text-sm"
-          value={factor}
-          onChange={e => setFactor(e.target.value)}
+          value={primaryFactor}
+          onChange={e => setPrimaryFactor(e.target.value)}
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="add-plan-outcome" className="text-sm font-medium">
+          Outcome (Y)
+        </label>
+        <input
+          id="add-plan-outcome"
+          type="text"
+          className="border border-gray-300 rounded px-2 py-1 text-sm"
+          value={outcome}
+          onChange={e => setOutcome(e.target.value)}
+          placeholder={defaultOutcome ?? ''}
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="add-plan-needed-factors" className="text-sm font-medium">
+          Needed factors (column names, comma-separated)
+        </label>
+        <input
+          id="add-plan-needed-factors"
+          type="text"
+          className="border border-gray-300 rounded px-2 py-1 text-sm"
+          value={neededFactorsRaw}
+          onChange={e => setNeededFactorsRaw(e.target.value)}
+          placeholder="e.g. SHIFT, Operator"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -121,16 +206,49 @@ export function AddPlanForm({ hypothesisId, members, onSave, onCancel }: AddPlan
           ))}
         </select>
       </div>
-      <div className="flex items-center gap-2">
-        <input
-          id="add-plan-msa"
-          type="checkbox"
-          checked={msaRequired}
-          onChange={e => setMsaRequired(e.target.checked)}
-        />
-        <label htmlFor="add-plan-msa" className="text-sm">
-          MSA required
+      {hasStepOptions && (
+        <div className="flex flex-col gap-1">
+          <label htmlFor="add-plan-process-location" className="text-sm font-medium">
+            Process step
+          </label>
+          <select
+            id="add-plan-process-location"
+            className="border border-gray-300 rounded px-2 py-1 text-sm"
+            value={processLocation}
+            onChange={e => setProcessLocation(e.target.value)}
+          >
+            <option value="">— none —</option>
+            {stepOptions.map(s => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      <div className="flex flex-col gap-1">
+        <label htmlFor="add-plan-op-def" className="text-sm font-medium">
+          Operational definition (optional)
         </label>
+        <textarea
+          id="add-plan-op-def"
+          className="border border-gray-300 rounded px-2 py-1 text-sm resize-none"
+          rows={2}
+          value={opDef}
+          onChange={e => setOpDef(e.target.value)}
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="add-plan-msa-note" className="text-sm font-medium">
+          MSA / Gage R&R note (optional)
+        </label>
+        <textarea
+          id="add-plan-msa-note"
+          className="border border-gray-300 rounded px-2 py-1 text-sm resize-none"
+          rows={2}
+          value={msaNote}
+          onChange={e => setMsaNote(e.target.value)}
+        />
       </div>
       {error && <div className="text-xs text-red-600">{error}</div>}
       <div className="flex gap-2 pt-1">

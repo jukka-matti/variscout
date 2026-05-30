@@ -8,11 +8,15 @@ const basePlan: MeasurementPlan = {
   createdAt: 100,
   deletedAt: null,
   hypothesisId: 'h-1',
-  factor: 'spindle vibration',
+  outcome: 'Fill Weight',
+  primaryFactor: 'spindle vibration',
+  neededFactors: [],
   method: 'sensor',
   sampleSize: 30,
   owner: 'pm-alice',
   status: 'planned',
+  scope: [],
+  processLocation: '',
 };
 
 describe('<MeasurementPlanChip />', () => {
