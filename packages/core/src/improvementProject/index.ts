@@ -19,3 +19,5 @@ export type { DriftableSnapshot, DriftableCurrent } from './snapshot';
 
 export { createNewIP } from './factories';
 export type { CreateNewIPInput } from './factories';
+
+export { isCollaborative } from './predicates';

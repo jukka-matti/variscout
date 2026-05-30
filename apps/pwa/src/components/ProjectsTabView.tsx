@@ -153,9 +153,18 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         actions={approachInputs?.actions}
         now={now}
         currentUserId={PWA_USER_ID}
-        onMembersChange={(members: ProjectMember[]) =>
-          applyProjectPatch(selected, { metadata: { ...selected.metadata, members } })
-        }
+        onMembersChange={(members: ProjectMember[]) => {
+          const prevCount = selected.metadata.members?.length ?? 0;
+          // Set the durable collaboration marker ONCE, when the roster first
+          // grows beyond its solo creator (first invite). Never re-stamped and
+          // never cleared on removal — see ImprovementProject.collaboratedAt.
+          const markFirstInvite =
+            members.length > prevCount && !selected.collaboratedAt ? { collaboratedAt: now } : {};
+          applyProjectPatch(selected, {
+            metadata: { ...selected.metadata, members },
+            ...markFirstInvite,
+          });
+        }}
         onRequestSignoff={() =>
           applyProjectPatch(selected, {
             signoff: {

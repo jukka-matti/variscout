@@ -140,6 +140,14 @@ export interface ImprovementProject extends EntityBase {
   };
   updatedAt: number;
   signoff?: ImprovementProjectSignoff;
+  /** Durable collaboration marker (Unix ms). Set ONCE when the project roster
+   *  first grows beyond its solo creator (first invite), and NEVER cleared on
+   *  member removal. Gates the Azure-only collaboration affordances (the
+   *  optional, non-blocking sign-off section) via `isCollaborative(ip)`. A
+   *  solo PWA investigation never sets it — the project stays in Mode-1 solo.
+   *  Distinct from `metadata.members.length > 1`, which is derived + reversible;
+   *  this marker records that collaboration *happened*. (IM-7 §11 #6.) */
+  collaboratedAt?: number;
   /** Optional analyst-authored lessons-learned narrative. Authored in
    *  Sections mode (Control or Handoff stages typically); surfaces in
    *  the Report Overview "What we standardized + learned" section. */

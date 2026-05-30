@@ -170,4 +170,136 @@ describe('ProjectsTabView', () => {
       ])
     );
   });
+
+  it('sets collaboratedAt once on the first invite (roster grows from solo)', () => {
+    const onProjectPatch = vi.fn();
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({ status: 'draft', metadata: { title: 'First invite' } }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /invite team/i }));
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'lead@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'lead' } });
+    fireEvent.click(screen.getByRole('button', { name: /^invite$/i }));
+
+    expect(onProjectPatch).toHaveBeenCalledWith(
+      'ip-1',
+      expect.objectContaining({ collaboratedAt: expect.any(Number) })
+    );
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.collaboratedAt).toEqual(
+      expect.any(Number)
+    );
+  });
+
+  it('does not re-stamp collaboratedAt on a second invite (idempotent)', () => {
+    const onProjectPatch = vi.fn();
+    const existingMarker = 1_700_000_000_000;
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        status: 'draft',
+        metadata: {
+          title: 'Already collaborative',
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'analyst@local',
+              displayName: 'Analyst',
+              role: 'lead',
+              invitedAt: 0,
+            },
+          ],
+        },
+        collaboratedAt: existingMarker,
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /invite team/i }));
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'member@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'member' } });
+    fireEvent.click(screen.getByRole('button', { name: /^invite$/i }));
+
+    const lastPatch = onProjectPatch.mock.calls.at(-1)?.[1] ?? {};
+    expect(lastPatch).not.toHaveProperty('collaboratedAt');
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.collaboratedAt).toBe(
+      existingMarker
+    );
+  });
+
+  it('does not clear collaboratedAt when a member is removed (durable marker)', () => {
+    const onProjectPatch = vi.fn();
+    const existingMarker = 1_700_000_000_000;
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        status: 'draft',
+        metadata: {
+          title: 'Removal keeps marker',
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'analyst@local',
+              displayName: 'Analyst',
+              role: 'lead',
+              invitedAt: 0,
+            },
+            {
+              id: 'pm-member',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'member@example.com',
+              displayName: 'Member',
+              role: 'member',
+              invitedAt: 0,
+            },
+          ],
+        },
+        collaboratedAt: existingMarker,
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Member' }));
+
+    const lastPatch = onProjectPatch.mock.calls.at(-1)?.[1] ?? {};
+    expect(lastPatch).not.toHaveProperty('collaboratedAt');
+    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.collaboratedAt).toBe(
+      existingMarker
+    );
+  });
 });
