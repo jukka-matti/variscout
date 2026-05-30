@@ -4,15 +4,16 @@
  * Two — and only two — valid answers to "how much of the problem does this
  * drilled {factor=level} condition account for", NEITHER a multiplied-η² chain:
  *
- *  1. `computeScopeWhatIfProjection` — the actionable cross-lens number. It REUSES
- *     `computeCumulativeProjection` (the canonical What-If engine, a *simulation*)
- *     by feeding it the scope's condition as a single `activeFilters` entry, and
- *     returns the projected overall Cpk. No parallel projector is built.
+ *  1. `computeScopeWhatIfProjection` — the actionable cross-lens number. It
+ *     directly applies `simulateOverallImpact` (the canonical What-If engine,
+ *     a *simulation*) after partitioning rawData via `evaluateCondition` — so
+ *     ALL ConditionLeaf ops (eq/in/neq/lt/lte/gt/gte/between) are honoured.
+ *     Returns the projected overall Cpk. No parallel projector is built.
  *
- *  2. `computeConditionCoverage` — a descriptive *prevalence* fact: the % of rows
- *     that satisfy the AND of the condition's leaves. NOT exploration coverage
- *     (`computeCoverage().exploredPercent` is a different quantity) and NOT an
- *     inferential variance share.
+ *  2. `computeConditionCoverage` — a descriptive *prevalence* fact: the % of
+ *     rows that satisfy the AND of the condition's leaves via `evaluateCondition`.
+ *     NOT exploration coverage (`computeCoverage().exploredPercent` is a
+ *     different quantity) and NOT an inferential variance share.
  *
  * Names are deliberately chosen to avoid the cross-investigation aggregation
  * tripwire (`architecture.noCrossInvestigationAggregation.test.ts`): no
@@ -23,43 +24,44 @@
 
 import type { DataRow, SpecLimits } from '../types';
 import type { ConditionLeaf } from '../findings/hypothesisCondition';
-import { computeCumulativeProjection } from './projection';
+import {
+  evaluateCondition,
+  type DataRow as EvalDataRow,
+} from '../findings/hypothesisConditionEvaluator';
+import { simulateOverallImpact } from './simulation';
+import { toNumericValue } from '../types';
+
+/** Minimum rows in complement for a meaningful simulation. Mirrors projection.ts. */
+const MIN_COMPLEMENT_COUNT = 2;
 
 /**
- * Reduce a flat AND of condition leaves to the equality-membership map the
- * What-If engine consumes (`Record<column, (string|number)[]>`).
- *
- * Only `eq` and `in` leaves carry an equality-membership semantics; comparison /
- * range leaves (`lt`/`lte`/`gt`/`gte`/`between`/`neq`) are dropped — scope capture
- * is equality-membership only, mirroring `buildConditionFromCategoricalFilters`.
- * Multiple `eq` leaves on the same column union their values.
+ * Wrap a flat list of ConditionLeaf predicates as a single AND condition
+ * recognised by `evaluateCondition`. A single leaf is still wrapped in an `and`
+ * node so the calling code is uniform and the evaluator handles the trivial case.
  */
-function leavesToActiveFilters(predicates: ConditionLeaf[]): Record<string, (string | number)[]> {
-  const filters: Record<string, (string | number)[]> = {};
-  for (const leaf of predicates) {
-    let values: (string | number)[] | null = null;
-    if (leaf.op === 'eq') {
-      values = [leaf.value as string | number];
-    } else if (leaf.op === 'in') {
-      values = (leaf.value as string[] | number[]).slice();
-    }
-    if (!values || values.length === 0) continue;
-    const existing = filters[leaf.column];
-    filters[leaf.column] = existing ? [...existing, ...values] : values;
-  }
-  return filters;
+function predicatesToAndCondition(predicates: ConditionLeaf[]) {
+  return { kind: 'and' as const, children: predicates };
 }
 
 /**
  * Project the overall Cpk that would result if the scope's drilled condition
  * were "fixed" to match the complement — the What-If "if-fixed" number.
  *
- * Pure pass-through to `computeCumulativeProjection` with a single-element
- * `findingFilters` built from the scope condition. Returns the projected overall
- * Cpk, or `null` when the engine declines (no specs, empty condition, subset is
- * the whole dataset, insufficient complement, etc.).
+ * Partitions rawData into (subset, complement) using `evaluateCondition` so ALL
+ * ConditionLeaf ops (eq/in/neq/lt/lte/gt/gte/between) narrow the subset
+ * correctly. The "fix" simulation is `simulateOverallImpact(subsetStats,
+ * complementStats, complementStats, specs)` — identical to the
+ * `computeCumulativeProjection` single-finding path.
  *
- * @param predicates - The scope's flat AND of `{factor=level}` leaves.
+ * Returns `null` when:
+ * - predicates list is empty (no condition to fix)
+ * - specs are absent (Cpk requires at least one limit)
+ * - subset is empty (condition matches nothing — no fix possible)
+ * - subset is the whole dataset (complement empty — no reference distribution)
+ * - rawData has fewer than 2 rows (insufficient data)
+ * - complement has fewer than MIN_COMPLEMENT_COUNT rows
+ *
+ * @param predicates - The scope's flat AND of ConditionLeaf conditions (any op).
  * @param rawData    - The full unfiltered dataset (one homogeneous outcome).
  * @param outcome    - The numeric Y column the scope sharpens.
  * @param specs      - Spec limits for the outcome (Cpk requires at least one).
@@ -70,32 +72,61 @@ export function computeScopeWhatIfProjection(
   outcome: string,
   specs?: Pick<SpecLimits, 'usl' | 'lsl'>
 ): number | null {
-  const activeFilters = leavesToActiveFilters(predicates);
-  if (Object.keys(activeFilters).length === 0) return null;
-  const projection = computeCumulativeProjection([{ activeFilters }], rawData, outcome, specs);
-  return projection ? projection.projectedCpk : null;
+  if (predicates.length === 0) return null;
+  if (!specs || (specs.usl === undefined && specs.lsl === undefined)) return null;
+  if (rawData.length < 2) return null;
+
+  const andCond = predicatesToAndCondition(predicates);
+  const subset = rawData.filter(row => evaluateCondition(andCond, row as EvalDataRow));
+  const complement = rawData.filter(row => !evaluateCondition(andCond, row as EvalDataRow));
+
+  // No fix possible: nothing matches, or the condition covers the whole dataset.
+  if (subset.length === 0) return null;
+  if (complement.length < MIN_COMPLEMENT_COUNT) return null;
+
+  // Extract numeric outcome values.
+  const subsetValues = subset
+    .map(r => toNumericValue(r[outcome]))
+    .filter((v): v is number => v !== undefined);
+  const compValues = complement
+    .map(r => toNumericValue(r[outcome]))
+    .filter((v): v is number => v !== undefined);
+
+  if (subsetValues.length === 0 || compValues.length < MIN_COMPLEMENT_COUNT) return null;
+
+  const mean = (vals: number[]): number => vals.reduce((a, b) => a + b, 0) / vals.length;
+  const variance = (vals: number[], m: number): number =>
+    vals.reduce((s, v) => s + (v - m) ** 2, 0) / vals.length;
+
+  const subMean = mean(subsetValues);
+  const subStdDev = Math.sqrt(variance(subsetValues, subMean));
+  const compMean = mean(compValues);
+  const compStdDev = Math.sqrt(variance(compValues, compMean));
+
+  // "Fix" = bring subset distribution up to complement performance.
+  const impact = simulateOverallImpact(
+    { mean: subMean, stdDev: subStdDev, count: subsetValues.length },
+    { mean: compMean, stdDev: compStdDev, count: compValues.length },
+    { mean: compMean, stdDev: compStdDev },
+    specs
+  );
+
+  return impact.projectedOverall.cpk ?? null;
 }
 
 /**
  * Descriptive prevalence: the % of rows (0–100) that satisfy the AND of the
- * condition's equality-membership leaves. A prevalence fact, not a share.
+ * condition's leaves as evaluated by `evaluateCondition` — ALL ConditionLeaf
+ * ops (eq/in/neq/lt/lte/gt/gte/between) are honoured.
  *
- * Empty condition or empty dataset → 0 (no division by zero). Comparison/range
- * leaves are dropped, matching `computeScopeWhatIfProjection`'s mapping.
+ * Empty condition or empty dataset → 0 (no division by zero).
  */
 export function computeConditionCoverage(predicates: ConditionLeaf[], rawData: DataRow[]): number {
   if (rawData.length === 0) return 0;
-  const activeFilters = leavesToActiveFilters(predicates);
-  if (Object.keys(activeFilters).length === 0) return 0;
+  if (predicates.length === 0) return 0;
 
-  const matchCount = rawData.reduce((count, row) => {
-    const matches = Object.entries(activeFilters).every(([column, values]) => {
-      const cell = row[column];
-      if (cell === undefined || cell === null) return false;
-      return values.includes(cell as string | number);
-    });
-    return matches ? count + 1 : count;
-  }, 0);
+  const andCond = predicatesToAndCondition(predicates);
+  const matchCount = rawData.filter(row => evaluateCondition(andCond, row as EvalDataRow)).length;
 
   return (matchCount / rawData.length) * 100;
 }

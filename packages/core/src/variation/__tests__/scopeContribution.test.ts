@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mulberry32 } from '../../__tests__/helpers/stressDataGenerator';
 import { computeScopeWhatIfProjection, computeConditionCoverage } from '../scopeContribution';
+import { simulateOverallImpact } from '../simulation';
 import type { ConditionLeaf } from '../../findings/hypothesisCondition';
 import type { DataRow } from '../../types';
 
@@ -46,39 +47,38 @@ describe('computeScopeWhatIfProjection', () => {
     expect(projectedCpk as number).toBeGreaterThan(0);
   });
 
-  it('matches computeCumulativeProjection.projectedCpk for the equivalent activeFilters', async () => {
+  it('agrees with simulateOverallImpact for a pure eq condition', () => {
+    // Reference: manually partition by Machine=A, then call simulateOverallImpact
+    // directly. computeScopeWhatIfProjection must produce the same projectedCpk.
     const data = makeFixture();
-    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }];
-    const { computeCumulativeProjection } = await import('../projection');
-    const reference = computeCumulativeProjection(
-      [{ activeFilters: { Machine: ['A'] } }],
-      data,
-      'Value',
+    const subsetValues = data.filter(r => r['Machine'] === 'A').map(r => r['Value'] as number);
+    const compValues = data.filter(r => r['Machine'] !== 'A').map(r => r['Value'] as number);
+    const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length;
+    const variance = (v: number[], m: number) => v.reduce((s, x) => s + (x - m) ** 2, 0) / v.length;
+    const subMean = mean(subsetValues);
+    const compMean = mean(compValues);
+    const subStdDev = Math.sqrt(variance(subsetValues, subMean));
+    const compStdDev = Math.sqrt(variance(compValues, compMean));
+    const impact = simulateOverallImpact(
+      { mean: subMean, stdDev: subStdDev, count: subsetValues.length },
+      { mean: compMean, stdDev: compStdDev, count: compValues.length },
+      { mean: compMean, stdDev: compStdDev },
       SPECS
     );
+    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }];
     const projectedCpk = computeScopeWhatIfProjection(predicates, data, 'Value', SPECS);
-    expect(reference).not.toBeNull();
-    expect(projectedCpk).toBeCloseTo(reference!.projectedCpk, 10);
+    expect(projectedCpk).not.toBeNull();
+    expect(projectedCpk).toBeCloseTo(impact.projectedOverall.cpk!, 10);
   });
 
-  it('maps a multi-value `in` leaf to the activeFilters value array', async () => {
+  it('maps a multi-value `in` leaf: whole-dataset match → null (no complement)', () => {
     const data = makeFixture();
     const predicates: ConditionLeaf[] = [
       { kind: 'leaf', column: 'Machine', op: 'in', value: ['A', 'B'] },
     ];
-    // 'in' both machines → the subset is everything, the complement is empty so the
-    // engine applies no fix and returns the unchanged base Cpk. We assert the
-    // mapping reached the engine by matching the equivalent activeFilters call.
-    const { computeCumulativeProjection } = await import('../projection');
-    const reference = computeCumulativeProjection(
-      [{ activeFilters: { Machine: ['A', 'B'] } }],
-      data,
-      'Value',
-      SPECS
-    );
+    // 'in' [A, B] matches every row → complement is empty → null (no fix possible).
     const projectedCpk = computeScopeWhatIfProjection(predicates, data, 'Value', SPECS);
-    expect(reference).not.toBeNull();
-    expect(projectedCpk).toBeCloseTo(reference!.projectedCpk, 10);
+    expect(projectedCpk).toBeNull();
   });
 
   it('returns null when no specs are provided', () => {
@@ -99,11 +99,56 @@ describe('computeScopeWhatIfProjection', () => {
     ).toBeNull();
   });
 
-  it('drops non-equality leaves (lt/gt/between) — only eq/in carry into activeFilters', () => {
+  // -----------------------------------------------------------------------
+  // REGRESSION: gte/between leaves must narrow the subset, NOT be silently
+  // dropped. Previously leavesToActiveFilters discarded comparison ops, so
+  // mixed conditions overstated both projection and coverage.
+  // -----------------------------------------------------------------------
+
+  it('mixed condition [Machine eq A AND Value gte 12.0]: projection differs from eq-only', () => {
+    // Fixture: Machine-A rows span ~11.65–12.73. Threshold 12.0 cuts ~13/60 rows,
+    // so the mixed subset is smaller and hotter than the eq-only subset.
     const data = makeFixture();
-    // A lone `gt` leaf maps to no activeFilters → empty filter → null.
-    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Value', op: 'gt', value: 11 }];
+    // eq-only projection (Machine=A, all values)
+    const eqOnly: ConditionLeaf[] = [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }];
+    const projEqOnly = computeScopeWhatIfProjection(eqOnly, data, 'Value', SPECS);
+
+    // Mixed: Machine=A AND Value >= 12.0 (only the hotter Machine-A rows)
+    const mixed: ConditionLeaf[] = [
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+      { kind: 'leaf', column: 'Value', op: 'gte', value: 12.0 },
+    ];
+    const projMixed = computeScopeWhatIfProjection(mixed, data, 'Value', SPECS);
+
+    // Both must be non-null (there IS a subset and a complement in each case)
+    expect(projEqOnly).not.toBeNull();
+    expect(projMixed).not.toBeNull();
+
+    // The gte leaf genuinely narrows the subset, so the projections must differ.
+    // (If gte were silently dropped, projMixed would equal projEqOnly.)
+    expect(projMixed).not.toBeCloseTo(projEqOnly!, 4);
+  });
+
+  it('zero-match condition returns null (no fix possible)', () => {
+    const data = makeFixture();
+    // Value >= 999 matches nothing in [9..13] fixture.
+    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Value', op: 'gte', value: 999 }];
     expect(computeScopeWhatIfProjection(predicates, data, 'Value', SPECS)).toBeNull();
+  });
+
+  it('whole-dataset-match condition returns null (no complement)', () => {
+    const data = makeFixture();
+    // Value >= -999 matches every row → complement empty → null.
+    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Value', op: 'gte', value: -999 }];
+    expect(computeScopeWhatIfProjection(predicates, data, 'Value', SPECS)).toBeNull();
+  });
+
+  it('a lone gte leaf on the outcome column produces a non-null projection (not dropped)', () => {
+    const data = makeFixture();
+    // Value >= 11 selects ~Machine-A rows only (their mean is ~12.2). This should
+    // produce a meaningful projection, not null.
+    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Value', op: 'gte', value: 11 }];
+    expect(computeScopeWhatIfProjection(predicates, data, 'Value', SPECS)).not.toBeNull();
   });
 });
 
@@ -165,5 +210,42 @@ describe('computeConditionCoverage', () => {
   it('returns 0 for an empty predicate list', () => {
     const data = makeFixture();
     expect(computeConditionCoverage([], data)).toBe(0);
+  });
+
+  // -----------------------------------------------------------------------
+  // REGRESSION: comparison ops must be honoured (not silently dropped).
+  // -----------------------------------------------------------------------
+
+  it('gte leaf correctly counts rows above the threshold', () => {
+    const data: DataRow[] = [{ Temp: 75 }, { Temp: 80 }, { Temp: 85 }, { Temp: 90 }];
+    // Temp >= 80 → 3 of 4 rows
+    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Temp', op: 'gte', value: 80 }];
+    expect(computeConditionCoverage(predicates, data)).toBeCloseTo(75, 6);
+  });
+
+  it('between leaf counts only rows in [lo, hi] inclusive', () => {
+    const data: DataRow[] = [{ Temp: 75 }, { Temp: 80 }, { Temp: 85 }, { Temp: 90 }];
+    // Temp between [80, 85] → rows 80 and 85 → 2/4 = 50%
+    const predicates: ConditionLeaf[] = [
+      { kind: 'leaf', column: 'Temp', op: 'between', value: [80, 85] },
+    ];
+    expect(computeConditionCoverage(predicates, data)).toBeCloseTo(50, 6);
+  });
+
+  it('mixed [eq AND gte] condition narrows coverage vs eq-only', () => {
+    const data = makeFixture(); // 60 A + 60 B rows; Machine-A Values ~12.2
+    // eq-only: Machine=A → 50%
+    const eqOnly: ConditionLeaf[] = [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }];
+    const coverageEqOnly = computeConditionCoverage(eqOnly, data);
+    expect(coverageEqOnly).toBeCloseTo(50, 1);
+
+    // Mixed: Machine=A AND Value >= 12.0 → fewer rows (~47/120) → coverage < 50%
+    const mixed: ConditionLeaf[] = [
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+      { kind: 'leaf', column: 'Value', op: 'gte', value: 12.0 },
+    ];
+    const coverageMixed = computeConditionCoverage(mixed, data);
+    expect(coverageMixed).toBeLessThan(coverageEqOnly);
+    expect(coverageMixed).toBeGreaterThan(0);
   });
 });
