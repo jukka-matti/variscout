@@ -2,7 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHypotheses } from '../useHypotheses';
 import { createHypothesis } from '@variscout/core/findings';
-import type { Hypothesis } from '@variscout/core';
+import { deriveHypothesisStatus } from '@variscout/core/survey';
+import type { Hypothesis, Finding, DisconfirmationAttempt } from '@variscout/core';
 
 describe('useHypotheses', () => {
   it('starts with empty hubs when no initialHubs provided', () => {
@@ -250,6 +251,238 @@ describe('useHypotheses', () => {
     it('returns undefined when hubs list is empty', () => {
       const { result } = renderHook(() => useHypotheses({ initialHubs: [] }));
       expect(result.current.getHubForFinding('f-001')).toBeUndefined();
+    });
+  });
+
+  describe('recordDisconfirmation', () => {
+    it('appends an attempt to the hub disconfirmationAttempts', () => {
+      const initial = [createHypothesis('Hub', '')];
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
+      const attempt: DisconfirmationAttempt = {
+        id: 'da-001',
+        attemptedAt: '2026-05-30T00:00:00Z',
+        attemptedBy: { displayName: 'Analyst', upn: 'analyst@example.com' },
+        description: 'Ran a gemba check on night shift',
+        verdict: 'survived',
+        linkedFindingIds: [],
+      };
+      act(() => {
+        result.current.recordDisconfirmation(initial[0].id, attempt);
+      });
+      expect(result.current.hubs[0].disconfirmationAttempts).toHaveLength(1);
+      expect(result.current.hubs[0].disconfirmationAttempts![0].id).toBe('da-001');
+    });
+
+    it('appends to existing attempts without overwriting', () => {
+      const hub = createHypothesis('Hub', '');
+      hub.disconfirmationAttempts = [
+        {
+          id: 'da-000',
+          attemptedAt: '2026-05-29T00:00:00Z',
+          attemptedBy: { displayName: 'A', upn: 'a@b.com' },
+          description: 'First attempt',
+          verdict: 'pending',
+          linkedFindingIds: [],
+        },
+      ];
+      const { result } = renderHook(() => useHypotheses({ initialHubs: [hub] }));
+      act(() => {
+        result.current.recordDisconfirmation(hub.id, {
+          id: 'da-001',
+          attemptedAt: '2026-05-30T00:00:00Z',
+          attemptedBy: { displayName: 'B', upn: 'b@c.com' },
+          description: 'Second attempt',
+          verdict: 'survived',
+          linkedFindingIds: [],
+        });
+      });
+      expect(result.current.hubs[0].disconfirmationAttempts).toHaveLength(2);
+    });
+
+    it('updates updatedAt', () => {
+      const initial = [createHypothesis('Hub', '')];
+      const before = initial[0].updatedAt;
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
+      act(() => {
+        result.current.recordDisconfirmation(initial[0].id, {
+          id: 'da-001',
+          attemptedAt: '2026-05-30T00:00:00Z',
+          attemptedBy: { displayName: 'X', upn: 'x@y.com' },
+          description: 'Check',
+          verdict: 'survived',
+          linkedFindingIds: [],
+        });
+      });
+      expect(result.current.hubs[0].updatedAt).toBeGreaterThanOrEqual(before);
+    });
+
+    it('calls onHubsChange', () => {
+      const onChange = vi.fn();
+      const initial = [createHypothesis('Hub', '')];
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
+      );
+      act(() => {
+        result.current.recordDisconfirmation(initial[0].id, {
+          id: 'da-001',
+          attemptedAt: '2026-05-30T00:00:00Z',
+          attemptedBy: { displayName: 'X', upn: 'x@y.com' },
+          description: 'Check',
+          verdict: 'survived',
+          linkedFindingIds: [],
+        });
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('is a no-op for an unknown hubId', () => {
+      const initial = [createHypothesis('Hub', '')];
+      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
+      act(() => {
+        result.current.recordDisconfirmation('nonexistent-id', {
+          id: 'da-001',
+          attemptedAt: '2026-05-30T00:00:00Z',
+          attemptedBy: { displayName: 'X', upn: 'x@y.com' },
+          description: 'Check',
+          verdict: 'survived',
+          linkedFindingIds: [],
+        });
+      });
+      expect(result.current.hubs[0].disconfirmationAttempts ?? []).toHaveLength(0);
+    });
+  });
+
+  describe('integration: disconfirmation gate advances derived status live', () => {
+    /**
+     * Integration test for the BLOCKER from the IM-4a adversarial review:
+     * recording a disconfirmation via the HOOK must advance the derived
+     * hypothesis status from `needs-disconfirmation` to `confirmed` without
+     * a store reload.
+     *
+     * The gate in `deriveHypothesisStatus` (core/survey/wall.ts) requires:
+     *   - ≥2 distinct evidence types on linked findings, AND
+     *   - ≥1 `survived` disconfirmation attempt.
+     *
+     * This test proves that calling `recordDisconfirmation` through the hook
+     * updates the local hub state that `deriveHypothesisStatus` reads — i.e.,
+     * the Wall's `needs-disconfirmation → confirmed` gate fires live.
+     */
+    it('derives confirmed after survived attempt — gate fires without reload', () => {
+      // Set up a hub with ≥2 distinct evidence types (data + gemba) → needs-disconfirmation
+      const hub = createHypothesis('Spindle wear', 'Vibration on night shift');
+      const findings: Finding[] = [
+        {
+          id: 'f-data',
+          text: 'Vibration rises after midnight',
+          createdAt: 1,
+          updatedAt: 1,
+          deletedAt: null,
+          investigationId: 'inv-test',
+          context: { activeFilters: {}, cumulativeScope: null },
+          evidenceType: 'data',
+          status: 'analyzed',
+          comments: [],
+          statusChangedAt: 1,
+          validationStatus: 'supports',
+          refutes: false,
+        } as unknown as Finding,
+        {
+          id: 'f-gemba',
+          text: 'Operator confirms no coolant top-up at night',
+          createdAt: 2,
+          updatedAt: 2,
+          deletedAt: null,
+          investigationId: 'inv-test',
+          context: { activeFilters: {}, cumulativeScope: null },
+          evidenceType: 'gemba',
+          status: 'analyzed',
+          comments: [],
+          statusChangedAt: 2,
+          validationStatus: 'supports',
+          refutes: false,
+        } as unknown as Finding,
+      ];
+      hub.findingIds = ['f-data', 'f-gemba'];
+
+      // Confirm gate is `needs-disconfirmation` before the attempt
+      expect(deriveHypothesisStatus(hub, findings)).toBe('needs-disconfirmation');
+
+      const { result } = renderHook(() => useHypotheses({ initialHubs: [hub] }));
+
+      // Gate still `needs-disconfirmation` in hook state (no attempts yet)
+      expect(deriveHypothesisStatus(result.current.hubs[0], findings)).toBe(
+        'needs-disconfirmation'
+      );
+
+      // Record a survived attempt through the hook
+      act(() => {
+        result.current.recordDisconfirmation(hub.id, {
+          id: 'da-survived',
+          attemptedAt: '2026-05-30T00:00:00Z',
+          attemptedBy: { displayName: 'Analyst', upn: 'analyst@example.com' },
+          description: 'Ran coolant alternative — vibration persisted',
+          verdict: 'survived',
+          linkedFindingIds: [],
+        });
+      });
+
+      // The hook's local hub state now carries the attempt — gate advances
+      expect(deriveHypothesisStatus(result.current.hubs[0], findings)).toBe('confirmed');
+    });
+
+    it('derives needs-disconfirmation when attempt is pending (not yet survived)', () => {
+      const hub = createHypothesis('Spindle wear', '');
+      const findings: Finding[] = [
+        {
+          id: 'f-data',
+          text: 'Data finding',
+          createdAt: 1,
+          updatedAt: 1,
+          deletedAt: null,
+          investigationId: 'inv-test',
+          context: { activeFilters: {}, cumulativeScope: null },
+          evidenceType: 'data',
+          status: 'analyzed',
+          comments: [],
+          statusChangedAt: 1,
+          validationStatus: 'supports',
+          refutes: false,
+        } as unknown as Finding,
+        {
+          id: 'f-gemba',
+          text: 'Gemba finding',
+          createdAt: 2,
+          updatedAt: 2,
+          deletedAt: null,
+          investigationId: 'inv-test',
+          context: { activeFilters: {}, cumulativeScope: null },
+          evidenceType: 'gemba',
+          status: 'analyzed',
+          comments: [],
+          statusChangedAt: 2,
+          validationStatus: 'supports',
+          refutes: false,
+        } as unknown as Finding,
+      ];
+      hub.findingIds = ['f-data', 'f-gemba'];
+
+      const { result } = renderHook(() => useHypotheses({ initialHubs: [hub] }));
+
+      act(() => {
+        result.current.recordDisconfirmation(hub.id, {
+          id: 'da-pending',
+          attemptedAt: '2026-05-30T00:00:00Z',
+          attemptedBy: { displayName: 'Analyst', upn: 'analyst@example.com' },
+          description: 'Still checking',
+          verdict: 'pending',
+          linkedFindingIds: [],
+        });
+      });
+
+      // pending does NOT advance the gate
+      expect(deriveHypothesisStatus(result.current.hubs[0], findings)).toBe(
+        'needs-disconfirmation'
+      );
     });
   });
 });

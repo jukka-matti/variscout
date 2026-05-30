@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { createHypothesis } from '@variscout/core/findings';
-import type { Hypothesis } from '@variscout/core';
+import type { Hypothesis, DisconfirmationAttempt } from '@variscout/core';
 
 // ============================================================================
 // Types
@@ -37,6 +37,17 @@ export interface UseHypothesesReturn {
   disconnectFinding: (hubId: string, findingId: string) => void;
   /** Find the hub that contains a given findingId */
   getHubForFinding: (findingId: string) => Hypothesis | undefined;
+  /**
+   * Append a disconfirmation attempt to a hub's `disconfirmationAttempts` array.
+   *
+   * Routes through the hook's `update()` so `onHubsChange` fires and the LOCAL
+   * hook state (= the Wall's source of truth for `deriveHypothesisStatus`) is
+   * updated immediately — the `needs-disconfirmation → confirmed` gate fires
+   * live in-session without a reload.
+   *
+   * No-op if the hub is not found.
+   */
+  recordDisconfirmation: (hubId: string, attempt: DisconfirmationAttempt) => void;
 }
 
 // ============================================================================
@@ -141,6 +152,22 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
     [hubs]
   );
 
+  const recordDisconfirmation = useCallback(
+    (hubId: string, attempt: DisconfirmationAttempt): void => {
+      update(prev =>
+        prev.map(h => {
+          if (h.id !== hubId) return h;
+          return {
+            ...h,
+            disconfirmationAttempts: [...(h.disconfirmationAttempts ?? []), attempt],
+            updatedAt: Date.now(),
+          };
+        })
+      );
+    },
+    [update]
+  );
+
   return {
     hubs,
     createHub,
@@ -150,5 +177,6 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
     connectFinding,
     disconnectFinding,
     getHubForFinding,
+    recordDisconfirmation,
   };
 }

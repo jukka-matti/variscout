@@ -636,6 +636,18 @@ export const Editor: React.FC<EditorProps> = ({
   // its own scoped hub set from the activeIPLineage prop.
 
   // Wall measurement-plan callbacks — mirrors PWA App.tsx wallPlanningProps pattern
+  //
+  // recordDisconfirmationRef — latest-ref pattern for `hypothesesState.recordDisconfirmation`.
+  // `wallPlanningProps` is defined before `hypothesesState` in the render body (TDZ concern),
+  // so we capture the callback through a ref that is kept current each render.
+  // The ref is assigned after `hypothesesState` is declared below (~line 1180).
+
+  const recordDisconfirmationRef = useRef<(hubId: string, attempt: DisconfirmationAttempt) => void>(
+    () => {
+      console.warn('[wall] recordDisconfirmation called before hypothesesState was ready');
+    }
+  );
+
   const wallActiveIPMembers = useMemo(
     () => activeIPContext.activeIP?.metadata.members ?? [],
     [activeIPContext.activeIP]
@@ -688,8 +700,7 @@ export const Editor: React.FC<EditorProps> = ({
         hypothesisId: string,
         input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
       ) => {
-        // App stamps the deterministic id + timestamp + attemptedBy; the store
-        // appends and the action persists via the analyze blob (no Dexie table).
+        // App stamps the deterministic id + timestamp + attemptedBy.
         const attempt: DisconfirmationAttempt = {
           id: generateDeterministicId(),
           attemptedAt: new Date().toISOString(),
@@ -701,7 +712,18 @@ export const Editor: React.FC<EditorProps> = ({
           verdict: input.verdict,
           linkedFindingIds: [],
         };
-        useAnalyzeStore.getState().recordDisconfirmation(hypothesisId, attempt);
+        // Route through the HOOK (via the ref below) so the local hook state —
+        // which is the source of truth for WallCanvas / MobileCardList — is
+        // updated immediately. The `onHubsChange` callback then syncs the domain
+        // store (useAnalyzeStore.resetHubs) as a side-effect, keeping both in
+        // step. Bypassing the hook (calling store.recordDisconfirmation directly)
+        // leaves hook state stale: WallCanvas passes the hook's hubs to
+        // deriveHypothesisStatus, so the `needs-disconfirmation → confirmed`
+        // gate never fires live in-session (IM-4a adversarial review blocker).
+        // recordDisconfirmationRef holds the latest stable callback from
+        // useHypotheses; the ref is populated after hypothesesState is resolved
+        // (see the assignment below).
+        recordDisconfirmationRef.current(hypothesisId, attempt);
         void azureHubRepository
           .dispatch({ kind: 'HYPOTHESIS_RECORD_DISCONFIRMATION', hypothesisId, attempt })
           .catch((err: unknown) => {
@@ -1173,6 +1195,10 @@ export const Editor: React.FC<EditorProps> = ({
     processContext,
     stats,
   });
+  // Keep the latest-ref current so wallPlanningProps.onRecordDisconfirmation
+  // routes through the hook rather than the store (see declaration above).
+  recordDisconfirmationRef.current = hypothesesState.recordDisconfirmation;
+
   const projectionTarget = useAnalyzeFeatureStore(s => s.projectionTarget);
 
   // Load sample passed from portfolio "Try a Sample"
