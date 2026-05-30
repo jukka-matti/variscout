@@ -65,6 +65,13 @@ function _exhaustive(action: HubAction): void {
       return;
     case 'HYPOTHESIS_RECORD_DISCONFIRMATION':
       return;
+    // Hypothesis ActionItem tasks (IM-4b Task 3)
+    case 'HYPOTHESIS_ACTION_ADD':
+      return;
+    case 'HYPOTHESIS_ACTION_UPDATE':
+      return;
+    case 'HYPOTHESIS_ACTION_COMPLETE':
+      return;
     // Hub meta
     case 'HUB_UPDATE_GOAL':
       return;

@@ -699,6 +699,12 @@ export interface Hypothesis extends EntityBase {
   /** Timestamped hypothesis-level team discussion. Same shape as FindingComment. */
   comments?: FindingComment[];
   /**
+   * ActionItem tasks assigned to this hypothesis (Task 3).
+   * Reuses the same `ActionItem` shape as `Finding.actions` + canvas steps.
+   * Distinct from `MeasurementPlan` (no primaryFactor/method).
+   */
+  actions?: ActionItem[];
+  /**
    * Recorded falsification attempts. Empty/absent + ≥2 evidence types triggers
    * the Survey confirm-gate rule (status auto-derives to `needs-disconfirmation`).
    * See `hypothesisEvidence.hasUnresolvedDisconfirmation`.

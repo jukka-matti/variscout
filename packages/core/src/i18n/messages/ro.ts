@@ -830,6 +830,12 @@ export const ro: MessageCatalog = {
   'wall.disconfirm.verdictRefuted': 'Broke it (refuted)',
   'wall.disconfirm.record': 'Record',
   'wall.disconfirm.cancel': 'Cancel',
+  // ActionItem tasks on hypotheses (IM-4b Task 3)
+  'wall.task.addButton': '+ Add Task',
+  'wall.task.taskLabel': 'Task description',
+  'wall.task.save': 'Save',
+  'wall.task.cancel': 'Cancel',
+  'wall.task.markDone': 'Mark Done',
   'wall.gate.and': 'AND',
   'wall.gate.or': 'OR',
   'wall.gate.not': 'NOT',

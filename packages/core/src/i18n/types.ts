@@ -967,6 +967,12 @@ export interface MessageCatalog {
   'wall.disconfirm.verdictRefuted': string;
   'wall.disconfirm.record': string;
   'wall.disconfirm.cancel': string;
+  // ActionItem tasks on hypotheses (IM-4b Task 3)
+  'wall.task.addButton': string;
+  'wall.task.taskLabel': string;
+  'wall.task.save': string;
+  'wall.task.cancel': string;
+  'wall.task.markDone': string;
   'wall.gate.and': string;
   'wall.gate.or': string;
   'wall.gate.not': string;

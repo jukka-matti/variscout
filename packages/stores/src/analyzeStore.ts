@@ -172,6 +172,22 @@ export interface AnalyzeActions {
    */
   recomputeScopeWhatIf: (scopeId: string) => void;
 
+  // --- Hub ActionItem task actions (Task 3 IM-4b) ---
+  addHypothesisAction: (
+    hubId: string,
+    text: string,
+    assignee?: FindingAssignee,
+    dueDate?: string
+  ) => ActionItem | null;
+  updateHypothesisAction: (
+    hubId: string,
+    actionId: string,
+    patch: Partial<Pick<ActionItem, 'text' | 'assignee' | 'dueDate'>>
+  ) => void;
+  completeHypothesisAction: (hubId: string, actionId: string) => void;
+  toggleHypothesisActionComplete: (hubId: string, actionId: string) => void;
+  deleteHypothesisAction: (hubId: string, actionId: string) => void;
+
   // --- Hub actions ---
   createHub: (name: string, synthesis: string) => Hypothesis;
   /**
@@ -913,6 +929,83 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     set(state => ({
       hypotheses: state.hypotheses.map(h =>
         h.id === hubId ? { ...h, comments: (h.comments ?? []).filter(c => c.id !== commentId) } : h
+      ),
+    }));
+  },
+
+  // ========================================================================
+  // Hub ActionItem task actions (Task 3 IM-4b) — mirrors Finding action item methods
+  // ========================================================================
+
+  addHypothesisAction: (hubId, text, assignee?, dueDate?) => {
+    const { hypotheses } = get();
+    const hypothesis = hypotheses.find(h => h.id === hubId);
+    if (!hypothesis) return null;
+    const action = createActionItem(text, assignee, dueDate);
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId
+          ? { ...h, actions: [...(h.actions ?? []), action], updatedAt: Date.now() }
+          : h
+      ),
+    }));
+    return action;
+  },
+
+  updateHypothesisAction: (hubId, actionId, patch) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId
+          ? {
+              ...h,
+              actions: h.actions?.map(a => (a.id === actionId ? { ...a, ...patch } : a)),
+              updatedAt: Date.now(),
+            }
+          : h
+      ),
+    }));
+  },
+
+  completeHypothesisAction: (hubId, actionId) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId
+          ? {
+              ...h,
+              actions: h.actions?.map(a =>
+                a.id === actionId ? { ...a, completedAt: Date.now() } : a
+              ),
+              updatedAt: Date.now(),
+            }
+          : h
+      ),
+    }));
+  },
+
+  toggleHypothesisActionComplete: (hubId, actionId) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h => {
+        if (h.id !== hubId) return h;
+        return {
+          ...h,
+          actions: h.actions?.map(a => {
+            if (a.id !== actionId) return a;
+            return a.completedAt
+              ? { ...a, completedAt: undefined }
+              : { ...a, completedAt: Date.now() };
+          }),
+          updatedAt: Date.now(),
+        };
+      }),
+    }));
+  },
+
+  deleteHypothesisAction: (hubId, actionId) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id === hubId
+          ? { ...h, actions: h.actions?.filter(a => a.id !== actionId), updatedAt: Date.now() }
+          : h
       ),
     }));
   },

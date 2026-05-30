@@ -18,7 +18,7 @@
  */
 
 import React, { useState } from 'react';
-import type { Finding } from '@variscout/core';
+import type { Finding, ActionItem } from '@variscout/core';
 import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
@@ -35,6 +35,10 @@ const CARD_W = 280;
 const CARD_H = 288;
 /** Height of one MeasurementPlanChip row in the foreignObject (px). */
 const CHIP_ROW_H = 32;
+/** Height of one ActionItem task row in the foreignObject (px). */
+const ACTION_ROW_H = 32;
+/** Height of the inline add-task form (px). */
+const ADD_TASK_FORM_H = 72;
 /** Height of the + Add Plan button row (px). */
 const ADD_BTN_H = 32;
 /** Height of the expanded disconfirmation form (description + verdict + actions). */
@@ -95,6 +99,17 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    */
   defaultOutcome?: string;
   /**
+   * Task 3 (IM-4b) — called when the user saves a new ActionItem task on this hypothesis.
+   * Receives (hypothesisId, text, assignee?). Parent dispatches HYPOTHESIS_ACTION_ADD.
+   * When omitted, the "+ Add Task" button is not rendered.
+   */
+  onAddHypothesisAction?: (hypothesisId: string, text: string) => void;
+  /**
+   * Task 3 (IM-4b) — called when the user clicks "Mark Done" on an open action item.
+   * Receives (hypothesisId, actionId). Parent dispatches HYPOTHESIS_ACTION_COMPLETE.
+   */
+  onCompleteHypothesisAction?: (hypothesisId: string, actionId: string) => void;
+  /**
    * IM-4a — record a falsification attempt against this hypothesis
    * ("we tried to break this — did it hold?"). When provided AND the user has
    * edit-contributions access, the card renders the disconfirmation gesture +
@@ -116,6 +131,8 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onAddPlan,
   onLinkFinding,
   onEditPlan,
+  onAddHypothesisAction,
+  onCompleteHypothesisAction,
   onRecordDisconfirmation,
   stepOptions,
   defaultScope,
@@ -130,6 +147,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   const [disconfirmVerdict, setDisconfirmVerdict] = useState<'pending' | 'survived' | 'refuted'>(
     'pending'
   );
+  // Add Task form state (Task 3 IM-4b)
+  const [addTaskFormOpen, setAddTaskFormOpen] = useState(false);
+  const [taskText, setTaskText] = useState('');
 
   // ACL gate — open-access when no members configured (V1 single-user scenario)
   const canEdit =
@@ -145,8 +165,12 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // user has edit-contributions access (the same ACL gate as the plans zone).
   const showDisconfirmGesture = canEdit && Boolean(onRecordDisconfirmation);
 
-  // Dynamic height: chips rows + optional add-plan button + optional add-plan
-  // form + optional disconfirmation gesture (button or expanded form).
+  // Dynamic height: action item rows + add-task form/button + chips rows +
+  // optional add-plan button + optional add-plan form + optional disconfirmation gesture.
+  const actions = cardProps.hub.actions ?? [];
+  const actionRowsTotalH = actions.length * ACTION_ROW_H;
+  const addTaskBtnH = canEdit && onAddHypothesisAction && !addTaskFormOpen ? ADD_BTN_H : 0;
+  const addTaskFormH = canEdit && addTaskFormOpen ? ADD_TASK_FORM_H : 0;
   const chipsTotalH = plans.length * CHIP_ROW_H;
   const btnH = canEdit && !addPlanFormOpen ? ADD_BTN_H : 0;
   const formH = canEdit && addPlanFormOpen ? FORM_H : 0;
@@ -155,7 +179,8 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
       ? DISCONFIRM_FORM_H
       : ADD_BTN_H
     : 0;
-  const plansSectionH = chipsTotalH + btnH + formH + disconfirmH;
+  const plansSectionH =
+    actionRowsTotalH + addTaskBtnH + addTaskFormH + chipsTotalH + btnH + formH + disconfirmH;
 
   // Owner name resolver
   const resolveOwner = (ownerId: string): string =>
@@ -200,6 +225,95 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
           data-testid="plans-section"
         >
           <div className="bg-white border border-gray-200 rounded-b shadow-sm overflow-visible">
+            {/* ActionItem task rows (Task 3 IM-4b) */}
+            {actions.map((action: ActionItem) => {
+              const isDone = action.completedAt !== undefined;
+              return (
+                <div
+                  key={action.id}
+                  data-testid="action-item-row"
+                  data-status={isDone ? 'done' : 'open'}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm border-b border-gray-100 last:border-b-0"
+                >
+                  {canEdit && !isDone && onCompleteHypothesisAction && (
+                    <button
+                      type="button"
+                      className="flex-shrink-0 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:bg-gray-50"
+                      aria-label={getMessage(locale, 'wall.task.markDone')}
+                      onClick={() => onCompleteHypothesisAction(cardProps.hub.id, action.id)}
+                    >
+                      {getMessage(locale, 'wall.task.markDone')}
+                    </button>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <span className={isDone ? 'line-through text-gray-400' : 'text-gray-800'}>
+                      {action.text}
+                    </span>
+                    {action.assignee && (
+                      <span className="ml-1 text-xs text-gray-500">
+                        {action.assignee.displayName}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* + Add Task button (Task 3 IM-4b) */}
+            {canEdit && onAddHypothesisAction && !addTaskFormOpen && (
+              <button
+                type="button"
+                className="w-full px-3 py-1.5 text-sm text-indigo-600 hover:bg-indigo-50 text-left border-b border-gray-100"
+                aria-label={getMessage(locale, 'wall.task.addButton')}
+                onClick={() => setAddTaskFormOpen(true)}
+              >
+                {getMessage(locale, 'wall.task.addButton')}
+              </button>
+            )}
+
+            {/* Inline add-task form (Task 3 IM-4b) */}
+            {canEdit && addTaskFormOpen && (
+              <div className="px-3 py-2 border-b border-gray-100 space-y-1">
+                <label className="block text-xs font-medium text-gray-700">
+                  {getMessage(locale, 'wall.task.taskLabel')}
+                  <input
+                    type="text"
+                    aria-label={getMessage(locale, 'wall.task.taskLabel')}
+                    className="mt-1 w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    value={taskText}
+                    onChange={e => setTaskText(e.target.value)}
+                    autoFocus
+                  />
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="rounded bg-indigo-600 px-2 py-1 text-xs text-white hover:bg-indigo-700 disabled:opacity-50"
+                    disabled={taskText.trim().length === 0}
+                    onClick={() => {
+                      if (onAddHypothesisAction && taskText.trim()) {
+                        onAddHypothesisAction(cardProps.hub.id, taskText.trim());
+                        setTaskText('');
+                        setAddTaskFormOpen(false);
+                      }
+                    }}
+                  >
+                    {getMessage(locale, 'wall.task.save')}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
+                    onClick={() => {
+                      setAddTaskFormOpen(false);
+                      setTaskText('');
+                    }}
+                  >
+                    {getMessage(locale, 'wall.task.cancel')}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Chip rows */}
             {plans.map(plan => (
               <MeasurementPlanChip
