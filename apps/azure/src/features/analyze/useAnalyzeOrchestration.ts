@@ -10,7 +10,7 @@
 import { useMemo, useCallback } from 'react';
 import { useAnalyzeFeatureStore, buildIdeaImpacts } from './analyzeStore';
 import { usePanelsStore } from '../panels/panelsStore';
-import { useHypotheses, type HypothesisUpdate } from '@variscout/hooks';
+import { useHypotheses, type UseHypothesesReturn } from '@variscout/hooks';
 import { useAnalyzeStore } from '@variscout/stores';
 import type {
   Finding,
@@ -19,8 +19,6 @@ import type {
   IdeaImpact,
   ProcessContext,
   StatsResult,
-  Hypothesis,
-  DisconfirmationAttempt,
 } from '@variscout/core';
 
 // ── Interfaces ────────────────────────────────────────────────────────────
@@ -51,17 +49,7 @@ export interface UseAnalyzeOrchestrationReturn {
   /** Set finding status with automatic idea-to-action conversion */
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
   /** Full hypotheses hook state — hub CRUD operations for the Investigation workspace */
-  hypothesesState: {
-    hubs: Hypothesis[];
-    createHub: (name: string, synthesis: string) => Hypothesis;
-    updateHub: (hubId: string, updates: HypothesisUpdate) => void;
-    deleteHub: (hubId: string) => void;
-    resetHubs: (newHubs: Hypothesis[]) => void;
-    connectFinding: (hubId: string, findingId: string) => void;
-    disconnectFinding: (hubId: string, findingId: string) => void;
-    getHubForFinding: (findingId: string) => Hypothesis | undefined;
-    recordDisconfirmation: (hubId: string, attempt: DisconfirmationAttempt) => void;
-  };
+  hypothesesState: UseHypothesesReturn;
   /** Computed idea impacts keyed by idea ID */
   ideaImpacts: Record<string, IdeaImpact | undefined>;
 }

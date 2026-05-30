@@ -1,6 +1,17 @@
 import { useState, useCallback } from 'react';
-import { createHypothesis } from '@variscout/core/findings';
-import type { Hypothesis, DisconfirmationAttempt } from '@variscout/core';
+import {
+  createHypothesis,
+  createFindingComment,
+  createActionItem,
+  createImprovementIdea,
+} from '@variscout/core/findings';
+import type {
+  Hypothesis,
+  DisconfirmationAttempt,
+  FindingComment,
+  ActionItem,
+  ImprovementIdea,
+} from '@variscout/core';
 
 // ============================================================================
 // Types
@@ -48,6 +59,45 @@ export interface UseHypothesesReturn {
    * No-op if the hub is not found.
    */
   recordDisconfirmation: (hubId: string, attempt: DisconfirmationAttempt) => void;
+  /**
+   * IM-4b Task 1 — append a team comment to a hub. Routes through the hook's
+   * `update()` so the Wall (which reads `hubs` from this hook) re-renders with
+   * the new comment immediately AND `onHubsChange` syncs the domain store.
+   * Returns the created comment so the caller can mirror it to the repository.
+   * No-op + returns null if the hub is not found.
+   */
+  addComment: (
+    hubId: string,
+    text: string,
+    author?: string,
+    mentionedUserIds?: string[]
+  ) => FindingComment | null;
+  /** IM-4b Task 1 — edit a hub comment's text. No-op if hub/comment not found. */
+  editComment: (hubId: string, commentId: string, text: string) => void;
+  /** IM-4b Task 1 — delete a hub comment. No-op if hub/comment not found. */
+  deleteComment: (hubId: string, commentId: string) => void;
+  /**
+   * IM-4b Task 3 — append an ActionItem task to a hub. Returns the created item
+   * so the caller can mirror it to the repository. No-op + null if hub absent.
+   */
+  addAction: (hubId: string, text: string) => ActionItem | null;
+  /** IM-4b Task 3 — mark a hub action item done (sets completedAt). */
+  completeAction: (hubId: string, actionId: string, completedAt: number) => void;
+  /**
+   * IM-4b Task 6 — append an improvement idea to a hub. Returns the created
+   * idea so the caller can mirror it. No-op + null if hub absent.
+   */
+  addIdea: (hubId: string, text: string) => ImprovementIdea | null;
+  /** IM-4b Task 6 — patch an improvement idea on a hub. */
+  updateIdea: (
+    hubId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
+  ) => void;
+  /** IM-4b Task 6 — remove an improvement idea from a hub. */
+  removeIdea: (hubId: string, ideaId: string) => void;
+  /** IM-4b Task 6 — select/deselect an improvement idea on a hub. */
+  selectIdea: (hubId: string, ideaId: string, selected: boolean) => void;
 }
 
 // ============================================================================
@@ -168,6 +218,174 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
     [update]
   );
 
+  // ── IM-4b Task 1 — hub comment thread ───────────────────────────────────
+  const addComment = useCallback(
+    (
+      hubId: string,
+      text: string,
+      author?: string,
+      mentionedUserIds?: string[]
+    ): FindingComment | null => {
+      const hub = hubs.find(h => h.id === hubId);
+      if (!hub) return null;
+      const comment = createFindingComment(text, hubId, 'hypothesis', author);
+      if (mentionedUserIds && mentionedUserIds.length > 0) {
+        comment.mentionedUserIds = mentionedUserIds;
+      }
+      update(prev =>
+        prev.map(h =>
+          h.id === hubId
+            ? { ...h, comments: [...(h.comments ?? []), comment], updatedAt: Date.now() }
+            : h
+        )
+      );
+      return comment;
+    },
+    [hubs, update]
+  );
+
+  const editComment = useCallback(
+    (hubId: string, commentId: string, text: string): void => {
+      update(prev =>
+        prev.map(h =>
+          h.id === hubId
+            ? {
+                ...h,
+                comments: (h.comments ?? []).map(c => (c.id === commentId ? { ...c, text } : c)),
+                updatedAt: Date.now(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
+  const deleteComment = useCallback(
+    (hubId: string, commentId: string): void => {
+      update(prev =>
+        prev.map(h =>
+          h.id === hubId
+            ? {
+                ...h,
+                comments: (h.comments ?? []).filter(c => c.id !== commentId),
+                updatedAt: Date.now(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
+  // ── IM-4b Task 3 — hub ActionItem tasks ─────────────────────────────────
+  const addAction = useCallback(
+    (hubId: string, text: string): ActionItem | null => {
+      const hub = hubs.find(h => h.id === hubId);
+      if (!hub) return null;
+      const action = createActionItem(text);
+      update(prev =>
+        prev.map(h =>
+          h.id === hubId
+            ? { ...h, actions: [...(h.actions ?? []), action], updatedAt: Date.now() }
+            : h
+        )
+      );
+      return action;
+    },
+    [hubs, update]
+  );
+
+  const completeAction = useCallback(
+    (hubId: string, actionId: string, completedAt: number): void => {
+      update(prev =>
+        prev.map(h =>
+          h.id === hubId
+            ? {
+                ...h,
+                actions: (h.actions ?? []).map(a =>
+                  a.id === actionId ? { ...a, completedAt } : a
+                ),
+                updatedAt: Date.now(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
+  // ── IM-4b Task 6 — improvement ideas ────────────────────────────────────
+  const addIdea = useCallback(
+    (hubId: string, text: string): ImprovementIdea | null => {
+      const hub = hubs.find(h => h.id === hubId);
+      if (!hub) return null;
+      const idea = createImprovementIdea(text);
+      update(prev =>
+        prev.map(h =>
+          h.id === hubId ? { ...h, ideas: [...(h.ideas ?? []), idea], updatedAt: Date.now() } : h
+        )
+      );
+      return idea;
+    },
+    [hubs, update]
+  );
+
+  const updateIdea = useCallback(
+    (
+      hubId: string,
+      ideaId: string,
+      updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
+    ): void => {
+      update(prev =>
+        prev.map(h =>
+          h.id === hubId
+            ? {
+                ...h,
+                ideas: (h.ideas ?? []).map(i => (i.id === ideaId ? { ...i, ...updates } : i)),
+                updatedAt: Date.now(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
+  const removeIdea = useCallback(
+    (hubId: string, ideaId: string): void => {
+      update(prev =>
+        prev.map(h =>
+          h.id === hubId
+            ? {
+                ...h,
+                ideas: (h.ideas ?? []).filter(i => i.id !== ideaId),
+                updatedAt: Date.now(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
+  const selectIdea = useCallback(
+    (hubId: string, ideaId: string, selected: boolean): void => {
+      update(prev =>
+        prev.map(h =>
+          h.id === hubId
+            ? {
+                ...h,
+                ideas: (h.ideas ?? []).map(i => (i.id === ideaId ? { ...i, selected } : i)),
+                updatedAt: Date.now(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
   return {
     hubs,
     createHub,
@@ -178,5 +396,14 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
     disconnectFinding,
     getHubForFinding,
     recordDisconfirmation,
+    addComment,
+    editComment,
+    deleteComment,
+    addAction,
+    completeAction,
+    addIdea,
+    updateIdea,
+    removeIdea,
+    selectIdea,
   };
 }
