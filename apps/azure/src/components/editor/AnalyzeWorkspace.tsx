@@ -568,12 +568,14 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // contribution view that renders it arrives in IM-5.
   //
   // NOTE: this reads `h.status` (the stored value) directly, not
-  // `deriveHypothesisStatus`. On main, `setHubStatus` has zero prod callers
-  // and factories.ts seeds 'proposed', so `h.status === 'confirmed'` is a dead
-  // branch here until IM-4b/IM-6 persists the derived value. The Wall surface
-  // (WallCanvas + MobileCardList) correctly calls `deriveHypothesisStatus`.
-  // See investigations.md §"stored-vs-derived status deferral (IM-4a)" for the
-  // open question: migrate these readers OR persist the derived value in IM-4b/IM-6.
+  // `deriveHypothesisStatus`. Status is derived (deriveHypothesisStatus) + the
+  // disconfirmation gesture — there is NO manual status-override action
+  // (IM-4c removed the dead setHubStatus orphan per spec §10 #1). factories.ts
+  // seeds 'proposed', so `h.status === 'confirmed'` is a dead branch here until
+  // IM-6 persists the derived value. The Wall surface (WallCanvas +
+  // MobileCardList) correctly calls `deriveHypothesisStatus`. See
+  // investigations.md §"stored-vs-derived status deferral (IM-4a)" for the open
+  // question: migrate these readers OR persist the derived value in IM-6.
   const { hypotheses, ruledOut } = useMemo(() => {
     const suspected: Hypothesis[] = [];
     const ruled: Hypothesis[] = [];
