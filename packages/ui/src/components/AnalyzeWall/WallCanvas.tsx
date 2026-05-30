@@ -21,7 +21,7 @@ import type {
   GateNode,
   GatePath,
 } from '@variscout/core';
-import type { ColumnTypeMap } from '@variscout/core/findings';
+import type { ColumnTypeMap, ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import {
@@ -29,6 +29,7 @@ import {
   conditionReferencesStep,
   projectMechanismBranch,
 } from '@variscout/core';
+import { deriveProcessSteps } from '@variscout/core/frame';
 import { getMessage } from '@variscout/core/i18n';
 import { surveyWallRules } from '@variscout/core/survey';
 import { ProblemConditionCard } from './ProblemConditionCard';
@@ -73,6 +74,19 @@ export interface WallCanvasPlanningProps {
    * V1 pass-through — caller decides behaviour.
    */
   onEditPlan: (planId: string) => void;
+  /**
+   * Active drill-chip scope conditions passed to AddPlanForm as `defaultScope`.
+   * Derived from `analysisScopeStore.categoricalFilters` via
+   * `buildConditionFromCategoricalFilters` at the app call site.
+   * Pass `undefined` when the app call site cannot source it cheaply;
+   * AddPlanForm defaults to `[]`.
+   */
+  defaultScope?: ConditionLeaf[];
+  /**
+   * Project/hypothesis outcome pre-fill for AddPlanForm's outcome field.
+   * Pass `undefined` when not readily available; form defaults to `''`.
+   */
+  defaultOutcome?: string;
 }
 
 export interface WallCanvasProps {
@@ -270,6 +284,14 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     return [...buckets, unassigned].filter(b => b.hubs.length > 0);
   }, [filteredHubs, groupByTributary, processMap]);
 
+  // stepOptions for AddPlanForm: derived once from processMap so renderHubAt can use it.
+  // Returns undefined (not []) when processMap is absent so AddPlanForm hides the picker.
+  const planningStepOptions = useMemo(() => {
+    if (!planningProps || !processMap) return undefined;
+    const steps = deriveProcessSteps(processMap);
+    return steps.length > 0 ? steps.map(s => ({ id: s.id, label: s.name })) : undefined;
+  }, [planningProps, processMap]);
+
   const dndEnabled = mode === 'destination' && Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   const isMobile = useWallIsMobile();
@@ -345,6 +367,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     };
 
     // Derive per-hypothesis plans (non-deleted only) when planningProps are provided.
+    // stepOptions is derived once per render from processMap (stable reference via useMemo
+    // at the outer level — see stepOptions memo below). defaultScope + defaultOutcome are
+    // forwarded as-is; the form defaults to [] / '' when undefined.
     const hubPlanningProps = planningProps
       ? {
           plans: planningProps.plans.filter(p => p.hypothesisId === hub.id && p.deletedAt === null),
@@ -354,6 +379,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onAddPlan: planningProps.onAddPlan,
           onLinkFinding: planningProps.onLinkFinding,
           onEditPlan: planningProps.onEditPlan,
+          stepOptions: planningStepOptions,
+          defaultScope: planningProps.defaultScope,
+          defaultOutcome: planningProps.defaultOutcome,
         }
       : undefined;
 
