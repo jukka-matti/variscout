@@ -390,9 +390,12 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     case 'CAUSAL_LINK_ARCHIVE':
     case 'HYPOTHESIS_ADD':
     case 'HYPOTHESIS_UPDATE':
-    case 'HYPOTHESIS_ARCHIVE': {
+    case 'HYPOTHESIS_ARCHIVE':
+    case 'HYPOTHESIS_RECORD_DISCONFIRMATION': {
       // ProblemStatementScope (SCOPE_*) has zero Dexie footprint (ADR-085) —
       // scopes round-trip via the serialized blob slot `questions` vacated.
+      // Hypotheses (incl. disconfirmationAttempts) likewise round-trip via the
+      // analyze blob — no dedicated PWA Dexie table; no IDB bump (IM-4a).
       return;
     }
 

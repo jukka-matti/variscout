@@ -742,6 +742,7 @@ export type {
   Hypothesis,
   HypothesisEvidence,
   HypothesisStatus,
+  DisconfirmationAttempt,
   MechanismBranchClueView,
   MechanismBranchProcessContext,
   MechanismBranchProjectionOptions,

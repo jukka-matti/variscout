@@ -713,6 +713,53 @@ describe('analyzeStore — hypothesis hubs', () => {
     useAnalyzeStore.getState().resetHubs(newHubs);
     expect(useAnalyzeStore.getState().hypotheses).toEqual(newHubs);
   });
+
+  it('recordDisconfirmation appends a DisconfirmationAttempt to the hub', () => {
+    const hub = useAnalyzeStore.getState().createHub('Worn spindle', 'Night shift');
+    const attempt = {
+      id: 'd-1',
+      attemptedAt: '2026-05-30T00:00:00.000Z',
+      attemptedBy: { displayName: 'Analyst' },
+      description: 'Checked against day-shift data',
+      verdict: 'survived' as const,
+      linkedFindingIds: [] as string[],
+    };
+    useAnalyzeStore.getState().recordDisconfirmation(hub.id, attempt);
+    const updated = useAnalyzeStore.getState().hypotheses[0];
+    expect(updated.disconfirmationAttempts).toEqual([attempt]);
+    expect(updated.updatedAt).toBeGreaterThanOrEqual(hub.updatedAt);
+  });
+
+  it('recordDisconfirmation appends without dropping prior attempts', () => {
+    const hub = useAnalyzeStore.getState().createHub('Worn spindle', 'Night shift');
+    const a1 = {
+      id: 'd-1',
+      attemptedAt: '2026-05-30T00:00:00.000Z',
+      attemptedBy: { displayName: 'A' },
+      description: 'first',
+      verdict: 'pending' as const,
+      linkedFindingIds: [] as string[],
+    };
+    const a2 = { ...a1, id: 'd-2', description: 'second', verdict: 'survived' as const };
+    useAnalyzeStore.getState().recordDisconfirmation(hub.id, a1);
+    useAnalyzeStore.getState().recordDisconfirmation(hub.id, a2);
+    expect(useAnalyzeStore.getState().hypotheses[0].disconfirmationAttempts).toEqual([a1, a2]);
+  });
+
+  it('recordDisconfirmation is a no-op for an unknown hub id', () => {
+    useAnalyzeStore.getState().createHub('X', '');
+    expect(() =>
+      useAnalyzeStore.getState().recordDisconfirmation('does-not-exist', {
+        id: 'd',
+        attemptedAt: '2026-05-30T00:00:00.000Z',
+        attemptedBy: { displayName: 'A' },
+        description: 'x',
+        verdict: 'pending',
+        linkedFindingIds: [],
+      })
+    ).not.toThrow();
+    expect(useAnalyzeStore.getState().hypotheses[0].disconfirmationAttempts).toBeUndefined();
+  });
 });
 
 // ============================================================================

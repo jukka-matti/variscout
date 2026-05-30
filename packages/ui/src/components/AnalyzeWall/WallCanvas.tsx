@@ -91,6 +91,16 @@ export interface WallCanvasPlanningProps {
    * Pass `undefined` when not readily available; form defaults to `''`.
    */
   defaultOutcome?: string;
+  /**
+   * IM-4a — record a falsification attempt on a hypothesis. When provided AND
+   * the user has edit-contributions access, each card shows the disconfirmation
+   * gesture. The app stamps id + timestamps + attemptedBy and dispatches
+   * HYPOTHESIS_RECORD_DISCONFIRMATION. Omit to hide the gesture.
+   */
+  onRecordDisconfirmation?: (
+    hypothesisId: string,
+    input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
+  ) => void;
 }
 
 export interface WallCanvasProps {
@@ -419,6 +429,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onAddPlan: planningProps.onAddPlan,
           onLinkFinding: planningProps.onLinkFinding,
           onEditPlan: planningProps.onEditPlan,
+          onRecordDisconfirmation: planningProps.onRecordDisconfirmation,
           stepOptions: planningStepOptions,
           defaultScope: planningProps.defaultScope,
           defaultOutcome: planningProps.defaultOutcome,

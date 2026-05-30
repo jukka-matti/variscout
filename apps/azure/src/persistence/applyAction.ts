@@ -515,6 +515,11 @@ export async function applyAction(action: HubAction): Promise<void> {
       // Azure has no 'hypothesis' table today; F3 normalizes — no-op.
       return;
 
+    case 'HYPOTHESIS_RECORD_DISCONFIRMATION':
+      // Disconfirmation attempts ride the Hypothesis through the analyze blob;
+      // Azure has no dedicated 'hypothesis' table — no-op, no IDB bump (IM-4a).
+      return;
+
     // -------------------------------------------------------------------------
     // MeasurementPlan actions — dedicated measurementPlans Dexie table.
     // -------------------------------------------------------------------------

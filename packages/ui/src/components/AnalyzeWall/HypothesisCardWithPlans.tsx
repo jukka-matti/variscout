@@ -35,6 +35,8 @@ const CARD_H = 288;
 const CHIP_ROW_H = 32;
 /** Height of the + Add Plan button row (px). */
 const ADD_BTN_H = 32;
+/** Height of the expanded disconfirmation form (description + verdict + actions). */
+const DISCONFIRM_FORM_H = 200;
 /**
  * Height of AddPlanForm when expanded (px).
  * The form currently has ~8 fields + 2 textareas (opDef, msaNote) + error row +
@@ -90,6 +92,18 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    * Pass `undefined` to default to `''`.
    */
   defaultOutcome?: string;
+  /**
+   * IM-4a — record a falsification attempt against this hypothesis
+   * ("we tried to break this — did it hold?"). When provided AND the user has
+   * edit-contributions access, the card renders the disconfirmation gesture +
+   * inline form. The parent stamps id + attemptedAt + attemptedBy +
+   * linkedFindingIds and dispatches HYPOTHESIS_RECORD_DISCONFIRMATION.
+   * Omit to hide the gesture entirely.
+   */
+  onRecordDisconfirmation?: (
+    hypothesisId: string,
+    input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
+  ) => void;
 }
 
 export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = ({
@@ -100,6 +114,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onAddPlan,
   onLinkFinding,
   onEditPlan,
+  onRecordDisconfirmation,
   stepOptions,
   defaultScope,
   defaultOutcome,
@@ -107,6 +122,11 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
 }) => {
   const [addPlanFormOpen, setAddPlanFormOpen] = useState(false);
   const [linkFindingForPlanId, setLinkFindingForPlanId] = useState<string | null>(null);
+  const [disconfirmFormOpen, setDisconfirmFormOpen] = useState(false);
+  const [disconfirmDescription, setDisconfirmDescription] = useState('');
+  const [disconfirmVerdict, setDisconfirmVerdict] = useState<'pending' | 'survived' | 'refuted'>(
+    'pending'
+  );
 
   // ACL gate — open-access when no members configured (V1 single-user scenario)
   const canEdit =
@@ -118,11 +138,21 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // [x - CARD_W/2 .. x + CARD_W/2] horizontally, [y .. y + CARD_H] vertically.
   const plansSectionY = CARD_H + PLANS_GAP;
 
-  // Dynamic height: chips rows + optional button + optional form
+  // Disconfirmation gesture is shown when the parent wires the callback AND the
+  // user has edit-contributions access (the same ACL gate as the plans zone).
+  const showDisconfirmGesture = canEdit && Boolean(onRecordDisconfirmation);
+
+  // Dynamic height: chips rows + optional add-plan button + optional add-plan
+  // form + optional disconfirmation gesture (button or expanded form).
   const chipsTotalH = plans.length * CHIP_ROW_H;
   const btnH = canEdit && !addPlanFormOpen ? ADD_BTN_H : 0;
   const formH = canEdit && addPlanFormOpen ? FORM_H : 0;
-  const plansSectionH = chipsTotalH + btnH + formH;
+  const disconfirmH = showDisconfirmGesture
+    ? disconfirmFormOpen
+      ? DISCONFIRM_FORM_H
+      : ADD_BTN_H
+    : 0;
+  const plansSectionH = chipsTotalH + btnH + formH + disconfirmH;
 
   // Owner name resolver
   const resolveOwner = (ownerId: string): string =>
@@ -139,6 +169,16 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
       onLinkFinding(linkFindingForPlanId, fid);
     }
     setLinkFindingForPlanId(null);
+  };
+
+  const handleDisconfirmSave = () => {
+    if (!onRecordDisconfirmation) return;
+    const description = disconfirmDescription.trim();
+    if (description.length === 0) return;
+    onRecordDisconfirmation(cardProps.hub.id, { description, verdict: disconfirmVerdict });
+    setDisconfirmDescription('');
+    setDisconfirmVerdict('pending');
+    setDisconfirmFormOpen(false);
   };
 
   return (
@@ -195,6 +235,67 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                 defaultScope={defaultScope}
                 defaultOutcome={defaultOutcome}
               />
+            )}
+
+            {/* Disconfirmation gesture — "we tried to break this — did it hold?" */}
+            {showDisconfirmGesture && !disconfirmFormOpen && (
+              <button
+                type="button"
+                className="w-full px-3 py-1.5 text-sm text-amber-700 hover:bg-amber-50 text-left border-t border-gray-100"
+                onClick={() => setDisconfirmFormOpen(true)}
+              >
+                We tried to break this — did it hold?
+              </button>
+            )}
+            {showDisconfirmGesture && disconfirmFormOpen && (
+              <div className="px-3 py-2 border-t border-gray-100 space-y-2">
+                <label className="block text-xs font-medium text-gray-700">
+                  What did you try?
+                  <textarea
+                    aria-label="What did you try?"
+                    className="mt-1 w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    rows={2}
+                    value={disconfirmDescription}
+                    onChange={e => setDisconfirmDescription(e.target.value)}
+                  />
+                </label>
+                <label className="block text-xs font-medium text-gray-700">
+                  Did it hold?
+                  <select
+                    aria-label="Did it hold?"
+                    className="mt-1 w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    value={disconfirmVerdict}
+                    onChange={e =>
+                      setDisconfirmVerdict(e.target.value as 'pending' | 'survived' | 'refuted')
+                    }
+                  >
+                    <option value="pending">Still checking</option>
+                    <option value="survived">Held up (survived)</option>
+                    <option value="refuted">Broke it (refuted)</option>
+                  </select>
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="rounded bg-amber-600 px-2 py-1 text-xs text-white hover:bg-amber-700 disabled:opacity-50"
+                    disabled={disconfirmDescription.trim().length === 0}
+                    onClick={handleDisconfirmSave}
+                  >
+                    Record
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
+                    onClick={() => {
+                      setDisconfirmFormOpen(false);
+                      setDisconfirmDescription('');
+                      setDisconfirmVerdict('pending');
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </foreignObject>

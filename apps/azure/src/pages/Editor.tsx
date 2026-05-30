@@ -76,6 +76,7 @@ import type {
   AnalyzeStatus,
   ProcessContext,
   ProcessHub,
+  DisconfirmationAttempt,
 } from '@variscout/core';
 import type { SurveyRecommendation } from '@variscout/core/survey';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -683,8 +684,32 @@ export const Editor: React.FC<EditorProps> = ({
       onEditPlan: (planId: string) => {
         console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);
       },
+      onRecordDisconfirmation: (
+        hypothesisId: string,
+        input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
+      ) => {
+        // App stamps the deterministic id + timestamp + attemptedBy; the store
+        // appends and the action persists via the analyze blob (no Dexie table).
+        const attempt: DisconfirmationAttempt = {
+          id: generateDeterministicId(),
+          attemptedAt: new Date().toISOString(),
+          attemptedBy: {
+            displayName: currentUser?.name ?? 'Local browser',
+            upn: currentUser?.email,
+          },
+          description: input.description,
+          verdict: input.verdict,
+          linkedFindingIds: [],
+        };
+        useAnalyzeStore.getState().recordDisconfirmation(hypothesisId, attempt);
+        void azureHubRepository
+          .dispatch({ kind: 'HYPOTHESIS_RECORD_DISCONFIRMATION', hypothesisId, attempt })
+          .catch((err: unknown) => {
+            console.error('[wall] Failed to record disconfirmation:', err);
+          });
+      },
     }),
-    [wallMeasurementPlans, wallActiveIPMembers, currentUser?.email]
+    [wallMeasurementPlans, wallActiveIPMembers, currentUser?.email, currentUser?.name]
   );
 
   // Action item dispatch — wired to useImprovementProjectStore via upsertProject

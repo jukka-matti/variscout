@@ -37,6 +37,7 @@ import type {
   ProblemStatementScope,
   ConditionLeaf,
   CategoricalFilterInput,
+  DisconfirmationAttempt,
 } from '@variscout/core';
 import {
   createFinding,
@@ -183,6 +184,15 @@ export interface AnalyzeActions {
   deleteHub: (hubId: string) => void;
   connectFindingToHub: (hubId: string, findingId: string) => void;
   disconnectFindingFromHub: (hubId: string, findingId: string) => void;
+  /**
+   * IM-4a Task 4 — append a falsification attempt to a hypothesis. The caller
+   * stamps the attempt's id + timestamps (deterministic — mirrors the
+   * MEASUREMENT_PLAN_ADD pattern; no Date.now/RNG inside the store). The derived
+   * status (`deriveHypothesisStatus`) then reflects it: a `survived` attempt +
+   * ≥2 evidence types promotes to `confirmed`; a `pending` attempt holds at
+   * `needs-disconfirmation`. No-op for an unknown hub id.
+   */
+  recordDisconfirmation: (hubId: string, attempt: DisconfirmationAttempt) => void;
   setHubEvidence: (hubId: string, evidence: HypothesisEvidence) => void;
   resetHubs: (hubs: Hypothesis[]) => void;
   /**
@@ -767,6 +777,20 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
           : {
               ...h,
               findingIds: h.findingIds.filter(id => id !== findingId),
+              updatedAt: Date.now(),
+            }
+      ),
+    }));
+  },
+
+  recordDisconfirmation: (hubId, attempt) => {
+    set(state => ({
+      hypotheses: state.hypotheses.map(h =>
+        h.id !== hubId
+          ? h
+          : {
+              ...h,
+              disconfirmationAttempts: [...(h.disconfirmationAttempts ?? []), attempt],
               updatedAt: Date.now(),
             }
       ),
