@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 
 export interface UseWallKeyboardOptions {
   onNewHypothesis?: () => void;
-  onNewQuestion?: () => void;
   onRunAndCheck?: () => void;
   onFit?: () => void;
   onSnapRiver?: () => void;
@@ -69,9 +68,6 @@ export function useWallKeyboard(options: UseWallKeyboardOptions): void {
       switch (e.key.toLowerCase()) {
         case 'n':
           options.onNewHypothesis?.();
-          return;
-        case 'q':
-          options.onNewQuestion?.();
           return;
         case 'r':
           options.onRunAndCheck?.();

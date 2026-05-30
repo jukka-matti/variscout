@@ -501,43 +501,12 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
 
   // ── Analysis brief state ──────────────────────────────────────────────────
   const [issueStatement, setIssueStatement] = useState(initialIssueStatement || '');
-  const [briefQuestions, setBriefQuestions] = useState<
-    Array<{ text: string; factor: string; level: string }>
-  >([]);
   const [briefExpanded, setBriefExpanded] = useState(!!initialIssueStatement);
   const [targetMetric, setTargetMetric] = useState<TargetMetric | ''>('');
   const [targetDirection, setTargetDirection] = useState<'minimize' | 'maximize' | 'target'>(
     'minimize'
   );
   const [targetValue, setTargetValue] = useState('');
-
-  const addBriefQuestion = useCallback(() => {
-    setBriefQuestions(prev => [...prev, { text: '', factor: '', level: '' }]);
-  }, []);
-
-  const updateBriefQuestion = useCallback(
-    (index: number, field: 'text' | 'factor' | 'level', value: string) => {
-      setBriefQuestions(prev => {
-        const next = [...prev];
-        next[index] = { ...next[index], [field]: value };
-        return next;
-      });
-    },
-    []
-  );
-
-  const removeBriefQuestion = useCallback((index: number) => {
-    setBriefQuestions(prev => prev.filter((_, i) => i !== index));
-  }, []);
-
-  const getFactorLevels = useCallback(
-    (factorName: string): string[] => {
-      const col = columns.find(c => c.name === factorName);
-      if (!col || col.type === 'numeric') return [];
-      return col.sampleValues;
-    },
-    [columns]
-  );
 
   // ── Standalone specs section (edit mode only, or when hideSpecs=false & no candidates) ──
   // In setup mode, specs are now inline per OutcomeCandidateRow.
@@ -596,14 +565,6 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     // Build analysis brief
     const brief: AnalysisBrief = {};
     if (issueStatement.trim()) brief.issueStatement = issueStatement.trim();
-    const validQuestions = briefQuestions.filter(h => h.text.trim());
-    if (validQuestions.length > 0) {
-      brief.questions = validQuestions.map(h => ({
-        text: h.text.trim(),
-        ...(h.factor ? { factor: h.factor } : {}),
-        ...(h.level ? { level: h.level } : {}),
-      }));
-    }
     const tv = parseFloat(targetValue);
     if (targetMetric && !isNaN(tv)) {
       brief.target = {
@@ -612,7 +573,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
         value: tv,
       };
     }
-    const hasBrief = brief.issueStatement || brief.questions || brief.target;
+    const hasBrief = brief.issueStatement || brief.target;
 
     onConfirm({
       outcomes,
@@ -634,7 +595,6 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     inferredCategories,
     initialCategories,
     issueStatement,
-    briefQuestions,
     targetMetric,
     targetDirection,
     targetValue,
@@ -720,74 +680,6 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                     <span className="text-[0.625rem] text-slate-600 float-right">
                       {issueStatement.length}/500
                     </span>
-                  </div>
-
-                  {/* Questions */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-400">{t('analyze.questions')}</span>
-                    </div>
-                    {briefQuestions.map((hyp, idx) => (
-                      <div
-                        key={idx}
-                        className="flex flex-col gap-1.5 mb-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50"
-                        data-testid={`brief-question-${idx}`}
-                      >
-                        <input
-                          type="text"
-                          value={hyp.text}
-                          onChange={e => updateBriefQuestion(idx, 'text', e.target.value)}
-                          placeholder="e.g., Night shift has higher variation"
-                          className="w-full text-sm bg-slate-900/50 border border-slate-700 rounded px-2 py-1.5 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
-                        />
-                        <div className="flex gap-2">
-                          <select
-                            value={hyp.factor}
-                            onChange={e => updateBriefQuestion(idx, 'factor', e.target.value)}
-                            className="flex-1 text-xs bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-blue-500/50"
-                          >
-                            <option value="">Factor (optional)</option>
-                            {columns
-                              .filter(c => c.type !== 'numeric')
-                              .map(c => (
-                                <option key={c.name} value={c.name}>
-                                  {c.name}
-                                </option>
-                              ))}
-                          </select>
-                          <select
-                            value={hyp.level}
-                            onChange={e => updateBriefQuestion(idx, 'level', e.target.value)}
-                            className="flex-1 text-xs bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-blue-500/50"
-                            disabled={!hyp.factor}
-                          >
-                            <option value="">Level (optional)</option>
-                            {hyp.factor &&
-                              getFactorLevels(hyp.factor).map(lv => (
-                                <option key={lv} value={lv}>
-                                  {lv}
-                                </option>
-                              ))}
-                          </select>
-                          <button
-                            onClick={() => removeBriefQuestion(idx)}
-                            className="text-slate-500 hover:text-red-400 text-xs px-1"
-                            type="button"
-                            aria-label="Remove question"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    <button
-                      onClick={addBriefQuestion}
-                      className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                      type="button"
-                      data-testid="brief-add-question"
-                    >
-                      + {t('data.addQuestion')}
-                    </button>
                   </div>
 
                   {/* Target */}

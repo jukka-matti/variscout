@@ -7,7 +7,6 @@ export interface HubCardProps {
   hub: Hypothesis;
   evidence?: HypothesisEvidence;
   projection?: HubProjection;
-  questionsCount: number;
   findingsCount: number;
   onEdit: () => void;
   onToggleSelect: () => void;
@@ -26,7 +25,6 @@ const HubCard: React.FC<HubCardProps> = ({
   hub,
   evidence,
   projection,
-  questionsCount,
   findingsCount,
   onEdit,
   onToggleSelect,
@@ -44,8 +42,6 @@ const HubCard: React.FC<HubCardProps> = ({
     : null;
 
   const summaryParts: string[] = [];
-  if (questionsCount > 0)
-    summaryParts.push(`${questionsCount} question${questionsCount !== 1 ? 's' : ''}`);
   if (findingsCount > 0)
     summaryParts.push(`${findingsCount} finding${findingsCount !== 1 ? 's' : ''}`);
 

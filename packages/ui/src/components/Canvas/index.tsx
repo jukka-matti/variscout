@@ -32,7 +32,6 @@ import {
   type Finding,
   type Hypothesis,
   type SpecLimits,
-  type Question,
 } from '@variscout/core';
 import type { ActionItem, ColumnTypeMap } from '@variscout/core/findings';
 import type { CanvasLevel } from '@variscout/core/canvas';
@@ -207,7 +206,6 @@ export interface CanvasProps {
   activeCanvasTool?: CanvasToolId;
   onCanvasToolChange?: (next: CanvasToolId) => void;
   questions?: ReadonlyArray<CanvasQuestionOption>;
-  systemQuestions?: ReadonlyArray<Question>;
   hypotheses?: ReadonlyArray<Hypothesis>;
   onAddCausalLink?: (
     fromFactor: string,
@@ -274,7 +272,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   activeCanvasTool = 'select',
   onCanvasToolChange,
   questions = EMPTY_QUESTIONS,
-  systemQuestions = [],
   hypotheses = [],
   onAddCausalLink,
   investigationOverlays,
@@ -716,7 +713,6 @@ export const Canvas: React.FC<CanvasProps> = ({
       l2Content={canvasContent}
       rows={rows ?? []}
       stepCards={stepCards}
-      systemQuestions={systemQuestions}
       hypotheses={hypotheses}
       findings={findings}
       usl={usl}

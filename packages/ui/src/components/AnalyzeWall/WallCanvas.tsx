@@ -2,10 +2,11 @@
  * WallCanvas — Top-level composition component for the Investigation Wall.
  *
  * Assembles ProblemConditionCard (top), Mechanism Branch cards (middle row),
- * open QuestionPills (lower row), TributaryFooter (bottom), and
- * MissingEvidencePanel (rule-driven HTML panel below the SVG canvas).
+ * TributaryFooter (bottom), and MissingEvidencePanel (rule-driven HTML panel
+ * below the SVG canvas).
  *
- * Renders EmptyState when no hubs exist.
+ * Renders hubs + findings only (Question entity retired — IM-1; the bipartite
+ * hub↔finding re-layout is IM-4). Renders EmptyState when no hubs exist.
  */
 
 import React, { useMemo, useRef } from 'react';
@@ -16,7 +17,6 @@ import type {
   Hypothesis,
   Finding,
   HypothesisStatus,
-  Question,
   ProcessMap,
   GateNode,
   GatePath,
@@ -25,7 +25,6 @@ import type { ColumnTypeMap } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import {
-  collectStepColumns,
   conditionHasMissingColumn,
   conditionReferencesStep,
   projectMechanismBranch,
@@ -36,7 +35,6 @@ import { ProblemConditionCard } from './ProblemConditionCard';
 import { HypothesisCard } from './HypothesisCard';
 import { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
 import { DraggableHypothesisCard } from './DraggableHypothesisCard';
-import { QuestionPill } from './QuestionPill';
 import { TributaryFooter } from './TributaryFooter';
 import { EmptyState } from './EmptyState';
 import { MissingEvidencePanel } from './MissingEvidencePanel';
@@ -81,7 +79,6 @@ export interface WallCanvasProps {
   hubId?: ProcessHubId;
   hubs: Hypothesis[];
   findings: Finding[];
-  questions: Question[];
   processMap?: ProcessMap;
   problemCpk: number;
   eventsPerWeek: number;
@@ -93,9 +90,7 @@ export interface WallCanvasProps {
    */
   activeColumns?: ReadonlyArray<string>;
   onSelectHub?: (id: string) => void;
-  onPromoteQuestion?: (id: string) => void;
   onWriteHypothesis?: () => void;
-  onPromoteFromQuestion?: () => void;
   onSeedFromFactorIntel?: () => void;
   onFocusHubFromGap?: (id: string) => void;
   /**
@@ -192,15 +187,12 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   hubId,
   hubs,
   findings,
-  questions,
   processMap,
   problemCpk,
   eventsPerWeek,
   activeColumns,
   onSelectHub,
-  onPromoteQuestion,
   onWriteHypothesis,
-  onPromoteFromQuestion,
   onSeedFromFactorIntel,
   onFocusHubFromGap,
   onComposeGate,
@@ -220,10 +212,6 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     if (!filterByStepId) return hubs;
     return hubs.filter(hub => conditionReferencesStep(hub.condition, processMap, filterByStepId));
   }, [filterByStepId, hubs, processMap]);
-  const focalStepColumns = useMemo(
-    () => (filterByStepId ? collectStepColumns(processMap, filterByStepId) : null),
-    [filterByStepId, processMap]
-  );
   const surveyHints = useMemo(
     () => surveyWallRules({ hypotheses: filteredHubs, findings }),
     [filteredHubs, findings]
@@ -247,14 +235,13 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         [
           hub.id,
           projectMechanismBranch(hub, {
-            questions,
             findings,
             processContext: processMap ? { processMap } : undefined,
           }),
         ] as const
     );
     return new Map(entries);
-  }, [filteredHubs, findings, processMap, questions]);
+  }, [filteredHubs, findings, processMap]);
   // Tributary clustering: bucket each hub by its first matching tributary.
   // Unmatched hubs (no tributaryIds, or none intersecting processMap) drop
   // into an "unassigned" bucket rendered without a frame. Order matches
@@ -292,14 +279,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     disabled: mode !== 'destination' || !hubId || isMobile || filteredHubs.length === 0,
     filter: shouldHandleWallPanInput,
   });
-  const openQuestions = questions.filter(q => {
-    if (q.status !== 'open') return false;
-    if (hubs.some(h => h.questionIds.includes(q.id))) return false;
-    if (focalStepColumns && (!q.factor || !focalStepColumns.has(q.factor))) return false;
-    return true;
-  });
-
-  if (mode === 'overlay' && filteredHubs.length === 0 && openQuestions.length === 0) {
+  if (mode === 'overlay' && filteredHubs.length === 0) {
     // Overlay mode: render a blank SVG so the wrapper owns empty-state semantics.
     return (
       <svg
@@ -323,11 +303,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         <MobileCardList
           hubs={filteredHubs}
           findings={findings}
-          questions={questions}
           processMap={processMap}
           onSelectHub={onSelectHub}
           onWriteHypothesis={onWriteHypothesis}
-          onPromoteFromQuestion={onPromoteFromQuestion}
           onSeedFromFactorIntel={onSeedFromFactorIntel}
         />
         {mode === 'destination' ? (
@@ -341,7 +319,6 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     return (
       <EmptyState
         onWriteHypothesis={onWriteHypothesis}
-        onPromoteFromQuestion={onPromoteFromQuestion}
         onSeedFromFactorIntel={onSeedFromFactorIntel}
       />
     );
@@ -463,18 +440,6 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
                 });
               })()
             : filteredHubs.map((hub, idx) => renderHubAt(hub, hubSpacing * (idx + 1)))}
-
-          {openQuestions.map((q, idx) => (
-            <QuestionPill
-              key={q.id}
-              questionId={q.id}
-              text={q.text}
-              status={q.status}
-              x={200 + idx * 240}
-              y={900}
-              onPromote={onPromoteQuestion}
-            />
-          ))}
 
           {processMap && (
             <TributaryFooter

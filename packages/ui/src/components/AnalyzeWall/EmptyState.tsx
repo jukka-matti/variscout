@@ -1,10 +1,9 @@
 /**
  * EmptyState — shown on the Investigation Wall when no hubs exist yet.
  *
- * Presents three entry points for starting an investigation:
+ * Presents two entry points for starting an investigation:
  *   1. Write a suspected mechanism directly.
- *   2. Promote an existing question into branch work.
- *   3. Seed mechanism branches from Factor Intelligence.
+ *   2. Seed mechanism branches from Factor Intelligence.
  */
 
 import React from 'react';
@@ -13,13 +12,11 @@ import { useWallLocale } from './hooks/useWallLocale';
 
 export interface EmptyStateProps {
   onWriteHypothesis?: () => void;
-  onPromoteFromQuestion?: () => void;
   onSeedFromFactorIntel?: () => void;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
   onWriteHypothesis,
-  onPromoteFromQuestion,
   onSeedFromFactorIntel,
 }) => {
   const locale = useWallLocale();
@@ -39,13 +36,6 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           className="rounded bg-surface-secondary border border-edge px-3 py-2 text-sm text-content hover:bg-surface"
         >
           {getMessage(locale, 'wall.empty.writeHypothesis')}
-        </button>
-        <button
-          type="button"
-          onClick={onPromoteFromQuestion}
-          className="rounded bg-surface-secondary border border-edge px-3 py-2 text-sm text-content hover:bg-surface"
-        >
-          {getMessage(locale, 'wall.empty.promoteFromQuestion')}
         </button>
         <button
           type="button"

@@ -32,7 +32,7 @@ import FindingTagBadge from './FindingTagBadge';
 import FindingComments from './FindingComments';
 import ActionItemsSection from './FindingCardActions';
 import ProjectionSection from './FindingCardProjection';
-import { QuestionSection, HypothesisSection, OutcomeSection } from './FindingCardExpanded';
+import { OutcomeSection } from './FindingCardExpanded';
 import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingCardProps {
@@ -69,22 +69,6 @@ export interface FindingCardProps {
   renderAssignSlot?: React.ReactNode;
   /** Maximum number of statuses to show in status badge dropdown (PWA=3, Azure=5). Default: all. */
   maxStatuses?: number;
-  /** Callback to link a question to a finding */
-  onLinkQuestion?: (findingId: string, questionId: string) => void;
-  /** Callback to create a new question and link to a finding */
-  onCreateQuestion?: (findingId: string, text: string, factor?: string, level?: string) => void;
-  /** Map of question IDs to question objects for display */
-  questionsMap?: Record<
-    string,
-    {
-      text: string;
-      status: string;
-      factor?: string;
-      level?: string;
-      ideas?: Array<{ text: string; selected?: boolean }>;
-      causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
-    }
-  >;
   /** Callback to add an action item */
   onAddAction?: (id: string, text: string, assignee?: FindingAssignee, dueDate?: string) => void;
   /** Optional slot to render an assignee picker for action items (e.g., PeoplePicker in Azure) */
@@ -114,8 +98,6 @@ export interface FindingCardProps {
     finding: {
       text: string;
       status: string;
-      question?: string;
-      ideas?: Array<{ text: string; selected?: boolean }>;
     };
   }) => void;
   /** Callback to send a direct question to CoScout (used by per-action "Ask" buttons) */
@@ -169,9 +151,6 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAssign,
   renderAssignSlot,
   maxStatuses,
-  onLinkQuestion: _onLinkQuestion,
-  onCreateQuestion,
-  questionsMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -344,15 +323,10 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 <button
                   onClick={e => {
                     e.stopPropagation();
-                    const hyp = finding.questionId ? questionsMap?.[finding.questionId] : undefined;
                     onAskCoScout({
                       finding: {
                         text: finding.text || 'Untitled finding',
                         status,
-                        question: hyp?.text,
-                        ideas: (
-                          hyp as { ideas?: Array<{ text: string; selected?: boolean }> } | undefined
-                        )?.ideas,
                       },
                     });
                   }}
@@ -402,25 +376,6 @@ const FindingCard: React.FC<FindingCardProps> = ({
 
         {/* Inline assign slot (e.g., PeoplePicker) */}
         {renderAssignSlot}
-
-        {/* Question (visible from 'investigating' onward) */}
-        {(onCreateQuestion || finding.questionId) &&
-          ['investigating', 'analyzed', 'improving', 'resolved'].includes(status) && (
-            <QuestionSection
-              findingId={finding.id}
-              questionId={finding.questionId}
-              questionsMap={questionsMap}
-              onCreateQuestion={onCreateQuestion}
-              readOnly={status === 'resolved'}
-            />
-          )}
-
-        {/* Suspected cause (visible when any question has causeRole and finding is analyzed+) */}
-        {questionsMap &&
-          ['analyzed', 'improving', 'resolved'].includes(status) &&
-          Object.values(questionsMap).some(h => h.causeRole) && (
-            <HypothesisSection questionsMap={questionsMap} />
-          )}
 
         {/* Projection display (visible when projection exists) */}
         {finding.projection && (

@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Download, FileText, FileJson, Copy, Sparkles, Check, Loader2 } from 'lucide-react';
-import type { Finding, Question, ProcessContext } from '@variscout/core';
+import type { Finding, ProcessContext } from '@variscout/core';
 import { downloadFindingsCSV, downloadFindingsJSON } from '@variscout/core';
 import { copyFindingsToClipboard } from './export';
 
 export interface FindingsExportMenuProps {
   findings: Finding[];
-  questions?: Question[];
   processContext?: ProcessContext;
   onGenerateAIReport?: () => Promise<string>;
   columnAliases?: Record<string, string>;
@@ -15,7 +14,6 @@ export interface FindingsExportMenuProps {
 
 export default function FindingsExportMenu({
   findings,
-  questions,
   processContext,
   onGenerateAIReport,
   columnAliases,
@@ -48,12 +46,12 @@ export default function FindingsExportMenu({
   };
 
   const handleDownloadCSV = () => {
-    downloadFindingsCSV(findings, questions);
+    downloadFindingsCSV(findings);
     setIsOpen(false);
   };
 
   const handleDownloadJSON = () => {
-    downloadFindingsJSON(findings, questions, processContext);
+    downloadFindingsJSON(findings, undefined, processContext);
     setIsOpen(false);
   };
 

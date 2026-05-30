@@ -13,8 +13,8 @@
  * Sponsor can add/link plans.
  *
  * Dispatch pattern: callbacks bubble up to parent (WallCanvas → app) exactly
- * as existing onSelectHub / onComposeGate / onPromoteQuestion do. No new
- * dispatch mechanism introduced.
+ * as existing onSelectHub / onComposeGate do. No new dispatch mechanism
+ * introduced.
  */
 
 import React, { useState } from 'react';

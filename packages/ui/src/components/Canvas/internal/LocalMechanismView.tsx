@@ -11,7 +11,7 @@ import { formatMessage, formatStatistic, getMessage } from '@variscout/core/i18n
 import type { Locale } from '@variscout/core';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import { EvidenceMapBase } from '@variscout/charts';
-import { useEvidenceMapData } from '@variscout/hooks';
+import { useEvidenceMapData, type CanvasAnalyzeFocus } from '@variscout/hooks';
 import { useAnalyzeStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import { WallCanvas } from '../../AnalyzeWall/WallCanvas';
@@ -33,7 +33,7 @@ export interface LocalMechanismViewProps {
   activeColumns: ReadonlyArray<string> | undefined;
   onOpenWall?: () => void;
   onSelectWallHub?: (hubId: string) => void;
-  onOpenInvestigationFocus?: (focus: { kind: 'question'; id: string; questionId: string }) => void;
+  onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
@@ -132,18 +132,11 @@ function collectConditionColumns(condition: NonNullable<Hypothesis['condition']>
 }
 
 function hasInvestigationContext(
-  questions: ReturnType<typeof useAnalyzeStore.getState>['questions'],
   hypotheses: Hypothesis[],
   focalStepId: string,
   map: ProcessMap,
   stepColumns: readonly string[]
 ): boolean {
-  const stepColumnSet = new Set(stepColumns);
-  const hasOpenQuestion = questions.some(
-    question => question.status === 'open' && question.factor && stepColumnSet.has(question.factor)
-  );
-  if (hasOpenQuestion) return true;
-
   return hypotheses.some(hypothesis =>
     conditionMentionsStep(hypothesis, focalStepId, map, stepColumns)
   );
@@ -304,7 +297,6 @@ export function LocalMechanismView({
   onCharter,
 }: LocalMechanismViewProps) {
   const locale = useWallLocale();
-  const questions = useAnalyzeStore(state => state.questions);
   const hypotheses = useAnalyzeStore(state => state.hypotheses);
   const causalLinks = useAnalyzeStore(state => state.causalLinks);
   const [quickActionColumn, setQuickActionColumn] = React.useState<string | null>(null);
@@ -339,24 +331,10 @@ export function LocalMechanismView({
     containerSize: { width: 680, height: 360 },
     mode: 'capability',
     causalLinks: [...causalLinks],
-    questions: [...questions],
     findings: safeFindings,
     hypotheses: [...hypotheses],
   });
-  const showRankings = hasInvestigationContext(
-    questions,
-    hypotheses,
-    focalStepId,
-    map,
-    stepColumns
-  );
-  const stepScopedQuestions = React.useMemo(
-    () =>
-      questions.filter(question =>
-        question.factor ? stepColumns.includes(question.factor) : false
-      ),
-    [questions, stepColumns]
-  );
+  const showRankings = hasInvestigationContext(hypotheses, focalStepId, map, stepColumns);
   const rankings = React.useMemo(
     () => contributionRankings(safeRows, outcomeColumn, statisticalFactors),
     [outcomeColumn, safeRows, statisticalFactors]
@@ -380,17 +358,20 @@ export function LocalMechanismView({
   );
   const handleEvidenceFactorClick = React.useCallback(
     (factor: string) => {
-      const matchingQuestion =
-        questions.find(question => question.factor === factor && question.status === 'open') ??
-        questions.find(question => question.factor === factor);
-      if (!matchingQuestion) return;
+      // The Question entity was retired (IM-1); factor identity now lives in
+      // the hypothesis condition. Focus the first hypothesis whose condition
+      // references the clicked factor column.
+      const matchingHypothesis = hypotheses.find(
+        hypothesis =>
+          hypothesis.condition && collectConditionColumns(hypothesis.condition).has(factor)
+      );
+      if (!matchingHypothesis) return;
       onOpenInvestigationFocus?.({
-        kind: 'question',
-        id: matchingQuestion.id,
-        questionId: matchingQuestion.id,
+        kind: 'suspected-cause',
+        id: matchingHypothesis.id,
       });
     },
-    [onOpenInvestigationFocus, questions]
+    [onOpenInvestigationFocus, hypotheses]
   );
 
   return (
@@ -445,7 +426,6 @@ export function LocalMechanismView({
           hubId={hubId}
           hubs={hypotheses}
           findings={safeFindings}
-          questions={stepScopedQuestions}
           processMap={map}
           problemCpk={problemCpk ?? 0}
           eventsPerWeek={eventsPerWeek ?? 0}

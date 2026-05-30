@@ -31,7 +31,6 @@ export {
   type VerificationChartId as VerificationChartIdUI,
   type VerificationChartOption as VerificationChartOptionUI,
 } from './VerificationEvidenceBase';
-export { ReportQuestionSummary, type ReportQuestionSummaryProps } from './ReportQuestionSummary';
 export {
   ReportImprovementSummary,
   type ReportImprovementSummaryProps,

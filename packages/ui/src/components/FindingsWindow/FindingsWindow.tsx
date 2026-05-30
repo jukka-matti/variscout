@@ -19,7 +19,6 @@ import type {
   Finding,
   FindingStatus,
   FindingTag,
-  Question,
   ProcessContext,
   AnalyzePhase,
 } from '@variscout/core';
@@ -288,16 +287,12 @@ const FindingsWindow: React.FC = () => {
     findings,
     columnAliases,
     drillPath,
-    treeQuestions,
     processContext,
     currentValue,
     analyzePhase,
     suggestedQuestions,
     factorRoles,
     aiAvailable,
-    questions,
-    issueStatement: syncIssueStatement,
-    suggestedIssueStatement,
     problemStatement,
     isProblemStatementComplete,
   } = syncData;
@@ -313,7 +308,6 @@ const FindingsWindow: React.FC = () => {
       {/* Zone 1: Brief Header */}
       <BriefHeader
         processContext={processContext}
-        questions={treeQuestions}
         currentValue={currentValue}
         projectedValue={syncData.projectedValue}
       />
@@ -464,14 +458,10 @@ const FindingsWindow: React.FC = () => {
         {aiAvailable && (
           <AnalyzeSidebar
             phase={analyzePhase}
-            treeQuestions={treeQuestions}
             factorRoles={factorRoles}
             suggestedQuestions={suggestedQuestions}
             collapsed={sidebarCollapsed}
             onToggle={handleSidebarToggle}
-            questions={questions}
-            issueStatement={syncIssueStatement}
-            suggestedIssueStatement={suggestedIssueStatement}
             problemStatement={problemStatement}
             isProblemStatementComplete={isProblemStatementComplete}
           />
@@ -515,7 +505,6 @@ export interface PopoutSyncOptions {
   findings: Finding[];
   columnAliases?: Record<string, string>;
   drillPath?: DrillStep[];
-  treeQuestions?: Question[];
   processContext?: ProcessContext;
   currentValue?: number;
   projectedValue?: number;
@@ -523,7 +512,6 @@ export interface PopoutSyncOptions {
   suggestedQuestions?: string[];
   factorRoles?: Record<string, string>;
   aiAvailable?: boolean;
-  questions?: Question[];
   issueStatement?: string;
   suggestedIssueStatement?: string;
   problemStatement?: string;
@@ -540,7 +528,6 @@ function buildSyncData(
     findings,
     columnAliases,
     drillPath: drillPath ?? [],
-    treeQuestions: options?.treeQuestions,
     processContext: options?.processContext,
     currentValue: options?.currentValue,
     projectedValue: options?.projectedValue,
@@ -548,7 +535,6 @@ function buildSyncData(
     suggestedQuestions: options?.suggestedQuestions,
     factorRoles: options?.factorRoles,
     aiAvailable: options?.aiAvailable,
-    questions: options?.questions,
     issueStatement: options?.issueStatement,
     suggestedIssueStatement: options?.suggestedIssueStatement,
     problemStatement: options?.problemStatement,

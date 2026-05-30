@@ -3,7 +3,6 @@ import {
   type DataRow,
   type Finding,
   type Hypothesis,
-  type Question,
   type SpecLimits,
 } from '@variscout/core';
 import { formatStatistic } from '@variscout/core/i18n';
@@ -24,14 +23,12 @@ export function buildSystemOutcomeModel({
   rows,
   outcomeColumn,
   specLimits,
-  questions,
   hypotheses,
   findings,
 }: {
   rows: readonly DataRow[];
   outcomeColumn: string | undefined;
   specLimits: SpecLimits | undefined;
-  questions: ReadonlyArray<Question>;
   hypotheses: ReadonlyArray<Hypothesis>;
   findings: ReadonlyArray<Finding>;
 }): SystemOutcomeModel {
@@ -45,7 +42,7 @@ export function buildSystemOutcomeModel({
     conformancePercentage: 100 - stats.outOfSpecPercentage,
     outOfSpecPercentage: stats.outOfSpecPercentage,
     drift: driftLabel(values),
-    activeSummary: buildActiveSummary({ questions, hypotheses, findings }),
+    activeSummary: buildActiveSummary({ hypotheses, findings }),
   };
 }
 
@@ -85,27 +82,21 @@ function driftLabel(values: readonly number[]): { label: string; tone: string } 
 }
 
 function buildActiveSummary({
-  questions,
   hypotheses,
   findings,
 }: {
-  questions: ReadonlyArray<Question>;
   hypotheses: ReadonlyArray<Hypothesis>;
   findings: ReadonlyArray<Finding>;
 }): string {
-  const openQuestions = questions.filter(question =>
-    ['open', 'investigating'].includes(question.status)
-  ).length;
   const activeHypotheses = hypotheses.filter(hypothesis =>
     ['proposed', 'evidenced', 'needs-disconfirmation'].includes(hypothesis.status)
   ).length;
   const openFindings = findings.filter(
     finding => !['analyzed', 'resolved'].includes(String(finding.status))
   ).length;
-  const questionLabel = `${openQuestions} open ${openQuestions === 1 ? 'question' : 'questions'}`;
   const hypothesisLabel = `${activeHypotheses} active ${
     activeHypotheses === 1 ? 'hypothesis' : 'hypotheses'
   }`;
   const findingLabel = `${openFindings} open ${openFindings === 1 ? 'finding' : 'findings'}`;
-  return `${questionLabel} · ${hypothesisLabel} · ${findingLabel}`;
+  return `${hypothesisLabel} · ${findingLabel}`;
 }

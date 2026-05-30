@@ -106,8 +106,6 @@ export {
   updateFindingsPopout,
   AnalyzeSidebar,
   type AnalyzeSidebarProps,
-  QuestionChecklist,
-  type QuestionChecklistProps,
   AnalyzeConclusion,
   type AnalyzeConclusionProps,
 } from './components/FindingsWindow';
@@ -118,9 +116,6 @@ export {
   StagedComparisonCard,
   defaultStagedComparisonColorScheme,
   FactorIntelligencePanel,
-  QuestionsTabView,
-  QuestionsTabContent,
-  QuestionRow,
   ConclusionCard,
   EquationDisplay,
   formatEquation,
@@ -136,17 +131,10 @@ export {
   type FactorIntelligencePanelProps,
   type EquationDisplayProps,
   type StatsTabContentProps,
-  type QuestionsTabViewProps,
-  type QuestionsTabContentProps,
   JournalTabContent,
   type JournalTabContentProps,
-  type QuestionRowProps,
   type ConclusionCardProps,
   type Hypothesis,
-  QuestionInputModal,
-  type QuestionInputModalProps,
-  QuestionLinkModal,
-  type QuestionLinkModalProps,
   type JournalTabViewProps,
   type JournalEntryRowProps,
   type PIOverflowView,
@@ -255,8 +243,6 @@ export {
   FindingComments,
   FindingBoardView,
   FindingsExportMenu,
-  QuestionTreeView,
-  QuestionNode,
   copyFindingsToClipboard,
   formatFindingsText,
   type FindingsLogProps,
@@ -266,16 +252,9 @@ export {
   type FindingCommentsProps,
   type FindingBoardViewProps,
   type FindingsExportMenuProps,
-  type QuestionTreeViewProps,
-  type QuestionNodeProps,
 } from './components/FindingsLog';
 
 export { type VoiceInputConfig } from './components/VoiceInput';
-
-export {
-  QuestionLinkPrompt,
-  type QuestionLinkPromptProps,
-} from './components/FindingsLog/QuestionLinkPrompt';
 
 export {
   default as PasteScreenBase,
@@ -511,8 +490,6 @@ export {
   type ReportChartSnapshotColorScheme,
   type VerificationEvidenceBaseProps,
   type VerificationEvidenceColorScheme,
-  ReportQuestionSummary,
-  type ReportQuestionSummaryProps,
   ReportImprovementSummary,
   type ReportImprovementSummaryProps,
   ReportCpkLearningLoop,

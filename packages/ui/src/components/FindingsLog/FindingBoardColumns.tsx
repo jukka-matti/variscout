@@ -21,9 +21,6 @@ export interface FindingBoardColumnsProps {
   columnAliases?: Record<string, string>;
   activeFindingId?: string | null;
   maxStatuses?: number;
-  onLinkQuestion?: (findingId: string, questionId: string) => void;
-  onCreateQuestion?: (findingId: string, text: string, factor?: string, level?: string) => void;
-  questionsMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   onAddAction?: (
     id: string,
     text: string,
@@ -65,9 +62,6 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
   columnAliases,
   activeFindingId,
   maxStatuses,
-  onLinkQuestion,
-  onCreateQuestion,
-  questionsMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -144,9 +138,6 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
                     columnAliases={columnAliases}
                     isActive={finding.id === activeFindingId}
                     maxStatuses={maxStatuses}
-                    onLinkQuestion={onLinkQuestion}
-                    onCreateQuestion={onCreateQuestion}
-                    questionsMap={questionsMap}
                     onAddAction={onAddAction}
                     onCompleteAction={onCompleteAction}
                     onDeleteAction={onDeleteAction}

@@ -4,8 +4,6 @@ export { ProblemConditionCard } from './ProblemConditionCard';
 export type { ProblemConditionCardProps } from './ProblemConditionCard';
 export { HypothesisCard } from './HypothesisCard';
 export type { HypothesisCardProps } from './HypothesisCard';
-export { QuestionPill } from './QuestionPill';
-export type { QuestionPillProps } from './QuestionPill';
 export { FindingChip } from './FindingChip';
 export type { FindingChipProps } from './FindingChip';
 export { TagChip } from './TagChip';

@@ -6,6 +6,7 @@ import type {
   IdeaCostCategory,
   ComputedRiskLevel,
   RiskAxisConfig,
+  HypothesisStatus,
 } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
@@ -16,36 +17,40 @@ import { ImprovementSummaryBar } from './ImprovementSummaryBar';
 export interface ImprovementWorkspaceBaseProps {
   synthesis?: string;
   onSynthesisChange?: (text: string) => void;
-  questions: Array<{
+  /**
+   * Hypotheses with their re-homed ideas (IM-1). Each carries its
+   * `Hypothesis.status` (badge derives from it; `causeRole` is retired).
+   */
+  hypotheses: Array<{
     id: string;
     text: string;
-    causeRole?: 'suspected-cause' | 'contributing' | 'ruled-out';
+    status?: HypothesisStatus;
     factor?: string;
     ideas: ImprovementIdea[];
     linkedFindingName?: string;
     evidence?: { rSquaredAdj?: number; etaSquared?: number };
   }>;
   linkedFindings?: Array<{ id: string; text: string }>;
-  onToggleSelect?: (questionId: string, ideaId: string, selected: boolean) => void;
+  onToggleSelect?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
   onUpdateTimeframe?: (
-    questionId: string,
+    hypothesisId: string,
     ideaId: string,
     timeframe: IdeaTimeframe | undefined
   ) => void;
   onUpdateDirection?: (
-    questionId: string,
+    hypothesisId: string,
     ideaId: string,
     direction: IdeaDirection | undefined
   ) => void;
   onUpdateCost?: (
-    questionId: string,
+    hypothesisId: string,
     ideaId: string,
     cost: { category: IdeaCostCategory } | undefined
   ) => void;
-  onOpenRisk?: (questionId: string, ideaId: string) => void;
-  onRemoveIdea?: (questionId: string, ideaId: string) => void;
-  onOpenWhatIf?: (questionId: string, ideaId: string) => void;
-  onAddIdea?: (questionId: string, text: string) => void;
+  onOpenRisk?: (hypothesisId: string, ideaId: string) => void;
+  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
+  onOpenWhatIf?: (hypothesisId: string, ideaId: string) => void;
+  onAddIdea?: (hypothesisId: string, text: string) => void;
   onAskCoScout?: (question: string) => void;
   onConvertToActions?: () => void;
   onBack?: () => void;
@@ -74,14 +79,14 @@ export interface ImprovementWorkspaceBaseProps {
   onIdeaHover?: (ideaId: string | null) => void;
   /** ID of idea highlighted from matrix click (for scroll-to + ring animation) */
   highlightedIdeaId?: string | null;
-  /** Open brainstorm modal for a cause question */
-  onOpenBrainstorm?: (questionId: string) => void;
+  /** Open brainstorm modal for a cause hypothesis */
+  onOpenBrainstorm?: (hypothesisId: string) => void;
 }
 
 export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> = ({
   synthesis,
   onSynthesisChange,
-  questions,
+  hypotheses,
   linkedFindings,
   onToggleSelect,
   onUpdateTimeframe,
@@ -112,8 +117,8 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
 }) => {
   const { t } = useTranslation();
 
-  // Collect all ideas across questions for summary calculations
-  const allIdeas = useMemo(() => questions.flatMap(h => h.ideas), [questions]);
+  // Collect all ideas across hypotheses for summary calculations
+  const allIdeas = useMemo(() => hypotheses.flatMap(h => h.ideas), [hypotheses]);
 
   const selectedIdeas = useMemo(() => {
     if (!selectedIdeaIds || selectedIdeaIds.size === 0) return [];
@@ -163,7 +168,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
     return Math.max(...withProjection.map(i => i.projection!.projectedCpk!));
   }, [selectedIdeas]);
 
-  const hasIdeas = questions.some(h => h.ideas.length > 0);
+  const hasIdeas = hypotheses.some(h => h.ideas.length > 0);
 
   const leftPanelVisible = showLeftPanel !== false && !!renderLeftPanel;
 
@@ -179,14 +184,14 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
         />
       )}
 
-      {/* Question groups */}
+      {/* Hypothesis groups */}
       {hasIdeas ? (
-        questions
+        hypotheses
           .filter(h => h.ideas.length > 0)
           .map(h => (
             <IdeaGroupCard
               key={h.id}
-              question={h}
+              hypothesis={h}
               ideas={h.ideas}
               linkedFindingName={h.linkedFindingName}
               evidence={h.evidence}
@@ -210,7 +215,7 @@ export const ImprovementWorkspaceBase: React.FC<ImprovementWorkspaceBaseProps> =
           data-testid="improvement-empty-state"
           className="flex flex-col items-center justify-center py-12 text-sm text-content/50 text-center px-6 gap-2"
         >
-          {questions.length === 0 ? (
+          {hypotheses.length === 0 ? (
             <>
               <p className="font-medium text-content/60">
                 {!linkedFindings || linkedFindings.length === 0

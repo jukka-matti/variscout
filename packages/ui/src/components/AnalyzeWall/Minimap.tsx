@@ -1,10 +1,10 @@
 /**
  * Minimap — floating bird's-eye view of the Investigation Wall.
  *
- * Renders hub/question dots in a 160×100 SVG at the bottom-right of the Wall
- * and draws a translucent rectangle showing where the current viewport sits
- * inside the full canvas. Clicking the minimap calls `onPanTo(x, y)` with
- * canvas-space coordinates so consumers can re-center the viewport.
+ * Renders hub dots in a 160×100 SVG at the bottom-right of the Wall and draws
+ * a translucent rectangle showing where the current viewport sits inside the
+ * full canvas. Clicking the minimap calls `onPanTo(x, y)` with canvas-space
+ * coordinates so consumers can re-center the viewport.
  *
  * Coordinate math: the minimap treats itself as a direct linear scale of
  * CANVAS_W × CANVAS_H → MINIMAP_W × MINIMAP_H. A click at (mx, my) within
@@ -14,7 +14,7 @@
  */
 
 import React from 'react';
-import type { Hypothesis, Question } from '@variscout/core';
+import type { Hypothesis } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
 import { CANVAS_W, CANVAS_H } from './WallCanvas';
@@ -26,11 +26,9 @@ const MINIMAP_H = 100;
 
 /** Match the layout constants inside WallCanvas so dot positions align. */
 const HUB_Y = 400;
-const QUESTION_Y = 900;
 
 export interface MinimapProps {
   hubs: Hypothesis[];
-  questions: Question[];
   /** Current viewport zoom. */
   zoom: number;
   /**
@@ -48,24 +46,18 @@ export interface MinimapProps {
   onPanTo: (x: number, y: number) => void;
 }
 
-export const Minimap: React.FC<MinimapProps> = ({ hubs, questions, zoom, pan, onPanTo }) => {
+export const Minimap: React.FC<MinimapProps> = ({ hubs, zoom, pan, onPanTo }) => {
   const locale = useWallLocale();
 
-  // Positions mirror WallCanvas hub/question placement math (hubs on row 400,
-  // questions on row 900). Done here rather than threading positions through
-  // props because the Minimap only needs dots, not the full card layout.
+  // Positions mirror WallCanvas hub placement math (hubs on row 400). Done
+  // here rather than threading positions through props because the Minimap
+  // only needs dots, not the full card layout.
   const hubSpacing = CANVAS_W / (hubs.length + 1);
   const hubDots = hubs.map((hub, idx) => ({
     id: hub.id,
     kind: 'hub' as const,
     cx: ((hubSpacing * (idx + 1)) / CANVAS_W) * MINIMAP_W,
     cy: (HUB_Y / CANVAS_H) * MINIMAP_H,
-  }));
-  const questionDots = questions.map((q, idx) => ({
-    id: q.id,
-    kind: 'question' as const,
-    cx: ((200 + idx * 240) / CANVAS_W) * MINIMAP_W,
-    cy: (QUESTION_Y / CANVAS_H) * MINIMAP_H,
   }));
 
   // Viewport rectangle. The main canvas is CANVAS_W × CANVAS_H. With a zoom
@@ -101,15 +93,15 @@ export const Minimap: React.FC<MinimapProps> = ({ hubs, questions, zoom, pan, on
       {/* Background — distinct fill so dots show up against the surface. */}
       <rect x={0} y={0} width={MINIMAP_W} height={MINIMAP_H} className="fill-surface-secondary" />
 
-      {/* Hub + question dots. */}
-      {[...hubDots, ...questionDots].map(d => (
+      {/* Hub dots. */}
+      {hubDots.map(d => (
         <circle
           key={`${d.kind}:${d.id}`}
           data-minimap-node={d.kind}
           cx={d.cx}
           cy={d.cy}
-          r={d.kind === 'hub' ? 3 : 2}
-          fill={d.kind === 'hub' ? chartColors.mean : chartColors.control}
+          r={3}
+          fill={chartColors.mean}
           opacity={0.7}
         />
       ))}

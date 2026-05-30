@@ -74,7 +74,7 @@ export function ImproveStage({
       </header>
 
       {showAdvanced ? (
-        <ImprovementWorkspaceBase questions={advancedProps?.questions ?? []} {...advancedProps} />
+        <ImprovementWorkspaceBase hypotheses={advancedProps?.hypotheses ?? []} {...advancedProps} />
       ) : (
         <>
           {addOpen && canEdit && (

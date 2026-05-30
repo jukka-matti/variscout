@@ -9,7 +9,5 @@ export {
   default as FindingBoardColumns,
   type FindingBoardColumnsProps,
 } from './FindingBoardColumns';
-export { default as QuestionTreeView, type QuestionTreeViewProps } from './QuestionTreeView';
-export { default as QuestionNode, type QuestionNodeProps } from './QuestionNode';
 export { copyFindingsToClipboard, formatFindingsText } from './export';
 export { default as FindingsExportMenu, type FindingsExportMenuProps } from './FindingsExportMenu';

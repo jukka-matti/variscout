@@ -193,7 +193,10 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   const branchLabel = getMessage(locale, 'wall.card.hypothesisLabel');
   const supportingCount = branch?.supportingClues.length ?? hub.findingIds.length;
   const counterCount = branch?.counterClues.length ?? 0;
-  const openCheckCount = branch?.openChecks.length ?? hub.questionIds.length;
+  // "Open checks" now derive from not-yet-tested clues (findings linked to the
+  // hub that are neither supporting nor contradicting) — the Question entity
+  // that previously seeded this count was retired (IM-1).
+  const openCheckCount = branch?.notTestedClues.length ?? 0;
   const mechanismName = branch?.suspectedMechanism ?? hub.name;
   const readinessLabel = branch?.readiness.label;
   const nextMove = branch?.nextMove ?? hub.nextMove;

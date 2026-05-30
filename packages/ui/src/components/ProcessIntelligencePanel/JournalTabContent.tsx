@@ -14,7 +14,7 @@ export interface JournalTabContentProps {
  * JournalTabContent — store-aware content for the "Journal" tab in the PI Panel.
  *
  * Reads from stores:
- * - findings, questions from useAnalyzeStore
+ * - findings from useAnalyzeStore
  * - processContext (problemStatement) from useProjectStore
  *
  * Computes journal entries via useJournalEntries hook (from @variscout/hooks).
@@ -28,13 +28,11 @@ const JournalTabContent: React.FC<JournalTabContentProps> = ({
 }) => {
   // Store reads
   const findings = useAnalyzeStore(s => s.findings);
-  const questions = useAnalyzeStore(s => s.questions);
   const processContext = useProjectStore(s => s.processContext);
 
   // Compute journal entries
   const entries = useJournalEntries({
     findings,
-    questions,
     problemStatement: processContext?.problemStatement,
   });
 

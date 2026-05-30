@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, ChevronRight, ClipboardCheck, Sparkles, Check, X, Plus } from 'lucide-react';
-import type { Question, Finding, Hypothesis, HypothesisEvidence } from '@variscout/core';
+import { ClipboardCheck, Sparkles, Check, X, Plus } from 'lucide-react';
+import type { Finding, Hypothesis, HypothesisEvidence } from '@variscout/core';
 import type { HubProjection, EvidenceCluster } from '@variscout/core/findings';
 import { HubComposer, type HubComposerBranchFields } from '../AnalyzeConclusion/HubComposer';
 import { HubCard } from '../AnalyzeConclusion/HubCard';
@@ -10,17 +10,10 @@ import { SynthesisPrompt } from '../AnalyzeConclusion/SynthesisPrompt';
 interface ComposerState {
   mode: 'closed' | 'creating' | 'editing';
   editingHubId?: string;
-  prefilledQuestionIds?: string[];
   prefilledFindingIds?: string[];
 }
 
 export interface AnalyzeConclusionProps {
-  /** Questions marked as hypotheses */
-  hypotheses: Question[];
-  /** Questions marked as ruled out (negative learnings) */
-  ruledOut: Question[];
-  /** Questions marked as contributing */
-  contributing: Question[];
   /** Approved problem statement */
   problemStatement?: string;
   /** Whether the investigation has enough evidence for conclusions */
@@ -42,7 +35,6 @@ export interface AnalyzeConclusionProps {
   onCreateHub?: (
     name: string,
     synthesis: string,
-    questionIds: string[],
     findingIds: string[],
     branchFields: HubComposerBranchFields
   ) => void;
@@ -50,7 +42,6 @@ export interface AnalyzeConclusionProps {
     hubId: string,
     name: string,
     synthesis: string,
-    questionIds: string[],
     findingIds: string[],
     branchFields: HubComposerBranchFields
   ) => void;
@@ -58,31 +49,10 @@ export interface AnalyzeConclusionProps {
   onToggleHubSelect?: (hubId: string) => void;
   onBrainstormHub?: (hubId: string) => void;
   evidenceClusters?: EvidenceCluster[];
-  questions?: Question[];
   findings?: Finding[];
 }
 
-/** Format evidence percentage from a question */
-function evidencePercent(h: Question): string | null {
-  const r2 = h.evidence?.rSquaredAdj;
-  const eta = h.evidence?.etaSquared;
-  const value = r2 ?? eta;
-  if (value == null) return null;
-  const label = r2 != null ? 'R²adj' : 'η²';
-  return `${label} ${Math.round(value * 100)}%`;
-}
-
-/** Sort questions by evidence strength (highest first) */
-function sortByEvidenceDesc(a: Question, b: Question): number {
-  const aVal = a.evidence?.rSquaredAdj ?? a.evidence?.etaSquared ?? -1;
-  const bVal = b.evidence?.rSquaredAdj ?? b.evidence?.etaSquared ?? -1;
-  return bVal - aVal;
-}
-
 const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
-  hypotheses,
-  ruledOut,
-  contributing,
   problemStatement,
   hasConclusions,
   problemStatementDraft,
@@ -99,10 +69,8 @@ const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
   onToggleHubSelect,
   onBrainstormHub,
   evidenceClusters,
-  questions,
   findings,
 }) => {
-  const [ruledOutExpanded, setRuledOutExpanded] = useState(false);
   const [editedDraft, setEditedDraft] = useState('');
   const [composerState, setComposerState] = useState<ComposerState>({ mode: 'closed' });
   const [dismissedClusterIds, setDismissedClusterIds] = useState<Set<string>>(new Set());
@@ -119,10 +87,6 @@ const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
 
   if (!hasConclusions) return null;
 
-  const sortedCauses = [...hypotheses].sort(sortByEvidenceDesc);
-  const sortedContributing = [...contributing].sort(sortByEvidenceDesc);
-  const sortedRuledOut = [...ruledOut].sort(sortByEvidenceDesc);
-
   const useHubModel = hubs !== undefined && onCreateHub !== undefined;
   const editingHub =
     composerState.mode === 'editing' && composerState.editingHubId
@@ -136,21 +100,13 @@ const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
   const handleComposerSave = (
     name: string,
     synthesis: string,
-    questionIds: string[],
     findingIds: string[],
     branchFields: HubComposerBranchFields
   ) => {
     if (composerState.mode === 'editing' && composerState.editingHubId) {
-      onUpdateHub?.(
-        composerState.editingHubId,
-        name,
-        synthesis,
-        questionIds,
-        findingIds,
-        branchFields
-      );
+      onUpdateHub?.(composerState.editingHubId, name, synthesis, findingIds, branchFields);
     } else {
-      onCreateHub?.(name, synthesis, questionIds, findingIds, branchFields);
+      onCreateHub?.(name, synthesis, findingIds, branchFields);
     }
     setComposerState({ mode: 'closed' });
   };
@@ -174,7 +130,6 @@ const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
             onNameCause={() => {
               setComposerState({
                 mode: 'creating',
-                prefilledQuestionIds: cluster.questionIds,
                 prefilledFindingIds: cluster.findingIds,
               });
             }}
@@ -184,8 +139,8 @@ const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
           />
         ))}
 
-      {/* Suspected Causes — hub model or legacy chip model */}
-      {useHubModel ? (
+      {/* Suspected Causes — hypothesis hub model */}
+      {useHubModel && (
         <div data-testid="hypothesis-hubs">
           <div className="flex items-center gap-1.5 mb-1.5">
             <span className="text-[0.625rem] font-medium text-content-secondary">
@@ -216,7 +171,6 @@ const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
                 hub={hub}
                 evidence={hubEvidences?.get(hub.id)}
                 projection={hubProjections?.get(hub.id)}
-                questionsCount={hub.questionIds.length}
                 findingsCount={hub.findingIds.length}
                 onEdit={() => setComposerState({ mode: 'editing', editingHubId: hub.id })}
                 onToggleSelect={() => onToggleHubSelect?.(hub.id)}
@@ -229,9 +183,7 @@ const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
           {composerState.mode !== 'closed' && (
             <div className="mt-1.5">
               <HubComposer
-                prefilledQuestionIds={composerState.prefilledQuestionIds}
                 prefilledFindingIds={composerState.prefilledFindingIds}
-                questions={questions ?? []}
                 findings={findings ?? []}
                 editingHub={editingHub}
                 evidence={editingHub ? hubEvidences?.get(editingHub.id) : undefined}
@@ -239,80 +191,6 @@ const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
                 onSave={handleComposerSave}
                 onCancel={() => setComposerState({ mode: 'closed' })}
               />
-            </div>
-          )}
-        </div>
-      ) : sortedCauses.length > 0 ? (
-        <div data-testid="hypothesis-hubs">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <span className="text-[0.625rem] font-medium text-content-secondary">
-              Suspected Causes
-            </span>
-            <span className="px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[0.5625rem] font-medium">
-              {sortedCauses.length}
-            </span>
-          </div>
-          <div className="space-y-0.5">
-            {sortedCauses.map(h => (
-              <CauseRow key={h.id} question={h} dotClass="bg-amber-500" />
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {/* Contributing Factors */}
-      {sortedContributing.length > 0 && (
-        <div data-testid="contributing-factors">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <span className="text-[0.625rem] font-medium text-content-secondary">Contributing</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[0.5625rem] font-medium">
-              {sortedContributing.length}
-            </span>
-          </div>
-          <div className="space-y-0.5">
-            {sortedContributing.map(h => (
-              <CauseRow key={h.id} question={h} dotClass="bg-blue-500" compact />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Ruled Out (collapsed by default) */}
-      {sortedRuledOut.length > 0 && (
-        <div data-testid="ruled-out">
-          <button
-            onClick={() => setRuledOutExpanded(!ruledOutExpanded)}
-            className="flex items-center gap-1 text-[0.625rem] font-medium text-content-secondary hover:text-content transition-colors mb-1.5"
-            data-testid="ruled-out-toggle"
-          >
-            {ruledOutExpanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
-            <span>Ruled Out (negative learnings)</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-surface-secondary text-content-muted text-[0.5625rem] font-medium">
-              {sortedRuledOut.length}
-            </span>
-          </button>
-          {ruledOutExpanded && (
-            <div className="space-y-0.5">
-              {sortedRuledOut.map(h => (
-                <div
-                  key={h.id}
-                  className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-surface opacity-50"
-                  data-testid={`ruled-out-${h.id}`}
-                >
-                  {/* Gray dot */}
-                  <span className="flex-shrink-0 mt-1 w-2 h-2 rounded-full bg-content-muted/40" />
-                  {/* Strikethrough text */}
-                  <span className="flex-1 text-[0.6875rem] leading-relaxed text-content-secondary line-through">
-                    {h.text}
-                  </span>
-                  {/* Evidence badge */}
-                  {evidencePercent(h) && (
-                    <span className="flex-shrink-0 mt-0.5 px-1.5 py-0.5 rounded-full bg-surface-secondary text-[0.5625rem] text-content-muted font-medium">
-                      {evidencePercent(h)}
-                    </span>
-                  )}
-                </div>
-              ))}
             </div>
           )}
         </div>
@@ -382,46 +260,6 @@ const AnalyzeConclusion: React.FC<AnalyzeConclusionProps> = ({
             Generate Problem Statement
           </button>
         )}
-    </div>
-  );
-};
-
-/** Single cause/contributing row */
-const CauseRow: React.FC<{
-  question: Question;
-  dotClass: string;
-  compact?: boolean;
-}> = ({ question, dotClass, compact }) => {
-  const badge = evidencePercent(question);
-
-  return (
-    <div
-      className={`flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-surface ${compact ? 'py-1' : ''}`}
-      data-testid={`cause-${question.id}`}
-    >
-      {/* Status dot */}
-      <span className={`flex-shrink-0 mt-1 w-2 h-2 rounded-full ${dotClass}`} />
-      {/* Text */}
-      <div className="flex-1 min-w-0">
-        <span
-          className={`text-content-secondary leading-relaxed ${compact ? 'text-[0.625rem]' : 'text-[0.6875rem]'}`}
-        >
-          {question.text}
-        </span>
-        {/* Factor + level */}
-        {question.factor && (
-          <span className="ml-1 text-[0.5625rem] text-content-muted">
-            {question.factor}
-            {question.level ? ` = ${question.level}` : ''}
-          </span>
-        )}
-      </div>
-      {/* Evidence badge */}
-      {badge && (
-        <span className="flex-shrink-0 mt-0.5 px-1.5 py-0.5 rounded-full bg-surface-secondary text-[0.5625rem] text-content-muted font-medium whitespace-nowrap">
-          {badge}
-        </span>
-      )}
     </div>
   );
 };

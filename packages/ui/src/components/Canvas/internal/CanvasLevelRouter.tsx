@@ -5,13 +5,7 @@ import {
   type CanvasLensId,
   type CanvasStepCardModel,
 } from '@variscout/hooks';
-import {
-  type DataRow,
-  type Finding,
-  type Hypothesis,
-  type Question,
-  type MessageCatalog,
-} from '@variscout/core';
+import { type DataRow, type Finding, type Hypothesis, type MessageCatalog } from '@variscout/core';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import type { CanvasLevel } from '@variscout/core/canvas';
 import type { ProcessMap } from '@variscout/core/frame';
@@ -52,7 +46,6 @@ export interface CanvasLevelRouterProps {
   // L1 props
   rows: readonly DataRow[];
   stepCards: readonly CanvasStepCardModel[];
-  systemQuestions: ReadonlyArray<Question>;
   hypotheses: ReadonlyArray<Hypothesis>;
   findings: ReadonlyArray<Finding>;
   usl?: number;
@@ -99,7 +92,6 @@ export function CanvasLevelRouter({
   l2Content,
   rows,
   stepCards,
-  systemQuestions,
   hypotheses,
   findings,
   usl,
@@ -151,7 +143,6 @@ export function CanvasLevelRouter({
         map={map}
         rows={rows}
         stepCards={stepCards}
-        questions={systemQuestions}
         hypotheses={hypotheses}
         findings={findings}
         activeLens={resolvedLens}

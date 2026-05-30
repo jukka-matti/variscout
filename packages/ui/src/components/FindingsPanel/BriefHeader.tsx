@@ -1,21 +1,19 @@
 /**
  * BriefHeader — Collapsible investigation brief header.
  *
- * Shows issue statement, target progress bar, and question summary rows.
- * Used in the Investigation page (popout window evolution).
+ * Shows issue statement and target progress bar. Used in the Investigation
+ * page (popout window evolution).
  */
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Target, Beaker } from 'lucide-react';
+import { ChevronDown, ChevronRight, Target } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
-import type { Question, ProcessContext } from '@variscout/core';
+import type { ProcessContext } from '@variscout/core';
 import type { TargetMetric } from '@variscout/core';
 
 export interface BriefHeaderProps {
   /** Process context with issue statement and target */
   processContext?: ProcessContext;
-  /** All questions for summary display */
-  questions?: Question[];
   /** Current metric value for progress computation */
   currentValue?: number;
   /** Projected metric value from selected improvement ideas */
@@ -32,16 +30,8 @@ const METRIC_LABELS: Record<TargetMetric, string> = {
   passRate: 'Pass Rate',
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  open: 'bg-slate-400',
-  answered: 'bg-green-400',
-  'ruled-out': 'bg-red-400',
-  investigating: 'bg-amber-400',
-};
-
 const BriefHeader: React.FC<BriefHeaderProps> = ({
   processContext,
-  questions = [],
   currentValue,
   projectedValue,
   defaultCollapsed = false,
@@ -49,11 +39,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
   const { t, formatStat } = useTranslation();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
-  const hasBrief = !!(
-    processContext?.issueStatement ||
-    processContext?.targetMetric ||
-    questions.length > 0
-  );
+  const hasBrief = !!(processContext?.issueStatement || processContext?.targetMetric);
 
   if (!hasBrief) return null;
 
@@ -118,14 +104,6 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
     }
   }
 
-  // Question summary counts
-  const hCounts = {
-    supported: questions.filter(h => h.status === 'answered').length,
-    contradicted: questions.filter(h => h.status === 'ruled-out').length,
-    untested: questions.filter(h => h.status === 'open').length,
-    partial: questions.filter(h => h.status === 'investigating').length,
-  };
-
   return (
     <div className="border-b border-edge bg-surface-secondary/50" data-testid="brief-header">
       <button
@@ -137,11 +115,6 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
         <span className="text-sm font-medium text-content truncate flex-1">
           {processContext?.issueStatement || t('analyze.brief')}
         </span>
-        {questions.length > 0 && (
-          <span className="text-[0.625rem] text-content-muted">
-            {questions.length} question{questions.length !== 1 ? 's' : ''}
-          </span>
-        )}
         {progressPercent !== undefined && (
           <span className="text-[0.625rem] text-content-muted">{Math.round(progressPercent)}%</span>
         )}
@@ -188,24 +161,6 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
                   now {formatStat(currentValue)}
                 </span>
               )}
-            </div>
-          )}
-
-          {/* Question summary */}
-          {questions.length > 0 && (
-            <div className="flex items-center gap-3" data-testid="question-summary">
-              <Beaker size={12} className="text-content-muted flex-shrink-0" />
-              {Object.entries(hCounts)
-                .filter(([, count]) => count > 0)
-                .map(([status, count]) => (
-                  <span
-                    key={status}
-                    className="flex items-center gap-1 text-[0.625rem] text-content-muted"
-                  >
-                    <span className={`w-2 h-2 rounded-full ${STATUS_COLORS[status]}`} />
-                    {count} {status}
-                  </span>
-                ))}
             </div>
           )}
         </div>
