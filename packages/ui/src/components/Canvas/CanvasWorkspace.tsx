@@ -1190,6 +1190,10 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       cpkTarget={ctsSpecs?.cpkTarget}
       onSpecsChange={handleSpecsChange}
       stepSpecs={measureSpecs}
+      // IM-0b-2 deferral: per-step specs route to project-wide `measureSpecs`
+      // (NOT canvasStore / `node.capabilityScope`). Per-step capability-scope
+      // authoring is deferred to the IM-5/IM-6 holistic design (ADR-038/073).
+      // See investigations.md "IM-0b-2 deferrals".
       onStepSpecsChange={(column, next) => setMeasureSpec(column, next)}
       data={data}
       filter={{

@@ -936,6 +936,12 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
                 onAddTributary={col => addTributary(step.id, col)}
                 onRemoveTributary={removeTributary}
                 onToggleSubgroupAxis={toggleSubgroupAxis}
+                // IM-0b-2 deferral: the per-step specs editor INTENTIONALLY keeps
+                // routing to `onStepSpecsChange` (→ `setMeasureSpec(column, …)` →
+                // project-wide `measureSpecs`), NOT to a canvasStore action /
+                // `node.capabilityScope`. Per-step capability-scope authoring is
+                // entangled with IM-5/IM-6 + ADR-038/073 — deferred to that
+                // holistic design. See investigations.md "IM-0b-2 deferrals".
                 onCtqSpecsChange={
                   onStepSpecsChange && step.ctqColumn
                     ? next => onStepSpecsChange(step.ctqColumn!, next)
