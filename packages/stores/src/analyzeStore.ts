@@ -183,7 +183,6 @@ export interface AnalyzeActions {
   deleteHub: (hubId: string) => void;
   connectFindingToHub: (hubId: string, findingId: string) => void;
   disconnectFindingFromHub: (hubId: string, findingId: string) => void;
-  setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
   setHubEvidence: (hubId: string, evidence: HypothesisEvidence) => void;
   resetHubs: (hubs: Hypothesis[]) => void;
   /**
@@ -770,14 +769,6 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
               findingIds: h.findingIds.filter(id => id !== findingId),
               updatedAt: Date.now(),
             }
-      ),
-    }));
-  },
-
-  setHubStatus: (hubId, status) => {
-    set(state => ({
-      hypotheses: state.hypotheses.map(h =>
-        h.id !== hubId ? h : { ...h, status, updatedAt: Date.now() }
       ),
     }));
   },

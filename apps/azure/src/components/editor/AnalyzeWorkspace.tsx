@@ -581,10 +581,9 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       const hub = hubs.find(h => h.id === hubId);
       if (hub) {
         hypothesesState.updateHub(hubId, {});
-        // Toggle selectedForImprovement via setHubStatus or direct update
-        // The useHypotheses hook manages the selectedForImprovement toggle
-        // through the hub's status — but for selection we toggle the flag directly.
-        // Since updateHub only accepts name/synthesis, use the store sync approach:
+        // selectedForImprovement is a flag toggle, not a status change (status is
+        // now derived via deriveHypothesisStatus — IM-4a). updateHub only accepts
+        // name/synthesis, so use the store-sync approach to flip the flag:
         const updated = hubs.map(h =>
           h.id === hubId ? { ...h, selectedForImprovement: !h.selectedForImprovement } : h
         );

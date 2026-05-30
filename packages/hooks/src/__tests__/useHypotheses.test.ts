@@ -230,40 +230,6 @@ describe('useHypotheses', () => {
     });
   });
 
-  describe('setHubStatus', () => {
-    it('updates status to confirmed', () => {
-      const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
-      act(() => {
-        result.current.setHubStatus(initial[0].id, 'confirmed');
-      });
-      expect(result.current.hubs[0].status).toBe('confirmed');
-    });
-
-    it('updates status to refuted', () => {
-      const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
-      act(() => {
-        result.current.setHubStatus(initial[0].id, 'refuted');
-      });
-      expect(result.current.hubs[0].status).toBe('refuted');
-    });
-
-    it('updates updatedAt and calls onHubsChange', () => {
-      const onChange = vi.fn();
-      const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() =>
-        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
-      );
-      act(() => {
-        result.current.setHubStatus(initial[0].id, 'confirmed');
-      });
-      expect(onChange).toHaveBeenCalledTimes(1);
-      expect(typeof result.current.hubs[0].updatedAt).toBe('number');
-      expect(result.current.hubs[0].updatedAt).toBeGreaterThan(0);
-    });
-  });
-
   describe('getHubForFinding', () => {
     it('returns the hub containing the given findingId', () => {
       const initial = [

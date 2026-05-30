@@ -231,16 +231,32 @@ describe('WallCanvas', () => {
     expect(screen.getByText(/Fill weight excursions/i)).toBeInTheDocument();
   });
 
-  it('renders canonical needs-disconfirmation status stored on a hub', () => {
-    const needsDisconfirmationHub: Hypothesis = {
+  it('derives needs-disconfirmation from evidence (≥2 types, no survived disconfirmation)', () => {
+    // IM-4a Task 3: status comes from deriveHypothesisStatus, not a stored echo.
+    // ≥2 distinct evidence types + no survived disconfirmation → needs-disconfirmation.
+    const evidencedHub: Hypothesis = {
       ...hub,
       id: 'h-needs-disconfirmation',
-      status: 'needs-disconfirmation',
+      // Stored status deliberately differs from the derived one to prove the echo is gone.
+      status: 'proposed',
+      findingIds: ['f-data', 'f-gemba'],
     };
+    const twoTypeFindings: Finding[] = [
+      {
+        ...evidencedFindings[0],
+        id: 'f-data',
+        evidenceType: 'data',
+      } as Finding,
+      {
+        ...evidencedFindings[0],
+        id: 'f-gemba',
+        evidenceType: 'gemba',
+      } as Finding,
+    ];
     const { container } = render(
       <WallCanvas
-        hubs={[needsDisconfirmationHub]}
-        findings={[]}
+        hubs={[evidencedHub]}
+        findings={twoTypeFindings}
         processMap={processMap}
         problemCpk={0.78}
         eventsPerWeek={42}
@@ -249,6 +265,61 @@ describe('WallCanvas', () => {
 
     expect(screen.getByText(/Needs disconfirmation/i)).toBeInTheDocument();
     expect(container.querySelector('[data-status="needs-disconfirmation"]')).toBeTruthy();
+  });
+
+  it('derives confirmed only with ≥2 evidence types AND a survived disconfirmation', () => {
+    const confirmedHub: Hypothesis = {
+      ...hub,
+      id: 'h-confirmed',
+      // Stored echo says proposed; derivation must override to confirmed.
+      status: 'proposed',
+      findingIds: ['f-data', 'f-gemba'],
+      disconfirmationAttempts: [
+        {
+          id: 'd1',
+          attemptedAt: '2026-05-30T00:00:00.000Z',
+          attemptedBy: { displayName: 'Analyst' },
+          description: 'Checked against day shift',
+          verdict: 'survived',
+          linkedFindingIds: [],
+        },
+      ],
+    };
+    const twoTypeFindings: Finding[] = [
+      { ...evidencedFindings[0], id: 'f-data', evidenceType: 'data' } as Finding,
+      { ...evidencedFindings[0], id: 'f-gemba', evidenceType: 'gemba' } as Finding,
+    ];
+    const { container } = render(
+      <WallCanvas
+        hubs={[confirmedHub]}
+        findings={twoTypeFindings}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+    expect(container.querySelector('[data-status="confirmed"]')).toBeTruthy();
+  });
+
+  it('derives evidenced (not confirmed) with only 1 evidence type, ignoring a stored confirmed echo', () => {
+    const oneTypeHub: Hypothesis = {
+      ...hub,
+      id: 'h-one-type',
+      status: 'confirmed', // stale echo — must NOT survive derivation
+      findingIds: ['f-data'],
+    };
+    const oneTypeFindings: Finding[] = [
+      { ...evidencedFindings[0], id: 'f-data', evidenceType: 'data' } as Finding,
+    ];
+    const { container } = render(
+      <WallCanvas
+        hubs={[oneTypeHub]}
+        findings={oneTypeFindings}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+      />
+    );
+    expect(container.querySelector('[data-status="evidenced"]')).toBeTruthy();
+    expect(container.querySelector('[data-status="confirmed"]')).toBeNull();
   });
 
   it('renders branch cards without a process map', () => {

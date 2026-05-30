@@ -678,12 +678,6 @@ describe('analyzeStore — hypothesis hubs', () => {
     expect(useAnalyzeStore.getState().hypotheses).toHaveLength(0);
   });
 
-  it('sets hub status', () => {
-    const hub = useAnalyzeStore.getState().createHub('Test', 'Synth');
-    useAnalyzeStore.getState().setHubStatus(hub.id, 'confirmed');
-    expect(useAnalyzeStore.getState().hypotheses[0].status).toBe('confirmed');
-  });
-
   it('sets hub evidence', () => {
     const hub = useAnalyzeStore.getState().createHub('Test', 'Synth');
     const evidence = {

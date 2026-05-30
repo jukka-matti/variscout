@@ -35,8 +35,6 @@ export interface UseHypothesesReturn {
   connectFinding: (hubId: string, findingId: string) => void;
   /** Disconnect a finding from a hub */
   disconnectFinding: (hubId: string, findingId: string) => void;
-  /** Update the status of a hub */
-  setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
   /** Find the hub that contains a given findingId */
   getHubForFinding: (findingId: string) => Hypothesis | undefined;
 }
@@ -138,13 +136,6 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
     [onHubsChange]
   );
 
-  const setHubStatus = useCallback(
-    (hubId: string, status: Hypothesis['status']): void => {
-      update(prev => prev.map(h => (h.id !== hubId ? h : { ...h, status, updatedAt: Date.now() })));
-    },
-    [update]
-  );
-
   const getHubForFinding = useCallback(
     (findingId: string): Hypothesis | undefined => hubs.find(h => h.findingIds.includes(findingId)),
     [hubs]
@@ -158,7 +149,6 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
     resetHubs,
     connectFinding,
     disconnectFinding,
-    setHubStatus,
     getHubForFinding,
   };
 }

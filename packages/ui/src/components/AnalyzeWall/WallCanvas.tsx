@@ -16,7 +16,6 @@ import type { ProcessHubId } from '@variscout/core/processHub';
 import type {
   Hypothesis,
   Finding,
-  HypothesisStatus,
   ProcessMap,
   GateNode,
   GatePath,
@@ -36,7 +35,7 @@ import {
 import { computeScopeWhatIfProjection, computeConditionCoverage } from '@variscout/core/variation';
 import { deriveProcessSteps } from '@variscout/core/frame';
 import { getMessage } from '@variscout/core/i18n';
-import { surveyWallRules } from '@variscout/core/survey';
+import { surveyWallRules, deriveHypothesisStatus } from '@variscout/core/survey';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { HypothesisCard } from './HypothesisCard';
 import { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
@@ -196,24 +195,6 @@ const WALL_PAN_IGNORED_TARGET =
 
 function shouldHandleWallPanInput(event: Event): boolean {
   return !(event.target instanceof Element && event.target.closest(WALL_PAN_IGNORED_TARGET));
-}
-
-const CANONICAL_HYPOTHESIS_STATUSES = new Set<HypothesisStatus>([
-  'proposed',
-  'evidenced',
-  'confirmed',
-  'refuted',
-  'needs-disconfirmation',
-]);
-
-function deriveDisplayStatus(hub: Hypothesis, findings: Finding[]): HypothesisStatus {
-  if (CANONICAL_HYPOTHESIS_STATUSES.has(hub.status)) return hub.status;
-  const supporting = hub.findingIds
-    .map(id => findings.find(f => f.id === id))
-    .filter((f): f is Finding => !!f);
-  const hasContradictor = supporting.some(f => f.validationStatus === 'contradicts');
-  if (supporting.length >= 1 && !hasContradictor) return 'evidenced';
-  return 'proposed';
 }
 
 export const WallCanvas: React.FC<WallCanvasProps> = ({
@@ -413,7 +394,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     const hubProps = {
       hub,
       branch: branchByHubId.get(hub.id),
-      displayStatus: deriveDisplayStatus(hub, findings),
+      displayStatus: deriveHypothesisStatus(hub, findings),
       x,
       y: hubY,
       hasGap: hubsWithGap.has(hub.id),

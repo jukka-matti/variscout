@@ -57,7 +57,6 @@ export interface UseAnalyzeOrchestrationReturn {
     resetHubs: (newHubs: Hypothesis[]) => void;
     connectFinding: (hubId: string, findingId: string) => void;
     disconnectFinding: (hubId: string, findingId: string) => void;
-    setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
     getHubForFinding: (findingId: string) => Hypothesis | undefined;
   };
   /** Computed idea impacts keyed by idea ID */
