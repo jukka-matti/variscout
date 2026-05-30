@@ -18,7 +18,7 @@
  */
 
 import React, { useState } from 'react';
-import type { Finding, ActionItem } from '@variscout/core';
+import type { Finding, ActionItem, ImprovementIdea, IdeaImpact } from '@variscout/core';
 import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
@@ -29,6 +29,7 @@ import { MeasurementPlanChip } from './MeasurementPlanChip';
 import { AddPlanForm, type StepOption } from './AddPlanForm';
 import { LinkFindingPicker } from './LinkFindingPicker';
 import { useWallLocale } from './hooks/useWallLocale';
+import ImprovementIdeasSection from '../FindingsLog/ImprovementIdeasSection';
 
 // Card geometry constants (mirrors HypothesisCard internals)
 const CARD_W = 280;
@@ -125,6 +126,38 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
     hypothesisId: string,
     input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
   ) => void;
+  /**
+   * Task 6 (IM-4b) — IdeaImpact map keyed by ideaId.
+   * Passed through to ImprovementIdeasSection for rendering impact badges.
+   * Required to mount ImprovementIdeasSection (pass {} when no impacts known).
+   */
+  ideaImpacts?: Record<string, IdeaImpact | undefined>;
+  /**
+   * Task 6 (IM-4b) — called when the user clicks "Project idea with What-If".
+   * Receives (hypothesisId, ideaId). Wires handleProjectIdea from useAnalyzeOrchestration.
+   */
+  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  /**
+   * Task 6 (IM-4b) — called when the user adds a new improvement idea.
+   * Receives (hypothesisId, text). When omitted, the add-idea input is hidden.
+   */
+  onAddIdea?: (hypothesisId: string, text: string) => void;
+  /**
+   * Task 6 (IM-4b) — called when the user updates an improvement idea.
+   */
+  onUpdateIdea?: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'timeframe' | 'impactOverride' | 'notes'>>
+  ) => void;
+  /**
+   * Task 6 (IM-4b) — called when the user removes an improvement idea.
+   */
+  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
+  /**
+   * Task 6 (IM-4b) — called when the user selects/deselects an improvement idea.
+   */
+  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
 }
 
 export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = ({
@@ -138,6 +171,12 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onAddHypothesisAction,
   onCompleteHypothesisAction,
   onRecordDisconfirmation,
+  ideaImpacts,
+  onProjectIdea,
+  onAddIdea,
+  onUpdateIdea,
+  onRemoveIdea,
+  onSelectIdea,
   stepOptions,
   defaultScope,
   defaultOutcome,
@@ -496,6 +535,32 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
             findings={findings}
             onConfirm={handlePickerConfirm}
             onCancel={() => setLinkFindingForPlanId(null)}
+          />
+        </foreignObject>
+      )}
+
+      {/* Task 6 (IM-4b) — ImprovementIdeasSection: re-mount the detached IM-1 flow.
+          Rendered only when hub.ideas is non-empty AND ideaImpacts is provided.
+          Positioned below the plans section in a foreignObject. */}
+      {ideaImpacts !== undefined && (cardProps.hub.ideas?.length ?? 0) > 0 && (
+        <foreignObject
+          x={cardProps.x + FO_X}
+          y={cardProps.y + plansSectionY + plansSectionH}
+          width={CARD_W}
+          height={300}
+          style={{ overflow: 'visible' }}
+          data-testid={`ideas-fo-${cardProps.hub.id}`}
+        >
+          <ImprovementIdeasSection
+            hypothesisId={cardProps.hub.id}
+            ideas={cardProps.hub.ideas ?? []}
+            ideaImpacts={ideaImpacts}
+            onAddIdea={onAddIdea}
+            onUpdateIdea={onUpdateIdea}
+            onRemoveIdea={onRemoveIdea}
+            onSelectIdea={onSelectIdea}
+            onProjectIdea={onProjectIdea}
+            hypothesisText={cardProps.hub.name}
           />
         </foreignObject>
       )}
