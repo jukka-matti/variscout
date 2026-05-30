@@ -81,7 +81,7 @@ sequenceDiagram
     Solo->>Improve: Advance to Control (cadence + drift watch)
     Solo->>Report: Compile findings, actions, Control status
     Solo->>Report: Export Report (.vrs / PDF)
-    Note over Report: Sign-off section hidden<br/>(no collaboratedAt marker — solo mode).
+    Note over Report: Sign-off section hidden<br/>(PWA wires no sign-off callbacks — Mode-1).
 ```
 
 ---
@@ -90,15 +90,15 @@ sequenceDiagram
 
 The following surfaces are collaboration affordances that only appear once the Project has a second member (i.e., after an invite has been accepted on the Azure tier, which sets the `collaboratedAt` marker):
 
-| Surface                  | Solo PWA behavior                    | Azure collaborative behavior                          |
-| ------------------------ | ------------------------------------ | ----------------------------------------------------- |
-| Sign-off section         | Hidden (no `collaboratedAt` marker)  | Visible; optional, non-blocking; acting user approves |
-| Member roster invite CTA | Not present (PWA has no invite flow) | Present; invite adds member immediately               |
-| Sponsor role             | Not applicable                       | Identity + notification label; not an ACL gate        |
-| CoScout AI panel         | Not available (PWA free tier)        | Available on Azure tenant SKU                         |
-| Cloud sync               | Not available (session-only storage) | Blob Storage sync per ADR-059                         |
+| Surface                  | Solo PWA behavior                               | Azure collaborative behavior                          |
+| ------------------------ | ----------------------------------------------- | ----------------------------------------------------- |
+| Sign-off section         | Always hidden (PWA wires no sign-off callbacks) | Visible; optional, non-blocking; acting user approves |
+| Member roster invite CTA | Not present (PWA has no invite flow)            | Present; invite adds member immediately               |
+| Sponsor role             | Not applicable                                  | Identity + notification label; not an ACL gate        |
+| CoScout AI panel         | Not available (PWA free tier)                   | Available on Azure tenant SKU                         |
+| Cloud sync               | Not available (session-only storage)            | Blob Storage sync per ADR-059                         |
 
-> **Design rationale:** sign-off is an Azure collaboration affordance. Making it visible when the analyst is working alone would add irrelevant UI with no actionable path. The `collaboratedAt` field (set once on the first invite, never cleared) is the predicate that gates the section. See [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) and the [IM-7 decision-log entry](../../decision-log.md).
+> **Design rationale:** sign-off is an Azure collaboration affordance. The team rail gates the sign-off section on both the `collaboratedAt` marker AND at least one sign-off callback being wired by the surface. The PWA wires no sign-off callbacks (Mode-1 solo contract), so the section is always absent — even after a local invite stamps `collaboratedAt`. Azure wires all three callbacks (`onRequestSignoff` / `onNudgeSignoff` / `onApproveSignoff`) so the section appears once a project becomes collaborative. See [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) and the [IM-7 decision-log entry](../../decision-log.md).
 
 ---
 
