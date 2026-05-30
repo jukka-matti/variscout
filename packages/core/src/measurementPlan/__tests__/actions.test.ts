@@ -7,11 +7,15 @@ const basePlan: MeasurementPlan = {
   createdAt: 100,
   deletedAt: null,
   hypothesisId: 'h-1',
-  factor: 'Nozzle temperature',
+  outcome: 'Fill Weight',
+  primaryFactor: 'Nozzle temperature',
+  neededFactors: [],
   method: 'sensor',
   sampleSize: 50,
   owner: 'pm-1',
   status: 'planned',
+  scope: [],
+  processLocation: '',
 };
 
 describe('reduceMeasurementPlans — MEASUREMENT_PLAN_ADD', () => {
@@ -45,7 +49,7 @@ describe('reduceMeasurementPlans — MEASUREMENT_PLAN_UPDATE', () => {
   });
 
   it('leaves non-matching plans unchanged', () => {
-    const otherPlan: MeasurementPlan = { ...basePlan, id: 'mp-2', factor: 'Other' };
+    const otherPlan: MeasurementPlan = { ...basePlan, id: 'mp-2', primaryFactor: 'Other' };
     const next = reduceMeasurementPlans([basePlan, otherPlan], {
       kind: 'MEASUREMENT_PLAN_UPDATE',
       planId: 'mp-1',
@@ -65,7 +69,7 @@ describe('reduceMeasurementPlans — MEASUREMENT_PLAN_REMOVE', () => {
     expect(next).toHaveLength(1);
     expect(next[0].deletedAt).toBe(200);
     expect(next[0].id).toBe('mp-1');
-    expect(next[0].factor).toBe(basePlan.factor);
+    expect(next[0].primaryFactor).toBe(basePlan.primaryFactor);
   });
 
   it('does not mutate input', () => {
@@ -120,7 +124,8 @@ describe('MeasurementPlanPatch', () => {
     const _patch3: MeasurementPlanPatch = { deletedAt: 999 };
     // @ts-expect-error hypothesisId in Omit list
     const _patch4: MeasurementPlanPatch = { hypothesisId: 'h-other' };
-    // Allowed: status, factor, sampleSize, owner, method, linkedFindingIds, msaRequired
+    // Allowed: status, primaryFactor, outcome, neededFactors, sampleSize, owner, method,
+    //          scope, processLocation, opDef, msaNote, linkedFindingIds
     const _patch5: MeasurementPlanPatch = { status: 'complete', sampleSize: 100 };
     expect(true).toBe(true);
   });
