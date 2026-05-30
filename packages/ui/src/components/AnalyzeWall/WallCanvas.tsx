@@ -9,9 +9,10 @@
  * hub↔finding re-layout is IM-4). Renders EmptyState when no hubs exist.
  */
 
-import React, { useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { useCanvasViewportInput } from '@variscout/hooks';
+import { useViewStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import type {
   Hypothesis,
@@ -40,6 +41,7 @@ import { getMessage } from '@variscout/core/i18n';
 import { surveyWallRules, deriveHypothesisStatus } from '@variscout/core/survey';
 import { chartColors } from '@variscout/charts';
 import { computeWallLayout, buildWallLayoutArgs } from './wallLayout';
+import { wallDegreeOfInterest, focusOpacity } from './wallFocus';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { GateBadge } from './GateBadge';
 import { FindingChip } from './FindingChip';
@@ -378,6 +380,27 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     [filteredHubs, findings, processMap, tributaryGroups]
   );
 
+  // IM-4c Focus lens (ADR-086) — a SINGLE viewStore field drives the dimming in
+  // both WallCanvas and the Minimap (no per-renderer focus useState). Clicking a
+  // node focuses it; clicking empty canvas clears focus. `focusFor` maps a node
+  // id → { opacity, doi } via degree-of-interest over the layout's tethers.
+  const focusedWallEntityId = useViewStore(s => s.focusedWallEntityId);
+  const setFocusedWallEntity = useViewStore(s => s.setFocusedWallEntity);
+  const focusFor = useCallback(
+    (nodeId: string) => {
+      const doi = wallDegreeOfInterest(focusedWallEntityId, nodeId, wallLayout.edges);
+      return { opacity: focusOpacity(doi), doi };
+    },
+    [focusedWallEntityId, wallLayout.edges]
+  );
+  const handleFocusNode = useCallback(
+    (nodeId: string) => setFocusedWallEntity(nodeId),
+    [setFocusedWallEntity]
+  );
+  const handleClearFocus = useCallback(() => {
+    if (focusedWallEntityId !== null) setFocusedWallEntity(null);
+  }, [focusedWallEntityId, setFocusedWallEntity]);
+
   // Scope-anchor (IM-4a): derive the Problem-condition card's live display
   // values from the active scope + data window. Reuses the shipped IM-5 math +
   // the HOLDS evaluator — nothing is hardcoded. Within ONE homogeneous outcome
@@ -543,8 +566,17 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           </text>
           {chips.map(finding => {
             const pos = wallLayout.findingPositions.get(finding.id) ?? { x: colX, y: bandTop };
+            const { opacity: chipOpacity, doi: chipDoi } = focusFor(finding.id);
             return (
-              <g key={finding.id} data-wall-node-id={finding.id} data-x={pos.x} data-y={pos.y}>
+              <g
+                key={finding.id}
+                data-wall-node-id={finding.id}
+                data-x={pos.x}
+                data-y={pos.y}
+                data-doi={chipDoi}
+                opacity={chipOpacity}
+                onClickCapture={() => handleFocusNode(finding.id)}
+              >
                 <line
                   x1={pos.x}
                   y1={pos.y + 22}
@@ -646,8 +678,20 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     // Card + its evidence band (per-hub HOLDS + tethered FindingChips, IM-4a T5).
     // data-wall-node-id + data-x/data-y expose the authority position so Minimap
     // / pan-to-node / seam tests read the SAME coordinates WallCanvas rendered.
+    // Focus lens: the card dims by degree-of-interest; clicking it focuses the
+    // hub (the click is captured here so it focuses even when the card itself
+    // does not call onSelect).
+    const { opacity: hubOpacity, doi: hubDoi } = focusFor(hub.id);
     return (
-      <g key={hub.id} data-wall-node-id={hub.id} data-x={x} data-y={hubY}>
+      <g
+        key={hub.id}
+        data-wall-node-id={hub.id}
+        data-x={x}
+        data-y={hubY}
+        data-doi={hubDoi}
+        opacity={hubOpacity}
+        onClickCapture={() => handleFocusNode(hub.id)}
+      >
         {renderHubEvidence(hub, x)}
         {card}
       </g>
@@ -665,6 +709,17 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
       >
         <g data-wall-viewport transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+          {/* Focus-lens background: a click on empty canvas clears focus. Sits
+              behind every node, so node clicks hit the node (not this rect). */}
+          <rect
+            data-wall-focus-clear
+            x={0}
+            y={0}
+            width={CANVAS_W}
+            height={CANVAS_H}
+            fill="transparent"
+            onClick={handleClearFocus}
+          />
           <ProblemConditionCard
             ctsColumn={problemLabel}
             cpk={problemCpk}
@@ -745,8 +800,17 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
                 const finding = findings.find(f => f.id === fid);
                 const pos = wallLayout.findingPositions.get(fid);
                 if (!finding || !pos) return null;
+                const { opacity: orphanOpacity, doi: orphanDoi } = focusFor(fid);
                 return (
-                  <g key={fid} data-wall-node-id={fid} data-x={pos.x} data-y={pos.y}>
+                  <g
+                    key={fid}
+                    data-wall-node-id={fid}
+                    data-x={pos.x}
+                    data-y={pos.y}
+                    data-doi={orphanDoi}
+                    opacity={orphanOpacity}
+                    onClickCapture={() => handleFocusNode(fid)}
+                  >
                     <FindingChip
                       finding={finding}
                       x={pos.x}

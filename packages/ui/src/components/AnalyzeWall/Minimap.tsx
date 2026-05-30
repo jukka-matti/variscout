@@ -17,8 +17,10 @@ import React, { useMemo } from 'react';
 import type { Hypothesis, ProcessMap } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
+import { useViewStore } from '@variscout/stores';
 import { CANVAS_W, CANVAS_H } from './WallCanvas';
 import { computeWallLayout, buildWallLayoutArgs } from './wallLayout';
+import { wallDegreeOfInterest, focusOpacity } from './wallFocus';
 import { useWallLocale } from './hooks/useWallLocale';
 
 /** Minimap SVG dimensions in pixels (also the CSS size). */
@@ -61,10 +63,13 @@ export const Minimap: React.FC<MinimapProps> = ({
   groupByTributary,
 }) => {
   const locale = useWallLocale();
+  // IM-4c Focus lens — the Minimap dims its dots from the SAME single viewStore
+  // field WallCanvas reads (ADR-086: one focus source, not a per-renderer copy).
+  const focusedWallEntityId = useViewStore(s => s.focusedWallEntityId);
 
-  // Dot positions come from the SAME position authority WallCanvas renders from
-  // (computeWallLayout) — no recomputation, so the minimap can never drift from
-  // the cards, including under tributary grouping.
+  // Dot positions + dimming come from the SAME position authority WallCanvas
+  // renders from (computeWallLayout) — no recomputation, so the minimap can never
+  // drift from the cards (incl. tributary grouping) and dims in lockstep.
   const hubDots = useMemo(() => {
     const layout = computeWallLayout(
       buildWallLayoutArgs({
@@ -79,15 +84,21 @@ export const Minimap: React.FC<MinimapProps> = ({
       .map(hub => {
         const pos = layout.hubPositions.get(hub.id);
         if (!pos) return null;
+        const doi = wallDegreeOfInterest(focusedWallEntityId, hub.id, layout.edges);
         return {
           id: hub.id,
           kind: 'hub' as const,
           cx: (pos.x / CANVAS_W) * MINIMAP_W,
           cy: (pos.y / CANVAS_H) * MINIMAP_H,
+          // Base dot opacity is 0.7; scale it by the focus tier so dimmed dots
+          // sit below vivid ones while keeping the unfocused (null) baseline.
+          opacity: 0.7 * focusOpacity(doi),
         };
       })
-      .filter((d): d is { id: string; kind: 'hub'; cx: number; cy: number } => d !== null);
-  }, [hubs, processMap, groupByTributary]);
+      .filter(
+        (d): d is { id: string; kind: 'hub'; cx: number; cy: number; opacity: number } => d !== null
+      );
+  }, [hubs, processMap, groupByTributary, focusedWallEntityId]);
 
   // Viewport rectangle. The main canvas is CANVAS_W × CANVAS_H. With a zoom
   // factor z, the visible window in canvas-space is (CANVAS_W/z × CANVAS_H/z)
@@ -132,7 +143,7 @@ export const Minimap: React.FC<MinimapProps> = ({
           cy={d.cy}
           r={3}
           fill={chartColors.mean}
-          opacity={0.7}
+          opacity={d.opacity}
         />
       ))}
 

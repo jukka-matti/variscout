@@ -49,6 +49,7 @@ export { MobileCardList } from './MobileCardList';
 export type { MobileCardListProps } from './MobileCardList';
 export { CANVAS_W, CANVAS_H } from './WallCanvas';
 export { computeWallLayout, buildWallLayoutArgs } from './wallLayout';
+export { wallDegreeOfInterest, focusOpacity } from './wallFocus';
 export type {
   WallLayout,
   WallNodePos,
