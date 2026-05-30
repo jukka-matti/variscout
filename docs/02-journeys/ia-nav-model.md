@@ -73,7 +73,7 @@ The solid arrows are the workflow walk (left-to-right). The dotted arrows are th
 
 ### Report
 
-**Purpose**: terminal compilation surface. Findings, Hypotheses, Actions, and Control status compile into a Report the Sponsor signs off and the team can share. Read-mostly for everyone except the Lead during compilation.
+**Purpose**: terminal compilation surface. Findings, Hypotheses, Actions, and Control status compile into a Report the Sponsor reviews (sign-off optional/out-of-band) and the team can share. Read-mostly for everyone except the Lead during compilation.
 **Primary action**: review interim status during Control; sign off final Report (Sponsor).
 
 ## Active-IP cascade rules

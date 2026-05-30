@@ -189,7 +189,7 @@ function makeHandoff(
 }
 
 describe('applyAction (Azure) — control handoffs', () => {
-  it('creates, updates, acknowledges, signs off, marks operational, and archives handoffs', async () => {
+  it('creates, updates, acknowledges, marks operational, and archives handoffs', async () => {
     await db.processHubs.put(makeHub('hub-handoff'));
 
     await applyAction({

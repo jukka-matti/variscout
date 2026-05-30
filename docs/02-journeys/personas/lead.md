@@ -57,7 +57,7 @@ sequenceDiagram
     Lead->>Improve: Define improvement actions, owners, dates
     Lead->>Improve: Advance to Control (cadence + drift watch)
     Lead->>Report: Compile findings, actions, Control status
-    Report->>Lead: Sponsor reviews + signs off
+    Report->>Lead: Sponsor reviews (out-of-band sign-off; Lead records)
 ```
 
 The **active-IP cascade** is Lead-owned: when the Lead selects an Improvement Project as their active working focus, downstream tabs scope to that IP until the Lead changes it. Members and Sponsors see the cascade but cannot alter the active-IP selection.

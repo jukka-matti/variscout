@@ -40,7 +40,7 @@ The breadth-first features (Hub portfolios, automated data pipelines, Process Ow
 The Specialist works in two modes, both first-class:
 
 - **Quick analysis.** Paste data, explore in charts, save findings. No project ceremony required. Free PWA supports session-only use; Azure tier adds persistence and CoScout.
-- **Project-anchored investigation.** Create a Project (Charter ceremony), invite teammates (Lead / Member / Sponsor roles), run the formal lifecycle Charter → Approach → Control. Each project produces a Report a Sponsor can sign off.
+- **Project-anchored investigation.** Create a Project from Home, invite teammates (Lead / Member / Sponsor roles), run the formal lifecycle Charter → Approach → Control. Each project produces a Report the Sponsor reviews; sign-off is optional and out-of-band — it does not gate closure.
 
 Internally, paste data lands in a **data container** (called a Hub in code) that is tenant-wide — anyone in the buyer's Azure tenant can analyze without creating a Project. The Project is the optional formal wrapper that adds membership ACLs and lifecycle ceremony. The UI does not surface "Hub" as a noun; users see only Project and Process.
 

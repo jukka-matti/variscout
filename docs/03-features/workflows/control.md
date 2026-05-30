@@ -29,7 +29,7 @@ Control domain types live in `packages/core/src/sustainment.ts` (`SustainmentCad
 flowchart LR
     Approach[Approach signoff<br/>fix shipped] --> Surface[Control handoff<br/>MES / SCADA /<br/>QMS / Work instr.]
     Surface --> Cadence{Cadence}
-    Cadence -->|weekly| Rev[Sustainment review]
+    Cadence -->|weekly| Rev[Control review]
     Cadence -->|monthly| Rev
     Cadence -->|quarterly| Rev
     Cadence -->|annual| Rev

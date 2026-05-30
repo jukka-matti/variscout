@@ -209,7 +209,7 @@ function makeHandoff(
 }
 
 describe('applyAction — control handoffs', () => {
-  it('creates, updates, acknowledges, signs off, marks operational, and archives handoffs', async () => {
+  it('creates, updates, acknowledges, marks operational, and archives handoffs', async () => {
     await applyAction(db, { kind: 'HUB_PERSIST_SNAPSHOT', hub: makeHub('hub-handoff') });
 
     await applyAction(db, {
