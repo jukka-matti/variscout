@@ -23,10 +23,12 @@ import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { canAccess } from '@variscout/core/projectMembership';
+import { getMessage } from '@variscout/core/i18n';
 import { HypothesisCard, type HypothesisCardProps } from './HypothesisCard';
 import { MeasurementPlanChip } from './MeasurementPlanChip';
 import { AddPlanForm, type StepOption } from './AddPlanForm';
 import { LinkFindingPicker } from './LinkFindingPicker';
+import { useWallLocale } from './hooks/useWallLocale';
 
 // Card geometry constants (mirrors HypothesisCard internals)
 const CARD_W = 280;
@@ -120,6 +122,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   defaultOutcome,
   ...cardProps
 }) => {
+  const locale = useWallLocale();
   const [addPlanFormOpen, setAddPlanFormOpen] = useState(false);
   const [linkFindingForPlanId, setLinkFindingForPlanId] = useState<string | null>(null);
   const [disconfirmFormOpen, setDisconfirmFormOpen] = useState(false);
@@ -244,15 +247,15 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                 className="w-full px-3 py-1.5 text-sm text-amber-700 hover:bg-amber-50 text-left border-t border-gray-100"
                 onClick={() => setDisconfirmFormOpen(true)}
               >
-                We tried to break this — did it hold?
+                {getMessage(locale, 'wall.disconfirm.prompt')}
               </button>
             )}
             {showDisconfirmGesture && disconfirmFormOpen && (
               <div className="px-3 py-2 border-t border-gray-100 space-y-2">
                 <label className="block text-xs font-medium text-gray-700">
-                  What did you try?
+                  {getMessage(locale, 'wall.disconfirm.descriptionLabel')}
                   <textarea
-                    aria-label="What did you try?"
+                    aria-label={getMessage(locale, 'wall.disconfirm.descriptionLabel')}
                     className="mt-1 w-full rounded border border-gray-300 px-2 py-1 text-sm"
                     rows={2}
                     value={disconfirmDescription}
@@ -260,18 +263,24 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                   />
                 </label>
                 <label className="block text-xs font-medium text-gray-700">
-                  Did it hold?
+                  {getMessage(locale, 'wall.disconfirm.verdictLabel')}
                   <select
-                    aria-label="Did it hold?"
+                    aria-label={getMessage(locale, 'wall.disconfirm.verdictLabel')}
                     className="mt-1 w-full rounded border border-gray-300 px-2 py-1 text-sm"
                     value={disconfirmVerdict}
                     onChange={e =>
                       setDisconfirmVerdict(e.target.value as 'pending' | 'survived' | 'refuted')
                     }
                   >
-                    <option value="pending">Still checking</option>
-                    <option value="survived">Held up (survived)</option>
-                    <option value="refuted">Broke it (refuted)</option>
+                    <option value="pending">
+                      {getMessage(locale, 'wall.disconfirm.verdictPending')}
+                    </option>
+                    <option value="survived">
+                      {getMessage(locale, 'wall.disconfirm.verdictSurvived')}
+                    </option>
+                    <option value="refuted">
+                      {getMessage(locale, 'wall.disconfirm.verdictRefuted')}
+                    </option>
                   </select>
                 </label>
                 <div className="flex gap-2">
@@ -281,7 +290,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     disabled={disconfirmDescription.trim().length === 0}
                     onClick={handleDisconfirmSave}
                   >
-                    Record
+                    {getMessage(locale, 'wall.disconfirm.record')}
                   </button>
                   <button
                     type="button"
@@ -292,7 +301,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                       setDisconfirmVerdict('pending');
                     }}
                   >
-                    Cancel
+                    {getMessage(locale, 'wall.disconfirm.cancel')}
                   </button>
                 </div>
               </div>

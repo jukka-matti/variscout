@@ -959,6 +959,14 @@ export interface MessageCatalog {
   'wall.evidence.supports': string;
   'wall.evidence.countsAgainst': string;
   'wall.evidence.contributingFactors': string;
+  'wall.disconfirm.prompt': string;
+  'wall.disconfirm.descriptionLabel': string;
+  'wall.disconfirm.verdictLabel': string;
+  'wall.disconfirm.verdictPending': string;
+  'wall.disconfirm.verdictSurvived': string;
+  'wall.disconfirm.verdictRefuted': string;
+  'wall.disconfirm.record': string;
+  'wall.disconfirm.cancel': string;
   'wall.gate.and': string;
   'wall.gate.or': string;
   'wall.gate.not': string;
