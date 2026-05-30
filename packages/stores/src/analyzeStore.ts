@@ -204,7 +204,12 @@ export interface AnalyzeActions {
    * Returns the locally generated FindingComment so callers can render
    * immediately without waiting for the network round-trip.
    */
-  addHubComment: (hubId: string, text: string, author?: string) => Promise<FindingComment>;
+  addHubComment: (
+    hubId: string,
+    text: string,
+    author?: string,
+    mentionedUserIds?: string[]
+  ) => Promise<FindingComment>;
   /**
    * Edit a comment's text in place on a hypothesis hub.
    * Twin of `editFindingComment`. No-op when hubId or commentId does not exist.
@@ -823,11 +828,15 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     set({ hypotheses: hubs });
   },
 
-  addHubComment: async (hubId, text, author) => {
+  addHubComment: async (hubId, text, author, mentionedUserIds) => {
     // 1. Build the comment locally so optimistic append + server payload
     //    share the same id — keeps the SSE echo idempotent (server dedupes
     //    by id, so the echo that fans back via the stream is a no-op).
     const comment = createFindingComment(text, hubId, 'hypothesis', author);
+    // Attach resolved mention targets (parsed externally via parseMentions).
+    if (mentionedUserIds && mentionedUserIds.length > 0) {
+      comment.mentionedUserIds = mentionedUserIds;
+    }
 
     // 2. Optimistic update: append to the hub's comments array.
     set(state => ({
@@ -860,6 +869,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
           id: comment.id,
           text: comment.text,
           author: comment.author,
+          ...(mentionedUserIds && mentionedUserIds.length > 0 ? { mentionedUserIds } : {}),
         }),
       });
       if (!res.ok) {

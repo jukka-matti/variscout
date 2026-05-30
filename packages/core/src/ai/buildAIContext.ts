@@ -11,7 +11,7 @@
 
 import type { AIContext, ProcessContext, TargetMetric, AnalyzePhase } from './types';
 import type { InsightChartType } from './chartInsights';
-import type { Finding, AnalyzeCategory, Hypothesis } from '../findings';
+import type { Finding, AnalyzeCategory, Hypothesis, FindingComment } from '../findings';
 import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { computeOptimum } from '../stats/safeMath';
@@ -126,6 +126,21 @@ export interface BuildAIContextOptions {
   };
   /** Evidence Map topology for graph-aware CoScout reasoning */
   evidenceMapTopology?: NonNullable<AIContext['investigation']>['evidenceMapTopology'];
+  /**
+   * Hub comments (parentKind='hypothesis') to include in recentComments.
+   * Only comments with createdAt >= todayStartMs are included.
+   */
+  hubComments?: FindingComment[];
+  /**
+   * Finding comments (parentKind='finding') to include in recentComments.
+   * Only comments with createdAt >= todayStartMs are included.
+   */
+  findingComments?: FindingComment[];
+  /**
+   * Start-of-today in UTC ms (injected for deterministic tests).
+   * Defaults to `new Date().setUTCHours(0,0,0,0)` in production.
+   */
+  todayStartMs?: number;
 }
 
 /**
@@ -438,6 +453,24 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     }
     if (options.liveStatement) {
       context.investigation.liveStatement = options.liveStatement;
+    }
+
+    // Recent comments (hub + finding, created today, capped at 10, newest-first)
+    const hasHubComments = options.hubComments && options.hubComments.length > 0;
+    const hasFindingComments = options.findingComments && options.findingComments.length > 0;
+    if (hasHubComments || hasFindingComments) {
+      const todayStart = options.todayStartMs ?? new Date().setUTCHours(0, 0, 0, 0);
+      const allComments: FindingComment[] = [
+        ...(options.hubComments ?? []),
+        ...(options.findingComments ?? []),
+      ];
+      const todayComments = allComments
+        .filter(c => c.createdAt >= todayStart)
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, 10);
+      if (todayComments.length > 0) {
+        context.investigation.recentComments = todayComments.map(c => c.text);
+      }
     }
 
     if (options.evidenceMapTopology) {
