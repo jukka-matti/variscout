@@ -296,7 +296,6 @@ export interface MessageCatalog {
   'data.startAnalysis': string;
   'data.applyChanges': string;
   'data.addQuestion': string;
-  'data.removeQuestion': string;
   'data.back': string;
 
   // Paste screen
@@ -881,11 +880,6 @@ export interface MessageCatalog {
   'report.cpk.pendingVerification': string;
   'report.cpk.metProjection': string;
   'report.cpk.fromProjection': string;
-  'report.questionTree': string;
-  'report.question.answered': string;
-  'report.question.investigating': string;
-  'report.question.ruledOut': string;
-  'report.question.open': string;
   'report.type.analysisSnapshot': string;
   'report.type.analyzeReport': string;
   'report.type.improvementStory': string;
@@ -969,7 +963,6 @@ export interface MessageCatalog {
   'wall.gate.holds': string;
   'wall.gate.noTotals': string;
   'wall.gate.ariaLabel': string;
-  'wall.question.ariaLabel': string;
   'wall.tributary.ariaLabel': string;
   'wall.empty.ariaLabel': string;
   'wall.empty.title': string;

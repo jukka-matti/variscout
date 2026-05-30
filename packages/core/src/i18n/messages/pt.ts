@@ -182,7 +182,6 @@ export const pt: MessageCatalog = {
   'data.startAnalysis': 'Iniciar análise',
   'data.applyChanges': 'Aplicar alterações',
   'data.addQuestion': 'Adicionar hipótese',
-  'data.removeQuestion': 'Remover hipótese',
   'data.back': 'Voltar',
 
   // Paste screen
@@ -762,11 +761,6 @@ export const pt: MessageCatalog = {
   'report.cpk.pendingVerification': 'Pending verification',
   'report.cpk.metProjection': 'Met projection',
   'report.cpk.fromProjection': '{delta} from projection',
-  'report.questionTree': 'Question Tree',
-  'report.question.answered': 'Answered',
-  'report.question.investigating': 'Investigating',
-  'report.question.ruledOut': 'Ruled Out',
-  'report.question.open': 'Open',
   'report.type.analysisSnapshot': 'Analysis Snapshot',
   'report.type.analyzeReport': 'Analyze Report',
   'report.type.improvementStory': 'Improvement Story',
@@ -885,7 +879,6 @@ export const pt: MessageCatalog = {
   'wall.gate.holds': 'HOLDS {matching}/{total}',
   'wall.gate.noTotals': '—/0',
   'wall.gate.ariaLabel': 'Gate {kind} {holds}',
-  'wall.question.ariaLabel': 'Question: {text}, {status}',
   'wall.tributary.ariaLabel': 'Tributaries from Process Map',
   'wall.empty.ariaLabel': 'Mechanism Branch empty state',
   'wall.empty.title': 'Start a Mechanism Branch',
