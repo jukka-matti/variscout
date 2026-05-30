@@ -68,6 +68,7 @@ const idea1: ImprovementIdea = {
   text: 'Reduce coolant flow by 10%',
   selected: false,
   createdAt: 1_748_649_600_000,
+  deletedAt: null,
 };
 
 const idea2: ImprovementIdea = {
@@ -75,6 +76,7 @@ const idea2: ImprovementIdea = {
   text: 'Switch to night-shift heat trace',
   selected: true,
   createdAt: 1_748_649_601_000,
+  deletedAt: null,
 };
 
 const hub: Hypothesis = {

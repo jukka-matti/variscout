@@ -884,6 +884,7 @@ describe('analyzeStore — editHubComment', () => {
       id: 'c1',
       text: 'Original text',
       createdAt: 1,
+      deletedAt: null,
       parentId: hub.id,
       parentKind: 'hypothesis' as const,
     };
@@ -891,6 +892,7 @@ describe('analyzeStore — editHubComment', () => {
       id: 'c2',
       text: 'Another comment',
       createdAt: 2,
+      deletedAt: null,
       parentId: hub.id,
       parentKind: 'hypothesis' as const,
     };
@@ -913,6 +915,7 @@ describe('analyzeStore — editHubComment', () => {
       id: 'c1',
       text: 'Stays the same',
       createdAt: 1,
+      deletedAt: null,
       parentId: hub.id,
       parentKind: 'hypothesis' as const,
     };
@@ -941,6 +944,7 @@ describe('analyzeStore — deleteHubComment', () => {
       id: 'c1',
       text: 'Keep',
       createdAt: 1,
+      deletedAt: null,
       parentId: hub.id,
       parentKind: 'hypothesis' as const,
     };
@@ -948,6 +952,7 @@ describe('analyzeStore — deleteHubComment', () => {
       id: 'c2',
       text: 'Delete me',
       createdAt: 2,
+      deletedAt: null,
       parentId: hub.id,
       parentKind: 'hypothesis' as const,
     };
@@ -968,6 +973,7 @@ describe('analyzeStore — deleteHubComment', () => {
       id: 'c1',
       text: 'Only one',
       createdAt: 1,
+      deletedAt: null,
       parentId: hub.id,
       parentKind: 'hypothesis' as const,
     };
@@ -987,6 +993,7 @@ describe('analyzeStore — deleteHubComment', () => {
       id: 'c1',
       text: 'Stays',
       createdAt: 1,
+      deletedAt: null,
       parentId: hub.id,
       parentKind: 'hypothesis' as const,
     };

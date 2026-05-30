@@ -98,6 +98,7 @@ const existingComment: FindingComment = {
   id: 'comment-1',
   text: 'First team comment',
   createdAt: 1_000_000,
+  deletedAt: null,
   parentId: 'h1',
   parentKind: 'hypothesis',
   author: 'Alice Lead',
@@ -169,6 +170,7 @@ describe('HypothesisComments — thread rendering', () => {
       id: 'comment-2',
       text: 'Second team comment',
       createdAt: 2_000_000,
+      deletedAt: null,
       parentId: 'h1',
       parentKind: 'hypothesis',
     };

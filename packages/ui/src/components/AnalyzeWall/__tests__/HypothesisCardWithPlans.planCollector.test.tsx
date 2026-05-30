@@ -129,7 +129,6 @@ const planWithDue: MeasurementPlan & { dueDate?: string } = {
   ...plannedPlan,
   id: 'mp-5',
   primaryFactor: 'Spindle RPM',
-  // @ts-expect-error — dueDate is not on MeasurementPlan yet; implementer adds it
   dueDate: '2026-06-30',
 };
 
