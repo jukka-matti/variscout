@@ -690,6 +690,23 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     [hypothesesState]
   );
 
+  // IM-4c — "propose suspected mechanism from this finding". The Wall renders
+  // `hypothesesState.hubs` (the useHypotheses hook is the source of truth), so we
+  // create + connect through THAT hook — NOT analyzeStore.createHubFromFinding,
+  // which appends to a different collection that does NOT re-render this Wall.
+  // Mirrors handleCreateHub's create→connect path; name matches the store
+  // factory's "Suspected mechanism: {excerpt}" convention.
+  const handleProposeHypothesis = useCallback(
+    (findingId: string) => {
+      const finding = findingsState.findings.find(f => f.id === findingId);
+      const excerpt = (finding?.text ?? '').trim().slice(0, 80);
+      const name = excerpt.length > 0 ? `Suspected mechanism: ${excerpt}` : 'New mechanism branch';
+      const hub = hypothesesState.createHub(name, '');
+      hypothesesState.connectFinding(hub.id, findingId);
+    },
+    [findingsState.findings, hypothesesState]
+  );
+
   const handleToggleHubSelect = useCallback(
     (hubId: string) => {
       const hub = hubs.find(h => h.id === hubId);
@@ -1007,6 +1024,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   pan={wallPan}
                   groupByTributary={Boolean(processMap && wallGroupByTributary)}
                   planningProps={enrichedPlanningProps}
+                  onProposeHypothesis={handleProposeHypothesis}
                 />
                 {/* Minimap + CommandPalette are desktop-only. WallCanvas
                   self-gates to MobileCardList below 768px, so these

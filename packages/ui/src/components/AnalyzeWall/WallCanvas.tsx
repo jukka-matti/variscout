@@ -469,7 +469,15 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     );
   }
 
-  if (mode === 'destination' && filteredHubs.length === 0) {
+  // Show the EmptyState only when there is nothing at all to render. Orphan
+  // findings (linked to no hub) are a "home on the Wall" (IM-4c) — they keep the
+  // SVG body mounted so the orphan lane + propose-hypothesis affordance render
+  // even before the first hub exists.
+  if (
+    mode === 'destination' &&
+    filteredHubs.length === 0 &&
+    wallLayout.orphanFindingIds.length === 0
+  ) {
     return (
       <EmptyState
         onWriteHypothesis={onWriteHypothesis}

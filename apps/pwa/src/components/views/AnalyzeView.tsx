@@ -191,6 +191,14 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     }
   }, [returnNavigation]);
 
+  // IM-4c — "propose suspected mechanism from this finding". The PWA Wall reads
+  // hubs from useAnalyzeStore.hypotheses REACTIVELY (line above), so
+  // createHubFromFinding (which appends to that exact collection) re-renders the
+  // Wall with the new hypothesis card. No follow-through sync needed.
+  const handleProposeHypothesis = useCallback((findingId: string) => {
+    useAnalyzeStore.getState().createHubFromFinding(findingId);
+  }, []);
+
   // Categorize hypothesis hubs for AnalyzeConclusion (IM-1: status-derived,
   // replacing the retired Question causeRole split).
   const { hypotheses, contributing, ruledOut } = useMemo(() => {
@@ -350,6 +358,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 pan={wallPan}
                 groupByTributary={Boolean(processMap && wallGroupByTributary)}
                 planningProps={planningProps}
+                onProposeHypothesis={handleProposeHypothesis}
               />
               {/* Minimap + CommandPalette are desktop-only. WallCanvas
                 self-gates to MobileCardList below 768px. */}

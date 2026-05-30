@@ -330,22 +330,44 @@ describe('HypothesisCardWithPlans — onProjectIdea wiring (Flow 2, IM-1 re-moun
   });
 });
 
-// ── Flow 3: createHubFromFinding — DESCOPED to IM-4c ──────────────────────────
+// ── Flow 3: createHubFromFinding — WIRED in IM-4c ─────────────────────────────
 //
 // The propose-hypothesis-from-finding CTA (onProposeHypothesis +
-// createHubFromFinding) was removed from FindingChip in IM-4b. The apps
-// explicitly defer finding→hypothesis-on-Wall to the IM-4c bipartite
-// re-layout. The guard below pins the descope: FindingChip never renders a
-// "Propose hypothesis" affordance.
+// createHubFromFinding) is now wired. FindingChip renders a "Propose hypothesis"
+// affordance ONLY when `onProposeHypothesis` is provided (orphan chips); it stays
+// absent on hub-linked chips that omit it. The render-through (a NEW hub card
+// appears on the Wall) is proven by WallCanvas.proposeHypothesis.seam.test.tsx.
 
-describe('FindingChip — propose-hypothesis affordance is descoped (IM-4c)', () => {
-  it('never renders a "Propose hypothesis" button', () => {
+describe('FindingChip — propose-hypothesis affordance (IM-4c, wired)', () => {
+  it('renders the "Propose hypothesis" affordance when onProposeHypothesis is wired', () => {
+    render(
+      <svg>
+        <FindingChip finding={finding} x={0} y={0} onProposeHypothesis={vi.fn()} />
+      </svg>
+    );
+    expect(
+      screen.getByRole('button', { name: /propose suspected mechanism/i })
+    ).toBeInTheDocument();
+  });
+
+  it('does NOT render the affordance when onProposeHypothesis is omitted', () => {
     render(
       <svg>
         <FindingChip finding={finding} x={0} y={0} />
       </svg>
     );
-    expect(screen.queryByRole('button', { name: /propose hypothesis/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /propose suspected mechanism/i })).toBeNull();
+  });
+
+  it('fires onProposeHypothesis with the findingId when the affordance is clicked', () => {
+    const onProposeHypothesis = vi.fn();
+    render(
+      <svg>
+        <FindingChip finding={finding} x={0} y={0} onProposeHypothesis={onProposeHypothesis} />
+      </svg>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /propose suspected mechanism/i }));
+    expect(onProposeHypothesis).toHaveBeenCalledWith('f1');
   });
 
   it('still fires onSelect on chip click (unchanged behaviour)', () => {

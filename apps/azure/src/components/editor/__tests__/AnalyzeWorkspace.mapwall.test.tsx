@@ -390,6 +390,89 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     });
   });
 
+  // IM-4c — propose-hypothesis-from-finding app wiring (the createHubFromFinding
+  // TRAP). The Azure Wall renders `hypothesesState.hubs` (the useHypotheses
+  // hook), so the app MUST route propose through createHub + connectFinding on
+  // THAT hook — not analyzeStore.createHubFromFinding (a different collection
+  // that would NOT re-render the Wall). This asserts the wired path; the
+  // render-through is proven by WallCanvas.proposeHypothesis.seam.test.tsx.
+  describe('propose-hypothesis app wiring (createHubFromFinding trap)', () => {
+    beforeEach(() => {
+      capturedWallCanvasProps.current = null;
+      useCanvasViewportStore.getState().setViewMode('wall');
+    });
+
+    it('forwards onProposeHypothesis to WallCanvas', () => {
+      const props = makeMinimalProps();
+      props.hypothesesState.hubs = [
+        {
+          id: 'hub-1',
+          name: 'Existing',
+          synthesis: '',
+          findingIds: [],
+          status: 'proposed',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ] as never;
+      render(<AnalyzeWorkspace {...props} />);
+      expect(capturedWallCanvasProps.current?.onProposeHypothesis).toBeTypeOf('function');
+    });
+
+    it('firing it creates + connects through hypothesesState (the rendered-hubs path), not a bare store call', () => {
+      const createHub = vi.fn(() => ({ id: 'hub-new' }) as never);
+      const connectFinding = vi.fn();
+      const props = makeMinimalProps();
+      props.hypothesesState = {
+        ...props.hypothesesState,
+        createHub,
+        connectFinding,
+        hubs: [
+          {
+            id: 'hub-1',
+            name: 'Existing',
+            synthesis: '',
+            findingIds: [],
+            status: 'proposed',
+            createdAt: '',
+            updatedAt: '',
+          },
+        ],
+      } as never;
+      props.findingsState = {
+        ...props.findingsState,
+        findings: [
+          {
+            id: 'f-orphan',
+            text: 'Coolant temp creeps',
+            evidenceType: 'data',
+            createdAt: 1,
+            deletedAt: null,
+            investigationId: 'inv',
+            context: { activeFilters: {}, cumulativeScope: null },
+            status: 'observed',
+            comments: [],
+            statusChangedAt: 1,
+          },
+        ],
+      } as never;
+
+      render(<AnalyzeWorkspace {...props} />);
+
+      const onProposeHypothesis = capturedWallCanvasProps.current!.onProposeHypothesis as (
+        findingId: string
+      ) => void;
+      onProposeHypothesis('f-orphan');
+
+      // Routes through the useHypotheses hook (the Wall's source of truth).
+      expect(createHub).toHaveBeenCalledTimes(1);
+      expect((createHub.mock.calls[0] as unknown[])[0]).toMatch(
+        /Suspected mechanism: Coolant temp/
+      );
+      expect(connectFinding).toHaveBeenCalledWith('hub-new', 'f-orphan');
+    });
+  });
+
   describe('canAccess photo gate (2-tier ACL — photos are contributions)', () => {
     const makeMember = (userId: string, role: 'lead' | 'member' | 'sponsor') => ({
       id: `pm-${userId}`,
