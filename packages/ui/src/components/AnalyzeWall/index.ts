@@ -48,6 +48,15 @@ export { useWallLocale, getDocumentLocale } from './hooks/useWallLocale';
 export { MobileCardList } from './MobileCardList';
 export type { MobileCardListProps } from './MobileCardList';
 export { CANVAS_W, CANVAS_H } from './WallCanvas';
+export { computeWallLayout } from './wallLayout';
+export type {
+  WallLayout,
+  WallNodePos,
+  WallEdge,
+  WallLayoutArgs,
+  WallLayoutHubInput,
+  WallLayoutGroup,
+} from './wallLayout';
 export { MeasurementPlanChip } from './MeasurementPlanChip';
 export type { MeasurementPlanChipProps } from './MeasurementPlanChip';
 export { AddPlanForm } from './AddPlanForm';
