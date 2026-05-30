@@ -81,8 +81,7 @@ describe('formatAnalyzeContext', () => {
         {
           id: 'sc1',
           text: 'Temperature drift',
-          causeRole: 'suspected-cause',
-          status: 'investigating',
+          status: 'proposed',
         },
       ],
       // Hub-based hypotheses — should be INCLUDED
@@ -92,7 +91,6 @@ describe('formatAnalyzeContext', () => {
           name: 'Raw material moisture',
           synthesis: 'Incoming moisture varies by supplier',
           status: 'evidenced',
-          questionCount: 3,
           findingCount: 2,
           evidence: { value: 0.45, label: 'Strong (R²adj=45%)', description: 'test' },
           selectedForImprovement: true,
@@ -104,7 +102,7 @@ describe('formatAnalyzeContext', () => {
     expect(result).toContain('Hypotheses:');
     expect(result).toContain('Raw material moisture');
     expect(result).toContain('[evidenced]');
-    expect(result).toContain('3Q, 2F');
+    expect(result).toContain('(2F)');
     expect(result).toContain('Strong (R²adj=45%)');
     expect(result).toContain('[selected for improvement]');
 
@@ -116,19 +114,17 @@ describe('formatAnalyzeContext', () => {
     const result = formatAnalyzeContext({
       evidenceMapTopology: {
         factorNodes: [
-          { factor: 'Roast', rSquaredAdj: 0.35, explored: true, questionCount: 2, findingCount: 1 },
+          { factor: 'Roast', rSquaredAdj: 0.35, explored: true, findingCount: 1 },
           {
             factor: 'Grind',
             rSquaredAdj: 0.12,
             explored: false,
-            questionCount: 0,
             findingCount: 0,
           },
           {
             factor: 'Origin',
             rSquaredAdj: 0.08,
             explored: true,
-            questionCount: 1,
             findingCount: 0,
           },
         ],
@@ -222,7 +218,6 @@ describe('formatAnalyzeContext', () => {
           name: 'Nozzle Wear',
           synthesis: 'Nozzle degradation varies by shift',
           status: 'evidenced',
-          questionCount: 2,
           findingCount: 1,
         },
       ],
@@ -243,7 +238,6 @@ describe('formatAnalyzeContext', () => {
           name: 'Machine Setup',
           synthesis: 'Setup variation across shifts',
           status: 'evidenced',
-          questionCount: 3,
           findingCount: 2,
         },
       ],
@@ -259,7 +253,6 @@ describe('formatAnalyzeContext', () => {
           name: 'Nozzle Wear',
           synthesis: 'Nozzle degradation',
           status: 'evidenced',
-          questionCount: 1,
           findingCount: 0,
           evidence: { value: 0.12, label: 'Weak (R²adj=12%)', description: 'test' },
         },
@@ -278,7 +271,6 @@ describe('formatAnalyzeContext', () => {
           name: 'Machine Setup',
           synthesis: 'Setup variation',
           status: 'evidenced',
-          questionCount: 3,
           findingCount: 2,
           evidence: { value: 0.38, label: 'Strong (R²adj=38%)', description: 'test' },
         },
@@ -296,7 +288,6 @@ describe('formatAnalyzeContext', () => {
           name: 'Raw Material',
           synthesis: 'Incoming moisture varies',
           status: 'evidenced',
-          questionCount: 0,
           findingCount: 0,
         },
       ],

@@ -367,7 +367,6 @@ function makeInvestigation(
     deletedAt: null,
     metadata: {
       findingCounts: {},
-      questionCounts: {},
       actionCounts: { total: 0, completed: 0, overdue: 0 },
       processHubId: 'hub-1',
       analyzeStatus: status,

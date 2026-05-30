@@ -49,7 +49,6 @@ describe('useHypotheses', () => {
       });
       const hub = result.current.hubs[0];
       expect(hub.status).toBe('proposed');
-      expect(hub.questionIds).toEqual([]);
       expect(hub.findingIds).toEqual([]);
     });
   });
@@ -107,7 +106,7 @@ describe('useHypotheses', () => {
     });
 
     it('updates branch nextMove without changing linked evidence', () => {
-      const initial = [createHypothesis('Hub', '', ['q-001'], ['f-001'])];
+      const initial = [createHypothesis('Hub', '', ['f-001'])];
       const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.updateHub(initial[0].id, {
@@ -116,7 +115,6 @@ describe('useHypotheses', () => {
       });
       const hub = result.current.hubs[0];
       expect(hub.nextMove).toBe('Run a late-shift temperature check.');
-      expect(hub.questionIds).toEqual(['q-001']);
       expect(hub.findingIds).toEqual(['f-001']);
     });
 
@@ -176,64 +174,6 @@ describe('useHypotheses', () => {
     });
   });
 
-  describe('connectQuestion', () => {
-    it('adds a questionId to the hub', () => {
-      const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
-      act(() => {
-        result.current.connectQuestion(initial[0].id, 'q-001');
-      });
-      expect(result.current.hubs[0].questionIds).toContain('q-001');
-    });
-
-    it('does not add duplicate question connections', () => {
-      const initial = [createHypothesis('Hub', '', ['q-001'])];
-      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
-      act(() => {
-        result.current.connectQuestion(initial[0].id, 'q-001');
-      });
-      expect(result.current.hubs[0].questionIds).toHaveLength(1);
-    });
-
-    it('updates updatedAt and calls onHubsChange', () => {
-      const onChange = vi.fn();
-      const initial = [createHypothesis('Hub', '')];
-      const { result } = renderHook(() =>
-        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
-      );
-      act(() => {
-        result.current.connectQuestion(initial[0].id, 'q-001');
-      });
-      expect(onChange).toHaveBeenCalledTimes(1);
-      expect(typeof result.current.hubs[0].updatedAt).toBe('number');
-      expect(result.current.hubs[0].updatedAt).toBeGreaterThan(0);
-    });
-  });
-
-  describe('disconnectQuestion', () => {
-    it('removes a questionId from the hub', () => {
-      const initial = [createHypothesis('Hub', '', ['q-001', 'q-002'])];
-      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
-      act(() => {
-        result.current.disconnectQuestion(initial[0].id, 'q-001');
-      });
-      expect(result.current.hubs[0].questionIds).not.toContain('q-001');
-      expect(result.current.hubs[0].questionIds).toContain('q-002');
-    });
-
-    it('calls onHubsChange', () => {
-      const onChange = vi.fn();
-      const initial = [createHypothesis('Hub', '', ['q-001'])];
-      const { result } = renderHook(() =>
-        useHypotheses({ initialHubs: initial, onHubsChange: onChange })
-      );
-      act(() => {
-        result.current.disconnectQuestion(initial[0].id, 'q-001');
-      });
-      expect(onChange).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('connectFinding', () => {
     it('adds a findingId to the hub', () => {
       const initial = [createHypothesis('Hub', '')];
@@ -245,7 +185,7 @@ describe('useHypotheses', () => {
     });
 
     it('does not add duplicate finding connections', () => {
-      const initial = [createHypothesis('Hub', '', [], ['f-001'])];
+      const initial = [createHypothesis('Hub', '', ['f-001'])];
       const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.connectFinding(initial[0].id, 'f-001');
@@ -268,7 +208,7 @@ describe('useHypotheses', () => {
 
   describe('disconnectFinding', () => {
     it('removes a findingId from the hub', () => {
-      const initial = [createHypothesis('Hub', '', [], ['f-001', 'f-002'])];
+      const initial = [createHypothesis('Hub', '', ['f-001', 'f-002'])];
       const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       act(() => {
         result.current.disconnectFinding(initial[0].id, 'f-001');
@@ -279,7 +219,7 @@ describe('useHypotheses', () => {
 
     it('calls onHubsChange', () => {
       const onChange = vi.fn();
-      const initial = [createHypothesis('Hub', '', [], ['f-001'])];
+      const initial = [createHypothesis('Hub', '', ['f-001'])];
       const { result } = renderHook(() =>
         useHypotheses({ initialHubs: initial, onHubsChange: onChange })
       );
@@ -324,34 +264,11 @@ describe('useHypotheses', () => {
     });
   });
 
-  describe('getHubForQuestion', () => {
-    it('returns the hub containing the given questionId', () => {
-      const initial = [
-        createHypothesis('Hub A', '', ['q-001']),
-        createHypothesis('Hub B', '', ['q-002']),
-      ];
-      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
-      expect(result.current.getHubForQuestion('q-001')?.name).toBe('Hub A');
-      expect(result.current.getHubForQuestion('q-002')?.name).toBe('Hub B');
-    });
-
-    it('returns undefined when no hub contains the questionId', () => {
-      const initial = [createHypothesis('Hub', '', ['q-001'])];
-      const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
-      expect(result.current.getHubForQuestion('q-999')).toBeUndefined();
-    });
-
-    it('returns undefined when hubs list is empty', () => {
-      const { result } = renderHook(() => useHypotheses({ initialHubs: [] }));
-      expect(result.current.getHubForQuestion('q-001')).toBeUndefined();
-    });
-  });
-
   describe('getHubForFinding', () => {
     it('returns the hub containing the given findingId', () => {
       const initial = [
-        createHypothesis('Hub A', '', [], ['f-001']),
-        createHypothesis('Hub B', '', [], ['f-002']),
+        createHypothesis('Hub A', '', ['f-001']),
+        createHypothesis('Hub B', '', ['f-002']),
       ];
       const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       expect(result.current.getHubForFinding('f-001')?.name).toBe('Hub A');
@@ -359,9 +276,14 @@ describe('useHypotheses', () => {
     });
 
     it('returns undefined when no hub contains the findingId', () => {
-      const initial = [createHypothesis('Hub', '', [], ['f-001'])];
+      const initial = [createHypothesis('Hub', '', ['f-001'])];
       const { result } = renderHook(() => useHypotheses({ initialHubs: initial }));
       expect(result.current.getHubForFinding('f-999')).toBeUndefined();
+    });
+
+    it('returns undefined when hubs list is empty', () => {
+      const { result } = renderHook(() => useHypotheses({ initialHubs: [] }));
+      expect(result.current.getHubForFinding('f-001')).toBeUndefined();
     });
   });
 });

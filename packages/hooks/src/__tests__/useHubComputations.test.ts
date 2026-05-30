@@ -8,21 +8,23 @@ import {
 } from '@variscout/stores';
 import { useHubComputations } from '../useHubComputations';
 import type { BestSubsetsResult } from '@variscout/core/stats';
-import type { Hypothesis, Question } from '@variscout/core/findings';
+import type { Hypothesis, Finding } from '@variscout/core/findings';
 
 // ============================================================================
 // Helpers
 // ============================================================================
 
-function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
+function makeFinding(overrides: Partial<Finding> & { id: string }): Finding {
   return {
-    text: 'Test question',
-    status: 'open',
-    linkedFindingIds: [],
+    text: 'Test finding',
+    status: 'observed',
+    evidenceType: 'data',
+    comments: [],
     createdAt: 1714000000000,
-    updatedAt: 1714000000000,
+    statusChangedAt: 1714000000000,
     deletedAt: null,
     investigationId: 'inv-test-001',
+    context: { activeFilters: {}, cumulativeScope: null },
     ...overrides,
   };
 }
@@ -31,7 +33,6 @@ function makeHub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
   return {
     name: 'Test hub',
     synthesis: '',
-    questionIds: [],
     findingIds: [],
     status: 'proposed',
     createdAt: 1714000000000,
@@ -109,7 +110,7 @@ describe('useHubComputations', () => {
     });
 
     it('returns a map with one entry per hub when hubs exist', () => {
-      const hub = makeHub({ id: 'hub-1', questionIds: [] });
+      const hub = makeHub({ id: 'hub-1' });
       useAnalyzeStore.setState({ hypotheses: [hub] });
 
       const { result } = renderHook(() => useHubComputations(makeBestSubsets(), []));
@@ -120,8 +121,8 @@ describe('useHubComputations', () => {
     });
 
     it('computes evidence for multiple hubs', () => {
-      const hub1 = makeHub({ id: 'hub-1', questionIds: [] });
-      const hub2 = makeHub({ id: 'hub-2', questionIds: [] });
+      const hub1 = makeHub({ id: 'hub-1' });
+      const hub2 = makeHub({ id: 'hub-2' });
       useAnalyzeStore.setState({ hypotheses: [hub1, hub2] });
 
       const { result } = renderHook(() => useHubComputations(makeBestSubsets(), []));
@@ -132,7 +133,7 @@ describe('useHubComputations', () => {
     });
 
     it('uses performance mode when analysisMode is performance', () => {
-      const hub = makeHub({ id: 'hub-1', questionIds: [] });
+      const hub = makeHub({ id: 'hub-1' });
       useAnalyzeStore.setState({ hypotheses: [hub] });
       useProjectStore.setState({ analysisMode: 'performance' });
 
@@ -143,7 +144,7 @@ describe('useHubComputations', () => {
     });
 
     it('uses standard mode for standard analysisMode', () => {
-      const hub = makeHub({ id: 'hub-1', questionIds: [] });
+      const hub = makeHub({ id: 'hub-1' });
       useAnalyzeStore.setState({ hypotheses: [hub] });
       useProjectStore.setState({ analysisMode: 'standard' });
 
@@ -153,12 +154,17 @@ describe('useHubComputations', () => {
       expect(evidence?.mode).toBe('standard');
     });
 
-    it('factors from linked questions are picked up in evidence', () => {
-      const questions = [makeQuestion({ id: 'q1', factor: 'Machine', status: 'investigating' })];
-      const hub = makeHub({ id: 'hub-1', questionIds: ['q1'] });
+    it('factors from linked findings are picked up in evidence', () => {
+      const findings = [
+        makeFinding({
+          id: 'f1',
+          context: { activeFilters: { Machine: ['A'] }, cumulativeScope: null },
+        }),
+      ];
+      const hub = makeHub({ id: 'hub-1', findingIds: ['f1'] });
       useAnalyzeStore.setState({ hypotheses: [hub] });
 
-      const { result } = renderHook(() => useHubComputations(makeBestSubsets(), questions));
+      const { result } = renderHook(() => useHubComputations(makeBestSubsets(), findings));
 
       const evidence = result.current.hubEvidences?.get('hub-1');
       // The evidence should have a non-zero contribution when the factor is in bestSubsets
@@ -270,7 +276,7 @@ describe('useHubComputations', () => {
     });
 
     it('returns undefined when bestSubsets is null even with hubs', () => {
-      const hub = makeHub({ id: 'hub-1', questionIds: [] });
+      const hub = makeHub({ id: 'hub-1' });
       useAnalyzeStore.setState({ hypotheses: [hub] });
 
       const { result } = renderHook(() => useHubComputations(null, []));
@@ -278,11 +284,16 @@ describe('useHubComputations', () => {
     });
 
     it('returns a map keyed by hub id when hubs and bestSubsets are provided', () => {
-      const questions = [makeQuestion({ id: 'q1', factor: 'Machine', status: 'investigating' })];
-      const hub = makeHub({ id: 'hub-1', questionIds: ['q1'] });
+      const findings = [
+        makeFinding({
+          id: 'f1',
+          context: { activeFilters: { Machine: ['A'] }, cumulativeScope: null },
+        }),
+      ];
+      const hub = makeHub({ id: 'hub-1', findingIds: ['f1'] });
       useAnalyzeStore.setState({ hypotheses: [hub] });
 
-      const { result } = renderHook(() => useHubComputations(makeBestSubsets(), questions));
+      const { result } = renderHook(() => useHubComputations(makeBestSubsets(), findings));
 
       // computeHubProjection may return null for hubs with no matching subsets;
       // the map may be empty but should be defined
@@ -290,8 +301,8 @@ describe('useHubComputations', () => {
     });
 
     it('excludes hubs where computeHubProjection returns null', () => {
-      // Hub with no linked questions will find no factors in subsets
-      const hub = makeHub({ id: 'hub-1', questionIds: [] });
+      // Hub with no linked findings will find no factors in subsets
+      const hub = makeHub({ id: 'hub-1' });
       useAnalyzeStore.setState({ hypotheses: [hub] });
 
       const { result } = renderHook(() => useHubComputations(makeBestSubsets(), []));
@@ -308,7 +319,7 @@ describe('useHubComputations', () => {
       expect(result.current.hubEvidences).toBeUndefined();
 
       useAnalyzeStore.setState({
-        hypotheses: [makeHub({ id: 'hub-1', questionIds: [] })],
+        hypotheses: [makeHub({ id: 'hub-1' })],
       });
       rerender();
 

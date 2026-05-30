@@ -1,17 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useImprovementProjections } from '../useImprovementProjections';
-import type { Question } from '@variscout/core/findings';
+import type { Hypothesis } from '@variscout/core/findings';
 
 // ============================================================================
 // Helpers
 // ============================================================================
 
-function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
+function makeHub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
   return {
-    text: 'Test question',
-    status: 'open',
-    linkedFindingIds: [],
+    name: 'Test hub',
+    synthesis: '',
+    findingIds: [],
+    status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
@@ -26,66 +27,73 @@ function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
 
 describe('useImprovementProjections', () => {
   describe('hypotheses', () => {
-    it('returns empty array when there are no questions', () => {
+    it('returns empty array when there are no hubs', () => {
       const { result } = renderHook(() => useImprovementProjections([], {}));
       expect(result.current.hypotheses).toEqual([]);
     });
 
-    it('returns empty array when questions have no suspected-cause role', () => {
-      const questions = [
-        makeQuestion({ id: 'q1', factor: 'Machine', causeRole: 'contributing' }),
-        makeQuestion({ id: 'q2', factor: 'Shift', causeRole: 'ruled-out' }),
-        makeQuestion({ id: 'q3', factor: 'Operator' }),
+    it('returns empty array when no hubs are selectedForImprovement', () => {
+      const hubs = [
+        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: false }),
+        makeHub({ id: 'h2', name: 'Shift', selectedForImprovement: false }),
       ];
-      const { result } = renderHook(() => useImprovementProjections(questions, {}));
+      const { result } = renderHook(() => useImprovementProjections(hubs, {}));
       expect(result.current.hypotheses).toEqual([]);
     });
 
-    it('returns empty array when suspected-cause question has no factor', () => {
-      const questions = [makeQuestion({ id: 'q1', causeRole: 'suspected-cause' })];
-      const { result } = renderHook(() => useImprovementProjections(questions, {}));
+    it('returns empty array when selectedForImprovement hub is refuted', () => {
+      const hubs = [
+        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'refuted' }),
+      ];
+      const { result } = renderHook(() => useImprovementProjections(hubs, {}));
       expect(result.current.hypotheses).toEqual([]);
     });
 
-    it('returns one entry for a suspected-cause question with a factor', () => {
-      const questions = [
-        makeQuestion({ id: 'q1', factor: 'Machine', causeRole: 'suspected-cause' }),
+    it('returns projectedCpkMap entries when at least one active hub exists', () => {
+      const hubs = [
+        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'confirmed' }),
       ];
-      const { result } = renderHook(() => useImprovementProjections(questions, { Machine: 1.45 }));
+      const { result } = renderHook(() => useImprovementProjections(hubs, { Machine: 1.45 }));
       expect(result.current.hypotheses).toHaveLength(1);
       expect(result.current.hypotheses[0].factor).toBe('Machine');
       expect(result.current.hypotheses[0].projectedCpk).toBe(1.45);
     });
 
-    it('returns undefined projectedCpk when factor is not in the map', () => {
-      const questions = [
-        makeQuestion({ id: 'q1', factor: 'Machine', causeRole: 'suspected-cause' }),
+    it('returns all map entries when at least one active hub exists (map drives output)', () => {
+      // The hook returns ALL projectedCpkMap entries when there is ≥1 active hub —
+      // the hub list acts as a gate, not a filter on factors.
+      const hubs = [
+        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'confirmed' }),
       ];
-      const { result } = renderHook(() => useImprovementProjections(questions, {}));
-      expect(result.current.hypotheses[0].projectedCpk).toBeUndefined();
-    });
-
-    it('filters out non-suspected-cause questions from mixed list', () => {
-      const questions = [
-        makeQuestion({ id: 'q1', factor: 'Machine', causeRole: 'suspected-cause' }),
-        makeQuestion({ id: 'q2', factor: 'Shift', causeRole: 'contributing' }),
-        makeQuestion({ id: 'q3', factor: 'Operator', causeRole: 'suspected-cause' }),
-        makeQuestion({ id: 'q4', factor: 'Line', causeRole: 'ruled-out' }),
-      ];
-      const projectedCpkMap = { Machine: 1.2, Shift: 0.9, Operator: 1.5, Line: 0.8 };
-      const { result } = renderHook(() => useImprovementProjections(questions, projectedCpkMap));
+      const { result } = renderHook(() =>
+        useImprovementProjections(hubs, { Machine: 1.2, Shift: 0.9 })
+      );
       expect(result.current.hypotheses).toHaveLength(2);
-      expect(result.current.hypotheses.map(sc => sc.factor)).toEqual(['Machine', 'Operator']);
+      expect(result.current.hypotheses.map(h => h.factor)).toContain('Machine');
+      expect(result.current.hypotheses.map(h => h.factor)).toContain('Shift');
     });
 
-    it('returns multiple entries for multiple suspected-cause questions', () => {
-      const questions = [
-        makeQuestion({ id: 'q1', factor: 'Machine', causeRole: 'suspected-cause' }),
-        makeQuestion({ id: 'q2', factor: 'Shift', causeRole: 'suspected-cause' }),
+    it('returns empty array when no active hubs even if map has entries', () => {
+      const hubs = [
+        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: false }),
+        makeHub({ id: 'h2', name: 'Shift', selectedForImprovement: true, status: 'refuted' }),
+      ];
+      const { result } = renderHook(() =>
+        useImprovementProjections(hubs, { Machine: 1.2, Shift: 0.9 })
+      );
+      expect(result.current.hypotheses).toHaveLength(0);
+    });
+
+    it('returns entries from map with correct projectedCpk values', () => {
+      const hubs = [
+        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'confirmed' }),
+        makeHub({ id: 'h2', name: 'Shift', selectedForImprovement: true, status: 'proposed' }),
       ];
       const projectedCpkMap = { Machine: 1.3, Shift: 1.6 };
-      const { result } = renderHook(() => useImprovementProjections(questions, projectedCpkMap));
+      const { result } = renderHook(() => useImprovementProjections(hubs, projectedCpkMap));
       expect(result.current.hypotheses).toHaveLength(2);
+      const machineEntry = result.current.hypotheses.find(h => h.factor === 'Machine');
+      expect(machineEntry?.projectedCpk).toBe(1.3);
     });
   });
 
@@ -107,13 +115,13 @@ describe('useImprovementProjections', () => {
       expect(result.current.combinedProjectedCpk).toBe(1.8);
     });
 
-    it('is independent of the questions list — uses all map values', () => {
-      // combinedProjectedCpk comes from the map, not filtered by suspected-cause role
-      const questions = [
-        makeQuestion({ id: 'q1', factor: 'Machine', causeRole: 'suspected-cause' }),
+    it('is independent of the hubs list — uses all map values', () => {
+      // combinedProjectedCpk comes from the map, not filtered by hub selection
+      const hubs = [
+        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'confirmed' }),
       ];
       const { result } = renderHook(() =>
-        useImprovementProjections(questions, { Machine: 1.2, Shift: 2.0 })
+        useImprovementProjections(hubs, { Machine: 1.2, Shift: 2.0 })
       );
       expect(result.current.combinedProjectedCpk).toBe(2.0);
     });
@@ -127,18 +135,20 @@ describe('useImprovementProjections', () => {
   });
 
   describe('reactivity', () => {
-    it('updates when questions change', () => {
-      let questions: Question[] = [];
+    it('updates when hubs change', () => {
+      let hubs: Hypothesis[] = [];
       const { result, rerender } = renderHook(
-        ({ qs, map }: { qs: Question[]; map: Record<string, number> }) =>
-          useImprovementProjections(qs, map),
-        { initialProps: { qs: questions, map: {} } }
+        ({ hs, map }: { hs: Hypothesis[]; map: Record<string, number> }) =>
+          useImprovementProjections(hs, map),
+        { initialProps: { hs: hubs, map: {} } }
       );
 
       expect(result.current.hypotheses).toHaveLength(0);
 
-      questions = [makeQuestion({ id: 'q1', factor: 'Machine', causeRole: 'suspected-cause' })];
-      rerender({ qs: questions, map: { Machine: 1.5 } });
+      hubs = [
+        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'confirmed' }),
+      ];
+      rerender({ hs: hubs, map: { Machine: 1.5 } });
 
       expect(result.current.hypotheses).toHaveLength(1);
       expect(result.current.hypotheses[0].factor).toBe('Machine');

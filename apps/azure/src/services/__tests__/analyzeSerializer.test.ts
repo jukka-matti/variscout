@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   serializeFindings,
-  serializeQuestions,
+  serializeScopes,
   serializeHypotheses,
   serializeInvestigationState,
   deserializeInvestigationState,
   createInvestigationSerializer,
 } from '../analyzeSerializer';
-import type { Finding, Question, Hypothesis } from '@variscout/core';
+import type { Finding, ProblemStatementScope, Hypothesis } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -26,27 +26,25 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
   } as unknown as Finding;
 }
 
-function makeQuestion(overrides: Partial<Question> = {}): Question {
+function makeScope(overrides: Partial<ProblemStatementScope> = {}): ProblemStatementScope {
   return {
-    id: 'q-1',
-    text: 'Does shift affect fill weight?',
-    status: 'answered',
-    factor: 'Shift',
-    linkedFindingIds: [],
+    id: 'scope-1',
+    investigationId: 'general-unassigned',
+    outcome: 'Fill Weight',
+    predicates: [],
+    hypothesisIds: [],
     createdAt: 1704067200000, // 2024-01-01T00:00:00.000Z
     updatedAt: 1704153600000, // 2024-01-02T00:00:00.000Z
     deletedAt: null,
-    investigationId: 'general-unassigned',
     ...overrides,
-  };
+  } as ProblemStatementScope;
 }
 
 function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
     id: 'sc-1',
     name: 'Nozzle wear on night shift',
-    synthesis: 'Both nozzle and shift questions confirm the pattern.',
-    questionIds: ['q-1', 'q-2'],
+    synthesis: 'Both nozzle and shift findings confirm the pattern.',
     findingIds: ['f-1'],
     evidence: {
       mode: 'standard',
@@ -158,12 +156,6 @@ describe('serializeFindings', () => {
     ]);
   });
 
-  it('includes questionId when present', () => {
-    const finding = makeFinding({ questionId: 'q-99' });
-    const parsed = JSON.parse(serializeFindings([finding]));
-    expect(parsed.questionId).toBe('q-99');
-  });
-
   it('includes createdAt timestamp', () => {
     const finding = makeFinding({ createdAt: 1700000000000 });
     const parsed = JSON.parse(serializeFindings([finding]));
@@ -176,96 +168,48 @@ describe('serializeFindings', () => {
 });
 
 // ---------------------------------------------------------------------------
-// serializeQuestions
+// serializeScopes (replaces serializeQuestions — IM-1, ADR-085)
 // ---------------------------------------------------------------------------
 
-describe('serializeQuestions', () => {
-  it('filters to answered and ruled-out questions only', () => {
-    const questions = [
-      makeQuestion({ id: 'q-1', status: 'open' }),
-      makeQuestion({ id: 'q-2', status: 'investigating' }),
-      makeQuestion({ id: 'q-3', status: 'answered' }),
-      makeQuestion({ id: 'q-4', status: 'ruled-out' }),
-    ];
-    const jsonl = serializeQuestions(questions);
+describe('serializeScopes', () => {
+  it('produces valid JSONL — one JSON object per line', () => {
+    const scopes = [makeScope({ id: 'scope-1' }), makeScope({ id: 'scope-2' })];
+    const jsonl = serializeScopes(scopes);
     const lines = jsonl.split('\n');
     expect(lines).toHaveLength(2);
-    const ids = lines.map(l => JSON.parse(l).id);
-    expect(ids).toEqual(['q-3', 'q-4']);
+    lines.forEach(line => {
+      expect(() => JSON.parse(line)).not.toThrow();
+    });
   });
 
-  it('sets type to "answer" for answered questions', () => {
-    const jsonl = serializeQuestions([makeQuestion({ status: 'answered' })]);
+  it('sets type to "scope"', () => {
+    const jsonl = serializeScopes([makeScope()]);
     const parsed = JSON.parse(jsonl);
-    expect(parsed.type).toBe('answer');
+    expect(parsed.type).toBe('scope');
   });
 
-  it('sets type to "ruled-out" for ruled-out questions', () => {
-    const jsonl = serializeQuestions([makeQuestion({ status: 'ruled-out' })]);
-    const parsed = JSON.parse(jsonl);
-    expect(parsed.type).toBe('ruled-out');
-  });
-
-  it('includes manualNote, causeRole, evidence, and factor', () => {
-    const question = makeQuestion({
-      status: 'answered',
-      factor: 'Machine',
-      manualNote: 'Confirmed via gemba walk',
-      causeRole: 'suspected-cause',
-      evidence: { etaSquared: 0.45, rSquaredAdj: 0.43 },
+  it('includes outcome, predicates, and hypothesisIds', () => {
+    const scope = makeScope({
+      outcome: 'Fill Weight',
+      predicates: [{ kind: 'leaf' as const, column: 'Shift', op: 'eq', value: 'Night' }],
+      hypothesisIds: ['h-1', 'h-2'],
     });
-    const parsed = JSON.parse(serializeQuestions([question]));
-    expect(parsed.factor).toBe('Machine');
-    expect(parsed.manualNote).toBe('Confirmed via gemba walk');
-    expect(parsed.causeRole).toBe('suspected-cause');
-    expect(parsed.evidence).toEqual({ etaSquared: 0.45, rSquaredAdj: 0.43 });
+    const parsed = JSON.parse(serializeScopes([scope]));
+    expect(parsed.outcome).toBe('Fill Weight');
+    expect(parsed.predicates).toEqual([
+      { kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' },
+    ]);
+    expect(parsed.hypothesisIds).toEqual(['h-1', 'h-2']);
   });
 
-  it('includes only selected ideas with text, direction, timeframe', () => {
-    const question = makeQuestion({
-      status: 'answered',
-      ideas: [
-        {
-          id: 'i-1',
-          text: 'Retrain operators',
-          selected: true,
-          direction: 'prevent',
-          timeframe: 'weeks',
-          createdAt: 1704067200000,
-          deletedAt: null,
-        },
-        {
-          id: 'i-2',
-          text: 'Buy new machine',
-          selected: false,
-          direction: 'eliminate',
-          timeframe: 'months',
-          createdAt: 1704067200000,
-          deletedAt: null,
-        },
-      ],
-    });
-    const parsed = JSON.parse(serializeQuestions([question]));
-    expect(parsed.ideas).toHaveLength(1);
-    expect(parsed.ideas[0]).toEqual({
-      text: 'Retrain operators',
-      direction: 'prevent',
-      timeframe: 'weeks',
-    });
+  it('includes whatIfProjection when set', () => {
+    const scope = makeScope({ whatIfProjection: 0.38 });
+    const parsed = JSON.parse(serializeScopes([scope]));
+    expect(parsed.whatIfProjection).toBe(0.38);
   });
 
-  it('includes linkedFindingIds', () => {
-    const question = makeQuestion({
-      status: 'answered',
-      linkedFindingIds: ['f-1', 'f-2'],
-    });
-    const parsed = JSON.parse(serializeQuestions([question]));
-    expect(parsed.linkedFindingIds).toEqual(['f-1', 'f-2']);
-  });
-
-  it('returns empty string when no answered/ruled-out questions', () => {
-    const questions = [makeQuestion({ status: 'open' }), makeQuestion({ status: 'investigating' })];
-    expect(serializeQuestions(questions)).toBe('');
+  it('returns empty string for empty scopes array', () => {
+    expect(serializeScopes([])).toBe('');
   });
 });
 
@@ -298,7 +242,6 @@ describe('serializeHypotheses', () => {
     const hub = makeHypothesis({
       name: 'Nozzle wear on night shift',
       synthesis: 'Both factors confirm the pattern.',
-      questionIds: ['q-1', 'q-2'],
       findingIds: ['f-1'],
       evidence,
       status: 'confirmed',
@@ -306,7 +249,6 @@ describe('serializeHypotheses', () => {
     const parsed = JSON.parse(serializeHypotheses([hub]));
     expect(parsed.name).toBe('Nozzle wear on night shift');
     expect(parsed.synthesis).toBe('Both factors confirm the pattern.');
-    expect(parsed.questionIds).toEqual(['q-1', 'q-2']);
     expect(parsed.findingIds).toEqual(['f-1']);
     expect(parsed.evidence).toEqual(evidence);
     expect(parsed.status).toBe('confirmed');
@@ -357,12 +299,12 @@ describe('serializeHypotheses', () => {
 // ---------------------------------------------------------------------------
 
 describe('serializeInvestigationState', () => {
-  it('includes findings and questions', () => {
+  it('includes findings and scopes', () => {
     const findings = [makeFinding()];
-    const questions = [makeQuestion()];
-    const state = serializeInvestigationState(findings, questions, []);
+    const scopes = [makeScope()];
+    const state = serializeInvestigationState(findings, scopes, []);
     expect(state.findings).toHaveLength(1);
-    expect(state.questions).toHaveLength(1);
+    expect(state.scopes).toHaveLength(1);
   });
 
   it('includes hypotheses when non-empty', () => {
@@ -379,57 +321,56 @@ describe('serializeInvestigationState', () => {
 });
 
 describe('deserializeInvestigationState', () => {
-  it('restores findings, questions, and hubs from serialized state', () => {
+  it('restores findings, scopes, and hubs from serialized state', () => {
     const hub = makeHypothesis();
     const raw = {
       findings: [makeFinding()],
-      questions: [makeQuestion()],
+      scopes: [makeScope()],
       hypotheses: [hub],
     };
     const result = deserializeInvestigationState(raw);
     expect(result.findings).toHaveLength(1);
-    expect(result.questions).toHaveLength(1);
+    expect(result.scopes).toHaveLength(1);
     expect(result.hypotheses).toHaveLength(1);
     expect(result.hypotheses[0].name).toBe('Nozzle wear on night shift');
   });
 
   it('returns empty arrays when fields are missing', () => {
-    const raw = { findings: [], questions: [], hypotheses: [] };
+    const raw = { findings: [], scopes: [], hypotheses: [] };
     const result = deserializeInvestigationState(raw);
     expect(result.findings).toEqual([]);
-    expect(result.questions).toEqual([]);
+    expect(result.scopes).toEqual([]);
     expect(result.hypotheses).toEqual([]);
   });
 
   it('returns empty hypotheses when hypotheses field is absent (no back-compat migration)', () => {
-    // Per wedge V1 no-back-compat: legacy causeRole questions are NOT migrated
-    // into hubs on deserialize. Investigations without explicit hubs get [].
+    // Per wedge V1 no-back-compat: investigations without explicit hubs get [].
     const raw = {
       findings: [],
-      questions: [
-        makeQuestion({ id: 'q-1', factor: 'Machine', causeRole: 'suspected-cause' }),
-        makeQuestion({ id: 'q-2', factor: 'Shift', causeRole: 'suspected-cause' }),
-        makeQuestion({ id: 'q-3', factor: 'Nozzle', causeRole: 'ruled-out' }),
-      ],
+      scopes: [makeScope({ id: 'scope-1' }), makeScope({ id: 'scope-2' })],
     };
-    const result = deserializeInvestigationState(raw);
+    const result = deserializeInvestigationState(
+      raw as import('../analyzeSerializer').SerializedInvestigationState
+    );
     expect(result.hypotheses).toEqual([]);
   });
 
-  it('returns empty hypotheses when old data has no causeRole questions', () => {
+  it('returns empty hypotheses when data has no hubs', () => {
     const raw = {
       findings: [makeFinding()],
-      questions: [makeQuestion({ causeRole: undefined })],
+      scopes: [makeScope()],
       // no hypotheses field
     };
-    const result = deserializeInvestigationState(raw);
+    const result = deserializeInvestigationState(
+      raw as import('../analyzeSerializer').SerializedInvestigationState
+    );
     expect(result.hypotheses).toEqual([]);
   });
 
   it('returns empty hypotheses when hypotheses field is explicitly empty', () => {
     const raw = {
       findings: [],
-      questions: [makeQuestion({ causeRole: 'suspected-cause', factor: 'Shift' })],
+      scopes: [makeScope()],
       hypotheses: [],
     };
     const result = deserializeInvestigationState(raw);
@@ -439,13 +380,12 @@ describe('deserializeInvestigationState', () => {
   it('migrates legacy totalContribution (number) to HypothesisEvidence on load', () => {
     const raw = {
       findings: [],
-      questions: [],
+      scopes: [],
       hypotheses: [
         {
           id: 'sc-legacy',
           name: 'Legacy hub',
           synthesis: 'Old data',
-          questionIds: [],
           findingIds: [],
           totalContribution: 0.52,
           status: 'proposed',
@@ -473,7 +413,7 @@ describe('deserializeInvestigationState', () => {
   it('throws on unknown hypothesis status values (no silent migration per RPS V1 D15)', () => {
     const raw = {
       findings: [],
-      questions: [],
+      scopes: [],
       hypotheses: [
         {
           ...makeHypothesis({ id: 'legacy-suspected' }),
@@ -496,13 +436,12 @@ describe('deserializeInvestigationState', () => {
     };
     const raw = {
       findings: [],
-      questions: [],
+      scopes: [],
       hypotheses: [
         {
           id: 'sc-both',
           name: 'Hub with both fields',
           synthesis: '',
-          questionIds: [],
           findingIds: [],
           totalContribution: 0.52,
           evidence: existingEvidence,
@@ -522,7 +461,7 @@ describe('deserializeInvestigationState', () => {
   it('preserves selectedForImprovement through deserialize', () => {
     const raw = {
       findings: [],
-      questions: [],
+      scopes: [],
       hypotheses: [{ ...makeHypothesis(), selectedForImprovement: true }],
     };
     const result = deserializeInvestigationState(raw);
@@ -531,14 +470,14 @@ describe('deserializeInvestigationState', () => {
 
   it('round-trip: serialize → deserialize → serialize → output is identical', () => {
     const findings = [makeFinding()];
-    const questions = [makeQuestion()];
+    const scopes = [makeScope()];
     const hubs = [makeHypothesis()];
 
-    const firstPass = serializeInvestigationState(findings, questions, hubs);
+    const firstPass = serializeInvestigationState(findings, scopes, hubs);
     const restored = deserializeInvestigationState(firstPass);
     const secondPass = serializeInvestigationState(
       restored.findings,
-      restored.questions,
+      restored.scopes,
       restored.hypotheses
     );
 
@@ -561,23 +500,25 @@ describe('deserializeInvestigationState', () => {
     expect(restored.hypotheses[0].evidence).toEqual(hub.evidence);
   });
 
-  it('round-trip preserves branch nextMove and branch clue/check references', () => {
-    const hub = makeHypothesis({
-      nextMove: 'Run a late-shift temperature check.',
-      counterFindingIds: ['f-counter'],
-      checkQuestionIds: ['q-check'],
+  it('round-trip preserves scope predicates and hypothesisIds', () => {
+    const scope = makeScope({
+      outcome: 'Cycle Time',
+      predicates: [{ kind: 'leaf' as const, column: 'Machine', op: 'eq', value: 'M1' }],
+      hypothesisIds: ['h-1', 'h-2'],
     });
-    const firstPass = serializeInvestigationState([], [], [hub]);
+    const firstPass = serializeInvestigationState([], [scope], []);
     const restored = deserializeInvestigationState(firstPass);
     const secondPass = serializeInvestigationState(
       restored.findings,
-      restored.questions,
+      restored.scopes,
       restored.hypotheses
     );
 
-    expect(restored.hypotheses[0].nextMove).toBe('Run a late-shift temperature check.');
-    expect(restored.hypotheses[0].counterFindingIds).toEqual(['f-counter']);
-    expect(restored.hypotheses[0].checkQuestionIds).toEqual(['q-check']);
+    expect(restored.scopes[0].outcome).toBe('Cycle Time');
+    expect(restored.scopes[0].predicates).toEqual([
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'M1' },
+    ]);
+    expect(restored.scopes[0].hypothesisIds).toEqual(['h-1', 'h-2']);
     expect(secondPass).toEqual(firstPass);
   });
 });
@@ -614,20 +555,20 @@ describe('createInvestigationSerializer', () => {
     serializer.dispose();
   });
 
-  it('debounces questions uploads — only uploads once after rapid changes', async () => {
+  it('debounces scopes uploads — only uploads once after rapid changes', async () => {
     const uploadBlob = vi.fn().mockResolvedValue(undefined);
     const serializer = createInvestigationSerializer({ projectId: 'proj-2', uploadBlob });
 
-    const questions = [makeQuestion()];
-    serializer.onQuestionsChange(questions);
-    serializer.onQuestionsChange(questions);
+    const scopes = [makeScope()];
+    serializer.onScopesChange(scopes);
+    serializer.onScopesChange(scopes);
 
     expect(uploadBlob).not.toHaveBeenCalled();
 
     await vi.runAllTimersAsync();
 
     expect(uploadBlob).toHaveBeenCalledTimes(1);
-    expect(uploadBlob).toHaveBeenCalledWith('proj-2/analyze/questions.jsonl', expect.any(String));
+    expect(uploadBlob).toHaveBeenCalledWith('proj-2/analyze/scopes.jsonl', expect.any(String));
     serializer.dispose();
   });
 
@@ -663,15 +604,15 @@ describe('createInvestigationSerializer', () => {
     serializer.dispose();
   });
 
-  it('handles question upload errors silently', async () => {
+  it('handles scope upload errors silently', async () => {
     const uploadBlob = vi.fn().mockRejectedValue(new Error('Blob error'));
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const serializer = createInvestigationSerializer({ projectId: 'proj-4', uploadBlob });
 
-    serializer.onQuestionsChange([makeQuestion()]);
+    serializer.onScopesChange([makeScope()]);
 
     await expect(vi.runAllTimersAsync()).resolves.not.toThrow();
-    expect(warnSpy).toHaveBeenCalledWith('[KB] Failed to serialize questions:', expect.any(Error));
+    expect(warnSpy).toHaveBeenCalledWith('[KB] Failed to serialize scopes:', expect.any(Error));
 
     warnSpy.mockRestore();
     serializer.dispose();
@@ -703,11 +644,11 @@ describe('createInvestigationSerializer', () => {
     expect(uploadBlob).not.toHaveBeenCalled();
   });
 
-  it('dispose clears pending questions timer so upload is never called', async () => {
+  it('dispose clears pending scopes timer so upload is never called', async () => {
     const uploadBlob = vi.fn().mockResolvedValue(undefined);
     const serializer = createInvestigationSerializer({ projectId: 'proj-6', uploadBlob });
 
-    serializer.onQuestionsChange([makeQuestion()]);
+    serializer.onScopesChange([makeScope()]);
     serializer.dispose();
 
     await vi.runAllTimersAsync();
@@ -727,36 +668,36 @@ describe('createInvestigationSerializer', () => {
     expect(uploadBlob).not.toHaveBeenCalled();
   });
 
-  it('uploads findings and questions independently on separate timers', async () => {
+  it('uploads findings and scopes independently on separate timers', async () => {
     const uploadBlob = vi.fn().mockResolvedValue(undefined);
     const serializer = createInvestigationSerializer({ projectId: 'proj-7', uploadBlob });
 
     serializer.onFindingsChange([makeFinding()]);
-    serializer.onQuestionsChange([makeQuestion()]);
+    serializer.onScopesChange([makeScope()]);
 
     await vi.runAllTimersAsync();
 
     expect(uploadBlob).toHaveBeenCalledTimes(2);
-    const paths = uploadBlob.mock.calls.map(([p]) => p);
+    const paths = uploadBlob.mock.calls.map((args: unknown[]) => args[0] as string);
     expect(paths).toContain('proj-7/analyze/findings.jsonl');
-    expect(paths).toContain('proj-7/analyze/questions.jsonl');
+    expect(paths).toContain('proj-7/analyze/scopes.jsonl');
     serializer.dispose();
   });
 
-  it('uploads findings, questions, and hypotheses on independent timers', async () => {
+  it('uploads findings, scopes, and hypotheses on independent timers', async () => {
     const uploadBlob = vi.fn().mockResolvedValue(undefined);
     const serializer = createInvestigationSerializer({ projectId: 'proj-8', uploadBlob });
 
     serializer.onFindingsChange([makeFinding()]);
-    serializer.onQuestionsChange([makeQuestion()]);
+    serializer.onScopesChange([makeScope()]);
     serializer.onHypothesesChange([makeHypothesis()]);
 
     await vi.runAllTimersAsync();
 
     expect(uploadBlob).toHaveBeenCalledTimes(3);
-    const paths = uploadBlob.mock.calls.map(([p]) => p);
+    const paths = uploadBlob.mock.calls.map((args: unknown[]) => args[0] as string);
     expect(paths).toContain('proj-8/analyze/findings.jsonl');
-    expect(paths).toContain('proj-8/analyze/questions.jsonl');
+    expect(paths).toContain('proj-8/analyze/scopes.jsonl');
     expect(paths).toContain('proj-8/analyze/hypotheses.jsonl');
     serializer.dispose();
   });

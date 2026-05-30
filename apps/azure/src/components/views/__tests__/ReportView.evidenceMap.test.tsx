@@ -9,7 +9,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useEvidenceMapTimeline } from '@variscout/hooks';
-import type { CausalLink, Finding, Question, Hypothesis } from '@variscout/core/findings';
+import type { CausalLink, Finding, Hypothesis } from '@variscout/core/findings';
 
 // ============================================================================
 // Test helpers
@@ -24,7 +24,6 @@ function makeCausalLink(overrides?: Partial<CausalLink>): CausalLink {
     direction: 'drives',
     evidenceType: 'data',
     source: 'analyst',
-    questionIds: [],
     findingIds: [],
     createdAt: Date.parse('2026-03-15T10:00:00.000Z'),
     updatedAt: Date.parse('2026-03-15T10:00:00.000Z'),
@@ -58,28 +57,12 @@ function makeFinding(overrides?: Partial<Finding>): Finding {
   } as Finding;
 }
 
-function makeQuestion(overrides?: Partial<Question>): Question {
-  return {
-    id: 'q-1',
-    text: 'Does temperature affect fill weight?',
-    factor: 'Temperature',
-    status: 'open',
-    linkedFindingIds: [],
-    createdAt: Date.parse('2026-03-14T09:00:00.000Z'),
-    updatedAt: Date.parse('2026-03-14T09:00:00.000Z'),
-    deletedAt: null,
-    investigationId: 'general-unassigned',
-    ...overrides,
-  } as Question;
-}
-
 function makeHypothesis(overrides?: Partial<Hypothesis>): Hypothesis {
   return {
     id: 'hub-1',
     name: 'Temperature hypothesis',
     synthesis: '',
     status: 'proposed',
-    questionIds: [],
     findingIds: [],
     createdAt: Date.parse('2026-03-17T12:00:00.000Z'),
     updatedAt: Date.parse('2026-03-17T12:00:00.000Z'),
@@ -163,7 +146,6 @@ describe('useEvidenceMapTimeline', () => {
       const { result } = renderHook(() =>
         useEvidenceMapTimeline({
           causalLinks: [],
-          questions: [],
           findings: [],
           hypotheses: [],
         })
@@ -305,12 +287,13 @@ describe('useEvidenceMapTimeline', () => {
       );
     });
 
-    it('includes factor from Question in visibleFactors', () => {
-      const question = makeQuestion({
-        factor: 'Pressure',
+    it('includes factors from CausalLink in visibleFactors', () => {
+      const link = makeCausalLink({
+        fromFactor: 'Pressure',
+        toFactor: 'Fill Weight',
         createdAt: Date.parse('2026-03-14T09:00:00.000Z'),
       });
-      const { result } = renderHook(() => useEvidenceMapTimeline({ questions: [question] }));
+      const { result } = renderHook(() => useEvidenceMapTimeline({ causalLinks: [link] }));
 
       expect(result.current.frames[0].visibleFactors).toContain('Pressure');
     });

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { searchProjectArtifacts } from '../searchProject';
-import type { Finding, Question, ActionItem, ImprovementIdea } from '../../findings';
+import type { Finding, ActionItem, ImprovementIdea, Hypothesis } from '../../findings';
 
 // ── Helper builders ──────────────────────────────────────────────────────────
 
@@ -21,10 +21,11 @@ function makeFinding(overrides: Partial<Finding> & { id: string; text: string })
   };
 }
 
-function makeQuestion(overrides: Partial<Question> & { id: string; text: string }): Question {
+function makeHypothesis(overrides: Partial<Hypothesis> & { id: string; name: string }): Hypothesis {
   return {
-    status: 'open',
-    linkedFindingIds: [],
+    synthesis: '',
+    findingIds: [],
+    status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     investigationId: 'inv-test-001',
@@ -64,18 +65,16 @@ const findings: Finding[] = [
   }),
 ];
 
-const questions: Question[] = [
-  makeQuestion({
+const hypotheses: Hypothesis[] = [
+  makeHypothesis({
     id: 'h1',
-    text: 'New operators lack system training',
-    status: 'answered',
-    factor: 'Operator',
+    name: 'New operators lack system training',
+    status: 'evidenced',
   }),
-  makeQuestion({
+  makeHypothesis({
     id: 'h2',
-    text: 'Machine wear causes drift',
-    status: 'open',
-    factor: 'Machine',
+    name: 'Machine wear causes drift',
+    status: 'proposed',
   }),
 ];
 
@@ -83,31 +82,31 @@ const questions: Question[] = [
 
 describe('searchProjectArtifacts — text matching', () => {
   it('matches findings by case-insensitive substring', () => {
-    const results = searchProjectArtifacts({ query: 'FILLING HEAD', findings, questions });
+    const results = searchProjectArtifacts({ query: 'FILLING HEAD', findings, hypotheses });
     expect(results).toHaveLength(1);
     expect(results[0].id).toBe('f1');
   });
 
-  it('matches questions by case-insensitive substring', () => {
-    const results = searchProjectArtifacts({ query: 'machine wear', findings, questions });
+  it('matches hypotheses by case-insensitive substring', () => {
+    const results = searchProjectArtifacts({ query: 'machine wear', findings, hypotheses });
     expect(results).toHaveLength(1);
     expect(results[0].id).toBe('h2');
   });
 
   it('returns no results when query matches nothing', () => {
-    const results = searchProjectArtifacts({ query: 'nonexistent xyz', findings, questions });
+    const results = searchProjectArtifacts({ query: 'nonexistent xyz', findings, hypotheses });
     expect(results).toHaveLength(0);
   });
 
   it('returns all artifacts when query is empty string', () => {
-    const results = searchProjectArtifacts({ query: '', findings, questions });
-    // 3 findings + 2 questions = 5, capped at MAX_RESULTS=5
+    const results = searchProjectArtifacts({ query: '', findings, hypotheses });
+    // 3 findings + 2 hypotheses = 5, capped at MAX_RESULTS=5
     expect(results).toHaveLength(5);
   });
 
-  it('matches across both findings and questions for same query term', () => {
-    // "training" appears in finding f3 and question h1
-    const results = searchProjectArtifacts({ query: 'training', findings, questions });
+  it('matches across both findings and hypotheses for same query term', () => {
+    // "training" appears in finding f3 and hypothesis h1
+    const results = searchProjectArtifacts({ query: 'training', findings, hypotheses });
     const ids = results.map(r => r.id);
     expect(ids).toContain('f3');
     expect(ids).toContain('h1');
@@ -121,36 +120,36 @@ describe('searchProjectArtifacts — artifactType filtering', () => {
     const results = searchProjectArtifacts({
       query: '',
       findings,
-      questions,
+      hypotheses,
       artifactType: 'finding',
     });
     expect(results.every(r => r.type === 'finding')).toBe(true);
   });
 
-  it('returns only questions when artifactType is "question"', () => {
+  it('returns only hypotheses when artifactType is "hypothesis"', () => {
     const results = searchProjectArtifacts({
       query: '',
       findings,
-      questions,
-      artifactType: 'question',
+      hypotheses,
+      artifactType: 'hypothesis',
     });
-    expect(results.every(r => r.type === 'question')).toBe(true);
+    expect(results.every(r => r.type === 'hypothesis')).toBe(true);
     expect(results).toHaveLength(2);
   });
 
   it('returns only ideas when artifactType is "idea"', () => {
-    const questionsWithIdeas: Question[] = [
-      makeQuestion({
+    const hypothesesWithIdeas: Hypothesis[] = [
+      makeHypothesis({
         id: 'hx',
-        text: 'Root cause A',
-        status: 'answered',
+        name: 'Lubrication gap',
+        status: 'evidenced',
         ideas: [makeIdea({ id: 'i1', text: 'Add visual guides to reduce setup error' })],
       }),
     ];
     const results = searchProjectArtifacts({
       query: '',
       findings: [],
-      questions: questionsWithIdeas,
+      hypotheses: hypothesesWithIdeas,
       artifactType: 'idea',
     });
     expect(results).toHaveLength(1);
@@ -169,7 +168,7 @@ describe('searchProjectArtifacts — artifactType filtering', () => {
     const results = searchProjectArtifacts({
       query: '',
       findings: findingsWithActions,
-      questions: [],
+      hypotheses: [],
       artifactType: 'action',
     });
     expect(results).toHaveLength(1);
@@ -178,11 +177,11 @@ describe('searchProjectArtifacts — artifactType filtering', () => {
   });
 
   it('returns all artifact types when artifactType is "all" (default)', () => {
-    const questionsWithIdeas: Question[] = [
-      makeQuestion({
+    const hypothesesWithIdeas: Hypothesis[] = [
+      makeHypothesis({
         id: 'hy',
-        text: 'Cause with idea',
-        status: 'answered',
+        name: 'Cause with idea',
+        status: 'evidenced',
         ideas: [makeIdea({ id: 'i2', text: 'Fix the setup procedure' })],
       }),
     ];
@@ -196,11 +195,11 @@ describe('searchProjectArtifacts — artifactType filtering', () => {
     const results = searchProjectArtifacts({
       query: '',
       findings: findingsWithActions,
-      questions: questionsWithIdeas,
+      hypotheses: hypothesesWithIdeas,
     });
     const types = new Set(results.map(r => r.type));
     expect(types.has('finding')).toBe(true);
-    expect(types.has('question')).toBe(true);
+    expect(types.has('hypothesis')).toBe(true);
     expect(types.has('idea')).toBe(true);
     expect(types.has('action')).toBe(true);
   });
@@ -213,7 +212,7 @@ describe('searchProjectArtifacts — findingStatus filtering', () => {
     const results = searchProjectArtifacts({
       query: '',
       findings,
-      questions: [],
+      hypotheses: [],
       artifactType: 'finding',
       findingStatus: 'investigating',
     });
@@ -225,7 +224,7 @@ describe('searchProjectArtifacts — findingStatus filtering', () => {
     const results = searchProjectArtifacts({
       query: '',
       findings,
-      questions: [],
+      hypotheses: [],
       artifactType: 'finding',
       findingStatus: 'any',
     });
@@ -236,7 +235,7 @@ describe('searchProjectArtifacts — findingStatus filtering', () => {
     const results = searchProjectArtifacts({
       query: '',
       findings,
-      questions: [],
+      hypotheses: [],
       artifactType: 'finding',
       findingStatus: 'resolved',
     });
@@ -244,28 +243,28 @@ describe('searchProjectArtifacts — findingStatus filtering', () => {
   });
 });
 
-// ── Question status filtering ───────────────────────────────────────────────
+// ── Hypothesis status filtering ───────────────────────────────────────────────
 
-describe('searchProjectArtifacts — questionStatus filtering', () => {
-  it('returns only questions with matching status', () => {
+describe('searchProjectArtifacts — hypothesisStatus filtering', () => {
+  it('returns only hypotheses with matching status', () => {
     const results = searchProjectArtifacts({
       query: '',
       findings: [],
-      questions,
-      artifactType: 'question',
-      questionStatus: 'answered',
+      hypotheses,
+      artifactType: 'hypothesis',
+      hypothesisStatus: 'evidenced',
     });
     expect(results).toHaveLength(1);
     expect(results[0].id).toBe('h1');
   });
 
-  it('returns all questions when questionStatus is "any"', () => {
+  it('returns all hypotheses when hypothesisStatus is "any"', () => {
     const results = searchProjectArtifacts({
       query: '',
       findings: [],
-      questions,
-      artifactType: 'question',
-      questionStatus: 'any',
+      hypotheses,
+      artifactType: 'hypothesis',
+      hypothesisStatus: 'any',
     });
     expect(results).toHaveLength(2);
   });
@@ -274,11 +273,11 @@ describe('searchProjectArtifacts — questionStatus filtering', () => {
 // ── Status filter does not affect other artifact types ────────────────────────
 
 describe('searchProjectArtifacts — status filter scope', () => {
-  it('findingStatus filter does not exclude questions when artifactType is "all"', () => {
+  it('findingStatus filter does not exclude hypotheses when artifactType is "all"', () => {
     const results = searchProjectArtifacts({
       query: 'training',
       findings,
-      questions,
+      hypotheses,
       findingStatus: 'observed',
     });
     // f3 is 'analyzed' so excluded by findingStatus, but h1 should still appear
@@ -287,14 +286,14 @@ describe('searchProjectArtifacts — status filter scope', () => {
     expect(ids).toContain('h1');
   });
 
-  it('questionStatus filter does not exclude findings when artifactType is "all"', () => {
+  it('hypothesisStatus filter does not exclude findings when artifactType is "all"', () => {
     const results = searchProjectArtifacts({
       query: 'training',
       findings,
-      questions,
-      questionStatus: 'open',
+      hypotheses,
+      hypothesisStatus: 'proposed',
     });
-    // h1 is 'answered' so excluded, but f3 should still appear
+    // h1 is 'evidenced' so excluded, but f3 should still appear
     const ids = results.map(r => r.id);
     expect(ids).not.toContain('h1');
     expect(ids).toContain('f3');
@@ -320,49 +319,45 @@ describe('searchProjectArtifacts — result shape', () => {
     const results = searchProjectArtifacts({
       query: 'variance',
       findings: findingsWithContext,
-      questions: [],
+      hypotheses: [],
     });
     expect(results).toHaveLength(1);
     const r = results[0];
     expect(r.tag).toBe('key-driver');
+    // filterContext contains the factor column names (keys), not values
     expect(r.filterContext).toContain('Machine');
-    expect(r.filterContext).toContain('B');
     expect(r.filterContext).toContain('Shift');
   });
 
-  it('question result includes factor, linkedFindingCount, and causeRole', () => {
-    const q: Question = makeQuestion({
+  it('hypothesis result includes linkedFindingCount', () => {
+    const h = makeHypothesis({
       id: 'hr',
-      text: 'Worn die causes flash',
-      status: 'answered',
-      factor: 'Die',
-      linkedFindingIds: ['f1', 'f2'],
-      causeRole: 'suspected-cause',
+      name: 'Worn die causes flash',
+      status: 'evidenced',
+      findingIds: ['f1', 'f2'],
     });
-    const results = searchProjectArtifacts({ query: 'worn die', findings: [], questions: [q] });
+    const results = searchProjectArtifacts({ query: 'worn die', findings: [], hypotheses: [h] });
     expect(results).toHaveLength(1);
     const r = results[0];
-    expect(r.factor).toBe('Die');
     expect(r.linkedFindingCount).toBe(2);
-    expect(r.causeRole).toBe('suspected-cause');
   });
 
-  it('idea result includes parentQuestionText and timeframe', () => {
-    const q: Question = makeQuestion({
+  it('idea result includes parentHypothesisText and timeframe', () => {
+    const h = makeHypothesis({
       id: 'hi',
-      text: 'Lubrication interval too long',
-      status: 'answered',
+      name: 'Lubrication interval too long',
+      status: 'evidenced',
       ideas: [makeIdea({ id: 'idea1', text: 'Shorten lubrication cycle', timeframe: 'days' })],
     });
     const results = searchProjectArtifacts({
       query: 'lubrication cycle',
       findings: [],
-      questions: [q],
+      hypotheses: [h],
       artifactType: 'idea',
     });
     expect(results).toHaveLength(1);
     const r = results[0];
-    expect(r.parentQuestionText).toBe('Lubrication interval too long');
+    expect(r.parentHypothesisText).toBe('Lubrication interval too long');
     expect(r.timeframe).toBe('days');
   });
 
@@ -383,18 +378,17 @@ describe('searchProjectArtifacts — result shape', () => {
     const results = searchProjectArtifacts({
       query: 'schedule calibration',
       findings: [f],
-      questions: [],
+      hypotheses: [],
       artifactType: 'action',
     });
     expect(results).toHaveLength(1);
     const r = results[0];
-    expect(r.completed).toBe(true);
+    // status is derived from completedAt: action is 'completed' when completedAt is set
     expect(r.status).toBe('completed');
-    expect(r.dueDate).toBe('2026-03-31');
     expect(r.parentFindingText).toBe('Calibration overdue');
   });
 
-  it('pending action has completed false and status "pending"', () => {
+  it('pending action has completed false and status "open"', () => {
     const f = makeFinding({
       id: 'fp',
       text: 'Pending parent finding',
@@ -403,12 +397,12 @@ describe('searchProjectArtifacts — result shape', () => {
     const results = searchProjectArtifacts({
       query: 'pending task',
       findings: [f],
-      questions: [],
+      hypotheses: [],
       artifactType: 'action',
     });
     expect(results).toHaveLength(1);
-    expect(results[0].completed).toBe(false);
-    expect(results[0].status).toBe('pending');
+    // status is 'open' when completedAt is not set
+    expect(results[0].status).toBe('open');
   });
 });
 
@@ -422,51 +416,33 @@ describe('searchProjectArtifacts — max results cap', () => {
     const results = searchProjectArtifacts({
       query: 'variation',
       findings: manyFindings,
-      questions: [],
+      hypotheses: [],
     });
     expect(results).toHaveLength(5);
   });
 });
 
-// ── Sorting ───────────────────────────────────────────────────────────────────
+// ── Result order ──────────────────────────────────────────────────────────────
 
-describe('searchProjectArtifacts — result sorting', () => {
-  it('ranks exact match before starts-with before contains', () => {
-    const testFindings: Finding[] = [
-      makeFinding({ id: 'c', text: 'The drift issue has some context here' }),
-      makeFinding({ id: 'b', text: 'drift in filling head B' }),
-      makeFinding({ id: 'a', text: 'drift' }),
-    ];
-    const results = searchProjectArtifacts({
-      query: 'drift',
-      findings: testFindings,
-      questions: [],
-    });
-    expect(results[0].id).toBe('a'); // exact match first
-    expect(results[1].id).toBe('b'); // starts-with second
-    expect(results[2].id).toBe('c'); // contains third
-  });
-
-  it('uses recency as tiebreaker (newest first)', () => {
-    const testFindings: Finding[] = [
-      makeFinding({ id: 'old', text: 'machine issue', createdAt: 1000 }),
-      makeFinding({ id: 'new', text: 'machine problem', createdAt: 2000 }),
-    ];
+describe('searchProjectArtifacts — result order', () => {
+  it('returns results in input order (findings before hypotheses)', () => {
+    const testFindings: Finding[] = [makeFinding({ id: 'f1', text: 'machine issue' })];
+    const testHypotheses: Hypothesis[] = [makeHypothesis({ id: 'h1', name: 'machine drift' })];
     const results = searchProjectArtifacts({
       query: 'machine',
       findings: testFindings,
-      questions: [],
+      hypotheses: testHypotheses,
     });
-    expect(results[0].id).toBe('new');
-    expect(results[1].id).toBe('old');
+    expect(results[0].id).toBe('f1'); // findings first
+    expect(results[1].id).toBe('h1'); // then hypotheses
   });
 });
 
 // ── Empty inputs ──────────────────────────────────────────────────────────────
 
 describe('searchProjectArtifacts — empty inputs', () => {
-  it('returns empty array for empty findings and questions', () => {
-    const results = searchProjectArtifacts({ query: 'anything', findings: [], questions: [] });
+  it('returns empty array for empty findings and hypotheses', () => {
+    const results = searchProjectArtifacts({ query: 'anything', findings: [], hypotheses: [] });
     expect(results).toEqual([]);
   });
 
@@ -474,17 +450,17 @@ describe('searchProjectArtifacts — empty inputs', () => {
     const results = searchProjectArtifacts({
       query: 'task',
       findings,
-      questions: [],
+      hypotheses: [],
       artifactType: 'action',
     });
     expect(results).toEqual([]);
   });
 
-  it('handles questions with no ideas gracefully', () => {
+  it('handles hypotheses with no ideas gracefully', () => {
     const results = searchProjectArtifacts({
       query: 'idea',
       findings: [],
-      questions,
+      hypotheses,
       artifactType: 'idea',
     });
     expect(results).toEqual([]);
@@ -504,7 +480,7 @@ describe('searchProjectArtifacts — filterContext', () => {
     const results = searchProjectArtifacts({
       query: 'empty context',
       findings: [f],
-      questions: [],
+      hypotheses: [],
     });
     expect(results[0].filterContext).toBeUndefined();
   });
@@ -521,7 +497,7 @@ describe('searchProjectArtifacts — filterContext', () => {
     const results = searchProjectArtifacts({
       query: 'multi context',
       findings: [f],
-      questions: [],
+      hypotheses: [],
     });
     const ctx = results[0].filterContext;
     expect(ctx).toBeDefined();

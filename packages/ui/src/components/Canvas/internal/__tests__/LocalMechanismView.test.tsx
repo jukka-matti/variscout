@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import React from 'react';
 import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Finding, Hypothesis, ProcessMap, Question } from '@variscout/core';
+import type { Finding, Hypothesis, ProcessMap } from '@variscout/core';
 import { getAnalyzeInitialState, useAnalyzeStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import { LocalMechanismView } from '../LocalMechanismView';
@@ -37,7 +37,6 @@ vi.mock('../../../AnalyzeWall/WallCanvas', () => ({
     mode?: string;
     filterByStepId?: string;
     hubs: Hypothesis[];
-    questions: Question[];
     findings: Finding[];
     rows?: ReadonlyArray<Record<string, unknown>>;
     columnTypes?: Record<string, string>;
@@ -49,7 +48,6 @@ vi.mock('../../../AnalyzeWall/WallCanvas', () => ({
       data-mode={props.mode}
       data-filter-by-step-id={props.filterByStepId}
       data-hubs-count={props.hubs.length}
-      data-questions-count={props.questions.length}
       data-findings-count={props.findings.length}
       data-rows-count={props.rows?.length ?? 0}
       data-outcome-column={props.outcomeColumn ?? ''}
@@ -97,27 +95,11 @@ const rows = [
   { Outcome: 21, Machine: 'C', Operator: 'Ben', Shift: 'Night', Temperature: 109 },
 ];
 
-function question(overrides: Partial<Question> = {}): Question {
-  return {
-    id: overrides.id ?? 'q-1',
-    text: overrides.text ?? 'Does Machine explain the outcome?',
-    factor: overrides.factor ?? 'Machine',
-    status: overrides.status ?? 'open',
-    linkedFindingIds: [],
-    createdAt: 1,
-    updatedAt: 1,
-    deletedAt: null,
-    investigationId: 'inv-1',
-    ...overrides,
-  };
-}
-
 function hub(overrides: Partial<Hypothesis> = {}): Hypothesis {
   return {
     id: overrides.id ?? h('hub-1'),
     name: overrides.name ?? 'Machine setup drift',
     synthesis: overrides.synthesis ?? '',
-    questionIds: overrides.questionIds ?? [],
     findingIds: overrides.findingIds ?? [],
     status: overrides.status ?? 'proposed',
     createdAt: 1,
@@ -166,10 +148,16 @@ describe('LocalMechanismView', () => {
     expect(screen.getByText('Temperature')).toBeInTheDocument();
   });
 
-  it('passes focal step columns to EvidenceMapBase and focuses factor clicks', () => {
+  it('passes focal step columns to EvidenceMapBase and focuses factor clicks via hypothesis condition', () => {
     const onOpenInvestigationFocus = vi.fn();
+    // IM-1: factor identity lives in hypothesis.condition, not Question entity
     useAnalyzeStore.setState({
-      questions: [question({ id: 'q-machine', factor: 'Machine' })],
+      hypotheses: [
+        hub({
+          id: h('hub-machine'),
+          condition: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+        }),
+      ],
     });
     renderView({ onOpenInvestigationFocus });
 
@@ -184,17 +172,17 @@ describe('LocalMechanismView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'evidence factor' }));
 
+    // IM-1: focus is on the hypothesis (suspected-cause), not a question
     expect(onOpenInvestigationFocus).toHaveBeenCalledWith({
-      kind: 'question',
-      id: 'q-machine',
-      questionId: 'q-machine',
+      kind: 'suspected-cause',
+      id: h('hub-machine'),
     });
   });
 
   it('renders WallCanvas in overlay mode filtered to the focal step and forwards selection callbacks', () => {
     const onSelectWallHub = vi.fn();
     const onOpenWall = vi.fn();
-    useAnalyzeStore.setState({ hypotheses: [hub()], questions: [question()] });
+    useAnalyzeStore.setState({ hypotheses: [hub()] });
 
     renderView({ findings: [{ id: 'f-1' } as Finding], onSelectWallHub, onOpenWall });
 
@@ -205,7 +193,6 @@ describe('LocalMechanismView', () => {
     expect(mockedWall).toHaveAttribute('data-mode', 'overlay');
     expect(mockedWall).toHaveAttribute('data-filter-by-step-id', 'mix');
     expect(mockedWall).toHaveAttribute('data-hubs-count', '1');
-    expect(mockedWall).toHaveAttribute('data-questions-count', '1');
     expect(mockedWall).toHaveAttribute('data-findings-count', '1');
 
     fireEvent.click(screen.getByRole('button', { name: 'select wall hub' }));
@@ -214,24 +201,14 @@ describe('LocalMechanismView', () => {
     expect(onOpenWall).toHaveBeenCalledTimes(1);
   });
 
-  it('gates factor contribution rankings to focal investigation context', () => {
+  it('gates factor contribution rankings to focal investigation context via hypothesis condition', () => {
     renderView();
     expect(screen.queryByTestId('factor-contribution-rankings')).toBeNull();
 
     cleanup();
-    act(() => {
-      useAnalyzeStore.setState({ questions: [question({ factor: 'Machine' })] });
-    });
-    renderView();
-
-    const rankings = screen.getByTestId('factor-contribution-rankings');
-    expect(within(rankings).getByText(/contribution evidence/i)).toBeInTheDocument();
-    expect(within(rankings).getByText('Machine')).toBeInTheDocument();
-
-    cleanup();
+    // IM-1: factor context comes from hypothesis.condition, not Question entity
     act(() => {
       useAnalyzeStore.setState({
-        questions: [],
         hypotheses: [
           hub({
             condition: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
@@ -241,12 +218,20 @@ describe('LocalMechanismView', () => {
     });
     renderView();
 
-    expect(screen.getByTestId('factor-contribution-rankings')).toBeInTheDocument();
+    const rankings = screen.getByTestId('factor-contribution-rankings');
+    expect(within(rankings).getByText(/contribution evidence/i)).toBeInTheDocument();
+    expect(within(rankings).getByText('Machine')).toBeInTheDocument();
   });
 
   it('excludes the outcome column from factor contribution rankings', () => {
     act(() => {
-      useAnalyzeStore.setState({ questions: [question({ factor: 'Machine' })] });
+      useAnalyzeStore.setState({
+        hypotheses: [
+          hub({
+            condition: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+          }),
+        ],
+      });
     });
 
     renderView({

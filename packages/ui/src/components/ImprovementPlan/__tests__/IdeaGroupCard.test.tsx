@@ -14,10 +14,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { IdeaGroupCard } from '../IdeaGroupCard';
 import type { IdeaGroupCardProps } from '../IdeaGroupCard';
 
-const baseQuestion: IdeaGroupCardProps['question'] = {
-  id: 'q1',
+const baseHypothesis: IdeaGroupCardProps['hypothesis'] = {
+  id: 'h1',
   text: 'Shift (Night)',
-  causeRole: 'suspected-cause',
+  status: 'confirmed',
 };
 
 describe('IdeaGroupCard — parked ideas', () => {
@@ -26,7 +26,7 @@ describe('IdeaGroupCard — parked ideas', () => {
       { id: 'p1', text: 'Parked idea one' },
       { id: 'p2', text: 'Parked idea two' },
     ];
-    render(<IdeaGroupCard question={baseQuestion} ideas={[]} parkedIdeas={parkedIdeas} />);
+    render(<IdeaGroupCard hypothesis={baseHypothesis} ideas={[]} parkedIdeas={parkedIdeas} />);
     expect(screen.getByText('Parked ideas')).toBeTruthy();
     const p1 = screen.getByTestId('parked-idea-p1');
     expect(p1).toBeTruthy();
@@ -37,12 +37,12 @@ describe('IdeaGroupCard — parked ideas', () => {
   });
 
   it('does not render parked section when parkedIdeas is empty', () => {
-    render(<IdeaGroupCard question={baseQuestion} ideas={[]} parkedIdeas={[]} />);
+    render(<IdeaGroupCard hypothesis={baseHypothesis} ideas={[]} parkedIdeas={[]} />);
     expect(screen.queryByText('Parked ideas')).toBeNull();
   });
 
   it('does not render parked section when parkedIdeas is not provided', () => {
-    render(<IdeaGroupCard question={baseQuestion} ideas={[]} />);
+    render(<IdeaGroupCard hypothesis={baseHypothesis} ideas={[]} />);
     expect(screen.queryByText('Parked ideas')).toBeNull();
   });
 
@@ -51,7 +51,7 @@ describe('IdeaGroupCard — parked ideas', () => {
     const parkedIdeas = [{ id: 'p1', text: 'Promote this' }];
     const { container } = render(
       <IdeaGroupCard
-        question={baseQuestion}
+        hypothesis={baseHypothesis}
         ideas={[]}
         parkedIdeas={parkedIdeas}
         onPromoteIdea={onPromoteIdea}
@@ -67,7 +67,9 @@ describe('IdeaGroupCard — parked ideas', () => {
 
 describe('IdeaGroupCard — evidence badge', () => {
   it('shows R²adj badge when evidence.rSquaredAdj is provided', () => {
-    render(<IdeaGroupCard question={baseQuestion} ideas={[]} evidence={{ rSquaredAdj: 0.34 }} />);
+    render(
+      <IdeaGroupCard hypothesis={baseHypothesis} ideas={[]} evidence={{ rSquaredAdj: 0.34 }} />
+    );
     const badge = screen.getByTestId('evidence-badge');
     expect(badge).toBeTruthy();
     expect(badge.textContent).toContain('R²adj');
@@ -75,14 +77,18 @@ describe('IdeaGroupCard — evidence badge', () => {
   });
 
   it('rounds R²adj to nearest integer percentage', () => {
-    render(<IdeaGroupCard question={baseQuestion} ideas={[]} evidence={{ rSquaredAdj: 0.345 }} />);
+    render(
+      <IdeaGroupCard hypothesis={baseHypothesis} ideas={[]} evidence={{ rSquaredAdj: 0.345 }} />
+    );
     const badge = screen.getByTestId('evidence-badge');
     // Math.round(0.345 * 100) = 35
     expect(badge.textContent).toContain('35%');
   });
 
   it('shows η² badge when only evidence.etaSquared is provided', () => {
-    render(<IdeaGroupCard question={baseQuestion} ideas={[]} evidence={{ etaSquared: 0.21 }} />);
+    render(
+      <IdeaGroupCard hypothesis={baseHypothesis} ideas={[]} evidence={{ etaSquared: 0.21 }} />
+    );
     const badge = screen.getByTestId('evidence-badge');
     expect(badge).toBeTruthy();
     expect(badge.textContent).toContain('η²');
@@ -92,7 +98,7 @@ describe('IdeaGroupCard — evidence badge', () => {
   it('prefers R²adj over η² when both are provided', () => {
     render(
       <IdeaGroupCard
-        question={baseQuestion}
+        hypothesis={baseHypothesis}
         ideas={[]}
         evidence={{ rSquaredAdj: 0.5, etaSquared: 0.3 }}
       />
@@ -104,19 +110,19 @@ describe('IdeaGroupCard — evidence badge', () => {
   });
 
   it('shows no badge when evidence is not provided', () => {
-    render(<IdeaGroupCard question={baseQuestion} ideas={[]} />);
+    render(<IdeaGroupCard hypothesis={baseHypothesis} ideas={[]} />);
     expect(screen.queryByTestId('evidence-badge')).toBeNull();
   });
 
   it('shows no badge when evidence is an empty object', () => {
-    render(<IdeaGroupCard question={baseQuestion} ideas={[]} evidence={{}} />);
+    render(<IdeaGroupCard hypothesis={baseHypothesis} ideas={[]} evidence={{}} />);
     expect(screen.queryByTestId('evidence-badge')).toBeNull();
   });
 
   it('renders badge alongside factor name and cause role badge', () => {
     render(
       <IdeaGroupCard
-        question={{ ...baseQuestion, factor: 'Shift' }}
+        hypothesis={{ ...baseHypothesis, factor: 'Shift' }}
         ideas={[]}
         evidence={{ rSquaredAdj: 0.34 }}
       />

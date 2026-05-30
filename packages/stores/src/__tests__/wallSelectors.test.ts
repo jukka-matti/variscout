@@ -1,11 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import {
-  selectHubCommentStream,
-  selectHypothesisTributaries,
-  selectOpenQuestionsWithoutHub,
-  selectQuestionsForHub,
-} from '../wallSelectors';
-import type { Hypothesis, Finding, Question, FindingComment } from '@variscout/core';
+import { selectHubCommentStream, selectHypothesisTributaries } from '../wallSelectors';
+import type { Hypothesis, Finding, FindingComment } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
 function fc(id: string, text: string, createdAt: number): FindingComment {
@@ -29,7 +24,6 @@ describe('selectHubCommentStream', () => {
       id: 'h1',
       name: 'H1',
       synthesis: '',
-      questionIds: [],
       findingIds: ['f1'],
       status: 'proposed',
       createdAt: 1714000000000,
@@ -48,6 +42,7 @@ describe('selectHubCommentStream', () => {
       status: 'observed',
       comments: [fComment1, fComment2],
       statusChangedAt: 0,
+      evidenceType: 'data',
     };
 
     const result = selectHubCommentStream('h1', [hub], [f1]);
@@ -81,7 +76,6 @@ describe('selectHypothesisTributaries', () => {
       id: 'h1',
       name: 'h',
       synthesis: '',
-      questionIds: [],
       findingIds: [],
       status: 'proposed',
       createdAt: 1714000000000,
@@ -99,7 +93,6 @@ describe('selectHypothesisTributaries', () => {
       id: 'h1',
       name: 'h',
       synthesis: '',
-      questionIds: [],
       findingIds: [],
       status: 'proposed',
       createdAt: 1714000000000,
@@ -116,7 +109,6 @@ describe('selectHypothesisTributaries', () => {
       id: 'h1',
       name: 'h',
       synthesis: '',
-      questionIds: [],
       findingIds: ['f1'],
       status: 'proposed',
       createdAt: 1714000000000,
@@ -137,6 +129,7 @@ describe('selectHypothesisTributaries', () => {
       status: 'observed',
       comments: [],
       statusChangedAt: 0,
+      evidenceType: 'data',
     };
     const result = selectHypothesisTributaries(hub, [f1], processMap);
     expect(result.map(t => t.id)).toEqual(['t1']);
@@ -147,7 +140,6 @@ describe('selectHypothesisTributaries', () => {
       id: 'h1',
       name: 'h',
       synthesis: '',
-      questionIds: [],
       findingIds: [],
       status: 'proposed',
       createdAt: 1714000000000,
@@ -161,112 +153,14 @@ describe('selectHypothesisTributaries', () => {
   });
 });
 
-describe('selectOpenQuestionsWithoutHub', () => {
-  it('returns open questions not linked to any hub', () => {
-    const hubs: Hypothesis[] = [
-      {
-        id: 'h1',
-        name: '',
-        synthesis: '',
-        questionIds: ['q1'],
-        findingIds: [],
-        status: 'proposed',
-        createdAt: 1714000000000,
-        updatedAt: 1714000000000,
-        deletedAt: null,
-        investigationId: 'inv-test-001',
-      },
-    ];
-    const questions: Question[] = [
-      {
-        id: 'q1',
-        text: 'linked',
-        status: 'open',
-        linkedFindingIds: [],
-        createdAt: 1714000000000,
-        updatedAt: 1714000000000,
-        deletedAt: null,
-        investigationId: 'inv-test-001',
-      },
-      {
-        id: 'q2',
-        text: 'orphan',
-        status: 'open',
-        linkedFindingIds: [],
-        createdAt: 1714000000000,
-        updatedAt: 1714000000000,
-        deletedAt: null,
-        investigationId: 'inv-test-001',
-      },
-      {
-        id: 'q3',
-        text: 'answered',
-        status: 'answered',
-        linkedFindingIds: [],
-        createdAt: 1714000000000,
-        updatedAt: 1714000000000,
-        deletedAt: null,
-        investigationId: 'inv-test-001',
-      },
-    ];
-    const result = selectOpenQuestionsWithoutHub(questions, hubs);
-    expect(result.map(q => q.id)).toEqual(['q2']);
-  });
-});
-
-describe('selectQuestionsForHub', () => {
-  it('returns questions referenced by hub.questionIds', () => {
-    const hubs: Hypothesis[] = [
-      {
-        id: 'h1',
-        name: '',
-        synthesis: '',
-        questionIds: ['q1', 'q2'],
-        findingIds: [],
-        status: 'proposed',
-        createdAt: 1714000000000,
-        updatedAt: 1714000000000,
-        deletedAt: null,
-        investigationId: 'inv-test-001',
-      },
-    ];
-    const questions: Question[] = [
-      {
-        id: 'q1',
-        text: 'a',
-        status: 'open',
-        linkedFindingIds: [],
-        createdAt: 1714000000000,
-        updatedAt: 1714000000000,
-        deletedAt: null,
-        investigationId: 'inv-test-001',
-      },
-      {
-        id: 'q2',
-        text: 'b',
-        status: 'investigating',
-        linkedFindingIds: [],
-        createdAt: 1714000000000,
-        updatedAt: 1714000000000,
-        deletedAt: null,
-        investigationId: 'inv-test-001',
-      },
-      {
-        id: 'q3',
-        text: 'unused',
-        status: 'open',
-        linkedFindingIds: [],
-        createdAt: 1714000000000,
-        updatedAt: 1714000000000,
-        deletedAt: null,
-        investigationId: 'inv-test-001',
-      },
-    ];
-    const result = selectQuestionsForHub('h1', hubs, questions);
-    expect(result.map(q => q.id)).toEqual(['q1', 'q2']);
+describe('wallSelectors — relocation assertions (ADR-085)', () => {
+  it('selectOpenQuestionsWithoutHub is not exported (Questions retired in ADR-085)', async () => {
+    const mod = await import('../wallSelectors');
+    expect('selectOpenQuestionsWithoutHub' in mod).toBe(false);
   });
 
-  it('returns empty for unknown hub', () => {
-    expect(selectQuestionsForHub('missing', [], [])).toEqual([]);
+  it('selectQuestionsForHub is not exported (Questions retired in ADR-085)', async () => {
+    const mod = await import('../wallSelectors');
+    expect('selectQuestionsForHub' in mod).toBe(false);
   });
 });

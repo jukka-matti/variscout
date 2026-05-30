@@ -1,21 +1,22 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useAnalyzeFeatureStore, buildQuestionsMap, buildIdeaImpacts } from '../analyzeStore';
-import type { Question } from '@variscout/core';
+import { useAnalyzeFeatureStore, buildIdeaImpacts } from '../analyzeStore';
+import type { Hypothesis } from '@variscout/core';
 
 beforeEach(() => {
   useAnalyzeFeatureStore.setState({
     projectionTarget: null,
-    expandedQuestionId: null,
+    expandedHypothesisId: null,
   });
 });
 
 describe('analyzeStore', () => {
   it('setProjectionTarget sets and clears', () => {
+    // IM-1: ProjectionTarget is now keyed by hypothesisId (was questionId).
     const target = {
-      questionId: 'q-1',
+      hypothesisId: 'h-1',
       ideaId: 'i-1',
       ideaText: 'Change shift',
-      questionText: 'Shift effect',
+      hypothesisText: 'Shift effect',
     };
     useAnalyzeFeatureStore.getState().setProjectionTarget(target);
     expect(useAnalyzeFeatureStore.getState().projectionTarget).toEqual(target);
@@ -23,33 +24,60 @@ describe('analyzeStore', () => {
     expect(useAnalyzeFeatureStore.getState().projectionTarget).toBeNull();
   });
 
-  it('expandToQuestion sets expanded ID', () => {
-    useAnalyzeFeatureStore.getState().expandToQuestion('q-42');
-    expect(useAnalyzeFeatureStore.getState().expandedQuestionId).toBe('q-42');
+  it('expandToHypothesis sets expanded ID', () => {
+    // IM-1: expandToHypothesis replaced expandToQuestion (hypothesisId not questionId).
+    useAnalyzeFeatureStore.getState().expandToHypothesis('h-42');
+    expect(useAnalyzeFeatureStore.getState().expandedHypothesisId).toBe('h-42');
   });
 });
 
-describe('buildQuestionsMap', () => {
-  it('builds map from questions array', () => {
-    const questions = [
-      { id: 'q-1', text: 'Test', status: 'answered', factor: 'Shift' },
-    ] as Question[];
-    const map = buildQuestionsMap(questions);
-    expect(map).toEqual({
-      'q-1': {
-        text: 'Test',
-        status: 'answered',
-        factor: 'Shift',
-        level: undefined,
-        causeRole: undefined,
-      },
-    });
-  });
-});
+// buildQuestionsMap was removed in IM-1 (ADR-085). No replacement needed —
+// the Wall renders hypotheses directly from useAnalyzeStore.scopes.
 
 describe('buildIdeaImpacts', () => {
   it('returns empty map when no ideas', () => {
-    const questions = [{ id: 'q1', text: 'test', status: 'open' }] as Question[];
-    expect(buildIdeaImpacts(questions, undefined, null)).toEqual({});
+    // IM-1: buildIdeaImpacts now takes Hypothesis[] (was Question[]).
+    const hypotheses = [
+      {
+        id: 'h-1',
+        name: 'Nozzle wear',
+        status: 'open' as const,
+        synthesis: '',
+        findingIds: [],
+        investigationId: 'inv-1',
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+        // no ideas array → empty impact map
+      },
+    ] as unknown as Hypothesis[];
+    expect(buildIdeaImpacts(hypotheses, undefined, null)).toEqual({});
+  });
+
+  it('returns impact entries keyed by idea ID when ideas present', () => {
+    const hypotheses = [
+      {
+        id: 'h-1',
+        name: 'Shift effect',
+        status: 'open' as const,
+        synthesis: '',
+        findingIds: [],
+        investigationId: 'inv-1',
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+        ideas: [
+          {
+            id: 'idea-1',
+            text: 'Train operators',
+            createdAt: 1,
+            deletedAt: null,
+          },
+        ],
+      },
+    ] as unknown as Hypothesis[];
+    const impacts = buildIdeaImpacts(hypotheses, undefined, null);
+    // The idea appears in the map (impact value is undefined without target/stats).
+    expect('idea-1' in impacts).toBe(true);
   });
 });

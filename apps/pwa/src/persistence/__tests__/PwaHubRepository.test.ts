@@ -162,7 +162,8 @@ beforeEach(async () => {
     db.evidenceSourceCursors.clear(),
     db.investigations.clear(),
     db.findings.clear(),
-    db.questions.clear(),
+    // IM-1 (ADR-085): db.questions table dropped at schema v10. ProblemStatementScope
+    // has no Dexie footprint — no table to clear.
     db.causalLinks.clear(),
     db.hypotheses.clear(),
     db.controlRecords.clear(),
@@ -560,9 +561,12 @@ describe('PwaHubRepository — stub read APIs (empty tables until F3.5/F5)', () 
     expect(await repo.findings.listByInvestigation('inv-x')).toEqual([]);
   });
 
-  it('questions.listByInvestigation returns []', async () => {
+  it('scopes.listByInvestigation returns [] (IM-1: ProblemStatementScope has no Dexie footprint)', async () => {
+    // IM-1 (ADR-085): `questions` table dropped. ProblemStatementScope persists
+    // via the analyze blob. The repo exposes `scopes` (ScopeReadAPI) as a stub
+    // that always returns [] — reads come from the analyzeStore.scopes slice in-session.
     const repo = new PwaHubRepository();
-    expect(await repo.questions.listByInvestigation('inv-x')).toEqual([]);
+    expect(await repo.scopes.listByInvestigation('inv-x')).toEqual([]);
   });
 
   it('causalLinks.listByInvestigation returns []', async () => {

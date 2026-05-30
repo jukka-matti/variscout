@@ -10,14 +10,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import { Minimap } from '../Minimap';
 import { CANVAS_W, CANVAS_H } from '../WallCanvas';
-import type { Hypothesis, Question } from '@variscout/core';
+import type { Hypothesis } from '@variscout/core';
 
 const hubs: Hypothesis[] = [
   {
     id: 'h-1',
     name: 'Night shift',
     synthesis: '',
-    questionIds: [],
     findingIds: [],
     status: 'proposed',
     createdAt: 1,
@@ -29,22 +28,8 @@ const hubs: Hypothesis[] = [
     id: 'h-2',
     name: 'Calibration drift',
     synthesis: '',
-    questionIds: [],
     findingIds: [],
     status: 'proposed',
-    createdAt: 1,
-    updatedAt: 1,
-    deletedAt: null,
-    investigationId: 'inv-test',
-  },
-];
-
-const questions: Question[] = [
-  {
-    id: 'q-1',
-    text: 'What about downtime?',
-    status: 'open',
-    linkedFindingIds: [],
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,
@@ -55,23 +40,23 @@ const questions: Question[] = [
 describe('Minimap', () => {
   it('renders a minimap container with aria-label', () => {
     const { getByLabelText } = render(
-      <Minimap hubs={hubs} questions={questions} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={vi.fn()} />
+      <Minimap hubs={hubs} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={vi.fn()} />
     );
     expect(getByLabelText(/Investigation Wall minimap/i)).toBeInTheDocument();
   });
 
-  it('renders one dot per hub + question', () => {
+  it('renders one dot per hub', () => {
     const { container } = render(
-      <Minimap hubs={hubs} questions={questions} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={vi.fn()} />
+      <Minimap hubs={hubs} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={vi.fn()} />
     );
     const dots = container.querySelectorAll('[data-minimap-node]');
-    expect(dots.length).toBe(hubs.length + questions.length);
+    expect(dots.length).toBe(hubs.length);
   });
 
   it('click on minimap calls onPanTo with coordinates in canvas-space', () => {
     const onPanTo = vi.fn();
     const { container } = render(
-      <Minimap hubs={hubs} questions={questions} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={onPanTo} />
+      <Minimap hubs={hubs} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={onPanTo} />
     );
     const svg = container.querySelector('svg[data-testid="wall-minimap"]') as SVGSVGElement;
     expect(svg).toBeTruthy();
@@ -93,7 +78,7 @@ describe('Minimap', () => {
   it('click near the top-left corner maps to canvas origin', () => {
     const onPanTo = vi.fn();
     const { container } = render(
-      <Minimap hubs={hubs} questions={questions} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={onPanTo} />
+      <Minimap hubs={hubs} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={onPanTo} />
     );
     const svg = container.querySelector('svg[data-testid="wall-minimap"]') as SVGSVGElement;
     svg.getBoundingClientRect = () =>
@@ -107,7 +92,7 @@ describe('Minimap', () => {
 
   it('renders a viewport rectangle', () => {
     const { container } = render(
-      <Minimap hubs={hubs} questions={questions} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={vi.fn()} />
+      <Minimap hubs={hubs} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={vi.fn()} />
     );
     expect(container.querySelector('[data-minimap-viewport]')).toBeTruthy();
   });

@@ -42,7 +42,6 @@ const baseHub: Hypothesis = {
   id: 'h1',
   name: 'Nozzle hot on night shift',
   synthesis: '',
-  questionIds: [],
   findingIds: [],
   status: 'evidenced',
   investigationId: 'inv-1',

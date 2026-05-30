@@ -6,7 +6,7 @@ import {
   projectMechanismBranch,
   type SignalCard,
 } from '../index';
-import type { Finding, Question, Hypothesis } from '../findings';
+import type { Finding, Hypothesis } from '../findings';
 
 const card = (overrides: Partial<SignalCard> = {}): SignalCard => ({
   id: 'sig-weight',
@@ -22,18 +22,6 @@ const card = (overrides: Partial<SignalCard> = {}): SignalCard => ({
   ...overrides,
 });
 
-const question = (): Question => ({
-  id: 'q-1',
-  text: 'Does Machine affect fill weight?',
-  factor: 'Machine',
-  status: 'answered',
-  linkedFindingIds: ['f-1'],
-  investigationId: 'inv-test-001',
-  createdAt: 1745625600000,
-  updatedAt: 1745625600000,
-  deletedAt: null,
-});
-
 const finding = (): Finding => ({
   id: 'f-1',
   text: 'Machine B has lower fill weight.',
@@ -45,7 +33,6 @@ const finding = (): Finding => ({
   status: 'analyzed',
   comments: [],
   statusChangedAt: 1760000000000,
-  questionId: 'q-1',
   validationStatus: 'supports',
 });
 
@@ -53,7 +40,6 @@ const branch = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   id: 'hub-1',
   name: 'Nozzle wear',
   synthesis: 'Machine B separates from the rest.',
-  questionIds: ['q-1'],
   findingIds: ['f-1'],
   status: 'proposed',
   investigationId: 'inv-test-001',
@@ -105,7 +91,6 @@ describe('Signal Cards', () => {
 
   it('warns when a Mechanism Branch relies on weak or missing signal evidence', () => {
     const view = projectMechanismBranch(branch({ signalCardIds: ['sig-machine', 'missing'] }), {
-      questions: [question()],
       findings: [finding()],
       signalCards: [
         card({ id: 'sig-machine', signalName: 'Machine', role: 'factor', trustGrade: 'weak' }),

@@ -26,7 +26,6 @@ const hub: Hypothesis = {
   id: 'h1',
   name: 'Nozzle hot',
   synthesis: '',
-  questionIds: [],
   findingIds: [],
   status: 'evidenced',
   investigationId: 'inv-1',
@@ -42,7 +41,6 @@ describe('WallCanvas mini-chart prop wiring', () => {
       <WallCanvas
         hubs={[hub]}
         findings={[]}
-        questions={[]}
         problemCpk={0}
         eventsPerWeek={0}
         rows={[{ TEMP: 90 }, { TEMP: 95 }, { TEMP: 100 }]}

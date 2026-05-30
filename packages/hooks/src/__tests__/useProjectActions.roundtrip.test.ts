@@ -6,7 +6,7 @@
  *
  * Covers:
  *  1. Full project roundtrip (rawData, outcome, factors, specs)
- *  2. Investigation roundtrip (findings, questions from analyzeStore)
+ *  2. Investigation roundtrip (findings from analyzeStore)
  *  3. Non-default analysis config (mode, specs, displayOptions, paretoMode)
  *  4. filterStack derivation: filterStack → flat filters on load
  *  5. newProject resets both stores
@@ -18,7 +18,7 @@ import { useProjectActions } from '../useProjectActions';
 import { useProjectStore, getProjectInitialState } from '@variscout/stores';
 import { useAnalyzeStore, getAnalyzeInitialState } from '@variscout/stores';
 import type { PersistenceAdapter, SavedProject, AnalysisState } from '../types';
-import type { DataRow, Finding, Question, FilterAction } from '@variscout/core';
+import type { DataRow, Finding, FilterAction } from '@variscout/core';
 
 // ============================================================================
 // In-memory PersistenceAdapter
@@ -113,19 +113,6 @@ function makeFinding(id: string, text: string): Finding {
   };
 }
 
-function makeQuestion(id: string, text: string): Question {
-  return {
-    id,
-    text,
-    status: 'open',
-    createdAt: 1714000000000,
-    updatedAt: 1714000000000,
-    deletedAt: null,
-    investigationId: 'inv-test-001',
-    linkedFindingIds: [],
-  };
-}
-
 // ============================================================================
 // Setup
 // ============================================================================
@@ -186,22 +173,21 @@ describe('useProjectActions persistence roundtrip', () => {
   // 2. Investigation roundtrip
   // --------------------------------------------------------------------------
 
-  it('roundtrip: findings and questions from analyzeStore survive save → reset → load', async () => {
+  it('roundtrip: findings from analyzeStore survive save → reset → load', async () => {
     const adapter = createInMemoryAdapter();
     const { result } = renderHook(() => useProjectActions(adapter));
 
-    // analyzeStore is the authority for findings/questions
+    // analyzeStore is the authority for findings
     const findings = [
       makeFinding('f1', 'Weight spike on Machine B'),
       makeFinding('f2', 'Shift effect'),
     ];
-    const questions = [makeQuestion('q1', 'Is Machine B the root cause?')];
 
     // getCurrentStateFromStores reads investigation data from analyzeStore (authoritative)
     useProjectStore.getState().setRawData(sampleData);
     useProjectStore.getState().setOutcome('Weight');
     useProjectStore.getState().setFactors(['Machine']);
-    useAnalyzeStore.getState().loadAnalyzeState({ findings, questions });
+    useAnalyzeStore.getState().loadAnalyzeState({ findings });
 
     // Save
     let savedId!: string;
@@ -225,9 +211,6 @@ describe('useProjectActions persistence roundtrip', () => {
     expect(is.findings[0].id).toBe('f1');
     expect(is.findings[0].text).toBe('Weight spike on Machine B');
     expect(is.findings[1].id).toBe('f2');
-    expect(is.questions).toHaveLength(1);
-    expect(is.questions[0].id).toBe('q1');
-    expect(is.questions[0].text).toBe('Is Machine B the root cause?');
   });
 
   // --------------------------------------------------------------------------
@@ -349,12 +332,12 @@ describe('useProjectActions persistence roundtrip', () => {
       cumulativeScope: 0,
       stats: { mean: 15, samples: 4 },
     });
-    useAnalyzeStore.getState().addQuestion('Must disappear too');
+    useAnalyzeStore.getState().addScope('inv-1', 'Fill Weight');
 
     // Verify seeding worked
     expect(useProjectStore.getState().rawData).toHaveLength(4);
     expect(useAnalyzeStore.getState().findings).toHaveLength(1);
-    expect(useAnalyzeStore.getState().questions).toHaveLength(1);
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(1);
 
     // Call newProject
     act(() => {
@@ -373,7 +356,7 @@ describe('useProjectActions persistence roundtrip', () => {
     // analyzeStore should be reset
     const is = useAnalyzeStore.getState();
     expect(is.findings).toEqual([]);
-    expect(is.questions).toEqual([]);
+    expect(is.scopes).toEqual([]);
     expect(is.categories).toEqual([]);
     expect(is.hypotheses).toEqual([]);
   });

@@ -13,7 +13,6 @@ function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
     id: 'hub-1',
     name: 'Nozzle wear on night shift',
     synthesis: 'Night shift thermal stress causes wear',
-    questionIds: ['q1', 'q2'],
     findingIds: ['f1'],
     status: 'proposed',
     createdAt: 1714000000000,
@@ -26,7 +25,6 @@ function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
 
 const defaultProps = () => ({
   hub: makeHub(),
-  questionsCount: 2,
   findingsCount: 1,
   onEdit: vi.fn(),
   onToggleSelect: vi.fn(),
@@ -75,10 +73,9 @@ describe('HubCard', () => {
     expect(screen.getByText(/-1\.3/)).toBeInTheDocument();
   });
 
-  it('shows summary: "N questions . M findings"', () => {
+  it('shows summary: "M findings"', () => {
     render(<HubCard {...defaultProps()} />);
 
-    expect(screen.getByText(/2 questions/)).toBeInTheDocument();
     expect(screen.getByText(/1 finding/)).toBeInTheDocument();
   });
 

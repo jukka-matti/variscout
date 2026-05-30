@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { buildProjectMetadata } from '../projectMetadata';
 import type { ProjectMetadata } from '../projectMetadata';
-import { createFinding, createQuestion, createActionItem } from '../findings';
-import type { Finding, Question, ActionItem } from '../findings';
+import { createFinding, createActionItem } from '../findings';
+import type { Finding, ActionItem } from '../findings';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -10,11 +10,6 @@ import type { Finding, Question, ActionItem } from '../findings';
 
 function makeFinding(overrides: Partial<Finding> = {}): Finding {
   const base = createFinding('Test finding', {}, null);
-  return { ...base, ...overrides };
-}
-
-function makeQuestion(overrides: Partial<Question> = {}): Question {
-  const base = createQuestion('Test question', 'inv-test-001');
   return { ...base, ...overrides };
 }
 
@@ -107,45 +102,14 @@ describe('buildProjectMetadata — findingCounts', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Question counts by status (root only)
+// Question counts — ADR-085: always empty (Question entity retired)
 // ---------------------------------------------------------------------------
 
-describe('buildProjectMetadata — questionCounts', () => {
-  it('returns empty counts when no questions', () => {
+describe('buildProjectMetadata — questionCounts (retired ADR-085)', () => {
+  it('always returns empty object regardless of 2nd arg (retained for shape stability)', () => {
+    // The 2nd arg is accepted but ignored; questionCounts is always {}
     const result = buildProjectMetadata([], [], true, 'local');
     expect(result.questionCounts).toEqual({});
-  });
-
-  it('counts root questions by status', () => {
-    const questions = [
-      makeQuestion({ status: 'open' }),
-      makeQuestion({ status: 'answered' }),
-      makeQuestion({ status: 'answered' }),
-      makeQuestion({ status: 'ruled-out' }),
-    ];
-    const result = buildProjectMetadata([], questions, true, 'local');
-    expect(result.questionCounts).toEqual({
-      open: 1,
-      answered: 2,
-      'ruled-out': 1,
-    });
-  });
-
-  it('excludes sub-questions (parentId set)', () => {
-    const root = makeQuestion({ status: 'open' });
-    const child = makeQuestion({ status: 'answered', parentId: root.id });
-    const result = buildProjectMetadata([], [root, child], true, 'local');
-    // Only root should be counted
-    expect(result.questionCounts).toEqual({ open: 1 });
-  });
-
-  it('counts only root questions when mix of root and child', () => {
-    const root1 = makeQuestion({ status: 'answered' });
-    const root2 = makeQuestion({ status: 'investigating' });
-    const child1 = makeQuestion({ status: 'open', parentId: root1.id });
-    const child2 = makeQuestion({ status: 'ruled-out', parentId: root2.id });
-    const result = buildProjectMetadata([], [root1, root2, child1, child2], true, 'local');
-    expect(result.questionCounts).toEqual({ answered: 1, investigating: 1 });
   });
 });
 
@@ -436,7 +400,7 @@ describe('buildProjectMetadata — Process Hub fields', () => {
 // ---------------------------------------------------------------------------
 
 describe('buildProjectMetadata — empty inputs', () => {
-  it('handles empty findings and questions without error', () => {
+  it('handles empty findings without error', () => {
     const result: ProjectMetadata = buildProjectMetadata([], [], true, 'local');
     expect(result.phase).toBe('scout');
     expect(result.findingCounts).toEqual({});

@@ -33,7 +33,7 @@ const detailedOverlay: CanvasStepAnalyzeOverlay = {
       id: 'finding-1',
       text: 'Pressure shift',
       status: 'observed',
-      questionId: undefined,
+
       focus: { kind: 'finding', id: 'finding-1' },
     },
   ],
@@ -42,7 +42,7 @@ const detailedOverlay: CanvasStepAnalyzeOverlay = {
       id: 'hub-1',
       name: 'Thermal drift',
       status: 'proposed',
-      questionId: undefined,
+
       focus: { kind: 'suspected-cause', id: 'hub-1' },
     },
   ],
@@ -59,7 +59,7 @@ const overlayWithPromoted: CanvasStepAnalyzeOverlay = {
       id: 'hub-1',
       name: 'Thermal drift',
       status: 'proposed',
-      questionId: undefined,
+
       focus: { kind: 'suspected-cause', id: 'hub-1' },
     },
   ],

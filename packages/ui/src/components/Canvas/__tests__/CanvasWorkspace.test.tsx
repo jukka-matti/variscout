@@ -250,25 +250,6 @@ const mockStepCards: CanvasStepCardModel[] = [
   },
 ];
 
-const mockTwoStepCards: CanvasStepCardModel[] = [
-  mockStepCards[0],
-  {
-    stepId: 'step-2',
-    stepName: 'Fill',
-    assignedColumns: ['Fill_Defect'],
-    metricColumn: 'Fill_Defect',
-    metricKind: 'categorical',
-    values: [],
-    distribution: [{ label: 'Scratch', count: 2 }],
-    capability: {
-      state: 'no-specs',
-      n: 0,
-      canAddSpecs: true,
-    },
-    defectCount: 2,
-  },
-];
-
 const mockInvestigationOverlays: CanvasAnalyzeOverlayModel = {
   byStep: {
     'step-1': {
@@ -279,7 +260,7 @@ const mockInvestigationOverlays: CanvasAnalyzeOverlayModel = {
           text: 'Does bake time drive fill weight?',
           status: 'open',
           factor: 'Bake_Time',
-          focus: { kind: 'question', id: 'q-1', questionId: 'q-1' },
+          focus: { kind: 'question', id: 'q-1' },
         },
       ],
       findings: [],
@@ -994,57 +975,6 @@ describe('CanvasWorkspace', () => {
     );
   });
 
-  it('forwards saved draw-flow hypotheses to the app shell callback with the selected question id', () => {
-    const onAddCausalLink = vi.fn();
-    vi.mocked(useCanvasStepCards).mockReturnValue({ cards: mockTwoStepCards });
-    canvasFiltersStateRef.current = {
-      ...canvasFiltersStateRef.current,
-      activeCanvasTool: 'draw-hypothesis',
-    };
-
-    renderWorkspace({
-      processContext: { processMap: mapWithSecondStep() },
-      questions: [
-        {
-          id: 'q-1',
-          text: 'Does bake time drive fill defects?',
-          status: 'open',
-          linkedFindingIds: [],
-          createdAt: 0,
-          updatedAt: 0,
-          deletedAt: null,
-          investigationId: 'inv-1',
-        },
-      ],
-      onAddCausalLink,
-    });
-
-    fireEvent.pointerDown(screen.getByTestId('canvas-step-card-step-1'), {
-      clientX: 10,
-      clientY: 20,
-    });
-    fireEvent.pointerMove(screen.getByTestId('canvas-step-card-step-2'), {
-      clientX: 100,
-      clientY: 50,
-    });
-    fireEvent.pointerUp(screen.getByTestId('canvas-step-card-step-2'), {
-      clientX: 100,
-      clientY: 50,
-    });
-    fireEvent.change(screen.getByLabelText(/because/i), {
-      target: { value: 'bake time variation creates fill defects' },
-    });
-    fireEvent.change(screen.getByLabelText(/link to question/i), { target: { value: 'q-1' } });
-    fireEvent.click(screen.getByRole('button', { name: /save/i }));
-
-    expect(onAddCausalLink).toHaveBeenCalledWith(
-      'Bake_Time',
-      'Fill_Defect',
-      'bake time variation creates fill defects',
-      { questionIds: ['q-1'] }
-    );
-  });
-
   it('forwards causal link removal from the step overlay to the app shell callback', () => {
     const onRemoveCausalLink = vi.fn();
     vi.mocked(useCanvasAnalyzeOverlays).mockReturnValue({
@@ -1060,8 +990,7 @@ describe('CanvasWorkspace', () => {
                 fromStepId: 'step-1',
                 toStepId: 'step-2',
                 label: 'Bake time drives fill defects',
-                questionId: 'q-1',
-                focus: { kind: 'causal-link', id: 'link-1', questionId: 'q-1' },
+                focus: { kind: 'causal-link', id: 'link-1' },
               },
             ],
           },

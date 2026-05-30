@@ -163,7 +163,7 @@ describe('ImprovementProjectPanel (PWA)', () => {
           updatedAt: 1,
           deletedAt: null,
           synthesis: '',
-          questionIds: [],
+          // IM-1 (ADR-085): `questionIds` was removed from Hypothesis. findingIds is the link.
           findingIds: [],
           investigationId: 'inv-1',
         },

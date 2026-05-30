@@ -283,13 +283,13 @@ describe('projectStore — additional setters', () => {
   // --- Selection (relocated to useViewStore in F4) ---
 
   it('does not own selectedPoints (relocated to useViewStore in F4)', () => {
-    const state = useProjectStore.getState() as Record<string, unknown>;
+    const state = useProjectStore.getState() as unknown as Record<string, unknown>;
     expect('selectedPoints' in state).toBe(false);
     expect('selectionIndexMap' in state).toBe(false);
   });
 
   it('does not expose selection actions (relocated to useViewStore in F4)', () => {
-    const state = useProjectStore.getState() as Record<string, unknown>;
+    const state = useProjectStore.getState() as unknown as Record<string, unknown>;
     expect('setSelectedPoints' in state).toBe(false);
     expect('addToSelection' in state).toBe(false);
     expect('removeFromSelection' in state).toBe(false);
@@ -301,9 +301,9 @@ describe('projectStore — additional setters', () => {
   // --- View state ---
 
   it('setViewState updates viewState and marks unsaved', () => {
-    useProjectStore.getState().setViewState({ activeView: 'investigation', isFindingsOpen: true });
+    useProjectStore.getState().setViewState({ activeView: 'analyze', isFindingsOpen: true });
     expect(useProjectStore.getState().viewState).toEqual({
-      activeView: 'investigation',
+      activeView: 'analyze',
       isFindingsOpen: true,
     });
     expect(useProjectStore.getState().hasUnsavedChanges).toBe(true);

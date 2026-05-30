@@ -177,7 +177,6 @@ describe('useWallBackgroundJobs (azure)', () => {
             id: 'h1',
             name: 'H1',
             synthesis: '',
-            questionIds: [],
             findingIds: [],
             status: 'proposed',
             createdAt: Date.parse('2026-04-19T00:00:00Z'),

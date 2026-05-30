@@ -12,14 +12,13 @@ import {
   type UseSharedWallPropsArgs,
   type UseSharedWallPropsReturn,
 } from '../useSharedWallProps';
-import type { Finding, Question, Hypothesis } from '@variscout/core';
+import type { Finding, Hypothesis } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
 interface MutableWallCanvasDataProps {
   hubId?: string;
   hubs: Hypothesis[];
   findings: Finding[];
-  questions: Question[];
   processMap?: ProcessMap;
   problemCpk: number;
   eventsPerWeek: number;
@@ -33,22 +32,8 @@ function makeHub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
   return {
     name: 'Night shift setup',
     synthesis: 'Setup variation likely drives defects.',
-    questionIds: [],
     findingIds: [],
     status: 'proposed',
-    createdAt: 1714000000000,
-    updatedAt: 1714000000000,
-    deletedAt: null,
-    investigationId: 'inv-test-001',
-    ...overrides,
-  };
-}
-
-function makeQuestion(overrides: Partial<Question> & { id: string }): Question {
-  return {
-    text: 'Does setup vary by shift?',
-    status: 'open',
-    linkedFindingIds: [],
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
@@ -96,13 +81,11 @@ describe('useSharedWallProps', () => {
     expectTypeOf<UseSharedWallPropsReturn>().toMatchTypeOf<MutableWallCanvasDataProps>();
   });
 
-  it('exposes hubs and questions from investigation store and findings from args', () => {
+  it('exposes hubs from investigation store and findings from args', () => {
     const hub = makeHub({ id: 'hub-1' });
-    const question = makeQuestion({ id: 'q-1' });
     const findings = [makeFinding({ id: 'finding-1' })];
     useAnalyzeStore.setState({
       hypotheses: [hub],
-      questions: [question],
     });
 
     const { result } = renderHook(() =>
@@ -117,7 +100,6 @@ describe('useSharedWallProps', () => {
     );
 
     expect(result.current.hubs).toBe(useAnalyzeStore.getState().hypotheses);
-    expect(result.current.questions).toBe(useAnalyzeStore.getState().questions);
     expect(result.current.findings).toBe(findings);
   });
 

@@ -23,7 +23,6 @@ describe('usePreferencesStore', () => {
     expect(s.aiEnabled).toBe(true);
     expect(s.aiPreferences).toEqual({});
     expect(s.knowledgeSearchFolder).toBeNull();
-    expect(s.skipQuestionLinkPrompt).toBe(false);
     expect(s.timeLens).toEqual(DEFAULT_TIME_LENS);
     expect(s.riskAxisConfig).toEqual(DEFAULT_RISK_AXIS_CONFIG);
     expect(s.budgetConfig).toEqual({});
@@ -37,17 +36,21 @@ describe('usePreferencesStore', () => {
     expect(usePreferencesStore.getState().isPISidebarOpen).toBe(false);
   });
 
-  it('showInvestigation sets workspace to investigation and opens PI sidebar', () => {
+  it('showInvestigation sets workspace to investigation and opens PI sidebar with scope tab', () => {
     usePreferencesStore.getState().showInvestigation();
     const s = usePreferencesStore.getState();
     expect(s.activeView).toBe('investigation');
     expect(s.isPISidebarOpen).toBe(true);
-    expect(s.piActiveTab).toBe('questions');
+    // 'questions' tab retired (ADR-085); PI sidebar opens to 'scope' tab
+    expect(s.piActiveTab).toBe('scope');
   });
 
   it('setRiskAxisConfig updates riskAxisConfig', () => {
-    usePreferencesStore.getState().setRiskAxisConfig({ x: 'cost', y: 'effort' });
-    expect(usePreferencesStore.getState().riskAxisConfig).toEqual({ x: 'cost', y: 'effort' });
+    usePreferencesStore.getState().setRiskAxisConfig({ axis1: 'quality', axis2: 'environmental' });
+    expect(usePreferencesStore.getState().riskAxisConfig).toEqual({
+      axis1: 'quality',
+      axis2: 'environmental',
+    });
   });
 
   it('remembers the tablet IP team rail expansion preference', () => {

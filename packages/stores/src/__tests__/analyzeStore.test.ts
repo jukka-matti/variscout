@@ -8,6 +8,7 @@ import type {
   Hypothesis,
   AnalyzeCategory,
   GateNode,
+  ProblemStatementScope,
 } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
 
@@ -31,16 +32,15 @@ beforeEach(() => {
 // ============================================================================
 
 describe('analyzeStore — findings', () => {
-  it('adds a finding with text, context, source, and questionId', () => {
+  it('adds a finding with text, context, and source', () => {
     const ctx = makeContext();
     const source = { chart: 'boxplot' as const, category: 'A', timeLens: DEFAULT_TIME_LENS };
-    const finding = useAnalyzeStore.getState().addFinding('test note', ctx, source, 'q-1');
+    const finding = useAnalyzeStore.getState().addFinding('test note', ctx, source);
 
     const state = useAnalyzeStore.getState();
     expect(state.findings).toHaveLength(1);
     expect(state.findings[0].text).toBe('test note');
     expect(state.findings[0].source).toEqual(source);
-    expect(state.findings[0].questionId).toBe('q-1');
     expect(state.findings[0].status).toBe('observed');
     expect(finding.id).toBe(state.findings[0].id);
   });
@@ -98,24 +98,6 @@ describe('analyzeStore — findings', () => {
 
     useAnalyzeStore.getState().setFindingAssignee(f.id, null);
     expect(useAnalyzeStore.getState().findings[0].assignee).toBeUndefined();
-  });
-
-  it('links finding to question', () => {
-    const ctx = makeContext();
-    const f = useAnalyzeStore.getState().addFinding('note', ctx);
-    useAnalyzeStore.getState().linkFindingToQuestion(f.id, 'q-1', 'supports');
-    const updated = useAnalyzeStore.getState().findings[0];
-    expect(updated.questionId).toBe('q-1');
-    expect(updated.validationStatus).toBe('supports');
-  });
-
-  it('unlinks finding from question', () => {
-    const ctx = makeContext();
-    const f = useAnalyzeStore.getState().addFinding('note', ctx, undefined, 'q-1');
-    useAnalyzeStore.getState().unlinkFindingFromQuestion(f.id);
-    const updated = useAnalyzeStore.getState().findings[0];
-    expect(updated.questionId).toBeUndefined();
-    expect(updated.validationStatus).toBeUndefined();
   });
 
   it('adds comment to finding', () => {
@@ -321,144 +303,126 @@ describe('analyzeStore — benchmark + scope', () => {
 });
 
 // ============================================================================
-// Question tests
+// Scopes slice tests (ADR-085 — first-class WHERE)
 // ============================================================================
 
-describe('analyzeStore — questions', () => {
-  it('adds a root question', () => {
-    const q = useAnalyzeStore.getState().addQuestion('Does shift matter?', 'Shift');
+describe('analyzeStore — scopes', () => {
+  it('starts with empty scopes', () => {
+    expect(useAnalyzeStore.getState().scopes).toEqual([]);
+  });
+
+  it('addScope creates a scope with outcome and investigationId', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'High defect rate on Line 3');
     const state = useAnalyzeStore.getState();
-    expect(state.questions).toHaveLength(1);
-    expect(state.questions[0].text).toBe('Does shift matter?');
-    expect(state.questions[0].factor).toBe('Shift');
-    expect(state.questions[0].status).toBe('open');
-    expect(q.id).toBe(state.questions[0].id);
+    expect(state.scopes).toHaveLength(1);
+    expect(state.scopes[0].outcome).toBe('High defect rate on Line 3');
+    expect(state.scopes[0].investigationId).toBe('inv-1');
+    expect(state.scopes[0].hypothesisIds).toEqual([]);
+    expect(state.scopes[0].predicates).toEqual([]);
+    expect(scope.id).toBe(state.scopes[0].id);
   });
 
-  it('adds a sub-question', () => {
-    const parent = useAnalyzeStore.getState().addQuestion('Root');
-    const child = useAnalyzeStore
+  it('addScope accepts initial predicates and hypothesisIds', () => {
+    const predicates = [
+      { kind: 'leaf' as const, column: 'Shift', op: 'eq' as const, value: 'Night' },
+    ];
+    const scope = useAnalyzeStore
       .getState()
-      .addSubQuestion(parent.id, 'Sub question', 'Machine', 'A', 'gemba');
-    expect(child).not.toBeNull();
-    expect(child!.parentId).toBe(parent.id);
-    expect(child!.validationType).toBe('gemba');
-    expect(useAnalyzeStore.getState().questions).toHaveLength(2);
+      .addScope('inv-1', 'Defects on night shift', predicates, ['h-1']);
+    expect(scope.predicates).toEqual(predicates);
+    expect(scope.hypothesisIds).toEqual(['h-1']);
   });
 
-  it('returns null for sub-question if parent does not exist', () => {
-    const result = useAnalyzeStore.getState().addSubQuestion('nonexistent', 'Sub');
-    expect(result).toBeNull();
+  it('updateScope patches fields and sets updatedAt', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Original outcome');
+    const beforeUpdate = scope.updatedAt;
+    useAnalyzeStore.getState().updateScope(scope.id, { outcome: 'Updated outcome' });
+    const updated = useAnalyzeStore.getState().scopes[0];
+    expect(updated.outcome).toBe('Updated outcome');
+    expect(updated.updatedAt).toBeGreaterThanOrEqual(beforeUpdate);
   });
 
-  it('returns null for sub-question if max depth exceeded', () => {
-    const q0 = useAnalyzeStore.getState().addQuestion('L0');
-    const q1 = useAnalyzeStore.getState().addSubQuestion(q0.id, 'L1');
-    const q2 = useAnalyzeStore.getState().addSubQuestion(q1!.id, 'L2');
-    // Depth of q2 is 2, MAX_QUESTION_DEPTH - 1 = 2, so adding a child to q2 should fail
-    const q3 = useAnalyzeStore.getState().addSubQuestion(q2!.id, 'L3');
-    expect(q3).toBeNull();
+  it('removeScope deletes the scope by id', () => {
+    const s1 = useAnalyzeStore.getState().addScope('inv-1', 'Scope A');
+    useAnalyzeStore.getState().addScope('inv-1', 'Scope B');
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(2);
+
+    useAnalyzeStore.getState().removeScope(s1.id);
+    const state = useAnalyzeStore.getState();
+    expect(state.scopes).toHaveLength(1);
+    expect(state.scopes[0].outcome).toBe('Scope B');
   });
 
-  it('returns null for sub-question if max children exceeded', () => {
-    const parent = useAnalyzeStore.getState().addQuestion('Parent');
-    // Add MAX_CHILDREN_PER_PARENT children
-    for (let i = 0; i < 8; i++) {
-      useAnalyzeStore.getState().addSubQuestion(parent.id, `Child ${i}`);
-    }
-    const overflow = useAnalyzeStore.getState().addSubQuestion(parent.id, 'Overflow');
-    expect(overflow).toBeNull();
-  });
-
-  it('edits a question', () => {
-    const q = useAnalyzeStore.getState().addQuestion('Original');
-    useAnalyzeStore.getState().editQuestion(q.id, { text: 'Edited', factor: 'New' });
-    const updated = useAnalyzeStore.getState().questions[0];
-    expect(updated.text).toBe('Edited');
-    expect(updated.factor).toBe('New');
-  });
-
-  it('sets question status', () => {
-    const q = useAnalyzeStore.getState().addQuestion('Test');
-    useAnalyzeStore.getState().setQuestionStatus(q.id, 'answered');
-    expect(useAnalyzeStore.getState().questions[0].status).toBe('answered');
-  });
-
-  it('deletes question and all descendants', () => {
-    const q0 = useAnalyzeStore.getState().addQuestion('Root');
-    const q1 = useAnalyzeStore.getState().addSubQuestion(q0.id, 'Child');
-    useAnalyzeStore.getState().addSubQuestion(q1!.id, 'Grandchild');
-    expect(useAnalyzeStore.getState().questions).toHaveLength(3);
-
-    useAnalyzeStore.getState().deleteQuestion(q0.id);
-    expect(useAnalyzeStore.getState().questions).toHaveLength(0);
-  });
-
-  it('delete question clears questionId from linked findings', () => {
-    const q = useAnalyzeStore.getState().addQuestion('To delete');
-    const ctx = makeContext();
-    useAnalyzeStore.getState().addFinding('note', ctx, undefined, q.id);
-    expect(useAnalyzeStore.getState().findings[0].questionId).toBe(q.id);
-
-    useAnalyzeStore.getState().deleteQuestion(q.id);
-    expect(useAnalyzeStore.getState().findings[0].questionId).toBeUndefined();
-  });
-
-  it('links and unlinks finding to question list', () => {
-    const q = useAnalyzeStore.getState().addQuestion('Test');
-    useAnalyzeStore.getState().linkFindingToQuestionList(q.id, 'f-1');
-    expect(useAnalyzeStore.getState().questions[0].linkedFindingIds).toEqual(['f-1']);
+  it('addHypothesisToScope appends a hypothesisId (no-op on duplicate)', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Test scope');
+    useAnalyzeStore.getState().addHypothesisToScope(scope.id, 'h-1');
+    expect(useAnalyzeStore.getState().scopes[0].hypothesisIds).toEqual(['h-1']);
 
     // No-op on duplicate
-    useAnalyzeStore.getState().linkFindingToQuestionList(q.id, 'f-1');
-    expect(useAnalyzeStore.getState().questions[0].linkedFindingIds).toEqual(['f-1']);
+    useAnalyzeStore.getState().addHypothesisToScope(scope.id, 'h-1');
+    expect(useAnalyzeStore.getState().scopes[0].hypothesisIds).toEqual(['h-1']);
 
-    useAnalyzeStore.getState().unlinkFindingFromQuestionList(q.id, 'f-1');
-    expect(useAnalyzeStore.getState().questions[0].linkedFindingIds).toEqual([]);
+    // Second distinct hypothesis
+    useAnalyzeStore.getState().addHypothesisToScope(scope.id, 'h-2');
+    expect(useAnalyzeStore.getState().scopes[0].hypothesisIds).toEqual(['h-1', 'h-2']);
+  });
+
+  it('deleteHub removes the hub from all scope hypothesisIds', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Test scope');
+    const hub = useAnalyzeStore.getState().createHub('Nozzle wear', 'Night shift');
+    useAnalyzeStore.getState().addHypothesisToScope(scope.id, hub.id);
+    expect(useAnalyzeStore.getState().scopes[0].hypothesisIds).toContain(hub.id);
+
+    useAnalyzeStore.getState().deleteHub(hub.id);
+    expect(useAnalyzeStore.getState().scopes[0].hypothesisIds).not.toContain(hub.id);
   });
 });
 
-describe('analyzeStore — question ideas', () => {
-  it('adds idea to question', () => {
-    const q = useAnalyzeStore.getState().addQuestion('Test');
-    const idea = useAnalyzeStore.getState().addIdea(q.id, 'My idea');
+// ============================================================================
+// Hypothesis ideas tests (F2 — keyed by hypothesisId on Hypothesis.ideas)
+// ============================================================================
+
+describe('analyzeStore — hypothesis ideas', () => {
+  it('adds idea to hypothesis', () => {
+    const hub = useAnalyzeStore.getState().createHub('Test hub', 'Synthesis');
+    const idea = useAnalyzeStore.getState().addIdea(hub.id, 'My idea');
     expect(idea).not.toBeNull();
     expect(idea!.text).toBe('My idea');
-    expect(useAnalyzeStore.getState().questions[0].ideas).toHaveLength(1);
+    expect(useAnalyzeStore.getState().hypotheses[0].ideas).toHaveLength(1);
   });
 
-  it('returns null when adding idea to nonexistent question', () => {
+  it('returns null when adding idea to nonexistent hypothesis', () => {
     const result = useAnalyzeStore.getState().addIdea('nonexistent', 'Idea');
     expect(result).toBeNull();
   });
 
   it('updates an idea', () => {
-    const q = useAnalyzeStore.getState().addQuestion('Test');
-    const idea = useAnalyzeStore.getState().addIdea(q.id, 'Original');
-    useAnalyzeStore.getState().updateIdea(q.id, idea!.id, { text: 'Updated' });
-    expect(useAnalyzeStore.getState().questions[0].ideas![0].text).toBe('Updated');
+    const hub = useAnalyzeStore.getState().createHub('Test hub', 'Synthesis');
+    const idea = useAnalyzeStore.getState().addIdea(hub.id, 'Original');
+    useAnalyzeStore.getState().updateIdea(hub.id, idea!.id, { text: 'Updated' });
+    expect(useAnalyzeStore.getState().hypotheses[0].ideas![0].text).toBe('Updated');
   });
 
   it('deletes an idea', () => {
-    const q = useAnalyzeStore.getState().addQuestion('Test');
-    const idea = useAnalyzeStore.getState().addIdea(q.id, 'To delete');
-    useAnalyzeStore.getState().deleteIdea(q.id, idea!.id);
-    expect(useAnalyzeStore.getState().questions[0].ideas).toHaveLength(0);
+    const hub = useAnalyzeStore.getState().createHub('Test hub', 'Synthesis');
+    const idea = useAnalyzeStore.getState().addIdea(hub.id, 'To delete');
+    useAnalyzeStore.getState().deleteIdea(hub.id, idea!.id);
+    expect(useAnalyzeStore.getState().hypotheses[0].ideas).toHaveLength(0);
   });
 
   it('selects and deselects an idea', () => {
-    const q = useAnalyzeStore.getState().addQuestion('Test');
-    const idea = useAnalyzeStore.getState().addIdea(q.id, 'Idea');
-    useAnalyzeStore.getState().selectIdea(q.id, idea!.id, true);
-    expect(useAnalyzeStore.getState().questions[0].ideas![0].selected).toBe(true);
+    const hub = useAnalyzeStore.getState().createHub('Test hub', 'Synthesis');
+    const idea = useAnalyzeStore.getState().addIdea(hub.id, 'Idea');
+    useAnalyzeStore.getState().selectIdea(hub.id, idea!.id, true);
+    expect(useAnalyzeStore.getState().hypotheses[0].ideas![0].selected).toBe(true);
 
-    useAnalyzeStore.getState().selectIdea(q.id, idea!.id, false);
-    expect(useAnalyzeStore.getState().questions[0].ideas![0].selected).toBe(false);
+    useAnalyzeStore.getState().selectIdea(hub.id, idea!.id, false);
+    expect(useAnalyzeStore.getState().hypotheses[0].ideas![0].selected).toBe(false);
   });
 
   it('updates idea projection', () => {
-    const q = useAnalyzeStore.getState().addQuestion('Test');
-    const idea = useAnalyzeStore.getState().addIdea(q.id, 'Idea');
+    const hub = useAnalyzeStore.getState().createHub('Test hub', 'Synthesis');
+    const idea = useAnalyzeStore.getState().addIdea(hub.id, 'Idea');
     const projection = {
       baselineMean: 10,
       baselineSigma: 1,
@@ -469,8 +433,8 @@ describe('analyzeStore — question ideas', () => {
       simulationParams: { meanAdjustment: -1, variationReduction: 20 },
       createdAt: new Date().toISOString(),
     };
-    useAnalyzeStore.getState().updateIdeaProjection(q.id, idea!.id, projection);
-    expect(useAnalyzeStore.getState().questions[0].ideas![0].projection).toEqual(projection);
+    useAnalyzeStore.getState().updateIdeaProjection(hub.id, idea!.id, projection);
+    expect(useAnalyzeStore.getState().hypotheses[0].ideas![0].projection).toEqual(projection);
   });
 });
 
@@ -524,21 +488,12 @@ describe('analyzeStore — hypothesis hubs', () => {
     expect(useAnalyzeStore.getState().hypotheses[0].name).toBe('New mechanism branch');
   });
 
-  it('connects question and finding to hub', () => {
+  it('connects and disconnects finding to hub', () => {
     const hub = useAnalyzeStore.getState().createHub('Test', 'Synth');
-    useAnalyzeStore.getState().connectQuestionToHub(hub.id, 'q-1');
     useAnalyzeStore.getState().connectFindingToHub(hub.id, 'f-1');
 
     const updated = useAnalyzeStore.getState().hypotheses[0];
-    expect(updated.questionIds).toEqual(['q-1']);
     expect(updated.findingIds).toEqual(['f-1']);
-  });
-
-  it('no-op when connecting already-connected question', () => {
-    const hub = useAnalyzeStore.getState().createHub('Test', 'Synth');
-    useAnalyzeStore.getState().connectQuestionToHub(hub.id, 'q-1');
-    useAnalyzeStore.getState().connectQuestionToHub(hub.id, 'q-1');
-    expect(useAnalyzeStore.getState().hypotheses[0].questionIds).toEqual(['q-1']);
   });
 
   it('no-op when connecting already-connected finding', () => {
@@ -546,14 +501,6 @@ describe('analyzeStore — hypothesis hubs', () => {
     useAnalyzeStore.getState().connectFindingToHub(hub.id, 'f-1');
     useAnalyzeStore.getState().connectFindingToHub(hub.id, 'f-1');
     expect(useAnalyzeStore.getState().hypotheses[0].findingIds).toEqual(['f-1']);
-  });
-
-  it('disconnects question from hub', () => {
-    const hub = useAnalyzeStore.getState().createHub('Test', 'Synth');
-    useAnalyzeStore.getState().connectQuestionToHub(hub.id, 'q-1');
-    useAnalyzeStore.getState().connectQuestionToHub(hub.id, 'q-2');
-    useAnalyzeStore.getState().disconnectQuestionFromHub(hub.id, 'q-1');
-    expect(useAnalyzeStore.getState().hypotheses[0].questionIds).toEqual(['q-2']);
   });
 
   it('disconnects finding from hub', () => {
@@ -599,7 +546,6 @@ describe('analyzeStore — hypothesis hubs', () => {
         id: 'h-new',
         name: 'New',
         synthesis: 'Fresh',
-        questionIds: [],
         findingIds: [],
         status: 'proposed',
         createdAt: 1714000000000,
@@ -740,28 +686,28 @@ describe('analyzeStore — bulk operations', () => {
       status: 'observed' as const,
       comments: [],
       statusChangedAt: 1714000000000,
-    };
-    const question = {
-      id: 'q-1',
-      text: 'Why?',
-      status: 'open' as const,
-      linkedFindingIds: [],
-      createdAt: 1714000000000,
-      updatedAt: 1714000000000,
-      deletedAt: null as null,
-      investigationId: 'inv-test-001',
+      evidenceType: 'data' as const,
     };
     const hub: Hypothesis = {
       id: 'h-1',
       name: 'Hub',
       synthesis: 'Synth',
-      questionIds: ['q-1'],
       findingIds: ['f-1'],
       status: 'proposed',
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
       investigationId: 'inv-test-001',
+    };
+    const scope: ProblemStatementScope = {
+      id: 's-1',
+      investigationId: 'inv-test-001',
+      outcome: 'High defect rate',
+      predicates: [],
+      hypothesisIds: ['h-1'],
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
     };
     const category: AnalyzeCategory = {
       id: 'c-1',
@@ -773,35 +719,35 @@ describe('analyzeStore — bulk operations', () => {
 
     useAnalyzeStore.getState().loadAnalyzeState({
       findings: [finding],
-      questions: [question],
       hypotheses: [hub],
+      scopes: [scope],
       categories: [category],
     });
 
     const state = useAnalyzeStore.getState();
     expect(state.findings).toEqual([finding]);
-    expect(state.questions).toEqual([question]);
     expect(state.hypotheses).toEqual([hub]);
+    expect(state.scopes).toEqual([scope]);
     expect(state.categories).toEqual([category]);
   });
 
   it('loadAnalyzeState only updates provided fields', () => {
-    useAnalyzeStore.getState().addQuestion('Existing');
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Existing scope');
     useAnalyzeStore.getState().loadAnalyzeState({ categories: [] });
-    // Questions should be preserved
-    expect(useAnalyzeStore.getState().questions).toHaveLength(1);
-    expect(useAnalyzeStore.getState().questions[0].text).toBe('Existing');
+    // Scopes should be preserved
+    expect(useAnalyzeStore.getState().scopes).toHaveLength(1);
+    expect(useAnalyzeStore.getState().scopes[0].id).toBe(scope.id);
   });
 
   it('resetAll clears everything', () => {
     useAnalyzeStore.getState().addFinding('note', makeContext());
-    useAnalyzeStore.getState().addQuestion('question');
+    useAnalyzeStore.getState().addScope('inv-1', 'scope');
     useAnalyzeStore.getState().createHub('hub', 'synth');
 
     useAnalyzeStore.getState().resetAll();
     const state = useAnalyzeStore.getState();
     expect(state.findings).toEqual([]);
-    expect(state.questions).toEqual([]);
+    expect(state.scopes).toEqual([]);
     expect(state.hypotheses).toEqual([]);
     expect(state.categories).toEqual([]);
   });
@@ -841,7 +787,6 @@ describe('analyzeStore — causalLink actions', () => {
     expect(link!.whyStatement).toBe('A drives B');
     expect(link!.direction).toBe('drives');
     expect(link!.evidenceType).toBe('unvalidated');
-    expect(link!.questionIds).toEqual([]);
     expect(link!.findingIds).toEqual([]);
     expect(link!.source).toBe('analyst');
     expect(useAnalyzeStore.getState().causalLinks).toHaveLength(1);
@@ -894,27 +839,6 @@ describe('analyzeStore — causalLink actions', () => {
     expect(new Date(after).getTime()).toBeGreaterThanOrEqual(new Date(before).getTime());
   });
 
-  it('links a question ID', () => {
-    const link = useAnalyzeStore.getState().addCausalLink('A', 'B', 'Test');
-    useAnalyzeStore.getState().linkQuestionToCausalLink(link!.id, 'q-1');
-    expect(useAnalyzeStore.getState().causalLinks[0].questionIds).toEqual(['q-1']);
-  });
-
-  it('no duplicate question IDs on double-link', () => {
-    const link = useAnalyzeStore.getState().addCausalLink('A', 'B', 'Test');
-    useAnalyzeStore.getState().linkQuestionToCausalLink(link!.id, 'q-1');
-    useAnalyzeStore.getState().linkQuestionToCausalLink(link!.id, 'q-1');
-    expect(useAnalyzeStore.getState().causalLinks[0].questionIds).toEqual(['q-1']);
-  });
-
-  it('unlinks a question ID', () => {
-    const link = useAnalyzeStore.getState().addCausalLink('A', 'B', 'Test');
-    useAnalyzeStore.getState().linkQuestionToCausalLink(link!.id, 'q-1');
-    useAnalyzeStore.getState().linkQuestionToCausalLink(link!.id, 'q-2');
-    useAnalyzeStore.getState().unlinkQuestionFromCausalLink(link!.id, 'q-1');
-    expect(useAnalyzeStore.getState().causalLinks[0].questionIds).toEqual(['q-2']);
-  });
-
   it('links a finding ID', () => {
     const link = useAnalyzeStore.getState().addCausalLink('A', 'B', 'Test');
     useAnalyzeStore.getState().linkFindingToCausalLink(link!.id, 'f-1');
@@ -931,22 +855,13 @@ describe('analyzeStore — causalLink actions', () => {
   it('unlinks a finding ID', () => {
     const link = useAnalyzeStore.getState().addCausalLink('A', 'B', 'Test');
     useAnalyzeStore.getState().linkFindingToCausalLink(link!.id, 'f-1');
+    useAnalyzeStore.getState().linkFindingToCausalLink(link!.id, 'f-2');
     useAnalyzeStore.getState().unlinkFindingFromCausalLink(link!.id, 'f-1');
-    expect(useAnalyzeStore.getState().causalLinks[0].findingIds).toEqual([]);
+    expect(useAnalyzeStore.getState().causalLinks[0].findingIds).toEqual(['f-2']);
   });
 });
 
 describe('analyzeStore — causalLink cascade behavior', () => {
-  it('deleteQuestion removes questionId from causal links', () => {
-    const q = useAnalyzeStore.getState().addQuestion('Test question');
-    const link = useAnalyzeStore.getState().addCausalLink('A', 'B', 'Test');
-    useAnalyzeStore.getState().linkQuestionToCausalLink(link!.id, q.id);
-    expect(useAnalyzeStore.getState().causalLinks[0].questionIds).toContain(q.id);
-
-    useAnalyzeStore.getState().deleteQuestion(q.id);
-    expect(useAnalyzeStore.getState().causalLinks[0].questionIds).not.toContain(q.id);
-  });
-
   it('deleteFinding removes findingId from causal links', () => {
     const ctx = makeContext();
     const f = useAnalyzeStore.getState().addFinding('Test finding', ctx);
@@ -963,8 +878,7 @@ describe('analyzeStore — causalLink cascade behavior', () => {
     const link = useAnalyzeStore.getState().addCausalLink('A', 'B', 'Test', {
       source: 'analyst',
     });
-    // Manually set hypothesisId via updateCausalLink — the store doesn't have a direct setter,
-    // so we use loadAnalyzeState to set it
+    // Manually set hypothesisId via setState — the store doesn't have a direct setter
     useAnalyzeStore.setState(state => ({
       causalLinks: state.causalLinks.map(l =>
         l.id === link!.id ? { ...l, hypothesisId: hub.id } : l
@@ -978,19 +892,16 @@ describe('analyzeStore — causalLink cascade behavior', () => {
 });
 
 // ============================================================================
-// problemContributionTree tests
+// Per-scope gateNode tests (ADR-085 — replaces top-level problemContributionTree)
 // ============================================================================
 
-describe('problemContributionTree', () => {
+describe('analyzeStore — setScopeGateNode', () => {
   beforeEach(() => {
     useAnalyzeStore.setState(getAnalyzeInitialState());
   });
 
-  it('defaults to undefined', () => {
-    expect(useAnalyzeStore.getState().problemContributionTree).toBeUndefined();
-  });
-
-  it('can be set to a gate tree with hub leaves', () => {
+  it('sets a gate tree on a scope', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'High defect rate');
     const tree: GateNode = {
       kind: 'and',
       children: [
@@ -998,14 +909,22 @@ describe('problemContributionTree', () => {
         { kind: 'hub', hubId: 'h2' },
       ],
     };
-    useAnalyzeStore.getState().setProblemContributionTree(tree);
-    expect(useAnalyzeStore.getState().problemContributionTree).toEqual(tree);
+    useAnalyzeStore.getState().setScopeGateNode(scope.id, tree);
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toEqual(tree);
   });
 
-  it('can be cleared by setting undefined', () => {
-    useAnalyzeStore.getState().setProblemContributionTree({ kind: 'hub', hubId: 'h1' });
-    useAnalyzeStore.getState().setProblemContributionTree(undefined);
-    expect(useAnalyzeStore.getState().problemContributionTree).toBeUndefined();
+  it('can clear the gate tree by setting undefined', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'High defect rate');
+    useAnalyzeStore.getState().setScopeGateNode(scope.id, { kind: 'hub', hubId: 'h1' });
+    useAnalyzeStore.getState().setScopeGateNode(scope.id, undefined);
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toBeUndefined();
+  });
+
+  it('is a no-op for unknown scopeId', () => {
+    useAnalyzeStore.getState().addScope('inv-1', 'Scope A');
+    useAnalyzeStore.getState().setScopeGateNode('nonexistent', { kind: 'hub', hubId: 'h1' });
+    // Scope A gateNode untouched
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toBeUndefined();
   });
 
   it('survives loadAnalyzeState round-trip', () => {
@@ -1016,29 +935,43 @@ describe('problemContributionTree', () => {
         { kind: 'not', child: { kind: 'hub', hubId: 'h2' } },
       ],
     };
-    useAnalyzeStore.setState(useAnalyzeStore.getInitialState());
-    useAnalyzeStore.getState().loadAnalyzeState({
-      problemContributionTree: tree,
-    });
-    expect(useAnalyzeStore.getState().problemContributionTree).toEqual(tree);
+    const scope: ProblemStatementScope = {
+      id: 's-roundtrip',
+      investigationId: 'inv-1',
+      outcome: 'Test',
+      predicates: [],
+      hypothesisIds: [],
+      gateNode: tree,
+      createdAt: 1714000000000,
+      updatedAt: 1714000000000,
+      deletedAt: null,
+    };
+    useAnalyzeStore.getState().loadAnalyzeState({ scopes: [scope] });
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toEqual(tree);
   });
 });
 
-// ============================================================================
-// composeGate tests (Phase 7.2)
-// ============================================================================
-
-describe('composeGate', () => {
+describe('analyzeStore — composeScopeGate', () => {
   beforeEach(() => {
     useAnalyzeStore.setState(getAnalyzeInitialState());
   });
 
-  it('is a no-op when the tree is undefined', () => {
-    useAnalyzeStore.getState().composeGate([], 'h1');
-    expect(useAnalyzeStore.getState().problemContributionTree).toBeUndefined();
+  it('is a no-op when the scope gateNode is undefined', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Test scope');
+    useAnalyzeStore.getState().composeScopeGate(scope.id, [], 'h1');
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toBeUndefined();
+  });
+
+  it('is a no-op for unknown scopeId', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Test scope');
+    useAnalyzeStore.getState().setScopeGateNode(scope.id, { kind: 'hub', hubId: 'h1' });
+    const before = useAnalyzeStore.getState().scopes[0].gateNode;
+    useAnalyzeStore.getState().composeScopeGate('nonexistent', [], 'h2');
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toBe(before);
   });
 
   it('appends a hub to an existing AND at root', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Test scope');
     const tree: GateNode = {
       kind: 'and',
       children: [
@@ -1046,9 +979,9 @@ describe('composeGate', () => {
         { kind: 'hub', hubId: 'h2' },
       ],
     };
-    useAnalyzeStore.getState().setProblemContributionTree(tree);
-    useAnalyzeStore.getState().composeGate([], 'h3');
-    expect(useAnalyzeStore.getState().problemContributionTree).toEqual({
+    useAnalyzeStore.getState().setScopeGateNode(scope.id, tree);
+    useAnalyzeStore.getState().composeScopeGate(scope.id, [], 'h3');
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toEqual({
       kind: 'and',
       children: [
         { kind: 'hub', hubId: 'h1' },
@@ -1059,9 +992,10 @@ describe('composeGate', () => {
   });
 
   it('wraps a leaf tree in a new AND when dropped at root', () => {
-    useAnalyzeStore.getState().setProblemContributionTree({ kind: 'hub', hubId: 'h1' });
-    useAnalyzeStore.getState().composeGate([], 'h2');
-    expect(useAnalyzeStore.getState().problemContributionTree).toEqual({
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Test scope');
+    useAnalyzeStore.getState().setScopeGateNode(scope.id, { kind: 'hub', hubId: 'h1' });
+    useAnalyzeStore.getState().composeScopeGate(scope.id, [], 'h2');
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toEqual({
       kind: 'and',
       children: [
         { kind: 'hub', hubId: 'h1' },
@@ -1071,6 +1005,7 @@ describe('composeGate', () => {
   });
 
   it('wraps an OR in a new AND at root when dropped on the OR', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Test scope');
     const tree: GateNode = {
       kind: 'or',
       children: [
@@ -1078,16 +1013,16 @@ describe('composeGate', () => {
         { kind: 'hub', hubId: 'h2' },
       ],
     };
-    useAnalyzeStore.getState().setProblemContributionTree(tree);
-    useAnalyzeStore.getState().composeGate([], 'h3');
-    expect(useAnalyzeStore.getState().problemContributionTree).toEqual({
+    useAnalyzeStore.getState().setScopeGateNode(scope.id, tree);
+    useAnalyzeStore.getState().composeScopeGate(scope.id, [], 'h3');
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toEqual({
       kind: 'and',
       children: [tree, { kind: 'hub', hubId: 'h3' }],
     });
   });
 
   it('composes at a nested path', () => {
-    // Leaf at [0] inside a root AND — composing there wraps that leaf in AND.
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Test scope');
     const tree: GateNode = {
       kind: 'and',
       children: [
@@ -1095,9 +1030,9 @@ describe('composeGate', () => {
         { kind: 'hub', hubId: 'h2' },
       ],
     };
-    useAnalyzeStore.getState().setProblemContributionTree(tree);
-    useAnalyzeStore.getState().composeGate([0], 'h3');
-    expect(useAnalyzeStore.getState().problemContributionTree).toEqual({
+    useAnalyzeStore.getState().setScopeGateNode(scope.id, tree);
+    useAnalyzeStore.getState().composeScopeGate(scope.id, [0], 'h3');
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toEqual({
       kind: 'and',
       children: [
         {
@@ -1113,21 +1048,43 @@ describe('composeGate', () => {
   });
 
   it('is a no-op for an invalid path (leaves tree untouched)', () => {
+    const scope = useAnalyzeStore.getState().addScope('inv-1', 'Test scope');
     const tree: GateNode = { kind: 'hub', hubId: 'h1' };
-    useAnalyzeStore.getState().setProblemContributionTree(tree);
-    useAnalyzeStore.getState().composeGate([99], 'h2');
-    expect(useAnalyzeStore.getState().problemContributionTree).toBe(tree);
+    useAnalyzeStore.getState().setScopeGateNode(scope.id, tree);
+    useAnalyzeStore.getState().composeScopeGate(scope.id, [99], 'h2');
+    expect(useAnalyzeStore.getState().scopes[0].gateNode).toBe(tree);
   });
 });
 
 // ============================================================================
-// Relocation assertion (F4)
+// Relocation assertions (IM-1 / F4)
 // ============================================================================
 
-describe('analyzeStore — relocation assertions (F4)', () => {
+describe('analyzeStore — relocation assertions (IM-1)', () => {
+  it('does not own questions (retired in ADR-085)', () => {
+    const state = useAnalyzeStore.getState() as unknown as Record<string, unknown>;
+    expect('questions' in state).toBe(false);
+    expect('addQuestion' in state).toBe(false);
+  });
+
+  it('does not own top-level problemContributionTree (moved to per-scope gateNode in ADR-085)', () => {
+    const state = useAnalyzeStore.getState() as unknown as Record<string, unknown>;
+    expect('problemContributionTree' in state).toBe(false);
+    expect('setProblemContributionTree' in state).toBe(false);
+  });
+
   it('does not own focusedQuestionId (relocated to useViewStore in F4)', () => {
-    const state = useAnalyzeStore.getState() as Record<string, unknown>;
+    const state = useAnalyzeStore.getState() as unknown as Record<string, unknown>;
     expect('focusedQuestionId' in state).toBe(false);
     expect('setFocusedQuestion' in state).toBe(false);
+  });
+
+  it('owns scopes slice (new in ADR-085)', () => {
+    const state = useAnalyzeStore.getState() as unknown as Record<string, unknown>;
+    expect('scopes' in state).toBe(true);
+    expect('addScope' in state).toBe(true);
+    expect('updateScope' in state).toBe(true);
+    expect('removeScope' in state).toBe(true);
+    expect('addHypothesisToScope' in state).toBe(true);
   });
 });

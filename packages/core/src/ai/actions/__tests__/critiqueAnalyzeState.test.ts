@@ -1,34 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { critiqueAnalyzeState } from '../critiqueAnalyzeState';
-import type { Hypothesis, Question, Finding } from '@variscout/core';
+import type { Hypothesis, Finding } from '@variscout/core';
 
 const FIXED_NOW = Date.parse('2026-04-19T00:00:00Z');
 
-function hub(id: string, findingIds: string[], questionIds: string[] = []): Hypothesis {
+function hub(id: string, findingIds: string[]): Hypothesis {
   return {
     id,
     name: id,
     synthesis: '',
-    questionIds,
     findingIds,
     status: 'proposed',
-    createdAt: FIXED_NOW,
-    updatedAt: FIXED_NOW,
-    deletedAt: null,
-    investigationId: 'general-unassigned',
-  };
-}
-
-function question(
-  id: string,
-  status: Question['status'] = 'open',
-  linkedFindingIds: string[] = []
-): Question {
-  return {
-    id,
-    text: id,
-    status,
-    linkedFindingIds,
     createdAt: FIXED_NOW,
     updatedAt: FIXED_NOW,
     deletedAt: null,
@@ -52,58 +34,90 @@ function finding(id: string, validationStatus?: Finding['validationStatus']): Fi
   };
 }
 
+/**
+ * critiqueAnalyzeState tests — ADR-085 updated interface:
+ * - Input: { hubs: Hypothesis[], findings: Finding[], now?: number }
+ * - Output: { hypothesesWithoutEvidence: string[], orphanFindings: [...], staleFindings: [...] }
+ * (No questions, no gaps array)
+ */
 describe('critiqueAnalyzeState', () => {
-  it('flags hubs with 3+ findings and no contradictor as missing disconfirmation', () => {
-    const hubs = [hub('h1', ['f1', 'f2', 'f3'])];
-    const findings = [finding('f1'), finding('f2'), finding('f3')];
-    const result = critiqueAnalyzeState({ hubs, questions: [], findings });
-    expect(result.gaps.some(g => g.kind === 'missing-disconfirmation' && g.hubId === 'h1')).toBe(
-      true
-    );
+  it('flags hypotheses with no linked findings (hypothesesWithoutEvidence)', () => {
+    const hubs = [hub('h1', [])]; // no findings linked
+    const result = critiqueAnalyzeState({ hubs, findings: [] });
+    expect(result.hypothesesWithoutEvidence).toContain('h1');
   });
 
-  it('does not flag hubs that already have a contradictor', () => {
-    const hubs = [hub('h1', ['f1', 'f2', 'f3'])];
-    const findings = [finding('f1'), finding('f2'), finding('f3', 'contradicts')];
-    const result = critiqueAnalyzeState({ hubs, questions: [], findings });
-    expect(result.gaps.some(g => g.kind === 'missing-disconfirmation' && g.hubId === 'h1')).toBe(
-      false
-    );
+  it('does not flag hypotheses that have linked findings', () => {
+    const hubs = [hub('h1', ['f1'])];
+    const result = critiqueAnalyzeState({ hubs, findings: [finding('f1')] });
+    expect(result.hypothesesWithoutEvidence).not.toContain('h1');
   });
 
-  it('flags hubs with no linked questions', () => {
-    const hubs = [hub('h1', ['f1'], /* no questions */ [])];
-    const findings = [finding('f1')];
-    const result = critiqueAnalyzeState({ hubs, questions: [], findings });
-    expect(result.gaps.some(g => g.kind === 'hub-without-question' && g.hubId === 'h1')).toBe(true);
-  });
-
-  it('flags orphan open questions not linked to any hub', () => {
+  it('flags orphan findings not linked to any hypothesis', () => {
     const hubs: Hypothesis[] = [];
-    const questions = [question('q1'), question('q2', 'answered')];
-    const result = critiqueAnalyzeState({ hubs, questions, findings: [] });
-    // q1 is open and orphan; q2 is answered (not orphan-flaggable).
-    expect(result.gaps.filter(g => g.kind === 'orphan-question').length).toBe(1);
+    const findings = [finding('f1'), finding('f2')];
+    const result = critiqueAnalyzeState({ hubs, findings });
+    expect(result.orphanFindings.some(g => g.findingId === 'f1')).toBe(true);
+    expect(result.orphanFindings.some(g => g.findingId === 'f2')).toBe(true);
+    expect(result.orphanFindings[0].kind).toBe('orphan-finding');
   });
 
-  it('flags stale open questions older than 7 days', () => {
-    const staleTs = Date.now() - 8 * 24 * 60 * 60 * 1000;
+  it('does not flag findings that are linked to a hub', () => {
+    const hubs = [hub('h1', ['f1'])];
+    const findings = [finding('f1'), finding('f2')];
+    const result = critiqueAnalyzeState({ hubs, findings });
+    // f1 is linked → not orphan; f2 is unlinked → orphan
+    expect(result.orphanFindings.some(g => g.findingId === 'f1')).toBe(false);
+    expect(result.orphanFindings.some(g => g.findingId === 'f2')).toBe(true);
+  });
+
+  it('flags stale findings (observed/investigating) older than 14 days', () => {
+    const staleTs = Date.now() - 15 * 24 * 60 * 60 * 1000;
     const freshTs = Date.now();
-    const questions: Question[] = [
-      { ...question('qStale'), createdAt: staleTs, updatedAt: staleTs },
-      { ...question('qFresh'), createdAt: freshTs, updatedAt: freshTs },
-    ];
-    const result = critiqueAnalyzeState({ hubs: [], questions, findings: [] });
-    expect(result.gaps.some(g => g.kind === 'stale-question' && g.questionId === 'qStale')).toBe(
-      true
-    );
-    expect(result.gaps.some(g => g.kind === 'stale-question' && g.questionId === 'qFresh')).toBe(
-      false
-    );
+    const staleFinding: Finding = {
+      ...finding('fStale'),
+      status: 'observed',
+      createdAt: staleTs,
+    };
+    const freshFinding: Finding = {
+      ...finding('fFresh'),
+      status: 'observed',
+      createdAt: freshTs,
+    };
+    const result = critiqueAnalyzeState({ hubs: [], findings: [staleFinding, freshFinding] });
+    expect(result.staleFindings.some(g => g.findingId === 'fStale')).toBe(true);
+    expect(result.staleFindings.some(g => g.findingId === 'fFresh')).toBe(false);
   });
 
-  it('returns empty gaps array for clean investigation', () => {
-    const result = critiqueAnalyzeState({ hubs: [], questions: [], findings: [] });
-    expect(result.gaps).toEqual([]);
+  it('does not flag stale analyzed/improving/resolved findings', () => {
+    const staleTs = Date.now() - 15 * 24 * 60 * 60 * 1000;
+    const analyzedFinding: Finding = {
+      ...finding('fAnalyzed'),
+      status: 'analyzed',
+      createdAt: staleTs,
+    };
+    const result = critiqueAnalyzeState({ hubs: [], findings: [analyzedFinding] });
+    expect(result.staleFindings.some(g => g.findingId === 'fAnalyzed')).toBe(false);
+  });
+
+  it('returns empty arrays for clean investigation', () => {
+    const hubs = [hub('h1', ['f1'])];
+    // Use current time so the finding isn't stale
+    const freshFinding = {
+      ...finding('f1'),
+      status: 'analyzed' as Finding['status'],
+      createdAt: Date.now(),
+    };
+    const result = critiqueAnalyzeState({ hubs, findings: [freshFinding] });
+    expect(result.hypothesesWithoutEvidence).toHaveLength(0);
+    expect(result.orphanFindings).toHaveLength(0);
+    expect(result.staleFindings).toHaveLength(0);
+  });
+
+  it('returns all empty for empty inputs', () => {
+    const result = critiqueAnalyzeState({ hubs: [], findings: [] });
+    expect(result.hypothesesWithoutEvidence).toEqual([]);
+    expect(result.orphanFindings).toEqual([]);
+    expect(result.staleFindings).toEqual([]);
   });
 });

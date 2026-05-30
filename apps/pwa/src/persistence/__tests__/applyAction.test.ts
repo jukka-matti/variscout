@@ -582,14 +582,19 @@ describe('applyAction — no-op action kinds', () => {
     expect(await db.findings.count()).toBe(0);
   });
 
-  it('QUESTION_ADD does not mutate any table', async () => {
+  it('SCOPE_ADD does not mutate any table (IM-1: ProblemStatementScope has no Dexie footprint)', async () => {
+    // IM-1 (ADR-085): the `questions` table was dropped at schema v10.
+    // SCOPE_* is now the no-op action for ProblemStatementScope, which persists
+    // via the analyze blob — not Dexie. QUESTION_* still compiles (backwards
+    // compat in the HubAction union) but is no longer testable via db.questions.
     await applyAction(db, {
-      kind: 'QUESTION_ADD',
+      kind: 'SCOPE_ADD',
       investigationId: 'inv-x',
-      question: { id: 'q-x' },
+      scope: { id: 'sc-x' },
     } as unknown as HubAction);
 
-    expect(await db.questions.count()).toBe(0);
+    // No table holds scopes — the investigation count stays 0.
+    expect(await db.investigations.count()).toBe(0);
   });
 
   it('CAUSAL_LINK_ADD does not mutate any table', async () => {
@@ -698,8 +703,10 @@ describe('applyAction — no-op and session-only kinds', () => {
     'INVESTIGATION_ARCHIVE',
     'FINDING_UPDATE',
     'FINDING_ARCHIVE',
-    'QUESTION_UPDATE',
-    'QUESTION_ARCHIVE',
+    // IM-1 (ADR-085): QUESTION_UPDATE / QUESTION_ARCHIVE removed from HubAction union.
+    // SCOPE_UPDATE / SCOPE_ARCHIVE are the IM-1 replacements for ProblemStatementScope.
+    'SCOPE_UPDATE',
+    'SCOPE_ARCHIVE',
     'CAUSAL_LINK_UPDATE',
     'CAUSAL_LINK_ARCHIVE',
     'HYPOTHESIS_UPDATE',

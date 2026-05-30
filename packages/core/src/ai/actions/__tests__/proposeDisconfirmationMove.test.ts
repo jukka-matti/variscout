@@ -29,7 +29,6 @@ function hub(id: string, findingIds: string[]): Hypothesis {
     id,
     name: id,
     synthesis: '',
-    questionIds: [],
     findingIds,
     status: 'proposed',
     createdAt: 1745625600000,

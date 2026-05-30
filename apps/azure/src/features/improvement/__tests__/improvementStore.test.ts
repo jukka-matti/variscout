@@ -1,28 +1,38 @@
 import { describe, it, expect } from 'vitest';
-import type { ImprovementQuestion } from '../improvementStore';
+import type { ImprovementHypothesis } from '../improvementStore';
 
-describe('ImprovementQuestion type', () => {
+describe('ImprovementHypothesis type', () => {
   it('type is correctly shaped', () => {
-    const q: ImprovementQuestion = {
-      id: 'q-1',
+    const h: ImprovementHypothesis = {
+      id: 'h-1',
       text: 'Root cause A',
       ideas: [{ id: 'i-1', text: 'Fix it', createdAt: 1714000000000, deletedAt: null }],
     };
-    expect(q.id).toBe('q-1');
-    expect(q.ideas).toHaveLength(1);
+    expect(h.id).toBe('h-1');
+    expect(h.ideas).toHaveLength(1);
   });
 
   it('supports optional fields', () => {
-    const q: ImprovementQuestion = {
-      id: 'q-2',
+    const h: ImprovementHypothesis = {
+      id: 'h-2',
       text: 'Root cause B',
-      causeRole: 'suspected-cause',
+      status: 'evidenced',
       factor: 'Temperature',
       ideas: [],
       linkedFindingName: 'Variance in temp zone',
     };
-    expect(q.causeRole).toBe('suspected-cause');
-    expect(q.factor).toBe('Temperature');
-    expect(q.linkedFindingName).toBe('Variance in temp zone');
+    expect(h.status).toBe('evidenced');
+    expect(h.factor).toBe('Temperature');
+    expect(h.linkedFindingName).toBe('Variance in temp zone');
+  });
+
+  it('supports evidence field', () => {
+    const h: ImprovementHypothesis = {
+      id: 'h-3',
+      text: 'Root cause C',
+      ideas: [],
+      evidence: { rSquaredAdj: 0.42, etaSquared: 0.38 },
+    };
+    expect(h.evidence?.rSquaredAdj).toBe(0.42);
   });
 });

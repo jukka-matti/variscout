@@ -2,13 +2,21 @@ import { describe, it, expect } from 'vitest';
 import type { AnalysisBrief } from '../types';
 
 describe('AnalysisBrief — moved to @variscout/core/findings', () => {
-  it('accepts the same shape as the UI sketch', () => {
+  it('accepts issueStatement and target (ADR-085: questions field removed)', () => {
     const brief: AnalysisBrief = {
       issueStatement: 'Defect rate spiked Tuesday',
-      questions: [{ text: 'Was the new resin lot the cause?', factor: 'resin_lot' }],
       target: { metric: 'defectRate', direction: 'minimize', value: 0.02 },
     };
     expect(brief.issueStatement).toContain('Tuesday');
-    expect(brief.questions?.[0].factor).toBe('resin_lot');
+    expect(brief.target?.metric).toBe('defectRate');
+    expect(brief.target?.value).toBe(0.02);
+  });
+
+  it('accepts hypothesisDraft field', () => {
+    const brief: AnalysisBrief = {
+      issueStatement: 'Resin lot causing defects',
+      hypothesisDraft: 'New resin lot from supplier X has different viscosity',
+    };
+    expect(brief.hypothesisDraft).toContain('viscosity');
   });
 });

@@ -47,12 +47,12 @@ describe('SaveInsightDialog', () => {
     expect(screen.getByText(/comment to finding/i)).toBeInTheDocument();
   });
 
-  it('shows question dropdown when questions are provided', () => {
+  it('shows hypothesis dropdown when hypotheses are provided', () => {
     render(
       <SaveInsightDialog
         {...defaultProps}
-        questions={[{ id: 'h1', text: 'Some question' }]}
-        onAddCommentToQuestion={vi.fn()}
+        questions={[{ id: 'h1', text: 'Some hypothesis' }]}
+        onAddCommentToHypothesis={vi.fn()}
       />
     );
     expect(screen.getByText(/comment to question/i)).toBeInTheDocument();

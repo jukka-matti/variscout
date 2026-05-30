@@ -83,15 +83,6 @@ function renderPISection() {
     <PISection
       bestSubsets={null}
       projectedCpkMap={{}}
-      handleQuestionClick={vi.fn()}
-      questionsState={
-        {
-          questions: [],
-          addQuestion: vi.fn(),
-          focusedQuestionId: null,
-          linkFinding: vi.fn(),
-        } as never
-      }
       findingsState={
         {
           findings: [],

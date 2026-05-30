@@ -4,8 +4,8 @@ import {
   useCanvasViewportStore,
   persistCanvasViewport,
   rehydrateCanvasViewport,
-  type ProcessHubId,
 } from '../canvasViewportStore';
+import type { ProcessHubId } from '@variscout/core/processHub';
 
 // Typed hub ID constants for test fixtures (cast acceptable inside test files per project convention)
 const HUB_A = 'hub-A' as ProcessHubId;
