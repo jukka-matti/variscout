@@ -244,12 +244,11 @@ describe('perFactorPValues', () => {
     expect(p.get('Supplier')!).toBeCloseTo(0.02, 10);
   });
 
-  it('falls back to the single-factor subset overall-F p for ANOVA models', () => {
+  it('falls back to the single-factor subset overall-F p for ANOVA models (no data passed)', () => {
     const data = shiftDominatedFixture();
     const result = computeBestSubsets(data, 'Y', ['Shift', 'Noise'])!;
     const index = buildSubsetIndex(result);
-    // The 2-factor model has no per-predictor p (ANOVA path) → fallback to each
-    // factor's own single-factor subset p.
+    // 2-arg call (no rows/outcome) → the legacy marginal fallback, NOT nested-F.
     const both = lookupSubset(index, ['Shift', 'Noise'])!;
     const p = perFactorPValues(both, index);
     const shiftSingle = index.singleByFactor.get('Shift')!;
@@ -258,6 +257,79 @@ describe('perFactorPValues', () => {
     expect(p.get('Noise')!).toBeCloseTo(noiseSingle.pValue, 10);
     // Shift is the dominant factor → its marginal p is far below Noise's.
     expect(p.get('Shift')!).toBeLessThan(p.get('Noise')!);
+  });
+
+  // MAJOR 1 — the honest, uniform per-factor partial p.
+  //
+  // `Echo` is a near-copy of `Shift` (strongly correlated) but adds NO
+  // independent signal to Y. Its MARGINAL (single-factor) p is highly
+  // significant because it tracks the real driver Shift. Its PARTIAL p
+  // (Echo given Shift, the nested-F) is clearly NON-significant. A surface that
+  // showed Echo's marginal p as bare `p {value}` would mislead an MBB into
+  // reading it as the in-model partial; the nested-F path computes the honest
+  // partial uniformly across the OLS + all-categorical (ANOVA) engine paths.
+  function shiftWithRedundantEchoFixture(): DataRow[] {
+    const rows: DataRow[] = [];
+    const shiftMean: Record<string, number> = { A: 10, B: 20, C: 30 };
+    const echoFor: Record<string, string> = { A: 'eA', B: 'eB', C: 'eC' };
+    const shifts = ['A', 'B', 'C'];
+    // Small deterministic wobble so Shift does not explain 100% (residual df > 0
+    // and the nested model is identifiable, not singular).
+    const wobble = [1, -1, 2, -2, 0, 1, -1, 2, -2, 0, 1, -1, 2, -2, 0, 1, -1, 2, -2, 0];
+    for (const s of shifts) {
+      for (let r = 0; r < 20; r++) {
+        // Echo mirrors Shift except for two deliberate crossovers per shift, so
+        // Echo is highly correlated with Shift but not a perfect alias (the
+        // {Shift,Echo} design stays full rank). The crossovers carry NO extra Y
+        // signal — Y depends only on Shift + wobble.
+        const crossover = r === 5 || r === 13;
+        const otherShift = shifts[(shifts.indexOf(s) + 1) % shifts.length];
+        const echo = crossover ? echoFor[otherShift] : echoFor[s];
+        rows.push({ Shift: s, Echo: echo, Y: shiftMean[s] + wobble[r] });
+      }
+    }
+    return rows;
+  }
+
+  it('computes the honest nested-F partial p (marginal ≠ partial) for a redundant categorical factor', () => {
+    const data = shiftWithRedundantEchoFixture();
+    const result = computeBestSubsets(data, 'Y', ['Shift', 'Echo'])!;
+    const index = buildSubsetIndex(result);
+    const both = lookupSubset(index, ['Shift', 'Echo'])!;
+
+    // Echo's MARGINAL p (its own single-factor subset overall-F) is significant
+    // — it tracks the real driver.
+    const echoMarginal = index.singleByFactor.get('Echo')!.pValue;
+    expect(echoMarginal).toBeLessThan(0.05);
+
+    // Echo's PARTIAL p (nested-F, given Shift) is clearly NON-significant.
+    const partial = perFactorPValues(both, index, data, 'Y');
+    expect(partial.get('Echo')!).toBeGreaterThan(0.15); // fails the vital-few gate
+    // And it is materially larger than the misleading marginal p.
+    expect(partial.get('Echo')!).toBeGreaterThan(echoMarginal);
+    // Shift's partial p stays significant (it IS the driver).
+    expect(partial.get('Shift')!).toBeLessThan(0.05);
+
+    // The vital-few default, gated by the honest partial p, therefore drops the
+    // redundant Echo and keeps Shift alone.
+    const selection = selectVitalFew(result, index, { data, outcome: 'Y' })!;
+    expect(selection.factors).toEqual(['Shift']);
+  });
+
+  it('nested-F partial p of a continuous factor equals its OLS t-test p (F = t² at 1 df)', () => {
+    // For a single continuous factor in an OLS model, the nested-F (Δdf = 1)
+    // collapses to the predictor's two-tailed t-test p. We document this
+    // equivalence so the categorical and continuous surface values mean the same.
+    const rows: DataRow[] = [];
+    for (let i = 0; i < 40; i++) {
+      rows.push({ Temp: i, Y: 2 * i + (i % 4) - 1.5 });
+    }
+    const result = computeBestSubsets(rows, 'Y', ['Temp'])!;
+    const index = buildSubsetIndex(result);
+    const subset = lookupSubset(index, ['Temp'])!;
+    const olsPredictorP = subset.predictors!.find(p => p.factorName === 'Temp')!.pValue;
+    const nestedF = perFactorPValues(subset, index, rows, 'Y');
+    expect(nestedF.get('Temp')!).toBeCloseTo(olsPredictorP, 6);
   });
 });
 

@@ -30,6 +30,7 @@ import { classifyAllFactors } from './factorTypeDetection';
 import { buildDesignMatrix } from './designMatrix';
 import type { FactorSpec } from './designMatrix';
 import { solveOLS } from './olsRegression';
+import { fDistributionPValue } from './distributions';
 import { safeDivide } from './safeMath';
 
 // ============================================================================
@@ -83,6 +84,8 @@ export interface SubsetIndex {
   maxRSquaredAdj: number;
   /** Single-factor subsets keyed by factor name (per-factor p fallback source). */
   singleByFactor: Map<string, BestSubsetResult>;
+  /** Sample size the enumeration ran on (for the nested-F partial p df). */
+  n: number;
 }
 
 /** Build the O(1) subset index from an enumerated best-subsets result. */
@@ -102,7 +105,7 @@ export function buildSubsetIndex(result: BestSubsetsResult): SubsetIndex {
   }
 
   if (!Number.isFinite(maxRSquaredAdj)) maxRSquaredAdj = 0;
-  return { byKey, maxRSquaredAdj, singleByFactor };
+  return { byKey, maxRSquaredAdj, singleByFactor, n: result.n };
 }
 
 /**
@@ -123,25 +126,111 @@ export function lookupSubset(
 // ============================================================================
 
 /**
- * Per-factor p-value for the factors KEPT in a given subset.
+ * Number of design-matrix columns each factor in `factors` contributes (its
+ * Δdf — the degrees of freedom it adds to the model): 1 for a continuous factor,
+ * `levels − 1` for a categorical factor, +1 more if a quadratic term is in play.
  *
- * - OLS models expose per-predictor p (`subset.predictors`); for a grouped
- *   factor (categorical dummies, linear+quadratic) we take the GROUP MIN p
- *   (the factor "matters" if any of its terms do).
- * - All-categorical ANOVA subsets carry no per-predictor p, so we fall back to
- *   the factor's own single-factor subset overall-F p (always enumerated). This
- *   is the factor's marginal explanatory p — honest + engine-derived.
+ * Built from the SAME `buildDesignMatrix` primitive the engine uses (so the df
+ * accounting matches the regression exactly — reference-coded dummies, etc.).
+ * Returns an empty map when the matrix can't be built; callers fall back.
+ */
+function factorColumnCounts(
+  data: ReadonlyArray<DataRow>,
+  outcome: string,
+  factors: ReadonlyArray<string>
+): Map<string, number> {
+  const out = new Map<string, number>();
+  if (factors.length === 0) return out;
+
+  const classifications = classifyAllFactors([...data], [...factors]);
+  const specs: FactorSpec[] = factors.map(f => ({
+    name: f,
+    type: classifications.get(f)?.type ?? 'categorical',
+  }));
+
+  let matrix;
+  try {
+    matrix = buildDesignMatrix([...data], outcome, specs);
+  } catch {
+    return out;
+  }
+  for (const enc of matrix.encodings) {
+    out.set(enc.factorName, enc.columnIndices.length);
+  }
+  return out;
+}
+
+/**
+ * Per-factor p-value for the factors KEPT in a given subset — the honest
+ * **in-model partial** p, UNIFORM across the OLS and all-categorical (ANOVA)
+ * engine paths.
+ *
+ * Each kept factor `f`'s p is a **nested-model partial F-test** computed entirely
+ * from the ALREADY-ENUMERATED subsets:
+ *
+ *   F = [ (R²_S − R²_{S\f}) / Δdf_f ] / [ (1 − R²_S) / (n − p_S − 1) ]
+ *
+ * where the reduced subset `S \ {f}` is looked up O(1) in `index` (its R² is 0
+ * when `f` is the only factor → reduced model is the intercept-only mean), `Δdf_f`
+ * is the design-column count factor `f` contributes (1 continuous; `levels − 1`
+ * categorical), `p_S = subset.dfModel` (total design columns excluding intercept),
+ * and `n` is the sample size. The p comes from the SAME F→p helper the engine uses
+ * for its overall-F `pValue`, with `(Δdf_f, n − p_S − 1)` df.
+ *
+ * This is the factor-given-others partial p for BOTH paths. For a continuous
+ * factor it equals the OLS t-test p (F = t² at 1 df); we compute the nested-F
+ * uniformly rather than special-casing the predictor p, so the categorical and
+ * continuous values mean exactly the same thing on the surface (no "looks like a
+ * partial but is actually marginal" trap).
+ *
+ * `data`/`outcome` are needed to recover each factor's Δdf (design-column count)
+ * via the engine's own design-matrix builder; when they aren't reachable (legacy
+ * 2-arg callers / hand-built fixtures with no rows), we fall back to the prior
+ * behaviour — OLS predictor group-min p when present, else the single-factor
+ * marginal p — so nothing regresses.
  *
  * Returns 1 (not significant) when no source is available, never throws.
  */
 export function perFactorPValues(
   subset: BestSubsetResult,
-  index: SubsetIndex
+  index: SubsetIndex,
+  data?: ReadonlyArray<DataRow>,
+  outcome?: string | null
 ): Map<string, number> {
   const out = new Map<string, number>();
 
+  // Preferred path: the nested-model partial F-test, uniform for OLS + ANOVA.
+  // Needs the rows + outcome to recover each factor's Δdf from the design matrix.
+  const dfByFactor =
+    data && data.length > 0 && outcome
+      ? factorColumnCounts(data, outcome, subset.factors)
+      : new Map<string, number>();
+
+  const n = index.n;
+  const pS = subset.dfModel; // total design columns in S (excludes intercept)
+  const dfResidual = n - pS - 1;
+  const r2S = subset.rSquared;
+  const canNestedF =
+    dfByFactor.size > 0 && Number.isFinite(n) && dfResidual > 0 && r2S < 1 && r2S >= 0;
+
   for (const factor of subset.factors) {
-    // Prefer the in-model OLS per-predictor p (partial, model-conditioned).
+    if (canNestedF) {
+      const deltaDf = dfByFactor.get(factor);
+      if (deltaDf !== undefined && deltaDf > 0) {
+        // R² of the reduced model S\{f}: 0 when f is the sole factor (the reduced
+        // model is intercept-only). Else the enumerated subset's R².
+        const reducedFactors = subset.factors.filter(f => f !== factor);
+        const reduced = reducedFactors.length > 0 ? lookupSubset(index, reducedFactors) : null;
+        const r2Reduced = reducedFactors.length === 0 ? 0 : (reduced?.rSquared ?? 0);
+        const numerator = (r2S - r2Reduced) / deltaDf;
+        const denominator = (1 - r2S) / dfResidual;
+        const f = denominator > 0 ? numerator / denominator : 0;
+        out.set(factor, fDistributionPValue(f, deltaDf, dfResidual));
+        continue;
+      }
+    }
+
+    // Fallback 1: the in-model OLS per-predictor p (group min per factor).
     if (subset.predictors && subset.predictors.length > 0) {
       const groupPs = subset.predictors
         .filter(p => p.factorName === factor && Number.isFinite(p.pValue))
@@ -151,7 +240,7 @@ export function perFactorPValues(
         continue;
       }
     }
-    // Fallback: the factor's own single-factor subset overall-F p (marginal).
+    // Fallback 2: the factor's own single-factor subset overall-F p (marginal).
     const single = index.singleByFactor.get(factor);
     out.set(factor, single ? single.pValue : 1);
   }
@@ -185,13 +274,20 @@ export interface VitalFewSelection {
 export function selectVitalFew(
   result: BestSubsetsResult,
   index: SubsetIndex,
-  options?: { r2adjTolerance?: number; pThreshold?: number }
+  options?: {
+    r2adjTolerance?: number;
+    pThreshold?: number;
+    /** Rows + outcome → the honest nested-F partial p gates inclusion (see `perFactorPValues`). */
+    data?: ReadonlyArray<DataRow>;
+    outcome?: string | null;
+  }
 ): VitalFewSelection | null {
   if (result.subsets.length === 0) return null;
 
   const tolerance = options?.r2adjTolerance ?? VITAL_FEW_R2ADJ_TOLERANCE;
   const pThreshold = options?.pThreshold ?? VITAL_FEW_P_THRESHOLD;
   const cutoff = index.maxRSquaredAdj - tolerance;
+  const { data, outcome } = options ?? {};
 
   // Candidates "within tolerance of the max R²adj". The engine pre-sorted
   // subsets desc by R²adj, so a stable sort by (factorCount asc, then index
@@ -202,7 +298,7 @@ export function selectVitalFew(
     .sort((a, b) => a.s.factorCount - b.s.factorCount || a.i - b.i);
 
   for (const { s } of candidates) {
-    const perFactorP = perFactorPValues(s, index);
+    const perFactorP = perFactorPValues(s, index, data, outcome);
     const allBelow = s.factors.every(f => (perFactorP.get(f) ?? 1) < pThreshold);
     if (allBelow) {
       return { factors: [...s.factors], subset: s, perFactorP };
@@ -212,7 +308,11 @@ export function selectVitalFew(
   // No candidate cleared the p-gate → fall back to the single best subset so the
   // band still shows the engine's top model (the analyst can prune from there).
   const best = result.subsets[0];
-  return { factors: [...best.factors], subset: best, perFactorP: perFactorPValues(best, index) };
+  return {
+    factors: [...best.factors],
+    subset: best,
+    perFactorP: perFactorPValues(best, index, data, outcome),
+  };
 }
 
 // ============================================================================
