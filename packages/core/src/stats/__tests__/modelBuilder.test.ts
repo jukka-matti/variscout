@@ -18,6 +18,7 @@ import {
   selectVitalFew,
   isFitOnlyEstimate,
   redundancyHint,
+  computeSubsetVIF,
   VITAL_FEW_R2ADJ_TOLERANCE,
   VITAL_FEW_P_THRESHOLD,
 } from '../modelBuilder';
@@ -290,6 +291,25 @@ describe('isFitOnlyEstimate', () => {
   });
 });
 
+describe('computeSubsetVIF', () => {
+  it('returns an empty map for a lone factor (VIF undefined with no peers)', () => {
+    const data = shiftDominatedFixture();
+    expect(computeSubsetVIF(data, 'Y', ['Shift']).size).toBe(0);
+  });
+
+  it('reports very high VIF for two near-collinear continuous factors', () => {
+    const rows: DataRow[] = [];
+    for (let i = 0; i < 40; i++) {
+      const x1 = i;
+      const x2 = 2 * i + (i % 2 === 0 ? 0.01 : -0.01); // near-collinear with x1
+      rows.push({ X1: x1, X2: x2, Y: 3 * x1 + (i % 3) });
+    }
+    const vif = computeSubsetVIF(rows, 'Y', ['X1', 'X2']);
+    expect(vif.get('X1')!).toBeGreaterThan(10);
+    expect(vif.get('X2')!).toBeGreaterThan(10);
+  });
+});
+
 describe('redundancyHint', () => {
   const withFactor: BestSubsetResult = {
     factors: ['A', 'B'],
@@ -329,5 +349,15 @@ describe('redundancyHint', () => {
 
   it('returns null when there is no without-factor model', () => {
     expect(redundancyHint('B', withFactor, null)).toBeNull();
+  });
+
+  it('reads the explicit vif option when the subset carries no stamped VIF', () => {
+    // withFactor.vif has no entry for 'B' here → falls back to options.vif.
+    const noVif: BestSubsetResult = { ...withFactor, vif: new Map() };
+    const withoutB: BestSubsetResult = { ...noVif, factors: ['A'], rSquaredAdj: 0.495 };
+    expect(redundancyHint('B', noVif, withoutB)).toBeNull(); // no vif anywhere
+    const hint = redundancyHint('B', noVif, withoutB, { vif: 25 });
+    expect(hint).not.toBeNull();
+    expect(hint!.vif).toBeCloseTo(25, 10);
   });
 });

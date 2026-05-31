@@ -134,6 +134,7 @@ export {
   selectVitalFew,
   isFitOnlyEstimate,
   redundancyHint,
+  computeSubsetVIF,
 } from './modelBuilder';
 
 // Type III SS decomposition

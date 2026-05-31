@@ -24,7 +24,13 @@
  * Deterministic: no Date.now / Math.random / argless `new Date`.
  */
 
+import type { DataRow } from '../types';
 import type { BestSubsetResult, BestSubsetsResult } from './bestSubsets';
+import { classifyAllFactors } from './factorTypeDetection';
+import { buildDesignMatrix } from './designMatrix';
+import type { FactorSpec } from './designMatrix';
+import { solveOLS } from './olsRegression';
+import { safeDivide } from './safeMath';
 
 // ============================================================================
 // Tunable constants (the LOCKED default rule — spec §2.1)
@@ -223,6 +229,67 @@ export function isFitOnlyEstimate(subset: BestSubsetResult): boolean {
   return subset.warnings.some(w => /overfit/i.test(w) || /observation-to-predictor/i.test(w));
 }
 
+/**
+ * Per-factor (group) VIF for an ARBITRARY factor subset.
+ *
+ * The best-subsets engine only computes VIF for the winning subset; the
+ * model-builder needs it for whatever model the analyst is currently holding.
+ * This re-uses the SAME engine primitives (`buildDesignMatrix` + `solveOLS`) and
+ * the SAME generalized-VIF definition the engine uses internally (regress each
+ * factor's column(s) on the others; VIF = 1/(1−R²); group factors average across
+ * their columns) — it does NOT introduce a new regression model. Returns an
+ * empty map when the subset has < 2 factors (VIF is undefined for a lone factor)
+ * or the design matrix can't be built.
+ */
+export function computeSubsetVIF(
+  data: ReadonlyArray<DataRow>,
+  outcome: string,
+  factors: ReadonlyArray<string>
+): Map<string, number> {
+  const vifMap = new Map<string, number>();
+  if (factors.length < 2) return vifMap;
+
+  const classifications = classifyAllFactors([...data], [...factors]);
+  const specs: FactorSpec[] = factors.map(f => ({
+    name: f,
+    type: classifications.get(f)?.type ?? 'categorical',
+  }));
+
+  let matrix;
+  try {
+    matrix = buildDesignMatrix([...data], outcome, specs);
+  } catch {
+    return vifMap;
+  }
+  const { X, n, encodings } = matrix;
+  if (encodings.length < 2) return vifMap;
+
+  for (let fi = 0; fi < encodings.length; fi++) {
+    const enc = encodings[fi];
+    const targetCols = enc.columnIndices;
+    let totalVIF = 0;
+    for (const targetCol of targetCols) {
+      const otherCols: Float64Array[] = [X[0]]; // intercept
+      for (let oi = 0; oi < encodings.length; oi++) {
+        if (oi === fi) continue;
+        for (const col of encodings[oi].columnIndices) otherCols.push(X[col]);
+      }
+      if (otherCols.length <= 1) {
+        totalVIF += 1.0;
+        continue;
+      }
+      try {
+        const result = solveOLS(otherCols, X[targetCol], n, otherCols.length);
+        totalVIF += safeDivide(1, 1 - result.rSquared) ?? Infinity;
+      } catch {
+        totalVIF += 1.0;
+      }
+    }
+    vifMap.set(enc.factorName, targetCols.length > 0 ? totalVIF / targetCols.length : 1.0);
+  }
+  return vifMap;
+}
+
 export interface RedundancyHint {
   /** The factor that was just removed (the high-VIF one). */
   removedFactor: string;
@@ -238,21 +305,24 @@ export interface RedundancyHint {
  * the larger model), return a hint so the UI can say "removing X barely changed
  * the model — it's correlated with another factor, redundant not irrelevant."
  *
- * `withFactor` is the model that INCLUDES the factor (the VIF source);
- * `withoutFactor` is the model after toggling it out. Returns null when the
- * removal materially moves R²adj or the factor is not highly collinear.
+ * `withFactor` is the model that INCLUDES the factor; `withoutFactor` is the
+ * model after toggling it out. The factor's group VIF is read from
+ * `withFactor.vif` when present, else from the explicit `vif` arg (the UI passes
+ * `computeSubsetVIF` output for the working model, since the engine only stamps
+ * VIF on the winner). Returns null when the removal materially moves R²adj or the
+ * factor is not highly collinear.
  */
 export function redundancyHint(
   removedFactor: string,
   withFactor: BestSubsetResult,
   withoutFactor: BestSubsetResult | null,
-  options?: { vifThreshold?: number; r2adjDelta?: number }
+  options?: { vifThreshold?: number; r2adjDelta?: number; vif?: number }
 ): RedundancyHint | null {
   if (!withoutFactor) return null;
   const vifThreshold = options?.vifThreshold ?? REDUNDANCY_VIF_THRESHOLD;
   const r2adjDelta = options?.r2adjDelta ?? REDUNDANCY_R2ADJ_DELTA;
 
-  const vif = withFactor.vif?.get(removedFactor);
+  const vif = withFactor.vif?.get(removedFactor) ?? options?.vif;
   if (vif === undefined || !Number.isFinite(vif) || vif < vifThreshold) return null;
 
   const delta = withFactor.rSquaredAdj - withoutFactor.rSquaredAdj;
