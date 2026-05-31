@@ -71,6 +71,8 @@ const CAVEAT_H = 40;
 /** FE-2b — height of the refute→respawn-sharper band (collapsed CTA / open form). */
 const RESPAWN_CTA_H = 32;
 const RESPAWN_FORM_H = 132;
+/** FE-2b — height of the "superseded by →" anti-amnesia trail text. */
+const SUPERSEDED_H = 24;
 /** Height of the per-hypothesis What-If block (px). */
 const WHATIF_H = 56;
 /** Horizontal offset of the foreignObject from the card's center-top anchor. */
@@ -242,6 +244,15 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    */
   onRespawnSharper?: (refutedHypothesisId: string, newName: string) => void;
   /**
+   * FE-2b — the "superseded by →" anti-amnesia trail (spec §4.2). The resolved
+   * NAME of the sharper hypothesis (H2) this refuted hub was superseded by, looked
+   * up by the parent from `hub.supersededByHypothesisId`. When present (the hub is
+   * refuted AND was respawned), the card renders a small "superseded by → [name]"
+   * text reference so the analyst doesn't re-walk the dead end. Plain text — NOT a
+   * drawn canvas edge. Absent when the hub was never superseded.
+   */
+  supersededByName?: string;
+  /**
    * FE-2b — the confound sign-prompt (spec §4.2). When a factor the analyst is
    * about to evaluate is ALSO cited by a rival hypothesis, the card surfaces the
    * rival + prompts the analyst to mark the opposite sign on it. The map is keyed
@@ -310,6 +321,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   whatIf,
   unbackedSurvived,
   onRespawnSharper,
+  supersededByName,
   confoundByFactor,
   onMarkConfoundOpposite,
   stepOptions,
@@ -395,6 +407,11 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // callback AND the hub is refuted (its display status is 'refuted').
   const showRespawn = canEdit && Boolean(onRespawnSharper) && cardProps.displayStatus === 'refuted';
   const respawnH = showRespawn ? (respawnFormOpen ? RESPAWN_FORM_H : RESPAWN_CTA_H) : 0;
+  // FE-2b — the "superseded by →" trail renders on a refuted hub that was
+  // respawned into a sharper successor. Independent of edit access (it's a
+  // read-only lineage marker, visible to everyone).
+  const showSuperseded = cardProps.displayStatus === 'refuted' && Boolean(supersededByName);
+  const supersededH = showSuperseded ? SUPERSEDED_H : 0;
   const plansSectionH =
     actionRowsTotalH +
     addTaskBtnH +
@@ -403,6 +420,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
     whatIfH +
     caveatH +
     respawnH +
+    supersededH +
     dataCollectTotalH +
     btnH +
     formH +
@@ -823,6 +841,20 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                   </button>
                 </div>
               </div>
+            )}
+
+            {/* FE-2b — the "superseded by →" anti-amnesia trail (spec §4.2). A
+                refuted hub that was respawned into a sharper successor renders a
+                small read-only lineage reference (plain text, NOT a canvas edge)
+                so the analyst doesn't re-walk the dead end. */}
+            {showSuperseded && (
+              <p
+                data-testid="superseded-by-trail"
+                className="border-b border-gray-100 px-3 py-1 text-[11px] italic text-gray-500"
+              >
+                {getMessage(locale, 'wall.respawn.supersededBy')}{' '}
+                <span className="not-italic font-medium text-gray-700">{supersededByName}</span>
+              </p>
             )}
 
             {/* ActionItem task rows (Task 3 IM-4b) */}

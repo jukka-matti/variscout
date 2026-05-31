@@ -54,6 +54,7 @@ import {
   isEvaluateFindingForFactor,
   evaluateDisconfirmation,
   isDisconfirmationFindingForFactor,
+  isDisconfirmationResult,
 } from '@variscout/core/findings';
 import type { DisconfirmationAttempt } from '@variscout/core';
 import { generateDeterministicId } from '@variscout/core/identity';
@@ -397,11 +398,18 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
             upn: userId ?? undefined,
           },
           description: (options?.prediction ?? result.findingText).trim(),
-          // Derived from `refutes` (both evaluate shapes carry it) so this is
-          // engine-graded: refuted → the predicted relationship was absent;
-          // survived → the cause withstood the attempt. Matches `result.verdict`
-          // from `evaluateDisconfirmation` without a union-narrowing cast.
-          verdict: result.refutes ? 'refuted' : 'survived',
+          // Engine-graded verdict carried straight off the disconfirmation result:
+          // 'refuted' (the predicted relationship was absent on an adequately
+          // powered sample), 'survived' (the cause withstood the attempt), OR
+          // 'pending' (MAJOR-1 — a low-power null: too few rows to refute, so the
+          // attempt stays open rather than falsely refute a real cause). Inside
+          // this `tryToBreakIt` branch the result is always a
+          // `DisconfirmationEvaluation` (it has `verdict`); guard for that shape.
+          verdict: isDisconfirmationResult(result)
+            ? result.verdict
+            : result.refutes
+              ? 'refuted'
+              : 'survived',
           linkedFindingIds: [findingId],
         };
         hypothesesState.recordDisconfirmation(hypothesisId, attempt);
@@ -495,6 +503,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           ? findingsState.findings.find(f => h1.findingIds.includes(f.id) && f.refutes)
           : undefined;
         const newHub = hypothesesState.createHub(newName, '');
+        // FE-2b — the "superseded by →" anti-amnesia trail (spec §4.2): point the
+        // red dead-end (H1) at its sharper successor (H2). The refuted card renders
+        // "superseded by → [H2 name]" so the analyst doesn't re-walk the dead end.
+        hypothesesState.updateHub(refutedHypothesisId, { supersededByHypothesisId: newHub.id });
         if (refuting) {
           // The finding that REFUTED H1 is positive evidence for the sharper H2.
           const carried = findingsState.addFinding(

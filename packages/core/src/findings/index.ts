@@ -64,6 +64,7 @@ export {
   evaluateDisconfirmation,
   disconfirmationFindingText,
   isDisconfirmationFindingForFactor,
+  isDisconfirmationResult,
 } from './hypothesisTestPlan';
 export type {
   AnalyticalTool,

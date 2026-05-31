@@ -44,6 +44,7 @@ import {
   isEvaluateFindingForFactor,
   evaluateDisconfirmation,
   isDisconfirmationFindingForFactor,
+  isDisconfirmationResult,
 } from '@variscout/core/findings';
 import type { EvaluateFactorOptions } from '@variscout/ui';
 import { detectInvestigationPhase } from '@variscout/core/ai';
@@ -284,10 +285,17 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
           attemptedAt: new Date().toISOString(),
           attemptedBy: { displayName: 'Local browser', upn: 'analyst@local' },
           description: (options?.prediction ?? result.findingText).trim(),
-          // Engine-graded, derived from `refutes` (both evaluate shapes carry it):
-          // refuted → the predicted relationship was absent; survived → the cause
-          // withstood the attempt. Matches `evaluateDisconfirmation`'s verdict.
-          verdict: result.refutes ? 'refuted' : 'survived',
+          // Engine-graded verdict carried straight off the disconfirmation result:
+          // 'refuted' (relationship absent, adequate power), 'survived' (cause
+          // withstood the attempt), OR 'pending' (MAJOR-1 — a low-power null: too
+          // few rows to refute, so the attempt stays open rather than falsely
+          // refute a real cause). Inside this `tryToBreakIt` branch the result is
+          // always a `DisconfirmationEvaluation`; guard for that shape.
+          verdict: isDisconfirmationResult(result)
+            ? result.verdict
+            : result.refutes
+              ? 'refuted'
+              : 'survived',
           linkedFindingIds: [findingId],
         };
         store.recordDisconfirmation(hypothesisId, attempt);
@@ -314,6 +322,10 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
           ? store.findings.find(f => h1.findingIds.includes(f.id) && f.refutes)
           : undefined;
         const newHub = store.createHub(newName, '');
+        // FE-2b — the "superseded by →" anti-amnesia trail (spec §4.2): point the
+        // red dead-end (H1) at its sharper successor (H2) so the refuted card can
+        // render "superseded by → [H2 name]" and the analyst doesn't re-walk it.
+        store.updateHub(refutedHypothesisId, { supersededByHypothesisId: newHub.id });
         if (refuting) {
           const carried = store.addFinding(
             `Carried from the refutation of “${h1?.name ?? 'the prior hypothesis'}”: ${refuting.text}`,

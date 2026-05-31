@@ -196,6 +196,37 @@ describe('FE-2b — refute → respawn-sharper', () => {
     );
     expect(screen.queryByTestId('respawn-sharper-cta')).toBeNull();
   });
+
+  it('MAJOR-2: a refuted hub that was respawned shows the "superseded by → [H2 name]" trail', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans
+        {...baseProps}
+        displayStatus="refuted"
+        supersededByName="It is the spindle, regardless of shift"
+        testPlanFactors={readyFactors}
+        onEvaluateFactor={vi.fn()}
+        onRespawnSharper={vi.fn()}
+      />
+    );
+    const trail = screen.getByTestId('superseded-by-trail');
+    expect(trail).toBeInTheDocument();
+    expect(trail).toHaveTextContent('superseded by →');
+    // The trail names the successor (H2) so the analyst doesn't re-walk the dead end.
+    expect(trail).toHaveTextContent('It is the spindle, regardless of shift');
+  });
+
+  it('hides the superseded-by trail when the refuted hub has no successor', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans
+        {...baseProps}
+        displayStatus="refuted"
+        testPlanFactors={readyFactors}
+        onEvaluateFactor={vi.fn()}
+        onRespawnSharper={vi.fn()}
+      />
+    );
+    expect(screen.queryByTestId('superseded-by-trail')).toBeNull();
+  });
 });
 
 describe('FE-2b — the confound sign-prompt + side-by-side What-If', () => {

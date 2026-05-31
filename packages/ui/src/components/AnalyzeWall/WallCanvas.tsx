@@ -402,6 +402,10 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     );
     return new Map(entries);
   }, [filteredHubs, findings, processMap]);
+  // FE-2b — hub-name lookup for the "superseded by →" trail. Keyed off the FULL
+  // `hubs` list (not `filteredHubs`) so a refuted hub can name its successor even
+  // when the successor is filtered out of the current step view.
+  const hubNameById = useMemo(() => new Map(hubs.map(h => [h.id, h.name])), [hubs]);
   // FE-2a perf — precompute the per-hub test-plan triad + What-If ONCE per
   // (hubs, findings, rows, outcome, …) change instead of re-running the ANOVA +
   // What-If engines inside the unmemoized `renderHubAt` on every render. The
@@ -919,6 +923,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           unbackedSurvived: hubDisconfirm?.unbackedSurvived,
           confoundByFactor: hubDisconfirm?.confoundByFactor,
           onRespawnSharper: planningProps.onRespawnSharper,
+          // FE-2b — resolved successor name for the "superseded by →" trail on a
+          // refuted hub (undefined unless this hub was respawned).
+          supersededByName: hub.supersededByHypothesisId
+            ? hubNameById.get(hub.supersededByHypothesisId)
+            : undefined,
           onMarkConfoundOpposite: planningProps.onMarkConfoundOpposite,
           onAddPlan: planningProps.onAddPlan,
           onLinkFinding: planningProps.onLinkFinding,
