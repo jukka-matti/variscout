@@ -143,6 +143,8 @@ Each PR below states: **Goal · ADR · Depends on · Key files (grounded) · Cas
 ## IM-4 · Unified bipartite canvas + disconfirmation-recording UX
 
 > **Detailed design (grounded, 2026-05-30):** [Investigation Wall — unified canvas](../specs/2026-05-30-investigation-wall-unified-canvas-design.md) reframes this as the **Investigation Wall** (drill→Finding→compound-scope→hypotheses), splits delivery into **IM-4a** (wire the spine) + **IM-4b** (unify + multiplicity + collaborate), drops the ACH matrix, keeps scopes flat for V1, and adds hypothesis collaboration (comments + assignable tasks). It supersedes the raw bullet below where they differ.
+>
+> **Delivery (actual):** **IM-4a** (spine wiring) shipped PR #256; **IM-4b** (collaboration + multi-scope rail + re-mounted detached flows) shipped PR #257 — it sub-sliced per §8.102, deferring the layout/Focus half. The remainder is **IM-4c** — [unified Wall layout + Focus lens + propose-hypothesis-from-finding plan](2026-05-31-im-4c-unified-wall-layout-focus-lens.md) (single Opus implementer per the IM-4b TDD-pipeline trial verdict). Note: the spec §8.6 "unified bipartite layout" = contributing-factors band + hypothesis river in ONE Wall coordinate space (the Evidence Map stays the SEPARATE cross-scope overview); §121 confirms the spec refines ADR-086 here.
 
 - **Goal:** One bipartite factor↔hypothesis canvas (Focus lens + factor-family LOD + edge bundling + ACH toggle + `ruledOut` flag); build the disconfirmation-recording write-path.
 - **ADR:** [086](../../07-decisions/adr-086-unified-investigation-canvas.md).

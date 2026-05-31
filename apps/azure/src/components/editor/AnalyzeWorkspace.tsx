@@ -9,6 +9,8 @@ import {
   Minimap,
   CANVAS_W,
   CANVAS_H,
+  computeWallLayout,
+  buildWallLayoutArgs,
   ActiveIPScopeRibbon,
   useWallKeyboard,
   useWallIsMobile,
@@ -510,21 +512,30 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     [activeIPScope, scopedFindingIds, findingsState.findings]
   );
 
-  // Phase 13 — pan-to-node: replicate WallCanvas's deterministic layout so the
-  // command palette can center the viewport on a hub by id. (IM-1: the
-  // question row is gone; only hub nodes are pan-targets.)
+  // Phase 13 — pan-to-node: center the viewport on a hub by id. IM-4c: consumes
+  // the SHARED computeWallLayout authority with the SAME inputs WallCanvas + the
+  // Minimap use (incl. tributary grouping), so the pan target always lands on the
+  // rendered card — no more linear-only duplicate that drifted under grouping.
   const handleWallPanToNode = useCallback(
     (nodeId: string) => {
-      const hubIndex = scopedHubs.findIndex(h => h.id === nodeId);
-      if (hubIndex >= 0) {
-        const hubSpacing = CANVAS_W / (scopedHubs.length + 1);
+      const layout = computeWallLayout(
+        buildWallLayoutArgs({
+          hubs: scopedHubs,
+          processMap,
+          groupByTributary: Boolean(processMap && wallGroupByTributary),
+          canvasW: CANVAS_W,
+          canvasH: CANVAS_H,
+        })
+      );
+      const pos = layout.hubPositions.get(nodeId);
+      if (pos) {
         setWallPan(wallHubId, {
-          x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
-          y: CANVAS_H / 2 - 400,
+          x: CANVAS_W / 2 - pos.x,
+          y: CANVAS_H / 2 - pos.y,
         });
       }
     },
-    [scopedHubs, wallHubId, setWallPan]
+    [scopedHubs, processMap, wallGroupByTributary, wallHubId, setWallPan]
   );
 
   const handleReturnToImprovementProject = useCallback(() => {
@@ -557,12 +568,14 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // contribution view that renders it arrives in IM-5.
   //
   // NOTE: this reads `h.status` (the stored value) directly, not
-  // `deriveHypothesisStatus`. On main, `setHubStatus` has zero prod callers
-  // and factories.ts seeds 'proposed', so `h.status === 'confirmed'` is a dead
-  // branch here until IM-4b/IM-6 persists the derived value. The Wall surface
-  // (WallCanvas + MobileCardList) correctly calls `deriveHypothesisStatus`.
-  // See investigations.md §"stored-vs-derived status deferral (IM-4a)" for the
-  // open question: migrate these readers OR persist the derived value in IM-4b/IM-6.
+  // `deriveHypothesisStatus`. Status is derived (deriveHypothesisStatus) + the
+  // disconfirmation gesture — there is NO manual status-override action
+  // (IM-4c removed the dead setHubStatus orphan per spec §10 #1). factories.ts
+  // seeds 'proposed', so `h.status === 'confirmed'` is a dead branch here until
+  // IM-6 persists the derived value. The Wall surface (WallCanvas +
+  // MobileCardList) correctly calls `deriveHypothesisStatus`. See
+  // investigations.md §"stored-vs-derived status deferral (IM-4a)" for the open
+  // question: migrate these readers OR persist the derived value in IM-6.
   const { hypotheses, ruledOut } = useMemo(() => {
     const suspected: Hypothesis[] = [];
     const ruled: Hypothesis[] = [];
@@ -677,6 +690,23 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const handleDeleteHub = useCallback(
     (hubId: string) => hypothesesState.deleteHub(hubId),
     [hypothesesState]
+  );
+
+  // IM-4c — "propose suspected mechanism from this finding". The Wall renders
+  // `hypothesesState.hubs` (the useHypotheses hook is the source of truth), so we
+  // create + connect through THAT hook — NOT analyzeStore.createHubFromFinding,
+  // which appends to a different collection that does NOT re-render this Wall.
+  // Mirrors handleCreateHub's create→connect path; name matches the store
+  // factory's "Suspected mechanism: {excerpt}" convention.
+  const handleProposeHypothesis = useCallback(
+    (findingId: string) => {
+      const finding = findingsState.findings.find(f => f.id === findingId);
+      const excerpt = (finding?.text ?? '').trim().slice(0, 80);
+      const name = excerpt.length > 0 ? `Suspected mechanism: ${excerpt}` : 'New mechanism branch';
+      const hub = hypothesesState.createHub(name, '');
+      hypothesesState.connectFinding(hub.id, findingId);
+    },
+    [findingsState.findings, hypothesesState]
   );
 
   const handleToggleHubSelect = useCallback(
@@ -996,6 +1026,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   pan={wallPan}
                   groupByTributary={Boolean(processMap && wallGroupByTributary)}
                   planningProps={enrichedPlanningProps}
+                  onProposeHypothesis={handleProposeHypothesis}
                 />
                 {/* Minimap + CommandPalette are desktop-only. WallCanvas
                   self-gates to MobileCardList below 768px, so these
@@ -1008,6 +1039,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                         zoom={wallZoom}
                         pan={wallPan}
                         onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
+                        processMap={processMap}
+                        groupByTributary={Boolean(processMap && wallGroupByTributary)}
                       />
                     </div>
                     <CommandPalette

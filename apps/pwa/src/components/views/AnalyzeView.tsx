@@ -21,6 +21,8 @@ import {
   Minimap,
   CANVAS_W,
   CANVAS_H,
+  computeWallLayout,
+  buildWallLayoutArgs,
   ActiveIPScopeRibbon,
   useWallKeyboard,
   useWallIsMobile,
@@ -157,22 +159,29 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   });
 
   // Phase 13 — resolve a CommandPalette result id to a canvas-space pan target.
-  // Positioning mirrors WallCanvas's deterministic layout (hubs row at y=400,
-  // questions row at y=900). WallCanvas doesn't expose node positions, so this
-  // recomputation is a controlled duplication — refactor if the layout ever
-  // becomes dynamic.
+  // IM-4c: consumes the SHARED computeWallLayout authority with the SAME inputs
+  // WallCanvas + the Minimap use (incl. tributary grouping), so the pan target
+  // always lands on the rendered card — no recomputed duplicate.
   const handlePanToNode = useCallback(
     (nodeId: string) => {
-      const hubIndex = scopedWallHubs.findIndex(h => h.id === nodeId);
-      if (hubIndex >= 0) {
-        const hubSpacing = CANVAS_W / (scopedWallHubs.length + 1);
+      const layout = computeWallLayout(
+        buildWallLayoutArgs({
+          hubs: scopedWallHubs,
+          processMap,
+          groupByTributary: Boolean(processMap && wallGroupByTributary),
+          canvasW: CANVAS_W,
+          canvasH: CANVAS_H,
+        })
+      );
+      const pos = layout.hubPositions.get(nodeId);
+      if (pos) {
         setWallPan(wallHubId, {
-          x: CANVAS_W / 2 - hubSpacing * (hubIndex + 1),
-          y: CANVAS_H / 2 - 400,
+          x: CANVAS_W / 2 - pos.x,
+          y: CANVAS_H / 2 - pos.y,
         });
       }
     },
-    [scopedWallHubs, wallHubId, setWallPan]
+    [scopedWallHubs, processMap, wallGroupByTributary, wallHubId, setWallPan]
   );
 
   const handleReturnToImprovementProject = useCallback(() => {
@@ -181,6 +190,14 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
       usePanelsStore.getState().showCharter();
     }
   }, [returnNavigation]);
+
+  // IM-4c — "propose suspected mechanism from this finding". The PWA Wall reads
+  // hubs from useAnalyzeStore.hypotheses REACTIVELY (line above), so
+  // createHubFromFinding (which appends to that exact collection) re-renders the
+  // Wall with the new hypothesis card. No follow-through sync needed.
+  const handleProposeHypothesis = useCallback((findingId: string) => {
+    useAnalyzeStore.getState().createHubFromFinding(findingId);
+  }, []);
 
   // Categorize hypothesis hubs for AnalyzeConclusion (IM-1: status-derived,
   // replacing the retired Question causeRole split).
@@ -341,6 +358,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 pan={wallPan}
                 groupByTributary={Boolean(processMap && wallGroupByTributary)}
                 planningProps={planningProps}
+                onProposeHypothesis={handleProposeHypothesis}
               />
               {/* Minimap + CommandPalette are desktop-only. WallCanvas
                 self-gates to MobileCardList below 768px. */}
@@ -352,6 +370,8 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                       zoom={wallZoom}
                       pan={wallPan}
                       onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
+                      processMap={processMap}
+                      groupByTributary={Boolean(processMap && wallGroupByTributary)}
                     />
                   </div>
                   <CommandPalette

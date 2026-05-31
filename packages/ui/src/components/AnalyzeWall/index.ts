@@ -48,6 +48,19 @@ export { useWallLocale, getDocumentLocale } from './hooks/useWallLocale';
 export { MobileCardList } from './MobileCardList';
 export type { MobileCardListProps } from './MobileCardList';
 export { CANVAS_W, CANVAS_H } from './WallCanvas';
+export { computeWallLayout, buildWallLayoutArgs } from './wallLayout';
+export { wallDegreeOfInterest, focusOpacity } from './wallFocus';
+export type {
+  WallLayout,
+  WallNodePos,
+  WallEdge,
+  WallLayoutArgs,
+  WallLayoutHubInput,
+  WallLayoutGroup,
+  WallLayoutHubLike,
+  WallLayoutProcessMapLike,
+  BuildWallLayoutArgsInput,
+} from './wallLayout';
 export { MeasurementPlanChip } from './MeasurementPlanChip';
 export type { MeasurementPlanChipProps } from './MeasurementPlanChip';
 export { AddPlanForm } from './AddPlanForm';

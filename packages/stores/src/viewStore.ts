@@ -15,6 +15,12 @@ export interface ViewState {
   highlightedChartPoint: number | null;
   /** Finding ID highlighted for bidirectional navigation. */
   highlightedFindingId: string | null;
+  /**
+   * IM-4c Focus lens (ADR-086) — the single focused Wall entity (hub / finding /
+   * factor id), or null when nothing is focused. WallCanvas AND Minimap read
+   * THIS one field (degree-of-interest dimming) — no per-renderer focus state.
+   */
+  focusedWallEntityId: string | null;
   /** Set by navigate_to tool; consumed by Editor to focus a chart via ViewState. */
   pendingChartFocus: string | null;
   /** Secondary overflow view within the PI panel. */
@@ -39,6 +45,8 @@ export interface ViewActions {
   handleRowClick: (index: number) => void;
   setHighlightPoint: (index: number | null) => void;
   setHighlightedFindingId: (id: string | null) => void;
+  /** IM-4c Focus lens — set (or clear with null) the focused Wall entity. */
+  setFocusedWallEntity: (id: string | null) => void;
   setPendingChartFocus: (chart: string | null) => void;
   setPIOverflowView: (view: 'data' | 'whatif' | null) => void;
   toggleDataTable: () => void;
@@ -72,6 +80,7 @@ export const getViewInitialState = (): ViewState => ({
   highlightRowIndex: null,
   highlightedChartPoint: null,
   highlightedFindingId: null,
+  focusedWallEntityId: null,
   pendingChartFocus: null,
   piOverflowView: null,
   isDataTableOpen: false,
@@ -88,6 +97,7 @@ export const useViewStore = create<ViewStore>(set => ({
   handleRowClick: index => set({ highlightedChartPoint: index }),
   setHighlightPoint: index => set({ highlightedChartPoint: index }),
   setHighlightedFindingId: id => set({ highlightedFindingId: id }),
+  setFocusedWallEntity: id => set({ focusedWallEntityId: id }),
   setPendingChartFocus: chart => set({ pendingChartFocus: chart }),
   setPIOverflowView: view => set({ piOverflowView: view }),
   toggleDataTable: () => set(s => ({ isDataTableOpen: !s.isDataTableOpen })),

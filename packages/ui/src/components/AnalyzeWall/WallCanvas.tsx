@@ -9,9 +9,10 @@
  * hub↔finding re-layout is IM-4). Renders EmptyState when no hubs exist.
  */
 
-import React, { useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { useCanvasViewportInput } from '@variscout/hooks';
+import { useViewStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import type {
   Hypothesis,
@@ -39,6 +40,8 @@ import { deriveProcessSteps } from '@variscout/core/frame';
 import { getMessage } from '@variscout/core/i18n';
 import { surveyWallRules, deriveHypothesisStatus } from '@variscout/core/survey';
 import { chartColors } from '@variscout/charts';
+import { computeWallLayout, buildWallLayoutArgs } from './wallLayout';
+import { wallDegreeOfInterest, focusOpacity } from './wallFocus';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { GateBadge } from './GateBadge';
 import { FindingChip } from './FindingChip';
@@ -184,6 +187,15 @@ export interface WallCanvasProps {
   onSeedFromFactorIntel?: () => void;
   onFocusHubFromGap?: (id: string) => void;
   /**
+   * IM-4c — "propose suspected mechanism from this finding". When provided, each
+   * orphan FindingChip (a finding linked to no hub) renders a propose-hypothesis
+   * affordance. Firing it calls back with the findingId; the APP wires this
+   * through whatever path actually re-renders the Wall's hubs collection (Azure:
+   * useHypotheses.createHub + connectFinding; PWA: analyzeStore.createHubFromFinding,
+   * which the PWA Wall reads reactively). Omit to hide the affordance.
+   */
+  onProposeHypothesis?: (findingId: string) => void;
+  /**
    * When provided, enables drag-drop gate composition. Hubs become draggable
    * sources; gate badges become drop targets. Fired on a valid hub→gate
    * drop — callers should wire this to `analyzeStore.composeGate`.
@@ -269,6 +281,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   onWriteHypothesis,
   onSeedFromFactorIntel,
   onFocusHubFromGap,
+  onProposeHypothesis,
   onComposeGate,
   zoom = 1,
   pan = { x: 0, y: 0 },
@@ -343,6 +356,50 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     }
     return [...buckets, unassigned].filter(b => b.hubs.length > 0);
   }, [filteredHubs, groupByTributary, processMap]);
+
+  // IM-4c — the single position authority. WallCanvas renders hub anchors,
+  // evidence chips, the orphan lane, and the scope anchor from THIS layout (no
+  // inline placement math); Minimap + both apps' pan-to-node call
+  // `computeWallLayout` with the SAME inputs to recover identical positions.
+  // The args mirror the render path's filteredHubs + tributaryGroups so the
+  // authority and the DOM never drift.
+  const wallLayout = useMemo(
+    () =>
+      computeWallLayout(
+        buildWallLayoutArgs({
+          hubs: filteredHubs,
+          findings,
+          processMap,
+          // tributaryGroups already encodes the groupByTributary && processMap
+          // gate; pass the boolean so the shared bucketing rule reproduces it.
+          groupByTributary: Boolean(tributaryGroups),
+          canvasW: CANVAS_W,
+          canvasH: CANVAS_H,
+        })
+      ),
+    [filteredHubs, findings, processMap, tributaryGroups]
+  );
+
+  // IM-4c Focus lens (ADR-086) — a SINGLE viewStore field drives the dimming in
+  // both WallCanvas and the Minimap (no per-renderer focus useState). Clicking a
+  // node focuses it; clicking empty canvas clears focus. `focusFor` maps a node
+  // id → { opacity, doi } via degree-of-interest over the layout's tethers.
+  const focusedWallEntityId = useViewStore(s => s.focusedWallEntityId);
+  const setFocusedWallEntity = useViewStore(s => s.setFocusedWallEntity);
+  const focusFor = useCallback(
+    (nodeId: string) => {
+      const doi = wallDegreeOfInterest(focusedWallEntityId, nodeId, wallLayout.edges);
+      return { opacity: focusOpacity(doi), doi };
+    },
+    [focusedWallEntityId, wallLayout.edges]
+  );
+  const handleFocusNode = useCallback(
+    (nodeId: string) => setFocusedWallEntity(nodeId),
+    [setFocusedWallEntity]
+  );
+  const handleClearFocus = useCallback(() => {
+    if (focusedWallEntityId !== null) setFocusedWallEntity(null);
+  }, [focusedWallEntityId, setFocusedWallEntity]);
 
   // Scope-anchor (IM-4a): derive the Problem-condition card's live display
   // values from the active scope + data window. Reuses the shipped IM-5 math +
@@ -435,7 +492,15 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     );
   }
 
-  if (mode === 'destination' && filteredHubs.length === 0) {
+  // Show the EmptyState only when there is nothing at all to render. Orphan
+  // findings (linked to no hub) are a "home on the Wall" (IM-4c) — they keep the
+  // SVG body mounted so the orphan lane + propose-hypothesis affordance render
+  // even before the first hub exists.
+  if (
+    mode === 'destination' &&
+    filteredHubs.length === 0 &&
+    wallLayout.orphanFindingIds.length === 0
+  ) {
     return (
       <EmptyState
         onWriteHypothesis={onWriteHypothesis}
@@ -470,16 +535,19 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       .map(id => findings.find(f => f.id === id))
       .filter((f): f is Finding => !!f);
 
-    const CHIP_GAP = 52;
     const bandTop = 296;
     // Supporting chips climb to the LEFT of the hub anchor; counter to the RIGHT.
+    // Both chip x AND y come from the position authority (wallLayout) so the
+    // Minimap + pan-to-node never drift from the rendered chips.
     const renderChips = (
       chips: Finding[],
       side: 'support' | 'counter',
       labelKey: 'wall.evidence.supports' | 'wall.evidence.countsAgainst'
     ) => {
       if (chips.length === 0) return null;
-      const colX = side === 'support' ? x - 130 : x + 130;
+      // Label sits above the column the authority placed the chips in.
+      const firstPos = wallLayout.findingPositions.get(chips[0].id);
+      const colX = firstPos?.x ?? (side === 'support' ? x - 130 : x + 130);
       return (
         <g key={`${hub.id}-${side}`}>
           {/* Counts-against label is styled LOUD (§7): bold + warning fill. */}
@@ -496,13 +564,22 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           >
             {getMessage(locale, labelKey)}
           </text>
-          {chips.map((finding, i) => {
-            const chipY = bandTop + i * CHIP_GAP;
+          {chips.map(finding => {
+            const pos = wallLayout.findingPositions.get(finding.id) ?? { x: colX, y: bandTop };
+            const { opacity: chipOpacity, doi: chipDoi } = focusFor(finding.id);
             return (
-              <g key={finding.id}>
+              <g
+                key={finding.id}
+                data-wall-node-id={finding.id}
+                data-x={pos.x}
+                data-y={pos.y}
+                data-doi={chipDoi}
+                opacity={chipOpacity}
+                onClickCapture={() => handleFocusNode(finding.id)}
+              >
                 <line
-                  x1={colX}
-                  y1={chipY + 22}
+                  x1={pos.x}
+                  y1={pos.y + 22}
                   x2={x}
                   y2={hubY}
                   stroke={side === 'counter' ? chartColors.warning : undefined}
@@ -511,7 +588,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
                   data-evidence-tether={hub.id}
                   data-evidence-kind={side}
                 />
-                <FindingChip finding={finding} x={colX} y={chipY} onSelect={onSelectHub} />
+                <FindingChip finding={finding} x={pos.x} y={pos.y} onSelect={onSelectHub} />
               </g>
             );
           })}
@@ -599,8 +676,22 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     );
 
     // Card + its evidence band (per-hub HOLDS + tethered FindingChips, IM-4a T5).
+    // data-wall-node-id + data-x/data-y expose the authority position so Minimap
+    // / pan-to-node / seam tests read the SAME coordinates WallCanvas rendered.
+    // Focus lens: the card dims by degree-of-interest; clicking it focuses the
+    // hub (the click is captured here so it focuses even when the card itself
+    // does not call onSelect).
+    const { opacity: hubOpacity, doi: hubDoi } = focusFor(hub.id);
     return (
-      <g key={hub.id}>
+      <g
+        key={hub.id}
+        data-wall-node-id={hub.id}
+        data-x={x}
+        data-y={hubY}
+        data-doi={hubDoi}
+        opacity={hubOpacity}
+        onClickCapture={() => handleFocusNode(hub.id)}
+      >
         {renderHubEvidence(hub, x)}
         {card}
       </g>
@@ -618,6 +709,17 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
       >
         <g data-wall-viewport transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+          {/* Focus-lens background: a click on empty canvas clears focus. Sits
+              behind every node, so node clicks hit the node (not this rect). */}
+          <rect
+            data-wall-focus-clear
+            x={0}
+            y={0}
+            width={CANVAS_W}
+            height={CANVAS_H}
+            fill="transparent"
+            onClick={handleClearFocus}
+          />
           <ProblemConditionCard
             ctsColumn={problemLabel}
             cpk={problemCpk}
@@ -650,9 +752,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
                 const bandWidth = CANVAS_W / tributaryGroups.length;
                 return tributaryGroups.map((group, bandIdx) => {
                   const bandX0 = bandIdx * bandWidth;
+                  // Hub x comes from the position authority (computeWallLayout);
+                  // innerX0 is only the defensive fallback for the renderHubAt call.
                   const innerX0 = bandX0 + GROUP_PAD_X;
-                  const innerW = bandWidth - GROUP_PAD_X * 2;
-                  const perHub = innerW / (group.hubs.length + 1);
                   return (
                     <g
                       key={group.tributary?.id ?? '__unassigned__'}
@@ -678,12 +780,49 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
                           </text>
                         </>
                       )}
-                      {group.hubs.map((hub, i) => renderHubAt(hub, innerX0 + perHub * (i + 1)))}
+                      {group.hubs.map(hub =>
+                        renderHubAt(hub, wallLayout.hubPositions.get(hub.id)?.x ?? innerX0)
+                      )}
                     </g>
                   );
                 });
               })()
-            : filteredHubs.map((hub, idx) => renderHubAt(hub, hubSpacing * (idx + 1)))}
+            : filteredHubs.map(hub =>
+                renderHubAt(hub, wallLayout.hubPositions.get(hub.id)?.x ?? hubSpacing)
+              )}
+
+          {/* Orphan-finding lane (IM-4c): findings linked to no hub get a home
+              in the left gutter, positioned by the authority. The
+              propose-hypothesis affordance is threaded in Task 4. */}
+          {wallLayout.orphanFindingIds.length > 0 && (
+            <g data-wall-orphan-lane>
+              {wallLayout.orphanFindingIds.map(fid => {
+                const finding = findings.find(f => f.id === fid);
+                const pos = wallLayout.findingPositions.get(fid);
+                if (!finding || !pos) return null;
+                const { opacity: orphanOpacity, doi: orphanDoi } = focusFor(fid);
+                return (
+                  <g
+                    key={fid}
+                    data-wall-node-id={fid}
+                    data-x={pos.x}
+                    data-y={pos.y}
+                    data-doi={orphanDoi}
+                    opacity={orphanOpacity}
+                    onClickCapture={() => handleFocusNode(fid)}
+                  >
+                    <FindingChip
+                      finding={finding}
+                      x={pos.x}
+                      y={pos.y}
+                      onSelect={onSelectHub}
+                      onProposeHypothesis={onProposeHypothesis}
+                    />
+                  </g>
+                );
+              })}
+            </g>
+          )}
 
           {processMap && (
             <TributaryFooter

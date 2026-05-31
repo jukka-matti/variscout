@@ -21,6 +21,8 @@ last-verified: 2026-05-29
 **Status:** Accepted
 **Date:** 2026-05-29
 
+> **Amended 2026-05-31** (after the [2026-05-30 Wall-centric spec](../superpowers/specs/2026-05-30-investigation-wall-unified-canvas-design.md) + a 5-lens factor-model exploration): a cause's factors are a **derived projection, not a stored edge**; the typed factor↔hypothesis bipartite edge is **deferred**; the factor band's model-simplification UX (vital-few + full analyst control, R²adj + p) is a **V-next increment** over an engine that already exists. See the **Amendment** section after the Decision. The §Decision/§Consequences below record the original (heavier) reading; where they differ, the Amendment + the 2026-05-30 spec win.
+
 ## Context
 
 The 2026-05-29 holistic investigation-surface brainstorm (Clusters A/B/C) settled the V1 investigation spine on a single graph: `y = f(x)` — an outcome decomposed into factors, with named explanations (Hypotheses) connected to the factors that support or refute them. Today that one graph is rendered by **two separate components** that the user experiences as two screens:
@@ -54,6 +56,20 @@ Clutter is solved by a **Focus lens, not a global force-graph.** Visible detail 
 **Optional ACH matrix lens** (evidence × hypotheses grid) is a toggle on the same data. **Mobile** is focus-only: one entity plus its ranked linked list.
 
 **Disconfirmation recording is in scope.** A Hypothesis is not "confirmed" until it has ≥2 evidence types **and** a survived disconfirmation attempt. Recording a disconfirmation attempt is a first-class write, not a derived state.
+
+## Amendment (2026-05-31) — factors are a derived projection; the model-builder is V-next
+
+A 5-lens factor-model exploration (grounded against the shipped engine) + the [2026-05-30 Wall-centric spec](../superpowers/specs/2026-05-30-investigation-wall-unified-canvas-design.md) refine the bipartite reading above. These are binding where they differ from the original §Decision/§Consequences:
+
+1. **A cause's factors are a DERIVED projection, NOT a stored edge.** "Its factors" (the Focus-lens possessive in §Decision) = `deriveBranchColumns(hub, findings)` (`packages/core/src/findings/mechanismBranch.ts:93`) ∪ the cause's findings' `activeFilters` columns ∪ any `CausalLink` naming it — intersected with the scope's ranked factor band. **Do NOT add a `Hypothesis.factorIds[]` (or `factorNames[]`) field.** A stored factor set would (a) freeze a ranking that _must_ recompute on every drill (`useScopedModels.filteredScope` drops the drilled-constant factor), (b) let a human assert factor-relevance over the deterministic engine (breaks engine-is-authority), and (c) re-couple WHERE and WHY (the one separation the model rests on). This dissolves the apparent §Decision tension between "factors feed the scope" (band) and "focus a cause → _its_ factors" (possessive): both hold once "its factors" is a _computed subset of the scope band_, not a stored ownership.
+
+2. **The typed, persisted factor↔hypothesis support/refute edge is DEFERRED.** §Decision line 48 + §Consequences "re-lay-out factor x/y in `useEvidenceMapData` + restructure WallCanvas into one bipartite coordinate space" describe a heavier surface than V1 needs. `CausalLink` stays a factor→factor DAG edge (with its optional `hypothesisId`); a real typed factor→cause edge + a "promote factor onto a cause" gesture are built **only if the derivation proves insufficient in practice**. The Evidence Map remains the **separate cross-scope overview** (muuttuja kartta); it is not ported into the Wall.
+
+3. **Factors render as the scope-level CONTRIBUTING-FACTORS band; the model-simplification UX is a V-next increment.** The parsimony engine **already exists** — `computeBestSubsets` (`packages/core/src/stats/bestSubsets.ts`) enumerates all 2^k−1 subsets sorted by adjusted R²; the overfit gap, obs/predictor ratio, VIF, and ordinal/disordinal interaction classification are all computed today but winner-only and unread by the UI. The V-next "vital-few model-builder" is **~90% UI over the existing engine**: a pre-selected simplest-adequate model the analyst can fully override (with a loud "↩ Use suggested model" snap-back — full control, never silent), surfacing only **adjusted R² + per-factor p** (no Mallows Cp/BIC on the surface — Cp may be an _internal_ picker metric only; "keep it simple and meaningful"). Toggling a factor off is a disconfirmation finding; a suspected-but-unmeasured factor routes to a Measurement Plan; a human override persists as a recorded **Finding** (an interpretation), never a stored factor field. The one genuinely net-new statistical primitive — a **selection-stability bootstrap** ("in 92% of resamples") — is deferred exactly one increment after the band ships.
+
+4. **Focus lens never moves the model metrics.** Focusing a cause dims the band to that cause's _derived_ factors but does NOT recompute the R²adj/p header — there is no per-cause model. This keeps "in the model" (association/parsimony) from ever reading as "is the cause" (endorsement lives only in the evidence gate: ≥2 types + survived disconfirmation).
+
+**Delivery:** IM-4a (spine wiring, PR #256) + IM-4b (collaboration + multi-scope + detached flows, PR #257) shipped. IM-4c ships the positioned scope band + Focus-lens dimming + orphan-finding lane + `createHubFromFinding` CTA (factors-as-band is correct for V1). The model-builder is a clean **V-next initiative** that upgrades the same band component in place. Deferred per spec §9: factor-family LOD + edge bundling, child-scope recursion, the ACH matrix (dropped). See [[investigation-surface-build]] and the decision-log entry of 2026-05-31.
 
 ## Rationale
 
