@@ -43,6 +43,7 @@ function renderInSvg(ui: React.ReactElement) {
 
 const baseProps = {
   hub,
+  displayStatus: hub.status,
   x: 100,
   y: 100,
   plans: [],
