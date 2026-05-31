@@ -78,6 +78,31 @@ A vertical "river" for the **active scope**:
 - Today "local" = a ProcessMap focal **step** (`LocalMechanismView`), with the **global** outcome — _not_ a scope. IM-4 makes the Wall/Map render **per-scope** (`outcome | condition`) and wires the inert IM-5 condition-scoped math (`computeScopeWhatIfProjection` partitions `rawData` via `evaluateCondition` → `simulateOverallImpact`; `computeConditionCoverage`).
 - **The loop:** hypothesis can't be answered → **Measurement Plan** → collect + re-ingest → **IM-3 auto-link** (merged) matches the new column to the plan + advances `planned→in-progress`. **Honest caveat:** IM-3 is **plans-only** — it does _not_ re-evaluate scopes/hypotheses/conditions or add x's to the local map; the §7.2 "append-preserve vs replace-re-evaluate" cascade + "L3 recursion comes for free" are **IM-4+ promises**, partly deferred (see §9).
 
+## §6.1 · The hypothesis card as a test plan (target design — net-new, rides the V-next model-builder increment; added 2026-05-31)
+
+Beyond comments + assignable tasks (§5), a hypothesis card's real value is the **"how do I test this, and can I?" triad** — a **derived read-model** over what is already stored, with **no new persisted field on `Hypothesis`**:
+
+- **Claim** — the mechanism (the card's name / synthesis).
+- **Relevant factors** — DERIVED (`deriveBranchColumns` ∪ the cause's findings' columns ∪ any `CausalLink` naming it), per §6.1's factor-cause model. e.g. `shift`, `coolant_temp`, plus a suspected-but-unmeasured `pump_duty`.
+- **The analytical tool to evaluate it** — **auto-suggested from each relevant factor's DATA TYPE**: a categorical factor (e.g. `shift`) → **boxplot + 2-sample comparison**; a continuous one (e.g. `temperature`) → **scatter + regression**; a spread question → **capability (Cp/Cpk)**. The engine pre-picks the right tool; the analyst confirms ("VariScout hands you the right tool"). The suggestion is **computed, not stored**.
+- **Data-readiness** — per relevant factor: have the data → run it, attach the result as a **supporting / counts-against Finding**; or a gap → **+ Measurement Plan** (the DCP loop, `neededFactors`).
+
+**The test IS the disconfirmation surface.** "Which tool evaluates this hypothesis" and "how do I try to refute it" are the same gesture — the result lands as a support OR a counts-against finding (refute loud), feeding `deriveHypothesisStatus`. The card is an actionable test, not a confirmation-only sticky-note.
+
+```
+┌─ Hypothesis: "Spindle runs hot on night shift" ───────── needs-disconfirmation
+│  Relevant factors:  shift ●   coolant_temp ●   pump_duty ⚠ no data
+│  Test:  shift        → boxplot + 2-sample   ✓ have data  → [supports: p<.01, big gap]
+│         coolant_temp → scatter + regression ✓ have data  → [supports: r≈.6]
+│         pump_duty    → (needed)             ⚠ gap        → [+ Measurement Plan]
+│  Findings: 2 support · 0 counts-against            [comments · @mention]
+└──────────────────────────────────────────────────────────────────────────────
+```
+
+**Consistency (derive, don't store):** the analytical tool is suggested from (relevant factors × their data types × which columns exist); what persists is the **Finding** (the captured test result) and the **Measurement Plan** (the gap) — both already first-class. No new `Hypothesis` primitive — a smarter read-model over what already ships.
+
+**Built vs net-new:** hypothesis cards + evidence chips + the Measurement-Plan zone + the disconfirmation gesture all SHIP (IM-4a/b). Net-new = the per-factor tool-suggestion + the data-readiness read-model + the run-and-attach-as-Finding wiring → rides the V-next model-builder increment (it shares the best-subset / data-type machinery; see [ADR-086](../../07-decisions/adr-086-unified-investigation-canvas.md) Amendment 2026-05-31 + the 2026-05-31 decision-log entry). Charts stay scope-level (the data is the data); the card re-frames the relevant slice as evidence + adds the test + data-readiness layer.
+
 ## §7 · Terminology (user-facing labels; code identifiers preserved)
 
 - **Supports / Counts against** (loud "counts against") — _not_ "refute" (jargon) nor "doesn't support" (which conflates _neutral_ with _counter-evidence_ and loses the disconfirmation signal). Code keeps `support`/`refute`/`CausalLink`.
