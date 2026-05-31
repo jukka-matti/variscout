@@ -277,3 +277,128 @@ function formatP(value: number): string {
   if (value < 0.001) return '< .001';
   return `= ${value.toFixed(3)}`;
 }
+
+// ============================================================================
+// FE-2b — the "Try to break it" disconfirmation verdict (spec §4.2)
+// ============================================================================
+
+/**
+ * The engine-graded verdict of a "Try to break it" evaluate. Mirrors
+ * `DisconfirmationAttempt.verdict` minus `'pending'` — the engine always renders
+ * a definite verdict (the analyst NEVER self-grades).
+ */
+export type DisconfirmationVerdict = 'survived' | 'refuted';
+
+/**
+ * The typed result of a FUSED "Try to break it" evaluate (spec §4.2). It runs
+ * the SAME `evaluateHypothesisFactor` test as the ordinary FE-2a evaluate, then
+ * INVERTS the classification under the wrongness-prediction:
+ *
+ *   significant (the cause's predicted relationship to Y IS present) → the cause
+ *     WITHSTOOD an attempt to break it → `verdict:'survived'`, the finding is
+ *     `validationStatus:'supports'` (evidence-backed survived).
+ *
+ *   NOT significant (the predicted relationship is ABSENT — you tried to find the
+ *     mechanism and it wasn't there) → `verdict:'refuted'`, the finding carries
+ *     `refutes:true` → `deriveHypothesisStatus` short-circuits the card to red.
+ *
+ * This is the deliberate inversion of the plain FE-2a evaluate: a null result
+ * UNDER AN ATTEMPT TO BREAK IT is evidence AGAINST (refuted), not inconclusive.
+ * It matches the spindle example: test whether the shift relates to heat with the
+ * spindle controlled; not significant → the shift does not drive it → the
+ * night-shift hypothesis is refuted.
+ *
+ * Returns null whenever the underlying `evaluateHypothesisFactor` can't run
+ * (factor constant, too few rows/groups, no numeric outcome) so the UI keeps the
+ * evaluate inert rather than fabricate a verdict.
+ */
+export interface DisconfirmationEvaluation {
+  /** The factor that was evaluated. */
+  factor: string;
+  /** The tool that produced the result. */
+  tool: AnalyticalTool;
+  /** The test p-value. */
+  pValue: number;
+  /** Whether the predicted relationship is statistically present (p < threshold). */
+  isSignificant: boolean;
+  /** The engine-graded verdict — never self-graded by the analyst. */
+  verdict: DisconfirmationVerdict;
+  /**
+   * The Finding classification under the wrongness-prediction (the INVERSION):
+   * 'supports' for a survived attempt, 'contradicts' for a refuted one.
+   */
+  validationStatus: 'supports' | 'contradicts';
+  /** True only for a refuted attempt (drives `deriveHypothesisStatus` → red). */
+  refutes: boolean;
+  /** Human-readable finding text using factor-side verbs. */
+  findingText: string;
+}
+
+/**
+ * Run the FUSED "Try to break it" evaluate (spec §4.2 keystone). Re-uses the
+ * SAME engine result as the plain FE-2a `evaluateHypothesisFactor`, then derives
+ * the engine-graded `verdict` + the inverted Finding classification.
+ *
+ * - significant → `verdict:'survived'`, `validationStatus:'supports'`, `refutes:false`.
+ * - NOT significant → `verdict:'refuted'`, `validationStatus:'contradicts'`, `refutes:true`.
+ *
+ * Deterministic: delegates entirely to `evaluateHypothesisFactor` (no clock/RNG).
+ */
+export function evaluateDisconfirmation(
+  data: ReadonlyArray<DataRow>,
+  factor: string,
+  outcome: string,
+  options?: { tool?: AnalyticalTool; significanceThreshold?: number }
+): DisconfirmationEvaluation | null {
+  const result = evaluateHypothesisFactor(data, factor, outcome, options);
+  if (!result) return null;
+
+  const verdict: DisconfirmationVerdict = result.isSignificant ? 'survived' : 'refuted';
+  const validationStatus: DisconfirmationEvaluation['validationStatus'] = result.isSignificant
+    ? 'supports'
+    : 'contradicts';
+  const refutes = !result.isSignificant;
+  const findingText = disconfirmationFindingText(factor, result.isSignificant, result.pValue);
+
+  return {
+    factor,
+    tool: result.tool,
+    pValue: result.pValue,
+    isSignificant: result.isSignificant,
+    verdict,
+    validationStatus,
+    refutes,
+    findingText,
+  };
+}
+
+/**
+ * The deterministic finding text a "Try to break it" evaluate produces. Single
+ * source of truth so `isDisconfirmationFindingForFactor` can recognise a prior
+ * disconfirmation evaluate of the same factor (idempotency — a re-evaluate
+ * refreshes the existing finding instead of appending a duplicate). Distinct
+ * from `evaluateFindingText` so the two evaluate paths never cross-match.
+ */
+export function disconfirmationFindingText(
+  factor: string,
+  isSignificant: boolean,
+  pValue: number
+): string {
+  return isSignificant
+    ? `${factor} withstood an attempt to break it — its relationship to the spread holds (p ${formatP(pValue)}).`
+    : `${factor} failed an attempt to find its mechanism — no relationship to the spread (p ${formatP(pValue)}) → refuted.`;
+}
+
+/**
+ * `true` when `finding.text` was produced by `evaluateDisconfirmation` for
+ * `factor` (either the survived or refuted template). Lets the disconfirmation
+ * evaluate call-site find a prior attempt of the SAME (hypothesis × factor) among
+ * a hub's linked findings and refresh it in place, keeping a repeat tap
+ * idempotent. Matches the stable, factor-specific suffix of each template.
+ */
+export function isDisconfirmationFindingForFactor(text: string, factor: string): boolean {
+  return (
+    text.startsWith(`${factor} withstood an attempt to break it`) ||
+    text.startsWith(`${factor} failed an attempt to find its mechanism`)
+  );
+}
