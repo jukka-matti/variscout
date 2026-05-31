@@ -1029,6 +1029,24 @@ export interface MessageCatalog {
   'wall.model.captureModel': string;
   'wall.model.empty': string;
   'wall.model.capturedText': string;
+  // Hypothesis test-plan triad (Factors & Evaluation Increment 2a)
+  'wall.testplan.heading': string;
+  'wall.testplan.toolTwoSample': string;
+  'wall.testplan.toolRegression': string;
+  'wall.testplan.toolCapability': string;
+  'wall.testplan.evaluate': string;
+  'wall.testplan.evaluateAria': string;
+  'wall.testplan.addPlan': string;
+  'wall.testplan.addPlanAria': string;
+  'wall.testplan.gapLabel': string;
+  'wall.testplan.resultSupports': string;
+  'wall.testplan.resultInconclusive': string;
+  'wall.testplan.resultContradicts': string;
+  'wall.testplan.empty': string;
+  // Per-hypothesis What-If (Factors & Evaluation Increment 2a, §5)
+  'wall.whatif.heading': string;
+  'wall.whatif.projection': string;
+  'wall.whatif.noProjection': string;
   // Scale features (Phase 13)
   'wall.toolbar.groupByTributary': string;
   'wall.toolbar.zoomIn': string;
