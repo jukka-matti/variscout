@@ -91,8 +91,10 @@ vi.mock('../../../features/panels/panelsStore', () => ({
 // ── 2. Component + store imports AFTER mocks ───────────────────────────────
 
 import {
+  getAnalyzeInitialState,
   getCanvasViewportInitialState,
   getProjectInitialState,
+  useAnalyzeStore,
   useCanvasViewportStore,
   useProjectStore,
 } from '@variscout/stores';
@@ -353,26 +355,15 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     });
 
     it('onCaptureModel creates a Finding + stamps the model snapshot into projection.modelContext', () => {
-      const addFinding = vi.fn(() => ({ id: 'f-model', text: '' }) as never);
-      const setProjection = vi.fn();
-      const findingsState = {
-        findings: [],
-        addFinding,
-        setProjection,
-        editFinding: vi.fn(),
-        deleteFinding: vi.fn(),
-        setFindingTag: vi.fn(),
-        addFindingComment: vi.fn(),
-        addAction: vi.fn(),
-        completeAction: vi.fn(),
-        deleteAction: vi.fn(),
-      } as never;
+      // FE-1 fix: PWA capture writes to useAnalyzeStore (the PWA Wall's reactive
+      // source of truth), NOT findingsState — so the captured model renders on
+      // the Wall. Assert against the real store, not the findingsState prop.
+      useAnalyzeStore.setState(getAnalyzeInitialState());
       render(
         <AnalyzeView
           {...makeMinimalProps({
             factors: ['Shift'],
             filteredData: [{ Shift: 'A', Y: 1 }],
-            findingsState,
           })}
         />
       );
@@ -392,14 +383,12 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
         scopeLabel: 'All data',
         topFactor: 'Shift',
       });
-      expect(addFinding).toHaveBeenCalledTimes(1);
-      expect(setProjection).toHaveBeenCalledTimes(1);
-      const [, projection] = setProjection.mock.calls[0] as [
-        string,
-        { modelContext?: Record<string, unknown> },
-      ];
-      expect(projection.modelContext?.rSquaredAdj).toBeCloseTo(0.71, 10);
-      expect(projection.modelContext?.linkedFactor).toBe('Shift');
+      const captured = useAnalyzeStore
+        .getState()
+        .findings.find(f => f.projection?.modelContext?.rSquaredAdj !== undefined);
+      expect(captured).toBeDefined();
+      expect(captured!.projection?.modelContext?.rSquaredAdj).toBeCloseTo(0.71, 10);
+      expect(captured!.projection?.modelContext?.linkedFactor).toBe('Shift');
     });
   });
 });
