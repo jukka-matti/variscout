@@ -889,6 +889,39 @@ export const en: MessageCatalog = {
   'wall.disconfirm.verdictRefuted': 'Broke it (refuted)',
   'wall.disconfirm.record': 'Record',
   'wall.disconfirm.cancel': 'Cancel',
+  // FE-2b — the fused "Try to break it" premortem (spec §4.2)
+  'wall.disconfirm.tryToBreakIt': 'Try to break it',
+  'wall.disconfirm.tryToBreakItHint':
+    'Predict what would prove this WRONG — the test grades the verdict.',
+  'wall.disconfirm.predictLabel': 'What would you expect to see if this is wrong?',
+  'wall.disconfirm.predictPlaceholder':
+    'e.g. if the night shift drives it, day-shift runs should run cool…',
+  'wall.disconfirm.predictHint': 'Optional, but a sharp prediction makes the test severe.',
+  'wall.disconfirm.manualFallback': 'Log a gemba or expert disconfirmation (no data)',
+  'wall.disconfirm.verdictSurvivedToast': 'Survived — the cause withstood the attempt.',
+  'wall.disconfirm.verdictRefutedToast': 'Refuted — the predicted relationship was absent.',
+  // FE-2b — the §4.1 soft caveat for an unbacked survived attempt
+  'wall.caveat.unbackedSurvived': 'Supported — disconfirmation has no attached evidence',
+  'wall.caveat.backWithTest': 'back it with a test →',
+  // FE-2b — refute → respawn-sharper (spec §4.2)
+  'wall.respawn.sharpenCta': 'Sharpen → propose a new hypothesis',
+  'wall.respawn.nameLabel': 'New hypothesis',
+  'wall.respawn.namePlaceholder': 'e.g. it’s the spindle, regardless of shift',
+  'wall.respawn.carryNote':
+    'The refuting finding carries forward as supporting evidence for the new hypothesis.',
+  'wall.respawn.confirm': 'Create sharpened hypothesis',
+  'wall.respawn.cancel': 'Cancel',
+  'wall.respawn.supersededBy': 'superseded by →',
+  // FE-2b — the confound sign-prompt + side-by-side What-If (spec §4.2)
+  'wall.confound.heading': 'This factor is also cited by a rival cause',
+  'wall.confound.prompt': 'Mark the opposite sign on “{rival}”?',
+  'wall.confound.markOpposite': 'Counts against the rival',
+  'wall.confound.notAdditive':
+    'These projections are not additive — each cause is its own What-If.',
+  'wall.confound.whatIfFor': 'If you control “{hypothesis}”',
+  // FE-2b — the activated affordances (spec §4.2)
+  'wall.affordance.tryDisconfirmation': 'Try disconfirmation',
+  'wall.affordance.oneStepAwayAction': 'Open the test plan with “Try to break it” ready',
   // ActionItem tasks on hypotheses (IM-4b Task 3)
   'wall.task.addButton': '+ Add Task',
   'wall.task.taskLabel': 'Task description',
