@@ -88,6 +88,13 @@ export type {
 
 export { ErrorBoundary, type ErrorBoundaryProps } from './components/ErrorBoundary';
 export {
+  WorkflowNav,
+  workflowTabs,
+  type WorkflowNavProps,
+  type WorkflowTab,
+  type WorkflowTabId,
+} from './components/WorkflowNav';
+export {
   AxisEditor,
   axisEditorDefaultColorScheme,
   type AxisEditorProps,

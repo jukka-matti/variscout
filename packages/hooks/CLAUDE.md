@@ -1,6 +1,6 @@
 # @variscout/hooks
 
-78 shared React hooks: data pipeline, charts, AI, analyze, Evidence Map.
+Shared React hooks: data pipeline, charts, AI, analyze, Evidence Map, workflow context.
 
 ## Hard rules
 

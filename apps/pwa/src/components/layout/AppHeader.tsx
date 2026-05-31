@@ -9,8 +9,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
-import type { MessageCatalog } from '@variscout/core';
-import { IPContextChip } from '@variscout/ui';
+import { IPContextChip, WorkflowNav, type WorkflowTabId } from '@variscout/ui';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
@@ -58,14 +57,7 @@ const HeaderIconButton: React.FC<HeaderIconButtonProps> = ({
  * NOTE: PhaseId values map to `panelsStore.activeView` via
  * `App.tsx#handlePhaseChange` (e.g. 'explore' → panels.showExplore()).
  */
-export type PhaseId =
-  | 'home'
-  | 'project'
-  | 'process'
-  | 'explore'
-  | 'analyze'
-  | 'improvement'
-  | 'report';
+export type PhaseId = WorkflowTabId;
 
 interface AppHeaderProps {
   hasData: boolean;
@@ -102,18 +94,6 @@ interface AppHeaderProps {
  * - Logo clickable → new analysis (home screen)
  * - Data panel toggle persists
  */
-// Order per wedge V1 vocabulary rename (2026-05-27):
-//   Home · Project · Process · Explore · Analyze · Improve · Report
-const PHASE_TABS: { id: PhaseId; label?: string; labelKey?: keyof MessageCatalog }[] = [
-  { id: 'home', label: 'Home' },
-  { id: 'project', labelKey: 'workspace.project' },
-  { id: 'process', labelKey: 'workspace.process' },
-  { id: 'explore', labelKey: 'workspace.explore' },
-  { id: 'analyze', labelKey: 'workspace.analyze' },
-  { id: 'improvement', labelKey: 'workspace.improve' },
-  { id: 'report', labelKey: 'workspace.report' },
-];
-
 const AppHeader: React.FC<AppHeaderProps> = ({
   hasData,
   dataFilename,
@@ -173,33 +153,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       </button>
 
       {/* Phase tabs — inline between filename and toolbar */}
-      {/* TODO(a11y): add roving-tabindex / arrow-key navigation when a reusable hook is available */}
       {showPhaseTabs && (
-        <nav
-          aria-label="Workspace phases"
-          data-testid="phase-tabs-inline"
+        <WorkflowNav
+          activeTab={activePhase}
+          onTabChange={onPhaseChange}
+          variant="pwa"
           className="flex items-center gap-0.5 py-1"
-        >
-          {/* role="tablist" scopes the tabs for AT. Each child carries role="tab" + aria-selected. */}
-          <div role="tablist" aria-label="Workspace phases" className="flex items-center gap-0.5">
-            {PHASE_TABS.map(tab => (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={activePhase === tab.id}
-                data-testid={`phase-tab-${tab.id}`}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  activePhase === tab.id
-                    ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
-                    : 'text-content-secondary hover:text-content hover:bg-surface-secondary border border-transparent'
-                }`}
-                onClick={() => onPhaseChange(tab.id)}
-              >
-                {tab.labelKey ? t(tab.labelKey) : tab.label}
-              </button>
-            ))}
-          </div>
-        </nav>
+          testId="phase-tabs-inline"
+          tabTestIdPrefix="phase-tab"
+        />
       )}
 
       <div className="flex-1" />
