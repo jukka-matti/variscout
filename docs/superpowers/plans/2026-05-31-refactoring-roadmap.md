@@ -125,7 +125,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R5 — Thin App-Feature Factories
 
-**Status:** R5a thin app-feature factories shipped in PR #270. R5b is implemented on the preceding dependent branch; R5c is the focused action-item builder normalization slice. Do not mark R5b shipped here until its PR lands.
+**Status:** R5a thin app-feature factories shipped in PR #270. R5b data-ingestion action-bag extraction shipped in PR #272. R5c action-item builder normalization is the current PR #271 slice.
 
 **Goal:** Remove low-risk PWA/Azure duplication without forcing a shell rewrite.
 
@@ -133,8 +133,8 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 - Extract byte-identical Analyze and Findings feature-store construction into shared factory helpers while keeping app-owned singleton wrappers under `apps/*/src/features/`. **Done in R5a.**
 - Expose those helpers through a narrow subpath such as `@variscout/stores/feature-factories`; do not export app-feature factories from the root `@variscout/stores` barrel. **Done in R5a.**
-- Share data-ingestion action-bag construction in a follow-up slice, with app-specific limits and persistence adapters still app-owned. **Implemented in the R5b branch; mark shipped when its PR lands.**
-- Normalize Improve-tab action-item creation/default stamping in a separate follow-up slice while keeping app dispatch/persistence wrappers app-owned. **R5c slice.**
+- Share data-ingestion action-bag construction in a follow-up slice, with app-specific limits and persistence adapters still app-owned. **Done in R5b.**
+- Normalize Improve-tab action-item creation/default stamping in a separate follow-up slice while keeping app dispatch/persistence wrappers app-owned. **Done in R5c.**
 - Consider shared Project/Control lifecycle view-models behind repository adapters only after the smaller extractions land.
 
 **R5 recalibration (2026-05-31):** Current `origin/main` shows the PWA/Azure Analyze and Findings store files are byte-identical, but the surrounding orchestration is meaningfully app-specific. Azure has share/popout/navigation/AI and inline What-If behavior; PWA keeps simpler local wiring. Treat the purposeful delta as adapters/capability policy, and the accidental delta as duplicated small store factories and repeated action wiring.
@@ -187,10 +187,4 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ## Next Recommended Execution
 
-After R5b, continue with a focused **R5c action-item builder normalization slice** rather than opening the higher-risk R6/R7 store and snapshot work:
-
-1. Extract pure project-action and step quick-action builders into `@variscout/core/findings`.
-2. Normalize Improve-tab project actions so PWA and Azure both stamp explicit `status: 'open'`.
-3. Preserve Canvas quick-action semantics, including orphan parent FKs, done/open field defaults, and local browser attribution.
-4. Keep repository dispatch, optimistic in-memory visibility, repository refresh, and app shell wiring app-owned.
-5. Run targeted core/app checks plus `bash scripts/pr-ready-check.sh`.
+After R5c, pause before opening higher-risk R6/R7 store and snapshot work. Recalibrate whether the remaining Project/Control lifecycle duplication is still a low-risk R5 adapter slice or whether the next meaningful risk reduction is a dedicated R6 snapshot/export design.
