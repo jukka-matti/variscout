@@ -26,6 +26,7 @@ export type {
 export type { CategoricalFilterInput } from './hypothesisCondition';
 export {
   collectReferencedColumns,
+  collectConditionLeaves,
   collectStepColumns,
   conditionHasMissingColumn,
   conditionReferencesStep,

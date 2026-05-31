@@ -35,6 +35,7 @@ import {
   projectMechanismBranch,
   runAndCheck,
 } from '@variscout/core';
+import { buildHypothesisTestPlan, collectConditionLeaves } from '@variscout/core/findings';
 import { computeScopeWhatIfProjection, computeConditionCoverage } from '@variscout/core/variation';
 import { deriveProcessSteps } from '@variscout/core/frame';
 import { getMessage } from '@variscout/core/i18n';
@@ -154,6 +155,14 @@ export interface WallCanvasPlanningProps {
   onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
   /** IM-4b Task 6 — select/deselect an improvement idea. */
   onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  /**
+   * FE-2a — one-tap evaluate of a hypothesis factor. When provided, each hub's
+   * test-plan triad renders an "Evaluate" CTA per READY factor. The app runs
+   * `evaluateHypothesisFactor`, writes the typed Finding (validationStatus +
+   * refutes), connects it to the hub, and re-renders the Wall. NEVER auto-run.
+   * Omit to render the triad read-only (tool labels + readiness, no evaluate).
+   */
+  onEvaluateFactor?: (hypothesisId: string, factor: string) => void;
 }
 
 export interface WallCanvasProps {
@@ -761,12 +770,42 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     // stepOptions is derived once per render from processMap (stable reference via useMemo
     // at the outer level — see stepOptions memo below). defaultScope + defaultOutcome are
     // forwarded as-is; the form defaults to [] / '' when undefined.
+    // FE-2a — derive the hub's test-plan triad + per-hypothesis What-If from the
+    // SAME core engine the rest of the Wall uses. Computed here (not injected as
+    // a leaf prop) so a dead wiring renders the engine's real output, not a fake.
+    // Triad = the cause's derived factors tagged ready/gap + the auto-suggested
+    // tool. What-If = the cause's condition partitioned via the shipped IM-5
+    // helpers (never summed across hubs). Both require an outcome + rows.
+    const triadData: Record<string, unknown>[] = rows ? [...rows] : [];
+    const hubTestPlanFactors =
+      planningProps && outcomeColumn
+        ? buildHypothesisTestPlan(hub, findings, triadData as DataRow[], outcomeColumn).map(tp => ({
+            factor: tp.factor,
+            readiness: tp.readiness,
+            tool: tp.tool,
+          }))
+        : undefined;
+    const hubWhatIf = (() => {
+      if (!planningProps || !outcomeColumn || !hub.condition || triadData.length === 0) {
+        return undefined;
+      }
+      const leaves = collectConditionLeaves(hub.condition);
+      if (leaves.length === 0) return undefined;
+      const im5Rows = triadData as unknown as DataRow[];
+      const cpk = computeScopeWhatIfProjection(leaves, im5Rows, outcomeColumn, activeScopeSpecs);
+      const coveragePct = computeConditionCoverage(leaves, im5Rows);
+      return { cpk, coveragePct: Number.isFinite(coveragePct) ? coveragePct : null };
+    })();
+
     const hubPlanningProps = planningProps
       ? {
           plans: planningProps.plans.filter(p => p.hypothesisId === hub.id && p.deletedAt === null),
           members: planningProps.members,
           currentUserId: planningProps.currentUserId,
           findings,
+          testPlanFactors: hubTestPlanFactors,
+          whatIf: hubWhatIf,
+          onEvaluateFactor: planningProps.onEvaluateFactor,
           onAddPlan: planningProps.onAddPlan,
           onLinkFinding: planningProps.onLinkFinding,
           onEditPlan: planningProps.onEditPlan,

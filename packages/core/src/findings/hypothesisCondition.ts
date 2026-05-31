@@ -270,6 +270,34 @@ export function collectReferencedColumns(condition: HypothesisCondition): Set<st
 }
 
 /**
+ * Collect the flat list of `ConditionLeaf` predicates in a hypothesis condition
+ * tree (the AND/OR/NOT structure is flattened to its leaves). Used by the
+ * per-hypothesis What-If (FE-2a §5), which partitions the dataset on the cause's
+ * leaves to project the if-controlled Cpk. `NOT` is not inverted here — the
+ * leaves are returned as-authored, matching how `computeScopeWhatIfProjection`
+ * ANDs them (a cause's condition is the WHERE-it-holds, used to fix that subset).
+ */
+export function collectConditionLeaves(condition: HypothesisCondition): ConditionLeaf[] {
+  const leaves: ConditionLeaf[] = [];
+  const walk = (node: HypothesisCondition): void => {
+    switch (node.kind) {
+      case 'leaf':
+        leaves.push(node);
+        return;
+      case 'and':
+      case 'or':
+        node.children.forEach(walk);
+        return;
+      case 'not':
+        walk(node.child);
+        return;
+    }
+  };
+  walk(condition);
+  return leaves;
+}
+
+/**
  * True iff the condition references at least one column not present in `availableColumns`.
  * Returns false for an undefined condition (no claim → no missing-column state).
  */
