@@ -185,7 +185,7 @@ test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point',
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
     // 2. Navigate to Home tab to show ProjectDashboard with "New Hub" button
-    const homeTab = page.getByTestId('view-toggle-home');
+    const homeTab = page.getByTestId('workflow-tab-home');
     const tabVisible = await homeTab.isVisible({ timeout: 5000 }).catch(() => false);
     if (!tabVisible) {
       test.skip();

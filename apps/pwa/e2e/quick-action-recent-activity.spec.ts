@@ -38,8 +38,8 @@ async function completeModeBToCanvas(page: import('@playwright/test').Page) {
   await page.getByTestId('stage-five-skip').click();
   await expect(page.getByTestId('stage-five-modal')).toBeHidden({ timeout: 5000 });
 
-  await expect(page.getByTestId('phase-tab-frame')).toBeVisible({ timeout: 10000 });
-  await page.getByTestId('phase-tab-frame').click();
+  await expect(page.getByTestId('workflow-tab-process')).toBeVisible({ timeout: 10000 });
+  await page.getByTestId('workflow-tab-process').click();
   await expect(page.getByTestId('process-steps-expander-header')).toBeVisible({ timeout: 10000 });
   await page.getByTestId('process-steps-expander-header').click();
   await expect(page.getByTestId('chip-rail')).toBeVisible({ timeout: 5000 });

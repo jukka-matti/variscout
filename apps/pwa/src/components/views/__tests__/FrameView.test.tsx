@@ -322,7 +322,7 @@ vi.mock('../../../store/sessionStore', () => ({
 // E1 T6: mock the useActiveIPContext hook directly so legacy tests can
 // supply a non-null activeIP (passes the Process tab guard) and the new
 // empty-state test can supply null (triggers the guidance branch).
-vi.mock('../../../hooks/useActiveIPContext', () => ({
+vi.mock('@variscout/hooks', () => ({
   useActiveIPContext: () => activeIPContextRef.current,
 }));
 

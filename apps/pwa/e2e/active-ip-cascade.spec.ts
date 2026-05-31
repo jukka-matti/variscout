@@ -18,7 +18,7 @@ test('Home pick IP, chip persists across tabs, Exit IP clears chip', async ({ pa
   await fileChooser.setFiles(fixturePath);
 
   await expect(page.getByTestId('goal-banner')).toBeVisible({ timeout: 10000 });
-  await page.getByTestId('phase-tab-home').click();
+  await page.getByTestId('workflow-tab-home').click();
   await expect(page.getByText('Active Improvement Project')).toBeVisible();
 
   await page.getByRole('button', { name: /switch ip/i }).click();
@@ -28,20 +28,20 @@ test('Home pick IP, chip persists across tabs, Exit IP clears chip', async ({ pa
   await expect(chip).toContainText('Working in IP:');
   await expect(chip).toContainText('Fill Cpk lift');
 
-  await page.getByTestId('phase-tab-analysis').click();
+  await page.getByTestId('workflow-tab-analyze').click();
   await expect(chip).toContainText('Fill Cpk lift');
   await expect(page.getByTestId('active-ip-scope-ribbon')).toContainText(
     'Analyze scoped to Fill Cpk lift'
   );
   await expect(page.getByTestId('active-ip-scope-ribbon')).toContainText('Factor: shift');
 
-  await page.getByTestId('phase-tab-analyze').click();
+  await page.getByTestId('workflow-tab-analyze').click();
   await expect(chip).toContainText('Fill Cpk lift');
   await expect(page.getByTestId('active-ip-scope-ribbon')).toContainText(
     'Investigation scoped to Fill Cpk lift'
   );
 
-  await page.getByTestId('phase-tab-report').click();
+  await page.getByTestId('workflow-tab-report').click();
   const reportChip = page.getByTestId('ip-context-chip').last();
   await expect(reportChip).toContainText('Fill Cpk lift');
   await expect(page.getByTestId('active-ip-scope-ribbon')).toContainText(
@@ -78,11 +78,11 @@ test('Projects detail shows team rail and supports invite happy path', async ({ 
   await fileChooser.setFiles(fixturePath);
 
   await expect(page.getByTestId('goal-banner')).toBeVisible({ timeout: 10000 });
-  await page.getByTestId('phase-tab-home').click();
+  await page.getByTestId('workflow-tab-home').click();
   await page.getByRole('button', { name: /switch ip/i }).click();
   await page.getByRole('button', { name: /fill cpk lift/i }).click();
 
-  await page.getByTestId('phase-tab-projects').click();
+  await page.getByTestId('workflow-tab-project').click();
   await expect(page.getByRole('heading', { name: /fill cpk lift/i })).toBeVisible();
 
   const rail = page.getByRole('complementary', { name: 'Team workspace' }).first();

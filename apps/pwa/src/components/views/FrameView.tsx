@@ -30,11 +30,11 @@ import type {
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import { createActionItem, type ActionItem } from '@variscout/core/findings';
 import { surveyInboxRules } from '@variscout/core/survey';
+import { useActiveIPContext } from '@variscout/hooks';
 import { pwaHubRepository } from '../../persistence';
 import { useSession } from '../../store/sessionStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useAnalyzeFeatureStore } from '../../features/analyze/analyzeStore';
-import { useActiveIPContext } from '../../hooks/useActiveIPContext';
 
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];

@@ -98,14 +98,11 @@ const FAKE_ACTIVE_IP_FOR_B0 = {
   updatedAt: 1,
   deletedAt: null,
 };
-vi.mock('../../../hooks/useActiveIPContext', () => ({
-  useActiveIPContext: () => ({ activeIP: FAKE_ACTIVE_IP_FOR_B0 }),
-}));
-
 vi.mock('@variscout/hooks', async () => {
   const actual = await import('@variscout/hooks');
   return {
     ...actual,
+    useActiveIPContext: () => ({ activeIP: FAKE_ACTIVE_IP_FOR_B0 }),
     useProductionLineGlanceFilter: vi.fn(() => ({
       value: {},
       onChange: vi.fn(),

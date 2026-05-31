@@ -63,7 +63,7 @@ describe('AppHeader', () => {
   describe('phase tabs — hidden when no data', () => {
     it('does not render the phase-tabs nav when hasData is false', () => {
       render(<AppHeader {...baseProps} />);
-      expect(screen.queryByTestId('phase-tabs-inline')).toBeNull();
+      expect(screen.queryByTestId('workflow-nav')).toBeNull();
     });
   });
 
@@ -79,7 +79,7 @@ describe('AppHeader', () => {
       const onPhaseChange = vi.fn();
       render(<AppHeader {...withDataProps} activePhase="explore" onPhaseChange={onPhaseChange} />);
 
-      const nav = screen.getByTestId('phase-tabs-inline');
+      const nav = screen.getByTestId('workflow-nav');
       expect(nav).toBeTruthy();
 
       // Order per wedge V1 vocabulary rename (2026-05-27):
@@ -94,7 +94,7 @@ describe('AppHeader', () => {
         'report',
       ];
       for (const phase of phases) {
-        expect(screen.getByTestId(`phase-tab-${phase}`)).toBeTruthy();
+        expect(screen.getByTestId(`workflow-tab-${phase}`)).toBeTruthy();
       }
     });
 
@@ -102,11 +102,11 @@ describe('AppHeader', () => {
       const onPhaseChange = vi.fn();
       render(<AppHeader {...withDataProps} activePhase="analyze" onPhaseChange={onPhaseChange} />);
 
-      const analyzeBtn = screen.getByTestId('phase-tab-analyze');
+      const analyzeBtn = screen.getByTestId('workflow-tab-analyze');
       expect(analyzeBtn.getAttribute('aria-selected')).toBe('true');
       expect(analyzeBtn.getAttribute('role')).toBe('tab');
 
-      const exploreBtn = screen.getByTestId('phase-tab-explore');
+      const exploreBtn = screen.getByTestId('workflow-tab-explore');
       expect(exploreBtn.getAttribute('aria-selected')).toBe('false');
     });
 
@@ -122,31 +122,31 @@ describe('AppHeader', () => {
       const onPhaseChange = vi.fn();
       render(<AppHeader {...withDataProps} activePhase="explore" onPhaseChange={onPhaseChange} />);
 
-      fireEvent.click(screen.getByTestId('phase-tab-process'));
+      fireEvent.click(screen.getByTestId('workflow-tab-process'));
       expect(onPhaseChange).toHaveBeenCalledWith('process');
 
-      fireEvent.click(screen.getByTestId('phase-tab-home'));
+      fireEvent.click(screen.getByTestId('workflow-tab-home'));
       expect(onPhaseChange).toHaveBeenCalledWith('home');
 
-      fireEvent.click(screen.getByTestId('phase-tab-analyze'));
+      fireEvent.click(screen.getByTestId('workflow-tab-analyze'));
       expect(onPhaseChange).toHaveBeenCalledWith('analyze');
 
-      fireEvent.click(screen.getByTestId('phase-tab-explore'));
+      fireEvent.click(screen.getByTestId('workflow-tab-explore'));
       expect(onPhaseChange).toHaveBeenCalledWith('explore');
 
-      fireEvent.click(screen.getByTestId('phase-tab-improvement'));
+      fireEvent.click(screen.getByTestId('workflow-tab-improvement'));
       expect(onPhaseChange).toHaveBeenCalledWith('improvement');
 
-      fireEvent.click(screen.getByTestId('phase-tab-project'));
+      fireEvent.click(screen.getByTestId('workflow-tab-project'));
       expect(onPhaseChange).toHaveBeenCalledWith('project');
 
-      fireEvent.click(screen.getByTestId('phase-tab-report'));
+      fireEvent.click(screen.getByTestId('workflow-tab-report'));
       expect(onPhaseChange).toHaveBeenCalledWith('report');
     });
 
     it('does not render phase tabs when activePhase is undefined', () => {
       render(<AppHeader {...withDataProps} />);
-      expect(screen.queryByTestId('phase-tabs-inline')).toBeNull();
+      expect(screen.queryByTestId('workflow-nav')).toBeNull();
     });
 
     it('phase tabs are rendered inside the header element (not a separate strip)', () => {
@@ -154,7 +154,7 @@ describe('AppHeader', () => {
       render(<AppHeader {...withDataProps} activePhase="explore" onPhaseChange={onPhaseChange} />);
 
       const header = document.querySelector('header');
-      const nav = screen.getByTestId('phase-tabs-inline');
+      const nav = screen.getByTestId('workflow-nav');
       expect(header?.contains(nav)).toBe(true);
     });
   });

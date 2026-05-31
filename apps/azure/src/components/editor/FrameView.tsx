@@ -70,7 +70,7 @@ interface FrameViewProps {
    *  When omitted, the workspace defaults to permissive (used by tests + non-membership callers like PWA). */
   canEditCanvas?: boolean;
   /** The active ImprovementProject (E1 T5). Resolved by Editor.tsx via
-   *  `useActiveIPContext(activeHub, currentUser?.email)`. Forwarded to
+   *  `useActiveIPContext(activeHub, { userId: currentUser?.email })`. Forwarded to
    *  `CanvasWorkspace` so Canvas Edit-mode state (processSteps / stepTimings /
    *  formulaBindings / timeDecompositionBindings) reads from + writes to the
    *  active IP. When `null`, CanvasWorkspace falls back to local state — the

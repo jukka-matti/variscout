@@ -12,6 +12,10 @@ export interface ActiveIPContext {
   clearActiveIP: () => void;
 }
 
+export interface UseActiveIPContextOptions {
+  userId?: string | null;
+}
+
 function liveProjects(hub: ProcessHub | undefined | null): ImprovementProject[] {
   const p = hub?.improvementProject;
   return p && p.deletedAt === null ? [p] : [];
@@ -47,9 +51,9 @@ function clearUserCleared(scopeKey: string): void {
 
 export function useActiveIPContext(
   hub: ProcessHub | undefined | null,
-  userId: string | null | undefined
+  options: UseActiveIPContextOptions = {}
 ): ActiveIPContext {
-  const resolvedUserId = userId ?? 'local';
+  const resolvedUserId = options.userId ?? 'local';
   const hubId = hub?.id ?? null;
   const scope = useMemo<ActiveIPScope | null>(
     () => (hubId ? { hubId, userId: resolvedUserId } : null),

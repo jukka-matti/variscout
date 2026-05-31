@@ -87,7 +87,7 @@ import { useProjectionStore } from './features/projection/projectionStore';
 import { useAnalyzeOrchestration } from './features/analyze/useAnalyzeOrchestration';
 import { useCanvasViewportLifecycle } from './features/analyze/useCanvasViewportLifecycle';
 import { useStatsWorker } from './workers/useStatsWorker';
-import { useActiveIPContext } from './hooks/useActiveIPContext';
+import { useActiveIPContext } from '@variscout/hooks';
 
 // Lazy-loaded heavy components for code splitting
 const dashboardImport = () => import('./components/Dashboard');

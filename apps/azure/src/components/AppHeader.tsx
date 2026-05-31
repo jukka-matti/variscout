@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@variscout/hooks';
-import { IPContextChip, useIsMobile, BREAKPOINTS } from '@variscout/ui';
+import {
+  IPContextChip,
+  WorkflowNav,
+  useIsMobile,
+  BREAKPOINTS,
+  type WorkflowTabId,
+} from '@variscout/ui';
 import {
   Activity,
   Cloud,
@@ -80,13 +86,6 @@ const statusDotColor = (
   if (syncStatus.status === 'conflict') return 'bg-amber-400';
   return 'bg-content-muted';
 };
-
-const tabClass = (isActive: boolean) =>
-  `px-3 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
-    isActive
-      ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
-      : 'text-content-secondary hover:text-content'
-  }`;
 
 const toggleBtnClass = (isActive: boolean) =>
   `p-1.5 rounded-md text-xs font-medium transition-colors ${
@@ -199,6 +198,26 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             : 'text-content-muted';
 
   const dotColor = statusDotColor(saveStatus, syncStatus);
+  const activeWorkflowTab: WorkflowTabId =
+    activeView === 'dashboard'
+      ? 'home'
+      : activeView === 'projects'
+        ? 'project'
+        : activeView === 'frame'
+          ? 'process'
+          : activeView === 'improvement'
+            ? 'improvement'
+            : activeView;
+  const handleWorkflowTabChange = (tab: WorkflowTabId) => {
+    const panels = usePanelsStore.getState();
+    if (tab === 'home') panels.showDashboard();
+    else if (tab === 'project') panels.showProjects();
+    else if (tab === 'process') panels.showFrame();
+    else if (tab === 'explore') panels.showExplore();
+    else if (tab === 'analyze') panels.showAnalyze();
+    else if (tab === 'improvement') panels.showImprovement();
+    else panels.showReport();
+  };
 
   // Logo mark element (reused in phone and desktop)
   const logoMark = (
@@ -406,67 +425,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       {/* Tab order per wedge V1 amendment (2026-05-16, vocabulary rename 2026-05-27): Home · Project · Process · Explore · Analyze · Improve · Report */}
       {/* Display copy + testids follow the wedge naming; internal `activeView` enum stays stable (panelsStore key). */}
       {hasData && (
-        <nav className="flex items-center flex-1 min-w-0 overflow-x-auto" data-testid="view-toggle">
-          <button
-            className={tabClass(activeView === 'dashboard')}
-            onClick={() => usePanelsStore.getState().showDashboard()}
-            data-testid="view-toggle-home"
-          >
-            Home
-          </button>
-          <button
-            className={tabClass(activeView === 'projects')}
-            onClick={() => usePanelsStore.getState().showProjects()}
-            data-testid="view-toggle-project"
-          >
-            Project
-          </button>
-          <button
-            className={tabClass(activeView === 'frame')}
-            onClick={() => usePanelsStore.getState().showFrame()}
-            data-testid="view-toggle-process"
-          >
-            Process
-          </button>
-          <button
-            className={tabClass(activeView === 'explore')}
-            onClick={() => usePanelsStore.getState().showExplore()}
-            data-testid="view-toggle-explore"
-          >
-            Explore
-          </button>
-          <button
-            className={tabClass(activeView === 'analyze')}
-            onClick={() => usePanelsStore.getState().showAnalyze()}
-            data-testid="view-toggle-analyze"
-          >
-            Analyze
-            {openQuestionCount != null && openQuestionCount > 0 && (
-              <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                {openQuestionCount}
-              </span>
-            )}
-          </button>
-          <button
-            className={tabClass(activeView === 'improvement')}
-            onClick={() => usePanelsStore.getState().showImprovement()}
-            data-testid="view-toggle-improvement"
-          >
-            Improve
-            {selectedIdeaCount != null && selectedIdeaCount > 0 && (
-              <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                {selectedIdeaCount}
-              </span>
-            )}
-          </button>
-          <button
-            className={tabClass(activeView === 'report')}
-            onClick={() => usePanelsStore.getState().showReport()}
-            data-testid="view-toggle-report"
-          >
-            Report
-          </button>
-        </nav>
+        <WorkflowNav
+          activeTab={activeWorkflowTab}
+          onTabChange={handleWorkflowTabChange}
+          badges={{
+            analyze: openQuestionCount,
+            improvement: selectedIdeaCount,
+          }}
+          variant="azure"
+        />
       )}
 
       {/* Spacer when no data (tabs hidden) */}
