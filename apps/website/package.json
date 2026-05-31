@@ -10,14 +10,14 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/react": "^5.0.5",
-    "@astrojs/sitemap": "^3.7.2",
+    "@astrojs/react": "^5.0.6",
+    "@astrojs/sitemap": "^3.7.3",
     "@tailwindcss/vite": "^4.3.0",
     "@variscout/charts": "workspace:*",
     "@variscout/core": "workspace:*",
     "@variscout/data": "workspace:*",
     "@variscout/ui": "workspace:*",
-    "astro": "^6.3.7",
+    "astro": "^6.4.2",
     "lucide-astro": "^0.556.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
