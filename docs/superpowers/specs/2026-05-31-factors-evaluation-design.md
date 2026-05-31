@@ -29,7 +29,7 @@ The Wall ships with a live-derived status, comments, ActionItem tasks, the Measu
 - **The "test" is descriptive, not inferential.** The only card→finding path (`BrushToFindingFlow`) pins a statistic-free text finding — no p-value, no 2-sample, no sign — so it inflates support without testing.
 - **The "so what" is invisible.** `computeScopeWhatIfProjection` + `computeConditionCoverage` (`packages/core/src/variation/scopeContribution.ts`, non-additive by enforced design) are correct but never surfaced; confounds are adjudicated by clue-counts.
 
-**This initiative is ~90% UI over an existing engine** — exposing comparisons + projections the deterministic engine already makes — plus one cheap engine add (Mallows Cp, internal only) and one deferred net-new primitive (selection-stability bootstrap).
+**This initiative is ~90% UI over an existing engine** — exposing comparisons + projections the deterministic engine already makes. (The originally-planned net-new primitive — a selection-stability bootstrap — was **CUT 2026-05-31**; see §8.)
 
 ## §2 · The settled model (binding — do not re-litigate)
 
@@ -115,17 +115,17 @@ Render each hypothesis's **own** What-If ("if we control this cause → projecte
 
 **Net-new:** the model-builder band UI (pre-select + toggle + live header + snap-back + ambient cues) · **Mallows Cp** (~15-30 LOC in the enumeration loop, _internal picker metric only_) · the per-factor data-type→tool mapping + the one-tap evaluate→run→attach-typed-Finding wiring · rendering the per-hypothesis What-If on the card · `primaryFactor` pre-fill · the confound sign auto-prompt.
 
-**Deferred one increment:** the **selection-stability bootstrap** ("in N% of resamples") — the one genuinely net-new statistical primitive; ship the band first.
+**(Increment 3 / the selection-stability bootstrap was CUT — see §8.)**
 
 ## §8 · Deferred boundaries (do NOT build)
 
-Selection-stability bootstrap (one increment out) · BIC + any surfaced Cp column (internal only) · drag-to-reorder (toggle, not drag) · persisting the _working_ selection as an entity (capture-as-Finding instead) · interaction-term toggling + formal selection-corrected inference · the `'confirmed'` → `'supported'` **code-identifier** rename (separate atomic sweep) · the 31-locale status-label retranslation (tracked) · child-scope recursion / a `SuspectedCause` grouping entity.
+**Selection-stability bootstrap — CUT 2026-05-31 (product owner).** Rationale: it's over-engineered for the audience + the small-n reality — a bootstrap is noisy on thin data (exactly where VariScout users live), "in N% of resamples" is MBB-grad vocabulary a Green Belt shouldn't have to parse, and it answers a stat-program question ("how trustworthy is my model selection?") not the actual goal ("where do I focus for improvement"). **The lightweight honesty is already shipped** — FE-1's fit-only/overfit dot + the redundancy hint flag "thin data" / "interchangeable factors" in plain language; the bootstrap was the gold-plated version of the same signal. Analyze's goal is to find where to focus, not to be the best stat program. · BIC + any surfaced Cp column (internal only) · drag-to-reorder (toggle, not drag) · persisting the _working_ selection as an entity (capture-as-Finding instead) · interaction-term toggling + formal selection-corrected inference · the `'confirmed'` → `'supported'` **code-identifier** rename (separate atomic sweep) · the 31-locale status-label retranslation (tracked) · child-scope recursion / a `SuspectedCause` grouping entity.
 
 ## §9 · Delivery (the master-plan slices)
 
 - **Increment 1 — the model-builder band** (scope-level; §3). ~90% UI over the engine + internal Cp + the ambient guards. Single-implementer (integration-heavy UI).
 - **Increment 2 — the hypothesis test-plan triad + the per-hypothesis What-If** (cause-level; §4–§5). Reuses Increment 1's tool-mapping + run-and-attach.
-- **Increment 3 — selection-stability bootstrap** (the deferred primitive).
+- ~~**Increment 3 — selection-stability bootstrap**~~ — **CUT** (over-engineered for the audience + small-n; the lightweight overfit/redundancy cues already cover the honesty need — see §8).
 - **+ the Improve-handoff explicit step** (§6) folds into Increment 2 or its own slice.
 - **IM-6** (mode/lens picker retirement) closes the prior investigation-surface initiative — independent, slot anytime.
 
