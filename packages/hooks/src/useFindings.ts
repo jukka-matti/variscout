@@ -88,6 +88,17 @@ export interface UseFindingsReturn {
   setProjection: (id: string, projection: FindingProjection) => void;
   /** Clear a finding's projection */
   clearProjection: (id: string) => void;
+  /**
+   * Set a finding's typed validation classification (FE-2a one-tap evaluate):
+   * 'supports' | 'contradicts' | 'inconclusive'. Optionally stamps `refutes`
+   * (true for an adverse-significant result). Drives the Wall's
+   * supporting/counter/not-tested clue split + the Survey gate.
+   */
+  setValidation: (
+    id: string,
+    validationStatus: 'supports' | 'contradicts' | 'inconclusive',
+    refutes?: boolean
+  ) => void;
   /** Add an action item to a finding, optionally linked to an improvement idea */
   addAction: (
     id: string,
@@ -428,6 +439,23 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
+  const setValidation = useCallback(
+    (
+      id: string,
+      validationStatus: 'supports' | 'contradicts' | 'inconclusive',
+      refutes?: boolean
+    ) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === id ? { ...f, validationStatus, refutes: refutes ?? f.refutes } : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
   const addAction = useCallback(
     (id: string, text: string, assignee?: FindingAssignee, dueDate?: string, ideaId?: string) => {
       const action = createActionItem(text, assignee, dueDate, ideaId);
@@ -618,6 +646,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     updateAttachmentStatus,
     setProjection,
     clearProjection,
+    setValidation,
     addAction,
     updateAction,
     completeAction,
