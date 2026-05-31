@@ -111,10 +111,12 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
   // when the scope can't yield a model (no outcome / no factors / too few rows).
   const engine = useMemo(() => {
     if (!outcome || eligibleFactors.length === 0 || rows.length === 0) return null;
-    const result = computeBestSubsets([...rows], outcome, [...eligibleFactors]);
+    const data = [...rows];
+    const result = computeBestSubsets(data, outcome, [...eligibleFactors]);
     if (!result || result.subsets.length === 0) return null;
     const index = buildSubsetIndex(result);
-    const vitalFew = selectVitalFew(result, index);
+    // Honest nested-F partial p gates the vital-few inclusion (uniform OLS/ANOVA).
+    const vitalFew = selectVitalFew(result, index, { data, outcome });
     if (!vitalFew) return null;
     return { result, index, vitalFew };
   }, [rows, outcome, eligibleFactors]);
@@ -152,9 +154,19 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
   }, [engine, kept]);
 
   const keptP = useMemo<Map<string, number>>(() => {
-    if (!engine || !keptSubset) return new Map();
-    return perFactorPValues(keptSubset, engine.index);
-  }, [engine, keptSubset]);
+    if (!engine || !keptSubset || !outcome) return new Map();
+    // Honest in-model partial p (nested-F, uniform OLS/ANOVA) for the kept set.
+    return perFactorPValues(keptSubset, engine.index, [...rows], outcome);
+  }, [engine, keptSubset, rows, outcome]);
+
+  // Per-factor (group) VIF for the CURRENTLY-kept model. The engine stamps `vif`
+  // only on the winner (`subsets[0]`), so a toggled non-winner model would show a
+  // blank VIF hover; computing it here (same design-matrix + OLS primitives the
+  // engine uses — NOT a re-enumeration) keeps the hover live for any selection.
+  const keptVif = useMemo<Map<string, number>>(() => {
+    if (!keptSubset || !outcome) return new Map();
+    return computeSubsetVIF([...rows], outcome, kept);
+  }, [keptSubset, rows, outcome, kept]);
 
   // Has the analyst deviated from the engine suggestion? Drives the snap-back.
   const deviated = useMemo(() => {
@@ -293,9 +305,9 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
                   <span
                     data-testid={`model-p-${factor}`}
                     title={
-                      keptSubset.vif?.get(factor) !== undefined
+                      keptVif.get(factor) !== undefined
                         ? formatMessage(locale, 'wall.model.vifTooltip', {
-                            value: fmtR2(keptSubset.vif.get(factor)!),
+                            value: fmtR2(keptVif.get(factor)!),
                           })
                         : undefined
                     }
