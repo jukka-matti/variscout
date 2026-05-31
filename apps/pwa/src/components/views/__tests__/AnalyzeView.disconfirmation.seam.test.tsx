@@ -143,8 +143,9 @@ describe('PWA Wall disconfirmation seam (Azure parity)', () => {
   it('firing the gesture records a survived attempt into useAnalyzeStore (the Wall source of truth)', () => {
     renderWall(makePlanningProps());
 
-    // Open the disconfirmation form via the real production gesture button.
-    fireEvent.click(screen.getByText(/We tried to break this/i));
+    // FE-2b — the legacy free-text form survives ONLY as the manual non-data
+    // (gemba/expert) fallback; open it via that button.
+    fireEvent.click(screen.getByText(/gemba or expert/i));
     fireEvent.change(screen.getByLabelText('What did you try?'), {
       target: { value: 'Re-ran on the day shift; the spread held.' },
     });
@@ -161,6 +162,6 @@ describe('PWA Wall disconfirmation seam (Azure parity)', () => {
 
   it('does NOT render the disconfirmation gesture when onRecordDisconfirmation is omitted (the original PWA bug)', () => {
     renderWall(makePlanningProps({ onRecordDisconfirmation: undefined }));
-    expect(screen.queryByText(/We tried to break this/i)).toBeNull();
+    expect(screen.queryByText(/gemba or expert/i)).toBeNull();
   });
 });

@@ -36,8 +36,16 @@ import {
   type Hypothesis,
   type FindingProjection,
   type DataRow,
+  type DisconfirmationAttempt,
 } from '@variscout/core';
-import { evaluateHypothesisFactor, isEvaluateFindingForFactor } from '@variscout/core/findings';
+import { generateDeterministicId } from '@variscout/core/identity';
+import {
+  evaluateHypothesisFactor,
+  isEvaluateFindingForFactor,
+  evaluateDisconfirmation,
+  isDisconfirmationFindingForFactor,
+} from '@variscout/core/findings';
+import type { EvaluateFactorOptions } from '@variscout/ui';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { detectColumns } from '@variscout/core/parser';
@@ -223,49 +231,115 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // then connect it. NEVER auto-run. A non-significant result → 'inconclusive'
   // (NOT-tested), never supporting.
   const handleEvaluateFactor = useCallback(
-    (hypothesisId: string, factor: string) => {
+    (hypothesisId: string, factor: string, options?: EvaluateFactorOptions) => {
       if (!outcome || filteredData.length === 0) return;
+      const tryToBreakIt = Boolean(options?.tryToBreakIt);
       // `filteredData` is the looser app-level `Record<string, unknown>[]`; the
       // core engine reads (never mutates) the constrained `DataRow` cells. Cast
       // to match the engine signature (mirrors the Wall's IM-5 cast).
-      const result = evaluateHypothesisFactor(
-        filteredData as unknown as DataRow[],
-        factor,
-        outcome
-      );
+      const rows = filteredData as unknown as DataRow[];
+      // FE-2b — the fused "Try to break it" path INVERTS the classification under
+      // the wrongness-prediction (significant → survived/supports; not-significant
+      // → refuted/contradicts), graded by the SAME engine. The plain FE-2a path is
+      // unchanged.
+      const result = tryToBreakIt
+        ? evaluateDisconfirmation(rows, factor, outcome)
+        : evaluateHypothesisFactor(rows, factor, outcome);
       if (!result) return;
       const store = useAnalyzeStore.getState();
-      // FE-2a idempotency: a repeat evaluate of the SAME (hypothesis × factor)
-      // refreshes the existing finding instead of appending a duplicate. The
-      // natural key is the prior evaluate-finding already linked to this hub.
+      const matchesPriorEvaluate = (text: string) =>
+        tryToBreakIt
+          ? isDisconfirmationFindingForFactor(text, factor)
+          : isEvaluateFindingForFactor(text, factor);
+      // FE-2a/2b idempotency: a repeat evaluate of the SAME (hypothesis × factor ×
+      // mode) refreshes the existing finding instead of appending a duplicate.
       const hub = store.hypotheses.find(h => h.id === hypothesisId);
       const existing = hub
-        ? store.findings.find(
-            f => hub.findingIds.includes(f.id) && isEvaluateFindingForFactor(f.text, factor)
-          )
+        ? store.findings.find(f => hub.findingIds.includes(f.id) && matchesPriorEvaluate(f.text))
         : undefined;
+      let findingId: string;
       if (existing) {
         store.editFinding(existing.id, result.findingText);
         store.setFindingValidation(existing.id, result.validationStatus, result.refutes);
-        return;
+        findingId = existing.id;
+      } else {
+        const finding = store.addFinding(result.findingText, {
+          activeFilters: {},
+          cumulativeScope: null,
+        });
+        // Classify BEFORE connecting so the finding is never read as an
+        // unclassified "support" clue on the Wall in the interim.
+        store.setFindingValidation(finding.id, result.validationStatus, result.refutes);
+        store.connectFindingToHub(hypothesisId, finding.id);
+        findingId = finding.id;
       }
-      const finding = store.addFinding(result.findingText, {
-        activeFilters: {},
-        cumulativeScope: null,
-      });
-      // Classify BEFORE connecting so the finding is never read as an
-      // unclassified "support" clue on the Wall in the interim.
-      store.setFindingValidation(finding.id, result.validationStatus, result.refutes);
-      store.connectFindingToHub(hypothesisId, finding.id);
+
+      // FE-2b — record the engine-graded DisconfirmationAttempt with the finding
+      // linked (closes the `linkedFindingIds:[]` gap BY CONSTRUCTION). Reaches the
+      // SAME production write-path (store.recordDisconfirmation) the legacy manual
+      // form uses. The app stamps id + attemptedAt + attemptedBy.
+      if (tryToBreakIt) {
+        const attempt: DisconfirmationAttempt = {
+          id: generateDeterministicId(),
+          attemptedAt: new Date().toISOString(),
+          attemptedBy: { displayName: 'Local browser', upn: 'analyst@local' },
+          description: (options?.prediction ?? result.findingText).trim(),
+          // Engine-graded, derived from `refutes` (both evaluate shapes carry it):
+          // refuted → the predicted relationship was absent; survived → the cause
+          // withstood the attempt. Matches `evaluateDisconfirmation`'s verdict.
+          verdict: result.refutes ? 'refuted' : 'survived',
+          linkedFindingIds: [findingId],
+        };
+        store.recordDisconfirmation(hypothesisId, attempt);
+      }
     },
     [outcome, filteredData]
   );
 
-  // Enrich the parent's planningProps bag with the FE-2a evaluate callback so
-  // the triad's Evaluate CTA is wired through the production path.
+  // Enrich the parent's planningProps bag with the FE-2a/2b evaluate callback +
+  // the FE-2b respawn/confound actions so the triad is wired through the
+  // production path (useAnalyzeStore is the PWA Wall's reactive source of truth).
   const enrichedPlanningProps = useMemo<WallCanvasPlanningProps | undefined>(() => {
     if (!planningProps) return undefined;
-    return { ...planningProps, onEvaluateFactor: handleEvaluateFactor };
+    return {
+      ...planningProps,
+      onEvaluateFactor: handleEvaluateFactor,
+      // FE-2b — refute → respawn-sharper. Seeds H2 + carries the refutation
+      // forward as SUPPORTING evidence (a fresh supporting finding so H1's red
+      // refuting finding stays intact). H1 stays refuted, never archived.
+      onRespawnSharper: (refutedHypothesisId: string, newName: string) => {
+        const store = useAnalyzeStore.getState();
+        const h1 = store.hypotheses.find(h => h.id === refutedHypothesisId);
+        const refuting = h1
+          ? store.findings.find(f => h1.findingIds.includes(f.id) && f.refutes)
+          : undefined;
+        const newHub = store.createHub(newName, '');
+        if (refuting) {
+          const carried = store.addFinding(
+            `Carried from the refutation of “${h1?.name ?? 'the prior hypothesis'}”: ${refuting.text}`,
+            { activeFilters: {}, cumulativeScope: null }
+          );
+          store.setFindingValidation(carried.id, 'supports', false);
+          store.connectFindingToHub(newHub.id, carried.id);
+        }
+      },
+      // FE-2b — confound: mark the opposite sign on a rival cause (counter-clue).
+      onMarkConfoundOpposite: (rivalHypothesisId: string, findingId: string) => {
+        const store = useAnalyzeStore.getState();
+        const rival = store.hypotheses.find(h => h.id === rivalHypothesisId);
+        if (!rival) return;
+        const existingCounter = rival.counterFindingIds ?? [];
+        if (!existingCounter.includes(findingId)) {
+          store.updateHub(rivalHypothesisId, {
+            counterFindingIds: [...existingCounter, findingId],
+          });
+        }
+        if (!rival.findingIds.includes(findingId)) {
+          store.connectFindingToHub(rivalHypothesisId, findingId);
+        }
+        store.setFindingValidation(findingId, 'contradicts', false);
+      },
+    };
   }, [planningProps, handleEvaluateFactor]);
 
   // ── FE-1 — scope-level vital-few model-builder band ──────────────────────
