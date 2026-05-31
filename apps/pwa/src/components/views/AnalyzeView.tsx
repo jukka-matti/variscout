@@ -236,10 +236,31 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   );
   const modelBuilderProps = useMemo<WallCanvasModelBuilderProps | undefined>(() => {
     if (!outcome || factors.length === 0) return undefined;
+    // Parity with Azure's drilled-constant chipping: the PWA does not surface
+    // `categoricalFilters` here, but `filteredData` is already the drilled subset
+    // — a candidate factor that is single-valued across that subset IS constant
+    // in scope (the data realization of Azure's "drilled to one value" rule).
+    const constantFactors =
+      filteredData.length > 0
+        ? factors.filter(f => {
+            let seen: unknown;
+            let multi = false;
+            for (const row of filteredData) {
+              const v = row[f];
+              if (seen === undefined) seen = v;
+              else if (v !== seen) {
+                multi = true;
+                break;
+              }
+            }
+            return !multi && seen !== undefined;
+          })
+        : [];
     return {
       candidateFactors: factors,
       scopeLabel: activeIPScope?.title ?? 'All data',
       scopeRows: filteredData,
+      constantFactors,
       onCaptureModel: handleCaptureModel,
     };
   }, [outcome, factors, filteredData, activeIPScope, handleCaptureModel]);
