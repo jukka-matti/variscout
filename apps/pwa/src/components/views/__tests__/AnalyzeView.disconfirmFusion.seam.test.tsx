@@ -74,11 +74,26 @@ const significantRows: DataRow[] = [
   { SHIFT: 'Night', Y: 33 },
   { SHIFT: 'Night', Y: 34 },
 ];
+// 10 per group (≥ the refute power floor of 10/group), flat across SHIFT → a
+// TRUE null with adequate power → 'refuted' (not the low-power 'pending' that a
+// thin sample now correctly returns post-FE-2b min-n guard).
 const flatRows: DataRow[] = [
   { SHIFT: 'Day', Y: 20 },
   { SHIFT: 'Day', Y: 21 },
   { SHIFT: 'Day', Y: 19 },
   { SHIFT: 'Day', Y: 20 },
+  { SHIFT: 'Day', Y: 21 },
+  { SHIFT: 'Day', Y: 19 },
+  { SHIFT: 'Day', Y: 20 },
+  { SHIFT: 'Day', Y: 21 },
+  { SHIFT: 'Day', Y: 19 },
+  { SHIFT: 'Day', Y: 20 },
+  { SHIFT: 'Night', Y: 20 },
+  { SHIFT: 'Night', Y: 21 },
+  { SHIFT: 'Night', Y: 19 },
+  { SHIFT: 'Night', Y: 20 },
+  { SHIFT: 'Night', Y: 21 },
+  { SHIFT: 'Night', Y: 19 },
   { SHIFT: 'Night', Y: 20 },
   { SHIFT: 'Night', Y: 21 },
   { SHIFT: 'Night', Y: 19 },
