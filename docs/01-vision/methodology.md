@@ -298,34 +298,32 @@ These voices are **independent**. The process does not know what the customer wa
 
 ## Four Lenses (Teaching Shorthand)
 
-The "Four Lenses" label is a pedagogical device — a memorable way to communicate that the same data looks different through each analytical tool. It maps directly to the four tools above:
+The "Four Lenses" label is a pedagogical device — a memorable way to communicate that the same data looks different through each analytical tool. It is **not a product feature, type, or picker**: there are no CHANGE/FLOW/FAILURE/VALUE knobs in the app, and the analyst never selects a lens. The four charts are always shown together. The label maps to the four tools as a teaching aside:
 
-| Lens        | Tool                 | Core Question                     |
-| ----------- | -------------------- | --------------------------------- |
-| **CHANGE**  | I-Chart              | "What's shifting over time?"      |
-| **FLOW**    | Boxplot              | "Where does variation come from?" |
-| **FAILURE** | Pareto               | "Where do problems cluster?"      |
-| **VALUE**   | Capability Histogram | "Does it meet customer specs?"    |
+| Teaching label | Tool                 | Core Question                     |
+| -------------- | -------------------- | --------------------------------- |
+| _change_       | I-Chart              | "What's shifting over time?"      |
+| _flow_         | Boxplot              | "Where does variation come from?" |
+| _failure_      | Pareto               | "Where do problems cluster?"      |
+| _value_        | Capability Histogram | "Does it meet customer specs?"    |
 
-The lens metaphor is useful for marketing and teaching, but the methodology works with standard tool names. VariScout's CoScout AI assistant uses tool names, not lens names.
+The lens metaphor is useful for marketing and teaching, but the methodology works with standard tool names. VariScout's CoScout AI assistant uses tool names, not lens names. See [ADR-089](../07-decisions/adr-089-retire-mode-lens-user-axis.md) for why mode/lens are not user axes.
 
 ---
 
-### Analysis Modes
+### Data shape is set at Frame, not picked ([ADR-089](../07-decisions/adr-089-retire-mode-lens-user-axis.md))
 
-Beyond the standard four-tool view, VariScout supports alternative analysis
-modes that reconfigure the dashboard for specific process questions:
+The analyst tunes a **measure (Y) + factor(s)**; the four charts are always shown and always drillable. There is **no mode-picker and no lens-picker**. What used to read like "alternative analysis modes" is really the **data shape**, set automatically at FRAME/setup time:
 
-- **Performance Mode** — Multi-channel Cpk comparison for wide-format data (fill heads, cavities, nozzles)
-- **Capability Mode** — Per-subgroup Cp/Cpk stability analysis on the I-Chart, answering "Are we meeting our Cpk target?" Analysts switch freely between standard and capability views at any drill level. Time-based subgrouping uses extracted time columns from FRAME. See [Analysis Flow](../03-features/workflows/analysis-flow.md) for how these modes interleave through the full journey.
+- **Performance** (`AnalysisMode = 'performance'`) — multi-channel Cpk comparison for wide-format data (fill heads, cavities, nozzles). Set by the wide-channel transform during setup, not by a menu.
+- **Defect** (`AnalysisMode = 'defect'`) — set by the defect-rate ingest transform.
+- **Standard** otherwise.
+
+`AnalysisMode` is a Frame-derived data-shape discriminant, never a user knob. The one genuine analysis **view** the analyst toggles is **Values ⇄ Capability**: per-subgroup Cp/Cpk stability analysis on the I-Chart, answering "Are we capable when stable?" It is specs-gated and Cp/Cpk-only ([ADR-084](../07-decisions/adr-084-capability-indices-cp-cpk-only.md)) — never Pp/Ppk — and is _not_ a lens and _not_ an `AnalysisMode`. Time-based subgrouping uses extracted time columns from FRAME. See [Subgroup Capability Analysis](../03-features/analysis/subgroup-capability.md) and [Analysis Flow](../03-features/workflows/analysis-flow.md).
 
 > Yamazumi mode (lean time study with stacked VA / NVA / Waste / Wait activity bars + cycle-time decomposition) was removed in wedge V1 via PR-LV1-0 (2026-05-28). Process-flow mode covers the flow-analysis use case; activity-classified time-study data is deferred to a future pivot-table capability. See [ADR-034](../07-decisions/adr-034-yamazumi-analysis-mode.md) (superseded).
 
-The user-facing question should be "what level of process understanding are we
-working on?" before it becomes "which mode?" Each mode reuses the same chart
-infrastructure with different data pipelines and interpretation context. See
-[Subgroup Capability Analysis](../03-features/analysis/subgroup-capability.md)
-for the capability mode details.
+The user-facing question is "what **level** of process understanding are we working on, and which **measure + factor**?" — never "which mode?" or "which lens?" Both of those are derived (data shape) or invariant (the four charts).
 
 ---
 

@@ -19,15 +19,17 @@ serves:
 
 Subgroup Capability plots Cp and Cpk per subgroup on the I-Chart, revealing whether **capability itself is stable** over time, across batches, or between equipment.
 
-A single Pp/Ppk number is a black box — it tells you the overall result but hides when and how capability shifts. By plotting capability per subgroup, you can:
+A single overall capability number is a black box — it tells you the result but hides when and how capability shifts. By plotting Cp/Cpk per subgroup, you can:
 
 - Detect **capability shifts** between batches, shifts, or time periods
 - Visualize **centering loss** — the gap between Cp and Cpk shows off-center processes
 - Identify **when** a process went out of capability (not just that it did)
 
+> VariScout is **Cp/Cpk-only** ([ADR-084](../../07-decisions/adr-084-capability-indices-cp-cpk-only.md)). It never surfaces Pp/Ppk; "stability" here means per-subgroup Cp/Cpk against within-subgroup σ̂. The Pp/Ppk references below are the overall index VariScout deliberately does _not_ show — kept only to teach the "don't Pp on my Cp" contrast.
+
 ## Journey Context
 
-Capability mode is a view toggle within the SCOUT phase of the analysis journey. The analyst switches between Values (variation analysis) and Capability (target compliance) at any point during analysis. Both views work on the same filtered data — drill-down, findings, and investigation are identical in both modes.
+Values ⇄ Capability is the one surviving analysis **view** ([ADR-089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md)) — a specs-gated toggle on the I-Chart, _not_ a mode or lens. The analyst switches between Values (variation analysis) and Capability (target compliance) at any point during analysis. Both views work on the same filtered data — drill-down, findings, and investigation are identical in both.
 
 Time-based subgrouping uses extracted time columns from FRAME (TimeExtractionPanel with minute-interval support), ensuring subgroups appear as Boxplot-filterable categories and work seamlessly with findings. For fixed-size subgroups where a specific subgroup fails, the analyst can use the Brush → Create Factor flow to isolate problematic data points for deeper investigation.
 
@@ -60,7 +62,7 @@ Grey vertical connectors visualize centering loss per subgroup pair. Long lines 
 
 ## Dual Cp/Cpk Series
 
-The I-Chart in Capability mode shows **both Cp and Cpk** as two series on the same chart:
+The I-Chart in the Capability view shows **both Cp and Cpk** as two series on the same chart:
 
 - **Cpk** (primary, blue dots): Actual capability accounting for centering
 - **Cp** (secondary, purple dots): Potential capability assuming perfect centering
@@ -84,7 +86,7 @@ The gap between Cp and Cpk is rendered as a vertical grey line connecting each p
 
 ### Small Dataset Handling
 
-When a boxplot category has fewer than 7 data points, individual dots are shown instead of a box-and-whisker plot. This applies to all boxplots across all analysis modes, but is especially relevant in capability mode where subgroup counts per factor level are often small.
+When a boxplot category has fewer than 7 data points, individual dots are shown instead of a box-and-whisker plot. This applies to all boxplots regardless of data shape, but is especially relevant in the capability view where subgroup counts per factor level are often small.
 
 ## Subgroup Configuration
 
@@ -137,15 +139,15 @@ When only USL or only LSL is set:
 
 ### Why Per-Subgroup Cp/Cpk
 
-A single Pp/Ppk number is a black box — it tells you the overall result but hides _when_ and _how_ capability shifts. This aligns with Watson's EDA principle of "see with eyes": a time-series of capability indices reveals patterns that a summary statistic conceals.
+A single overall capability number (the Pp/Ppk VariScout deliberately doesn't surface — [ADR-084](../../07-decisions/adr-084-capability-indices-cp-cpk-only.md)) is a black box: it tells you the result but hides _when_ and _how_ capability shifts. This aligns with Watson's EDA principle of "see with eyes": a time-series of per-subgroup Cp/Cpk reveals patterns that a summary statistic conceals.
 
 ### Connection to Two Voices
 
-In standard mode, the Voice of the Process is expressed through control limits on raw measurements. In Capability mode, VariScout applies the same concept one level up: control limits on _Cpk values_ become the Voice of the Process applied to capability itself — meta-stability. If the Cpk I-Chart is in control, the process produces _consistently_ capable output.
+In the Values view, the Voice of the Process is expressed through control limits on raw measurements. In the Capability view, VariScout applies the same concept one level up: control limits on _Cpk values_ become the Voice of the Process applied to capability itself — meta-stability. If the Cpk I-Chart is in control, the process produces _consistently_ capable output.
 
 ### Connection to Progressive Stratification
 
-After identifying unstable subgroups (out-of-control Cpk points), the analyst drills into WHICH factors drive capability differences — the same progressive stratification workflow as standard mode. Filter to the problematic subgroup, then examine the Boxplot and Pareto to find contributing factors.
+After identifying unstable subgroups (out-of-control Cpk points), the analyst drills into WHICH factors drive capability differences — the same progressive stratification workflow as the Values view. Filter to the problematic subgroup, then examine the Boxplot and Pareto to find contributing factors.
 
 ### Supplier Context (PPAP)
 
