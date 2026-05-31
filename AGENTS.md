@@ -31,7 +31,7 @@ Structured analysis for process improvement. Browser-based, customer-owned data,
 ## Workflow
 
 - Tooling, docs, and config changes can go direct to `main`.
-- Product code changes should follow the repo PR workflow: branch, PR, `bash scripts/pr-ready-check.sh`, review, squash-merge.
+- Product code changes should follow the repo PR workflow: branch, PR, `bash scripts/pr-ready-check.sh`, review, squash-merge by default. Use rebase-merge when the branch has multiple intentionally curated commits that should remain separate on `main`.
 - Prefer retrieval over recall. Read the relevant ADR, spec, or package doc before non-trivial edits.
 - **Use a dedicated worktree.** Codex must operate from `.worktrees/<branch>/` (not the repo root) when writing code, even for solo work — and ALWAYS when running concurrently with another agent. The repo root stays reserved for the human / main Claude Code session (docs, specs, decisions). Sharing a checkout across writing agents causes branch-switch races, stash accumulation, and dangling commits. See `~/.claude/projects/.../memory/feedback_one_worktree_per_agent.md` for the slice 4 followup retro evidence. Setup: `git worktree add .worktrees/<branch> -b <branch> origin/main && cd .worktrees/<branch> && pnpm install`.
 
