@@ -36,6 +36,7 @@ import {
   runAndCheck,
 } from '@variscout/core';
 import { buildHypothesisTestPlan, collectConditionLeaves } from '@variscout/core/findings';
+import type { HypothesisTestPlanFactor } from '@variscout/core/findings';
 import { computeScopeWhatIfProjection, computeConditionCoverage } from '@variscout/core/variation';
 import { deriveProcessSteps } from '@variscout/core/frame';
 import { getMessage } from '@variscout/core/i18n';
@@ -379,6 +380,43 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     );
     return new Map(entries);
   }, [filteredHubs, findings, processMap]);
+  // FE-2a perf — precompute the per-hub test-plan triad + What-If ONCE per
+  // (hubs, findings, rows, outcome, …) change instead of re-running the ANOVA +
+  // What-If engines inside the unmemoized `renderHubAt` on every render. The
+  // `[...rows]` copy (the engines take a mutable array) is also done once here.
+  const hubTriadById = useMemo(() => {
+    type Triad = {
+      testPlanFactors: HypothesisTestPlanFactor[] | undefined;
+      whatIf: { cpk: number | null; coveragePct: number | null } | undefined;
+    };
+    const map = new Map<string, Triad>();
+    if (!planningProps || !outcomeColumn || !rows) return map;
+    const triadData = [...rows] as DataRow[];
+    for (const hub of filteredHubs) {
+      const testPlanFactors = buildHypothesisTestPlan(hub, findings, triadData, outcomeColumn).map(
+        tp => ({ factor: tp.factor, readiness: tp.readiness, tool: tp.tool })
+      );
+      let whatIf: Triad['whatIf'];
+      if (hub.condition && triadData.length > 0) {
+        const leaves = collectConditionLeaves(hub.condition);
+        if (leaves.length > 0) {
+          const cpk = computeScopeWhatIfProjection(
+            leaves,
+            triadData,
+            outcomeColumn,
+            activeScopeSpecs
+          );
+          const coveragePct = computeConditionCoverage(leaves, triadData);
+          whatIf = {
+            cpk: cpk ?? null,
+            coveragePct: Number.isFinite(coveragePct) ? coveragePct : null,
+          };
+        }
+      }
+      map.set(hub.id, { testPlanFactors, whatIf });
+    }
+    return map;
+  }, [filteredHubs, findings, rows, outcomeColumn, planningProps, activeScopeSpecs]);
   // Tributary clustering: bucket each hub by its first matching tributary.
   // Unmatched hubs (no tributaryIds, or none intersecting processMap) drop
   // into an "unassigned" bucket rendered without a frame. Order matches
@@ -770,32 +808,14 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     // stepOptions is derived once per render from processMap (stable reference via useMemo
     // at the outer level — see stepOptions memo below). defaultScope + defaultOutcome are
     // forwarded as-is; the form defaults to [] / '' when undefined.
-    // FE-2a — derive the hub's test-plan triad + per-hypothesis What-If from the
-    // SAME core engine the rest of the Wall uses. Computed here (not injected as
-    // a leaf prop) so a dead wiring renders the engine's real output, not a fake.
-    // Triad = the cause's derived factors tagged ready/gap + the auto-suggested
-    // tool. What-If = the cause's condition partitioned via the shipped IM-5
-    // helpers (never summed across hubs). Both require an outcome + rows.
-    const triadData: Record<string, unknown>[] = rows ? [...rows] : [];
-    const hubTestPlanFactors =
-      planningProps && outcomeColumn
-        ? buildHypothesisTestPlan(hub, findings, triadData as DataRow[], outcomeColumn).map(tp => ({
-            factor: tp.factor,
-            readiness: tp.readiness,
-            tool: tp.tool,
-          }))
-        : undefined;
-    const hubWhatIf = (() => {
-      if (!planningProps || !outcomeColumn || !hub.condition || triadData.length === 0) {
-        return undefined;
-      }
-      const leaves = collectConditionLeaves(hub.condition);
-      if (leaves.length === 0) return undefined;
-      const im5Rows = triadData as unknown as DataRow[];
-      const cpk = computeScopeWhatIfProjection(leaves, im5Rows, outcomeColumn, activeScopeSpecs);
-      const coveragePct = computeConditionCoverage(leaves, im5Rows);
-      return { cpk, coveragePct: Number.isFinite(coveragePct) ? coveragePct : null };
-    })();
+    // FE-2a — the hub's test-plan triad + per-hypothesis What-If, precomputed once
+    // per (hubs, findings, rows, outcome, …) in `hubTriadById` (above) rather than
+    // re-running the ANOVA + What-If engines inside this per-render path. Computed
+    // from the SAME core engine the rest of the Wall uses (not injected as a leaf
+    // prop) so a dead wiring renders the engine's real output, not a fake.
+    const hubTriad = hubTriadById.get(hub.id);
+    const hubTestPlanFactors = hubTriad?.testPlanFactors;
+    const hubWhatIf = hubTriad?.whatIf;
 
     const hubPlanningProps = planningProps
       ? {
