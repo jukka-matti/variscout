@@ -11,18 +11,13 @@
  */
 
 import type { SampleDataset } from '../types';
-import { round } from '../utils';
+import { createNormalGenerator, round } from '../utils';
 
-// Helper to generate normal distribution values
-function normalRandom(mean: number, stdDev: number): number {
-  const u1 = Math.random();
-  const u2 = Math.random();
-  const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-  return mean + z0 * stdDev;
-}
+const BASE_TIMESTAMP_MS = Date.parse('2026-05-31T12:00:00.000Z');
 
 // Generate measurement rows
 function generateLargeScaleData(): Record<string, unknown>[] {
+  const normal = createNormalGenerator(2601);
   const data: Record<string, unknown>[] = [];
   const numChannels = 100;
   const numRows = 100;
@@ -47,15 +42,12 @@ function generateLargeScaleData(): Record<string, unknown>[] {
 
   for (let r = 0; r < numRows; r++) {
     const row: Record<string, unknown> = {
-      Timestamp: new Date(Date.now() - (numRows - r) * 60000).toISOString(),
+      Timestamp: new Date(BASE_TIMESTAMP_MS - (numRows - r) * 60000).toISOString(),
       Batch: `B${Math.floor(r / 20) + 1}`,
     };
 
     channelConfigs.forEach((config, i) => {
-      row[`CH${String(i + 1).padStart(3, '0')}`] = round(
-        normalRandom(config.mean, config.stdDev),
-        2
-      );
+      row[`CH${String(i + 1).padStart(3, '0')}`] = round(normal(config.mean, config.stdDev), 2);
     });
 
     data.push(row);

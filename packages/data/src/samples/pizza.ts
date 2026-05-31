@@ -1,9 +1,10 @@
 import type { SampleDataset } from '../types';
-import { generateNormal, round } from '../utils';
+import { createNormalGenerator, round } from '../utils';
 
 // Pizza Delivery: LSS Training Classic Case
 // Story: Delivery time variation analysis for Green Belt training
 const generatePizzaData = () => {
+  const normal = createNormalGenerator(2001);
   const data: Record<string, unknown>[] = [];
   const stores = ['Store North', 'Store Central', 'Store South'];
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -19,7 +20,7 @@ const generatePizzaData = () => {
           const std = store === 'Store South' ? 8 : 4;
           // Dinner rush adds time
           const rushPenalty = timeSlot === 'Dinner' ? 5 : timeSlot === 'Late Night' ? -3 : 0;
-          const deliveryTime = Math.max(15, generateNormal(baseMean + rushPenalty, std));
+          const deliveryTime = Math.max(15, normal(baseMean + rushPenalty, std));
 
           data.push({
             Order_ID: id++,

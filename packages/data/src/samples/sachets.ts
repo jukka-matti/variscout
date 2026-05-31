@@ -14,18 +14,11 @@
  */
 
 import type { SampleDataset } from '../types';
-import { round } from '../utils';
-
-// Helper to generate random normal distribution
-const generateNormal = (mean: number, std: number): number => {
-  const u = 1 - Math.random();
-  const v = Math.random();
-  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-  return z * std + mean;
-};
+import { createNormalGenerator, round } from '../utils';
 
 // Generate sachet filler data
 const generateSachetData = (): Record<string, unknown>[] => {
+  const normal = createNormalGenerator(2501);
   const data: Record<string, unknown>[] = [];
   const numCycles = 100;
 
@@ -59,7 +52,7 @@ const generateSachetData = (): Record<string, unknown>[] => {
 
     // Generate measurement for each head
     headConfigs.forEach((config, idx) => {
-      const value = generateNormal(config.mean, config.std);
+      const value = normal(config.mean, config.std);
       row[`H${idx + 1}`] = round(value, 3);
     });
 

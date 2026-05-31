@@ -1,9 +1,11 @@
 import type { SampleDataset } from '../types';
-import { generateNormal, round } from '../utils';
+import { createNormalGenerator, mulberry32, randomChoice, round } from '../utils';
 
 // Delivery Performance: Logistics Analysis
 // Story: Route C (Mountain region) has systematic delays
 const generateDeliveryPerformanceData = () => {
+  const random = mulberry32(2301);
+  const normal = createNormalGenerator(random);
   const data: Record<string, unknown>[] = [];
   const routes = [
     'Route A (Urban)',
@@ -24,10 +26,10 @@ const generateDeliveryPerformanceData = () => {
       // Mountain route averages 45 min vs 25 min target
       const baseMean = route.includes('Mountain') ? 45 : route.includes('Urban') ? 22 : 28;
       const std = route.includes('Mountain') ? 12 : 5;
-      const deliveryTime = Math.max(10, generateNormal(baseMean, std));
+      const deliveryTime = Math.max(10, normal(baseMean, std));
 
       // Random driver assignment
-      const driver = drivers[Math.floor(Math.random() * drivers.length)];
+      const driver = randomChoice(drivers, random);
 
       data.push({
         Delivery_ID: id++,

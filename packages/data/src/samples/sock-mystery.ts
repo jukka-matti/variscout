@@ -1,9 +1,10 @@
 import type { SampleDataset } from '../types';
-import { generateNormal } from '../utils';
+import { createNormalGenerator } from '../utils';
 
 // Sock Mystery: Classic Training Case
 // Story: Socks keep disappearing. Is it the washer, dryer, or something else?
 const generateSockMysteryData = () => {
+  const normal = createNormalGenerator(2101);
   const data: Record<string, unknown>[] = [];
   const washers = ['Washer A', 'Washer B'];
   const dryers = ['Dryer 1', 'Dryer 2', 'Dryer 3'];
@@ -19,7 +20,7 @@ const generateSockMysteryData = () => {
           const baseLoss = dryer === 'Dryer 2' ? 2.5 : 0.3;
           // Slight load size effect (red herring)
           const loadEffect = loadSize === 'Large' ? 0.3 : loadSize === 'Small' ? -0.1 : 0;
-          const socksLost = Math.max(0, Math.round(generateNormal(baseLoss + loadEffect, 0.8)));
+          const socksLost = Math.max(0, Math.round(normal(baseLoss + loadEffect, 0.8)));
 
           data.push({
             Load_ID: id++,

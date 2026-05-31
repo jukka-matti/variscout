@@ -26,6 +26,16 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Refactoring roadmap sequencer [LOGGED 2026-05-31]
+
+**Surfaced by:** read-only refactoring-opportunity evaluation using four explorer subagents across core/data/stats, stores/hooks, UI/app workflow surfaces, and tooling/package health.
+
+**Summary:** clear opportunities exist, but they should not be executed as one broad cleanup. The plan is to run the work as sequenced PR slices: tooling/boundary hygiene first, deterministic sample data next, store-invariant cleanup after the package/store decisions are explicit, then shared workflow/active-IP extraction, with high-risk store/persistence separation deferred until it has its own design. R0/R1 shipped via PR #264; R2 is split into R2a deterministic sample generation and R2b computed-chart boundary extraction.
+
+**Promotion path:** master sequencer lives at [`docs/superpowers/plans/2026-05-31-refactoring-roadmap.md`](../superpowers/plans/2026-05-31-refactoring-roadmap.md). For each slice, re-check `main`, use brainstorming when decisions are still open, write a dedicated implementation plan, then execute via subagent-driven development in a dedicated worktree.
+
+**Severity:** architectural-maintenance roadmap — not blocking current product work, but useful before more workflow/state code piles onto known drift.
+
 ### Doc + user-journey alignment after the investigation-surface + Factors&Evaluation delivery [LOGGED 2026-05-31]
 
 **Surfaced by:** 14 PRs this session (#250–#263) closed the whole investigation-surface arc (IM-0a…IM-7) + the Factors&Evaluation follow-on (model-builder + test-plan triad + evaluate + disconfirmation fusion) + IM-6 (retire mode/lens). This shipped major new product behavior; the **canonical L1/L2/L3 docs + user journeys now lag the shipped reality** and need a deliberate alignment pass.

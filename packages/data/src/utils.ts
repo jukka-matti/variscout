@@ -15,36 +15,27 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-/** Default seed for deterministic sample generation */
-const DEFAULT_SEED = 42;
-
-/** Module-level PRNG instance — seeded for deterministic output */
-let rng = mulberry32(DEFAULT_SEED);
+export type RandomSource = () => number;
 
 /**
- * Reset the module PRNG to a specific seed.
- * Call this before generating a dataset to get reproducible results.
- *
- * @param seed - 32-bit integer seed (default: 42)
+ * Create a deterministic normal-distribution generator from a seed or local PRNG.
  */
-export function seedRandom(seed: number = DEFAULT_SEED): void {
-  rng = mulberry32(seed);
+export function createNormalGenerator(seedOrRandom: number | RandomSource) {
+  const random = typeof seedOrRandom === 'number' ? mulberry32(seedOrRandom) : seedOrRandom;
+  return (mean: number, std: number): number => {
+    const u = 1 - random();
+    const v = random();
+    const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    return z * std + mean;
+  };
 }
 
-/**
- * Generate a random value from a normal distribution.
- * Uses the Box-Muller transform with the seeded PRNG.
- *
- * @param mean - Distribution mean
- * @param std - Distribution standard deviation
- * @returns A normally-distributed random value
- */
-export const generateNormal = (mean: number, std: number): number => {
-  const u = 1 - rng();
-  const v = rng();
-  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-  return z * std + mean;
-};
+export function randomChoice<T>(items: readonly T[], random: RandomSource): T {
+  if (items.length === 0) {
+    throw new Error('randomChoice requires at least one item');
+  }
+  return items[Math.floor(random() * items.length)]!;
+}
 
 /**
  * Clamp a value between min and max
