@@ -150,6 +150,7 @@ export {
   type UseDataIngestionOptions,
   type UseDataIngestionReturn,
 } from './useDataIngestion';
+export { useStoreDataIngestionActions } from './useStoreDataIngestionActions';
 
 // Drill Path
 export { useDrillPath, type DrillStep, type UseDrillPathReturn } from './useDrillPath';
