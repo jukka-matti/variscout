@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ControlForm, type ControlRecordChangePatch } from '@variscout/ui';
-import type { ProcessHub, ControlRecord, ControlReview } from '@variscout/core';
-import type { ImprovementProject } from '@variscout/core/improvementProject';
+import React from 'react';
+import { ControlForm } from '@variscout/ui';
+import type { ProcessHub } from '@variscout/core';
+import { useControlPanelModel } from '@variscout/hooks';
 import { pwaHubRepository } from '../persistence';
 
 interface ControlPanelProps {
@@ -13,193 +13,9 @@ interface ControlPanelProps {
 const buttonClassName =
   'rounded-md border border-edge bg-surface px-3 py-2 text-left text-sm font-medium text-content transition-colors hover:bg-surface-secondary focus:outline-none focus:ring-2 focus:ring-ring';
 
-function makeId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
-  return `sr-${Date.now()}`;
-}
-
-function liveRecords(records: ControlRecord[] | undefined): ControlRecord[] {
-  return (records ?? []).filter(record => record.deletedAt === null);
-}
-
-function firstClosedProject(
-  hub: ProcessHub,
-  preferredProjectId?: string
-): ImprovementProject | undefined {
-  const p = hub.improvementProject;
-  if (!p || p.deletedAt !== null || p.status !== 'closed') return undefined;
-  if (preferredProjectId !== undefined && p.id !== preferredProjectId) return undefined;
-  return p;
-}
-
-function recordMatchesTarget(record: ControlRecord, targetId: string | undefined): boolean {
-  return (
-    targetId !== undefined && (record.id === targetId || record.improvementProjectId === targetId)
-  );
-}
-
-function selectedRecordForTarget(
-  records: ControlRecord[],
-  selectedRecordId: string | null,
-  targetId: string | undefined
-): ControlRecord | null {
-  const targetRecord = records.find(record => recordMatchesTarget(record, targetId));
-  if (targetRecord) return targetRecord;
-  if (records.length === 1) return records[0];
-  return records.find(record => record.id === selectedRecordId) ?? null;
-}
-
-function firstClosedProjectLegacy(hub: ProcessHub): ImprovementProject | undefined {
-  const p = hub.improvementProject;
-  return p && p.deletedAt === null && p.status === 'closed' ? p : undefined;
-}
-
-function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): ControlRecord {
-  const project = firstClosedProject(hub, preferredProjectId) ?? firstClosedProjectLegacy(hub);
-  const now = Date.now();
-  const investigationId = project?.metadata.investigationId ?? `${hub.id}:sustainment`;
-  const title = project ? `Sustain ${project.metadata.title}` : `Sustain ${hub.name}`;
-
-  return {
-    id: makeId(),
-    hubId: hub.id,
-    investigationId,
-    status: 'pending',
-    title,
-    improvementProjectId: project?.id,
-    goal: project?.goal,
-    targetSummary: project?.goal.freeText,
-    consecutiveOnTargetTicks: 0,
-    hasOverride: false,
-    lastEvaluatedSnapshotId: undefined,
-    cadence: 'monthly',
-    createdAt: now,
-    updatedAt: now,
-    deletedAt: null,
-  };
-}
-
-function mergeRecordPatch(record: ControlRecord, patch: ControlRecordChangePatch): ControlRecord {
-  return { ...record, ...patch, updatedAt: Date.now() };
-}
-
 const ControlPanel: React.FC<ControlPanelProps> = ({ activeHub, targetId, onBack }) => {
-  const [records, setRecords] = useState<ControlRecord[]>([]);
-  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
-  const [reviews, setReviews] = useState<ControlReview[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoadingRecords, setIsLoadingRecords] = useState(Boolean(activeHub));
-  const creatingForHubRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    setRecords(liveRecords(activeHub?.controlRecords));
-    setSelectedRecordId(null);
-    setReviews([]);
-    setIsLoadingRecords(Boolean(activeHub));
-
-    if (!activeHub) {
-      setIsLoadingRecords(false);
-      return;
-    }
-
-    let cancelled = false;
-    void pwaHubRepository.controlRecords
-      .listByHub(activeHub.id)
-      .then((rows: ControlRecord[]) => {
-        if (!cancelled) setRecords(liveRecords(rows));
-      })
-      .catch(() => {
-        if (!cancelled) setRecords(liveRecords(activeHub.controlRecords));
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingRecords(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeHub]);
-
-  useEffect(() => {
-    if (
-      !activeHub ||
-      isLoadingRecords ||
-      records.length > 0 ||
-      creatingForHubRef.current === activeHub.id
-    ) {
-      return;
-    }
-
-    const createHubId = activeHub.id;
-    const record = buildDraftRecord(activeHub, targetId);
-    creatingForHubRef.current = activeHub.id;
-    setError(null);
-    let cancelled = false;
-
-    void pwaHubRepository
-      .dispatch({ kind: 'SUSTAINMENT_RECORD_CREATE', hubId: activeHub.id, record })
-      .then(() => {
-        if (cancelled || creatingForHubRef.current !== createHubId) return;
-        setRecords([record]);
-        setSelectedRecordId(record.id);
-      })
-      .catch(() => {
-        if (!cancelled) setError('Could not create a sustainment record.');
-      })
-      .finally(() => {
-        if (creatingForHubRef.current === createHubId) creatingForHubRef.current = null;
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeHub, isLoadingRecords, records.length, targetId]);
-
-  const selectedRecord = selectedRecordForTarget(records, selectedRecordId, targetId);
-
-  useEffect(() => {
-    if (!activeHub || !selectedRecord) {
-      setReviews([]);
-      return;
-    }
-
-    let cancelled = false;
-    void pwaHubRepository.controlReviews
-      .listByRecord(activeHub.id, selectedRecord.id)
-      .then((rows: ControlReview[]) => {
-        if (!cancelled)
-          setReviews(rows.filter((review: ControlReview) => review.deletedAt === null));
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setReviews(
-            (activeHub.controlReviews ?? []).filter(
-              review => review.deletedAt === null && review.recordId === selectedRecord.id
-            )
-          );
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeHub, selectedRecord]);
-
-  const updateSelectedRecord = useCallback(
-    (patch: ControlRecordChangePatch) => {
-      if (!selectedRecord) return;
-      const next = mergeRecordPatch(selectedRecord, patch);
-      setRecords(current => current.map(record => (record.id === next.id ? next : record)));
-      void pwaHubRepository
-        .dispatch({ kind: 'SUSTAINMENT_RECORD_UPDATE', recordId: selectedRecord.id, patch })
-        .catch(() => {
-          setError('Could not save the sustainment record changes.');
-        });
-    },
-    [selectedRecord]
-  );
-
-  const heading = useMemo(() => activeHub?.name ?? 'No active hub', [activeHub]);
+  const { records, selectedRecord, reviews, error, heading, selectRecord, updateSelectedRecord } =
+    useControlPanelModel({ activeHub, targetId, repository: pwaHubRepository });
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 bg-surface-primary p-4 text-content">
@@ -234,7 +50,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ activeHub, targetId, onBack
                 key={record.id}
                 type="button"
                 className={buttonClassName}
-                onClick={() => setSelectedRecordId(record.id)}
+                onClick={() => selectRecord(record.id)}
               >
                 {record.title}
               </button>

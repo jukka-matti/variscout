@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ProcessHub, ControlRecord, ControlReview } from '@variscout/core';
-import type { ImprovementProject } from '@variscout/core/improvementProject';
+import type { ControlRecord, ControlReview, ProcessHub } from '@variscout/core';
+import type { UseControlPanelModelReturn } from '@variscout/hooks';
+import { useControlPanelModel } from '@variscout/hooks';
 import ControlPanel from './ControlPanel';
 import { azureHubRepository } from '../../persistence';
 
@@ -17,7 +18,6 @@ vi.mock('@variscout/ui', async () => {
         'section',
         { 'data-testid': 'sustainment-form' },
         React.createElement('h3', null, props.record.title),
-        React.createElement('p', null, props.record.goal?.freeText ?? 'No goal'),
         React.createElement('p', null, `Reviews ${props.reviews?.length ?? 0}`),
         React.createElement(
           'button',
@@ -31,151 +31,106 @@ vi.mock('@variscout/ui', async () => {
   };
 });
 
+vi.mock('@variscout/hooks', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/hooks')>();
+  return {
+    ...actual,
+    useControlPanelModel: vi.fn(),
+  };
+});
+
 vi.mock('../../persistence', () => ({
   azureHubRepository: {
-    dispatch: vi.fn().mockResolvedValue(undefined),
+    dispatch: vi.fn(),
     controlRecords: {
-      listByHub: vi.fn().mockResolvedValue([]),
+      listByHub: vi.fn(),
     },
     controlReviews: {
-      listByRecord: vi.fn().mockResolvedValue([]),
+      listByRecord: vi.fn(),
     },
   },
 }));
 
-function makeProject(overrides: Partial<ImprovementProject> = {}): ImprovementProject {
-  return {
-    id: 'ip-1',
-    hubId: 'hub-1',
-    status: 'closed',
-    metadata: { title: 'Reduce defects', investigationId: 'inv-1' },
-    goal: {
-      outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 98 }],
-      freeText: 'Hold first pass yield at 98%.',
-    },
-    sections: {
-      background: {},
-      investigationLineage: {},
-      approach: { actionItemIds: ['action-1'] },
-      outcomeReference: {},
-    },
-    createdAt: 1714000000000,
-    updatedAt: 1714000000000,
-    deletedAt: null,
-    ...overrides,
-  };
-}
+const mockUseControlPanelModel = vi.mocked(useControlPanelModel);
 
-function makeHub(project: ImprovementProject | undefined = makeProject()): ProcessHub {
+function makeHub(): ProcessHub {
   return {
     id: 'hub-1',
     name: 'Paint line',
-    createdAt: 1714000000000,
+    createdAt: 1_714_000_000_000,
     deletedAt: null,
-    ...(project ? { improvementProject: project } : {}),
+  };
+}
+
+function makeRecord(): ControlRecord {
+  return {
+    id: 'sr-1',
+    hubId: 'hub-1',
+    investigationId: 'inv-1',
+    status: 'pending',
+    title: 'Existing sustainment',
+    consecutiveOnTargetTicks: 1,
+    hasOverride: false,
+    lastEvaluatedSnapshotId: undefined,
+    cadence: 'monthly',
+    createdAt: 1_714_000_000_000,
+    updatedAt: 1_714_000_000_000,
+    deletedAt: null,
+  };
+}
+
+function makeModel(
+  overrides: Partial<UseControlPanelModelReturn> = {}
+): UseControlPanelModelReturn {
+  return {
+    records: [],
+    selectedRecord: null,
+    reviews: [],
+    error: null,
+    isLoadingRecords: false,
+    heading: 'Paint line',
+    selectRecord: vi.fn(),
+    updateSelectedRecord: vi.fn(),
+    ...overrides,
   };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(azureHubRepository.dispatch).mockResolvedValue(undefined);
-  vi.mocked(azureHubRepository.controlRecords.listByHub).mockResolvedValue([]);
-  vi.mocked(azureHubRepository.controlReviews.listByRecord).mockResolvedValue([]);
+  mockUseControlPanelModel.mockReturnValue(makeModel());
 });
 
 describe('ControlPanel (Azure)', () => {
-  it('creates a sustainment record for the active hub and carries forward the first closed project goal', async () => {
-    render(<ControlPanel activeHub={makeHub()} onBack={vi.fn()} />);
+  it('passes the app repository and target id into the shared model hook', () => {
+    const activeHub = makeHub();
 
-    await waitFor(() => expect(azureHubRepository.dispatch).toHaveBeenCalledTimes(1));
-    expect(azureHubRepository.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        kind: 'SUSTAINMENT_RECORD_CREATE',
-        hubId: 'hub-1',
-        record: expect.objectContaining({
-          hubId: 'hub-1',
-          investigationId: 'inv-1',
-          improvementProjectId: 'ip-1',
-          title: 'Sustain Reduce defects',
-          goal: expect.objectContaining({ freeText: 'Hold first pass yield at 98%.' }),
-        }),
-      })
-    );
-    expect(await screen.findByTestId('sustainment-form')).toHaveTextContent(
-      'Hold first pass yield at 98%.'
-    );
+    render(<ControlPanel activeHub={activeHub} targetId="ip-1" onBack={vi.fn()} />);
+
+    expect(mockUseControlPanelModel).toHaveBeenCalledWith({
+      activeHub,
+      targetId: 'ip-1',
+      repository: azureHubRepository,
+    });
+    expect(screen.getByText('Paint line')).toBeInTheDocument();
   });
 
-  it('selects an existing live record, reads reviews through the repository, and persists edits by dispatch', async () => {
-    const record: ControlRecord = {
-      id: 'sr-1',
-      hubId: 'hub-1',
-      investigationId: 'inv-1',
-      status: 'pending',
-      title: 'Existing sustainment',
-      consecutiveOnTargetTicks: 1,
-      hasOverride: false,
-      lastEvaluatedSnapshotId: undefined,
-      cadence: 'monthly',
-      createdAt: 1714000000000,
-      updatedAt: 1714000000000,
-      deletedAt: null,
-    };
-    vi.mocked(azureHubRepository.controlRecords.listByHub).mockResolvedValue([record]);
-    vi.mocked(azureHubRepository.controlReviews.listByRecord).mockResolvedValue([
-      {
-        id: 'review-1',
-        recordId: 'sr-1',
-        hubId: 'hub-1',
-        investigationId: 'inv-1',
-        reviewedAt: 1714000000000,
-        reviewer: { displayName: 'Reviewer' },
-        verdict: 'holding',
-        createdAt: 1714000000000,
-        deletedAt: null,
-      },
-    ]);
+  it('renders the shared model state and forwards ControlForm patches', () => {
+    const updateSelectedRecord = vi.fn();
+    mockUseControlPanelModel.mockReturnValue(
+      makeModel({
+        selectedRecord: makeRecord(),
+        reviews: [{ id: 'review-1' } as ControlReview],
+        updateSelectedRecord,
+      })
+    );
 
     render(<ControlPanel activeHub={makeHub()} onBack={vi.fn()} />);
 
-    await waitFor(() =>
-      expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Reviews 1')
-    );
-    expect(azureHubRepository.dispatch).not.toHaveBeenCalled();
+    expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Existing sustainment');
+    expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Reviews 1');
+
     fireEvent.click(screen.getByRole('button', { name: 'Update target' }));
 
-    await waitFor(() =>
-      expect(azureHubRepository.dispatch).toHaveBeenCalledWith({
-        kind: 'SUSTAINMENT_RECORD_UPDATE',
-        recordId: 'sr-1',
-        patch: { targetSummary: 'Updated target' },
-      })
-    );
-  });
-
-  it('creates for the prompted closed project when a target id is supplied', async () => {
-    const second = makeProject({
-      id: 'ip-second',
-      metadata: { title: 'Second', investigationId: 'inv-2' },
-      goal: {
-        outcomeGoals: [{ outcomeSpecId: 'outcome-2', target: 99 }],
-        freeText: 'Hold the second target.',
-      },
-    });
-
-    render(<ControlPanel activeHub={makeHub(second)} targetId="ip-second" onBack={vi.fn()} />);
-
-    await waitFor(() =>
-      expect(azureHubRepository.dispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          record: expect.objectContaining({
-            improvementProjectId: 'ip-second',
-            investigationId: 'inv-2',
-            title: 'Sustain Second',
-            targetSummary: 'Hold the second target.',
-          }),
-        })
-      )
-    );
+    expect(updateSelectedRecord).toHaveBeenCalledWith({ targetSummary: 'Updated target' });
   });
 });

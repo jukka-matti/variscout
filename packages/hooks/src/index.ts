@@ -200,6 +200,12 @@ export { useFocusedChartNav, type UseFocusedChartNavReturn } from './useFocusedC
 
 // Control Violations
 export { useControlViolations } from './useControlViolations';
+export {
+  useControlPanelModel,
+  type ControlPanelRecordPatch,
+  type UseControlPanelModelOptions,
+  type UseControlPanelModelReturn,
+} from './useControlPanelModel';
 
 // Annotations (right-click context menu)
 export { useAnnotations } from './useAnnotationMode';
