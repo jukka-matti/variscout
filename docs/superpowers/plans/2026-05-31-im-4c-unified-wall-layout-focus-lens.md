@@ -1,3 +1,12 @@
+---
+tier: ephemeral
+purpose: build
+title: 'IM-4c — Unified Wall layout + Focus lens + propose-hypothesis-from-finding'
+status: draft
+date: 2026-05-31
+layer: spec
+---
+
 # IM-4c — Unified Wall layout + Focus lens + propose-hypothesis-from-finding Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: this is integration-heavy visual work — execute as a SINGLE Opus implementer (per the IM-4b TDD-pipeline trial verdict: leaf-scoped test-author→implementer pipelines ship green-but-dead UI). Wire features through the production seam and run the FULL `pnpm build` + both-app `tsc`, not targeted tsc. Steps use checkbox (`- [ ]`) syntax.
