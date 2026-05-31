@@ -206,6 +206,12 @@ export {
   type UseControlPanelModelOptions,
   type UseControlPanelModelReturn,
 } from './useControlPanelModel';
+export {
+  useImprovementProjectPanelModel,
+  type ImprovementProjectPanelPatch,
+  type UseImprovementProjectPanelModelOptions,
+  type UseImprovementProjectPanelModelReturn,
+} from './useImprovementProjectPanelModel';
 
 // Annotations (right-click context menu)
 export { useAnnotations } from './useAnnotationMode';

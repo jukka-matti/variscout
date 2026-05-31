@@ -16,6 +16,7 @@ Shared React hooks: data pipeline, charts, AI, analyze, Evidence Map, workflow c
 - `usePopoutChannel` is the canonical BroadcastChannel wrapper. Findings, Improvement, Evidence Map pop-outs all use it.
 - `useTimelineWindow` owns the dashboard's active TimelineWindow; `useDataRouter` is a sanity-check wrapper around the strategy's `dataRouter` (no runtime hook switching).
 - `useControlPanelModel` owns shared repository-bound ControlPanel lifecycle state only; app repositories and panel rendering stay under `apps/*`.
+- `useImprovementProjectPanelModel` owns shared Project panel lifecycle state only; app repositories and panel rendering stay under `apps/*`.
 - Flaky test watch: `packages/hooks/src/__tests__/index.test.ts` historically timed out under concurrent Turbo load. Root cause (per-file JSDOM init contention) addressed by PR #208 (`pool: 'threads' + happy-dom`, see `docs/superpowers/specs/2026-05-25-vitest-pool-config-design.md`). Note retirement gated on 3 consecutive clean turbo runs of `pr-ready-check.sh` on post-merge main.
 
 ## Test command

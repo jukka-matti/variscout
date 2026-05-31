@@ -125,7 +125,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R5 — Thin App-Feature Factories
 
-**Status:** R5a thin app-feature factories shipped in PR #270. R5b data-ingestion action-bag extraction shipped in PR #272. R5c action-item builder normalization shipped in PR #271. R5d ControlPanel lifecycle hook extraction is the current slice.
+**Status:** R5a thin app-feature factories shipped in PR #270. R5b data-ingestion action-bag extraction shipped in PR #272. R5c action-item builder normalization shipped in PR #271. R5d ControlPanel lifecycle hook extraction shipped in PR #273. R5e Improvement Project panel lifecycle hook extraction is the current slice.
 
 **Goal:** Remove low-risk PWA/Azure duplication without forcing a shell rewrite.
 
@@ -135,8 +135,9 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 - Expose those helpers through a narrow subpath such as `@variscout/stores/feature-factories`; do not export app-feature factories from the root `@variscout/stores` barrel. **Done in R5a.**
 - Share data-ingestion action-bag construction in a follow-up slice, with app-specific limits and persistence adapters still app-owned. **Done in R5b.**
 - Normalize Improve-tab action-item creation/default stamping in a separate follow-up slice while keeping app dispatch/persistence wrappers app-owned. **Done in R5c.**
-- Extract duplicated ControlPanel lifecycle state behind repository adapters while keeping PWA/Azure repositories and panel wrappers app-owned. **R5d slice.**
-- Consider shared Project lifecycle view-models behind repository adapters only after the smaller extractions land.
+- Extract duplicated ControlPanel lifecycle state behind repository adapters while keeping PWA/Azure repositories and panel wrappers app-owned. **Done in R5d.**
+- Extract duplicated Improvement Project panel lifecycle state behind repository adapters while keeping PWA/Azure repositories and panel rendering app-owned. **R5e slice.**
+- Recalibrate after R5e before opening higher-risk store or snapshot work.
 
 **R5 recalibration (2026-05-31):** Current `origin/main` shows the PWA/Azure Analyze and Findings store files are byte-identical, but the surrounding orchestration is meaningfully app-specific. Azure has share/popout/navigation/AI and inline What-If behavior; PWA keeps simpler local wiring. Treat the purposeful delta as adapters/capability policy, and the accidental delta as duplicated small store factories and repeated action wiring.
 
@@ -188,4 +189,4 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ## Next Recommended Execution
 
-After R5d, pause before opening higher-risk R6/R7 store and snapshot work. Recalibrate whether the remaining Project lifecycle duplication is still a low-risk R5 adapter slice or whether the next meaningful risk reduction is a dedicated R6 snapshot/export design.
+After R5e, pause before opening higher-risk R6/R7 store and snapshot work. Recalibrate whether any remaining app-panel duplication is still a low-risk R5 adapter slice or whether the next meaningful risk reduction is a dedicated R6 snapshot/export design.
