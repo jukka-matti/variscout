@@ -38,6 +38,10 @@ describe('computeReingestAutoLink', () => {
     expect(f.source).toBeUndefined(); // bare observation — no FindingSource variant
     expect(f.evidenceType).toBe('data');
     expect(f.status).toBe('observed');
+    // Honesty guard: data ARRIVED but is NOT YET TESTED. 'inconclusive' routes this
+    // breadcrumb to the Wall's not-tested clue list instead of the supporting bucket,
+    // so it never silently bumps the hypothesis proposed → evidenced on arrival alone.
+    expect(f.validationStatus).toBe('inconclusive');
     expect(f.deletedAt).toBeNull();
     expect(f.context.activeFilters).toEqual({});
     expect(f.context.cumulativeScope).toBeNull();

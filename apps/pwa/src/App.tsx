@@ -70,6 +70,7 @@ import {
   normalizeProcessHubId,
   type ExclusionReason,
   type ImprovementIdea,
+  type DisconfirmationAttempt,
   toNumericValue,
   extractHubName,
   parseMentions,
@@ -885,6 +886,25 @@ function AppMain() {
       },
       onEditPlan: (planId: string) => {
         console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);
+      },
+      // Disconfirmation parity with Azure: the PWA Wall (AnalyzeView) reads hubs from
+      // useAnalyzeStore, so the recorded attempt MUST land in that store for the
+      // needs-disconfirmation → confirmed gate to fire live in-session. The app stamps
+      // the deterministic id + timestamp + attemptedBy (the inline form supplies only
+      // description + verdict).
+      onRecordDisconfirmation: (
+        hypothesisId: string,
+        input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
+      ) => {
+        const attempt: DisconfirmationAttempt = {
+          id: generateDeterministicId(),
+          attemptedAt: new Date().toISOString(),
+          attemptedBy: { displayName: 'Local browser', upn: PWA_WALL_USER_ID },
+          description: input.description,
+          verdict: input.verdict,
+          linkedFindingIds: [],
+        };
+        useAnalyzeStore.getState().recordDisconfirmation(hypothesisId, attempt);
       },
       // IM-4b Task 1 — hub comment thread. The PWA Wall (AnalyzeView) reads hubs
       // from useAnalyzeStore, so comment/task/idea writes route through the store

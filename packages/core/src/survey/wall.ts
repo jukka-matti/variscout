@@ -84,7 +84,7 @@ export const surveyWallRules: SurveyRule = ctx => {
         surface: 'wall',
         targetEntityId: h.id,
         message:
-          '1 step away — running a disconfirmation test would promote this from evidenced to confirmed',
+          '1 step away — running a disconfirmation test would promote this from evidenced to supported',
         severity: 'info',
         action: { label: 'Try disconfirmation' },
       });

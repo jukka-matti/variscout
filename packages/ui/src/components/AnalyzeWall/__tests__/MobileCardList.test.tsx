@@ -78,8 +78,8 @@ describe('MobileCardList', () => {
     // hubConfirmed has ≥2 distinct evidence types + survived attempt → confirmed
     render(<MobileCardList hubs={[hubConfirmed]} findings={[dataFinding, gembaFinding]} />);
     const card = screen.getByTestId('wall-mobile-hub-hA');
-    expect(card).toHaveAttribute('data-status', 'confirmed');
-    expect(card.textContent).toMatch(/Confirmed/);
+    expect(card).toHaveAttribute('data-status', 'confirmed'); // status code unchanged
+    expect(card.textContent).toMatch(/Supported/); // user-facing label relabeled
   });
 
   it('derives needs-disconfirmation (≥2 evidence types, no survived attempt)', () => {

@@ -858,7 +858,11 @@ export const en: MessageCatalog = {
   // Analyze Wall
   'wall.status.proposed': 'Proposed',
   'wall.status.evidenced': 'Evidenced',
-  'wall.status.confirmed': 'Confirmed',
+  // Label only: the status code stays 'confirmed', but falsification logic never
+  // *confirms* a hypothesis — it can only fail to break it — so the user-facing
+  // word is "Supported". (Other locales still carry the literal English
+  // 'Confirmed' placeholder; their retranslation is a tracked follow-up.)
+  'wall.status.confirmed': 'Supported',
   'wall.status.refuted': 'Refuted',
   'wall.status.needsDisconfirmation': 'Needs disconfirmation',
   'wall.card.hypothesisLabel': 'Mechanism Branch',

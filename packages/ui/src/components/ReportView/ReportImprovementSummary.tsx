@@ -42,7 +42,7 @@ export interface ReportImprovementSummaryProps {
 const STATUS_BADGE_LABELS: Record<HypothesisStatus, string> = {
   proposed: 'Proposed',
   evidenced: 'Evidenced',
-  confirmed: 'Confirmed',
+  confirmed: 'Supported', // label only — status code stays 'confirmed' (see HubCard)
   refuted: 'Refuted',
   'needs-disconfirmation': 'Needs disconfirmation',
 };
