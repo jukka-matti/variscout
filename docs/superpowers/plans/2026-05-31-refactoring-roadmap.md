@@ -123,16 +123,26 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 **Effort:** M. **Risk:** medium. **Timing:** soon.
 
-### R5 — App Duplication With Thin Adapters
+### R5 — Thin App-Feature Factories
 
 **Goal:** Remove low-risk PWA/Azure duplication without forcing a shell rewrite.
 
 **Candidate changes:**
 
-- Extract identical app feature stores or store factories for analyze/findings.
-- Share data-ingestion action-bag construction while keeping app-specific persistence adapters.
-- Normalize Improve-tab action-item creation so PWA and Azure stamp the same required fields.
-- Consider shared Project/Control lifecycle view-models behind repository adapters after smaller extractions land.
+- Extract byte-identical Analyze and Findings feature-store construction into shared factory helpers while keeping app-owned singleton wrappers under `apps/*/src/features/`.
+- Expose those helpers through a narrow subpath such as `@variscout/stores/feature-factories`; do not export app-feature factories from the root `@variscout/stores` barrel.
+- Share data-ingestion action-bag construction in a follow-up slice, with app-specific limits and persistence adapters still app-owned.
+- Normalize Improve-tab action-item creation/default stamping in a separate follow-up slice if the feature-store factory PR is already non-trivial.
+- Consider shared Project/Control lifecycle view-models behind repository adapters only after the smaller extractions land.
+
+**R5 recalibration (2026-05-31):** Current `origin/main` shows the PWA/Azure Analyze and Findings store files are byte-identical, but the surrounding orchestration is meaningfully app-specific. Azure has share/popout/navigation/AI and inline What-If behavior; PWA keeps simpler local wiring. Treat the purposeful delta as adapters/capability policy, and the accidental delta as duplicated small store factories and repeated action wiring.
+
+**Explicit non-goals:**
+
+- Do not add new global singleton stores to `@variscout/stores`; preserve the 10-store invariant.
+- Do not move app-local UI state out of `apps/*/src/features/`.
+- Do not unify Analyze/Findings orchestration hooks in the first R5 PR.
+- Do not merge ReportView surfaces, rewrite app shells, or redesign persistence/export snapshots in R5.
 
 **Effort:** M. **Risk:** medium. **Timing:** after R4.
 
@@ -175,9 +185,10 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ## Next Recommended Execution
 
-After R4, continue with a focused **R5 thin-adapter slice** rather than opening the higher-risk R6/R7 store and snapshot work:
+After R4, continue with a focused **R5a thin app-feature factory slice** rather than opening the higher-risk R6/R7 store and snapshot work:
 
-1. Re-check PWA/Azure duplication around analyze/findings feature-store wiring and data-ingestion action-bag construction.
-2. Pick one narrow seam with identical behavior in both apps; keep persistence adapters and app shells app-owned.
-3. Write a dedicated R5 implementation plan before code, with explicit non-goals for full shell unification and ReportView merging.
-4. Run targeted app tests plus `bash scripts/pr-ready-check.sh`.
+1. Extract only the byte-identical Analyze/Findings feature-store factories and pure helpers first.
+2. Keep app-local singleton wrappers and existing app import surfaces intact where possible.
+3. Use a stores subpath for factory helpers; keep the root stores index focused on canonical shared stores.
+4. Write a dedicated R5a implementation plan before code, with explicit non-goals for orchestration unification, full shell unification, data-ingestion follow-up work, Improve action-item normalization, and ReportView merging.
+5. Run targeted app/store tests plus `bash scripts/pr-ready-check.sh`.

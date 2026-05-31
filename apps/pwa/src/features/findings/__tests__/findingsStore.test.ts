@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useFindingsStore, groupFindingsByChart } from '../findingsStore';
 import type { Finding } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
+import {
+  groupFindingsByChart,
+  useFindingsStore,
+  type ChartFindings,
+  type FindingsStore,
+} from '../findingsStore';
 
 let findingIdCounter = 0;
 const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
@@ -25,41 +30,29 @@ beforeEach(() => {
   });
 });
 
-describe('findingsStore', () => {
-  describe('setHighlightedFindingId', () => {
-    it('sets and clears highlighted finding', () => {
-      useFindingsStore.getState().setHighlightedFindingId('f-1');
-      expect(useFindingsStore.getState().highlightedFindingId).toBe('f-1');
-      useFindingsStore.getState().setHighlightedFindingId(null);
-      expect(useFindingsStore.getState().highlightedFindingId).toBeNull();
-    });
+describe('findingsStore wrapper', () => {
+  it('exposes the app-local singleton actions', () => {
+    const state: FindingsStore = useFindingsStore.getState();
+
+    state.setHighlightedFindingId('f-1');
+    expect(useFindingsStore.getState().highlightedFindingId).toBe('f-1');
+    state.setHighlightedFindingId(null);
+    expect(useFindingsStore.getState().highlightedFindingId).toBeNull();
+
+    state.setStatusFilter('investigating');
+    expect(useFindingsStore.getState().statusFilter).toBe('investigating');
   });
 
-  describe('setStatusFilter', () => {
-    it('sets status filter', () => {
-      useFindingsStore.getState().setStatusFilter('investigating');
-      expect(useFindingsStore.getState().statusFilter).toBe('investigating');
-    });
-  });
-});
-
-describe('groupFindingsByChart', () => {
-  it('groups findings by source chart type', () => {
+  it('re-exports chart grouping helper and public type', () => {
     const findings = [
       makeFinding({ source: { chart: 'boxplot', category: 'A', timeLens: DEFAULT_TIME_LENS } }),
       makeFinding({ source: { chart: 'pareto', category: 'B', timeLens: DEFAULT_TIME_LENS } }),
       makeFinding(),
     ];
-    const result = groupFindingsByChart(findings);
+    const result: ChartFindings = groupFindingsByChart(findings);
+
     expect(result.boxplot).toHaveLength(1);
     expect(result.pareto).toHaveLength(1);
-    expect(result.ichart).toHaveLength(0);
-  });
-
-  it('returns stable empty arrays for empty input', () => {
-    const result = groupFindingsByChart([]);
-    expect(result.boxplot).toHaveLength(0);
-    expect(result.pareto).toHaveLength(0);
     expect(result.ichart).toHaveLength(0);
   });
 });

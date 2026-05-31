@@ -59,6 +59,9 @@ function readSourceTypeScriptFiles(
 
       if (entry.isDirectory()) {
         if (entry.name === '__tests__') return [];
+        // R5a feature factories create app-local store instances but are not
+        // canonical shared stores in the 10-store layer model.
+        if (filename === 'feature-factories') return [];
         return readSourceTypeScriptFiles(path, filename);
       }
 

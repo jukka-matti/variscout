@@ -22,6 +22,7 @@
 - Selectors required: `useProjectStore(s => s.field)`. Never bare `useStore()`. No DataContext (ADR-041).
 - `analyzeStore` owns `CausalLink` + `problemContributionTree`; highlights live in `useViewStore`.
 - Cross-app UI state lives here (`canvasViewportStore` pattern); app-local state → `apps/*/src/features/`.
+- `feature-factories/` exports construction helpers only; app-local singleton ownership stays in `apps/*/src/features/`.
 - Cross-store imperative action calls allowed; reactive subscriptions forbidden.
 - Document stores never import `dexie` directly (ESLint P7.2). `canvasViewportStore` is R12 exception — call `rehydrateCanvasViewport(hubId)` on hub open, debounced `persistCanvasViewport(hubId)` on mutation.
 - `useViewStore` has no persist middleware; cleared by `projectStore.loadProject`/`newProject`. Tests: `beforeEach(() => useStore.setState(useStore.getInitialState()))`.
