@@ -469,7 +469,7 @@ describe('Editor', () => {
 
     // With projectId, loads into dashboard (overview) view first
     expect(screen.getByTestId('project-dashboard-mock')).toBeInTheDocument();
-    expect(screen.getByTestId('view-toggle')).toBeInTheDocument();
+    expect(screen.getByTestId('workflow-nav')).toBeInTheDocument();
   });
 
   it('shows explore view when Explore tab is clicked', () => {
@@ -480,7 +480,7 @@ describe('Editor', () => {
     });
 
     // Click "Explore" tab to switch to dashboard EDA view
-    fireEvent.click(screen.getByTestId('view-toggle-explore'));
+    fireEvent.click(screen.getByTestId('workflow-tab-explore'));
 
     expect(screen.getByTestId('dashboard')).toBeInTheDocument();
   });
@@ -493,7 +493,7 @@ describe('Editor', () => {
     });
 
     // Switch to explore view (may start in dashboard due to deep link logic)
-    fireEvent.click(screen.getByTestId('view-toggle-explore'));
+    fireEvent.click(screen.getByTestId('workflow-tab-explore'));
 
     expect(screen.getByTestId('btn-add-data')).toBeInTheDocument();
   });

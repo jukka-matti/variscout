@@ -30,8 +30,6 @@ export interface WorkflowNavProps {
   badges?: Partial<Record<WorkflowTabId, number>>;
   variant?: 'azure' | 'pwa';
   className?: string;
-  testId?: string;
-  tabTestIdPrefix?: string;
 }
 
 const badgeClass =
@@ -59,12 +57,10 @@ export const WorkflowNav: React.FC<WorkflowNavProps> = ({
   badges,
   variant = 'azure',
   className,
-  testId = 'workflow-nav',
-  tabTestIdPrefix = 'workflow-tab',
 }) => (
   <nav
     aria-label="Workspace phases"
-    data-testid={testId}
+    data-testid="workflow-nav"
     className={className ?? 'flex items-center flex-1 min-w-0 overflow-x-auto'}
   >
     <div role="tablist" aria-label="Workspace phases" className="flex items-center gap-0.5">
@@ -77,7 +73,7 @@ export const WorkflowNav: React.FC<WorkflowNavProps> = ({
             aria-selected={activeTab === tab.id}
             className={tabClass(variant, activeTab === tab.id)}
             onClick={() => onTabChange(tab.id)}
-            data-testid={`${tabTestIdPrefix}-${tab.id}`}
+            data-testid={`workflow-tab-${tab.id}`}
           >
             {tab.label}
             {badge != null && badge > 0 ? <span className={badgeClass}>{badge}</span> : null}

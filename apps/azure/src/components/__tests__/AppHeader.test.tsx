@@ -45,7 +45,7 @@ describe('AppHeader active IP chip', () => {
       />
     );
 
-    expect(screen.getByTestId('view-toggle')).toBeInTheDocument();
+    expect(screen.getByTestId('workflow-nav')).toBeInTheDocument();
     expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
       'Home',
       'Project',
@@ -55,18 +55,18 @@ describe('AppHeader active IP chip', () => {
       'Improve',
       'Report',
     ]);
-    expect(screen.getByTestId('view-toggle-explore')).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByTestId('workflow-tab-explore')).toHaveAttribute('aria-selected', 'true');
 
-    fireEvent.click(screen.getByTestId('view-toggle-process'));
+    fireEvent.click(screen.getByTestId('workflow-tab-process'));
     expect(usePanelsStore.getState().activeView).toBe('frame');
 
-    fireEvent.click(screen.getByTestId('view-toggle-home'));
+    fireEvent.click(screen.getByTestId('workflow-tab-home'));
     expect(usePanelsStore.getState().activeView).toBe('dashboard');
 
-    fireEvent.click(screen.getByTestId('view-toggle-analyze'));
+    fireEvent.click(screen.getByTestId('workflow-tab-analyze'));
     expect(usePanelsStore.getState().activeView).toBe('analyze');
 
-    fireEvent.click(screen.getByTestId('view-toggle-project'));
+    fireEvent.click(screen.getByTestId('workflow-tab-project'));
     expect(usePanelsStore.getState().activeView).toBe('projects');
   });
 });

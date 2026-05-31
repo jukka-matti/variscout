@@ -159,8 +159,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           onTabChange={onPhaseChange}
           variant="pwa"
           className="flex items-center gap-0.5 py-1"
-          testId="phase-tabs-inline"
-          tabTestIdPrefix="phase-tab"
         />
       )}
 

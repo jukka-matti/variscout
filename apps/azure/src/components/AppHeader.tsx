@@ -433,8 +433,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             improvement: selectedIdeaCount,
           }}
           variant="azure"
-          testId="view-toggle"
-          tabTestIdPrefix="view-toggle"
         />
       )}
 
