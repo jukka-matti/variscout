@@ -799,6 +799,8 @@ export {
   createPhotoAttachment,
   createCommentAttachment,
   createActionItem,
+  createProjectActionItem,
+  createStepQuickActionItem,
   createFindingOutcome,
   createImprovementIdea,
   createInvestigationCategory,

@@ -80,7 +80,7 @@ import type {
 } from '@variscout/core';
 import type { SurveyRecommendation } from '@variscout/core/survey';
 import { resolveCpkTarget } from '@variscout/core/capability';
-import type { BrainstormIdea } from '@variscout/core/findings';
+import { createProjectActionItem, type BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
 import { createNewIP } from '@variscout/core/improvementProject';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
@@ -2004,13 +2004,10 @@ export const Editor: React.FC<EditorProps> = ({
                   applyAction({
                     kind: 'ACTION_ITEM_ADD',
                     hubId: activeIP?.hubId ?? '',
-                    actionItem: {
-                      id: generateDeterministicId(),
-                      createdAt: Date.now(),
-                      deletedAt: null,
+                    actionItem: createProjectActionItem({
                       text,
-                      parentImprovementProjectId,
-                    },
+                      parentImprovementProjectId: parentImprovementProjectId ?? null,
+                    }),
                   })
                 }
                 onActionUpdate={(actionItemId, patch) =>
