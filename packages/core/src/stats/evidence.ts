@@ -83,7 +83,7 @@ export function generateAnovaInsightLine(input: AnovaInsightInput): string {
   // Medium effect (0.05 <= η² < 0.15)
   if (etaSquared >= 0.05) {
     if (pValue < 0.05) {
-      return `${topCategoryName} contributes but isn't the primary driver — could be a contributing cause`;
+      return `${topCategoryName} contributes, with other factors likely explaining more — could be a contributing cause`;
     }
     return 'No clear pattern for this factor';
   }

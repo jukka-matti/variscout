@@ -6,6 +6,7 @@
  */
 
 import type { AIContext } from '../types';
+import { formatStatistic } from '../../i18n/format';
 
 /**
  * Build the user prompt for the dashboard AI summary card.
@@ -25,8 +26,10 @@ export function buildDashboardSummaryPrompt(context: AIContext): string {
   // Stats
   if (context.stats) {
     const { samples, cpk, mean } = context.stats;
-    const cpkStr = cpk != null ? `, Cpk=${cpk.toFixed(2)}` : '';
-    parts.push(`Current analysis: ${samples} samples, mean=${mean.toFixed(2)}${cpkStr}`);
+    const cpkStr = cpk != null ? `, Cpk=${formatStatistic(cpk, 'en', 2)}` : '';
+    parts.push(
+      `Current analysis: ${samples} samples, mean=${formatStatistic(mean, 'en', 2)}${cpkStr}`
+    );
   }
 
   // Findings

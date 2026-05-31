@@ -10,6 +10,7 @@
  */
 
 import type { GeneratedQuestion } from './bestSubsets';
+import { formatStatistic } from '../i18n/format';
 
 // ============================================================================
 // Types
@@ -69,7 +70,7 @@ export function generateChannelRankingQuestions(channels: ChannelInput[]): Gener
     .map(ch => {
       const isExcellent = ch.cpk > CPK_EXCELLENT;
       return {
-        text: `Why does ${ch.name} have Cpk=${ch.cpk.toFixed(2)}?`,
+        text: `Why does ${ch.name} have Cpk=${formatStatistic(ch.cpk, 'en', 2)}?`,
         factors: [ch.name],
         rSquaredAdj: ch.cpk, // Cpk as evidence strength (analogous to R²adj usage in factorEffects.ts)
         autoAnswered: isExcellent,

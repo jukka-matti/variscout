@@ -32,6 +32,7 @@
     "docs:verify": "node scripts/docs-toolbox/verify.mjs",
     "codex:ruflo-check": "bash scripts/check-codex-ruflo.sh",
     "check:boundaries": "bash scripts/check-level-boundaries.sh",
+    "check:generated-artifacts": "bash scripts/check-generated-artifacts.sh",
     "check:i18n": "npx tsx scripts/check-i18n.ts"
   },
   "lint-staged": {

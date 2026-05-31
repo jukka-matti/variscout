@@ -35,6 +35,14 @@ export const chartColors = {
 
   // Special
   star: '#fbbf24', // yellow-400 - rating stars
+  infoTextDark: '#93c5fd', // blue-300 - info text on dark chrome
+  infoTextLight: '#1e40af', // blue-800 - info text on light chrome
+  infoTextPrimary: '#2563eb', // blue-600 - primary info text
+  gapFillDark: '#7f1d1d', // red-900 - gap badge fill on dark chrome
+  gapFillLight: '#fef2f2', // red-50 - gap badge fill on light chrome
+  gapText: '#fca5a5', // red-300 - gap badge text
+  outcomeText: '#bfdbfe', // blue-200 - outcome secondary text
+  selectedPointStroke: '#ffffff', // white - selected point outline
 } as const;
 
 // Chrome/UI colors for chart decorations

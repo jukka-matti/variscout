@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type Dispatch, type SetStateAction } from 'react';
 
 export interface UseDataTablePaginationReturn<T> {
   currentPage: number;
-  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  setCurrentPage: Dispatch<SetStateAction<number>>;
   totalPages: number;
   needsPagination: boolean;
   pageData: T[];

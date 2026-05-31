@@ -296,7 +296,11 @@ const DataPoints: React.FC<DataPointsProps> = ({
               shape={getPointShape(d.y, i, d.stage)}
               fill={getPointColor(d.y, i, d.stage)}
               stroke={
-                isSelected ? '#ffffff' : isHighlighted ? chartColors.mean : chrome.pointStroke
+                isSelected
+                  ? chartColors.selectedPointStroke
+                  : isHighlighted
+                    ? chartColors.mean
+                    : chrome.pointStroke
               }
               strokeWidth={strokeWidth}
               className={onPointClick || enableBrushSelection ? interactionStyles.clickable : ''}

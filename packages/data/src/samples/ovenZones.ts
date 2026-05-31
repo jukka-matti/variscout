@@ -15,6 +15,7 @@
  */
 
 import type { SampleDataset } from '../types';
+import { round } from '../utils';
 
 // Helper to generate normal distribution values
 function normalRandom(mean: number, stdDev: number): number {
@@ -55,7 +56,7 @@ function generateOvenData(): Record<string, unknown>[] {
 
     // Generate temperature measurements for each zone
     for (const [zoneName, config] of Object.entries(zoneConfigs)) {
-      row[zoneName] = Number(normalRandom(config.mean, config.stdDev).toFixed(2));
+      row[zoneName] = round(normalRandom(config.mean, config.stdDev), 2);
     }
 
     data.push(row);

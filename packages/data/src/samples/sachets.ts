@@ -14,6 +14,7 @@
  */
 
 import type { SampleDataset } from '../types';
+import { round } from '../utils';
 
 // Helper to generate random normal distribution
 const generateNormal = (mean: number, std: number): number => {
@@ -59,7 +60,7 @@ const generateSachetData = (): Record<string, unknown>[] => {
     // Generate measurement for each head
     headConfigs.forEach((config, idx) => {
       const value = generateNormal(config.mean, config.std);
-      row[`H${idx + 1}`] = Number(value.toFixed(3));
+      row[`H${idx + 1}`] = round(value, 3);
     });
 
     data.push(row);

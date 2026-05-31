@@ -45,6 +45,8 @@
     "./autoLink": "./src/autoLink/index.ts"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json --noEmit",
+    "lint": "eslint src --ignore-pattern 'src/**/__tests__/**' --ignore-pattern 'src/**/*.test.ts' --ignore-pattern 'src/**/*.test.tsx' --ignore-pattern 'src/**/*.spec.ts' --ignore-pattern 'src/**/*.spec.tsx'",
     "test": "vitest",
     "docs": "typedoc"
   },

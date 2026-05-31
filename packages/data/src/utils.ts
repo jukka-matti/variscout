@@ -57,7 +57,7 @@ export const clamp = (value: number, min: number, max: number): number => {
  * Round to specified decimal places
  */
 export const round = (value: number, decimals: number = 1): number => {
-  return Number(value.toFixed(decimals));
+  return Number.isFinite(value) ? Number(value.toFixed(decimals)) : value;
 };
 
 /**

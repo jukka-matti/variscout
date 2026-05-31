@@ -3,6 +3,8 @@
  * Used as initial text when auto-creating findings from question answers.
  * CoScout can enrich this asynchronously.
  */
+import { formatStatistic } from '../i18n/format';
+
 export interface FindingTextInput {
   factor: string;
   worstLevel?: string;
@@ -37,8 +39,8 @@ export function generateFindingText(input: FindingTextInput): string {
 
   // Stats context
   const stats: string[] = [];
-  if (input.mean != null) stats.push(`mean=${input.mean.toFixed(1)}`);
-  if (input.sigma != null) stats.push(`σ=${input.sigma.toFixed(2)}`);
+  if (input.mean != null) stats.push(`mean=${formatStatistic(input.mean, 'en', 1)}`);
+  if (input.sigma != null) stats.push(`σ=${formatStatistic(input.sigma, 'en', 2)}`);
   if (input.samples != null) stats.push(`n=${input.samples}`);
   if (stats.length > 0) parts.push(`(${stats.join(', ')})`);
 
