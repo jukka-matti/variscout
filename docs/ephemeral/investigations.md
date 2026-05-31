@@ -26,6 +26,21 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Doc + user-journey alignment after the investigation-surface + Factors&Evaluation delivery [LOGGED 2026-05-31]
+
+**Surfaced by:** 14 PRs this session (#250–#263) closed the whole investigation-surface arc (IM-0a…IM-7) + the Factors&Evaluation follow-on (model-builder + test-plan triad + evaluate + disconfirmation fusion) + IM-6 (retire mode/lens). This shipped major new product behavior; the **canonical L1/L2/L3 docs + user journeys now lag the shipped reality** and need a deliberate alignment pass.
+
+**What likely lags (verify against code — do not trust the prose):**
+
+- **`docs/USER-JOURNEYS.md` + `docs/02-journeys/*`** — the analyst flow is now: drill → capture Finding → compound `ProblemStatementScope` → hypotheses (causes) → **model-builder** (vital-few, R²adj+p) → **test-plan triad** (derived factors + auto-suggested tool + one-tap evaluate→typed finding) → **disconfirmation** ("Try to break it," engine-graded survived/refuted) → **per-hypothesis What-If Cpk** → **Improve handoff** (suspected-cause = role+selection → factor-control + ideas). The old mode/lens-driven journey is gone.
+- **`docs/OVERVIEW.md` + `docs/03-features/analysis/*`** — mode/lens picker retired (the four charts are always-on + drillable; Values⇄Capability is the one specs-gated view, Cp/Cpk only); the Wall is the find-focus→test→refine loop.
+- **Terminology** — "Supported" (not "Confirmed"); "Counts against" (loud); "contributing factors"; "suspected cause" = a role/selection, not a grouping entity.
+- **SDD L1 vision / L2 journey layers** + `docs/01-vision/four-lenses/` (now teaching-only).
+
+**Promotion path:** a FRESH-SESSION doc-alignment pass — grounded against shipped code (per [[feedback_subagent_grounding_catches_drift]]), using the docs toolbox (`pnpm docs:find`/`docs:related`) + a multi-lens audit; update L1/L2/L3 + journeys to match; follow the Propose→Apply→Archive doc-discipline. Canonical "what shipped" sources: the spec `docs/superpowers/specs/2026-05-31-factors-evaluation-design.md` + the 2026-05-30 Wall spec + ADR-086/088/089 + the 2026-05-31 decision-log entries.
+
+**Severity:** doc-drift — the canonical journeys now materially lag a major delivery; not blocking, but the docs should be re-aligned before they mislead. User-flagged as the explicit next-session follow-up (2026-05-31).
+
 ### Hypothesis-stage walkthrough — Wall honesty bugs + test-plan-triad gaps + "confirm" terminology [LOGGED 2026-05-31]
 
 **Surfaced by:** the grounded hypothesis-stage analyst walkthrough (3-lens exploration) during the "Factors & Evaluation" V-next design. Splits into (a) two shipped-state honesty BUGS worth a small near-term PR, (b) the V-next initiative's design gaps, (c) a terminology follow-up.
