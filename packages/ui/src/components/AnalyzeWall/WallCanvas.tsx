@@ -447,6 +447,51 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     },
     [focusedWallEntityId, wallLayout.edges]
   );
+
+  // FE-1 model-builder band (spec §3). Anchored in the factor-band zone from the
+  // IM-4c layout authority (first factorPosition x), placed ABOVE the
+  // TributaryFooter so the two coexist: the footer shows process-map tributary
+  // COVERAGE; this band shows best-subset STATS. View-state only — nothing
+  // persists until capture-as-Finding.
+  //
+  // Computed here (before the EmptyState short-circuit) so it can mount BOTH in
+  // the normal body AND at cold start: a fresh drilled scope with candidate
+  // factors but no hubs/orphans yet is exactly when an analyst screens, so the
+  // screening tool must not be hidden behind the zero-hub EmptyState (spec §3
+  // "screen-first"). The `factorPositions` come from candidateFactors, not hubs,
+  // so the anchor exists even with zero hubs.
+  const modelBuilderBand = useMemo(() => {
+    if (!modelBuilderProps || !outcomeColumn || modelBuilderProps.candidateFactors.length === 0) {
+      return null;
+    }
+    // The band re-ranks on the ACTIVE scope (the drilled subset). Prefer the
+    // explicit scopeRows; fall back to the Wall's window rows.
+    const bandRows = modelBuilderProps.scopeRows
+      ? [...modelBuilderProps.scopeRows]
+      : rows
+        ? [...rows]
+        : [];
+    if (bandRows.length === 0) return null;
+    const firstFactor = wallLayout.factorPositions.values().next().value;
+    const bandX = firstFactor?.x ?? 120;
+    const PANEL_W = 460;
+    const PANEL_H = 300;
+    const factorBandY = firstFactor?.y ?? 1300;
+    return (
+      <ModelBuilderBand
+        rows={bandRows as DataRow[]}
+        candidateFactors={modelBuilderProps.candidateFactors}
+        outcome={outcomeColumn}
+        scopeLabel={modelBuilderProps.scopeLabel}
+        constantFactors={modelBuilderProps.constantFactors}
+        x={Math.max(40, bandX - 40)}
+        y={factorBandY - PANEL_H - 40}
+        width={PANEL_W}
+        height={PANEL_H}
+        onCaptureModel={modelBuilderProps.onCaptureModel}
+      />
+    );
+  }, [modelBuilderProps, outcomeColumn, rows, wallLayout.factorPositions]);
   const handleFocusNode = useCallback(
     (nodeId: string) => setFocusedWallEntity(nodeId),
     [setFocusedWallEntity]
@@ -550,11 +595,37 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   // findings (linked to no hub) are a "home on the Wall" (IM-4c) — they keep the
   // SVG body mounted so the orphan lane + propose-hypothesis affordance render
   // even before the first hub exists.
+  //
+  // FE-1 (spec §3, screen-first): when there are no hubs/orphans yet but the
+  // scope HAS candidate factors, render the model-builder band ALONGSIDE the
+  // EmptyState CTA — screening factors is exactly what an analyst does before
+  // the first hypothesis, so the band must not be hidden behind the zero-hub
+  // empty state. When there are genuinely no candidates, the normal EmptyState
+  // CTA stands alone (no regression).
   if (
     mode === 'destination' &&
     filteredHubs.length === 0 &&
     wallLayout.orphanFindingIds.length === 0
   ) {
+    if (modelBuilderBand) {
+      return (
+        <div className="w-full h-full flex flex-col" data-testid="wall-cold-start-with-band">
+          <svg
+            viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
+            preserveAspectRatio="xMidYMid meet"
+            className="bg-background text-content flex-1"
+            role="img"
+            aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
+          >
+            {modelBuilderBand}
+          </svg>
+          <EmptyState
+            onWriteHypothesis={onWriteHypothesis}
+            onSeedFromFactorIntel={onSeedFromFactorIntel}
+          />
+        </div>
+      );
+    }
     return (
       <EmptyState
         onWriteHypothesis={onWriteHypothesis}
@@ -878,41 +949,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             </g>
           )}
 
-          {/* FE-1 model-builder band (spec §3). Anchored in the factor-band zone
-              from the IM-4c layout authority (first factorPosition x), placed
-              ABOVE the TributaryFooter so the two coexist: the footer shows
-              process-map tributary COVERAGE; this band shows best-subset STATS.
-              View-state only — nothing persists until capture-as-Finding. */}
-          {modelBuilderProps &&
-            outcomeColumn &&
-            modelBuilderProps.candidateFactors.length > 0 &&
-            (() => {
-              // The band re-ranks on the ACTIVE scope (the drilled subset). Prefer
-              // the explicit scopeRows; fall back to the Wall's window rows.
-              const bandRows = modelBuilderProps.scopeRows
-                ? [...modelBuilderProps.scopeRows]
-                : dataRowsForBand;
-              if (bandRows.length === 0) return null;
-              const firstFactor = wallLayout.factorPositions.values().next().value;
-              const bandX = firstFactor?.x ?? 120;
-              const PANEL_W = 460;
-              const PANEL_H = 300;
-              const factorBandY = firstFactor?.y ?? 1300;
-              return (
-                <ModelBuilderBand
-                  rows={bandRows as DataRow[]}
-                  candidateFactors={modelBuilderProps.candidateFactors}
-                  outcome={outcomeColumn}
-                  scopeLabel={modelBuilderProps.scopeLabel}
-                  constantFactors={modelBuilderProps.constantFactors}
-                  x={Math.max(40, bandX - 40)}
-                  y={factorBandY - PANEL_H - 40}
-                  width={PANEL_W}
-                  height={PANEL_H}
-                  onCaptureModel={modelBuilderProps.onCaptureModel}
-                />
-              );
-            })()}
+          {/* FE-1 model-builder band (spec §3) — see the memoized `modelBuilderBand`. */}
+          {modelBuilderBand}
 
           {processMap && (
             <TributaryFooter

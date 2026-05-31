@@ -182,6 +182,54 @@ describe('WallCanvas — model-builder band seam', () => {
     expect(typeof created[0].rSquaredAdj).toBe('number');
   });
 
+  it('renders the band at COLD START (candidate factors, ZERO hubs + ZERO orphans)', () => {
+    // FE-1 spec §3 screen-first: a fresh drilled scope with candidate factors but
+    // no hypotheses/orphans yet is exactly when an analyst screens. The band must
+    // mount alongside the EmptyState CTA, NOT be hidden behind the zero-hub
+    // short-circuit. A regression (band suppressed) FAILS the band/kept lookups.
+    render(
+      <WallCanvas
+        hubId={'test-hub' as never}
+        hubs={[]}
+        findings={[]}
+        problemCpk={0.8}
+        eventsPerWeek={10}
+        rows={scopeRows()}
+        outcomeColumn="Y"
+        modelBuilderProps={baseModelBuilderProps()}
+      />
+    );
+    // The cold-start wrapper mounted (band + EmptyState CTA coexist).
+    expect(screen.getByTestId('wall-cold-start-with-band')).toBeTruthy();
+    // The band rendered with the pre-selected vital few (real engine ran).
+    expect(screen.getByTestId('model-builder-band')).toBeTruthy();
+    expect(
+      within(screen.getByTestId('model-kept')).getByTestId('model-kept-factor-Shift')
+    ).toBeTruthy();
+    // The analyst can screen BEFORE any hypothesis — the R²adj header is live.
+    expect(screen.getByTestId('model-r2adj').textContent).toMatch(/R²adj\s+\d/);
+    // The EmptyState CTA still stands (start-an-investigation entry points).
+    expect(screen.getByTestId('model-builder-band')).toBeTruthy();
+  });
+
+  it('shows the bare EmptyState (no band) at cold start when there are NO candidate factors', () => {
+    // No-regression guard: truly-empty scope (no candidates) keeps the normal CTA.
+    render(
+      <WallCanvas
+        hubId={'test-hub' as never}
+        hubs={[]}
+        findings={[]}
+        problemCpk={0.8}
+        eventsPerWeek={10}
+        rows={scopeRows()}
+        outcomeColumn="Y"
+        modelBuilderProps={baseModelBuilderProps({ candidateFactors: [] })}
+      />
+    );
+    expect(screen.queryByTestId('wall-cold-start-with-band')).toBeNull();
+    expect(screen.queryByTestId('model-builder-band')).toBeNull();
+  });
+
   it('chips a scope-constant factor when the scope drilled on it', () => {
     render(
       <WallCanvas
