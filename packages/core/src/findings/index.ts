@@ -57,6 +57,8 @@ export {
   suggestToolForFactor,
   buildHypothesisTestPlan,
   evaluateHypothesisFactor,
+  evaluateFindingText,
+  isEvaluateFindingForFactor,
   EVALUATE_SIGNIFICANCE_THRESHOLD,
 } from './hypothesisTestPlan';
 export type {

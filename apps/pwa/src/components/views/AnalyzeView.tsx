@@ -37,7 +37,7 @@ import {
   type FindingProjection,
   type DataRow,
 } from '@variscout/core';
-import { evaluateHypothesisFactor } from '@variscout/core/findings';
+import { evaluateHypothesisFactor, isEvaluateFindingForFactor } from '@variscout/core/findings';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { detectColumns } from '@variscout/core/parser';
@@ -235,6 +235,20 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
       );
       if (!result) return;
       const store = useAnalyzeStore.getState();
+      // FE-2a idempotency: a repeat evaluate of the SAME (hypothesis × factor)
+      // refreshes the existing finding instead of appending a duplicate. The
+      // natural key is the prior evaluate-finding already linked to this hub.
+      const hub = store.hypotheses.find(h => h.id === hypothesisId);
+      const existing = hub
+        ? store.findings.find(
+            f => hub.findingIds.includes(f.id) && isEvaluateFindingForFactor(f.text, factor)
+          )
+        : undefined;
+      if (existing) {
+        store.editFinding(existing.id, result.findingText);
+        store.setFindingValidation(existing.id, result.validationStatus, result.refutes);
+        return;
+      }
       const finding = store.addFinding(result.findingText, {
         activeFilters: {},
         cumulativeScope: null,
@@ -258,34 +272,39 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // The PWA scope = the active-IP filtered data; factors are the candidates.
   // Capture-as-Finding stamps the model snapshot into the Finding's
   // projection.modelContext (rSquaredAdj / scopeLabel / linkedFactor).
-  const handleCaptureModel = useCallback(
-    (snapshot: CapturedModelSnapshot) => {
-      const r2adjLabel = Number.isFinite(snapshot.rSquaredAdj)
-        ? snapshot.rSquaredAdj.toFixed(2)
-        : '—';
-      const finding = findingsState.addFinding(
-        `Model: ${snapshot.factors.join(', ')} accounts for the spread (R²adj ${r2adjLabel}) in ${snapshot.scopeLabel}`,
-        { activeFilters: {}, cumulativeScope: null }
-      );
-      const projection: FindingProjection = {
-        baselineMean: 0,
-        baselineSigma: 0,
-        projectedMean: 0,
-        projectedSigma: 0,
-        meanDelta: 0,
-        sigmaDelta: 0,
-        simulationParams: { meanAdjustment: 0, variationReduction: 0, presetUsed: 'model-capture' },
-        createdAt: new Date().toISOString(),
-        modelContext: {
-          linkedFactor: snapshot.topFactor ?? undefined,
-          rSquaredAdj: snapshot.rSquaredAdj,
-          scopeLabel: snapshot.scopeLabel,
-        },
-      };
-      findingsState.setProjection(finding.id, projection);
-    },
-    [findingsState]
-  );
+  //
+  // FE-1 fix: write the captured-model Finding into `useAnalyzeStore` — the PWA
+  // Wall's REACTIVE source of truth for findings (see `wallFindings` above) —
+  // not the separate `findingsState` (useFindings) engine, which the Wall never
+  // reads. Routing it here makes the captured model render on the PWA Wall as a
+  // clue (parity with FE-2a's evaluate path). Azure stays on `findingsState`
+  // because its Wall reads `findingsState`.
+  const handleCaptureModel = useCallback((snapshot: CapturedModelSnapshot) => {
+    const r2adjLabel = Number.isFinite(snapshot.rSquaredAdj)
+      ? snapshot.rSquaredAdj.toFixed(2)
+      : '—';
+    const store = useAnalyzeStore.getState();
+    const finding = store.addFinding(
+      `Model: ${snapshot.factors.join(', ')} accounts for the spread (R²adj ${r2adjLabel}) in ${snapshot.scopeLabel}`,
+      { activeFilters: {}, cumulativeScope: null }
+    );
+    const projection: FindingProjection = {
+      baselineMean: 0,
+      baselineSigma: 0,
+      projectedMean: 0,
+      projectedSigma: 0,
+      meanDelta: 0,
+      sigmaDelta: 0,
+      simulationParams: { meanAdjustment: 0, variationReduction: 0, presetUsed: 'model-capture' },
+      createdAt: new Date().toISOString(),
+      modelContext: {
+        linkedFactor: snapshot.topFactor ?? undefined,
+        rSquaredAdj: snapshot.rSquaredAdj,
+        scopeLabel: snapshot.scopeLabel,
+      },
+    };
+    store.setFindingProjection(finding.id, projection);
+  }, []);
   const modelBuilderProps = useMemo<WallCanvasModelBuilderProps | undefined>(() => {
     if (!outcome || factors.length === 0) return undefined;
     // Parity with Azure's drilled-constant chipping: the PWA does not surface

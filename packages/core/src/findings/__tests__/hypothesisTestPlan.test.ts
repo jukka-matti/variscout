@@ -12,6 +12,8 @@ import {
   suggestToolForFactor,
   buildHypothesisTestPlan,
   evaluateHypothesisFactor,
+  evaluateFindingText,
+  isEvaluateFindingForFactor,
 } from '../hypothesisTestPlan';
 import type { Hypothesis, Finding } from '../types';
 import type { DataRow } from '../../types';
@@ -172,5 +174,43 @@ describe('evaluateHypothesisFactor', () => {
     const result = evaluateHypothesisFactor(rows, 'SHIFT', 'Y')!;
     expect(result.findingText.toLowerCase()).toContain('shift');
     expect(result.findingText.toLowerCase()).toContain('spread');
+  });
+
+  it('emits the same text via evaluateFindingText (single source of truth)', () => {
+    const result = evaluateHypothesisFactor(rows, 'SHIFT', 'Y')!;
+    expect(result.findingText).toBe(
+      evaluateFindingText('SHIFT', result.isSignificant, result.pValue)
+    );
+  });
+});
+
+// ── isEvaluateFindingForFactor (FE-2a idempotency matcher) ────────────────────
+
+describe('isEvaluateFindingForFactor', () => {
+  it('matches a significant evaluate finding for its factor', () => {
+    const text = evaluateFindingText('SHIFT', true, 0.001);
+    expect(isEvaluateFindingForFactor(text, 'SHIFT')).toBe(true);
+  });
+
+  it('matches an inconclusive evaluate finding for its factor', () => {
+    const text = evaluateFindingText('SHIFT', false, 0.42);
+    expect(isEvaluateFindingForFactor(text, 'SHIFT')).toBe(true);
+  });
+
+  it('does not match a different factor', () => {
+    const text = evaluateFindingText('SHIFT', true, 0.001);
+    expect(isEvaluateFindingForFactor(text, 'TEMP')).toBe(false);
+  });
+
+  it('does not match a capture-model or arbitrary finding text', () => {
+    expect(isEvaluateFindingForFactor('Model: SHIFT accounts for the spread', 'SHIFT')).toBe(false);
+    expect(isEvaluateFindingForFactor('Some analyst note about SHIFT', 'SHIFT')).toBe(false);
+  });
+
+  it('does not cross-match a factor that is a prefix of another factor name', () => {
+    // "SHIFT" must not match a finding produced by evaluating "SHIFT_TYPE".
+    const text = evaluateFindingText('SHIFT_TYPE', true, 0.001);
+    expect(isEvaluateFindingForFactor(text, 'SHIFT')).toBe(false);
+    expect(isEvaluateFindingForFactor(text, 'SHIFT_TYPE')).toBe(true);
   });
 });

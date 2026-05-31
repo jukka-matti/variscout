@@ -48,7 +48,11 @@ import {
   parseMentions,
 } from '@variscout/core';
 import { computeBestSubsets } from '@variscout/core/stats';
-import { detectEvidenceClusters, evaluateHypothesisFactor } from '@variscout/core/findings';
+import {
+  detectEvidenceClusters,
+  evaluateHypothesisFactor,
+  isEvaluateFindingForFactor,
+} from '@variscout/core/findings';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { ProjectMember } from '@variscout/core/projectMembership';
@@ -337,6 +341,20 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       const activeFilters = categoricalFiltersToActiveFilters(
         useAnalysisScopeStore.getState().categoricalFilters
       );
+      // FE-2a idempotency: a repeat evaluate of the SAME (hypothesis × factor)
+      // refreshes the existing finding instead of appending a duplicate. The
+      // natural key is the prior evaluate-finding already linked to this hub.
+      const hub = hypothesesState.hubs.find(h => h.id === hypothesisId);
+      const existing = hub
+        ? findingsState.findings.find(
+            f => hub.findingIds.includes(f.id) && isEvaluateFindingForFactor(f.text, factor)
+          )
+        : undefined;
+      if (existing) {
+        findingsState.editFinding(existing.id, result.findingText);
+        findingsState.setValidation(existing.id, result.validationStatus, result.refutes);
+        return;
+      }
       const finding = findingsState.addFinding(result.findingText, {
         activeFilters,
         cumulativeScope: null,

@@ -19,7 +19,7 @@ import {
   useCanvasViewportStore,
   useViewStore,
 } from '@variscout/stores';
-import { evaluateHypothesisFactor } from '@variscout/core/findings';
+import { evaluateHypothesisFactor, isEvaluateFindingForFactor } from '@variscout/core/findings';
 import { deriveHypothesisStatus } from '@variscout/core/survey';
 import type { DataRow, Hypothesis } from '@variscout/core';
 
@@ -78,6 +78,19 @@ function AzureWallHarness({
     (hypothesisId: string, factor: string) => {
       const result = evaluateHypothesisFactor(rows, factor, 'Y');
       if (!result) return;
+      // FE-2a idempotency: refresh the prior evaluate-finding for this
+      // (hypothesis × factor) instead of appending a duplicate.
+      const hub = hypothesesState.hubs.find(h => h.id === hypothesisId);
+      const existing = hub
+        ? findingsState.findings.find(
+            f => hub.findingIds.includes(f.id) && isEvaluateFindingForFactor(f.text, factor)
+          )
+        : undefined;
+      if (existing) {
+        findingsState.editFinding(existing.id, result.findingText);
+        findingsState.setValidation(existing.id, result.validationStatus, result.refutes);
+        return;
+      }
       const finding = findingsState.addFinding(result.findingText, {
         activeFilters: {},
         cumulativeScope: null,
@@ -141,5 +154,23 @@ describe('Azure Wall one-tap evaluate seam', () => {
   it('does NOT render the Evaluate CTA when onEvaluateFactor is omitted', () => {
     render(<AzureWallHarness rows={significantRows} wireEvaluate={false} />);
     expect(screen.queryByTestId('evaluate-factor-SHIFT')).toBeNull();
+  });
+
+  it('a repeat evaluate of the same factor refreshes ONE finding (idempotent — FIX 2)', () => {
+    let latest = {
+      findings: [] as ReturnType<typeof useFindings>['findings'],
+      hubs: [] as Hypothesis[],
+    };
+    render(<AzureWallHarness rows={significantRows} onState={s => (latest = s)} />);
+
+    const cta = screen.getByTestId('evaluate-factor-SHIFT');
+    fireEvent.click(cta);
+    fireEvent.click(cta);
+    fireEvent.click(cta);
+
+    // Three taps → still exactly one finding, still linked exactly once.
+    expect(latest.findings).toHaveLength(1);
+    expect(latest.findings[0].validationStatus).toBe('supports');
+    expect(latest.hubs[0].findingIds.filter(id => id === latest.findings[0].id)).toHaveLength(1);
   });
 });

@@ -225,9 +225,7 @@ export function evaluateHypothesisFactor(
     ? 'supports'
     : 'inconclusive';
 
-  const findingText = isSignificant
-    ? `${factor} accounts for the spread in this data (p ${formatP(pValue)}).`
-    : `${factor} does not clearly account for the spread in this data (p ${formatP(pValue)}) — inconclusive.`;
+  const findingText = evaluateFindingText(factor, isSignificant, pValue);
 
   return {
     factor,
@@ -238,6 +236,39 @@ export function evaluateHypothesisFactor(
     refutes: false,
     findingText,
   };
+}
+
+/**
+ * The deterministic finding text an evaluate produces. Single source of truth so
+ * `isEvaluateFindingForFactor` can recognise a prior evaluate of the same factor
+ * (FE-2a idempotency — a re-evaluate refreshes the existing finding instead of
+ * appending a duplicate). Both branches begin with `"${factor} "`.
+ */
+export function evaluateFindingText(
+  factor: string,
+  isSignificant: boolean,
+  pValue: number
+): string {
+  return isSignificant
+    ? `${factor} accounts for the spread in this data (p ${formatP(pValue)}).`
+    : `${factor} does not clearly account for the spread in this data (p ${formatP(pValue)}) — inconclusive.`;
+}
+
+/**
+ * `true` when `finding.text` was produced by `evaluateHypothesisFactor` for
+ * `factor` (either the significant or inconclusive template). Lets the evaluate
+ * call-site find a prior evaluate of the SAME (hypothesis × factor) among a hub's
+ * linked findings and refresh it in place, keeping a repeat tap idempotent.
+ *
+ * Matches the stable, factor-specific suffix of each template (not just the
+ * `"${factor} "` prefix) so a factor name that happens to be a prefix of another
+ * does not cross-match.
+ */
+export function isEvaluateFindingForFactor(text: string, factor: string): boolean {
+  return (
+    text.startsWith(`${factor} accounts for the spread in this data (p `) ||
+    text.startsWith(`${factor} does not clearly account for the spread in this data (p `)
+  );
 }
 
 /** Compact p formatting for finding text: <.001 collapses, else 3 decimals. */

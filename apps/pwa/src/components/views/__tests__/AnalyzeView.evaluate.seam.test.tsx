@@ -34,7 +34,7 @@ import {
   useAnalyzeStore,
   useCanvasViewportStore,
 } from '@variscout/stores';
-import { evaluateHypothesisFactor } from '@variscout/core/findings';
+import { evaluateHypothesisFactor, isEvaluateFindingForFactor } from '@variscout/core/findings';
 import type { DataRow, Hypothesis } from '@variscout/core';
 
 const baseHub: Hypothesis = {
@@ -82,6 +82,19 @@ function pwaEvaluateFactor(rows: DataRow[], outcome: string) {
     const result = evaluateHypothesisFactor(rows, factor, outcome);
     if (!result) return;
     const store = useAnalyzeStore.getState();
+    // FE-2a idempotency: refresh the prior evaluate-finding for this
+    // (hypothesis × factor) instead of appending a duplicate.
+    const hub = store.hypotheses.find(h => h.id === hypothesisId);
+    const existing = hub
+      ? store.findings.find(
+          f => hub.findingIds.includes(f.id) && isEvaluateFindingForFactor(f.text, factor)
+        )
+      : undefined;
+    if (existing) {
+      store.editFinding(existing.id, result.findingText);
+      store.setFindingValidation(existing.id, result.validationStatus, result.refutes);
+      return;
+    }
     const finding = store.addFinding(result.findingText, {
       activeFilters: {},
       cumulativeScope: null,
@@ -165,6 +178,23 @@ describe('PWA Wall one-tap evaluate seam', () => {
     );
     fireEvent.click(screen.getByTestId('evaluate-factor-SHIFT'));
     expect(useAnalyzeStore.getState().findings).toHaveLength(1);
+  });
+
+  it('a repeat evaluate of the same factor refreshes ONE finding (idempotent — FIX 2)', () => {
+    renderWall(
+      significantRows,
+      makePlanningProps({ onEvaluateFactor: pwaEvaluateFactor(significantRows, 'Y') })
+    );
+    const cta = screen.getByTestId('evaluate-factor-SHIFT');
+    fireEvent.click(cta);
+    fireEvent.click(cta);
+    fireEvent.click(cta);
+    // Three taps → still exactly one finding, still linked once.
+    const findings = useAnalyzeStore.getState().findings;
+    expect(findings).toHaveLength(1);
+    expect(findings[0].validationStatus).toBe('supports');
+    const hubFindingIds = useAnalyzeStore.getState().hypotheses[0].findingIds;
+    expect(hubFindingIds.filter(id => id === findings[0].id)).toHaveLength(1);
   });
 
   it('does NOT render the Evaluate CTA when onEvaluateFactor is omitted', () => {
