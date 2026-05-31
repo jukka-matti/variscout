@@ -542,7 +542,7 @@ describe('HypothesisCardWithPlans — disconfirmation gesture (IM-4a)', () => {
         onRecordDisconfirmation={vi.fn()}
       />
     );
-    expect(screen.getByRole('button', { name: /tried to break/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /gemba or expert/i })).toBeInTheDocument();
   });
 
   it('hides the disconfirmation gesture when canEdit is false', () => {
@@ -562,7 +562,7 @@ describe('HypothesisCardWithPlans — disconfirmation gesture (IM-4a)', () => {
         onRecordDisconfirmation={vi.fn()}
       />
     );
-    expect(screen.queryByRole('button', { name: /tried to break/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /gemba or expert/i })).toBeNull();
   });
 
   it('omits the gesture entirely when onRecordDisconfirmation is not provided', () => {
@@ -581,7 +581,7 @@ describe('HypothesisCardWithPlans — disconfirmation gesture (IM-4a)', () => {
         onEditPlan={vi.fn()}
       />
     );
-    expect(screen.queryByRole('button', { name: /tried to break/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /gemba or expert/i })).toBeNull();
   });
 
   it('fires onRecordDisconfirmation with description + verdict on save', () => {
@@ -602,7 +602,7 @@ describe('HypothesisCardWithPlans — disconfirmation gesture (IM-4a)', () => {
         onRecordDisconfirmation={onRecord}
       />
     );
-    fireEvent.click(screen.getByRole('button', { name: /tried to break/i }));
+    fireEvent.click(screen.getByRole('button', { name: /gemba or expert/i }));
     fireEvent.change(screen.getByLabelText(/what did you try/i), {
       target: { value: 'Re-ran on day shift; effect persisted' },
     });

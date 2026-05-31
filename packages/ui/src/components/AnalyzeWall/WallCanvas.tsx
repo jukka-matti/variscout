@@ -35,7 +35,11 @@ import {
   projectMechanismBranch,
   runAndCheck,
 } from '@variscout/core';
-import { buildHypothesisTestPlan, collectConditionLeaves } from '@variscout/core/findings';
+import {
+  buildHypothesisTestPlan,
+  collectConditionLeaves,
+  deriveHypothesisFactors,
+} from '@variscout/core/findings';
 import type { HypothesisTestPlanFactor } from '@variscout/core/findings';
 import { computeScopeWhatIfProjection, computeConditionCoverage } from '@variscout/core/variation';
 import { deriveProcessSteps } from '@variscout/core/frame';
@@ -49,6 +53,7 @@ import { GateBadge } from './GateBadge';
 import { FindingChip } from './FindingChip';
 import { HypothesisCard } from './HypothesisCard';
 import { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
+import type { EvaluateFactorOptions, ConfoundRivalView } from './HypothesisCardWithPlans';
 import { DraggableHypothesisCard } from './DraggableHypothesisCard';
 import { TributaryFooter } from './TributaryFooter';
 import { ModelBuilderBand } from './ModelBuilderBand';
@@ -157,13 +162,30 @@ export interface WallCanvasPlanningProps {
   /** IM-4b Task 6 — select/deselect an improvement idea. */
   onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
   /**
-   * FE-2a — one-tap evaluate of a hypothesis factor. When provided, each hub's
-   * test-plan triad renders an "Evaluate" CTA per READY factor. The app runs
-   * `evaluateHypothesisFactor`, writes the typed Finding (validationStatus +
-   * refutes), connects it to the hub, and re-renders the Wall. NEVER auto-run.
-   * Omit to render the triad read-only (tool labels + readiness, no evaluate).
+   * FE-2a / FE-2b — one-tap evaluate of a hypothesis factor. When provided, each
+   * hub's test-plan triad renders an "Evaluate" CTA + the fused "Try to break it"
+   * checkbox per READY factor. The app runs `evaluateHypothesisFactor`, writes the
+   * typed Finding (validationStatus + refutes), connects it to the hub, and — when
+   * `options.tryToBreakIt` — ALSO records a `DisconfirmationAttempt` with the
+   * finding linked (engine-graded verdict). NEVER auto-run. Omit to render the
+   * triad read-only.
    */
-  onEvaluateFactor?: (hypothesisId: string, factor: string) => void;
+  onEvaluateFactor?: (
+    hypothesisId: string,
+    factor: string,
+    options?: EvaluateFactorOptions
+  ) => void;
+  /**
+   * FE-2b — refute → respawn-sharper. Called with (refutedHypothesisId, newName)
+   * when the analyst sharpens a refuted hub. The app creates H2 + carries the
+   * refuting finding forward as supporting evidence. Omit to hide the sharpen CTA.
+   */
+  onRespawnSharper?: (refutedHypothesisId: string, newName: string) => void;
+  /**
+   * FE-2b — mark the opposite sign on a rival cause (the confound prompt action).
+   * Called with (rivalHypothesisId, findingId). Omit to hide the action.
+   */
+  onMarkConfoundOpposite?: (rivalHypothesisId: string, findingId: string) => void;
 }
 
 export interface WallCanvasProps {
@@ -417,6 +439,63 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     }
     return map;
   }, [filteredHubs, findings, rows, outcomeColumn, planningProps, activeScopeSpecs]);
+
+  // FE-2b — per-hub disconfirmation read-models:
+  //   · unbackedSurvived (§4.1): the hub is "Supported" (`confirmed`) but its
+  //     survived attempt has an EMPTY linkedFindingIds (a manual gemba/expert
+  //     claim or legacy self-grade) → the ambient soft caveat. Status stays
+  //     engine-derived; this is read-model only.
+  //   · confoundByFactor (§4.2): for each of this hub's factors, a RIVAL hub that
+  //     cites the SAME factor → surface the rival + its OWN What-If (never summed).
+  const hubDisconfirmById = useMemo(() => {
+    type Disconfirm = {
+      unbackedSurvived: boolean;
+      confoundByFactor: Record<string, ConfoundRivalView | undefined> | undefined;
+    };
+    const map = new Map<string, Disconfirm>();
+    if (!planningProps) return map;
+    // Index each hub's factor set once (the cause's condition columns ∪ its
+    // findings' filter columns) so the confound scan is O(hubs × factors).
+    const factorsByHub = new Map<string, string[]>(
+      filteredHubs.map(h => [h.id, deriveHypothesisFactors(h, findings)])
+    );
+    for (const hub of filteredHubs) {
+      const status = deriveHypothesisStatus(hub, findings);
+      const survived = (hub.disconfirmationAttempts ?? []).filter(a => a.verdict === 'survived');
+      const unbackedSurvived =
+        status === 'confirmed' &&
+        survived.length > 0 &&
+        survived.every(a => (a.linkedFindingIds ?? []).length === 0);
+
+      // Confound scan: this hub's factors that a different hub also cites.
+      const myFactors = factorsByHub.get(hub.id) ?? [];
+      let confoundByFactor: Disconfirm['confoundByFactor'];
+      for (const factor of myFactors) {
+        const rival = filteredHubs.find(
+          other => other.id !== hub.id && (factorsByHub.get(other.id) ?? []).includes(factor)
+        );
+        if (!rival) continue;
+        // A finding shared between this hub and the rival (the confound clue) is
+        // the thing the analyst can re-sign. First common finding, if any.
+        const sharedFindingId = hub.findingIds.find(id => rival.findingIds.includes(id)) ?? null;
+        const rivalWhatIf = hubTriadById.get(rival.id)?.whatIf ?? {
+          cpk: null,
+          coveragePct: null,
+        };
+        confoundByFactor = {
+          ...(confoundByFactor ?? {}),
+          [factor]: {
+            rivalId: rival.id,
+            rivalName: rival.name,
+            sharedFindingId,
+            whatIf: rivalWhatIf,
+          },
+        };
+      }
+      map.set(hub.id, { unbackedSurvived, confoundByFactor });
+    }
+    return map;
+  }, [filteredHubs, findings, planningProps, hubTriadById]);
   // Tributary clustering: bucket each hub by its first matching tributary.
   // Unmatched hubs (no tributaryIds, or none intersecting processMap) drop
   // into an "unassigned" bucket rendered without a frame. Order matches
@@ -816,6 +895,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     const hubTriad = hubTriadById.get(hub.id);
     const hubTestPlanFactors = hubTriad?.testPlanFactors;
     const hubWhatIf = hubTriad?.whatIf;
+    // FE-2b — the per-hub disconfirmation read-models (soft caveat + confound).
+    const hubDisconfirm = hubDisconfirmById.get(hub.id);
 
     const hubPlanningProps = planningProps
       ? {
@@ -826,6 +907,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           testPlanFactors: hubTestPlanFactors,
           whatIf: hubWhatIf,
           onEvaluateFactor: planningProps.onEvaluateFactor,
+          // FE-2b — the soft caveat + confound read-models + the respawn/confound actions.
+          unbackedSurvived: hubDisconfirm?.unbackedSurvived,
+          confoundByFactor: hubDisconfirm?.confoundByFactor,
+          onRespawnSharper: planningProps.onRespawnSharper,
+          onMarkConfoundOpposite: planningProps.onMarkConfoundOpposite,
           onAddPlan: planningProps.onAddPlan,
           onLinkFinding: planningProps.onLinkFinding,
           onEditPlan: planningProps.onEditPlan,

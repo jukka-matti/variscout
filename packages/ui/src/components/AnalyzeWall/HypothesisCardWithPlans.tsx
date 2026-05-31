@@ -61,6 +61,16 @@ const PLANS_GAP = 8;
 const TEST_PLAN_HEADER_H = 28;
 /** Height of one test-plan factor row (factor + tool + CTA) (px). */
 const TEST_PLAN_ROW_H = 40;
+/** FE-2b — extra height added to a triad row whose "Try to break it" is checked
+ * (the premortem prediction field + hint). */
+const BREAK_IT_EXPANSION_H = 96;
+/** FE-2b — extra height for a triad row that surfaces a confound rival prompt. */
+const CONFOUND_PROMPT_H = 88;
+/** FE-2b — height of the §4.1 soft-caveat band. */
+const CAVEAT_H = 40;
+/** FE-2b — height of the refute→respawn-sharper band (collapsed CTA / open form). */
+const RESPAWN_CTA_H = 32;
+const RESPAWN_FORM_H = 132;
 /** Height of the per-hypothesis What-If block (px). */
 const WHATIF_H = 56;
 /** Horizontal offset of the foreignObject from the card's center-top anchor. */
@@ -190,18 +200,62 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    */
   testPlanFactors?: ReadonlyArray<TestPlanFactorView>;
   /**
-   * FE-2a — one-tap evaluate. Called with (hypothesisId, factor) when the analyst
-   * taps "Evaluate" on a READY factor. The app runs `evaluateHypothesisFactor`,
-   * writes the typed Finding (validationStatus), connects it to the hub, and
-   * re-renders the Wall. NEVER auto-run. When omitted, the evaluate CTA is hidden.
+   * FE-2a / FE-2b — one-tap evaluate. Called with (hypothesisId, factor, options)
+   * when the analyst taps "Evaluate" on a READY factor. The app runs
+   * `evaluateHypothesisFactor`, writes the typed Finding (validationStatus),
+   * connects it to the hub, and re-renders the Wall. NEVER auto-run. When omitted,
+   * the evaluate CTA is hidden.
+   *
+   * FE-2b — when `options.tryToBreakIt` is set, the SAME engine result is graded
+   * as a disconfirmation verdict (significant → survived/supports;
+   * not-significant → refuted/contradicts) and the app ALSO records a
+   * `DisconfirmationAttempt` with the finding linked (engine-graded, never
+   * self-graded). `options.prediction` carries the optional premortem text into
+   * the attempt's `description`.
    */
-  onEvaluateFactor?: (hypothesisId: string, factor: string) => void;
+  onEvaluateFactor?: (
+    hypothesisId: string,
+    factor: string,
+    options?: EvaluateFactorOptions
+  ) => void;
   /**
    * FE-2a — the per-hypothesis What-If (§5). When provided, the card renders
    * "If you control this cause → projected Cpk X, covers Y%". Never summed across
    * hypotheses. `cpk`/`coveragePct` null → the no-projection caption shows.
    */
   whatIf?: { cpk: number | null; coveragePct: number | null };
+  /**
+   * FE-2b — the §4.1 soft caveat read-model. When this hub's derived status is
+   * "Supported" (`confirmed`) but its sole survived disconfirmation attempt has an
+   * EMPTY `linkedFindingIds` (an unbacked survived — a manual gemba/expert claim or
+   * legacy self-grade), the card renders an ambient muted caveat + a "back it with
+   * a test →" link. Read-model only — status stays engine-derived. Pass `false`
+   * (default) to hide.
+   */
+  unbackedSurvived?: boolean;
+  /**
+   * FE-2b — refute → respawn-sharper (spec §4.2). When this hub is refuted (a
+   * "Try to break it" evaluate or any refutation), the card offers an inline
+   * "Sharpen → propose a new hypothesis" that seeds H2 (editable name) and carries
+   * the refuting finding forward as SUPPORTING evidence for H2. Called with
+   * (refutedHypothesisId, newName). When omitted, the sharpen CTA is hidden.
+   */
+  onRespawnSharper?: (refutedHypothesisId: string, newName: string) => void;
+  /**
+   * FE-2b — the confound sign-prompt (spec §4.2). When a factor the analyst is
+   * about to evaluate is ALSO cited by a rival hypothesis, the card surfaces the
+   * rival + prompts the analyst to mark the opposite sign on it. The map is keyed
+   * by factor column → the rival cause's `{id,name}` + that rival's side-by-side
+   * What-If. Pass `undefined` to disable the prompt.
+   */
+  confoundByFactor?: Record<string, ConfoundRivalView | undefined>;
+  /**
+   * FE-2b — mark the opposite sign on a rival cause (the confound prompt's action).
+   * Called with (rivalHypothesisId, findingId) — re-links the shared finding to the
+   * rival as a counter-clue (`counterFindingIds`/contradicts). When omitted, the
+   * "Counts against the rival" button is hidden.
+   */
+  onMarkConfoundOpposite?: (rivalHypothesisId: string, findingId: string) => void;
 }
 
 /** A single test-plan triad row passed to the card (FE-2a). */
@@ -209,6 +263,25 @@ export interface TestPlanFactorView {
   factor: string;
   readiness: 'ready' | 'gap';
   tool: 'two-sample' | 'regression' | 'capability' | null;
+}
+
+/** FE-2b — the per-evaluate options carried up by the fused triad row. */
+export interface EvaluateFactorOptions {
+  /** When true, grade the SAME engine result as a disconfirmation verdict. */
+  tryToBreakIt?: boolean;
+  /** The optional falsifying-prediction premortem text (→ attempt.description). */
+  prediction?: string;
+}
+
+/** FE-2b — a rival cause that cites the same factor (the confound prompt). */
+export interface ConfoundRivalView {
+  /** The rival hypothesis. */
+  rivalId: string;
+  rivalName: string;
+  /** The shared finding to re-link as a counter-clue when the analyst confirms. */
+  sharedFindingId: string | null;
+  /** The rival's OWN What-If (never summed with this hub's). */
+  whatIf: { cpk: number | null; coveragePct: number | null };
 }
 
 export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = ({
@@ -235,6 +308,10 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   testPlanFactors,
   onEvaluateFactor,
   whatIf,
+  unbackedSurvived,
+  onRespawnSharper,
+  confoundByFactor,
+  onMarkConfoundOpposite,
   stepOptions,
   defaultScope,
   defaultOutcome,
@@ -254,6 +331,13 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // Add Task form state (Task 3 IM-4b)
   const [addTaskFormOpen, setAddTaskFormOpen] = useState(false);
   const [taskText, setTaskText] = useState('');
+  // FE-2b — per-factor "Try to break it" toggle + the optional premortem
+  // prediction. Keyed by factor column so each triad row owns its own gesture.
+  const [breakItByFactor, setBreakItByFactor] = useState<Record<string, boolean>>({});
+  const [predictionByFactor, setPredictionByFactor] = useState<Record<string, string>>({});
+  // FE-2b — refute → respawn-sharper inline form (the editable H2 name).
+  const [respawnFormOpen, setRespawnFormOpen] = useState(false);
+  const [respawnName, setRespawnName] = useState('');
 
   // ACL gate — open-access when no members configured (V1 single-user scenario)
   const canEdit =
@@ -292,17 +376,33 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
       : ADD_BTN_H
     : 0;
   // FE-2a — the test-plan triad + per-hypothesis What-If add their own height.
+  // FE-2b — each ready row grows when its "Try to break it" is checked (the
+  // premortem field) and/or when a confound rival is surfaced for that factor.
   const showTestPlan = testPlanFactors !== undefined;
-  const testPlanH = showTestPlan
-    ? TEST_PLAN_HEADER_H + (testPlanFactors?.length ?? 0) * TEST_PLAN_ROW_H
-    : 0;
+  const testPlanRowsH = (testPlanFactors ?? []).reduce((sum, tp) => {
+    let rowH = TEST_PLAN_ROW_H;
+    if (tp.readiness === 'ready') {
+      if (breakItByFactor[tp.factor]) rowH += BREAK_IT_EXPANSION_H;
+      if (confoundByFactor?.[tp.factor]) rowH += CONFOUND_PROMPT_H;
+    }
+    return sum + rowH;
+  }, 0);
+  const testPlanH = showTestPlan ? TEST_PLAN_HEADER_H + testPlanRowsH : 0;
   const whatIfH = whatIf !== undefined ? WHATIF_H : 0;
+  // FE-2b — the §4.1 soft caveat (unbacked survived) renders ambiently.
+  const caveatH = unbackedSurvived ? CAVEAT_H : 0;
+  // FE-2b — refute → respawn-sharper. Shown only when the parent wires the
+  // callback AND the hub is refuted (its display status is 'refuted').
+  const showRespawn = canEdit && Boolean(onRespawnSharper) && cardProps.displayStatus === 'refuted';
+  const respawnH = showRespawn ? (respawnFormOpen ? RESPAWN_FORM_H : RESPAWN_CTA_H) : 0;
   const plansSectionH =
     actionRowsTotalH +
     addTaskBtnH +
     addTaskFormH +
     testPlanH +
     whatIfH +
+    caveatH +
+    respawnH +
     dataCollectTotalH +
     btnH +
     formH +
@@ -370,6 +470,32 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
     setDisconfirmFormOpen(false);
   };
 
+  // FE-2b — the fused evaluate: run the FE-2a/2b evaluate, carrying the per-row
+  // "Try to break it" flag + the optional premortem prediction. The app derives
+  // the verdict from the SAME engine result and records the DisconfirmationAttempt
+  // with the finding linked (engine-graded). NEVER gate the tap on a written
+  // prediction (the locked call — the engine verdict is the real backing).
+  const handleFusedEvaluate = (factor: string) => {
+    if (!onEvaluateFactor) return;
+    const tryToBreakIt = Boolean(breakItByFactor[factor]);
+    const prediction = (predictionByFactor[factor] ?? '').trim();
+    onEvaluateFactor(cardProps.hub.id, factor, {
+      tryToBreakIt,
+      prediction: prediction.length > 0 ? prediction : undefined,
+    });
+  };
+
+  // FE-2b — refute → respawn-sharper. Seeds H2 from the editable name; the app
+  // creates the new hub and carries the refuting finding forward as supporting.
+  const handleRespawnSave = () => {
+    if (!onRespawnSharper) return;
+    const name = respawnName.trim();
+    if (name.length === 0) return;
+    onRespawnSharper(cardProps.hub.id, name);
+    setRespawnName('');
+    setRespawnFormOpen(false);
+  };
+
   return (
     <g>
       {/* Base card — contract unchanged */}
@@ -401,56 +527,186 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     {getMessage(locale, 'wall.testplan.empty')}
                   </div>
                 ) : (
-                  testPlanFactors!.map(tp => (
-                    <div
-                      key={`tp-${tp.factor}`}
-                      data-testid={`test-plan-factor-${tp.factor}`}
-                      data-readiness={tp.readiness}
-                      data-tool={tp.tool ?? ''}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm"
-                    >
-                      <span className="flex-1 min-w-0">
-                        <span className="font-medium text-gray-800 truncate">{tp.factor}</span>
-                        {tp.readiness === 'ready' && tp.tool ? (
-                          <span className="ml-1.5 text-xs text-gray-500">
-                            {resolveToolLabel(tp.tool)}
+                  testPlanFactors!.map(tp => {
+                    const breakIt = Boolean(breakItByFactor[tp.factor]);
+                    const confound =
+                      tp.readiness === 'ready' ? confoundByFactor?.[tp.factor] : undefined;
+                    return (
+                      <div
+                        key={`tp-${tp.factor}`}
+                        data-testid={`test-plan-factor-${tp.factor}`}
+                        data-readiness={tp.readiness}
+                        data-tool={tp.tool ?? ''}
+                        data-break-it={breakIt ? 'on' : 'off'}
+                        className="flex flex-col px-3 py-1.5 text-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="flex-1 min-w-0">
+                            <span className="font-medium text-gray-800 truncate">{tp.factor}</span>
+                            {tp.readiness === 'ready' && tp.tool ? (
+                              <span className="ml-1.5 text-xs text-gray-500">
+                                {resolveToolLabel(tp.tool)}
+                              </span>
+                            ) : (
+                              <span className="ml-1.5 text-xs italic text-amber-700">
+                                {getMessage(locale, 'wall.testplan.gapLabel')}
+                              </span>
+                            )}
                           </span>
-                        ) : (
-                          <span className="ml-1.5 text-xs italic text-amber-700">
-                            {getMessage(locale, 'wall.testplan.gapLabel')}
-                          </span>
+                          {tp.readiness === 'ready' && onEvaluateFactor && (
+                            <button
+                              type="button"
+                              data-testid={`evaluate-factor-${tp.factor}`}
+                              className="flex-shrink-0 rounded bg-blue-600 px-2 py-0.5 text-xs text-white hover:bg-blue-700"
+                              aria-label={getMessage(locale, 'wall.testplan.evaluateAria').replace(
+                                '{factor}',
+                                tp.factor
+                              )}
+                              onClick={() => handleFusedEvaluate(tp.factor)}
+                            >
+                              {getMessage(locale, 'wall.testplan.evaluate')}
+                            </button>
+                          )}
+                          {tp.readiness === 'gap' && canEdit && (
+                            <button
+                              type="button"
+                              data-testid={`plan-factor-${tp.factor}`}
+                              className="flex-shrink-0 rounded border border-amber-300 px-2 py-0.5 text-xs text-amber-700 hover:bg-amber-50"
+                              aria-label={getMessage(locale, 'wall.testplan.addPlanAria').replace(
+                                '{factor}',
+                                tp.factor
+                              )}
+                              onClick={() => handlePlanForFactor(tp.factor)}
+                            >
+                              {getMessage(locale, 'wall.testplan.addPlan')}
+                            </button>
+                          )}
+                        </div>
+
+                        {/* FE-2b keystone — the fused "Try to break it" checkbox.
+                            The engine grades the verdict; the analyst never picks
+                            survived/refuted. A prospective premortem (predict what
+                            would prove this WRONG). */}
+                        {tp.readiness === 'ready' && onEvaluateFactor && (
+                          <label
+                            className="mt-1 flex items-center gap-1.5 text-xs text-gray-600"
+                            data-testid={`try-break-it-${tp.factor}`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="h-3 w-3"
+                              checked={breakIt}
+                              aria-label={getMessage(locale, 'wall.disconfirm.tryToBreakIt')}
+                              onChange={e =>
+                                setBreakItByFactor(prev => ({
+                                  ...prev,
+                                  [tp.factor]: e.target.checked,
+                                }))
+                              }
+                            />
+                            <span className="font-medium text-amber-800">
+                              {getMessage(locale, 'wall.disconfirm.tryToBreakIt')}
+                            </span>
+                          </label>
                         )}
-                      </span>
-                      {tp.readiness === 'ready' && onEvaluateFactor && (
-                        <button
-                          type="button"
-                          data-testid={`evaluate-factor-${tp.factor}`}
-                          className="flex-shrink-0 rounded bg-blue-600 px-2 py-0.5 text-xs text-white hover:bg-blue-700"
-                          aria-label={getMessage(locale, 'wall.testplan.evaluateAria').replace(
-                            '{factor}',
-                            tp.factor
-                          )}
-                          onClick={() => onEvaluateFactor(cardProps.hub.id, tp.factor)}
-                        >
-                          {getMessage(locale, 'wall.testplan.evaluate')}
-                        </button>
-                      )}
-                      {tp.readiness === 'gap' && canEdit && (
-                        <button
-                          type="button"
-                          data-testid={`plan-factor-${tp.factor}`}
-                          className="flex-shrink-0 rounded border border-amber-300 px-2 py-0.5 text-xs text-amber-700 hover:bg-amber-50"
-                          aria-label={getMessage(locale, 'wall.testplan.addPlanAria').replace(
-                            '{factor}',
-                            tp.factor
-                          )}
-                          onClick={() => handlePlanForFactor(tp.factor)}
-                        >
-                          {getMessage(locale, 'wall.testplan.addPlan')}
-                        </button>
-                      )}
-                    </div>
-                  ))
+                        {tp.readiness === 'ready' && breakIt && (
+                          <div
+                            className="mt-1 space-y-1"
+                            data-testid={`break-it-fields-${tp.factor}`}
+                          >
+                            <p className="text-[11px] italic text-amber-700">
+                              {getMessage(locale, 'wall.disconfirm.tryToBreakItHint')}
+                            </p>
+                            <textarea
+                              className="w-full rounded border border-amber-200 px-2 py-1 text-xs"
+                              rows={2}
+                              aria-label={getMessage(locale, 'wall.disconfirm.predictLabel')}
+                              placeholder={getMessage(locale, 'wall.disconfirm.predictPlaceholder')}
+                              value={predictionByFactor[tp.factor] ?? ''}
+                              onChange={e =>
+                                setPredictionByFactor(prev => ({
+                                  ...prev,
+                                  [tp.factor]: e.target.value,
+                                }))
+                              }
+                            />
+                            <p className="text-[10px] text-gray-400">
+                              {getMessage(locale, 'wall.disconfirm.predictHint')}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* FE-2b — the confound sign-prompt: this factor is also
+                            cited by a rival cause. Surface the rival + prompt the
+                            opposite sign + show side-by-side What-If (NEVER summed). */}
+                        {confound && (
+                          <div
+                            className="mt-1.5 rounded border border-purple-200 bg-purple-50 px-2 py-1.5 text-xs"
+                            data-testid={`confound-prompt-${tp.factor}`}
+                          >
+                            <div className="font-semibold text-purple-800">
+                              {getMessage(locale, 'wall.confound.heading')}
+                            </div>
+                            <div className="mt-0.5 text-purple-900">
+                              {getMessage(locale, 'wall.confound.prompt').replace(
+                                '{rival}',
+                                confound.rivalName
+                              )}
+                            </div>
+                            {confound.sharedFindingId && onMarkConfoundOpposite && (
+                              <button
+                                type="button"
+                                data-testid={`confound-mark-opposite-${tp.factor}`}
+                                className="mt-1 rounded border border-purple-300 px-2 py-0.5 text-[11px] text-purple-800 hover:bg-purple-100"
+                                onClick={() =>
+                                  onMarkConfoundOpposite(
+                                    confound.rivalId,
+                                    confound.sharedFindingId!
+                                  )
+                                }
+                              >
+                                {getMessage(locale, 'wall.confound.markOpposite')}
+                              </button>
+                            )}
+                            {/* Side-by-side per-hypothesis What-If — explicitly NOT
+                                additive. Two separate projections. */}
+                            <div className="mt-1 grid grid-cols-2 gap-2">
+                              <div data-testid={`confound-whatif-self-${tp.factor}`}>
+                                <div className="text-[10px] uppercase text-gray-500">
+                                  {getMessage(locale, 'wall.confound.whatIfFor').replace(
+                                    '{hypothesis}',
+                                    cardProps.hub.name
+                                  )}
+                                </div>
+                                <div className="text-purple-900">
+                                  {whatIf?.cpk != null && Number.isFinite(whatIf.cpk)
+                                    ? whatIf.cpk.toFixed(2)
+                                    : '—'}
+                                </div>
+                              </div>
+                              <div data-testid={`confound-whatif-rival-${tp.factor}`}>
+                                <div className="text-[10px] uppercase text-gray-500">
+                                  {getMessage(locale, 'wall.confound.whatIfFor').replace(
+                                    '{hypothesis}',
+                                    confound.rivalName
+                                  )}
+                                </div>
+                                <div className="text-purple-900">
+                                  {confound.whatIf.cpk != null &&
+                                  Number.isFinite(confound.whatIf.cpk)
+                                    ? confound.whatIf.cpk.toFixed(2)
+                                    : '—'}
+                                </div>
+                              </div>
+                            </div>
+                            <p className="mt-1 text-[10px] italic text-gray-500">
+                              {getMessage(locale, 'wall.confound.notAdditive')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
             )}
@@ -476,6 +732,96 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     {getMessage(locale, 'wall.whatif.noProjection')}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* FE-2b — the §4.1 soft caveat for an unbacked survived attempt. An
+                ambient muted note (read-model only; status stays engine-derived) +
+                a "back it with a test →" link that pre-checks "Try to break it" on
+                the first ready factor so the analyst can run the real test. */}
+            {unbackedSurvived && (
+              <div
+                data-testid="unbacked-survived-caveat"
+                className="border-b border-gray-100 px-3 py-2 text-xs text-gray-500 italic"
+              >
+                <span>{getMessage(locale, 'wall.caveat.unbackedSurvived')}</span>
+                {(testPlanFactors ?? []).some(tp => tp.readiness === 'ready') && (
+                  <button
+                    type="button"
+                    data-testid="back-it-with-test"
+                    className="ml-1.5 not-italic text-blue-600 hover:underline"
+                    onClick={() => {
+                      const firstReady = (testPlanFactors ?? []).find(
+                        tp => tp.readiness === 'ready'
+                      );
+                      if (firstReady) {
+                        setBreakItByFactor(prev => ({ ...prev, [firstReady.factor]: true }));
+                      }
+                    }}
+                  >
+                    {getMessage(locale, 'wall.caveat.backWithTest')}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* FE-2b — refute → respawn-sharper (spec §4.2). A refuted hub stays
+                red + never archived; this inline gesture seeds a sharper H2 and
+                carries the refuting finding forward as SUPPORTING evidence. */}
+            {showRespawn && !respawnFormOpen && (
+              <button
+                type="button"
+                data-testid="respawn-sharper-cta"
+                className="w-full px-3 py-1.5 text-sm text-indigo-600 hover:bg-indigo-50 text-left border-b border-gray-100"
+                onClick={() => {
+                  setRespawnFormOpen(true);
+                  setRespawnName('');
+                }}
+              >
+                {getMessage(locale, 'wall.respawn.sharpenCta')}
+              </button>
+            )}
+            {showRespawn && respawnFormOpen && (
+              <div
+                className="px-3 py-2 border-b border-gray-100 space-y-1.5"
+                data-testid="respawn-sharper-form"
+              >
+                <label className="block text-xs font-medium text-gray-700">
+                  {getMessage(locale, 'wall.respawn.nameLabel')}
+                  <input
+                    type="text"
+                    aria-label={getMessage(locale, 'wall.respawn.nameLabel')}
+                    className="mt-1 w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    placeholder={getMessage(locale, 'wall.respawn.namePlaceholder')}
+                    value={respawnName}
+                    onChange={e => setRespawnName(e.target.value)}
+                    autoFocus
+                  />
+                </label>
+                <p className="text-[11px] italic text-gray-500" data-testid="respawn-carry-note">
+                  {getMessage(locale, 'wall.respawn.carryNote')}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    data-testid="respawn-confirm"
+                    className="rounded bg-indigo-600 px-2 py-1 text-xs text-white hover:bg-indigo-700 disabled:opacity-50"
+                    disabled={respawnName.trim().length === 0}
+                    onClick={handleRespawnSave}
+                  >
+                    {getMessage(locale, 'wall.respawn.confirm')}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
+                    onClick={() => {
+                      setRespawnFormOpen(false);
+                      setRespawnName('');
+                    }}
+                  >
+                    {getMessage(locale, 'wall.respawn.cancel')}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -654,14 +1000,19 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
               />
             )}
 
-            {/* Disconfirmation gesture — "we tried to break this — did it hold?" */}
+            {/* FE-2b — the legacy free-text disconfirmation form survives ONLY as
+                the manual fallback for NON-data (gemba / expert) attempts. The
+                data-backed disconfirmation now lives in the fused "Try to break
+                it" checkbox on the triad evaluate above; this records a
+                `survived` with empty `linkedFindingIds` (→ the §4.1 soft caveat). */}
             {showDisconfirmGesture && !disconfirmFormOpen && (
               <button
                 type="button"
-                className="w-full px-3 py-1.5 text-sm text-amber-700 hover:bg-amber-50 text-left border-t border-gray-100"
+                data-testid="manual-disconfirm-fallback"
+                className="w-full px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 text-left border-t border-gray-100"
                 onClick={() => setDisconfirmFormOpen(true)}
               >
-                {getMessage(locale, 'wall.disconfirm.prompt')}
+                {getMessage(locale, 'wall.disconfirm.manualFallback')}
               </button>
             )}
             {showDisconfirmGesture && disconfirmFormOpen && (

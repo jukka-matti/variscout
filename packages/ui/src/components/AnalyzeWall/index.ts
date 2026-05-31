@@ -74,7 +74,12 @@ export type { AddPlanFormProps } from './AddPlanForm';
 export { LinkFindingPicker } from './LinkFindingPicker';
 export type { LinkFindingPickerProps } from './LinkFindingPicker';
 export { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
-export type { HypothesisCardWithPlansProps, TestPlanFactorView } from './HypothesisCardWithPlans';
+export type {
+  HypothesisCardWithPlansProps,
+  TestPlanFactorView,
+  EvaluateFactorOptions,
+  ConfoundRivalView,
+} from './HypothesisCardWithPlans';
 export { HypothesisComments } from './HypothesisComments';
 export type { HypothesisCommentsProps } from './HypothesisComments';
 export { ScopeRail } from './ScopeRail';
