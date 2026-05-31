@@ -313,4 +313,32 @@ describe('HypothesisCard', () => {
       expect(screen.getByText(/3 supporting clues/)).toBeInTheDocument();
     });
   });
+
+  describe('FE-2b — the OneStepAwayBadge is a clickable affordance', () => {
+    it('fires onOneStepAwayAction when the badge is clicked (needs-disconfirmation)', () => {
+      const onOneStepAwayAction = vi.fn();
+      render(
+        <svg>
+          <HypothesisCard
+            hub={hub}
+            displayStatus="needs-disconfirmation"
+            x={0}
+            y={0}
+            onOneStepAwayAction={onOneStepAwayAction}
+          />
+        </svg>
+      );
+      fireEvent.click(screen.getByTestId('one-step-away-action'));
+      expect(onOneStepAwayAction).toHaveBeenCalledWith('h1');
+    });
+
+    it('stays a passive label when onOneStepAwayAction is omitted', () => {
+      render(
+        <svg>
+          <HypothesisCard hub={hub} displayStatus="needs-disconfirmation" x={0} y={0} />
+        </svg>
+      );
+      expect(screen.queryByTestId('one-step-away-action')).toBeNull();
+    });
+  });
 });

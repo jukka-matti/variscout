@@ -57,7 +57,10 @@ import { computeScopeWhatIfProjection } from '@variscout/core/variation';
 export const STORE_LAYER = 'document' as const;
 
 type HypothesisUpdate = Partial<
-  Pick<Hypothesis, 'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds'>
+  Pick<
+    Hypothesis,
+    'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds' | 'supersededByHypothesisId'
+  >
 >;
 
 // ============================================================================

@@ -25,7 +25,10 @@ export interface UseHypothesesOptions {
 }
 
 export type HypothesisUpdate = Partial<
-  Pick<Hypothesis, 'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds'>
+  Pick<
+    Hypothesis,
+    'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds' | 'supersededByHypothesisId'
+  >
 >;
 
 export interface UseHypothesesReturn {

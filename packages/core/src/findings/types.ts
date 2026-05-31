@@ -716,6 +716,14 @@ export interface Hypothesis extends EntityBase {
    * not to an investigation prompt.
    */
   ideas?: ImprovementIdea[];
+  /**
+   * FE-2b — the "superseded by →" anti-amnesia trail (spec §4.2). Set on a REFUTED
+   * hub when its refute→respawn-sharper gesture creates a sharper replacement (H2),
+   * pointing the red dead-end at its successor. The refuted hub stays red + never
+   * archived; the card renders a small "superseded by → [H2 name]" text reference
+   * so an analyst doesn't re-walk the dead end. Absent for hubs never superseded.
+   */
+  supersededByHypothesisId?: Hypothesis['id'];
 }
 
 // ============================================================================

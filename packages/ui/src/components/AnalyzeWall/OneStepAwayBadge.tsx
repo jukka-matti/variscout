@@ -21,6 +21,17 @@ export interface OneStepAwayBadgeProps {
   width: number;
   /** Height of the foreignObject (pixels). */
   height: number;
+  /**
+   * FE-2b — when provided, the badge becomes a clickable affordance that FOCUSES
+   * the hub (routes through the gap-focus path → opens the hub's test plan; the
+   * existing Survey one-hint-per-hypothesis stays the only ambient nudge). It does
+   * NOT pre-check "Try to break it" — the analyst checks the per-factor box
+   * themselves once the triad is in view. The label is the accessible name. When
+   * omitted, the badge stays a passive label.
+   */
+  onClick?: () => void;
+  /** FE-2b — accessible name for the clickable affordance. */
+  actionLabel?: string;
 }
 
 export function OneStepAwayBadge({
@@ -29,12 +40,31 @@ export function OneStepAwayBadge({
   y,
   width,
   height,
+  onClick,
+  actionLabel,
 }: OneStepAwayBadgeProps): React.ReactElement {
+  const className =
+    'flex h-full w-full items-center overflow-hidden rounded border border-amber-600 bg-amber-50 px-1.5 text-[10px] text-amber-900';
   return (
     <foreignObject x={x} y={y} width={width} height={height}>
-      <div className="flex h-full items-center overflow-hidden rounded border border-amber-600 bg-amber-50 px-1.5 text-[10px] text-amber-900">
-        {message}
-      </div>
+      {onClick ? (
+        <button
+          type="button"
+          data-testid="one-step-away-action"
+          aria-label={actionLabel ?? message}
+          className={`${className} text-left hover:bg-amber-100`}
+          onClick={e => {
+            // The card wrapper captures clicks to focus the hub; stop propagation
+            // so this affordance owns its own action.
+            e.stopPropagation();
+            onClick();
+          }}
+        >
+          {message}
+        </button>
+      ) : (
+        <div className={className}>{message}</div>
+      )}
     </foreignObject>
   );
 }

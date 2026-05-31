@@ -108,7 +108,11 @@ describe('WallCanvas — test-plan triad seam', () => {
       />
     );
     fireEvent.click(screen.getByTestId('evaluate-factor-SHIFT'));
-    expect(onEvaluateFactor).toHaveBeenCalledWith(hub.id, 'SHIFT');
+    // FE-2b — the fused evaluate carries the per-row options (unchecked default).
+    expect(onEvaluateFactor).toHaveBeenCalledWith(hub.id, 'SHIFT', {
+      tryToBreakIt: false,
+      prediction: undefined,
+    });
   });
 
   it('renders the per-hypothesis What-If Cpk from the real IM-5 helpers', () => {

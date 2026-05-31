@@ -52,7 +52,13 @@ import {
   detectEvidenceClusters,
   evaluateHypothesisFactor,
   isEvaluateFindingForFactor,
+  evaluateDisconfirmation,
+  isDisconfirmationFindingForFactor,
+  isDisconfirmationResult,
 } from '@variscout/core/findings';
+import type { DisconfirmationAttempt } from '@variscout/core';
+import { generateDeterministicId } from '@variscout/core/identity';
+import type { EvaluateFactorOptions } from '@variscout/ui';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { ProjectMember } from '@variscout/core/projectMembership';
@@ -334,37 +340,82 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // factor's tool. A non-significant result classifies 'inconclusive' (NOT-tested),
   // never supporting (engine honesty — same rule as the IM-3 auto-link fix).
   const handleEvaluateFactor = useCallback(
-    (hypothesisId: string, factor: string) => {
+    (hypothesisId: string, factor: string, options?: EvaluateFactorOptions) => {
       if (!outcome || !filteredData?.length) return;
-      const result = evaluateHypothesisFactor(filteredData, factor, outcome);
+      const tryToBreakIt = Boolean(options?.tryToBreakIt);
+      // FE-2b — the fused "Try to break it" path INVERTS the classification under
+      // the wrongness-prediction (significant → survived/supports; not-significant
+      // → refuted/contradicts), graded by the SAME engine. The plain FE-2a path is
+      // unchanged. The branches use distinct finding-text templates so a repeat tap
+      // is idempotent per-mode (and the two modes never cross-match).
+      const result = tryToBreakIt
+        ? evaluateDisconfirmation(filteredData, factor, outcome)
+        : evaluateHypothesisFactor(filteredData, factor, outcome);
       if (!result) return;
       const activeFilters = categoricalFiltersToActiveFilters(
         useAnalysisScopeStore.getState().categoricalFilters
       );
-      // FE-2a idempotency: a repeat evaluate of the SAME (hypothesis × factor)
-      // refreshes the existing finding instead of appending a duplicate. The
-      // natural key is the prior evaluate-finding already linked to this hub.
+      const matchesPriorEvaluate = (text: string) =>
+        tryToBreakIt
+          ? isDisconfirmationFindingForFactor(text, factor)
+          : isEvaluateFindingForFactor(text, factor);
+      // FE-2a/2b idempotency: a repeat evaluate of the SAME (hypothesis × factor ×
+      // mode) refreshes the existing finding instead of appending a duplicate.
       const hub = hypothesesState.hubs.find(h => h.id === hypothesisId);
       const existing = hub
         ? findingsState.findings.find(
-            f => hub.findingIds.includes(f.id) && isEvaluateFindingForFactor(f.text, factor)
+            f => hub.findingIds.includes(f.id) && matchesPriorEvaluate(f.text)
           )
         : undefined;
+      let findingId: string;
       if (existing) {
         findingsState.editFinding(existing.id, result.findingText);
         findingsState.setValidation(existing.id, result.validationStatus, result.refutes);
-        return;
+        findingId = existing.id;
+      } else {
+        const finding = findingsState.addFinding(result.findingText, {
+          activeFilters,
+          cumulativeScope: null,
+        });
+        // Classify BEFORE connecting so the finding is never read as an
+        // unclassified "support" clue on the Wall in the interim.
+        findingsState.setValidation(finding.id, result.validationStatus, result.refutes);
+        hypothesesState.connectFinding(hypothesisId, finding.id);
+        findingId = finding.id;
       }
-      const finding = findingsState.addFinding(result.findingText, {
-        activeFilters,
-        cumulativeScope: null,
-      });
-      // Classify BEFORE connecting so the finding is never read as an
-      // unclassified "support" clue on the Wall in the interim.
-      findingsState.setValidation(finding.id, result.validationStatus, result.refutes);
-      hypothesesState.connectFinding(hypothesisId, finding.id);
+
+      // FE-2b — record the engine-graded DisconfirmationAttempt with the finding
+      // linked. This closes the `linkedFindingIds:[]` gap BY CONSTRUCTION (the
+      // evaluate already made the finding) and reaches the SAME production
+      // disconfirmation write-path (hypothesesState.recordDisconfirmation) the
+      // legacy manual form uses. The app stamps id + attemptedAt + attemptedBy.
+      if (tryToBreakIt) {
+        const attempt: DisconfirmationAttempt = {
+          id: generateDeterministicId(),
+          attemptedAt: new Date().toISOString(),
+          attemptedBy: {
+            displayName: members.find(m => m.userId === userId)?.displayName ?? userId ?? 'Analyst',
+            upn: userId ?? undefined,
+          },
+          description: (options?.prediction ?? result.findingText).trim(),
+          // Engine-graded verdict carried straight off the disconfirmation result:
+          // 'refuted' (the predicted relationship was absent on an adequately
+          // powered sample), 'survived' (the cause withstood the attempt), OR
+          // 'pending' (MAJOR-1 — a low-power null: too few rows to refute, so the
+          // attempt stays open rather than falsely refute a real cause). Inside
+          // this `tryToBreakIt` branch the result is always a
+          // `DisconfirmationEvaluation` (it has `verdict`); guard for that shape.
+          verdict: isDisconfirmationResult(result)
+            ? result.verdict
+            : result.refutes
+              ? 'refuted'
+              : 'survived',
+          linkedFindingIds: [findingId],
+        };
+        hypothesesState.recordDisconfirmation(hypothesisId, attempt);
+      }
     },
-    [outcome, filteredData, findingsState, hypothesesState]
+    [outcome, filteredData, findingsState, hypothesesState, members, userId]
   );
 
   // ── IM-4b Task 5 — multi-scope rail ──────────────────────────────────────
@@ -439,14 +490,58 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         hypothesesState.removeIdea(hypothesisId, ideaId),
       onSelectIdea: (hypothesisId: string, ideaId: string, selected: boolean) =>
         hypothesesState.selectIdea(hypothesisId, ideaId, selected),
-      // FE-2a — one-tap evaluate → typed Finding linked to the hub.
+      // FE-2a/2b — one-tap evaluate → typed Finding linked to the hub (+ the
+      // fused disconfirmation verdict when "Try to break it" is checked).
       onEvaluateFactor: handleEvaluateFactor,
+      // FE-2b — refute → respawn-sharper. Seeds H2 from the editable name and
+      // carries the refutation FORWARD as SUPPORTING evidence for H2 (a fresh
+      // supporting finding, so H1's red refuting finding stays intact). H1 stays
+      // refuted, never archived.
+      onRespawnSharper: (refutedHypothesisId: string, newName: string) => {
+        const h1 = hypothesesState.hubs.find(h => h.id === refutedHypothesisId);
+        const refuting = h1
+          ? findingsState.findings.find(f => h1.findingIds.includes(f.id) && f.refutes)
+          : undefined;
+        const newHub = hypothesesState.createHub(newName, '');
+        // FE-2b — the "superseded by →" anti-amnesia trail (spec §4.2): point the
+        // red dead-end (H1) at its sharper successor (H2). The refuted card renders
+        // "superseded by → [H2 name]" so the analyst doesn't re-walk the dead end.
+        hypothesesState.updateHub(refutedHypothesisId, { supersededByHypothesisId: newHub.id });
+        if (refuting) {
+          // The finding that REFUTED H1 is positive evidence for the sharper H2.
+          const carried = findingsState.addFinding(
+            `Carried from the refutation of “${h1?.name ?? 'the prior hypothesis'}”: ${refuting.text}`,
+            { activeFilters: refuting.context.activeFilters, cumulativeScope: null }
+          );
+          findingsState.setValidation(carried.id, 'supports', false);
+          hypothesesState.connectFinding(newHub.id, carried.id);
+        }
+      },
+      // FE-2b — confound: mark the opposite sign on a rival cause. Re-links the
+      // shared finding to the rival as a counter-clue (counterFindingIds) and
+      // classifies it 'contradicts' for the rival (the data picks the side; the
+      // human confirms — §10 #1).
+      onMarkConfoundOpposite: (rivalHypothesisId: string, findingId: string) => {
+        const rival = hypothesesState.hubs.find(h => h.id === rivalHypothesisId);
+        if (!rival) return;
+        const existingCounter = rival.counterFindingIds ?? [];
+        if (!existingCounter.includes(findingId)) {
+          hypothesesState.updateHub(rivalHypothesisId, {
+            counterFindingIds: [...existingCounter, findingId],
+          });
+        }
+        if (!rival.findingIds.includes(findingId)) {
+          hypothesesState.connectFinding(rivalHypothesisId, findingId);
+        }
+        findingsState.setValidation(findingId, 'contradicts', false);
+      },
     };
   }, [
     planningProps,
     members,
     wallAuthorName,
     hypothesesState,
+    findingsState,
     ideaImpacts,
     onProjectIdea,
     handleEvaluateFactor,

@@ -115,4 +115,21 @@ describe('MissingEvidencePanel', () => {
     // The action label text appears in the expanded list
     expect(screen.getByText('Try gemba evidence')).toBeInTheDocument();
   });
+
+  it('9. FE-2b — the action button stays DISABLED when onTriadAction is omitted (legacy stub)', () => {
+    render(<MissingEvidencePanel hints={[triangulationHint]} />);
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    // The legacy disabled stub renders the label but no live action testid.
+    expect(screen.getByText('Try disconfirmation')).toBeInTheDocument();
+    expect(screen.queryByTestId('missing-evidence-action')).toBeNull();
+  });
+
+  it('10. FE-2b — the action button is ACTIVATED when onTriadAction is wired', () => {
+    const onTriadAction = vi.fn();
+    render(<MissingEvidencePanel hints={[triangulationHint]} onTriadAction={onTriadAction} />);
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    fireEvent.click(screen.getByTestId('missing-evidence-action'));
+    // Opens the targeted hub's test plan (the app routes this to focus the hub).
+    expect(onTriadAction).toHaveBeenCalledWith('h2');
+  });
 });

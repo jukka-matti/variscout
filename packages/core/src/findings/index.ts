@@ -60,12 +60,19 @@ export {
   evaluateFindingText,
   isEvaluateFindingForFactor,
   EVALUATE_SIGNIFICANCE_THRESHOLD,
+  // FE-2b — the fused "Try to break it" disconfirmation verdict (spec §4.2).
+  evaluateDisconfirmation,
+  disconfirmationFindingText,
+  isDisconfirmationFindingForFactor,
+  isDisconfirmationResult,
 } from './hypothesisTestPlan';
 export type {
   AnalyticalTool,
   FactorReadiness,
   HypothesisTestPlanFactor,
   HypothesisFactorEvaluation,
+  DisconfirmationVerdict,
+  DisconfirmationEvaluation,
 } from './hypothesisTestPlan';
 // Note: DataRow is the canonical foundational type from `../types` — not re-exported
 // from this sub-path to avoid a duplicate identifier at the root barrel. The evaluator

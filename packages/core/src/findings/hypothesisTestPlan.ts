@@ -277,3 +277,276 @@ function formatP(value: number): string {
   if (value < 0.001) return '< .001';
   return `= ${value.toFixed(3)}`;
 }
+
+// ============================================================================
+// FE-2b — the "Try to break it" disconfirmation verdict (spec §4.2)
+// ============================================================================
+
+/**
+ * The engine-graded verdict of a "Try to break it" evaluate.
+ *
+ * `'survived'` / `'refuted'` are the two definite verdicts the engine renders
+ * when the sample carries enough power to trust a NULL result; the analyst NEVER
+ * self-grades. `'pending'` is the small-data honesty floor (MAJOR-1 fix): a
+ * not-significant result on a sample below the adequate-power threshold is NOT
+ * evidence of absence — it is low power — so the engine declines to refute and
+ * leaves the attempt `'pending'` ("too few rows to draw a conclusion — collect
+ * more"). A SIGNIFICANT result is always definite (a strong effect detected
+ * despite low power is real), so small-n never blocks `'survived'`.
+ */
+export type DisconfirmationVerdict = 'survived' | 'refuted' | 'pending';
+
+// ----------------------------------------------------------------------------
+// MAJOR-1 — the small-data honesty floor on the REFUTE path.
+//
+// A null result on a thin sample is LOW POWER, not evidence of absence. Without
+// a floor the inverted-classification would map that null → `verdict:'refuted'`
+// + `refutes:true` → the hypothesis card goes RED on n≈4–9, abandoning a real
+// cause an analyst hasn't actually disproved. The floor applies ONLY to the
+// not-significant (refute) branch; a significant result survives at any n.
+//
+// The thresholds reuse FE-1's scoped-model min-n gate (`useScopedmodels.ts`:
+// `MIN_ABSOLUTE = 20`, `MIN_PER_FACTOR = 3` — the "too few rows to re-rank"
+// band) for consistency: the same n that's too thin to RE-RANK a scoped model
+// is too thin to REFUTE a cause. Redeclared core-locally rather than imported
+// because `core` sits UPSTREAM of `hooks` (core → hooks → ui → apps); importing
+// the hooks constant would invert the dependency flow.
+//
+//  - regression  → total valid-n floor (mirror of FE-1's single-factor gate:
+//      max(MIN_ABSOLUTE, MIN_PER_FACTOR × 1) = 20 rows).
+//  - two-sample / capability → per-group floor: at least `MIN_PER_GROUP` rows in
+//      EACH compared group. A 2-sample comparison's power lives in the SMALLEST
+//      group, so a total-n gate would pass a 19-vs-1 split that has no power to
+//      detect a real difference. `MIN_PER_GROUP = 10` keeps the two compared
+//      groups at the same total floor (2 × 10 = 20 = MIN_ABSOLUTE) so the
+//      two-sample and regression floors stay consistent.
+// ----------------------------------------------------------------------------
+/** Total valid-row floor for a single-factor regression refute (FE-1 MIN_ABSOLUTE). */
+export const DISCONFIRM_MIN_ABSOLUTE = 20;
+/** Per-group row floor for a two-sample/capability refute (2 × this = MIN_ABSOLUTE). */
+export const DISCONFIRM_MIN_PER_GROUP = 10;
+
+/**
+ * The typed result of a FUSED "Try to break it" evaluate (spec §4.2). It runs
+ * the SAME `evaluateHypothesisFactor` test as the ordinary FE-2a evaluate, then
+ * INVERTS the classification under the wrongness-prediction:
+ *
+ *   significant (the cause's predicted relationship to Y IS present) → the cause
+ *     WITHSTOOD an attempt to break it → `verdict:'survived'`, the finding is
+ *     `validationStatus:'supports'` (evidence-backed survived).
+ *
+ *   NOT significant (the predicted relationship is ABSENT — you tried to find the
+ *     mechanism and it wasn't there) → `verdict:'refuted'`, the finding carries
+ *     `refutes:true` → `deriveHypothesisStatus` short-circuits the card to red.
+ *
+ * This is the deliberate inversion of the plain FE-2a evaluate: a null result
+ * UNDER AN ATTEMPT TO BREAK IT is evidence AGAINST (refuted), not inconclusive.
+ * It matches the spindle example: test whether the shift relates to heat with the
+ * spindle controlled; not significant → the shift does not drive it → the
+ * night-shift hypothesis is refuted.
+ *
+ * Returns null whenever the underlying `evaluateHypothesisFactor` can't run
+ * (factor constant, too few rows/groups, no numeric outcome) so the UI keeps the
+ * evaluate inert rather than fabricate a verdict.
+ */
+export interface DisconfirmationEvaluation {
+  /** The factor that was evaluated. */
+  factor: string;
+  /** The tool that produced the result. */
+  tool: AnalyticalTool;
+  /** The test p-value. */
+  pValue: number;
+  /** Whether the predicted relationship is statistically present (p < threshold). */
+  isSignificant: boolean;
+  /** The engine-graded verdict — never self-graded by the analyst. */
+  verdict: DisconfirmationVerdict;
+  /**
+   * The Finding classification under the wrongness-prediction (the INVERSION):
+   * 'supports' for a survived attempt, 'contradicts' for a refuted one,
+   * 'inconclusive' for a low-power null (MAJOR-1 — NOT a refutation; routes to
+   * NOT-tested, never red).
+   */
+  validationStatus: 'supports' | 'contradicts' | 'inconclusive';
+  /** True only for a refuted attempt (drives `deriveHypothesisStatus` → red). Never true for a low-power null. */
+  refutes: boolean;
+  /**
+   * MAJOR-1 — true when the result is not significant AND the sample is below the
+   * adequate-power floor: a low-power null, NOT evidence of absence. The UI shows
+   * the soft "too few rows to draw a conclusion — collect more" message, never a
+   * red card. Always false for a significant result and for an adequately-powered
+   * (true) null.
+   */
+  lowPower: boolean;
+  /** Human-readable finding text using factor-side verbs. */
+  findingText: string;
+}
+
+/**
+ * `true` when `result` is a fused `DisconfirmationEvaluation` (it carries the
+ * engine-graded `verdict`) rather than a plain FE-2a `HypothesisFactorEvaluation`.
+ * Lets the app read `result.verdict` (incl. the MAJOR-1 `'pending'` low-power
+ * state) directly instead of re-deriving it from `refutes`, which can't express
+ * `'pending'`.
+ */
+export function isDisconfirmationResult(
+  result: HypothesisFactorEvaluation | DisconfirmationEvaluation
+): result is DisconfirmationEvaluation {
+  return 'verdict' in result;
+}
+
+/**
+ * `true` when the sample carries enough power for a NOT-significant result to be
+ * trusted as a real null (so a refute is honest). Below the floor a null is just
+ * low power, not evidence of absence (MAJOR-1). See the `DISCONFIRM_MIN_*`
+ * constants for the floor + its FE-1 provenance.
+ *
+ * - regression → total valid-n (rows with a finite outcome AND finite factor) ≥
+ *     `DISCONFIRM_MIN_ABSOLUTE`.
+ * - two-sample / capability → EVERY compared group ≥ `DISCONFIRM_MIN_PER_GROUP`
+ *     (a 2-sample comparison's power lives in its smallest group).
+ *
+ * Deterministic: no clock/RNG, derives counts straight from the data.
+ */
+function hasAdequatePowerForRefute(
+  data: ReadonlyArray<DataRow>,
+  factor: string,
+  outcome: string,
+  tool: AnalyticalTool
+): boolean {
+  if (tool === 'regression') {
+    let validN = 0;
+    for (const row of data) {
+      const y = toNumericValue(row[outcome]);
+      const x = toNumericValue(row[factor]);
+      if (y !== undefined && x !== undefined) validN += 1;
+    }
+    return validN >= DISCONFIRM_MIN_ABSOLUTE;
+  }
+  // two-sample / capability — count rows per factor level (a numeric outcome is
+  // required; the factor level is the group key, mirroring `groupDataByFactor`).
+  const perGroup = new Map<string, number>();
+  for (const row of data) {
+    const y = toNumericValue(row[outcome]);
+    if (y === undefined) continue;
+    const raw = row[factor];
+    if (raw === null || raw === undefined) continue;
+    const key = String(raw);
+    perGroup.set(key, (perGroup.get(key) ?? 0) + 1);
+  }
+  if (perGroup.size < 2) return false;
+  for (const count of perGroup.values()) {
+    if (count < DISCONFIRM_MIN_PER_GROUP) return false;
+  }
+  return true;
+}
+
+/**
+ * Run the FUSED "Try to break it" evaluate (spec §4.2 keystone). Re-uses the
+ * SAME engine result as the plain FE-2a `evaluateHypothesisFactor`, then derives
+ * the engine-graded `verdict` + the inverted Finding classification.
+ *
+ * - significant → `verdict:'survived'`, `validationStatus:'supports'`, `refutes:false`
+ *     (a strong effect detected despite low power is real — small-n never blocks
+ *     a survive).
+ * - NOT significant AND the sample is adequately powered (a TRUE null) →
+ *     `verdict:'refuted'`, `validationStatus:'contradicts'`, `refutes:true`.
+ * - NOT significant BUT the sample is BELOW the adequate-power floor (MAJOR-1 — a
+ *     low-power null, NOT evidence of absence) → `verdict:'pending'`,
+ *     `validationStatus:'inconclusive'`, `refutes:false`, `lowPower:true`. The UI
+ *     shows the soft "too few rows to draw a conclusion — collect more" message,
+ *     NOT a red card — so a thin sample never falsely abandons a real cause.
+ *
+ * Deterministic: delegates the test to `evaluateHypothesisFactor` and derives the
+ * power floor straight from the data (no clock/RNG).
+ */
+export function evaluateDisconfirmation(
+  data: ReadonlyArray<DataRow>,
+  factor: string,
+  outcome: string,
+  options?: { tool?: AnalyticalTool; significanceThreshold?: number }
+): DisconfirmationEvaluation | null {
+  const result = evaluateHypothesisFactor(data, factor, outcome, options);
+  if (!result) return null;
+
+  // MAJOR-1 — the small-data honesty floor applies ONLY to the not-significant
+  // (refute) branch. A significant result is definite at any n.
+  const lowPower =
+    !result.isSignificant && !hasAdequatePowerForRefute(data, factor, outcome, result.tool);
+
+  let verdict: DisconfirmationVerdict;
+  let validationStatus: DisconfirmationEvaluation['validationStatus'];
+  let refutes: boolean;
+  if (result.isSignificant) {
+    verdict = 'survived';
+    validationStatus = 'supports';
+    refutes = false;
+  } else if (lowPower) {
+    verdict = 'pending';
+    validationStatus = 'inconclusive';
+    refutes = false;
+  } else {
+    verdict = 'refuted';
+    validationStatus = 'contradicts';
+    refutes = true;
+  }
+
+  const findingText = disconfirmationFindingText(
+    factor,
+    result.isSignificant,
+    result.pValue,
+    lowPower
+  );
+
+  return {
+    factor,
+    tool: result.tool,
+    pValue: result.pValue,
+    isSignificant: result.isSignificant,
+    verdict,
+    validationStatus,
+    refutes,
+    lowPower,
+    findingText,
+  };
+}
+
+/**
+ * The deterministic finding text a "Try to break it" evaluate produces. Single
+ * source of truth so `isDisconfirmationFindingForFactor` can recognise a prior
+ * disconfirmation evaluate of the same factor (idempotency — a re-evaluate
+ * refreshes the existing finding instead of appending a duplicate). Distinct
+ * from `evaluateFindingText` so the two evaluate paths never cross-match.
+ *
+ * Three templates: survived (significant), refuted (true null, adequate power),
+ * and the low-power null (MAJOR-1 — a SOFT, honest message, NOT a refutation).
+ */
+export function disconfirmationFindingText(
+  factor: string,
+  isSignificant: boolean,
+  pValue: number,
+  lowPower = false
+): string {
+  if (isSignificant) {
+    return `${factor} withstood an attempt to break it — its relationship to the spread holds (p ${formatP(pValue)}).`;
+  }
+  if (lowPower) {
+    return `${factor} — too few rows to draw a conclusion (p ${formatP(pValue)}) — collect more before refuting.`;
+  }
+  return `${factor} failed an attempt to find its mechanism — no relationship to the spread (p ${formatP(pValue)}) → refuted.`;
+}
+
+/**
+ * `true` when `finding.text` was produced by `evaluateDisconfirmation` for
+ * `factor` (the survived, refuted, OR low-power template). Lets the
+ * disconfirmation evaluate call-site find a prior attempt of the SAME
+ * (hypothesis × factor) among a hub's linked findings and refresh it in place,
+ * keeping a repeat tap idempotent. Matches the stable, factor-specific prefix of
+ * each template.
+ */
+export function isDisconfirmationFindingForFactor(text: string, factor: string): boolean {
+  return (
+    text.startsWith(`${factor} withstood an attempt to break it`) ||
+    text.startsWith(`${factor} failed an attempt to find its mechanism`) ||
+    text.startsWith(`${factor} — too few rows to draw a conclusion`)
+  );
+}

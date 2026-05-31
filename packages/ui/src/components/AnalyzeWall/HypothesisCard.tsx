@@ -63,6 +63,13 @@ export interface HypothesisCardProps {
   outcomeColumn?: string | null;
   onSelect?: (hubId: string) => void;
   onContextMenu?: (hubId: string, event: React.MouseEvent) => void;
+  /**
+   * FE-2b — when provided AND this hub is one-step-away (needs-disconfirmation),
+   * the OneStepAwayBadge becomes a clickable affordance that opens the test plan
+   * pre-staged with "Try to break it". Called with the hubId. When omitted, the
+   * badge stays a passive label (the Survey hint remains the only ambient nudge).
+   */
+  onOneStepAwayAction?: (hubId: string) => void;
 }
 
 const CARD_W = 280;
@@ -187,6 +194,7 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   outcomeColumn,
   onSelect,
   onContextMenu,
+  onOneStepAwayAction,
 }) => {
   const locale = useWallLocale();
   const statusLabel = getMessage(locale, STATUS_KEY[displayStatus]);
@@ -342,6 +350,8 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
               y={ONE_STEP_AWAY_Y}
               width={CARD_W - 32}
               height={20}
+              onClick={onOneStepAwayAction ? () => onOneStepAwayAction(hub.id) : undefined}
+              actionLabel={getMessage(locale, 'wall.affordance.oneStepAwayAction')}
             />
           ) : (
             <text x={16} y={CARD_H - 48} className="fill-content-muted text-xs font-mono">

@@ -968,6 +968,35 @@ export interface MessageCatalog {
   'wall.disconfirm.verdictRefuted': string;
   'wall.disconfirm.record': string;
   'wall.disconfirm.cancel': string;
+  // FE-2b — the fused "Try to break it" premortem (spec §4.2)
+  'wall.disconfirm.tryToBreakIt': string;
+  'wall.disconfirm.tryToBreakItHint': string;
+  'wall.disconfirm.predictLabel': string;
+  'wall.disconfirm.predictPlaceholder': string;
+  'wall.disconfirm.predictHint': string;
+  'wall.disconfirm.manualFallback': string;
+  'wall.disconfirm.verdictSurvivedToast': string;
+  'wall.disconfirm.verdictRefutedToast': string;
+  // FE-2b — the §4.1 soft caveat for an unbacked survived attempt
+  'wall.caveat.unbackedSurvived': string;
+  'wall.caveat.backWithTest': string;
+  // FE-2b — refute → respawn-sharper (spec §4.2)
+  'wall.respawn.sharpenCta': string;
+  'wall.respawn.nameLabel': string;
+  'wall.respawn.namePlaceholder': string;
+  'wall.respawn.carryNote': string;
+  'wall.respawn.confirm': string;
+  'wall.respawn.cancel': string;
+  'wall.respawn.supersededBy': string;
+  // FE-2b — the confound sign-prompt + side-by-side What-If (spec §4.2)
+  'wall.confound.heading': string;
+  'wall.confound.prompt': string;
+  'wall.confound.markOpposite': string;
+  'wall.confound.notAdditive': string;
+  'wall.confound.whatIfFor': string;
+  // FE-2b — the activated affordances (spec §4.2)
+  'wall.affordance.tryDisconfirmation': string;
+  'wall.affordance.oneStepAwayAction': string;
   // ActionItem tasks on hypotheses (IM-4b Task 3)
   'wall.task.addButton': string;
   'wall.task.taskLabel': string;

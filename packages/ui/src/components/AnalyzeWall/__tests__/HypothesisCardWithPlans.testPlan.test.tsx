@@ -88,7 +88,12 @@ describe('HypothesisCardWithPlans — FE-2a test-plan triad', () => {
       />
     );
     fireEvent.click(screen.getByTestId('evaluate-factor-SHIFT'));
-    expect(onEvaluateFactor).toHaveBeenCalledWith('h1', 'SHIFT');
+    // FE-2b — the evaluate now carries the fused options (Try to break it +
+    // optional premortem prediction). Unchecked → tryToBreakIt:false.
+    expect(onEvaluateFactor).toHaveBeenCalledWith('h1', 'SHIFT', {
+      tryToBreakIt: false,
+      prediction: undefined,
+    });
   });
 
   it('a gap factor opens the AddPlanForm with primaryFactor pre-filled', () => {
