@@ -22,6 +22,14 @@ export interface MissingEvidencePanelProps {
   hints: SurveyHint[];
   /** Click handler when a hub-targeted hint is selected — focuses the hub on the canvas. */
   onFocusHub?: (hubId: string) => void;
+  /**
+   * FE-2b — activates the per-hint action button (was a disabled V2 stub). When
+   * provided AND a hint targets a hub, the action ("Try disconfirmation") becomes
+   * live and fires with the hint's `targetEntityId` so the app opens that hub's
+   * test plan pre-staged with "Try to break it". When omitted, the action button
+   * stays disabled (the legacy informative-only state).
+   */
+  onTriadAction?: (hubId: string) => void;
 }
 
 const SEVERITY_GLYPH: Record<SurveyHint['severity'], string> = {
@@ -33,6 +41,7 @@ const SEVERITY_GLYPH: Record<SurveyHint['severity'], string> = {
 export const MissingEvidencePanel: React.FC<MissingEvidencePanelProps> = ({
   hints,
   onFocusHub,
+  onTriadAction,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const locale = useWallLocale();
@@ -86,16 +95,28 @@ export const MissingEvidencePanel: React.FC<MissingEvidencePanelProps> = ({
                 ) : (
                   <span>{h.message}</span>
                 )}
-                {h.action?.label && (
-                  // Action button is informative-only in V1; handler wiring lands with V2 guided-action UI.
-                  <button
-                    type="button"
-                    disabled
-                    className="shrink-0 text-xs font-mono text-warning opacity-50 cursor-default"
-                  >
-                    {h.action.label}
-                  </button>
-                )}
+                {h.action?.label &&
+                  // FE-2b — activated: when the app wires onTriadAction AND the
+                  // hint targets a hub, the action opens that hub's test plan
+                  // pre-staged. Falls back to the legacy disabled stub otherwise.
+                  (onTriadAction && h.targetEntityId ? (
+                    <button
+                      type="button"
+                      data-testid="missing-evidence-action"
+                      onClick={() => onTriadAction(h.targetEntityId)}
+                      className="shrink-0 text-xs font-mono text-warning hover:underline"
+                    >
+                      {h.action.label}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="shrink-0 text-xs font-mono text-warning opacity-50 cursor-default"
+                    >
+                      {h.action.label}
+                    </button>
+                  ))}
               </span>
             </li>
           ))}

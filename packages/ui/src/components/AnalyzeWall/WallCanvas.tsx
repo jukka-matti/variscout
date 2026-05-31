@@ -711,7 +711,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onSeedFromFactorIntel={onSeedFromFactorIntel}
         />
         {mode === 'destination' ? (
-          <MissingEvidencePanel hints={surveyHints} onFocusHub={onFocusHubFromGap} />
+          <MissingEvidencePanel
+            hints={surveyHints}
+            onFocusHub={onFocusHubFromGap}
+            onTriadAction={onFocusHubFromGap}
+          />
         ) : null}
       </div>
     );
@@ -878,6 +882,10 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       missingColumn: columnSet ? conditionHasMissingColumn(hub.condition, columnSet) : false,
       zoomScale: zoom !== 1 ? zoom : undefined,
       onSelect: onSelectHub,
+      // FE-2b — the OneStepAwayBadge becomes a clickable affordance that focuses
+      // the hub (opening its test plan with "Try to break it" reachable). Reuses
+      // the existing gap-focus path; the Survey one-hint stays the only ambient nudge.
+      onOneStepAwayAction: onFocusHubFromGap,
       rows,
       columnTypes,
       outcomeColumn,
@@ -1109,7 +1117,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       </svg>
 
       {mode === 'destination' ? (
-        <MissingEvidencePanel hints={surveyHints} onFocusHub={onFocusHubFromGap} />
+        <MissingEvidencePanel
+          hints={surveyHints}
+          onFocusHub={onFocusHubFromGap}
+          onTriadAction={onFocusHubFromGap}
+        />
       ) : null}
     </div>
   );
