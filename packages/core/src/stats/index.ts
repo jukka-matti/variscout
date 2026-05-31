@@ -120,6 +120,23 @@ export {
   computeCoverage,
 } from './bestSubsets';
 
+// Vital-few model-builder selector (Factors & Evaluation Increment 1)
+export type { SubsetIndex, VitalFewSelection, RedundancyHint } from './modelBuilder';
+export {
+  VITAL_FEW_R2ADJ_TOLERANCE,
+  VITAL_FEW_P_THRESHOLD,
+  REDUNDANCY_VIF_THRESHOLD,
+  REDUNDANCY_R2ADJ_DELTA,
+  factorSetKey,
+  buildSubsetIndex,
+  lookupSubset,
+  perFactorPValues,
+  selectVitalFew,
+  isFitOnlyEstimate,
+  redundancyHint,
+  computeSubsetVIF,
+} from './modelBuilder';
+
 // Type III SS decomposition
 export { computeTypeIIISS } from './typeIIISS';
 

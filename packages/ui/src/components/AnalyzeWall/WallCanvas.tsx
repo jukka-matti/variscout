@@ -49,6 +49,8 @@ import { HypothesisCard } from './HypothesisCard';
 import { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
 import { DraggableHypothesisCard } from './DraggableHypothesisCard';
 import { TributaryFooter } from './TributaryFooter';
+import { ModelBuilderBand } from './ModelBuilderBand';
+import type { CapturedModelSnapshot } from './ModelBuilderBand';
 import { EmptyState } from './EmptyState';
 import { MissingEvidencePanel } from './MissingEvidencePanel';
 import { MobileCardList } from './MobileCardList';
@@ -251,6 +253,44 @@ export interface WallCanvasProps {
    * When omitted, hub cards render as bare `<HypothesisCard>` (legacy path).
    */
   planningProps?: WallCanvasPlanningProps;
+  /**
+   * Factors & Evaluation Increment 1 — the scope-level vital-few model-builder
+   * band. When provided AND `outcomeColumn` + `rows` + at least one candidate
+   * factor are available, the `ModelBuilderBand` mounts in the factor-band zone
+   * (the IM-4c `computeWallLayout` factor hook) for the ACTIVE scope. Omit to
+   * keep the legacy factor-less Wall.
+   */
+  modelBuilderProps?: WallCanvasModelBuilderProps;
+}
+
+/**
+ * Model-builder band affordances (Factors & Evaluation Increment 1, spec §3).
+ * Bagged like `planningProps` to keep `WallCanvasProps` lean.
+ */
+export interface WallCanvasModelBuilderProps {
+  /** Candidate factor columns the analyst may toggle into/out of the model. */
+  candidateFactors: ReadonlyArray<string>;
+  /** Human-readable label for the active scope ('All data' or the drill WHERE). */
+  scopeLabel: string;
+  /**
+   * Rows for the ACTIVE scope (the drilled subset) the band re-ranks on. The
+   * Wall's own `rows` prop stays the full window (HOLDS / scope-anchor); the band
+   * runs the engine on THIS scoped subset so it re-ranks on drill. When omitted,
+   * the band falls back to the Wall's `rows`.
+   */
+  scopeRows?: ReadonlyArray<Record<string, unknown>>;
+  /**
+   * Factors that are CONSTANT in the active scope (drilled on) — chipped
+   * "constant in scope" and excluded from the model. Empty for the global scope.
+   */
+  constantFactors?: ReadonlyArray<string>;
+  /**
+   * Capture-as-Finding affordance. When provided, the band renders a "Capture
+   * model" button; firing it calls back with the kept-factor model snapshot. The
+   * APP creates the Finding + stamps its projection's `modelContext`
+   * (rSquaredAdj / scopeLabel / linkedFactor). Omit to hide.
+   */
+  onCaptureModel?: (snapshot: CapturedModelSnapshot) => void;
 }
 
 /**
@@ -292,6 +332,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   outcomeColumn,
   filterByStepId,
   planningProps,
+  modelBuilderProps,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const locale = useWallLocale();
@@ -363,12 +404,25 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   // `computeWallLayout` with the SAME inputs to recover identical positions.
   // The args mirror the render path's filteredHubs + tributaryGroups so the
   // authority and the DOM never drift.
+  // FE-1: the candidate factors feed the IM-4c `factorPositions` hook so the
+  // model-builder band anchors in the shared coordinate space (no forked
+  // viewport). Contribution here is a stable index-based placeholder — the band
+  // itself owns the real best-subset stats; the layout only needs ordered keys.
+  const layoutFactors = useMemo(
+    () =>
+      (modelBuilderProps?.candidateFactors ?? []).map((key, i) => ({
+        key,
+        contribution: -i, // preserve input order (desc sort in computeWallLayout)
+      })),
+    [modelBuilderProps?.candidateFactors]
+  );
   const wallLayout = useMemo(
     () =>
       computeWallLayout(
         buildWallLayoutArgs({
           hubs: filteredHubs,
           findings,
+          factors: layoutFactors,
           processMap,
           // tributaryGroups already encodes the groupByTributary && processMap
           // gate; pass the boolean so the shared bucketing rule reproduces it.
@@ -377,7 +431,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           canvasH: CANVAS_H,
         })
       ),
-    [filteredHubs, findings, processMap, tributaryGroups]
+    [filteredHubs, findings, layoutFactors, processMap, tributaryGroups]
   );
 
   // IM-4c Focus lens (ADR-086) — a SINGLE viewStore field drives the dimming in
@@ -393,6 +447,51 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     },
     [focusedWallEntityId, wallLayout.edges]
   );
+
+  // FE-1 model-builder band (spec §3). Anchored in the factor-band zone from the
+  // IM-4c layout authority (first factorPosition x), placed ABOVE the
+  // TributaryFooter so the two coexist: the footer shows process-map tributary
+  // COVERAGE; this band shows best-subset STATS. View-state only — nothing
+  // persists until capture-as-Finding.
+  //
+  // Computed here (before the EmptyState short-circuit) so it can mount BOTH in
+  // the normal body AND at cold start: a fresh drilled scope with candidate
+  // factors but no hubs/orphans yet is exactly when an analyst screens, so the
+  // screening tool must not be hidden behind the zero-hub EmptyState (spec §3
+  // "screen-first"). The `factorPositions` come from candidateFactors, not hubs,
+  // so the anchor exists even with zero hubs.
+  const modelBuilderBand = useMemo(() => {
+    if (!modelBuilderProps || !outcomeColumn || modelBuilderProps.candidateFactors.length === 0) {
+      return null;
+    }
+    // The band re-ranks on the ACTIVE scope (the drilled subset). Prefer the
+    // explicit scopeRows; fall back to the Wall's window rows.
+    const bandRows = modelBuilderProps.scopeRows
+      ? [...modelBuilderProps.scopeRows]
+      : rows
+        ? [...rows]
+        : [];
+    if (bandRows.length === 0) return null;
+    const firstFactor = wallLayout.factorPositions.values().next().value;
+    const bandX = firstFactor?.x ?? 120;
+    const PANEL_W = 460;
+    const PANEL_H = 300;
+    const factorBandY = firstFactor?.y ?? 1300;
+    return (
+      <ModelBuilderBand
+        rows={bandRows as DataRow[]}
+        candidateFactors={modelBuilderProps.candidateFactors}
+        outcome={outcomeColumn}
+        scopeLabel={modelBuilderProps.scopeLabel}
+        constantFactors={modelBuilderProps.constantFactors}
+        x={Math.max(40, bandX - 40)}
+        y={factorBandY - PANEL_H - 40}
+        width={PANEL_W}
+        height={PANEL_H}
+        onCaptureModel={modelBuilderProps.onCaptureModel}
+      />
+    );
+  }, [modelBuilderProps, outcomeColumn, rows, wallLayout.factorPositions]);
   const handleFocusNode = useCallback(
     (nodeId: string) => setFocusedWallEntity(nodeId),
     [setFocusedWallEntity]
@@ -496,11 +595,37 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   // findings (linked to no hub) are a "home on the Wall" (IM-4c) — they keep the
   // SVG body mounted so the orphan lane + propose-hypothesis affordance render
   // even before the first hub exists.
+  //
+  // FE-1 (spec §3, screen-first): when there are no hubs/orphans yet but the
+  // scope HAS candidate factors, render the model-builder band ALONGSIDE the
+  // EmptyState CTA — screening factors is exactly what an analyst does before
+  // the first hypothesis, so the band must not be hidden behind the zero-hub
+  // empty state. When there are genuinely no candidates, the normal EmptyState
+  // CTA stands alone (no regression).
   if (
     mode === 'destination' &&
     filteredHubs.length === 0 &&
     wallLayout.orphanFindingIds.length === 0
   ) {
+    if (modelBuilderBand) {
+      return (
+        <div className="w-full h-full flex flex-col" data-testid="wall-cold-start-with-band">
+          <svg
+            viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
+            preserveAspectRatio="xMidYMid meet"
+            className="bg-background text-content flex-1"
+            role="img"
+            aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
+          >
+            {modelBuilderBand}
+          </svg>
+          <EmptyState
+            onWriteHypothesis={onWriteHypothesis}
+            onSeedFromFactorIntel={onSeedFromFactorIntel}
+          />
+        </div>
+      );
+    }
     return (
       <EmptyState
         onWriteHypothesis={onWriteHypothesis}
@@ -823,6 +948,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
               })}
             </g>
           )}
+
+          {/* FE-1 model-builder band (spec §3) — see the memoized `modelBuilderBand`. */}
+          {modelBuilderBand}
 
           {processMap && (
             <TributaryFooter

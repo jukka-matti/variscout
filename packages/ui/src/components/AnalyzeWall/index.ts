@@ -1,5 +1,9 @@
 export { WallCanvas } from './WallCanvas';
-export type { WallCanvasProps, WallCanvasPlanningProps } from './WallCanvas';
+export type {
+  WallCanvasProps,
+  WallCanvasPlanningProps,
+  WallCanvasModelBuilderProps,
+} from './WallCanvas';
 export { ProblemConditionCard } from './ProblemConditionCard';
 export type { ProblemConditionCardProps } from './ProblemConditionCard';
 export { HypothesisCard } from './HypothesisCard';
@@ -14,6 +18,8 @@ export { NarratorRail } from './NarratorRail';
 export type { NarratorRailProps, NarratorMessage } from './NarratorRail';
 export { TributaryFooter } from './TributaryFooter';
 export type { TributaryFooterProps } from './TributaryFooter';
+export { ModelBuilderBand } from './ModelBuilderBand';
+export type { ModelBuilderBandProps, CapturedModelSnapshot } from './ModelBuilderBand';
 export { MissingEvidencePanel } from './MissingEvidencePanel';
 export type { MissingEvidencePanelProps } from './MissingEvidencePanel';
 export { EmptyState } from './EmptyState';

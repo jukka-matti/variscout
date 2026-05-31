@@ -316,4 +316,90 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
       expect(capturedWallCanvasProps.current?.planningProps).toBeUndefined();
     });
   });
+
+  // FE-1 — the model-builder band is wired through AnalyzeView into WallCanvas.
+  // WallCanvas is mocked (capturedWallCanvasProps), so we assert the APP-OWNED
+  // seam: AnalyzeView builds modelBuilderProps from the store outcome + the
+  // factors prop, threads the scope rows, and routes onCaptureModel to
+  // findingsState (Finding + projection.modelContext). Dead wiring fails these.
+  describe('model-builder band wiring (FE-1)', () => {
+    beforeEach(() => {
+      capturedWallCanvasProps.current = null;
+      useCanvasViewportStore.getState().setViewMode('wall');
+      useProjectStore.setState({ outcome: 'Y' });
+    });
+
+    it('threads modelBuilderProps (candidateFactors + scopeLabel + onCaptureModel) to WallCanvas', () => {
+      render(
+        <AnalyzeView
+          {...makeMinimalProps({
+            factors: ['Shift', 'Noise'],
+            filteredData: [{ Shift: 'A', Y: 1 }],
+          })}
+        />
+      );
+      const mbp = capturedWallCanvasProps.current?.modelBuilderProps as
+        | Record<string, unknown>
+        | undefined;
+      expect(mbp).toBeDefined();
+      expect(mbp!.candidateFactors).toEqual(['Shift', 'Noise']);
+      expect(mbp!.scopeLabel).toBe('All data');
+      expect(typeof mbp!.onCaptureModel).toBe('function');
+    });
+
+    it('does NOT thread modelBuilderProps when no factors are provided', () => {
+      render(<AnalyzeView {...makeMinimalProps({ factors: [] })} />);
+      expect(capturedWallCanvasProps.current?.modelBuilderProps).toBeUndefined();
+    });
+
+    it('onCaptureModel creates a Finding + stamps the model snapshot into projection.modelContext', () => {
+      const addFinding = vi.fn(() => ({ id: 'f-model', text: '' }) as never);
+      const setProjection = vi.fn();
+      const findingsState = {
+        findings: [],
+        addFinding,
+        setProjection,
+        editFinding: vi.fn(),
+        deleteFinding: vi.fn(),
+        setFindingTag: vi.fn(),
+        addFindingComment: vi.fn(),
+        addAction: vi.fn(),
+        completeAction: vi.fn(),
+        deleteAction: vi.fn(),
+      } as never;
+      render(
+        <AnalyzeView
+          {...makeMinimalProps({
+            factors: ['Shift'],
+            filteredData: [{ Shift: 'A', Y: 1 }],
+            findingsState,
+          })}
+        />
+      );
+      const onCaptureModel = (
+        capturedWallCanvasProps.current!.modelBuilderProps as Record<string, unknown>
+      ).onCaptureModel as (s: {
+        factors: string[];
+        rSquaredAdj: number;
+        perFactorP: Record<string, number>;
+        scopeLabel: string;
+        topFactor: string | null;
+      }) => void;
+      onCaptureModel({
+        factors: ['Shift'],
+        rSquaredAdj: 0.71,
+        perFactorP: { Shift: 0.002 },
+        scopeLabel: 'All data',
+        topFactor: 'Shift',
+      });
+      expect(addFinding).toHaveBeenCalledTimes(1);
+      expect(setProjection).toHaveBeenCalledTimes(1);
+      const [, projection] = setProjection.mock.calls[0] as [
+        string,
+        { modelContext?: Record<string, unknown> },
+      ];
+      expect(projection.modelContext?.rSquaredAdj).toBeCloseTo(0.71, 10);
+      expect(projection.modelContext?.linkedFactor).toBe('Shift');
+    });
+  });
 });

@@ -29,8 +29,9 @@ import {
 } from '@variscout/ui';
 import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
 import { useResizablePanel, useReturnNavigation, type UseFindingsReturn } from '@variscout/hooks';
-import type { WallCanvasPlanningProps } from '@variscout/ui';
-import { type FindingStatus, type Hypothesis } from '@variscout/core';
+import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
+import type { CapturedModelSnapshot } from '@variscout/ui';
+import { type FindingStatus, type Hypothesis, type FindingProjection } from '@variscout/core';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { detectColumns } from '@variscout/core/parser';
@@ -73,6 +74,8 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   activeIPScope,
   activeIPLineage,
   canvasViewportHubId,
+  filteredData,
+  factors,
   findingsState,
   handleRestoreFinding,
   handleSetFindingStatus,
@@ -198,6 +201,69 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   const handleProposeHypothesis = useCallback((findingId: string) => {
     useAnalyzeStore.getState().createHubFromFinding(findingId);
   }, []);
+
+  // ── FE-1 — scope-level vital-few model-builder band ──────────────────────
+  // The PWA scope = the active-IP filtered data; factors are the candidates.
+  // Capture-as-Finding stamps the model snapshot into the Finding's
+  // projection.modelContext (rSquaredAdj / scopeLabel / linkedFactor).
+  const handleCaptureModel = useCallback(
+    (snapshot: CapturedModelSnapshot) => {
+      const r2adjLabel = Number.isFinite(snapshot.rSquaredAdj)
+        ? snapshot.rSquaredAdj.toFixed(2)
+        : '—';
+      const finding = findingsState.addFinding(
+        `Model: ${snapshot.factors.join(', ')} accounts for the spread (R²adj ${r2adjLabel}) in ${snapshot.scopeLabel}`,
+        { activeFilters: {}, cumulativeScope: null }
+      );
+      const projection: FindingProjection = {
+        baselineMean: 0,
+        baselineSigma: 0,
+        projectedMean: 0,
+        projectedSigma: 0,
+        meanDelta: 0,
+        sigmaDelta: 0,
+        simulationParams: { meanAdjustment: 0, variationReduction: 0, presetUsed: 'model-capture' },
+        createdAt: new Date().toISOString(),
+        modelContext: {
+          linkedFactor: snapshot.topFactor ?? undefined,
+          rSquaredAdj: snapshot.rSquaredAdj,
+          scopeLabel: snapshot.scopeLabel,
+        },
+      };
+      findingsState.setProjection(finding.id, projection);
+    },
+    [findingsState]
+  );
+  const modelBuilderProps = useMemo<WallCanvasModelBuilderProps | undefined>(() => {
+    if (!outcome || factors.length === 0) return undefined;
+    // Parity with Azure's drilled-constant chipping: the PWA does not surface
+    // `categoricalFilters` here, but `filteredData` is already the drilled subset
+    // — a candidate factor that is single-valued across that subset IS constant
+    // in scope (the data realization of Azure's "drilled to one value" rule).
+    const constantFactors =
+      filteredData.length > 0
+        ? factors.filter(f => {
+            let seen: unknown;
+            let multi = false;
+            for (const row of filteredData) {
+              const v = row[f];
+              if (seen === undefined) seen = v;
+              else if (v !== seen) {
+                multi = true;
+                break;
+              }
+            }
+            return !multi && seen !== undefined;
+          })
+        : [];
+    return {
+      candidateFactors: factors,
+      scopeLabel: activeIPScope?.title ?? 'All data',
+      scopeRows: filteredData,
+      constantFactors,
+      onCaptureModel: handleCaptureModel,
+    };
+  }, [outcome, factors, filteredData, activeIPScope, handleCaptureModel]);
 
   // Categorize hypothesis hubs for AnalyzeConclusion (IM-1: status-derived,
   // replacing the retired Question causeRole split).
@@ -358,6 +424,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 pan={wallPan}
                 groupByTributary={Boolean(processMap && wallGroupByTributary)}
                 planningProps={planningProps}
+                modelBuilderProps={modelBuilderProps}
                 onProposeHypothesis={handleProposeHypothesis}
               />
               {/* Minimap + CommandPalette are desktop-only. WallCanvas

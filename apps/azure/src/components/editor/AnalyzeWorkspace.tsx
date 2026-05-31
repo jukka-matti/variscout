@@ -43,6 +43,7 @@ import {
   computeInteractionEffects,
   categoricalFiltersToActiveFilters,
   buildConditionFromCategoricalFilters,
+  formatConditionLeaves,
   predicateSetKey,
   parseMentions,
 } from '@variscout/core';
@@ -64,7 +65,9 @@ import {
   usePreferencesStore,
   useCanvasViewportStore,
 } from '@variscout/stores';
-import type { WallCanvasPlanningProps } from '@variscout/ui';
+import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
+import type { CapturedModelSnapshot } from '@variscout/ui';
+import type { FindingProjection } from '@variscout/core';
 import { AnalyzeMapView } from './AnalyzeMapView';
 import { CoScoutSection } from './CoScoutSection';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
@@ -260,6 +263,63 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     () => (outcome ? (measureSpecs[outcome] ?? specs) : undefined),
     [measureSpecs, outcome, specs]
   );
+
+  // ── FE-1 — scope-level vital-few model-builder band ──────────────────────
+  // The band runs on the ACTIVE scope: filteredData (the drilled subset) +
+  // factors (candidates) + outcome Y. Factors drilled to a single value are
+  // constant in scope → chipped + excluded. Capture-as-Finding creates a Finding
+  // carrying the model snapshot in its projection.modelContext (LOCKED #4).
+  const handleCaptureModel = useCallback(
+    (snapshot: CapturedModelSnapshot) => {
+      const activeFilters = categoricalFiltersToActiveFilters(
+        useAnalysisScopeStore.getState().categoricalFilters
+      );
+      const factorList = snapshot.factors.join(', ');
+      const r2adjLabel = Number.isFinite(snapshot.rSquaredAdj)
+        ? snapshot.rSquaredAdj.toFixed(2)
+        : '—';
+      const finding = findingsState.addFinding(
+        `Model: ${factorList} accounts for the spread (R²adj ${r2adjLabel}) in ${snapshot.scopeLabel}`,
+        { activeFilters, cumulativeScope: null }
+      );
+      // Snapshot the model into the Finding's projection.modelContext (the
+      // canonical home — rSquaredAdj / scopeLabel / linkedFactor). This is a
+      // model snapshot, not a What-If, so baseline == projected (no delta).
+      const projection: FindingProjection = {
+        baselineMean: 0,
+        baselineSigma: 0,
+        projectedMean: 0,
+        projectedSigma: 0,
+        meanDelta: 0,
+        sigmaDelta: 0,
+        simulationParams: { meanAdjustment: 0, variationReduction: 0, presetUsed: 'model-capture' },
+        createdAt: new Date().toISOString(),
+        modelContext: {
+          linkedFactor: snapshot.topFactor ?? undefined,
+          rSquaredAdj: snapshot.rSquaredAdj,
+          scopeLabel: snapshot.scopeLabel,
+        },
+      };
+      findingsState.setProjection(finding.id, projection);
+    },
+    [findingsState]
+  );
+  const modelBuilderProps = useMemo<WallCanvasModelBuilderProps | undefined>(() => {
+    if (!outcome || factors.length === 0) return undefined;
+    // Single-value drill columns that are also factors are constant in scope.
+    const constantFactors = categoricalFilters
+      .filter(f => f.values.length === 1 && factors.includes(f.column))
+      .map(f => f.column);
+    const scopeLabel = activeScope ? formatConditionLeaves(activeScope.predicates) : 'All data';
+    return {
+      candidateFactors: factors,
+      scopeLabel,
+      // The band re-ranks on the ACTIVE scope (drilled subset), not rawData.
+      scopeRows: filteredData,
+      constantFactors,
+      onCaptureModel: handleCaptureModel,
+    };
+  }, [outcome, factors, filteredData, categoricalFilters, activeScope, handleCaptureModel]);
 
   // ── IM-4b Task 5 — multi-scope rail ──────────────────────────────────────
   // Active (non-archived) scopes for the current investigation + outcome.
@@ -1026,6 +1086,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   pan={wallPan}
                   groupByTributary={Boolean(processMap && wallGroupByTributary)}
                   planningProps={enrichedPlanningProps}
+                  modelBuilderProps={modelBuilderProps}
                   onProposeHypothesis={handleProposeHypothesis}
                 />
                 {/* Minimap + CommandPalette are desktop-only. WallCanvas

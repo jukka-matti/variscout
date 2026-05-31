@@ -1008,6 +1008,27 @@ export interface MessageCatalog {
   'wall.missing.expanded': string;
   'wall.canvas.ariaLabel': string;
   'wall.cta.proposeHypothesis': string;
+  // Model-builder band (Factors & Evaluation Increment 1)
+  'wall.model.bandAriaLabel': string;
+  'wall.model.title': string;
+  'wall.model.keptHeading': string;
+  'wall.model.candidatesHeading': string;
+  'wall.model.vitalFewLine': string;
+  'wall.model.rSquaredAdj': string;
+  'wall.model.factorP': string;
+  'wall.model.useSuggested': string;
+  'wall.model.addToModel': string;
+  'wall.model.removeFromModel': string;
+  'wall.model.fitOnlyDot': string;
+  'wall.model.fitOnlyTooltip': string;
+  'wall.model.redundancy': string;
+  'wall.model.redundancyDismiss': string;
+  'wall.model.vifTooltip': string;
+  'wall.model.tooFewRows': string;
+  'wall.model.constantInScope': string;
+  'wall.model.captureModel': string;
+  'wall.model.empty': string;
+  'wall.model.capturedText': string;
   // Scale features (Phase 13)
   'wall.toolbar.groupByTributary': string;
   'wall.toolbar.zoomIn': string;
