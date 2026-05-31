@@ -1,9 +1,10 @@
 import type { SampleDataset } from '../types';
-import { generateNormal, round } from '../utils';
+import { createNormalGenerator, round } from '../utils';
 
 // Avocado Coating: Regression Analysis (Week 12 Case)
 // Story: More coating = longer shelf life, but operator variation matters
 const generateAvocadoCoatingData = () => {
+  const normal = createNormalGenerator(1101);
   const data: Record<string, unknown>[] = [];
   const coatingLevels = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0];
   const processes = ['Spray', 'Dip'];
@@ -20,7 +21,7 @@ const generateAvocadoCoatingData = () => {
           // Dip process adds ~2 days, Polyethylene adds ~1 day
           const processBonus = process === 'Dip' ? 2 : 0;
           const materialBonus = material === 'Polyethylene' ? 1 : 0;
-          const shelfLife = generateNormal(baseShelfLife + processBonus + materialBonus, 1.5);
+          const shelfLife = normal(baseShelfLife + processBonus + materialBonus, 1.5);
 
           data.push({
             Sample_ID: id++,

@@ -1,9 +1,10 @@
 import type { SampleDataset } from '../types';
-import { generateNormal, round } from '../utils';
+import { createNormalGenerator, round } from '../utils';
 
 // Cookie Weight: Manufacturing Quality Classic
 // Story: Baker's dozen cookies must meet weight spec. Oven 2 runs hot.
 const generateCookieWeightData = () => {
+  const normal = createNormalGenerator(1501);
   const data: Record<string, unknown>[] = [];
   const ovens = ['Oven 1', 'Oven 2', 'Oven 3'];
   const shifts = ['Morning', 'Afternoon', 'Night'];
@@ -22,7 +23,7 @@ const generateCookieWeightData = () => {
           const mean = oven === 'Oven 2' ? 32 : 30;
           // Night shift has more variation (tired operators)
           const std = shift === 'Night' ? 2.5 : 1.5;
-          const weight = generateNormal(mean, std);
+          const weight = normal(mean, std);
 
           data.push({
             Sample_ID: id++,

@@ -1,9 +1,10 @@
 import type { SampleDataset } from '../types';
-import { generateNormal, clamp } from '../utils';
+import { createNormalGenerator, clamp } from '../utils';
 
 // Bottleneck: Process Step Analysis (ESTIEM Training Case)
 // Story: Step 3 was blamed, but Step 2 has 3x the variation
 const generateBottleneckData = () => {
+  const normal = createNormalGenerator(1201);
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
   const shifts = ['Morning', 'Afternoon'];
   const data: Record<string, unknown>[] = [];
@@ -16,7 +17,7 @@ const generateBottleneckData = () => {
           // Step 2 has 3x the variation (std=10 vs std=2-3 for others)
           const mean = step === 2 ? 40 : step === 3 ? 45 : step === 1 ? 32 : step === 4 ? 34 : 30;
           const std = step === 2 ? 10 : 2;
-          const cycleTime = Math.round(generateNormal(mean, std));
+          const cycleTime = Math.round(normal(mean, std));
           data.push({
             Observation: id++,
             Step: `Step ${step}`,

@@ -1,9 +1,10 @@
 import type { SampleDataset } from '../types';
-import { generateNormal, clamp } from '../utils';
+import { createNormalGenerator, clamp } from '../utils';
 
 // Hospital Ward: Aggregation Trap (ABB Practitioner Case)
 // Story: 75% daily average hides 95% night crisis and 45% afternoon waste
 const generateHospitalWardData = () => {
+  const normal = createNormalGenerator(1601);
   const data: Record<string, unknown>[] = [];
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const startDate = new Date('2026-01-01');
@@ -36,7 +37,7 @@ const generateHospitalWardData = () => {
         std = 7;
       }
 
-      const occupancy = Math.round(generateNormal(meanOccupancy, std));
+      const occupancy = Math.round(normal(meanOccupancy, std));
       data.push({
         Date: currentDate.toISOString().split('T')[0],
         Hour: hour,

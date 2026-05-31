@@ -1,5 +1,5 @@
 import type { SampleDataset } from '../types';
-import { seedRandom, generateNormal, round } from '../utils';
+import { createNormalGenerator, round } from '../utils';
 import type { Finding, Hypothesis, AnalyzeCategory } from '@variscout/core';
 import { DEFAULT_TIME_LENS } from '@variscout/core';
 
@@ -47,7 +47,7 @@ const epoch = (hoursOffset: number) => ts(hoursOffset).getTime();
  * - Operator: no significant effect
  */
 function generateFillWeightData(): Record<string, unknown>[] {
-  seedRandom(2026);
+  const normal = createNormalGenerator(2026);
   const lines = ['Line 1', 'Line 2', 'Line 3'];
   const shifts = ['Morning', 'Afternoon', 'Night'];
   const batches = ['Batch A', 'Batch B', 'Batch C', 'Batch D'];
@@ -88,7 +88,7 @@ function generateFillWeightData(): Record<string, unknown>[] {
             // Operator effect: negligible (< 0.1g differences)
             // No systematic operator effect — just noise
 
-            const weight = round(generateNormal(mean, sigma), 1);
+            const weight = round(normal(mean, sigma), 1);
 
             data.push({
               Observation: obs++,

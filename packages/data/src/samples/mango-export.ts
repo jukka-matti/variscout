@@ -1,21 +1,17 @@
 import type { SampleDataset } from '../types';
-import { generateNormal, round } from '../utils';
+import { createNormalGenerator, round } from '../utils';
 
 // Agri-Food: Mango Export Compliance (Common ITC Sector)
 // Scenario: Exporting mangoes to EU requires strict weight classes.
 const generateMangoData = () => {
+  const normal = createNormalGenerator(1801);
   const data: Record<string, unknown>[] = [];
 
   for (let i = 0; i < 150; i++) {
     const farm =
       i < 50 ? 'Farm A (Smallholder)' : i < 100 ? 'Farm B (Co-op)' : 'Farm C (Commercial)';
     // Farm A has higher variance (less standardized)
-    const weight =
-      i < 50
-        ? generateNormal(320, 25)
-        : i < 100
-          ? generateNormal(330, 15)
-          : generateNormal(325, 10);
+    const weight = i < 50 ? normal(320, 25) : i < 100 ? normal(330, 15) : normal(325, 10);
 
     data.push({
       id: i + 1,

@@ -15,19 +15,12 @@
  */
 
 import type { SampleDataset } from '../types';
-import { round } from '../utils';
-
-// Helper to generate normal distribution values
-function normalRandom(mean: number, stdDev: number): number {
-  // Box-Muller transform for normal distribution
-  const u1 = Math.random();
-  const u2 = Math.random();
-  const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-  return mean + z0 * stdDev;
-}
+import { createNormalGenerator, mulberry32, randomChoice, round } from '../utils';
 
 // Generate 100 measurement rows
 function generateOvenData(): Record<string, unknown>[] {
+  const random = mulberry32(2701);
+  const normal = createNormalGenerator(random);
   const data: Record<string, unknown>[] = [];
 
   const products = ['Digestive', 'Shortbread', 'Oat'];
@@ -49,14 +42,14 @@ function generateOvenData(): Record<string, unknown>[] {
   for (let i = 1; i <= 100; i++) {
     const row: Record<string, unknown> = {
       Measurement_ID: i,
-      Product_Type: products[Math.floor(Math.random() * products.length)],
-      Line_Speed: speeds[Math.floor(Math.random() * speeds.length)],
-      Time_of_Day: shifts[Math.floor(Math.random() * shifts.length)],
+      Product_Type: randomChoice(products, random),
+      Line_Speed: randomChoice(speeds, random),
+      Time_of_Day: randomChoice(shifts, random),
     };
 
     // Generate temperature measurements for each zone
     for (const [zoneName, config] of Object.entries(zoneConfigs)) {
-      row[zoneName] = round(normalRandom(config.mean, config.stdDev), 2);
+      row[zoneName] = round(normal(config.mean, config.stdDev), 2);
     }
 
     data.push(row);

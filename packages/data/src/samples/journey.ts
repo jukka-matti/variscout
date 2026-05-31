@@ -1,10 +1,11 @@
 import type { SampleDataset } from '../types';
-import { generateNormal, round } from '../utils';
+import { createNormalGenerator, round } from '../utils';
 
 // Journey: The 46% Story (Website Scroll Experience)
 // Story: Three factors all look ~95% pass rate, but Factor C has 46% of defects
 // Factor C has 3x variation and a pattern shift at observation 15
 const generateJourneyData = () => {
+  const normal = createNormalGenerator(1701);
   const data: Record<string, unknown>[] = [];
   let id = 1;
 
@@ -15,14 +16,14 @@ const generateJourneyData = () => {
 
       if (factor === 'Factor A') {
         // Stable, low variation, centered at 100
-        value = generateNormal(100, 2);
+        value = normal(100, 2);
       } else if (factor === 'Factor B') {
         // Stable, low variation, centered at 100
-        value = generateNormal(100, 2.5);
+        value = normal(100, 2.5);
       } else {
         // Factor C: 3x variation, with a shift at observation 15
         const mean = obs < 15 ? 98 : 103; // Shift upward after obs 15
-        value = generateNormal(mean, 6); // 3x the variation
+        value = normal(mean, 6); // 3x the variation
       }
 
       data.push({
@@ -38,11 +39,12 @@ const generateJourneyData = () => {
 
 // Journey Before: Capability Analysis - BEFORE improvement (Cpk ~0.8)
 const generateJourneyBeforeData = () => {
+  const normal = createNormalGenerator(1702);
   const data: Record<string, unknown>[] = [];
   for (let i = 1; i <= 100; i++) {
     data.push({
       Sample: i,
-      Measurement: round(generateNormal(100, 4.2)), // Cpk ~0.8
+      Measurement: round(normal(100, 4.2)), // Cpk ~0.8
     });
   }
   return data;
@@ -50,11 +52,12 @@ const generateJourneyBeforeData = () => {
 
 // Journey After: Capability Analysis - AFTER improvement (Cpk ~1.5)
 const generateJourneyAfterData = () => {
+  const normal = createNormalGenerator(1703);
   const data: Record<string, unknown>[] = [];
   for (let i = 1; i <= 100; i++) {
     data.push({
       Sample: i,
-      Measurement: round(generateNormal(100, 2.2)), // Cpk ~1.5
+      Measurement: round(normal(100, 2.2)), // Cpk ~1.5
     });
   }
   return data;

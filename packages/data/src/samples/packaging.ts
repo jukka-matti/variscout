@@ -1,9 +1,10 @@
 import type { SampleDataset } from '../types';
-import { generateNormal } from '../utils';
+import { createNormalGenerator } from '../utils';
 
 // Packaging Defects: Product Line Analysis (Africa Case)
 // Story: Product C has systematic underfill problem
 const generatePackagingDefectsData = () => {
+  const normal = createNormalGenerator(1901);
   const data: Record<string, unknown>[] = [];
   const products = ['Product A', 'Product B', 'Product C', 'Product D'];
   const defectTypes = ['Underfill', 'Seal_Failure', 'Label_Error', 'Overfill'];
@@ -17,7 +18,7 @@ const generatePackagingDefectsData = () => {
     for (const product of products) {
       // Product C has 3x defect rate for Underfill
       const baseDefects = product === 'Product C' ? 180 : 55;
-      const defectCount = Math.round(generateNormal(baseDefects, baseDefects * 0.15));
+      const defectCount = Math.round(normal(baseDefects, baseDefects * 0.15));
 
       data.push({
         Date: currentDate.toISOString().split('T')[0],

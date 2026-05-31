@@ -1,9 +1,10 @@
 import type { SampleDataset } from '../types';
-import { generateNormal, round } from '../utils';
+import { createNormalGenerator, round } from '../utils';
 
 // Call Wait Time: Service Center Analysis
 // Story: Queue D (Technical Support) has 3x wait time due to understaffing
 const generateCallWaitTimeData = () => {
+  const normal = createNormalGenerator(1301);
   const data: Record<string, unknown>[] = [];
   const queues = ['Sales', 'Billing', 'General', 'Technical'];
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -18,7 +19,7 @@ const generateCallWaitTimeData = () => {
           const baseMean = queue === 'Technical' ? 12 : 4;
           // Lunch hour (12-13) has longer waits
           const lunchPenalty = hour === 12 || hour === 13 ? 2 : 0;
-          const waitTime = Math.max(0.5, generateNormal(baseMean + lunchPenalty, baseMean * 0.4));
+          const waitTime = Math.max(0.5, normal(baseMean + lunchPenalty, baseMean * 0.4));
 
           data.push({
             Call_ID: id++,

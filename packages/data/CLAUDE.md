@@ -11,6 +11,7 @@ Sample datasets with pre-computed chart data. No logic.
 
 - Current samples: coffee, journey, bottleneck, sachets, manufacturing-defects, nistLongley, weld-defects, injection, and ~16 others. See `packages/data/src/samples/`.
 - Pre-computed chart data (if any) lives alongside the dataset in its file; do not recompute at app startup.
+- Sample generation is deterministic: use local seeded PRNG helpers, not `Math.random()` or `Date.now()`. Computed-chart boundary cleanup is tracked separately as R2b.
 
 ## Test command
 
