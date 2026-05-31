@@ -264,4 +264,70 @@ describe('DashboardLayoutBase', () => {
       expect(screen.queryByTestId('boxplot-factor-dropdown')).toBeNull();
     });
   });
+
+  /**
+   * IM-6 / ADR-089 anti-green-but-dead seam.
+   *
+   * ADR-089 §6.1: the four charts (I-Chart / Boxplot / Pareto / Stats) are
+   * ALWAYS shown and ALWAYS drillable — there is no mode-picker and no
+   * lens-picker gating which chart is visible. The verify card is a single
+   * supplementary diagnostics slot; it must render its content directly
+   * without an extra "pick one of the always-on charts" switcher.
+   *
+   * A regression that hides one of the four charts behind a lens picker, or
+   * that removes the maximize (drill) affordance, fails these assertions.
+   */
+  describe('IM-6 always-on charts + drillability (ADR-089 §6.1)', () => {
+    it('shows all four charts at once with no lens picker gating them', () => {
+      render(
+        <DashboardLayoutBase
+          {...baseProps}
+          renderVerificationCard={<div data-testid="verify-content">Probability plot</div>}
+          // No verificationCardTitle → no SegmentedControl lens switcher.
+        />
+      );
+      // The four always-on charts render simultaneously.
+      expect(screen.getByTestId('chart-ichart')).toBeTruthy();
+      expect(screen.getByTestId('chart-boxplot')).toBeTruthy();
+      expect(screen.getByTestId('chart-pareto')).toBeTruthy();
+      expect(screen.getByTestId('chart-stats')).toBeTruthy();
+      // The verify card renders its diagnostic content directly...
+      expect(screen.getByTestId('verify-content')).toBeTruthy();
+      // ...with no lens-tab SegmentedControl switcher. The apps pass
+      // testId="verify-tab" to the SegmentedControl, which emits one button per
+      // option as `verify-tab-<value>`. None must exist when no title is set.
+      expect(screen.queryByTestId('verify-tab-probability')).toBeNull();
+      expect(screen.queryByTestId('verify-tab-distribution')).toBeNull();
+      expect(screen.queryByTestId('verify-tab-pareto')).toBeNull();
+    });
+
+    it('keeps every chart card individually drillable (maximize affordance)', () => {
+      render(<DashboardLayoutBase {...baseProps} />);
+      // Each chart card exposes a maximize button → setFocusedChart drill.
+      const maximizeButtons = screen.getAllByRole('button', { name: 'Maximize chart' });
+      // I-Chart, Boxplot, Pareto each carry a maximize affordance (Stats panel
+      // uses a different drill surface). At minimum the three chart cards drill.
+      expect(maximizeButtons.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('drilling a chart swaps the grid for the focused view', () => {
+      const setFocusedChart = vi.fn();
+      const { rerender } = render(
+        <DashboardLayoutBase {...baseProps} setFocusedChart={setFocusedChart} />
+      );
+      fireEvent.click(screen.getAllByRole('button', { name: 'Maximize chart' })[0]);
+      expect(setFocusedChart).toHaveBeenCalled();
+
+      // With a focused chart + focused view slot, the grid yields to the drill.
+      rerender(
+        <DashboardLayoutBase
+          {...baseProps}
+          focusedChart="ichart"
+          renderFocusedView={<div data-testid="focused-drill">Drilled I-Chart</div>}
+        />
+      );
+      expect(screen.getByTestId('focused-drill')).toBeTruthy();
+      expect(screen.queryByTestId('chart-boxplot')).toBeNull();
+    });
+  });
 });
