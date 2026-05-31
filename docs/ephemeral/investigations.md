@@ -26,6 +26,29 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Hypothesis-stage walkthrough — Wall honesty bugs + test-plan-triad gaps + "confirm" terminology [LOGGED 2026-05-31]
+
+**Surfaced by:** the grounded hypothesis-stage analyst walkthrough (3-lens exploration) during the "Factors & Evaluation" V-next design. Splits into (a) two shipped-state honesty BUGS worth a small near-term PR, (b) the V-next initiative's design gaps, (c) a terminology follow-up.
+
+**(a) Shipped-state bugs — cheap, fix-soon (a "Wall honesty" PR):**
+
+1. **Auto-link re-ingest Finding over-credits progress.** The breadcrumb auto-Finding (`autoLink/engine.ts:85-108`) is `evidenceType:'data'`, source-less, with **no `validationStatus`**. In `projectMechanismBranch` (`mechanismBranch.ts:148-153`) the bucketing is `contradicts`→counter, `inconclusive`→not-tested, **else→supporting** — so the no-`validationStatus` auto-Finding falls into `else`, lands as a supporting clue, and silently bumps a hypothesis **`proposed→evidenced` on data-arrival alone** (before the analyst tests anything). To an MBB this reads as "the tool thinks I have evidence" when a column merely showed up. **Fix:** stamp the auto-Finding `validationStatus:'inconclusive'` → routes to not-tested → card says "data arrived, not yet tested." One-line, outsized honesty payoff.
+2. **PWA can't reach the top status tier.** `onRecordDisconfirmation` is wired in Azure (`Editor.tsx:~699`) but **omitted from PWA `wallPlanningProps`** (`apps/pwa/src/App.tsx:~845-925`), so a PWA hypothesis can never record a survived disconfirmation → never leaves `needs-disconfirmation`. Wire it (mirrors the Azure block).
+
+**(b) Terminology — "confirmed" overclaims (separate follow-up, user-raised 2026-05-31):** falsification logic never _confirms_ a hypothesis; the gate literally computes "≥2 evidence types **+ a survived disconfirmation attempt**", so the `confirmed` label contradicts its own logic and cuts against contribution-not-causation. Proposed honest lifecycle: `proposed → evidenced → **corroborated** / refuted` (Popper's term; or plainer "withstood challenge" / "well-supported" — user picks). The **user-facing relabel is cheap** and can ride the (a) honesty PR (same "stop overstating certainty" theme); the **code-identifier rename** (`'confirmed'` across the `HypothesisStatus` union + `survey/wall.ts` messages + 32-locale i18n) is a wider deferred sweep. Decide the term with the user (domain call) before the rename.
+
+**(c) V-next design gaps → the "Factors & Evaluation" initiative spec (not bugs):**
+
+- **The per-factor test-plan triad is unbuilt** (the initiative's core): `deriveBranchColumns(hub, findings)` (`mechanismBranch.ts:93-106`) already computes the cause's relevant factors but the UI discards them at the card boundary; there is no tool-per-data-type suggestion (categorical→boxplot+2-sample, continuous→scatter+regression, spread→Cp/Cpk — `deriveMiniChartConfig` only picks i-chart-vs-boxplot descriptively, no scatter/regression/Cpk branch), no per-factor data-readiness join, and no one-tap "evaluate" → run test → attach a TYPED (support/counts-against) Finding.
+- **Per-hypothesis What-If Cpk is built but invisible.** `computeScopeWhatIfProjection` + `computeConditionCoverage` (`variation/scopeContribution.ts`, non-additive by enforced design) are correct but not surfaced on the card; confounds are adjudicated by clue-counts today, not by "fix-H1→Cpk 1.4 vs fix-H5→Cpk 1.1." Surfacing it is high-leverage (it's also the "expected gain" that carries to Improve).
+- **Confound sign is manual + easy to miss:** a finding linked via `findingIds` defaults to _supporting_ unless explicitly tagged `contradicts`/added to `counterFindingIds`, so the losing side of an opposite-signed confound won't auto-refute.
+- **Brush-to-finding is descriptive, not inferential:** `BrushToFindingFlow.tsx:128-129` pins a statistic-free text finding (no `evidenceType`/`refutes`/`validationStatus`) → inflates supporting count without a test.
+- Minor: `AddPlanForm` `primaryFactor` is free-text (`AddPlanForm.tsx:~71`) not pre-filled from derived factors (drift); vertical card stacking uses magic-number `foreignObject` heights (cramped at 3–4 active cards); `DisconfirmationAttempt.linkedFindingIds` is always `[]` (no falsification evidence attached — "survived→corroborated" can be asserted without data). `FindingProjectionModelContext` already carries `rSquaredAdj`/`scopeLabel`/`linkedFactor` — the hook for saving the concluded model into the finding (per the settled capture-as-Finding decision).
+
+**Promotion path:** (a)+(b user-facing relabel) → a small "Wall honesty" PR (single-implementer). (b code rename) → its own atomic-rename PR. (c) → the "Factors & Evaluation" initiative spec + master-plan (test triad + model-builder + What-If-on-card + Improve handoff). Related: [adr-086](../07-decisions/adr-086-unified-investigation-canvas.md) Amendment 2026-05-31, decision-log 2026-05-31, [[investigation-surface-build]].
+
+**Severity:** (a) medium (trust/honesty, cheap); (b) low (terminology, real but non-blocking); (c) the initiative itself.
+
 ### Stored-vs-derived `hub.status` split (IM-4a adversarial review) [LOGGED 2026-05-30]
 
 **Surfaced by:** IM-4a adversarial review. IM-4a makes `WallCanvas` + `MobileCardList` call `deriveHypothesisStatus` (the live Survey-rule derivation) rather than reading `hub.status`. This creates a structural split: the Wall derives status correctly, but ~8 other readers across the codebase still trust the stored `hub.status` field.
