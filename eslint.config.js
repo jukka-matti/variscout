@@ -103,6 +103,21 @@ export default [
       },
     },
   },
+  // TypeScript tooling scripts run in Node and must be parsed as TypeScript.
+  {
+    files: ['scripts/**/*.ts', 'packages/*/scripts/**/*.ts'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.node,
+        ...globals.es2021,
+      },
+    },
+  },
   // Package-level boundary rules (ADR-045: DDD-Lite + FSD)
   // Prevents circular dependencies and upward imports in the monorepo.
   // Uses eslint-plugin-boundaries v6 with object-based selector syntax.

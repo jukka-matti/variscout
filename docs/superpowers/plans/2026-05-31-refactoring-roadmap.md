@@ -13,7 +13,7 @@ layer: spec
 
 **Goal:** Reduce product-code and tooling risk through small, evidence-backed refactoring slices.
 
-**Architecture:** Treat the refactor stream as ordered PR slices. Enforcement and boundary hygiene landed first; deterministic sample data is next, followed by shared workflow/state abstractions. High-risk store/persistence reshaping stays deferred until the relevant decisions are explicit.
+**Architecture:** Treat the refactor stream as ordered PR slices. Enforcement and boundary hygiene landed first; deterministic sample data followed as R2a/R2b, then shared workflow/state abstractions. High-risk store/persistence reshaping stays deferred until the relevant decisions are explicit.
 
 **Tech Stack:** TypeScript monorepo, pnpm, Turbo, ESLint flat config, Vitest, Vite, Zustand, Dexie/IDB, `@variscout/{core,data,stores,hooks,charts,ui}`, `apps/{pwa,azure}`.
 
@@ -77,14 +77,14 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R2 — Deterministic Sample Data
 
-**Status:** Active. Split into R2a deterministic sample generation and R2b computed-chart boundary extraction.
+**Status:** R2a shipped via PR #266. R2b is implemented by the [static computed fixture slice](2026-05-31-r2b-static-computed-fixtures.md).
 
 **Goal:** Restore `@variscout/data` to a deterministic data-only package.
 
 **Candidate changes:**
 
-- Replace runtime `Math.random()` / `Date.now()` sample generation with static fixtures or seeded generation.
-- Move reusable runtime computation out of `@variscout/data` and into `@variscout/core` or build-time generation. **Deferred to R2b.**
+- Replace runtime `Math.random()` / `Date.now()` sample generation with static fixtures or seeded generation. **Done in R2a.**
+- Move reusable runtime computation out of `@variscout/data` and into build-time static fixture generation. **Done in R2b.**
 - Reuse core/chart types where sample DTOs currently duplicate domain types.
 
 **Evidence anchors:** `packages/data/CLAUDE.md`, `packages/data/src/computed/index.ts`, `packages/data/src/types.ts`, sample files under `packages/data/src/samples/`.
@@ -171,9 +171,9 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ## Next Recommended Execution
 
-Continue with **R2a**:
+After R2b lands, re-check whether the remaining R3 direct store-mutation guard is still worth a small slice. If not, continue with **R4**:
 
-1. Replace remaining unseeded sample generation with local seeded PRNGs and fixed timestamps.
-2. Add a data-package determinism guard test.
-3. Keep `@variscout/data/computed` as-is; decide its final home in R2b.
+1. Introduce shared workflow-tab configuration and a props-based `WorkflowNav` surface in `@variscout/ui`.
+2. Move duplicated active-IP derivation into `@variscout/hooks` with app-specific adapter inputs.
+3. Keep app shell behavior unchanged; verify PWA and Azure navigation/state wiring separately.
 4. Run `bash scripts/pr-ready-check.sh`.

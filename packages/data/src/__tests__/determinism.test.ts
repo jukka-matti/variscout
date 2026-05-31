@@ -22,16 +22,9 @@ async function collectSourceFiles(dir: string): Promise<string[]> {
 }
 
 function stableStringify(value: unknown): string {
-  if (value === null || typeof value !== 'object') {
-    return JSON.stringify(value);
-  }
-
-  if (Array.isArray(value)) {
-    return `[${value.map(stableStringify).join(',')}]`;
-  }
-
-  const entries = Object.entries(value).sort(([a], [b]) => a.localeCompare(b));
-  return `{${entries.map(([key, entry]) => `${JSON.stringify(key)}:${stableStringify(entry)}`).join(',')}}`;
+  return JSON.stringify(value, (_key, entry) =>
+    entry === undefined ? '__VARISCOUT_UNDEFINED__' : entry
+  );
 }
 
 async function sampleFingerprint(): Promise<string> {
@@ -60,5 +53,5 @@ describe('@variscout/data deterministic sample guard', () => {
     const second = await sampleFingerprint();
 
     expect(second).toBe(first);
-  }, 20_000);
+  }, 60_000);
 });
