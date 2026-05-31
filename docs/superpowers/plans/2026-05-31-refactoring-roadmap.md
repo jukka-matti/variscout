@@ -125,12 +125,14 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R5 — Thin App-Feature Factories
 
+**Status:** R5a thin app-feature factories shipped in PR #270. R5b is the focused data-ingestion action-bag extraction.
+
 **Goal:** Remove low-risk PWA/Azure duplication without forcing a shell rewrite.
 
 **Candidate changes:**
 
-- Extract byte-identical Analyze and Findings feature-store construction into shared factory helpers while keeping app-owned singleton wrappers under `apps/*/src/features/`.
-- Expose those helpers through a narrow subpath such as `@variscout/stores/feature-factories`; do not export app-feature factories from the root `@variscout/stores` barrel.
+- Extract byte-identical Analyze and Findings feature-store construction into shared factory helpers while keeping app-owned singleton wrappers under `apps/*/src/features/`. **Done in R5a.**
+- Expose those helpers through a narrow subpath such as `@variscout/stores/feature-factories`; do not export app-feature factories from the root `@variscout/stores` barrel. **Done in R5a.**
 - Share data-ingestion action-bag construction in a follow-up slice, with app-specific limits and persistence adapters still app-owned.
 - Normalize Improve-tab action-item creation/default stamping in a separate follow-up slice if the feature-store factory PR is already non-trivial.
 - Consider shared Project/Control lifecycle view-models behind repository adapters only after the smaller extractions land.
@@ -185,10 +187,10 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ## Next Recommended Execution
 
-After R4, continue with a focused **R5a thin app-feature factory slice** rather than opening the higher-risk R6/R7 store and snapshot work:
+After R5a, continue with a focused **R5b data-ingestion action-bag slice** rather than opening the higher-risk R6/R7 store and snapshot work:
 
-1. Extract only the byte-identical Analyze/Findings feature-store factories and pure helpers first.
-2. Keep app-local singleton wrappers and existing app import surfaces intact where possible.
-3. Use a stores subpath for factory helpers; keep the root stores index focused on canonical shared stores.
-4. Write a dedicated R5a implementation plan before code, with explicit non-goals for orchestration unification, full shell unification, data-ingestion follow-up work, Improve action-item normalization, and ReportView merging.
-5. Run targeted app/store tests plus `bash scripts/pr-ready-check.sh`.
+1. Extract only the duplicated `useDataIngestion` action-bag binding into `@variscout/hooks`.
+2. Keep PWA/Azure wrappers responsible for app-specific row limits and capability policy.
+3. Do not change parsing, validation, sample loading, time extraction, persistence adapters, or app shells.
+4. Write focused hook-level tests for the shared action binding and rely on app builds for wrapper integration.
+5. Run targeted hook/app checks plus `bash scripts/pr-ready-check.sh`.
