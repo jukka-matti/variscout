@@ -77,7 +77,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R2 — Deterministic Sample Data
 
-**Status:** R2a shipped via PR #266. R2b is implemented by the [static computed fixture slice](2026-05-31-r2b-static-computed-fixtures.md).
+**Status:** R2a shipped via PR #266. R2b shipped via PR #267 using the [static computed fixture slice](2026-05-31-r2b-static-computed-fixtures.md).
 
 **Goal:** Restore `@variscout/data` to a deterministic data-only package.
 
@@ -93,6 +93,8 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R3 — Store Invariants and Boundary Tests
 
+**Status:** Mostly shipped through PR #264 and follow-up alignment on `main`: the 10-store / View x2 decision is reflected in `AGENTS.md`, ADR-078, `packages/stores/CLAUDE.md`, and dynamic store discovery. The remaining direct `setState` guard needs a sharper rule before enforcement.
+
 **Goal:** Make store-layer truth explicit and mechanically guarded.
 
 **Candidate changes:**
@@ -106,6 +108,8 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 **Effort:** S-M. **Risk:** low-medium. **Timing:** soon.
 
 ### R4 — Shared Workflow Navigation and Active-IP Derivation
+
+**Status:** Shipped in PR #268, including canonical shared workflow-nav test IDs.
 
 **Goal:** Reduce drift in the V1 7-tab workflow and Project-scoped active-IP cascade.
 
@@ -171,9 +175,9 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ## Next Recommended Execution
 
-After R2b lands, re-check whether the remaining R3 direct store-mutation guard is still worth a small slice. If not, continue with **R4**:
+After R4, continue with a focused **R5 thin-adapter slice** rather than opening the higher-risk R6/R7 store and snapshot work:
 
-1. Introduce shared workflow-tab configuration and a props-based `WorkflowNav` surface in `@variscout/ui`.
-2. Move duplicated active-IP derivation into `@variscout/hooks` with app-specific adapter inputs.
-3. Keep app shell behavior unchanged; verify PWA and Azure navigation/state wiring separately.
-4. Run `bash scripts/pr-ready-check.sh`.
+1. Re-check PWA/Azure duplication around analyze/findings feature-store wiring and data-ingestion action-bag construction.
+2. Pick one narrow seam with identical behavior in both apps; keep persistence adapters and app shells app-owned.
+3. Write a dedicated R5 implementation plan before code, with explicit non-goals for full shell unification and ReportView merging.
+4. Run targeted app tests plus `bash scripts/pr-ready-check.sh`.
