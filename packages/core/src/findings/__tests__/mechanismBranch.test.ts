@@ -129,6 +129,32 @@ describe('projectMechanismBranch', () => {
     expect(branch.readiness).toEqual({ value: 'needs-check', label: 'Needs check' });
   });
 
+  it('routes an inconclusive auto-link breadcrumb to not-tested, NOT supporting (honesty guard)', () => {
+    // Mirrors what the re-ingest auto-link engine produces: a bare "data arrived"
+    // Finding stamped validationStatus:'inconclusive'. It must NOT count as a
+    // supporting clue (which would silently bump the hypothesis proposed→evidenced
+    // on arrival alone). If the engine ever stops stamping 'inconclusive', this
+    // breadcrumb falls into the `else` supporting bucket and this test fails.
+    const autoLinkFinding = makeFinding({
+      id: 'f-autolink',
+      text: 'Needed factor "Shift" arrived for measurement plan on "Nozzle temperature".',
+      status: 'observed',
+      validationStatus: 'inconclusive',
+    });
+    const branch = projectMechanismBranch(
+      makeHub({ findingIds: ['f-autolink'], status: 'proposed' }),
+      {
+        findings: [autoLinkFinding],
+      }
+    );
+
+    expect(branch.notTestedClues.map(clue => clue.id)).toEqual(['f-autolink']);
+    expect(branch.supportingClues).toEqual([]);
+    expect(branch.counterClues).toEqual([]);
+    // Readiness stays not-tested — no supporting/counter clue evidence was credited.
+    expect(branch.readiness).toEqual({ value: 'not-tested', label: 'Not tested' });
+  });
+
   it('preserves legacy hubs with no branch-facing fields', () => {
     const legacyBranch = projectMechanismBranch(
       makeHub({ findingIds: [], synthesis: '', nextMove: undefined }),

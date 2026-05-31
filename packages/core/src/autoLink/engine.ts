@@ -26,6 +26,8 @@
  */
 
 import type { Finding, FindingEvidenceType, FindingStatus } from '../findings/types';
+
+type FindingValidationStatus = NonNullable<Finding['validationStatus']>;
 import type { MeasurementPlanAction } from '../measurementPlan/actions';
 import { matchColumnsToPlans, type PlanColumnMatch } from './matcher';
 import type { MeasurementPlan } from '../measurementPlan/types';
@@ -72,6 +74,12 @@ export interface ComputeReingestAutoLinkResult {
 
 const AUTO_FINDING_EVIDENCE_TYPE: FindingEvidenceType = 'data';
 const AUTO_FINDING_STATUS: FindingStatus = 'observed';
+/**
+ * Routes the breadcrumb to the Wall's "not-tested" clue list (see `buildAutoFinding`
+ * + `projectMechanismBranch`). Without it the bare Finding falls into the supporting
+ * bucket and over-credits the hypothesis on data-arrival alone.
+ */
+const AUTO_FINDING_VALIDATION_STATUS: FindingValidationStatus = 'inconclusive';
 
 /**
  * Build the bare auto-Finding for a matched (plan, column). No `source` — this is
@@ -81,6 +89,14 @@ const AUTO_FINDING_STATUS: FindingStatus = 'observed';
  *
  * Shape mirrors `createFinding`'s contract (`evidenceType:'data'`, `status:'observed'`,
  * empty `comments`, `deletedAt:null`) but with injected id + clock for determinism.
+ *
+ * Honesty guard (`validationStatus:'inconclusive'`): this Finding records only that
+ * data ARRIVED — the analyst has not yet tested anything with it. Without an explicit
+ * `validationStatus`, `projectMechanismBranch` buckets it into the `else` (supporting)
+ * clue list, which silently bumps the linked hypothesis `proposed → evidenced` on
+ * data-arrival alone. Stamping `'inconclusive'` routes it to the "not-tested" clue
+ * list instead, so the Wall reads "data arrived, not yet tested" rather than claiming
+ * the hypothesis has gained support.
  */
 function buildAutoFinding(
   plan: MeasurementPlan,
@@ -102,6 +118,7 @@ function buildAutoFinding(
     },
     evidenceType: AUTO_FINDING_EVIDENCE_TYPE,
     status: AUTO_FINDING_STATUS,
+    validationStatus: AUTO_FINDING_VALIDATION_STATUS,
     comments: [],
     statusChangedAt: now,
   };
