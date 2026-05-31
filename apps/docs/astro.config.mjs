@@ -391,12 +391,12 @@ export default defineConfig({
                   slug: '03-features/workflows/decision-trees',
                 },
                 {
-                  label: 'Investigation to Action',
-                  slug: '03-features/workflows/investigation-to-action',
+                  label: 'Analyze to Action',
+                  slug: '03-features/workflows/analyze-to-action',
                 },
                 {
-                  label: 'Question-Driven Investigation',
-                  slug: '03-features/workflows/question-driven-investigation',
+                  label: 'Question-Driven Analyze',
+                  slug: '03-features/workflows/question-driven-analyze',
                 },
                 {
                   label: 'AI Journey Integration',
@@ -802,8 +802,8 @@ export default defineConfig({
               slug: '07-decisions/adr-014-regression-deferral',
             },
             {
-              label: 'ADR-015 Investigation Board',
-              slug: '07-decisions/adr-015-investigation-board',
+              label: 'ADR-015 Analyze Board',
+              slug: '07-decisions/adr-015-analyze-board',
             },
             {
               label: 'ADR-017 Fluent Design',
@@ -814,8 +814,8 @@ export default defineConfig({
               slug: '07-decisions/adr-019-ai-integration',
             },
             {
-              label: 'ADR-020 Investigation Workflow',
-              slug: '07-decisions/adr-020-investigation-workflow',
+              label: 'ADR-020 Analyze Workflow',
+              slug: '07-decisions/adr-020-analyze-workflow',
             },
             {
               label: 'ADR-023 Data Lifecycle',
@@ -915,7 +915,7 @@ export default defineConfig({
             },
             {
               label: 'ADR-053 Question-Driven EDA',
-              slug: '07-decisions/adr-053-question-driven-investigation',
+              slug: '07-decisions/adr-053-question-driven-analyze',
             },
             {
               label: 'ADR-054 Mode-Aware Questions',

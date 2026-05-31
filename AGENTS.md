@@ -5,7 +5,7 @@ Structured analysis for process improvement. Browser-based, customer-owned data,
 ## Invariants
 
 - Browser-only processing; data stays in customer's tenant (ADR-059).
-- 9 Zustand stores split across 3 layers per ADR-078 + F4 (Document x4, Annotation x4 — 1 per-hub + 3 per-user, View x1); no DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
+- 10 Zustand stores split across 3 layers per ADR-078 + F4 (Document x4, Annotation x4 — 1 per-hub + 3 per-user, View x2); no DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
 - Deterministic stats engine is authority; CoScout (AI) adds context.
 - Package dependencies flow downward: core -> hooks -> ui -> apps.
 

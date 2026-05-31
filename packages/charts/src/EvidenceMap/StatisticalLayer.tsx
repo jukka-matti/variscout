@@ -79,7 +79,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
             x={width / 2}
             y={26}
             textAnchor="middle"
-            fill={isDark ? '#93c5fd' : '#2563eb'}
+            fill={isDark ? chartColors.infoTextDark : chartColors.infoTextPrimary}
             fontSize={10}
             fontWeight="bold"
           >
@@ -150,7 +150,7 @@ const StatisticalLayer: React.FC<StatisticalLayerProps> = ({
               : outcomeNode.label}
           </text>
           {!compact && (
-            <text textAnchor="middle" dy={8} fill="#bfdbfe" fontSize={10}>
+            <text textAnchor="middle" dy={8} fill={chartColors.outcomeText} fontSize={10}>
               ȳ = {Number.isFinite(outcomeNode.mean) ? outcomeNode.mean.toFixed(1) : '—'}
             </text>
           )}

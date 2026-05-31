@@ -11,6 +11,7 @@
  */
 
 import type { SampleDataset } from '../types';
+import { round } from '../utils';
 
 // Helper to generate normal distribution values
 function normalRandom(mean: number, stdDev: number): number {
@@ -51,8 +52,9 @@ function generateLargeScaleData(): Record<string, unknown>[] {
     };
 
     channelConfigs.forEach((config, i) => {
-      row[`CH${String(i + 1).padStart(3, '0')}`] = Number(
-        normalRandom(config.mean, config.stdDev).toFixed(2)
+      row[`CH${String(i + 1).padStart(3, '0')}`] = round(
+        normalRandom(config.mean, config.stdDev),
+        2
       );
     });
 

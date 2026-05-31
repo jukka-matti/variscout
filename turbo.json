@@ -3,16 +3,142 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "tsconfig.json", "package.json"],
-      "outputs": ["dist/**"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/tsconfig*.json",
+        "tsconfig*.json",
+        "vite.config.*",
+        "vitest.config.*",
+        "$TURBO_ROOT$/vite.config.*",
+        "$TURBO_ROOT$/vitest.config.*",
+        "$TURBO_ROOT$/test/setup.ts",
+        "$TURBO_ROOT$/config/**"
+      ],
+      "outputs": ["dist/**", ".astro/**"]
+    },
+    "@variscout/core#build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/tsconfig*.json",
+        "tsconfig*.json",
+        "vite.config.*",
+        "vitest.config.*",
+        "$TURBO_ROOT$/vite.config.*",
+        "$TURBO_ROOT$/vitest.config.*",
+        "$TURBO_ROOT$/test/setup.ts",
+        "$TURBO_ROOT$/config/**"
+      ],
+      "outputs": []
+    },
+    "@variscout/data#build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/tsconfig*.json",
+        "tsconfig*.json",
+        "vite.config.*",
+        "vitest.config.*",
+        "$TURBO_ROOT$/vite.config.*",
+        "$TURBO_ROOT$/vitest.config.*",
+        "$TURBO_ROOT$/test/setup.ts",
+        "$TURBO_ROOT$/config/**"
+      ],
+      "outputs": []
+    },
+    "@variscout/charts#build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/tsconfig*.json",
+        "tsconfig*.json",
+        "vite.config.*",
+        "vitest.config.*",
+        "$TURBO_ROOT$/vite.config.*",
+        "$TURBO_ROOT$/vitest.config.*",
+        "$TURBO_ROOT$/test/setup.ts",
+        "$TURBO_ROOT$/config/**"
+      ],
+      "outputs": []
+    },
+    "@variscout/stores#build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/tsconfig*.json",
+        "tsconfig*.json",
+        "vite.config.*",
+        "vitest.config.*",
+        "$TURBO_ROOT$/vite.config.*",
+        "$TURBO_ROOT$/vitest.config.*",
+        "$TURBO_ROOT$/test/setup.ts",
+        "$TURBO_ROOT$/config/**"
+      ],
+      "outputs": []
+    },
+    "@variscout/hooks#build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/tsconfig*.json",
+        "tsconfig*.json",
+        "vite.config.*",
+        "vitest.config.*",
+        "$TURBO_ROOT$/vite.config.*",
+        "$TURBO_ROOT$/vitest.config.*",
+        "$TURBO_ROOT$/test/setup.ts",
+        "$TURBO_ROOT$/config/**"
+      ],
+      "outputs": []
     },
     "test": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "test/**", "vitest.config.*", "tsconfig.json"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/tsconfig*.json",
+        "tsconfig*.json",
+        "vite.config.*",
+        "vitest.config.*",
+        "$TURBO_ROOT$/vite.config.*",
+        "$TURBO_ROOT$/vitest.config.*",
+        "$TURBO_ROOT$/test/setup.ts",
+        "$TURBO_ROOT$/config/**"
+      ],
       "outputs": []
     },
     "lint": {
-      "inputs": ["src/**", "eslint.config.*"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint.config.*",
+        "eslint.config.*",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/tsconfig*.json",
+        "tsconfig*.json",
+        "$TURBO_ROOT$/config/**"
+      ],
       "outputs": []
     },
     "dev": {

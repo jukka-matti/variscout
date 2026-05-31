@@ -1,7 +1,7 @@
 import React from 'react';
 import { Group } from '@visx/group';
 import type { ChartSourceBarProps } from './types';
-import { chromeColors } from './colors';
+import { chartColors, chromeColors } from './colors';
 
 const BAR_HEIGHT = 20;
 const BADGE_WIDTH = 140; // Estimated width for "VariScout Lite | n=..."
@@ -18,7 +18,7 @@ const ChartSourceBar: React.FC<ChartSourceBarProps> = ({
   left = 0,
   n,
   brandingText = 'VariScout Lite',
-  accentColor = '#3b82f6',
+  accentColor = chartColors.mean,
   forceShow = false,
   fontSize = 10,
 }) => {

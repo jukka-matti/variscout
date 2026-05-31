@@ -68,7 +68,7 @@ describe('generateAnovaInsightLine', () => {
       topCategoryName: 'Operator X',
     });
     expect(text).toBe(
-      "Operator X contributes but isn't the primary driver — could be a contributing cause"
+      'Operator X contributes, with other factors likely explaining more — could be a contributing cause'
     );
   });
 

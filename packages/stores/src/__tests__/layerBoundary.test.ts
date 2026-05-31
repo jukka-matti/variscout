@@ -7,7 +7,7 @@
  * here — those stores are allowed to mix layers per current architecture.
  *
  * STORE_LAYER enum has 6 values; today 4 are realised in code:
- *   - 'document' (projectStore, analyzeStore, canvasStore)
+ *   - 'document' (projectStore, analyzeStore, canvasStore, improvementProjectStore)
  *   - 'annotation-per-hub' (canvasViewportStore)
  *   - 'annotation-per-user' (preferencesStore, activeIPStore, useProjectMembershipStore)
  *   - 'view' (viewStore, analysisScopeStore)
@@ -16,8 +16,8 @@
  *   - 'annotation-per-investigation'
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -38,33 +38,59 @@ interface StoreFile {
   source: string;
 }
 
-// Note: sessionStore.ts is excluded — it is deletion-pending in F4 Task 9
-// and intentionally lacks STORE_LAYER. Once deleted, this comment becomes
-// obsolete (no exclusion needed).
+function hasStoreLayer(source: string): boolean {
+  return /export\s+const\s+STORE_LAYER\s*=/.test(source);
+}
+
+function isStoreLike(source: string): boolean {
+  return (
+    /from\s+['"]zustand['"]/.test(source) || /export\s+const\s+use[A-Z]\w*Store\b/.test(source)
+  );
+}
+
+function readSourceTypeScriptFiles(
+  dir = SRC,
+  prefix = ''
+): Array<{ filename: string; source: string }> {
+  return readdirSync(dir, { withFileTypes: true })
+    .flatMap(entry => {
+      const filename = prefix ? `${prefix}/${entry.name}` : entry.name;
+      const path = join(dir, entry.name);
+
+      if (entry.isDirectory()) {
+        if (entry.name === '__tests__') return [];
+        return readSourceTypeScriptFiles(path, filename);
+      }
+
+      if (!entry.isFile()) return [];
+      if (!filename.endsWith('.ts')) return [];
+      if (entry.name === 'index.ts') return [];
+      if (filename.endsWith('.test.ts')) return [];
+      if (filename.endsWith('.spec.ts')) return [];
+
+      return [{ filename, source: readFileSync(path, 'utf-8') }];
+    })
+    .sort((a, b) => a.filename.localeCompare(b.filename));
+}
+
 function loadStoreFiles(): StoreFile[] {
-  const filenames = [
-    'projectStore.ts',
-    'analyzeStore.ts',
-    'canvasStore.ts',
-    'canvasViewportStore.ts',
-    'preferencesStore.ts',
-    'activeIPStore.ts',
-    'viewStore.ts',
-    'improvementProjectStore.ts',
-    'useProjectMembershipStore.ts',
-    'analysisScopeStore.ts',
-  ];
-  return filenames.map(filename => {
-    const path = resolve(SRC, filename);
-    const source = readFileSync(path, 'utf-8');
-    const match = source.match(/export\s+const\s+STORE_LAYER\s*=\s*'([^']+)'\s*as\s+const/);
-    if (!match) throw new Error(`${filename}: missing STORE_LAYER export`);
-    const layer = match[1] as (typeof ALLOWED_LAYERS)[number];
-    if (!ALLOWED_LAYERS.includes(layer)) {
-      throw new Error(`${filename}: STORE_LAYER='${layer}' not in allowed set`);
-    }
-    return { filename, layer, source };
-  });
+  return readSourceTypeScriptFiles()
+    .filter(file => {
+      if (hasStoreLayer(file.source)) return true;
+      if (isStoreLike(file.source)) {
+        throw new Error(`${file.filename}: store-like source file missing STORE_LAYER export`);
+      }
+      return false;
+    })
+    .map(({ filename, source }) => {
+      const match = source.match(/export\s+const\s+STORE_LAYER\s*=\s*'([^']+)'\s*as\s+const/);
+      if (!match) throw new Error(`${filename}: missing STORE_LAYER export`);
+      const layer = match[1] as (typeof ALLOWED_LAYERS)[number];
+      if (!ALLOWED_LAYERS.includes(layer)) {
+        throw new Error(`${filename}: STORE_LAYER='${layer}' not in allowed set`);
+      }
+      return { filename, layer, source };
+    });
 }
 
 describe('layer boundary', () => {
@@ -75,6 +101,14 @@ describe('layer boundary', () => {
     files.forEach(f => {
       expect(ALLOWED_LAYERS).toContain(f.layer);
     });
+  });
+
+  it('matches the ratified 10-store layer model', () => {
+    expect(files).toHaveLength(10);
+    expect(files.filter(f => f.layer === 'document')).toHaveLength(4);
+    expect(files.filter(f => f.layer === 'annotation-per-hub')).toHaveLength(1);
+    expect(files.filter(f => f.layer === 'annotation-per-user')).toHaveLength(3);
+    expect(files.filter(f => f.layer === 'view')).toHaveLength(2);
   });
 
   it('view stores do NOT import any middleware from zustand/middleware', () => {

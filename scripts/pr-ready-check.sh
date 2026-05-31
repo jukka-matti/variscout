@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # pr-ready-check.sh — run before merging a PR.
 # Executes the checks that should be green before landing code on main:
-# tests, lint, docs:check. Exits non-zero if any step fails.
+# tests, lint, docs:check, full build, and PWA dist integrity. Exits non-zero
+# if any step fails.
 #
 # Usage:
 #   bash scripts/pr-ready-check.sh           # standard checks
@@ -54,12 +55,13 @@ fi
 run_step "tests (turbo)"       pnpm test
 run_step "lint (turbo)"        pnpm lint
 run_step "level boundaries"    bash scripts/check-level-boundaries.sh
+run_step "generated artifacts" pnpm check:generated-artifacts
 run_step "docs:check"          pnpm docs:check
 
-# PWA build + dist integrity. Catches the stale-chunk-hash regression class
+# Full build + PWA dist integrity. Catches the stale-chunk-hash regression class
 # (index.html referencing /assets/X.js that doesn't exist on disk) before
 # merge. Build first so the integrity check has fresh output to inspect.
-run_step "pwa build"           pnpm --filter @variscout/pwa build
+run_step "build (turbo)"       pnpm build
 run_step "dist integrity (PWA)" node scripts/check-dist-integrity.mjs apps/pwa/dist
 
 echo ""

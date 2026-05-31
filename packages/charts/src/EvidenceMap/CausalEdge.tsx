@@ -110,7 +110,7 @@ const CausalEdge: React.FC<CausalEdgeProps> = ({ edge, isHighlighted, isDark, on
         x={midX}
         y={midY + 3}
         textAnchor="middle"
-        fill={isDark ? '#93c5fd' : '#1e40af'}
+        fill={isDark ? chartColors.infoTextDark : chartColors.infoTextLight}
         fontSize={8}
         pointerEvents="none"
       >
@@ -140,7 +140,7 @@ const CausalEdge: React.FC<CausalEdgeProps> = ({ edge, isHighlighted, isDark, on
             width={60}
             height={14}
             rx={3}
-            fill={isDark ? '#7f1d1d' : '#fef2f2'}
+            fill={isDark ? chartColors.gapFillDark : chartColors.gapFillLight}
             stroke={chartColors.fail}
             strokeWidth={1}
             opacity={0.9}
@@ -149,7 +149,7 @@ const CausalEdge: React.FC<CausalEdgeProps> = ({ edge, isHighlighted, isDark, on
             x={midX}
             y={midY + 22}
             textAnchor="middle"
-            fill="#fca5a5"
+            fill={chartColors.gapText}
             fontSize={7}
             pointerEvents="none"
           >

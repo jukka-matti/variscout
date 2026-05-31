@@ -21,7 +21,7 @@ layer: L5
 
 **Date**: 2026-05-05
 
-**Amendment — 2026-05-16:** D5 (tier-feature gating via `isPaidTier()`) superseded by [ADR-082](adr-082-wedge-architecture.md). V1 ships as a single €120 SKU — tier-gating retires. Feature access now uses `canAccess()` from `@variscout/core/projectMembership` where project-role gating is meaningful. The rest of this ADR (D1–D4, shared architecture decisions) remains in force.
+**Amendments:** 2026-05-16 retires D5 tier-feature gating via [ADR-082](adr-082-wedge-architecture.md); 2026-05-18 records the 9-store F4 reality; 2026-05-31 ratifies the 10-store model and actual package graph. The original D1-D4 shared-architecture decisions remain in force.
 
 **Supersedes**: The "State via React Context (`DataContext`). No Zustand stores in PWA." invariant previously documented in `apps/pwa/CLAUDE.md` (no formal ADR — the rule was an aspirational invariant that drifted silently as the PWA matured).
 
@@ -194,6 +194,28 @@ Surfaced during SDD M0 subagent grounding (2026-05-18, `docs/cards/investigation
 **Net additions**: `useActiveIPStore`, `useProjectMembershipStore` (both wedge V1); `useCanvasViewportStore` (8f viewport split).
 
 D1's "same domain stores in PWA + Azure" architectural decision is preserved; the stores list itself drifted. Future updates to the stores list should land in this amendment block or supersede this ADR entirely.
+
+## Amendment — 2026-05-31 — First refactor architecture ratification
+
+The first refactor slice ratifies the store and package-boundary reality observed after the 2026-05-28 linked-views spec.
+
+`useAnalysisScopeStore` is the second View store. It is a session-scoped linked-views bridge for Process tab ↔ Explore tab state, has no persistence middleware, and belongs in the View layer because it does not survive reloads.
+
+The actual store count is now **10 Zustand stores** across the F4 three-layer model:
+
+- Document ×4
+- Annotation ×4 (1 per-hub + 3 per-user)
+- View ×2 (`useViewStore`, `useAnalysisScopeStore`)
+
+The actual package dependency graph is:
+
+- `@variscout/core` is the foundation.
+- `@variscout/data`, `@variscout/charts`, and `@variscout/stores` depend on `@variscout/core`.
+- `@variscout/hooks` depends on `@variscout/core`, `@variscout/data`, and `@variscout/stores`.
+- `@variscout/ui` depends on `@variscout/core`, `@variscout/charts`, `@variscout/hooks`, and `@variscout/stores`.
+- Apps consume shared packages and own app-level wiring.
+
+`@variscout/ui -> @variscout/stores` is a documented exception for store-aware shared surfaces. Props-based UI remains preferred when state can be supplied cleanly by the caller, but shared workflow surfaces may bind to stores directly when that is the established cross-app contract.
 
 ## References
 

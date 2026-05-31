@@ -18,6 +18,7 @@ import type { MainEffectsResult } from './factorEffects';
 import type { InteractionEffectsResult } from './factorEffects';
 import { classifyRelationship } from './causalGraph';
 import type { RelationshipType } from './causalGraph';
+import { formatStatistic } from '../i18n/format';
 import type { PredictorInfo } from '../types';
 
 // ============================================================================
@@ -222,12 +223,12 @@ function buildEquationFormula(bestModel: BestSubsetResult, grandMean: number): s
       if (linear && Number.isFinite(linear.coefficient)) {
         const coef = linear.coefficient;
         const sign = coef >= 0 ? '+' : '-';
-        parts.push(`${sign} ${Math.abs(coef).toFixed(3)}\u00D7${factor}`);
+        parts.push(`${sign} ${formatStatistic(Math.abs(coef), 'en', 3)}\u00D7${factor}`);
       }
       if (quad && Number.isFinite(quad.coefficient)) {
         const coef = quad.coefficient;
         const sign = coef >= 0 ? '+' : '-';
-        parts.push(`${sign} ${Math.abs(coef).toFixed(4)}\u00D7${factor}\u00B2`);
+        parts.push(`${sign} ${formatStatistic(Math.abs(coef), 'en', 4)}\u00D7${factor}\u00B2`);
       }
       continue;
     }
@@ -248,7 +249,7 @@ function buildEquationFormula(bestModel: BestSubsetResult, grandMean: number): s
 
     if (bestLevel) {
       const sign = bestEffect >= 0 ? '+' : '-';
-      parts.push(`${sign} ${Math.abs(bestEffect).toFixed(1)}(${bestLevel})`);
+      parts.push(`${sign} ${formatStatistic(Math.abs(bestEffect), 'en', 1)}(${bestLevel})`);
     }
   }
 

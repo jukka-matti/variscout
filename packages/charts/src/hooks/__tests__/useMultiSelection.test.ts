@@ -5,6 +5,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { scaleLinear } from '@visx/scale';
+import type { MouseEvent } from 'react';
 import { useMultiSelection } from '../useMultiSelection';
 
 describe('useMultiSelection', () => {
@@ -155,7 +156,7 @@ describe('useMultiSelection', () => {
       metaKey: false,
       shiftKey: false,
       stopPropagation: vi.fn(),
-    } as unknown as React.MouseEvent;
+    } as unknown as MouseEvent;
 
     act(() => {
       result.current.handlePointClick(1, mockEvent);
@@ -185,7 +186,7 @@ describe('useMultiSelection', () => {
       metaKey: false,
       shiftKey: true,
       stopPropagation: vi.fn(),
-    } as unknown as React.MouseEvent;
+    } as unknown as MouseEvent;
 
     act(() => {
       result.current.handlePointClick(3, mockEvent);
@@ -215,7 +216,7 @@ describe('useMultiSelection', () => {
       metaKey: false,
       shiftKey: false,
       stopPropagation: vi.fn(),
-    } as unknown as React.MouseEvent;
+    } as unknown as MouseEvent;
 
     act(() => {
       result.current.handlePointClick(4, mockEvent);
@@ -242,7 +243,7 @@ describe('useMultiSelection', () => {
       currentTarget: document.createElement('svg'),
       clientX: 100,
       clientY: 100,
-    } as unknown as React.MouseEvent<SVGElement>;
+    } as unknown as MouseEvent<SVGElement>;
 
     act(() => {
       result.current.handleBrushStart(mockEvent);

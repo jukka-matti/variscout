@@ -13,6 +13,7 @@ import type { StatsResult, SpecLimits, DataRow } from '../types';
 import { toNumericValue } from '../types';
 import { simulateOverallImpact } from './simulation';
 import type { ProcessProjection, CenteringOpportunity, SpecSuggestion } from './types';
+import { formatStatistic } from '../i18n/format';
 
 export type { ProcessProjection, CenteringOpportunity, SpecSuggestion };
 
@@ -91,7 +92,7 @@ export function computeSpecSuggestion(complementStats: {
 
   const formatVal = (v: number): string => {
     // Use up to 1 decimal place, drop trailing zeros
-    return Number(v.toFixed(1)).toString();
+    return Number(formatStatistic(v, 'en', 1)).toString();
   };
 
   return {

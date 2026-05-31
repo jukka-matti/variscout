@@ -117,6 +117,7 @@ export default [
         { type: 'hooks', pattern: 'packages/hooks/src/**' },
         { type: 'ui', pattern: 'packages/ui/src/**' },
         { type: 'data', pattern: 'packages/data/src/**' },
+        { type: 'stores', pattern: 'packages/stores/src/**' },
         { type: 'pwa', pattern: 'apps/pwa/src/**' },
         { type: 'azure', pattern: 'apps/azure/src/**' },
         { type: 'website', pattern: 'apps/website/src/**' },
@@ -131,21 +132,22 @@ export default [
           // Adding a new internal dependency requires a deliberate allow rule here.
           default: 'disallow',
           rules: [
+            // Ratified graph:
             // core → nothing (no internal package imports allowed)
-            // charts → core
+            // data/charts/stores → core
             { from: { type: 'charts' }, allow: { to: { type: ['core'] } } },
-            // hooks → core, data (type import for SampleDataset)
-            { from: { type: 'hooks' }, allow: { to: { type: ['core', 'data'] } } },
-            // data → core
             { from: { type: 'data' }, allow: { to: { type: ['core'] } } },
-            // ui → core, charts, hooks
-            { from: { type: 'ui' }, allow: { to: { type: ['core', 'charts', 'hooks'] } } },
-            // pwa → core, charts, hooks, ui, data
-            { from: { type: 'pwa' }, allow: { to: { type: ['core', 'charts', 'hooks', 'ui', 'data'] } } },
-            // azure → core, charts, hooks, ui, data
-            { from: { type: 'azure' }, allow: { to: { type: ['core', 'charts', 'hooks', 'ui', 'data'] } } },
-            // website → core, charts, hooks, ui, data
-            { from: { type: 'website' }, allow: { to: { type: ['core', 'charts', 'hooks', 'ui', 'data'] } } },
+            { from: { type: 'stores' }, allow: { to: { type: ['core'] } } },
+            // hooks → core, data, stores
+            { from: { type: 'hooks' }, allow: { to: { type: ['core', 'data', 'stores'] } } },
+            // ui → core, charts, hooks, stores
+            // ui → stores is the documented exception for shared state selectors/actions.
+            { from: { type: 'ui' }, allow: { to: { type: ['core', 'charts', 'hooks', 'stores'] } } },
+            // pwa/azure → core, charts, hooks, ui, data, stores
+            { from: { type: 'pwa' }, allow: { to: { type: ['core', 'charts', 'hooks', 'ui', 'data', 'stores'] } } },
+            { from: { type: 'azure' }, allow: { to: { type: ['core', 'charts', 'hooks', 'ui', 'data', 'stores'] } } },
+            // website → core, charts, ui, data (manifest has no stores dependency)
+            { from: { type: 'website' }, allow: { to: { type: ['core', 'charts', 'ui', 'data'] } } },
             // docs → no source imports from internal packages
           ],
         },
@@ -169,6 +171,11 @@ export default [
   // Hard rule: never hardcode hex colors in chart packages — use chartColors/chromeColors
   {
     files: ['packages/charts/**/*.{ts,tsx}'],
+    ignores: [
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/__tests__/**/*',
+    ],
     plugins: { variscout: variscoutPlugin },
     rules: {
       'variscout/no-hardcoded-chart-colors': 'error',

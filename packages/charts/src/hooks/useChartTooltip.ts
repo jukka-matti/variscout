@@ -6,7 +6,7 @@
  * - showTooltipAtCoords: Uses scale values (requires margin offset when rendering)
  */
 
-import { useCallback } from 'react';
+import { useCallback, type MouseEvent } from 'react';
 import { useTooltip } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 
@@ -24,7 +24,7 @@ export interface UseChartTooltipReturn<T> {
    * Use for charts where tooltip follows the cursor
    * No margin offset needed when rendering
    */
-  showTooltipAtPoint: (event: React.MouseEvent, data: T) => void;
+  showTooltipAtPoint: (event: MouseEvent, data: T) => void;
   /**
    * Show tooltip at specific coordinates (typically from scales)
    * Use for charts where tooltip appears at data point position
@@ -71,7 +71,7 @@ export function useChartTooltip<T>(): UseChartTooltipReturn<T> {
   } = useTooltip<T & { _usesLocalPoint?: boolean }>();
 
   const showTooltipAtPoint = useCallback(
-    (event: React.MouseEvent, data: T) => {
+    (event: MouseEvent, data: T) => {
       const coords = localPoint(event);
       if (!coords) return;
       showTooltip({
