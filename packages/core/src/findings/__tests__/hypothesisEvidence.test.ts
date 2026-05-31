@@ -40,6 +40,30 @@ describe('evidenceTypesForHypothesis', () => {
     const types = evidenceTypesForHypothesis(h, FINDINGS);
     expect(types).toEqual(new Set(['data', 'gemba', 'expert']));
   });
+
+  it('excludes inconclusive findings from the evidence-type set (honesty rule)', () => {
+    // A null evaluate result (validationStatus: 'inconclusive') is NOT evidence —
+    // an inconclusive `data` finding + one `gemba` finding must count as a SINGLE
+    // type, never two, so the hypothesis stays `evidenced`.
+    const findings: Finding[] = [
+      { id: 'f-1', evidenceType: 'data', validationStatus: 'inconclusive' } as Finding,
+      { id: 'f-2', evidenceType: 'gemba' } as Finding,
+    ];
+    const h = { findingIds: ['f-1', 'f-2'] } as Hypothesis;
+    const types = evidenceTypesForHypothesis(h, findings);
+    expect(types).toEqual(new Set(['gemba']));
+  });
+
+  it('counts supports + legacy(undefined) findings, skips only inconclusive', () => {
+    const findings: Finding[] = [
+      { id: 'f-1', evidenceType: 'data', validationStatus: 'supports' } as Finding,
+      { id: 'f-2', evidenceType: 'gemba' } as Finding, // legacy: no validationStatus
+      { id: 'f-3', evidenceType: 'expert', validationStatus: 'inconclusive' } as Finding,
+    ];
+    const h = { findingIds: ['f-1', 'f-2', 'f-3'] } as Hypothesis;
+    const types = evidenceTypesForHypothesis(h, findings);
+    expect(types).toEqual(new Set(['data', 'gemba']));
+  });
 });
 
 describe('hasUnresolvedDisconfirmation', () => {
