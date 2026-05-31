@@ -107,6 +107,16 @@ export interface AnalyzeActions {
   ) => void;
   setFindingProjection: (findingId: string, projection: FindingProjection) => void;
   clearFindingProjection: (findingId: string) => void;
+  /**
+   * Set a finding's typed validation classification (FE-2a one-tap evaluate):
+   * 'supports' | 'contradicts' | 'inconclusive'. Optionally stamps `refutes`.
+   * Drives the Wall clue split + the Survey gate; never auto-run.
+   */
+  setFindingValidation: (
+    findingId: string,
+    validationStatus: 'supports' | 'contradicts' | 'inconclusive',
+    refutes?: boolean
+  ) => void;
   addFindingAction: (
     findingId: string,
     text: string,
@@ -538,6 +548,14 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   setFindingProjection: (findingId, projection) => {
     set(state => ({
       findings: state.findings.map(f => (f.id === findingId ? { ...f, projection } : f)),
+    }));
+  },
+
+  setFindingValidation: (findingId, validationStatus, refutes) => {
+    set(state => ({
+      findings: state.findings.map(f =>
+        f.id === findingId ? { ...f, validationStatus, refutes: refutes ?? f.refutes } : f
+      ),
     }));
   },
 

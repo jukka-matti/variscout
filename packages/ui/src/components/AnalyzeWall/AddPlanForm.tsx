@@ -48,6 +48,12 @@ export interface AddPlanFormProps {
    * User can override. Defaults to `''` when absent.
    */
   defaultOutcome?: string;
+  /**
+   * Pre-fill for the primary-factor field (FE-2a — the gap-factor "+ Measurement
+   * Plan" path seeds this from the cause's derived factor, killing the free-text
+   * drift). User can override. Defaults to `''` when absent.
+   */
+  defaultPrimaryFactor?: string;
 }
 
 const METHODS: ReadonlyArray<MeasurementMethod> = [
@@ -66,9 +72,10 @@ export function AddPlanForm({
   stepOptions,
   defaultScope,
   defaultOutcome,
+  defaultPrimaryFactor,
 }: AddPlanFormProps) {
   const eligibleOwners = members.filter(m => m.role !== 'sponsor' && m.deletedAt === null);
-  const [primaryFactor, setPrimaryFactor] = useState('');
+  const [primaryFactor, setPrimaryFactor] = useState(defaultPrimaryFactor ?? '');
   const [outcome, setOutcome] = useState(defaultOutcome ?? '');
   const [neededFactorsRaw, setNeededFactorsRaw] = useState('');
   const [method, setMethod] = useState<MeasurementMethod>('sensor');

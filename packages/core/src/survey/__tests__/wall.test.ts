@@ -46,6 +46,35 @@ describe('deriveHypothesisStatus', () => {
     ).toBe('needs-disconfirmation');
   });
 
+  it('stays evidenced when one finding is an inconclusive evaluate (null result is not evidence)', () => {
+    // FE-2a honesty: a null evaluate stamps validationStatus:'inconclusive' on a
+    // `data` finding. Paired with one `gemba` finding it must NOT advance to
+    // needs-disconfirmation — the inconclusive finding contributes no evidence type.
+    const findings = [
+      { id: 'f1', evidenceType: 'data', validationStatus: 'inconclusive' } as Finding,
+      { id: 'f2', evidenceType: 'gemba' } as Finding,
+    ];
+    expect(
+      deriveHypothesisStatus(
+        baseH({ findingIds: ['f1', 'f2'], disconfirmationAttempts: [] }),
+        findings
+      )
+    ).toBe('evidenced');
+  });
+
+  it('needs-disconfirmation when supports data + gemba (two real evidence types)', () => {
+    const findings = [
+      { id: 'f1', evidenceType: 'data', validationStatus: 'supports' } as Finding,
+      { id: 'f2', evidenceType: 'gemba' } as Finding,
+    ];
+    expect(
+      deriveHypothesisStatus(
+        baseH({ findingIds: ['f1', 'f2'], disconfirmationAttempts: [] }),
+        findings
+      )
+    ).toBe('needs-disconfirmation');
+  });
+
   it('confirmed with 2 types and resolved disconfirmation', () => {
     const findings = [
       { id: 'f1', evidenceType: 'data' } as Finding,

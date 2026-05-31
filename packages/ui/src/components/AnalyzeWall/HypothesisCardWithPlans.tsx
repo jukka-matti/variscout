@@ -57,6 +57,12 @@ const DISCONFIRM_FORM_H = 200;
 const FORM_H = 660;
 /** Vertical gap between card bottom and the plans section (user-space units). */
 const PLANS_GAP = 8;
+/** Height of the test-plan triad header row (px). */
+const TEST_PLAN_HEADER_H = 28;
+/** Height of one test-plan factor row (factor + tool + CTA) (px). */
+const TEST_PLAN_ROW_H = 40;
+/** Height of the per-hypothesis What-If block (px). */
+const WHATIF_H = 56;
 /** Horizontal offset of the foreignObject from the card's center-top anchor. */
 const FO_X = -(CARD_W / 2);
 /** Fixed height reserved for the ImprovementIdeasSection foreignObject (px). */
@@ -176,6 +182,33 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
   onDeleteHubComment?: (hubId: string, commentId: string) => void;
   /** Task 1 (IM-4b) — show author names on the comment thread (default false). */
   showCommentAuthors?: boolean;
+  /**
+   * FE-2a — the hypothesis test-plan triad read-model (derived, no stored field):
+   * each relevant factor + its data-readiness + the auto-suggested tool. Built by
+   * the app via `buildHypothesisTestPlan(hub, findings, rows, outcome)`. When
+   * provided (even empty), the "How do I test this?" triad renders. Omit to hide.
+   */
+  testPlanFactors?: ReadonlyArray<TestPlanFactorView>;
+  /**
+   * FE-2a — one-tap evaluate. Called with (hypothesisId, factor) when the analyst
+   * taps "Evaluate" on a READY factor. The app runs `evaluateHypothesisFactor`,
+   * writes the typed Finding (validationStatus), connects it to the hub, and
+   * re-renders the Wall. NEVER auto-run. When omitted, the evaluate CTA is hidden.
+   */
+  onEvaluateFactor?: (hypothesisId: string, factor: string) => void;
+  /**
+   * FE-2a — the per-hypothesis What-If (§5). When provided, the card renders
+   * "If you control this cause → projected Cpk X, covers Y%". Never summed across
+   * hypotheses. `cpk`/`coveragePct` null → the no-projection caption shows.
+   */
+  whatIf?: { cpk: number | null; coveragePct: number | null };
+}
+
+/** A single test-plan triad row passed to the card (FE-2a). */
+export interface TestPlanFactorView {
+  factor: string;
+  readiness: 'ready' | 'gap';
+  tool: 'two-sample' | 'regression' | 'capability' | null;
 }
 
 export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = ({
@@ -199,6 +232,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onEditHubComment,
   onDeleteHubComment,
   showCommentAuthors,
+  testPlanFactors,
+  onEvaluateFactor,
+  whatIf,
   stepOptions,
   defaultScope,
   defaultOutcome,
@@ -206,6 +242,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
 }) => {
   const locale = useWallLocale();
   const [addPlanFormOpen, setAddPlanFormOpen] = useState(false);
+  // FE-2a — when a gap factor's "+ Measurement Plan" is tapped, open the form
+  // pre-filled with that factor (kills the free-text drift). null = no prefill.
+  const [planPrefillFactor, setPlanPrefillFactor] = useState<string | null>(null);
   const [linkFindingForPlanId, setLinkFindingForPlanId] = useState<string | null>(null);
   const [disconfirmFormOpen, setDisconfirmFormOpen] = useState(false);
   const [disconfirmDescription, setDisconfirmDescription] = useState('');
@@ -252,8 +291,22 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
       ? DISCONFIRM_FORM_H
       : ADD_BTN_H
     : 0;
+  // FE-2a — the test-plan triad + per-hypothesis What-If add their own height.
+  const showTestPlan = testPlanFactors !== undefined;
+  const testPlanH = showTestPlan
+    ? TEST_PLAN_HEADER_H + (testPlanFactors?.length ?? 0) * TEST_PLAN_ROW_H
+    : 0;
+  const whatIfH = whatIf !== undefined ? WHATIF_H : 0;
   const plansSectionH =
-    actionRowsTotalH + addTaskBtnH + addTaskFormH + dataCollectTotalH + btnH + formH + disconfirmH;
+    actionRowsTotalH +
+    addTaskBtnH +
+    addTaskFormH +
+    testPlanH +
+    whatIfH +
+    dataCollectTotalH +
+    btnH +
+    formH +
+    disconfirmH;
 
   // Owner name resolver
   const resolveOwner = (ownerId: string): string =>
@@ -286,6 +339,27 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
     setLinkFindingForPlanId(null);
   };
 
+  // FE-2a — the gap-factor "+ Measurement Plan" opens the AddPlanForm pre-filled
+  // with the factor (kills free-text drift). Reuses the existing plans form.
+  const handlePlanForFactor = (factor: string) => {
+    setPlanPrefillFactor(factor);
+    setAddPlanFormOpen(true);
+  };
+
+  // Tool label resolver for the test-plan triad.
+  const resolveToolLabel = (tool: TestPlanFactorView['tool']): string => {
+    switch (tool) {
+      case 'two-sample':
+        return getMessage(locale, 'wall.testplan.toolTwoSample');
+      case 'regression':
+        return getMessage(locale, 'wall.testplan.toolRegression');
+      case 'capability':
+        return getMessage(locale, 'wall.testplan.toolCapability');
+      default:
+        return '';
+    }
+  };
+
   const handleDisconfirmSave = () => {
     if (!onRecordDisconfirmation) return;
     const description = disconfirmDescription.trim();
@@ -312,6 +386,99 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
           data-testid="plans-section"
         >
           <div className="bg-white border border-gray-200 rounded-b shadow-sm overflow-visible">
+            {/* FE-2a — the hypothesis test-plan triad: "How do I test this?".
+                Each relevant factor + its auto-suggested tool + a one-tap
+                Evaluate (ready) or "+ Measurement Plan" (gap). The factors are a
+                derived read-model (deriveHypothesisFactors); the app runs the
+                real test on tap and writes a typed Finding. */}
+            {showTestPlan && (
+              <div data-testid="test-plan-triad" className="border-b border-gray-100">
+                <div className="px-3 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500">
+                  {getMessage(locale, 'wall.testplan.heading')}
+                </div>
+                {(testPlanFactors?.length ?? 0) === 0 ? (
+                  <div className="px-3 pb-2 text-xs text-gray-400">
+                    {getMessage(locale, 'wall.testplan.empty')}
+                  </div>
+                ) : (
+                  testPlanFactors!.map(tp => (
+                    <div
+                      key={`tp-${tp.factor}`}
+                      data-testid={`test-plan-factor-${tp.factor}`}
+                      data-readiness={tp.readiness}
+                      data-tool={tp.tool ?? ''}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm"
+                    >
+                      <span className="flex-1 min-w-0">
+                        <span className="font-medium text-gray-800 truncate">{tp.factor}</span>
+                        {tp.readiness === 'ready' && tp.tool ? (
+                          <span className="ml-1.5 text-xs text-gray-500">
+                            {resolveToolLabel(tp.tool)}
+                          </span>
+                        ) : (
+                          <span className="ml-1.5 text-xs italic text-amber-700">
+                            {getMessage(locale, 'wall.testplan.gapLabel')}
+                          </span>
+                        )}
+                      </span>
+                      {tp.readiness === 'ready' && onEvaluateFactor && (
+                        <button
+                          type="button"
+                          data-testid={`evaluate-factor-${tp.factor}`}
+                          className="flex-shrink-0 rounded bg-blue-600 px-2 py-0.5 text-xs text-white hover:bg-blue-700"
+                          aria-label={getMessage(locale, 'wall.testplan.evaluateAria').replace(
+                            '{factor}',
+                            tp.factor
+                          )}
+                          onClick={() => onEvaluateFactor(cardProps.hub.id, tp.factor)}
+                        >
+                          {getMessage(locale, 'wall.testplan.evaluate')}
+                        </button>
+                      )}
+                      {tp.readiness === 'gap' && canEdit && (
+                        <button
+                          type="button"
+                          data-testid={`plan-factor-${tp.factor}`}
+                          className="flex-shrink-0 rounded border border-amber-300 px-2 py-0.5 text-xs text-amber-700 hover:bg-amber-50"
+                          aria-label={getMessage(locale, 'wall.testplan.addPlanAria').replace(
+                            '{factor}',
+                            tp.factor
+                          )}
+                          onClick={() => handlePlanForFactor(tp.factor)}
+                        >
+                          {getMessage(locale, 'wall.testplan.addPlan')}
+                        </button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* FE-2a — the per-hypothesis What-If (§5): "if you control this cause
+                → projected Cpk X, covers Y%". NEVER summed across hypotheses. */}
+            {whatIf !== undefined && (
+              <div data-testid="hypothesis-whatif" className="border-b border-gray-100 px-3 py-2">
+                <div className="text-xs font-semibold uppercase text-gray-500">
+                  {getMessage(locale, 'wall.whatif.heading')}
+                </div>
+                {whatIf.cpk !== null &&
+                whatIf.coveragePct !== null &&
+                Number.isFinite(whatIf.cpk) &&
+                Number.isFinite(whatIf.coveragePct) ? (
+                  <div data-testid="hypothesis-whatif-value" className="text-sm text-gray-800">
+                    {getMessage(locale, 'wall.whatif.projection')
+                      .replace('{cpk}', whatIf.cpk.toFixed(2))
+                      .replace('{coverage}', whatIf.coveragePct.toFixed(0))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-gray-400">
+                    {getMessage(locale, 'wall.whatif.noProjection')}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* ActionItem task rows (Task 3 IM-4b) */}
             {actions.map((action: ActionItem) => {
               const isDone = action.completedAt !== undefined;
@@ -466,16 +633,24 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
             {/* Inline AddPlanForm expansion */}
             {canEdit && addPlanFormOpen && (
               <AddPlanForm
+                // Remount when the prefill factor changes so the seeded
+                // useState picks up the new defaultPrimaryFactor.
+                key={planPrefillFactor ?? '__no_prefill__'}
                 hypothesisId={cardProps.hub.id}
                 members={[...members]}
                 onSave={plan => {
                   onAddPlan(plan);
                   setAddPlanFormOpen(false);
+                  setPlanPrefillFactor(null);
                 }}
-                onCancel={() => setAddPlanFormOpen(false)}
+                onCancel={() => {
+                  setAddPlanFormOpen(false);
+                  setPlanPrefillFactor(null);
+                }}
                 stepOptions={stepOptions}
                 defaultScope={defaultScope}
                 defaultOutcome={defaultOutcome}
+                defaultPrimaryFactor={planPrefillFactor ?? undefined}
               />
             )}
 
