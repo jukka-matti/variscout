@@ -273,6 +273,13 @@ export interface WallCanvasModelBuilderProps {
   /** Human-readable label for the active scope ('All data' or the drill WHERE). */
   scopeLabel: string;
   /**
+   * Rows for the ACTIVE scope (the drilled subset) the band re-ranks on. The
+   * Wall's own `rows` prop stays the full window (HOLDS / scope-anchor); the band
+   * runs the engine on THIS scoped subset so it re-ranks on drill. When omitted,
+   * the band falls back to the Wall's `rows`.
+   */
+  scopeRows?: ReadonlyArray<Record<string, unknown>>;
+  /**
    * Factors that are CONSTANT in the active scope (drilled on) — chipped
    * "constant in scope" and excluded from the model. Empty for the global scope.
    */
@@ -878,9 +885,14 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
               View-state only — nothing persists until capture-as-Finding. */}
           {modelBuilderProps &&
             outcomeColumn &&
-            dataRowsForBand.length > 0 &&
             modelBuilderProps.candidateFactors.length > 0 &&
             (() => {
+              // The band re-ranks on the ACTIVE scope (the drilled subset). Prefer
+              // the explicit scopeRows; fall back to the Wall's window rows.
+              const bandRows = modelBuilderProps.scopeRows
+                ? [...modelBuilderProps.scopeRows]
+                : dataRowsForBand;
+              if (bandRows.length === 0) return null;
               const firstFactor = wallLayout.factorPositions.values().next().value;
               const bandX = firstFactor?.x ?? 120;
               const PANEL_W = 460;
@@ -888,7 +900,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
               const factorBandY = firstFactor?.y ?? 1300;
               return (
                 <ModelBuilderBand
-                  rows={dataRowsForBand as DataRow[]}
+                  rows={bandRows as DataRow[]}
                   candidateFactors={modelBuilderProps.candidateFactors}
                   outcome={outcomeColumn}
                   scopeLabel={modelBuilderProps.scopeLabel}

@@ -188,6 +188,33 @@ vi.mock('@variscout/core', async importOriginal => {
     // another deep re-export the `...actual` spread can drop under the mock runtime.
     formatConditionLeaves: (predicates: Array<{ column: string; value: unknown }>) =>
       predicates.map(p => `${p.column} = ${String(p.value)}`).join(' ∩ '),
+    // The activeScope memo + FE-1 modelBuilderProps need these deep re-exports —
+    // explicit per the same drop-under-mock-runtime note above.
+    buildConditionFromCategoricalFilters: (
+      filters: Array<{ column: string; values: (string | number)[] }>
+    ) =>
+      filters
+        .filter(f => f.values.length > 0)
+        .map(f => ({ column: f.column, op: 'eq', value: f.values[0] })),
+    predicateSetKey: (predicates: Array<{ column: string; value: unknown }>) =>
+      predicates
+        .map(p => `${p.column}=${String(p.value)}`)
+        .sort()
+        .join('|'),
+    // syncScopeFromDrill (analyzeStore) calls this on mount when a drill filter +
+    // outcome are present; stub it so the effect doesn't throw under the mock.
+    createProblemStatementScope: (
+      investigationId: string,
+      outcome: string,
+      predicates: Array<{ column: string; value: unknown }> = []
+    ) => ({
+      id: `scope-${investigationId}-${outcome}`,
+      investigationId,
+      outcome,
+      predicates,
+      deletedAt: null,
+      createdAt: 0,
+    }),
   };
 });
 
@@ -217,7 +244,9 @@ import {
   useCanvasViewportStore,
   useAnalysisScopeStore,
   useAnalyzeStore,
+  useProjectStore,
 } from '@variscout/stores';
+import type { CapturedModelSnapshot } from '@variscout/ui';
 import type { ProblemStatementScope } from '@variscout/core';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import { usePanelsStore } from '../../../features/panels/panelsStore';
@@ -710,5 +739,80 @@ describe('AnalyzeWorkspace ScopeRail seam (IM-4b Task 5)', () => {
 
     const archived = useAnalyzeStore.getState().scopes.find(s => s.id === 'scope-a');
     expect(archived?.deletedAt).not.toBeNull();
+  });
+});
+
+// FE-1 — the model-builder band is wired through AnalyzeWorkspace into WallCanvas.
+// WallCanvas is mocked here (capturedWallCanvasProps), so we assert the APP-OWNED
+// seam: AnalyzeWorkspace builds modelBuilderProps from the project store
+// (outcome + factors), threads the ACTIVE-scope rows, and that firing
+// onCaptureModel creates a Finding carrying the model snapshot in its
+// projection.modelContext. A dead app wiring (no modelBuilderProps, or capture
+// not routed to findingsState) fails these.
+describe('AnalyzeWorkspace — model-builder band wiring (FE-1)', () => {
+  beforeEach(() => {
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    useCanvasViewportStore.getState().setViewMode('wall');
+    usePanelsStore.getState().setAnalyzeViewMode('map');
+    useAnalysisScopeStore.setState({ categoricalFilters: [] });
+    useAnalyzeStore.setState({ scopes: [] });
+    useProjectStore.setState({ outcome: 'Y', factors: ['Shift', 'Noise'] });
+    capturedWallCanvasProps.current = null;
+  });
+
+  it('threads modelBuilderProps (candidateFactors + scopeLabel + onCaptureModel) to WallCanvas', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    const mbp = capturedWallCanvasProps.current?.modelBuilderProps as
+      | Record<string, unknown>
+      | undefined;
+    expect(mbp).toBeDefined();
+    expect(mbp!.candidateFactors).toEqual(['Shift', 'Noise']);
+    expect(mbp!.scopeLabel).toBe('All data');
+    expect(typeof mbp!.onCaptureModel).toBe('function');
+  });
+
+  it('does NOT thread modelBuilderProps when no outcome is set', () => {
+    useProjectStore.setState({ outcome: null, factors: ['Shift'] });
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    expect(capturedWallCanvasProps.current?.modelBuilderProps).toBeUndefined();
+  });
+
+  it('chips a single-value drill factor as constant in scope', () => {
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'Shift', values: ['A'] }],
+    });
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    const mbp = capturedWallCanvasProps.current?.modelBuilderProps as Record<string, unknown>;
+    expect(mbp.constantFactors).toEqual(['Shift']);
+  });
+
+  it('onCaptureModel creates a Finding + stamps the model snapshot into its projection.modelContext', () => {
+    const addFinding = vi.fn(() => ({ id: 'f-model', text: '' }) as never);
+    const setProjection = vi.fn();
+    const props = makeMinimalProps();
+    props.findingsState = { ...props.findingsState, addFinding, setProjection } as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+    const onCaptureModel = (
+      capturedWallCanvasProps.current!.modelBuilderProps as Record<string, unknown>
+    ).onCaptureModel as (s: CapturedModelSnapshot) => void;
+
+    onCaptureModel({
+      factors: ['Shift'],
+      rSquaredAdj: 0.68,
+      perFactorP: { Shift: 0.001 },
+      scopeLabel: 'All data',
+      topFactor: 'Shift',
+    });
+
+    expect(addFinding).toHaveBeenCalledTimes(1);
+    expect(setProjection).toHaveBeenCalledTimes(1);
+    const [, projection] = setProjection.mock.calls[0] as [
+      string,
+      { modelContext?: Record<string, unknown> },
+    ];
+    expect(projection.modelContext?.rSquaredAdj).toBeCloseTo(0.68, 10);
+    expect(projection.modelContext?.linkedFactor).toBe('Shift');
+    expect(projection.modelContext?.scopeLabel).toBe('All data');
   });
 });

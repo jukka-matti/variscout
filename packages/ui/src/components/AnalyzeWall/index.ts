@@ -1,5 +1,9 @@
 export { WallCanvas } from './WallCanvas';
-export type { WallCanvasProps, WallCanvasPlanningProps } from './WallCanvas';
+export type {
+  WallCanvasProps,
+  WallCanvasPlanningProps,
+  WallCanvasModelBuilderProps,
+} from './WallCanvas';
 export { ProblemConditionCard } from './ProblemConditionCard';
 export type { ProblemConditionCardProps } from './ProblemConditionCard';
 export { HypothesisCard } from './HypothesisCard';
