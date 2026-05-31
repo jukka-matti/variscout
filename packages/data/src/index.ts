@@ -8,10 +8,15 @@
  */
 
 // Types
-export type { SampleDataset, SampleCategory, SampleInvestigationState, ComputedChartData } from './types';
+export type {
+  SampleDataset,
+  SampleCategory,
+  SampleInvestigationState,
+  ComputedChartData,
+} from './types';
 
 // Sample datasets
 export { SAMPLES, getSample } from './samples';
 
-// Computed data utilities
+// Computed fixture lookup
 export { getCachedComputedData } from './computed';
