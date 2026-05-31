@@ -234,6 +234,14 @@ export function computeWallLayout(args: WallLayoutArgs): WallLayout {
   });
 
   // ── Factor band (ordered by contribution desc) ──────────────────────────
+  // V1 STATUS: WallCanvas does NOT yet pass `factors` here — the contributing-
+  // factors band still renders via TributaryFooter, so `factorPositions` is
+  // empty in production today. This positioning + the `kind: 'factor'` edges are
+  // the forward hook for the V-next "vital-few model-builder" increment that
+  // wires the best-subset stats band (R²adj + p) into the unified coordinate
+  // space. Factors stay scope-level by design; a cause's factors are a DERIVED
+  // projection, never stored. See ADR-086 Amendment (2026-05-31) + the
+  // decision-log entry of 2026-05-31. Do not treat the empty map as a bug.
   [...factors]
     .sort((a, b) => b.contribution - a.contribution)
     .forEach((factor, i) => {
