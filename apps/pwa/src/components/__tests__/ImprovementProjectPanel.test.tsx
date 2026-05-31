@@ -1,14 +1,11 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ProcessHub } from '@variscout/core';
+import type { Hypothesis } from '@variscout/core/findings';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import {
-  getImprovementProjectInitialState,
-  getAnalyzeInitialState,
-  useImprovementProjectStore,
-  useAnalyzeStore,
-} from '@variscout/stores';
-import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
+import type { OutcomeSpec } from '@variscout/core/processHub';
+import type { UseImprovementProjectPanelModelReturn } from '@variscout/hooks';
+import { useImprovementProjectPanelModel } from '@variscout/hooks';
 import ImprovementProjectPanel from '../ImprovementProjectPanel';
 import { pwaHubRepository } from '../../persistence';
 
@@ -16,7 +13,12 @@ vi.mock('@variscout/ui', async () => {
   const React = await import('react');
   return {
     ImprovementProjectForm: (props: {
-      metadataProps?: { title?: string };
+      metadataProps?: {
+        title?: string;
+        onTitleChange?: (title: string) => void;
+      };
+      goalProps?: { outcomeOptions?: { id: string }[] };
+      backgroundProps?: { onManualNarrativeChange?: (value: string) => void };
       lineageProps?: {
         hypotheses?: { id: string; name: string }[];
         onNavigate?: (target: { kind: 'hypothesis'; id: string }) => void;
@@ -25,7 +27,21 @@ vi.mock('@variscout/ui', async () => {
       React.createElement(
         'section',
         { 'data-testid': 'improvement-project-form' },
-        props.metadataProps?.title ?? 'Untitled',
+        React.createElement('h3', null, props.metadataProps?.title ?? 'Untitled'),
+        React.createElement('p', null, `Outcomes ${props.goalProps?.outcomeOptions?.length ?? 0}`),
+        React.createElement(
+          'button',
+          { type: 'button', onClick: () => props.metadataProps?.onTitleChange?.('Updated') },
+          'Rename'
+        ),
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            onClick: () => props.backgroundProps?.onManualNarrativeChange?.('Updated narrative'),
+          },
+          'Update background'
+        ),
         props.lineageProps?.hypotheses?.[0]
           ? React.createElement(
               'button',
@@ -44,149 +60,143 @@ vi.mock('@variscout/ui', async () => {
   };
 });
 
+vi.mock('@variscout/hooks', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/hooks')>();
+  return {
+    ...actual,
+    useImprovementProjectPanelModel: vi.fn(),
+  };
+});
+
 vi.mock('../../persistence', () => ({
   pwaHubRepository: {
-    dispatch: vi.fn().mockResolvedValue(undefined),
+    dispatch: vi.fn(),
   },
 }));
 
-function makeProject(
-  id: string,
-  hubId: string,
-  title: string,
-  deletedAt: number | null = null
-): ImprovementProject {
+const mockUseImprovementProjectPanelModel = vi.mocked(useImprovementProjectPanelModel);
+
+function makeHub(): ProcessHub {
   return {
-    id,
-    hubId,
+    id: 'hub-1',
+    name: 'Paint line',
+    createdAt: 1_714_000_000_000,
+    deletedAt: null,
+  };
+}
+
+function makeOutcome(): OutcomeSpec {
+  return {
+    id: 'outcome-1',
+    hubId: 'hub-1',
+    columnName: 'First pass yield',
+    characteristicType: 'largerIsBetter',
+    target: 98,
+    createdAt: 1_714_000_000_000,
+    deletedAt: null,
+  };
+}
+
+function makeProject(): ImprovementProject {
+  return {
+    id: 'ip-1',
+    hubId: 'hub-1',
     status: 'draft',
-    metadata: { title },
-    goal: {
-      outcomeGoals: [
-        {
-          outcomeSpecId: 'outcome-1',
-          target: 1.33,
-        },
-      ],
-    },
+    metadata: { title: 'Reduce rework' },
+    goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
     sections: {
       background: {},
       investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },
-    createdAt: 1714000000000,
-    updatedAt: 1714000000000,
-    deletedAt,
+    createdAt: 1_714_000_000_000,
+    updatedAt: 1_714_000_000_000,
+    deletedAt: null,
   };
 }
 
-function makeHub(project?: ImprovementProject): ProcessHub {
+function makeHypothesis(): Hypothesis {
   return {
-    id: 'hub-1',
-    name: 'Paint line',
-    createdAt: 1714000000000,
+    id: 'h-1',
+    name: 'Nozzle wear',
+    status: 'evidenced',
+    synthesis: '',
+    findingIds: [],
+    investigationId: 'inv-1',
+    createdAt: 1,
+    updatedAt: 1,
     deletedAt: null,
-    outcomes: [
-      {
-        id: 'outcome-1',
-        hubId: 'hub-1',
-        columnName: 'First pass yield',
-        characteristicType: 'largerIsBetter',
-        target: 98,
-        createdAt: 1714000000000,
-        deletedAt: null,
-      },
-    ],
-    ...(project ? { improvementProject: project } : {}),
+  };
+}
+
+function makeModel(
+  overrides: Partial<UseImprovementProjectPanelModelReturn> = {}
+): UseImprovementProjectPanelModelReturn {
+  return {
+    projects: [],
+    selectedProject: null,
+    outcomes: [],
+    hypotheses: [],
+    findings: [],
+    error: null,
+    heading: 'Paint line',
+    selectProject: vi.fn(),
+    updateSelectedProject: vi.fn(),
+    handleLineageNavigate: vi.fn(),
+    ...overrides,
   };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  window.sessionStorage.clear();
-  useImprovementProjectStore.setState(getImprovementProjectInitialState());
-  useAnalyzeStore.setState(getAnalyzeInitialState());
+  mockUseImprovementProjectPanelModel.mockReturnValue(makeModel());
 });
 
 describe('ImprovementProjectPanel (PWA)', () => {
-  it('auto-creates a draft improvement project and renders the form when the active hub has no live projects', async () => {
-    render(<ImprovementProjectPanel activeHub={makeHub()} onBack={vi.fn()} />);
-
-    await waitFor(() => expect(pwaHubRepository.dispatch).toHaveBeenCalledTimes(1));
-    expect(pwaHubRepository.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        kind: 'IMPROVEMENT_PROJECT_CREATE',
-        hubId: 'hub-1',
-        project: expect.objectContaining({
-          hubId: 'hub-1',
-          status: 'draft',
-          metadata: expect.objectContaining({ title: 'Improve First pass yield' }),
-          goal: expect.objectContaining({
-            outcomeGoals: expect.arrayContaining([
-              expect.objectContaining({ outcomeSpecId: 'outcome-1', target: 98 }),
-            ]),
-          }),
-        }),
-      })
-    );
-
-    expect(await screen.findByTestId('improvement-project-form')).toHaveTextContent(
-      'Improve First pass yield'
-    );
-    expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')).toBeDefined();
-    expect(screen.getByRole('button', { name: /back to frame/i })).toBeInTheDocument();
-  });
-
-  it('renders the form directly when the hub has an existing live project (1:1 — no picker)', async () => {
-    const project = makeProject('ip-1', 'hub-1', 'Reduce rework');
-
-    render(<ImprovementProjectPanel activeHub={makeHub(project)} onBack={vi.fn()} />);
-
-    expect(pwaHubRepository.dispatch).not.toHaveBeenCalled();
-    expect(await screen.findByTestId('improvement-project-form')).toHaveTextContent(
-      'Reduce rework'
-    );
-  });
-
-  it('opens Wall from linked lineage and stores the Improvement Project return target', async () => {
+  it('passes the app repository and open-wall callback into the shared model hook', () => {
+    const activeHub = makeHub();
     const onOpenWall = vi.fn();
-    const project = makeProject('ip-1', 'hub-1', 'Reduce rework');
-    useAnalyzeStore.setState({
-      ...getAnalyzeInitialState(),
-      hypotheses: [
-        {
-          id: 'h-1',
-          name: 'Nozzle wear',
-          status: 'evidenced',
-          createdAt: 1,
-          updatedAt: 1,
-          deletedAt: null,
-          synthesis: '',
-          // IM-1 (ADR-085): `questionIds` was removed from Hypothesis. findingIds is the link.
-          findingIds: [],
-          investigationId: 'inv-1',
-        },
-      ],
-    });
 
     render(
-      <ImprovementProjectPanel
-        activeHub={makeHub(project)}
-        onBack={vi.fn()}
-        onOpenWall={onOpenWall}
-      />
+      <ImprovementProjectPanel activeHub={activeHub} onBack={vi.fn()} onOpenWall={onOpenWall} />
     );
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Nozzle wear' }));
+    expect(mockUseImprovementProjectPanelModel).toHaveBeenCalledWith({
+      activeHub,
+      repository: pwaHubRepository,
+      onOpenWall,
+    });
+    expect(screen.getByText('Paint line')).toBeInTheDocument();
+  });
 
-    expect(onOpenWall).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(window.sessionStorage.getItem(RETURN_NAVIGATION_STORAGE_KEY) ?? '')).toEqual(
-      expect.objectContaining({
-        sourceSurface: 'improvement-project',
-        params: { projectId: 'ip-1', targetKind: 'hypothesis', targetId: 'h-1' },
-        uiState: { section: 'lineage' },
+  it('renders model state and forwards representative form callbacks', () => {
+    const updateSelectedProject = vi.fn();
+    const handleLineageNavigate = vi.fn();
+    mockUseImprovementProjectPanelModel.mockReturnValue(
+      makeModel({
+        projects: [makeProject()],
+        selectedProject: makeProject(),
+        outcomes: [makeOutcome()],
+        hypotheses: [makeHypothesis()],
+        updateSelectedProject,
+        handleLineageNavigate,
       })
     );
+
+    render(<ImprovementProjectPanel activeHub={makeHub()} onBack={vi.fn()} />);
+
+    expect(screen.getByTestId('improvement-project-form')).toHaveTextContent('Reduce rework');
+    expect(screen.getByTestId('improvement-project-form')).toHaveTextContent('Outcomes 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Update background' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Nozzle wear' }));
+
+    expect(updateSelectedProject).toHaveBeenCalledWith({ metadata: { title: 'Updated' } });
+    expect(updateSelectedProject).toHaveBeenCalledWith({
+      sections: { background: { manualNarrative: 'Updated narrative' } },
+    });
+    expect(handleLineageNavigate).toHaveBeenCalledWith({ kind: 'hypothesis', id: 'h-1' });
   });
 });
