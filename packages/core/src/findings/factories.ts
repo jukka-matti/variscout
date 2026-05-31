@@ -12,6 +12,7 @@ import {
   type FindingAssignee,
   type ActionItem,
   type ActionItemQuickActionFields,
+  type ActionItemStatus,
   type ImprovementIdea,
   type PhotoAttachment,
   type AnalyzeCategory,
@@ -20,6 +21,7 @@ import {
   type ProblemStatementScope,
 } from './types';
 import type { ConditionLeaf } from './hypothesisCondition';
+import type { ProcessParticipantRef } from '../processHub';
 
 import { generateDeterministicId } from '../identity';
 export { generateDeterministicId as generateId } from '../identity';
@@ -163,6 +165,47 @@ export function createActionItem(
   };
   if (ideaId) action.ideaId = ideaId;
   return action;
+}
+
+export function createProjectActionItem(input: {
+  text: string;
+  parentImprovementProjectId: string | null;
+}): ActionItem {
+  return {
+    id: generateDeterministicId(),
+    text: input.text,
+    parentImprovementProjectId: input.parentImprovementProjectId,
+    status: 'open',
+    createdAt: Date.now(),
+    deletedAt: null,
+  };
+}
+
+export function createStepQuickActionItem(input: {
+  text: string;
+  stepId: string;
+  status: Extract<ActionItemStatus, 'open' | 'done'>;
+  assignedTo?: ProcessParticipantRef | null;
+  dueAt?: string | null;
+  createdBy?: ProcessParticipantRef;
+}): ActionItem {
+  const isOpen = input.status === 'open';
+
+  return {
+    id: generateDeterministicId(),
+    text: input.text,
+    stepId: input.stepId,
+    parentImprovementProjectId: null,
+    parentImprovementIdeaId: null,
+    assignedTo: isOpen ? (input.assignedTo ?? null) : null,
+    dueAt: isOpen ? (input.dueAt ?? null) : null,
+    status: input.status,
+    doneAt: isOpen ? null : new Date().toISOString(),
+    doneBy: null,
+    createdBy: input.createdBy ?? { displayName: 'Local browser' },
+    createdAt: Date.now(),
+    deletedAt: null,
+  };
 }
 
 /**

@@ -9,6 +9,8 @@ import {
   createFinding,
   createFindingComment,
   createActionItem,
+  createProjectActionItem,
+  createStepQuickActionItem,
   createFindingOutcome,
   createImprovementIdea,
   createProblemStatementScope,
@@ -405,6 +407,104 @@ describe('createActionItem', () => {
         deletedAt: null,
       })
     );
+  });
+});
+
+describe('createProjectActionItem', () => {
+  it('creates an open project-scoped action item', () => {
+    const action = createProjectActionItem({
+      text: 'Run a pilot on Line 3',
+      parentImprovementProjectId: 'ip-1',
+    });
+
+    expect(action).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        text: 'Run a pilot on Line 3',
+        parentImprovementProjectId: 'ip-1',
+        status: 'open',
+        createdAt: expect.any(Number),
+        deletedAt: null,
+      })
+    );
+  });
+
+  it('preserves a null parent project for unscoped project actions', () => {
+    const action = createProjectActionItem({
+      text: 'Capture project context',
+      parentImprovementProjectId: null,
+    });
+
+    expect(action.parentImprovementProjectId).toBeNull();
+    expect(action.status).toBe('open');
+  });
+});
+
+describe('createStepQuickActionItem', () => {
+  it('creates a completed orphan step action with done defaults', () => {
+    const action = createStepQuickActionItem({
+      text: 'Refill buffer tank',
+      stepId: 'step-1',
+      status: 'done',
+    });
+
+    expect(action).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        text: 'Refill buffer tank',
+        stepId: 'step-1',
+        parentImprovementProjectId: null,
+        parentImprovementIdeaId: null,
+        assignedTo: null,
+        dueAt: null,
+        status: 'done',
+        doneAt: expect.any(String),
+        doneBy: null,
+        createdBy: { displayName: 'Local browser' },
+        createdAt: expect.any(Number),
+        deletedAt: null,
+      })
+    );
+  });
+
+  it('creates an open orphan step action with owner and due date', () => {
+    const assignedTo = { displayName: 'Alex Chen', upn: 'alex@example.com' };
+    const action = createStepQuickActionItem({
+      text: 'Check setup sheet',
+      stepId: 'step-2',
+      status: 'open',
+      assignedTo,
+      dueAt: '2026-05-18',
+      createdBy: { displayName: 'Mira Lead', upn: 'mira@example.com' },
+    });
+
+    expect(action).toEqual(
+      expect.objectContaining({
+        text: 'Check setup sheet',
+        stepId: 'step-2',
+        parentImprovementProjectId: null,
+        parentImprovementIdeaId: null,
+        assignedTo,
+        dueAt: '2026-05-18',
+        status: 'open',
+        doneAt: null,
+        doneBy: null,
+        createdBy: { displayName: 'Mira Lead', upn: 'mira@example.com' },
+        deletedAt: null,
+      })
+    );
+  });
+
+  it('stores null dueAt for an open step action without a due date', () => {
+    const action = createStepQuickActionItem({
+      text: 'Assign follow-up',
+      stepId: 'step-3',
+      status: 'open',
+      assignedTo: { displayName: 'Alex Chen', upn: 'alex@example.com' },
+    });
+
+    expect(action.dueAt).toBeNull();
+    expect(action.doneAt).toBeNull();
   });
 });
 

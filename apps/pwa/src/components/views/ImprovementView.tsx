@@ -11,7 +11,7 @@ import React from 'react';
 import { ActiveIPScopeRibbon, ImproveTabRoot } from '@variscout/ui';
 import type { ActiveIPScopeLabels } from '@variscout/ui';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import { generateDeterministicId } from '@variscout/core/identity';
+import { createProjectActionItem } from '@variscout/core/findings';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { useImprovementProjectStore } from '@variscout/stores';
 
@@ -66,14 +66,10 @@ const ImprovementView: React.FC<ImprovementViewProps> = ({ activeIPScope, active
           applyAction({
             kind: 'ACTION_ITEM_ADD',
             hubId: activeIP?.hubId ?? '',
-            actionItem: {
-              id: generateDeterministicId(),
-              createdAt: Date.now(),
-              deletedAt: null,
+            actionItem: createProjectActionItem({
               text,
-              parentImprovementProjectId,
-              status: 'open',
-            },
+              parentImprovementProjectId: parentImprovementProjectId ?? null,
+            }),
           })
         }
         onActionUpdate={(actionItemId, patch) =>

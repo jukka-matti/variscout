@@ -28,7 +28,7 @@ import type {
   ControlRecord,
 } from '@variscout/core';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
-import { createActionItem, type ActionItem } from '@variscout/core/findings';
+import { createStepQuickActionItem, type ActionItem } from '@variscout/core/findings';
 import { surveyInboxRules } from '@variscout/core/survey';
 import { useActiveIPContext } from '@variscout/hooks';
 import { pwaHubRepository } from '../../persistence';
@@ -224,16 +224,12 @@ const FrameView: React.FC = () => {
   const handleLogQuickAction = React.useCallback(
     (stepId: string, payload: LogActionPayload) => {
       if (!activeHubId) return;
-      const actionItem = createActionItem(payload.text, {
+      const actionItem = createStepQuickActionItem({
+        text: payload.text,
         stepId,
-        parentImprovementProjectId: null,
-        parentImprovementIdeaId: null,
         assignedTo: payload.status === 'open' ? payload.assignedTo : null,
         dueAt: payload.status === 'open' ? (payload.dueAt ?? null) : null,
         status: payload.status,
-        doneAt: payload.status === 'done' ? new Date().toISOString() : null,
-        doneBy: null,
-        createdBy: { displayName: 'Local browser' },
       });
       setActionItems(current => mergeActionItems(current, [actionItem]));
       void (async () => {
