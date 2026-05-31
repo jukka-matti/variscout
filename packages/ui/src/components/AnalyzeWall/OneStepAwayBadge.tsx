@@ -22,10 +22,12 @@ export interface OneStepAwayBadgeProps {
   /** Height of the foreignObject (pixels). */
   height: number;
   /**
-   * FE-2b — when provided, the badge becomes a clickable affordance that opens
-   * the hub's test plan pre-staged with "Try to break it" (the existing Survey
-   * one-hint-per-hypothesis stays the only ambient nudge). The label is the
-   * accessible name. When omitted, the badge stays a passive label.
+   * FE-2b — when provided, the badge becomes a clickable affordance that FOCUSES
+   * the hub (routes through the gap-focus path → opens the hub's test plan; the
+   * existing Survey one-hint-per-hypothesis stays the only ambient nudge). It does
+   * NOT pre-check "Try to break it" — the analyst checks the per-factor box
+   * themselves once the triad is in view. The label is the accessible name. When
+   * omitted, the badge stays a passive label.
    */
   onClick?: () => void;
   /** FE-2b — accessible name for the clickable affordance. */

@@ -25,9 +25,10 @@ export interface MissingEvidencePanelProps {
   /**
    * FE-2b — activates the per-hint action button (was a disabled V2 stub). When
    * provided AND a hint targets a hub, the action ("Try disconfirmation") becomes
-   * live and fires with the hint's `targetEntityId` so the app opens that hub's
-   * test plan pre-staged with "Try to break it". When omitted, the action button
-   * stays disabled (the legacy informative-only state).
+   * live and fires with the hint's `targetEntityId` so the app FOCUSES that hub
+   * (opening its test plan). It does NOT pre-check "Try to break it" — the analyst
+   * checks the per-factor box themselves once the triad is in view. When omitted,
+   * the action button stays disabled (the legacy informative-only state).
    */
   onTriadAction?: (hubId: string) => void;
 }
@@ -97,8 +98,9 @@ export const MissingEvidencePanel: React.FC<MissingEvidencePanelProps> = ({
                 )}
                 {h.action?.label &&
                   // FE-2b — activated: when the app wires onTriadAction AND the
-                  // hint targets a hub, the action opens that hub's test plan
-                  // pre-staged. Falls back to the legacy disabled stub otherwise.
+                  // hint targets a hub, the action FOCUSES that hub (opening its
+                  // test plan; it does not pre-check "Try to break it"). Falls back
+                  // to the legacy disabled stub otherwise.
                   (onTriadAction && h.targetEntityId ? (
                     <button
                       type="button"
