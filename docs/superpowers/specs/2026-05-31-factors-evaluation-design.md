@@ -66,6 +66,14 @@ The hypothesis card grows the **"how do I test this, and can I?"** triad — a d
 
 Replaces `BrushToFindingFlow`'s statistic-free pin as the primary card→finding path (brush stays for descriptive capture). Pre-fills `AddPlanForm.primaryFactor` from the derived factors (kills the free-text drift).
 
+### §4.1 · Disconfirmation as a hypothesis-refinement loop (not just a gate)
+
+The "Supported" gate (`deriveHypothesisStatus`: ≥2 evidence types **+ a survived disconfirmation**) is not only a quality bar — it is the **generative engine that sharpens hypotheses**. Falsification logic (Popper): you never _prove_ a hypothesis, you fail to _refute_ it; one refutation kills it, a thousand confirmations don't prove it. So a cause that _survived a genuine attempt to break it_ is in a different class from one with only piled-on support — and the act of trying to break it makes the hypothesis better in four ways: (1) it forces **falsifiable specificity** (a vague hypothesis has no disconfirming test → you must commit to a mechanism with a checkable prediction); (2) a failed attempt usually **refines rather than kills** — it relocates the cause to a sharper one (the spindle example: disconfirming "it's the night shift" → "it's the spindle, regardless of shift"); (3) it **surfaces confounds** ("what would prove me wrong?" = "what's the rival explanation?"); (4) it **calibrates honest, scoped confidence** ("survived these three attempts, wobbled under this one"). Refuted hypotheses stay on the Wall as visible **red dead-ends** (anti-amnesia) so the team doesn't re-walk them and each cycle starts sharper.
+
+**Design consequence:** the disconfirmation gesture is _"what's the test that would prove this wrong?"_ → run it via the same one-tap `evaluate` → if the result does **not** refute, that is the survived attempt, **with the test result attached** (`DisconfirmationAttempt.linkedFindingIds` — the field exists; today's write-path passes `[]`). This unifies disconfirmation with the test-plan triad ("the test IS the disconfirmation surface") and closes the bookkeeping gap.
+
+**RESOLVED — evidence-backing is SOFT (product owner, 2026-05-31):** a `verdict: 'survived'` stays settable and the gate still promotes to **Supported**, BUT an _unbacked_ survived attempt (no `linkedFindingIds`) is **caveated ambiently** ("Supported — disconfirmation has no attached evidence"), not hard-blocked. Honors the house posture ("trust is a soft caveat, not a gate"); the value comes from analysts _choosing_ to run the falsifying test, which the UX makes cheap + the prompt-framing encourages — not from the tool forcing it. UX/CoScout support for the refinement loop is the open design surface (see §10).
+
 ## §5 · Surface the per-hypothesis What-If Cpk (Increment 2)
 
 Render each hypothesis's **own** What-If ("if we control this cause → projected Cpk X") via `computeScopeWhatIfProjection` + coverage % — built, correct, currently invisible. **Never summed across hypotheses** (enforced by `architecture.noCrossInvestigationAggregation.test.ts`); the confound case (two causes citing the same factor at opposite signs) is adjudicated by data picking a side + side-by-side What-If, not by an additive stack. This is also the "expected gain" that carries to Improve.
@@ -96,8 +104,10 @@ Selection-stability bootstrap (one increment out) · BIC + any surfaced Cp colum
 
 Each increment: `superpowers:writing-plans` → single-implementer (per the IM-4b TDD-pipeline verdict — leaf-scoped test/impl splits ship green-but-dead UI) → full gate + seam tests + adversarial review → `gh pr merge --merge --delete-branch`.
 
-## §10 · Open questions (remaining, for the plans)
+## §10 · Open questions (resolved + remaining)
 
-1. **Confound sign** — when one shared test supports H1 and counts-against H5, does capturing it **prompt** marking the sibling's sign, or stay manual `counterFindingIds`? (Lean: prompt — the manual path silently leaves the loser "supporting".)
-2. **`causeRole` vs derived status** (§6) — selection-on-top vs derivable.
-3. **`evaluate` evidence-type** — confirm one evaluation = one `data` evidence type regardless of test count (so the confirm-gate triangulation stays honest).
+1. **Confound sign — RESOLVED (2026-05-31): PROMPT.** Capturing a shared test that supports H1 and counts-against H5 prompts the analyst to mark H5's opposite sign (the manual path silently leaves the loser "supporting").
+2. **`evaluate` evidence-type — RESOLVED (2026-05-31): one `data` type per evaluation** regardless of how many factors/tests, so the Supported gate's triangulation (data + gemba/expert + survived disconfirmation) stays honest.
+3. **Disconfirmation evidence-backing — RESOLVED (2026-05-31): SOFT** (see §4.1) — an unbacked `survived` is caveated, not blocked.
+4. **`causeRole` vs derived status (§6) — DEFERRED to the Improve-handoff slice** — selection-on-top (lean) vs derivable; not needed for Increment 2's core.
+5. **REMAINING (the open design surface): how the UX/UI + (later) CoScout support the disconfirmation-as-refinement loop** (§4.1) — making "what would prove this wrong?" a cheap, well-framed, evidence-backed gesture, and CoScout proposing falsifying tests / surfacing confounds / flagging confirmation-only hypotheses. Explore before Increment 2's disconfirmation UX is finalized.
