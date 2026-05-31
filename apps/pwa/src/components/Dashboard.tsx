@@ -61,7 +61,12 @@ import { useProjectionStore } from '../features/projection/projectionStore';
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
 import type { FindingsCallbacks } from '@variscout/ui';
 
-type AnalysisLensTab = 'probability' | 'distribution' | 'pareto';
+// IM-6 / ADR-089: the verify card is no longer a "pick one of the always-on
+// charts" lens switcher. Pareto is a first-class always-on grid card, so it is
+// not a verify-card lens tab. The verify card only hosts the two supplementary
+// distribution diagnostics (Probability Plot ⇄ Distribution/Capability
+// histogram), converged with the Azure app.
+type AnalysisLensTab = 'probability' | 'distribution';
 
 interface DashboardProps {
   onPointClick?: (index: number) => void;
@@ -445,45 +450,6 @@ const Dashboard = ({
       label: hasSpecs ? t('verify.tab.capability') : t('verify.tab.distribution'),
       content: <CapabilityHistogram data={histogramData} specs={specs} mean={stats?.mean ?? 0} />,
     },
-    ...(paretoFactor
-      ? [
-          {
-            id: 'pareto',
-            label: t('verify.tab.pareto'),
-            content: (
-              <ErrorBoundary componentName="Pareto Chart">
-                <ParetoChart
-                  factor={paretoFactor}
-                  onDrillDown={handleDrillDown}
-                  showComparison={showParetoComparison}
-                  onToggleComparison={() => toggleParetoComparison()}
-                  onHide={() => setAnalysisLensTab('probability')}
-                  onUploadPareto={onManageFactors}
-                  availableFactors={effectiveFactors}
-                  aggregation={paretoAggregation}
-                  onToggleAggregation={() =>
-                    setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
-                  }
-                  showBranding={false}
-                  highlightedCategories={paretoHighlights}
-                  onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
-                  findings={chartFindings?.pareto}
-                  onEditFinding={onEditFinding}
-                  onDeleteFinding={onDeleteFinding}
-                  isComputing={isComputing}
-                  dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
-                  outcomeOverride={
-                    isDefectMode && defectResult
-                      ? (defectParetoOutcome ?? effectiveOutcome ?? undefined)
-                      : undefined
-                  }
-                  onFactorSwitch={isDefectMode ? setParetoFactor : undefined}
-                />
-              </ErrorBoundary>
-            ),
-          } satisfies { id: AnalysisLensTab; label: string; content: React.ReactNode },
-        ]
-      : []),
   ] satisfies Array<{ id: AnalysisLensTab; label: string; content: React.ReactNode }>;
 
   const activeAnalysisLensTab = analysisLensTabs.some(tab => tab.id === analysisLensTab)
@@ -926,11 +892,7 @@ const Dashboard = ({
           ) : undefined
         }
         verificationCardFocusTarget={
-          activeAnalysisLensTab === 'pareto'
-            ? 'pareto'
-            : activeAnalysisLensTab === 'distribution'
-              ? 'histogram'
-              : 'probability-plot'
+          activeAnalysisLensTab === 'distribution' ? 'histogram' : 'probability-plot'
         }
         renderFocusedView={
           focusedChart === 'histogram' || focusedChart === 'probability-plot' ? (

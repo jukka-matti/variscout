@@ -117,17 +117,17 @@ FRAME contains significant deterministic engines: data parsing and validation, c
 | Key Code | `useFilterNavigation`, `useChartScale`, chart data hooks                                                                      |
 | Exit     | Variation drivers quantified, findings pinned                                                                                 |
 
-The Four Lenses (CHANGE/FLOW/FAILURE/VALUE) are pedagogical labels for the chart sequence — useful for teaching and marketing. Code uses chart names directly.
+#### Measure + factor → always-on charts ([ADR-089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md))
 
-#### Analysis Modes (SCOUT)
+The analyst tunes exactly two things: a **measure (Y)** and one or more **factors (X)**. Everything else is derived or invariant — there is no mode-picker and no lens-picker:
 
-The standard Four Lenses dashboard can be augmented with alternative analysis modes:
+- **The four charts (I-Chart / Boxplot / Pareto / Stats) are always shown and always drillable.** "Lens" = the chart set; it never changes.
+- **"Mode" = data shape, set automatically at Frame/setup, not a user knob.** `AnalysisMode` (`'standard' | 'performance' | 'defect'`) is a Frame-derived discriminant — `performance` is set by the wide-channel transform (`PerformanceSetupPanel`), `defect` by the `computeDefectRates` ingest transform. The analyst never opens a menu to "switch to performance mode."
+- **"Level" = which measure** — a global outcome (Y) vs a step-local measure (x). See [ADR-088](../../07-decisions/adr-088-level-native-contribution.md).
 
-- **Performance Mode** — Multi-channel Cpk comparison (wide-format data)
-- **Yamazumi Mode** — Lean time study (stacked activity bars)
-- **Capability Mode** — I-Chart view toggle showing per-subgroup Cp/Cpk ("Are we meeting our Cpk target?")
+The **Values ⇄ Capability** toggle ([ADR-038](../../07-decisions/adr-038-subgroup-capability.md), [ADR-089 §6.2](../../07-decisions/adr-089-retire-mode-lens-user-axis.md)) is the one genuine analysis _view_ that survives: a specs-gated switch on the I-Chart showing raw measurements vs per-subgroup Cp/Cpk **stability** ("Are we capable when stable?"). It is Cp/Cpk-only ([ADR-084](../../07-decisions/adr-084-capability-indices-cp-cpk-only.md)) — never Pp/Ppk — and is explicitly _not_ a lens and _not_ an `AnalysisMode`.
 
-Each mode is a view configuration, not a separate workflow. The analyst switches freely and all modes share the same findings, drill-down, and investigation infrastructure.
+> **Teaching aside.** The CHANGE/FLOW/FAILURE/VALUE "four lenses" are pedagogical narration for the chart sequence — never a product feature, type, or picker (code uses chart names directly). They are not a knob the analyst turns.
 
 ### INVESTIGATE
 
