@@ -68,6 +68,7 @@ function createMockFindingsState(): UseFindingsReturn {
     updatePhotoStatus: vi.fn(),
     setProjection: vi.fn(),
     clearProjection: vi.fn(),
+    setValidation: vi.fn(),
     addAction: vi.fn(),
     updateAction: vi.fn(),
     completeAction: vi.fn(),

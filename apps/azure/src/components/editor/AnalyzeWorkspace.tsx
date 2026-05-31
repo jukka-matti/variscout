@@ -48,7 +48,7 @@ import {
   parseMentions,
 } from '@variscout/core';
 import { computeBestSubsets } from '@variscout/core/stats';
-import { detectEvidenceClusters } from '@variscout/core/findings';
+import { detectEvidenceClusters, evaluateHypothesisFactor } from '@variscout/core/findings';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { ProjectMember } from '@variscout/core/projectMembership';
@@ -321,6 +321,34 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     };
   }, [outcome, factors, filteredData, categoricalFilters, activeScope, handleCaptureModel]);
 
+  // ── FE-2a — one-tap evaluate of a hypothesis factor ──────────────────────
+  // The PRODUCTION seam: run the real `evaluateHypothesisFactor` on the active
+  // (scoped) data, write a typed Finding via the real `addFinding`, connect it
+  // to the hub via the real `connectFinding`, then stamp the classification via
+  // `setValidation`. NEVER auto-run — the analyst taps. One `data` evidence type
+  // per evaluation (locked #2): we write exactly ONE finding regardless of the
+  // factor's tool. A non-significant result classifies 'inconclusive' (NOT-tested),
+  // never supporting (engine honesty — same rule as the IM-3 auto-link fix).
+  const handleEvaluateFactor = useCallback(
+    (hypothesisId: string, factor: string) => {
+      if (!outcome || !filteredData?.length) return;
+      const result = evaluateHypothesisFactor(filteredData, factor, outcome);
+      if (!result) return;
+      const activeFilters = categoricalFiltersToActiveFilters(
+        useAnalysisScopeStore.getState().categoricalFilters
+      );
+      const finding = findingsState.addFinding(result.findingText, {
+        activeFilters,
+        cumulativeScope: null,
+      });
+      // Classify BEFORE connecting so the finding is never read as an
+      // unclassified "support" clue on the Wall in the interim.
+      findingsState.setValidation(finding.id, result.validationStatus, result.refutes);
+      hypothesesState.connectFinding(hypothesisId, finding.id);
+    },
+    [outcome, filteredData, findingsState, hypothesesState]
+  );
+
   // ── IM-4b Task 5 — multi-scope rail ──────────────────────────────────────
   // Active (non-archived) scopes for the current investigation + outcome.
   const railScopes = useMemo(
@@ -393,8 +421,18 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         hypothesesState.removeIdea(hypothesisId, ideaId),
       onSelectIdea: (hypothesisId: string, ideaId: string, selected: boolean) =>
         hypothesesState.selectIdea(hypothesisId, ideaId, selected),
+      // FE-2a — one-tap evaluate → typed Finding linked to the hub.
+      onEvaluateFactor: handleEvaluateFactor,
     };
-  }, [planningProps, members, wallAuthorName, hypothesesState, ideaImpacts, onProjectIdea]);
+  }, [
+    planningProps,
+    members,
+    wallAuthorName,
+    hypothesesState,
+    ideaImpacts,
+    onProjectIdea,
+    handleEvaluateFactor,
+  ]);
   // Live Problem-card base values for the scoped subset (no longer hardcoded):
   // Cpk from the filtered-data stats, and the out-of-spec event COUNT as the
   // "events" proxy (no reliable weekly cadence in V1 — count of occurrences).
