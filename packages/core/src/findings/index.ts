@@ -50,6 +50,20 @@ export type {
   BranchSignalWarning,
 } from './mechanismBranch';
 export { projectMechanismBranch, projectMechanismBranches } from './mechanismBranch';
+// Hypothesis test-plan triad + one-tap evaluate (Factors & Evaluation Increment 2a).
+export {
+  deriveHypothesisFactors,
+  suggestToolForFactor,
+  buildHypothesisTestPlan,
+  evaluateHypothesisFactor,
+  EVALUATE_SIGNIFICANCE_THRESHOLD,
+} from './hypothesisTestPlan';
+export type {
+  AnalyticalTool,
+  FactorReadiness,
+  HypothesisTestPlanFactor,
+  HypothesisFactorEvaluation,
+} from './hypothesisTestPlan';
 // Note: DataRow is the canonical foundational type from `../types` — not re-exported
 // from this sub-path to avoid a duplicate identifier at the root barrel. The evaluator
 // accepts `Record<string, unknown>`-compatible rows; consumers get the canonical DataRow
