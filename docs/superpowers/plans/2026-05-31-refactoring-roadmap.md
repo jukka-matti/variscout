@@ -209,7 +209,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 - Revisit ReportView convergence with current PWA/Azure orchestration evidence.
 - Consider shared wrapper bases only for surfaces with stable repository/capability boundaries; avoid forcing a shared shell around intentional Azure-only behavior.
 
-**Decision gate:** Needs a fresh duplication/divergence audit. Report and shell convergence should not start from memory.
+**Decision gate:** Use the post-Phase-6 evaluation below as the starting evidence, then run slice-specific brainstorming before touching app-shell code. Report and shell convergence should not start from memory.
 
 **Effort:** L. **Risk:** high. **Timing:** later.
 
@@ -227,9 +227,19 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 **Effort:** L. **Risk:** medium-high. **Timing:** pre-launch hardening.
 
+## Post-Phase-6 Evaluation — 2026-06-01
+
+The standalone evaluation plan lives at [2026-06-01-post-phase-6-refactoring-evaluation.md](2026-06-01-post-phase-6-refactoring-evaluation.md). It separates current Phase 6 closeout from future refactoring work:
+
+- **R6e/R6f** remain the active Phase 6 closeout candidates.
+- **Eval-A through Eval-E** are neutral post-Phase-6 evaluation labels, not approved implementation slices.
+- **R7/R8/R9** remain later decision-gated horizons unless the evaluation promotes a specific part into immediate work.
+
+Use that plan to run read-only explorer lanes and produce a ranked recommendation table before writing any new implementation plan.
+
 ## Do Not Refactor Yet
 
-- Do not big-bang split `apps/pwa/src/App.tsx` or `apps/azure/src/pages/Editor.tsx`; extract shared workflow and active-IP pieces first.
+- Do not big-bang split `apps/pwa/src/App.tsx` or `apps/azure/src/pages/Editor.tsx`; first design document/capability boundary hooks with explicit Save/Export workflow tests.
 - Do not unify full ReportView surfaces now; PWA and Azure report views have different orchestration shapes.
 - Do not delete the `@variscout/core` root barrel. Migrate consumers to subpath imports opportunistically.
 - Do not force the repo back into the simple `core -> hooks -> ui -> apps` chain without first deciding where `stores`, `data`, and `charts` belong.
@@ -238,4 +248,4 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ## Next Recommended Execution
 
-Write and review the R6d Save Semantics plan next. Treat R7/R8/R9 as decision-gated horizons, not committed PR sequences. Do not add Annotation/View state to portable `.vrs` in this stream unless R6d explicitly changes the save contract.
+Close Phase 6 with R6e/R6f decisions first: either harden Azure access beyond client filters or explicitly record the remaining launch blocker, then sweep stale persistence docs/comments/fixtures. After that, run the standalone post-Phase-6 evaluation plan. If Eval-A is verified as safe cleanup, write a dedicated implementation plan before changing code; use brainstorming before any Eval-B/Eval-C/Eval-D work because those contain product or architecture choices. Keep R7/R8/R9 as later decision-gated horizons unless the evaluation promotes a specific part of those horizons into immediate work.
