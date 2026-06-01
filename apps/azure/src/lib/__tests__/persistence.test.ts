@@ -70,7 +70,7 @@ describe('Azure persistence .vrs import/export', () => {
     Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), configurable: true });
     HTMLAnchorElement.prototype.click = vi.fn();
 
-    expect(() => exportToFile('legacy.vrs', { activeHub: null })).toThrow(/active hub/i);
+    expect(() => exportToFile('no-active-hub.vrs', { activeHub: null })).toThrow(/active hub/i);
     expect(createObjectURL).not.toHaveBeenCalled();
   });
 
@@ -127,7 +127,7 @@ describe('Azure persistence .vrs import/export', () => {
           specs: {},
         }),
       ],
-      'legacy.vrs',
+      'top-level-state.vrs',
       { type: 'application/json' }
     );
 

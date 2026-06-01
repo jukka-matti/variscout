@@ -100,7 +100,7 @@ flowchart TD
 
 ### Tier Differences
 
-| Dimension   | PWA (Free)   | Azure (Standard / Team)       |
+| Dimension   | PWA (Free)   | Azure (€120 tenant-wide)      |
 | ----------- | ------------ | ----------------------------- |
 | Max factors | 3            | 6                             |
 | Max rows    | 50,000       | 250,000                       |
@@ -177,7 +177,7 @@ See [quick-check.md](quick-check.md) and [deep-dive.md](deep-dive.md) for detail
 
 ### Tier Differences
 
-| Dimension         | PWA (Free)                            | Azure (Standard / Team)     |
+| Dimension         | PWA (Free)                            | Azure (€120 tenant-wide)    |
 | ----------------- | ------------------------------------- | --------------------------- |
 | Max drill factors | 3                                     | 6                           |
 | Finding statuses  | 3 (observed, investigating, analyzed) | 5 (+ improving, resolved)   |

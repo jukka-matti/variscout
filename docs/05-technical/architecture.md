@@ -301,12 +301,12 @@ Built with Visx to ensure complete control over rendering behavior and interacti
 - **Boxplot**: Distribution analysis showing quartiles and outliers.
 - **Pareto**: Factor frequency analysis.
 
-### 4.4 Persistence Layer (`apps/pwa/src/lib/persistence.ts`)
+### 4.4 Persistence Layer
 
-Handles all data storage operations in the browser.
+Handles product-specific document persistence at the app boundary.
 
-- **Analysis Storage**: Named analyses saved to IndexedDB via explicit save/load actions.
-- **File Export/Import**: Download/upload `.vrs` JSON files for portability.
+- **PWA**: Session-only document state with explicit `.vrs` export/import for portability.
+- **Azure App**: Named document identities saved to IndexedDB and synced to customer-tenant Blob Storage.
 
 ## 5. Data Persistence
 
@@ -320,7 +320,8 @@ Handles all data storage operations in the browser.
 ### PWA (Free)
 
 - Session-only — data lives in React state, cleared on refresh
-- No save, no IndexedDB projects, no .vrs files
+- No browser Save, no IndexedDB document list, no reload-from-browser document identity
+- `.vrs` export/import is available for backup, sharing, and start-import flows
 - Users paste data or load samples each session
 - CSV/PNG export available during session
 

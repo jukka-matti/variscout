@@ -18,7 +18,7 @@ layer: L5
 
 **Related**: ADR-007 (Marketplace Distribution), ADR-033 (Pricing Simplification), ADR-058 (Deployment Lifecycle), ADR-082 (Wedge architecture — single €120/month SKU replaces the Standard/Team tier split documented below)
 
-> **V1 (2026-05-16) amendment:** The "Tier Model (Preserved)" section below describes the pre-V1 €79 Standard / €199 Team split. V1 ships as a single €120/month SKU (Azure tenant-wide, project-membership ACLs) per [ADR-082](adr-082-wedge-architecture.md). The web-first deployment architecture (EasyAuth, Blob Storage, browser capture, no Teams SDK) is unchanged.
+> **Amendments:** 2026-05-16 updates the tier model to the single €120/month SKU per [ADR-082](adr-082-wedge-architecture.md). 2026-06-01 corrects PWA persistence to R6d export-only durability and supersedes the stale PWA IndexedDB document-save schema note below. The web-first deployment architecture (EasyAuth, Blob Storage, browser capture, no Teams SDK) is unchanged.
 
 ---
 
@@ -195,3 +195,15 @@ to the FRAME canvas detail spec when it brainstorms persistence.
 Locked as Q8 in the 2026-05-03 vision §8 walkthrough — see
 `~/.claude/plans/lets-do-this-next-rustling-simon.md` and the matching
 entry in [`docs/decision-log.md`](../decision-log.md).
+
+## Amendment — 2026-06-01: R6f persistence-doc correction
+
+The schema implications in the previous amendment are superseded by R6c/R6d.
+There is no PWA IndexedDB document-save layer, saved-document list, or browser
+reload promise. The current PWA document durability contract is explicit
+snapshot `.vrs` export/import only.
+
+PWA IndexedDB may still exist for non-document cache or Annotation/View state
+where separately decided, but it is not a document persistence target. Azure
+remains the product surface for durable saved document identity, IndexedDB local
+cache, and customer-tenant Blob sync.

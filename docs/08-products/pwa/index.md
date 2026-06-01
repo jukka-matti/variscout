@@ -80,7 +80,7 @@ All core analysis features:
 | ----------------------- | ------------ | --------------------- |
 | Paste data              | ✓            | ✓                     |
 | File upload (CSV/Excel) | -            | ✓                     |
-| .vrs import/export      | -            | ✓                     |
+| .vrs import/export      | ✓            | ✓                     |
 | Save/persistence        | Session only | IndexedDB / Blob sync |
 | Performance Mode        | -            | ✓                     |
 | Branding on charts      | Always shown | Hidden                |
@@ -113,7 +113,7 @@ All core analysis features:
 | Build     | Vite                      |
 | Styling   | Tailwind CSS              |
 | Charts    | Visx (@variscout/charts)  |
-| State     | React Context             |
+| State     | Shared Zustand stores     |
 | Offline   | Workbox (vite-plugin-pwa) |
 
 ---
@@ -126,7 +126,7 @@ All core analysis features:
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────────────────┐ │
 │  │                    REACT APPLICATION                         │ │
-│  │   DataContext → Charts → Analysis                           │ │
+│  │   Zustand stores → Charts → Analysis                        │ │
 │  └─────────────────────────────────────────────────────────────┘ │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────────┐ │
@@ -191,14 +191,14 @@ The PWA serves as the **feature development sandbox**:
 
 ## Session Model
 
-The PWA is a free training and education tool — data persistence is intentionally not provided.
+The PWA is a free training and education tool. Browser document persistence is intentionally not provided; explicit `.vrs` export/import is the durable user-owned path.
 
-- Data entered via paste lives in React state only
-- No IndexedDB, no localStorage (except theme preference), no `.vrs` files
-- Page refresh = data lost (by design)
-- No save/load functionality
+- Data entered via paste lives in the in-memory document stores
+- No browser Save, no saved-document list, and no reload-from-browser document identity
+- Page refresh = data lost unless the user exported a `.vrs` backup
+- `.vrs` import starts a new in-memory session from the snapshot file
 
-Persistence features (save, load, team sharing, Blob sync) are part of the [Azure App](../azure/) value proposition.
+Saved document identity, team sharing, and Blob sync are part of the [Azure App](../azure/) value proposition.
 
 ---
 

@@ -39,8 +39,9 @@ export class AzureHubRepository implements HubRepository {
 
   async dispatch(action: HubAction): Promise<void> {
     // HUB_PERSIST_SNAPSHOT is the bootstrap/save path — the action carries the
-    // full hub blob, so no existing hub needs to be loaded first. This matches
-    // the PWA pattern and supports the null-hub bootstrap case (first hub save).
+    // in-memory ProcessHub view, so no existing hub needs to be loaded first.
+    // This matches the PWA pattern and supports the null-hub bootstrap case
+    // (first hub save).
     if (action.kind === 'HUB_PERSIST_SNAPSHOT') {
       // improvementProjects live in their own table; decompose them out of the
       // hub blob before saving. Mirrors the PWA HUB_PERSIST_SNAPSHOT decomposition.

@@ -74,22 +74,22 @@ Improve is a top-level verb tab with active-IP cascade (2026-05-16 amendment —
 
 ## Core Features
 
-| Feature                     | Description                                                  | Detailed Docs                                                                                         |
-| --------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| Data Import                 | CSV, Excel, paste; smart auto-mapping, validation            | [data-input.md](data/data-input.md)                                                                   |
-| Three-Chart Dashboard       | I-Chart, Boxplot, Pareto with linked filtering               | [i-chart.md](analysis/i-chart.md), [boxplot.md](analysis/boxplot.md), [pareto.md](analysis/pareto.md) |
-| Interactive Analysis        | Drill-down, breadcrumbs, factor selection                    | [progressive-filtering.md](navigation/progressive-filtering.md)                                       |
-| Statistics Panel            | Conformance/Capability modes, Cp/Cpk, η², histogram          | [stats-panel.md](analysis/stats-panel.md)                                                             |
-| Data Table                  | Inline editing, keyboard navigation, spec status             | [data-input.md](data/data-input.md)                                                                   |
-| Save & Load (.vrs)          | Azure: IndexedDB persistence + Blob sync. PWA: session-only. | [storage.md](data/storage.md)                                                                         |
-| Chart Annotations           | Right-click highlights + text observations → Findings        | [packages/charts/CLAUDE.md](../../packages/charts/CLAUDE.md)                                          |
-| Export                      | PNG (charts/dashboard), CSV, SVG                             | [packages/charts/CLAUDE.md](../../packages/charts/CLAUDE.md) §EXPORT_SIZES                            |
-| Branding                    | Source bar with sample count; hidden for Azure               | —                                                                                                     |
-| Staged Analysis             | Before/after comparison with stage columns                   | [staged-analysis.md](analysis/staged-analysis.md)                                                     |
-| Nelson Rules                | Control chart pattern detection                              | [nelson-rules.md](analysis/nelson-rules.md)                                                           |
-| Control Violation Education | Tooltip explanations, glossary terms                         | [help-tooltip.md](../06-design-system/components/help-tooltip.md)                                     |
-| Embed Mode                  | URL parameters for website case studies                      | [embed-messaging.md](../05-technical/integrations/embed-messaging.md)                                 |
-| Dashboard Design            | Scrollable layout, sticky nav, presentation mode             | [dashboard-design.md](../06-design-system/patterns/dashboard-design.md)                               |
+| Feature                     | Description                                                                | Detailed Docs                                                                                         |
+| --------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Data Import                 | CSV, Excel, paste; smart auto-mapping, validation                          | [data-input.md](data/data-input.md)                                                                   |
+| Three-Chart Dashboard       | I-Chart, Boxplot, Pareto with linked filtering                             | [i-chart.md](analysis/i-chart.md), [boxplot.md](analysis/boxplot.md), [pareto.md](analysis/pareto.md) |
+| Interactive Analysis        | Drill-down, breadcrumbs, factor selection                                  | [progressive-filtering.md](navigation/progressive-filtering.md)                                       |
+| Statistics Panel            | Conformance/Capability modes, Cp/Cpk, η², histogram                        | [stats-panel.md](analysis/stats-panel.md)                                                             |
+| Data Table                  | Inline editing, keyboard navigation, spec status                           | [data-input.md](data/data-input.md)                                                                   |
+| Save & Load (.vrs)          | Azure: IndexedDB + Blob sync. PWA: session-only with `.vrs` export/import. | [storage.md](data/storage.md)                                                                         |
+| Chart Annotations           | Right-click highlights + text observations → Findings                      | [packages/charts/CLAUDE.md](../../packages/charts/CLAUDE.md)                                          |
+| Export                      | PNG (charts/dashboard), CSV, SVG                                           | [packages/charts/CLAUDE.md](../../packages/charts/CLAUDE.md) §EXPORT_SIZES                            |
+| Branding                    | Source bar with sample count; hidden for Azure                             | —                                                                                                     |
+| Staged Analysis             | Before/after comparison with stage columns                                 | [staged-analysis.md](analysis/staged-analysis.md)                                                     |
+| Nelson Rules                | Control chart pattern detection                                            | [nelson-rules.md](analysis/nelson-rules.md)                                                           |
+| Control Violation Education | Tooltip explanations, glossary terms                                       | [help-tooltip.md](../06-design-system/components/help-tooltip.md)                                     |
+| Embed Mode                  | URL parameters for website case studies                                    | [embed-messaging.md](../05-technical/integrations/embed-messaging.md)                                 |
+| Dashboard Design            | Scrollable layout, sticky nav, presentation mode                           | [dashboard-design.md](../06-design-system/patterns/dashboard-design.md)                               |
 
 ---
 

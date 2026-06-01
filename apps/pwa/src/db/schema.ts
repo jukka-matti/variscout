@@ -2,7 +2,7 @@
 //
 // F3 normalized PWA Dexie schema.
 //
-// Renames the IDB database from `variscout-pwa` (legacy hub-of-one blob) to
+// Renames the IDB database from `variscout-pwa` (legacy single-blob document store) to
 // `variscout-pwa-normalized` and declares 13 tables per spec §3 D3.
 //
 // Locked decisions:
@@ -205,7 +205,7 @@ export class PwaDatabase extends Dexie {
     // store. Per wedge V1 no-back-compat policy, no data migration — the table
     // was empty.
     this.version(10).stores({ questions: null });
-    // Version 11: R6c — Current DocumentSnapshot browser-save table.
+    // Version 11: R6c — Former DocumentSnapshot browser-save table.
     // Version 12 drops it; retain v11 in the historical chain so existing v10
     // databases can upgrade through the same schema sequence.
     this.version(11).stores({ documentSnapshots: '&key, savedAt' });

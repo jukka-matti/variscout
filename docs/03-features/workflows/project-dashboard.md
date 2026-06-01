@@ -204,7 +204,7 @@ The Project Dashboard (Overview tab) includes an `OtherProjectsList` component a
 
 Clicking a project card in `OtherProjectsList` navigates to that project's portfolio card (loads the project). This provides cross-project awareness without leaving the current project context.
 
-`OtherProjectsList` reads health data from the already-loaded `.meta.json` sidecars — no additional file I/O is required at render time.
+`OtherProjectsList` reads lightweight health metadata from the already-loaded Azure document listing — no full `analysis.json` `DocumentSnapshot` payload is loaded at render time.
 
 **Component**: `OtherProjectsList` — `apps/azure/src/components/OtherProjectsList.tsx`
 
@@ -212,7 +212,7 @@ Clicking a project card in `OtherProjectsList` navigates to that project's portf
 
 ## Portfolio Integration
 
-The Project Dashboard (Overview tab) is reached via the Azure Process Hub home. The home renders Process Hub cards first, then investigation `ProjectCard` components for saved projects, reading lightweight health data from `.meta.json` sidecars without loading full `.vrs` files. Selecting a Process Hub keeps the hub cadence board visible while filtering the investigation list below it. Each investigation card shows:
+The Project Dashboard (Overview tab) is reached via the Azure Process Hub home. The home renders Process Hub cards first, then investigation `ProjectCard` components for saved projects, reading lightweight health data from Azure document metadata without loading full `analysis.json` `DocumentSnapshot` payloads. Selecting a Process Hub keeps the hub cadence board visible while filtering the investigation list below it. Each investigation card shows:
 
 - Journey phase indicator and finding counts by status
 - Assigned task count and overdue flag

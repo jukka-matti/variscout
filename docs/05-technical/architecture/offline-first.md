@@ -19,8 +19,8 @@ VariScout is designed to work without internet access after the initial load.
 
 1. **No backend required** — All statistical processing in browser
 2. **Service Worker** — Cache app shell and assets
-3. **Local-first data** — All data stays in IndexedDB
-4. **Optional sync** — Azure App syncs to Blob Storage when online (PWA uses IndexedDB only)
+3. **Local-first data** — Data stays in browser memory/PWA-owned `.vrs` files or Azure local cache
+4. **Optional sync** — Azure App syncs saved documents to Blob Storage when online; PWA does not cloud-sync
 
 ---
 

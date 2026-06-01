@@ -109,7 +109,7 @@ describe('document snapshot .vrs helpers', () => {
     ).toThrow(/invalid file format/i);
   });
 
-  it('rejects raw legacy analysis-state JSON', () => {
+  it('rejects top-level rawData project-state JSON', () => {
     expect(() =>
       parseDocumentSnapshotVrs(
         JSON.stringify({

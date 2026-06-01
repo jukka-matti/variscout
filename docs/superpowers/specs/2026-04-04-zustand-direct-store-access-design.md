@@ -4,6 +4,7 @@ purpose: design
 title: 'Zustand Direct Store Access — Full DataContext Replacement'
 status: active
 date: 2026-04-04
+last-reviewed: 2026-06-01
 audience: human
 category: architecture
 related: [state-management, zustand, DDD, CQRS, persistence]
@@ -233,29 +234,16 @@ export function useSpecsForMeasure() {
 `useProjectPersistence` is refactored to read from stores instead of 34 individual state getters:
 
 ```typescript
-// Save: snapshot both stores → serialize → storage
+// Save: snapshot document stores → serialize → storage
 function saveProject(name: string): Promise<SavedProject> {
-  const project = useProjectStore.getState();
-  const investigation = useInvestigationStore.getState();
-  const serialized: AnalysisState = {
-    version: '2',
-    rawData: project.rawData,
-    outcome: project.outcome,
-    factors: project.factors,
-    // ... all project fields
-    findings: investigation.findings,
-    questions: investigation.questions,
-    categories: investigation.categories,
-    // ... all investigation fields
-  };
-  return persistence.save(name, serialized);
+  const snapshot = buildDocumentSnapshot({ activeHub });
+  return persistence.save(name, snapshot);
 }
 
-// Load: storage → hydrate both stores (2 calls, not 34)
+// Load: storage → hydrate the document snapshot
 async function loadProject(id: string): Promise<void> {
-  const data = await persistence.load(id);
-  useProjectStore.getState().loadProject(data);
-  useInvestigationStore.getState().loadInvestigationState(data);
+  const snapshot = await persistence.load(id);
+  hydrateDocumentSnapshot(snapshot);
 }
 ```
 

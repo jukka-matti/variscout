@@ -41,7 +41,7 @@ Source: `apps/azure/src/db/schema.ts`
 
 ## Save Flow
 
-> The cloud sync steps below apply to the **Azure App**. PWA saves to IndexedDB and stops at step 4.
+> The cloud sync steps below apply to the **Azure App**. The PWA has no browser document save/list/reload identity; PWA durability is explicit `.vrs` export/import only.
 
 ```
 User clicks Save

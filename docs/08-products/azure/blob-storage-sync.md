@@ -12,7 +12,7 @@ layer: L5
 
 Analysis synchronization with Azure Blob Storage for team collaboration.
 
-> **Azure App.** Blob Storage sync is included in the single €120/month SKU. PWA uses local storage only (IndexedDB + `.vrs` file export).
+> **Azure App.** Blob Storage sync is included in the single €120/month SKU. The PWA keeps document work in memory and uses explicit `.vrs` export/import for user-owned portability.
 
 ---
 
@@ -115,13 +115,14 @@ Customer IT manages access through standard Azure Portal → IAM → Role assign
 
 ### Conflict Resolution
 
-Last-write-wins with notification:
+ETag/`If-Match` conflict handling:
 
 - Each save includes `If-Match: <etag>` on `metadata.json`
 - If another user saved since last load → HTTP 412 (Precondition Failed)
 - User sees: "Project was modified by [user]. Reload latest or overwrite?"
 - **Reload**: Fetch latest from Blob, merge locally, user reviews
-- **Overwrite**: Force-save with new ETag
+- **Overwrite**: Force-save only after explicit user choice
+- Silent last-write-wins is not allowed for document writes
 
 This is simpler and more predictable than the previous OneDrive optimistic merge strategy.
 
@@ -156,7 +157,7 @@ Photos are stored alongside project data in the same container. No separate Shar
 
 ## Infrastructure
 
-### ARM Template Resources (Team Plan)
+### ARM Template Resources
 
 | Resource        | Configuration                                                        |
 | --------------- | -------------------------------------------------------------------- |

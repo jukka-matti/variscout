@@ -305,7 +305,7 @@ Once Olivia's team deploys via Azure Marketplace, the journey continues in-app:
 | [Azure Daily Use](azure-daily-use.md)                   | Gary (daily user) | Repeat analysis, Performance Mode, exports               |
 | [Azure Team Collaboration](azure-team-collaboration.md) | Olivia (admin)    | Teams setup, sharing, onboarding colleagues              |
 
-Users who tried the [PWA](return-visitor.md) before purchasing will find the same analysis workflow — skills transfer directly. The key differences are persistence (IndexedDB on PWA; + Blob Storage sync on Azure App), file upload, Performance Mode, and 6-factor support.
+Users who tried the [PWA](return-visitor.md) before purchasing will find the same analysis workflow — skills transfer directly. The key differences are durable saved document identity (PWA `.vrs` export/import only; Azure IndexedDB + Blob Storage sync), file upload, Performance Mode, and 6-factor support.
 
 ---
 

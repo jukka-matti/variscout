@@ -15,14 +15,14 @@ layer: L4
 
 VariScout is a **no-backend, offline-first** application. All statistical computation happens in the browser. This significantly reduces the DR surface area — there is no server-side database, no API state, and no data pipeline to recover.
 
-| Component             | Location                         | DR Impact                              |
-| --------------------- | -------------------------------- | -------------------------------------- |
-| Application code      | Azure App Service (per customer) | Redeployable from CI/CD                |
-| User data (PWA)       | Browser IndexedDB (session only) | Client-side only, cleared on refresh   |
-| User data (Azure App) | IndexedDB + Blob Storage         | Blob Storage has native versioning     |
-| AI services           | Azure OpenAI (per customer)      | Stateless, redeployable                |
-| Knowledge Catalyst    | Azure AI Search (Phase 2+)       | Reindexable from Blob Storage source   |
-| Secrets               | Azure Key Vault (per customer)   | Soft-delete enabled (90-day retention) |
+| Component             | Location                           | DR Impact                                       |
+| --------------------- | ---------------------------------- | ----------------------------------------------- |
+| Application code      | Azure App Service (per customer)   | Redeployable from CI/CD                         |
+| User data (PWA)       | Browser memory + user `.vrs` files | Client-side only; refresh loses unexported work |
+| User data (Azure App) | IndexedDB + Blob Storage           | Blob Storage has native versioning              |
+| AI services           | Azure OpenAI (per customer)        | Stateless, redeployable                         |
+| Knowledge Catalyst    | Azure AI Search (Phase 2+)         | Reindexable from Blob Storage source            |
+| Secrets               | Azure Key Vault (per customer)     | Soft-delete enabled (90-day retention)          |
 
 ## RTO/RPO Targets
 
@@ -75,19 +75,19 @@ VariScout is a **no-backend, offline-first** application. All statistical comput
 
 **Azure App (IndexedDB + Blob Storage)**:
 
-- Data stored in user's browser (IndexedDB) and in Azure Blob Storage in the customer's resource group
+- Data stored in Azure local IndexedDB cache and Azure Blob Storage in the customer's resource group
 - Blob Storage provides native versioning and soft-delete (configure in customer's Storage Account)
 - Sync queue (`storage.ts`) tracks pending uploads
 - Conflict resolution: ETag-based optimistic concurrency
 - Recovery: clear IndexedDB, re-sync from Blob Storage
 - Users can also export projects as `.vrs` files for local backup
 
-**PWA (IndexedDB only)**:
+**PWA (session + `.vrs` only)**:
 
-- Data exists only in the user's browser (session + IndexedDB)
+- Data exists only in the user's browser memory unless explicitly exported
 - No server-side backup exists by design (data sovereignty)
-- Users can export projects as JSON files for local backup
-- Browser data loss = data loss (inform users in documentation)
+- Users can export snapshot `.vrs` files for local backup or transfer
+- Refresh, tab close, or browser data loss discards unexported work
 
 ## Infrastructure as Code
 

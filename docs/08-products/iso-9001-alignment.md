@@ -235,7 +235,7 @@ VariScout creates the following documented information relevant to ISO 9001:2026
 | **Statistical exports** | Chart images (PNG/SVG), data exports (CSV), report PDFs                                               | User-managed     |
 | **Knowledge Catalyst**  | Resolved finding outcomes searchable for future investigations (Azure App, Phase 2+)                  | Project lifetime |
 
-All records are stored in the customer's own infrastructure (browser IndexedDB for PWA; Azure Blob Storage for Azure App). No audit data leaves the customer's environment.
+All durable records are stored in customer-controlled locations: exported `.vrs` files owned by PWA users, and Azure Blob Storage for the Azure App. No audit data leaves the customer's environment.
 
 ---
 

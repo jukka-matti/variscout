@@ -96,11 +96,11 @@ Status: **placeholder; task #12 already queued.**
 
 Sustainment closure data model. Three options surfaced in today's audit: (a) keep `ControlHandoff` as-is, fix naming/JSDoc only; (b) fold fields into `SustainmentRecord`; (c) drop entirely per `feedback_wedge_v1_no_migration_no_backcompat`. Real operational semantics live in the existing entity (surface enum, retainSustainmentReview, lifecycle states) — design call cannot be a refactor alone.
 
-### Spec 5 — IndexedDB persistence schema
+### Spec 5 — Snapshot persistence schema
 
 Status: **placeholder; engineering-shaped.**
 
-Storage schema for Hub-of-one (PWA local persistence) and Azure cloud sync. Largely derives from what Specs 2–4 commit to in terms of state shape. May not need a full brainstorm — could go straight to `superpowers:writing-plans` once Phase 2 finalizes.
+Storage schema for PWA snapshot `.vrs` export/import and Azure `DocumentSnapshot` cloud sync. Largely derives from what Specs 2–4 commit to in terms of state shape. May not need a full brainstorm — could go straight to `superpowers:writing-plans` once Phase 2 finalizes.
 
 ---
 

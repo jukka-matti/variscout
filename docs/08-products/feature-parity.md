@@ -142,18 +142,18 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Persistence & Storage
 
-| Feature                 | PWA | Azure (€120)                                              | Notes                                                                                                                 |
-| ----------------------- | :-: | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **Local storage**       |  -  | IndexedDB                                                 | PWA is session-only.                                                                                                  |
-| **File storage**        |  -  | Local files (File System Access API) + Azure Blob Storage | Azure customers get both local-file persistence and shared cloud storage in their own tenant.                         |
-| **Shared team storage** |  -  | Azure Blob Storage                                        | Project-scoped Blob containers; project members in the same Azure AD tenant share access (ADR-059).                   |
-| **Offline support**     |  ✓  | Cached                                                    | Azure caches for offline.                                                                                             |
-| **Analysis save/load**  |  -  | ✓                                                         | PWA is session-only.                                                                                                  |
-| **Export CSV**          |  ✓  | ✓                                                         |                                                                                                                       |
-| **Export JSON**         |  -  | ✓                                                         | Azure only.                                                                                                           |
-| **Screenshot export**   |  ✓  | ✓                                                         |                                                                                                                       |
-| **Sync notifications**  |  -  | ✓                                                         | Toast feedback for sync status, errors.                                                                               |
-| **Photo evidence**      |  -  | ✓ (membership-role-gated)                                 | Browser camera, stored in Blob Storage. Member+ within a Project. See [role gating](#project-membership-role-gating). |
+| Feature                 | PWA | Azure (€120)                                       | Notes                                                                                                                 |
+| ----------------------- | :-: | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Local storage**       |  -  | IndexedDB                                          | PWA is session-only.                                                                                                  |
+| **File storage**        |  ✓  | Snapshot `.vrs` export/import + Azure Blob Storage | PWA users own exported `.vrs` files; Azure customers also get shared cloud storage in their own tenant.               |
+| **Shared team storage** |  -  | Azure Blob Storage                                 | Project-scoped Blob containers; project members in the same Azure AD tenant share access (ADR-059).                   |
+| **Offline support**     |  ✓  | Cached                                             | Azure caches for offline.                                                                                             |
+| **Analysis save/load**  |  -  | ✓                                                  | PWA is session-only.                                                                                                  |
+| **Export CSV**          |  ✓  | ✓                                                  |                                                                                                                       |
+| **Export `.vrs`**       |  ✓  | ✓                                                  | Snapshot-only document envelope for backup/share/import.                                                              |
+| **Screenshot export**   |  ✓  | ✓                                                  |                                                                                                                       |
+| **Sync notifications**  |  -  | ✓                                                  | Toast feedback for sync status, errors.                                                                               |
+| **Photo evidence**      |  -  | ✓ (membership-role-gated)                          | Browser camera, stored in Blob Storage. Member+ within a Project. See [role gating](#project-membership-role-gating). |
 
 ---
 
@@ -267,7 +267,7 @@ Features that behave differently on phone (<640px) versus desktop.
 | **Users**         | N/A                                                       | Unlimited within the customer's Azure tenant                                            |
 | **Features**      | Core analysis + Green Belt (no Performance Mode, no save) | Full product: analysis + persistence + CoScout AI + Project membership + Report sharing |
 | **Auth**          | None                                                      | EasyAuth / Entra (User.Read + People.Read)                                              |
-| **Storage**       | Session-only                                              | Local files (File System Access API) + Azure Blob Storage                               |
+| **Storage**       | Session-only + `.vrs` export/import                       | IndexedDB local cache + Azure Blob Storage                                              |
 | **Admin consent** | N/A                                                       | None                                                                                    |
 
 ---
@@ -278,7 +278,7 @@ Features that behave differently on phone (<640px) versus desktop.
 
 - Performance Mode (multi-channel Cpk analysis)
 - File upload (CSV/Excel)
-- Save/persistence (local files via File System Access API, IndexedDB fallback, Azure Blob Storage for shared projects)
+- Save/persistence (IndexedDB local cache + Azure Blob Storage for saved documents)
 - EasyAuth authentication flow
 - Branding removal
 - ARM template deployment (Managed Application)

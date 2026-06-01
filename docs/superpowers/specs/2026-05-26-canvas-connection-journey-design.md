@@ -280,7 +280,7 @@ Derived chips:
 
 - Visually distinct (green tint + ✨ marker)
 - Usable anywhere a raw column goes (outcome, factor, step-bound)
-- Persisted with the Hub; survive reopen and `.vrs` export
+- Persisted in the `DocumentSnapshot`; survive Azure reload and `.vrs` export/import
 - Recomputable — edit the underlying formula or settings
 - Chainable — a derived column can feed another derivation
 

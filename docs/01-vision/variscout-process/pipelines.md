@@ -127,7 +127,7 @@ process-hubs/{hubId}/evidence-sources/{sourceId}/snapshots/{snapshotId}/...
 
 This namespace holds snapshot files, profile application metadata, validation reports, and related attachments. The processor reads + writes to this namespace; the browser reads from it.
 
-V1 doesn't have this layer. V1 paste flow writes directly to the Hub blob (Azure) or IndexedDB (PWA). The customer-tenant ingestion architecture activates when Hub-level automation activates.
+V1 doesn't have this layer. V1 paste flow writes into Azure's customer-tenant Hub/blob persistence or the PWA's in-memory session state with explicit `.vrs` export/import. The customer-tenant ingestion architecture activates when Hub-level automation activates.
 
 ## §7 Multi-source profile join
 

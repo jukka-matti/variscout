@@ -321,7 +321,7 @@ az deployment group show \
 After deployment, EasyAuth is fully configured:
 
 - Users visit the app URL and are redirected to Azure AD sign-in
-- Consent for `User.Read` (Standard) or `User.Read` + `People.Read` (Team) is requested on first login
+- Consent for the V1 permission set (`User.Read`, plus `People.Read` when sponsor/contact lookup is enabled) is requested on first login
 - Tokens are stored in the EasyAuth token store and accessible via `/.auth/me`
 
 ### Verify Redirect URI

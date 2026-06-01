@@ -83,7 +83,7 @@ Three icon buttons appear below the Target field in both the SpecEditor popover 
 
 Manual override is necessary when auto-inference is wrong. For example, a yield metric with both USL and LSL would auto-infer as nominal, but if the LSL is a minimum acceptance threshold and higher yield is always better, the analyst should override to "Larger."
 
-The override is persisted with the spec limits and saved in .vrs project files. When reset to auto (no icon selected), the type re-infers if the analyst later changes the limits.
+The override is persisted with the spec limits inside the `DocumentSnapshot`, so it round-trips through snapshot `.vrs` files and Azure saves. When reset to auto (no icon selected), the type re-infers if the analyst later changes the limits.
 
 ---
 
@@ -214,7 +214,7 @@ const colors = computeCategoryDirectionColors(data, specs);
 ### Persistence
 
 - `SpecLimits.characteristicType` -- optional field (`CharacteristicType | undefined`)
-- When `undefined`, auto-inference is used (backward compatible with existing .vrs files)
+- When `undefined`, auto-inference is used
 - When set to a specific type, the override is persisted and restored on load
 
 ---

@@ -528,7 +528,7 @@ Stated clearly so subsequent specs / plans don't reintroduce by accident:
 
 ## §12 Verification — how we'll know V1 works once shipped
 
-- **Quick-analysis flow (no project):** paste data → analyze in Analyze + Investigation tabs → save Findings → optionally create Hypotheses → save `.vrs` or persist. End to end without creating a Project.
+- **Quick-analysis flow (no project):** paste data → analyze in Analyze + Investigation tabs → save Findings → optionally create Hypotheses → export/import snapshot `.vrs` in PWA or save an Azure `DocumentSnapshot`. End to end without creating a Project.
 - **Project-anchored flow (golden path):** quick-analyze → "+ Promote to Project" → Charter inherits Hub state → Approach (Investigation Wall with Measurement Plans) → Improve actions → Sustainment closure → Report. End to end in <30 minutes with seeded sample data.
 - **Hypothesis-first flow:** open Investigation Wall → create Hypothesis with no Findings → add Measurement Plan rows → simulate collection (re-paste new data) → Findings auto-suggest link to Plan → Hypothesis transitions `proposed` → `evidenced` → `confirmed`.
 - **Collaboration flow:** Project Lead invites a Member, both edit the same project simultaneously; Sponsor reads all tabs but edits only contributions (Findings, evidence, action items, comments) per 2-tier ACL (§4.1).

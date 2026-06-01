@@ -21,7 +21,7 @@ layer: L5
 
 **Date**: 2026-05-05
 
-**Amendments:** 2026-05-16 retires D5 tier-feature gating via [ADR-082](adr-082-wedge-architecture.md); 2026-05-18 records the 9-store F4 reality; 2026-05-31 ratifies the 10-store model and actual package graph. The original D1-D4 shared-architecture decisions remain in force.
+**Amendments:** 2026-05-16 retires D5 tier-feature gating via [ADR-082](adr-082-wedge-architecture.md); 2026-05-18 records the 9-store F4 reality; 2026-05-31 ratifies the 10-store model and actual package graph; 2026-06-01 corrects PWA persistence to R6d export-only durability. The original D1-D4 shared-architecture decisions remain in force.
 
 **Supersedes**: The "State via React Context (`DataContext`). No Zustand stores in PWA." invariant previously documented in `apps/pwa/CLAUDE.md` (no formal ADR — the rule was an aspirational invariant that drifted silently as the PWA matured).
 
@@ -216,6 +216,18 @@ The actual package dependency graph is:
 - Apps consume shared packages and own app-level wiring.
 
 `@variscout/ui -> @variscout/stores` is a documented exception for store-aware shared surfaces. Props-based UI remains preferred when state can be supplied cleanly by the caller, but shared workflow surfaces may bind to stores directly when that is the established cross-app contract.
+
+## Amendment — 2026-06-01 — R6f PWA persistence correction
+
+R6c/R6d supersede the earlier Q8 Hub-of-one persistence language in D2/D3.
+The shared-state decision remains active, but PWA document durability is now
+export-only: one active in-memory document per session, explicit snapshot
+`.vrs` export/import for user-owned portability, and no browser save identity,
+saved-document list, or reload-from-browser promise.
+
+Azure remains the durable saved-document product surface, with IndexedDB local
+cache, customer-tenant Blob sync, access-aware document listing/loading, and
+ETag/`If-Match` conflict handling for document writes.
 
 ## References
 

@@ -80,9 +80,9 @@ export async function applyAction(action: HubAction): Promise<void> {
       );
 
     // -------------------------------------------------------------------------
-    // Hub meta — read-modify-write via saveProcessHubToIndexedDB
-    // Single-actor assumption: concurrent dispatches on the same hub can race
-    // (last-write-wins). Acceptable for P5.3; F3 normalization removes embedded arrays.
+    // Hub meta — local IndexedDB read-modify-write via saveProcessHubToIndexedDB.
+    // This is not the Azure document/cloud conflict policy; document writes use
+    // ETag/If-Match handling at the repository/sync boundary.
     // -------------------------------------------------------------------------
 
     case 'HUB_UPDATE_GOAL': {

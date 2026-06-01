@@ -567,7 +567,7 @@ A: Yes! After visiting once, the app caches itself via Service Worker for offlin
 A: All data stays in your browser — nothing is sent to any server.
 
 - **Azure App**: Save analyses to IndexedDB + sync to Azure Blob Storage. Click **"Save"** in the toolbar.
-- **PWA (Free)**: Session-only — data lives in memory and is cleared on refresh. No save feature.
+- **PWA (Free)**: Session-only by default — data lives in memory and is cleared on refresh unless you export a `.vrs` file.
 
 ### Export
 
@@ -577,6 +577,6 @@ A: Click the **Share icon (↗)** in the header to see export options:
 
 - **Export Image (PNG)**: Save charts as images for presentations
 - **Export Data (CSV)**: Download the filtered data as a spreadsheet
-- **Download Project (.vrs)**: Save the complete analysis for sharing (Azure App only)
+- **Download Project (.vrs)**: Save a snapshot-only document file for backup, sharing, or import
 
-In the Azure App, others can import .vrs files by clicking the **Logo** and selecting **"Open Project"**.
+In both apps, importing a `.vrs` file starts from the exported document snapshot. Azure users can then Save or Save As to create a durable Azure document identity.

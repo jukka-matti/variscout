@@ -254,8 +254,8 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 **Success Metrics:**
 
 - 100% functionality offline
-- Data persisted locally
-- Analysis resumable after reconnection
+- Data exportable to a local `.vrs` snapshot
+- Analysis resumable by importing the exported `.vrs` snapshot
 
 **Current Alternatives:**
 
@@ -274,7 +274,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 **Success Metrics:**
 
 - Zero data transmission to external servers
-- Local storage only
+- PWA document work stays in browser memory unless the user exports/imports `.vrs`
 - Clear privacy assurance
 
 **Current Alternatives:**
@@ -350,7 +350,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 5. View boxplot comparing farms in this batch
 6. View stats panel: 94% pass rate, Cpk = 1.1
 7. Identify Farm C as underperforming (red highlighting)
-8. Save analysis with batch ID
+8. Export a `.vrs` snapshot named with the batch ID
 9. Export PNG for batch record
 
 **Outcome**: Batch accepted with documented analysis; Farm C flagged for follow-up
@@ -373,7 +373,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 6. Stats update: Farm C Cpk = 0.7 vs overall 1.1
 7. See boxplot confirms Farm C lower and more variable
 8. Export dashboard as PNG for presentation
-9. Save analysis as "Week 48 Review"
+9. Export a `.vrs` snapshot as "Week 48 Review"
 
 **Outcome**: Clear visualization showing Farm C needs intervention; data-backed recommendation to management
 
@@ -414,7 +414,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 5. Click each cooperative in Pareto → show their grade distribution
 6. Farmers see: "Coop North = 84% Specialty; Coop South = 52% Specialty"
 7. Discuss visible patterns (processing method correlation)
-8. Save analysis for follow-up
+8. Export a `.vrs` snapshot for follow-up
 
 **Outcome**: Farmers understand grading visually; discussion grounded in data not opinion
 
@@ -435,7 +435,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 5. View Pareto: Loom 7 accounts for 60% of failures
 6. View boxplot: Loom 7 dramatically lower than others
 7. Cross-reference: Loom 7 had maintenance 6 days ago
-8. Save analysis as "Loom 7 Investigation"
+8. Export a `.vrs` snapshot as "Loom 7 Investigation"
 
 **Outcome**: Root cause identified (Loom 7 post-maintenance issue); maintenance team notified
 
@@ -453,8 +453,8 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 2. Enter measurements via manual entry grid
 3. Paste data from clipboard (copied from scale readout)
 4. Full analysis available offline
-5. Save analysis to browser storage
-6. Later at office: open saved project, export as needed
+5. Export a `.vrs` snapshot before closing the session
+6. Later at office: import the `.vrs` snapshot and continue/export as needed
 
 **Outcome**: Complete analysis capability regardless of connectivity
 
@@ -481,13 +481,13 @@ Based on JTBD and use cases, prioritized features:
 
 ### Should Have (Enhanced Value)
 
-| Feature                   | Job Served                                 |
-| ------------------------- | ------------------------------------------ |
-| Multi-tier grading system | Jobs 1, 4 (coffee/agriculture)             |
-| Project save/load         | Job 7 (confidence through reproducibility) |
-| .vrs file export/import   | Job 6 (backup, transfer)                   |
-| Manual data entry         | Job 5 (field use)                          |
-| Sample datasets           | Job 7 (learning, demo)                     |
+| Feature                    | Job Served                                 |
+| -------------------------- | ------------------------------------------ |
+| Multi-tier grading system  | Jobs 1, 4 (coffee/agriculture)             |
+| `.vrs` snapshot round-trip | Job 7 (confidence through reproducibility) |
+| `.vrs` file export/import  | Job 6 (backup, transfer)                   |
+| Manual data entry          | Job 5 (field use)                          |
+| Sample datasets            | Job 7 (learning, demo)                     |
 
 ### Nice to Have (Future)
 

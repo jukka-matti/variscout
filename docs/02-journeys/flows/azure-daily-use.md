@@ -312,15 +312,15 @@ The "Show AI assistance" toggle only appears when an AI endpoint is configured. 
 
 ## Platform Capabilities (Established User)
 
-| Capability          | Detail                                                                 |
-| ------------------- | ---------------------------------------------------------------------- |
-| Saved analyses      | Listed on open; synced via Blob Storage (Azure App) or IndexedDB (PWA) |
-| Factor management   | Add/remove/change up to 6 factors during analysis                      |
-| Row capacity        | 250,000 rows                                                           |
-| Performance Mode    | Multi-channel Cpk analysis (hundreds of channels)                      |
-| Offline work        | Full functionality, queues sync for reconnection                       |
-| Chart branding      | No VariScout branding (enterprise tier)                                |
-| Capability analysis | Histogram + probability plot with Cp/Cpk                               |
+| Capability          | Detail                                                                                  |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| Saved analyses      | Listed on open; synced via Blob Storage (Azure App); PWA uses `.vrs` export/import only |
+| Factor management   | Add/remove/change up to 6 factors during analysis                                       |
+| Row capacity        | 250,000 rows                                                                            |
+| Performance Mode    | Multi-channel Cpk analysis (hundreds of channels)                                       |
+| Offline work        | Full functionality, queues sync for reconnection                                        |
+| Chart branding      | No VariScout branding (enterprise tier)                                                 |
+| Capability analysis | Histogram + probability plot with Cp/Cpk                                                |
 
 ---
 

@@ -5,7 +5,7 @@ title: Data-Flow Foundation F4 — Document / Annotation / View state codificati
 audience: human
 category: design-spec
 status: active
-last-reviewed: 2026-05-07
+last-reviewed: 2026-06-01
 related:
   - docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md
   - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
@@ -145,13 +145,13 @@ This is a runtime regex / source-text scan over the source files, not a custom E
 
 **Branded types deferred.** Research recommended `DocumentField<T>` / `AnnotationField<T>` / `ViewField<T>` branded types for compile-time enforcement. Strongest possible barrier, but every state field would need a wrapper or pass-through cast — high churn across all stores. F4 ships layer markers + the boundary test; if drift recurs after F4, branded types become a follow-up slice.
 
-### D5. `.vrs` export remains type-only in F4
+### D5. `DocumentSnapshot` remains type-only in F4
 
-The data-flow foundation spec §7 sketches `.vrs` as a future export envelope. F4 does **not** ship `exportDocument()`. But it **does** add a TypeScript type alias `DocumentSnapshot` pre-positioned so the future export function takes `(snap: DocumentSnapshot) => Blob` and Annotation/View types can't accidentally pass through.
+The data-flow foundation spec §7 sketches `.vrs` as a future export envelope. F4 does **not** ship `exportDocument()`. But it **does** reserve a `DocumentSnapshot` boundary so the future export function takes document-layer state and Annotation/View types can't accidentally pass through.
 
-**Shape locked: intersection, not record.** `DocumentSnapshot = ProjectState & InvestigationState & CanvasStoreState` — a single flat object containing all Document-layer fields. Rationale: a `.vrs` export carries ONE document snapshot containing all slices, not "one of." Intersection makes that explicit; a record `{ project, investigation, canvas }` adds a layer of nesting that the export envelope doesn't need. If property names collide across Document stores in the future, the intersection forces explicit resolution at type-eval time — desirable, not a hazard. Locked in code per F4 plan Task 9.
+**R6 update:** the shipped runtime shape is a hub-scoped envelope, not the earlier flat intersection type. `DocumentSnapshot` contains namespaced `project`, `analyze`, and `canvas` slices, a minimal hub shell, and zero-or-one live `ImprovementProject` for the active hub. The layer rule is unchanged: Document state can travel in snapshot `.vrs` files and Azure saves; Annotation/View state cannot unless a later decision changes the contract.
 
-This is type-level pre-positioning, no runtime behavior change. Cited in spec §10 (out of scope) of the parent foundation spec; F4 ratifies the type, F5+ wires the function.
+This F4 slice was type-level pre-positioning, no runtime behavior change. R6 later wired the runtime helpers through `buildDocumentSnapshot()` / `hydrateDocumentSnapshot()`.
 
 ### D6. Investigation.metadata.scopeFilter / paretoGroupBy / timelineWindow stay type-only
 
@@ -232,10 +232,10 @@ Each sub-task is "rename selector + import" — should be one commit each, atomi
 - Author `packages/stores/src/__tests__/layerBoundary.test.ts` with the four assertions from D4.
 - Run; expect green.
 
-### P7 — Add `DocumentSnapshot` type alias (D5 type-only)
+### P7 — Add `DocumentSnapshot` boundary (D5 type-only)
 
 - New file `packages/stores/src/documentSnapshot.ts`.
-- `export type DocumentSnapshot = ProjectState & InvestigationState & CanvasStoreState;` (or per-store named slice as the consuming patterns prefer).
+- Reserve the `DocumentSnapshot` boundary for document-layer state; R6 later implements it as a namespaced runtime envelope.
 - Re-export from `index.ts`.
 - No runtime change.
 
@@ -332,7 +332,7 @@ Each sub-task is "rename selector + import" — should be one commit each, atomi
 - [x] Project-switch lifecycle for `selectedPoints` / `selectionIndexMap` specified (P3): `clearTransientSelections()` cross-store call from `loadProject` / `newProject`.
 - [x] Cross-store rule clarified: imperative cross-store **action calls** (e.g., `loadProject` → `clearTransientSelections`) are allowed; cross-store **state subscriptions** (reactive coupling) are not. Documented in `packages/stores/CLAUDE.md` Hard rules section per F4 plan Task 9.
 - [x] `usePreferencesStore` persistence axis locked: local-IDB both tiers (PWA + Azure). Cross-device sync via Blob Storage is named-future, not F4 scope.
-- [x] `DocumentSnapshot` shape locked: intersection (`ProjectState & InvestigationState & CanvasStoreState`), not record/union.
+- [x] `DocumentSnapshot` boundary locked to Document-layer state; R6 later replaced the early flat type sketch with the shipped namespaced runtime envelope.
 - [x] Layer boundary test scope locked to `packages/stores/src/`. Per-app feature stores under `apps/*/src/features/` are NOT covered (D7 — out of scope). Documented in test file JSDoc + CLAUDE.md.
 
 ## Amendment log

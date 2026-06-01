@@ -9,6 +9,7 @@ layer: L5
 
 **Status:** Accepted
 **Date:** 2026-03-23
+**Amendments:** 2026-06-01 clarifies that ADR-078/F4/R6 supersede DataContext persistence wording; see amendment below.
 
 ## Context
 
@@ -189,3 +190,15 @@ See ADR-047 Implementation Status for the strategy adoption roadmap.
 - [ADR-047: Analysis Mode Strategy Pattern](adr-047-analysis-mode-strategy.md) — mode-specific rendering contracts
 - [ADR-048: ESLint Boundary Enforcement](adr-048-eslint-boundaries.md) — tooling validation of package DAG
 - [Store Interactions](../05-technical/architecture/store-interactions.md)
+
+## Amendment — 2026-06-01: Zustand stores and `DocumentSnapshot` supersede DataContext persistence
+
+ADR-078 and the F4/R6 persistence work supersede the DataContext persistence
+wording in this ADR. Current app shells use shared domain Zustand stores across
+the Document / Annotation / View layers, with `DocumentSnapshot` as the portable
+document boundary for `.vrs` export/import and Azure local/cloud saves.
+
+`DataContext` is not a current persistence authority. New shared components
+should continue to accept data via props, but app wiring should read from the
+current store and snapshot helpers rather than from retired DataContext
+contracts.

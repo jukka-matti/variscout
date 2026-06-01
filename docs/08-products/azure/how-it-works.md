@@ -150,30 +150,11 @@ The app supports:
 
 ## Data Persistence
 
-Save is explicit — the user clicks **Save** in the editor header. Unsaved work is lost if the browser tab closes. The storage model depends on the plan:
+Save is explicit — the user clicks **Save** in the editor header. Unsaved work is lost if the browser tab closes. The Azure App uses a single saved-document model:
 
-### Standard Plan — Local Files
+### Azure App — Local Cache + Blob Sync
 
-Data stays on the user's device. No cloud sync, no OneDrive.
-
-```
-BROWSER                          USER'S COMPUTER
-(IndexedDB)                      (File System Access API)
-    │                                │
-    │── User clicks Save ───────────▶│
-    │   IndexedDB + local file       │
-    │                                │
-    │◀── User opens project ─────────│
-    │   Load from IndexedDB/file     │
-```
-
-- Projects saved to IndexedDB with optional local file export via File System Access API
-- No internet required after initial deployment
-- Only `User.Read` permission needed
-
-### Team Plan — Local Cache + Blob Sync
-
-Everything in Standard, plus customer-tenant Blob Storage for shared Process Hubs, investigations, and artifacts.
+Data is saved to IndexedDB for local cache and synced to Azure Blob Storage in the customer's tenant. Portable `.vrs` export/import remains a backup/share/start-import path, not the active save target.
 
 ```
 BROWSER                          CUSTOMER AZURE BLOB STORAGE
@@ -197,7 +178,9 @@ BROWSER                          CUSTOMER AZURE BLOB STORAGE
 ```
 container/
 ├── projects/
-│   └── Feb-Fill-Line.vrs       ← shared analysis
+│   └── Feb-Fill-Line/
+│       ├── analysis.json       ← DocumentSnapshot payload
+│       └── metadata.json       ← listing/access metadata
 ├── process-hubs/
 │   └── index.json              ← shared hub catalog
 └── artifacts/
@@ -208,11 +191,11 @@ Storage remains in the customer's Azure tenant. IndexedDB is the browser cache/r
 
 ### Offline Behavior
 
-| State     | Standard                 | Team                          |
-| --------- | ------------------------ | ----------------------------- |
-| Online    | Save to IndexedDB + file | + sync to Blob Storage        |
-| Offline   | Full local functionality | Full local functionality      |
-| Reconnect | N/A                      | Flush queued changes to cloud |
+| State     | Azure App behavior                         |
+| --------- | ------------------------------------------ |
+| Online    | Save to IndexedDB + sync to Blob Storage   |
+| Offline   | Full local functionality with queued sync  |
+| Reconnect | Flush queued changes to customer Blob sync |
 
 ---
 
@@ -276,7 +259,7 @@ CUSTOMER TENANT                          PUBLISHER (VariScout)
 
 - **Publisher management is disabled** — we have zero access to the customer's deployment
 - **No telemetry** — the app makes no outbound calls to publisher systems
-- **Data survives cancellation** — analyses remain in the customer's browser storage (Standard) or Blob Storage (Team) even if the subscription ends
+- **Data survives cancellation** — saved analyses remain in the customer's Blob Storage even if the subscription ends
 - **Each deployment is tenant-isolated** — no cross-tenant data access
 
 ### Least-Privilege Permissions
@@ -301,5 +284,5 @@ CUSTOMER TENANT                          PUBLISHER (VariScout)
 - [Azure App Overview](index.md) — product positioning and pricing
 - [ARM Template](arm-template.md) — resource definitions and deployment methods
 - [Authentication (EasyAuth)](authentication.md) — auth endpoints and client-side helper
-- [OneDrive Sync](blob-storage-sync.md) — sync flow, conflict resolution, offline behavior
+- [Blob Storage Sync](blob-storage-sync.md) — sync flow, conflict resolution, offline behavior
 - [Marketplace Guide](marketplace.md) — publishing, certification, listing content

@@ -208,8 +208,8 @@ describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
     await pwaHubRepository.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub });
 
     // Add a second outcome via the dispatch boundary (the contract used by
-    // the framing flow). Then re-persist the hub-of-one with the joined view
-    // so AppMain's restore effect picks up the new outcomes set.
+    // the framing flow). Then import the joined ProcessHub view so AppMain's
+    // restore effect picks up the new outcomes set.
     await pwaHubRepository.dispatch({
       kind: 'OUTCOME_ADD',
       hubId: 'test-hub-add',

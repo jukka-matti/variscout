@@ -5,7 +5,7 @@ title: Data-Flow Foundation — repository pattern + normalized persistence + un
 audience: human
 category: design-spec
 status: active
-last-reviewed: 2026-05-06
+last-reviewed: 2026-06-01
 related:
   - docs/superpowers/specs/2026-05-03-variscout-vision-design.md
   - docs/superpowers/specs/2026-05-04-canvas-migration-design.md
@@ -31,9 +31,9 @@ implements:
 
 ## 1. Context
 
-ADR-078 commits to "same product, gated tiers" — PWA and Azure share state shapes, types, and stores; persistence implementation is the only tier difference. In practice, the persistence layer drifted:
+ADR-078 commits to "same product, gated tiers" — PWA and Azure share state shapes, types, and stores; persistence implementation is the only tier difference. The F-series started from a drifted persistence layer:
 
-- **PWA** persists a single `ProcessHub` JSON blob in Dexie (`apps/pwa/src/db/hubRepository.ts`, `id = 'hub-of-one'`). Every save rewrites the whole hub. Adding investigation-level filter state, multi-snapshot timelines, or canvas authoring grows the blob without bound.
+- **PWA** previously persisted a single `ProcessHub` JSON blob in Dexie. R6d superseded that document-save model: the PWA is session-only and uses explicit snapshot `.vrs` export/import for durable user-owned portability.
 - **Azure** uses 10+ Dexie tables (`apps/azure/src/db/schema.ts`) plus a sync queue. Per-entity writes; per-entity blob-storage round-trips.
 - Stores reach **directly** into both — `useProjectStore.persistHub()` calls `hubRepository.saveHub(hub)` in the PWA, and Azure stores call `processHubsTable.put(...)` directly. ADR-078 D2 ("state shapes tier-agnostic; persistence implementation is the only tier gate") is honored at the type level but violated at the call-site level: the apps speak different persistence dialects to the same Zustand stores.
 
@@ -47,7 +47,7 @@ The drift compounds with every feature. Slice 4 (framing-layer V1) added `invest
 
 This spec locks the destination, the patterns, and the slice sequence.
 
-**Pre-production invariant.** No production users; no migrations; no backward-compatibility shims. Per `feedback_no_backcompat_clean_architecture`: required props by default, refactor consumers atomically, fail-fast on builds. Existing dev-state PWA hubs and `.vrs` test fixtures are wiped/regenerated when F3 ships.
+**Pre-production invariant.** No production users; no migrations; no backward-compatibility shims. Per `feedback_no_backcompat_clean_architecture`: required props by default, refactor consumers atomically, fail-fast on builds. R6c/R6d made a clean persistence cutover: current `.vrs` fixtures use the snapshot-only `variscout.document` envelope and PWA has no browser document-save identity.
 
 ## 2. Architecture — four layers, one direction
 
@@ -348,31 +348,31 @@ UI layer simplifies to: classify paste → present MatchSummaryCard if needed �
 
 ## 7. `.vrs` format implications
 
-Current `.vrs` v1.0 (`packages/core/src/serialization/vrsFormat.ts`):
+Current `.vrs` envelope (`packages/core/src/serialization/vrsFormat.ts`):
 
 ```ts
 interface VrsFile {
+  kind: 'variscout.document';
   version: typeof VRS_VERSION;
   exportedAt: string;
-  hub: ProcessHub;
-  rawData?: Array<Record<string, unknown>>;
-  metadata?: { exportSource: 'pwa' | 'azure'; appVersion: string };
+  metadata?: Record<string, unknown>;
+  documentSnapshot: DocumentSnapshot;
 }
 ```
 
-Post-F3, the in-memory `hub: ProcessHub` is reconstructed from normalized tables via `useDenormalizedHubView`-like join logic. The `.vrs` envelope stays the same shape but is **constructed differently**:
+After R6c, `.vrs` is snapshot-only. It has no top-level `hub` or `rawData` fields; the portable payload is `documentSnapshot`.
 
-- **Export:** `repo.collectVrsExport(hubId)` — runs a read transaction across all hub-scoped tables, joins into the legacy blob shape, writes the file.
-- **Import:** parse `.vrs` → decompose blob into normalized rows → bulk-insert across tables in a write transaction.
+- **Export:** build a hub-scoped `DocumentSnapshot` and write `{ kind: "variscout.document", version: 1, documentSnapshot }`.
+- **Import:** parse the snapshot envelope and hydrate stores through `hydrateDocumentSnapshot()`.
 
-**Format version bumps to 1.1** for clarity (export source now reports normalized origin, internal field shapes differ slightly per F1 type changes). Old v1.0 `.vrs` files are NOT readable post-F3. Pre-production: regenerate seed files from `apps/*/src/seedData/`. Test fixture `.vrs` files in `packages/core/src/serialization/__tests__/fixtures/` regenerate in the same PR as the format bump.
+Pre-R6 hub/rawData files are not readable post-R6. They follow the normal invalid-file path. Test fixture `.vrs` files remain valid only if they use the snapshot-only envelope.
 
 ## 8. Known one-time costs
 
 Pre-production refactor; some local state gets wiped:
 
-- **Jukka's PWA dev hub.** Any real test data pasted into the PWA Hub-of-one (syringe-barrel, fill-weight, custom paste experiments) is wiped when F3 deploys. Mitigation: showcase data regenerates from seed; custom paste data needs to be re-pasted.
-- **Saved `.vrs` files on disk.** Test fixtures + any developer-saved exports become unreadable. Mitigation: regenerate from seed; dev exports re-export post-F3.
+- **PWA browser document saves.** Any pre-R6 browser-saved PWA document state is ignored by the current PWA. Mitigation: re-import from a snapshot `.vrs` file or re-create the session.
+- **Pre-R6 `.vrs` files on disk.** Hub/rawData exports are invalid under the current snapshot-only envelope. Mitigation: regenerate from seed or re-export with a current build.
 - **Azure dev tenant data.** Azure Blob Storage hubs in the dev tenant migrate via the F3 PR's Azure-side schema swap. Recommendation: clear the dev tenant before F3 ships rather than write a one-off migration script.
 
 These are **one-time** costs. Production deployment is out-of-scope for F1-F6; if/when we go production, the deferred work is a v1→v2 migration script + rolling-deploy strategy. Not in this spec.
@@ -392,7 +392,7 @@ These are **one-time** costs. Production deployment is out-of-scope for F1-F6; i
 ## 10. Out of scope (named-future)
 
 - **Production migration strategy.** Pre-production refactor. If/when we ship to real users, write a v1→v2 migration script as a separate spec. Approach is straightforward (Dexie `.upgrade()` callback that decomposes blob into normalized rows) but the policy questions (rolling deploy, failure recovery, undo path) deserve their own brainstorm.
-- **Multi-investigation lifecycle (F6).** Investigations as first-class loaded entities; tier-gated multi-investigation in Azure; PWA single-Hub-of-one stays single-investigation. Opens its own brainstorm.
+- **Multi-investigation lifecycle (F6).** Investigations as first-class loaded entities; tier-gated multi-investigation in Azure; PWA remains one active in-memory document per session. Opens its own brainstorm.
 - **Multi-tab live sync.** Dexie supports `liveQuery` broadcasting across tabs. Action log replay enables it. Out of scope for F1-F5; tie-in for F6.
 - **Collaborative editing (CRDT).** Action log + deterministic IDs + cascade rules are the seeds. Full collab requires conflict resolution policy + presence + operational-transform-or-CRDT decision. Far-future.
 - **Canvas authoring features.** Spec 2 (manual canvas authoring) covers these; this spec only covers the data-flow plumbing.

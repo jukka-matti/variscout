@@ -40,11 +40,9 @@ VariScout is deployed through the **Azure Marketplace** as a Managed Application
 │  Key Vault            Secrets (RBAC access)     │
 │  Application Insights Telemetry (no PII)        │
 │                                                 │
-│  ── Standard Plan includes above ──             │
-│                                                 │
 │  Azure AI Foundry     AI models (optional)      │
-│  Storage Account      Blob Storage (Team only)  │
-│  Azure AI Search      Knowledge Base (Team only)│
+│  Storage Account      Blob Storage              │
+│  Azure AI Search      Knowledge Base (Phase 2+) │
 │                                                 │
 └─────────────────────────────────────────────────┘
 ```
@@ -107,7 +105,7 @@ IT administrators can optionally restrict access to the Admin Hub by configuring
 
 ### PWA: Browser-Only
 
-All PWA data is stored in the browser's **IndexedDB**. No data is transmitted to any cloud service, no data leaves the user's machine, and no server-side storage exists. Users can export projects as JSON files for local backup.
+PWA document data lives in browser memory during the session. No data is transmitted to any cloud service, no data leaves the user's machine, and no server-side storage exists. Users can export snapshot `.vrs` files for local backup or transfer.
 
 ### Azure App: Customer's Blob Storage
 
@@ -162,7 +160,7 @@ All data resides in the **Azure region selected by the customer** during deploym
 | Component                       | Encryption                                       |
 | ------------------------------- | ------------------------------------------------ |
 | Blob Storage                    | Azure-managed Server-Side Encryption (SSE)       |
-| IndexedDB (PWA / browser cache) | Browser-managed encryption                       |
+| IndexedDB (Azure browser cache) | Browser-managed encryption                       |
 | Key Vault                       | Azure-managed encryption with RBAC authorization |
 
 ### Secret Management
@@ -323,7 +321,7 @@ The App Service is stateless — it serves a pre-built SPA package with no serve
 
 | Component                | Protection                                                 |
 | ------------------------ | ---------------------------------------------------------- |
-| PWA (IndexedDB)          | Browser-local; user can export as JSON                     |
+| PWA (session + `.vrs`)   | Browser-local session; user can export snapshot `.vrs`     |
 | Azure App (Blob Storage) | Azure Storage SLA; geo-redundancy configurable by customer |
 | Key Vault secrets        | Soft-delete with 90-day recovery window                    |
 | Application code         | CI/CD history + deployment slots                           |

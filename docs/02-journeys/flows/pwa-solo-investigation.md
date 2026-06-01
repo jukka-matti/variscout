@@ -106,12 +106,12 @@ The following surfaces are collaboration affordances that only appear once the P
 
 The PWA does **not** persist data between sessions. Closing the browser tab loses all work. This is by design — the PWA is a free learning and solo-investigation tool, not a production environment.
 
-| What is available    | Where             | Retention                           |
-| -------------------- | ----------------- | ----------------------------------- |
-| Current analysis     | In-memory (React) | Current session only                |
-| Active Project state | IndexedDB (local) | Until browser storage is cleared    |
-| Theme preference     | localStorage      | Persists across sessions            |
-| Service Worker cache | Cache API         | App loads offline after first visit |
+| What is available    | Where            | Retention                           |
+| -------------------- | ---------------- | ----------------------------------- |
+| Current analysis     | In-memory stores | Current session only                |
+| `.vrs` export/import | User file        | Until the user deletes the file     |
+| Theme preference     | localStorage     | Persists across sessions            |
+| Service Worker cache | Cache API        | App loads offline after first visit |
 
 Analysts who need durable storage, team collaboration, or CoScout AI should use the [Azure App](azure-team-collaboration.md).
 

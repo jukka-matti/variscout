@@ -2,7 +2,7 @@
 //
 // F3 normalized PWA hub repository.
 //
-// Replaces the F2-era hub-of-one blob façade with the canonical implementation
+// Replaces the earlier single-blob PWA repository with the canonical implementation
 // of `@variscout/core/persistence#HubRepository` against the F3 normalized
 // 13-table schema (see `../db/schema.ts`).
 //
@@ -10,7 +10,8 @@
 //   - `dispatch(action)` routes every HubAction to `applyAction(db, action)`,
 //     which performs transactional Dexie writes against the new schema.
 //   - The `HUB_PERSIST_SNAPSHOT` short-circuit is gone: bootstrap is just
-//     another transaction now, since the action carries the full ProcessHub.
+//     another transaction now, since the action carries the repository's
+//     in-memory ProcessHub view.
 //
 // Read path:
 //   - `hubs.get` / `hubs.list` query `db.hubs`, then **join** outcomes
@@ -65,7 +66,7 @@ export class PwaHubRepository implements HubRepository {
   // `hub.outcomes` collects all live outcomes for the hub (deletedAt === null);
   // `hub.canonicalProcessMap` rejoins the canvasState row (stripped of the
   // `hubId` FK). Consumers see the same denormalized view they saw under the
-  // F2 hub-of-one model.
+  // normalized repository model.
   // ---------------------------------------------------------------------------
 
   private async joinHub(hubMeta: HubRow): Promise<ProcessHub> {
