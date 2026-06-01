@@ -16,6 +16,8 @@ Accepted — 2026-04-03
 
 **Related:** ADR-059 (Web-First Architecture), ADR-072 (Process Hub Storage and CoScout Context), archived ADR-021 (Security Evaluation), ADR-007 (Azure Marketplace Distribution)
 
+> **Amended 2026-06-01:** R6e updates the Azure storage trust story from broad browser container SAS to same-origin server APIs backed by managed identity. See amendment at bottom.
+
 ---
 
 ## Context
@@ -26,7 +28,7 @@ VariScout's customer-tenant deployment model (Azure Managed Application, per ADR
 
 - **Zero shared infrastructure** — every customer gets their own App Service, Storage Account, AI Services, and Key Vault, deployed into their own Azure subscription
 - **No publisher access** — the ARM template does not include `publisherManagement` authorization; the publisher has zero access to customer resources after deployment
-- **No backend API** — Azure App serves a static SPA via `WEBSITE_RUN_FROM_PACKAGE` (with a single `/api/storage-token` endpoint for SAS token generation); all data processing happens in the browser
+- **No publisher data plane** — Azure App serves a static SPA via `WEBSITE_RUN_FROM_PACKAGE` with same-origin App Service APIs for customer-tenant storage access; all statistical processing happens in the browser
 - **Zero admin consent** — both products require only `User.Read` + `People.Read` (user-consent only), reduced from 5 admin-consent Graph API scopes in the previous architecture (ADR-059)
 - **Browser-only data** — PWA stores data exclusively in browser IndexedDB; Azure App adds Azure Blob Storage within the customer's own resource group (single €120 SKU)
 
@@ -140,3 +142,13 @@ Phase triggers are reviewed quarterly:
 - [ADR-059: Web-First Deployment Architecture](adr-059-web-first-deployment-architecture.md)
 - [EU AI Act Mapping](../05-technical/architecture/eu-ai-act-mapping.md)
 - [AI Safety Report](../08-products/azure/ai-safety-report.md)
+
+## Amendment — 2026-06-01: R6e storage trust posture
+
+R6e keeps the ADR-063 trust posture but updates the Azure storage mechanism used
+in the trust artifacts. The production model is same-origin storage APIs backed
+by App Service managed identity, not broad browser container SAS. Those APIs
+must enforce the R6c document access model before Blob list/read/write. Storage
+account connection strings and Shared Key credentials are local-dev/test-only;
+production storage should disable Shared Key access where supported, or enforce
+an Azure Policy / audit path toward disabling it.

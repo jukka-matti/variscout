@@ -25,7 +25,7 @@ import type { ViewportBlobShape } from '../../services/blobClient';
  *      - Success → update etagRef.
  *      - Precondition-failed → log telemetry (no PII), re-fetch Blob, apply
  *        if newer, update etagRef. This is viewport UI preference sync, not
- *        document persistence.
+ *        document persistence, and does not blind-overwrite document state.
  */
 export function useCanvasViewportLifecycle(hubId: string | null | undefined): void {
   const etagRef = useRef<string | null>(null);
@@ -119,7 +119,7 @@ export function useCanvasViewportLifecycle(hubId: string | null | undefined): vo
               const currentVp = useCanvasViewportStore.getState().viewports[boundHubId];
               if (!currentVp) return;
 
-              // Viewport UI sync: if Blob has the newer layout, apply it to the local store.
+              // Viewport UI sync: apply the server-accepted snapshot to the local store.
               const { zoom, pan, currentLevel, focalStepId, nodePositions, groupByTributary } =
                 loaded.snapshot;
               useCanvasViewportStore.setState(s => ({

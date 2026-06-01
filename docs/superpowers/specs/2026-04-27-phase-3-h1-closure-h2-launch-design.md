@@ -58,7 +58,7 @@ These are deferred to later horizons or follow-up passes:
 5. **Control-handoff workflow revisit** (user-flagged, own brainstorming session).
 6. **Editor honors `?intent=` and `?surface=` query params.** Standalone ~50-LOC follow-up; can land any time independent of Phase 3.
 7. **Profile config DSL.** PR #3 keeps `DataProfileDefinition` instances as TypeScript code in `DATA_PROFILE_REGISTRY`. A YAML/JSON profile-as-config format is a future H2+ refinement.
-8. **Collaborative real-time presence on team notes.** PR #1 saves notes through the existing Blob-Storage round-trip; document and hub writes must use ETag/`If-Match` conflict detection rather than silent overwrite. Real-time collaboration is its own architecture problem.
+8. **Collaborative real-time presence on team notes.** PR #1 saves notes through the existing Blob Storage round-trip and relies on the R6 document ETag conflict path rather than silent overwrite. Real-time collaboration is its own architecture problem.
 9. **i18n message catalogs** for new strings introduced in Phase 3. Hardcoded English copy preserved per existing pattern; ADR-025 catalog migration is separate.
 10. **Telemetry event-naming consolidation.** Phase 3 adds new event names (`process_hub.state_note_added`, `process_hub.evidence_sheet_opened`, `process_hub.evidence_source_created`); no schema for the broader event taxonomy.
 

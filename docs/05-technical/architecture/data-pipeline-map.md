@@ -378,7 +378,7 @@ flowchart TB
 
     subgraph Cloud["Cloud Storage (Azure App)"]
         EA["EasyAuth"] --> TK["Session Token"]
-        TK --> STAPI["/api/storage-token"]
+        TK --> STAPI["Same-origin storage API"]
         STAPI --> OD[("Blob Storage")]
     end
 

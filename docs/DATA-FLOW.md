@@ -68,7 +68,7 @@ PWA has no browser save identity or reload-from-browser promise. Exported `.vrs`
 
 Saved Azure documents are access-aware. Quick analyses without a formal `ImprovementProject` are private to the creator/current user. Formal Projects derive allowed users from `improvementProject.metadata.members`; only the Lead/Member/Sponsor roster should see or load the document.
 
-Access checks are role-based: `canAccess(userId, members, action)` from `@variscout/core/projectMembership`. Roles are Lead (full edit + advance stages + close hypotheses + manage membership), Member + Sponsor (read everywhere + edit contributions: Findings, evidence, action items, ideas, comments). Per Spec 2 §7. R6c applies this model to saved document listing/loading; R6e is the follow-up for hardening server/SAS/storage-boundary enforcement.
+Access checks are role-based: `canAccess(userId, members, action)` from `@variscout/core/projectMembership`. Roles are Lead (full edit + advance stages + close hypotheses + manage membership), Member + Sponsor (read everywhere + edit contributions: Findings, evidence, action items, ideas, comments). Per Spec 2 §7. R6c applies this model to saved document listing/loading; R6e is the current slice that moves enforcement to the same-origin server API / storage boundary before any Blob list/read/write operation.
 
 Evidence Source objects exist in core as the first implementation slice:
 `EvidenceSource`, `DataProfileDefinition`, `EvidenceSnapshot`, and
@@ -82,9 +82,10 @@ Process State review.
 `services/cloudSync.ts` pushes/pulls project documents to/from Blob Storage in the **customer's tenant**. Flow:
 
 1. User authenticates via EasyAuth (`/api/me` returns identity). No MSAL in the client.
-2. Client calls `/api/storage-token` (in `apps/azure/server.js`). Server mints a short-lived SAS token scoped to the user's container.
-3. Client uses SAS to read/write blobs directly. VariScout server never sees the data.
-4. Document writes use ETags/`If-Match`. On conflict, the app saves a conflict copy or surfaces the existing conflict path instead of silently overwriting. Granular CRDT-style merge is deferred.
+2. Client calls same-origin storage APIs in `apps/azure/server.js` for document list/load/save operations.
+3. Server validates the caller against the R6c `DocumentSnapshot` access model before touching Blob Storage.
+4. In production, the server uses the App Service managed identity and Azure RBAC to read/write customer-tenant Blob Storage. Browser clients do not receive broad container-scoped SAS tokens for project data.
+5. Document writes use ETags/`If-Match`. On conflict, the app saves a conflict copy or surfaces the existing conflict path instead of silently overwriting. Granular CRDT-style merge is deferred.
 
 SAS lifetime, container structure, and RBAC rules: `docs/08-products/azure/blob-storage-sync.md`.
 

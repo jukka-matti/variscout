@@ -131,7 +131,7 @@ All Azure App users share the same storage architecture (single SKU, no plan spl
 **Azure App** — local + Blob Storage:
 
 - Projects saved to IndexedDB (browser) + synced to Azure Blob Storage in customer's resource group
-- Blob Storage accessed via SAS tokens (`/api/storage-token`); zero admin-consent Graph API permissions
+- Blob Storage accessed through same-origin storage APIs backed by managed identity; zero admin-consent Graph API permissions
 - Offline-first: works without internet, syncs when reconnected
 
 ```

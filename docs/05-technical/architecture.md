@@ -667,7 +667,7 @@ Teams iframe loads App Service URL
 
 ### OBO Token Exchange (Retired — ADR-059)
 
-> **Retired in V1.** The OBO exchange chain and `Files.ReadWrite.All` Graph API scope are removed per ADR-059 (web-first architecture). Only `User.Read` + `People.Read` (both user-consent) are required. Storage now uses Azure Blob Storage via Blob SAS URLs, not OneDrive/SharePoint.
+> **Retired in V1.** The OBO exchange chain and `Files.ReadWrite.All` Graph API scope are removed per ADR-059 (web-first architecture). Only `User.Read` + `People.Read` (both user-consent) are required. Storage now uses Azure Blob Storage through same-origin server APIs backed by managed identity, not OneDrive/SharePoint.
 
 ### Channel Drive Resolution (Retired — ADR-059)
 

@@ -272,7 +272,7 @@ The Azure app includes an admin page (`AdminTeamsSetup.tsx`) that generates a Te
 | 5   | **Full workflow in Teams** | Load sample → drill by factor → set specs → export chart                                       | Iframe constraints, scrolling behavior, popup/modal rendering                                              |
 | 6   | **Responsive in Teams**    | Resize Teams window → check chart responsiveness → try narrow sidebar mode                     | Layout adaptation, breakpoints, chart readability at small sizes                                           |
 | 7   | **Findings popout**        | Open findings panel → click popout to new window                                               | `window.open` behavior in Teams (may be blocked), fallback behavior                                        |
-| 8   | **Blob Storage sync**      | Save project → verify persists to Blob Storage (OneDrive/Graph API retired per ADR-059)        | Blob SAS URL flow via EasyAuth token                                                                       |
+| 8   | **Blob Storage sync**      | Save project → verify persists to Blob Storage (OneDrive/Graph API retired per ADR-059)        | Same-origin storage API flow via EasyAuth; managed identity in deployed environments                       |
 
 ---
 
@@ -373,14 +373,14 @@ Fill this form during and after testing. Rate items 1–5 (1=poor, 5=excellent) 
 
 Document these with testers so they don't report them as bugs:
 
-| Limitation                   | Detail                                                                                                                    | Workaround / Timeline                                                                                 |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Teams SSO**                | `*.azurewebsites.net` domains don't support seamless Teams SSO. Users see a one-time login redirect.                      | Custom domain needed for seamless SSO. Not blocking for testing.                                      |
-| **Storage scope**            | Azure App: IndexedDB (local) + Blob Storage sync (cloud). No Graph API permissions required (ADR-059).                    | Blob Storage SAS token generation requires deployed instance (not localhost).                         |
-| **Local dev**                | Blob Storage SAS token endpoint unavailable on localhost. Auth returns mock user, sync is no-op.                          | Expected behavior per `easyAuth.ts` — test Blob Storage sync only on deployed instance.               |
-| **Admin consent**            | `User.Read` + `Files.ReadWrite` don't require admin consent by default, but org Entra ID policies may block user consent. | If blocked, tenant admin grants consent via App Registration → API permissions → Grant admin consent. |
-| **Performance Mode in PWA**  | PWA detection modal shows "available in Azure App" — Performance Mode is Azure-only.                                      | Expected behavior — PWA is free tier.                                                                 |
-| **Client secret expiration** | Test secret expires based on chosen duration. Production deployments should use 24-month secrets.                         | Set calendar reminder to rotate before expiration.                                                    |
+| Limitation                   | Detail                                                                                                                    | Workaround / Timeline                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Teams SSO**                | `*.azurewebsites.net` domains don't support seamless Teams SSO. Users see a one-time login redirect.                      | Custom domain needed for seamless SSO. Not blocking for testing.                                       |
+| **Storage scope**            | Azure App: IndexedDB (local) + Blob Storage sync (cloud). No Graph API permissions required (ADR-059).                    | R6e storage boundary is same-origin server API + managed identity in deployed environments.            |
+| **Local dev**                | Local storage tests may use mock auth and local-dev/test-only connection-string paths.                                    | Expected behavior per `easyAuth.ts` — production Blob Storage sync requires deployed managed identity. |
+| **Admin consent**            | `User.Read` + `Files.ReadWrite` don't require admin consent by default, but org Entra ID policies may block user consent. | If blocked, tenant admin grants consent via App Registration → API permissions → Grant admin consent.  |
+| **Performance Mode in PWA**  | PWA detection modal shows "available in Azure App" — Performance Mode is Azure-only.                                      | Expected behavior — PWA is free tier.                                                                  |
+| **Client secret expiration** | Test secret expires based on chosen duration. Production deployments should use 24-month secrets.                         | Set calendar reminder to rotate before expiration.                                                     |
 
 ---
 
@@ -444,7 +444,7 @@ The Azure app has 9 Playwright spec files in `apps/azure/e2e/` plus a shared hel
 **Not covered by automation** (require deployed Azure environment):
 
 - C-1 live auth (EasyAuth redirect — mocked in Playwright)
-- C-14 Blob Storage sync (requires Blob SAS token — OneDrive/Graph API retired per ADR-059)
+- C-14 Blob Storage sync (requires deployed same-origin storage APIs and managed identity — OneDrive/Graph API retired per ADR-059)
 - C-23 Presentation mode (partial — visual verification needed)
 - All section D (Teams integration — requires Teams Admin Center)
 

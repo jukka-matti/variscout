@@ -2,16 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { loadBlobCanvasViewport, saveBlobCanvasViewport, _resetSasCache } from '../blobClient';
 import type { LoadedViewport, ViewportBlobShape } from '../blobClient';
 
-// ── Fixtures ───────────────────────────────────────────────────────────────────
-
-const mockSasResponse = {
-  sasUrl: 'https://acct.blob.core.windows.net/container?sig=test',
-  expiresOn: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-};
+type FetchInit = NonNullable<Parameters<typeof fetch>[1]>;
 
 const HUB_ID = 'hub-viewport-001';
-const EXPECTED_PATH = `hubs/${HUB_ID}/viewport.json`;
-const EXPECTED_BLOB_URL = `https://acct.blob.core.windows.net/container/${EXPECTED_PATH}?sig=test`;
+const EXPECTED_API_URL = `/api/storage/hubs/${HUB_ID}/viewport`;
 
 const MOCK_SNAPSHOT: ViewportBlobShape = {
   zoom: 1.5,
@@ -21,8 +15,6 @@ const MOCK_SNAPSHOT: ViewportBlobShape = {
   groupByTributary: false,
   updatedAt: 1700000000000,
 };
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
 
 function responseWithEtag(status: number, etag: string, body?: unknown): Response {
   return new Response(body !== undefined ? JSON.stringify(body) : '', {
@@ -35,7 +27,11 @@ function responseWithStatus(status: number): Response {
   return new Response('', { status });
 }
 
-// ── Tests ──────────────────────────────────────────────────────────────────────
+function expectNoStorageTokenCall(fetchSpy: ReturnType<typeof vi.spyOn>): void {
+  expect(
+    fetchSpy.mock.calls.some((call: Parameters<typeof fetch>) => call[0] === '/api/storage-token')
+  ).toBe(false);
+}
 
 describe('loadBlobCanvasViewport', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
@@ -50,61 +46,43 @@ describe('loadBlobCanvasViewport', () => {
   });
 
   it('returns null on 404', async () => {
-    fetchSpy
-      // SAS token
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      // GET → 404
-      .mockResolvedValueOnce(responseWithStatus(404));
+    fetchSpy.mockResolvedValueOnce(responseWithStatus(404));
 
     const result = await loadBlobCanvasViewport(HUB_ID);
 
     expect(result).toBeNull();
-
-    const getCall = fetchSpy.mock.calls.find(
-      (call: unknown[]) => (call as [string])[0] === EXPECTED_BLOB_URL
-    );
-    expect(getCall).toBeDefined();
+    expect(fetchSpy).toHaveBeenCalledWith(EXPECTED_API_URL, expect.any(Object));
+    expectNoStorageTokenCall(fetchSpy);
   });
 
   it('returns snapshot and ETag on 200', async () => {
-    fetchSpy
-      // SAS token
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      // GET → 200 with ETag + body
-      .mockResolvedValueOnce(responseWithEtag(200, '"etag-v1"', MOCK_SNAPSHOT));
+    fetchSpy.mockResolvedValueOnce(
+      responseWithEtag(200, '"etag-v1"', { snapshot: MOCK_SNAPSHOT, etag: '"etag-v1"' })
+    );
 
     const result = await loadBlobCanvasViewport(HUB_ID);
 
-    expect(result).not.toBeNull();
     expect(result).toMatchObject<LoadedViewport>({
       snapshot: MOCK_SNAPSHOT,
       etag: '"etag-v1"',
     });
+    expectNoStorageTokenCall(fetchSpy);
   });
 
   it('returns null when GET response is not ok (non-404)', async () => {
-    fetchSpy
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      .mockResolvedValueOnce(responseWithStatus(500));
+    fetchSpy.mockResolvedValueOnce(responseWithStatus(500));
 
     const result = await loadBlobCanvasViewport(HUB_ID);
     expect(result).toBeNull();
+    expectNoStorageTokenCall(fetchSpy);
   });
 
   it('returns null when fetch throws a network error', async () => {
-    fetchSpy
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    fetchSpy.mockRejectedValueOnce(new TypeError('Failed to fetch'));
 
     const result = await loadBlobCanvasViewport(HUB_ID);
     expect(result).toBeNull();
-  });
-
-  it('returns null when getSasToken fails', async () => {
-    fetchSpy.mockRejectedValueOnce(new Error('503 Blob Storage not configured'));
-
-    const result = await loadBlobCanvasViewport(HUB_ID);
-    expect(result).toBeNull();
+    expectNoStorageTokenCall(fetchSpy);
   });
 });
 
@@ -120,112 +98,75 @@ describe('saveBlobCanvasViewport', () => {
     fetchSpy.mockRestore();
   });
 
-  // ── Test: first write (priorEtag=null) → PUT without If-Match ─────────────
-
-  it('first write: priorEtag=null → PUT without If-Match header', async () => {
-    fetchSpy
-      // SAS token
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      // PUT → 201
-      .mockResolvedValueOnce(responseWithEtag(201, '"new-etag-v1"'));
+  it('first write: priorEtag=null sends PUT without If-Match header', async () => {
+    fetchSpy.mockResolvedValueOnce(responseWithEtag(201, '"new-etag-v1"'));
 
     const result = await saveBlobCanvasViewport(HUB_ID, MOCK_SNAPSHOT, null);
 
     expect(result).toEqual({ ok: true, etag: '"new-etag-v1"' });
-
-    type FetchInit = Parameters<typeof fetch>[1];
-    const putCall = fetchSpy.mock.calls.find((call: unknown[]) => {
-      const [url, opts] = call as [string, FetchInit];
-      return url === EXPECTED_BLOB_URL && (opts as FetchInit)?.method === 'PUT';
-    });
-    expect(putCall).toBeDefined();
-    const putInit = putCall![1] as FetchInit;
-    const putHeaders = putInit?.headers as Record<string, string>;
-    expect(putHeaders['If-Match']).toBeUndefined();
+    const [, putInit] = fetchSpy.mock.calls[0] as [string, FetchInit];
+    expect(fetchSpy).toHaveBeenCalledWith(
+      EXPECTED_API_URL,
+      expect.objectContaining({ method: 'PUT' })
+    );
+    expect((putInit.headers as Headers).get('If-Match')).toBeNull();
+    expect(JSON.parse(putInit.body as string)).toEqual({ snapshot: MOCK_SNAPSHOT });
+    expectNoStorageTokenCall(fetchSpy);
   });
 
-  // ── Test: subsequent write with valid ETag → PUT with If-Match ────────────
-
-  it('subsequent write: valid priorEtag → PUT with If-Match, returns new ETag', async () => {
-    fetchSpy
-      // SAS token
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      // PUT → 200
-      .mockResolvedValueOnce(responseWithEtag(200, '"new-etag-v2"'));
+  it('subsequent write sends If-Match and returns new ETag', async () => {
+    fetchSpy.mockResolvedValueOnce(responseWithEtag(200, '"new-etag-v2"'));
 
     const result = await saveBlobCanvasViewport(HUB_ID, MOCK_SNAPSHOT, '"etag-v1"');
 
     expect(result).toEqual({ ok: true, etag: '"new-etag-v2"' });
-
-    type FetchInit = Parameters<typeof fetch>[1];
-    const putCall = fetchSpy.mock.calls.find((call: unknown[]) => {
-      const [url, opts] = call as [string, FetchInit];
-      return url === EXPECTED_BLOB_URL && (opts as FetchInit)?.method === 'PUT';
-    });
-    expect(putCall).toBeDefined();
-    const putInit = putCall![1] as FetchInit;
-    const putHeaders = putInit?.headers as Record<string, string>;
-    expect(putHeaders['If-Match']).toBe('"etag-v1"');
+    const [, putInit] = fetchSpy.mock.calls[0] as [string, FetchInit];
+    expect((putInit.headers as Headers).get('If-Match')).toBe('"etag-v1"');
+    expectNoStorageTokenCall(fetchSpy);
   });
 
-  // ── Test: stale ETag → 412 → precondition-failed ──────────────────────────
-
-  it('stale ETag → 412 → returns { ok: false, reason: "precondition-failed" }', async () => {
-    fetchSpy
-      // SAS token
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      // PUT → 412
-      .mockResolvedValueOnce(responseWithStatus(412));
+  it('stale ETag maps 412 to precondition-failed', async () => {
+    fetchSpy.mockResolvedValueOnce(responseWithStatus(412));
 
     const result = await saveBlobCanvasViewport(HUB_ID, MOCK_SNAPSHOT, '"stale-etag"');
 
     expect(result).toMatchObject({ ok: false, reason: 'precondition-failed', status: 412 });
+    expectNoStorageTokenCall(fetchSpy);
   });
 
-  // ── Test: auth error ───────────────────────────────────────────────────────
-
-  it('403 response → returns { ok: false, reason: "auth" }', async () => {
-    fetchSpy
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      .mockResolvedValueOnce(responseWithStatus(403));
+  it('403 response maps to auth denial', async () => {
+    fetchSpy.mockResolvedValueOnce(responseWithStatus(403));
 
     const result = await saveBlobCanvasViewport(HUB_ID, MOCK_SNAPSHOT, '"etag-v1"');
 
     expect(result).toMatchObject({ ok: false, reason: 'auth', status: 403 });
+    expectNoStorageTokenCall(fetchSpy);
   });
 
-  it('401 response → returns { ok: false, reason: "auth" }', async () => {
-    fetchSpy
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      .mockResolvedValueOnce(responseWithStatus(401));
+  it('401 response maps to auth denial', async () => {
+    fetchSpy.mockResolvedValueOnce(responseWithStatus(401));
 
     const result = await saveBlobCanvasViewport(HUB_ID, MOCK_SNAPSHOT, null);
 
     expect(result).toMatchObject({ ok: false, reason: 'auth', status: 401 });
+    expectNoStorageTokenCall(fetchSpy);
   });
 
-  // ── Test: network error ────────────────────────────────────────────────────
-
-  it('network error (fetch throws) → returns { ok: false, reason: "network" }', async () => {
-    fetchSpy
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+  it('network error maps to network', async () => {
+    fetchSpy.mockRejectedValueOnce(new TypeError('Failed to fetch'));
 
     const result = await saveBlobCanvasViewport(HUB_ID, MOCK_SNAPSHOT, null);
 
     expect(result).toMatchObject({ ok: false, reason: 'network' });
+    expectNoStorageTokenCall(fetchSpy);
   });
 
-  // ── Test: PUT 204 (no content) also accepted ──────────────────────────────
-
   it('204 response is treated as success', async () => {
-    fetchSpy
-      .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-      // 204 No Content — body must be null/undefined per fetch spec.
-      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    fetchSpy.mockResolvedValueOnce(new Response(null, { status: 204, headers: { ETag: '"e"' } }));
 
     const result = await saveBlobCanvasViewport(HUB_ID, MOCK_SNAPSHOT, null);
 
-    expect(result).toMatchObject({ ok: true });
+    expect(result).toMatchObject({ ok: true, etag: '"e"' });
+    expectNoStorageTokenCall(fetchSpy);
   });
 });

@@ -4,7 +4,7 @@
  * Teams camera and OneDrive upload removed per ADR-059.
  * Photos are now processed locally only.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
 // Mock @variscout/core
@@ -41,11 +41,14 @@ vi.mock('../../utils/photoProcessing', () => ({
 
 // Mock blobClient
 vi.mock('../../services/blobClient', () => ({
-  saveBlobPhoto: vi.fn(() => Promise.resolve('https://blob.example.com/photo.jpg')),
+  saveBlobPhoto: vi.fn(() =>
+    Promise.resolve('/api/storage/photos/test-analysis/findings/f-1/photo.jpg')
+  ),
 }));
 
 import { usePhotoComments } from '../usePhotoComments';
 import { processPhoto } from '../../utils/photoProcessing';
+import { saveBlobPhoto } from '../../services/blobClient';
 import type { UseFindingsReturn } from '@variscout/hooks';
 
 function createMockFindingsState(): UseFindingsReturn {
@@ -85,10 +88,16 @@ function createMockFindingsState(): UseFindingsReturn {
 
 describe('usePhotoComments', () => {
   let mockFindings: UseFindingsReturn;
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    fetchSpy = vi.spyOn(globalThis, 'fetch');
     mockFindings = createMockFindingsState();
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
   });
 
   it('handleAddPhoto processes photo and updates findings state', async () => {
@@ -126,8 +135,17 @@ describe('usePhotoComments', () => {
       'c-1',
       expect.any(String),
       'uploaded',
-      'https://blob.example.com/photo.jpg'
+      '/api/storage/photos/test-analysis/findings/f-1/photo.jpg'
     );
+    expect(saveBlobPhoto).toHaveBeenCalledWith(
+      'test-analysis',
+      'f-1',
+      expect.any(String),
+      expect.any(Blob)
+    );
+    expect(
+      fetchSpy.mock.calls.some((call: Parameters<typeof fetch>) => call[0] === '/api/storage-token')
+    ).toBe(false);
   });
 
   it('handleAddCommentWithAuthor passes author to addFindingComment', () => {

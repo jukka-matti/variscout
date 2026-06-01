@@ -139,7 +139,7 @@ Portable document snapshots do not include:
 ## Privacy / boundary invariants
 
 - **Customer-owned data:** analysis data stays in the browser or the customer's Azure tenant.
-- **No VariScout cloud data plane:** Azure sync uses customer-tenant Blob Storage and short-lived SAS tokens.
+- **No VariScout cloud data plane:** Azure sync uses customer-tenant Blob Storage through same-origin server APIs. Production access is via App Service managed identity and Azure RBAC; broad browser container SAS is not the R6e production boundary.
 - **No telemetry payloads:** structural telemetry must not include raw data or PII.
 - **Clear local data = local deletion:** clearing browser storage removes local cache; cloud recovery depends on the Azure storage copy and access policy.
 
