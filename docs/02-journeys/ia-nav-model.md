@@ -5,7 +5,8 @@ tier: living
 status: active
 audience: both
 layer: L2
-last-reviewed: 2026-05-27
+last-verified: 2026-06-02
+verified-against-commit: 0b0d4cc0
 ---
 
 # V1 Information Architecture — Nav Model
@@ -78,7 +79,7 @@ The solid arrows are the workflow walk (left-to-right). The dotted arrows are th
 
 ## Active-IP cascade rules
 
-An **active IP** is the Improvement Project the Lead has selected as their current working focus. Project = collaboration via invite; no Charter ceremony — the Lead creates the Project from Home and invites Members directly. The active IP is then selected from the Lead's portfolio. At most one IP is active at a time per persona session. When an IP is active:
+An **active IP** is the Improvement Project the Lead has selected as their current working focus. Project = collaboration via invite; no Charter ceremony — the Lead creates the Project from Home and invites Members directly. The active IP is then selected from the Lead's portfolio. At most one IP is active at a time per user session. When an IP is active:
 
 - **Project tab** filters its Charter / roster view to the IP's scope. The Project-level Charter remains accessible; the IP's working Charter sits underneath.
 - **Process tab** highlights the process steps the IP touches; non-IP scope dims.
@@ -91,7 +92,9 @@ The Lead owns the active-IP selection. Members and Sponsors see the cascade (the
 
 The cascade is the V1 verb-tab pattern — every verb tab follows the same `useActiveIPContext(sessionHub)` + `<NoActiveProjectGuidance>`-style empty state pattern when no IP is active (durable memory entry: `feedback_active_ip_cascade_pattern`).
 
-## Persona × tab matrix
+## Role × tab matrix
+
+Lead / Member / Sponsor are **per-project membership roles** — the V1 persona model collapsed to one Specialist who takes a role per Project (wedge §3.5). Access is membership-scoped (ACL), not persona-routed.
 
 | Tab     | Lead           | Member        | Sponsor         |
 | ------- | -------------- | ------------- | --------------- |
