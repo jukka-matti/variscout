@@ -102,7 +102,7 @@ Typical payload: <500 tokens.
 
 ### Layer 2 — Process Context (structured + free text)
 
-Structured metadata and free text describing the analyst's process. Persisted in `AnalysisState.processContext`.
+Structured metadata and free text describing the analyst's process. Persisted in project process context and carried by the R6 `DocumentSnapshot`.
 
 ```typescript
 interface ProcessContext {
@@ -688,7 +688,7 @@ Every CoScout session receives the full investigation context via the `buildAICo
 - Statistics, filters, drill path, violations
 - Knowledge Catalyst results (Azure App, Phase 2+)
 
-When an analyst creates findings, hypotheses, and actions during a CoScout conversation, that knowledge is captured in the investigation model — which persists in `AnalysisState` (IndexedDB + Blob Storage sync on Azure App). The conversation itself is disposable because its substance is already captured in structured form.
+When an analyst creates findings, hypotheses, and actions during a CoScout conversation, that knowledge is captured in the investigation model — which persists through `DocumentSnapshot` (IndexedDB + Blob Storage sync on Azure App). The conversation itself is disposable because its substance is already captured in structured form.
 
 This approach was validated by industry research (ADR-049):
 

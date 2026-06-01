@@ -150,11 +150,11 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 **Effort:** M. **Risk:** medium. **Timing:** after R4.
 
-### R6 — Document Snapshot and Export Fidelity
+### R6 — Document Persistence Boundary
 
-**Status:** R6a hub-scoped Document Snapshot runtime boundary shipped in PR #275. R6b additive `.vrs` wiring shipped in PR #276. R6c snapshot-only, access-aware document persistence is the current slice.
+**Status:** R6a hub-scoped Document Snapshot runtime boundary shipped in PR #275. R6b additive `.vrs` wiring shipped in PR #276. R6c snapshot-only, access-aware document persistence shipped in PR #277. R6d Save Semantics is the next recommended implementation slice.
 
-**Goal:** Make export/import snapshots match the current Document-store model.
+**Goal:** Make every portable save/export/import path speak one hub-scoped `DocumentSnapshot` model before deeper store, app-shell, or platform hardening work.
 
 **Candidate changes:**
 
@@ -163,33 +163,69 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 - Treat snapshots as hub-scoped: quick-analysis hubs may have no Project; formalized hubs have one Project; snapshots carry at most that hub's live Project and never serialize the multi-hub `projectsById` mirror. **Done in R6a.**
 - Wire PWA/Azure `.vrs` export/import through the settled snapshot boundary. **Done in R6b.**
 - Add round-trip tests for `.vrs` export/import once the snapshot boundary is settled. **Done in R6b.**
-- Cut over `.vrs`, PWA Save-to-Browser, and Azure local/cloud project persistence to snapshot-only documents, with no old hub/rawData or loose analysis payload import branches. **R6c slice.**
-- Make Azure saved documents access-aware: formal Projects are visible/loadable only to their Lead/Member/Sponsor roster, while quick analyses without a Project are private to the creator. **R6c slice.**
-- Use blob ETags/`If-Match` for Azure document writes and save a conflict copy or surface the existing conflict path when the cloud document changed. **R6c slice.**
+- Cut over `.vrs`, PWA Save-to-Browser, and Azure local/cloud project persistence to snapshot-only documents, with no old hub/rawData or loose analysis payload import branches. **Done in R6c.**
+- Make Azure saved documents access-aware: formal Projects are visible/loadable only to their Lead/Member/Sponsor roster, while quick analyses without a Project are private to the creator. **Done in R6c.**
+- Use blob ETags/`If-Match` for Azure document writes and save a conflict copy or surface the existing conflict path when the cloud document changed. **Done in R6c.**
+- Define product save semantics across PWA and Azure: Save, Save As, Export `.vrs`, imported-document identity, dirty state, and conflict UX. **R6d candidate.**
+- Harden Azure access enforcement at the server/SAS/storage boundary so R6c's access metadata is enforced beyond client-side listing and load filters. **R6e candidate.**
+- Audit persistence docs, examples, and fixtures for stale `AnalysisState`, Hub-of-one, old `.vrs`, and last-write-wins assumptions. **R6f candidate.**
 
 **R6a decision note (2026-05-31):** `ImprovementProject.status` is persisted domain state (`draft | active | closed`), not a derived label. The uncertainty is stage vocabulary/granularity, not whether Project lifecycle state belongs in a portable document. `useImprovementProjectStore.projectsById` is Document-layer state but is a multi-hub in-memory mirror; the portable snapshot boundary is one hub document with zero-or-one live Project.
 
 **R6b decision note (2026-06-01, superseded by R6c):** R6b shipped additive `.vrs` snapshot support while preserving legacy `hub`/`rawData` and Azure `AnalysisState` paths. R6c intentionally removes those compatibility paths before launch, so this note is historical context rather than current guidance.
 
-**R6c decision note (2026-06-01):** Because the app has not launched, snapshot persistence can make a clean break. `.vrs` is now a snapshot-only document envelope (`kind: "variscout.document"`, `version: 1`, `documentSnapshot`), PWA browser saves persist the same `DocumentSnapshot`, and Azure local/cloud project records store snapshot payloads. The access model follows the latest V1 ownership decision: quick-analysis documents are private to the creator/current user; formal Projects derive access from `improvementProject.metadata.members` and only owner/member/sponsor roster users should see/load them.
+**R6c decision note (2026-06-01):** Because the app has not launched, snapshot persistence made a clean break. `.vrs` is now a snapshot-only document envelope (`kind: "variscout.document"`, `version: 1`, `documentSnapshot`), PWA browser saves persist the same `DocumentSnapshot`, and Azure local/cloud project records store snapshot payloads. The access model follows the latest V1 ownership decision: quick-analysis documents are private to the creator/current user; formal Projects derive access from `improvementProject.metadata.members` and only owner/member/sponsor roster users should see/load them.
 
-**Decision gate:** R3 should land first so the store model is not moving.
+**R6d decision gate:** Decide the product contract for save identity before implementation: whether `.vrs` is backup/share only or can become an active saved-document identity, how imported files become unsaved or forked, which operations mark a document dirty, and how cloud conflicts surface without silent overwrite.
+
+**R6e decision gate:** Re-check Azure storage guidance and the deployed server/SAS boundary before hardening. The target is least-privilege access enforcement for the already-modeled document access set, not a new collaboration model.
+
+**R6f decision gate:** Only remove or rewrite stale docs/fixtures after R6d/R6e settle enough terminology to avoid churn.
 
 **Effort:** L. **Risk:** high. **Timing:** after R3.
 
-### R7 — High-Risk Store and Transport Separation
+### R7 — Store and Domain Model Cleanup (Decision-Gated Horizon)
 
-**Goal:** Split mixed persistence/view/transport concerns only after the lower-risk slices reduce drift.
+**Goal:** Clean up domain vocabulary and store shapes only after the persistence boundary and save semantics are stable.
 
-**Candidate changes:**
+**Horizon candidates:**
 
-- Split `canvasViewportStore` persisted viewport state from transient selection/cluster/undo/offline-queue state.
-- Move `analyzeStore` API and queue side effects into hooks or app services while keeping document-store mutations pure.
-- Move remaining deterministic chart math into `@variscout/core/stats` where it is a reusable statistical transform.
+- Reconcile Project/IP naming in code and docs now that each hub carries zero-or-one formal `ImprovementProject`.
+- Revisit `useImprovementProjectStore.projectsById`: it remains a multi-hub in-memory mirror, but the public shape may deserve a clearer hub-keyed API.
+- Separate remaining store side effects from document mutations where persistence or service work still leaks into store actions.
+- Re-check Annotation/View boundaries after R6; do not add Annotation/View state to portable `.vrs` by default.
 
-**Decision gate:** Needs brainstorming and a dedicated design/spec before code.
+**Decision gate:** Needs brainstorming and a dedicated design/spec before code. Do not treat this as a direct continuation of R6.
 
 **Effort:** L. **Risk:** high. **Timing:** later.
+
+### R8 — App Shell and Surface Convergence (Decision-Gated Horizon)
+
+**Goal:** Reduce remaining PWA/Azure wrapper duplication only where the R5 thin-adapter work proves the app-specific delta is accidental rather than capability policy.
+
+**Horizon candidates:**
+
+- Re-evaluate app shell seams after Save/Load and access semantics settle.
+- Revisit ReportView convergence with current PWA/Azure orchestration evidence.
+- Consider shared wrapper bases only for surfaces with stable repository/capability boundaries; avoid forcing a shared shell around intentional Azure-only behavior.
+
+**Decision gate:** Needs a fresh duplication/divergence audit. Report and shell convergence should not start from memory.
+
+**Effort:** L. **Risk:** high. **Timing:** later.
+
+### R9 — Launch and Platform Hardening (Decision-Gated Horizon)
+
+**Goal:** Turn the stabilized architecture into launch-ready operational, security, compliance, and deployment guidance.
+
+**Horizon candidates:**
+
+- Azure operational/security guidance: storage-account soft delete/versioning, scoped SAS, RBAC assumptions, ETag/concurrency expectations, and incident recovery.
+- Compliance and customer-owned-data documentation aligned with ADR-059 and the single-SKU Azure tenant model.
+- Broader persistence/access assurance: cross-device tests, conflict tests, access-denial tests, backup/export tests, and launch runbooks.
+
+**Decision gate:** Start only after R6d/R6e settle the save/access contract; otherwise platform docs risk encoding interim behavior.
+
+**Effort:** L. **Risk:** medium-high. **Timing:** pre-launch hardening.
 
 ## Do Not Refactor Yet
 
@@ -202,4 +238,4 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ## Next Recommended Execution
 
-After R6c lands, recalibrate whether R6d should focus on UI save semantics, Azure server-side enforcement hardening, or moving to R7 store/transport separation. Do not add Annotation/View state to portable `.vrs` in this stream.
+Write and review the R6d Save Semantics plan next. Treat R7/R8/R9 as decision-gated horizons, not committed PR sequences. Do not add Annotation/View state to portable `.vrs` in this stream unless R6d explicitly changes the save contract.

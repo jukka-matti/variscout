@@ -110,7 +110,7 @@ During column detection, VariScout matches column names against keyword groups t
 | operator, technician, inspector        | Operator      | "Operator Name" → factorRoles["Operator Name"] = 'operator' |
 | batch, lot, supplier, vendor           | Material      | "Batch ID" → factorRoles["Batch ID"] = 'material'           |
 
-Measurement unit is inferred from outcome column name suffixes ("Weight_g" → grams, "Temp_C" → °C). Inferred roles are stored in `ProcessContext` on `AnalysisState` and shown as dismissable confirmation chips in ColumnMapping. This extends the existing keyword infrastructure in `packages/core/src/parser/keywords.ts`.
+Measurement unit is inferred from outcome column name suffixes ("Weight_g" → grams, "Temp_C" → °C). Inferred roles are stored in `ProcessContext` on the project document snapshot and shown as dismissable confirmation chips in ColumnMapping. This extends the existing keyword infrastructure in `packages/core/src/parser/keywords.ts`.
 
 **Value without AI:** Factor roles improve chart labels and drill suggestions even without AI configured.
 

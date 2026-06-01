@@ -55,7 +55,7 @@ Layers 1-3 are always in the prompt. Layer 4 is injected only when the user clic
 
 AI is not active during FRAME — there is no analysed data yet. However, FRAME seeds the AI context used in later phases:
 
-- **Process description** — Free text field in Settings (persisted in `AnalysisState.processContext`)
+- **Process description** — Free text field in Settings (persisted in project process context / `DocumentSnapshot`)
 - **Factor roles** — Auto-inferred from column names during `detectColumns()` (equipment, temporal, operator, material, location)
 - **Analysis brief** — Azure users can capture an upfront hypothesis, which seeds the investigation tree root in INVESTIGATE
 

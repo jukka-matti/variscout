@@ -101,7 +101,7 @@ The thread is not always linear — Routine Check entries may never reach INVEST
 | Goal     | Define the problem space — parse data, map columns, set specs, capture process context      |
 | AI       | Not active (no analysed data yet). Seeds AI context for later phases                        |
 | Key Code | `useDataIngestion`, `useDataState`, `ColumnMapping`, `parser.ts`, `ProcessDescriptionField` |
-| Exit     | `AnalysisState` populated: data parsed, columns mapped, specs set                           |
+| Exit     | Document stores populated: data parsed, columns mapped, specs set                           |
 
 FRAME contains significant deterministic engines: data parsing and validation, column type detection, factor role keyword inference (equipment/temporal/operator/material/location), investigation category auto-grouping, and characteristic type selection. Process context and analysis brief (Azure) become the AI's grounding context in subsequent phases.
 
@@ -363,7 +363,7 @@ For **saved Azure projects**, the journey begins with the **Project Dashboard** 
 ```
 Project List
     ↓ select saved project
-loadProject() [hydrates AnalysisState from IndexedDB/Blob Storage]
+loadProject() [hydrates DocumentSnapshot from IndexedDB/Blob Storage]
     ↓ has data?
     ├─ Yes (default) → Project Dashboard (activeView: 'dashboard')
     │                      → user navigates to Editor (any of: tab click, status item click, quick action)
@@ -377,7 +377,7 @@ Key behavioral rules:
 
 - **Default landing**: `panelsStore.activeView` set to `'dashboard'` after `loadProject()` when data exists
 - **Deep link bypass**: `initialFindingId`, `initialChart`, or Teams task URLs set `activeView` to `'editor'` directly
-- **Phase detection still runs**: Journey phase (SCOUT/INVESTIGATE/IMPROVE) is detected normally from `AnalysisState`; the dashboard simply reads and displays it without requiring the user to be "in" that phase view
+- **Phase detection still runs**: Journey phase (SCOUT/INVESTIGATE/IMPROVE) is detected normally from hydrated document stores; the dashboard simply reads and displays it without requiring the user to be "in" that phase view
 - **Return mid-session**: User can return to the dashboard from the Editor at any time via the "Overview" tab; AI summary refreshes if project state changed
 
 See [ADR-042](../../07-decisions/adr-042-project-dashboard.md) and [Journey Phase → Screen Mapping](./journey-phase-screen-mapping.md#project-dashboard-azure-only).

@@ -516,7 +516,7 @@ interface ProcessDescriptionProps {
 | Placeholder     | "Describe your manufacturing process, what you're measuring, and quality goals..."                                            |
 | Character limit | 500 characters. Counter shows `{current} / 500` below textarea, right-aligned.                                                |
 | Counter color   | `text-content-secondary` normally, `text-red-400` when within 20 chars of limit                                               |
-| Persistence     | Azure: saved in `AnalysisState.processContext.description` (per-project). PWA: session-only (not persisted across reloads).   |
+| Persistence     | Saved with Project/process context in `DocumentSnapshot.project`; PWA persists only after explicit browser save/export.       |
 | Save behavior   | Auto-save on blur (Azure). No explicit save button.                                                                           |
 | Visibility      | Only shown when AI endpoint is configured (hidden alongside AI toggle when no endpoint).                                      |
 | Helper text     | Below textarea: "This helps AI understand your process and provide more relevant insights." `text-content-secondary text-sm`. |
@@ -566,24 +566,19 @@ type FactorRole = 'equipment' | 'temporal' | 'operator' | 'material' | 'location
 **Persistence:**
 
 ```typescript
-// In AnalysisState
-interface AnalysisState {
-  // ... existing fields
+interface ProjectDocumentSnapshot {
   processContext?: ProcessContext;
 }
 
-// In ProcessContext (from ai-architecture.md)
 interface ProcessContext {
   description?: string;
-  // Factor roles keyed by column name
   factorRoles?: Record<string, FactorRole>;
-  // ... other Phase 2 fields
 }
 ```
 
-- Inferred roles are stored in `AnalysisState.processContext.factorRoles`
+- Inferred roles are stored in `processContext.factorRoles` inside the project snapshot
 - User dismissals remove the entry from `factorRoles`
-- Roles persist with the `.vrs` project file (Azure) or session (PWA)
+- Roles persist with the `.vrs` document file, Azure project save, or explicit PWA browser save
 - Roles are included in `buildAIContext()` payload for AI prompt enrichment
 
 **Behavior rules:**

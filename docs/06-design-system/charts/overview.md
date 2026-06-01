@@ -86,10 +86,10 @@ I-Chart, Boxplot, and Pareto charts support two types of chart annotations: **co
 
 ### Annotation Types
 
-| Type              | Charts                   | Stored in                | Creates a Finding? |
-| ----------------- | ------------------------ | ------------------------ | ------------------ |
-| Color highlights  | Boxplot, Pareto          | DisplayOptions           | No                 |
-| Text observations | Boxplot, Pareto, I-Chart | Findings (AnalysisState) | Yes                |
+| Type              | Charts                   | Stored in                 | Creates a Finding? |
+| ----------------- | ------------------------ | ------------------------- | ------------------ |
+| Color highlights  | Boxplot, Pareto          | DisplayOptions            | No                 |
+| Text observations | Boxplot, Pareto, I-Chart | Findings in Analyze state | Yes                |
 
 **Color highlights** (red/amber/green) are lightweight visual markers on Boxplot boxes and Pareto bars. They do not create findings and are stored in DisplayOptions.
 
@@ -178,7 +178,7 @@ Shared hook from `@variscout/hooks` managing annotation state:
 - `clearHighlights(chartType)` — clears color highlights for a chart
 - Data fingerprint offset reset (Boxplot/Pareto annotations snap back on data changes)
 
-Text observations are persisted via the Findings system (AnalysisState), not DisplayOptions.
+Text observations are persisted via the Findings system in Analyze state, not DisplayOptions.
 
 ---
 

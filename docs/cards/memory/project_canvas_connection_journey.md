@@ -1,15 +1,15 @@
 ---
 title: 'canvas-connection-journey'
-description: 'Spec 2 of Framing Layer V2 — canvas-based onboarding from paste to ready-to-analyze (Process tab Edit mode). Phases A + B + C + D1 + D2 + D3 + E1 + F1 all shipped (merged via PRs'
+description: 'Spec 2 of Framing Layer V2 — canvas-based onboarding from paste to ready-to-analyze (Process tab Edit mode). **CANVAS CONNECTION JOURNEY COMPLETE 2026-05-28.** All phases A → H1 shipped via PRs'
 purpose: remember
 tier: card
 status: active
-date: 2026-05-28
+date: 2026-06-01
 topic: [memory, project]
 related: []
-verified-against-commit: ca45f469
-last-verified: 2026-05-28
-source-hash: 5da402ce5bc6d841
+verified-against-commit: fe1b0755
+last-verified: 2026-06-01
+source-hash: 24f78c50ee3fcce7
 origin-session-id: 99006d69-683b-44e8-a807-7a81fd9d2a53
 ---
 

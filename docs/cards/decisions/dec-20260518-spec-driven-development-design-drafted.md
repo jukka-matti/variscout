@@ -14,7 +14,7 @@ supersedes: []
 
 # Spec-driven development design drafted
 
-**Spec**: [`docs/superpowers/specs/2026-05-18-spec-driven-development-design.md`](../../superpowers/specs/2026-05-18-spec-driven-development-design.md) — draft status.
+**Spec edit**: `docs/superpowers/specs/2026-05-18-spec-driven-development-design.md` — draft status.
 
 **Context**: Phase 3 of docs-strategy-2026 shipped (PRs #199/#200/#201/#202) on 2026-05-17. The post-Phase-3 brainstorm topic — _the SSoT collision between `docs/superpowers/specs/` and product docs_, with user verbatim framing "real product specs first, then code" — has been carried through to a full design spec on 2026-05-18.
 
