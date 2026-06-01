@@ -7,6 +7,7 @@
 //   v9  — IM-0b (process-step model reconciliation, ADR-087)
 //   v10 — IM-1 (drop Question entity / questions table, ADR-085)
 //   v11 — R6c (current DocumentSnapshot browser save table)
+//   v12 — R6d (drop DocumentSnapshot browser save table; .vrs export-only)
 //
 // Mirrors the Azure schema test pattern at
 // apps/azure/src/db/__tests__/schema.v6.test.ts.
@@ -15,7 +16,7 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../schema';
 
-const LATEST_SCHEMA_VERSION = 11;
+const LATEST_SCHEMA_VERSION = 12;
 
 describe('PWA IndexedDB schema (latest version)', () => {
   beforeEach(async () => {

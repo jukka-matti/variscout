@@ -69,4 +69,24 @@ describe('AppHeader active IP chip', () => {
     fireEvent.click(screen.getByTestId('workflow-tab-project'));
     expect(usePanelsStore.getState().activeView).toBe('projects');
   });
+
+  it('shows Save As in the project menu and invokes the fork action', () => {
+    const onSaveAs = vi.fn();
+
+    render(
+      <AppHeader
+        mode="project"
+        hasData={true}
+        projectName="Analysis"
+        rowCount={10}
+        activeView="explore"
+        onSaveAs={onSaveAs}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /project menu/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save as/i }));
+
+    expect(onSaveAs).toHaveBeenCalledOnce();
+  });
 });

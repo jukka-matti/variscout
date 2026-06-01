@@ -1,16 +1,17 @@
 // apps/pwa/src/__tests__/modeA1.test.tsx
 //
-// F3 P5 — Mode A.1 (PWA reopen with persistence) end-to-end behavior.
+// R6d — PWA durable persistence is export-only.
 //
 // Verifies that on App mount:
-//   - opt-in flag false → user lands on HomeScreen (no Hub restore)
-//   - opt-in flag true + persisted document snapshot → canvas restored, GoalBanner visible
+//   - no imported .vrs → user lands on HomeScreen
+//   - stale documentSnapshots rows from older builds do not hydrate on startup
 //
 // vi.mock() must come BEFORE any imports of components under test (testing.md
 // invariant). The full Dashboard / view trees are stubbed so the mounted App
 // renders quickly in jsdom.
 import 'fake-indexeddb/auto';
 import { vi } from 'vitest';
+import Dexie from 'dexie';
 
 vi.mock('../components/Dashboard', () => ({
   default: () => <div data-testid="dashboard-stub">Dashboard</div>,
@@ -51,7 +52,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import App from '../App';
 import { LocaleProvider } from '../context/LocaleContext';
 import { db } from '../db/schema';
-import { setOptInFlag } from '../persistence';
 import { DEFAULT_PROCESS_HUB, registerLocaleLoaders, type MessageCatalog } from '@variscout/core';
 import { useProjectStore, type DocumentSnapshot } from '@variscout/stores';
 
@@ -65,7 +65,29 @@ const EMPTY_CANONICAL_MAP = {
   updatedAt: '2026-06-01T00:00:00.000Z',
 };
 
-// Register locale loaders (mirrors main.tsx) so useTranslation works.
+const LEGACY_DOCUMENT_SNAPSHOT_STORES = {
+  hubs: '&id, deletedAt',
+  outcomes: '&id, hubId, deletedAt',
+  evidenceSnapshots: '&id, hubId, capturedAt, deletedAt',
+  rowProvenance: '&id, snapshotId',
+  evidenceSources: '&id, hubId, deletedAt',
+  evidenceSourceCursors: '&id, sourceId',
+  investigations: '&id, hubId, deletedAt',
+  findings: '&id, investigationId, deletedAt',
+  causalLinks: '&id, investigationId, deletedAt',
+  hypotheses: '&id, investigationId, deletedAt',
+  improvementProjects: '&id, hubId, deletedAt, status, updatedAt',
+  actionItems:
+    '&id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
+  controlRecords: '&id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
+  controlReviews: '&id, recordId, investigationId, hubId, reviewedAt',
+  controlHandoffs: '&id, investigationId, hubId, status, handoffDate, deletedAt',
+  canvasState: '&hubId',
+  meta: '&key',
+  measurementPlans: '&id, hypothesisId, status, deletedAt',
+  documentSnapshots: '&key, savedAt',
+};
+
 registerLocaleLoaders(
   import.meta.glob<Record<string, MessageCatalog>>(
     '../../../../packages/core/src/i18n/messages/*.ts',
@@ -81,7 +103,10 @@ function renderApp() {
   );
 }
 
-async function persistDocumentSnapshot(processGoal: string) {
+async function seedLegacyDocumentSnapshot(processGoal: string) {
+  db.close();
+  await db.delete();
+
   const snapshot = {
     schemaVersion: 1,
     hubId: DEFAULT_PROCESS_HUB.id,
@@ -122,14 +147,20 @@ async function persistDocumentSnapshot(processGoal: string) {
     improvementProject: null,
   } as unknown as DocumentSnapshot;
 
-  await db.documentSnapshots.put({
+  const legacyDb = new Dexie('variscout-pwa-normalized');
+  legacyDb.version(11).stores(LEGACY_DOCUMENT_SNAPSHOT_STORES);
+  await legacyDb.open();
+  await legacyDb.table('meta').put({ key: 'persistence.optIn', value: true });
+  await legacyDb.table('documentSnapshots').put({
     key: 'current',
     snapshot,
     savedAt: new Date().toISOString(),
   });
+  legacyDb.close();
+  await db.open();
 }
 
-describe('Mode A.1 — PWA reopen with persistence (F3)', () => {
+describe('PWA export-only startup persistence (R6d)', () => {
   beforeEach(async () => {
     if (!db.isOpen()) await db.open();
     await Promise.all([
@@ -137,9 +168,7 @@ describe('Mode A.1 — PWA reopen with persistence (F3)', () => {
       db.hubs.clear(),
       db.outcomes.clear(),
       db.canvasState.clear(),
-      db.documentSnapshots.clear(),
     ]);
-    // Reset the project store so prior test mutations don't leak rawData.
     useProjectStore.setState({
       rawData: [],
       outcome: null,
@@ -147,10 +176,9 @@ describe('Mode A.1 — PWA reopen with persistence (F3)', () => {
     });
   });
 
-  it('with opt-in flag false: lands on HomeScreen', async () => {
+  it('with no imported .vrs: lands on HomeScreen', async () => {
     renderApp();
 
-    // HomeScreen surfaces the "Paste from Excel" affordance via data-testid.
     await waitFor(
       () => {
         expect(screen.getByTestId('home-paste-button')).toBeInTheDocument();
@@ -159,17 +187,15 @@ describe('Mode A.1 — PWA reopen with persistence (F3)', () => {
     );
   });
 
-  it('with opt-in flag true and Hub persisted: restores canvas with goal banner', async () => {
-    await setOptInFlag(true);
-    await persistDocumentSnapshot('Restored goal.');
+  it('with stale browser documentSnapshot persisted: still lands on HomeScreen', async () => {
+    await seedLegacyDocumentSnapshot('Ignored stale goal.');
 
-    renderApp();
+    const { unmount } = renderApp();
 
-    await waitFor(
-      () => {
-        expect(screen.getByTestId('goal-banner')).toHaveTextContent('Restored goal');
-      },
-      { timeout: 4000 }
-    );
+    await waitFor(() => expect(screen.getByTestId('home-paste-button')).toBeInTheDocument(), {
+      timeout: 4000,
+    });
+    await expect(screen.findByTestId('goal-banner', {}, { timeout: 500 })).rejects.toThrow();
+    unmount();
   });
 });

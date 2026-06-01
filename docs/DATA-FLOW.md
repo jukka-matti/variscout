@@ -53,15 +53,16 @@ Two-pass best subsets with interaction screening (ADR-067) drives Evidence Map. 
 
 VariScout V1 is a single SKU (€120/month, Azure tenant-wide). There is no tier-based feature split in persistence — the distinction is between the **PWA capability** (session-only, no backend required, offline-first funnel) and the **Azure capability** (full persistence, team sync, CoScout AI). Both are first-class capabilities of the single product.
 
-| Capability       | Storage                      | Scope                                                                  |
-| ---------------- | ---------------------------- | ---------------------------------------------------------------------- |
-| PWA session      | In-memory stores             | Session-only by default. Refresh = unsaved data gone. Intentional.     |
-| PWA browser save | IndexedDB                    | Explicit user save persists the current hub-scoped `DocumentSnapshot`. |
-| PWA `.vrs`       | User-downloaded JSON file    | Snapshot-only portable document envelope for backup/share/import.      |
-| Azure            | IndexedDB (local to browser) | Access-aware `DocumentSnapshot` cache across sessions on the device.   |
-| Azure + Blob     | IndexedDB + Blob Storage     | Same snapshot document syncs within the customer's tenant.             |
+| Capability   | Storage                      | Scope                                                                |
+| ------------ | ---------------------------- | -------------------------------------------------------------------- |
+| PWA session  | In-memory stores             | Session-only by default. Refresh = unsaved data gone. Intentional.   |
+| PWA `.vrs`   | User-downloaded JSON file    | Snapshot-only portable envelope for backup/share/start-import.       |
+| Azure        | IndexedDB (local to browser) | Access-aware `DocumentSnapshot` cache across sessions on the device. |
+| Azure + Blob | IndexedDB + Blob Storage     | Same snapshot document syncs within the customer's tenant.           |
 
 IndexedDB schema in `apps/azure/src/db/schema.ts` (Dexie). `services/localDb.ts` is the facade. Document-level persistence goes through the R6 `DocumentSnapshot` boundary in `@variscout/stores`: Project config/data, Analyze state, Canvas document state, and zero-or-one hub-scoped `ImprovementProject`.
+
+PWA has no browser save identity or reload-from-browser promise. Exported `.vrs` files are user-owned backups or share artifacts; importing one starts a new unsaved in-memory session. Azure owns durable document identity: Save updates the active Azure document, Save As forks a new document, and dirty state is based on the canonical `DocumentSnapshot` fingerprint versus the saved baseline.
 
 ## 5. Project-membership ACL as data-isolation layer
 

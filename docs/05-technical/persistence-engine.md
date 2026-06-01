@@ -38,15 +38,14 @@ The snapshot carries one document:
 
 ## Storage targets
 
-| Product / path    | Persistence model                                    | Payload                                                                             |
-| ----------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| PWA session       | In-memory domain stores                              | Current document only; refresh loses unsaved state unless the user saves or exports |
-| PWA browser save  | IndexedDB via explicit "Save to this browser" action | Current `DocumentSnapshot`                                                          |
-| PWA `.vrs`        | User-downloaded JSON file                            | Snapshot-only document envelope                                                     |
-| Azure local cache | IndexedDB via Dexie                                  | `DocumentSnapshot` plus metadata/access fields used for listing and sync            |
-| Azure cloud sync  | Customer-tenant Blob Storage                         | `analysis.json` snapshot payload, access metadata, and ETag sync state              |
+| Product / path    | Persistence model            | Payload                                                                    |
+| ----------------- | ---------------------------- | -------------------------------------------------------------------------- |
+| PWA session       | In-memory domain stores      | Current document only; refresh loses unsaved state unless the user exports |
+| PWA `.vrs`        | User-downloaded JSON file    | Snapshot-only document envelope for backup/share/start-import              |
+| Azure local cache | IndexedDB via Dexie          | `DocumentSnapshot` plus metadata/access fields used for listing and sync   |
+| Azure cloud sync  | Customer-tenant Blob Storage | `analysis.json` snapshot payload, access metadata, and ETag sync state     |
 
-The PWA remains browser-local and has no cloud sync. The Azure app syncs through the customer's tenant storage boundary; VariScout-operated infrastructure does not receive customer data.
+The PWA has no browser save target, saved-document list, or cloud sync. It keeps work in memory and lets users export `.vrs` files they own. The Azure app syncs through the customer's tenant storage boundary; VariScout-operated infrastructure does not receive customer data.
 
 ## Document file envelope
 
@@ -78,20 +77,31 @@ sequenceDiagram
     participant IDB as IndexedDB
     participant Blob as Azure Blob Storage
 
-    Note over UI,Blob: Save
+    Note over UI,Blob: Azure Save
     UI->>Snapshot: buildDocumentSnapshot(activeHub)
     Snapshot->>Stores: read Project / Analyze / Canvas / Project-for-hub
     Snapshot->>IDB: persist snapshot
     IDB-->>Blob: Azure sync with access metadata and ETag context
 
-    Note over UI,Blob: Load
+    Note over UI,Blob: Azure Load
     Blob-->>IDB: Azure cloud payload caches locally when available
     IDB->>Snapshot: read snapshot
     Snapshot->>Stores: hydrateDocumentSnapshot(snapshot)
     Snapshot->>UI: rebuild session hub from snapshot shell
 ```
 
-R6d will refine product semantics around Save, Save As, Export `.vrs`, imported-document identity, dirty state, and conflict UX. The runtime boundary above is the shared substrate those flows use.
+PWA Export `.vrs` uses the same `buildDocumentSnapshot()` path, but it writes to a user-downloaded file only. PWA Import `.vrs` uses `hydrateDocumentSnapshot()` to start a new unsaved in-memory session; the imported file is not retained as a save target.
+
+## Save semantics
+
+R6d defines the product contract on top of the shared snapshot boundary:
+
+- **PWA:** no Save-to-Browser or browser persistence identity. The only durable PWA action is Export `.vrs`; `.vrs` is backup/share/start-import only.
+- **Azure Save:** updates the active Azure document identity in local cache and customer-tenant Blob Storage.
+- **Azure Save As:** forks the current snapshot to a new Azure document identity and makes that fork the active saved baseline.
+- **Imported `.vrs`:** starts as an unsaved document. In Azure, first Save/Save As creates or selects a durable Azure identity; in PWA, the session remains in memory until another export.
+- **Dirty state:** compare the canonical `DocumentSnapshot` fingerprint with the active saved baseline fingerprint. UI-only view changes do not make the document dirty unless they are part of the portable snapshot contract.
+- **Conflict UX:** Azure ETag/`If-Match` conflicts keep the user's local work as a conflict copy or route through the existing conflict path. Silent overwrite is not allowed.
 
 ## Access and concurrency
 
@@ -107,12 +117,12 @@ Azure document writes use ETags/`If-Match` for conflict detection. When the clou
 
 ## Export / import
 
-| Format | Contains                                    | Use case                          |
-| ------ | ------------------------------------------- | --------------------------------- |
-| `.vrs` | Snapshot-only `variscout.document` envelope | Full document backup/share/import |
-| `.csv` | Raw data only                               | Data portability                  |
-| `.png` | Chart screenshot                            | Reports                           |
-| `.svg` | Chart vector export                         | Print/presentations               |
+| Format | Contains                                    | Use case                  |
+| ------ | ------------------------------------------- | ------------------------- |
+| `.vrs` | Snapshot-only `variscout.document` envelope | Backup/share/start-import |
+| `.csv` | Raw data only                               | Data portability          |
+| `.png` | Chart screenshot                            | Reports                   |
+| `.svg` | Chart vector export                         | Print/presentations       |
 
 The app has not launched, so R6c intentionally made a clean file-format cutover. Invalid or pre-R6 document files follow the normal invalid-file path.
 
@@ -137,7 +147,7 @@ Portable document snapshots do not include:
 
 - Store-level snapshot tests cover Project config fields, Analyze scopes, Canvas history exclusion, hub-scoped Project selection, hydration replacement, and document reset.
 - `.vrs` tests prove the snapshot-only envelope builds, parses, and rejects malformed input.
-- PWA tests cover export/import and Save-to-Browser reload of raw data, Analyze, Canvas, and Project state.
+- PWA tests cover `.vrs` export/import of raw data, Analyze, Canvas, and Project state as backup/share/start-import flows.
 - Azure tests cover local/cloud snapshot payloads, access-aware listing, private quick analyses, Project roster access, and ETag conflict handling.
 
 ## See also

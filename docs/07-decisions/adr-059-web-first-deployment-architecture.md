@@ -160,28 +160,26 @@ See design spec `docs/archive/specs/2026-04-02-web-first-deployment-architecture
 
 ---
 
-## Amendment — 2026-05-03: PWA local Hub-of-one (IndexedDB persistence stays browser-tenant-only)
+## Amendment — 2026-06-01: R6d PWA durability is export-only
 
-The 2026-05-03 product vision spec
-([`docs/archive/specs/2026-05-03-variscout-vision-design.md`](../archive/specs/2026-05-03-variscout-vision-design.md))
-§7 commits PWA to a **local Hub-of-one**: a single Process Hub persisted in
-IndexedDB, surviving page refresh and offline use. Same Canvas UX as the Azure
-tier (build map, set specs, run analysis, return later, data persists).
-Multi-Hub portfolio + cloud sync + cadence-driven Evidence Sources + CoScout
-
-- team features remain Azure-tier exclusive.
+R6d supersedes the 2026-05-03 PWA local-persistence amendment before launch.
+The PWA is session-only and has no browser save identity, saved-document list,
+or reload-from-browser promise. Durable PWA work leaves the app only when the
+user exports a `.vrs` document snapshot; importing that file starts a new
+unsaved in-memory session from the start/open surface.
 
 This refines (does not change) the customer-owned-data principle established
 in this ADR:
 
-- **PWA local Hub data is browser-tenant-only.** IndexedDB lives in the user's
-  browser profile under the PWA's origin. No data leaves the device. No
-  back-end, no sync, no telemetry payload that could re-export user data.
+- **PWA document data is user-file-owned when durable.** The app processes data
+  locally in browser memory. Exported `.vrs` files are controlled by the user;
+  the PWA has no back end, sync, or telemetry payload that could re-export
+  customer data.
 - **Constitution P1 (browser-only processing) holds.** The PWA continues to
-  process all data client-side; the only change is that processed data now
-  persists across sessions instead of evaporating on tab close.
-- **Constitution P8 (no AI in free tier) holds.** CoScout remains an Azure-
-  tier feature. PWA's local Hub never sees a CoScout prompt.
+  process all data client-side; R6d removes the browser persistence promise
+  rather than adding any remote persistence path.
+- **Constitution P8 (no AI in free tier) holds.** CoScout remains an Azure-tier
+  feature. PWA sessions never see a CoScout prompt.
 - **Azure tier's customer-owned-data principle is unchanged.** Customer data
   in Azure flows to customer-tenant Blob Storage via SAS-token-gated
   `/api/storage-token`; no data leaves the customer's Azure subscription.

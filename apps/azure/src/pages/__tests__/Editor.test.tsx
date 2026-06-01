@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import type { ComponentProps } from 'react';
 
 // ── Provide IndexedDB polyfill for Zustand persist middleware (preferencesStore) ──
 import 'fake-indexeddb/auto';
 
 import { Editor } from '../Editor';
 import * as StorageModule from '../../services/storage';
+import { azurePersistenceAdapter } from '../../lib/persistenceAdapter';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import {
   useProjectStore,
@@ -16,6 +18,10 @@ import {
   projectMembershipStorageKey,
 } from '@variscout/stores';
 import type { Invitation } from '@variscout/core/projectMembership';
+
+const { mockUseAutoSave } = vi.hoisted(() => ({
+  mockUseAutoSave: vi.fn(),
+}));
 
 // ── Mock child components ──
 
@@ -240,6 +246,10 @@ vi.mock('../../hooks/useDataIngestion', () => ({
   }),
 }));
 
+vi.mock('../../hooks/useAutoSave', () => ({
+  useAutoSave: mockUseAutoSave,
+}));
+
 vi.mock('../../hooks', () => ({
   useFilterNavigation: () => ({
     filterStack: [],
@@ -330,6 +340,7 @@ function seedStores(
     factors?: string[];
     specs?: Record<string, unknown>;
     projectName?: string | null;
+    projectId?: string | null;
     displayOptions?: Record<string, unknown>;
     dataFilename?: string | null;
     analysisMode?: string;
@@ -337,11 +348,12 @@ function seedStores(
   } = {}
 ) {
   useProjectStore.setState({
+    projectId: overrides.projectId ?? null,
     rawData: overrides.rawData ?? [],
     outcome: overrides.outcome ?? null,
     factors: overrides.factors ?? [],
     specs: overrides.specs ?? {},
-    projectName: overrides.projectName ?? 'Test Project',
+    projectName: overrides.projectName === undefined ? 'Test Project' : overrides.projectName,
     displayOptions: overrides.displayOptions ?? {},
     dataFilename: overrides.dataFilename ?? null,
     dataQualityReport: null,
@@ -369,9 +381,12 @@ function seedStores(
   } as Partial<ReturnType<typeof usePreferencesStore.getState>>);
 }
 
-function renderEditor(stateOverrides: Parameters<typeof seedStores>[0] = {}) {
+function renderEditor(
+  stateOverrides: Parameters<typeof seedStores>[0] = {},
+  propOverrides: Partial<ComponentProps<typeof Editor>> = {}
+) {
   seedStores(stateOverrides);
-  return render(<Editor {...defaultProps} />);
+  return render(<Editor {...defaultProps} {...propOverrides} />);
 }
 
 // ── Tests ──
@@ -397,6 +412,15 @@ describe('Editor', () => {
       saveEvidenceSnapshot: vi.fn(),
       syncStatus: { status: 'synced', message: 'Synced' },
     } as unknown as ReturnType<typeof StorageModule.useStorage>);
+    vi.mocked(azurePersistenceAdapter.saveProject).mockImplementation(async (name, state) => ({
+      id: `id-${name}`,
+      name,
+      state,
+      savedAt: '2026-06-01T00:00:00.000Z',
+      rowCount: state.project.rawData.length,
+      location: 'personal',
+    }));
+    mockUseAutoSave.mockClear();
 
     // Reset stores to clean state
     seedStores();
@@ -529,6 +553,146 @@ describe('Editor', () => {
 
     // Pre-configured samples (with outcome + factors) skip ColumnMapping
     expect(screen.queryByTestId('column-mapping')).not.toBeInTheDocument();
+  });
+
+  it('first Save uses the cleaned data filename and establishes the active Azure identity', async () => {
+    const saveToCloud = vi.fn(() => Promise.resolve());
+    vi.mocked(StorageModule.useStorage).mockReturnValue({
+      saveProject: saveToCloud,
+      listProjects: vi.fn(() => Promise.resolve([])),
+      listProcessHubs: vi.fn(() =>
+        Promise.resolve([{ id: 'general-unassigned', name: 'General / Unassigned', createdAt: '' }])
+      ),
+      saveProcessHub: vi.fn(),
+      listEvidenceSources: vi.fn(() => Promise.resolve([])),
+      saveEvidenceSource: vi.fn(),
+      listEvidenceSnapshots: vi.fn(() => Promise.resolve([])),
+      saveEvidenceSnapshot: vi.fn(),
+      syncStatus: { status: 'synced', message: 'Synced' },
+    } as unknown as ReturnType<typeof StorageModule.useStorage>);
+
+    renderEditor(
+      {
+        projectId: null,
+        projectName: null,
+        dataFilename: 'line_fill_data.csv',
+        rawData: [{ Weight: 10, Machine: 'A' }],
+        outcome: 'Weight',
+        factors: ['Machine'],
+      },
+      { projectId: null }
+    );
+
+    const [onSave] = mockUseAutoSave.mock.calls.at(-1)!;
+    await act(async () => {
+      await onSave();
+    });
+
+    expect(azurePersistenceAdapter.saveProject).toHaveBeenCalledWith(
+      'line fill data',
+      expect.objectContaining({
+        project: expect.objectContaining({ projectName: 'line fill data' }),
+      })
+    );
+    expect(saveToCloud).toHaveBeenCalledWith(
+      expect.objectContaining({
+        project: expect.objectContaining({ projectName: 'line fill data' }),
+      }),
+      'line fill data',
+      'personal'
+    );
+    expect(useProjectStore.getState()).toMatchObject({
+      projectId: 'id-line fill data',
+      projectName: 'line fill data',
+    });
+  });
+
+  it('Save As creates a fork, makes it active, and does not rename the previous document', async () => {
+    const saveToCloud = vi.fn(() => Promise.resolve());
+    vi.mocked(StorageModule.useStorage).mockReturnValue({
+      saveProject: saveToCloud,
+      listProjects: vi.fn(() => Promise.resolve([])),
+      listProcessHubs: vi.fn(() =>
+        Promise.resolve([{ id: 'general-unassigned', name: 'General / Unassigned', createdAt: '' }])
+      ),
+      saveProcessHub: vi.fn(),
+      listEvidenceSources: vi.fn(() => Promise.resolve([])),
+      saveEvidenceSource: vi.fn(),
+      listEvidenceSnapshots: vi.fn(() => Promise.resolve([])),
+      saveEvidenceSnapshot: vi.fn(),
+      syncStatus: { status: 'synced', message: 'Synced' },
+    } as unknown as ReturnType<typeof StorageModule.useStorage>);
+    vi.spyOn(window, 'prompt').mockReturnValue('Forked Analysis');
+
+    renderEditor({
+      projectId: 'id-Original Analysis',
+      projectName: 'Original Analysis',
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      outcome: 'Weight',
+      factors: ['Machine'],
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /project menu/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save as/i }));
+
+    await waitFor(() => {
+      expect(azurePersistenceAdapter.saveProject).toHaveBeenCalledWith(
+        'Forked Analysis',
+        expect.objectContaining({
+          project: expect.objectContaining({ projectName: 'Forked Analysis' }),
+        })
+      );
+    });
+    expect(azurePersistenceAdapter.renameProject).not.toHaveBeenCalled();
+    expect(saveToCloud).toHaveBeenCalledWith(expect.anything(), 'Forked Analysis', 'personal');
+    expect(useProjectStore.getState()).toMatchObject({
+      projectId: 'id-Forked Analysis',
+      projectName: 'Forked Analysis',
+    });
+  });
+
+  it('autosave is driven by the snapshot fingerprint only for active saved documents', () => {
+    renderEditor({
+      projectId: 'id-Test Project',
+      projectName: 'Test Project',
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      outcome: 'Weight',
+      factors: ['Machine'],
+    });
+
+    const [, deps] = mockUseAutoSave.mock.calls.at(-1)!;
+    expect(deps).toHaveLength(1);
+    expect(typeof deps[0]).toBe('string');
+
+    act(() => {
+      useProjectStore.getState().setSpecs({ usl: 12 });
+    });
+
+    const [, nextDeps, nextEnabled] = mockUseAutoSave.mock.calls.at(-1)!;
+    expect(nextDeps).toHaveLength(1);
+    expect(nextDeps[0]).not.toBe(deps[0]);
+    expect(nextEnabled).toBe(true);
+  });
+
+  it('does not autosave unsaved in-memory documents even when content changes', () => {
+    renderEditor(
+      {
+        projectId: null,
+        projectName: null,
+        rawData: [{ Weight: 10, Machine: 'A' }],
+        outcome: 'Weight',
+        factors: ['Machine'],
+      },
+      { projectId: null }
+    );
+
+    act(() => {
+      useProjectStore.getState().setSpecs({ usl: 12 });
+    });
+
+    const [, deps, enabled] = mockUseAutoSave.mock.calls.at(-1)!;
+    expect(deps).toHaveLength(1);
+    expect(enabled).toBe(false);
   });
 
   // ── PendingInvitesBanner integration ──

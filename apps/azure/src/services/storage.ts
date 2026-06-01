@@ -347,7 +347,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
               await saveToCloud(token, project, conflictName, location, meta, access);
               addNotification({
                 type: 'warning',
-                message: `Cloud version changed. Your version saved as "${conflictName}".`,
+                message: `Cloud copy changed. Saved your version as "${conflictName}".`,
                 dismissAfter: 8000,
               });
             }
@@ -386,7 +386,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           setSyncStatus({ status: 'conflict', message: 'Cloud version changed' });
           addNotification({
             type: 'warning',
-            message: `Cloud version changed. Your version saved as "${conflictName}".`,
+            message: `Cloud copy changed. Saved your version as "${conflictName}".`,
             dismissAfter: 8000,
           });
           return;

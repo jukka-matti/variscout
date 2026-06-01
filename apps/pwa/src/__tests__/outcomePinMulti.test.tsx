@@ -64,25 +64,26 @@ vi.mock('../workers/useStatsWorker', () => ({
   }),
 }));
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import App from '../App';
 import { LocaleProvider } from '../context/LocaleContext';
 import { db } from '../db/schema';
-import { setOptInFlag, pwaHubRepository } from '../persistence';
-import { useProjectStore, type DocumentSnapshot } from '@variscout/stores';
-import { DEFAULT_PROCESS_HUB, registerLocaleLoaders, type MessageCatalog } from '@variscout/core';
+import { pwaHubRepository } from '../persistence';
+import {
+  buildDocumentSnapshotVrs,
+  getCanvasInitialState,
+  getProjectInitialState,
+  useCanvasStore,
+  useProjectStore,
+} from '@variscout/stores';
+import {
+  DEFAULT_PROCESS_HUB,
+  registerLocaleLoaders,
+  type DataRow,
+  type MessageCatalog,
+} from '@variscout/core';
 import type { OutcomeSpec, ProcessHub } from '@variscout/core/processHub';
-
-const EMPTY_CANONICAL_MAP = {
-  version: 1,
-  nodes: [],
-  tributaries: [],
-  assignments: {},
-  arrows: [],
-  createdAt: '2026-06-01T00:00:00.000Z',
-  updatedAt: '2026-06-01T00:00:00.000Z',
-};
 
 registerLocaleLoaders(
   import.meta.glob<Record<string, MessageCatalog>>(
@@ -112,7 +113,7 @@ function makeHub(id: string, outcomes: OutcomeSpec[]): ProcessHub {
     createdAt: NOW,
     deletedAt: null,
     processGoal: 'Test hub goal.',
-    outcomes,
+    outcomes: outcomes.map(outcome => ({ ...outcome, hubId: id })),
   };
 }
 
@@ -124,44 +125,32 @@ function renderApp() {
   );
 }
 
-async function persistDocumentSnapshot(hub: ProcessHub, rawData: Array<Record<string, unknown>>) {
-  const snapshot = {
-    schemaVersion: 1,
-    hubId: hub.id,
-    hub: {
-      id: hub.id,
-      name: hub.name,
-      processGoal: hub.processGoal,
-      createdAt: hub.createdAt,
-      updatedAt: hub.updatedAt,
-      deletedAt: hub.deletedAt,
-    },
-    project: {
-      projectId: hub.id,
-      projectName: hub.name,
-      rawData,
-      outcome: hub.outcomes?.[0]?.columnName ?? null,
-      factors: [],
-      specs: {},
-      analysisMode: 'standard',
-      processContext: { processHubId: hub.id },
-      entryScenario: null,
-    },
-    analyze: { findings: [], categories: [], hypotheses: [], causalLinks: [], scopes: [] },
-    canvas: {
-      canonicalMap: hub.canonicalProcessMap ?? EMPTY_CANONICAL_MAP,
-      outcomes: hub.outcomes ?? [],
-      primaryScopeDimensions: hub.primaryScopeDimensions ?? [],
-      canonicalMapVersion: hub.canonicalMapVersion ?? 'canvas-map-0',
-    },
-    improvementProject: hub.improvementProject ?? null,
-  } as unknown as DocumentSnapshot;
-
-  await db.documentSnapshots.put({
-    key: 'current',
-    snapshot,
-    savedAt: new Date().toISOString(),
+async function importVrsThroughHome(hub: ProcessHub, rawData: DataRow[]) {
+  useProjectStore.setState({
+    ...getProjectInitialState(),
+    rawData,
+    outcome: hub.outcomes?.[0]?.columnName ?? null,
   });
+  useCanvasStore.setState({
+    ...getCanvasInitialState(),
+    outcomes: hub.outcomes ?? [],
+    primaryScopeDimensions: hub.primaryScopeDimensions ?? [],
+    canonicalMap: hub.canonicalProcessMap ?? getCanvasInitialState().canonicalMap,
+    canonicalMapVersion: hub.canonicalMapVersion ?? 'canvas-map-0',
+  });
+  const json = buildDocumentSnapshotVrs({ activeHub: hub });
+  const file = new File([json], 'scenario.vrs', { type: 'application/json' });
+  useProjectStore.setState({
+    rawData: [],
+    outcome: null,
+    factors: [],
+  });
+  useCanvasStore.setState(getCanvasInitialState());
+
+  renderApp();
+  const input = (await screen.findByLabelText(/import.*\.vrs/i)) as HTMLInputElement;
+  Object.defineProperty(input, 'files', { value: [file], configurable: true });
+  fireEvent.change(input);
 }
 
 describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
@@ -172,7 +161,6 @@ describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
       db.hubs.clear(),
       db.outcomes.clear(),
       db.canvasState.clear(),
-      db.documentSnapshots.clear(),
     ]);
     // Reset the project store so previous tests' rawData / outcome don't leak.
     useProjectStore.setState({
@@ -180,14 +168,12 @@ describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
       outcome: null,
       factors: [],
     });
+    useCanvasStore.setState(getCanvasInitialState());
   });
 
   it('renders one OutcomePin for a single-outcome hub with data', async () => {
-    await setOptInFlag(true);
     const hub = makeHub('test-hub-1', [makeOutcome('out-1', 'FillWeight')]);
-    await persistDocumentSnapshot(hub, [{ FillWeight: 23.5 }, { FillWeight: 24.1 }]);
-
-    renderApp();
+    await importVrsThroughHome(hub, [{ FillWeight: 23.5 }, { FillWeight: 24.1 }]);
 
     await waitFor(
       () => {
@@ -199,17 +185,14 @@ describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
   });
 
   it('renders two OutcomePins for a two-outcome hub with data', async () => {
-    await setOptInFlag(true);
     const hub = makeHub('test-hub-2', [
       makeOutcome('out-1', 'FillWeight'),
       makeOutcome('out-2', 'CycleTime'),
     ]);
-    await persistDocumentSnapshot(hub, [
+    await importVrsThroughHome(hub, [
       { FillWeight: 23.5, CycleTime: 5.2 },
       { FillWeight: 24.1, CycleTime: 5.4 },
     ]);
-
-    renderApp();
 
     await waitFor(
       () => {
@@ -221,7 +204,6 @@ describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
   });
 
   it('reflects an outcome added via dispatch on rerender', async () => {
-    await setOptInFlag(true);
     const hub = makeHub('test-hub-add', [makeOutcome('out-1', 'FillWeight')]);
     await pwaHubRepository.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub });
 
@@ -231,19 +213,14 @@ describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
     await pwaHubRepository.dispatch({
       kind: 'OUTCOME_ADD',
       hubId: 'test-hub-add',
-      outcome: makeOutcome('out-2', 'CycleTime'),
+      outcome: { ...makeOutcome('out-2', 'CycleTime'), hubId: 'test-hub-add' },
     });
     const restored = await pwaHubRepository.hubs.get('test-hub-add');
     expect(restored?.outcomes).toHaveLength(2);
-    // Re-persist so the restored hub-of-one has the freshly added outcome — the
-    // F3 dispatch already wrote the new outcomes row, but a fresh snapshot
-    // exercises the same write path the framing flow uses post-add.
-    await persistDocumentSnapshot(restored!, [
+    await importVrsThroughHome(restored!, [
       { FillWeight: 23.5, CycleTime: 5.2 },
       { FillWeight: 24.1, CycleTime: 5.4 },
     ]);
-
-    renderApp();
 
     await waitFor(
       () => {
@@ -255,7 +232,6 @@ describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
   });
 
   it('archived outcomes are filtered out (deletedAt === null filter)', async () => {
-    await setOptInFlag(true);
     const hub = makeHub('test-hub-arch', [
       makeOutcome('out-1', 'FillWeight'),
       makeOutcome('out-2', 'CycleTime'),
@@ -265,17 +241,14 @@ describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
     // Archive one outcome via the dispatch boundary (soft-delete).
     await pwaHubRepository.dispatch({ kind: 'OUTCOME_ARCHIVE', outcomeId: 'out-2' });
 
-    // Re-persist the joined view so the restore effect sees only the live outcome.
     const restored = await pwaHubRepository.hubs.get('test-hub-arch');
     expect(restored?.outcomes).toHaveLength(1);
     expect(restored?.outcomes?.[0].id).toBe('out-1');
 
-    await persistDocumentSnapshot(restored!, [
+    await importVrsThroughHome(restored!, [
       { FillWeight: 23.5, CycleTime: 5.2 },
       { FillWeight: 24.1, CycleTime: 5.4 },
     ]);
-
-    renderApp();
 
     await waitFor(
       () => {

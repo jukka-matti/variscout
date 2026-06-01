@@ -39,6 +39,31 @@ describe('Azure persistence .vrs import/export', () => {
     expect(parsed.documentSnapshot.project.outcome).toBe('yield');
   });
 
+  it('exports .vrs without marking the document saved or changing Azure identity', () => {
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      projectId: null,
+      projectName: null,
+      hasUnsavedChanges: true,
+      rawData: [{ yield: 91 }],
+      outcome: 'yield',
+    });
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: vi.fn<(blob: Blob) => string>(() => 'blob:mock'),
+      configurable: true,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), configurable: true });
+    HTMLAnchorElement.prototype.click = vi.fn();
+
+    exportToFile('backup.vrs', { activeHub: hub });
+
+    expect(useProjectStore.getState()).toMatchObject({
+      projectId: null,
+      projectName: null,
+      hasUnsavedChanges: true,
+    });
+  });
+
   it('throws when exporting without an active hub', async () => {
     const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:mock');
     Object.defineProperty(URL, 'createObjectURL', { value: createObjectURL, configurable: true });

@@ -73,3 +73,27 @@ describe('HomeScreen — PendingInvitesBanner integration', () => {
     expect(screen.getByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });
 });
+
+describe('HomeScreen — export-only persistence affordances', () => {
+  beforeEach(() => {
+    useProjectMembershipStore.setState(getProjectMembershipInitialState());
+    localStorage.removeItem(projectMembershipStorageKey('analyst@local'));
+  });
+
+  it('does not render any Save-to-Browser control', () => {
+    render(<HomeScreen {...defaultProps} onImportVrs={vi.fn()} />);
+
+    expect(screen.queryByTestId('save-to-browser-button')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('save-to-browser-saved')).not.toBeInTheDocument();
+  });
+
+  it('renders .vrs import only when the start screen receives an import handler', () => {
+    const { rerender } = render(<HomeScreen {...defaultProps} />);
+
+    expect(screen.queryByTestId('vrs-import-button')).not.toBeInTheDocument();
+
+    rerender(<HomeScreen {...defaultProps} onImportVrs={vi.fn()} />);
+
+    expect(screen.getByTestId('vrs-import-button')).toBeInTheDocument();
+  });
+});

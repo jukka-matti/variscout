@@ -23,7 +23,7 @@ origin-session-id: 906cccde-0cd3-4d5a-bbda-f82a5855e4cc
 
 - **D1 — State management:** 5 domain Zustand stores in `@variscout/stores` (project, investigation, improvement, session, canvas) + 1 cross-app feature store (wallLayout). Same architecture both apps. React Context reserved for app-mount-time providers (theme, sessionStore provider, error service) — not project-level state.
 
-- **D2 — Persistence:** state shapes tier-agnostic (same `ProcessHub`, `Finding`, `Question`, etc. types in `@variscout/core`); persistence implementation is the only tier gate. Azure: IndexedDB cache + Blob Storage sync via SAS tokens. PWA: opt-in IndexedDB Hub-of-one (`hubRepository`) + `.vrs` export/import (Q8-revised).
+- **D2 — Persistence:** state shapes tier-agnostic (same `ProcessHub`, `Finding`, `Question`, etc. types in `@variscout/core`); persistence implementation is the only tier gate. Azure: IndexedDB cache + Blob Storage sync via SAS tokens. PWA: session-only runtime with user-owned `.vrs` export/import; no browser save identity after R6d.
 
 - **D3 — Investigation lifecycle:** when investigations become first-class loaded entities (deferred brainstorm), both apps mount them via the same hooks. Multi-investigation-per-hub will be tier-gated (PWA single-Hub-of-one stays single-investigation by Q8 constraint; Azure can have many).
 

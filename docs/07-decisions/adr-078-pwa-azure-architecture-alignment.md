@@ -80,12 +80,12 @@ State shapes (the data structures held in domain Zustand stores) are tier-agnost
 
 Persistence implementation is the tier gate:
 
-| Tier      | Persistence layer                                                                   | Scope                                                 |
-| --------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| **Azure** | IndexedDB cache (Dexie) + Blob Storage sync via SAS tokens                          | Project-scoped (multiple hubs, investigation history) |
-| **PWA**   | Opt-in IndexedDB Hub-of-one (Dexie via `hubRepository`) + `.vrs` file export/import | Single Hub-of-one per Q8-revised                      |
+| Tier      | Persistence layer                                          | Scope                                                 |
+| --------- | ---------------------------------------------------------- | ----------------------------------------------------- |
+| **Azure** | IndexedDB cache (Dexie) + Blob Storage sync via SAS tokens | Project-scoped (multiple hubs, investigation history) |
+| **PWA**   | Session-only runtime + `.vrs` file export/import           | One active in-memory document                         |
 
-This honors ADR-012 (PWA browser-only), ADR-059 (Azure web-first with Blob Storage), and Q8-revised (PWA opt-in persistence + `.vrs` for trainer-shared scenarios). Both persistence layers write to the same state shapes; only the storage backend and scope differ.
+This honors ADR-012 (PWA browser-only), ADR-059 (Azure web-first with Blob Storage), and R6d (PWA export-only durability + `.vrs` for trainer-shared scenarios). Both apps use the same state shapes; only Azure owns saved workspace identity.
 
 ### D3 — Investigation lifecycle (deferred to investigation-loading brainstorm)
 

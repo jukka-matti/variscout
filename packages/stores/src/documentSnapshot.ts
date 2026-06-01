@@ -164,6 +164,44 @@ export function buildDocumentSnapshot(
   };
 }
 
+function stableJsonValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(item => (item === undefined ? null : stableJsonValue(item)));
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.keys(value)
+      .sort()
+      .reduce<Record<string, unknown>>((stable, key) => {
+        const next = (value as Record<string, unknown>)[key];
+        if (next !== undefined) {
+          stable[key] = stableJsonValue(next);
+        }
+        return stable;
+      }, {});
+  }
+
+  return value;
+}
+
+function fnv1a64(input: string): string {
+  let hash = 0xcbf29ce484222325n;
+  const prime = 0x100000001b3n;
+  const mask = 0xffffffffffffffffn;
+
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= BigInt(input.charCodeAt(index));
+    hash = (hash * prime) & mask;
+  }
+
+  return hash.toString(16).padStart(16, '0');
+}
+
+export function documentSnapshotFingerprint(snapshot: DocumentSnapshot): string {
+  const stableJson = JSON.stringify(stableJsonValue(snapshot));
+  return `document-snapshot-v1:${fnv1a64(stableJson)}`;
+}
+
 export function reconstructProcessHubFromDocumentSnapshot(snapshot: DocumentSnapshot): ProcessHub {
   const hub = snapshot.hub;
   const id = hub?.id ?? snapshot.hubId;

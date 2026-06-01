@@ -1,6 +1,6 @@
 ---
 title: 'VariScout Product Vision'
-description: 'Canonical vision spec at docs/superpowers/specs/2026-05-03-variscout-vision-design.md. Hub IS canvas IS logic map. §8 + Q0 resolved 2026-05-03 — Canvas replaces Frame + Analysis tabs; Investigation / Improvement / Report keep own surfaces; PWA gets local Hub-of-one with IndexedDB. FRAME canvas detail spec is the next brainstorming target.'
+description: 'Canonical vision spec at docs/superpowers/specs/2026-05-03-variscout-vision-design.md. Hub IS canvas IS logic map. §8 + Q0 resolved 2026-05-03 — Canvas replaces Frame + Analysis tabs; Investigation / Improvement / Report keep own surfaces; R6d makes PWA session-only with .vrs durability. FRAME canvas detail spec is the next brainstorming target.'
 purpose: remember
 tier: card
 status: active
@@ -43,7 +43,7 @@ The single canonical product vision spec, written 2026-05-03 from a brainstorm a
 | Q5 | **No CoScout map drafting in V1.** Manual click/drag/connect canvas authoring as first-class design concern.                                            |
 | Q6 | Horizons live outside the vision spec (delivery-sequence reference). Vision = destination; horizons = path.                                              |
 | Q7 | **Hard cutover, no migration window.** No users yet to preserve. Deletes happen in the same PR.                                                          |
-| Q8 | **PWA = local Hub-of-one** (IndexedDB persisted, browser-tenant-only). Azure adds cloud sync + multi-Hub + cadence + CoScout + team features.            |
+| Q8 | **PWA = session-only with `.vrs` durability after R6d.** Azure adds cloud sync + multi-Hub + cadence + CoScout + team features.                         |
 | Q9 | `lazyWithRetry` on Canvas component. ADR-075 autoUpdate stays. No prompt-mode SW.                                                                        |
 | Q10 | **`docs/glossary.md` is canonical** for all VariScout terminology (incl. retired tributary / CTS). methodology.md cross-refs it.                         |
 | Q11 | Optional canvas overlay. Promoted hypotheses → node markers; draft hypotheses → faint arrows. Default off.                                              |
@@ -52,10 +52,10 @@ The single canonical product vision spec, written 2026-05-03 from a brainstorm a
 
 **Spec edits landed 2026-05-03 (commit `f12e8b1a`):** vision §3.4 / §5.2 / §5.3 / §5.4 / §5.6 / §5.7 / §6 / §7 / §8 rewritten in place; §8 replaced "open questions" with a "resolved decisions" table; frontmatter status promoted draft → accepted. ADR-070 amended with 2026-05-03 supersession note (FRAME tab retired). Decision-log §1 appended with the 2026-05-03 §8-resolution entry.
 
-**Doc follow-ups landed 2026-05-03 (commit `c8a7c763`):** `docs/glossary.md` got "Process methodology terms" + "Retired terms" sections; `docs/01-vision/methodology.md` now cross-references the glossary; ADR-068 amended with mode-vs-level orthogonality note (Q3); ADR-059 amended with PWA local Hub-of-one persistence note (Q8); roadmap doc re-tagged as delivery-sequence reference (Q6).
+**Doc follow-ups landed 2026-05-03 (commit `c8a7c763`), amended by R6d on 2026-06-01:** `docs/glossary.md` got "Process methodology terms" + "Retired terms" sections; `docs/01-vision/methodology.md` now cross-references the glossary; ADR-068 amended with mode-vs-level orthogonality note (Q3); ADR-059 now records PWA export-only durability; roadmap doc re-tagged as delivery-sequence reference (Q6).
 
 **Decision-log pin** at `docs/decision-log.md` §1 Replayed Decisions: "2026-05-03 — Vision §8 open questions resolved + Q0 (structural prerequisite) added."
 
 **Brainstorm transcript:** `~/.claude/plans/i-would-like-to-composed-rose.md` (the original spec brainstorm). **§8 walk-through transcript:** `~/.claude/plans/lets-do-this-next-rustling-simon.md` (the resolution session — full rationale + alternatives rejected).
 
-**FRAME canvas detail spec** (the 10 commitments × surfaces translated into detailed UX with drag affordances, hit-test rules, animation, mobile, exact card layouts, and the IndexedDB persistence schema for PWA Hub-of-one) is the next brainstorming target. Inheriting the 12 locked decisions, the spec should focus on: manual canvas authoring UX (drag-to-connect, multi-select sub-step grouping, branch/join discoverability — Q5's first-class concern), the floating-overlay drill-down component design, the canvas overlay rail, and the IndexedDB schema for PWA persistence.
+**FRAME canvas detail spec** (the 10 commitments × surfaces translated into detailed UX with drag affordances, hit-test rules, animation, mobile, and exact card layouts) is the next brainstorming target. Inheriting the 12 locked decisions plus R6d, the spec should focus on: manual canvas authoring UX (drag-to-connect, multi-select sub-step grouping, branch/join discoverability — Q5's first-class concern), the floating-overlay drill-down component design, the canvas overlay rail, and `.vrs`-based PWA scenario handoff.
