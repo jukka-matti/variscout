@@ -36,7 +36,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Severity:** architectural-maintenance roadmap — not blocking current product work, but useful before more workflow/state code piles onto known drift.
 
-### Doc + user-journey alignment after the investigation-surface + Factors&Evaluation delivery [LOGGED 2026-05-31]
+### Doc + user-journey alignment after the investigation-surface + Factors&Evaluation delivery [LOGGED 2026-05-31 · VERIFIED + SIZED 2026-06-02]
 
 **Surfaced by:** 14 PRs this session (#250–#263) closed the whole investigation-surface arc (IM-0a…IM-7) + the Factors&Evaluation follow-on (model-builder + test-plan triad + evaluate + disconfirmation fusion) + IM-6 (retire mode/lens). This shipped major new product behavior; the **canonical L1/L2/L3 docs + user journeys now lag the shipped reality** and need a deliberate alignment pass.
 
@@ -46,6 +46,29 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - **`docs/OVERVIEW.md` + `docs/03-features/analysis/*`** — mode/lens picker retired (the four charts are always-on + drillable; Values⇄Capability is the one specs-gated view, Cp/Cpk only); the Wall is the find-focus→test→refine loop.
 - **Terminology** — "Supported" (not "Confirmed"); "Counts against" (loud); "contributing factors"; "suspected cause" = a role/selection, not a grouping entity.
 - **SDD L1 vision / L2 journey layers** + `docs/01-vision/four-lenses/` (now teaching-only).
+
+**VERIFIED 2026-06-02 — per-tab freshness audit (grounded 6-agent sweep + Analyze deep-dive):** the drift is **systemic, not isolated to Analyze**. Scoreboard across the V1 7-tab nav:
+
+| Tab         | Verdict                                | Canonical doc(s)                                         | last-reviewed |
+| ----------- | -------------------------------------- | -------------------------------------------------------- | ------------- |
+| **Home**    | 🔴 no canonical L3 doc                 | only `ia-nav-model` + wedge spec + a decision card       | —             |
+| **Project** | 🔴 materially stale                    | `specifications.md`, `business-bible.md`                 | 05-16 / 05-17 |
+| **Process** | 🟡 minor drift                         | `process-maps.md` (no date)                              | —             |
+| **Explore** | 🟡 minor drift                         | `analysis/index.md`, `four-lenses-workflow.md` (no date) | —             |
+| **Analyze** | 🔴 materially stale                    | `analyze-wall.md`                                        | 04-29         |
+| **Improve** | 🟡 minor drift                         | `improvement-workspace.md` (no date)                     | —             |
+| **Report**  | 🔴 materially stale + no dedicated doc | `specifications.md`, `export.md` (draft stub)            | 05-16 / 06-01 |
+
+**Cross-cutting (higher leverage than any single tab):**
+
+- **`docs/03-features/specifications.md` (last-reviewed 2026-05-16) is the shared offender** — flagged stale by the Project + Process + Report audits: still prints the pre-rename nav `[…Analyze][Investigation]…` (should be `…Explore][Analyze]…`), "Charter → Approach → **Sustainment**", and "State + Edit modes". Fix once, 3 tabs benefit.
+- **Home + Report have no L3 feature doc** (create, not edit). Report's **R6 snapshot/`.vrs` export model is undocumented** (`export.md` is a draft stub); Home's PWA-training-funnel vs Azure-durable-doc-list divergence + `PendingInvitesBanner` + active-IP-cascade-origin live only in decision cards.
+- **`analyze-wall.md` is the proposed Analyze home but is itself a month stale** (predates FE-1/FE-2 + IM-4: missing model-builder band / test-plan triad / disconfirmation / What-If Cpk / typed Supports/Counts-against; its intent diagram still draws a `Q#7` node). `question-driven-analyze.md` is orphaned + already superseded in `methodology.md` → safe to archive once the ~2 salvageable bits (η² validation thresholds; "never root cause"/Suspected-vs-Supported) are ported.
+- **~half the feature docs carry no `last-reviewed` frontmatter** — the governance gap that let this rot silently.
+
+**Correction (NOT a code bug):** the Project stage enum value `'sustainment'` is a _deliberately preserved code identifier_ (same pattern as `confirmed` / `investigationId`); only the **user-facing label** is "Control". The stale docs are `specifications.md` / `business-bible.md` printing "Sustainment" as the user-facing stage — doc drift, not a code/spec mismatch. Do not "fix" the enum.
+
+**→ Holistic doc-alignment master spec written 2026-06-02:** [`docs/superpowers/specs/2026-06-02-documentation-alignment-design.md`](../superpowers/specs/2026-06-02-documentation-alignment-design.md) (brainstorm → `superpowers:writing-plans` → execute). It embeds the full coverage matrix (57 capabilities: 10 current / 7 stale / 12 partial / 28 missing), the root-cause finding (the SDD **Apply phase** is systematically skipped), the cluster→canonical-doc map, the 6-wave sequence, and the governance fix (ship Play 2b validator). The per-tab/per-capability stale-evidence line lists live in the audit + Wave plans, not here.
 
 **Promotion path:** a FRESH-SESSION doc-alignment pass — grounded against shipped code (per [[feedback_subagent_grounding_catches_drift]]), using the docs toolbox (`pnpm docs:find`/`docs:related`) + a multi-lens audit; update L1/L2/L3 + journeys to match; follow the Propose→Apply→Archive doc-discipline. Canonical "what shipped" sources: the spec `docs/superpowers/specs/2026-05-31-factors-evaluation-design.md` + the 2026-05-30 Wall spec + ADR-086/088/089 + the 2026-05-31 decision-log entries.
 
