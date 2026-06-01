@@ -5,7 +5,8 @@ title: VariScout Product Spec
 audience: human
 category: reference
 status: active
-last-reviewed: 2026-05-16
+last-verified: 2026-06-02
+verified-against-commit: d2189a58
 related: [adr-082, product-overview, feature-parity, journey]
 layer: L3
 kind: infrastructure
@@ -25,7 +26,7 @@ Canonical V1 design lives in the [V1 architecture spec](../superpowers/specs/202
 
 ## What Is It?
 
-Structured investigation for process improvement. Question-driven analysis that guides teams from concern to measured result — combining data analysis, gemba observations, and expert knowledge in one investigation flow, assisted by AI.
+Structured investigation for process improvement. Guided, scope-first analysis that takes teams from concern to measured result — combining data analysis, gemba observations, and expert knowledge in one investigation flow, assisted by AI.
 
 - **PWA (Free):** No AI, no API keys, no persistence — a pure training tool where the struggle is the point. Direct URL distribution.
 - **Azure (€120/month):** Full product. CoScout AI included, persistence in customer's Azure tenant, project membership ACLs, Report sharing. Azure Marketplace Managed Application.
@@ -55,20 +56,20 @@ The legacy multi-persona segmentation (Process Owner / Frontline / SME / Project
 Seven tabs, in workflow order:
 
 ```
-[Home] [Project] [Process] [Analyze] [Investigation] [Improve] [Report]
+[Home] [Project] [Process] [Explore] [Analyze] [Improve] [Report]
 ```
 
-| Tab               | Function                                                                                          |
-| ----------------- | ------------------------------------------------------------------------------------------------- |
-| **Home**          | Active-IP launchpad + project queue                                                               |
-| **Project**       | Current project detail — Charter / Approach / Sustainment stages                                  |
-| **Process**       | Canvas / process map (State + Edit modes per V1 spec §3.3)                                        |
-| **Analyze**       | EDA / charts / Factor Intelligence                                                                |
-| **Investigation** | Wall + Evidence Map → suspected causes                                                            |
-| **Improve**       | Active-IP-scoped action tracker; PDCA workbench behind **"Advanced" toggle** (V1 spec §3.5 amend) |
-| **Report**        | Narrative output for Sponsor signoff                                                              |
+| Tab         | Function                                                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| **Home**    | Active-IP launchpad + project queue                                                               |
+| **Project** | Current project detail — Charter / Approach / Control stages                                      |
+| **Process** | Canvas / process map (Linked Views — the State/Edit binary is retired)                            |
+| **Explore** | EDA / charts / Factor Intelligence                                                                |
+| **Analyze** | Wall + Evidence Map → hypotheses (suspected causes)                                               |
+| **Improve** | Active-IP-scoped action tracker; PDCA workbench behind **"Advanced" toggle** (V1 spec §3.5 amend) |
+| **Report**  | Narrative output for Sponsor signoff                                                              |
 
-Improve is a top-level verb tab with active-IP cascade (2026-05-16 amendment — V1 spec §3.5). Project detail runs three stages: Charter → Approach → Sustainment. Handoff folds into Sustainment closure.
+Improve is a top-level verb tab with active-IP cascade (2026-05-16 amendment — V1 spec §3.5). Project detail runs three stages: Charter → Approach → Control. Handoff folds into Control closure.
 
 ---
 
@@ -97,8 +98,8 @@ Improve is a top-level verb tab with active-IP cascade (2026-05-16 amendment —
 
 V1 serves two distinct workflows, both as primary use cases (per [V1 spec §3.0](../superpowers/specs/2026-05-16-wedge-architecture-design.md#§30-two-analyst-modes--both-first-class)):
 
-1. **Quick analysis (exploratory)** — Specialist pastes data, explores in Analyze + Investigation, saves Findings. _No Project required._ Free PWA supports this in session-only mode; Azure adds persistence and CoScout.
-2. **Project-anchored investigation** — Specialist creates a Project (or promotes a quick analysis via "+ Promote to Project"). The Charter ceremony adds problem statement, member invites, optional refined goal. Project runs Charter → Approach → Sustainment (3 stages); the Improve tab provides the action tracker scoped to the active project, producing a Sponsor-signoff-ready Report.
+1. **Quick analysis (exploratory)** — Specialist pastes data, explores in Explore + Analyze, saves Findings. _No Project required._ Free PWA supports this in session-only mode; Azure adds persistence and CoScout.
+2. **Project-anchored investigation** — Specialist creates a Project (or promotes a quick analysis via "+ Promote to Project"). The Charter ceremony adds problem statement, member invites, optional refined goal. Project runs Charter → Approach → Control (3 stages); the Improve tab provides the action tracker scoped to the active project, producing a Sponsor-signoff-ready Report.
 
 Internally, paste data lands in a data container (called a Hub in code) that is tenant-wide. The UI does not surface "Hub" as a noun — users see only Project and Process.
 
@@ -108,13 +109,13 @@ Internally, paste data lands in a data container (called a Hub in code) that is 
 
 Inside Project detail, three stages run in sequence:
 
-| Stage           | Function                                                                                                                                                                             | Default UI                                                                                  |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| **Charter**     | Wrap an existing analysis with project ceremony — problem statement, member invites, optional refined goal. Inherits the Hub's framing (outcome, factors, process map) on promotion. | Problem statement form + Invite modal + inherited Hub-context summary.                      |
-| **Approach**    | Investigation strategy → produces suspected causes. Anchor surface is the **Investigation Wall** (Hypotheses + Findings + Measurement Plans).                                        | SuspectedCause-anchored hierarchy; links to Wall + Evidence Map.                            |
-| **Sustainment** | "Did it work?" + close project. Action completion + Cpk delta + drift check.                                                                                                         | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up. |
+| Stage        | Function                                                                                                                                                                             | Default UI                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| **Charter**  | Wrap an existing analysis with project ceremony — problem statement, member invites, optional refined goal. Inherits the Hub's framing (outcome, factors, process map) on promotion. | Problem statement form + Invite modal + inherited Hub-context summary.                      |
+| **Approach** | Investigation strategy → produces suspected causes. Anchor surface is the **Investigation Wall** (Hypotheses + Findings + Measurement Plans).                                        | Hypothesis-anchored hierarchy; links to Wall + Evidence Map.                                |
+| **Control**  | "Did it work?" + close project. Action completion + Cpk delta + drift check.                                                                                                         | Cpk delta + action completion + drift since closure + Mark complete / Reopen for follow-up. |
 
-Handoff stage is folded into Sustainment closure (single end-of-project decision moment). The Improve tab (top-level verb) hosts the action tracker + PDCA workbench scoped to the active project. Canvas response paths reduce from 5 to 3 (Capture as Finding / Investigate / Charter); Sustainment auto-fires per ADR-080.
+Handoff stage is folded into Control closure (single end-of-project decision moment). The Improve tab (top-level verb) hosts the action tracker + PDCA workbench scoped to the active project. Canvas response paths reduce from 5 to 3 (Capture as Finding / Investigate / Charter); Control auto-fires per ADR-080.
 
 ---
 
@@ -126,7 +127,7 @@ Both investigation starting points converge on the Wall:
 
 | Start                            | Path                                                                                                                                                                         |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Data-first (exploratory)**     | Paste → explore in Analyze → notice patterns → create Findings → group into Hypotheses on the Wall.                                                                          |
+| **Data-first (exploratory)**     | Paste → explore in Explore → notice patterns → create Findings → group into Hypotheses on the Wall.                                                                          |
 | **Hypothesis-first (deductive)** | Open Wall → create Hypothesis → add Measurement Plans (what evidence is needed) → collect out-of-product → re-paste → Findings link to Plans → Hypothesis status progresses. |
 
 Measurement Plan fields (V1 DCP shape — IM-2): `primaryFactor`, `outcome`, `neededFactors[]` (dataset column names — IM-3 join contract), `scope: ConditionLeaf[]` (WHERE snapshot), `processLocation` (ProcessMap step id), `method`, `sampleSize`, `owner`, `status`, `hypothesisId` (required + immutable), optional `opDef`/`msaNote` notes (informational — not gates). `msaRequired` flag removed; formal MSA / Gage R&R workflow defers to V2. Full field reference: [Measurement Plan DCP](workflows/measurement-plan-dcp.md).
@@ -193,7 +194,7 @@ Inside the €120 SKU, team-collaboration features are gated by project-membersh
 | **Member**  | SME, analyst, frontline contributor, quality engineer   | Full edit within project surfaces (findings, hypotheses, actions, photo evidence, Knowledge Catalyst contribution); no membership mgmt                             |
 | **Sponsor** | Executive sponsor / Champion                            | Reads everywhere + edits contributions (2-tier ACL with Member); signoff handled out-of-band (email, e-sign, meeting). In-product signoff workflow defers post-V1. |
 
-Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide — this baseline analysis capability is not gated by project membership. Only Project artifacts (Charter, Approach, Sustainment) and Improve tab actions and team-collaboration features are membership-scoped. See [feature-parity.md "Project-membership-role gating"](../08-products/feature-parity.md#project-membership-role-gating) for the role × feature matrix.
+Outside a Project, a logged-in Azure user can paste data and analyze tenant-wide — this baseline analysis capability is not gated by project membership. Only Project artifacts (Charter, Approach, Control) and Improve tab actions and team-collaboration features are membership-scoped. See [feature-parity.md "Project-membership-role gating"](../08-products/feature-parity.md#project-membership-role-gating) for the role × feature matrix.
 
 ---
 
@@ -273,7 +274,7 @@ See [V1 spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-desi
 
 ## Summary
 
-> **VariScout V1** is the project tool an improvement specialist invites their team to. Question-driven analysis with four linked views reveals hidden variation; the Investigation Wall + Measurement Plans hold the hypothesis-driven work; the Improve stage tracks actions; Sustainment closes the loop with measured Cpk delta. Free PWA for learning the methodology; **€120/month Azure tenant-wide** for the full product with CoScout AI, project membership ACLs, and Sponsor-signoff Reports.
+> **VariScout V1** is the project tool an improvement specialist invites their team to. Guided analysis with four linked views reveals hidden variation; the Investigation Wall + Measurement Plans hold the hypothesis-driven work; the Improve tab tracks actions; the Control stage closes the loop with measured Cpk delta. Free PWA for learning the methodology; **€120/month Azure tenant-wide** for the full product with CoScout AI, project membership ACLs, and Sponsor-signoff Reports.
 
 ---
 
@@ -286,4 +287,4 @@ See [V1 spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-desi
 - [Feature Parity](../08-products/feature-parity.md) — PWA vs Azure (€120) matrix
 - [USER-JOURNEYS](../USER-JOURNEYS.md) — V1 single-persona spine
 - [ADR-019: AI Integration](../07-decisions/adr-019-ai-integration.md)
-- [ADR-080: Sustainment auto-fire pattern](../07-decisions/adr-080-control-auto-fire-pattern.md)
+- [ADR-080: Control auto-fire pattern](../07-decisions/adr-080-control-auto-fire-pattern.md)
