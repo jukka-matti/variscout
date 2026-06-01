@@ -12,10 +12,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useProjectActions } from '../useProjectActions';
-import { useProjectStore, getProjectInitialState } from '@variscout/stores';
+import { useProjectStore, getProjectInitialState, useCanvasStore } from '@variscout/stores';
 import { useAnalyzeStore, getAnalyzeInitialState } from '@variscout/stores';
-import type { PersistenceAdapter, SavedProject, AnalysisState } from '../types';
-import type { DataRow, Finding, FilterAction } from '@variscout/core';
+import type {
+  PersistenceAdapter,
+  SavedProject,
+  AnalysisState,
+  DocumentSnapshotImport,
+} from '../types';
+import type { DataRow, Finding, FilterAction, ProcessHub } from '@variscout/core';
 
 // ============================================================================
 // Test helpers
@@ -602,6 +607,27 @@ describe('useProjectActions', () => {
         'test.vrs'
       );
     });
+
+    it('should pass active hub context to persistence.exportToFile when configured', () => {
+      const persistence = createMockPersistence();
+      const activeHub: ProcessHub = {
+        id: 'hub-1',
+        name: 'Hub 1',
+        createdAt: 1714000000000,
+        deletedAt: null,
+      };
+      const { result } = renderHook(() =>
+        useProjectActions(persistence, { getActiveHub: () => activeHub })
+      );
+
+      act(() => {
+        result.current.exportProject('snapshot.vrs');
+      });
+
+      expect(persistence.exportToFile).toHaveBeenCalledWith(expect.any(Object), 'snapshot.vrs', {
+        activeHub,
+      });
+    });
   });
 
   // --------------------------------------------------------------------------
@@ -677,6 +703,103 @@ describe('useProjectActions', () => {
       const ps = useProjectStore.getState();
       expect(ps.filterStack).toEqual(filterStack);
       expect(ps.filters).toEqual({ Machine: ['A'] });
+    });
+
+    it('should hydrate document snapshot imports and mark them unsaved', async () => {
+      const persistence = createMockPersistence();
+      const importedSnapshot: DocumentSnapshotImport = {
+        kind: 'document-snapshot',
+        file: {
+          version: '1.0',
+          exportedAt: '2026-06-01T00:00:00.000Z',
+          hub: {
+            id: 'hub-1',
+            name: 'Hub 1',
+            createdAt: 1714000000000,
+            deletedAt: null,
+          },
+          documentSnapshot: {
+            schemaVersion: 1,
+            hubId: 'hub-1',
+            project: {
+              projectId: 'stored-id',
+              projectName: 'Snapshot file',
+              rawData: sampleData,
+              outcome: 'Weight',
+              factors: ['Machine'],
+              specs: {},
+              analysisMode: 'standard',
+              dataFilename: null,
+              dataQualityReport: null,
+              timeColumn: null,
+              columnAliases: {},
+              valueLabels: {},
+              measureSpecs: {},
+              stageColumn: null,
+              stageOrderMode: 'auto',
+              measureColumns: [],
+              measureLabel: 'Measure',
+              selectedMeasure: null,
+              cpkTarget: 1.33,
+              defectMapping: null,
+              subgroupConfig: { method: 'fixed-size', size: 5 },
+              filters: {},
+              filterStack: [],
+              axisSettings: {},
+              displayOptions: {},
+              chartTitles: {},
+              paretoMode: 'derived',
+              paretoAggregation: 'count',
+              separateParetoData: null,
+              separateParetoFilename: null,
+              processContext: null,
+              entryScenario: null,
+              viewState: null,
+            },
+            analyze: {
+              findings: [makeFinding('f-snapshot', 'Snapshot finding')],
+              categories: [],
+              hypotheses: [],
+              causalLinks: [],
+              scopes: [],
+            },
+            canvas: {
+              canonicalMap: {
+                version: 1,
+                nodes: [{ id: 'step-1', name: 'Mix', order: 0 }],
+                tributaries: [],
+                assignments: {},
+                arrows: [],
+                createdAt: '2026-06-01T00:00:00.000Z',
+                updatedAt: '2026-06-01T00:00:00.000Z',
+              },
+              outcomes: [],
+              primaryScopeDimensions: [],
+              canonicalMapVersion: 'canvas-v1',
+            },
+            improvementProject: null,
+          },
+        },
+      };
+      (persistence.importFromFile as ReturnType<typeof vi.fn>).mockResolvedValue(importedSnapshot);
+      const file = new File(['{}'], 'snapshot.vrs', { type: 'application/json' });
+      const { result } = renderHook(() => useProjectActions(persistence));
+
+      await act(async () => {
+        await result.current.importProject(file);
+      });
+
+      expect(useProjectStore.getState()).toMatchObject({
+        rawData: sampleData,
+        outcome: 'Weight',
+        projectName: 'Snapshot file',
+        projectId: null,
+        hasUnsavedChanges: true,
+      });
+      expect(useAnalyzeStore.getState().findings[0].text).toBe('Snapshot finding');
+      expect(useCanvasStore.getState().canonicalMap.nodes).toEqual([
+        { id: 'step-1', name: 'Mix', order: 0 },
+      ]);
     });
   });
 

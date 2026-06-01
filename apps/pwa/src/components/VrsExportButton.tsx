@@ -1,17 +1,19 @@
 // apps/pwa/src/components/VrsExportButton.tsx
 import type { ProcessHub } from '@variscout/core/processHub';
-import { vrsExport } from '@variscout/core';
+import { buildDocumentSnapshotVrs } from '@variscout/stores';
 
 export interface VrsExportButtonProps {
   currentHub: ProcessHub;
-  currentData?: Array<Record<string, unknown>>;
 }
 
-export function VrsExportButton({ currentHub, currentData }: VrsExportButtonProps) {
+export function VrsExportButton({ currentHub }: VrsExportButtonProps) {
   const onClick = () => {
-    const json = vrsExport(currentHub, currentData, {
-      exportSource: 'pwa',
-      appVersion: import.meta.env.VITE_APP_VERSION ?? 'dev',
+    const json = buildDocumentSnapshotVrs({
+      activeHub: currentHub,
+      metadata: {
+        exportSource: 'pwa',
+        appVersion: import.meta.env.VITE_APP_VERSION ?? 'dev',
+      },
     });
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

@@ -152,19 +152,21 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R6 — Document Snapshot and Export Fidelity
 
-**Status:** R6a hub-scoped Document Snapshot runtime boundary is the current slice.
+**Status:** R6a hub-scoped Document Snapshot runtime boundary shipped in PR #275. R6b `.vrs` adapter wiring is the current slice.
 
 **Goal:** Make export/import snapshots match the current Document-store model.
 
 **Candidate changes:**
 
-- Introduce a canonical `buildDocumentSnapshot()` / `hydrateDocumentSnapshot()` path. **R6a slice.**
-- Replace the stale flat type-only `DocumentSnapshot` with a namespaced runtime envelope covering Project config/data, Analyze state, Canvas document state, and zero-or-one `ImprovementProject` for the active hub. **R6a slice.**
-- Treat snapshots as hub-scoped: quick-analysis hubs may have no Project; formalized hubs have one Project; snapshots carry at most that hub's live Project and never serialize the multi-hub `projectsById` mirror. **R6a slice.**
-- Include all current Document stores or explicitly rename the current export surface as a legacy analysis-state export.
-- Add round-trip tests for `.vrs` export/import once the snapshot boundary is settled.
+- Introduce a canonical `buildDocumentSnapshot()` / `hydrateDocumentSnapshot()` path. **Done in R6a.**
+- Replace the stale flat type-only `DocumentSnapshot` with a namespaced runtime envelope covering Project config/data, Analyze state, Canvas document state, and zero-or-one `ImprovementProject` for the active hub. **Done in R6a.**
+- Treat snapshots as hub-scoped: quick-analysis hubs may have no Project; formalized hubs have one Project; snapshots carry at most that hub's live Project and never serialize the multi-hub `projectsById` mirror. **Done in R6a.**
+- Wire PWA/Azure `.vrs` export/import through the settled snapshot boundary while preserving legacy hub/rawData and AnalysisState imports. **R6b slice.**
+- Add round-trip tests for `.vrs` export/import once the snapshot boundary is settled. **R6b slice.**
 
 **R6a decision note (2026-05-31):** `ImprovementProject.status` is persisted domain state (`draft | active | closed`), not a derived label. The uncertainty is stage vocabulary/granularity, not whether Project lifecycle state belongs in a portable document. `useImprovementProjectStore.projectsById` is Document-layer state but is a multi-hub in-memory mirror; the portable snapshot boundary is one hub document with zero-or-one live Project.
+
+**R6b decision note (2026-06-01):** `.vrs` snapshot support is additive: keep version `1.0`, retain legacy `hub`, `rawData`, and `metadata`, and add optional `documentSnapshot`. Legacy PWA hub/rawData imports and Azure `AnalysisState` imports remain supported; no Azure import/export UI, cloud-sync, IndexedDB schema, HubAction, or Annotation/View persistence changes belong in R6b.
 
 **Decision gate:** R3 should land first so the store model is not moving.
 

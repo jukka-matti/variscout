@@ -5,14 +5,17 @@ import { VRS_VERSION, type VrsFile } from './vrsFormat';
 export function vrsExport(
   hub: ProcessHub,
   rawData?: Array<Record<string, unknown>>,
-  metadata?: VrsFile['metadata']
+  metadata?: VrsFile['metadata'],
+  documentSnapshot?: unknown,
+  exportedAt = new Date().toISOString()
 ): string {
   const file: VrsFile = {
     version: VRS_VERSION,
-    exportedAt: new Date().toISOString(),
+    exportedAt,
     hub,
     rawData,
     metadata,
+    ...(documentSnapshot !== undefined ? { documentSnapshot } : {}),
   };
   return JSON.stringify(file, null, 2);
 }

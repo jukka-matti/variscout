@@ -432,30 +432,6 @@ export const Editor: React.FC<EditorProps> = ({
     useAnalyzeStore.getState().loadAnalyzeState({ findings });
   }, []);
 
-  // Persistence actions (local IndexedDB via adapter)
-  const projectActions = useProjectActions(azurePersistenceAdapter);
-
-  // Wrap saveProject with cloud sync
-  const saveProject = useCallback(
-    async (name: string) => {
-      setDefaultLocation('personal');
-      const project = await projectActions.saveProject(name);
-      // Trigger cloud sync with current store state snapshot
-      const state = useProjectStore.getState();
-      await saveToCloud(state, name, 'personal');
-      return project;
-    },
-    [projectActions, saveToCloud]
-  );
-
-  const loadProject = projectActions.loadProject;
-  const renameProject = useCallback(
-    async (oldName: string, newName: string) => {
-      await projectActions.renameProject(oldName, newName);
-    },
-    [projectActions]
-  );
-
   const ingestion = useDataIngestion({
     onTimeColumnDetected: prompt => {
       dataFlowRef.current?.setTimeExtractionPrompt(prompt);
@@ -595,6 +571,31 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Data flow hook
   const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
+  // Persistence actions (local IndexedDB via adapter)
+  const projectActions = useProjectActions(azurePersistenceAdapter, {
+    getActiveHub: () => activeHub,
+  });
+
+  // Wrap saveProject with cloud sync
+  const saveProject = useCallback(
+    async (name: string) => {
+      setDefaultLocation('personal');
+      const project = await projectActions.saveProject(name);
+      // Trigger cloud sync with current store state snapshot
+      const state = useProjectStore.getState();
+      await saveToCloud(state, name, 'personal');
+      return project;
+    },
+    [projectActions, saveToCloud]
+  );
+
+  const loadProject = projectActions.loadProject;
+  const renameProject = useCallback(
+    async (oldName: string, newName: string) => {
+      await projectActions.renameProject(oldName, newName);
+    },
+    [projectActions]
+  );
   const activeIPContext = useActiveIPContext(activeHub, { userId: currentUser?.email });
   const canEditCanvas = useMemo(() => {
     const userId = currentUser?.email;

@@ -11,9 +11,15 @@
  */
 
 import { useCallback } from 'react';
-import { useProjectStore, useAnalyzeStore } from '@variscout/stores';
+import { useProjectStore, useAnalyzeStore, hydrateDocumentSnapshot } from '@variscout/stores';
 import { filterStackToFilters } from '@variscout/core/navigation';
-import type { AnalysisState, PersistenceAdapter, SavedProject } from './types';
+import type {
+  AnalysisState,
+  DocumentSnapshotImport,
+  PersistenceAdapter,
+  SavedProject,
+} from './types';
+import type { ProcessHub } from '@variscout/core';
 import type { SerializedProject } from '@variscout/stores';
 
 // ============================================================================
@@ -29,6 +35,10 @@ export interface ProjectActionsResult {
   exportProject: (filename: string) => void;
   importProject: (file: File) => Promise<void>;
   newProject: () => void;
+}
+
+export interface UseProjectActionsOptions {
+  getActiveHub?: () => ProcessHub | null | undefined;
 }
 
 // ============================================================================
@@ -157,11 +167,24 @@ function getCurrentStateFromStores(): Omit<AnalysisState, 'version'> {
   return state;
 }
 
+function isDocumentSnapshotImport(value: unknown): value is DocumentSnapshotImport {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as { kind?: unknown }).kind === 'document-snapshot' &&
+    typeof (value as { file?: unknown }).file === 'object' &&
+    (value as { file?: unknown }).file !== null
+  );
+}
+
 // ============================================================================
 // Hook Implementation
 // ============================================================================
 
-export function useProjectActions(persistence: PersistenceAdapter): ProjectActionsResult {
+export function useProjectActions(
+  persistence: PersistenceAdapter,
+  options: UseProjectActionsOptions = {}
+): ProjectActionsResult {
   // ---------------------------------------------------------------------------
   // Save — read from stores, persist, update project lifecycle
   // ---------------------------------------------------------------------------
@@ -245,9 +268,14 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
 
   const exportProject = useCallback(
     (filename: string): void => {
-      persistence.exportToFile(getCurrentStateFromStores(), filename);
+      const activeHub = options.getActiveHub?.() ?? null;
+      if (activeHub) {
+        persistence.exportToFile(getCurrentStateFromStores(), filename, { activeHub });
+      } else {
+        persistence.exportToFile(getCurrentStateFromStores(), filename);
+      }
     },
-    [persistence]
+    [options, persistence]
   );
 
   // ---------------------------------------------------------------------------
@@ -256,7 +284,17 @@ export function useProjectActions(persistence: PersistenceAdapter): ProjectActio
 
   const importProject = useCallback(
     async (file: File): Promise<void> => {
-      const state = await persistence.importFromFile(file);
+      const imported = await persistence.importFromFile(file);
+      if (isDocumentSnapshotImport(imported)) {
+        hydrateDocumentSnapshot(imported.file.documentSnapshot);
+        useProjectStore.setState({
+          projectId: null,
+          hasUnsavedChanges: true,
+        });
+        return;
+      }
+
+      const state = imported;
       const projectName = file.name.replace(/\.vrs$/i, '');
       const serialized = buildSerializedProject(null, projectName, state);
 

@@ -9,4 +9,5 @@ export interface VrsFile {
   hub: ProcessHub;
   rawData?: Array<Record<string, unknown>>;
   metadata?: { exportSource: 'pwa' | 'azure'; appVersion: string };
+  documentSnapshot?: unknown;
 }

@@ -108,12 +108,21 @@ export {
   hydrateDocumentSnapshot,
   resetDocumentStores,
 } from './documentSnapshot';
+export {
+  buildDocumentSnapshotVrs,
+  isDocumentSnapshotVrsFile,
+  parseDocumentSnapshotVrs,
+} from './documentSnapshotVrs';
 export type {
   AnalyzeDocumentSnapshot,
   BuildDocumentSnapshotOptions,
   DocumentSnapshot,
   ProjectDocumentSnapshot,
 } from './documentSnapshot';
+export type {
+  BuildDocumentSnapshotVrsOptions,
+  DocumentSnapshotVrsFile,
+} from './documentSnapshotVrs';
 export {
   useProjectMembershipStore,
   getProjectMembershipInitialState,
