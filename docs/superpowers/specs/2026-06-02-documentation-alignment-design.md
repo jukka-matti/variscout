@@ -112,7 +112,7 @@ Thin app-feature factories → `packages/stores/CLAUDE.md`; `wallLayout.computeW
 
 The recurrence guard is as important as the content. In scope:
 
-- **Ship Play 2b SSoT validator** (already "ready to ship, safe-parallel"): HARD-FAIL on `*-amendment-*.md` / `*-revision-*.md` anti-pattern filenames under `docs/superpowers/specs/`; edit-in-place enforcement; decision-log append-only warning; WARN on a design spec `status: delivered` without its `implements:` targets touched (the Apply-phase sensor).
+- **Add the Apply-phase sensor (the genuinely-missing guard).** Grounding correction (verified at `fff607f2`): the Play 2b validator is **already shipped** — `scripts/check-doc-frontmatter.mjs` HARD-FAILs `*-amendment-*.md` anti-pattern filenames, enforces `implements:`/`serves:` path-existence, and WARNs on decision-log / `## Amendment` anti-patterns (M5 HARD-FAIL flip landed 2026-05-18). The `docs/superpowers/specs/2026-05-16-docs-strategy-design.md` migration table just never got updated to mark 2b shipped. **The net-new piece is the Apply-phase sensor:** a WARN (later HARD-FAIL) when a `status: delivered` design spec has `implements:` targets whose files were never modified after the spec landed — i.e. delivered code with un-applied doc propagation, the exact hole that created this backlog. Wave 0 adds that check + updates the stale tracker.
 - **Adopt the prescribed freshness fields** — `last-verified` + `verified-against-commit` (NOT the ad-hoc `last-reviewed`) on every doc we touch or create, so drift becomes visible.
 - **Mandatory intent diagrams** on every L3 doc per its `kind:` (ASCII/Mermaid wireframe for `ui`, sequence for `workflow`, flowchart for `engine`).
 - **Steward hook** (when its phase lands) will then flag L3 specs missing intent diagrams or with stale `last-verified`.
@@ -121,7 +121,7 @@ The recurrence guard is as important as the content. In scope:
 
 Sequenced load-bearing-user-facing first, developer-internal last, governance threaded early.
 
-- **Wave 0 — cross-cutting + governance (fast, highest leverage).** Slim `specifications.md`; de-personalize `ia-nav-model.md`; refresh the `USER-JOURNEYS.md` Analyze sub-journey + `eda-mental-model.md`; archive `question-driven-analyze.md`; triage the May stub docs. **Ship Play 2b validator** so the Apply-phase discipline holds for every later Wave.
+- **Wave 0 — cross-cutting + governance (fast, highest leverage).** Slim `specifications.md`; de-personalize `ia-nav-model.md`; refresh the `USER-JOURNEYS.md` Analyze sub-journey + `eda-mental-model.md`; archive `question-driven-analyze.md`; triage the May stub docs. **Add the Apply-phase sensor** to the (already-shipped) Play 2b validator + mark 2b shipped in the tracker, so the discipline holds for every later Wave.
 - **Wave 1 — Investigation Surface / Analyze** (cluster 1). The load-bearing journey rewrite + its feature doc-set.
 - **Wave 2 — Save / Load / Access** (cluster 3). The R6 persistence surface, documented against the frozen post-R6e state — the freeze (below) is what makes this safe to write, since R6 is otherwise still being reshaped.
 - **Wave 3 — Findings / Collaboration + CoScout** (clusters 2, 4, 5).
