@@ -53,7 +53,11 @@ The V1 wedge pivot, the investigation-surface arc (IM-0…IM-7), the Factors & E
 
 ## 2. Goal & non-goals
 
-**Goal:** bring the shipped V1 surface into a coherent, current, single-canonical-home documentation state — adopting the _existing_ SDD 5-layer structure rather than inventing a new one — and ship the governance that stops the backlog from re-accumulating.
+**Goal:** every shipped V1 surface has exactly one current, grounded canonical doc — cross-layer duplication removed and the Apply-phase discipline made mechanical — so that **a developer or an AI agent can reconstruct the shipped behaviour from the docs without reading the code**, and the backlog stops re-accumulating. We adopt the _existing_ SDD 5-layer structure rather than inventing a new one.
+
+**Primary reader (locked 2026-06-02): internal — the dev + AI agents grounding against the docs + onboarding.** NOT end-user / docs-site / marketing copy. Optimize for accuracy, groundedness, and intent diagrams over prose polish; **terse and mechanical is correct, not a compromise.** Success = an agent grounding on the doc gets the truth, fast.
+
+**Driver (locked 2026-06-02): coherence, not launch timing.** We document the current shipped truth at a **frozen code state** — **this initiative completes before further product refactoring resumes.** The R-series (Codex) pauses until the Waves land, so docs are written against a stable target, not a moving one. Because the driver is coherence (not an imminent launch), the Analyze journey-rewrite stays Wave 1 and Save/Access stays Wave 2. See decision-log 2026-06-02.
 
 **Non-goals (explicitly out of scope):**
 
@@ -119,12 +123,14 @@ Sequenced load-bearing-user-facing first, developer-internal last, governance th
 
 - **Wave 0 — cross-cutting + governance (fast, highest leverage).** Slim `specifications.md`; de-personalize `ia-nav-model.md`; refresh the `USER-JOURNEYS.md` Analyze sub-journey + `eda-mental-model.md`; archive `question-driven-analyze.md`; triage the May stub docs. **Ship Play 2b validator** so the Apply-phase discipline holds for every later Wave.
 - **Wave 1 — Investigation Surface / Analyze** (cluster 1). The load-bearing journey rewrite + its feature doc-set.
-- **Wave 2 — Save / Load / Access** (cluster 3). Launch-critical (R6 shipped, product unlaunched).
+- **Wave 2 — Save / Load / Access** (cluster 3). The R6 persistence surface, documented against the frozen post-R6e state — the freeze (below) is what makes this safe to write, since R6 is otherwise still being reshaped.
 - **Wave 3 — Findings / Collaboration + CoScout** (clusters 2, 4, 5).
 - **Wave 4 — remaining surfaces** (clusters 6–12): Home + Report _new_; Process/Explore/Improve/Project refresh; Measurement-Plan + Values⇄Capability refresh.
 - **Wave 5 — developer/architecture docs** (L4 / package `CLAUDE.md`).
 
 Each Wave is a separate plan + PR (or small PR cluster) per `feedback_master_plan_for_multi_subsystem_specs`; cap at ~6–8 docs/PR.
+
+**Freeze (locked 2026-06-02):** product refactoring (the R-series) pauses until these Waves complete — docs are written against a frozen code state. Any in-flight refactor _doc_ work (e.g. R6f's persistence-residue sweep) folds into Wave 0/2 rather than running in parallel. Resuming refactoring before the initiative completes re-opens the moving-target problem and is out of scope.
 
 ## 7. Lifecycle & method
 

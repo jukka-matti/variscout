@@ -28,6 +28,14 @@ When in doubt: capture, don't invent. Record the decision; link to its source ar
 
 Decisions we keep relitigating. Each entry: short statement, rationale, closing artifact, date pinned.
 
+- **2026-06-02 — Documentation alignment completes before further product refactoring.** `new spec`: [`docs/superpowers/specs/2026-06-02-documentation-alignment-design.md`](superpowers/specs/2026-06-02-documentation-alignment-design.md) (draft).
+
+  A grounded multi-agent audit (against commit `fff607f2`) found the shipped V1 surface is **~1-in-6 documented** — 57 capabilities: 10 current / 7 stale / 12 partial / 28 missing. Root cause is the **systematically-skipped SDD Apply phase**: specs ship as `delivered` (code lands) while their `implements:` target docs are never written (`2026-05-29-investigation-surface`, `2026-05-31-factors-evaluation`, `2026-05-26-canvas-connection-journey`, `2026-05-28-state-edit-mode` all show this).
+
+  **Decision:** run the doc-alignment initiative (6 waves, adopting the existing SDD stack — invents nothing) **before any further product refactoring.** The R-series (R6f / R7+) **pauses** so docs are written against a frozen code state, not a moving target. **Primary reader = internal** (dev + AI agents grounding + onboarding), not end-user/marketing — terse/mechanical/grounded over prose polish. **Driver = coherence, not launch timing** (so Analyze-rewrite stays Wave 1; Save/Access stays Wave 2). Governance fix bundled: ship the Play 2b SSoT validator in Wave 0 so the Apply phase becomes mechanical and the backlog stops recurring. Supersedes the "R6f next" sequencing in the 2026-06-01 R5/R6 entry below until the initiative completes.
+
+  _Pinned 2026-06-02._
+
 - **2026-06-01 — R5/R6 refactoring recalibration: thin adapters before document persistence.** Spec edit: recalibrate the refactoring roadmap and persistence architecture docs after R6c.
 
 R5 deliberately stayed thin. The PWA/Azure surfaces had real duplication, but the surrounding app behavior also carried intentional capability policy: Azure owns cloud sync, access, AI, repository adapters, and richer shell behavior while PWA owns local training/browser workflows. The shipped R5 slices therefore extracted construction helpers and lifecycle/action wiring without unifying app shells or moving repository ownership out of `apps/*`.
