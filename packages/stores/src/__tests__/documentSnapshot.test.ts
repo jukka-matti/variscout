@@ -10,9 +10,11 @@ import type {
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import {
   buildDocumentSnapshot,
+  documentSnapshotFingerprint,
   hydrateDocumentSnapshot,
   reconstructProcessHubFromDocumentSnapshot,
   resetDocumentStores,
+  type DocumentSnapshot,
 } from '../documentSnapshot';
 import { getAnalyzeInitialState, useAnalyzeStore } from '../analyzeStore';
 import { useCanvasStore } from '../canvasStore';
@@ -343,6 +345,89 @@ describe('buildDocumentSnapshot', () => {
     expect(snapshot.improvementProject).toEqual(activeProject);
     expect(JSON.stringify(snapshot)).not.toContain('ip-other');
     expect(JSON.stringify(snapshot)).not.toContain('projectsById');
+  });
+});
+
+describe('documentSnapshotFingerprint', () => {
+  it('matches for identical snapshots', () => {
+    seedProjectStore();
+    seedAnalyzeStore();
+    seedCanvasStore();
+    const snapshot = buildDocumentSnapshot({ activeHub: makeHub('hub-1') });
+
+    expect(documentSnapshotFingerprint(snapshot)).toBe(documentSnapshotFingerprint(snapshot));
+    expect(documentSnapshotFingerprint(snapshot)).toBe(
+      documentSnapshotFingerprint(JSON.parse(JSON.stringify(snapshot)) as DocumentSnapshot)
+    );
+  });
+
+  it('uses stable key ordering to avoid false differences', () => {
+    seedProjectStore();
+    const snapshot = buildDocumentSnapshot({ activeHub: makeHub('hub-1') });
+    const reordered: DocumentSnapshot = {
+      canvas: snapshot.canvas,
+      improvementProject: snapshot.improvementProject,
+      project: {
+        ...snapshot.project,
+        rawData: snapshot.project.rawData.map(row => ({
+          defects: row.defects,
+          line: row.line,
+          yield: row.yield,
+        })),
+      },
+      analyze: snapshot.analyze,
+      hub: snapshot.hub,
+      hubId: snapshot.hubId,
+      schemaVersion: snapshot.schemaVersion,
+    };
+
+    expect(documentSnapshotFingerprint(reordered)).toBe(documentSnapshotFingerprint(snapshot));
+  });
+
+  it('changes when project, analyze, canvas, or active hub improvement project state changes', () => {
+    seedProjectStore();
+    seedAnalyzeStore();
+    seedCanvasStore();
+    const activeHub = makeHub('hub-1');
+    const baseline = documentSnapshotFingerprint(buildDocumentSnapshot({ activeHub }));
+
+    useProjectStore.getState().setProjectName('Renamed project');
+    expect(documentSnapshotFingerprint(buildDocumentSnapshot({ activeHub }))).not.toBe(baseline);
+
+    resetStores();
+    seedProjectStore();
+    seedAnalyzeStore();
+    seedCanvasStore();
+    useAnalyzeStore.getState().loadAnalyzeState({ findings: [makeFinding('finding-2')] });
+    expect(documentSnapshotFingerprint(buildDocumentSnapshot({ activeHub }))).not.toBe(baseline);
+
+    resetStores();
+    seedProjectStore();
+    seedAnalyzeStore();
+    seedCanvasStore();
+    useCanvasStore.getState().addStep('Inspect');
+    expect(documentSnapshotFingerprint(buildDocumentSnapshot({ activeHub }))).not.toBe(baseline);
+
+    resetStores();
+    seedProjectStore();
+    seedAnalyzeStore();
+    seedCanvasStore();
+    useImprovementProjectStore
+      .getState()
+      .upsertProject(makeProject('ip-active', 'hub-1', 'active'));
+    expect(documentSnapshotFingerprint(buildDocumentSnapshot({ activeHub }))).not.toBe(baseline);
+  });
+
+  it('ignores canvas undo and redo history outside the document snapshot payload', () => {
+    seedCanvasStore();
+    const beforeHistoryChange = documentSnapshotFingerprint(buildDocumentSnapshot());
+
+    useCanvasStore.getState().addStep('Temporary history entry');
+    useCanvasStore.getState().undo();
+    expect(useCanvasStore.getState().historyDepth()).toBe(0);
+    expect(useCanvasStore.getState().redoDepth()).toBe(1);
+
+    expect(documentSnapshotFingerprint(buildDocumentSnapshot())).toBe(beforeHistoryChange);
   });
 });
 

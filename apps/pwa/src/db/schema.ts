@@ -25,6 +25,8 @@
 // F3.5 (evidence) and F5 (investigation/finding/causalLink/
 // hypothesis + canvas action coverage). The `questions` table (IM-1, ADR-085)
 // was dropped at v10 — ProblemStatementScope persists via the analyze blob.
+// The former documentSnapshots table was dropped at v12 when PWA durability
+// became export-only (.vrs).
 //
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
@@ -43,7 +45,6 @@ import type { Finding, CausalLink, Hypothesis, ActionItem } from '@variscout/cor
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
-import type { DocumentSnapshot } from '@variscout/stores';
 
 // ---------------------------------------------------------------------------
 // Row types
@@ -93,11 +94,6 @@ export type ControlRecordRow = ControlRecord;
 export type ControlReviewRow = ControlReview;
 export type ControlHandoffRow = ControlHandoff;
 export type MeasurementPlanRow = MeasurementPlan;
-export interface DocumentSnapshotRow {
-  key: 'current';
-  snapshot: DocumentSnapshot;
-  savedAt: string;
-}
 
 // ---------------------------------------------------------------------------
 // Database
@@ -122,7 +118,6 @@ export class PwaDatabase extends Dexie {
   canvasState!: Table<CanvasStateRow, string>;
   meta!: Table<MetaRow, string>;
   measurementPlans!: Table<MeasurementPlanRow, string>;
-  documentSnapshots!: Table<DocumentSnapshotRow, string>;
 
   constructor() {
     super('variscout-pwa-normalized');
@@ -210,7 +205,14 @@ export class PwaDatabase extends Dexie {
     // store. Per wedge V1 no-back-compat policy, no data migration — the table
     // was empty.
     this.version(10).stores({ questions: null });
+    // Version 11: R6c — Current DocumentSnapshot browser-save table.
+    // Version 12 drops it; retain v11 in the historical chain so existing v10
+    // databases can upgrade through the same schema sequence.
     this.version(11).stores({ documentSnapshots: '&key, savedAt' });
+
+    // Version 12: R6d — PWA durable persistence is export-only. Remove the
+    // browser documentSnapshot store from the latest schema.
+    this.version(12).stores({ documentSnapshots: null });
   }
 }
 

@@ -105,6 +105,7 @@ export type {
 } from './activeIPStore';
 export {
   buildDocumentSnapshot,
+  documentSnapshotFingerprint,
   hydrateDocumentSnapshot,
   reconstructProcessHubFromDocumentSnapshot,
   resetDocumentStores,

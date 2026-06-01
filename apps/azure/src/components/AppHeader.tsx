@@ -311,12 +311,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       {/* ── Left zone: Logo mark + Project name + row count + status dot ── */}
       <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
         {logoMark}
-        {onRenameProject || onExportCSV ? (
+        {onRenameProject || onExportCSV || onSaveAs ? (
           <div ref={projectMenuRef} className="relative">
             <button
               onClick={() => setProjectMenuOpen(prev => !prev)}
               className="text-sm font-semibold text-content truncate max-w-[200px] hover:text-blue-400 transition-colors flex items-center gap-1"
               title="Project menu"
+              aria-label="Project menu"
             >
               {projectName}
               <ChevronDown

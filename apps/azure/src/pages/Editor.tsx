@@ -13,12 +13,14 @@ import {
   useProjectMembershipStore,
   useImprovementProjectStore,
   buildDocumentSnapshot,
+  documentSnapshotFingerprint,
 } from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
   useStagedAnalysis,
   useProjectActions,
+  useCurrentDocumentFingerprint,
   filterCategoricalValuesByColumn,
   useReingestAutoLink,
 } from '@variscout/hooks';
@@ -153,6 +155,10 @@ function cleanProjectName(filename: string | null): string {
     .replace(/[_-]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function defaultSaveName(filename: string | null): string {
+  return cleanProjectName(filename) || cleanProjectName(null);
 }
 
 function participantFromText(value: string): { displayName: string } | undefined {
@@ -339,6 +345,7 @@ export const Editor: React.FC<EditorProps> = ({
   const filters = useProjectStore(s => s.filters);
   const displayOptions = useProjectStore(s => s.displayOptions);
   const viewState = useProjectStore(s => s.viewState);
+  const currentProjectId = useProjectStore(s => s.projectId);
   const currentProjectName = useProjectStore(s => s.projectName);
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
@@ -572,6 +579,20 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Data flow hook
   const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
+  const currentFingerprint = useCurrentDocumentFingerprint(activeHub);
+  const [savedDocumentName, setSavedDocumentName] = useState<string | null>(() => {
+    const state = useProjectStore.getState();
+    return state.projectId && state.projectName ? state.projectName : null;
+  });
+  const [savedFingerprint, setSavedFingerprint] = useState<string | null>(() => {
+    const state = useProjectStore.getState();
+    return state.projectId && state.projectName ? currentFingerprint : null;
+  });
+  const computeCurrentFingerprint = useCallback(
+    () => documentSnapshotFingerprint(buildDocumentSnapshot({ activeHub })),
+    [activeHub]
+  );
+
   // Persistence actions (local IndexedDB via adapter)
   const projectActions = useProjectActions(azurePersistenceAdapter, {
     getActiveHub: () => activeHub,
@@ -580,17 +601,29 @@ export const Editor: React.FC<EditorProps> = ({
   // Wrap saveProject with cloud sync
   const saveProject = useCallback(
     async (name: string) => {
+      const trimmedName = name.trim() || defaultSaveName(dataFilename);
       setDefaultLocation('personal');
-      const project = await projectActions.saveProject(name);
+      useProjectStore.setState({ projectName: trimmedName });
+      const project = await projectActions.saveProject(trimmedName);
       // Trigger cloud sync with current store state snapshot
       const state = buildDocumentSnapshot({ activeHub });
-      await saveToCloud(state, name, 'personal');
+      await saveToCloud(state, trimmedName, 'personal');
       return project;
     },
-    [activeHub, projectActions, saveToCloud]
+    [activeHub, dataFilename, projectActions, saveToCloud]
   );
 
-  const loadProject = projectActions.loadProject;
+  const loadProject = useCallback(
+    async (id: string) => {
+      await projectActions.loadProject(id);
+      const loadedName = useProjectStore.getState().projectName;
+      if (loadedName) {
+        setSavedDocumentName(loadedName);
+        setSavedFingerprint(computeCurrentFingerprint());
+      }
+    },
+    [computeCurrentFingerprint, projectActions]
+  );
   const renameProject = useCallback(
     async (oldName: string, newName: string) => {
       await projectActions.renameProject(oldName, newName);
@@ -1583,18 +1616,52 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Save
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const saveAndRecordBaseline = useCallback(
+    async (name: string) => {
+      const targetName = name.trim();
+      if (!targetName) return;
+
+      setSaveStatus('saving');
+      try {
+        await saveProject(targetName);
+        const savedName = useProjectStore.getState().projectName || targetName;
+        setSavedDocumentName(savedName);
+        setSavedFingerprint(computeCurrentFingerprint());
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      } catch {
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      }
+    },
+    [computeCurrentFingerprint, saveProject]
+  );
+
   const handleSave = useCallback(async () => {
-    const name = currentProjectName || cleanProjectName(dataFilename);
-    setSaveStatus('saving');
-    try {
-      await saveProject(name);
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    } catch {
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
-    }
-  }, [currentProjectName, dataFilename, saveProject]);
+    const name = savedDocumentName || defaultSaveName(dataFilename);
+    await saveAndRecordBaseline(name);
+  }, [dataFilename, saveAndRecordBaseline, savedDocumentName]);
+
+  const handleSaveAs = useCallback(async () => {
+    const suggestedName = savedDocumentName || currentProjectName || defaultSaveName(dataFilename);
+    const promptedName = window.prompt('Save As', suggestedName);
+    const newName = promptedName?.trim();
+    if (!newName) return;
+    await saveAndRecordBaseline(newName);
+  }, [currentProjectName, dataFilename, saveAndRecordBaseline, savedDocumentName]);
+
+  const hasActiveSavedAzureDocument = Boolean(currentProjectId && savedDocumentName);
+  const hasDocumentContent = rawData.length > 0;
+  const isDocumentDirty =
+    hasDocumentContent &&
+    (!hasActiveSavedAzureDocument || !savedFingerprint || currentFingerprint !== savedFingerprint);
+
+  /*
+   * Autosave follows R6d document truth: a canonical DocumentSnapshot fingerprint
+   * compared with the saved baseline. projectStore.hasUnsavedChanges remains
+   * internal store state, not Azure document truth.
+   */
+  useAutoSave(handleSave, [currentFingerprint], hasActiveSavedAzureDocument && isDocumentDirty);
 
   const handleRenameProject = useCallback(() => {
     const newName = window.prompt('Rename project', currentProjectName || '');
@@ -1608,13 +1675,6 @@ export const Editor: React.FC<EditorProps> = ({
       downloadCSV(filteredData, outcome, specs);
     }
   }, [filteredData, outcome, specs]);
-
-  // Auto-save on key state changes (Phase 3)
-  useAutoSave(
-    handleSave,
-    [persistedFindings, hypotheses, scopes, processContext, specs, displayOptions],
-    rawData.length > 0 && !!projectId
-  );
 
   // SharePoint file picker and save-as removed per ADR-059
   const handleSharePointFileImport = useCallback((_items: FilePickerResult[]) => {
@@ -1753,6 +1813,7 @@ export const Editor: React.FC<EditorProps> = ({
         canNavigateBack={overviewProjects.length > 0}
         onRenameProject={currentProjectName ? handleRenameProject : undefined}
         onExportCSV={rawData.length > 0 ? handleExportCSV : undefined}
+        onSaveAs={rawData.length > 0 ? handleSaveAs : undefined}
         activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
         onOpenActiveIP={
           activeIPContext.activeIP

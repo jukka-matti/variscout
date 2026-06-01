@@ -132,7 +132,7 @@ V1 = the design above. V2 = auto-detect join keys via value overlap (no name heu
 
 ## Q8 revised (2026-05-03 commit 1ffc5d92)
 
-Original Q8 wording was too aggressive. Revised to **Option 4 hybrid**: PWA is session-only by default; user opts in via "Save to this browser" for IndexedDB-backed Hub-of-one OR exports `.vrs` file (file-based persistence, always available). `.vrs` files double as **shareable training scenarios** — trainers package datasets + Hub state for students to import via LMS / email. Constitution P1 (browser-only processing) and P8 (no AI in free tier) preserved. Companies still use Azure tier for centralized + secure persistence per ADR-059. `apps/pwa/CLAUDE.md` hard rule updated from "no persistence" to "session-only by default; opt-in IndexedDB allowed; .vrs import/export for trainer-shared scenarios." See `docs/decision-log.md` "Q8 revised" entry.
+Original Q8 wording was too aggressive. R6d supersedes the intermediate browser-persistence option before launch: PWA is session-only, and durable PWA work is user-owned `.vrs` export/import only. `.vrs` files double as **shareable training scenarios** — trainers package datasets + Hub state for students to import via LMS / email. Constitution P1 (browser-only processing) and P8 (no AI in free tier) preserved. Companies still use Azure tier for centralized + secure persistence per ADR-059. `apps/pwa/CLAUDE.md` now defines PWA durability as `.vrs` backup/share/start-import only.
 
 ## Slice 1 — MERGED 2026-05-04 (PR #121)
 

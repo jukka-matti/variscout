@@ -354,6 +354,7 @@ export {
   type UseSnapshotDataOptions,
   type UseSnapshotDataReturn,
 } from './useSnapshotData';
+export { useCurrentDocumentFingerprint } from './useCurrentDocumentFingerprint';
 
 // Copy Utilities
 export { copySectionAsHTML } from './copyUtils';

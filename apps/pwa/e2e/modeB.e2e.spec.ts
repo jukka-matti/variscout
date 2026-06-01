@@ -3,7 +3,7 @@
 // Framing layer Mode B (PWA): paste → goal narrative → outcome confirm → canvas first paint.
 //
 // Three tests:
-//   1. Full Mode B happy path + Save-to-browser + Mode A.1 reload restoration.
+//   1. Full Mode B happy path + export-only persistence controls.
 //   2. Cryptic (all-text) column names → OutcomeNoMatchBanner surfaces.
 //   3. .vrs Import on HomeScreen → Hub + data restored (GoalBanner + OutcomePin visible).
 import { test, expect } from '@playwright/test';
@@ -65,7 +65,7 @@ async function openPasteScreen(page: import('@playwright/test').Page) {
 // ---------------------------------------------------------------------------
 
 test.describe('Framing layer Mode B (PWA) — happy path', () => {
-  test('paste → goal narrative → outcome confirm → GoalBanner + OutcomePin + Save chip visible', async ({
+  test('paste → goal narrative → outcome confirm → GoalBanner + OutcomePin + .vrs export visible', async ({
     page,
   }) => {
     // 1. Open PWA
@@ -107,14 +107,19 @@ test.describe('Framing layer Mode B (PWA) — happy path', () => {
     await expect(page.getByTestId('outcome-pin').first()).toBeVisible({ timeout: 8000 });
     await expect(page.getByTestId('outcome-pin').first()).toContainText('weight_g');
 
-    // framing toolbar is visible (contains Save + Export + Edit framing)
+    // framing toolbar is visible (contains Export + Edit framing, no browser save)
     await expect(page.getByTestId('framing-toolbar')).toBeVisible({ timeout: 5000 });
 
-    // Save-to-browser button visible (not yet opted in)
-    await expect(page.getByTestId('save-to-browser-button')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('save-to-browser-button')).toHaveCount(0);
+    await expect(page.getByTestId('save-to-browser-saved')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /export.*\.vrs/i })).toBeVisible({
+      timeout: 5000,
+    });
   });
 
-  test('Save to browser → opt-in → reload → Mode A.1 restores GoalBanner', async ({ page }) => {
+  test('reload without .vrs import returns to HomeScreen without startup hydration', async ({
+    page,
+  }) => {
     // 1. Open PWA and perform the full Mode B flow
     await openPasteScreen(page);
     await page.getByTestId('paste-textarea').fill(SYRINGE_CSV);
@@ -126,23 +131,13 @@ test.describe('Framing layer Mode B (PWA) — happy path', () => {
     await page.locator('button:has-text("Start Analysis")').first().click();
     await expect(page.getByTestId('goal-banner')).toBeVisible({ timeout: 10000 });
 
-    // 2. Click Save to browser
-    await expect(page.getByTestId('save-to-browser-button')).toBeVisible({ timeout: 5000 });
-    await page.getByTestId('save-to-browser-button').click();
-    // Button should change to the "Saved · Forget" variant
-    await expect(page.getByTestId('save-to-browser-saved')).toBeVisible({ timeout: 5000 });
-
-    // 3. Reload — Mode A.1 restoration: Hub (processGoal) is restored from IndexedDB.
-    //    Raw data is NOT restored (session-only); the GoalBanner still shows above HomeScreen.
+    // 2. Reload — PWA startup is export-only; no browser snapshot hydrates.
     await page.reload();
     await page.waitForLoadState('networkidle');
 
-    // GoalBanner still shows the goal (Hub restored from IndexedDB)
-    await expect(page.getByTestId('goal-banner')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByTestId('goal-banner')).toContainText('We mold syringe barrels');
-
-    // HomeScreen is shown (no data loaded yet)
+    await expect(page.getByTestId('goal-banner')).toHaveCount(0);
     await expect(page.getByTestId('home-paste-button')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('vrs-import-button')).toBeVisible({ timeout: 5000 });
   });
 });
 

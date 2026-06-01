@@ -937,6 +937,29 @@ describe('storage service', () => {
       expect(result.current.notifications.some(n => n.type === 'info')).toBe(true);
     });
 
+    it('uses clear conflict-copy copy when ETag save detects a cloud conflict', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockSaveBlobProject
+        .mockResolvedValueOnce({ ok: false, reason: 'concurrency-exhausted' })
+        .mockResolvedValueOnce({ ok: true, etag: '"conflict-copy-etag"' });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'conflicted-project', 'personal');
+      });
+
+      expect(result.current.notifications).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'warning',
+            message:
+              'Cloud copy changed. Saved your version as "conflicted-project (conflict copy)".',
+          }),
+        ])
+      );
+    });
+
     it('dismisses notification by id', async () => {
       Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
 

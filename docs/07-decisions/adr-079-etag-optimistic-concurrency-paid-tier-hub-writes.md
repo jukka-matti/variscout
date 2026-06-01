@@ -29,7 +29,7 @@ The hub blob (`saveProcessHubToCloud`) carries hub-level state — among other f
 - **Per-snapshot blobs:** safe by construction. Each paste creates a unique snapshot id (`generateDeterministicId()` UUID v4); two teammates produce different ids; their snapshot blobs land at different paths and don't collide.
 - **Hub blob (active-snapshots list reference):** at risk. Both teammates read the same active list, append their new snapshot id locally, then upload. Whichever write lands second silently overwrites the first, dropping a teammate's paste from the canonical list.
 
-PWA tier (free, opt-in single-Hub-of-one IndexedDB) is single-user; no concurrency surface. This ADR is **paid-tier-specific**.
+PWA tier is session-only plus user-owned `.vrs` export/import; no shared cloud concurrency surface exists. This ADR is **paid-tier-specific**.
 
 The free-tier (PWA) and the paid-tier (Azure) thus differ in a way that ADR-078 D2 ("state shapes tier-agnostic; persistence implementation is the only tier gate") explicitly anticipates: same state shapes, different persistence-layer concerns at the implementation tier.
 

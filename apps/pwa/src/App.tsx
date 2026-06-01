@@ -30,10 +30,9 @@ import {
   type ColumnShape,
 } from '@variscout/ui';
 import { useStageFiveOpener } from './hooks/useStageFiveOpener';
-import { SaveToBrowserButton } from './components/SaveToBrowserButton';
 import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
-import { getOptInFlag, loadSavedDocumentSnapshot, pwaHubRepository } from './persistence';
+import { pwaHubRepository } from './persistence';
 import { generateDeterministicId } from '@variscout/core/identity';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
@@ -168,26 +167,11 @@ function App() {
 }
 
 function AppMain() {
-  // ── Session (current Hub + opt-in persistence hydration) ───────────────
-  // Mode A.1 (D5): on mount, check the persistence opt-in flag. If set, load
-  // the saved Hub-of-one from IndexedDB and seed the session. Otherwise the
-  // app stays session-only (default PWA invariant).
+  // ── Session (current Hub) ───────────────────────────────────────────────
+  // PWA durability is export-only: startup never hydrates an IndexedDB
+  // documentSnapshot. Analysts restore work explicitly from .vrs on Home.
   const { hub: sessionHub, setHub: setSessionHub, goalNarrative, setGoalNarrative } = useSession();
   const activeIPContext = useActiveIPContext(sessionHub);
-  useEffect(() => {
-    let cancelled = false;
-    void getOptInFlag().then(async opted => {
-      if (!opted || cancelled) return;
-      const snapshot = await loadSavedDocumentSnapshot();
-      if (snapshot && !cancelled) {
-        hydrateDocumentSnapshot(snapshot);
-        setSessionHub(reconstructProcessHubFromDocumentSnapshot(snapshot));
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [setSessionHub]);
 
   // ── Zustand store selectors (replaces useDataStateCtx) ──────────────────
   const rawData = useProjectStore(s => s.rawData);
@@ -1112,8 +1096,8 @@ function AppMain() {
       ) : null}
 
       {/* Canvas framing toolbar — visible when data is loaded and we are on the
-          analysis canvas (not in a framing modal). Shows OutcomePin, Save-to-browser,
-          .vrs export, and Edit-framing re-entry. */}
+          analysis canvas (not in a framing modal). Shows OutcomePin, .vrs
+          export, and Edit-framing re-entry. */}
       {rawData.length > 0 &&
         !importFlow.isPasteMode &&
         !importFlow.isManualEntry &&
@@ -1148,7 +1132,6 @@ function AppMain() {
             >
               + New analyze
             </button>
-            <SaveToBrowserButton currentHub={sessionHub} />
             <VrsExportButton currentHub={sessionHub} />
             <button
               type="button"
