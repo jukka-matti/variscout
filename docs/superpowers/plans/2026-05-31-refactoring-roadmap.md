@@ -152,7 +152,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R6 — Document Persistence Boundary
 
-**Status:** R6a hub-scoped Document Snapshot runtime boundary shipped in PR #275. R6b additive `.vrs` wiring shipped in PR #276. R6c snapshot-only, access-aware document persistence shipped in PR #277. R6d Save Semantics settled the product contract and active-doc stale-reference audit. R6e/R6f remain later candidates.
+**Status:** R6a hub-scoped Document Snapshot runtime boundary shipped in PR #275. R6b additive `.vrs` wiring shipped in PR #276. R6c snapshot-only, access-aware document persistence shipped in PR #277. R6d Save Semantics shipped in PR #279 and settled the product contract plus active-doc stale-reference audit. R6e is the current Azure access-enforcement slice; R6f remains a later docs/examples/fixtures audit.
 
 **Goal:** Make every portable save/export/import path speak one hub-scoped `DocumentSnapshot` model before deeper store, app-shell, or platform hardening work.
 
@@ -167,7 +167,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 - Make Azure saved documents access-aware: formal Projects are visible/loadable only to their Lead/Member/Sponsor roster, while quick analyses without a Project are private to the creator. **Done in R6c.**
 - Use blob ETags/`If-Match` for Azure document writes and save a conflict copy or surface the existing conflict path when the cloud document changed. **Done in R6c.**
 - Define product save semantics across PWA and Azure: Save, Save As, Export `.vrs`, imported-document identity, dirty state, and conflict UX. **Done in R6d.**
-- Harden Azure access enforcement at the server/SAS/storage boundary so R6c's access metadata is enforced beyond client-side listing and load filters. **R6e candidate.**
+- Harden Azure access enforcement at the same-origin server API / storage boundary so R6c's access metadata is enforced before any Azure Blob list/read/write operation. Replace broad browser container SAS guidance with server-enforced APIs backed by managed identity. **Current R6e slice.**
 - Audit persistence docs, examples, and fixtures for stale `AnalysisState`, Hub-of-one, old `.vrs`, and last-write-wins assumptions. **R6f candidate.**
 
 **R6a decision note (2026-05-31):** `ImprovementProject.status` is persisted domain state (`draft | active | closed`), not a derived label. The uncertainty is stage vocabulary/granularity, not whether Project lifecycle state belongs in a portable document. `useImprovementProjectStore.projectsById` is Document-layer state but is a multi-hub in-memory mirror; the portable snapshot boundary is one hub document with zero-or-one live Project.
@@ -178,7 +178,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 **R6d decision note (2026-06-01):** Save identity is product-specific. PWA is export-only: it has no browser Save/Save-to-Browser document identity, no local saved-document list, and no reload-from-browser promise. Export `.vrs` is backup/share only. Importing a `.vrs` file starts a new unsaved in-memory session from the snapshot; the file path/name is not retained as an active save target. Azure owns durable document identity: Save updates the active Azure document, Save As forks to a new document identity, and importing `.vrs` starts an unsaved/forkable document that only becomes durable after Save As or first Azure Save. Dirty state is based on a canonical `DocumentSnapshot` fingerprint compared with the active saved baseline, not ad hoc UI flags. Azure cloud conflicts never silently overwrite: if ETag/`If-Match` detects a newer cloud document, the user keeps their local work as a conflict copy or is routed through the existing conflict path before choosing what to keep.
 
-**R6e decision gate:** Re-check Azure storage guidance and the deployed server/SAS boundary before hardening. The target is least-privilege access enforcement for the already-modeled document access set, not a new collaboration model.
+**R6e decision note (2026-06-01):** The storage boundary hardening target is server-enforced access for the already-modeled R6c document access set, not a new collaboration model. Active docs should describe same-origin server APIs backed by App Service managed identity. Broad browser container SAS is not the V1 production guidance. After R6e, production storage accounts should disable Shared Key access where supported, or at minimum enforce an Azure Policy / audit path toward disabling it; storage account connection strings remain local-dev/test-only.
 
 **R6f decision gate:** Broaden the audit to examples, fixtures, archived plans, generated aggregate docs, and code comments after R6e settles enough terminology to avoid churn. R6d only corrected active guidance in the owned docs surface.
 

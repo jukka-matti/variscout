@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   getSasToken,
-  _resetSasCache,
-  blobUrl,
   listBlobEvidenceSources,
   listBlobEvidenceSnapshots,
   saveBlobEvidenceSnapshot,
@@ -13,18 +11,19 @@ import {
   saveBlobControlRecord,
   saveBlobControlReview,
   saveBlobControlHandoff,
+  saveBlobPhoto,
+  uploadTextBlob,
+  listBlobProjects,
+  loadBlobProject,
+  saveBlobProject,
 } from '../blobClient';
 
-const mockSasResponse = {
-  sasUrl: 'https://acct.blob.core.windows.net/container?sig=test',
-  expiresOn: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-};
+type FetchInit = NonNullable<Parameters<typeof fetch>[1]>;
 
-describe('blobClient', () => {
+describe('blobClient same-origin storage adapter', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    _resetSasCache();
     fetchSpy = vi.spyOn(globalThis, 'fetch');
   });
 
@@ -32,457 +31,225 @@ describe('blobClient', () => {
     fetchSpy.mockRestore();
   });
 
-  // ── blobUrl helper ────────────────────────────────────────────────────
+  it('keeps getSasToken disabled for broad container SAS access', async () => {
+    await expect(getSasToken()).rejects.toThrow(/direct container sas disabled/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
 
-  describe('blobUrl', () => {
-    it('inserts blob path between base and query string', () => {
-      const sas = 'https://acct.blob.core.windows.net/container?sig=abc';
-      expect(blobUrl(sas, 'project-1/analysis.json')).toBe(
-        'https://acct.blob.core.windows.net/container/project-1/analysis.json?sig=abc'
-      );
-    });
+  it('lists saved documents through the server project route', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          projects: [{ projectId: 'p1', name: 'Line 4', updated: '2026-01-01T00:00:00.000Z' }],
+        }),
+        { status: 200 }
+      )
+    );
 
-    it('appends path when no query string', () => {
-      const sas = 'https://acct.blob.core.windows.net/container';
-      expect(blobUrl(sas, '_index.json')).toBe(
-        'https://acct.blob.core.windows.net/container/_index.json'
-      );
+    await expect(listBlobProjects()).resolves.toEqual([
+      { projectId: 'p1', name: 'Line 4', updated: '2026-01-01T00:00:00.000Z' },
+    ]);
+    expect(fetchSpy).toHaveBeenCalledWith('/api/storage/projects', expect.any(Object));
+  });
+
+  it('loads a project through the server project route', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ project: { id: 'p1' }, etag: '"etag-v1"' }), { status: 200 })
+    );
+
+    await expect(loadBlobProject('p1')).resolves.toEqual({ id: 'p1' });
+    expect(fetchSpy).toHaveBeenCalledWith('/api/storage/projects/p1', expect.any(Object));
+  });
+
+  it('saves a project with If-Match and maps the returned ETag', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ etag: '"etag-v2"' }), { status: 200 })
+    );
+
+    const result = await saveBlobProject(
+      { id: 'p1' } as never,
+      'p1',
+      {
+        projectId: 'p1',
+        name: 'Line 4',
+        updated: '2026-01-01T00:00:00.000Z',
+        access: { ownerUserId: 'u1', memberUserIds: ['u1'], hubId: 'hub-1', projectId: null },
+      },
+      '"etag-v1"'
+    );
+
+    expect(result).toEqual({ ok: true, etag: '"etag-v2"' });
+    const [, init] = fetchSpy.mock.calls[0] as [string, FetchInit];
+    expect(fetchSpy).toHaveBeenCalledWith('/api/storage/projects/p1', expect.any(Object));
+    expect(init.method).toBe('PUT');
+    expect((init.headers as Headers).get('If-Match')).toBe('"etag-v1"');
+    expect(JSON.parse(init.body as string)).toMatchObject({
+      project: { id: 'p1' },
+      metadata: { projectId: 'p1', name: 'Line 4' },
     });
   });
 
-  // ── getSasToken ───────────────────────────────────────────────────────
+  it('maps project save 412 to precondition-failed', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'Precondition failed' }), { status: 412 })
+    );
 
-  describe('getSasToken', () => {
-    it('fetches a SAS token from the server', async () => {
-      fetchSpy.mockResolvedValueOnce(
-        new Response(JSON.stringify(mockSasResponse), { status: 200 })
-      );
+    await expect(
+      saveBlobProject({ id: 'p1' } as never, 'p1', {
+        projectId: 'p1',
+        name: 'Line 4',
+        updated: '2026-01-01T00:00:00.000Z',
+        access: { ownerUserId: 'u1', memberUserIds: ['u1'], hubId: 'hub-1', projectId: null },
+      })
+    ).resolves.toEqual({ ok: false, reason: 'precondition-failed' });
+  });
 
-      const result = await getSasToken();
-      expect(result).toBe(mockSasResponse.sasUrl);
-      expect(fetchSpy).toHaveBeenCalledWith('/api/storage-token', { method: 'POST' });
+  it('lists and updates Process Hub catalog through server routes', async () => {
+    const hub = { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null };
+    fetchSpy
+      .mockResolvedValueOnce(new Response(JSON.stringify({ hubs: [hub] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+    await expect(listBlobProcessHubs()).resolves.toEqual([hub]);
+    await updateBlobProcessHubs([hub]);
+
+    expect(fetchSpy).toHaveBeenNthCalledWith(1, '/api/storage/process-hubs', expect.any(Object));
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      2,
+      '/api/storage/process-hubs',
+      expect.objectContaining({ method: 'PUT' })
+    );
+  });
+
+  it('writes evidence source catalog through the hub evidence route', async () => {
+    fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+    await saveBlobEvidenceSource({
+      id: 'source-1',
+      hubId: 'hub-1',
+      name: 'Agent review log',
+      cadence: 'weekly',
+      profileId: 'agent-review-log',
+      createdAt: 1745625600000,
+      deletedAt: null,
+      updatedAt: 1745625600000,
     });
 
-    it('returns cached token on subsequent calls', async () => {
-      fetchSpy.mockResolvedValueOnce(
-        new Response(JSON.stringify(mockSasResponse), { status: 200 })
-      );
-
-      const first = await getSasToken();
-      const second = await getSasToken();
-
-      expect(first).toBe(second);
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('re-fetches when token is near expiry (<5 min)', async () => {
-      // First call: token that expires in 3 minutes (below 5-min margin)
-      const nearExpiryResponse = {
-        sasUrl: 'https://acct.blob.core.windows.net/container?sig=old',
-        expiresOn: new Date(Date.now() + 3 * 60 * 1000).toISOString(),
-      };
-      fetchSpy.mockResolvedValueOnce(
-        new Response(JSON.stringify(nearExpiryResponse), { status: 200 })
-      );
-
-      await getSasToken();
-
-      // Second call: should re-fetch because cached token is within 5-min margin
-      const freshResponse = {
-        sasUrl: 'https://acct.blob.core.windows.net/container?sig=new',
-        expiresOn: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-      };
-      fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify(freshResponse), { status: 200 }));
-
-      const result = await getSasToken();
-      expect(result).toBe(freshResponse.sasUrl);
-      expect(fetchSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('throws on 401 Unauthorized', async () => {
-      fetchSpy.mockResolvedValueOnce(
-        new Response(JSON.stringify({ error: 'Not authenticated' }), { status: 401 })
-      );
-
-      await expect(getSasToken()).rejects.toThrow('401');
-    });
-
-    it('throws on 503 Storage not configured', async () => {
-      fetchSpy.mockResolvedValueOnce(
-        new Response(JSON.stringify({ error: 'Blob Storage not configured' }), { status: 503 })
-      );
-
-      await expect(getSasToken()).rejects.toThrow('503');
-    });
-
-    it('throws on other server errors', async () => {
-      fetchSpy.mockResolvedValueOnce(
-        new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 })
-      );
-
-      await expect(getSasToken()).rejects.toThrow('500');
+    const [, init] = fetchSpy.mock.calls[0] as [string, FetchInit];
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/api/storage/hubs/hub-1/evidence-sources',
+      expect.objectContaining({ method: 'PUT' })
+    );
+    expect(JSON.parse(init.body as string).sources[0]).toMatchObject({
+      id: 'source-1',
+      profileId: 'agent-review-log',
     });
   });
 
-  // ── Process Hub catalog ───────────────────────────────────────────────
+  it('writes Evidence Snapshot metadata with provenance through the snapshots route', async () => {
+    fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200 }));
 
-  describe('Process Hub catalog', () => {
-    it('returns empty catalog when _process_hubs.json does not exist', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(new Response('', { status: 404 }));
-
-      await expect(listBlobProcessHubs()).resolves.toEqual([]);
-      expect(fetchSpy).toHaveBeenLastCalledWith(
-        'https://acct.blob.core.windows.net/container/_process_hubs.json?sig=test'
-      );
-    });
-
-    it('writes Process Hub catalog to _process_hubs.json', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(new Response('', { status: 201 }));
-
-      await updateBlobProcessHubs([
-        { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
-      ]);
-
-      expect(fetchSpy).toHaveBeenLastCalledWith(
-        'https://acct.blob.core.windows.net/container/_process_hubs.json?sig=test',
-        expect.objectContaining({
-          method: 'PUT',
-          body: JSON.stringify([
-            { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
-          ]),
-        })
-      );
-    });
-  });
-
-  // ── Process Hub evidence sources and snapshots ───────────────────────
-
-  describe('Evidence Source snapshots', () => {
-    it('writes Evidence Source metadata under the reserved Process Hub path', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(new Response('', { status: 201 }));
-
-      await saveBlobEvidenceSource({
-        id: 'source-1',
-        hubId: 'hub-1',
-        name: 'Agent review log',
-        cadence: 'weekly',
-        profileId: 'agent-review-log',
-        createdAt: 1745625600000,
-        deletedAt: null,
-        updatedAt: 1745625600000,
-      });
-
-      expect(fetchSpy).toHaveBeenLastCalledWith(
-        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/evidence-sources/source-1/source.json?sig=test',
-        expect.objectContaining({
-          method: 'PUT',
-          body: expect.stringContaining('"profileId":"agent-review-log"'),
-        })
-      );
-    });
-
-    it('writes Evidence Snapshot metadata and profile application under the snapshot path', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(new Response('', { status: 201 }))
-        .mockResolvedValueOnce(new Response('', { status: 201 }));
-
-      await saveBlobEvidenceSnapshot(
+    const snapshot = {
+      id: 'snapshot-1',
+      hubId: 'hub-1',
+      sourceId: 'source-1',
+      capturedAt: '2026-04-26T12:00:00.000Z',
+      rowCount: 3,
+      origin: 'evidence-source:source-1',
+      importedAt: 1745668800000,
+      createdAt: 1745668800000,
+      deletedAt: null,
+      provenance: [
         {
-          id: 'snapshot-1',
-          hubId: 'hub-1',
-          sourceId: 'source-1',
-          capturedAt: '2026-04-26T12:00:00.000Z',
-          rowCount: 3,
-          origin: 'evidence-source:source-1',
-          importedAt: 1745668800000,
+          id: 'tag-1',
+          snapshotId: 'snapshot-1',
+          rowKey: 'row-0',
+          source: 'paste',
+          joinKey: 'row',
           createdAt: 1745668800000,
           deletedAt: null,
-          profileApplication: {
-            profileId: 'agent-review-log',
-            profileVersion: 1,
-            mapping: { flagColor: 'flagColor' },
-            validation: { ok: true, errors: [], warnings: [] },
-            derivedColumns: ['GreenPassThrough'],
-            derivedRows: [],
-          },
         },
-        'a,b\n1,2'
-      );
+      ],
+    };
 
-      expect(fetchSpy).toHaveBeenNthCalledWith(
-        2,
-        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/evidence-sources/source-1/snapshots/snapshot-1/snapshot.json?sig=test',
-        expect.objectContaining({ method: 'PUT' })
-      );
-      expect(fetchSpy).toHaveBeenNthCalledWith(
-        3,
-        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/evidence-sources/source-1/snapshots/snapshot-1/source.csv?sig=test',
-        expect.objectContaining({ method: 'PUT', body: 'a,b\n1,2' })
-      );
-    });
+    await saveBlobEvidenceSnapshot(snapshot, 'a,b\n1,2');
 
-    // ── Provenance-envelope round-trip (F3.6-β P3.3) ─────────────────────
-    //
-    // These three tests assert that `saveBlobEvidenceSnapshot` serialises the
-    // complete `EvidenceSnapshot` envelope via `putJsonBlob → JSON.stringify`
-    // with no replacer that would strip the `provenance` field.
-
-    it('PUT body includes provenance tags when snapshot.provenance is populated (F3.6-β P3.3)', async () => {
-      fetchSpy
-        // getSasToken
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        // putJsonBlob (snapshot.json)
-        .mockResolvedValueOnce(new Response('', { status: 201 }));
-
-      const snapshotWithProvenance = {
-        id: 'snap-prov-1',
-        hubId: 'hub-prov',
-        sourceId: 'src-prov',
-        capturedAt: '2026-05-07T00:00:00.000Z',
-        rowCount: 2,
-        origin: 'evidence-source:src-prov',
-        importedAt: 1746576000000,
-        createdAt: 1746576000000,
-        deletedAt: null as null,
-        provenance: [
-          {
-            id: 'tag-001',
-            snapshotId: 'snap-prov-1',
-            rowKey: 'row-0',
-            source: 'telemetry',
-            joinKey: 'batch_id',
-            createdAt: 1746576000000,
-            deletedAt: null as null,
-          },
-          {
-            id: 'tag-002',
-            snapshotId: 'snap-prov-1',
-            rowKey: 'row-1',
-            source: 'qc-inspection',
-            joinKey: 'batch_id',
-            createdAt: 1746576000000,
-            deletedAt: null as null,
-          },
-        ],
-      };
-
-      await saveBlobEvidenceSnapshot(snapshotWithProvenance);
-
-      const [, putCall] = fetchSpy.mock.calls;
-      const body = JSON.parse(putCall[1]?.body as string) as typeof snapshotWithProvenance;
-
-      expect(body.provenance).toBeDefined();
-      expect(body.provenance).toHaveLength(2);
-      expect(body.provenance).toEqual(snapshotWithProvenance.provenance);
-    });
-
-    it('PUT body includes provenance:[] when snapshot.provenance is an empty array (F3.6-β P3.3)', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(new Response('', { status: 201 }));
-
-      const snapshotEmptyProvenance = {
-        id: 'snap-prov-2',
-        hubId: 'hub-prov',
-        sourceId: 'src-prov',
-        capturedAt: '2026-05-07T00:00:00.000Z',
-        rowCount: 1,
-        origin: 'evidence-source:src-prov',
-        importedAt: 1746576000000,
-        createdAt: 1746576000000,
-        deletedAt: null as null,
-        provenance: [] as never[],
-      };
-
-      await saveBlobEvidenceSnapshot(snapshotEmptyProvenance);
-
-      const [, putCall] = fetchSpy.mock.calls;
-      const body = JSON.parse(putCall[1]?.body as string) as typeof snapshotEmptyProvenance;
-
-      expect(body.provenance).toBeDefined();
-      expect(body.provenance).toEqual([]);
-    });
-
-    it('PUT body omits provenance key when snapshot.provenance is undefined (F3.6-β P3.3)', async () => {
-      // JSON.stringify({..., provenance: undefined}) omits the key entirely.
-      // This is the expected behaviour for snapshots that predate the F3.6-β envelope facet.
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(new Response('', { status: 201 }));
-
-      const snapshotNoProvenance = {
-        id: 'snap-prov-3',
-        hubId: 'hub-prov',
-        sourceId: 'src-prov',
-        capturedAt: '2026-05-07T00:00:00.000Z',
-        rowCount: 0,
-        origin: 'evidence-source:src-prov',
-        importedAt: 1746576000000,
-        createdAt: 1746576000000,
-        deletedAt: null as null,
-        // provenance intentionally omitted (undefined)
-      };
-
-      await saveBlobEvidenceSnapshot(snapshotNoProvenance);
-
-      const [, putCall] = fetchSpy.mock.calls;
-      const body = JSON.parse(putCall[1]?.body as string) as Record<string, unknown>;
-
-      expect('provenance' in body).toBe(false);
-    });
-
-    it('lists Evidence Sources and Snapshot metadata from catalog blobs', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(
-          new Response(
-            JSON.stringify([
-              {
-                id: 'source-1',
-                hubId: 'hub-1',
-                name: 'Agent review log',
-                cadence: 'weekly',
-                createdAt: '2026-04-26T00:00:00.000Z',
-              },
-            ]),
-            { status: 200 }
-          )
-        )
-        .mockResolvedValueOnce(
-          new Response(
-            JSON.stringify([
-              {
-                id: 'snapshot-1',
-                hubId: 'hub-1',
-                sourceId: 'source-1',
-                capturedAt: '2026-04-26T12:00:00.000Z',
-                rowCount: 3,
-              },
-            ]),
-            { status: 200 }
-          )
-        );
-
-      await expect(listBlobEvidenceSources('hub-1')).resolves.toHaveLength(1);
-      await expect(listBlobEvidenceSnapshots('hub-1', 'source-1')).resolves.toHaveLength(1);
+    const [, init] = fetchSpy.mock.calls[0] as [string, FetchInit];
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/api/storage/hubs/hub-1/evidence-sources/source-1/snapshots',
+      expect.objectContaining({ method: 'PUT' })
+    );
+    expect(JSON.parse(init.body as string)).toMatchObject({
+      snapshots: [snapshot],
+      sourceCsv: 'a,b\n1,2',
     });
   });
 
-  // ── Control blobs ─────────────────────────────────────────────────
-
-  describe('Control blobs', () => {
-    it('PUTs a ControlRecord to the correct path', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(new Response('', { status: 201 }));
-
-      await saveBlobControlRecord({
-        id: 'rec-1',
-        title: 'Control cadence',
-        hubId: 'hub-1',
-        investigationId: 'inv-1',
-        status: 'pending',
-        consecutiveOnTargetTicks: 0,
-        hasOverride: false,
-        lastEvaluatedSnapshotId: undefined,
-        cadence: 'monthly',
-        createdAt: 1745712000000, // 2026-04-27T00:00:00.000Z
-        updatedAt: 1745712000000,
-        deletedAt: null,
-      });
-
-      expect(fetchSpy).toHaveBeenLastCalledWith(
-        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/sustainment/records/rec-1.json?sig=test',
-        expect.objectContaining({
-          method: 'PUT',
-          headers: expect.objectContaining({ 'x-ms-blob-type': 'BlockBlob' }),
-        })
+  it('lists Evidence Sources and Snapshot metadata from server route bodies', async () => {
+    const source = { id: 'source-1', hubId: 'hub-1', name: 'Source' };
+    const snapshot = { id: 'snapshot-1', hubId: 'hub-1', sourceId: 'source-1' };
+    fetchSpy
+      .mockResolvedValueOnce(new Response(JSON.stringify({ sources: [source] }), { status: 200 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ snapshots: [snapshot] }), { status: 200 })
       );
-    });
 
-    it('GETs the catalog path and returns parsed records', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(
-          new Response(
-            JSON.stringify([
-              {
-                id: 'rec-1',
-                hubId: 'hub-1',
-                investigationId: 'inv-1',
-                cadence: 'monthly',
-                createdAt: 1745712000000,
-                updatedAt: 1745712000000,
-                deletedAt: null,
-              },
-            ]),
-            { status: 200 }
-          )
-        );
+    await expect(listBlobEvidenceSources('hub-1')).resolves.toEqual([source]);
+    await expect(listBlobEvidenceSnapshots('hub-1', 'source-1')).resolves.toEqual([snapshot]);
+  });
 
-      const result = await listBlobControlRecords('hub-1');
-
-      expect(result).toHaveLength(1);
-      expect(fetchSpy).toHaveBeenLastCalledWith(
-        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/sustainment/_index.json?sig=test'
+  it('uses server routes for control records, reviews, and handoffs', async () => {
+    fetchSpy
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ records: [{ id: 'rec-1' }] }), { status: 200 })
+      )
+      .mockImplementation(() =>
+        Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 }))
       );
-    });
 
-    it('PUTs a ControlReview to the per-recordId/reviewId path', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(new Response('', { status: 201 }));
+    await expect(listBlobControlRecords('hub-1')).resolves.toEqual([{ id: 'rec-1' }]);
+    await saveBlobControlRecord({ id: 'rec-1', hubId: 'hub-1' } as never);
+    await saveBlobControlReview({ id: 'rev-1', recordId: 'rec-1', hubId: 'hub-1' } as never);
+    await saveBlobControlHandoff({ id: 'hoff-1', hubId: 'hub-1' } as never);
 
-      await saveBlobControlReview({
-        id: 'rev-1',
-        recordId: 'rec-1',
-        hubId: 'hub-1',
-        investigationId: 'inv-1',
-        reviewedAt: 1745712000000, // 2026-04-27T00:00:00.000Z
-        createdAt: 1745712000000,
-        deletedAt: null,
-        reviewer: { userId: 'u1', displayName: 'Alice' },
-        verdict: 'holding',
-      });
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      1,
+      '/api/storage/hubs/hub-1/control-records',
+      expect.any(Object)
+    );
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      2,
+      '/api/storage/hubs/hub-1/control-records',
+      expect.objectContaining({ method: 'PUT' })
+    );
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      3,
+      '/api/storage/control-reviews',
+      expect.objectContaining({ method: 'POST' })
+    );
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      4,
+      '/api/storage/control-handoffs',
+      expect.objectContaining({ method: 'POST' })
+    );
+  });
 
-      expect(fetchSpy).toHaveBeenLastCalledWith(
-        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/sustainment/reviews/rec-1/rev-1.json?sig=test',
-        expect.objectContaining({ method: 'PUT' })
-      );
-    });
+  it('uploads photos and JSONL text through same-origin routes without storage-token', async () => {
+    fetchSpy
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ url: '/api/storage/blob-text?x=1' }), { status: 200 })
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200 }));
 
-    it('PUTs a ControlHandoff to the handoffs path', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(mockSasResponse), { status: 200 }))
-        .mockResolvedValueOnce(new Response('', { status: 201 }));
+    await expect(saveBlobPhoto('project-1', 'finding-1', 'photo-1', new Blob(['x']))).resolves.toBe(
+      '/api/storage/blob-text?x=1'
+    );
+    await uploadTextBlob('project-1/analyze/findings.jsonl', '{}\n');
 
-      await saveBlobControlHandoff({
-        id: 'hoff-1',
-        investigationId: 'inv-1',
-        hubId: 'hub-1',
-        status: 'operational',
-        surface: 'qms-procedure',
-        systemName: 'QMS-101',
-        operationalOwner: { userId: 'u2', displayName: 'Bob' },
-        handoffDate: 1745712000000, // 2026-04-27
-        description: 'Procedure handoff',
-        retainControlReview: true,
-        createdAt: 1745712000000, // formerly recordedAt
-        deletedAt: null,
-        recordedBy: { userId: 'u1', displayName: 'Alice' },
-      });
-
-      expect(fetchSpy).toHaveBeenLastCalledWith(
-        'https://acct.blob.core.windows.net/container/process-hubs/hub-1/sustainment/handoffs/hoff-1.json?sig=test',
-        expect.objectContaining({ method: 'PUT' })
-      );
-    });
+    expect(fetchSpy).not.toHaveBeenCalledWith('/api/storage-token', expect.anything());
+    expect(fetchSpy.mock.calls.map((call: Parameters<typeof fetch>) => call[0])).toEqual([
+      '/api/storage/projects/project-1/photos/finding-1/photo-1',
+      '/api/storage/blob-text',
+    ]);
   });
 });

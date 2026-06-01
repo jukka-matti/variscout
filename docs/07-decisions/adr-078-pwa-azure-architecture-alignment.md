@@ -21,7 +21,7 @@ layer: L5
 
 **Date**: 2026-05-05
 
-**Amendments:** 2026-05-16 retires D5 tier-feature gating via [ADR-082](adr-082-wedge-architecture.md); 2026-05-18 records the 9-store F4 reality; 2026-05-31 ratifies the 10-store model and actual package graph. The original D1-D4 shared-architecture decisions remain in force.
+**Amendments:** 2026-05-16 retires D5 tier-feature gating via [ADR-082](adr-082-wedge-architecture.md); 2026-05-18 records the 9-store F4 reality; 2026-05-31 ratifies the 10-store model and actual package graph; 2026-06-01 updates Azure persistence language for the R6e server-enforced storage boundary. The original D1-D4 shared-architecture decisions remain in force.
 
 **Supersedes**: The "State via React Context (`DataContext`). No Zustand stores in PWA." invariant previously documented in `apps/pwa/CLAUDE.md` (no formal ADR — the rule was an aspirational invariant that drifted silently as the PWA matured).
 
@@ -80,10 +80,10 @@ State shapes (the data structures held in domain Zustand stores) are tier-agnost
 
 Persistence implementation is the tier gate:
 
-| Tier      | Persistence layer                                          | Scope                                                 |
-| --------- | ---------------------------------------------------------- | ----------------------------------------------------- |
-| **Azure** | IndexedDB cache (Dexie) + Blob Storage sync via SAS tokens | Project-scoped (multiple hubs, investigation history) |
-| **PWA**   | Session-only runtime + `.vrs` file export/import           | One active in-memory document                         |
+| Tier      | Persistence layer                                                                                  | Scope                                                 |
+| --------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **Azure** | IndexedDB cache (Dexie) + Blob Storage sync via same-origin server APIs backed by managed identity | Project-scoped (multiple hubs, investigation history) |
+| **PWA**   | Session-only runtime + `.vrs` file export/import                                                   | One active in-memory document                         |
 
 This honors ADR-012 (PWA browser-only), ADR-059 (Azure web-first with Blob Storage), and R6d (PWA export-only durability + `.vrs` for trainer-shared scenarios). Both apps use the same state shapes; only Azure owns saved workspace identity.
 
@@ -216,6 +216,17 @@ The actual package dependency graph is:
 - Apps consume shared packages and own app-level wiring.
 
 `@variscout/ui -> @variscout/stores` is a documented exception for store-aware shared surfaces. Props-based UI remains preferred when state can be supplied cleanly by the caller, but shared workflow surfaces may bind to stores directly when that is the established cross-app contract.
+
+## Amendment — 2026-06-01 — R6e Azure storage boundary
+
+D2's tier-gated persistence decision still holds: PWA is session + `.vrs`
+export/import, while Azure owns saved workspace identity through IndexedDB +
+customer-tenant Blob Storage. R6e updates the Azure storage access mechanism:
+project document list/load/save flows through same-origin server APIs that
+enforce the R6c document access model before Blob operations. Production Blob
+access uses App Service managed identity and Azure RBAC. Broad browser
+container SAS is not the V1 production boundary, and storage account connection
+strings / Shared Key credentials are local-dev/test-only.
 
 ## References
 

@@ -118,6 +118,11 @@ interface StorageContextValue {
 }
 
 const StorageContext = createContext<StorageContextValue | null>(null);
+const STORAGE_API_BOUNDARY = 'server-storage-api';
+
+function isForbiddenCloudRead(error: unknown): boolean {
+  return classifySyncError(error).category === 'forbidden';
+}
 
 export function useStorage(): StorageContextValue {
   const ctx = useContext(StorageContext);
@@ -194,7 +199,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const item = retryQueue.current[0];
     try {
-      const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
+      const token = STORAGE_API_BOUNDARY;
       const user = await getEasyAuthUser().catch(() => null);
       const userId = user?.userId || user?.email || 'local';
       const meta = extractMetadataInputs(item.project, userId) ?? undefined;
@@ -325,7 +330,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
 
-      const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
+      const token = STORAGE_API_BOUNDARY;
 
       // Online: sync immediately (with conflict detection if needed)
       try {
@@ -446,7 +451,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     async (name: string, location: StorageLocation): Promise<Project | null> => {
       if (navigator.onLine) {
         try {
-          const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
+          const token = STORAGE_API_BOUNDARY;
           const user = await getEasyAuthUser().catch(() => null);
           const userId = user?.userId || user?.email || 'local';
 
@@ -489,6 +494,9 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
             return project;
           }
         } catch (error) {
+          if (isForbiddenCloudRead(error)) {
+            return null;
+          }
           if (!(error instanceof CloudSyncUnavailableErrorClass)) {
             errorService.logWarning('Cloud load failed, falling back to local', {
               component: 'storage',
@@ -517,8 +525,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
-      const personalProjects = await listFromCloud(token, 'personal', userId).catch(() => []);
+      const token = STORAGE_API_BOUNDARY;
+      const personalProjects = await listFromCloud(token, 'personal', userId);
 
       // Merge: use location:name as key to avoid name collisions across locations
       const projectMap = new Map<string, CloudProject>();
@@ -537,6 +545,9 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (error instanceof CloudSyncUnavailableErrorClass) {
         // Cloud sync not yet available (ADR-059 Phase 2 pending)
         return localProjects;
+      }
+      if (isForbiddenCloudRead(error)) {
+        return [];
       }
       errorService.logWarning('Failed to list cloud projects', {
         component: 'storage',
@@ -557,13 +568,16 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      const cloudHubs = await listProcessHubsFromCloud('blob-sas');
+      const cloudHubs = await listProcessHubsFromCloud(STORAGE_API_BOUNDARY);
       // Bootstrap cache-fill from cloud — direct write is intentional; HUB_PERSIST_SNAPSHOT is for user save paths. F3 may unify under HubAction.
       for (const hub of cloudHubs) {
         await saveProcessHubToIndexedDB(hub);
       }
       return listProcessHubsFromIndexedDB();
     } catch (error) {
+      if (isForbiddenCloudRead(error)) {
+        return [];
+      }
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
         errorService.logWarning('Failed to list process hubs from cloud', {
           component: 'storage',
@@ -585,7 +599,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      await saveProcessHubToCloud('blob-sas', hub);
+      await saveProcessHubToCloud(STORAGE_API_BOUNDARY, hub);
     } catch (error) {
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
         errorService.logWarning('Failed to save process hub to cloud', {
@@ -605,12 +619,15 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      const cloudSources = await listEvidenceSourcesFromCloud('blob-sas', hubId);
+      const cloudSources = await listEvidenceSourcesFromCloud(STORAGE_API_BOUNDARY, hubId);
       for (const source of cloudSources) {
         await saveEvidenceSourceToIndexedDB(source);
       }
       return listEvidenceSourcesFromIndexedDB(hubId);
     } catch (error) {
+      if (isForbiddenCloudRead(error)) {
+        return [];
+      }
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
         errorService.logWarning('Failed to list evidence sources from cloud', {
           component: 'storage',
@@ -631,7 +648,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      await saveEvidenceSourceToCloud('blob-sas', source);
+      await saveEvidenceSourceToCloud(STORAGE_API_BOUNDARY, source);
     } catch (error) {
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
         errorService.logWarning('Failed to save evidence source to cloud', {
@@ -652,12 +669,19 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       try {
-        const cloudSnapshots = await listEvidenceSnapshotsFromCloud('blob-sas', hubId, sourceId);
+        const cloudSnapshots = await listEvidenceSnapshotsFromCloud(
+          STORAGE_API_BOUNDARY,
+          hubId,
+          sourceId
+        );
         for (const snapshot of cloudSnapshots) {
           await saveEvidenceSnapshotToIndexedDB(snapshot);
         }
         return listEvidenceSnapshotsFromIndexedDB(hubId, sourceId);
       } catch (error) {
+        if (isForbiddenCloudRead(error)) {
+          return [];
+        }
         if (!(error instanceof CloudSyncUnavailableErrorClass)) {
           errorService.logWarning('Failed to list evidence snapshots from cloud', {
             component: 'storage',
@@ -695,7 +719,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       try {
-        await saveEvidenceSnapshotToCloud('blob-sas', snapshot, sourceCsv);
+        await saveEvidenceSnapshotToCloud(STORAGE_API_BOUNDARY, snapshot, sourceCsv);
       } catch (error) {
         if (!(error instanceof CloudSyncUnavailableErrorClass)) {
           errorService.logWarning('Failed to save evidence snapshot to cloud', {
@@ -717,12 +741,15 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      const cloudRecords = await listControlRecordsFromCloud('blob-sas', hubId);
+      const cloudRecords = await listControlRecordsFromCloud(STORAGE_API_BOUNDARY, hubId);
       for (const record of cloudRecords) {
         await saveControlRecordToIndexedDB(record);
       }
       return listControlRecordsFromIndexedDB(hubId);
     } catch (error) {
+      if (isForbiddenCloudRead(error)) {
+        return [];
+      }
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
         errorService.logWarning('Failed to list sustainment records from cloud', {
           component: 'storage',
@@ -739,7 +766,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     if (navigator.onLine && !isLocalDev()) {
       try {
-        await saveControlRecordToCloud('blob-sas', record);
+        await saveControlRecordToCloud(STORAGE_API_BOUNDARY, record);
       } catch (error) {
         if (!(error instanceof CloudSyncUnavailableErrorClass)) {
           errorService.logWarning('Failed to save sustainment record to cloud', {
@@ -767,7 +794,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      await saveControlReviewToCloud('blob-sas', review);
+      await saveControlReviewToCloud(STORAGE_API_BOUNDARY, review);
     } catch (error) {
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
         errorService.logWarning('Failed to save control review to cloud', {
@@ -792,7 +819,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      await saveControlHandoffToCloud('blob-sas', handoff);
+      await saveControlHandoffToCloud(STORAGE_API_BOUNDARY, handoff);
     } catch (error) {
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
         errorService.logWarning('Failed to save control handoff to cloud', {
@@ -831,7 +858,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
 
         try {
-          const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
+          const token = STORAGE_API_BOUNDARY;
           for (const item of pending) {
             try {
               const user = await getEasyAuthUser().catch(() => null);

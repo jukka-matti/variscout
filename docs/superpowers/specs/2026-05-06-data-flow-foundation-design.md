@@ -75,7 +75,7 @@ This spec locks the destination, the patterns, and the slice sequence.
 ┌────────────────▼─────────────────────────────────────────────────┐
 │  Persistence (tier-gated)                                        │
 │  PWA: Dexie (normalized schema, opt-in)                          │
-│  Azure: Dexie cache + Blob Storage sync via SAS tokens           │
+│  Azure: Dexie cache + Blob Storage sync via server APIs          │
 └──────────────────────────────────────────────────────────────────┘
 ```
 

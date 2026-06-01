@@ -27,7 +27,7 @@ C4Context
     System(variscout, "VariScout", "Offline-first structured investigation platform (PWA + Azure App)")
 
     System_Ext(azuread, "Azure AD", "EasyAuth identity provider")
-    System_Ext(blobstorage, "Azure Blob Storage", "Project sync via Blob SAS URLs (Azure App)")
+    System_Ext(blobstorage, "Azure Blob Storage", "Project sync via same-origin storage APIs + managed identity (Azure App)")
     System_Ext(teams, "Microsoft Teams", "Optional static tab (no extra permissions)")
     System_Ext(aisearch, "Azure AI Search", "AI-powered analysis suggestions (Phase 2+)")
 

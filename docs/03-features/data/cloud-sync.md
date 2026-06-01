@@ -21,11 +21,11 @@ A team running improvement projects across multiple devices needs project state 
 
 ## Capability claim
 
-The Azure app's cloud sync is part of the single €120 SKU (ADR-059 Phase 2) and writes per-tenant Azure Blob Storage from the browser using SAS tokens minted by the `/api/storage-token` endpoint in `server.js`. `services/cloudSync.ts` wraps the raw `blobClient.ts` REST operations and exposes a stable surface to `services/storage.ts` (the orchestrator React context): `saveToCloud`, `loadFromCloud`, `listFromCloud`, plus per-domain hub / snapshot / sustainment / control-handoff writers. Writes are queued via `addToSyncQueue` and retried on transient errors; sync status (`'saved' | 'offline' | 'syncing' | 'synced' | 'conflict' | 'error'`) is surfaced to the UI. Auth / forbidden / throttle / server / network failures are classified by `classifySyncError` with explicit `retryable` flags. ETag concurrency (see `etag-concurrency.md`) protects hub catalog writes and R6 document snapshot writes; data never leaves the customer tenant.
+The Azure app's cloud sync is part of the single €120 SKU (ADR-059 Phase 2) and writes per-tenant Azure Blob Storage through same-origin server APIs in `server.js`. `services/cloudSync.ts` wraps the storage client operations and exposes a stable surface to `services/storage.ts` (the orchestrator React context): `saveToCloud`, `loadFromCloud`, `listFromCloud`, plus per-domain hub / snapshot / sustainment / control-handoff writers. R6e hardens the storage boundary by enforcing the R6c document access model on the server before Blob list/read/write; the browser must not receive a broad container-scoped SAS for project data. Writes are queued via `addToSyncQueue` and retried on transient errors; sync status (`'saved' | 'offline' | 'syncing' | 'synced' | 'conflict' | 'error'`) is surfaced to the UI. Auth / forbidden / throttle / server / network failures are classified by `classifySyncError` with explicit `retryable` flags. ETag concurrency (see `etag-concurrency.md`) protects hub catalog writes and R6 document snapshot writes; data never leaves the customer tenant.
 
 ## Intent diagram
 
-No user-facing surface — infrastructure layer. See `docs/08-products/azure/blob-storage-sync.md` for the orchestration sequence (local Dexie write → queue → SAS fetch → Blob PUT → status update) and `apps/azure/CLAUDE.md` for the R13 allow-listed direct-write contract.
+No user-facing surface — infrastructure layer. See `docs/08-products/azure/blob-storage-sync.md` for the orchestration sequence (local Dexie write → queue → same-origin storage API → managed-identity Blob write → status update) and `apps/azure/CLAUDE.md` for the R13 allow-listed persistence contract.
 
 ## Acceptance signals
 

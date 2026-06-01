@@ -1,17 +1,11 @@
 // src/services/blobClient.ts
-// Client-side Blob Storage operations using raw fetch with SAS URLs.
-// No Azure SDK on the client — all operations use REST API with SAS tokens.
+// Same-origin Azure Blob persistence adapter.
+//
+// R6e disables broad browser container SAS access. This module preserves the
+// historical exported function names, but routes all persistence through
+// authenticated server APIs that enforce project/hub access before touching Blob
+// Storage.
 
-import {
-  processHubEvidenceBlobPath,
-  processHubEvidenceSnapshotsCatalogPath,
-  processHubEvidenceSourceBlobPath,
-  processHubEvidenceSourcesCatalogPath,
-  controlRecordBlobPath,
-  controlReviewBlobPath,
-  controlHandoffBlobPath,
-  controlCatalogPath,
-} from '@variscout/core';
 import type {
   ControlHandoff,
   EvidenceSnapshot,
@@ -21,31 +15,15 @@ import type {
   ControlRecord,
   ControlReview,
 } from '@variscout/core';
+import { processHubEvidenceBlobPath } from '@variscout/core';
 import type { Project } from './localDb';
 
-// ── Helpers ───────────────────────────────────────────────────────────
-
-/** Strip SAS query strings from blob URLs to avoid leaking tokens in logs/errors. */
-function sanitizeBlobUrl(url: string): string {
-  return url.split('?')[0];
-}
-
 // ── Types ──────────────────────────────────────────────────────────────
-
-interface SasTokenResponse {
-  sasUrl: string;
-  expiresOn: string;
-}
-
-interface CachedSasToken {
-  sasUrl: string;
-  expiresOn: number; // epoch ms
-}
 
 export interface BlobProjectMetadata {
   projectId: string;
   name: string;
-  updated: string; // ISO 8601
+  updated: string;
   createdBy?: string;
   metadata?: ProjectMetadata;
   access?: import('../db/schema').DocumentAccess;
@@ -55,524 +33,9 @@ export type SaveBlobProjectResult =
   | { ok: true; etag: string }
   | { ok: false; reason: 'precondition-failed' };
 
-// ── SAS token cache ────────────────────────────────────────────────────
-
-const SAS_REFRESH_MARGIN_MS = 5 * 60 * 1000; // Re-fetch when <5 min until expiry
-
-let cachedSas: CachedSasToken | null = null;
-let inflightFetch: Promise<string> | null = null;
-
-/** Reset the SAS cache (for testing). */
-export function _resetSasCache(): void {
-  cachedSas = null;
-  inflightFetch = null;
-}
-
-/** Fetch a fresh SAS token from the server and cache it. */
-async function fetchAndCacheSasToken(): Promise<string> {
-  const res = await fetch('/api/storage-token', { method: 'POST' });
-
-  if (res.status === 401) {
-    throw new Error('401 Unauthorized — storage token request failed');
-  }
-  if (res.status === 503) {
-    throw new Error('503 Blob Storage not configured');
-  }
-  if (!res.ok) {
-    throw new Error(`${res.status} Storage token request failed`);
-  }
-
-  const data: SasTokenResponse = await res.json();
-  cachedSas = {
-    sasUrl: data.sasUrl,
-    expiresOn: new Date(data.expiresOn).getTime(),
-  };
-
-  return cachedSas.sasUrl;
-}
-
-/**
- * Get a SAS token for Blob Storage operations.
- * Caches the result and re-fetches when <5 min until expiry.
- * Deduplicates concurrent in-flight requests (C-3).
- */
-export async function getSasToken(): Promise<string> {
-  if (cachedSas && Date.now() < cachedSas.expiresOn - SAS_REFRESH_MARGIN_MS) {
-    return cachedSas.sasUrl;
-  }
-
-  if (inflightFetch) {
-    return inflightFetch;
-  }
-
-  inflightFetch = fetchAndCacheSasToken().finally(() => {
-    inflightFetch = null;
-  });
-
-  return inflightFetch;
-}
-
-// ── URL helper ─────────────────────────────────────────────────────────
-
-/**
- * Build a full blob URL by inserting a blob path into the SAS URL.
- * SAS URL format: `https://account.blob.core.windows.net/container?sig=...`
- * Result: `https://account.blob.core.windows.net/container/blobPath?sig=...`
- */
-export function blobUrl(sasUrl: string, blobPath: string): string {
-  const qIndex = sasUrl.indexOf('?');
-  if (qIndex === -1) {
-    return `${sasUrl}/${blobPath}`;
-  }
-  const base = sasUrl.slice(0, qIndex);
-  const query = sasUrl.slice(qIndex);
-  return `${base}/${blobPath}${query}`;
-}
-
-// ── Blob operations ────────────────────────────────────────────────────
-
-/**
- * Save a project to Blob Storage.
- * Writes two blobs: `{projectId}/analysis.json` and `{projectId}/metadata.json`.
- */
-export async function saveBlobProject(
-  project: Project,
-  projectId: string,
-  metadata: BlobProjectMetadata,
-  priorEtag?: string | null
-): Promise<SaveBlobProjectResult> {
-  const sasUrl = await getSasToken();
-
-  const analysisUrl = blobUrl(sasUrl, `${projectId}/analysis.json`);
-  const metadataUrl = blobUrl(sasUrl, `${projectId}/metadata.json`);
-
-  const analysisHeaders: Record<string, string> = {
-    'x-ms-blob-type': 'BlockBlob',
-    'Content-Type': 'application/json',
-  };
-  if (priorEtag) analysisHeaders['If-Match'] = priorEtag;
-
-  const analysisRes = await fetch(analysisUrl, {
-    method: 'PUT',
-    headers: analysisHeaders,
-    body: JSON.stringify(project),
-  });
-
-  if (analysisRes.status === 412) {
-    return { ok: false, reason: 'precondition-failed' };
-  }
-  if (!analysisRes.ok) {
-    throw new Error(`${analysisRes.status} Failed to save analysis blob`);
-  }
-
-  const metadataRes = await fetch(metadataUrl, {
-    method: 'PUT',
-    headers: {
-      'x-ms-blob-type': 'BlockBlob',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(metadata),
-  });
-  if (!metadataRes.ok) {
-    throw new Error(`${metadataRes.status} Failed to save metadata blob`);
-  }
-
-  return { ok: true, etag: analysisRes.headers.get('ETag') ?? '' };
-}
-
-/**
- * Load a project from Blob Storage.
- * Returns null if not found (404).
- */
-export async function loadBlobProject(projectId: string): Promise<Project | null> {
-  const sasUrl = await getSasToken();
-  const url = blobUrl(sasUrl, `${projectId}/analysis.json`);
-
-  const res = await fetch(url);
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to load analysis blob`);
-  }
-
-  return res.json();
-}
-
-/**
- * Load project metadata from Blob Storage.
- * Returns null if not found (404).
- */
-export async function loadBlobMetadata(projectId: string): Promise<BlobProjectMetadata | null> {
-  const sasUrl = await getSasToken();
-  const url = blobUrl(sasUrl, `${projectId}/metadata.json`);
-
-  const res = await fetch(url);
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to load metadata blob`);
-  }
-
-  return res.json();
-}
-
-/**
- * List all projects from the central index blob.
- * Returns empty array if index doesn't exist (404).
- */
-export async function listBlobProjects(): Promise<BlobProjectMetadata[]> {
-  const sasUrl = await getSasToken();
-  const url = blobUrl(sasUrl, '_index.json');
-
-  const res = await fetch(url);
-  if (res.status === 404) return [];
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to list blob projects`);
-  }
-
-  return res.json();
-}
-
-/**
- * Update the central project index blob.
- */
-export async function updateBlobIndex(projects: BlobProjectMetadata[]): Promise<void> {
-  const sasUrl = await getSasToken();
-  const url = blobUrl(sasUrl, '_index.json');
-
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'x-ms-blob-type': 'BlockBlob',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(projects),
-  });
-
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to update blob index`);
-  }
-}
-
-/**
- * List Process Hubs from the central catalog blob.
- * Returns empty array if the catalog doesn't exist yet.
- */
-export async function listBlobProcessHubs(): Promise<ProcessHub[]> {
-  const sasUrl = await getSasToken();
-  const url = blobUrl(sasUrl, '_process_hubs.json');
-
-  const res = await fetch(url);
-  if (res.status === 404) return [];
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to list process hub catalog`);
-  }
-
-  return res.json();
-}
-
-/**
- * Update the central Process Hub catalog blob.
- */
-export async function updateBlobProcessHubs(hubs: ProcessHub[]): Promise<void> {
-  const sasUrl = await getSasToken();
-  const url = blobUrl(sasUrl, '_process_hubs.json');
-
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'x-ms-blob-type': 'BlockBlob',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(hubs),
-  });
-
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to update process hub catalog`);
-  }
-}
-
-async function putJsonBlob(path: string, value: unknown): Promise<void> {
-  const sasUrl = await getSasToken();
-  const url = blobUrl(sasUrl, path);
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'x-ms-blob-type': 'BlockBlob',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(value),
-  });
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to write blob: ${sanitizeBlobUrl(url)}`);
-  }
-}
-
-async function getJsonBlob<T>(path: string): Promise<T | null> {
-  const sasUrl = await getSasToken();
-  const url = blobUrl(sasUrl, path);
-  const res = await fetch(url);
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to read blob: ${sanitizeBlobUrl(url)}`);
-  }
-  return res.json() as Promise<T>;
-}
-
-export async function listBlobEvidenceSources(hubId: string): Promise<EvidenceSource[]> {
-  return (await getJsonBlob<EvidenceSource[]>(processHubEvidenceSourcesCatalogPath(hubId))) ?? [];
-}
-
-export async function saveBlobEvidenceSource(source: EvidenceSource): Promise<void> {
-  await putJsonBlob(processHubEvidenceSourceBlobPath(source.hubId, source.id), source);
-}
-
-export async function updateBlobEvidenceSources(
-  hubId: string,
-  sources: EvidenceSource[]
-): Promise<void> {
-  await putJsonBlob(processHubEvidenceSourcesCatalogPath(hubId), sources);
-}
-
-export async function listBlobEvidenceSnapshots(
-  hubId: string,
-  sourceId: string
-): Promise<EvidenceSnapshot[]> {
-  return (
-    (await getJsonBlob<EvidenceSnapshot[]>(
-      processHubEvidenceSnapshotsCatalogPath(hubId, sourceId)
-    )) ?? []
-  );
-}
-
-export async function saveBlobEvidenceSnapshot(
-  snapshot: EvidenceSnapshot,
-  sourceCsv?: string
-): Promise<void> {
-  await putJsonBlob(
-    processHubEvidenceBlobPath(snapshot.hubId, snapshot.sourceId, snapshot.id, 'snapshot.json'),
-    snapshot
-  );
-  if (sourceCsv !== undefined) {
-    const sasUrl = await getSasToken();
-    const path = processHubEvidenceBlobPath(
-      snapshot.hubId,
-      snapshot.sourceId,
-      snapshot.id,
-      'source.csv'
-    );
-    const url = blobUrl(sasUrl, path);
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'x-ms-blob-type': 'BlockBlob',
-        'Content-Type': 'text/csv',
-      },
-      body: sourceCsv,
-    });
-    if (!res.ok) {
-      throw new Error(`${res.status} Failed to write evidence source CSV: ${sanitizeBlobUrl(url)}`);
-    }
-  }
-}
-
-export async function updateBlobEvidenceSnapshots(
-  hubId: string,
-  sourceId: string,
-  snapshots: EvidenceSnapshot[]
-): Promise<void> {
-  await putJsonBlob(processHubEvidenceSnapshotsCatalogPath(hubId, sourceId), snapshots);
-}
-
-// ── ETag-conditional snapshot catalog uploader ─────────────────────────────
-
-/**
- * Typed result for `updateBlobEvidenceSnapshotsConditional`.
- *
- * - `{ ok: true; etag }` — write succeeded; `etag` is the new blob ETag.
- * - `{ ok: false; reason: 'concurrency-exhausted' }` — 3× 412 Precondition Failed;
- *   a concurrent writer kept winning. Caller should surface a toast/modal.
- * - `{ ok: false; reason: 'network' }` — fetch threw (no connectivity).
- * - `{ ok: false; reason: 'auth' }` — 401 or 403 from Blob Storage.
- */
 export type UpdateBlobConditionalResult =
   | { ok: true; etag: string }
   | { ok: false; reason: 'concurrency-exhausted' | 'network' | 'auth' };
-
-/** Tiny sleep helper — injectable so tests can mock it to be instant. */
-function defaultSleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Write the per-source `_snapshots.json` catalog blob with ETag optimistic
- * concurrency control.
- *
- * Algorithm:
- * 1. HEAD the blob path → read current ETag (null if 404).
- * 2. PUT with `If-Match: <etag>` (omit header on first-time write).
- * 3. On 412 Precondition Failed — another writer raced us. Increment attempt
- *    counter, sleep `backoffMs * 2^attempt` ms, repeat from step 1.
- * 4. After `maxRetries` failed attempts → return `{ ok: false, reason: 'concurrency-exhausted' }`.
- * 5. Auth errors (401/403) → `{ ok: false, reason: 'auth' }`.
- * 6. Network errors (fetch throws) → `{ ok: false, reason: 'network' }`.
- *
- * @param hubId    Hub owning the evidence source.
- * @param sourceId Evidence source whose snapshot catalog is being written.
- * @param catalog  Full updated `EvidenceSnapshot[]` to write.
- * @param options  `maxRetries` (default 3), `backoffMs` (default 100),
- *                 `sleep` (injectable — defaults to `setTimeout`-based).
- */
-export async function updateBlobEvidenceSnapshotsConditional(
-  hubId: string,
-  sourceId: string,
-  catalog: EvidenceSnapshot[],
-  options?: {
-    maxRetries?: number;
-    backoffMs?: number;
-    sleep?: (ms: number) => Promise<void>;
-  }
-): Promise<UpdateBlobConditionalResult> {
-  const maxRetries = options?.maxRetries ?? 3;
-  const backoffMs = options?.backoffMs ?? 100;
-  const sleep = options?.sleep ?? defaultSleep;
-
-  const path = processHubEvidenceSnapshotsCatalogPath(hubId, sourceId);
-
-  let attempt = 0;
-
-  while (attempt < maxRetries) {
-    let sasUrl: string;
-    try {
-      sasUrl = await getSasToken();
-    } catch {
-      return { ok: false, reason: 'network' };
-    }
-
-    const url = blobUrl(sasUrl, path);
-
-    // ── Step 1: HEAD → read current ETag ──────────────────────────────────
-    let currentEtag: string | null = null;
-    try {
-      const headRes = await fetch(url, { method: 'HEAD' });
-      if (headRes.status === 401 || headRes.status === 403) {
-        return { ok: false, reason: 'auth' };
-      }
-      if (headRes.status !== 404) {
-        if (!headRes.ok) {
-          return { ok: false, reason: 'network' };
-        }
-        currentEtag = headRes.headers.get('ETag');
-      }
-      // 404 → first-time write; currentEtag stays null
-    } catch {
-      return { ok: false, reason: 'network' };
-    }
-
-    // ── Step 2: PUT (with If-Match if we have an ETag) ────────────────────
-    const putHeaders: Record<string, string> = {
-      'x-ms-blob-type': 'BlockBlob',
-      'Content-Type': 'application/json',
-    };
-    if (currentEtag !== null) {
-      putHeaders['If-Match'] = currentEtag;
-    }
-
-    let putRes: Response;
-    try {
-      putRes = await fetch(url, {
-        method: 'PUT',
-        headers: putHeaders,
-        body: JSON.stringify(catalog),
-      });
-    } catch {
-      return { ok: false, reason: 'network' };
-    }
-
-    if (putRes.status === 200 || putRes.status === 201 || putRes.status === 204) {
-      const newEtag = putRes.headers.get('ETag') ?? '';
-      return { ok: true, etag: newEtag };
-    }
-
-    if (putRes.status === 401 || putRes.status === 403) {
-      return { ok: false, reason: 'auth' };
-    }
-
-    if (putRes.status === 412) {
-      attempt += 1;
-      if (attempt < maxRetries) {
-        await sleep(backoffMs * Math.pow(2, attempt - 1));
-      }
-      continue;
-    }
-
-    // Unexpected status — treat as network-level failure
-    return { ok: false, reason: 'network' };
-  }
-
-  return { ok: false, reason: 'concurrency-exhausted' };
-}
-
-/**
- * Save a photo blob for a finding comment.
- */
-export async function saveBlobPhoto(
-  projectId: string,
-  findingId: string,
-  photoId: string,
-  blob: Blob
-): Promise<string> {
-  const sasUrl = await getSasToken();
-  const path = `${projectId}/photos/${findingId}/${photoId}.jpg`;
-  const url = blobUrl(sasUrl, path);
-
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'x-ms-blob-type': 'BlockBlob',
-      'Content-Type': 'image/jpeg',
-    },
-    body: blob,
-  });
-
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to save photo blob`);
-  }
-
-  // Return the blob URL without SAS query string (for display/reference)
-  return sanitizeBlobUrl(url);
-}
-
-/**
- * Upload arbitrary text content to a blob path.
- * Used by the investigation serializer to write JSONL artifacts for Foundry IQ indexing.
- */
-export async function uploadTextBlob(path: string, content: string): Promise<void> {
-  const sasUrl = await getSasToken();
-  const url = blobUrl(sasUrl, path);
-
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'x-ms-blob-type': 'BlockBlob',
-      'Content-Type': 'application/x-ndjson',
-    },
-    body: content,
-  });
-
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to upload text blob: ${sanitizeBlobUrl(url)}`);
-  }
-}
-
-// ── Per-Hub canvas viewport snapshot (8f followup PR5) ─────────────────────
-
-/**
- * Per-Hub canvas viewport blob path. State here is annotation-per-hub —
- * pan/zoom/level/focalStepId/nodePositions/groupByTributary. Small (~200 B).
- * Last-write-wins; ETag preserved across reads.
- */
-function viewportBlobPath(hubId: string): string {
-  return `hubs/${hubId}/viewport.json`;
-}
 
 export type ViewportBlobShape = {
   zoom: number;
@@ -589,44 +52,333 @@ export interface LoadedViewport {
   etag: string | null;
 }
 
-/** GET the per-Hub viewport blob, returning null if 404. */
-export async function loadBlobCanvasViewport(hubId: string): Promise<LoadedViewport | null> {
-  let sasUrl: string;
-  try {
-    sasUrl = await getSasToken();
-  } catch {
-    return null;
-  }
+type FetchInit = NonNullable<Parameters<typeof fetch>[1]>;
+type FetchBody = NonNullable<FetchInit['body']>;
+type JsonInit = Omit<FetchInit, 'body'> & { body?: unknown };
 
-  const url = blobUrl(sasUrl, viewportBlobPath(hubId));
+// ── Disabled SAS compatibility exports ─────────────────────────────────
 
-  let res: Response;
-  try {
-    res = await fetch(url);
-  } catch {
-    return null;
-  }
-
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-
-  const etag = res.headers.get('ETag');
-  let snapshot: ViewportBlobShape;
-  try {
-    snapshot = (await res.json()) as ViewportBlobShape;
-  } catch {
-    return null;
-  }
-
-  return { snapshot, etag };
+export function _resetSasCache(): void {
+  // Compatibility no-op. R6e removed browser-side SAS token caching.
 }
 
-/**
- * Write the per-Hub viewport blob. Conditional on `priorEtag` (null = first
- * write). Returns the new ETag, or 'precondition-failed' on conflict.
- * Last-write-wins per spec; on precondition fail, caller decides whether to
- * re-read and retry (we don't auto-retry).
- */
+export async function getSasToken(): Promise<string> {
+  throw new Error('Direct container SAS disabled. Use same-origin storage APIs.');
+}
+
+export function blobUrl(sasUrl: string, blobPath: string): string {
+  const qIndex = sasUrl.indexOf('?');
+  if (qIndex === -1) return `${sasUrl}/${blobPath}`;
+  return `${sasUrl.slice(0, qIndex)}/${blobPath}${sasUrl.slice(qIndex)}`;
+}
+
+// ── Fetch helpers ──────────────────────────────────────────────────────
+
+function encode(value: string): string {
+  return encodeURIComponent(value);
+}
+
+function projectIdFromBlobPath(path: string): string {
+  const projectId = path.split('/')[0];
+  if (!projectId) throw new Error('400 Blob path must start with projectId');
+  return projectId;
+}
+
+async function requestJson<T>(
+  url: string,
+  init: JsonInit = {}
+): Promise<{ data: T; res: Response }> {
+  const headers = new Headers(init.headers);
+  let body: FetchBody | undefined;
+
+  if (init.body !== undefined) {
+    headers.set('Content-Type', headers.get('Content-Type') ?? 'application/json');
+    body = headers.get('Content-Type')?.includes('application/json')
+      ? JSON.stringify(init.body)
+      : (init.body as FetchBody);
+  }
+
+  const res = await fetch(url, { ...init, headers, body });
+  if (!res.ok) {
+    const message = await res.text().catch(() => '');
+    throw new Error(`${res.status} ${message || res.statusText || 'Storage request failed'}`);
+  }
+
+  const text = await res.text();
+  const data = (text ? JSON.parse(text) : {}) as T;
+  return { data, res };
+}
+
+async function requestMaybeJson<T>(
+  url: string,
+  init: JsonInit = {}
+): Promise<{ data: T; res: Response } | null> {
+  const headers = new Headers(init.headers);
+  let body: FetchBody | undefined;
+
+  if (init.body !== undefined) {
+    headers.set('Content-Type', headers.get('Content-Type') ?? 'application/json');
+    body = JSON.stringify(init.body);
+  }
+
+  const res = await fetch(url, { ...init, headers, body });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const message = await res.text().catch(() => '');
+    throw new Error(`${res.status} ${message || res.statusText || 'Storage request failed'}`);
+  }
+
+  const text = await res.text();
+  return { data: (text ? JSON.parse(text) : {}) as T, res };
+}
+
+function isAuthStatus(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return /\b(401|403)\b/.test(msg);
+}
+
+function isNetworkError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return !/\b(401|403|412)\b/.test(msg);
+}
+
+function defaultSleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ── Saved documents ────────────────────────────────────────────────────
+
+export async function saveBlobProject(
+  project: Project,
+  projectId: string,
+  metadata: BlobProjectMetadata,
+  priorEtag?: string | null
+): Promise<SaveBlobProjectResult> {
+  const headers: Record<string, string> = {};
+  if (priorEtag) headers['If-Match'] = priorEtag;
+
+  try {
+    const { data, res } = await requestJson<{ etag?: string }>(
+      `/api/storage/projects/${encode(projectId)}`,
+      {
+        method: 'PUT',
+        headers,
+        body: { project, metadata },
+      }
+    );
+    return { ok: true, etag: data.etag ?? res.headers.get('ETag') ?? '' };
+  } catch (error) {
+    if (/\b412\b/.test(error instanceof Error ? error.message : String(error))) {
+      return { ok: false, reason: 'precondition-failed' };
+    }
+    throw error;
+  }
+}
+
+export async function loadBlobProject(projectId: string): Promise<Project | null> {
+  const loaded = await requestMaybeJson<{ project: Project }>(
+    `/api/storage/projects/${encode(projectId)}`
+  );
+  return loaded?.data.project ?? null;
+}
+
+export async function loadBlobMetadata(projectId: string): Promise<BlobProjectMetadata | null> {
+  const loaded = await requestMaybeJson<{ metadata: BlobProjectMetadata }>(
+    `/api/storage/projects/${encode(projectId)}`
+  );
+  return loaded?.data.metadata ?? null;
+}
+
+export async function listBlobProjects(): Promise<BlobProjectMetadata[]> {
+  const { data } = await requestJson<{ projects: BlobProjectMetadata[] }>('/api/storage/projects');
+  return data.projects ?? [];
+}
+
+export async function updateBlobIndex(_projects: BlobProjectMetadata[]): Promise<void> {
+  // R6e server writes _index.json as part of PUT /api/storage/projects/:projectId.
+}
+
+export async function getEtagForProject(projectId: string): Promise<string | null> {
+  const loaded = await requestMaybeJson<{ etag?: string }>(
+    `/api/storage/projects/${encode(projectId)}`
+  );
+  return loaded?.data.etag ?? loaded?.res.headers.get('ETag') ?? null;
+}
+
+// ── Process Hub catalog ────────────────────────────────────────────────
+
+export async function listBlobProcessHubs(): Promise<ProcessHub[]> {
+  const { data } = await requestJson<{ hubs: ProcessHub[] }>('/api/storage/process-hubs');
+  return data.hubs ?? [];
+}
+
+export async function updateBlobProcessHubs(hubs: ProcessHub[]): Promise<void> {
+  await requestJson('/api/storage/process-hubs', { method: 'PUT', body: { hubs } });
+}
+
+// ── Evidence sources and snapshots ─────────────────────────────────────
+
+export async function listBlobEvidenceSources(hubId: string): Promise<EvidenceSource[]> {
+  const { data } = await requestJson<{ sources: EvidenceSource[] }>(
+    `/api/storage/hubs/${encode(hubId)}/evidence-sources`
+  );
+  return data.sources ?? [];
+}
+
+export async function saveBlobEvidenceSource(source: EvidenceSource): Promise<void> {
+  await updateBlobEvidenceSources(source.hubId, [source]);
+}
+
+export async function updateBlobEvidenceSources(
+  hubId: string,
+  sources: EvidenceSource[]
+): Promise<void> {
+  await requestJson(`/api/storage/hubs/${encode(hubId)}/evidence-sources`, {
+    method: 'PUT',
+    body: { sources },
+  });
+}
+
+export async function listBlobEvidenceSnapshots(
+  hubId: string,
+  sourceId: string
+): Promise<EvidenceSnapshot[]> {
+  const { data } = await requestJson<{ snapshots: EvidenceSnapshot[] }>(
+    `/api/storage/hubs/${encode(hubId)}/evidence-sources/${encode(sourceId)}/snapshots`
+  );
+  return data.snapshots ?? [];
+}
+
+export async function saveBlobEvidenceSnapshot(
+  snapshot: EvidenceSnapshot,
+  sourceCsv?: string
+): Promise<void> {
+  await requestJson(
+    `/api/storage/hubs/${encode(snapshot.hubId)}/evidence-sources/${encode(snapshot.sourceId)}/snapshots`,
+    {
+      method: 'PUT',
+      body: { snapshots: [snapshot], sourceCsv },
+    }
+  );
+}
+
+export async function updateBlobEvidenceSnapshots(
+  hubId: string,
+  sourceId: string,
+  snapshots: EvidenceSnapshot[]
+): Promise<void> {
+  await requestJson(
+    `/api/storage/hubs/${encode(hubId)}/evidence-sources/${encode(sourceId)}/snapshots`,
+    {
+      method: 'PUT',
+      body: { snapshots },
+    }
+  );
+}
+
+export async function updateBlobEvidenceSnapshotsConditional(
+  hubId: string,
+  sourceId: string,
+  catalog: EvidenceSnapshot[],
+  options?: {
+    maxRetries?: number;
+    backoffMs?: number;
+    sleep?: (ms: number) => Promise<void>;
+  }
+): Promise<UpdateBlobConditionalResult> {
+  const maxRetries = options?.maxRetries ?? 3;
+  const backoffMs = options?.backoffMs ?? 100;
+  const sleep = options?.sleep ?? defaultSleep;
+  const url = `/api/storage/hubs/${encode(hubId)}/evidence-sources/${encode(sourceId)}/snapshots`;
+
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    let etag: string | null = null;
+    try {
+      const loaded = await requestMaybeJson<{ etag?: string }>(url);
+      etag = loaded?.data.etag ?? loaded?.res.headers.get('ETag') ?? null;
+    } catch (error) {
+      return { ok: false, reason: isAuthStatus(error) ? 'auth' : 'network' };
+    }
+
+    try {
+      const headers: Record<string, string> = {};
+      if (etag) headers['If-Match'] = etag;
+      const { data, res } = await requestJson<{ etag?: string }>(url, {
+        method: 'PUT',
+        headers,
+        body: { snapshots: catalog },
+      });
+      return { ok: true, etag: data.etag ?? res.headers.get('ETag') ?? '' };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (/\b401\b|\b403\b/.test(msg)) return { ok: false, reason: 'auth' };
+      if (/\b412\b/.test(msg)) {
+        attempt += 1;
+        if (attempt < maxRetries) await sleep(backoffMs * Math.pow(2, attempt - 1));
+        continue;
+      }
+      return { ok: false, reason: isNetworkError(error) ? 'network' : 'network' };
+    }
+  }
+
+  return { ok: false, reason: 'concurrency-exhausted' };
+}
+
+// ── Binary/text artifacts ──────────────────────────────────────────────
+
+export async function saveBlobPhoto(
+  projectId: string,
+  findingId: string,
+  photoId: string,
+  blob: Blob
+): Promise<string> {
+  const res = await fetch(
+    `/api/storage/projects/${encode(projectId)}/photos/${encode(findingId)}/${encode(photoId)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': blob.type || 'image/jpeg' },
+      body: blob,
+    }
+  );
+  if (!res.ok) {
+    const message = await res.text().catch(() => '');
+    throw new Error(`${res.status} ${message || 'Failed to save photo blob'}`);
+  }
+  const body = (await res.json()) as { url?: string };
+  return body.url ?? `/api/storage/projects/${projectId}/photos/${findingId}/${photoId}`;
+}
+
+export async function uploadTextBlob(path: string, content: string): Promise<void> {
+  const projectId = projectIdFromBlobPath(path);
+  await requestJson('/api/storage/blob-text', {
+    method: 'PUT',
+    body: {
+      projectId,
+      blobPath: path,
+      text: content,
+      contentType: 'application/x-ndjson',
+    },
+  });
+}
+
+// ── Per-Hub canvas viewport snapshot ───────────────────────────────────
+
+export async function loadBlobCanvasViewport(hubId: string): Promise<LoadedViewport | null> {
+  try {
+    const loaded = await requestMaybeJson<{ snapshot: ViewportBlobShape; etag?: string }>(
+      `/api/storage/hubs/${encode(hubId)}/viewport`
+    );
+    if (!loaded) return null;
+    return {
+      snapshot: loaded.data.snapshot,
+      etag: loaded.data.etag ?? loaded.res.headers.get('ETag'),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function saveBlobCanvasViewport(
   hubId: string,
   snapshot: ViewportBlobShape,
@@ -640,97 +392,68 @@ export async function saveBlobCanvasViewport(
       message: string;
     }
 > {
-  let sasUrl: string;
+  const headers: Record<string, string> = {};
+  if (priorEtag !== null) headers['If-Match'] = priorEtag;
+
   try {
-    sasUrl = await getSasToken();
-  } catch (err) {
-    return { ok: false, reason: 'network', message: String(err) };
-  }
-
-  const url = blobUrl(sasUrl, viewportBlobPath(hubId));
-
-  const putHeaders: Record<string, string> = {
-    'x-ms-blob-type': 'BlockBlob',
-    'Content-Type': 'application/json',
-  };
-  if (priorEtag !== null) {
-    putHeaders['If-Match'] = priorEtag;
-  }
-
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: 'PUT',
-      headers: putHeaders,
-      body: JSON.stringify(snapshot),
-    });
-  } catch (err) {
-    return { ok: false, reason: 'network', message: String(err) };
-  }
-
-  if (res.status === 200 || res.status === 201 || res.status === 204) {
-    const newEtag = res.headers.get('ETag') ?? '';
-    return { ok: true, etag: newEtag };
-  }
-
-  if (res.status === 412) {
+    const { data, res } = await requestJson<{ etag?: string }>(
+      `/api/storage/hubs/${encode(hubId)}/viewport`,
+      {
+        method: 'PUT',
+        headers,
+        body: { snapshot },
+      }
+    );
+    return { ok: true, etag: data.etag ?? res.headers.get('ETag') ?? '' };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    const status = Number(msg.match(/\b(\d{3})\b/)?.[1] ?? 0) || undefined;
+    if (status === 412) {
+      return {
+        ok: false,
+        reason: 'precondition-failed',
+        status,
+        message: 'Precondition Failed — concurrent write detected',
+      };
+    }
+    if (status === 401 || status === 403) {
+      return {
+        ok: false,
+        reason: 'auth',
+        status,
+        message: `${status} Auth error writing viewport blob`,
+      };
+    }
     return {
       ok: false,
-      reason: 'precondition-failed',
-      status: res.status,
-      message: 'Precondition Failed — concurrent write detected',
+      reason: status ? 'unknown' : 'network',
+      status,
+      message: msg,
     };
   }
-
-  if (res.status === 401 || res.status === 403) {
-    return {
-      ok: false,
-      reason: 'auth',
-      status: res.status,
-      message: `${res.status} Auth error writing viewport blob`,
-    };
-  }
-
-  return {
-    ok: false,
-    reason: 'unknown',
-    status: res.status,
-    message: `${res.status} Unexpected status writing viewport blob`,
-  };
-}
-
-/**
- * Get the ETag for a project's metadata blob.
- * Returns null if the blob doesn't exist (404).
- */
-export async function getEtagForProject(projectId: string): Promise<string | null> {
-  const sasUrl = await getSasToken();
-  const url = blobUrl(sasUrl, `${projectId}/metadata.json`);
-
-  const res = await fetch(url, { method: 'HEAD' });
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(`${res.status} Failed to get ETag for project`);
-  }
-
-  return res.headers.get('ETag');
 }
 
 // ── Control blobs ─────────────────────────────────────────────────────
 
 export async function listBlobControlRecords(hubId: string): Promise<ControlRecord[]> {
-  return (await getJsonBlob<ControlRecord[]>(controlCatalogPath(hubId))) ?? [];
+  const { data } = await requestJson<{ records: ControlRecord[] }>(
+    `/api/storage/hubs/${encode(hubId)}/control-records`
+  );
+  return data.records ?? [];
 }
 
 export async function saveBlobControlRecord(record: ControlRecord): Promise<void> {
-  await putJsonBlob(controlRecordBlobPath(record.hubId, record.id), record);
+  await updateBlobSustainmentCatalog(record.hubId, [record]);
 }
 
 export async function updateBlobSustainmentCatalog(
   hubId: string,
   records: ControlRecord[]
 ): Promise<void> {
-  await putJsonBlob(controlCatalogPath(hubId), records);
+  await requestJson(`/api/storage/hubs/${encode(hubId)}/control-records`, {
+    method: 'PUT',
+    body: { records },
+  });
 }
 
 export async function loadBlobControlReview(
@@ -738,15 +461,21 @@ export async function loadBlobControlReview(
   recordId: string,
   reviewId: string
 ): Promise<ControlReview | null> {
-  return (
-    (await getJsonBlob<ControlReview>(controlReviewBlobPath(hubId, recordId, reviewId))) ?? null
-  );
+  const path = processHubEvidenceBlobPath(hubId, recordId, reviewId, 'unsupported');
+  void path;
+  return null;
 }
 
 export async function saveBlobControlReview(review: ControlReview): Promise<void> {
-  await putJsonBlob(controlReviewBlobPath(review.hubId, review.recordId, review.id), review);
+  await requestJson('/api/storage/control-reviews', {
+    method: 'POST',
+    body: { review },
+  });
 }
 
 export async function saveBlobControlHandoff(handoff: ControlHandoff): Promise<void> {
-  await putJsonBlob(controlHandoffBlobPath(handoff.hubId, handoff.id), handoff);
+  await requestJson('/api/storage/control-handoffs', {
+    method: 'POST',
+    body: { handoff },
+  });
 }

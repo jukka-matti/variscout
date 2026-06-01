@@ -140,6 +140,8 @@ describe('useCanvasViewportLifecycle — Blob sync (Azure)', () => {
   // ── Mutation: debounced save to both Dexie and Blob ───────────────────────
 
   it('debounced mutation writes to both Dexie and Blob after 500ms', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+
     await act(async () => {
       renderHook(() => useCanvasViewportLifecycle(HUB_ID));
       await Promise.resolve();
@@ -164,6 +166,9 @@ describe('useCanvasViewportLifecycle — Blob sync (Azure)', () => {
 
     expect(mockPersist).toHaveBeenCalledWith(HUB_ID);
     expect(mockSaveBlob).toHaveBeenCalledOnce();
+    expect(
+      fetchSpy.mock.calls.some((call: Parameters<typeof fetch>) => call[0] === '/api/storage-token')
+    ).toBe(false);
 
     const [calledHubId, snapshot, priorEtag] = mockSaveBlob.mock.calls[0];
     expect(calledHubId).toBe(HUB_ID);
@@ -171,6 +176,8 @@ describe('useCanvasViewportLifecycle — Blob sync (Azure)', () => {
     expect(typeof snapshot.updatedAt).toBe('number');
     // On first write, priorEtag is null (no blob loaded yet).
     expect(priorEtag).toBeNull();
+
+    fetchSpy.mockRestore();
   });
 
   // ── ETag conflict: precondition-failed → re-fetch, apply, update etagRef ─

@@ -63,9 +63,9 @@ VariScout is deployed through the **Azure Marketplace** as a Managed Application
 
 The ARM template does not include `publisherManagement` authorization. After deployment, the publisher (VariScout) has **zero access** to the customer's resources. The customer's IT team retains full control via standard Azure Portal and RBAC management.
 
-### No Backend API
+### No Publisher Backend API
 
-The Azure App serves a static Single Page Application (SPA) via `WEBSITE_RUN_FROM_PACKAGE`, with a minimal Express server adding a single endpoint (`/api/storage-token`) for generating time-limited SAS tokens for Azure Blob Storage access. This endpoint validates the user's Entra ID session before issuing tokens. All statistical processing — calculations, chart rendering, data parsing — happens entirely in the user's browser.
+The Azure App serves a static Single Page Application (SPA) via `WEBSITE_RUN_FROM_PACKAGE`, with a minimal same-origin Express server for runtime config, health, and customer-tenant storage access. Storage APIs validate the user's Entra ID session, enforce the R6c document access model, and use the App Service managed identity for Blob Storage operations. All statistical processing — calculations, chart rendering, data parsing — happens entirely in the user's browser. VariScout does not operate a publisher-hosted customer data plane.
 
 ---
 
@@ -124,22 +124,24 @@ Storage Account: variscout{uniquestring}
     └── {projectId}/investigation/     (investigation artifacts)
 ```
 
-### Browser-to-Storage Authentication
+### Server-to-Storage Authentication
 
-The browser never receives storage credentials. Instead:
+The browser never receives storage credentials or broad project-data container SAS tokens. Instead:
 
-1. Browser requests a SAS token from `/api/storage-token`
+1. Browser calls a same-origin storage API
 2. The endpoint validates the user's Entra ID session (EasyAuth)
-3. The App Service's managed identity (with `Storage Blob Data Contributor` RBAC role) generates a container-scoped SAS token
-4. The browser uses the SAS token for direct Blob Storage access
+3. The endpoint checks whether the user can list/load/save the requested `DocumentSnapshot`
+4. The App Service's managed identity (with `Storage Blob Data Contributor` RBAC role) performs the Blob Storage operation
+5. The API returns only authorized document data or metadata
 
-| SAS Token Control    | Detail                                                   |
-| -------------------- | -------------------------------------------------------- |
-| Container-scoped     | Access limited to `variscout-projects` container only    |
-| Time-limited         | 1-hour expiry, regenerated on demand                     |
-| Entra ID gated       | Requires valid EasyAuth session                          |
-| No delete permission | Read + Write only                                        |
-| Azure RBAC           | Customer IT manages access via standard role assignments |
+| Storage Control        | Detail                                                                    |
+| ---------------------- | ------------------------------------------------------------------------- |
+| Server-enforced access | R6c document access model checked before Blob list/read/write             |
+| Entra ID gated         | Requires valid EasyAuth session                                           |
+| Managed identity       | Production Blob Storage access uses App Service managed identity          |
+| No broad browser SAS   | Browser code must not receive a broad project-data container SAS          |
+| Shared Key posture     | Disable Shared Key after R6e where supported, or audit toward disablement |
+| Azure RBAC             | Customer IT manages resource access via standard role assignments         |
 
 ### Data Sovereignty
 
@@ -265,18 +267,18 @@ No connections are made to publisher-operated servers, third-party analytics, or
 
 The App Service's system-assigned managed identity is granted the following roles, **scoped to specific resources** (not resource-group-wide):
 
-| Role                            | Resource          | Purpose                                |
-| ------------------------------- | ----------------- | -------------------------------------- |
-| `Storage Blob Data Contributor` | Storage Account   | Generate SAS tokens for browser access |
-| `Cognitive Services User`       | Azure AI Services | Access AI models via bearer token      |
-| `Key Vault Secrets User`        | Key Vault         | Read deployment secrets                |
+| Role                            | Resource          | Purpose                                                  |
+| ------------------------------- | ----------------- | -------------------------------------------------------- |
+| `Storage Blob Data Contributor` | Storage Account   | Server-side Blob Storage operations via managed identity |
+| `Cognitive Services User`       | Azure AI Services | Access AI models via bearer token                        |
+| `Key Vault Secrets User`        | Key Vault         | Read deployment secrets                                  |
 
 ### Customer IT Controls
 
 Customer IT retains full control over access management via standard Azure mechanisms:
 
 - **User access:** Managed through Entra ID — add/remove users from the App Registration
-- **Storage access:** Controlled via Azure RBAC role assignments on the Storage Account
+- **Storage access:** Controlled through same-origin server APIs, R6c document access checks, and Azure RBAC role assignments on the Storage Account
 - **AI access:** Controlled via Cognitive Services User role assignments
 - **Admin gating:** Optional App Role (`VariScout.Admin`) for restricting Admin Hub access
 - **Audit logs:** Standard Azure Activity Log and Entra ID Sign-in logs
