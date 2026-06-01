@@ -48,7 +48,12 @@ export interface BlobProjectMetadata {
   updated: string; // ISO 8601
   createdBy?: string;
   metadata?: ProjectMetadata;
+  access?: import('../db/schema').DocumentAccess;
 }
+
+export type SaveBlobProjectResult =
+  | { ok: true; etag: string }
+  | { ok: false; reason: 'precondition-failed' };
 
 // ── SAS token cache ────────────────────────────────────────────────────
 
@@ -133,38 +138,46 @@ export function blobUrl(sasUrl: string, blobPath: string): string {
 export async function saveBlobProject(
   project: Project,
   projectId: string,
-  metadata: BlobProjectMetadata
-): Promise<void> {
+  metadata: BlobProjectMetadata,
+  priorEtag?: string | null
+): Promise<SaveBlobProjectResult> {
   const sasUrl = await getSasToken();
 
   const analysisUrl = blobUrl(sasUrl, `${projectId}/analysis.json`);
   const metadataUrl = blobUrl(sasUrl, `${projectId}/metadata.json`);
 
-  const [analysisRes, metadataRes] = await Promise.all([
-    fetch(analysisUrl, {
-      method: 'PUT',
-      headers: {
-        'x-ms-blob-type': 'BlockBlob',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(project),
-    }),
-    fetch(metadataUrl, {
-      method: 'PUT',
-      headers: {
-        'x-ms-blob-type': 'BlockBlob',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(metadata),
-    }),
-  ]);
+  const analysisHeaders: Record<string, string> = {
+    'x-ms-blob-type': 'BlockBlob',
+    'Content-Type': 'application/json',
+  };
+  if (priorEtag) analysisHeaders['If-Match'] = priorEtag;
 
+  const analysisRes = await fetch(analysisUrl, {
+    method: 'PUT',
+    headers: analysisHeaders,
+    body: JSON.stringify(project),
+  });
+
+  if (analysisRes.status === 412) {
+    return { ok: false, reason: 'precondition-failed' };
+  }
   if (!analysisRes.ok) {
     throw new Error(`${analysisRes.status} Failed to save analysis blob`);
   }
+
+  const metadataRes = await fetch(metadataUrl, {
+    method: 'PUT',
+    headers: {
+      'x-ms-blob-type': 'BlockBlob',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(metadata),
+  });
   if (!metadataRes.ok) {
     throw new Error(`${metadataRes.status} Failed to save metadata blob`);
   }
+
+  return { ok: true, etag: analysisRes.headers.get('ETag') ?? '' };
 }
 
 /**

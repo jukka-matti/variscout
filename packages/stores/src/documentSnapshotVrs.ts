@@ -1,18 +1,26 @@
-import { vrsExport, vrsImport, type VrsFile } from '@variscout/core';
-import type { ProcessHub } from '@variscout/core/processHub';
 import {
   buildDocumentSnapshot,
   type BuildDocumentSnapshotOptions,
   type DocumentSnapshot,
 } from './documentSnapshot';
 
-export interface DocumentSnapshotVrsFile extends VrsFile {
+export interface DocumentSnapshotVrsMetadata {
+  exportSource?: 'pwa' | 'azure' | string;
+  appVersion?: string;
+  [key: string]: unknown;
+}
+
+export interface DocumentSnapshotVrsFile {
+  kind: 'variscout.document';
+  version: 1;
+  exportedAt: string;
+  metadata?: DocumentSnapshotVrsMetadata;
   documentSnapshot: DocumentSnapshot;
 }
 
 export interface BuildDocumentSnapshotVrsOptions {
-  activeHub: NonNullable<BuildDocumentSnapshotOptions['activeHub']> & ProcessHub;
-  metadata?: VrsFile['metadata'];
+  activeHub: NonNullable<BuildDocumentSnapshotOptions['activeHub']>;
+  metadata?: DocumentSnapshotVrsMetadata;
   exportedAt?: string;
 }
 
@@ -25,6 +33,7 @@ function isDocumentSnapshot(value: unknown): value is DocumentSnapshot {
   return (
     value.schemaVersion === 1 &&
     'hubId' in value &&
+    (isRecord(value.hub) || value.hub === null) &&
     isRecord(value.project) &&
     isRecord(value.analyze) &&
     Array.isArray(value.analyze.findings) &&
@@ -37,39 +46,49 @@ function isDocumentSnapshot(value: unknown): value is DocumentSnapshot {
   );
 }
 
-function legacyHubWithSnapshotProject(
-  activeHub: BuildDocumentSnapshotVrsOptions['activeHub'],
-  snapshot: DocumentSnapshot
-): ProcessHub {
-  const nextHub = { ...activeHub };
-  if (snapshot.improvementProject) {
-    nextHub.improvementProject = snapshot.improvementProject;
-  } else {
-    delete nextHub.improvementProject;
-  }
-  return nextHub;
+export function buildDocumentSnapshotVrs(options: BuildDocumentSnapshotVrsOptions): string {
+  const file: DocumentSnapshotVrsFile = {
+    kind: 'variscout.document',
+    version: 1,
+    exportedAt: options.exportedAt ?? new Date().toISOString(),
+    ...(options.metadata ? { metadata: options.metadata } : {}),
+    documentSnapshot: buildDocumentSnapshot({ activeHub: options.activeHub }),
+  };
+
+  return JSON.stringify(file, null, 2);
 }
 
-export function buildDocumentSnapshotVrs(options: BuildDocumentSnapshotVrsOptions): string {
-  const snapshot = buildDocumentSnapshot({ activeHub: options.activeHub });
-  return vrsExport(
-    legacyHubWithSnapshotProject(options.activeHub, snapshot),
-    snapshot.project.rawData,
-    options.metadata,
-    snapshot,
-    options.exportedAt
+export function isDocumentSnapshotVrsFile(value: unknown): value is DocumentSnapshotVrsFile {
+  return (
+    isRecord(value) &&
+    value.kind === 'variscout.document' &&
+    value.version === 1 &&
+    typeof value.exportedAt === 'string' &&
+    !('hub' in value) &&
+    !('rawData' in value) &&
+    isDocumentSnapshot(value.documentSnapshot)
   );
 }
 
-export function isDocumentSnapshotVrsFile(file: VrsFile): file is DocumentSnapshotVrsFile {
-  return isDocumentSnapshot(file.documentSnapshot);
-}
+export function parseDocumentSnapshotVrs(json: string): DocumentSnapshotVrsFile {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    throw new Error('Invalid file format.');
+  }
 
-export function parseDocumentSnapshotVrs(json: string): VrsFile | DocumentSnapshotVrsFile {
-  const parsed = vrsImport(json);
-  if (parsed.documentSnapshot === undefined) return parsed;
+  if (!isRecord(parsed) || parsed.kind !== 'variscout.document' || parsed.version !== 1) {
+    throw new Error('Invalid file format.');
+  }
+
+  if ('hub' in parsed || 'rawData' in parsed) {
+    throw new Error('Invalid file format.');
+  }
+
   if (!isDocumentSnapshot(parsed.documentSnapshot)) {
     throw new Error('Invalid .vrs documentSnapshot payload.');
   }
-  return parsed as DocumentSnapshotVrsFile;
+
+  return parsed as unknown as DocumentSnapshotVrsFile;
 }

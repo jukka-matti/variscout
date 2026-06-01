@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { BarChart2, ClipboardPaste, PenLine, ArrowUpRight } from 'lucide-react';
 import type { SampleDataset } from '@variscout/data';
 import { useTranslation } from '@variscout/hooks';
-import type { VrsFile } from '@variscout/core';
+import type { DocumentSnapshotVrsFile } from '@variscout/stores';
 import { PendingInvitesBanner } from '@variscout/ui';
 import { useProjectMembershipStore } from '@variscout/stores';
 import { VrsImportButton } from './VrsImportButton';
@@ -13,7 +13,7 @@ interface HomeScreenProps {
   onOpenPaste: () => void;
   onOpenManualEntry: () => void;
   onOpenSettings?: () => void;
-  onImportVrs?: (imported: VrsFile) => void;
+  onImportVrs?: (imported: DocumentSnapshotVrsFile) => void;
   resolveProjectName?: (projectId: string) => string | undefined;
 }
 

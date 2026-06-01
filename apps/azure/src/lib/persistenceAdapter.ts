@@ -10,11 +10,11 @@
 
 import type {
   PersistenceAdapter,
-  AnalysisState,
   SavedProject,
   ProjectExportContext,
   ProjectImportPayload,
 } from '@variscout/hooks';
+import type { DocumentSnapshot } from '@variscout/stores';
 import {
   saveProjectLocally,
   loadProjectLocally,
@@ -50,10 +50,7 @@ export const azurePersistenceAdapter: PersistenceAdapter = {
    * Save project to local IndexedDB
    * Note: In Azure, the 'id' parameter is treated as the project name
    */
-  saveProject: async (
-    name: string,
-    state: Omit<AnalysisState, 'version'>
-  ): Promise<SavedProject> => {
+  saveProject: async (name: string, state: DocumentSnapshot): Promise<SavedProject> => {
     const project = await saveProjectLocally(name, state, defaultLocation);
     // Return with location typed as string for interface compatibility
     return {
@@ -104,12 +101,8 @@ export const azurePersistenceAdapter: PersistenceAdapter = {
     await renameProjectLocally(id, newName);
   },
 
-  exportToFile: (
-    state: Omit<AnalysisState, 'version'>,
-    filename: string,
-    context?: ProjectExportContext
-  ): void => {
-    exportToFileImpl(state, filename, context);
+  exportToFile: (filename: string, context: ProjectExportContext): void => {
+    exportToFileImpl(filename, context);
   },
 
   importFromFile: async (file: File): Promise<ProjectImportPayload> => {

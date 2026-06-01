@@ -7,22 +7,13 @@
 
 import type {
   DataRow,
+  DataQualityReport,
   StatsResult,
   SpecLimits,
-  DataQualityReport,
   ParetoRow,
-  FilterAction,
-  StageOrderMode,
-  Finding,
-  Hypothesis,
-  CausalLink,
-  ProcessContext,
-  AnalyzeCategory,
-  EntryScenario,
-  StackConfig,
   ProcessHub,
 } from '@variscout/core';
-import type { DocumentSnapshotVrsFile } from '@variscout/stores';
+import type { DocumentSnapshot, DocumentSnapshotVrsFile } from '@variscout/stores';
 
 // Re-export canonical UI types from @variscout/core/ui-types
 export type {
@@ -39,14 +30,7 @@ export type {
 // Re-export for convenience
 export type { DataQualityReport, ParetoRow };
 
-// Import UI types for local use in AnalysisState interface
-import type {
-  ScaleMode,
-  DisplayOptions,
-  ChartTitles,
-  ParetoMode,
-  ViewState,
-} from '@variscout/core/ui-types';
+import type { ScaleMode } from '@variscout/core/ui-types';
 
 /**
  * Minimal interface for chart scale calculation
@@ -104,112 +88,12 @@ export interface DataContextInterface {
 // Persistence Types - For shared DataContext hook
 // ============================================================================
 
-/**
- * Saved analysis state
- */
-export interface AnalysisState {
-  version: string;
-  rawData: DataRow[];
-  outcome: string | null;
-  factors: string[];
-  specs: SpecLimits;
-  /** Per-measure spec overrides for Performance Mode (keyed by measure column name) */
-  measureSpecs?: Record<string, SpecLimits>;
-  filters: Record<string, (string | number)[]>;
-  axisSettings: { min?: number; max?: number; scaleMode?: ScaleMode };
-  columnAliases?: Record<string, string>;
-  valueLabels?: Record<string, Record<string, string>>;
-  displayOptions?: DisplayOptions;
-
-  // --- Quick-win workflow fields (Phase 1) ---
-  /** Cpk target for Performance Mode (default: 1.33) */
-  cpkTarget?: number;
-  /** Staged analysis column */
-  stageColumn?: string | null;
-  /** Stage ordering mode */
-  stageOrderMode?: StageOrderMode;
-  /** Analysis mode */
-  analysisMode?: import('@variscout/core').AnalysisMode;
-  /** Selected measure columns for Performance Mode */
-  measureColumns?: string[];
-  /** Active channel drill in Performance Mode */
-  selectedMeasure?: string | null;
-  /** Measure axis label (default: 'Measure') */
-  measureLabel?: string;
-  /** Custom chart titles for reporting/export */
-  chartTitles?: ChartTitles;
-
-  // --- Pareto configuration ---
-  /** Pareto chart data mode (default: 'derived') */
-  paretoMode?: ParetoMode;
-  /** Pareto chart aggregation mode (default: 'count') */
-  paretoAggregation?: 'count' | 'value';
-  /** Separately uploaded Pareto data (when paretoMode = 'separate') */
-  separateParetoData?: ParetoRow[];
-
-  // --- Time column ---
-  /** Time column for I-Chart ordering */
-  timeColumn?: string | null;
-
-  // --- Filter stack ordering (Phase 2) ---
-  /** Ordered filter drill trail — reconstructs breadcrumbs on reload */
-  filterStack?: FilterAction[];
-
-  // --- Stack (wide-form to long-form transform) ---
-  /** Stack config if data was reshaped from wide-form. Re-applied on project reload. */
-  stackConfig?: StackConfig;
-
-  // --- View state (Phase 4) ---
-  /** Where the analyst was working (tab, panels, focused chart) */
-  viewState?: ViewState;
-
-  // --- Findings (scouting report) ---
-  /** Analyst findings — bookmarked filter states with notes */
-  findings?: Finding[];
-  /** ID of the active benchmark finding (Phase 3) */
-  benchmarkFindingId?: string;
-
-  // --- Investigation categories (dynamic factor grouping) ---
-  /** User-defined categories grouping factor columns */
-  categories?: AnalyzeCategory[];
-
-  // --- Hypotheses (investigation synthesis) ---
-  /** Hypothesis hubs connecting evidence threads */
-  hypotheses?: Hypothesis[];
-
-  // --- Causal links (investigation DAG) ---
-  /** Causal links between factors (investigation DAG) */
-  causalLinks?: CausalLink[];
-
-  // --- AI process context ---
-  /** Process description for AI grounding */
-  processContext?: ProcessContext;
-
-  // --- Entry scenario ---
-  /** What prompted the analyst to start this analysis */
-  entryScenario?: EntryScenario;
-
-  // --- Knowledge Base scope (ADR-026) ---
-  /** Custom SharePoint folder path for Knowledge Base search (overrides channel folder) */
-  knowledgeSearchFolder?: string;
-
-  // --- Improvement prioritization (ADR-035) ---
-  /** Risk matrix axis configuration (default: process × safety) */
-  riskAxisConfig?: import('@variscout/core').RiskAxisConfig;
-  /** Budget for improvement planning */
-  budgetConfig?: import('@variscout/core').BudgetConfig;
-
-  // --- Subgroup capability analysis ---
-  /** Subgroup configuration for capability mode */
-  subgroupConfig?: import('@variscout/core').SubgroupConfig;
-}
-
 export interface DocumentSnapshotImport {
   kind: 'document-snapshot';
   file: DocumentSnapshotVrsFile;
 }
 
-export type ProjectImportPayload = AnalysisState | DocumentSnapshotImport;
+export type ProjectImportPayload = DocumentSnapshotImport;
 
 export interface ProjectExportContext {
   activeHub?: ProcessHub | null;
@@ -221,7 +105,7 @@ export interface ProjectExportContext {
 export interface SavedProject {
   id: string;
   name: string;
-  state: AnalysisState;
+  state: DocumentSnapshot;
   savedAt: string;
   rowCount: number;
   location?: string; // Azure app uses this for team/personal
@@ -233,7 +117,7 @@ export interface SavedProject {
  */
 export interface PersistenceAdapter {
   /** Save project to storage */
-  saveProject: (name: string, state: Omit<AnalysisState, 'version'>) => Promise<SavedProject>;
+  saveProject: (name: string, state: DocumentSnapshot) => Promise<SavedProject>;
 
   /** Load project from storage */
   loadProject: (id: string) => Promise<SavedProject | undefined>;
@@ -248,11 +132,7 @@ export interface PersistenceAdapter {
   renameProject: (id: string, newName: string) => Promise<void>;
 
   /** Export state to file */
-  exportToFile: (
-    state: Omit<AnalysisState, 'version'>,
-    filename: string,
-    context?: ProjectExportContext
-  ) => void;
+  exportToFile: (filename: string, context: ProjectExportContext) => void;
 
   /** Import state from file */
   importFromFile: (file: File) => Promise<ProjectImportPayload>;

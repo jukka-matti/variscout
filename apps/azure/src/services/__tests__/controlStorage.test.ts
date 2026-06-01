@@ -108,7 +108,7 @@ const seedProject = async () => {
     location: 'personal' as const,
     modified: new Date('2026-04-26T00:00:00.000Z'),
     synced: true,
-    data: {},
+    data: {} as never,
     meta: {
       phase: 'frame',
       findingCounts: {},

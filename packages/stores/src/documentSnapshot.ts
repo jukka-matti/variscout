@@ -13,7 +13,7 @@ import { useImprovementProjectStore } from './improvementProjectStore';
 import { useProjectStore, type SerializedProject, type ProjectState } from './projectStore';
 
 export interface BuildDocumentSnapshotOptions {
-  activeHub?: Pick<ProcessHub, 'id' | 'improvementProject'> | null;
+  activeHub?: (Pick<ProcessHub, 'id'> & Partial<ProcessHub>) | null;
 }
 
 export interface AnalyzeDocumentSnapshot {
@@ -30,9 +30,23 @@ export type ProjectDocumentSnapshot = Omit<
 > &
   Pick<ProjectState, 'entryScenario' | 'processContext'>;
 
+export interface DocumentHubSnapshot {
+  id: ProcessHub['id'];
+  name: ProcessHub['name'];
+  description?: ProcessHub['description'];
+  processOwner?: ProcessHub['processOwner'];
+  processGoal?: ProcessHub['processGoal'];
+  reviewSignal?: ProcessHub['reviewSignal'];
+  contextColumns?: ProcessHub['contextColumns'];
+  createdAt: ProcessHub['createdAt'];
+  updatedAt?: ProcessHub['updatedAt'];
+  deletedAt: ProcessHub['deletedAt'];
+}
+
 export interface DocumentSnapshot {
   schemaVersion: 1;
   hubId: ProcessHub['id'] | null;
+  hub: DocumentHubSnapshot | null;
   project: ProjectDocumentSnapshot;
   analyze: AnalyzeDocumentSnapshot;
   canvas: CanvasDocumentSnapshot;
@@ -40,6 +54,7 @@ export interface DocumentSnapshot {
 }
 
 function cloneJson<T>(value: T): T {
+  if (value === undefined) return value;
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
@@ -113,6 +128,25 @@ function selectImprovementProject(
   );
 }
 
+function buildHubSnapshot(
+  activeHub: BuildDocumentSnapshotOptions['activeHub']
+): DocumentHubSnapshot | null {
+  if (!activeHub) return null;
+
+  return cloneJson({
+    id: activeHub.id,
+    name: activeHub.name ?? 'Untitled Project',
+    description: activeHub.description,
+    processOwner: activeHub.processOwner,
+    processGoal: activeHub.processGoal,
+    reviewSignal: activeHub.reviewSignal,
+    contextColumns: activeHub.contextColumns,
+    createdAt: activeHub.createdAt ?? Date.now(),
+    updatedAt: activeHub.updatedAt,
+    deletedAt: activeHub.deletedAt ?? null,
+  });
+}
+
 export function buildDocumentSnapshot(
   options: BuildDocumentSnapshotOptions = {}
 ): DocumentSnapshot {
@@ -122,11 +156,38 @@ export function buildDocumentSnapshot(
   return {
     schemaVersion: 1,
     hubId: activeHub?.id ?? null,
+    hub: buildHubSnapshot(activeHub),
     project: buildProjectSnapshot(useProjectStore.getState()),
     analyze: buildAnalyzeSnapshot(),
     canvas: buildCanvasSnapshot(),
     improvementProject: cloneJson(improvementProject),
   };
+}
+
+export function reconstructProcessHubFromDocumentSnapshot(snapshot: DocumentSnapshot): ProcessHub {
+  const hub = snapshot.hub;
+  const id = hub?.id ?? snapshot.hubId;
+  if (!id) {
+    throw new Error('Cannot reconstruct a ProcessHub from a snapshot without a hub id.');
+  }
+
+  return cloneJson({
+    id,
+    name: hub?.name ?? snapshot.project.projectName ?? 'Untitled Project',
+    description: hub?.description,
+    processOwner: hub?.processOwner,
+    processGoal: hub?.processGoal,
+    reviewSignal: hub?.reviewSignal,
+    contextColumns: hub?.contextColumns,
+    createdAt: hub?.createdAt ?? Date.now(),
+    updatedAt: hub?.updatedAt,
+    deletedAt: hub?.deletedAt ?? null,
+    canonicalProcessMap: snapshot.canvas.canonicalMap,
+    canonicalMapVersion: snapshot.canvas.canonicalMapVersion,
+    outcomes: snapshot.canvas.outcomes,
+    primaryScopeDimensions: snapshot.canvas.primaryScopeDimensions,
+    ...(snapshot.improvementProject ? { improvementProject: snapshot.improvementProject } : {}),
+  });
 }
 
 export function resetDocumentStores(): void {

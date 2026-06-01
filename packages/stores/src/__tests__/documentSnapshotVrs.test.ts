@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { ProcessHub } from '@variscout/core';
-import {
-  buildDocumentSnapshotVrs,
-  isDocumentSnapshotVrsFile,
-  parseDocumentSnapshotVrs,
-} from '../documentSnapshotVrs';
+import { buildDocumentSnapshotVrs, parseDocumentSnapshotVrs } from '../documentSnapshotVrs';
 import { getAnalyzeInitialState, useAnalyzeStore } from '../analyzeStore';
 import { useCanvasStore } from '../canvasStore';
 import {
@@ -42,7 +38,7 @@ beforeEach(() => {
 });
 
 describe('document snapshot .vrs helpers', () => {
-  it('builds an additive .vrs file with legacy fields and documentSnapshot', () => {
+  it('builds a snapshot-only .vrs file without legacy hub or rawData fields', () => {
     useProjectStore.setState({
       ...getProjectInitialState(),
       projectName: 'Snapshot project',
@@ -73,21 +69,23 @@ describe('document snapshot .vrs helpers', () => {
     const parsed = JSON.parse(json);
 
     expect(parsed).toMatchObject({
-      version: '1.0',
+      kind: 'variscout.document',
+      version: 1,
       exportedAt: '2026-06-01T00:00:00.000Z',
-      hub: { id: 'hub-1', processGoal: 'Reduce molding scrap.' },
-      rawData: [{ yield: 91, line: 'A' }],
       metadata: { exportSource: 'pwa', appVersion: 'test' },
       documentSnapshot: {
         schemaVersion: 1,
         hubId: 'hub-1',
+        hub: { id: 'hub-1', processGoal: 'Reduce molding scrap.' },
         project: { rawData: [{ yield: 91, line: 'A' }], outcome: 'yield' },
         analyze: { scopes: [expect.objectContaining({ id: 'scope-1' })] },
       },
     });
+    expect(parsed).not.toHaveProperty('hub');
+    expect(parsed).not.toHaveProperty('rawData');
   });
 
-  it('parses snapshot and legacy .vrs files', () => {
+  it('parses only snapshot .vrs files', () => {
     useProjectStore.setState({
       ...getProjectInitialState(),
       rawData: [{ yield: 91 }],
@@ -97,31 +95,64 @@ describe('document snapshot .vrs helpers', () => {
       buildDocumentSnapshotVrs({ activeHub: hub, exportedAt: '2026-06-01T00:00:00.000Z' })
     );
 
-    expect(isDocumentSnapshotVrsFile(snapshotFile)).toBe(true);
-    if (isDocumentSnapshotVrsFile(snapshotFile)) {
-      expect(snapshotFile.documentSnapshot.hubId).toBe('hub-1');
-    }
+    expect(snapshotFile.documentSnapshot.hubId).toBe('hub-1');
 
-    const legacyFile = parseDocumentSnapshotVrs(
-      JSON.stringify({
-        version: '1.0',
-        exportedAt: '2026-06-01T00:00:00.000Z',
-        hub,
-        rawData: [{ yield: 88 }],
-      })
-    );
-    expect(isDocumentSnapshotVrsFile(legacyFile)).toBe(false);
-    expect(legacyFile.rawData).toEqual([{ yield: 88 }]);
+    expect(() =>
+      parseDocumentSnapshotVrs(
+        JSON.stringify({
+          version: '1.0',
+          exportedAt: '2026-06-01T00:00:00.000Z',
+          hub,
+          rawData: [{ yield: 88 }],
+        })
+      )
+    ).toThrow(/invalid file format/i);
+  });
+
+  it('rejects raw legacy analysis-state JSON', () => {
+    expect(() =>
+      parseDocumentSnapshotVrs(
+        JSON.stringify({
+          rawData: [{ yield: 88 }],
+          outcome: 'yield',
+          factors: [],
+          version: '1.0.0',
+        })
+      )
+    ).toThrow(/invalid file format/i);
   });
 
   it('rejects malformed documentSnapshot payloads', () => {
     const malformed = JSON.stringify({
-      version: '1.0',
+      kind: 'variscout.document',
+      version: 1,
       exportedAt: '2026-06-01T00:00:00.000Z',
-      hub,
       documentSnapshot: { schemaVersion: 2, hubId: 'hub-1' },
     });
 
     expect(() => parseDocumentSnapshotVrs(malformed)).toThrow(/invalid.*documentSnapshot/i);
+  });
+
+  it('rejects snapshot files that still use top-level hub/rawData fields', () => {
+    expect(() =>
+      parseDocumentSnapshotVrs(
+        JSON.stringify({
+          kind: 'variscout.document',
+          version: 1,
+          exportedAt: '2026-06-01T00:00:00.000Z',
+          hub,
+          rawData: [{ yield: 88 }],
+          documentSnapshot: {
+            schemaVersion: 1,
+            hubId: 'hub-1',
+            hub: { id: 'hub-1', name: 'Hub', createdAt: now, deletedAt: null },
+            project: {},
+            analyze: { findings: [], categories: [], hypotheses: [], causalLinks: [], scopes: [] },
+            canvas: { canonicalMap: { version: 1, nodes: [], tributaries: [] } },
+            improvementProject: null,
+          },
+        })
+      )
+    ).toThrow(/invalid file format/i);
   });
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import React from 'react';
+import type { DocumentSnapshot } from '@variscout/stores';
 
 // ---------------------------------------------------------------------------
 // Hoisted mock objects (available inside vi.mock factories)
@@ -42,7 +43,7 @@ const {
   mockGetPending: vi.fn().mockResolvedValue([]),
   mockRemoveFromQueue: vi.fn().mockResolvedValue(undefined),
   mockPruneSyncQueue: vi.fn().mockResolvedValue(0),
-  mockSaveBlobProject: vi.fn().mockResolvedValue(undefined),
+  mockSaveBlobProject: vi.fn().mockResolvedValue({ ok: true, etag: '"mock-etag"' }),
   mockLoadBlobProject: vi.fn().mockResolvedValue(null),
   mockLoadBlobMetadata: vi.fn().mockResolvedValue(null),
   mockListBlobProjects: vi.fn().mockResolvedValue([]),
@@ -160,7 +161,57 @@ import type { SyncStatus, CloudProject, StorageLocation } from '../storage';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-const sampleProject = { data: [1, 2, 3], specs: { usl: 10, lsl: 0 } };
+function makeSnapshot(overrides: Partial<DocumentSnapshot> = {}): DocumentSnapshot {
+  return {
+    schemaVersion: 1,
+    hubId: 'hub-1',
+    hub: {
+      id: 'hub-1',
+      name: 'Test Hub',
+      createdAt: 1714000000000,
+      deletedAt: null,
+    },
+    project: {
+      projectId: 'project-1',
+      projectName: 'Snapshot project',
+      rawData: [
+        { value: 1, line: 'A' },
+        { value: 2, line: 'B' },
+        { value: 3, line: 'C' },
+      ],
+      outcome: 'value',
+      factors: ['line'],
+      specs: { usl: 10, lsl: 0 },
+      analysisMode: 'standard',
+      processContext: null,
+    } as unknown as DocumentSnapshot['project'],
+    analyze: {
+      findings: [],
+      categories: [],
+      hypotheses: [],
+      causalLinks: [],
+      scopes: [],
+    },
+    canvas: {
+      canonicalMap: {
+        version: 1,
+        nodes: [],
+        tributaries: [],
+        assignments: {},
+        arrows: [],
+        createdAt: '2026-04-26T00:00:00.000Z',
+        updatedAt: '2026-04-26T00:00:00.000Z',
+      },
+      outcomes: [],
+      primaryScopeDimensions: [],
+      canonicalMapVersion: 'v1',
+    },
+    improvementProject: null,
+    ...overrides,
+  };
+}
+
+const sampleProject = makeSnapshot();
 
 /** Wrapper that provides StorageProvider context for hook tests. */
 function wrapper({ children }: { children: React.ReactNode }) {
@@ -338,6 +389,31 @@ describe('storage service', () => {
       expect(result.current.syncStatus.status).toBe('synced');
     });
 
+    it('stores quick-analysis cloud saves as private to the creator', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockListBlobProjects.mockResolvedValueOnce([]);
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'private-quick-analysis', 'personal');
+      });
+
+      expect(mockSaveBlobProject).toHaveBeenCalledWith(
+        sampleProject,
+        expect.any(String),
+        expect.objectContaining({
+          access: {
+            ownerUserId: 'test-user',
+            memberUserIds: ['test-user'],
+            hubId: 'hub-1',
+            projectId: null,
+          },
+        }),
+        undefined
+      );
+    });
+
     it('gracefully degrades when Blob Storage not configured (503)', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
       mockSaveBlobProject.mockRejectedValueOnce(new Error('503 Blob Storage not configured'));
@@ -362,7 +438,13 @@ describe('storage service', () => {
     it('loads from Blob Storage when online', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
-      const cloudData = { data: [42], specs: { usl: 100 } };
+      const cloudData = makeSnapshot({
+        project: {
+          ...sampleProject.project,
+          rawData: [{ value: 42 }],
+          specs: { usl: 100 },
+        },
+      });
       // db.syncState.get returns a cloudId so loadFromCloud can resolve the project
       mockSyncState.get.mockResolvedValueOnce({
         cloudId: 'uuid-remote-proj',
@@ -392,7 +474,13 @@ describe('storage service', () => {
       mockProjects.get.mockResolvedValueOnce(null);
       // loadBlobProject throws 503 → CloudSyncUnavailableError → fallback
       mockLoadBlobProject.mockRejectedValueOnce(new Error('503 Blob Storage not configured'));
-      const localData = { data: [42], specs: { usl: 100 } };
+      const localData = makeSnapshot({
+        project: {
+          ...sampleProject.project,
+          rawData: [{ value: 42 }],
+          specs: { usl: 100 },
+        },
+      });
       mockProjects.get.mockResolvedValueOnce({ data: localData });
 
       const { result } = renderHook(() => useStorage(), { wrapper });
@@ -408,7 +496,13 @@ describe('storage service', () => {
     it('falls back to IndexedDB when offline', async () => {
       Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
 
-      const localData = { data: [10, 20], specs: { usl: 50, lsl: 5 } };
+      const localData = makeSnapshot({
+        project: {
+          ...sampleProject.project,
+          rawData: [{ value: 10 }, { value: 20 }],
+          specs: { usl: 50, lsl: 5 },
+        },
+      });
       mockProjects.get.mockResolvedValueOnce({ data: localData });
 
       const { result } = renderHook(() => useStorage(), { wrapper });
@@ -425,10 +519,12 @@ describe('storage service', () => {
     it('preserves an accepted Survey next move through local save/load', async () => {
       Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
 
-      const projectWithSurveyMove = {
-        ...sampleProject,
-        processContext: { nextMove: 'Set LSL or USL for the mapped outcome.' },
-      };
+      const projectWithSurveyMove = makeSnapshot({
+        project: {
+          ...sampleProject.project,
+          processContext: { nextMove: 'Set LSL or USL for the mapped outcome.' },
+        },
+      });
       let savedData: unknown;
       mockProjects.put.mockImplementationOnce(async record => {
         savedData = record.data;
@@ -453,7 +549,12 @@ describe('storage service', () => {
     it('falls back to IndexedDB when cloud load fails (network error)', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
-      const localFallback = { data: [99] };
+      const localFallback = makeSnapshot({
+        project: {
+          ...sampleProject.project,
+          rawData: [{ value: 99 }],
+        },
+      });
       // First db.projects.get: conflict detection (returns null — no local record)
       mockProjects.get.mockResolvedValueOnce(null);
       // loadBlobProject throws network error
@@ -500,8 +601,18 @@ describe('storage service', () => {
       Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
 
       mockProjects.toArray.mockResolvedValueOnce([
-        { name: 'local-1', location: 'personal', modified: new Date('2026-01-01') },
-        { name: 'local-2', location: 'personal', modified: new Date('2026-01-15') },
+        {
+          name: 'local-1',
+          location: 'personal',
+          modified: new Date('2026-01-01'),
+          data: sampleProject,
+        },
+        {
+          name: 'local-2',
+          location: 'personal',
+          modified: new Date('2026-01-15'),
+          data: sampleProject,
+        },
       ]);
 
       const { result } = renderHook(() => useStorage(), { wrapper });
@@ -520,8 +631,18 @@ describe('storage service', () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
       mockProjects.toArray.mockResolvedValueOnce([
-        { name: 'shared', location: 'personal', modified: new Date('2026-01-01') },
-        { name: 'local-only', location: 'personal', modified: new Date('2026-02-01') },
+        {
+          name: 'shared',
+          location: 'personal',
+          modified: new Date('2026-01-01'),
+          data: sampleProject,
+        },
+        {
+          name: 'local-only',
+          location: 'personal',
+          modified: new Date('2026-02-01'),
+          data: sampleProject,
+        },
       ]);
       // listBlobProjects returns an empty index (no cloud projects yet)
       mockListBlobProjects.mockResolvedValueOnce([]);
@@ -543,11 +664,55 @@ describe('storage service', () => {
       );
     });
 
+    it('excludes cloud projects where the current user is not owner or invited', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+
+      mockProjects.toArray.mockResolvedValueOnce([]);
+      mockListBlobProjects.mockResolvedValueOnce([
+        {
+          projectId: 'visible-id',
+          name: 'visible',
+          updated: '2026-02-01T00:00:00.000Z',
+          access: {
+            ownerUserId: 'owner-user',
+            memberUserIds: ['owner-user', 'test-user'],
+            hubId: 'hub-1',
+            projectId: 'ip-1',
+          },
+        },
+        {
+          projectId: 'hidden-id',
+          name: 'hidden',
+          updated: '2026-02-01T00:00:00.000Z',
+          access: {
+            ownerUserId: 'other-user',
+            memberUserIds: ['other-user'],
+            hubId: 'hub-2',
+            projectId: 'ip-2',
+          },
+        },
+      ]);
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let projects: CloudProject[] = [];
+
+      await act(async () => {
+        projects = await result.current.listProjects();
+      });
+
+      expect(projects.map(project => project.name)).toEqual(['visible']);
+    });
+
     it('returns local projects when cloud listing fails', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
       mockProjects.toArray.mockResolvedValueOnce([
-        { name: 'safe-local', location: 'personal', modified: new Date('2026-02-01') },
+        {
+          name: 'safe-local',
+          location: 'personal',
+          modified: new Date('2026-02-01'),
+          data: sampleProject,
+        },
       ]);
 
       mockListBlobProjects.mockRejectedValueOnce(new Error('Network error'));
@@ -698,7 +863,7 @@ describe('storage service', () => {
           id: 1,
           name: 'queued-1',
           location: 'personal' as const,
-          project: { d: 1 },
+          project: sampleProject,
           queuedAt: '2026-02-01T00:00:00Z',
         },
       ];
@@ -733,7 +898,7 @@ describe('storage service', () => {
       expect(mockRemoveFromQueue).not.toHaveBeenCalled();
 
       // Reset mocks for other tests
-      mockSaveBlobProject.mockResolvedValue(undefined);
+      mockSaveBlobProject.mockResolvedValue({ ok: true, etag: '"mock-etag"' });
       mockListBlobProjects.mockResolvedValue([]);
     });
   });

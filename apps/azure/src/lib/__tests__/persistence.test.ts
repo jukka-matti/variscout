@@ -15,7 +15,7 @@ beforeEach(() => {
 });
 
 describe('Azure persistence .vrs import/export', () => {
-  it('exports a document snapshot .vrs when activeHub is supplied', async () => {
+  it('exports a snapshot-only document .vrs when activeHub is supplied', async () => {
     useProjectStore.setState({
       ...getProjectInitialState(),
       rawData: [{ yield: 91 }],
@@ -27,60 +27,39 @@ describe('Azure persistence .vrs import/export', () => {
     Object.defineProperty(URL, 'revokeObjectURL', { value: revokeObjectURL, configurable: true });
     HTMLAnchorElement.prototype.click = vi.fn();
 
-    exportToFile(
-      {
-        rawData: [{ stale: true }],
-        outcome: null,
-        factors: [],
-        specs: {},
-        filters: {},
-        axisSettings: {},
-      },
-      'snapshot.vrs',
-      { activeHub: hub }
-    );
+    exportToFile('snapshot.vrs', { activeHub: hub });
 
     const blob = createObjectURL.mock.calls[0]?.[0] as Blob;
     const parsed = JSON.parse(await blob.text());
+    expect(parsed.kind).toBe('variscout.document');
+    expect(parsed.version).toBe(1);
     expect(parsed.metadata.exportSource).toBe('azure');
-    expect(parsed.rawData).toEqual([{ yield: 91 }]);
+    expect(parsed).not.toHaveProperty('rawData');
+    expect(parsed).not.toHaveProperty('hub');
     expect(parsed.documentSnapshot.project.outcome).toBe('yield');
   });
 
-  it('keeps legacy AnalysisState export when activeHub is not supplied', async () => {
+  it('throws when exporting without an active hub', async () => {
     const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:mock');
     Object.defineProperty(URL, 'createObjectURL', { value: createObjectURL, configurable: true });
     Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), configurable: true });
     HTMLAnchorElement.prototype.click = vi.fn();
 
-    exportToFile(
-      {
-        rawData: [{ yield: 91 }],
-        outcome: 'yield',
-        factors: [],
-        specs: {},
-        filters: {},
-        axisSettings: {},
-      },
-      'legacy.vrs'
-    );
-
-    const blob = createObjectURL.mock.calls[0]?.[0] as Blob;
-    const parsed = JSON.parse(await blob.text());
-    expect(parsed.version).toBe('1.0.0');
-    expect(parsed.documentSnapshot).toBeUndefined();
+    expect(() => exportToFile('legacy.vrs', { activeHub: null })).toThrow(/active hub/i);
+    expect(createObjectURL).not.toHaveBeenCalled();
   });
 
   it('imports snapshot .vrs files as document snapshot imports', async () => {
     const file = new File(
       [
         JSON.stringify({
-          version: '1.0',
+          kind: 'variscout.document',
+          version: 1,
           exportedAt: '2026-06-01T00:00:00.000Z',
-          hub,
           documentSnapshot: {
             schemaVersion: 1,
             hubId: 'hub-1',
+            hub: { id: 'hub-1', name: 'Hub 1', createdAt: 1_714_000_000_000, deletedAt: null },
             project: {
               projectId: '',
               projectName: 'Snapshot',
@@ -110,5 +89,23 @@ describe('Azure persistence .vrs import/export', () => {
       kind: 'document-snapshot',
       file: { documentSnapshot: { hubId: 'hub-1' } },
     });
+  });
+
+  it('rejects non-snapshot JSON imports', async () => {
+    const file = new File(
+      [
+        JSON.stringify({
+          version: '1.0.0',
+          rawData: [],
+          outcome: null,
+          factors: [],
+          specs: {},
+        }),
+      ],
+      'legacy.vrs',
+      { type: 'application/json' }
+    );
+
+    await expect(importFromFile(file)).rejects.toThrow(/invalid file format/i);
   });
 });

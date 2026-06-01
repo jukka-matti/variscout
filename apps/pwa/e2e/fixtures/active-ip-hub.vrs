@@ -1,81 +1,113 @@
 {
-  "version": "1.0",
+  "kind": "variscout.document",
+  "version": 1,
   "exportedAt": "2026-05-15T00:00:00.000Z",
-  "hub": {
-    "id": "e2e-active-ip-hub",
-    "name": "Syringe barrel moulding",
-    "processGoal": "Lift syringe barrel weight capability on the fill step.",
-    "createdAt": 1747267200000,
-    "updatedAt": 1747267200000,
-    "outcomes": [
-      {
-        "id": "outcome-weight",
-        "hubId": "e2e-active-ip-hub",
-        "columnName": "weight_g",
-        "characteristicType": "nominalIsBest",
-        "target": 4.5,
-        "usl": 4.7,
-        "lsl": 4.3,
-        "cpkTarget": 1.33,
-        "createdAt": 1747267200000,
-        "deletedAt": null
-      }
-    ],
-    "primaryScopeDimensions": ["product", "shift"],
-    "improvementProjects": [
-      {
-        "id": "ip-fill-cpk",
-        "hubId": "e2e-active-ip-hub",
-        "createdAt": 1747267200000,
-        "updatedAt": 1747267200000,
-        "deletedAt": null,
-        "status": "active",
-        "metadata": { "title": "Fill Cpk lift" },
-        "goal": {
-          "outcomeGoals": [{ "outcomeSpecId": "outcome-weight", "target": 1.33 }],
-          "factorControls": [{ "factor": "shift", "targetCondition": "morning stable" }]
-        },
-        "sections": {
-          "background": {},
-          "investigationLineage": {},
-          "approach": {},
-          "outcomeReference": {}
-        }
-      },
-      {
-        "id": "ip-evening-drift",
-        "hubId": "e2e-active-ip-hub",
-        "createdAt": 1747180800000,
-        "updatedAt": 1747180800000,
-        "deletedAt": null,
-        "status": "draft",
-        "metadata": { "title": "Evening drift charter" },
-        "goal": {
-          "outcomeGoals": [{ "outcomeSpecId": "outcome-weight", "target": 1.33 }]
-        },
-        "sections": {
-          "background": {},
-          "investigationLineage": {},
-          "approach": {},
-          "outcomeReference": {}
-        }
-      }
-    ]
-  },
-  "rawData": [
-    { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B1" },
-    { "weight_g": 4.4, "product": "A", "shift": "morning", "batch_id": "B1" },
-    { "weight_g": 4.6, "product": "B", "shift": "evening", "batch_id": "B2" },
-    { "weight_g": 4.5, "product": "B", "shift": "evening", "batch_id": "B2" },
-    { "weight_g": 4.4, "product": "A", "shift": "morning", "batch_id": "B3" },
-    { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B3" },
-    { "weight_g": 4.6, "product": "B", "shift": "evening", "batch_id": "B4" },
-    { "weight_g": 4.3, "product": "A", "shift": "morning", "batch_id": "B4" },
-    { "weight_g": 4.7, "product": "B", "shift": "evening", "batch_id": "B5" },
-    { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B5" }
-  ],
   "metadata": {
     "exportSource": "pwa",
     "appVersion": "e2e-active-ip-fixture"
+  },
+  "documentSnapshot": {
+    "schemaVersion": 1,
+    "hubId": "e2e-active-ip-hub",
+    "hub": {
+      "id": "e2e-active-ip-hub",
+      "name": "Syringe barrel moulding",
+      "processGoal": "Lift syringe barrel weight capability on the fill step.",
+      "createdAt": 1747267200000,
+      "updatedAt": 1747267200000,
+      "deletedAt": null
+    },
+    "project": {
+      "projectId": "e2e-active-ip-hub",
+      "projectName": "Syringe barrel moulding",
+      "rawData": [
+        { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B1" },
+        { "weight_g": 4.4, "product": "A", "shift": "morning", "batch_id": "B1" },
+        { "weight_g": 4.6, "product": "B", "shift": "evening", "batch_id": "B2" },
+        { "weight_g": 4.5, "product": "B", "shift": "evening", "batch_id": "B2" },
+        { "weight_g": 4.4, "product": "A", "shift": "morning", "batch_id": "B3" },
+        { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B3" },
+        { "weight_g": 4.6, "product": "B", "shift": "evening", "batch_id": "B4" },
+        { "weight_g": 4.3, "product": "A", "shift": "morning", "batch_id": "B4" },
+        { "weight_g": 4.7, "product": "B", "shift": "evening", "batch_id": "B5" },
+        { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B5" }
+      ],
+      "outcome": "weight_g",
+      "factors": ["product", "shift"],
+      "specs": { "weight_g": { "lsl": 4.3, "usl": 4.7, "target": 4.5 } },
+      "analysisMode": "standard",
+      "dataFilename": "syringe-barrel.csv",
+      "timeColumn": null,
+      "processContext": {
+        "processHubId": "e2e-active-ip-hub"
+      },
+      "entryScenario": "process"
+    },
+    "analyze": {
+      "findings": [],
+      "categories": [],
+      "hypotheses": [],
+      "causalLinks": [],
+      "scopes": []
+    },
+    "canvas": {
+      "canonicalMap": {
+        "version": 1,
+        "nodes": [],
+        "tributaries": [],
+        "assignments": {},
+        "arrows": [],
+        "createdAt": "2026-05-15T00:00:00.000Z",
+        "updatedAt": "2026-05-15T00:00:00.000Z"
+      },
+      "outcomes": [
+        {
+          "id": "outcome-weight",
+          "hubId": "e2e-active-ip-hub",
+          "columnName": "weight_g",
+          "characteristicType": "nominalIsBest",
+          "target": 4.5,
+          "usl": 4.7,
+          "lsl": 4.3,
+          "cpkTarget": 1.33,
+          "createdAt": 1747267200000,
+          "deletedAt": null
+        }
+      ],
+      "primaryScopeDimensions": ["product", "shift"],
+      "canonicalMapVersion": "canvas-map-0"
+    },
+    "improvementProject": {
+      "id": "ip-fill-cpk",
+      "hubId": "e2e-active-ip-hub",
+      "createdAt": 1747267200000,
+      "updatedAt": 1747267200000,
+      "deletedAt": null,
+      "status": "active",
+      "metadata": {
+        "title": "Fill Cpk lift",
+        "members": [
+          {
+            "id": "pm-lead",
+            "userId": "lead@example.com",
+            "displayName": "Lead User",
+            "role": "lead",
+            "invitedAt": 1747267200000,
+            "createdAt": 1747267200000,
+            "deletedAt": null
+          }
+        ]
+      },
+      "goal": {
+        "outcomeGoals": [{ "outcomeSpecId": "outcome-weight", "target": 1.33 }],
+        "factorControls": [{ "factor": "shift", "targetCondition": "morning stable" }]
+      },
+      "sections": {
+        "background": {},
+        "investigationLineage": {},
+        "approach": {},
+        "outcomeReference": {}
+      }
+    }
   }
 }

@@ -12,6 +12,7 @@ import {
   useCanvasViewportStore,
   useProjectMembershipStore,
   useImprovementProjectStore,
+  buildDocumentSnapshot,
 } from '@variscout/stores';
 import {
   useFilteredData,
@@ -582,11 +583,11 @@ export const Editor: React.FC<EditorProps> = ({
       setDefaultLocation('personal');
       const project = await projectActions.saveProject(name);
       // Trigger cloud sync with current store state snapshot
-      const state = useProjectStore.getState();
+      const state = buildDocumentSnapshot({ activeHub });
       await saveToCloud(state, name, 'personal');
       return project;
     },
-    [projectActions, saveToCloud]
+    [activeHub, projectActions, saveToCloud]
   );
 
   const loadProject = projectActions.loadProject;

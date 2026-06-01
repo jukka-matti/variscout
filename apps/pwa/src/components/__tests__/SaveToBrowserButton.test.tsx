@@ -3,7 +3,7 @@
 // F3 P5 — rebuilt against the new persistence module.
 //
 // Coverage:
-//   - "Save to this browser" → setOptInFlag(true) + dispatch HUB_PERSIST_SNAPSHOT
+//   - "Save to this browser" → setOptInFlag(true) + full DocumentSnapshot persistence
 //   - "Forget" → setOptInFlag(false) + IDB cleared
 //   - opt-in mount toggles the button label appropriately
 //
@@ -15,8 +15,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_PROCESS_HUB } from '@variscout/core/processHub';
 import { SaveToBrowserButton } from '../SaveToBrowserButton';
-import { getOptInFlag, setOptInFlag, pwaHubRepository } from '../../persistence';
+import {
+  getOptInFlag,
+  loadSavedDocumentSnapshot,
+  saveCurrentDocumentSnapshot,
+  setOptInFlag,
+} from '../../persistence';
 import { db } from '../../db/schema';
+import { getProjectInitialState, useProjectStore } from '@variscout/stores';
 
 const hub = { ...DEFAULT_PROCESS_HUB, processGoal: 'Test goal.' };
 
@@ -36,7 +42,9 @@ beforeEach(async () => {
     db.hubs.clear(),
     db.outcomes.clear(),
     db.canvasState.clear(),
+    db.documentSnapshots.clear(),
   ]);
+  useProjectStore.setState(getProjectInitialState());
 });
 
 afterEach(async () => {
@@ -56,22 +64,28 @@ describe('SaveToBrowserButton', () => {
     );
   });
 
-  it('clicking save opts in and persists the hub via dispatch', async () => {
+  it('clicking save opts in and persists a full document snapshot', async () => {
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      rawData: [{ x: 1 }],
+      outcome: 'x',
+    });
     render(<SaveToBrowserButton currentHub={hub} />);
     fireEvent.click(await screen.findByRole('button', { name: /save to this browser/i }));
 
     // Opt-in flag flipped.
     await waitFor(async () => expect(await getOptInFlag()).toBe(true));
 
-    // Hub is now persisted — read back via the repository to confirm round-trip.
-    const hubs = await pwaHubRepository.hubs.list();
-    expect(hubs).toHaveLength(1);
-    expect(hubs[0]).toMatchObject({ processGoal: 'Test goal.' });
+    const snapshot = await loadSavedDocumentSnapshot();
+    expect(snapshot).toMatchObject({
+      hub: { id: hub.id, processGoal: 'Test goal.' },
+      project: { rawData: [{ x: 1 }], outcome: 'x' },
+    });
   });
 
   it('after opt-in, button label is "Saved · Forget"', async () => {
     await setOptInFlag(true);
-    await pwaHubRepository.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub });
+    await saveCurrentDocumentSnapshot(hub);
 
     render(<SaveToBrowserButton currentHub={hub} />);
 
@@ -81,7 +95,7 @@ describe('SaveToBrowserButton', () => {
   it('clicking Forget clears persistence after confirmation', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     await setOptInFlag(true);
-    await pwaHubRepository.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub });
+    await saveCurrentDocumentSnapshot(hub);
 
     render(<SaveToBrowserButton currentHub={hub} />);
     fireEvent.click(await screen.findByRole('button', { name: /saved.*forget/i }));
@@ -100,23 +114,27 @@ describe('SaveToBrowserButton', () => {
     if (!db.isOpen()) await db.open();
 
     expect(await getOptInFlag()).toBe(false);
-    expect(await pwaHubRepository.hubs.list()).toEqual([]);
+    expect(await loadSavedDocumentSnapshot()).toBeNull();
   });
 
-  it('clicking save routes through pwaHubRepository.dispatch with HUB_PERSIST_SNAPSHOT', async () => {
-    const dispatchSpy = vi.spyOn(pwaHubRepository, 'dispatch');
+  it('auto-save after opt-in refreshes the saved document snapshot when stores change', async () => {
+    await setOptInFlag(true);
 
     render(<SaveToBrowserButton currentHub={hub} />);
-    fireEvent.click(await screen.findByRole('button', { name: /save to this browser/i }));
+    await screen.findByRole('button', { name: /saved.*forget/i });
 
-    await waitFor(() => expect(dispatchSpy).toHaveBeenCalled());
-    expect(dispatchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        kind: 'HUB_PERSIST_SNAPSHOT',
-        hub: expect.objectContaining({ processGoal: 'Test goal.' }),
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      rawData: [{ x: 2 }],
+      outcome: 'x',
+    });
+    render(<SaveToBrowserButton currentHub={{ ...hub, processGoal: 'Updated goal.' }} />);
+
+    await waitFor(async () =>
+      expect(await loadSavedDocumentSnapshot()).toMatchObject({
+        hub: { processGoal: 'Updated goal.' },
+        project: { rawData: [{ x: 2 }] },
       })
     );
-
-    dispatchSpy.mockRestore();
   });
 });

@@ -152,7 +152,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R6 — Document Snapshot and Export Fidelity
 
-**Status:** R6a hub-scoped Document Snapshot runtime boundary shipped in PR #275. R6b `.vrs` adapter wiring is the current slice.
+**Status:** R6a hub-scoped Document Snapshot runtime boundary shipped in PR #275. R6b additive `.vrs` wiring shipped in PR #276. R6c snapshot-only, access-aware document persistence is the current slice.
 
 **Goal:** Make export/import snapshots match the current Document-store model.
 
@@ -161,12 +161,17 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 - Introduce a canonical `buildDocumentSnapshot()` / `hydrateDocumentSnapshot()` path. **Done in R6a.**
 - Replace the stale flat type-only `DocumentSnapshot` with a namespaced runtime envelope covering Project config/data, Analyze state, Canvas document state, and zero-or-one `ImprovementProject` for the active hub. **Done in R6a.**
 - Treat snapshots as hub-scoped: quick-analysis hubs may have no Project; formalized hubs have one Project; snapshots carry at most that hub's live Project and never serialize the multi-hub `projectsById` mirror. **Done in R6a.**
-- Wire PWA/Azure `.vrs` export/import through the settled snapshot boundary while preserving legacy hub/rawData and AnalysisState imports. **R6b slice.**
-- Add round-trip tests for `.vrs` export/import once the snapshot boundary is settled. **R6b slice.**
+- Wire PWA/Azure `.vrs` export/import through the settled snapshot boundary. **Done in R6b.**
+- Add round-trip tests for `.vrs` export/import once the snapshot boundary is settled. **Done in R6b.**
+- Cut over `.vrs`, PWA Save-to-Browser, and Azure local/cloud project persistence to snapshot-only documents, with no old hub/rawData or loose analysis payload import branches. **R6c slice.**
+- Make Azure saved documents access-aware: formal Projects are visible/loadable only to their Lead/Member/Sponsor roster, while quick analyses without a Project are private to the creator. **R6c slice.**
+- Use blob ETags/`If-Match` for Azure document writes and save a conflict copy or surface the existing conflict path when the cloud document changed. **R6c slice.**
 
 **R6a decision note (2026-05-31):** `ImprovementProject.status` is persisted domain state (`draft | active | closed`), not a derived label. The uncertainty is stage vocabulary/granularity, not whether Project lifecycle state belongs in a portable document. `useImprovementProjectStore.projectsById` is Document-layer state but is a multi-hub in-memory mirror; the portable snapshot boundary is one hub document with zero-or-one live Project.
 
-**R6b decision note (2026-06-01):** `.vrs` snapshot support is additive: keep version `1.0`, retain legacy `hub`, `rawData`, and `metadata`, and add optional `documentSnapshot`. Legacy PWA hub/rawData imports and Azure `AnalysisState` imports remain supported; no Azure import/export UI, cloud-sync, IndexedDB schema, HubAction, or Annotation/View persistence changes belong in R6b.
+**R6b decision note (2026-06-01, superseded by R6c):** R6b shipped additive `.vrs` snapshot support while preserving legacy `hub`/`rawData` and Azure `AnalysisState` paths. R6c intentionally removes those compatibility paths before launch, so this note is historical context rather than current guidance.
+
+**R6c decision note (2026-06-01):** Because the app has not launched, snapshot persistence can make a clean break. `.vrs` is now a snapshot-only document envelope (`kind: "variscout.document"`, `version: 1`, `documentSnapshot`), PWA browser saves persist the same `DocumentSnapshot`, and Azure local/cloud project records store snapshot payloads. The access model follows the latest V1 ownership decision: quick-analysis documents are private to the creator/current user; formal Projects derive access from `improvementProject.metadata.members` and only owner/member/sponsor roster users should see/load them.
 
 **Decision gate:** R3 should land first so the store model is not moving.
 
@@ -197,4 +202,4 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ## Next Recommended Execution
 
-Implement R6a: the hub-scoped Document Snapshot runtime boundary. Keep `.vrs`/adapter wiring out of R6a; R6b should decide how PWA/Azure export/import consume the settled snapshot helper.
+After R6c lands, recalibrate whether R6d should focus on UI save semantics, Azure server-side enforcement hardening, or moving to R7 store/transport separation. Do not add Annotation/View state to portable `.vrs` in this stream.

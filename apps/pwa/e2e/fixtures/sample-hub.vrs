@@ -1,38 +1,82 @@
 {
-  "version": "1.0",
+  "kind": "variscout.document",
+  "version": 1,
   "exportedAt": "2026-05-04T00:00:00.000Z",
-  "hub": {
-    "id": "e2e-fixture-hub-001",
-    "name": "Syringe barrel moulding",
-    "processGoal": "We mold syringe barrels for medical customers. Weight in grams matters most.",
-    "createdAt": "2026-05-04T00:00:00.000Z",
-    "updatedAt": "2026-05-04T00:00:00.000Z",
-    "outcomes": [
-      {
-        "columnName": "weight_g",
-        "characteristicType": "nominalIsBest",
-        "target": 4.5,
-        "usl": 4.7,
-        "lsl": 4.3,
-        "cpkTarget": 1.33
-      }
-    ],
-    "primaryScopeDimensions": ["product", "shift"]
-  },
-  "rawData": [
-    { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B1" },
-    { "weight_g": 4.4, "product": "A", "shift": "morning", "batch_id": "B1" },
-    { "weight_g": 4.6, "product": "B", "shift": "evening", "batch_id": "B2" },
-    { "weight_g": 4.5, "product": "B", "shift": "evening", "batch_id": "B2" },
-    { "weight_g": 4.4, "product": "A", "shift": "morning", "batch_id": "B3" },
-    { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B3" },
-    { "weight_g": 4.6, "product": "B", "shift": "evening", "batch_id": "B4" },
-    { "weight_g": 4.3, "product": "A", "shift": "morning", "batch_id": "B4" },
-    { "weight_g": 4.7, "product": "B", "shift": "evening", "batch_id": "B5" },
-    { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B5" }
-  ],
   "metadata": {
     "exportSource": "pwa",
     "appVersion": "e2e-fixture"
+  },
+  "documentSnapshot": {
+    "schemaVersion": 1,
+    "hubId": "e2e-fixture-hub-001",
+    "hub": {
+      "id": "e2e-fixture-hub-001",
+      "name": "Syringe barrel moulding",
+      "processGoal": "We mold syringe barrels for medical customers. Weight in grams matters most.",
+      "createdAt": 1777852800000,
+      "updatedAt": 1777852800000,
+      "deletedAt": null
+    },
+    "project": {
+      "projectId": "e2e-fixture-hub-001",
+      "projectName": "Syringe barrel moulding",
+      "rawData": [
+        { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B1" },
+        { "weight_g": 4.4, "product": "A", "shift": "morning", "batch_id": "B1" },
+        { "weight_g": 4.6, "product": "B", "shift": "evening", "batch_id": "B2" },
+        { "weight_g": 4.5, "product": "B", "shift": "evening", "batch_id": "B2" },
+        { "weight_g": 4.4, "product": "A", "shift": "morning", "batch_id": "B3" },
+        { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B3" },
+        { "weight_g": 4.6, "product": "B", "shift": "evening", "batch_id": "B4" },
+        { "weight_g": 4.3, "product": "A", "shift": "morning", "batch_id": "B4" },
+        { "weight_g": 4.7, "product": "B", "shift": "evening", "batch_id": "B5" },
+        { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B5" }
+      ],
+      "outcome": "weight_g",
+      "factors": ["product", "shift"],
+      "specs": { "weight_g": { "lsl": 4.3, "usl": 4.7, "target": 4.5 } },
+      "analysisMode": "standard",
+      "dataFilename": "syringe-barrel.csv",
+      "timeColumn": null,
+      "processContext": {
+        "processHubId": "e2e-fixture-hub-001"
+      },
+      "entryScenario": "process"
+    },
+    "analyze": {
+      "findings": [],
+      "categories": [],
+      "hypotheses": [],
+      "causalLinks": [],
+      "scopes": []
+    },
+    "canvas": {
+      "canonicalMap": {
+        "version": 1,
+        "nodes": [],
+        "tributaries": [],
+        "assignments": {},
+        "arrows": [],
+        "createdAt": "2026-05-04T00:00:00.000Z",
+        "updatedAt": "2026-05-04T00:00:00.000Z"
+      },
+      "outcomes": [
+        {
+          "id": "outcome-weight",
+          "hubId": "e2e-fixture-hub-001",
+          "columnName": "weight_g",
+          "characteristicType": "nominalIsBest",
+          "target": 4.5,
+          "usl": 4.7,
+          "lsl": 4.3,
+          "cpkTarget": 1.33,
+          "createdAt": 1777852800000,
+          "deletedAt": null
+        }
+      ],
+      "primaryScopeDimensions": ["product", "shift"],
+      "canonicalMapVersion": "canvas-map-0"
+    },
+    "improvementProject": null
   }
 }

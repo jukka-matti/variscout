@@ -6,7 +6,12 @@ import type { InsightChartType } from './chartInsights';
 import type { Locale } from '../i18n/types';
 import type { AnalysisMode } from '../types';
 import type { ProcessMap } from '../frame/types';
-import type { AnalyzeDepth, AnalyzeStatus, ProcessParticipantRef } from '../processHub';
+import type {
+  AnalyzeDepth,
+  AnalyzeNodeMapping,
+  AnalyzeStatus,
+  ProcessParticipantRef,
+} from '../processHub';
 import type { EvidenceSource, EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessMomentDefinition } from '../processMoments';
 import type { SignalCard } from '../signalCards';
@@ -90,6 +95,10 @@ export interface ProcessContext {
   analyzeDepth?: AnalyzeDepth;
   /** Process Hub status for this investigation */
   analyzeStatus?: AnalyzeStatus;
+  /** Investigation-to-process-map bindings for hub rollups. */
+  nodeMappings?: AnalyzeNodeMapping[];
+  /** Timestamp marker for declining B0-to-hub migration prompts. */
+  migrationDeclinedAt?: string;
   /** Person accountable for the process/work-system health */
   processOwner?: ProcessParticipantRef;
   /** Person driving this investigation day to day */

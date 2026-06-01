@@ -4,7 +4,7 @@
 //
 // Verifies that on App mount:
 //   - opt-in flag false → user lands on HomeScreen (no Hub restore)
-//   - opt-in flag true + persisted Hub → canvas restored, GoalBanner visible
+//   - opt-in flag true + persisted document snapshot → canvas restored, GoalBanner visible
 //
 // vi.mock() must come BEFORE any imports of components under test (testing.md
 // invariant). The full Dashboard / view trees are stubbed so the mounted App
@@ -51,9 +51,19 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import App from '../App';
 import { LocaleProvider } from '../context/LocaleContext';
 import { db } from '../db/schema';
-import { setOptInFlag, pwaHubRepository } from '../persistence';
+import { setOptInFlag } from '../persistence';
 import { DEFAULT_PROCESS_HUB, registerLocaleLoaders, type MessageCatalog } from '@variscout/core';
-import { useProjectStore } from '@variscout/stores';
+import { useProjectStore, type DocumentSnapshot } from '@variscout/stores';
+
+const EMPTY_CANONICAL_MAP = {
+  version: 1,
+  nodes: [],
+  tributaries: [],
+  assignments: {},
+  arrows: [],
+  createdAt: '2026-06-01T00:00:00.000Z',
+  updatedAt: '2026-06-01T00:00:00.000Z',
+};
 
 // Register locale loaders (mirrors main.tsx) so useTranslation works.
 registerLocaleLoaders(
@@ -71,6 +81,54 @@ function renderApp() {
   );
 }
 
+async function persistDocumentSnapshot(processGoal: string) {
+  const snapshot = {
+    schemaVersion: 1,
+    hubId: DEFAULT_PROCESS_HUB.id,
+    hub: {
+      id: DEFAULT_PROCESS_HUB.id,
+      name: DEFAULT_PROCESS_HUB.name,
+      processGoal,
+      createdAt: DEFAULT_PROCESS_HUB.createdAt,
+      deletedAt: DEFAULT_PROCESS_HUB.deletedAt,
+    },
+    project: {
+      projectId: DEFAULT_PROCESS_HUB.id,
+      projectName: DEFAULT_PROCESS_HUB.name,
+      rawData: [{ value: 1 }, { value: 2 }],
+      outcome: 'value',
+      factors: [],
+      specs: {},
+      analysisMode: 'standard',
+      processContext: { processHubId: DEFAULT_PROCESS_HUB.id },
+      entryScenario: null,
+    },
+    analyze: { findings: [], categories: [], hypotheses: [], causalLinks: [], scopes: [] },
+    canvas: {
+      canonicalMap: DEFAULT_PROCESS_HUB.canonicalProcessMap ?? EMPTY_CANONICAL_MAP,
+      outcomes: [
+        {
+          id: 'outcome-value',
+          hubId: DEFAULT_PROCESS_HUB.id,
+          columnName: 'value',
+          characteristicType: 'nominalIsBest',
+          createdAt: DEFAULT_PROCESS_HUB.createdAt,
+          deletedAt: null,
+        },
+      ],
+      primaryScopeDimensions: [],
+      canonicalMapVersion: DEFAULT_PROCESS_HUB.canonicalMapVersion ?? 'canvas-map-0',
+    },
+    improvementProject: null,
+  } as unknown as DocumentSnapshot;
+
+  await db.documentSnapshots.put({
+    key: 'current',
+    snapshot,
+    savedAt: new Date().toISOString(),
+  });
+}
+
 describe('Mode A.1 — PWA reopen with persistence (F3)', () => {
   beforeEach(async () => {
     if (!db.isOpen()) await db.open();
@@ -79,6 +137,7 @@ describe('Mode A.1 — PWA reopen with persistence (F3)', () => {
       db.hubs.clear(),
       db.outcomes.clear(),
       db.canvasState.clear(),
+      db.documentSnapshots.clear(),
     ]);
     // Reset the project store so prior test mutations don't leak rawData.
     useProjectStore.setState({
@@ -102,10 +161,7 @@ describe('Mode A.1 — PWA reopen with persistence (F3)', () => {
 
   it('with opt-in flag true and Hub persisted: restores canvas with goal banner', async () => {
     await setOptInFlag(true);
-    await pwaHubRepository.dispatch({
-      kind: 'HUB_PERSIST_SNAPSHOT',
-      hub: { ...DEFAULT_PROCESS_HUB, processGoal: 'Restored goal.' },
-    });
+    await persistDocumentSnapshot('Restored goal.');
 
     renderApp();
 

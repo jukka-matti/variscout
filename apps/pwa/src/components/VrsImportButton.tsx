@@ -1,10 +1,9 @@
 // apps/pwa/src/components/VrsImportButton.tsx
 import { useRef, type ChangeEvent } from 'react';
-import type { VrsFile } from '@variscout/core';
-import { parseDocumentSnapshotVrs } from '@variscout/stores';
+import { parseDocumentSnapshotVrs, type DocumentSnapshotVrsFile } from '@variscout/stores';
 
 export interface VrsImportButtonProps {
-  onImport: (imported: VrsFile) => void;
+  onImport: (imported: DocumentSnapshotVrsFile) => void;
 }
 
 export function VrsImportButton({ onImport }: VrsImportButtonProps) {

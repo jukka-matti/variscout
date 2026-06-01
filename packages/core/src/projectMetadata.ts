@@ -11,6 +11,7 @@ import type { JourneyPhase, ProcessContext } from './ai/types';
 import type { HubReviewSignal } from './processReviewSignal';
 import {
   analyzeStatusFromJourneyPhase,
+  type AnalyzeNodeMapping,
   normalizeProcessHubId,
   type AnalyzeDepth,
   type AnalyzeStatus,
@@ -49,6 +50,10 @@ export interface ProjectMetadata {
   analyzeDepth?: AnalyzeDepth;
   /** Investigation-level status for hub rollups. */
   analyzeStatus?: AnalyzeStatus;
+  /** Investigation-to-process-map bindings for hub capability rollups. */
+  nodeMappings?: AnalyzeNodeMapping[];
+  /** Timestamp marker for dismissed B0 migration prompts. */
+  migrationDeclinedAt?: string;
   /** Process description snapshot for deterministic hub context assembly. */
   processDescription?: string;
   /** Customer requirement / CTS snapshot for deterministic hub context assembly. */
@@ -203,6 +208,8 @@ export function buildProjectMetadata(
     processHubId: normalizeProcessHubId(processContext?.processHubId),
     analyzeDepth: processContext?.analyzeDepth,
     analyzeStatus: processContext?.analyzeStatus ?? analyzeStatusFromJourneyPhase(phase),
+    nodeMappings: processContext?.nodeMappings,
+    migrationDeclinedAt: processContext?.migrationDeclinedAt,
     processDescription: processContext?.description,
     customerRequirementSummary:
       processContext?.processMap?.ctsColumn ?? processContext?.measurement ?? undefined,

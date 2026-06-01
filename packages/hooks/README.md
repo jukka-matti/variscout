@@ -376,7 +376,6 @@ import type {
   DataContextInterface,
   DisplayOptions,
   ChartTitles,
-  AnalysisState,
   SavedProject,
   FilterChipData,
   UseFilterNavigationReturn,

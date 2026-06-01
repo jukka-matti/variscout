@@ -1,5 +1,4 @@
-// packages/core/src/serialization/vrsImport.ts
-import { VRS_VERSION, type VrsFile } from './vrsFormat';
+import { VRS_DOCUMENT_KIND, VRS_VERSION, type VrsFile } from './vrsFormat';
 
 export function vrsImport(json: string): VrsFile {
   let parsed: Partial<VrsFile>;
@@ -9,13 +8,11 @@ export function vrsImport(json: string): VrsFile {
     throw new Error(`Invalid .vrs: not valid JSON (${(e as Error).message})`);
   }
 
-  if (parsed.version !== VRS_VERSION) {
-    throw new Error(
-      `Unsupported .vrs version: ${parsed.version}. This build supports ${VRS_VERSION}.`
-    );
+  if (parsed.kind !== VRS_DOCUMENT_KIND || parsed.version !== VRS_VERSION) {
+    throw new Error('Invalid .vrs: expected a VariScout document snapshot file.');
   }
-  if (!parsed.hub) {
-    throw new Error('Invalid .vrs: missing hub field.');
+  if (!parsed.documentSnapshot || typeof parsed.documentSnapshot !== 'object') {
+    throw new Error('Invalid .vrs: missing documentSnapshot.');
   }
   return parsed as VrsFile;
 }
