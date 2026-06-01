@@ -36,6 +36,7 @@ import {
   saveBlobControlHandoff,
 } from './blobClient';
 import type { BlobProjectMetadata } from './blobClient';
+import type { DocumentAccess } from '../db/schema';
 
 // ── Fallback error ─────────────────────────────────────────────────────
 
@@ -44,6 +45,13 @@ export class CloudSyncUnavailableError extends Error {
   constructor(message = 'Cloud sync unavailable — Blob Storage not configured') {
     super(message);
     this.name = 'CloudSyncUnavailableError';
+  }
+}
+
+export class ProjectDocumentConflictError extends Error {
+  constructor(message = 'Project document changed in cloud') {
+    super(message);
+    this.name = 'ProjectDocumentConflictError';
   }
 }
 
@@ -67,6 +75,7 @@ export interface CloudProject {
   etag?: string;
   /** Lightweight project health summary from .meta.json sidecar */
   metadata?: ProjectMetadata;
+  access?: DocumentAccess;
 }
 
 export interface SyncNotification {
@@ -223,7 +232,8 @@ export async function saveToCloud(
   project: Project,
   name: string,
   _location: StorageLocation,
-  projectMetadata?: ProjectMetadata
+  projectMetadata?: ProjectMetadata,
+  access?: DocumentAccess
 ): Promise<{ id: string; etag: string }> {
   // Use stable UUID from syncState, or generate a new one (C-1)
   const syncState = await db.syncState.get(name);
@@ -235,18 +245,22 @@ export async function saveToCloud(
     name,
     updated: now,
     metadata: projectMetadata,
+    access,
   };
 
-  await wrapBlobCall(async () => {
-    await saveBlobProject(project, projectId, metadata);
+  const result = await wrapBlobCall(async () => {
+    return saveBlobProject(project, projectId, metadata, syncState?.etag);
   });
+  if (!result.ok) {
+    throw new ProjectDocumentConflictError();
+  }
 
   // Fire-and-forget index update — data is safe even if this fails (C-2)
   updateIndex(projectId, metadata).catch(err => {
     if (import.meta.env.DEV) console.warn('[cloudSync] Index update failed:', err);
   });
 
-  return { id: projectId, etag: now };
+  return { id: projectId, etag: result.etag || now };
 }
 
 export async function listProcessHubsFromCloud(_token: string): Promise<ProcessHub[]> {
@@ -360,16 +374,23 @@ export async function loadFromCloud(
 
 export async function listFromCloud(
   _token: string,
-  _location: StorageLocation
+  _location: StorageLocation,
+  userId?: string
 ): Promise<CloudProject[]> {
   const entries = await wrapBlobCall(() => listBlobProjects());
-  return entries.map(entry => ({
-    id: entry.projectId,
-    name: entry.name,
-    modified: entry.updated,
-    location: 'personal' as StorageLocation,
-    metadata: entry.metadata,
-  }));
+  return entries
+    .filter(entry => {
+      if (!userId || !entry.access) return true;
+      return entry.access.ownerUserId === userId || entry.access.memberUserIds.includes(userId);
+    })
+    .map(entry => ({
+      id: entry.projectId,
+      name: entry.name,
+      modified: entry.updated,
+      location: 'personal' as StorageLocation,
+      metadata: entry.metadata,
+      access: entry.access,
+    }));
 }
 
 export async function getCloudModifiedDate(

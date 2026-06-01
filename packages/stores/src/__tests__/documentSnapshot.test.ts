@@ -11,6 +11,7 @@ import type { ImprovementProject } from '@variscout/core/improvementProject';
 import {
   buildDocumentSnapshot,
   hydrateDocumentSnapshot,
+  reconstructProcessHubFromDocumentSnapshot,
   resetDocumentStores,
 } from '../documentSnapshot';
 import { getAnalyzeInitialState, useAnalyzeStore } from '../analyzeStore';
@@ -119,11 +120,30 @@ function makeProject(id: string, hubId: string, status: ImprovementProject['stat
   } satisfies ImprovementProject;
 }
 
-function makeHub(
-  id: string,
-  improvementProject?: ImprovementProject
-): Pick<ProcessHub, 'id' | 'improvementProject'> {
-  return improvementProject ? { id, improvementProject } : { id };
+function makeHub(id: string, improvementProject?: ImprovementProject): ProcessHub {
+  return {
+    id,
+    name: `Hub ${id}`,
+    description: `Description ${id}`,
+    processOwner: { displayName: 'Owner', userId: 'owner@example.com' },
+    processGoal: `Goal ${id}`,
+    createdAt: now,
+    updatedAt: now + 1,
+    deletedAt: null,
+    outcomes: [
+      {
+        id: `outcome-${id}`,
+        hubId: id,
+        columnName: 'yield',
+        characteristicType: 'largerIsBetter',
+        createdAt: now,
+        deletedAt: null,
+      },
+    ],
+    primaryScopeDimensions: ['line'],
+    canonicalMapVersion: `version-${id}`,
+    ...(improvementProject ? { improvementProject } : {}),
+  };
 }
 
 function seedProjectStore() {
@@ -209,6 +229,7 @@ describe('buildDocumentSnapshot', () => {
 
     expect(snapshot.schemaVersion).toBe(1);
     expect(snapshot.hubId).toBeNull();
+    expect(snapshot.hub).toBeNull();
     expect(snapshot.project).toMatchObject({
       projectId: 'project-1',
       projectName: 'Snapshot project',
@@ -223,6 +244,23 @@ describe('buildDocumentSnapshot', () => {
       },
       separateParetoFilename: 'pareto.csv',
       entryScenario: 'problem',
+    });
+  });
+
+  it('captures a minimal hub shell for session restoration', () => {
+    seedCanvasStore();
+
+    const snapshot = buildDocumentSnapshot({ activeHub: makeHub('hub-1') });
+
+    expect(snapshot.hub).toEqual({
+      id: 'hub-1',
+      name: 'Hub hub-1',
+      description: 'Description hub-1',
+      processGoal: 'Goal hub-1',
+      processOwner: { displayName: 'Owner', userId: 'owner@example.com' },
+      createdAt: now,
+      updatedAt: now + 1,
+      deletedAt: null,
     });
   });
 
@@ -309,6 +347,26 @@ describe('buildDocumentSnapshot', () => {
 });
 
 describe('hydrateDocumentSnapshot', () => {
+  it('reconstructs a ProcessHub from the snapshot hub shell and document state', () => {
+    seedCanvasStore();
+    const project = makeProject('ip-snapshot', 'hub-1', 'active');
+    const snapshot = buildDocumentSnapshot({ activeHub: makeHub('hub-1', project) });
+
+    const hub = reconstructProcessHubFromDocumentSnapshot(snapshot);
+
+    expect(hub).toMatchObject({
+      id: 'hub-1',
+      name: 'Hub hub-1',
+      description: 'Description hub-1',
+      processGoal: 'Goal hub-1',
+      canonicalProcessMap: snapshot.canvas.canonicalMap,
+      canonicalMapVersion: snapshot.canvas.canonicalMapVersion,
+      outcomes: snapshot.canvas.outcomes,
+      primaryScopeDimensions: snapshot.canvas.primaryScopeDimensions,
+      improvementProject: project,
+    });
+  });
+
   it('hydrates project, analyze, canvas, and replaces only the project for the snapshot hub', () => {
     seedProjectStore();
     seedAnalyzeStore();

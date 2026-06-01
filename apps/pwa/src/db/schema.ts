@@ -43,6 +43,7 @@ import type { Finding, CausalLink, Hypothesis, ActionItem } from '@variscout/cor
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
+import type { DocumentSnapshot } from '@variscout/stores';
 
 // ---------------------------------------------------------------------------
 // Row types
@@ -92,6 +93,11 @@ export type ControlRecordRow = ControlRecord;
 export type ControlReviewRow = ControlReview;
 export type ControlHandoffRow = ControlHandoff;
 export type MeasurementPlanRow = MeasurementPlan;
+export interface DocumentSnapshotRow {
+  key: 'current';
+  snapshot: DocumentSnapshot;
+  savedAt: string;
+}
 
 // ---------------------------------------------------------------------------
 // Database
@@ -116,6 +122,7 @@ export class PwaDatabase extends Dexie {
   canvasState!: Table<CanvasStateRow, string>;
   meta!: Table<MetaRow, string>;
   measurementPlans!: Table<MeasurementPlanRow, string>;
+  documentSnapshots!: Table<DocumentSnapshotRow, string>;
 
   constructor() {
     super('variscout-pwa-normalized');
@@ -203,6 +210,7 @@ export class PwaDatabase extends Dexie {
     // store. Per wedge V1 no-back-compat policy, no data migration — the table
     // was empty.
     this.version(10).stores({ questions: null });
+    this.version(11).stores({ documentSnapshots: '&key, savedAt' });
   }
 }
 

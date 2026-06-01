@@ -390,12 +390,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           setNotesDrawerState(null);
           return;
         }
-        // Project is `unknown`; access processContext safely
-        const p = project as Record<string, unknown>;
-        const processContext =
-          p.processContext && typeof p.processContext === 'object'
-            ? (p.processContext as Record<string, unknown>)
-            : {};
+        const processContext = project.project.processContext ?? {};
         const existingNotes = Array.isArray(processContext.stateNotes)
           ? (processContext.stateNotes as ProcessStateNote[])
           : [];
@@ -428,10 +423,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
         }
 
         const nextProject = {
-          ...p,
-          processContext: {
-            ...processContext,
-            stateNotes: nextNotes,
+          ...project,
+          project: {
+            ...project.project,
+            processContext: {
+              ...processContext,
+              stateNotes: nextNotes,
+            },
           },
         };
         await saveProject(nextProject, targetProjectMeta.name, targetProjectMeta.location);
@@ -464,11 +462,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         if (!targetProjectMeta) return;
         const project = await loadProject(targetProjectMeta.name, targetProjectMeta.location);
         if (!project) return;
-        const p = project as Record<string, unknown>;
-        const processContext =
-          p.processContext && typeof p.processContext === 'object'
-            ? (p.processContext as Record<string, unknown>)
-            : {};
+        const processContext = project.project.processContext ?? {};
         const existingNotes = Array.isArray(processContext.stateNotes)
           ? (processContext.stateNotes as ProcessStateNote[])
           : [];
@@ -476,10 +470,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
         if (!note) return;
         const nextNotes = existingNotes.filter(n => n.id !== noteId);
         const nextProject = {
-          ...p,
-          processContext: {
-            ...processContext,
-            stateNotes: nextNotes,
+          ...project,
+          project: {
+            ...project.project,
+            processContext: {
+              ...processContext,
+              stateNotes: nextNotes,
+            },
           },
         };
         await saveProject(nextProject, targetProjectMeta.name, targetProjectMeta.location);
@@ -509,14 +506,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         try {
           const project = await loadProject(projectMeta.name, projectMeta.location);
           if (!project) return;
-          const p = project as Record<string, unknown>;
-          const existingMeta =
-            p.metadata && typeof p.metadata === 'object'
-              ? (p.metadata as Record<string, unknown>)
-              : {};
+          const existingContext = project.project.processContext ?? {};
           const updatedMeta = next.metadata
             ? {
-                ...existingMeta,
+                ...existingContext,
                 ...(next.metadata.nodeMappings !== undefined
                   ? { nodeMappings: next.metadata.nodeMappings }
                   : {}),
@@ -524,9 +517,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   ? { migrationDeclinedAt: next.metadata.migrationDeclinedAt }
                   : {}),
               }
-            : existingMeta;
+            : existingContext;
           await saveProject(
-            { ...p, metadata: updatedMeta },
+            {
+              ...project,
+              project: {
+                ...project.project,
+                processContext: updatedMeta,
+              },
+            },
             projectMeta.name,
             projectMeta.location
           );

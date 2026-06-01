@@ -5,11 +5,11 @@
  * Local storage is used for auto-save; IndexedDB for offline cache.
  */
 
-import type { AnalysisState, ProjectExportContext, ProjectImportPayload } from '@variscout/hooks';
+import type { ProjectExportContext, ProjectImportPayload } from '@variscout/hooks';
 import { generateDeterministicId } from '@variscout/core/identity';
 import {
   buildDocumentSnapshotVrs,
-  isDocumentSnapshotVrsFile,
+  type DocumentSnapshot,
   parseDocumentSnapshotVrs,
 } from '@variscout/stores';
 import { db } from '../db/schema';
@@ -18,7 +18,7 @@ export interface SavedProject {
   id: string;
   name: string;
   location: 'team' | 'personal';
-  state: AnalysisState;
+  state: DocumentSnapshot;
   savedAt: string;
   rowCount: number;
   synced: boolean;
@@ -26,21 +26,19 @@ export interface SavedProject {
   modifiedBy?: string;
 }
 
-const VERSION = '1.0.0';
-
 // Save project to IndexedDB (local cache)
 export async function saveProjectLocally(
   name: string,
-  state: Omit<AnalysisState, 'version'>,
+  state: DocumentSnapshot,
   location: 'team' | 'personal'
 ): Promise<SavedProject> {
   const project: SavedProject = {
     id: generateDeterministicId(),
     name,
     location,
-    state: { ...state, version: VERSION },
+    state,
     savedAt: new Date().toISOString(),
-    rowCount: state.rawData.length,
+    rowCount: state.project.rawData.length,
     synced: false,
   };
 
@@ -49,7 +47,7 @@ export async function saveProjectLocally(
     location: project.location,
     modified: new Date(),
     synced: false,
-    data: project,
+    data: state,
   });
 
   return project;
@@ -59,16 +57,16 @@ export async function saveProjectLocally(
 export async function updateProjectLocally(
   id: string,
   name: string,
-  state: Omit<AnalysisState, 'version'>,
+  state: DocumentSnapshot,
   location: 'team' | 'personal'
 ): Promise<SavedProject> {
   const project: SavedProject = {
     id,
     name,
     location,
-    state: { ...state, version: VERSION },
+    state,
     savedAt: new Date().toISOString(),
-    rowCount: state.rawData.length,
+    rowCount: state.project.rawData.length,
     synced: false,
   };
 
@@ -77,7 +75,7 @@ export async function updateProjectLocally(
     location: project.location,
     modified: new Date(),
     synced: false,
-    data: project,
+    data: state,
   });
 
   return project;
@@ -86,15 +84,31 @@ export async function updateProjectLocally(
 // Load project from IndexedDB
 export async function loadProjectLocally(name: string): Promise<SavedProject | undefined> {
   const record = await db.projects.get(name);
-  return record?.data as SavedProject | undefined;
+  if (!record) return undefined;
+  return {
+    id: record.name,
+    name: record.name,
+    location: record.location,
+    state: record.data,
+    savedAt: record.modified?.toISOString() ?? new Date().toISOString(),
+    rowCount: record.data.project.rawData.length,
+    synced: record.synced,
+  };
 }
 
 // List all saved projects from IndexedDB
 export async function listProjectsLocally(): Promise<SavedProject[]> {
   const records = await db.projects.toArray();
   return records
-    .map(r => r.data as SavedProject)
-    .filter(Boolean)
+    .map(r => ({
+      id: r.name,
+      name: r.name,
+      location: r.location,
+      state: r.data,
+      savedAt: r.modified?.toISOString() ?? new Date().toISOString(),
+      rowCount: r.data.project.rawData.length,
+      synced: r.synced,
+    }))
     .sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
 }
 
@@ -107,32 +121,27 @@ export async function deleteProjectLocally(name: string): Promise<void> {
 export async function renameProjectLocally(oldName: string, newName: string): Promise<void> {
   const record = await db.projects.get(oldName);
   if (record) {
-    const project = record.data as SavedProject;
-    project.name = newName;
     await db.projects.delete(oldName);
     await db.projects.put({
       name: newName,
-      location: project.location,
+      location: record.location,
       modified: new Date(),
       synced: false,
-      data: project,
+      data: record.data,
     });
   }
 }
 
 // Export state to downloadable .vrs file
-export function exportToFile(
-  state: Omit<AnalysisState, 'version'>,
-  filename: string,
-  context?: ProjectExportContext
-): void {
-  const appVersion = import.meta.env.VITE_APP_VERSION ?? VERSION;
-  const json = context?.activeHub
-    ? buildDocumentSnapshotVrs({
-        activeHub: context.activeHub,
-        metadata: { exportSource: 'azure', appVersion },
-      })
-    : JSON.stringify({ ...state, version: VERSION }, null, 2);
+export function exportToFile(filename: string, context: ProjectExportContext): void {
+  if (!context.activeHub) {
+    throw new Error('Cannot export .vrs without an active hub.');
+  }
+  const appVersion = import.meta.env.VITE_APP_VERSION ?? 'dev';
+  const json = buildDocumentSnapshotVrs({
+    activeHub: context.activeHub,
+    metadata: { exportSource: 'azure', appVersion },
+  });
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -151,16 +160,7 @@ export function importFromFile(file: File): Promise<ProjectImportPayload> {
     reader.onload = e => {
       try {
         const content = e.target?.result as string;
-        const parsedJson = JSON.parse(content) as { version?: unknown; hub?: unknown };
-        if (parsedJson.version === '1.0' && parsedJson.hub) {
-          const parsedVrs = parseDocumentSnapshotVrs(content);
-          if (isDocumentSnapshotVrsFile(parsedVrs)) {
-            resolve({ kind: 'document-snapshot', file: parsedVrs });
-            return;
-          }
-        }
-        const state = JSON.parse(content) as AnalysisState;
-        resolve(state);
+        resolve({ kind: 'document-snapshot', file: parseDocumentSnapshotVrs(content) });
       } catch {
         reject(new Error('Invalid file format'));
       }

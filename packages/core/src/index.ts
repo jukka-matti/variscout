@@ -941,7 +941,7 @@ export type { DimensionCandidate } from './scopeDimensions/suggestPrimaryDimensi
 // .vrs file format (Framing Layer V1)
 export { vrsExport } from './serialization/vrsExport';
 export { vrsImport } from './serialization/vrsImport';
-export { VRS_VERSION } from './serialization/vrsFormat';
+export { VRS_DOCUMENT_KIND, VRS_VERSION } from './serialization/vrsFormat';
 export type { VrsFile } from './serialization/vrsFormat';
 
 // Action types (F2 — HubAction discriminated union, kind + SCREAMING_SNAKE_CASE per R2)

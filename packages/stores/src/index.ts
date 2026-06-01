@@ -106,6 +106,7 @@ export type {
 export {
   buildDocumentSnapshot,
   hydrateDocumentSnapshot,
+  reconstructProcessHubFromDocumentSnapshot,
   resetDocumentStores,
 } from './documentSnapshot';
 export {
@@ -116,11 +117,13 @@ export {
 export type {
   AnalyzeDocumentSnapshot,
   BuildDocumentSnapshotOptions,
+  DocumentHubSnapshot,
   DocumentSnapshot,
   ProjectDocumentSnapshot,
 } from './documentSnapshot';
 export type {
   BuildDocumentSnapshotVrsOptions,
+  DocumentSnapshotVrsMetadata,
   DocumentSnapshotVrsFile,
 } from './documentSnapshotVrs';
 export {

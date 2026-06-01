@@ -5,4 +5,5 @@
 
 export { PwaHubRepository, pwaHubRepository } from './PwaHubRepository';
 export { applyAction } from './applyAction';
+export { loadSavedDocumentSnapshot, saveCurrentDocumentSnapshot } from './documentSnapshot';
 export { getOptInFlag, setOptInFlag } from './optIn';

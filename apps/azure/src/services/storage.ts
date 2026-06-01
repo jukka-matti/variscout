@@ -39,6 +39,7 @@ export {
   updateLastViewedAt,
   GraphError,
   CloudSyncUnavailableError,
+  ProjectDocumentConflictError,
 } from './cloudSync';
 
 // Internal imports (not re-exported)
@@ -46,6 +47,7 @@ import type { StorageLocation, SyncStatus, SyncNotification, CloudProject } from
 import {
   classifySyncError,
   CloudSyncUnavailableError as CloudSyncUnavailableErrorClass,
+  ProjectDocumentConflictError as ProjectDocumentConflictErrorClass,
   GraphError as GraphErrorClass,
   saveToCloud,
   loadFromCloud,
@@ -72,6 +74,7 @@ import {
   loadFromIndexedDB,
   listFromIndexedDB,
   markAsSynced,
+  extractDocumentAccess,
   extractMetadataInputs,
   listProcessHubsFromIndexedDB,
   saveProcessHubToIndexedDB,
@@ -192,7 +195,18 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const item = retryQueue.current[0];
     try {
       const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
-      const { id, etag } = await saveToCloud(token, item.project, item.name, item.location);
+      const user = await getEasyAuthUser().catch(() => null);
+      const userId = user?.userId || user?.email || 'local';
+      const meta = extractMetadataInputs(item.project, userId) ?? undefined;
+      const access = extractDocumentAccess(item.project, userId);
+      const { id, etag } = await saveToCloud(
+        token,
+        item.project,
+        item.name,
+        item.location,
+        meta,
+        access
+      );
       await markAsSynced(item.name, id, etag);
       await removeFromSyncQueue(item.name);
       retryQueue.current.shift();
@@ -274,11 +288,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const meta = extractMetadataInputs(project, userId, existingLastViewed) ?? undefined;
 
       // Detect investigation-status transition out of SUSTAINMENT_STATUSES
-      const oldStatus = (
-        existingRecord?.data as { processContext?: { analyzeStatus?: string } } | undefined
-      )?.processContext?.analyzeStatus;
-      const newStatus = (project as { processContext?: { analyzeStatus?: string } } | undefined)
-        ?.processContext?.analyzeStatus;
+      const oldStatus = existingRecord?.data.project.processContext?.analyzeStatus;
+      const newStatus = project.project.processContext?.analyzeStatus;
       const wasSustainment = oldStatus === 'resolved' || oldStatus === 'controlled';
       const isSustainment = newStatus === 'resolved' || newStatus === 'controlled';
       if (wasSustainment && !isSustainment) {
@@ -289,7 +300,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       // Always save to IndexedDB first (instant feedback)
       try {
-        await saveToIndexedDB(project, name, location, meta);
+        await saveToIndexedDB(project, name, location, meta, userId);
       } catch (dbError) {
         const isQuota = dbError instanceof DOMException && dbError.name === 'QuotaExceededError';
         const message = isQuota
@@ -314,51 +325,40 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
 
-      // Online: sync immediately (with merge if needed)
+      const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
+
+      // Online: sync immediately (with conflict detection if needed)
       try {
         setSyncStatus({ status: 'syncing', message: 'Saving to cloud...' });
 
-        const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
-        let projectToSave = project;
         let baseStateForSync: string | undefined;
+        const access = extractDocumentAccess(project, userId);
 
-        // Check if we need to merge
+        // Check if the remote document changed since our last sync. R6c no longer
+        // attempts field-level payload merging; preserve the local
+        // document as a conflict copy and let the current save win.
         const syncState = await db.syncState.get(name);
         if (syncState?.baseStateJson) {
           const cloudModified = await getCloudModifiedDate(token, name, location);
           if (cloudModified && cloudModified !== syncState.lastSynced) {
-            // Cloud has changed since our last load — merge
             const remoteProject = await loadFromCloud(token, name, location);
             if (remoteProject) {
-              const { mergeAnalysisState } = await import('./merge');
-              const base = JSON.parse(syncState.baseStateJson);
-              const result = mergeAnalysisState(base, project as never, remoteProject as never);
-
-              if (result.hasConflict) {
-                // Save conflict copy
-                const conflictName = `${name} (conflict copy)`;
-                await saveToCloud(token, project, conflictName, location);
-                addNotification({
-                  type: 'warning',
-                  message: `Merge conflict detected. Your version saved as "${conflictName}".`,
-                  dismissAfter: 8000,
-                });
-              }
-
-              projectToSave = result.merged as Project;
-              // Update IndexedDB with merged result (rebuild metadata for merged data)
-              const mergedMeta =
-                extractMetadataInputs(projectToSave, userId, existingLastViewed) ?? undefined;
-              await saveToIndexedDB(projectToSave, name, location, mergedMeta);
+              const conflictName = `${name} (conflict copy)`;
+              await saveToCloud(token, project, conflictName, location, meta, access);
+              addNotification({
+                type: 'warning',
+                message: `Cloud version changed. Your version saved as "${conflictName}".`,
+                dismissAfter: 8000,
+              });
             }
           }
         }
 
-        const { id, etag } = await saveToCloud(token, projectToSave, name, location, meta);
-        baseStateForSync = JSON.stringify(projectToSave);
+        const { id, etag } = await saveToCloud(token, project, name, location, meta, access);
+        baseStateForSync = JSON.stringify(project);
 
         // Fire-and-forget: write metadata sidecar alongside .vrs
-        const sidecarMeta = extractMetadataInputs(projectToSave, userId, existingLastViewed);
+        const sidecarMeta = extractMetadataInputs(project, userId, existingLastViewed);
         if (sidecarMeta) {
           saveSidecarToCloud(token, sidecarMeta, name, location).catch(e => {
             if (import.meta.env.DEV) console.warn('[Storage] Sidecar write failed:', e);
@@ -373,6 +373,24 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
         addNotification({ type: 'success', message: 'Saved to cloud', dismissAfter: 3000 });
       } catch (error) {
+        if (error instanceof ProjectDocumentConflictErrorClass) {
+          const conflictName = `${name} (conflict copy)`;
+          await saveToCloud(
+            token,
+            project,
+            conflictName,
+            location,
+            meta,
+            extractDocumentAccess(project, userId)
+          );
+          setSyncStatus({ status: 'conflict', message: 'Cloud version changed' });
+          addNotification({
+            type: 'warning',
+            message: `Cloud version changed. Your version saved as "${conflictName}".`,
+            dismissAfter: 8000,
+          });
+          return;
+        }
         if (error instanceof CloudSyncUnavailableErrorClass) {
           // Cloud sync not yet available (ADR-059 Phase 2 pending)
           setSyncStatus({ status: 'saved', message: 'Saved locally' });
@@ -429,6 +447,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (navigator.onLine) {
         try {
           const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
+          const user = await getEasyAuthUser().catch(() => null);
+          const userId = user?.userId || user?.email || 'local';
 
           // Conflict detection: check if local has unsynced changes AND cloud is newer
           const localRecord = await db.projects.get(name);
@@ -455,7 +475,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const project = await loadFromCloud(token, name, location);
           if (project) {
             // Cache locally
-            await saveToIndexedDB(project, name, location);
+            const meta = extractMetadataInputs(project, userId) ?? undefined;
+            await saveToIndexedDB(project, name, location, meta, userId);
 
             // Store as merge base for future three-way merge
             const existingSyncState = await db.syncState.get(name);
@@ -497,7 +518,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     try {
       const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
-      const personalProjects = await listFromCloud(token, 'personal').catch(() => []);
+      const personalProjects = await listFromCloud(token, 'personal', userId).catch(() => []);
 
       // Merge: use location:name as key to avoid name collisions across locations
       const projectMap = new Map<string, CloudProject>();
@@ -813,7 +834,18 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const token = 'blob-sas'; // cloudSync uses SAS tokens internally, not Graph tokens
           for (const item of pending) {
             try {
-              const { id, etag } = await saveToCloud(token, item.project, item.name, item.location);
+              const user = await getEasyAuthUser().catch(() => null);
+              const userId = user?.userId || user?.email || 'local';
+              const meta = extractMetadataInputs(item.project, userId) ?? undefined;
+              const access = extractDocumentAccess(item.project, userId);
+              const { id, etag } = await saveToCloud(
+                token,
+                item.project,
+                item.name,
+                item.location,
+                meta,
+                access
+              );
               await markAsSynced(item.name, id, etag);
               await removeFromSyncQueue(item.name);
             } catch (error) {

@@ -9,27 +9,22 @@ import {
 } from '@variscout/core';
 import type {
   ControlHandoff,
-  DataRow,
   EvidenceSnapshot,
   EvidenceSource,
-  Finding,
-  ProcessContext,
   ProcessHub,
   ProcessHubSurveyReadinessSummary,
   ProjectMetadata,
-  SpecLimits,
   ControlMetadataProjection,
   ControlRecord,
   ControlReview,
   SurveyEvaluation,
 } from '@variscout/core';
 import { db } from '../db/schema';
-import type { ProjectRecord } from '../db/schema';
+import type { DocumentAccess, ProjectRecord } from '../db/schema';
 import type { StorageLocation, CloudProject } from './cloudSync';
+import type { DocumentSnapshot } from '@variscout/stores';
 
-// Project data is serialized to JSON for IndexedDB/OneDrive — kept as unknown
-// because the storage layer is a passthrough that doesn't inspect the shape.
-export type Project = unknown;
+export type Project = DocumentSnapshot;
 
 // ── Metadata extraction ─────────────────────────────────────────────────
 
@@ -46,9 +41,7 @@ function summarizeSurveyReadiness(evaluation: SurveyEvaluation): ProcessHubSurve
 }
 
 /**
- * Extract findings, questions, and data presence from an opaque project object.
- * The storage layer treats project data as `unknown`; this peeks at the shape
- * to pull out the fields needed for metadata building.
+ * Extract portfolio metadata from the canonical DocumentSnapshot shape.
  */
 export function extractMetadataInputs(
   project: Project,
@@ -56,26 +49,17 @@ export function extractMetadataInputs(
   existingLastViewedAt?: Record<string, number>
 ): ProjectMetadata | null {
   try {
-    const p = project as Record<string, unknown> | null;
-    if (!p || typeof p !== 'object') return null;
-    const findings = (Array.isArray(p.findings) ? p.findings : []) as Finding[];
-    // IM-1: Question entity retired. buildProjectMetadata's 2nd arg is vestigial
-    // (typed `readonly unknown[]`); pass any legacy `questions` blob untouched.
-    const questions: readonly unknown[] = Array.isArray(p.questions) ? p.questions : [];
-    const rawData = Array.isArray(p.rawData) ? (p.rawData as DataRow[]) : [];
+    const findings = project.analyze.findings;
+    const questions: readonly unknown[] = [];
+    const rawData = project.project.rawData;
     const hasData = rawData.length > 0;
-    const processContext =
-      p.processContext && typeof p.processContext === 'object'
-        ? (p.processContext as ProcessContext)
-        : undefined;
-    const outcome = typeof p.outcome === 'string' ? p.outcome : null;
-    const factors = Array.isArray(p.factors)
-      ? p.factors.filter((factor): factor is string => typeof factor === 'string')
-      : [];
-    const specs = p.specs && typeof p.specs === 'object' ? (p.specs as SpecLimits) : undefined;
-    const cpkTarget = typeof p.cpkTarget === 'number' ? p.cpkTarget : undefined;
-    const timeColumn = typeof p.timeColumn === 'string' ? p.timeColumn : null;
-    const dataFilename = typeof p.dataFilename === 'string' ? p.dataFilename : null;
+    const processContext = project.project.processContext ?? undefined;
+    const outcome = project.project.outcome;
+    const factors = project.project.factors;
+    const specs = project.project.specs;
+    const cpkTarget = project.project.cpkTarget;
+    const timeColumn = project.project.timeColumn;
+    const dataFilename = project.project.dataFilename;
     const reviewSignal = buildHubReviewSignal({
       rawData,
       outcome,
@@ -112,6 +96,25 @@ export function extractMetadataInputs(
   }
 }
 
+export function extractDocumentAccess(project: Project, userId: string): DocumentAccess {
+  const members = project.improvementProject?.metadata.members ?? [];
+  const memberUserIds = members.map(member => member.userId).filter(Boolean);
+  const lead = members.find(member => member.role === 'lead')?.userId;
+  const ownerUserId = lead ?? userId;
+
+  return {
+    ownerUserId,
+    memberUserIds: memberUserIds.length > 0 ? memberUserIds : [ownerUserId],
+    hubId: project.hubId,
+    projectId: project.improvementProject?.id ?? null,
+  };
+}
+
+export function canAccessProjectRecord(record: ProjectRecord, userId: string): boolean {
+  const access = record.access ?? extractDocumentAccess(record.data, userId);
+  return access.ownerUserId === userId || access.memberUserIds.includes(userId);
+}
+
 function metadataChanged(current: ProjectMetadata | undefined, next: ProjectMetadata): boolean {
   return JSON.stringify(current ?? null) !== JSON.stringify(next);
 }
@@ -125,13 +128,15 @@ async function backfillProjectMetadataRecords(
 
   for (const record of records) {
     const nextMeta = extractMetadataInputs(record.data, userId, record.meta?.lastViewedAt);
-    if (!nextMeta || !metadataChanged(record.meta, nextMeta)) {
+    const nextAccess = record.access ?? extractDocumentAccess(record.data, userId);
+    const accessChanged = !record.access;
+    if (!nextMeta || (!metadataChanged(record.meta, nextMeta) && !accessChanged)) {
       nextRecords.push(record);
       continue;
     }
-    const nextRecord = { ...record, meta: nextMeta };
+    const nextRecord = { ...record, meta: nextMeta, access: nextAccess };
     nextRecords.push(nextRecord);
-    await db.projects.update(record.name, { meta: nextMeta });
+    await db.projects.update(record.name, { meta: nextMeta, access: nextAccess });
     updated++;
   }
 
@@ -150,7 +155,8 @@ export async function saveToIndexedDB(
   project: Project,
   name: string,
   location: StorageLocation,
-  meta?: ProjectMetadata
+  meta?: ProjectMetadata,
+  userId = 'local'
 ) {
   await db.projects.put({
     name,
@@ -159,6 +165,7 @@ export async function saveToIndexedDB(
     synced: false,
     data: project,
     meta,
+    access: extractDocumentAccess(project, userId),
   });
 }
 
@@ -170,13 +177,16 @@ export async function loadFromIndexedDB(name: string): Promise<Project | null> {
 export async function listFromIndexedDB(userId = 'local'): Promise<CloudProject[]> {
   const records = await db.projects.toArray();
   const result = await backfillProjectMetadataRecords(records, userId);
-  return result.records.map(r => ({
-    id: r.name,
-    name: r.name,
-    modified: r.modified?.toISOString() || new Date().toISOString(),
-    location: r.location,
-    metadata: r.meta,
-  }));
+  return result.records
+    .filter(record => canAccessProjectRecord(record, userId))
+    .map(r => ({
+      id: r.name,
+      name: r.name,
+      modified: r.modified?.toISOString() || new Date().toISOString(),
+      location: r.location,
+      metadata: r.meta,
+      access: r.access,
+    }));
 }
 
 export async function markAsSynced(

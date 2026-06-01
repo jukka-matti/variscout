@@ -1,10 +1,13 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_PROCESS_HUB_ID } from '@variscout/core';
+import type { DocumentSnapshot } from '@variscout/stores';
 import { db } from '../../db/schema';
 import {
   backfillProjectMetadataInIndexedDB,
+  canAccessProjectRecord,
   ensureDefaultProcessHubInIndexedDB,
+  extractDocumentAccess,
   extractMetadataInputs,
   listEvidenceSnapshotsFromIndexedDB,
   listEvidenceSourcesFromIndexedDB,
@@ -14,6 +17,67 @@ import {
   saveEvidenceSourceToIndexedDB,
   saveProcessHubToIndexedDB,
 } from '../localDb';
+
+function snapshot(overrides: Partial<DocumentSnapshot['project']> = {}): DocumentSnapshot {
+  return {
+    schemaVersion: 1,
+    hubId: 'line-4',
+    hub: {
+      id: 'line-4',
+      name: 'Line 4',
+      createdAt: 1,
+      deletedAt: null,
+    },
+    project: {
+      projectId: '',
+      projectName: '',
+      rawData: [],
+      outcome: null,
+      factors: [],
+      specs: {},
+      analysisMode: 'standard',
+      dataFilename: null,
+      timeColumn: null,
+      processContext: null,
+      entryScenario: null,
+      filters: {},
+      filterStack: [],
+      axisSettings: {},
+      displayOptions: undefined,
+      columnAliases: {},
+      valueLabels: {},
+      measureSpecs: {},
+      stageColumn: null,
+      stageOrderMode: 'auto',
+      measureColumns: [],
+      measureLabel: 'Measure',
+      selectedMeasure: null,
+      chartTitles: {},
+      paretoMode: 'derived',
+      paretoAggregation: 'count',
+      separateParetoData: null,
+      separateParetoFilename: null,
+      viewState: null,
+      ...overrides,
+    },
+    analyze: { findings: [], categories: [], hypotheses: [], causalLinks: [], scopes: [] },
+    canvas: {
+      canonicalMap: {
+        version: 1,
+        nodes: [],
+        tributaries: [],
+        assignments: {},
+        arrows: [],
+        createdAt: '2026-04-26T00:00:00.000Z',
+        updatedAt: '2026-04-26T00:00:00.000Z',
+      },
+      outcomes: [],
+      primaryScopeDimensions: [],
+      canonicalMapVersion: 'v1',
+    },
+    improvementProject: null,
+  };
+}
 
 describe('localDb Process Hub support', () => {
   beforeEach(async () => {
@@ -27,10 +91,8 @@ describe('localDb Process Hub support', () => {
 
   it('extracts Process Hub metadata from persisted processContext', () => {
     const metadata = extractMetadataInputs(
-      {
+      snapshot({
         rawData: [{ Value: 1 }],
-        findings: [],
-        questions: [],
         processContext: {
           processHubId: 'line-4',
           analyzeDepth: 'focused',
@@ -50,7 +112,7 @@ describe('localDb Process Hub support', () => {
             updatedAt: '2026-04-26T00:00:00.000Z',
           },
         },
-      },
+      }),
       'local'
     );
 
@@ -75,14 +137,12 @@ describe('localDb Process Hub support', () => {
 
   it('extracts Survey readiness for Process Hub review queues', () => {
     const metadata = extractMetadataInputs(
-      {
+      snapshot({
         rawData: [{ Machine: 'A', Weight: 10 }],
         outcome: 'Weight',
         factors: [],
-        findings: [],
-        questions: [],
         processContext: { processHubId: 'line-4' },
-      },
+      }),
       'local'
     );
 
@@ -95,7 +155,7 @@ describe('localDb Process Hub support', () => {
 
   it('extracts a hub review signal from saved investigation data', () => {
     const metadata = extractMetadataInputs(
-      {
+      snapshot({
         rawData: [
           { Machine: 'A', Timestamp: '2026-04-26T01:00:00Z', Weight: 10 },
           { Machine: 'A', Timestamp: '2026-04-26T02:00:00Z', Weight: 11 },
@@ -108,10 +168,8 @@ describe('localDb Process Hub support', () => {
         cpkTarget: 1.33,
         timeColumn: 'Timestamp',
         dataFilename: 'line-4.csv',
-        findings: [],
-        questions: [],
         processContext: { processHubId: 'line-4' },
-      },
+      }),
       'local'
     );
 
@@ -138,6 +196,109 @@ describe('localDb Process Hub support', () => {
     expect(hubs).toHaveLength(1);
     expect(hubs[0].id).toBe(DEFAULT_PROCESS_HUB_ID);
     expect(hubs[0].name).toBe('General / Unassigned');
+  });
+
+  it('derives private-owner access for quick analysis snapshots', () => {
+    const access = extractDocumentAccess(snapshot(), 'owner@contoso.com');
+
+    expect(access).toEqual({
+      ownerUserId: 'owner@contoso.com',
+      memberUserIds: ['owner@contoso.com'],
+      hubId: 'line-4',
+      projectId: null,
+    });
+  });
+
+  it('derives formal Project access from the member roster', () => {
+    const doc = {
+      ...snapshot(),
+      improvementProject: {
+        id: 'ip-1',
+        hubId: 'line-4',
+        status: 'active',
+        metadata: {
+          title: 'Project',
+          members: [
+            {
+              id: 'lead',
+              userId: 'lead@contoso.com',
+              displayName: 'Lead',
+              role: 'lead',
+              invitedAt: 1,
+              createdAt: 1,
+              deletedAt: null,
+            },
+            {
+              id: 'member',
+              userId: 'member@contoso.com',
+              displayName: 'Member',
+              role: 'member',
+              invitedAt: 1,
+              createdAt: 1,
+              deletedAt: null,
+            },
+          ],
+        },
+        goal: { outcomeGoals: [] },
+        sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+      },
+    } satisfies DocumentSnapshot;
+
+    const access = extractDocumentAccess(doc, 'creator@contoso.com');
+
+    expect(access.ownerUserId).toBe('lead@contoso.com');
+    expect(access.memberUserIds).toEqual(['lead@contoso.com', 'member@contoso.com']);
+    expect(
+      canAccessProjectRecord(
+        {
+          name: 'Project',
+          location: 'personal',
+          modified: new Date(),
+          synced: false,
+          data: doc,
+          access,
+        },
+        'member@contoso.com'
+      )
+    ).toBe(true);
+  });
+
+  it('filters local project listings to owner/member access', async () => {
+    await db.projects.bulkPut([
+      {
+        name: 'visible',
+        location: 'personal',
+        modified: new Date('2026-04-26T00:00:00.000Z'),
+        synced: true,
+        data: snapshot(),
+        access: {
+          ownerUserId: 'owner@contoso.com',
+          memberUserIds: ['owner@contoso.com', 'member@contoso.com'],
+          hubId: 'line-4',
+          projectId: null,
+        },
+      },
+      {
+        name: 'hidden',
+        location: 'personal',
+        modified: new Date('2026-04-26T00:00:00.000Z'),
+        synced: true,
+        data: snapshot(),
+        access: {
+          ownerUserId: 'other@contoso.com',
+          memberUserIds: ['other@contoso.com'],
+          hubId: 'line-4',
+          projectId: null,
+        },
+      },
+    ]);
+
+    const projects = await listFromIndexedDB('member@contoso.com');
+
+    expect(projects.map(project => project.name)).toEqual(['visible']);
   });
 
   it('stores named Process Hubs locally', async () => {
@@ -186,12 +347,10 @@ describe('localDb Process Hub support', () => {
       location: 'personal',
       modified: new Date('2026-04-26T00:00:00.000Z'),
       synced: true,
-      data: {
+      data: snapshot({
         rawData: [{ Machine: 'A', Weight: 10 }],
         outcome: 'Weight',
         factors: ['Machine'],
-        findings: [],
-        questions: [],
         processContext: {
           processHubId: 'line-4',
           analyzeDepth: 'focused',
@@ -206,7 +365,7 @@ describe('localDb Process Hub support', () => {
             updatedAt: '2026-04-26T00:00:00.000Z',
           },
         },
-      },
+      }),
     });
 
     const updated = await backfillProjectMetadataInIndexedDB('local');

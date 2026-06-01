@@ -33,7 +33,7 @@ import { useStageFiveOpener } from './hooks/useStageFiveOpener';
 import { SaveToBrowserButton } from './components/SaveToBrowserButton';
 import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
-import { getOptInFlag, pwaHubRepository } from './persistence';
+import { getOptInFlag, loadSavedDocumentSnapshot, pwaHubRepository } from './persistence';
 import { generateDeterministicId } from '@variscout/core/identity';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
@@ -60,7 +60,8 @@ import {
   useViewStore,
   useProjectMembershipStore,
   hydrateDocumentSnapshot,
-  isDocumentSnapshotVrsFile,
+  reconstructProcessHubFromDocumentSnapshot,
+  type DocumentSnapshotVrsFile,
 } from '@variscout/stores';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
@@ -177,11 +178,11 @@ function AppMain() {
     let cancelled = false;
     void getOptInFlag().then(async opted => {
       if (!opted || cancelled) return;
-      // Load via repository pattern. pwaHubRepository.hubs.list() returns
-      // [] or [hub]; no literal ID needed. getOptInFlag stays direct-call —
-      // it's a meta-flag read, not a hub-domain mutation.
-      const [loaded] = await pwaHubRepository.hubs.list();
-      if (loaded && !cancelled) setSessionHub(loaded);
+      const snapshot = await loadSavedDocumentSnapshot();
+      if (snapshot && !cancelled) {
+        hydrateDocumentSnapshot(snapshot);
+        setSessionHub(reconstructProcessHubFromDocumentSnapshot(snapshot));
+      }
     });
     return () => {
       cancelled = true;
@@ -689,26 +690,15 @@ function AppMain() {
     [importFlow, goalNarrative, sessionHub, setSessionHub, stageFive]
   );
 
-  // .vrs import: restore Hub + raw data, skip framing flow, go straight to canvas.
+  // .vrs import: hydrate the document snapshot and rebuild the session hub.
   // Wired to HomeScreen's onImportVrs prop so trainers / returning analysts can
   // reload a packaged scenario without re-pasting data.
   const handleImportVrs = useCallback(
-    (imported: import('@variscout/core').VrsFile) => {
-      const { hub, rawData: vrsData } = imported;
-      if (isDocumentSnapshotVrsFile(imported)) {
-        hydrateDocumentSnapshot(imported.documentSnapshot);
-      }
-      setSessionHub(hub);
-      // Seed the project store directly — bypasses the paste/mapping flow.
-      if (!isDocumentSnapshotVrsFile(imported) && vrsData && vrsData.length > 0) {
-        setRawData(vrsData as import('@variscout/core').DataRow[]);
-        const firstOutcome = hub.outcomes?.[0]?.columnName;
-        if (firstOutcome) setOutcome(firstOutcome);
-        const dims = hub.primaryScopeDimensions ?? [];
-        if (dims.length > 0) setFactors(dims);
-      }
+    (imported: DocumentSnapshotVrsFile) => {
+      hydrateDocumentSnapshot(imported.documentSnapshot);
+      setSessionHub(reconstructProcessHubFromDocumentSnapshot(imported.documentSnapshot));
     },
-    [setSessionHub, setRawData, setOutcome, setFactors]
+    [setSessionHub]
   );
 
   // Phase tab navigation handler (used by AppHeader inline tabs).

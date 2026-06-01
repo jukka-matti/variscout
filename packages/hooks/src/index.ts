@@ -20,7 +20,6 @@ export type {
   ChartTitles,
   ParetoMode,
   ParetoAggregation,
-  AnalysisState,
   DocumentSnapshotImport,
   SavedProject,
   PersistenceAdapter,

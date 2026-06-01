@@ -2,15 +2,24 @@
 
 import Dexie from 'dexie';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
+import type { DocumentSnapshot } from '@variscout/stores';
+
+export interface DocumentAccess {
+  ownerUserId: string;
+  memberUserIds: string[];
+  hubId: string | null;
+  projectId: string | null;
+}
 
 export interface ProjectRecord {
   name: string;
   location: 'team' | 'personal';
   modified: Date;
   synced: boolean;
-  data: unknown;
+  data: DocumentSnapshot;
   /** Lightweight project health metadata (phase, finding counts, etc.) */
   meta?: import('@variscout/core').ProjectMetadata;
+  access?: DocumentAccess;
 }
 
 export interface SyncStateRecord {
@@ -26,7 +35,7 @@ export interface SyncItem {
   id?: number;
   name: string;
   location: 'team' | 'personal';
-  project: unknown;
+  project: DocumentSnapshot;
   queuedAt: string;
 }
 
