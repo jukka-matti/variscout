@@ -26,6 +26,10 @@ const {
   mockListBlobEvidenceSources,
   mockSaveBlobEvidenceSource,
   mockUpdateBlobEvidenceSources,
+  mockProcessHubs,
+  mockEvidenceSourcesToArray,
+  mockEvidenceSnapshotsToArray,
+  mockControlRecordsToArray,
   mockDispatch,
 } = vi.hoisted(() => ({
   mockProjects: {
@@ -39,6 +43,14 @@ const {
     get: vi.fn().mockResolvedValue(null),
     update: vi.fn().mockResolvedValue(1),
   },
+  mockProcessHubs: {
+    get: vi.fn().mockResolvedValue({ id: 'default' }),
+    put: vi.fn().mockResolvedValue(undefined),
+    toArray: vi.fn().mockResolvedValue([]),
+  },
+  mockEvidenceSourcesToArray: vi.fn().mockResolvedValue([]),
+  mockEvidenceSnapshotsToArray: vi.fn().mockResolvedValue([]),
+  mockControlRecordsToArray: vi.fn().mockResolvedValue([]),
   mockAddToSyncQueue: vi.fn().mockResolvedValue(undefined),
   mockGetPending: vi.fn().mockResolvedValue([]),
   mockRemoveFromQueue: vi.fn().mockResolvedValue(undefined),
@@ -70,9 +82,40 @@ vi.mock('../../db/schema', () => ({
     projects: mockProjects,
     syncState: mockSyncState,
     // processHubs needed by ensureDefaultProcessHubInIndexedDB (called inside saveProcessHub)
-    processHubs: {
-      get: vi.fn().mockResolvedValue({ id: 'default' }),
+    processHubs: mockProcessHubs,
+    evidenceSources: {
       put: vi.fn().mockResolvedValue(undefined),
+      where: vi.fn(() => ({
+        equals: vi.fn(() => ({ toArray: mockEvidenceSourcesToArray })),
+      })),
+      toArray: mockEvidenceSourcesToArray,
+    },
+    evidenceSnapshots: {
+      put: vi.fn().mockResolvedValue(undefined),
+      where: vi.fn(() => ({
+        equals: vi.fn(() => ({ toArray: mockEvidenceSnapshotsToArray })),
+      })),
+      toArray: mockEvidenceSnapshotsToArray,
+    },
+    controlRecords: {
+      put: vi.fn().mockResolvedValue(undefined),
+      update: vi.fn().mockResolvedValue(1),
+      where: vi.fn(() => ({
+        equals: vi.fn(() => ({ toArray: mockControlRecordsToArray })),
+      })),
+    },
+    controlReviews: {
+      put: vi.fn().mockResolvedValue(undefined),
+      where: vi.fn(() => ({
+        equals: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([]) })),
+      })),
+    },
+    controlHandoffs: {
+      get: vi.fn().mockResolvedValue(undefined),
+      put: vi.fn().mockResolvedValue(undefined),
+      where: vi.fn(() => ({
+        equals: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([]) })),
+      })),
     },
   },
   addToSyncQueue: mockAddToSyncQueue,
@@ -227,6 +270,71 @@ describe('storage service', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockProjects.put.mockReset();
+    mockProjects.put.mockResolvedValue(undefined);
+    mockProjects.get.mockReset();
+    mockProjects.get.mockResolvedValue(null);
+    mockProjects.toArray.mockReset();
+    mockProjects.toArray.mockResolvedValue([]);
+    mockProjects.update.mockReset();
+    mockProjects.update.mockResolvedValue(1);
+    mockSyncState.put.mockReset();
+    mockSyncState.put.mockResolvedValue(undefined);
+    mockSyncState.get.mockReset();
+    mockSyncState.get.mockResolvedValue(null);
+    mockSyncState.update.mockReset();
+    mockSyncState.update.mockResolvedValue(1);
+    mockProcessHubs.get.mockReset();
+    mockProcessHubs.get.mockResolvedValue({ id: 'default' });
+    mockProcessHubs.put.mockReset();
+    mockProcessHubs.put.mockResolvedValue(undefined);
+    mockProcessHubs.toArray.mockReset();
+    mockProcessHubs.toArray.mockResolvedValue([]);
+    mockEvidenceSourcesToArray.mockReset();
+    mockEvidenceSourcesToArray.mockResolvedValue([]);
+    mockEvidenceSnapshotsToArray.mockReset();
+    mockEvidenceSnapshotsToArray.mockResolvedValue([]);
+    mockControlRecordsToArray.mockReset();
+    mockControlRecordsToArray.mockResolvedValue([]);
+    mockAddToSyncQueue.mockReset();
+    mockAddToSyncQueue.mockResolvedValue(undefined);
+    mockGetPending.mockReset();
+    mockGetPending.mockResolvedValue([]);
+    mockRemoveFromQueue.mockReset();
+    mockRemoveFromQueue.mockResolvedValue(undefined);
+    mockPruneSyncQueue.mockReset();
+    mockPruneSyncQueue.mockResolvedValue(0);
+    mockSaveBlobProject.mockReset();
+    mockSaveBlobProject.mockResolvedValue({ ok: true, etag: '"mock-etag"' });
+    mockLoadBlobProject.mockReset();
+    mockLoadBlobProject.mockResolvedValue(null);
+    mockLoadBlobMetadata.mockReset();
+    mockLoadBlobMetadata.mockResolvedValue(null);
+    mockListBlobProjects.mockReset();
+    mockListBlobProjects.mockResolvedValue([]);
+    mockUpdateBlobIndex.mockReset();
+    mockUpdateBlobIndex.mockResolvedValue(undefined);
+    mockListBlobProcessHubs.mockReset();
+    mockListBlobProcessHubs.mockResolvedValue([]);
+    mockUpdateBlobProcessHubs.mockReset();
+    mockUpdateBlobProcessHubs.mockResolvedValue(undefined);
+    mockListBlobEvidenceSnapshots.mockReset();
+    mockListBlobEvidenceSnapshots.mockResolvedValue([]);
+    mockSaveBlobEvidenceSnapshot.mockReset();
+    mockSaveBlobEvidenceSnapshot.mockResolvedValue(undefined);
+    mockUpdateBlobEvidenceSnapshotsConditional.mockReset();
+    mockUpdateBlobEvidenceSnapshotsConditional.mockResolvedValue({
+      ok: true,
+      etag: '"mock-etag"',
+    });
+    mockListBlobEvidenceSources.mockReset();
+    mockListBlobEvidenceSources.mockResolvedValue([]);
+    mockSaveBlobEvidenceSource.mockReset();
+    mockSaveBlobEvidenceSource.mockResolvedValue(undefined);
+    mockUpdateBlobEvidenceSources.mockReset();
+    mockUpdateBlobEvidenceSources.mockResolvedValue(undefined);
+    mockDispatch.mockReset();
+    mockDispatch.mockResolvedValue(undefined);
     originalOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     fetchSpy = vi.spyOn(globalThis, 'fetch');
   });
@@ -572,6 +680,39 @@ describe('storage service', () => {
       expect(loaded).toEqual(localFallback);
     });
 
+    it('does not fall back to cached local data when the cloud load is forbidden', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+
+      const forbiddenLocalCopy = makeSnapshot({
+        project: {
+          ...sampleProject.project,
+          rawData: [{ value: 403 }],
+        },
+      });
+      mockSyncState.get.mockReset();
+      mockSyncState.get.mockResolvedValue({
+        cloudId: 'forbidden-cloud-id',
+        lastSynced: '',
+        etag: '',
+      });
+      mockProjects.get
+        .mockResolvedValueOnce(null) // conflict detection
+        .mockResolvedValueOnce({ data: forbiddenLocalCopy }); // must not be used as fallback
+      mockLoadBlobProject.mockRejectedValueOnce(new Error('403 Forbidden'));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let loaded: unknown = 'not-called';
+
+      await act(async () => {
+        loaded = await result.current.loadProject('forbidden-project', 'personal');
+      });
+
+      expect(loaded).toBeNull();
+      expect(mockProjects.get).toHaveBeenCalledTimes(1);
+      mockSyncState.get.mockReset();
+      mockSyncState.get.mockResolvedValue(null);
+    });
+
     it('returns null when project not found in cloud (404) and not cached locally', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
@@ -726,6 +867,156 @@ describe('storage service', () => {
 
       expect(projects).toHaveLength(1);
       expect(projects[0].name).toBe('safe-local');
+    });
+
+    it('does not expose cached local projects when the cloud listing is forbidden', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+
+      mockProjects.toArray.mockResolvedValueOnce([
+        {
+          name: 'cached-but-forbidden',
+          location: 'personal',
+          modified: new Date('2026-02-01'),
+          data: sampleProject,
+        },
+      ]);
+      mockListBlobProjects.mockRejectedValueOnce(new Error('403 Forbidden'));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let projects: CloudProject[] = [];
+
+      await act(async () => {
+        projects = await result.current.listProjects();
+      });
+
+      expect(projects).toEqual([]);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Server-enforced storage boundary for hub-backed reads
+  // -------------------------------------------------------------------------
+  describe('hub-backed reads', () => {
+    const localHub = {
+      id: 'hub-local',
+      name: 'Cached Hub',
+      createdAt: 1000,
+      deletedAt: null,
+    } as import('@variscout/core').ProcessHub;
+
+    const localSource = {
+      id: 'src-local',
+      hubId: 'hub-1',
+      name: 'Cached Source',
+      cadence: 'daily' as const,
+      createdAt: 1000,
+      deletedAt: null,
+    } as import('@variscout/core').EvidenceSource;
+
+    const localSnapshot = {
+      id: 'snap-local',
+      hubId: 'hub-1',
+      sourceId: 'src-1',
+      capturedAt: '2026-05-01T00:00:00Z',
+      rowCount: 1,
+      origin: 'evidence-source:src-1',
+      importedAt: 1000,
+      createdAt: 1000,
+      deletedAt: null,
+    } as import('@variscout/core').EvidenceSnapshot;
+
+    const localControlRecord = {
+      id: 'control-local',
+      hubId: 'hub-1',
+      investigationId: 'investigation-1',
+      title: 'Cached Control',
+      status: 'pending',
+      cadence: 'weekly',
+      nextReviewDue: '2026-06-01',
+      latestVerdict: 'inconclusive',
+      consecutiveOnTargetTicks: 0,
+      hasOverride: false,
+      lastEvaluatedSnapshotId: undefined,
+      createdAt: 1000,
+      updatedAt: 1000,
+      deletedAt: null,
+    } as import('@variscout/core').ControlRecord;
+
+    it('returns cached hub data while offline without making cloud requests', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+      mockEvidenceSourcesToArray.mockResolvedValueOnce([localSource]);
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let sources: import('@variscout/core').EvidenceSource[] = [];
+
+      await act(async () => {
+        sources = await result.current.listEvidenceSources('hub-1');
+      });
+
+      expect(sources).toEqual([localSource]);
+      expect(mockListBlobEvidenceSources).not.toHaveBeenCalled();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not return cached process hubs when the cloud catalog is forbidden', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockProcessHubs.toArray.mockResolvedValueOnce([localHub]);
+      mockListBlobProcessHubs.mockRejectedValueOnce(new Error('403 Forbidden'));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let hubs: import('@variscout/core').ProcessHub[] = [];
+
+      await act(async () => {
+        hubs = await result.current.listProcessHubs();
+      });
+
+      expect(hubs).toEqual([]);
+    });
+
+    it('does not return cached evidence sources when the cloud source catalog is forbidden', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockEvidenceSourcesToArray.mockResolvedValueOnce([localSource]);
+      mockListBlobEvidenceSources.mockRejectedValueOnce(new Error('403 Forbidden'));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let sources: import('@variscout/core').EvidenceSource[] = [];
+
+      await act(async () => {
+        sources = await result.current.listEvidenceSources('hub-1');
+      });
+
+      expect(sources).toEqual([]);
+    });
+
+    it('does not return cached evidence snapshots when the cloud snapshot catalog is forbidden', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockEvidenceSnapshotsToArray.mockResolvedValueOnce([localSnapshot]);
+      mockListBlobEvidenceSnapshots.mockRejectedValueOnce(new Error('403 Forbidden'));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let snapshots: import('@variscout/core').EvidenceSnapshot[] = [];
+
+      await act(async () => {
+        snapshots = await result.current.listEvidenceSnapshots('hub-1', 'src-1');
+      });
+
+      expect(snapshots).toEqual([]);
+    });
+
+    it('does not return cached control records when the cloud control catalog is forbidden', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockControlRecordsToArray.mockResolvedValueOnce([localControlRecord]);
+      const { listBlobControlRecords } = await import('../blobClient');
+      vi.mocked(listBlobControlRecords).mockRejectedValueOnce(new Error('403 Forbidden'));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let records: import('@variscout/core').ControlRecord[] = [];
+
+      await act(async () => {
+        records = await result.current.listControlRecords('hub-1');
+      });
+
+      expect(records).toEqual([]);
     });
   });
 

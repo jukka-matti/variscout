@@ -19,6 +19,8 @@ layer: L5
 **Related**: ADR-007 (Marketplace Distribution), ADR-033 (Pricing Simplification), ADR-058 (Deployment Lifecycle), ADR-082 (Wedge architecture — single €120/month SKU replaces the Standard/Team tier split documented below)
 
 > **V1 (2026-05-16) amendment:** The "Tier Model (Preserved)" section below describes the pre-V1 €79 Standard / €199 Team split. V1 ships as a single €120/month SKU (Azure tenant-wide, project-membership ACLs) per [ADR-082](adr-082-wedge-architecture.md). The web-first deployment architecture (EasyAuth, Blob Storage, browser capture, no Teams SDK) is unchanged.
+>
+> **R6e (2026-06-01) amendment:** Broad browser container SAS is no longer the V1 production storage-boundary guidance. Project data flows through same-origin server APIs that enforce R6c document access and use App Service managed identity for Blob Storage operations.
 
 ---
 
@@ -181,8 +183,9 @@ in this ADR:
 - **Constitution P8 (no AI in free tier) holds.** CoScout remains an Azure-tier
   feature. PWA sessions never see a CoScout prompt.
 - **Azure tier's customer-owned-data principle is unchanged.** Customer data
-  in Azure flows to customer-tenant Blob Storage via SAS-token-gated
-  `/api/storage-token`; no data leaves the customer's Azure subscription.
+  in Azure flows to customer-tenant Blob Storage through same-origin server
+  APIs backed by App Service managed identity; no data leaves the customer's
+  Azure subscription.
 
 **Schema implications.** The new IndexedDB persistence layer in PWA needs to
 hold: `ProcessMap` (steps + sub-steps + arrows + branches/joins + named
@@ -195,3 +198,23 @@ to the FRAME canvas detail spec when it brainstorms persistence.
 Locked as Q8 in the 2026-05-03 vision §8 walkthrough — see
 `~/.claude/plans/lets-do-this-next-rustling-simon.md` and the matching
 entry in [`docs/decision-log.md`](../decision-log.md).
+
+## Amendment — 2026-06-01: R6e server-enforced Azure storage boundary
+
+R6e refines the Azure storage boundary before launch. The ADR's original
+customer-owned-data decision still holds: storage remains in the customer's
+Azure subscription, and statistical processing remains browser-side. The
+production access mechanism changes from broad browser container SAS guidance
+to same-origin server APIs:
+
+- Browser code calls App Service endpoints for project document list/load/save.
+- The server validates EasyAuth identity and enforces the R6c document access
+  model before Blob list/read/write.
+- The server uses App Service managed identity and Azure RBAC for production
+  Blob Storage operations.
+- Broad project-data container SAS must not be exposed to the browser.
+- Storage account connection strings and Shared Key credentials are
+  local-dev/test-only.
+- After R6e, production storage should disable Shared Key access where
+  supported, or use Azure Policy / audit controls to track remediation toward
+  disabling it.

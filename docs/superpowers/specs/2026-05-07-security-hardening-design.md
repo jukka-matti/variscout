@@ -1,11 +1,11 @@
 ---
 tier: living
 purpose: design
-title: Security Hardening Concept — Azure VariScout (hub authz + SAS scope + login guardrails)
+title: Security Hardening Concept — Azure VariScout (project authz + server storage boundary + login guardrails)
 audience: human
 category: design-spec
 status: draft
-last-reviewed: 2026-05-07
+last-reviewed: 2026-06-01
 related:
   - docs/07-decisions/adr-007-azure-marketplace-distribution.md
   - docs/07-decisions/adr-059-web-first-deployment-architecture.md
@@ -25,7 +25,9 @@ implements:
 
 # Security Hardening Concept — Azure VariScout
 
-> **Concept-level design.** Three specific gaps in the Azure tier's security posture: inside-tenant authorization, SAS scope, login configuration guardrails. Implementation plans to be written separately, after current Data-Flow Foundation F-series work completes. Not a threat model, not a compliance program, not a deployment-model rethink.
+> **Last material edit 2026-06-01** — Gap 2 rewritten for R6e: broad browser container SAS is no longer production guidance; storage access moves behind same-origin server APIs backed by managed identity.
+
+> **Concept-level design.** Three specific gaps in the Azure tier's security posture: inside-tenant authorization, server-enforced storage access, login configuration guardrails. Implementation plans to be written separately. Not a threat model, not a compliance program, not a deployment-model rethink.
 
 ## 1. Context
 
@@ -34,7 +36,7 @@ VariScout's Azure deployment uses a **per-customer Managed Application** model: 
 The login surface itself is small — it's Microsoft's. The genuine security gaps live elsewhere:
 
 1. **Inside-tenant authorization is binary**: any user who can sign into the customer's Entra tenant currently sees every hub, every investigation, every project. Optional `VariScout.Admin` role only gates a few admin-tab UIs.
-2. **SAS tokens are over-permissive**: `/api/storage-token` (apps/azure/server.js:136-207) issues a container-scoped, `rwl` (read/write/list), 1-hour SAS. A signed-in user can list and overwrite _any_ blob in the container, including hubs they have no business touching.
+2. **Storage access must be server-enforced**: project-document listing/loading is access-aware after R6c, but production storage guidance must move beyond broad browser container SAS. The R6e target is same-origin server APIs that validate the caller against the document access model before any Blob list/read/write operation.
 3. **Login configuration is mis-configurable**: Bicep allows multi-tenant Entra ID, which can let users from any Microsoft tenant sign in unless the customer adds extra filtering. There's no claim-level allowlist enforcement.
 
 This is a **concept-level** design — it describes the approach and rationale per gap, lists alternatives considered, and points at the files/ADRs that will need to change. It does **not** prescribe task-by-task implementation; that work happens later.
@@ -54,7 +56,7 @@ This is a **concept-level** design — it describes the approach and rationale p
 **Goals**
 
 - Make "authenticated ≠ full access" possible inside a customer's tenant, without breaking the small-team usability that already works.
-- Reduce SAS blast radius so a signed-in user can't trivially overwrite or list other users' hubs.
+- Move production Blob Storage access behind same-origin server APIs so a signed-in user cannot list, read, or overwrite documents outside their R6c access set.
 - Eliminate the "any Microsoft account can log in" misconfiguration risk at deploy time.
 
 **Non-goals**
@@ -160,38 +162,37 @@ Existing admin role gets a documented bypass: admins can view and manage any hub
 
 ---
 
-## 5. Gap 2 — Storage hardening (SAS scope only)
+## 5. Gap 2 — Storage hardening (same-origin API boundary)
 
 ### 5.1 Problem
 
-`/api/storage-token` (apps/azure/server.js:136-207) currently issues a container-wide `rwl` SAS valid for 1h. A signed-in user holding that token can:
+Broad browser access to the project-data container is incompatible with R6c's access-aware document model. If the browser holds a container-wide read/write/list token, it can bypass server-side list/load filters and operate directly on blob paths.
 
-- **List** every blob in the container (information leak about what investigations exist).
-- **Overwrite** any blob, including hubs they shouldn't access (data destruction or tampering).
-- **Bypass any future hub-authz** because the SAS isn't scoped to a hub.
+- **List** blobs the user should not discover.
+- **Read** document blobs outside the user's Lead/Member/Sponsor roster or private quick-analysis ownership.
+- **Overwrite** any blob, including documents they should not access.
+- **Bypass R6c access metadata** because the storage credential is not bound to the document access check.
 
 ETag (ADR-079) only handles concurrent-conflict detection — it does not stop intentional or buggy overwrites.
 
-### 5.2 Recommended approach: per-hub-prefix SAS, role-aligned permissions
+### 5.2 Recommended approach: same-origin server APIs + managed identity
 
-When a client requests a SAS, the server:
+The browser calls same-origin storage APIs in `apps/azure/server.js`. For every list/read/write:
 
-1. Verifies caller has access to the requested `hubId` (via the Gap 1 ACL check).
-2. Mints a SAS scoped to the prefix `hubs/{hubId}/*`.
-3. Permissions match the caller's role:
-   - **Owner**: `rwd` (read / write / delete)
-   - **Member**: `rw` (read / write)
-   - _(future Viewer: `r`)_
-4. Drops `l` (list) globally.
-5. Keeps the 1-hour TTL.
+1. Server validates the EasyAuth session.
+2. Server evaluates the R6c document access set:
+   - Quick-analysis documents are private to the creator/current user.
+   - Formal Projects derive access from `improvementProject.metadata.members`.
+3. Server performs the Blob operation using App Service managed identity and Azure RBAC.
+4. Server returns only authorized document payloads or metadata.
 
-Hub-listing moves to a server endpoint (`GET /api/hubs/list`) that filters by access. This both avoids the need for `l` permission and lets the server prune restricted hubs for non-members.
+Production App Service configuration should not depend on storage account connection strings or Shared Key. After R6e, production storage should disable Shared Key access where supported (`allowSharedKeyAccess: false`), or use Azure Policy / audit controls to track remediation toward disabling it. Connection strings remain local-dev/test-only.
 
 ### 5.3 Alternatives considered
 
-- **Per-blob SAS**: most secure but kills bulk-ingest UX (one server round-trip per blob).
-- **Per-user-prefix SAS**: doesn't fit shared-hub model — multiple users edit one hub.
-- **OAuth bearer + user-delegation directly against Blob REST**: most native Azure pattern but rewrites the storage layer; defer to a future cleanup.
+- **Per-blob SAS**: narrower than container SAS, but still pushes authorization artifacts into the browser and adds token churn.
+- **Per-document-prefix SAS**: workable as a transitional fallback for large artifact uploads, but project document list/load/save should stay server-enforced.
+- **OAuth bearer + user-delegation directly against Blob REST**: Azure-native, but still requires careful per-resource authorization and would rewrite the storage layer.
 
 ### 5.4 General audit log: deliberately not built
 
@@ -210,11 +211,10 @@ This was originally on the list. On reflection it doesn't earn its keep right no
 
 ### 5.5 Files this will touch (when implementation starts)
 
-- `apps/azure/server.js:136-207` — rewrite SAS minter to take `hubId` + role, scope prefix and permissions accordingly.
-- `apps/azure/src/services/blobClient.ts` — pass `hubId` on SAS request; handle 403 on cross-hub access cleanly.
-- New: `apps/azure/api/hubs/list` (also from Gap 1).
+- `apps/azure/server.js` — add same-origin list/load/save routes that authorize per document and use managed identity for Blob I/O.
+- `apps/azure/src/services/blobClient.ts` / `cloudSync.ts` — route project document operations through server APIs; do not require broad container SAS in the browser.
 - `docs/08-products/azure/security-whitepaper.md` — new section on storage permissions + audit trail guidance.
-- New ADR: SAS scoping policy.
+- New ADR: server-enforced storage boundary policy.
 
 ---
 
@@ -278,7 +278,7 @@ Customer IT can require an Entra app role (e.g., `VariScout.User`) for any acces
 
 - **Gap 3** is smallest and unblocks nothing — can ship anytime.
 - **Gap 1** is the largest. It introduces a new data shape (hub-acl.json), new endpoints, new UI, and migration. Likely 2–3 PRs minimum (data model + repository + UI).
-- **Gap 2** depends on Gap 1's role/ACL data being live before per-hub-prefix SAS can mint role-aligned permissions. Sequence: Gap 1 ACL → Gap 2 SAS rewrite.
+- **Gap 2** can build on R6c's document access metadata without adding a new role model. Sequence: R6c document access metadata → R6e server storage API enforcement → later hub/project ACL UI refinements if needed.
 - **PWA tier** does not get hub authz in this concept (open by design per ADR-059/ADR-078). Confirm before implementation that this matches product intent.
 
 ## 9. Verification (end-to-end test points)
@@ -294,9 +294,11 @@ For each gap, the implementation plan should include these checks:
 
 **Gap 2 — Storage hardening**
 
-- SAS scope: caller requests SAS for hub X, attempts to GET/PUT a blob under hub Y's prefix → 403.
-- Permissions: Member-role caller's SAS does not grant `d` (delete); Owner-role caller's does.
-- List removed: SAS does not include `l`; `/api/hubs/list` returns only hubs the caller can access.
+- Server list: caller sees only private quick analyses they own and formal Projects where they are Lead/Member/Sponsor.
+- Server load/save: caller attempts to read/write another user's private quick analysis or non-member Project document → 403.
+- Browser token audit: project document flows do not expose broad container SAS to browser code.
+- Production config: deployed App Service uses managed identity; storage account connection string is absent.
+- Shared Key posture: production storage has Shared Key disabled or an Azure Policy / audit finding tracking disablement.
 - Diagnostic logs: smoke-test that Azure Storage diagnostic logging captures a write (manual verification in customer's Log Analytics workspace).
 
 **Gap 3 — Login guardrails**
@@ -317,7 +319,7 @@ For each gap, the implementation plan should include these checks:
 - `docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md` — tier model; PWA stays open by design.
 - `docs/07-decisions/adr-079-etag-optimistic-concurrency-paid-tier-hub-writes.md` — ETag concurrency, basis for ACL doc concurrency.
 - `docs/08-products/azure/security-whitepaper.md` — current security baseline; will be updated.
-- `apps/azure/server.js` (lines 136-207) — current SAS minter (target of Gap 2 rewrite).
+- `apps/azure/server.js` — same-origin API server and current storage integration point (target of Gap 2 rewrite).
 - `apps/azure/src/auth/easyAuth.ts` — current auth integration (target of Gap 1 + Gap 3 changes).
 - `apps/azure/src/hooks/useAdminAccess.ts` — current admin role pattern; will be siblinged for hub-level access.
 - `infra/main.bicep` — current Bicep deployment (target of Gap 3 changes).

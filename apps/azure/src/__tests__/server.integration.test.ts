@@ -8,7 +8,7 @@
  * avoid real Azure infrastructure requirements.
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
 import supertest from 'supertest';
 import type { Express } from 'express';
 
@@ -16,21 +16,75 @@ import type { Express } from 'express';
 // server.js imports these lazily via dynamic import(); vi.mock() hoists
 // these to module scope so the stubs are in place before the server loads.
 
-const mockUploadData = vi.fn().mockResolvedValue({});
-const mockDelete = vi.fn().mockResolvedValue({});
+type MockBlob = {
+  body: Buffer;
+  contentType: string;
+  etag: string;
+  createdOn: Date;
+};
 
-// Async iterator for listBlobsFlat — yields two blobs
-function makeBlobIterator() {
-  const blobs = [
-    {
-      name: 'test-project-id/documents/doc-abc123-report.pdf',
-      properties: { contentLength: 12345, createdOn: new Date('2026-01-01T10:00:00Z') },
-    },
-    {
-      name: 'test-project-id/documents/doc-def456-notes.txt',
-      properties: { contentLength: 512, createdOn: new Date('2026-01-02T09:30:00Z') },
-    },
-  ];
+const mockBlobStore = new Map<string, MockBlob>();
+let mockEtagCounter = 1;
+
+function seedMockBlob(
+  name: string,
+  value: unknown,
+  options?: { contentType?: string; etag?: string; createdOn?: Date }
+) {
+  const body = Buffer.from(typeof value === 'string' ? value : JSON.stringify(value), 'utf8');
+  mockBlobStore.set(name, {
+    body,
+    contentType: options?.contentType ?? 'application/json',
+    etag: options?.etag ?? `"seed-${mockEtagCounter++}"`,
+    createdOn: options?.createdOn ?? new Date('2026-01-01T10:00:00Z'),
+  });
+}
+
+function readMockJsonBlob<T>(name: string): T {
+  const blob = mockBlobStore.get(name);
+  if (!blob) throw new Error(`Missing mock blob ${name}`);
+  return JSON.parse(blob.body.toString('utf8')) as T;
+}
+
+function makeAzureError(message: string, statusCode: number) {
+  return Object.assign(new Error(message), { statusCode });
+}
+
+const mockUploadData = vi.fn(
+  async (
+    blobName: string,
+    data: Buffer | string,
+    options?: { conditions?: { ifMatch?: string }; blobHTTPHeaders?: { blobContentType?: string } }
+  ) => {
+    const current = mockBlobStore.get(blobName);
+    const ifMatch = options?.conditions?.ifMatch;
+    if (ifMatch && current?.etag !== ifMatch) {
+      throw makeAzureError('ConditionNotMet', 412);
+    }
+
+    const body = Buffer.isBuffer(data) ? data : Buffer.from(String(data), 'utf8');
+    mockBlobStore.set(blobName, {
+      body,
+      contentType: options?.blobHTTPHeaders?.blobContentType ?? 'application/json',
+      etag: `"mock-${mockEtagCounter++}"`,
+      createdOn: current?.createdOn ?? new Date('2026-01-01T10:00:00Z'),
+    });
+    return {};
+  }
+);
+const mockDelete = vi.fn(async (blobName: string) => {
+  mockBlobStore.delete(blobName);
+  return {};
+});
+
+// Async iterator for listBlobsFlat — yields blobs from the in-memory store.
+function makeBlobIterator(prefix = '') {
+  const blobs = Array.from(mockBlobStore.entries())
+    .filter(([name]) => name.startsWith(prefix))
+    .map(([name, blob]) => ({
+      name,
+      properties: { contentLength: blob.body.length, createdOn: blob.createdOn },
+    }));
   return {
     [Symbol.asyncIterator]() {
       let i = 0;
@@ -42,15 +96,36 @@ function makeBlobIterator() {
   };
 }
 
-const mockGetBlockBlobClient = vi.fn(() => ({
-  uploadData: mockUploadData,
-  delete: mockDelete,
-}));
-
-const mockListBlobsFlat = vi.fn(() => makeBlobIterator());
+const mockListBlobsFlat = vi.fn((options?: { prefix?: string }) =>
+  makeBlobIterator(options?.prefix)
+);
 
 const mockGetContainerClient = vi.fn(() => ({
-  getBlockBlobClient: mockGetBlockBlobClient,
+  getBlockBlobClient: vi.fn((blobName: string) => ({
+    uploadData: (
+      data: Buffer | string,
+      options?: {
+        conditions?: { ifMatch?: string };
+        blobHTTPHeaders?: { blobContentType?: string };
+      }
+    ) => mockUploadData(blobName, data, options),
+    delete: () => mockDelete(blobName),
+    downloadToBuffer: async () => {
+      const blob = mockBlobStore.get(blobName);
+      if (!blob) throw makeAzureError('BlobNotFound', 404);
+      return blob.body;
+    },
+    getProperties: async () => {
+      const blob = mockBlobStore.get(blobName);
+      if (!blob) throw makeAzureError('BlobNotFound', 404);
+      return {
+        etag: blob.etag,
+        contentLength: blob.body.length,
+        contentType: blob.contentType,
+        createdOn: blob.createdOn,
+      };
+    },
+  })),
   listBlobsFlat: mockListBlobsFlat,
 }));
 
@@ -82,12 +157,56 @@ vi.mock('@azure/identity', () => ({
 // Use Object.assign to set process.env keys before the dynamic import below.
 
 const VALID_UUID = 'a1b2c3d4-e5f6-4789-ab12-cd34ef567890';
+const MEMBER_UUID = 'b1b2c3d4-e5f6-4789-ab12-cd34ef567890';
+const OUTSIDER_UUID = 'c1b2c3d4-e5f6-4789-ab12-cd34ef567890';
 
 // Encoded principal: { "userId": "user-123", "userDetails": "test@example.com" }
 const VALID_PRINCIPAL = Buffer.from(
   JSON.stringify({ userId: 'user-123', userDetails: 'test@example.com' }),
   'utf8'
 ).toString('base64');
+const MEMBER_PRINCIPAL = Buffer.from(
+  JSON.stringify({ userId: 'member-456', userDetails: 'member@example.com' }),
+  'utf8'
+).toString('base64');
+const OUTSIDER_PRINCIPAL = Buffer.from(
+  JSON.stringify({ userId: 'outsider-789', userDetails: 'outsider@example.com' }),
+  'utf8'
+).toString('base64');
+
+function projectMetadata(
+  projectId = VALID_UUID,
+  access = {
+    ownerUserId: 'user-123',
+    memberUserIds: ['member-456'],
+  }
+) {
+  return {
+    projectId,
+    name: `Project ${projectId.slice(0, 4)}`,
+    updated: '2026-01-02T09:30:00.000Z',
+    access,
+  };
+}
+
+function seedAccessibleProject(
+  projectId = VALID_UUID,
+  access = {
+    ownerUserId: 'user-123',
+    memberUserIds: ['member-456'],
+  }
+) {
+  const metadata = projectMetadata(projectId, access);
+  seedMockBlob(`${projectId}/metadata.json`, metadata, { etag: '"metadata-etag"' });
+  seedMockBlob(
+    `${projectId}/analysis.json`,
+    { id: projectId, title: metadata.name },
+    {
+      etag: '"analysis-etag"',
+    }
+  );
+  return metadata;
+}
 
 let request: ReturnType<typeof supertest>;
 
@@ -114,6 +233,12 @@ afterAll(() => {
   delete process.env.AZURE_STORAGE_CONNECTION_STRING;
   delete process.env.VOICE_INPUT_ENABLED;
   delete process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT;
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockBlobStore.clear();
+  mockEtagCounter = 1;
 });
 
 // ── Health & Config ──────────────────────────────────────────────────────────
@@ -171,6 +296,17 @@ describe('POST /api/storage-token — auth validation', () => {
     expect(body).toHaveProperty('error');
   });
 
+  it('returns 410 for authenticated callers because direct container SAS is disabled', async () => {
+    const res = await request
+      .post('/api/storage-token')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({});
+
+    expect(res.status).toBe(410);
+    const body = JSON.parse(res.text);
+    expect(body.error).toMatch(/direct container sas disabled/i);
+  });
+
   it('returns 401 for KB upload without auth header', async () => {
     const res = await request.post('/api/kb-upload').field('projectId', VALID_UUID);
     expect(res.status).toBe(401);
@@ -191,6 +327,140 @@ describe('POST /api/storage-token — auth validation', () => {
       .delete('/api/kb-delete')
       .send({ projectId: VALID_UUID, documentId: VALID_UUID, fileName: 'test.pdf' });
     expect(res.status).toBe(401);
+  });
+});
+
+// ── Server-enforced storage boundary ────────────────────────────────────────
+
+describe('same-origin storage APIs — project access', () => {
+  it('GET /api/storage/projects filters the central index to accessible projects', async () => {
+    const allowed = projectMetadata(VALID_UUID);
+    const memberAllowed = projectMetadata(MEMBER_UUID, {
+      ownerUserId: 'other-owner',
+      memberUserIds: ['user-123'],
+    });
+    const denied = projectMetadata(OUTSIDER_UUID, {
+      ownerUserId: 'other-owner',
+      memberUserIds: ['other-member'],
+    });
+    const missingAccess = { projectId: 'no-access', name: 'No access', updated: '2026-01-01' };
+    seedMockBlob('_index.json', [allowed, memberAllowed, denied, missingAccess]);
+    seedMockBlob(`${VALID_UUID}/metadata.json`, allowed);
+    seedMockBlob(`${MEMBER_UUID}/metadata.json`, memberAllowed);
+    seedMockBlob(`${OUTSIDER_UUID}/metadata.json`, denied);
+    seedMockBlob('no-access/metadata.json', missingAccess);
+
+    const res = await request
+      .get('/api/storage/projects')
+      .set('x-ms-client-principal', VALID_PRINCIPAL);
+
+    expect(res.status).toBe(200);
+    const body = JSON.parse(res.text) as { projects: Array<{ projectId: string }> };
+    expect(body.projects.map(project => project.projectId)).toEqual([VALID_UUID, MEMBER_UUID]);
+  });
+
+  it('GET /api/storage/projects/:projectId returns project data only after metadata access passes', async () => {
+    seedAccessibleProject();
+
+    const res = await request
+      .get(`/api/storage/projects/${VALID_UUID}`)
+      .set('x-ms-client-principal', MEMBER_PRINCIPAL);
+
+    expect(res.status).toBe(200);
+    const body = JSON.parse(res.text);
+    expect(body.project).toEqual({ id: VALID_UUID, title: 'Project a1b2' });
+    expect(body.metadata.projectId).toBe(VALID_UUID);
+    expect(body.etag).toBe('"analysis-etag"');
+  });
+
+  it('GET /api/storage/projects/:projectId returns 403 when metadata access excludes the caller', async () => {
+    seedAccessibleProject();
+
+    const res = await request
+      .get(`/api/storage/projects/${VALID_UUID}`)
+      .set('x-ms-client-principal', OUTSIDER_PRINCIPAL);
+
+    expect(res.status).toBe(403);
+  });
+
+  it('PUT /api/storage/projects/:projectId allows creation when submitted access includes the caller', async () => {
+    const res = await request
+      .put(`/api/storage/projects/${VALID_UUID}`)
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({
+        project: { id: VALID_UUID, title: 'Created server-side' },
+        metadata: projectMetadata(VALID_UUID),
+      });
+
+    expect(res.status).toBe(200);
+    const body = JSON.parse(res.text);
+    expect(body.etag).toMatch(/^"mock-/);
+    expect(readMockJsonBlob(`${VALID_UUID}/analysis.json`)).toEqual({
+      id: VALID_UUID,
+      title: 'Created server-side',
+    });
+    expect(readMockJsonBlob(`${VALID_UUID}/metadata.json`)).toMatchObject({
+      projectId: VALID_UUID,
+      access: { ownerUserId: 'user-123', memberUserIds: ['member-456'] },
+    });
+  });
+
+  it('PUT /api/storage/projects/:projectId returns 412 when If-Match does not match the analysis blob', async () => {
+    seedAccessibleProject();
+
+    const res = await request
+      .put(`/api/storage/projects/${VALID_UUID}`)
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .set('If-Match', '"stale-etag"')
+      .send({
+        project: { id: VALID_UUID, title: 'Conflicting update' },
+        metadata: projectMetadata(VALID_UUID),
+      });
+
+    expect(res.status).toBe(412);
+  });
+});
+
+describe('same-origin storage APIs — generic blob text', () => {
+  it('PUT and GET /api/storage/blob-text round-trip text after project access passes', async () => {
+    seedAccessibleProject();
+
+    const put = await request
+      .put('/api/storage/blob-text')
+      .set('x-ms-client-principal', VALID_PRINCIPAL)
+      .send({
+        projectId: VALID_UUID,
+        blobPath: `${VALID_UUID}/artifacts/report.jsonl`,
+        text: '{"ok":true}\n',
+        contentType: 'application/x-ndjson',
+      });
+    expect(put.status).toBe(200);
+
+    const get = await request
+      .get('/api/storage/blob-text')
+      .query({ projectId: VALID_UUID, blobPath: `${VALID_UUID}/artifacts/report.jsonl` })
+      .set('x-ms-client-principal', MEMBER_PRINCIPAL);
+
+    expect(get.status).toBe(200);
+    expect(JSON.parse(get.text)).toMatchObject({
+      text: '{"ok":true}\n',
+      contentType: 'application/x-ndjson',
+    });
+  });
+
+  it('PUT /api/storage/blob-text returns 403 when project metadata excludes the caller', async () => {
+    seedAccessibleProject();
+
+    const res = await request
+      .put('/api/storage/blob-text')
+      .set('x-ms-client-principal', OUTSIDER_PRINCIPAL)
+      .send({
+        projectId: VALID_UUID,
+        blobPath: `${VALID_UUID}/artifacts/report.jsonl`,
+        text: 'nope',
+      });
+
+    expect(res.status).toBe(403);
   });
 });
 
@@ -250,8 +520,16 @@ describe('KB happy paths with mocked Blob Storage', () => {
 
   it('GET /api/kb-list → 200 with documents array', async () => {
     const projectId = VALID_UUID;
-    // The mock iterator uses a fixed prefix "test-project-id/documents/",
-    // so listing returns documents from the mock regardless of the projectId param.
+    seedAccessibleProject(projectId);
+    seedMockBlob(`${projectId}/documents/docabc123-report.pdf`, 'PDF content', {
+      contentType: 'application/pdf',
+      createdOn: new Date('2026-01-01T10:00:00Z'),
+    });
+    seedMockBlob(`${projectId}/documents/docdef456-notes.txt`, 'notes', {
+      contentType: 'text/plain',
+      createdOn: new Date('2026-01-02T09:30:00Z'),
+    });
+
     const res = await request
       .get(`/api/kb-list?projectId=${projectId}`)
       .set('x-ms-client-principal', VALID_PRINCIPAL);
@@ -260,9 +538,14 @@ describe('KB happy paths with mocked Blob Storage', () => {
     const body = JSON.parse(res.text);
     expect(body).toHaveProperty('documents');
     expect(Array.isArray(body.documents)).toBe(true);
+    expect(body.documents.map((doc: { fileName: string }) => doc.fileName)).toEqual([
+      'report.pdf',
+      'notes.txt',
+    ]);
   });
 
   it('DELETE /api/kb-delete with valid params → 200 deleted: true', async () => {
+    seedAccessibleProject();
     const res = await request
       .delete('/api/kb-delete')
       .set('x-ms-client-principal', VALID_PRINCIPAL)
@@ -279,6 +562,7 @@ describe('KB happy paths with mocked Blob Storage', () => {
   });
 
   it('POST /api/kb-upload with valid file + projectId → 200 with doc metadata', async () => {
+    seedAccessibleProject();
     const res = await request
       .post('/api/kb-upload')
       .set('x-ms-client-principal', VALID_PRINCIPAL)
@@ -299,6 +583,7 @@ describe('KB happy paths with mocked Blob Storage', () => {
   });
 
   it('POST /api/kb-search without search endpoint configured → 200 empty results', async () => {
+    seedAccessibleProject();
     // AI_SEARCH_ENDPOINT not set — server returns graceful degradation
     const res = await request
       .post('/api/kb-search')
@@ -309,6 +594,31 @@ describe('KB happy paths with mocked Blob Storage', () => {
     const body = JSON.parse(res.text);
     expect(body).toHaveProperty('results');
     expect(Array.isArray(body.results)).toBe(true);
+  });
+
+  it('GET /api/kb-download returns a short-lived blob SAS after project access passes', async () => {
+    seedAccessibleProject();
+
+    const res = await request
+      .get('/api/kb-download')
+      .query({ projectId: VALID_UUID, documentId: VALID_UUID, fileName: 'report.pdf' })
+      .set('x-ms-client-principal', MEMBER_PRINCIPAL);
+
+    expect(res.status).toBe(200);
+    const body = JSON.parse(res.text);
+    expect(body.url).toContain(`${VALID_UUID}/documents/${VALID_UUID}-report.pdf`);
+    expect(body.url).toContain('sv=mock&sig=mock');
+  });
+
+  it('GET /api/kb-download returns 403 when project access fails', async () => {
+    seedAccessibleProject();
+
+    const res = await request
+      .get('/api/kb-download')
+      .query({ projectId: VALID_UUID, documentId: VALID_UUID, fileName: 'report.pdf' })
+      .set('x-ms-client-principal', OUTSIDER_PRINCIPAL);
+
+    expect(res.status).toBe(403);
   });
 });
 

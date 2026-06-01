@@ -218,13 +218,15 @@ The staging environment is deployed via GitHub Actions with OIDC authentication 
 - Security headers on every response: CSP, HSTS (1 year, includeSubDomains), X-Content-Type-Options, Referrer-Policy, Permissions-Policy
 - Dynamic `connect-src` in CSP: includes AI endpoint and AI Search endpoint
 - Runtime config endpoint (`GET /config`): serves plan, AI endpoints, App Insights connection string
-- SAS token endpoint (`POST /api/storage-token`): Blob Storage access (Azure App)
+- Same-origin storage APIs: authorized Blob Storage list/load/save for the Azure App, enforced on the server and backed by App Service managed identity
 - KB endpoints (`POST /api/kb-upload`, `POST /api/kb-search`, `GET /api/kb-list`, `DELETE /api/kb-delete`, `GET /api/kb-download`): Knowledge Catalyst management (Azure App, Phase 2+, ADR-060)
 - Health endpoint (`GET /health` → 200)
 - SIGTERM graceful shutdown (closes server, exits cleanly)
 - Listens on `process.env.PORT` (set by App Service)
 
 EasyAuth intercepts `/.auth/*` at the platform level before the Express server — no conflict.
+
+**Production storage boundary after R6e:** Customer project data is accessed through same-origin server APIs, not broad browser container SAS. Production App Service instances should use the system-assigned managed identity plus `Storage Blob Data Contributor` on the storage account/container. Storage account connection strings and Shared Key credentials are local-dev/test-only. For production storage accounts, disable Shared Key access where supported; if immediate disablement is not feasible, apply Azure Policy or an audit control that detects Shared Key-enabled accounts and tracks remediation toward disabling it.
 
 **Pipeline** (`.github/workflows/deploy-azure-staging.yml`):
 

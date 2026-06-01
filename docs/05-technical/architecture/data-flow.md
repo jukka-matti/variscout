@@ -254,12 +254,12 @@ flowchart TB
 
     subgraph Cloud["Customer Azure Tenant"]
         D[EasyAuth] --> E[Session Token]
-        E --> F[/api/storage-token]
+        E --> F[Same-origin storage API]
         F --> G[(Blob Storage)]
     end
 
     B <--> D
-    C <--> G
+    C <--> F
 
     note1[Azure App: Bi-directional sync — local-first, Blob Storage backup (ADR-059)]
 ```

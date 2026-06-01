@@ -90,21 +90,21 @@ The ARM template uses `WEBSITE_RUN_FROM_PACKAGE` to deploy the app as a static z
 
 ## 6. App Readiness
 
-| Item                                  | Status                | Notes                                                                                                            |
-| ------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| EasyAuth login works                  | ✅ Done               | `apps/azure/src/auth/easyAuth.ts` — tested locally with mock                                                     |
-| Blob Storage save/load works          | ⬜ In progress        | `apps/azure/src/services/storage.ts` — Blob SAS URLs via EasyAuth token (OneDrive/Graph API retired per ADR-059) |
-| All chart types render                | ✅ Done               | I-Chart, Boxplot, Pareto, Capability, Performance charts                                                         |
-| Performance Mode works                | ✅ Done               | Multi-channel Cpk analysis                                                                                       |
-| CSV/Excel file upload works           | ✅ Done               | Parser in `@variscout/core`                                                                                      |
-| CSV export works                      | ✅ Done               | `downloadCSV` in `@variscout/core`                                                                               |
-| Theme switching works                 | ✅ Done               | Light/dark/system via ThemeContext                                                                               |
-| Sample datasets load                  | ✅ Done               | Via `@variscout/data` package                                                                                    |
-| Manual data entry works               | ✅ Done               | ManualEntryBase from `@variscout/ui`                                                                             |
-| Production build succeeds             | ✅ Done               | `pnpm --filter @variscout/azure-app build`                                                                       |
-| No console errors in production build | ⬜ Needs verification | Run build and check browser console                                                                              |
-| `npm audit` clean                     | ⬜ Needs verification | No high/critical vulnerabilities in production dependencies                                                      |
-| CSP headers verified                  | ⬜ Needs verification | Content Security Policy appropriate for SPA + Graph API calls                                                    |
+| Item                                  | Status                | Notes                                                                                                                                    |
+| ------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| EasyAuth login works                  | ✅ Done               | `apps/azure/src/auth/easyAuth.ts` — tested locally with mock                                                                             |
+| Blob Storage save/load works          | ⬜ In progress        | `apps/azure/src/services/storage.ts` — same-origin storage APIs via EasyAuth + managed identity (OneDrive/Graph API retired per ADR-059) |
+| All chart types render                | ✅ Done               | I-Chart, Boxplot, Pareto, Capability, Performance charts                                                                                 |
+| Performance Mode works                | ✅ Done               | Multi-channel Cpk analysis                                                                                                               |
+| CSV/Excel file upload works           | ✅ Done               | Parser in `@variscout/core`                                                                                                              |
+| CSV export works                      | ✅ Done               | `downloadCSV` in `@variscout/core`                                                                                                       |
+| Theme switching works                 | ✅ Done               | Light/dark/system via ThemeContext                                                                                                       |
+| Sample datasets load                  | ✅ Done               | Via `@variscout/data` package                                                                                                            |
+| Manual data entry works               | ✅ Done               | ManualEntryBase from `@variscout/ui`                                                                                                     |
+| Production build succeeds             | ✅ Done               | `pnpm --filter @variscout/azure-app build`                                                                                               |
+| No console errors in production build | ⬜ Needs verification | Run build and check browser console                                                                                                      |
+| `npm audit` clean                     | ⬜ Needs verification | No high/critical vulnerabilities in production dependencies                                                                              |
+| CSP headers verified                  | ⬜ Needs verification | Content Security Policy appropriate for SPA + Graph API calls                                                                            |
 
 ---
 

@@ -24,7 +24,7 @@ import type { ViewportBlobShape } from '../../services/blobClient';
  *   2. PUT to Blob with If-Match ETag.
  *      - Success → update etagRef.
  *      - Precondition-failed → log telemetry (no PII), re-fetch Blob, apply
- *        if newer, update etagRef. No retry — last-write-wins per spec §11.
+ *        if newer, update etagRef. No blind overwrite.
  */
 export function useCanvasViewportLifecycle(hubId: string | null | undefined): void {
   const etagRef = useRef<string | null>(null);
@@ -118,7 +118,7 @@ export function useCanvasViewportLifecycle(hubId: string | null | undefined): vo
               const currentVp = useCanvasViewportStore.getState().viewports[boundHubId];
               if (!currentVp) return;
 
-              // last-write-wins: blob wins the conflict; apply to store.
+              // ETag conflict: apply the server-accepted viewport snapshot.
               const { zoom, pan, currentLevel, focalStepId, nodePositions, groupByTributary } =
                 loaded.snapshot;
               useCanvasViewportStore.setState(s => ({
