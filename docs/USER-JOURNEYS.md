@@ -6,7 +6,8 @@ audience: human
 category: reference
 status: active
 layer: L2
-last-reviewed: 2026-05-18
+last-verified: 2026-06-02
+verified-against-commit: 2851b34b
 ---
 
 # VariScout User Journeys — V1 Index

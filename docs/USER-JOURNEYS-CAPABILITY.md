@@ -5,7 +5,8 @@ title: Capability Mode — User Journey
 audience: human
 category: reference
 status: active
-last-reviewed: 2026-05-16
+last-verified: 2026-06-02
+verified-against-commit: 2851b34b
 related: [capability, journey, cpk, spc, subgroup]
 ---
 
@@ -62,7 +63,7 @@ After reading Cp and Cpk, the Specialist decides what to fix. Two scenarios:
 
 When Cpk fails, the INVESTIGATE phase identifies which factors (Shift, Machine, Material Lot) contribute via η². The What-If Explorer projects: "If I reduce variation by 40% for the top factor, what does Cpk become?" This projection uses the scoped regression model.
 
-Inside a Project, the same Capability evidence carries forward into the Improve stage (action tracker) and Sustainment ("did the fix hold?"). The Specialist as project Lead invites teammates as Members; a Sponsor sees the Cpk story in the Report. Outside a Project (quick analysis), the same chart suite still produces decisions — just without the lifecycle wrapper.
+Inside a Project, the same Capability evidence carries forward into the Improve tab (action tracker) and the Control stage ("did the fix hold?"). The Specialist as project Lead invites teammates as Members; a Sponsor sees the Cpk story in the Report. Outside a Project (quick analysis), the same chart suite still produces decisions — just without the lifecycle wrapper.
 
 ## What makes this mode distinctive
 

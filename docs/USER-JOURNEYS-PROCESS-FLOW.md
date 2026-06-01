@@ -5,7 +5,8 @@ title: Process Flow Mode — User Journey
 audience: human
 category: reference
 status: draft
-last-reviewed: 2026-05-16
+last-verified: 2026-06-02
+verified-against-commit: 2851b34b
 related: [process-flow, journey, bottleneck, design-only]
 ---
 
@@ -39,7 +40,7 @@ The Specialist reads the Station Pareto to find the top contributor, then clicks
 
 If Yamazumi activity-type data exists for the bottleneck station, a "View Activity Breakdown" action (Phase 2) opens the Yamazumi dashboard filtered to that station. The answer becomes: "Station 3 is the bottleneck — and its waste time in Activity X is the dominant contribution."
 
-CoScout uses Theory of Constraints language (bottleneck, constraint, throughput) and flow thinking (upstream variation propagates downstream). When a bottleneck station is confirmed, the Specialist creates a SuspectedCause and uses the What-If Explorer to project: "If Station 3 CT reduces by 8 seconds, lead time improves by X."
+CoScout uses Theory of Constraints language (bottleneck, constraint, throughput) and flow thinking (upstream variation propagates downstream). When a bottleneck station is confirmed, the Specialist creates a Hypothesis and uses the What-If Explorer to project: "If Station 3 CT reduces by 8 seconds, lead time improves by X."
 
 Inside a Project, the Specialist as project Lead pins station-level Findings and Hypotheses to the Investigation Wall, and writes Measurement Plans for evidence still needed (e.g., changeover time stratified by operator). Outside a Project (quick analysis), the same flow still produces a station-ranked action — just without the lifecycle wrapper.
 
