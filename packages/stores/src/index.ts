@@ -103,7 +103,17 @@ export type {
   ActiveIPStoreActions,
   ActiveIPStore,
 } from './activeIPStore';
-export type { DocumentSnapshot } from './documentSnapshot';
+export {
+  buildDocumentSnapshot,
+  hydrateDocumentSnapshot,
+  resetDocumentStores,
+} from './documentSnapshot';
+export type {
+  AnalyzeDocumentSnapshot,
+  BuildDocumentSnapshotOptions,
+  DocumentSnapshot,
+  ProjectDocumentSnapshot,
+} from './documentSnapshot';
 export {
   useProjectMembershipStore,
   getProjectMembershipInitialState,

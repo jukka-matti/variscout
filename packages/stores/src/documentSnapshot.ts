@@ -1,23 +1,165 @@
-/**
- * DocumentSnapshot — type-only intersection of all Document-layer store state shapes.
- *
- * Pre-positioned for future `.vrs` export envelope (see data-flow foundation
- * spec §7). When `exportDocument()` ships, its parameter type will be
- * `DocumentSnapshot`, and Annotation/View store state will fail to typecheck
- * if accidentally passed in.
- *
- * Shape: intersection (`A & B & C`), NOT a record `{ project, investigation, canvas }`
- * and NOT a union (`A | B | C`). Rationale (F4 spec D5): a `.vrs` export carries
- * ONE snapshot containing all document slices — flat is the right shape, the
- * future export consumer reads `(snap.outcomes, snap.findings, snap.canonicalMap)`
- * without needing to reach through namespacing nesting. If property names
- * collide across Document stores in the future, the intersection forces explicit
- * resolution at type-eval time — desirable, not a hazard.
- *
- * F4 ships only the type. F5+ wires the runtime function.
- */
-import type { ProjectState } from './projectStore';
-import type { AnalyzeState } from './analyzeStore';
-import type { CanvasStoreState } from './canvasStore';
+import type {
+  AnalyzeCategory,
+  CausalLink,
+  Finding,
+  Hypothesis,
+  ProblemStatementScope,
+  ProcessHub,
+} from '@variscout/core';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
+import { useAnalyzeStore } from './analyzeStore';
+import { useCanvasStore, type CanvasDocumentSnapshot } from './canvasStore';
+import { useImprovementProjectStore } from './improvementProjectStore';
+import { useProjectStore, type SerializedProject, type ProjectState } from './projectStore';
 
-export type DocumentSnapshot = ProjectState & AnalyzeState & CanvasStoreState;
+export interface BuildDocumentSnapshotOptions {
+  activeHub?: Pick<ProcessHub, 'id' | 'improvementProject'> | null;
+}
+
+export interface AnalyzeDocumentSnapshot {
+  findings: Finding[];
+  categories: AnalyzeCategory[];
+  hypotheses: Hypothesis[];
+  causalLinks: CausalLink[];
+  scopes: ProblemStatementScope[];
+}
+
+export type ProjectDocumentSnapshot = Omit<
+  SerializedProject,
+  'findings' | 'categories' | 'hypotheses' | 'causalLinks' | 'processContext' | 'entryScenario'
+> &
+  Pick<ProjectState, 'entryScenario' | 'processContext'>;
+
+export interface DocumentSnapshot {
+  schemaVersion: 1;
+  hubId: ProcessHub['id'] | null;
+  project: ProjectDocumentSnapshot;
+  analyze: AnalyzeDocumentSnapshot;
+  canvas: CanvasDocumentSnapshot;
+  improvementProject: ImprovementProject | null;
+}
+
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function buildProjectSnapshot(state: ProjectState): ProjectDocumentSnapshot {
+  return cloneJson({
+    projectId: state.projectId ?? '',
+    projectName: state.projectName ?? '',
+    rawData: state.rawData,
+    outcome: state.outcome,
+    factors: state.factors,
+    specs: state.specs,
+    analysisMode: state.analysisMode,
+    dataFilename: state.dataFilename,
+    dataQualityReport: state.dataQualityReport,
+    timeColumn: state.timeColumn,
+    columnAliases: state.columnAliases,
+    valueLabels: state.valueLabels,
+    measureSpecs: state.measureSpecs,
+    stageColumn: state.stageColumn,
+    stageOrderMode: state.stageOrderMode,
+    measureColumns: state.measureColumns,
+    measureLabel: state.measureLabel,
+    selectedMeasure: state.selectedMeasure,
+    cpkTarget: state.cpkTarget,
+    defectMapping: state.defectMapping,
+    subgroupConfig: state.subgroupConfig,
+    filters: state.filters,
+    filterStack: state.filterStack,
+    axisSettings: state.axisSettings,
+    displayOptions: state.displayOptions,
+    chartTitles: state.chartTitles,
+    paretoMode: state.paretoMode,
+    paretoAggregation: state.paretoAggregation,
+    separateParetoData: state.separateParetoData,
+    separateParetoFilename: state.separateParetoFilename,
+    processContext: state.processContext,
+    entryScenario: state.entryScenario,
+    viewState: state.viewState,
+  });
+}
+
+function buildAnalyzeSnapshot(): AnalyzeDocumentSnapshot {
+  const state = useAnalyzeStore.getState();
+  return cloneJson({
+    findings: state.findings,
+    categories: state.categories,
+    hypotheses: state.hypotheses,
+    causalLinks: state.causalLinks,
+    scopes: state.scopes,
+  });
+}
+
+function buildCanvasSnapshot(): CanvasDocumentSnapshot {
+  const state = useCanvasStore.getState();
+  return cloneJson({
+    canonicalMap: state.canonicalMap,
+    outcomes: state.outcomes,
+    primaryScopeDimensions: state.primaryScopeDimensions,
+    canonicalMapVersion: state.canonicalMapVersion,
+  });
+}
+
+function selectImprovementProject(
+  activeHub: BuildDocumentSnapshotOptions['activeHub']
+): ImprovementProject | null {
+  if (!activeHub) return null;
+  return (
+    useImprovementProjectStore.getState().getProjectForHub(activeHub.id) ??
+    activeHub.improvementProject ??
+    null
+  );
+}
+
+export function buildDocumentSnapshot(
+  options: BuildDocumentSnapshotOptions = {}
+): DocumentSnapshot {
+  const activeHub = options.activeHub ?? null;
+  const improvementProject = selectImprovementProject(activeHub);
+
+  return {
+    schemaVersion: 1,
+    hubId: activeHub?.id ?? null,
+    project: buildProjectSnapshot(useProjectStore.getState()),
+    analyze: buildAnalyzeSnapshot(),
+    canvas: buildCanvasSnapshot(),
+    improvementProject: cloneJson(improvementProject),
+  };
+}
+
+export function resetDocumentStores(): void {
+  useProjectStore.getState().newProject();
+  useAnalyzeStore.getState().resetAll();
+  useCanvasStore.setState(useCanvasStore.getInitialState());
+  useImprovementProjectStore.setState({ projectsById: {} });
+}
+
+export function hydrateDocumentSnapshot(snapshot: DocumentSnapshot): void {
+  const { entryScenario, processContext, ...project } = cloneJson(snapshot.project);
+  const serializedProject: SerializedProject = {
+    ...project,
+    ...(entryScenario ? { entryScenario } : {}),
+    ...(processContext ? { processContext } : {}),
+    findings: cloneJson(snapshot.analyze.findings),
+    categories: cloneJson(snapshot.analyze.categories),
+    hypotheses: cloneJson(snapshot.analyze.hypotheses),
+    causalLinks: cloneJson(snapshot.analyze.causalLinks),
+  };
+
+  useProjectStore.getState().loadProject(serializedProject);
+  useAnalyzeStore.getState().loadAnalyzeState(cloneJson(snapshot.analyze));
+  useCanvasStore.getState().hydrateCanvasDocument(cloneJson(snapshot.canvas));
+
+  const improvementStore = useImprovementProjectStore.getState();
+  if (snapshot.hubId) {
+    const existingProject = improvementStore.getProjectForHub(snapshot.hubId);
+    if (existingProject) {
+      improvementStore.removeProject(existingProject.id);
+    }
+  }
+  if (snapshot.improvementProject) {
+    useImprovementProjectStore.getState().upsertProject(cloneJson(snapshot.improvementProject));
+  }
+}

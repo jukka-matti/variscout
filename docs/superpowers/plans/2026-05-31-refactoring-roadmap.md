@@ -125,7 +125,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R5 — Thin App-Feature Factories
 
-**Status:** R5a thin app-feature factories shipped in PR #270. R5b data-ingestion action-bag extraction shipped in PR #272. R5c action-item builder normalization shipped in PR #271. R5d ControlPanel lifecycle hook extraction shipped in PR #273. R5e Improvement Project panel lifecycle hook extraction is the current slice.
+**Status:** R5a thin app-feature factories shipped in PR #270. R5b data-ingestion action-bag extraction shipped in PR #272. R5c action-item builder normalization shipped in PR #271. R5d ControlPanel lifecycle hook extraction shipped in PR #273. R5e Improvement Project panel lifecycle hook extraction shipped in PR #274.
 
 **Goal:** Remove low-risk PWA/Azure duplication without forcing a shell rewrite.
 
@@ -136,8 +136,8 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 - Share data-ingestion action-bag construction in a follow-up slice, with app-specific limits and persistence adapters still app-owned. **Done in R5b.**
 - Normalize Improve-tab action-item creation/default stamping in a separate follow-up slice while keeping app dispatch/persistence wrappers app-owned. **Done in R5c.**
 - Extract duplicated ControlPanel lifecycle state behind repository adapters while keeping PWA/Azure repositories and panel wrappers app-owned. **Done in R5d.**
-- Extract duplicated Improvement Project panel lifecycle state behind repository adapters while keeping PWA/Azure repositories and panel rendering app-owned. **R5e slice.**
-- Recalibrate after R5e before opening higher-risk store or snapshot work.
+- Extract duplicated Improvement Project panel lifecycle state behind repository adapters while keeping PWA/Azure repositories and panel rendering app-owned. **Done in R5e.**
+- Recalibrate after R5e before opening higher-risk store or snapshot work. **Done: next slice is R6a.**
 
 **R5 recalibration (2026-05-31):** Current `origin/main` shows the PWA/Azure Analyze and Findings store files are byte-identical, but the surrounding orchestration is meaningfully app-specific. Azure has share/popout/navigation/AI and inline What-If behavior; PWA keeps simpler local wiring. Treat the purposeful delta as adapters/capability policy, and the accidental delta as duplicated small store factories and repeated action wiring.
 
@@ -152,13 +152,19 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ### R6 — Document Snapshot and Export Fidelity
 
+**Status:** R6a hub-scoped Document Snapshot runtime boundary is the current slice.
+
 **Goal:** Make export/import snapshots match the current Document-store model.
 
 **Candidate changes:**
 
-- Introduce a canonical `buildDocumentSnapshot()` / `hydrateDocumentSnapshot()` path.
+- Introduce a canonical `buildDocumentSnapshot()` / `hydrateDocumentSnapshot()` path. **R6a slice.**
+- Replace the stale flat type-only `DocumentSnapshot` with a namespaced runtime envelope covering Project config/data, Analyze state, Canvas document state, and zero-or-one `ImprovementProject` for the active hub. **R6a slice.**
+- Treat snapshots as hub-scoped: quick-analysis hubs may have no Project; formalized hubs have one Project; snapshots carry at most that hub's live Project and never serialize the multi-hub `projectsById` mirror. **R6a slice.**
 - Include all current Document stores or explicitly rename the current export surface as a legacy analysis-state export.
 - Add round-trip tests for `.vrs` export/import once the snapshot boundary is settled.
+
+**R6a decision note (2026-05-31):** `ImprovementProject.status` is persisted domain state (`draft | active | closed`), not a derived label. The uncertainty is stage vocabulary/granularity, not whether Project lifecycle state belongs in a portable document. `useImprovementProjectStore.projectsById` is Document-layer state but is a multi-hub in-memory mirror; the portable snapshot boundary is one hub document with zero-or-one live Project.
 
 **Decision gate:** R3 should land first so the store model is not moving.
 
@@ -189,4 +195,4 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 ## Next Recommended Execution
 
-After R5e, pause before opening higher-risk R6/R7 store and snapshot work. Recalibrate whether any remaining app-panel duplication is still a low-risk R5 adapter slice or whether the next meaningful risk reduction is a dedicated R6 snapshot/export design.
+Implement R6a: the hub-scoped Document Snapshot runtime boundary. Keep `.vrs`/adapter wiring out of R6a; R6b should decide how PWA/Azure export/import consume the settled snapshot helper.
