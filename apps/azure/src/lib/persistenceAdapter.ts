@@ -8,7 +8,13 @@
  * This adapter handles the mapping between the two approaches.
  */
 
-import type { PersistenceAdapter, AnalysisState, SavedProject } from '@variscout/hooks';
+import type {
+  PersistenceAdapter,
+  AnalysisState,
+  SavedProject,
+  ProjectExportContext,
+  ProjectImportPayload,
+} from '@variscout/hooks';
 import {
   saveProjectLocally,
   loadProjectLocally,
@@ -98,11 +104,15 @@ export const azurePersistenceAdapter: PersistenceAdapter = {
     await renameProjectLocally(id, newName);
   },
 
-  exportToFile: (state: Omit<AnalysisState, 'version'>, filename: string): void => {
-    exportToFileImpl(state, filename);
+  exportToFile: (
+    state: Omit<AnalysisState, 'version'>,
+    filename: string,
+    context?: ProjectExportContext
+  ): void => {
+    exportToFileImpl(state, filename, context);
   },
 
-  importFromFile: async (file: File): Promise<AnalysisState> => {
+  importFromFile: async (file: File): Promise<ProjectImportPayload> => {
     return importFromFileImpl(file);
   },
 };

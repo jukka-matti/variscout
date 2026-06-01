@@ -40,6 +40,22 @@ describe('vrs roundtrip', () => {
     expect(imported.rawData).toEqual(rawData);
   });
 
+  it('round-trips optional documentSnapshot payloads', () => {
+    const documentSnapshot = {
+      schemaVersion: 1,
+      hubId: hub.id,
+      project: { rawData, outcome: 'weight_g' },
+      analyze: { scopes: [] },
+      canvas: { canonicalMap: { nodes: [] } },
+      improvementProject: null,
+    };
+
+    const exported = vrsExport(hub, rawData, undefined, documentSnapshot);
+    const imported = vrsImport(exported);
+
+    expect(imported.documentSnapshot).toEqual(documentSnapshot);
+  });
+
   it('rejects unsupported version with a clear error', () => {
     const bad = JSON.stringify({ version: '0.9', exportedAt: new Date().toISOString(), hub });
     expect(() => vrsImport(bad)).toThrow(/unsupported.*version/i);

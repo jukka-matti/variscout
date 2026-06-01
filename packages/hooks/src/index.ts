@@ -21,8 +21,11 @@ export type {
   ParetoMode,
   ParetoAggregation,
   AnalysisState,
+  DocumentSnapshotImport,
   SavedProject,
   PersistenceAdapter,
+  ProjectExportContext,
+  ProjectImportPayload,
   DebouncedFunction,
   DataQualityReport,
   ParetoRow,
@@ -618,7 +621,11 @@ export { useStagedAnalysis, type StagedAnalysisResult } from './useStagedAnalysi
 export { usePerformanceAnalysis } from './usePerformanceAnalysis';
 export { useYDomain, type YDomainResult } from './useYDomain';
 export { useSpecsForMeasure } from './useSpecsForMeasure';
-export { useProjectActions, type ProjectActionsResult } from './useProjectActions';
+export {
+  useProjectActions,
+  type ProjectActionsResult,
+  type UseProjectActionsOptions,
+} from './useProjectActions';
 export {
   useActiveIPContext,
   type ActiveIPContext,

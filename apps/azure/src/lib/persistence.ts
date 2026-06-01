@@ -5,8 +5,13 @@
  * Local storage is used for auto-save; IndexedDB for offline cache.
  */
 
-import type { AnalysisState } from '@variscout/hooks';
+import type { AnalysisState, ProjectExportContext, ProjectImportPayload } from '@variscout/hooks';
 import { generateDeterministicId } from '@variscout/core/identity';
+import {
+  buildDocumentSnapshotVrs,
+  isDocumentSnapshotVrsFile,
+  parseDocumentSnapshotVrs,
+} from '@variscout/stores';
 import { db } from '../db/schema';
 
 export interface SavedProject {
@@ -116,9 +121,19 @@ export async function renameProjectLocally(oldName: string, newName: string): Pr
 }
 
 // Export state to downloadable .vrs file
-export function exportToFile(state: Omit<AnalysisState, 'version'>, filename: string): void {
-  const exportState: AnalysisState = { ...state, version: VERSION };
-  const blob = new Blob([JSON.stringify(exportState, null, 2)], { type: 'application/json' });
+export function exportToFile(
+  state: Omit<AnalysisState, 'version'>,
+  filename: string,
+  context?: ProjectExportContext
+): void {
+  const appVersion = import.meta.env.VITE_APP_VERSION ?? VERSION;
+  const json = context?.activeHub
+    ? buildDocumentSnapshotVrs({
+        activeHub: context.activeHub,
+        metadata: { exportSource: 'azure', appVersion },
+      })
+    : JSON.stringify({ ...state, version: VERSION }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -130,12 +145,20 @@ export function exportToFile(state: Omit<AnalysisState, 'version'>, filename: st
 }
 
 // Import state from .vrs file
-export function importFromFile(file: File): Promise<AnalysisState> {
+export function importFromFile(file: File): Promise<ProjectImportPayload> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = e => {
       try {
         const content = e.target?.result as string;
+        const parsedJson = JSON.parse(content) as { version?: unknown; hub?: unknown };
+        if (parsedJson.version === '1.0' && parsedJson.hub) {
+          const parsedVrs = parseDocumentSnapshotVrs(content);
+          if (isDocumentSnapshotVrsFile(parsedVrs)) {
+            resolve({ kind: 'document-snapshot', file: parsedVrs });
+            return;
+          }
+        }
         const state = JSON.parse(content) as AnalysisState;
         resolve(state);
       } catch {

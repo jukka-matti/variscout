@@ -59,6 +59,8 @@ import {
   useCanvasViewportStore,
   useViewStore,
   useProjectMembershipStore,
+  hydrateDocumentSnapshot,
+  isDocumentSnapshotVrsFile,
 } from '@variscout/stores';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
@@ -693,9 +695,12 @@ function AppMain() {
   const handleImportVrs = useCallback(
     (imported: import('@variscout/core').VrsFile) => {
       const { hub, rawData: vrsData } = imported;
+      if (isDocumentSnapshotVrsFile(imported)) {
+        hydrateDocumentSnapshot(imported.documentSnapshot);
+      }
       setSessionHub(hub);
       // Seed the project store directly — bypasses the paste/mapping flow.
-      if (vrsData && vrsData.length > 0) {
+      if (!isDocumentSnapshotVrsFile(imported) && vrsData && vrsData.length > 0) {
         setRawData(vrsData as import('@variscout/core').DataRow[]);
         const firstOutcome = hub.outcomes?.[0]?.columnName;
         if (firstOutcome) setOutcome(firstOutcome);
@@ -1154,7 +1159,7 @@ function AppMain() {
               + New analyze
             </button>
             <SaveToBrowserButton currentHub={sessionHub} />
-            <VrsExportButton currentHub={sessionHub} currentData={rawData} />
+            <VrsExportButton currentHub={sessionHub} />
             <button
               type="button"
               className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"

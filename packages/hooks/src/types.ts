@@ -20,7 +20,9 @@ import type {
   AnalyzeCategory,
   EntryScenario,
   StackConfig,
+  ProcessHub,
 } from '@variscout/core';
+import type { DocumentSnapshotVrsFile } from '@variscout/stores';
 
 // Re-export canonical UI types from @variscout/core/ui-types
 export type {
@@ -202,6 +204,17 @@ export interface AnalysisState {
   subgroupConfig?: import('@variscout/core').SubgroupConfig;
 }
 
+export interface DocumentSnapshotImport {
+  kind: 'document-snapshot';
+  file: DocumentSnapshotVrsFile;
+}
+
+export type ProjectImportPayload = AnalysisState | DocumentSnapshotImport;
+
+export interface ProjectExportContext {
+  activeHub?: ProcessHub | null;
+}
+
 /**
  * Saved project metadata
  */
@@ -235,10 +248,14 @@ export interface PersistenceAdapter {
   renameProject: (id: string, newName: string) => Promise<void>;
 
   /** Export state to file */
-  exportToFile: (state: Omit<AnalysisState, 'version'>, filename: string) => void;
+  exportToFile: (
+    state: Omit<AnalysisState, 'version'>,
+    filename: string,
+    context?: ProjectExportContext
+  ) => void;
 
   /** Import state from file */
-  importFromFile: (file: File) => Promise<AnalysisState>;
+  importFromFile: (file: File) => Promise<ProjectImportPayload>;
 }
 
 /**
