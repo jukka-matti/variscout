@@ -5,7 +5,7 @@ title: VariScout Data Lifecycle
 audience: human
 category: architecture
 status: active
-last-reviewed: 2026-05-17
+last-reviewed: 2026-06-01
 related: [data-flow, persistence, sync, customer-owned, blob-storage, indexeddb, easyauth]
 ---
 
@@ -53,19 +53,21 @@ Two-pass best subsets with interaction screening (ADR-067) drives Evidence Map. 
 
 VariScout V1 is a single SKU (€120/month, Azure tenant-wide). There is no tier-based feature split in persistence — the distinction is between the **PWA capability** (session-only, no backend required, offline-first funnel) and the **Azure capability** (full persistence, team sync, CoScout AI). Both are first-class capabilities of the single product.
 
-| Capability   | Storage                      | Scope                                                        |
-| ------------ | ---------------------------- | ------------------------------------------------------------ |
-| PWA          | None                         | Session-only. Refresh = data gone. Intentional.              |
-| Azure        | IndexedDB (local to browser) | Project and Hub data persists across sessions on the device. |
-| Azure + Blob | IndexedDB + Blob Storage     | Same as Azure, plus cross-device sync within the tenant.     |
+| Capability       | Storage                      | Scope                                                                  |
+| ---------------- | ---------------------------- | ---------------------------------------------------------------------- |
+| PWA session      | In-memory stores             | Session-only by default. Refresh = unsaved data gone. Intentional.     |
+| PWA browser save | IndexedDB                    | Explicit user save persists the current hub-scoped `DocumentSnapshot`. |
+| PWA `.vrs`       | User-downloaded JSON file    | Snapshot-only portable document envelope for backup/share/import.      |
+| Azure            | IndexedDB (local to browser) | Access-aware `DocumentSnapshot` cache across sessions on the device.   |
+| Azure + Blob     | IndexedDB + Blob Storage     | Same snapshot document syncs within the customer's tenant.             |
 
-IndexedDB schema in `apps/azure/src/db/schema.ts` (Dexie). `services/localDb.ts` is the facade. sessionStore from `@variscout/stores` persists UI session state via middleware; document-level persistence goes through `useProjectActions` (domain stores).
+IndexedDB schema in `apps/azure/src/db/schema.ts` (Dexie). `services/localDb.ts` is the facade. Document-level persistence goes through the R6 `DocumentSnapshot` boundary in `@variscout/stores`: Project config/data, Analyze state, Canvas document state, and zero-or-one hub-scoped `ImprovementProject`.
 
 ## 5. Project-membership ACL as data-isolation layer
 
-Hub-level data (the tenant-wide internal container backing the Process tab and paste data) is accessible to any authenticated user in the Azure tenant. **Project-level data** (Charter, Approach, Control stages + Improve tab artifacts + Report) is **membership-gated**: only users explicitly invited to a Project can access it, regardless of their presence in the tenant (ADR-082 §4.4).
+Saved Azure documents are access-aware. Quick analyses without a formal `ImprovementProject` are private to the creator/current user. Formal Projects derive allowed users from `improvementProject.metadata.members`; only the Lead/Member/Sponsor roster should see or load the document.
 
-Access checks are role-based: `canAccess(userId, members, action)` from `@variscout/core/projectMembership`. Roles are Lead (full edit + advance stages + close hypotheses + manage membership), Member + Sponsor (read everywhere + edit contributions: Findings, evidence, action items, ideas, comments). Per Spec 2 §7. This is the primary data-isolation boundary for project-formal artifacts.
+Access checks are role-based: `canAccess(userId, members, action)` from `@variscout/core/projectMembership`. Roles are Lead (full edit + advance stages + close hypotheses + manage membership), Member + Sponsor (read everywhere + edit contributions: Findings, evidence, action items, ideas, comments). Per Spec 2 §7. R6c applies this model to saved document listing/loading; R6e is the follow-up for hardening server/SAS/storage-boundary enforcement.
 
 Evidence Source objects exist in core as the first implementation slice:
 `EvidenceSource`, `DataProfileDefinition`, `EvidenceSnapshot`, and
@@ -81,7 +83,7 @@ Process State review.
 1. User authenticates via EasyAuth (`/api/me` returns identity). No MSAL in the client.
 2. Client calls `/api/storage-token` (in `apps/azure/server.js`). Server mints a short-lived SAS token scoped to the user's container.
 3. Client uses SAS to read/write blobs directly. VariScout server never sees the data.
-4. Conflict resolution: last-write-wins at document level. Granular CRDT-style merge is deferred.
+4. Document writes use ETags/`If-Match`. On conflict, the app saves a conflict copy or surfaces the existing conflict path instead of silently overwriting. Granular CRDT-style merge is deferred.
 
 SAS lifetime, container structure, and RBAC rules: `docs/08-products/azure/blob-storage-sync.md`.
 
@@ -113,7 +115,7 @@ There is no persisted audio object in IndexedDB or Blob Storage, and PWA keeps t
 
 ## Trust chain summary
 
-Parse → transform → stats → persist → sync → display → AI. Every boundary either validates or passes through, never silently corrupts. Three numeric gates (B1, B2, B3) guarantee no `NaN`/`Infinity` reaches the user. Customer-owned principle guarantees no data leaves customer tenant. Project-membership ACLs (ADR-082 §4) scope project-formal data to invited members. Voice input, when enabled on Azure, follows the same rule: audio is transient, transcript is durable.
+Parse → transform → stats → persist → sync → display → AI. Every boundary either validates or passes through, never silently corrupts. Three numeric gates (B1, B2, B3) guarantee no `NaN`/`Infinity` reaches the user. Customer-owned principle guarantees no data leaves customer tenant. Project-membership ACLs (ADR-082 §4) scope formal Project documents to invited members; quick-analysis documents are private to their creator. Voice input, when enabled on Azure, follows the same tenant-owned-data rule: audio is transient, transcript is durable.
 
 ## Reference
 

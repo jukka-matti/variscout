@@ -1,19 +1,35 @@
 ---
-title: 'Framing Layer Spec (Spec 1 of canvas-detail decomposition)'
-description: 'docs/superpowers/specs/2026-05-03-framing-layer-design.md — first of five canvas-detail specs (status active). V1 sliced into 4 implementation plans. Slices 1+2+3 merged on main; slice 4 (defect anchoring + Pareto on canvas + composable filter states UI) still pending. ADR-077 captures D6+D9 (snapshot-level provenance + match-summary wedge). Q8-revised: PWA persistence opt-in (IndexedDB Hub-of-one + .vrs file export/import).'
+title: 'Framing Layer Spec (Spec 1 of canvas-detail decomposition) — ARCHIVED 2026-05-26'
+description: 'docs/archive/specs/2026-05-03-framing-layer-design.md (status archived 2026-05-26 under wedge V1 / ADR-082). V1 delivered partially — slices 1+2+3 fully shipped; slice 4 Pareto→Stage5 chain retired as unwired scaffolding (PR'
 purpose: remember
 tier: card
 status: active
-date: 2026-05-18
+date: 2026-06-01
 topic: [memory, project]
 related: []
-verified-against-commit: c6cf0f8c5
-last-verified: 2026-05-18
-source-hash: d71e11da002799c4
+verified-against-commit: fe1b0755
+last-verified: 2026-06-01
+source-hash: 44238374dcd90c89
 origin-session-id: 503ee542-f216-48e3-9706-8b2aaf6de3ee
 ---
 
 > 🤖 **Generated mirror** of `~/.claude/memory/project_framing_layer_spec.md`. Edit there, not here. Card synced by `scripts/docs/sync-memory-cards.mjs`; re-run via `pnpm docs:rebuild` (Phase 3 A4).
+
+## ARCHIVED 2026-05-26 — wedge V1 supersession
+
+Spec frontmatter flipped `status: active` → `status: archived` (PR #210). Wedge V1 (ADR-082) defines 3 canvas response paths (Investigate / Quick Action / Charter) triggered from canvas L2→L3 — supersedes the slice-4 Pareto-bar-click → StageFiveModal chain.
+
+**Slice 4 disposition (PR #210):**
+
+- **Retired** (deleted, no app ever wired): `ParetoMakeScopeButton` component + tests; `onMakeInvestigationScope` + `onScopeFilterClick` props on `ParetoChartWrapperBase`; `useStepDefectPareto` hook + tests; `buildIssueStatement` helper.
+- **Retained** (live production consumers): `StepDefectIndicator` (CanvasStepCard), `useCanvasFilters` + `useSessionCanvasFilters` + `CanvasFilterChips` (CanvasWorkspace), `ScopeFilter` type, `StageFiveModal` itself (Mode B Stage 3 + on-demand canvas chrome).
+- **`existingRange` carry-forward** from slice 3 was already closed before this archive (Azure + PWA both pass `mostRecentSnapshot?.rowTimestampRange` to `classifyPaste`).
+
+**Future canvas-filter writers**, if ever needed, must be re-designed under the wedge response-path model — not by reviving this spec. See `docs/decision-log.md` §1 "Framing Layer slice 4 archive" 2026-05-26 entry for the full retired-vs-retained inventory.
+
+**Historical content below preserved as durable design context.**
+
+---
 
 The first concrete spec from the canvas-detail decomposition. Covers everything BEFORE canvas authoring proper. Lives at `docs/superpowers/specs/2026-05-03-framing-layer-design.md` (status: draft, commit `7d4ebf1b`).
 

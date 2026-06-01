@@ -178,14 +178,14 @@ Implemented in `apps/azure/server.js`.
 
 ADR-059 replaces the previous OneDrive/SharePoint sync architecture (ADR-016). Key differences:
 
-| Aspect              | Previous (OneDrive/SP)                | Current (Blob Storage)      |
-| ------------------- | ------------------------------------- | --------------------------- |
-| API                 | Microsoft Graph API                   | Azure Blob Storage SDK      |
-| Permissions         | `Files.ReadWrite.All` (admin consent) | Azure RBAC (no Graph API)   |
-| Admin consent       | Required                              | Not required                |
-| Conflict resolution | Optimistic merge + eTag               | ETag-based last-write-wins  |
-| Photo storage       | SharePoint document library           | Blob container subdirectory |
-| Access control      | Graph API delegated permissions       | Azure RBAC role assignments |
+| Aspect              | Previous (OneDrive/SP)                | Current (Blob Storage)        |
+| ------------------- | ------------------------------------- | ----------------------------- |
+| API                 | Microsoft Graph API                   | Azure Blob Storage SDK        |
+| Permissions         | `Files.ReadWrite.All` (admin consent) | Azure RBAC (no Graph API)     |
+| Admin consent       | Required                              | Not required                  |
+| Conflict resolution | Optimistic merge + eTag               | ETag/`If-Match` conflict path |
+| Photo storage       | SharePoint document library           | Blob container subdirectory   |
+| Access control      | Graph API delegated permissions       | Azure RBAC role assignments   |
 
 No existing customers to migrate — this is a pre-launch architecture change.
 

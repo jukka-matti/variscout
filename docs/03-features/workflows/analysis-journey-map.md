@@ -91,12 +91,12 @@ flowchart TD
 
 ### Data Shapes at Boundary
 
-| Entry                     | Exit                                          |
-| ------------------------- | --------------------------------------------- |
-| Raw file / clipboard text | `DataRow[]` (parsed, validated)               |
-| --                        | `ValidationResult` (quality checks)           |
-| --                        | `ColumnMapping` (measure + factors assigned)  |
-| --                        | `AnalysisState` (specs, settings, ready flag) |
+| Entry                     | Exit                                                                      |
+| ------------------------- | ------------------------------------------------------------------------- |
+| Raw file / clipboard text | `DataRow[]` (parsed, validated)                                           |
+| --                        | `ValidationResult` (quality checks)                                       |
+| --                        | `ColumnMapping` (measure + factors assigned)                              |
+| --                        | Document stores / `DocumentSnapshot` fields (specs, settings, ready flag) |
 
 ### Tier Differences
 

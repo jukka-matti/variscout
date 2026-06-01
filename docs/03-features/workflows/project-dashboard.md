@@ -97,7 +97,7 @@ Deep links always bypass the dashboard and land directly in the Editor at the ta
 
 The AI Summary Card is designed so the dashboard is fully functional without it:
 
-- Status counts, hypothesis tree, action progress, and quick actions are all derived from `AnalysisState` synchronously
+- Status counts, hypothesis tree, action progress, and quick actions are all derived from hydrated document stores synchronously
 - The AI card is hidden when `isAIAvailable()` returns false (no endpoint configured, network offline)
 - Layout adapts: left column expands to full width when the AI card is absent
 
@@ -218,7 +218,7 @@ The Project Dashboard (Overview tab) is reached via the Azure Process Hub home. 
 - Assigned task count and overdue flag
 - "What's new" indicator dot when `lastModified > lastViewedAt`
 
-When there are zero saved analyses (first-run experience), the app bypasses the Portfolio entirely and opens the Editor empty state directly, where users can upload data, paste from Excel, or load a sample dataset. The Portfolio appears once the user has saved at least one project. Opening a project from the Portfolio sets `panelsStore.activeView` to `'dashboard'` (for projects with data) or `'editor'` (for new empty projects). The Dashboard then loads synchronously from already-hydrated `AnalysisState`.
+When there are zero saved analyses (first-run experience), the app bypasses the Portfolio entirely and opens the Editor empty state directly, where users can upload data, paste from Excel, or load a sample dataset. The Portfolio appears once the user has saved at least one project. Opening a project from the Portfolio sets `panelsStore.activeView` to `'dashboard'` (for projects with data) or `'editor'` (for new empty projects). The Dashboard then loads synchronously from already-hydrated document stores.
 
 Deep links can target the Dashboard directly via `?tab=overview`, or bypass it to land in the Editor via `?tab=analysis`, `?finding=<id>`, `?chart=<type>`, `?hypothesis=<id>`, or `?workspace=improve`.
 

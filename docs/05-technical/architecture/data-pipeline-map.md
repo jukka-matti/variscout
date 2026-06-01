@@ -229,30 +229,15 @@ interface Finding {
 ### Persistence Boundary
 
 ```typescript
-// packages/hooks/src/types.ts
-interface AnalysisState {
-  version: string;
-  rawData: DataRow[];
-  outcome: string | null;
-  factors: string[];
-  specs: SpecLimits;
-  measureSpecs?: Record<string, SpecLimits>;
-  filters: Record<string, (string | number)[]>;
-  axisSettings: { min?: number; max?: number; scaleMode?: ScaleMode };
-  columnAliases?: Record<string, string>;
-  valueLabels?: Record<string, Record<string, string>>;
-  displayOptions?: DisplayOptions;
-  cpkTarget?: number;
-  stageColumn?: string | null;
-  stageOrderMode?: StageOrderMode;
-  isPerformanceMode?: boolean;
-  measureColumns?: string[];
-  selectedMeasure?: string | null;
-  measureLabel?: string | null;
-  chartTitles?: Record<string, string>;
-  filterStack?: FilterAction[];
-  viewState?: ViewState;
-  findings?: Finding[];
+// @variscout/stores
+interface DocumentSnapshot {
+  schemaVersion: 1;
+  hubId: string | null;
+  hub: DocumentHubSnapshot | null;
+  project: ProjectDocumentSnapshot;
+  analyze: AnalyzeDocumentSnapshot;
+  canvas: CanvasDocumentSnapshot;
+  improvementProject: ImprovementProject | null;
 }
 ```
 
@@ -384,7 +369,7 @@ The AI layer adapts behavior based on the current investigation phase (4-phase d
 ```mermaid
 flowchart TB
     subgraph State["Application State"]
-        AS["AnalysisState"]
+        AS["DocumentSnapshot"]
     end
 
     subgraph Local["Local Storage (all platforms)"]
@@ -404,19 +389,15 @@ flowchart TB
     style Cloud fill:#f0f9ff,stroke:#3b82f6
 ```
 
-`AnalysisState` is the single serializable shape that captures the full state of an analysis session. Key fields for persistence:
+`DocumentSnapshot` is the single serializable shape that captures the portable state of one hub-scoped document. Key fields for persistence:
 
-| Field               | Purpose                                |
-| ------------------- | -------------------------------------- |
-| `rawData`           | Original uploaded data rows            |
-| `specs`             | USL, LSL, target specifications        |
-| `filters`           | Active filter selections               |
-| `filterStack`       | Ordered `FilterAction[]` drill trail   |
-| `findings`          | Investigation findings with status     |
-| `viewState`         | Active tab, focused chart, panel state |
-| `isPerformanceMode` | Multi-measure mode flag                |
-| `measureColumns`    | Selected measure columns               |
-| `cpkTarget`         | Capability target (default 1.33)       |
+| Field                | Purpose                                            |
+| -------------------- | -------------------------------------------------- |
+| `hub` / `hubId`      | Minimal session hub shell                          |
+| `project`            | Raw data, mappings, specs, and project config      |
+| `analyze`            | Findings, categories, hypotheses, links, scopes    |
+| `canvas`             | Canvas document state, excluding undo/redo history |
+| `improvementProject` | Zero-or-one formal Project for the hub             |
 
 ---
 

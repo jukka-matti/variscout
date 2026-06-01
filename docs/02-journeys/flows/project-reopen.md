@@ -63,7 +63,7 @@ Before selecting a project, the user scans the Portfolio grid.
 
 ### Step 2: Project Dashboard Loads
 
-`ProjectDashboard` renders when `panelsStore.activeView === 'dashboard'`. All status data comes from the already-loaded `AnalysisState` — no extra fetch.
+`ProjectDashboard` renders when `panelsStore.activeView === 'dashboard'`. All status data comes from the already-hydrated document stores — no extra fetch.
 
 **What's New section (top, conditional):**
 
@@ -157,7 +157,7 @@ The user can return to the Project Dashboard at any time via the "Overview" tab 
 | Action                              | Behavior                                                                                                 |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | Click "Overview" tab                | `panelsStore.showDashboard()`, `activeView: 'dashboard'`                                                 |
-| Dashboard re-renders                | All status counts re-read from current `AnalysisState`                                                   |
+| Dashboard re-renders                | All status counts re-read from current document stores                                                   |
 | AI summary cache staleness check    | If `findingCount`/`hypothesisStatusCounts`/`actionCompletionCount` changed since last render, re-fetches |
 | AI summary updates if state changed | Ensures the summary reflects work done in the Editor during this session                                 |
 
