@@ -46,7 +46,7 @@ Dependencies are soft (terminology lineage), not hard blocks — but execute in 
 
 - [x] Wave 0 — cross-cutting + governance — **COMPLETE 2026-06-02** (commits `0b0d4cc0`…`e24fbdba`)
 - [x] Wave 1 — Investigation Surface / Analyze — **COMPLETE 2026-06-02** (commits `94acf2aa`…`9e70a9df`; adversarial review: accurate)
-- [ ] Wave 2 — Save / Load / Access
+- [x] Wave 2 — Save / Load / Access — **COMPLETE 2026-06-02** (commits `7f6945d0`…`818de70b`; review: accurate). Stubs were grounding-verified accurate (audit over-flagged); authored `save-and-load.md` + stamped/linked the 5 stubs; full stub-body completion deferred to M3.
 - [ ] Wave 3 — Findings / Collaboration + CoScout
 - [ ] Wave 4 — remaining surfaces
 - [ ] Wave 5 — developer / architecture docs
