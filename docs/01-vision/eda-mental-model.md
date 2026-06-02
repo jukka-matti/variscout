@@ -1,17 +1,19 @@
 ---
 tier: stable
 purpose: orient
-title: 'EDA Mental Model — Question-Driven Analysis'
+title: 'EDA Mental Model — Scope-First Analysis'
 audience: human
 category: methodology
 status: active
 related: [methodology, four-lenses, progressive-stratification, factor-intelligence, investigation]
 layer: L1
+last-verified: 2026-06-02
+verified-against-commit: 92966829
 ---
 
 > **Supersession notice (2026-05-30, ADR-085).** The "Question-Driven Analysis" framing used throughout this document reflects the pre-IM-1 model where `Question` was a first-class persisted entity. As of [ADR-085](../07-decisions/adr-085-drop-question-problem-statement-scope.md) and the [investigation-surface design spec (2026-05-29)](../superpowers/specs/2026-05-29-investigation-surface-design.md), `Question` is retired as a tracked entity. Question generation is now transient ranked factor-node metadata (nothing persisted). The **WHERE** of investigation is a first-class `ProblemStatementScope` (outcome + `{factor=level}` predicates); the **WHY** is a `Hypothesis` nested within that scope. The Wall (Findings + Hypotheses) subsumes the completeness-tracking role that the question checklist played. References to "Question entities", "question trees", "question pills", and "SuspectedCause hubs" in this document should be read in their historical context; the canonical current model is the investigation-surface spec + ADR-085 through ADR-089. This document is retained for its EDA methodology grounding (Turtiainen 2019) and the diamond-pattern description, which remain valid.
 
-# EDA Mental Model — Question-Driven Analysis
+# EDA Mental Model — Scope-First Analysis
 
 How VariScout implements Exploratory Data Analysis as a structured, question-driven methodology for process improvement — grounded in academic research, validated by Lean Six Sigma practitioners, and designed for quality professionals at every skill level.
 
