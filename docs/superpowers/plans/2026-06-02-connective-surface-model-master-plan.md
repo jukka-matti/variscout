@@ -29,6 +29,16 @@ layer: spec
 
 ---
 
+## Architecture & refactor approach
+
+**This initiative _is_ the refactor** — the cleanup PRs, the glue retirement, PR-CS-0's scope-lifecycle rewrite, the cadence extraction (follow-up), and the 3-representation reconciliation ARE the architectural-health work, sequenced, not big-bang. The codebase is structured (9 stores / 3 layers, ADR-078; `core → hooks → ui → apps` enforced by ESLint architecture tests; ADR-073/074 boundaries) and has accreted **named, bounded debts**, not rot.
+
+**When to refactor (tiers):** ① _now_ — debt that BLOCKS (PR-CS-0); ② _with the feature_ — cheap cleanup that cuts confusion (PR-CS-1 orphans/glue — you're in the file anyway); ③ _its own pass_ — entangled extraction (the cadence loop → follow-up spec); ④ _defer until it bites_ — acknowledged non-blocking seams (the dual `projectStore`/`canvasStore` seam, spec §5.4).
+
+**Validate architecture in the sub-plan, not upfront.** No standalone architecture-audit pass (the macro is ADR-governed + known). The one real architecture _decision_ — the **scope lifecycle** (where the durable, IP-keyed `ProblemStatementScope` lives; its interaction with the dual-store seam) — is grounded **as step zero of PR-CS-0's sub-plan**, against the code at build time. Escalate to a broader pass only if that grounding surfaces a deeper structural problem.
+
+---
+
 ## Phase 1 — Clear the ground + lay the spine (the runway)
 
 ### PR-CS-0 · Make scope durable + IP-keyed (the connective prerequisite)
