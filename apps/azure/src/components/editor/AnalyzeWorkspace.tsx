@@ -301,7 +301,9 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         : '—';
       const finding = findingsState.addFinding(
         `Model: ${factorList} accounts for the spread (R²adj ${r2adjLabel}) in ${snapshot.scopeLabel}`,
-        { activeFilters, cumulativeScope: null }
+        { activeFilters, cumulativeScope: null },
+        undefined,
+        activeScope?.id
       );
       // Snapshot the model into the Finding's projection.modelContext (the
       // canonical home — rSquaredAdj / scopeLabel / linkedFactor). This is a
@@ -323,7 +325,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       };
       findingsState.setProjection(finding.id, projection);
     },
-    [findingsState]
+    [findingsState, activeScope]
   );
   const modelBuilderProps = useMemo<WallCanvasModelBuilderProps | undefined>(() => {
     if (!outcome || factors.length === 0) return undefined;
@@ -384,10 +386,15 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         findingsState.setValidation(existing.id, result.validationStatus, result.refutes);
         findingId = existing.id;
       } else {
-        const finding = findingsState.addFinding(result.findingText, {
-          activeFilters,
-          cumulativeScope: null,
-        });
+        const finding = findingsState.addFinding(
+          result.findingText,
+          {
+            activeFilters,
+            cumulativeScope: null,
+          },
+          undefined,
+          activeScope?.id
+        );
         // Classify BEFORE connecting so the finding is never read as an
         // unclassified "support" clue on the Wall in the interim.
         findingsState.setValidation(finding.id, result.validationStatus, result.refutes);
@@ -426,7 +433,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         hypothesesState.recordDisconfirmation(hypothesisId, attempt);
       }
     },
-    [outcome, filteredData, findingsState, hypothesesState, members, userId]
+    [outcome, filteredData, findingsState, hypothesesState, members, userId, activeScope]
   );
 
   // ── IM-4b Task 5 — multi-scope rail ──────────────────────────────────────
@@ -973,10 +980,11 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       findingsState.addFinding(
         `Observation about ${factor}`,
         { activeFilters, cumulativeScope: null },
-        { chart: 'boxplot', category: factor, timeLens: usePreferencesStore.getState().timeLens }
+        { chart: 'boxplot', category: factor, timeLens: usePreferencesStore.getState().timeLens },
+        activeScope?.id
       );
     },
-    [findingsState]
+    [findingsState, activeScope]
   );
 
   const handleMapAskCoScout = useCallback(

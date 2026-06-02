@@ -611,6 +611,9 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
       usePanelsStore.getState().setAnalyzeViewMode('map');
       // Reset analysisScopeStore to empty state
       useAnalysisScopeStore.setState({ categoricalFilters: [] });
+      // Task-7 isolation: clear any scopes / outcome leaked from prior describe blocks.
+      useAnalyzeStore.setState({ scopes: [] });
+      useProjectStore.setState({ outcome: null });
     });
 
     it('seeds activeFilters from analysisScopeStore.categoricalFilters at capture time', () => {
@@ -662,6 +665,78 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
         unknown,
       ];
       expect(callArgs[1].activeFilters).toEqual({});
+    });
+
+    // PR-CS-0 Task 7 — durable finding→scope edge. When a drill materializes a
+    // ProblemStatementScope in useAnalyzeStore.scopes whose WHERE matches the
+    // active drill chips, the captured Finding must carry that scope's id as the
+    // 4th addFinding arg (the durable scopeId FK), not just the display filters.
+    it('passes the active scope id as scopeId when the drill matches a materialized scope', () => {
+      const addFinding = vi.fn(() => ({ id: 'f-scoped' }) as never);
+      const props = makeMinimalProps();
+      props.findingsState = { ...props.findingsState, addFinding } as never;
+
+      // Outcome must be set for the activeScope memo to engage.
+      useProjectStore.setState({ outcome: 'Fill Weight' });
+      // Seed a drill chip (Machine=A) — same predicate shape the activeScope memo
+      // re-derives via buildConditionFromCategoricalFilters + predicateSetKey.
+      useAnalysisScopeStore.getState().addCategoricalValue('Machine', 'A');
+      // Materialize the matching scope in the analyze store (investigationId
+      // 'general-unassigned' === AnalyzeWorkspace.scopeInvestigationId).
+      useAnalyzeStore.setState({
+        scopes: [
+          {
+            id: 'scope-machine-a',
+            investigationId: 'general-unassigned',
+            outcome: 'Fill Weight',
+            predicates: [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }],
+            hypothesisIds: [],
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+          },
+        ],
+      });
+
+      render(<AnalyzeWorkspace {...props} />);
+
+      const onCreateFinding = capturedMapViewProps.current!.onCreateFinding as (
+        factor: string
+      ) => void;
+      onCreateFinding('Machine');
+
+      expect(addFinding).toHaveBeenCalledTimes(1);
+      const callArgs = addFinding.mock.calls[0] as unknown as [
+        unknown,
+        unknown,
+        unknown,
+        string | undefined,
+      ];
+      // 4th positional arg is the durable scopeId FK.
+      expect(callArgs[3]).toBe('scope-machine-a');
+    });
+
+    it('passes scopeId=undefined when the drill matches no materialized scope', () => {
+      const addFinding = vi.fn(() => ({ id: 'f-unscoped' }) as never);
+      const props = makeMinimalProps();
+      props.findingsState = { ...props.findingsState, addFinding } as never;
+
+      // No scopes materialized → activeScope memo resolves undefined.
+      render(<AnalyzeWorkspace {...props} />);
+
+      const onCreateFinding = capturedMapViewProps.current!.onCreateFinding as (
+        factor: string
+      ) => void;
+      onCreateFinding('Temperature');
+
+      expect(addFinding).toHaveBeenCalledTimes(1);
+      const callArgs = addFinding.mock.calls[0] as unknown as [
+        unknown,
+        unknown,
+        unknown,
+        string | undefined,
+      ];
+      expect(callArgs[3]).toBeUndefined();
     });
   });
 });

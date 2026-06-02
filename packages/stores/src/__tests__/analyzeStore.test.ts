@@ -45,6 +45,24 @@ describe('analyzeStore — findings', () => {
     expect(finding.id).toBe(state.findings[0].id);
   });
 
+  it('threads an optional scopeId onto the captured finding (durable finding→scope edge)', () => {
+    const ctx = makeContext();
+    const source = { chart: 'boxplot' as const, category: 'A', timeLens: DEFAULT_TIME_LENS };
+    const finding = useAnalyzeStore.getState().addFinding('scoped note', ctx, source, 'scope-123');
+
+    expect(finding.scopeId).toBe('scope-123');
+    expect(useAnalyzeStore.getState().findings[0].scopeId).toBe('scope-123');
+  });
+
+  it('leaves scopeId undefined when no scope is passed (back-compat)', () => {
+    const ctx = makeContext();
+    const finding = useAnalyzeStore.getState().addFinding('unscoped note', ctx);
+
+    expect(finding.scopeId).toBeUndefined();
+    expect('scopeId' in finding).toBe(false);
+    expect(useAnalyzeStore.getState().findings[0].scopeId).toBeUndefined();
+  });
+
   it('prepends new findings (newest first)', () => {
     const ctx = makeContext();
     useAnalyzeStore.getState().addFinding('first', ctx);
