@@ -19,6 +19,7 @@ import {
   useAnalyzeStore,
   useProjectStore,
   useCanvasViewportStore,
+  useAnalysisScopeStore,
 } from '@variscout/stores';
 import type { CanvasAnalyzeFocus } from '@variscout/hooks';
 import type {
@@ -209,7 +210,14 @@ const FrameView: React.FC = () => {
     });
   }, [activeHub?.controlReviews, activeHubId, controlHandoffs, liveProject, controlRecords]);
 
+  // CS-0 Task 6: seed Explore Y from the project outcome so Explore opens
+  // anchored on what's being investigated. Read outcome imperatively so deps
+  // stay empty. Guard on truthiness — outcome is `string | null`.
   const handleSeeData = React.useCallback(() => {
+    const outcome = useProjectStore.getState().outcome;
+    if (outcome) {
+      useAnalysisScopeStore.getState().setY(outcome);
+    }
     usePanelsStore.getState().showExplore();
   }, []);
 

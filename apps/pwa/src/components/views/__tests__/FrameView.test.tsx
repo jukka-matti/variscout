@@ -112,6 +112,21 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 
+// CS-0 Tasks 5+6: PWA bare "See the data" should seed analysisScopeStore.yColumn.
+// Declare via vi.hoisted so the ref is available inside vi.mock factory
+// (which is hoisted to the top of the file by Vitest's transform).
+const { pwaAnalysisScopeRef, pwaAnalysisScopeStoreMock } = vi.hoisted(() => {
+  const ref: { current: { yColumn?: string } } = { current: {} };
+  const storeMock = {
+    getState: () => ({
+      setY: (yColumn: string | undefined) => {
+        ref.current.yColumn = yColumn;
+      },
+    }),
+  };
+  return { pwaAnalysisScopeRef: ref, pwaAnalysisScopeStoreMock: storeMock };
+});
+
 // E1 T5: useActiveIPStore is used by useActiveIPContext (imported by FrameView
 // to resolve the active IP). The mock exposes the minimal surface the hook
 // reads: `activeIPs` (selector source) + the three action setters + a no-op
@@ -127,7 +142,14 @@ const noActiveIPStoreState = {
   getActiveIP: () => null,
 };
 vi.mock('@variscout/stores', () => ({
-  useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
+  useProjectStore: Object.assign(
+    vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
+    {
+      // CS-0: imperative getState() used by handleSeeData to read outcome without
+      // adding it as a reactive dep (keeps useCallback deps empty).
+      getState: () => storeStateRef.current,
+    }
+  ),
   useAnalyzeStore: Object.assign(
     vi.fn((selector: (s: unknown) => unknown) => selector(investigationStateRef.current)),
     {
@@ -151,6 +173,8 @@ vi.mock('@variscout/stores', () => ({
       getState: () => noActiveIPStoreState,
     }
   ),
+  // CS-0 Tasks 5+6: PWA handleSeeData seeds yColumn via useAnalysisScopeStore.getState().setY.
+  useAnalysisScopeStore: pwaAnalysisScopeStoreMock,
 }));
 
 vi.mock('@variscout/ui', async () => {
@@ -330,6 +354,7 @@ import FrameView from '../FrameView';
 
 describe('FrameView (PWA shell)', () => {
   beforeEach(() => {
+    pwaAnalysisScopeRef.current = {};
     hoisted.canvasWorkspaceMock.mockClear();
     showExploreMock.mockClear();
     showImprovementMock.mockClear();
@@ -784,5 +809,38 @@ describe('FrameView (PWA shell)', () => {
       expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
+  });
+
+  // CS-0 Tasks 5+6: bare "See the data" should seed analysisScopeStore.yColumn
+  // from the current outcome before opening Explore. PWA has no chip path.
+  it('CS-0: bare See Data seeds analysisScopeStore.yColumn from the project outcome', () => {
+    // Precondition: outcome is set in storeStateRef (set in beforeEach to 'Fill_Weight').
+    // pwaAnalysisScopeRef.current.yColumn starts undefined (cleared in beforeEach).
+    render(<FrameView />);
+
+    fireEvent.click(screen.getByTestId('see-data'));
+
+    expect(pwaAnalysisScopeRef.current.yColumn).toBe('Fill_Weight');
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('CS-0: bare See Data does not seed yColumn when outcome is null', () => {
+    storeStateRef.current = { ...storeStateRef.current, outcome: null };
+
+    render(<FrameView />);
+
+    fireEvent.click(screen.getByTestId('see-data'));
+
+    expect(pwaAnalysisScopeRef.current.yColumn).toBeUndefined();
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('CS-0: bare See Data calls showExplore with no arguments (no intent)', () => {
+    render(<FrameView />);
+
+    fireEvent.click(screen.getByTestId('see-data'));
+
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
+    expect(showExploreMock).toHaveBeenCalledWith();
   });
 });

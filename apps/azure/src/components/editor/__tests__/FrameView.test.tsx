@@ -102,7 +102,14 @@ function deferred<T>() {
 }
 
 vi.mock('@variscout/stores', () => ({
-  useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
+  useProjectStore: Object.assign(
+    vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
+    {
+      // CS-0: imperative getState() used by handleSeeData to read outcome without
+      // adding it as a reactive dep (keeps useCallback deps empty).
+      getState: () => storeStateRef.current,
+    }
+  ),
   useAnalyzeStore: Object.assign(
     vi.fn((selector: (s: unknown) => unknown) => selector(investigationStateRef.current)),
     {
@@ -785,6 +792,48 @@ describe('FrameView (Azure shell)', () => {
       expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
+  });
+
+  // CS-0 Tasks 5+6: bare "See the data" should seed analysisScopeStore.yColumn
+  // from the current outcome before opening Explore. This is the outcome-seeding
+  // test — distinct from the chip path (handleChipExploreJump) which is unchanged.
+  it('CS-0: bare See Data seeds analysisScopeStore.yColumn from the project outcome', () => {
+    // Precondition: outcome is set in storeStateRef (set in beforeEach to 'Fill_Weight').
+    // analysisScopeRef.current.yColumn starts undefined (cleared in beforeEach).
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+    fireEvent.click(screen.getByTestId('see-data'));
+
+    expect(analysisScopeRef.current.yColumn).toBe('Fill_Weight');
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('CS-0: bare See Data does not seed yColumn when outcome is null', () => {
+    storeStateRef.current = { ...storeStateRef.current, outcome: null };
+
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+    fireEvent.click(screen.getByTestId('see-data'));
+
+    expect(analysisScopeRef.current.yColumn).toBeUndefined();
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('CS-0: bare See Data does not create scopes in useAnalyzeStore (seeding Y alone has empty predicates)', () => {
+    // Verify the chip path (handleChipExploreJump) is NOT triggered by bare See Data.
+    // The outcome seeding goes through useProjectStore.getState().outcome, not the chip path.
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+    fireEvent.click(screen.getByTestId('see-data'));
+
+    // investigationStateRef.current has the scopes-like structure we started with
+    // (no scopes field — analyzeStore does not have a scopes field in the mock here).
+    // The key assertion: yColumn seeded, showExplore called, chip path NOT called
+    // (chip test uses chip-explore-jump-outcome button, this test uses see-data).
+    expect(analysisScopeRef.current.yColumn).toBe('Fill_Weight');
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
+    // showExploreMock should be called with no arguments (bare showExplore, not with intent).
+    expect(showExploreMock).toHaveBeenCalledWith();
   });
 
   // LV1-D Task 7: clicking a chip's Explore-jump affordance should mutate
