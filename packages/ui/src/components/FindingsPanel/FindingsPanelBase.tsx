@@ -74,6 +74,8 @@ export interface FindingsPanelBaseProps {
   onToggleProjectLineage?: (findingId: string) => void;
   /** Ids of findings currently in the active project's investigation lineage (PR-CS-6 Edge 2) */
   projectLineageFindingIds?: ReadonlySet<string>;
+  /** Resolved origin-step name per finding id for the "from {step}" breadcrumb (PR-CS-6 Edge 4) */
+  originStepNameByFindingId?: ReadonlyMap<string, string>;
   onSetOutcome?: (
     id: string,
     outcome: {
@@ -153,6 +155,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onPromoteAction,
   onToggleProjectLineage,
   projectLineageFindingIds,
+  originStepNameByFindingId,
   onSetOutcome,
   renderActionAssigneePicker,
   viewMode: externalViewMode,
@@ -358,6 +361,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onPromoteAction={onPromoteAction}
           onToggleProjectLineage={onToggleProjectLineage}
           projectLineageFindingIds={projectLineageFindingIds}
+          originStepNameByFindingId={originStepNameByFindingId}
           onSetOutcome={onSetOutcome}
           renderActionAssigneePicker={renderActionAssigneePicker}
           onAskCoScoutAboutFinding={onAskCoScoutAboutFinding}

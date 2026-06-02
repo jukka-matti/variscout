@@ -70,6 +70,12 @@ export interface FindingsLogProps {
   onToggleProjectLineage?: (findingId: string) => void;
   /** Ids of findings currently in the active project's investigation lineage (PR-CS-6 Edge 2) */
   projectLineageFindingIds?: ReadonlySet<string>;
+  /**
+   * PR-CS-6 Edge 4: resolved origin-step name per finding id (`Finding.originStepId`
+   * → ProcessMap step name). The app wrapper resolves; FindingCard renders the
+   * "from {step}" breadcrumb. Findings whose step no longer resolves are absent.
+   */
+  originStepNameByFindingId?: ReadonlyMap<string, string>;
   /** Set outcome assessment */
   onSetOutcome?: (
     id: string,
@@ -133,6 +139,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onPromoteAction,
   onToggleProjectLineage,
   projectLineageFindingIds,
+  originStepNameByFindingId,
   onSetOutcome,
   onProjectImprovement,
   hasSpecs,
@@ -191,6 +198,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onPromoteAction={onPromoteAction}
           onToggleProjectLineage={onToggleProjectLineage}
           projectLineageFindingIds={projectLineageFindingIds}
+          originStepNameByFindingId={originStepNameByFindingId}
           onSetOutcome={onSetOutcome}
           voiceInput={voiceInput}
         />
@@ -237,6 +245,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
             onPromoteAction={onPromoteAction}
             onToggleProjectLineage={onToggleProjectLineage}
             isInProjectLineage={projectLineageFindingIds?.has(finding.id) ?? false}
+            originStepName={originStepNameByFindingId?.get(finding.id)}
             onSetOutcome={onSetOutcome}
             onProjectImprovement={onProjectImprovement}
             hasSpecs={hasSpecs}

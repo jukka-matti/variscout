@@ -21,7 +21,9 @@ import type { ProcessMap } from './types';
  * spine regardless of node insertion order.
  */
 export function deriveProcessSteps(map: ProcessMap | undefined): ProcessStepEntry[] {
-  if (!map) return [];
+  // Guard both an absent map (mapless project — ADR-070) and a degenerate map
+  // with no `nodes` array (partial / in-construction maps).
+  if (!map?.nodes) return [];
   return map.nodes
     .map(node => ({ id: node.id, name: node.name, order: node.order }))
     .sort((a, b) => a.order - b.order);

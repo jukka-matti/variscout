@@ -50,6 +50,7 @@ import type { EvaluateFactorOptions } from '@variscout/ui';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { detectColumns } from '@variscout/core/parser';
+import { deriveProcessSteps } from '@variscout/core/frame';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
@@ -177,6 +178,19 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     () => (activeIPScope ? wallFindings.filter(f => scopedFindingIds.has(f.id)) : wallFindings),
     [activeIPScope, scopedFindingIds, wallFindings]
   );
+
+  // PR-CS-6 Edge 4: resolve each finding's `originStepId` to its ProcessMap step
+  // name (FindingCard stays pure). Suppressed silently for findings whose step no
+  // longer resolves (non-durable across map re-derivation — ADR-087 caveat).
+  const originStepNameByFindingId = useMemo(() => {
+    const stepNameById = new Map(deriveProcessSteps(processMap).map(s => [s.id, s.name]));
+    const out = new Map<string, string>();
+    for (const f of scopedWallFindings) {
+      const name = f.originStepId ? stepNameById.get(f.originStepId) : undefined;
+      if (name) out.set(f.id, name);
+    }
+    return out;
+  }, [processMap, scopedWallFindings]);
 
   // Investigation phase detection (deterministic, from findings)
   const analyzePhase = useMemo(
@@ -660,6 +674,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 onPromoteAction={onPromoteFindingAction}
                 onToggleProjectLineage={onToggleProjectLineage}
                 projectLineageFindingIds={scopedFindingIds}
+                originStepNameByFindingId={originStepNameByFindingId}
                 onSetOutcome={findingsState.setOutcome}
               />
             </div>

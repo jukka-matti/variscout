@@ -5,6 +5,7 @@ import {
   Layers,
   Link2,
   Link2Off,
+  MapPin,
   MessageCircle,
   Pencil,
   Share2,
@@ -93,6 +94,14 @@ export interface FindingCardProps {
   onToggleProjectLineage?: (findingId: string) => void;
   /** Whether this finding is already pinned to the active project's lineage (PR-CS-6 Edge 2). */
   isInProjectLineage?: boolean;
+  /**
+   * PR-CS-6 Edge 4: resolved name of the ProcessMap step this finding was
+   * captured from (`Finding.originStepId` → step name). The app wrapper resolves
+   * the id against the current ProcessMap and passes the name; FindingCard stays
+   * pure. Omitted (silently) when the step no longer resolves (non-durable across
+   * map re-derivation).
+   */
+  originStepName?: string;
   /** Projected Cpk from the linked improvement idea (for projected vs actual comparison) */
   projectedCpk?: number;
   /** Callback to set outcome */
@@ -173,6 +182,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onPromoteAction,
   onToggleProjectLineage,
   isInProjectLineage = false,
+  originStepName,
   projectedCpk,
   onSetOutcome,
   onProjectImprovement,
@@ -237,6 +247,16 @@ const FindingCard: React.FC<FindingCardProps> = ({
                         : (finding.source as { category: string }).category}
                 </span>
               </button>
+            )}
+            {originStepName && (
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-surface-tertiary/50 text-[0.625rem] text-content-muted rounded"
+                title={`Captured from step: ${originStepName}`}
+                data-testid="finding-origin-step"
+              >
+                <MapPin size={9} />
+                <span>from {originStepName}</span>
+              </span>
             )}
             {filterEntries.map(([factor, values]) => {
               const label = columnAliases[factor] || factor;

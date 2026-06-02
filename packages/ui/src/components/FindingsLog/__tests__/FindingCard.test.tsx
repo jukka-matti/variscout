@@ -157,3 +157,25 @@ describe('FindingCard — PR-CS-6 Edge 2 project-lineage toggle', () => {
     expect(screen.queryByTestId('toggle-lineage-btn')).toBeNull();
   });
 });
+
+describe('FindingCard — PR-CS-6 Edge 4 origin-step breadcrumb', () => {
+  it('renders the "from {step}" breadcrumb with the resolved step name', () => {
+    render(
+      <FindingCard
+        finding={makeFinding({ originStepId: 'step-fill-1' })}
+        {...noopHandlers}
+        originStepName="Filling"
+      />
+    );
+
+    const crumb = screen.getByTestId('finding-origin-step');
+    expect(crumb.textContent).toContain('from Filling');
+  });
+
+  it('does not render the breadcrumb when no resolved name is passed (unresolved step)', () => {
+    // originStepId present but the app wrapper could not resolve it → no prop.
+    render(<FindingCard finding={makeFinding({ originStepId: 'step-gone' })} {...noopHandlers} />);
+
+    expect(screen.queryByTestId('finding-origin-step')).toBeNull();
+  });
+});

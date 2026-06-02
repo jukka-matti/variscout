@@ -63,6 +63,7 @@ import type { ColumnTypeMap } from '@variscout/core/findings';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { detectColumns } from '@variscout/core/parser';
+import { deriveProcessSteps } from '@variscout/core/frame';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -755,6 +756,19 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     [activeIPScope, scopedFindingIds, findingsState.findings]
   );
 
+  // PR-CS-6 Edge 4: resolve each finding's `originStepId` to its ProcessMap step
+  // name (FindingCard stays pure). Suppressed silently for findings whose step no
+  // longer resolves (non-durable across map re-derivation — ADR-087 caveat).
+  const originStepNameByFindingId = useMemo(() => {
+    const stepNameById = new Map(deriveProcessSteps(processMap).map(s => [s.id, s.name]));
+    const out = new Map<string, string>();
+    for (const f of scopedWallFindings) {
+      const name = f.originStepId ? stepNameById.get(f.originStepId) : undefined;
+      if (name) out.set(f.id, name);
+    }
+    return out;
+  }, [processMap, scopedWallFindings]);
+
   // Phase 13 — pan-to-node: center the viewport on a hub by id. IM-4c: consumes
   // the SHARED computeWallLayout authority with the SAME inputs WallCanvas + the
   // Minimap use (incl. tributary grouping), so the pan target always lands on the
@@ -1364,6 +1378,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onPromoteAction={onPromoteFindingAction}
                 onToggleProjectLineage={onToggleProjectLineage}
                 projectLineageFindingIds={scopedFindingIds}
+                originStepNameByFindingId={originStepNameByFindingId}
                 onSetOutcome={findingsState.setOutcome}
                 onShareFinding={handleShareFinding}
                 onNavigateToChart={handleNavigateToChart}
