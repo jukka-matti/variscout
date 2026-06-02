@@ -213,4 +213,65 @@ describe('buildCanvasAnalyzeOverlays', () => {
     expect(overlays.byStep.mix.hypotheses).toEqual([]);
     expect(overlays.arrows).toEqual([]);
   });
+
+  it('PR-CS-5: surfaces a step-captured finding on its originStepId even with no column resolution', () => {
+    const overlays = buildCanvasAnalyzeOverlays({
+      map,
+      findings: [finding({ id: 'f-step', originStepId: 'fill' })],
+    });
+
+    expect(overlays.byStep.fill.findings.map(item => item.id)).toEqual(['f-step']);
+    expect(overlays.unresolved.findings).toEqual([]);
+  });
+
+  it('PR-CS-5: UNION — a finding surfaces on BOTH its column-derived step AND its originStepId', () => {
+    const overlays = buildCanvasAnalyzeOverlays({
+      map,
+      findings: [
+        finding({
+          id: 'f-union',
+          // Column-derives to `pack` (Defect → pack)...
+          context: { activeFilters: { Defect: ['Scratch'] }, cumulativeScope: null },
+          // ...AND was captured from the `mix` step.
+          originStepId: 'mix',
+        }),
+      ],
+    });
+
+    expect(overlays.byStep.pack.findings.map(item => item.id)).toEqual(['f-union']);
+    expect(overlays.byStep.mix.findings.map(item => item.id)).toEqual(['f-union']);
+    expect(overlays.unresolved.findings).toEqual([]);
+  });
+
+  it('PR-CS-5: dedupes when the column-derived step equals originStepId', () => {
+    const overlays = buildCanvasAnalyzeOverlays({
+      map,
+      findings: [
+        finding({
+          id: 'f-dedupe',
+          context: { activeFilters: { Defect: ['Scratch'] }, cumulativeScope: null },
+          originStepId: 'pack',
+        }),
+      ],
+    });
+
+    expect(overlays.byStep.pack.findings.map(item => item.id)).toEqual(['f-dedupe']);
+  });
+
+  it('PR-CS-5: an originStepId that names no real node falls back to column derivation (no regression)', () => {
+    const overlays = buildCanvasAnalyzeOverlays({
+      map,
+      findings: [
+        finding({
+          id: 'f-badstep',
+          context: { activeFilters: { Defect: ['Scratch'] }, cumulativeScope: null },
+          originStepId: 'step-does-not-exist',
+        }),
+      ],
+    });
+
+    // Still surfaces on the column-derived step; the bad originStepId is ignored.
+    expect(overlays.byStep.pack.findings.map(item => item.id)).toEqual(['f-badstep']);
+    expect(overlays.unresolved.findings).toEqual([]);
+  });
 });

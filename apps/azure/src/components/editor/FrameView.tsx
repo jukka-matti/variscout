@@ -24,7 +24,7 @@ import {
   useAnalysisScopeStore,
   useViewStore,
 } from '@variscout/stores';
-import type { CanvasAnalyzeFocus } from '@variscout/hooks';
+import type { CanvasAnalyzeFocus, CanvasStepCardModel } from '@variscout/hooks';
 import type {
   ControlHandoff,
   EvidenceSnapshot,
@@ -32,7 +32,11 @@ import type {
   ControlRecord,
 } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import { createStepQuickActionItem, type ActionItem } from '@variscout/core/findings';
+import {
+  createStepQuickActionItem,
+  type ActionItem,
+  type FindingContext,
+} from '@variscout/core/findings';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import type { OutcomeSpec } from '@variscout/core/processHub';
 import { surveyInboxRules } from '@variscout/core/survey';
@@ -283,6 +287,32 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
     [activeHubId]
   );
 
+  // PR-CS-5 Part 2: capture-from-step. Creates a step-noted Finding
+  // (`originStepId = card.stepId`) so it surfaces on this step's overlay (UNION
+  // with column-derived findings). Pre-seeds activeFilters from the step's
+  // assigned columns + stats from the step card. Editing stays in the findings
+  // surfaces — this is a one-click capture.
+  const handleCaptureFindingFromStep = React.useCallback((card: CanvasStepCardModel) => {
+    const activeFilters: Record<string, (string | number)[]> = {};
+    for (const column of card.assignedColumns) activeFilters[column] = [];
+    const context: FindingContext = {
+      activeFilters,
+      cumulativeScope: null,
+      stats:
+        card.metricKind === 'numeric' && card.stats
+          ? {
+              mean: card.stats.mean,
+              median: card.stats.median,
+              cpk: card.stats.cpk,
+              samples: card.capability.n,
+            }
+          : undefined,
+    };
+    useAnalyzeStore
+      .getState()
+      .addFinding(`Observation at ${card.stepName}`, context, undefined, undefined, card.stepId);
+  }, []);
+
   const handleFocusedInvestigation = React.useCallback(() => {
     usePanelsStore.getState().showAnalyze();
   }, []);
@@ -421,6 +451,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
         onCharter={handleCharter}
         contextLinkGroups={contextLinkGroups}
         onNavigateContextLink={handleNavigateContextLink}
+        onCaptureFindingFromStep={handleCaptureFindingFromStep}
         priorStepStats={priorStepStats}
         canEditCanvas={canEditCanvas}
         actionItems={actionItems}

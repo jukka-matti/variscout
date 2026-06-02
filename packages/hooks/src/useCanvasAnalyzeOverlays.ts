@@ -234,6 +234,9 @@ export function buildCanvasAnalyzeOverlays({
   }
 
   for (const finding of findings) {
+    // PRIMARY: column-derived step mapping (chart-captured findings), falling
+    // back to linked-hub steps. PR-CS-5 Part 2: this stays the primary key so
+    // existing/chart-captured findings still appear on their column-derived step.
     let steps = validStepIds(
       stepsForColumns(Object.keys(finding.context?.activeFilters ?? {}), columnMap),
       byStep
@@ -243,6 +246,13 @@ export function buildCanvasAnalyzeOverlays({
         .filter(hub => hub.findingIds.includes(finding.id))
         .flatMap(hub => hubSteps.get(hub.id) ?? []);
       steps = validStepIds(uniqueStepIds(linkedHubSteps), byStep);
+    }
+    // UNION: step-captured findings (PR-CS-5 Part 2) ALSO surface on their
+    // origin step, on top of any column-derived steps (deduped below via
+    // addUnique). originStepId is never the sole key — that would regress the
+    // column-derivation that is the whole point of this overlay.
+    if (finding.originStepId && byStep[finding.originStepId]) {
+      steps = uniqueStepIds([...steps, finding.originStepId]);
     }
     if (steps.length === 0) {
       unresolved.findings.push(finding.id);

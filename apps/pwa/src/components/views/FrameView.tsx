@@ -22,7 +22,7 @@ import {
   useAnalysisScopeStore,
   useViewStore,
 } from '@variscout/stores';
-import type { CanvasAnalyzeFocus } from '@variscout/hooks';
+import type { CanvasAnalyzeFocus, CanvasStepCardModel } from '@variscout/hooks';
 import type {
   EvidenceSnapshot,
   StepCapabilityStamp,
@@ -30,7 +30,11 @@ import type {
   ControlRecord,
 } from '@variscout/core';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
-import { createStepQuickActionItem, type ActionItem } from '@variscout/core/findings';
+import {
+  createStepQuickActionItem,
+  type ActionItem,
+  type FindingContext,
+} from '@variscout/core/findings';
 import { surveyInboxRules } from '@variscout/core/survey';
 import { useActiveIPContext } from '@variscout/hooks';
 import { pwaHubRepository } from '../../persistence';
@@ -258,6 +262,30 @@ const FrameView: React.FC = () => {
     [activeHubId]
   );
 
+  // PR-CS-5 Part 2: capture-from-step. Creates a step-noted Finding
+  // (`originStepId = card.stepId`) so it surfaces on this step's overlay (UNION
+  // with column-derived findings). Mirrors the Azure shell.
+  const handleCaptureFindingFromStep = React.useCallback((card: CanvasStepCardModel) => {
+    const activeFilters: Record<string, (string | number)[]> = {};
+    for (const column of card.assignedColumns) activeFilters[column] = [];
+    const context: FindingContext = {
+      activeFilters,
+      cumulativeScope: null,
+      stats:
+        card.metricKind === 'numeric' && card.stats
+          ? {
+              mean: card.stats.mean,
+              median: card.stats.median,
+              cpk: card.stats.cpk,
+              samples: card.capability.n,
+            }
+          : undefined,
+    };
+    useAnalyzeStore
+      .getState()
+      .addFinding(`Observation at ${card.stepName}`, context, undefined, undefined, card.stepId);
+  }, []);
+
   const handleFocusedInvestigation = React.useCallback(() => {
     usePanelsStore.getState().showAnalyze();
   }, []);
@@ -394,6 +422,7 @@ const FrameView: React.FC = () => {
         onCharter={handleCharter}
         contextLinkGroups={contextLinkGroups}
         onNavigateContextLink={handleNavigateContextLink}
+        onCaptureFindingFromStep={handleCaptureFindingFromStep}
         priorStepStats={priorStepStats}
         // PWA has no project-membership model (education tier per apps/pwa/CLAUDE.md);
         // Edit mode is always reachable. Azure derives this from canAccess(..., 'edit').
