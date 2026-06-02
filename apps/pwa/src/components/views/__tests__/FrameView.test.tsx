@@ -117,11 +117,21 @@ function deferred<T>() {
 // Declare via vi.hoisted so the ref is available inside vi.mock factory
 // (which is hoisted to the top of the file by Vitest's transform).
 const { pwaAnalysisScopeRef, pwaAnalysisScopeStoreMock } = vi.hoisted(() => {
-  const ref: { current: { yColumn?: string } } = { current: {} };
+  const ref: {
+    current: { yColumn?: string; boxplotFactor?: string; stepId?: string };
+  } = { current: {} };
   const storeMock = {
     getState: () => ({
       setY: (yColumn: string | undefined) => {
         ref.current.yColumn = yColumn;
+      },
+      // PR-CS-7 (click-to-Explore parity): the chip-jump helper seeds the scope
+      // via setBoxplotFactor / setStepId in addition to setY.
+      setBoxplotFactor: (factor: string | undefined) => {
+        ref.current.boxplotFactor = factor;
+      },
+      setStepId: (stepId: string | undefined) => {
+        ref.current.stepId = stepId;
       },
     }),
   };
@@ -188,6 +198,32 @@ vi.mock('@variscout/stores', () => ({
 vi.mock('@variscout/ui', async () => {
   const React = await import('react');
   return {
+    // PR-CS-7 (click-to-Explore parity): the real helper reads useAnalysisScopeStore
+    // (mocked above) and seeds the scope by chip kind, then invokes the navigate
+    // callback. Reimplement faithfully so the chip handler is exercised end-to-end.
+    navigateToExploreForChip: (
+      target:
+        | { kind: 'outcome'; columnName: string; stepId?: string }
+        | { kind: 'factor'; columnName: string; stepId?: string }
+        | { kind: 'step'; stepId: string },
+      onNavigateToExplore: () => void
+    ) => {
+      const scope = pwaAnalysisScopeStoreMock.getState();
+      switch (target.kind) {
+        case 'outcome':
+          scope.setY(target.columnName);
+          if (target.stepId) scope.setStepId(target.stepId);
+          break;
+        case 'factor':
+          scope.setBoxplotFactor(target.columnName);
+          if (target.stepId) scope.setStepId(target.stepId);
+          break;
+        case 'step':
+          scope.setStepId(target.stepId);
+          break;
+      }
+      onNavigateToExplore();
+    },
     // E1 T6: Process tab "No active project" empty state. Stubbed as plain DOM
     // for guard-branch assertions.
     NoActiveProjectGuidance: (props: {
@@ -244,6 +280,11 @@ vi.mock('@variscout/ui', async () => {
       actionItems?: unknown[];
       contextLinkGroups?: { surfaceType: string; items: { id: string }[] }[];
       onNavigateContextLink?: (item: { id: string; label?: string }) => void;
+      onChipExploreJump?: (target: {
+        kind: 'outcome' | 'factor' | 'step';
+        columnName?: string;
+        stepId?: string;
+      }) => void;
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -301,6 +342,21 @@ vi.mock('@variscout/ui', async () => {
           'button',
           { type: 'button', 'data-testid': 'cta-charter', onClick: props.onCharter },
           'Charter'
+        ),
+        // PR-CS-7: chip "Open in Explore" — fire a factor-kind chip target.
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            'data-testid': 'chip-explore-jump',
+            onClick: () =>
+              props.onChipExploreJump?.({
+                kind: 'factor',
+                columnName: 'Machine',
+                stepId: 'step-1',
+              }),
+          },
+          'Chip Explore'
         )
       );
     },
@@ -876,5 +932,26 @@ describe('FrameView (PWA shell)', () => {
 
     expect(showExploreMock).toHaveBeenCalledTimes(1);
     expect(showExploreMock).toHaveBeenCalledWith();
+  });
+
+  // PR-CS-7 (click-to-Explore parity): a chip target seeds analysisScopeStore
+  // (setBoxplotFactor / setStepId for a factor chip) then opens Explore via the
+  // PWA's bare showExplore() (no intent payload).
+  it('PR-CS-7: a chip Explore jump seeds the scope and opens Explore', () => {
+    render(<FrameView />);
+
+    fireEvent.click(screen.getByTestId('chip-explore-jump'));
+
+    expect(pwaAnalysisScopeRef.current.boxplotFactor).toBe('Machine');
+    expect(pwaAnalysisScopeRef.current.stepId).toBe('step-1');
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
+    expect(showExploreMock).toHaveBeenCalledWith();
+  });
+
+  it('PR-CS-7: onChipExploreJump is wired (passed to CanvasWorkspace)', () => {
+    render(<FrameView />);
+
+    const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+    expect(props?.onChipExploreJump).toEqual(expect.any(Function));
   });
 });

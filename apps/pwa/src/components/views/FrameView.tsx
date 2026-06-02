@@ -9,6 +9,8 @@ import {
   CanvasWorkspace,
   InboxDigest,
   NoActiveProjectGuidance,
+  navigateToExploreForChip,
+  type ChipNavigationTarget,
   type InboxDigestPrompt,
   type ContextLinkGroup,
   type ContextLinkItem,
@@ -233,6 +235,14 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showExplore();
   }, []);
 
+  // LV1-D / PR-CS-7 parity: per-chip "Open in Explore" handler. Mutates
+  // analysisScopeStore (setY / setBoxplotFactor / setStepId) then switches to
+  // Explore. PWA's showExplore() takes no args — a clean match for the helper's
+  // `() => void` (no intent payload; pendingExploreIntent stays Azure-only).
+  const handleChipExploreJump = React.useCallback((target: ChipNavigationTarget) => {
+    navigateToExploreForChip(target, () => usePanelsStore.getState().showExplore());
+  }, []);
+
   const handleLogQuickAction = React.useCallback(
     (stepId: string, payload: LogActionPayload) => {
       if (!activeHubId) return;
@@ -431,6 +441,7 @@ const FrameView: React.FC = () => {
         onPersistCanvasState={upsertProject}
         outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
         onExploreExit={handleExploreExit}
+        onChipExploreJump={handleChipExploreJump}
       />
     </div>
   );
