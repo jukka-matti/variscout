@@ -52,10 +52,17 @@
 
 ### Task 7 — capture-as-Finding links the scope (Azure)
 
-- **Files:** `apps/azure/src/components/editor/AnalyzeWorkspace.tsx:282-316` (handleCaptureModel) + the FE-2a `handleEvaluateFactor` snapshot (355-357); read `packages/core/src/findings/types.ts` FindingContext FIRST.
-- **Test:** capturing with a non-empty drill → the Finding's context references the same scope id `syncScopeFromDrill` materialized (predicateSetKey match), with `investigationId === activeIP.id`.
-- **Impl:** capture `activeScope?.id` onto the Finding context. **Prefer reusing an existing scope-ref field**; only widen `FindingContext` (core types + factories + persistence) if none exists — and if a type change is needed, flag it in the PR (wider blast radius).
-- **Acceptance:** Finding links the durable scope; `activeFilters` kept for display/back-compat.
+**DESIGN RESOLVED (2026-06-02, user sign-off): add an OPTIONAL `scopeId` FK on the `Finding` ENTITY (not on `FindingContext`).** Grounding confirmed `FindingContext` has NO scope-ref field — `cumulativeScope` (`number | null`) and `Finding.scoped` (`boolean`) are FALSE FRIENDS, neither holds a scope id. This is a small ADDITIVE typed field, not a field-reuse. Serialization is structural (no zod schema / no field allow-list — Findings spread whole-object through `documentSnapshot.ts` + both apps' serializers), so **NO IDB migration and NO serializer edit** are needed. Keep the field OPTIONAL so the other 4 `createFinding` callers + all test fixtures are untouched (making it required = a wide cascade — do NOT).
+
+- **Files:**
+  - `packages/core/src/findings/types.ts` — add `scopeId?: ProblemStatementScope['id'];` to the `Finding` interface, next to `investigationId` (~L497). (Entity FKs live on `Finding`, not `FindingContext` — `investigationId` sets that precedent.)
+  - `packages/stores/src/analyzeStore.ts` — `addFinding` (~L374-386) is the single authoritative construction path; thread an optional scope id through to the constructed Finding (widen the action and/or `createFinding`). It currently hard-codes `investigationId='general-unassigned'`.
+  - `packages/core/src/findings/factories.ts` — `createFinding` (~L36-67) builds the Finding; add the optional field assignment (only if you construct it here rather than spread-assign).
+  - `apps/azure/src/components/editor/AnalyzeWorkspace.tsx` — the capture sites already hold `activeScope?.id` in lexical scope (the `activeScope` memo, L259-270 — Task 2 keeps it IP-keyed): `handleCaptureModel` (L282-316), `handleEvaluateFactor` (L376-379), `handleMapCreateFinding` (~L962), the respawn-carried finding (~L512). Pass `activeScope?.id` into `addFinding` at these sites.
+- **Test:** capturing with a non-empty drill → the captured Finding's `scopeId` equals the id of the scope `syncScopeFromDrill` materialized (same `predicateSetKey`), and that scope's `investigationId === activeIP.id` (Task 2 contract). Capturing with an empty drill (no scope) → `scopeId` is `undefined`. Optional-ness: a Finding built without a scope still validates.
+- **Impl note:** there is NO `selectedScopeId` in `analyzeStore` — the "active scope at capture time" source of truth is the component's `activeScope` memo, so the FK MUST be threaded from the component (pass `activeScope?.id` into `addFinding`), NOT read from store state. Keep `context.activeFilters` as-is (display/back-compat); `scopeId` is the new durable FK.
+- **Acceptance:** Finding durably links its scope via `Finding.scopeId`; field optional; no migration; existing Finding fixtures/tests untouched; spine is now bidirectional (scope ⟷ finding).
+- **PR + decision-log:** record this data-model decision (new finding→scope edge; deliberately additive to the existing top-down scope→hypothesis→finding linkage) in the PR body and `docs/decision-log.md`.
 
 ### Task 8 — capture-as-Finding links the scope (PWA)
 
