@@ -11,7 +11,7 @@
  * IM-1 (ADR-085): the Question entity is retired. Suspected causes are
  * `Hypothesis` hubs; the Wall renders hubs + findings (no question column).
  */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AnalyzePhaseBadge,
   AnalyzeConclusion,
@@ -53,7 +53,12 @@ import { detectColumns } from '@variscout/core/parser';
 import type { ColumnTypeMap } from '@variscout/core/findings';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
-import { useCanvasViewportStore, useProjectStore, useAnalyzeStore } from '@variscout/stores';
+import {
+  useCanvasViewportStore,
+  useProjectStore,
+  useAnalyzeStore,
+  useViewStore,
+} from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
@@ -208,6 +213,18 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     },
     [scopedWallHubs, processMap, wallGroupByTributary, wallHubId, setWallPan]
   );
+
+  // PR-CS-5 Part 1 — focus-on-arrival pan. When a Process-tab hypothesis link
+  // sets `focusedWallEntityId` (the visible Wall focus lens, ADR-086) and forces
+  // the Wall view, off-screen targets make dim-only useless — so we center the
+  // focused node on arrival, reusing the SAME computeWallLayout pan-to-node path
+  // the Minimap + command palette use. Gated on `wallViewMode === 'wall'`.
+  const focusedWallEntityId = useViewStore(s => s.focusedWallEntityId);
+  useEffect(() => {
+    if (wallViewMode !== 'wall') return;
+    if (!focusedWallEntityId) return;
+    handlePanToNode(focusedWallEntityId);
+  }, [focusedWallEntityId, wallViewMode, handlePanToNode]);
 
   const handleReturnToImprovementProject = useCallback(() => {
     const target = returnNavigation.consumeReturnTarget();

@@ -14,6 +14,7 @@ const showDashboardMock = vi.fn();
 const expandToHypothesisMock = vi.fn();
 const setWallViewModeMock = vi.fn();
 const setAnalyzeViewModeMock = vi.fn();
+const setFocusedWallEntityMock = vi.fn();
 const addCausalLinkMock = vi.fn();
 const removeCausalLinkMock = vi.fn();
 
@@ -127,6 +128,15 @@ vi.mock('@variscout/stores', () => ({
       setViewMode: setWallViewModeMock,
     }),
   }),
+  // PR-CS-5 Part 1: useViewStore.getState().setFocusedWallEntity is the visible
+  // Wall focus lens (ADR-086). handleOpenInvestigationFocus sets it so the
+  // analyst lands focused + the AnalyzeWorkspace pan-on-focus effect centers
+  // the node.
+  useViewStore: Object.assign(vi.fn(), {
+    getState: () => ({
+      setFocusedWallEntity: setFocusedWallEntityMock,
+    }),
+  }),
   // LV1-D: useAnalysisScopeStore mock used by navigateToExploreForChip via
   // FrameView's handleChipExploreJump. getState().setY is the only mutation
   // path exercised by the integration test (outcome chip → yColumn).
@@ -191,6 +201,7 @@ vi.mock('@variscout/ui', async () => {
       priorStepStats?: ReadonlyMap<string, unknown>;
       actionItems?: unknown[];
       contextLinkGroups?: { surfaceType: string; items: { id: string }[] }[];
+      onNavigateContextLink?: (item: { id: string; label?: string }) => void;
       // LV1-D: chip → Explore jump callback
       onChipExploreJump?: (target: { kind: string; columnName?: string; stepId?: string }) => void;
     }) => {
@@ -354,6 +365,7 @@ describe('FrameView (Azure shell)', () => {
     expandToHypothesisMock.mockClear();
     setWallViewModeMock.mockClear();
     setAnalyzeViewModeMock.mockClear();
+    setFocusedWallEntityMock.mockClear();
     addCausalLinkMock.mockReset();
     removeCausalLinkMock.mockReset();
     addCausalLinkMock.mockReturnValue({ id: 'link-created' });
@@ -653,6 +665,32 @@ describe('FrameView (Azure shell)', () => {
     fireEvent.click(screen.getByTestId('overlay-question'));
 
     expect(expandToHypothesisMock).toHaveBeenCalledWith('q-1');
+    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('PR-CS-5: focuses + forces the Wall view on hypothesis overlay focus (dim + pan-to-node)', () => {
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+    fireEvent.click(screen.getByTestId('overlay-question'));
+
+    // The visible Wall focus lens is set so WallCanvas dims + AnalyzeWorkspace pans.
+    expect(setFocusedWallEntityMock).toHaveBeenCalledWith('q-1');
+    // Force the Wall map view so the analyst lands focused, not unfocused.
+    expect(setWallViewModeMock).toHaveBeenCalledWith('wall');
+    expect(setAnalyzeViewModeMock).toHaveBeenCalledWith('map');
+    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('PR-CS-5: a hypothesis context-link routes through the focus path (focus + pan)', () => {
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+    const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+    // hub-1 is a live hypothesis (investigationStateRef seeds hypotheses: [{ id: 'hub-1' }]).
+    props.onNavigateContextLink({ id: 'hub-1', label: 'Cause A' });
+
+    expect(setFocusedWallEntityMock).toHaveBeenCalledWith('hub-1');
+    expect(setWallViewModeMock).toHaveBeenCalledWith('wall');
+    expect(setAnalyzeViewModeMock).toHaveBeenCalledWith('map');
     expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
   });
 

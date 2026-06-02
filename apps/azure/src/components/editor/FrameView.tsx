@@ -22,6 +22,7 @@ import {
   useProjectStore,
   useCanvasViewportStore,
   useAnalysisScopeStore,
+  useViewStore,
 } from '@variscout/stores';
 import type { CanvasAnalyzeFocus } from '@variscout/hooks';
 import type {
@@ -297,7 +298,18 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
     // Focus a hypothesis hub node by its hub id (the Question entity is retired
     // per ADR-085, so 'suspected-cause' is the only hub-resolving focus kind).
     if (focus.kind === 'suspected-cause') {
+      // CoScout panel focus (unchanged — feeds the AI interpretation partner).
       useAnalyzeFeatureStore.getState().expandToHypothesis(focus.id);
+      // PR-CS-5 Part 1: the *visible* Wall focus is `focusedWallEntityId` —
+      // WallCanvas dims via wallDegreeOfInterest and AnalyzeWorkspace pans the
+      // viewport to center the node on arrival (pan-on-focus effect). Force the
+      // Wall map view so the analyst lands focused, not unfocused.
+      useViewStore.getState().setFocusedWallEntity(focus.id);
+      const panelsStore = usePanelsStore.getState();
+      useCanvasViewportStore.getState().setViewMode('wall');
+      panelsStore.setAnalyzeViewMode('map');
+      panelsStore.showAnalyze();
+      return;
     }
     usePanelsStore.getState().showAnalyze();
   }, []);
@@ -354,9 +366,17 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
         usePanelsStore.getState().showControl(item.id);
         return;
       }
+      // PR-CS-5 Part 1: a hypothesis context-link should land the analyst FOCUSED
+      // on the Wall (dim + pan-to-node), not on an unfocused Analyze tab. Reconstruct
+      // the focus by id-match here rather than widening the shared ContextLinkItem
+      // contract, then delegate to the single focus path.
+      if (hypotheses.some(h => h.id === item.id)) {
+        handleOpenInvestigationFocus({ kind: 'suspected-cause', id: item.id });
+        return;
+      }
       usePanelsStore.getState().showAnalyze();
     },
-    [activeHubId, controlHandoffs, controlRecords]
+    [activeHubId, controlHandoffs, controlRecords, hypotheses, handleOpenInvestigationFocus]
   );
 
   // E1 T6: Process tab is project-scoped. When no active project is selected,
