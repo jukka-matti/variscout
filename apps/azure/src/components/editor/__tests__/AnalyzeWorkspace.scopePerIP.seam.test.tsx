@@ -392,15 +392,17 @@ describe('AnalyzeWorkspace ScopeRail — only the active IP scopes appear (PR-CS
 //      Without it the rendered rail stays frozen on the initial IP's chip.
 //
 //   C. activeScope memo deps [categoricalFilters, outcome, scopes, scopeInvestigationId]:
-//      Same pre-seeded-scopes setup: if scopeInvestigationId is missing the
-//      memo can't switch which scope is "active" when only the prop changes.
-//      HOWEVER: because scopes is also in deps and scopes changes when the
-//      effect fires (Test A), the memo recompute is masked whenever the effect
-//      runs. Test C therefore uses the pre-seeded path (no effect, stable scopes)
-//      to isolate the memo dep. It guards via the absence of a matching scope
-//      chip for the new IP's activeScope (we check a rendered detail that depends
-//      on activeScope, not just railScopes, but in practice the two are coupled
-//      through scopeInvestigationId — see note at end of this block).
+//      Pre-seed TWO scopes with IDENTICAL predicates (same predicateSetKey),
+//      one for ip-A and one for ip-B. Set categoricalFilters to exactly that
+//      condition so activeScope can resolve to a matching scope. When rerendering
+//      from ip-A to ip-B the useEffect re-fires, but syncScopeFromDrill finds
+//      the existing ip-B scope and returns it WITHOUT calling set() (idempotent
+//      path — analyzeStore.ts:~718). The scopes array reference therefore stays
+//      stable. The only dep that can flip activeScope is scopeInvestigationId.
+//      We verify by checking aria-current="true" on the active scope's chip:
+//      if scopeInvestigationId is absent from the memo's deps, activeScope stays
+//      pointing at ip-A's scope even after the prop changes to ip-B, so ip-B's
+//      chip renders (via railScopes) but WITHOUT aria-current.
 
 describe('AnalyzeWorkspace — rerender() deps-array guards (PR-CS-0 Task 2)', () => {
   beforeEach(() => {
@@ -486,6 +488,62 @@ describe('AnalyzeWorkspace — rerender() deps-array guards (PR-CS-0 Task 2)', (
 
     // Rail must now show ip-B's chip and hide ip-A's.
     expect(screen.getByTestId('scope-chip-scope-ipB')).toBeInTheDocument();
+    expect(screen.queryByTestId('scope-chip-scope-ipA')).toBeNull();
+  });
+
+  it('Test C — activeScope memo dep: rerender to ip-B flips aria-current via the idempotent-effect path (stable scopes)', () => {
+    // Pre-seed BOTH scopes with IDENTICAL predicates so predicateSetKey matches
+    // whichever IP is active. The effect will re-fire on rerender but
+    // syncScopeFromDrill finds the existing scope and returns it WITHOUT calling
+    // set() (idempotent path), leaving scopes referentially stable.
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'Machine', values: ['A'] }],
+    });
+    useAnalyzeStore.setState({
+      scopes: [
+        {
+          id: 'scope-ipA',
+          investigationId: 'ip-A',
+          outcome: 'Fill Weight',
+          predicates: [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }],
+          hypothesisIds: [],
+          createdAt: 1,
+          updatedAt: 1,
+          deletedAt: null,
+        },
+        {
+          id: 'scope-ipB',
+          investigationId: 'ip-B',
+          outcome: 'Fill Weight',
+          predicates: [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }],
+          hypothesisIds: [],
+          createdAt: 2,
+          updatedAt: 2,
+          deletedAt: null,
+        },
+      ] as never,
+    });
+
+    // Mount with ip-A: activeScope resolves to scope-ipA (investigationId match).
+    // Rail shows only ip-A's chip (railScopes filters by scopeInvestigationId).
+    const { rerender } = render(
+      <AnalyzeWorkspace {...makeMinimalProps()} scopeInvestigationId="ip-A" />
+    );
+    expect(screen.getByTestId('scope-chip-scope-ipA')).toBeInTheDocument();
+    expect(screen.getByTestId('scope-chip-scope-ipA').getAttribute('aria-current')).toBe('true');
+    expect(screen.queryByTestId('scope-chip-scope-ipB')).toBeNull();
+
+    // Prop-only change to ip-B. The effect re-fires but is idempotent (ip-B scope
+    // already exists — syncScopeFromDrill returns it without set(), so scopes is
+    // unchanged). The ONLY dep that can flip activeScope is scopeInvestigationId.
+    act(() => {
+      rerender(<AnalyzeWorkspace {...makeMinimalProps()} scopeInvestigationId="ip-B" />);
+    });
+
+    // ip-B's chip is now the active scope: aria-current must be "true".
+    // ip-A's chip is no longer rendered (railScopes now shows only ip-B).
+    expect(screen.getByTestId('scope-chip-scope-ipB')).toBeInTheDocument();
+    expect(screen.getByTestId('scope-chip-scope-ipB').getAttribute('aria-current')).toBe('true');
     expect(screen.queryByTestId('scope-chip-scope-ipA')).toBeNull();
   });
 });
