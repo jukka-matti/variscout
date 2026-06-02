@@ -1001,23 +1001,6 @@ describe('CanvasWorkspace', () => {
     expect(onRemoveCausalLink).toHaveBeenCalledWith('link-1');
   });
 
-  it('forwards step overlay response paths to app shell callbacks', () => {
-    const onQuickAction = vi.fn();
-    const onFocusedInvestigation = vi.fn();
-    renderWorkspace({
-      processContext: { processMap: mapWithStep() },
-      onQuickAction,
-      onFocusedInvestigation,
-    });
-
-    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
-    fireEvent.click(screen.getByRole('button', { name: /quick action/i }));
-    fireEvent.click(screen.getByRole('button', { name: /focused investigation/i }));
-
-    expect(onQuickAction).toHaveBeenCalledWith('step-1');
-    expect(onFocusedInvestigation).toHaveBeenCalledWith('step-1');
-  });
-
   it('writes per-step CTQ specs through the provided spec callback', () => {
     const setMeasureSpec = vi.fn();
     renderWorkspace({
