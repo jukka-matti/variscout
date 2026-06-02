@@ -48,7 +48,7 @@ Dependencies are soft (terminology lineage), not hard blocks — but execute in 
 - [x] Wave 1 — Investigation Surface / Analyze — **COMPLETE 2026-06-02** (commits `94acf2aa`…`9e70a9df`; adversarial review: accurate)
 - [x] Wave 2 — Save / Load / Access — **COMPLETE 2026-06-02** (commits `7f6945d0`…`818de70b`; review: accurate). Stubs were grounding-verified accurate (audit over-flagged); authored `save-and-load.md` + stamped/linked the 5 stubs; full stub-body completion deferred to M3.
 - [x] Wave 3 — Findings / Collaboration + CoScout — **COMPLETE 2026-06-02** (commits `a7b42ce2`…`26954a6e`+fixup; review: accurate). New `findings-hypotheses.md` + `collaboration.md`; fixed `ai-context-engineering.md` deleted-fn refs (the Wave 0 T7 deferral); stamped `coscout.md`.
-- [ ] Wave 4 — remaining surfaces
+- [x] Wave 4 — remaining surfaces — **COMPLETE 2026-06-02** (commits `fe9d52c0`…`6ae88307`; review caught + fixed 2 grounding errors in report.md). New `home.md` + `report.md`; fixed `improvement-workspace.md` (SuspectedCause/Question→Hypothesis); the other refresh docs were grounding-verified accurate + stamped.
 - [ ] Wave 5 — developer / architecture docs
 
 When all six land: flip the upstream specs (`2026-05-29-investigation-surface`, `2026-05-31-factors-evaluation`) to `delivered`, close the `investigations.md` "Doc + user-journey alignment" entry, and record initiative completion in `decision-log.md` (which also re-opens the R-series freeze).
