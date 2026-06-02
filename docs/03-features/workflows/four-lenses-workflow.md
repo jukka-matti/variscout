@@ -197,7 +197,6 @@ _See [full Capability Check flow](process-maps.md#flow-3-capability-check) inclu
 | ------ | -------------------------------------- | ------ |
 | Cp     | Potential capability (spread vs specs) | > 1.33 |
 | Cpk    | Actual capability (includes centering) | > 1.33 |
-| Pp/Ppk | Long-term performance                  | > 1.33 |
 
 ### Interpretation
 

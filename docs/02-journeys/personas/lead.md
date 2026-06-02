@@ -47,7 +47,7 @@ sequenceDiagram
     Lead->>Project: Create / select Project (Charter)
     Note over Project: Lead writes problem statement,<br/>invites Members, names Sponsor
     Lead->>Process: Sketch process map, set scope
-    Lead->>Explore: Paste / connect data, run Four Lenses
+    Lead->>Explore: Paste / connect data, explore the always-on charts
     Note over Explore: Lead notices a pattern → creates Finding
     Lead->>Analyze: Group Findings into Hypotheses on the Wall
     Note over Analyze: Lead defines Measurement Plans,<br/>tags suspected contributions
