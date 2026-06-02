@@ -1,0 +1,87 @@
+# PR-CS-0 sub-plan — Make scope durable + IP-keyed
+
+> Execution artifact (worktree-local, not committed). Implements master-plan PR-CS-0. **Grounded 2026-06-02** — the drill→scope bridge is ALREADY WIRED (extend, never recreate). Each task is TDD: write failing test → run (red) → minimal impl → run (green) → commit.
+
+## Architecture decisions (locked, from grounding)
+
+- **Keep `ProblemStatementScope` in `useAnalyzeStore` (Document layer)** — no new store, no ADR-078 amendment (stays at the current store count). The entity already lives there; `createProblemStatementScope` keys it by `investigationId`.
+- **The drill→scope bridge EXISTS** — `analyzeStore.syncScopeFromDrill` (`packages/stores/src/analyzeStore.ts:698-721`) → `buildConditionFromCategoricalFilters` → `predicateSetKey` idempotency → `addScope` → `createProblemStatementScope`. ONE live caller: `apps/azure/src/components/editor/AnalyzeWorkspace.tsx:253-258` (useEffect on `[categoricalFilters, outcome]`). **STEP 0 of every task: grep `syncScopeFromDrill` + read it — extend, do not recreate.**
+- **IP-key = (A) stamp `activeIP.id` as the scope's `investigationId`** (replace the `'general-unassigned'` sentinel at `AnalyzeWorkspace.tsx:252`; fall back to sentinel only when no active IP) **+ (B) clear the transient `analysisScopeStore` (View) on IP switch.**
+- **Durability (blob round-trip) is OUT of CS-0 → PR-CS-0b** (`analyzeStore` has no persist middleware; `serializeInvestigationState`/`deserializeInvestigationState` have zero live callers; PWA is session-only by design). CS-0 delivers **IP-correct + session-safe + seeded/linked**; CS-0b wires the serializer. Do NOT silently claim "durable across reload."
+- Cross-store imperative `getState()` calls in effects are allowed; reactive store subscriptions in `packages/hooks` are forbidden (per package CLAUDE.md). The clear-on-switch logic lives at the app shell, extracted into a tiny `packages/hooks` hook that takes `activeIPId` + an imperative `clearFn`.
+
+## Tasks
+
+### Task 1 — Lock per-IP scope idempotency (analyzeStore unit)
+
+- **Files:** test `packages/stores/src/__tests__/analyzeStore.scope.test.ts` (extend if exists); read `analyzeStore.ts:698-721`, `factories.ts:324-341`.
+- **Test:** `syncScopeFromDrill('ip-A', outcome, filters)` and `syncScopeFromDrill('ip-B', outcome, filters)` with identical predicates → TWO distinct scopes (different `investigationId`); re-firing within one IP → idempotent (same scope, predicateSetKey). Empty predicates → returns undefined (no scope).
+- **Impl:** likely no production change if behavior holds — this red/green pins the contract Task 2 relies on. If it fails, fix the keying in `syncScopeFromDrill`.
+- **Acceptance:** test green; idempotency is per-`investigationId`.
+
+### Task 2 — IP-key the materialization (AnalyzeWorkspace, Azure)
+
+- **Files:** `apps/azure/src/components/editor/AnalyzeWorkspace.tsx:250-270`; test alongside.
+- **Test:** with an active IP set, a drill materializes a scope whose `investigationId === activeIP.id`; with no active IP, falls back to `'general-unassigned'`. The scope rail shows only the active IP's scopes.
+- **Impl:** replace the `'general-unassigned'` sentinel (line 252) with `useActiveIPContext(sessionHub).activeIP?.id ?? 'general-unassigned'`; thread it into `syncScopeFromDrill` (255-257) and the `activeScope` memo (259-270); filter the rail by the active IP id.
+- **Acceptance:** scopes don't co-mingle across IPs; rail is IP-filtered; gate green.
+
+### Task 3 — Clear-on-IP-switch hook + Azure wiring
+
+- **Files:** create `packages/hooks/src/useClearScopeOnIPSwitch.ts` (+ test + barrel export + tsconfig path if needed); wire at the Azure shell that consumes `useActiveIPContext`.
+- **Test:** switching IP A→B invokes `clearFn`; first-render / auto-activation (single-IP hub) does NOT (track previous id in a ref; only fire on genuine non-null A→B, A!==B — mirror `autoActivatedScopeRef`, `useActiveIPContext.ts:63`).
+- **Impl:** the hook takes `(activeIPId, clearFn)`; the shell passes `useAnalysisScopeStore.getState().clearScope`.
+- **Acceptance:** A→B clears `categoricalFilters`; first render does not; gate green.
+
+### Task 4 — PWA mirror of clear-on-switch
+
+- **Files:** wire `useClearScopeOnIPSwitch` at the PWA shell; test mirrors Task 3.
+- **Acceptance:** PWA matches Azure behavior; both builds aligned.
+
+### Task 5 — "See the data" seeds Y (Azure)
+
+- **Files:** `apps/azure/src/components/editor/FrameView.tsx:224-226`; test.
+- **Test:** after `handleSeeData`, `useAnalysisScopeStore.getState().yColumn === projectStore.outcome` and `categoricalFilters` is empty (no scope created — empty predicates).
+- **Impl:** before `showExplore()`, `useAnalysisScopeStore.getState().setY(useProjectStore.getState().outcome)` when outcome is set. Leave the chip-click path (`navigateToExploreForChip`) untouched.
+- **Acceptance:** bare "See the data" lands on the seeded outcome.
+
+### Task 6 — "See the data" seeds Y (PWA)
+
+- **Files:** `apps/pwa/src/components/views/FrameView.tsx:212-214`; test mirrors Task 5.
+- **Acceptance:** PWA bare path seeds Y.
+
+### Task 7 — capture-as-Finding links the scope (Azure)
+
+- **Files:** `apps/azure/src/components/editor/AnalyzeWorkspace.tsx:282-316` (handleCaptureModel) + the FE-2a `handleEvaluateFactor` snapshot (355-357); read `packages/core/src/findings/types.ts` FindingContext FIRST.
+- **Test:** capturing with a non-empty drill → the Finding's context references the same scope id `syncScopeFromDrill` materialized (predicateSetKey match), with `investigationId === activeIP.id`.
+- **Impl:** capture `activeScope?.id` onto the Finding context. **Prefer reusing an existing scope-ref field**; only widen `FindingContext` (core types + factories + persistence) if none exists — and if a type change is needed, flag it in the PR (wider blast radius).
+- **Acceptance:** Finding links the durable scope; `activeFilters` kept for display/back-compat.
+
+### Task 8 — capture-as-Finding links the scope (PWA)
+
+- **Files:** `apps/pwa/src/pages/AnalyzeView.tsx:~421` (onCaptureModel); test mirrors Task 7.
+- **Acceptance:** PWA links scope.
+
+### Task 9 (final) — gate + verify + review
+
+- Run full `pnpm test` (turbo); `bash scripts/pr-ready-check.sh`; `--chrome` visual check (switching IP clears Explore chips; "See the data" lands on the seeded outcome).
+- Dispatch the adversarial code-reviewer (STEP 0 = `git fetch && git checkout feat/cs-0-durable-scope`).
+- Open the PR; document the **reload-durability gap → PR-CS-0b** in the PR body + `decision-log.md` (don't claim "durable across reload").
+
+## Risks (carry into each task)
+
+- Spec said "zero callers"; code has one — **extend, don't recreate** (duplicate scope path risk).
+- Don't fire clear-on-switch on first render / auto-activation (would wipe a freshly-seeded scope).
+- `useActiveIPContext` (hooks) can't subscribe to stores reactively — wire at the app shell, imperative `getState()` in effects.
+- capture-as-Finding type change (if no scope-ref field) widens blast radius — read `FindingContext` first.
+- Do NOT scope-creep into the dual-store seam (§5.4) or the two-factor-selection terminology (separate PRs).
+
+---
+
+## Progress (resume breadcrumb)
+
+- **Worktree:** `.worktrees/cs-0-durable-scope` · **branch:** `feat/cs-0-durable-scope` (off `main` @ `b44e497e`). Deps installed.
+- **Protocol:** subagent-driven-development — per task: implementer (TDD) → spec reviewer → code-quality reviewer → next. Continuous (don't pause between tasks). After all 8: final whole-branch review → PR (document the reload-durability gap → PR-CS-0b; do NOT claim "durable across reload").
+- **Task 1 — DONE** (`e65541a3`): `packages/stores/src/__tests__/analyzeStore.scope.test.ts`, 5 passing, **zero production change** (existing `syncScopeFromDrill` already satisfies the per-IP idempotency contract). Test-only contract pin → its review folds into the FINAL whole-branch review (no separate 2-stage review for a zero-prod-change test).
+- **NEXT = Task 2** (IP-key the materialization in `apps/azure/.../AnalyzeWorkspace.tsx:250-270` — replace the `'general-unassigned'` sentinel with `useActiveIPContext(sessionHub).activeIP?.id ?? 'general-unassigned'`; filter the scope rail by active IP). Then Tasks 3–8, then final review + PR.
+- Confirmed: `syncScopeFromDrill(investigationId, outcome, filters)` signature matches the plan.
