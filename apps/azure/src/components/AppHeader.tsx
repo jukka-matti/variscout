@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@variscout/hooks';
 import {
   IPContextChip,
+  PersistentScopeChip,
   WorkflowNav,
   useIsMobile,
   BREAKPOINTS,
@@ -300,6 +301,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               onExitIP={onExitActiveIP}
             />
           )}
+          {/* PR-CS-3a: persistent live-scope chip (self-hides when no scope). */}
+          {hasData && <PersistentScopeChip onOpen={() => handleWorkflowTabChange('explore')} />}
         </div>
       </div>
     );
@@ -453,6 +456,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
         </>
       ) : null}
+
+      {/* PR-CS-3a: always-visible live analysis-scope chip (self-hides when no scope). */}
+      {hasData && <PersistentScopeChip onOpen={() => handleWorkflowTabChange('explore')} />}
 
       {/* ── Right zone: panel toggles + primary action + settings ── */}
       <div className="flex items-center gap-1.5 flex-shrink-0">
