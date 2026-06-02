@@ -5,6 +5,8 @@ title: 'Visual Process Maps'
 audience: human
 category: workflow
 status: active
+last-verified: 2026-06-02
+verified-against-commit: fe9d52c0
 layer: L3
 kind: workflow
 serves:

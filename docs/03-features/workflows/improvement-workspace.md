@@ -5,6 +5,8 @@ title: Improvement Workspace
 audience: human
 category: workflow
 status: active
+last-verified: 2026-06-02
+verified-against-commit: fe9d52c0
 related: [improvement, pdca, prioritization, what-if, actions, verification]
 layer: L3
 kind: ui
@@ -16,7 +18,7 @@ serves:
 
 # Improvement Workspace
 
-The Improvement workspace is the IMPROVE phase of the analyst's journey (FRAME → SCOUT → INVESTIGATE → **IMPROVE**). It is Azure-only and covers the full PDCA cycle: Plan (ideate, prioritize, project), Do (actions), Check (verification), and Act (outcome assessment).
+The Improvement workspace is the **Improve tab** — a top-level verb tab in the V1 nav (active-IP-scoped, built on `ImprovementWorkspaceBase`). It is Azure-only and covers the full PDCA cycle: Plan (ideate, prioritize, project), Do (actions), Check (verification), and Act (outcome assessment).
 
 See [Investigation to Action](analyze-to-action.md) for how findings and suspected causes flow into this workspace, and [Improvement Prioritization](improvement-prioritization.md) for the evaluation dimensions (timeframe, cost, risk, benefit) and matrix preset details.
 
@@ -49,9 +51,9 @@ The PI Panel is hidden in the Improvement workspace — its investigation conten
 
 The left panel shows the improvement context while the analyst is not projecting an idea:
 
-- **Problem Statement** — `processContext.problemStatement` (Watson's 3-question synthesis from the Investigation phase)
+- **Problem Statement** — `processContext.problemStatement` (Watson's 3-question synthesis from the Analyze tab)
 - **Improvement Target** — `processContext.targetValue` alongside the current Cpk from the stats pipeline
-- **Suspected Causes** — `SuspectedCauseHub` entities from the investigation, each showing its mechanism name, linked question count, and total R²adj or η² evidence
+- **Suspected Causes** — `Hypothesis` entities from the investigation, each showing its mechanism name, linked finding count, and total R²adj or η² evidence
 - **Synthesis** — `processContext.synthesis` (editable narrative, max 500 chars). Pre-filled from the problem statement text on first open if synthesis is empty.
 
 ## Brainstorm Modal
@@ -90,10 +92,10 @@ The default view after entering the Improvement workspace.
 
 ### Idea Cards
 
-`IdeaGroupCard` instances are stacked below the matrix, one per SuspectedCause hub. Each card header shows:
+`IdeaGroupCard` instances are stacked below the matrix, one per Hypothesis. Each card header shows:
 
 - Cause color bar on the left
-- Hub name (the mechanism name set during investigation) and evidence badge (total R²adj % or η² across linked questions)
+- Hub name (the mechanism name set during investigation) and evidence badge (total R²adj % or η² across linked findings)
 - Hub membership label ("suspected cause" or "contributing")
 
 Each hub drives one HMW brainstorm session via the "Brainstorm" button. This keeps improvement ideation anchored to a specific mechanism rather than to individual questions or factor levels.
@@ -249,7 +251,7 @@ The Improvement workspace is Azure-only (single €120 SKU). The PWA includes fi
 
 - [Investigation to Action](analyze-to-action.md) — Finding status lifecycle, ideation methodology, action items
 - [Improvement Prioritization](improvement-prioritization.md) — Evaluation dimensions, matrix presets, budget fitting
-- [Question-Driven Investigation](question-driven-analyze.md) — How suspected causes are identified before entering this workspace
+- [Investigation Surface](investigation-surface.md) — how scopes + hypotheses (suspected causes) are identified before entering this workspace
 - [Staged Analysis](../analysis/staged-analysis.md) — Verification with before/after data
 - [ADR-035](../../07-decisions/adr-035-improvement-prioritization.md) — Prioritization decision record
 - [Improvement Hub Design](../../archive/specs/2026-04-02-improvement-hub-design.md) — Full design spec

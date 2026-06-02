@@ -5,6 +5,8 @@ title: 'Project Dashboard'
 audience: human
 category: workflow
 status: active
+last-verified: 2026-06-02
+verified-against-commit: fe9d52c0
 related: [investigation, findings, hypotheses, coscout, azure, navigation]
 layer: L3
 kind: ui

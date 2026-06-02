@@ -5,6 +5,8 @@ title: Analysis Features
 audience: human
 category: analysis
 status: active
+last-verified: 2026-06-02
+verified-against-commit: fe9d52c0
 layer: L3
 kind: infrastructure
 serves:
