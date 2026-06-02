@@ -98,7 +98,6 @@ export interface CanvasWorkspaceProps {
   setMeasureSpec: (column: string, partial: Partial<SpecLimits>) => void;
   setProcessContext: (context: ProcessContext | null) => void;
   onSeeData: () => void;
-  onQuickAction?: (stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
@@ -286,7 +285,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   setMeasureSpec,
   setProcessContext,
   onSeeData,
-  onQuickAction,
   onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
@@ -1221,7 +1219,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onOpenWall={onOpenWall}
       onAddCausalLink={onAddCausalLink}
       onRemoveCausalLink={onRemoveCausalLink}
-      onQuickAction={onQuickAction}
       onLogQuickAction={onLogQuickAction}
       onFocusedInvestigation={onFocusedInvestigation}
       onCharter={onCharter}

@@ -225,7 +225,6 @@ export interface CanvasProps {
   ) => void;
   investigationOverlays?: CanvasAnalyzeOverlayModel;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
-  onQuickAction?: (stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
   onFocusedInvestigation?: (stepId: string) => void;
   onCharter?: (stepId: string) => void;
@@ -292,7 +291,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   onAddCausalLink,
   investigationOverlays,
   onStepSpecsRequest,
-  onQuickAction,
   onLogQuickAction,
   onFocusedInvestigation,
   onCharter,
@@ -809,10 +807,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             card={activeStepCard}
             anchorRect={stepOverlayAnchor}
             onClose={handleCloseStepOverlay}
-            onQuickAction={onQuickAction}
-            onLogQuickAction={onLogQuickAction}
-            onFocusedInvestigation={onFocusedInvestigation}
-            onCharter={onCharter}
             investigationOverlay={activeStepInvestigationOverlay}
             onOpenInvestigationFocus={onOpenInvestigationFocus}
             onRemoveCausalLink={onRemoveCausalLink}

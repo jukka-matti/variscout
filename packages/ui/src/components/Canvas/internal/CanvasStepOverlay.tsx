@@ -7,9 +7,8 @@ import type {
   CanvasStepCardModel,
   CanvasStepAnalyzeOverlay,
 } from '@variscout/hooks';
-import { computeCtaState, type ResponsePathKind } from './responsePathCta';
 import { ContextBadgesRow, type ContextLinkGroup, type ContextLinkItem } from '../../CrossSurface';
-import { LogActionModal, RecentActivityPanel, type LogActionPayload } from '../../QuickAction';
+import { RecentActivityPanel } from '../../QuickAction';
 
 export interface CanvasOverlayAnchorRect {
   top: number;
@@ -24,10 +23,6 @@ interface CanvasStepOverlayProps {
   card: CanvasStepCardModel;
   anchorRect?: CanvasOverlayAnchorRect | null;
   onClose: () => void;
-  onQuickAction?: (stepId: string) => void;
-  onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
-  onFocusedInvestigation?: (stepId: string) => void;
-  onCharter?: (stepId: string) => void;
   investigationOverlay?: CanvasStepAnalyzeOverlay;
   onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
@@ -91,20 +86,10 @@ function capabilitySummary(card: CanvasStepCardModel): string {
   return `Unavailable, n=${c.n}`;
 }
 
-const CTA_LABELS: Record<ResponsePathKind, string> = {
-  'quick-action': 'Quick action',
-  'focused-investigation': 'Focused investigation',
-  charter: 'Improvement Project',
-};
-
 export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
   card,
   anchorRect,
   onClose,
-  onQuickAction,
-  onLogQuickAction,
-  onFocusedInvestigation,
-  onCharter,
   investigationOverlay,
   onOpenInvestigationFocus,
   onRemoveCausalLink,
@@ -112,38 +97,8 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
   onNavigateContextLink,
   actionItems = [],
 }) => {
-  const [showLogAction, setShowLogAction] = React.useState(false);
   const touchStartY = React.useRef<number | null>(null);
   const mobile = isMobileViewport();
-
-  const handlerMap: Record<ResponsePathKind, ((stepId: string) => void) | undefined> = {
-    'quick-action': onLogQuickAction ? () => setShowLogAction(true) : onQuickAction,
-    'focused-investigation': onFocusedInvestigation,
-    charter: onCharter,
-  };
-
-  const renderCta = (path: ResponsePathKind, extraClass?: string): React.ReactNode => {
-    const handler = handlerMap[path];
-    const state = computeCtaState({ path, hasHandler: handler !== undefined });
-    const baseClass =
-      'rounded-md border border-edge bg-surface-secondary px-3 py-2 text-sm font-medium';
-    const cls = extraClass ? `${baseClass} ${extraClass}` : baseClass;
-
-    if (state.kind === 'hidden') return null;
-
-    return (
-      <button
-        key={path}
-        type="button"
-        data-testid={`canvas-cta-${path}`}
-        data-cta-state="active"
-        className={`${cls} text-content hover:bg-surface-tertiary`}
-        onClick={() => handler!(card.stepId)}
-      >
-        {CTA_LABELS[path]}
-      </button>
-    );
-  };
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -323,24 +278,8 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
           <div className="mt-4">
             <RecentActivityPanel stepId={card.stepId} actionItems={actionItems} />
           </div>
-
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            {renderCta('quick-action')}
-            {renderCta('focused-investigation')}
-            {renderCta('charter', 'sm:col-span-2')}
-          </div>
         </section>
       </FocusTrap>
-      {showLogAction ? (
-        <LogActionModal
-          cardTitle={card.stepName}
-          onCancel={() => setShowLogAction(false)}
-          onLog={payload => {
-            onLogQuickAction?.(card.stepId, payload);
-            setShowLogAction(false);
-          }}
-        />
-      ) : null}
     </div>
   );
 };
