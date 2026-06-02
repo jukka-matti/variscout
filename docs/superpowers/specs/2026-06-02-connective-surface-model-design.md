@@ -432,4 +432,4 @@ _Inbound links (doc-gate ≥1 each, added on the same apply-phase PR):_ `process
 3. **Phase 3 (parallelizable):** framing-on-load refinement (surgical) · the holistic doc propagation (§10) per-PR.
 4. **Follow-up (separate spec):** the process-as-operations extraction (§9).
 
-Promoted via `superpowers:writing-plans` → a master plan at PR granularity → per-PR sub-plans (`feedback_master_plan_for_multi_subsystem_specs`); subagent-driven-development; each PR amends its nearest docs in-PR.
+Promoted via `superpowers:writing-plans` → the [**master plan** at PR granularity](../plans/2026-06-02-connective-surface-model-master-plan.md) → per-PR sub-plans (`feedback_master_plan_for_multi_subsystem_specs`); subagent-driven-development; each PR amends its nearest docs in-PR.
