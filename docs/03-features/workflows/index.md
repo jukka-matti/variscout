@@ -54,6 +54,14 @@ The evidence domain beneath the spine — Finding lifecycle + sources, Hypothesi
 
 The team layer — comments / @mentions / attachments, invitations + roster + `collaboratedAt`, active-IP cascade, Azure-vs-PWA split.
 
+### [Home](home.md)
+
+The entry surface — PWA training-funnel vs Azure durable portfolio; the active-IP cascade originates downstream (not Home); pending invites.
+
+### [Report](report.md)
+
+The terminal compilation surface — 3 auto-detected report types, distributions-not-aggregates (ADR-073), PDF (Azure) vs `.vrs` (PWA), Sponsor read-only.
+
 ---
 
 ## Core Workflows
