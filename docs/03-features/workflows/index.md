@@ -99,9 +99,9 @@ The two-phase analyst workflow: **Investigate → Project**
 1. Findings — drill into factors, pin observations, track investigation status
 2. What-If — scenario modeling for projected improvement
 
-### [Question-Driven Investigation](question-driven-analyze.md)
+### [Question-Driven Investigation](question-driven-analyze.md) — superseded
 
-The question tree workflow — form questions, validate with data, track evidence, refine or reject.
+The pre-IM-1 question-tree workflow (ADR-085). **Superseded by [Investigation Surface](investigation-surface.md)**; retained for historical methodology context only.
 
 ### [Knowledge Base Search](knowledge-base-search.md)
 

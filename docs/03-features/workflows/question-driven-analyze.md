@@ -17,7 +17,7 @@ verified-against-commit: b03d7d3d
 
 # Question-Driven Investigation Flow
 
-> **Superseded (2026-06-02, ADR-085).** The `Question` entity + question-tree / question-checklist UI described here is the **pre-IM-1 model**. The current model is scope-first: drill → Finding → `ProblemStatementScope` (the WHERE) → `Hypothesis` (the WHY, nested in scope). See [analyze-wall.md](analyze-wall.md) + the [investigation-surface spec](../../superpowers/specs/2026-05-29-investigation-surface-design.md). Retained for its η²-validation thresholds + diamond methodology; physical archive + inbound-link repointing is deferred to Wave 1 of the [doc-alignment initiative](../../superpowers/plans/2026-06-02-doc-alignment-master-plan.md).
+> **Superseded (2026-06-02, ADR-085).** The `Question` entity + question-tree / question-checklist UI described here is the **pre-IM-1 model**. The current model is scope-first: drill → Finding → `ProblemStatementScope` (the WHERE) → `Hypothesis` (the WHY, nested in scope). See **[investigation-surface.md](investigation-surface.md)** (the canonical replacement) + [analyze-wall.md](analyze-wall.md). Retained for its η²-validation thresholds + diamond methodology; the physical archive (`git mv`) is deferred to the Play 1b folder restructure — superseding it in place + this banner are sufficient, and moving it now would churn ~20 inbound links for cosmetic gain.
 
 > How to use the question tree and validation UI. For the diamond lifecycle, see [Investigation Lifecycle Map](analyze-lifecycle-map.md). For the narrative walkthrough, see [Analysis Journey Map § INVESTIGATE](analysis-journey-map.md#phase-3-investigate). For the full EDA methodology, see [EDA Mental Model](../../01-vision/eda-mental-model.md).
 
