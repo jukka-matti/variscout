@@ -11,6 +11,8 @@ points_to:
   - ai-architecture.md (system architecture, data flow, hook composition)
   - aix-design-system.md (governance, tone, confidence calibration)
 layer: L4
+last-verified: 2026-06-02
+verified-against-commit: a7b42ce2
 ---
 
 # AI Context Engineering & Pipeline Reference
@@ -42,7 +44,7 @@ Placed first in the system prompt for maximum cache hit rate.
 
 The static prefix exceeds 1,024 tokens when glossary + concepts are both included, enabling Azure AI Foundry prompt caching.
 
-> **Entry point:** `assembleCoScoutPrompt()` is the sole prompt-assembly entry point — it returns a `CoScoutPromptTiers` object rather than a flat string. (The `buildCoScoutSystemPrompt()` monolith / `coScout/legacy.ts` was deleted 2026-05-30, ADR-068 complete.)
+> **Entry point:** `assembleCoScoutPrompt()` is the sole prompt-assembly entry point — it returns a `CoScoutPromptTiers` object rather than a flat string. (The `assembleCoScoutPrompt()` monolith / `coScout/legacy.ts` was deleted 2026-05-30, ADR-068 complete.)
 
 ### Tier 2 — Semi-Static: Investigation State + Ideas
 
@@ -68,15 +70,15 @@ Changes when the investigation progresses (new hypotheses, status changes, ideas
 
 Fields within Tier 2 are ordered to exploit the LLM's primacy/recency bias:
 
-| Position   | Fields                                                                                     | Rationale                                                                                                      |
-| ---------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| **Start**  | Problem statement, **SuspectedCause hubs** (name + synthesis + evidence), focused question | Frames the conversation — CoScout knows what we're trying to solve and which hubs exist before seeing evidence |
-| **Middle** | Findings (with evidence type + status), question tree, ideas                               | Evidence layer — bulk of investigation context                                                                 |
-| **End**    | Overdue actions, outcome summaries, comment signal                                         | Action state — recency bias keeps these salient for next-step suggestions                                      |
+| Position   | Fields                                                               | Rationale                                                                                                      |
+| ---------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Start**  | Problem statement, **Hypothesis hubs** (name + synthesis + evidence) | Frames the conversation — CoScout knows what we're trying to solve and which hubs exist before seeing evidence |
+| **Middle** | Findings (with evidence type + status), ideas                        | Evidence layer — bulk of investigation context                                                                 |
+| **End**    | Overdue actions, outcome summaries, comment signal                   | Action state — recency bias keeps these salient for next-step suggestions                                      |
 
-**SuspectedCause hubs in AI context:** Each hub is serialized as a compact record: `{ name, synthesis, evidenceMetric, evidenceValue, connectedQuestionCount, status }`. Typical token cost: ~15 tokens per hub. Hubs are placed at the start of Tier 2 alongside the problem statement, so CoScout enters every conversation aware of which causes the investigation is converging on. This enables hub-aware `answer_question` proposals and Converging phase synthesis assistance.
+**Hypothesis hubs in AI context:** Each hub is serialized as a compact record: `{ name, synthesis, evidence (value + label), findingCount, status }`. Typical token cost: ~15 tokens per hub. Hubs are placed at the start of Tier 2 alongside the problem statement, so CoScout enters every conversation aware of which causes the investigation is converging on. This enables hub-aware `answer_question` proposals and Converging phase synthesis assistance.
 
-This ordering is enforced in `buildCoScoutSystemPrompt()` via the `buildInvestigationContext()` helper in `@variscout/core/ai`. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for the full Pillar 1 specification.
+This ordering is assembled by `formatAnalyzeContext()` (composed into Tier 2 by `assembleCoScoutPrompt()`) in `@variscout/core/ai`. See [ADR-060](../../07-decisions/adr-060-coscout-intelligence-architecture.md) for the full Pillar 1 specification.
 
 ### Tier 3 — Dynamic: Stats + Filters
 
@@ -226,7 +228,7 @@ All Responses API requests include a `prompt_cache_key` for explicit server-side
 Dev-only diagnostics warn if system prompts fall below the 1,024-token caching threshold:
 
 ```typescript
-// Emitted in dev mode by buildCoScoutSystemPrompt() and buildNarrationSystemPrompt()
+// Emitted in dev mode by assembleCoScoutPrompt() and buildNarrationSystemPrompt()
 console.warn(
   `[VariScout AI] CoScout system prompt ~${estTokens} tokens. Prompt caching requires ≥1,024.`
 );
@@ -275,7 +277,7 @@ focusContext?: {
 
 ### `selectedFinding` (Tier 2 — Investigation)
 
-Already typed in `AIContext.investigation`. Populated from FindingsPanel active selection. Used by `buildSuggestedQuestions()` and `buildCoScoutSystemPrompt()`.
+Already typed in `AIContext.investigation`. Populated from FindingsPanel active selection. Used by `buildSuggestedQuestions()` and `assembleCoScoutPrompt()`.
 
 ### `teamContributors` (Teams Context)
 
@@ -306,11 +308,11 @@ Token impact: ~30% increase in the glossary section for non-English locales.
 
 ### AI Component Locale Behavior
 
-| Component        | Locale Flow                                                 |
-| ---------------- | ----------------------------------------------------------- |
-| NarrativeBar     | Via `AIContext.locale` → `buildSummaryPrompt()`             |
-| ChartInsightChip | Explicit `locale` parameter on `fetchChartInsight()`        |
-| CoScout          | Via `buildCoScoutMessages()` → `buildCoScoutSystemPrompt()` |
+| Component        | Locale Flow                                              |
+| ---------------- | -------------------------------------------------------- |
+| NarrativeBar     | Via `AIContext.locale` → `buildSummaryPrompt()`          |
+| ChartInsightChip | Explicit `locale` parameter on `fetchChartInsight()`     |
+| CoScout          | Via `buildCoScoutMessages()` → `assembleCoScoutPrompt()` |
 
 Deterministic insight builders are locale-unaware (static English strings); only the AI enhancement layer respects locale.
 
@@ -334,7 +336,7 @@ stagedComparison?: {
 ```
 
 - **`buildSummaryPrompt()`** — Switches to verification-focused directive
-- **`buildCoScoutSystemPrompt()`** — Replaces acting-phase instruction with verification context
+- **`assembleCoScoutPrompt()`** — Replaces acting-phase instruction with verification context
 
 ---
 

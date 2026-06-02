@@ -8,10 +8,11 @@ layer: L3
 kind: workflow
 serves:
   - docs/02-journeys/index.md
-last-reviewed: 2026-05-18
+last-verified: 2026-06-02
+verified-against-commit: a7b42ce2
 ---
 
-> **L3 feature stub** — created 2026-05-18 as part of M0 SDD migration inventory (Option A). Body to be expanded in M3 audit or on next feature edit.
+> **L3 feature stub** (M0 SDD inventory, 2026-05-18). Verified accurate against the CoScout code 2026-06-02 — the entry point is `assembleCoScoutPrompt()` (the `buildCoScoutSystemPrompt()` monolith was deleted, ADR-068). Full body expansion deferred to M3. Deep context-assembly reference: [ai-context-engineering.md](../../05-technical/architecture/ai-context-engineering.md).
 
 # CoScout AI Orchestration
 
