@@ -2,19 +2,19 @@
 tier: living
 purpose: design
 title: 'Investigation Wall'
-audience: human
-category: workflow
+audience: both
 status: active
-last-reviewed: 2026-04-29
+last-verified: 2026-06-02
+verified-against-commit: 94acf2aa
 related:
   [
-    investigation-spine,
+    investigation-surface,
     evidence-map,
     problem-statement-scope,
     hypothesis,
-    hmw-brainstorm,
     adr-085,
     adr-086,
+    adr-088,
   ]
 layer: L3
 kind: ui
@@ -25,74 +25,106 @@ serves:
 
 # Investigation Wall
 
-The Investigation Wall is a hypothesis-centric projection of the investigation graph. Where the Evidence Map asks _"which factors contribute to variation?"_, the Wall asks _"which hypotheses are we betting on, what evidence holds them, and what's missing?"_ Both are projections of the same `ProblemStatementScope + Hypothesis + CausalLink + Finding` graph — same data, different lens. See [ADR-085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md) and [ADR-086](../../07-decisions/adr-086-unified-investigation-canvas.md).
+The Investigation Wall is the **hypothesis-centric** render of the investigation graph — the surface for the spine in [investigation-surface.md](investigation-surface.md). Where the Evidence Map asks _"which factors contribute?"_, the Wall asks _"which hypotheses do we hold, what evidence backs each, and what would contradict it?"_ Both project the same `ProblemStatementScope + Hypothesis + CausalLink + Finding` graph ([ADR-085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md), [ADR-086](../../07-decisions/adr-086-unified-investigation-canvas.md)).
 
 ## What the Wall does
 
-The Wall turns suspected causes into **disconfirmable claims**, not labels. It surfaces investigation gaps proactively: missing disconfirmation, orphan questions, uncovered high-R² columns. The "missing evidence — the detective move nobody ships" critique strip is the load-bearing methodological move; it nudges investigators to ask what would _contradict_ a hypothesis, not just what supports it.
+It turns suspected causes into **disconfirmable claims**, not labels, and surfaces gaps proactively (missing disconfirmation, orphan findings, uncovered high-contribution factors). The "missing evidence" critique strip is the load-bearing move — it nudges the analyst toward what would _contradict_ a hypothesis, not only what supports it.
 
-## What's on it
+## What's on it — the bands
 
-Five horizontal bands stack vertically inside the Investigation workspace canvas:
+| Band                       | Contents                                                                                                                                                                                                                              |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Model-builder**          | Vital-few screening band in the factor zone — pre-selects the fewest factors within 1pt of max R²adj (each `p < .15`); surfaces **adjusted R² + per-factor p only**; O(1) toggle; conclude → capture-as-Finding (§Model-builder band) |
+| **Problem (scope anchor)** | The scope's compound WHERE + live Cpk + **HOLDS N/M** + **What-If Cpk** + coverage % (§Scope anchor)                                                                                                                                  |
+| **Waterline**              | Dashed labelled divider                                                                                                                                                                                                               |
+| **Hypothesis**             | Cards with status-tinted borders, mini-charts, the **test-plan triad**, and the disconfirmation gesture; AND/OR/NOT gate nodes (§Test-plan triad, §Disconfirmation)                                                                   |
+| **Evidence**               | Finding/gemba chips tethered to their hub — **Supports** (left) and **Counts-against** (right, loud) (§Evidence band)                                                                                                                 |
+| **Contributing factors**   | Live factor chip row; each labelled by column + referencing hypotheses (derived); orphan factors dimmed                                                                                                                               |
 
-| Band                 | Contents                                                                                                                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Problem**          | Problem condition card — CTS column, live Cpk, events/wk                                                                                                                        |
-| **Waterline**        | Dashed labeled divider                                                                                                                                                          |
-| **Hypothesis**       | Hypothesis cards with embedded interactive mini-charts and `Hypothesis.status`-tinted borders; AND / OR / NOT gate nodes connecting down from Problem into convergence branches |
-| **Evidence**         | Finding chips, gemba chips, best-subsets suggestion cards, tethered by dashed lines to their parent hub                                                                         |
-| **Tributary footer** | Live chip row from `processMap.tributaries`; each chip labeled with column and referencing hypotheses (derived); orphan tributaries dimmed                                      |
-
-A collapsed "missing evidence" digest bar sits below the canvas. Per-hypothesis warning badges are the primary gap signal; the digest bar is a secondary expandable list.
+A collapsed "missing evidence" digest sits below the canvas; per-hypothesis warning badges are the primary gap signal.
 
 ## Intent diagram
 
 ```text
-┌─────────────────────────────────────────────────────────────────────┐
-│ Problem │ CTS: cycle_time_s    Cpk 0.74   events/wk 12              │
-├─────────────────────────────────────────────────────────────────────┤
-│ Waterline ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
-│                              ┌───AND───┐                            │
-│ Hypothesis  ┌──────────────┐ │    ▼    │ ┌──────────────┐  ⚠ gap   │
-│             │ Hub: Nozzle  │ │         │ │ Hub: Shift   │           │
-│             │ wear         │ │   OR    │ │ handover     │           │
-│             │ [mini I-Ch.] │ │         │ │ [mini boxpl.]│           │
-│             │ HOLDS 3/4    │ │         │ │ HOLDS 1/3    │           │
-│             └──────┬───────┘ └────┬────┘ └──────┬───────┘           │
-│ Evidence    F#12 ──┘    Q#7 ──┘  gemba ──┘   best-subset card       │
-├─────────────────────────────────────────────────────────────────────┤
-│ Tributaries │ machine │ shift │ operator(dim) │ material            │
-└─────────────────────────────────────────────────────────────────────┘
-  Missing-evidence digest (collapsed) ▾   │  Map │ Wall ◀── view toggle
+┌───────────────────────────────────────────────────────────────────────┐
+│ Model-builder │ vital-few: [shift]✓ [machine]✓ [op]○   R²adj .61  p<.15 │
+├───────────────────────────────────────────────────────────────────────┤
+│ Problem scope │ WHERE machine=B ∩ shift=night · Cpk 0.74 · HOLDS 9/12  │
+│               │ What-If Cpk 1.21 (coverage 38%)                        │
+├───────────────────────────────────────────────────────────────────────┤
+│ Waterline ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│ Hypothesis  ┌───────────────┐         ┌───────────────┐      ⚠ gap     │
+│             │ Nozzle wear   │  ──AND──│ Shift handover│               │
+│             │ [mini I-Chart]│         │ [mini boxplot]│               │
+│             │ triad: tool✓  │         │ HOLDS 1/3     │               │
+│             │ Supported     │         │ needs-disconf.│               │
+│             └──────┬────────┘         └──────┬────────┘               │
+│ Evidence    Supports F#12 ─┘     gemba ─┘   Counts-against F#19 (loud) │
+├───────────────────────────────────────────────────────────────────────┤
+│ Contributing factors │ machine │ shift │ operator(dim) │ material      │
+└───────────────────────────────────────────────────────────────────────┘
+  Focus lens (click to dim by distance) · Missing-evidence digest ▾ · Map│Wall
 ```
 
-Five horizontal bands stack inside the Investigation workspace canvas; hub cards reposition via @dnd-kit and `wallLayoutStore` persists layout per project.
+## Bipartite layout authority
 
-## How it sits alongside Evidence Map
+`computeWallLayout` (`packages/ui/src/components/AnalyzeWall/wallLayout.ts`) is the **single source of truth for every node position** — hubs, findings, factors, the scope anchor, orphans — in one coordinate space. The Minimap and pan-to-node consume the same `buildWallLayoutArgs`, so there is no position drift. The canvas is a **bipartite factor↔hypothesis** layout (one surface, not two components): ranked factors on one side, hypothesis cards on the other, typed support/refute edges between.
 
-The Investigation workspace has a `Map | Wall` view toggle in its header (persisted per project). Map remains the default — ADR-066 stands. Both views read the same investigation graph; switching is non-destructive and instant.
+## Model-builder band
 
-| Surface            | Lens               | Best for                                                                 |
-| ------------------ | ------------------ | ------------------------------------------------------------------------ |
-| Evidence Map       | Factor-centric     | "Which columns / factors contribute to variation?"                       |
-| Investigation Wall | Hypothesis-centric | "What hypotheses do we hold, what backs each, what would contradict it?" |
+A scope-level **vital-few** selector (`packages/core/src/stats/modelBuilder.ts`, `selectVitalFew`): the fewest factors whose best-subset R²adj is within 1pt of the max where each factor's **partial** `p < .15` (screening — the lower bar of the two-α split). The header surfaces **adjusted R² + per-factor p only** (Cp/BIC are internal picker metrics, never on the surface). Toggling a candidate across the line is an O(1) `lookupSubset` (no recompute). Ambient honesty cues: a "fit-only estimate" dot (overfit / low obs-per-predictor) and a redundancy hint ("removing X barely changed the model — redundant, not irrelevant"). Concluding a model is **capture-as-Finding** (view-state while exploring; persisted only as a Finding), never a stored selection field.
 
-> **Note (ADR-085):** The Question framework is no longer a third projection surface. `Question` as a tracked entity has been retired; question generation is transient ranked factor-node metadata. The Wall subsumes the completeness-tracking role the question checklist previously played.
+## Scope anchor — HOLDS + What-If
+
+The Problem-condition card renders the active `ProblemStatementScope`: the compound WHERE (`predicates`), live Cpk over the data window, **HOLDS N/M** (rows matching the scope's `gateNode` via `runAndCheck`), and the **What-If projected Cpk + coverage %** (`computeScopeWhatIfProjection` / `computeConditionCoverage`, `packages/core/src/variation/scopeContribution.ts`) — the "if-fixed" simulation, **never summed** across hypotheses. With no active scope it falls back to the legacy global card.
+
+## Test-plan triad on hypothesis cards
+
+Each card carries a derived read-model (no new stored field): **Claim** (hub name) × **Relevant factors** (derived: condition columns ∪ linked findings' columns ∪ naming CausalLinks) × **Tool** (auto-suggested by data type — categorical → boxplot + 2-sample; continuous → scatter + regression; spread → Cp/Cpk) × **Data-readiness** (have it / gap → Measurement Plan). One-tap **Evaluate** runs the test → a typed Finding: `p < .05` + significant → **Supports**; `p ≥ .05` → **inconclusive** (not-tested, never silently supporting). Engine: `packages/core/src/findings/hypothesisTestPlan.ts`.
+
+## Disconfirmation recording
+
+Recording an attempt is a first-class write (`HYPOTHESIS_RECORD_DISCONFIRMATION` → `disconfirmationAttempts[]`); `onRecordDisconfirmation` is threaded to the card. The **"Try to break it"** gesture runs the evaluate engine under a wrongness prediction and the **engine grades** the verdict: significant → **survived**; not-significant with adequate power (≥20 rows / ≥10 per group) → **refuted**; below the power floor → **pending** ("too few rows", never a false refute). A hypothesis is **Supported** only with ≥2 evidence types **AND** a survived attempt (`deriveHypothesisStatus`, `packages/core/src/survey/wall.ts`).
+
+## Evidence band — Supports / Counts-against
+
+Per hub, a **GateBadge** (HOLDS) plus tethered **FindingChip**s climb to the band: **Supports** on the left, **Counts-against** on the right rendered **loud** (warning colour) — counter-evidence is never visually buried. Positions and edges come from the layout authority.
+
+## Focus lens
+
+Clicking any node focuses it; the rest of the canvas **dims by degree-of-interest** — a BFS graph-distance over tethers (`wallDegreeOfInterest`, `wallFocus.ts`): focused = vivid (1.0), adjacent = mid (0.55), distant = dim (0.25). Clicking empty canvas clears focus (`viewStore.focusedWallEntityId`). The lens **only dims** — it never changes a node's `CanvasLevel` or the model metrics.
+
+## How it sits alongside the Evidence Map
+
+A `Map | Wall` toggle (persisted per project); Map is the default (ADR-066). Both read the same graph; switching is non-destructive.
+
+| Surface            | Lens               | Best for                                                            |
+| ------------------ | ------------------ | ------------------------------------------------------------------- |
+| Evidence Map       | Factor-centric     | "Which factors contribute to variation?"                            |
+| Investigation Wall | Hypothesis-centric | "What hypotheses do we hold, what backs each, what contradicts it?" |
+
+> **Note (ADR-085):** there is no third "Question" projection — `Question` is retired; question generation is transient factor-node metadata. The Wall subsumes the completeness-tracking the question checklist once played.
 
 ## Interactions
 
-- **Drag-to-arrange** — hub cards reposition via @dnd-kit; layout persists in `wallLayoutStore`.
-- **Command palette** (`Cmd-K` / `Ctrl-K`) — quick navigation: jump to hub, create hypothesis, run AND-check.
-- **Minimap** — top-right miniature of the canvas for orientation when zoomed in.
-- **Mobile cards** — on phone widths the Wall renders as a vertical card stack (`MobileCardList`) rather than the SVG canvas.
+- **Drag-to-arrange** — cards reposition via @dnd-kit; layout persists per project.
+- **Focus** — click a node to dim by distance; click empty canvas to clear.
+- **Command palette** (`Cmd/Ctrl-K`) — jump to hub, create hypothesis, run HOLDS-check.
+- **Minimap** — orientation when zoomed; reads the layout authority.
+- **Mobile** — phone widths render a vertical `MobileCardList` (the model-builder band is desktop-only — focus-only mobile, [ADR-086](../../07-decisions/adr-086-unified-investigation-canvas.md)).
 
 ## Tier availability
 
-Azure-only (single €120 SKU). Shipped via PRs #75 and #76, merged 2026-04-24. PWA does not include the Wall; PWA's investigation flow stays Map-only by design.
+The full Wall + collaboration is the **Azure** investigation surface (single €120 SKU), extended through the IM-4 unification + the Factors & Evaluation work (2026-05). The PWA Wall is reduced (Map-first by design).
+
+## Not yet built (do not document as live)
+
+Child-scope recursion (V1 scopes are flat), the re-ingest auto-link cascade (post-IM-4), live presence/cursors, factor-family LOD + edge bundling. The ACH (argument/counter-argument) matrix was **dropped**, not deferred.
 
 ## See also
 
-- [Investigation Wall design spec](../../superpowers/specs/2026-04-19-investigation-wall-design.md) — full design, including non-goals (live presence, per-step Cpk).
-- [Evidence Map design](../../archive/specs/2026-04-05-evidence-map-design.md) — the factor-centric companion projection.
-- [Investigation Spine](../../superpowers/specs/2026-04-04-investigation-spine-design.md) — three threads, the methodology backbone the Wall plugs into.
-- [Methodology — two projections](../../01-vision/methodology.md) — how Map / Wall relate as projections of one investigation graph (ADR-085/ADR-086).
+- [investigation-surface.md](investigation-surface.md) — the spine + entity model the Wall renders.
+- [Unified investigation canvas spec](../../superpowers/specs/2026-05-30-investigation-wall-unified-canvas-design.md) · [Factors & Evaluation spec](../../superpowers/specs/2026-05-31-factors-evaluation-design.md).
+- [measurement-plan-dcp.md](measurement-plan-dcp.md) — the DCP that captures evidence gaps.
+- [Methodology — two projections](../../01-vision/methodology.md).
