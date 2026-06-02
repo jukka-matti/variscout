@@ -12,6 +12,7 @@ import {
   useCanvasViewportStore,
   useProjectMembershipStore,
   useImprovementProjectStore,
+  useAnalysisScopeStore,
   buildDocumentSnapshot,
   documentSnapshotFingerprint,
 } from '@variscout/stores';
@@ -101,7 +102,7 @@ import { useLocale } from '../context/LocaleContext';
 import { usePanelsStore } from '../features/panels/panelsStore';
 import { usePanelsPersistence } from '../features/panels/usePanelsPersistence';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
-import { useActiveIPContext } from '@variscout/hooks';
+import { useActiveIPContext, useClearScopeOnIPSwitch } from '@variscout/hooks';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { useTeamsShare } from '../hooks/useTeamsShare';
 import { useShareFinding } from '../hooks/useShareFinding';
@@ -631,6 +632,8 @@ export const Editor: React.FC<EditorProps> = ({
     [projectActions]
   );
   const activeIPContext = useActiveIPContext(activeHub, { userId: currentUser?.email });
+  const clearScope = useAnalysisScopeStore(s => s.clearScope);
+  useClearScopeOnIPSwitch(activeIPContext.activeIP?.id ?? null, clearScope);
   const canEditCanvas = useMemo(() => {
     const userId = currentUser?.email;
     if (!userId) return false; // Pre-auth (user still loading) — gate is closed.

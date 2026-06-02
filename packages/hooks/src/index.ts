@@ -682,3 +682,6 @@ export { useLiveProjection } from './useLiveProjection';
 
 // IM-3 reactive auto-link cascade (shared by Azure + PWA)
 export { useReingestAutoLink, type UseReingestAutoLinkOptions } from './useReingestAutoLink';
+
+// CS-0 durable scope: clear transient drill-filters on IP switch (Azure + PWA)
+export { useClearScopeOnIPSwitch } from './useClearScopeOnIPSwitch';
