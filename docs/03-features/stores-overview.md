@@ -25,7 +25,7 @@ Multiple surfaces (canvas, charts, investigation wall, projects tab, evidence ma
 
 ## Intent diagram
 
-No user-facing surface — infrastructure layer. See `packages/stores/CLAUDE.md` for the canonical layer table and the F4 design spec at `docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md` for layer rationale.
+No user-facing surface — infrastructure layer. See `packages/stores/CLAUDE.md` for the canonical layer table and the F4 design spec at `docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md` for layer rationale. The R5 thin app-feature factory pattern (shared store construction vs app-owned adapters) is documented in [app-feature-factories-pattern.md](../05-technical/architecture/app-feature-factories-pattern.md).
 
 ## Acceptance signals
 

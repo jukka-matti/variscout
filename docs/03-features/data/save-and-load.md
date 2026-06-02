@@ -80,5 +80,6 @@ The R7 (store/domain cleanup), R8 (shell convergence), and R9 (launch/platform h
 ## See also
 
 - [storage.md](storage.md) — the persistence boundary + authorities. · [export.md](export.md) — CSV/PNG/`.vrs` export channels.
+- **[persistence-internals.md](../../05-technical/architecture/persistence-internals.md)** — the fnv1a64 fingerprint algorithm + the `/api/storage` server-enforcement flow (dev-detail).
 - [acl.md](acl.md) — the role ACL. · [etag-concurrency.md](etag-concurrency.md) — conditional writes. · [cloud-sync.md](cloud-sync.md) — Azure sync orchestration.
 - [ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md) — customer-owned data + the R6d/R6e amendments.
