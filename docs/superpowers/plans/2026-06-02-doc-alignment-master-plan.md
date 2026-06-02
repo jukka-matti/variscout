@@ -39,6 +39,7 @@ Dependencies are soft (terminology lineage), not hard blocks — but execute in 
 
 - **Wave 0 is highest-leverage:** `specifications.md` + `ia-nav-model.md` are inherited (stale) by 4 tabs' cross-references, and the Apply-phase sensor stops the backlog recurring for every later Wave. Do it first.
 - **Wave 1 absorbs the cluster-1 capabilities** (model-builder, test-plan triad, disconfirmation, What-If, Evidence Map, Focus lens) as **sections within** `analyze-wall.md` + a new `investigation-surface.md` spine — not 9 separate docs (see spec §3 "one doc or many").
+- **Wave 1 also physically archives `question-driven-analyze.md`** (Wave 0 superseded it in place) — `git mv` to `docs/archive/workflows/` + repoint its ~20 inbound links, done coherently when the Analyze-cluster docs (`analyze-to-action`, `analysis-journey-map`, `analyze-lifecycle-map`, `index`, `yamazumi`, `improvement-workspace`, …) are rewritten. Doing it in Wave 0 would have broken ~20 links + touched Wave-1-owned docs prematurely.
 - **Waves 1–5 sub-plans are written just-in-time** — after the prior wave lands, re-grounded against the then-current `main`. Do not pre-write them (plan-as-you-execute; avoids baking in drift).
 
 ## Status tracker (update as waves land)
