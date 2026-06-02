@@ -100,9 +100,9 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 - **PresentationView → CUT** — shipped as **PR #281** (dead since `ee52e664`).
 - **Process Hub cadence strip → NOT a mechanical delete** — it's the "what is the Process Hub Status tab in V1" design question above.
 
-**Promotion path:** `superpowers:brainstorming` → spec, recommended in a **fresh chat** (the originating session was cleanup-heavy). Full context + a ready pickup prompt are in the `connective-surface-redesign` agent memory. Honor the full-vision-spec norm.
+**Promotion path:** **PROMOTED 2026-06-02 → [connective surface model design spec](../superpowers/specs/2026-06-02-connective-surface-model-design.md)** (grounded by 8 code-grounding agents + a 5-cluster laptop-ergonomics benchmark + an adversarial spec review). The spec settles the V1 boundary (Decision 0 — process-as-operations → named-future), the linked-panels spine (Model A) + the Analyze reasoning canvas (Model B; whole-app canvas C rejected as too dense for a laptop), the step→findings→hypothesis spine + the `CausalLink` factor↔cause edge, framing-on-load, PWA↔Azure parity, the ADR-086 unification debt + orphan cleanup, and the holistic doc-layer propagation; it splits the process-as-operations **extraction** to a follow-up spec. Original brainstorm context + pickup prompt remain in the `connective-surface-redesign` agent memory.
 
-**Severity:** design-debt — the new investigation core lacks designed connective navigation + a coherent Process tab; the owner wants the "step → findings → hypothesis" capability and flagged the Process tab as not-holistically-designed.
+**Severity:** design-debt — RESOLVED at design level by the spec above; build pending `writing-plans`.
 
 ### Hypothesis-stage walkthrough — Wall honesty bugs + test-plan-triad gaps + "confirm" terminology [LOGGED 2026-05-31]
 
