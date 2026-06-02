@@ -20,8 +20,9 @@ import {
   useProjectStore,
   useCanvasViewportStore,
   useAnalysisScopeStore,
+  useViewStore,
 } from '@variscout/stores';
-import type { CanvasAnalyzeFocus } from '@variscout/hooks';
+import type { CanvasAnalyzeFocus, CanvasStepCardModel } from '@variscout/hooks';
 import type {
   EvidenceSnapshot,
   StepCapabilityStamp,
@@ -29,7 +30,11 @@ import type {
   ControlRecord,
 } from '@variscout/core';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
-import { createStepQuickActionItem, type ActionItem } from '@variscout/core/findings';
+import {
+  createStepQuickActionItem,
+  type ActionItem,
+  type FindingContext,
+} from '@variscout/core/findings';
 import { surveyInboxRules } from '@variscout/core/survey';
 import { useActiveIPContext } from '@variscout/hooks';
 import { pwaHubRepository } from '../../persistence';
@@ -179,7 +184,6 @@ const FrameView: React.FC = () => {
           description: hypothesis.status,
         })),
       },
-      { surfaceType: 'quick-actions', items: [] },
       {
         // Wedge V1 (ADR-082) folds Handoff into Control-closure; control handoffs surface here too.
         surfaceType: 'sustainment',
@@ -257,6 +261,30 @@ const FrameView: React.FC = () => {
     [activeHubId]
   );
 
+  // PR-CS-5 Part 2: capture-from-step. Creates a step-noted Finding
+  // (`originStepId = card.stepId`) so it surfaces on this step's overlay (UNION
+  // with column-derived findings). Mirrors the Azure shell.
+  const handleCaptureFindingFromStep = React.useCallback((card: CanvasStepCardModel) => {
+    const activeFilters: Record<string, (string | number)[]> = {};
+    for (const column of card.assignedColumns) activeFilters[column] = [];
+    const context: FindingContext = {
+      activeFilters,
+      cumulativeScope: null,
+      stats:
+        card.metricKind === 'numeric' && card.stats
+          ? {
+              mean: card.stats.mean,
+              median: card.stats.median,
+              cpk: card.stats.cpk,
+              samples: card.capability.n,
+            }
+          : undefined,
+    };
+    useAnalyzeStore
+      .getState()
+      .addFinding(`Observation at ${card.stepName}`, context, undefined, undefined, card.stepId);
+  }, []);
+
   const handleFocusedInvestigation = React.useCallback(() => {
     usePanelsStore.getState().showAnalyze();
   }, []);
@@ -270,7 +298,17 @@ const FrameView: React.FC = () => {
     // Focus a hypothesis hub node by its hub id (the Question entity is retired
     // per ADR-085, so 'suspected-cause' is the only hub-resolving focus kind).
     if (focus.kind === 'suspected-cause') {
+      // CoScout panel focus (unchanged — feeds the AI interpretation partner).
       useAnalyzeFeatureStore.getState().expandToHypothesis(focus.id);
+      // PR-CS-5 Part 1: the *visible* Wall focus is `focusedWallEntityId` —
+      // WallCanvas dims via wallDegreeOfInterest and AnalyzeView pans the viewport
+      // to center the node on arrival. Force the Wall view so the analyst lands
+      // focused. (PWA panelsStore has no setAnalyzeViewMode — the Map/Wall sub-toggle
+      // lives entirely in canvasViewportStore.viewMode here, unlike Azure.)
+      useViewStore.getState().setFocusedWallEntity(focus.id);
+      useCanvasViewportStore.getState().setViewMode('wall');
+      usePanelsStore.getState().showAnalyze();
+      return;
     }
     usePanelsStore.getState().showAnalyze();
   }, []);
@@ -326,9 +364,17 @@ const FrameView: React.FC = () => {
         usePanelsStore.getState().showControl(item.id);
         return;
       }
+      // PR-CS-5 Part 1: a hypothesis context-link lands the analyst FOCUSED on
+      // the Wall (dim + pan-to-node), not on an unfocused Analyze tab. Reconstruct
+      // the focus by id-match rather than widening the shared ContextLinkItem
+      // contract, then delegate to the single focus path.
+      if (hypotheses.some(h => h.id === item.id)) {
+        handleOpenInvestigationFocus({ kind: 'suspected-cause', id: item.id });
+        return;
+      }
       usePanelsStore.getState().showAnalyze();
     },
-    [activeHubId, controlHandoffs, controlRecords]
+    [activeHubId, controlHandoffs, controlRecords, hypotheses, handleOpenInvestigationFocus]
   );
 
   // E1 T6: Process tab is project-scoped. When no active project is selected,
@@ -375,6 +421,7 @@ const FrameView: React.FC = () => {
         onCharter={handleCharter}
         contextLinkGroups={contextLinkGroups}
         onNavigateContextLink={handleNavigateContextLink}
+        onCaptureFindingFromStep={handleCaptureFindingFromStep}
         priorStepStats={priorStepStats}
         // PWA has no project-membership model (education tier per apps/pwa/CLAUDE.md);
         // Edit mode is always reachable. Azure derives this from canAccess(..., 'edit').

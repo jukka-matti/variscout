@@ -29,6 +29,14 @@ interface CanvasStepOverlayProps {
   contextLinkGroups?: readonly ContextLinkGroup[];
   onNavigateContextLink?: (item: ContextLinkItem) => void;
   actionItems?: ActionItem[];
+  /**
+   * PR-CS-5 Part 2: capture-from-step affordance. When provided, the overlay
+   * shows a "Capture finding from this step" button that creates a finding noted
+   * with this step's id (`Finding.originStepId`). The host (FrameView) owns
+   * building the FindingContext + calling addFinding — the overlay stays a pure
+   * props-based component.
+   */
+  onCaptureFindingFromStep?: (card: CanvasStepCardModel) => void;
 }
 
 const DESKTOP_WIDTH = 440;
@@ -96,6 +104,7 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
   contextLinkGroups = [],
   onNavigateContextLink,
   actionItems = [],
+  onCaptureFindingFromStep,
 }) => {
   const touchStartY = React.useRef<number | null>(null);
   const mobile = isMobileViewport();
@@ -264,6 +273,16 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
               ) : (
                 <p className="mt-1 text-content-secondary">No linked investigations yet.</p>
               )}
+              {onCaptureFindingFromStep ? (
+                <button
+                  type="button"
+                  data-testid="capture-finding-from-step"
+                  className="mt-2 w-full rounded border border-edge bg-surface-primary px-2 py-1 text-left text-content-secondary hover:bg-surface-tertiary hover:text-content"
+                  onClick={() => onCaptureFindingFromStep(card)}
+                >
+                  + Capture finding from this step
+                </button>
+              ) : null}
             </div>
           </div>
 

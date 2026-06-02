@@ -22,8 +22,9 @@ import {
   useProjectStore,
   useCanvasViewportStore,
   useAnalysisScopeStore,
+  useViewStore,
 } from '@variscout/stores';
-import type { CanvasAnalyzeFocus } from '@variscout/hooks';
+import type { CanvasAnalyzeFocus, CanvasStepCardModel } from '@variscout/hooks';
 import type {
   ControlHandoff,
   EvidenceSnapshot,
@@ -31,7 +32,11 @@ import type {
   ControlRecord,
 } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import { createStepQuickActionItem, type ActionItem } from '@variscout/core/findings';
+import {
+  createStepQuickActionItem,
+  type ActionItem,
+  type FindingContext,
+} from '@variscout/core/findings';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import type { OutcomeSpec } from '@variscout/core/processHub';
 import { surveyInboxRules } from '@variscout/core/survey';
@@ -193,7 +198,6 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
           description: hypothesis.status,
         })),
       },
-      { surfaceType: 'quick-actions', items: [] },
       {
         // Wedge V1 (ADR-082) folds Handoff into Control-closure; control handoffs surface here too.
         surfaceType: 'sustainment',
@@ -282,6 +286,32 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
     [activeHubId]
   );
 
+  // PR-CS-5 Part 2: capture-from-step. Creates a step-noted Finding
+  // (`originStepId = card.stepId`) so it surfaces on this step's overlay (UNION
+  // with column-derived findings). Pre-seeds activeFilters from the step's
+  // assigned columns + stats from the step card. Editing stays in the findings
+  // surfaces — this is a one-click capture.
+  const handleCaptureFindingFromStep = React.useCallback((card: CanvasStepCardModel) => {
+    const activeFilters: Record<string, (string | number)[]> = {};
+    for (const column of card.assignedColumns) activeFilters[column] = [];
+    const context: FindingContext = {
+      activeFilters,
+      cumulativeScope: null,
+      stats:
+        card.metricKind === 'numeric' && card.stats
+          ? {
+              mean: card.stats.mean,
+              median: card.stats.median,
+              cpk: card.stats.cpk,
+              samples: card.capability.n,
+            }
+          : undefined,
+    };
+    useAnalyzeStore
+      .getState()
+      .addFinding(`Observation at ${card.stepName}`, context, undefined, undefined, card.stepId);
+  }, []);
+
   const handleFocusedInvestigation = React.useCallback(() => {
     usePanelsStore.getState().showAnalyze();
   }, []);
@@ -297,7 +327,18 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
     // Focus a hypothesis hub node by its hub id (the Question entity is retired
     // per ADR-085, so 'suspected-cause' is the only hub-resolving focus kind).
     if (focus.kind === 'suspected-cause') {
+      // CoScout panel focus (unchanged — feeds the AI interpretation partner).
       useAnalyzeFeatureStore.getState().expandToHypothesis(focus.id);
+      // PR-CS-5 Part 1: the *visible* Wall focus is `focusedWallEntityId` —
+      // WallCanvas dims via wallDegreeOfInterest and AnalyzeWorkspace pans the
+      // viewport to center the node on arrival (pan-on-focus effect). Force the
+      // Wall map view so the analyst lands focused, not unfocused.
+      useViewStore.getState().setFocusedWallEntity(focus.id);
+      const panelsStore = usePanelsStore.getState();
+      useCanvasViewportStore.getState().setViewMode('wall');
+      panelsStore.setAnalyzeViewMode('map');
+      panelsStore.showAnalyze();
+      return;
     }
     usePanelsStore.getState().showAnalyze();
   }, []);
@@ -354,9 +395,17 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
         usePanelsStore.getState().showControl(item.id);
         return;
       }
+      // PR-CS-5 Part 1: a hypothesis context-link should land the analyst FOCUSED
+      // on the Wall (dim + pan-to-node), not on an unfocused Analyze tab. Reconstruct
+      // the focus by id-match here rather than widening the shared ContextLinkItem
+      // contract, then delegate to the single focus path.
+      if (hypotheses.some(h => h.id === item.id)) {
+        handleOpenInvestigationFocus({ kind: 'suspected-cause', id: item.id });
+        return;
+      }
       usePanelsStore.getState().showAnalyze();
     },
-    [activeHubId, controlHandoffs, controlRecords]
+    [activeHubId, controlHandoffs, controlRecords, hypotheses, handleOpenInvestigationFocus]
   );
 
   // E1 T6: Process tab is project-scoped. When no active project is selected,
@@ -401,6 +450,7 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
         onCharter={handleCharter}
         contextLinkGroups={contextLinkGroups}
         onNavigateContextLink={handleNavigateContextLink}
+        onCaptureFindingFromStep={handleCaptureFindingFromStep}
         priorStepStats={priorStepStats}
         canEditCanvas={canEditCanvas}
         actionItems={actionItems}

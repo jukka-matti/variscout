@@ -82,7 +82,8 @@ export interface AnalyzeActions {
     text: string,
     context: FindingContext,
     source?: FindingSource,
-    scopeId?: ProblemStatementScope['id']
+    scopeId?: ProblemStatementScope['id'],
+    originStepId?: string
   ) => Finding;
   editFinding: (id: string, text: string) => void;
   deleteFinding: (id: string) => void;
@@ -376,7 +377,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   // Finding actions
   // ========================================================================
 
-  addFinding: (text, context, source?, scopeId?) => {
+  addFinding: (text, context, source?, scopeId?, originStepId?) => {
     const base = createFinding(
       text,
       context.activeFilters,
@@ -386,10 +387,14 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
       source,
       'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
     );
-    // Durable finding→scope edge (PR-CS-0 Task 7): set post-factory to keep
-    // createFinding's positional signature untouched. Optional + back-compat:
-    // omit `scopeId` → the field stays absent.
-    const finding = scopeId ? { ...base, scopeId } : base;
+    // Durable finding→scope edge (PR-CS-0 Task 7) + finding→step edge
+    // (PR-CS-5 Part 2): set post-factory to keep createFinding's positional
+    // signature untouched. Optional + back-compat: omit → the field stays absent.
+    const finding = {
+      ...base,
+      ...(scopeId ? { scopeId } : {}),
+      ...(originStepId ? { originStepId } : {}),
+    };
     set(state => ({ findings: [finding, ...state.findings] }));
     return finding;
   },

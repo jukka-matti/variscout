@@ -170,3 +170,20 @@ describe('CanvasStepOverlay causal link removal', () => {
     expect(onOpenInvestigationFocus).not.toHaveBeenCalled();
   });
 });
+
+describe('CanvasStepOverlay — capture from step (PR-CS-5 Part 2)', () => {
+  it('does not render the capture button when no handler is provided', () => {
+    renderOverlay();
+    expect(screen.queryByTestId('capture-finding-from-step')).toBeNull();
+  });
+
+  it('renders the capture button and calls onCaptureFindingFromStep with the card on click', () => {
+    const onCaptureFindingFromStep = vi.fn();
+    renderOverlay({ onCaptureFindingFromStep });
+
+    fireEvent.click(screen.getByTestId('capture-finding-from-step'));
+
+    expect(onCaptureFindingFromStep).toHaveBeenCalledTimes(1);
+    expect(onCaptureFindingFromStep).toHaveBeenCalledWith(baseCard);
+  });
+});

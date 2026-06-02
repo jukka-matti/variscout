@@ -13,6 +13,7 @@ const showSustainmentMock = vi.fn();
 const showHomeMock = vi.fn();
 const expandToHypothesisMock = vi.fn();
 const setWallViewModeMock = vi.fn();
+const setFocusedWallEntityMock = vi.fn();
 const addCausalLinkMock = vi.fn();
 const linkQuestionToCausalLinkMock = vi.fn();
 const removeCausalLinkMock = vi.fn();
@@ -167,6 +168,13 @@ vi.mock('@variscout/stores', () => ({
       setViewMode: setWallViewModeMock,
     }),
   }),
+  // PR-CS-5 Part 1: useViewStore.getState().setFocusedWallEntity is the visible
+  // Wall focus lens (ADR-086) set by handleOpenInvestigationFocus.
+  useViewStore: Object.assign(vi.fn(), {
+    getState: () => ({
+      setFocusedWallEntity: setFocusedWallEntityMock,
+    }),
+  }),
   useActiveIPStore: Object.assign(
     vi.fn((selector: (s: unknown) => unknown) => selector(noActiveIPStoreState)),
     {
@@ -235,6 +243,7 @@ vi.mock('@variscout/ui', async () => {
       priorStepStats?: ReadonlyMap<string, unknown>;
       actionItems?: unknown[];
       contextLinkGroups?: { surfaceType: string; items: { id: string }[] }[];
+      onNavigateContextLink?: (item: { id: string; label?: string }) => void;
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -362,6 +371,7 @@ describe('FrameView (PWA shell)', () => {
     showSustainmentMock.mockClear();
     showHomeMock.mockClear();
     expandToHypothesisMock.mockClear();
+    setFocusedWallEntityMock.mockClear();
     setWallViewModeMock.mockClear();
     addCausalLinkMock.mockReset();
     linkQuestionToCausalLinkMock.mockReset();
@@ -684,6 +694,31 @@ describe('FrameView (PWA shell)', () => {
 
     fireEvent.click(screen.getByTestId('open-wall'));
 
+    expect(setWallViewModeMock).toHaveBeenCalledWith('wall');
+    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('PR-CS-5: focuses + forces the Wall view on hypothesis overlay focus (dim + pan-to-node)', () => {
+    render(<FrameView />);
+
+    fireEvent.click(screen.getByTestId('overlay-question'));
+
+    // The visible Wall focus lens is set so WallCanvas dims + AnalyzeView pans.
+    expect(setFocusedWallEntityMock).toHaveBeenCalledWith('q-1');
+    // Force the Wall view so the analyst lands focused, not unfocused. (PWA has
+    // no setAnalyzeViewMode — the Map/Wall toggle lives in canvasViewportStore.)
+    expect(setWallViewModeMock).toHaveBeenCalledWith('wall');
+    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('PR-CS-5: a hypothesis context-link routes through the focus path (focus + pan)', () => {
+    render(<FrameView />);
+
+    const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+    // hub-1 is a live hypothesis (investigationStateRef seeds hypotheses: [{ id: 'hub-1' }]).
+    props.onNavigateContextLink({ id: 'hub-1', label: 'Cause A' });
+
+    expect(setFocusedWallEntityMock).toHaveBeenCalledWith('hub-1');
     expect(setWallViewModeMock).toHaveBeenCalledWith('wall');
     expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
   });

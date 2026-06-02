@@ -63,6 +63,34 @@ describe('analyzeStore — findings', () => {
     expect(useAnalyzeStore.getState().findings[0].scopeId).toBeUndefined();
   });
 
+  it('PR-CS-5: threads an optional originStepId onto the captured finding (finding→step edge)', () => {
+    const ctx = makeContext();
+    const finding = useAnalyzeStore
+      .getState()
+      .addFinding('step note', ctx, undefined, undefined, 'step-fill-1');
+
+    expect(finding.originStepId).toBe('step-fill-1');
+    expect(useAnalyzeStore.getState().findings[0].originStepId).toBe('step-fill-1');
+  });
+
+  it('PR-CS-5: leaves originStepId undefined when no step is passed (back-compat)', () => {
+    const ctx = makeContext();
+    const finding = useAnalyzeStore.getState().addFinding('unstepped note', ctx);
+
+    expect(finding.originStepId).toBeUndefined();
+    expect('originStepId' in finding).toBe(false);
+  });
+
+  it('PR-CS-5: carries both scopeId and originStepId when both are passed', () => {
+    const ctx = makeContext();
+    const finding = useAnalyzeStore
+      .getState()
+      .addFinding('scoped+stepped', ctx, undefined, 'scope-9', 'step-9');
+
+    expect(finding.scopeId).toBe('scope-9');
+    expect(finding.originStepId).toBe('step-9');
+  });
+
   it('prepends new findings (newest first)', () => {
     const ctx = makeContext();
     useAnalyzeStore.getState().addFinding('first', ctx);

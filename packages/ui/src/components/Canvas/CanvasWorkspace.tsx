@@ -8,6 +8,7 @@ import {
   useSessionCanvasFilters,
   useTranslation,
   type CanvasAnalyzeFocus,
+  type CanvasStepCardModel,
 } from '@variscout/hooks';
 import {
   computeBinnedFactorColumn,
@@ -121,6 +122,8 @@ export interface CanvasWorkspaceProps {
   onOpenColumnDetail?: (column: string, stepId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
   onNavigateContextLink?: (item: ContextLinkItem) => void;
+  /** PR-CS-5 Part 2: capture-from-step affordance forwarded to Canvas → CanvasStepOverlay. */
+  onCaptureFindingFromStep?: (card: CanvasStepCardModel) => void;
   priorStepStats?: ReadonlyMap<string, StepCapabilityStamp>;
   actionItems?: ActionItem[];
   /** When false, hides the Edit/State toggle and forces State mode.
@@ -302,6 +305,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onOpenColumnDetail,
   contextLinkGroups,
   onNavigateContextLink,
+  onCaptureFindingFromStep,
   priorStepStats,
   actionItems = [],
   canEditCanvas,
@@ -1226,6 +1230,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       onOpenColumnDetail={onOpenColumnDetail}
       contextLinkGroups={contextLinkGroups}
       onNavigateContextLink={onNavigateContextLink}
+      onCaptureFindingFromStep={onCaptureFindingFromStep}
       actionItems={actionItems}
       l3Archetype={l3Archetype}
       chips={chips}

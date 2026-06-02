@@ -14,8 +14,10 @@ const showDashboardMock = vi.fn();
 const expandToHypothesisMock = vi.fn();
 const setWallViewModeMock = vi.fn();
 const setAnalyzeViewModeMock = vi.fn();
+const setFocusedWallEntityMock = vi.fn();
 const addCausalLinkMock = vi.fn();
 const removeCausalLinkMock = vi.fn();
+const addFindingMock = vi.fn();
 
 // LV1-D: minimal analysisScopeStore mock — tracks setY mutations so the
 // FrameView integration test can assert the correct yColumn is applied.
@@ -56,6 +58,7 @@ const investigationStateRef: { current: Record<string, unknown> } = {
     causalLinks: [],
     addCausalLink: addCausalLinkMock,
     removeCausalLink: removeCausalLinkMock,
+    addFinding: addFindingMock,
   },
 };
 
@@ -127,6 +130,15 @@ vi.mock('@variscout/stores', () => ({
       setViewMode: setWallViewModeMock,
     }),
   }),
+  // PR-CS-5 Part 1: useViewStore.getState().setFocusedWallEntity is the visible
+  // Wall focus lens (ADR-086). handleOpenInvestigationFocus sets it so the
+  // analyst lands focused + the AnalyzeWorkspace pan-on-focus effect centers
+  // the node.
+  useViewStore: Object.assign(vi.fn(), {
+    getState: () => ({
+      setFocusedWallEntity: setFocusedWallEntityMock,
+    }),
+  }),
   // LV1-D: useAnalysisScopeStore mock used by navigateToExploreForChip via
   // FrameView's handleChipExploreJump. getState().setY is the only mutation
   // path exercised by the integration test (outcome chip → yColumn).
@@ -191,6 +203,9 @@ vi.mock('@variscout/ui', async () => {
       priorStepStats?: ReadonlyMap<string, unknown>;
       actionItems?: unknown[];
       contextLinkGroups?: { surfaceType: string; items: { id: string }[] }[];
+      onNavigateContextLink?: (item: { id: string; label?: string }) => void;
+      // PR-CS-5 Part 2: capture-from-step callback
+      onCaptureFindingFromStep?: (card: unknown) => void;
       // LV1-D: chip → Explore jump callback
       onChipExploreJump?: (target: { kind: string; columnName?: string; stepId?: string }) => void;
     }) => {
@@ -354,8 +369,10 @@ describe('FrameView (Azure shell)', () => {
     expandToHypothesisMock.mockClear();
     setWallViewModeMock.mockClear();
     setAnalyzeViewModeMock.mockClear();
+    setFocusedWallEntityMock.mockClear();
     addCausalLinkMock.mockReset();
     removeCausalLinkMock.mockReset();
+    addFindingMock.mockClear();
     addCausalLinkMock.mockReturnValue({ id: 'link-created' });
     hoisted.listByHubMock.mockReset();
     hoisted.listByHubMock.mockResolvedValue([]);
@@ -389,6 +406,7 @@ describe('FrameView (Azure shell)', () => {
       causalLinks: [{ id: 'link-1' }],
       addCausalLink: addCausalLinkMock,
       removeCausalLink: removeCausalLinkMock,
+      addFinding: addFindingMock,
     };
   });
 
@@ -656,6 +674,32 @@ describe('FrameView (Azure shell)', () => {
     expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
   });
 
+  it('PR-CS-5: focuses + forces the Wall view on hypothesis overlay focus (dim + pan-to-node)', () => {
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+    fireEvent.click(screen.getByTestId('overlay-question'));
+
+    // The visible Wall focus lens is set so WallCanvas dims + AnalyzeWorkspace pans.
+    expect(setFocusedWallEntityMock).toHaveBeenCalledWith('q-1');
+    // Force the Wall map view so the analyst lands focused, not unfocused.
+    expect(setWallViewModeMock).toHaveBeenCalledWith('wall');
+    expect(setAnalyzeViewModeMock).toHaveBeenCalledWith('map');
+    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('PR-CS-5: a hypothesis context-link routes through the focus path (focus + pan)', () => {
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+    const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+    // hub-1 is a live hypothesis (investigationStateRef seeds hypotheses: [{ id: 'hub-1' }]).
+    props.onNavigateContextLink({ id: 'hub-1', label: 'Cause A' });
+
+    expect(setFocusedWallEntityMock).toHaveBeenCalledWith('hub-1');
+    expect(setWallViewModeMock).toHaveBeenCalledWith('wall');
+    expect(setAnalyzeViewModeMock).toHaveBeenCalledWith('map');
+    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
+  });
+
   it('opens Investigation map in Wall mode from the Canvas wall drill action', () => {
     render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
@@ -692,6 +736,31 @@ describe('FrameView (Azure shell)', () => {
     fireEvent.click(screen.getByTestId('cta-charter'));
 
     expect(showCharterMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('PR-CS-5: capture-from-step creates a finding noted with the step id (originStepId)', () => {
+    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+    const props = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+    expect(props?.onCaptureFindingFromStep).toEqual(expect.any(Function));
+
+    props.onCaptureFindingFromStep({
+      stepId: 'step-fill-1',
+      stepName: 'Fill',
+      assignedColumns: ['Fill_Weight'],
+      metricKind: 'numeric',
+      stats: { mean: 12, median: 12 },
+      capability: { state: 'no-specs', n: 30 },
+      distribution: [],
+      values: [],
+    });
+
+    // addFinding(text, context, source?, scopeId?, originStepId) — step id lands in the 5th arg.
+    expect(addFindingMock).toHaveBeenCalledTimes(1);
+    const call = addFindingMock.mock.calls[0];
+    expect(call[4]).toBe('step-fill-1');
+    // Pre-seeded activeFilters from assigned columns.
+    expect(call[1].activeFilters).toEqual({ Fill_Weight: [] });
   });
 
   it('includes sustainment context links when a live record is confirmed', async () => {

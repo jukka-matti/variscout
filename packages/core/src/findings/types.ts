@@ -497,6 +497,17 @@ export interface Finding extends EntityBase {
   investigationId: ProcessHubAnalyze['id'];
   /** Durable FK to the ProblemStatementScope this finding was captured within; undefined for findings not tied to a drill scope. */
   scopeId?: ProblemStatementScope['id'];
+  /**
+   * PR-CS-5 Part 2: the ProcessMap step this finding was captured from (the
+   * Canvas "capture from step" affordance). Top-level FK parallel to
+   * `ActionItem.stepId` / `MeasurementPlan.processLocation` — NOT a FindingSource
+   * variant (FindingSource is chart-observation-only). Undefined for chart-captured
+   * findings, which still surface on their column-derived step.
+   *
+   * Durability caveat: `stepId` is a ProcessMap node id (`step-${slug}-${seq}`),
+   * not durable across process-map re-derivation. Best-effort for V1.
+   */
+  originStepId?: string;
   /** Chart observation origin — links finding to a specific chart element */
   source?: FindingSource;
   /** Optional assignee for Team plan @mention workflow */

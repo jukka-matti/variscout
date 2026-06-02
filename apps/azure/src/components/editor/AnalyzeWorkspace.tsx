@@ -74,6 +74,7 @@ import {
   useAnalysisScopeStore,
   usePreferencesStore,
   useCanvasViewportStore,
+  useViewStore,
 } from '@variscout/stores';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
 import type { CapturedModelSnapshot } from '@variscout/ui';
@@ -766,6 +767,19 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     },
     [scopedHubs, processMap, wallGroupByTributary, wallHubId, setWallPan]
   );
+
+  // PR-CS-5 Part 1 — focus-on-arrival pan. When a Process-tab hypothesis link
+  // sets `focusedWallEntityId` (the visible Wall focus lens, ADR-086) and forces
+  // the Wall view, off-screen targets make dim-only useless — so we center the
+  // focused node on arrival. Reuses the SAME computeWallLayout pan-to-node path
+  // the Minimap + command palette use, so the target always lands on the rendered
+  // card. Gated on `wallViewMode === 'wall'` so we don't pan an invisible Wall.
+  const focusedWallEntityId = useViewStore(s => s.focusedWallEntityId);
+  useEffect(() => {
+    if (wallViewMode !== 'wall') return;
+    if (!focusedWallEntityId) return;
+    handleWallPanToNode(focusedWallEntityId);
+  }, [focusedWallEntityId, wallViewMode, handleWallPanToNode]);
 
   const handleReturnToImprovementProject = useCallback(() => {
     const target = returnNavigation.consumeReturnTarget();

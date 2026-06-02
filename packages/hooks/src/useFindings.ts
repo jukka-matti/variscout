@@ -34,12 +34,13 @@ export interface UseFindingsOptions {
 export interface UseFindingsReturn {
   /** Current findings list */
   findings: Finding[];
-  /** Add a new finding with the given note and context, optionally linked to a chart source and a durable drill scope */
+  /** Add a new finding with the given note and context, optionally linked to a chart source, a durable drill scope, and an origin process step */
   addFinding: (
     text: string,
     context: FindingContext,
     source?: FindingSource,
-    scopeId?: ProblemStatementScope['id']
+    scopeId?: ProblemStatementScope['id'],
+    originStepId?: string
   ) => Finding;
   /** Update an existing finding's note text */
   editFinding: (id: string, text: string) => void;
@@ -152,7 +153,8 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
       text: string,
       context: FindingContext,
       source?: FindingSource,
-      scopeId?: ProblemStatementScope['id']
+      scopeId?: ProblemStatementScope['id'],
+      originStepId?: string
     ): Finding => {
       const base = createFinding(
         text,
@@ -163,8 +165,13 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
         source,
         'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
       );
-      // Durable finding→scope edge (PR-CS-0 Task 7): set post-factory; optional + back-compat.
-      const finding = scopeId ? { ...base, scopeId } : base;
+      // Durable finding→scope edge (PR-CS-0 Task 7) + finding→step edge
+      // (PR-CS-5 Part 2): set post-factory; optional + back-compat.
+      const finding = {
+        ...base,
+        ...(scopeId ? { scopeId } : {}),
+        ...(originStepId ? { originStepId } : {}),
+      };
       setFindings(prev => {
         const next = [finding, ...prev];
         onFindingsChange?.(next);

@@ -245,9 +245,11 @@ import {
   useAnalysisScopeStore,
   useAnalyzeStore,
   useProjectStore,
+  useViewStore,
 } from '@variscout/stores';
 import type { CapturedModelSnapshot } from '@variscout/ui';
 import type { ProblemStatementScope } from '@variscout/core';
+import { DEFAULT_PROCESS_HUB_ID } from '@variscout/core/processHub';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import { usePanelsStore } from '../../../features/panels/panelsStore';
 import { AnalyzeWorkspace } from '../AnalyzeWorkspace';
@@ -303,6 +305,10 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
   beforeEach(() => {
     // Reset canvasViewportStore to initial state (viewMode = 'map')
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    // PR-CS-5: clear the focus lens so pan-on-focus tests don't leak across cases.
+    useViewStore.setState(
+      (useViewStore as unknown as { getInitialState: () => unknown }).getInitialState() as never
+    );
     window.sessionStorage.clear();
     showCharterMock.mockClear();
   });
@@ -359,6 +365,57 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     render(<AnalyzeWorkspace {...props} />);
 
     expect(screen.getByTestId('wall-canvas')).toBeInTheDocument();
+  });
+
+  it('PR-CS-5: pans the Wall viewport to center the focused hypothesis on arrival', () => {
+    // Arrive on the Wall with a focus lens set (as a Process-tab hypothesis link does).
+    useCanvasViewportStore.getState().setViewMode('wall');
+    useViewStore.getState().setFocusedWallEntity('hub-1');
+    const props = makeMinimalProps();
+    props.hypothesesState.hubs = [
+      {
+        id: 'hub-1',
+        name: 'Nozzle heat drift',
+        synthesis: '',
+        questionIds: [],
+        findingIds: [],
+        status: 'proposed',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ] as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    // The pan-on-focus effect centered the node — the viewport pan is now a
+    // non-origin offset derived from computeWallLayout's hub position.
+    const pan = useCanvasViewportStore.getState().viewports[DEFAULT_PROCESS_HUB_ID]?.pan;
+    expect(pan).toBeDefined();
+    expect(pan).not.toEqual({ x: 0, y: 0 });
+  });
+
+  it('PR-CS-5: does NOT pan when the Wall is not the active view (focus set in Map mode)', () => {
+    // viewMode stays 'map' (default). Focus is set but the Wall is invisible.
+    useViewStore.getState().setFocusedWallEntity('hub-1');
+    const props = makeMinimalProps();
+    props.hypothesesState.hubs = [
+      {
+        id: 'hub-1',
+        name: 'Nozzle heat drift',
+        synthesis: '',
+        questionIds: [],
+        findingIds: [],
+        status: 'proposed',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ] as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    // No pan write while the Wall is hidden — the viewport entry is untouched.
+    const pan = useCanvasViewportStore.getState().viewports[DEFAULT_PROCESS_HUB_ID]?.pan;
+    expect(pan).toBeUndefined();
   });
 
   it('returns from Wall to the saved Improvement Project target once', () => {

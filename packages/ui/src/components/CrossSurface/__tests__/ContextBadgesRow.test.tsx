@@ -23,10 +23,6 @@ const groups: ContextLinkGroup<TestLinkItem>[] = [
     ],
   },
   {
-    surfaceType: 'quick-actions',
-    items: [],
-  },
-  {
     surfaceType: 'sustainment',
     items: [
       { id: 'sustain-1', label: 'Control plan', href: '/sustain/1' },
@@ -44,7 +40,8 @@ describe('ContextBadgesRow', () => {
     ).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Wall threads: 2 linked items' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Control: 2 linked items' })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Quick actions: 0 linked items' })).toBeNull();
+    // PR-CS-5 §7.3: the always-empty 'quick-actions' surface stub was dropped.
+    expect(screen.queryByRole('button', { name: /quick actions/i })).toBeNull();
   });
 
   it('navigates directly when a badge has exactly one item', () => {

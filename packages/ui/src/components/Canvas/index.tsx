@@ -232,6 +232,8 @@ export interface CanvasProps {
   onRemoveCausalLink?: (linkId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
   onNavigateContextLink?: (item: ContextLinkItem) => void;
+  /** PR-CS-5 Part 2: capture-from-step affordance forwarded to CanvasStepOverlay. */
+  onCaptureFindingFromStep?: (card: CanvasStepCardModel) => void;
   actionItems?: ActionItem[];
   findings?: ReadonlyArray<Finding>;
   problemCpk?: number;
@@ -296,6 +298,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onCharter,
   onOpenInvestigationFocus,
   onRemoveCausalLink,
+  onCaptureFindingFromStep,
   contextLinkGroups,
   onNavigateContextLink,
   actionItems = EMPTY_ACTION_ITEMS,
@@ -812,6 +815,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             onRemoveCausalLink={onRemoveCausalLink}
             contextLinkGroups={contextLinkGroups}
             onNavigateContextLink={onNavigateContextLink}
+            onCaptureFindingFromStep={onCaptureFindingFromStep}
             actionItems={actionItems}
           />
         ) : null}
