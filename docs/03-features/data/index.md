@@ -17,6 +17,7 @@ Data input, validation, and persistence.
 
 - [Data Input](data-input.md)
 - [Data Validation](validation.md)
+- [Save, Load & Access](save-and-load.md) — **the document contract** (DocumentSnapshot, PWA export-only vs Azure durable, conflict + access). Start here.
 - [Project Persistence](storage.md)
 - [Cloud Sync](cloud-sync.md) — Azure Blob persistence + team-tier sync orchestration
 - [ETag Concurrency](etag-concurrency.md) — Optimistic concurrency control for hub blob writes
