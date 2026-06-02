@@ -45,7 +45,7 @@ Dependencies are soft (terminology lineage), not hard blocks — but execute in 
 ## Status tracker (update as waves land)
 
 - [x] Wave 0 — cross-cutting + governance — **COMPLETE 2026-06-02** (commits `0b0d4cc0`…`e24fbdba`)
-- [ ] Wave 1 — Investigation Surface / Analyze
+- [x] Wave 1 — Investigation Surface / Analyze — **COMPLETE 2026-06-02** (commits `94acf2aa`…`9e70a9df`; adversarial review: accurate)
 - [ ] Wave 2 — Save / Load / Access
 - [ ] Wave 3 — Findings / Collaboration + CoScout
 - [ ] Wave 4 — remaining surfaces
