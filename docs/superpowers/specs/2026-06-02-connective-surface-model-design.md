@@ -71,6 +71,7 @@ Every claim below was verified against shipped source before assertion. A prior 
 | **Contribution, not causation**                                                                                               | The factor↔cause edges and contribution numbers say _support / counts-against_ and _contribution / suspected cause_, never _causes / proves_.                                                                                                         |
 | **Prefer pragmatic**                                                                                                          | Trust is a soft caveat; no new gates. The laptop rules below favor the minimum that catches the real ergonomic risk.                                                                                                                                  |
 | **Same analysis everywhere** ([PWA philosophy](../../01-vision/positioning.md))                                               | The analysis surfaces target PWA↔Azure parity; Azure adds only collaboration / CoScout / cloud / audit (§6).                                                                                                                                          |
+| **Tool assists, analyst decides**                                                                                             | Deterministic stats = authority; CoScout (Azure) = interpretation assist; the analyst makes every support / counts-against / status call by explicit gesture. The tool tallies + suggests; it never concludes (§4.0).                                 |
 
 ---
 
@@ -144,6 +145,29 @@ The shared scope is a **filter on one homogeneous outcome/spec context**; each l
 
 The owner's concrete ask: _"from a process step, see its linked findings → jump to Analyze to see the hypothesis,"_ generalized to a **where-from / where-to** path for every entity across Frame ↔ Explore ↔ Analyze ↔ Improve ↔ Control.
 
+### §4.0 · The analytical flow — tool assists, analyst decides (the heart of the product)
+
+This is the product's centerpiece and the principle that governs the whole investigation surface: **the deterministic stats engine runs the analysis; CoScout assists interpretation; the analyst makes every judgment.** The tool tallies and _suggests_ — it never concludes.
+
+**Three layers:**
+
+| Layer                            | Role                                                                                                                                                   | Tier        |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| **① Deterministic stats engine** | runs boxplot · 2-sample · scatter/regression · best-subsets · Cp/Cpk — reproducible, the authority                                                     | PWA + Azure |
+| **② CoScout**                    | interpretation partner — helps _read_ a result, adds context, drafts finding wording, points to what to test next; minimal nudges, never interruptions | Azure-only  |
+| **③ The analyst**                | makes the explicit _supports / counts-against / settled_ call and owns every conclusion                                                                | PWA + Azure |
+
+CoScout **can** suggest an interpretation; it **cannot** make the call, set/bump status, or count data-arrival as evidence. This honors "deterministic stats engine is authority; CoScout adds context" and keeps the analyst's judgment sovereign.
+
+**Two levels of the flow:**
+
+1. **Scope level — which x's matter here.** The **best-subsets regression model-builder** (`ModelBuilderBand` / `computeBestSubsets` + `selectVitalFew`) surfaces the vital-few factors with adjusted R² · per-factor p · ΔR² · VIF. The analyst controls the model (toggle factors, "Use suggested" snap-back, capture-as-Finding). Statistics, analyst-owned — **this is the canonical factor source** (the factor projection on the Model B canvas, §4.3).
+2. **Hypothesis level — test a factor as a cause.** For each relevant factor of a hypothesis, the tool hands the analyst the **right stat by data type** (the FE-2 test triad): _categorical → boxplot + 2-sample · continuous → scatter + regression · spread → Cp/Cpk_. The analyst runs it, **sees the actual chart**, and makes the explicit support/counts-against call → a **typed Finding**. The test is also the disconfirmation ("try to break it" = the same gesture). The stat charts live **in the reasoning flow** — summoned onto a focused hypothesis, riding the Focus lens / LOD so they're not always-on (laptop-friendly) — distinct from Explore's open-ended scanning. (Same boxplot engine, two entry points: browse it in Explore, or summon it as evidence on a cause. This resolves the long-standing Explore-vs-Analyze question.)
+
+**Status is analyst-owned (decided 2026-06-02).** The 5-state lifecycle stays — `proposed → evidenced → needs-disconfirmation → Supported / refuted` — but the **analyst sets it**. `deriveHypothesisStatus` (`survey/wall.ts:24`) is **demoted from an auto-gate to a soft suggestion** ("2 evidence types + a survived test — mark Supported?"): it surfaces the triangulation + falsification readiness as _guidance_, never auto-applies, and never locks. Re-introduce an analyst-set status (the `setHubStatus` orphan deleted in IM-4c returns, now analyst-owned and the source of truth; the derivation is advisory). Rename the code value `'confirmed' → 'evidence-survived-test'` to match the shipped `'Supported'` label and kill the certainty overclaim.
+
+**The boundary, enforced everywhere** (the de-automation list): status is _suggested_, not set; the re-ingest auto-link becomes an **analyst-confirm prompt** keeping only the mechanical column-matching (§4.5); the cluster detector offers a **grouping** ("these findings share factor X") without an R²-ranking implying which cause is "best"; the FE-2 one-tap evaluate stays analyst-triggered with the analyst confirming the verdict; CoScout suggests interpretations the analyst accepts or rejects. _What stays automated is only the genuinely mechanical: the stats themselves, and column→plan matching._
+
 ### §4.1 · The shared scope is the connecting substrate (Model A)
 
 The persistent scope (`analysisScopeStore`: `yColumn` / `boxplotFactor` / `stepId` / `categoricalFilters`) is the "all surfaces light up together" mechanism. Net-new on top of the shipped store:
@@ -195,11 +219,11 @@ Zoom is the laptop density valve (rule 8): zoom out for the overview (glyphs, no
 
 New data is collected **to test a specific hypothesis** and must **join onto existing data** — the DCP loop. The model encodes the first half (`MeasurementPlan.hypothesisId` is required; `packages/core/src/measurementPlan/types.ts`); grounding found the closure partially deferred:
 
-- ✓ **Shipped:** Measurement Plan is hypothesis-bound; IM-3 auto-link (`useReingestAutoLink`) matches a new column → Finding → advances the **Plan** status; `processLocation` join key.
-- ◐ **Partial:** the merge (`mergeRows` / `mergeColumns`) mutates `rawData` + re-validates but does **not** re-evaluate findings/hypotheses/conditions; append preserves without rematching; replace orphans (the IM-3 cascade is **plans-only**).
-- ✗ **The gap:** the new evidence does not **re-score the hypothesis it was collected for**. "Data arrived but the cause didn't update" reads as a trust bug to an MBB.
+- ✓ **Shipped (mechanical — keep automated):** Measurement Plan is hypothesis-bound; IM-3 (`useReingestAutoLink`) **matches** a new column to a plan via `matchColumnsToPlans` + the `processLocation` join key. Column-matching is genuine plumbing.
+- ◐ **Over-reaches into judgment:** the same cascade also **auto-creates a source-less "data arrived" Finding** (stamped `inconclusive` so it doesn't credit evidence) and **auto-bumps plan status** — silent writes the analyst never authored, removing the data-quality checkpoint.
+- ◐ **Partial:** the merge (`mergeRows` / `mergeColumns`) re-validates `rawData` but does **not** re-evaluate findings/hypotheses/conditions; append preserves without rematching; replace orphans.
 
-**Decision:** V1 closes the loop **narrowly** — on re-ingest, the auto-linked typed Finding (support/counts-against) re-scores **only the plan's hypothesis** via `deriveHypothesisStatus`. This is deliberately _not_ the full re-evaluation: the broader replace-re-evaluate cascade across _all_ scopes/conditions/findings (the "Partial" gap above) stays a named follow-up (§12 Q5), not silently dropped. New columns surfacing in the framing ChipRail (§5) is the manual fallback when auto-match misses.
+**Decision (de-automated per §4.0):** keep the mechanical matching; **replace the silent writes with an analyst-confirm prompt** — _"the factor you needed for '&lt;hypothesis&gt;' arrived — link it? mark the plan in-progress?"_ The analyst then **runs the stat test on the new data** (the §4.0 per-factor triad), sees the chart, makes the support/counts-against call → a typed Finding → and **sets the hypothesis status** (now analyst-owned, §4.0). So re-ingest _invites_ the analyst to test; it never credits evidence for them. The broader replace-re-evaluate cascade across _all_ scopes/conditions stays a named follow-up (§12 Q5).
 
 ### §4.6 · The downstream where-from / where-to (Improve · Control · Report)
 
@@ -283,15 +307,16 @@ The 3-CTA canvas-drill "response paths" (wedge §3.3.4) were **superseded by Cli
 
 ## §8 · Net-new vs reused vs deleted
 
-| Area                       | Reused (shipped substrate)                                                            | Net-new                                                                                       | Deleted                                                                                        |
-| -------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Shared scope (Model A)     | `analysisScopeStore`, Process↔Explore bridge                                          | persistent chip in chrome; highlight coordination; Analyze subscription; IP-scope reset       | —                                                                                              |
-| Reasoning canvas (Model B) | `WallCanvas`, `CausalLink`, Focus lens, `wallLayout`, `ModelBuilderBand`, `ScopeRail` | bipartite factor↔cause edges; domain-weighted DOI; minimap polish; 3-representation reconcile | `CanvasWallOverlay`; `LocalMechanismView` embedded overlay                                     |
-| Connective spine           | cross-surface badges; `useActiveIPContext`                                            | findings-on-step; focus-on-arrival; origin `stepId`; Finding→Action + lineage wires           | `quick-actions` stub                                                                           |
-| Measure⇄Analyze            | `useReingestAutoLink`, Measurement-Plan DCP                                           | re-evaluate the targeted hypothesis on re-ingest                                              | —                                                                                              |
-| Framing-on-load            | `CanvasWorkspace`, `canvasStore`, b0/b1                                               | refine (preserve the 6 seams)                                                                 | `ProcessMapBase` (deprecated wrapper)                                                          |
-| Parity                     | Azure Evidence Map / click-to-Explore / disconfirmation / ScopeRail                   | wire each into PWA                                                                            | —                                                                                              |
-| Cleanup                    | —                                                                                     | —                                                                                             | `questions` cargo; `NarratorRail`; `DroppableGateBadge`; dead factor edges; response-path CTAs |
+| Area                             | Reused (shipped substrate)                                                                      | Net-new                                                                                                                      | Deleted                                                                                        |
+| -------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Shared scope (Model A)           | `analysisScopeStore`, Process↔Explore bridge                                                    | persistent chip in chrome; highlight coordination; Analyze subscription; IP-scope reset                                      | —                                                                                              |
+| Reasoning canvas (Model B)       | `WallCanvas`, `CausalLink`, Focus lens, `wallLayout`, `ModelBuilderBand`, `ScopeRail`           | bipartite factor↔cause edges; domain-weighted DOI; minimap polish; 3-representation reconcile                                | `CanvasWallOverlay`; `LocalMechanismView` embedded overlay                                     |
+| Analytical flow + scoring (§4.0) | best-subsets model-builder; `deriveHypothesisStatus`; FE-2 evaluate; CoScout                    | analyst-set status + soft-suggestion chip; finish the FE-2 per-factor stat triad; step `FindingSource` + capture affordance  | auto-status-gate-as-authority; R²-ranking on the cluster suggestion                            |
+| Connective spine                 | cross-surface badges; `useActiveIPContext`                                                      | findings-on-step (incl. the step `FindingSource` variant); focus-on-arrival; origin `stepId`; Finding→Action + lineage wires | `quick-actions` stub                                                                           |
+| Measure⇄Analyze                  | `useReingestAutoLink` (column-matching), Measurement-Plan DCP                                   | analyst-confirm prompt for the link/plan-bump; analyst tests the new data + sets the status                                  | silent auto-Finding writes + auto-plan-status-bump                                             |
+| Framing-on-load                  | `CanvasWorkspace`, `canvasStore`, b0/b1                                                         | refine (preserve the 6 seams)                                                                                                | `ProcessMapBase` (deprecated wrapper)                                                          |
+| Parity                           | Azure Evidence Map / click-to-Explore / disconfirmation / ScopeRail; CoScout (Azure-only, §4.0) | wire the 4 analysis gaps into PWA                                                                                            | —                                                                                              |
+| Cleanup                          | —                                                                                               | —                                                                                                                            | `questions` cargo; `NarratorRail`; `DroppableGateBadge`; dead factor edges; response-path CTAs |
 
 ---
 
@@ -365,7 +390,7 @@ _Inbound links (doc-gate ≥1 each, added on the same apply-phase PR):_ `process
 2. **Highlight vs filter default per surface** — confirm the per-surface Filter/Highlight/None set and the default (lean: highlight-default everywhere).
 3. **`CausalLink` edge authoring gesture** — "promote a band factor onto a cause" creates a `CausalLink`, or routes through capture-as-Finding? (lean: a `CausalLink` with `findingIds` so the sign still lives on a Finding — single source of truth.)
 4. **Scope desync across the 3 satellite popouts** — adopt JMP's "selection changed" nudge + Reset + a serializable scope predicate (lean: yes).
-5. **Re-evaluate cascade depth** — V1 re-scores only the targeted hypothesis (§4.5); confirm the full replace-re-evaluate cascade stays a named follow-up.
+5. **Re-evaluate cascade depth** — V1 has the analyst re-test the targeted hypothesis on re-ingest (§4.5, analyst-owned status); confirm the full replace-re-evaluate cascade across all scopes/conditions stays a named follow-up.
 
 ---
 
@@ -374,7 +399,7 @@ _Inbound links (doc-gate ≥1 each, added on the same apply-phase PR):_ `process
 - **Connective spine:** from a Process step, see its **findings** in the badges → click a hypothesis badge → land in Analyze **with that hypothesis focused**. End-to-end, both apps.
 - **Shared scope:** set a scope on Explore → Process + Analyze **highlight** the same subset without reflow; switch active IP → drill state **resets** (no bleed).
 - **Factor↔cause edge:** a `CausalLink` with `hypothesisId` renders as a **drawn, signed edge** on the Analyze canvas; `CanvasWallOverlay`/`LocalMechanismView` overlay is gone.
-- **Measure⇄Analyze:** add data for a hypothesis's Measurement Plan → re-ingest → the auto-linked Finding **re-scores that hypothesis** (status advances), not just the plan.
+- **Measure⇄Analyze:** add data for a hypothesis's Measurement Plan → re-ingest → the tool **prompts** "needed factor arrived — link it?"; the analyst runs the stat test, makes the support/counts-against call, and **sets** the status. No auto-bump; no source-less "data arrived" Finding.
 - **Parity:** the PWA analysis surfaces (Evidence Map, click-to-Explore, disconfirmation, ScopeRail) match Azure; only collaboration/CoScout/cloud/audit differ.
 - **Laptop:** every layout verified on a 13–15″ viewport with `--chrome`; no scrunch/scrollbars; ≤3 co-visible surfaces.
 - **Cleanup:** grep confirms `questions` cargo / `NarratorRail` / `DroppableGateBadge` / response-path CTAs are gone; ADR-086 no longer claims an un-built state.
@@ -385,11 +410,11 @@ _Inbound links (doc-gate ≥1 each, added on the same apply-phase PR):_ `process
 
 ## §14 · Delivery sequencing (high level — master plan to follow)
 
-Phased so the quick wins ship before the one big rock:
+**Model B — the reasoning canvas — is the destination, not an optional "big rock."** The owner's bar: it is **designed _and fully implemented_ before VariScout is shown to potential customers.** Phases 1 + 3 are its runway; Phase 2 is the bar.
 
-1. **Phase 1 (ship value, lower risk):** Model A shared-scope spine + chip + highlight + IP-scope fix · the connective-spine wires (findings-on-step, focus-on-arrival, origin stepId, Finding→Action + lineage) · the PWA parity fixes · the §7.2 orphan cleanup + §7.3 response-path retirement.
-2. **Phase 2 (the big rock — Opus-grade):** Model B reasoning canvas — bipartite `CausalLink` edges, domain-weighted Focus lens, retire the `CanvasWallOverlay`/`LocalMechanismView` glue, reconcile the 3 representations + the §7.1 ADR-086 finish.
-3. **Phase 3 (parallelizable):** framing-on-load refinement (surgical) · the Measure⇄Analyze hypothesis re-score · the holistic doc propagation (§10) per-PR.
+1. **Phase 1 — clear the ground + lay the spine (runway):** the §7.2 orphan cleanup + §7.3 response-path retirement + the §7.1 ADR-086 "superseded"-retraction (build Model B on cleared ground, not on the glue); Model A shared-scope spine + chip + highlight + IP-scope fix; the connective-spine wires (findings-on-step incl. the step `FindingSource`, focus-on-arrival, origin `stepId`, Finding→Action + lineage); the PWA parity fixes.
+2. **Phase 2 — Model B, the reasoning canvas, built to completion (the centerpiece, Opus-grade):** the bipartite `CausalLink` factor↔cause edges + the best-subsets factor projection (§4.0/§4.3); **the analytical flow** — the per-factor stat triad (boxplot / regression / Cp-Cpk) summoned onto a focused hypothesis → see-the-chart → explicit call → typed Finding; **the de-automated scoring** (analyst-owned 5-state status + the soft-suggestion chip; auto-link → confirm prompt; cluster-grouping without ranking; `'confirmed' → 'evidence-survived-test'`); **CoScout as the interpretation partner**; domain-weighted Focus lens + minimap; retire the `CanvasWallOverlay` / `LocalMechanismView` glue. **This is the bar to hit before customer demos.**
+3. **Phase 3 (parallelizable):** framing-on-load refinement (surgical) · the holistic doc propagation (§10) per-PR.
 4. **Follow-up (separate spec):** the process-as-operations extraction (§9).
 
 Promoted via `superpowers:writing-plans` → a master plan at PR granularity → per-PR sub-plans (`feedback_master_plan_for_multi_subsystem_specs`); subagent-driven-development; each PR amends its nearest docs in-PR.
