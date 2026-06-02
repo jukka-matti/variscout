@@ -63,6 +63,7 @@ import type { ColumnTypeMap } from '@variscout/core/findings';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { detectColumns } from '@variscout/core/parser';
+import { deriveProcessSteps } from '@variscout/core/frame';
 import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -113,6 +114,17 @@ interface AnalyzeWorkspaceProps {
   handleNavigateToChart: UseFindingsOrchestrationReturn['handleNavigateToChart'];
   handleShareFinding: UseFindingsOrchestrationReturn['handleShareFinding'];
   drillPath: UseFindingsOrchestrationReturn['drillPath'];
+  /**
+   * PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
+   * tracker. Provided only when an active IP exists; FindingCard hides the
+   * promote button once the source action carries `parentImprovementProjectId`.
+   */
+  onPromoteFindingAction?: (findingId: string, actionId: string) => void;
+  /**
+   * PR-CS-6 Edge 2: two-way toggle pinning a finding to the active project's
+   * investigation lineage. Provided only when an active IP exists.
+   */
+  onToggleProjectLineage?: (findingId: string) => void;
   // Comments
   handleAddCommentWithAuthor: (
     findingId: string,
@@ -171,6 +183,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   handleSetFindingStatus,
   handleNavigateToChart,
   handleShareFinding,
+  onPromoteFindingAction,
+  onToggleProjectLineage,
   // IM-1: drillPath no longer consumed (drillFactors derivation removed); kept on
   // the props interface for API stability + the call site that still passes it.
   drillPath: _drillPath,
@@ -741,6 +755,19 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         : findingsState.findings,
     [activeIPScope, scopedFindingIds, findingsState.findings]
   );
+
+  // PR-CS-6 Edge 4: resolve each finding's `originStepId` to its ProcessMap step
+  // name (FindingCard stays pure). Suppressed silently for findings whose step no
+  // longer resolves (non-durable across map re-derivation — ADR-087 caveat).
+  const originStepNameByFindingId = useMemo(() => {
+    const stepNameById = new Map(deriveProcessSteps(processMap).map(s => [s.id, s.name]));
+    const out = new Map<string, string>();
+    for (const f of scopedWallFindings) {
+      const name = f.originStepId ? stepNameById.get(f.originStepId) : undefined;
+      if (name) out.set(f.id, name);
+    }
+    return out;
+  }, [processMap, scopedWallFindings]);
 
   // Phase 13 — pan-to-node: center the viewport on a hub by id. IM-4c: consumes
   // the SHARED computeWallLayout authority with the SAME inputs WallCanvas + the
@@ -1348,6 +1375,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onAddAction={findingsState.addAction}
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}
+                onPromoteAction={onPromoteFindingAction}
+                onToggleProjectLineage={onToggleProjectLineage}
+                projectLineageFindingIds={scopedFindingIds}
+                originStepNameByFindingId={originStepNameByFindingId}
                 onSetOutcome={findingsState.setOutcome}
                 onShareFinding={handleShareFinding}
                 onNavigateToChart={handleNavigateToChart}

@@ -60,10 +60,14 @@ import {
   useViewStore,
   useProjectMembershipStore,
   useAnalysisScopeStore,
+  useImprovementProjectStore,
   hydrateDocumentSnapshot,
   reconstructProcessHubFromDocumentSnapshot,
   type DocumentSnapshotVrsFile,
 } from '@variscout/stores';
+import { createProjectActionItem } from '@variscout/core/findings';
+import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
+import { toggleLineageFinding } from '@variscout/core/improvementProject';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
@@ -819,6 +823,58 @@ function AppMain() {
       activeIPContext.isIPScoped ? { ...findingsState, findings: scopedFindings } : findingsState,
     [activeIPContext.isIPScoped, findingsState, scopedFindings]
   );
+
+  // PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
+  // tracker (`IP.metadata.actions`) via ACTION_ITEM_ADD, then stamp the source so
+  // the promote button hides (re-promotion guard). COPY — Report keeps reading
+  // `finding.actions`; the tracker is a separate collection (no double-count).
+  const upsertProject = useImprovementProjectStore(s => s.upsertProject);
+  const handlePromoteFindingAction = useCallback(
+    (findingId: string, actionId: string) => {
+      const activeIP = activeIPContext.activeIP;
+      if (!activeIP) return;
+      const source = findingsState.findings
+        .find(f => f.id === findingId)
+        ?.actions?.find(a => a.id === actionId);
+      if (!source || source.parentImprovementProjectId) return;
+      const projectAction = createProjectActionItem({
+        text: source.text,
+        parentImprovementProjectId: activeIP.id,
+      });
+      const enriched = {
+        ...projectAction,
+        ...(source.dueAt != null ? { dueAt: source.dueAt } : {}),
+        ...(source.assignedTo != null ? { assignedTo: source.assignedTo } : {}),
+        ...(source.stepId != null ? { stepId: source.stepId } : {}),
+      };
+      const action: ActionItemAction = {
+        kind: 'ACTION_ITEM_ADD',
+        hubId: activeIP.hubId,
+        actionItem: enriched,
+      };
+      const nextActions = reduceActionItems(activeIP.metadata.actions ?? [], action);
+      upsertProject({
+        ...activeIP,
+        metadata: { ...activeIP.metadata, actions: nextActions },
+      });
+      findingsState.promoteAction(findingId, actionId, activeIP.id);
+    },
+    [activeIPContext.activeIP, findingsState, upsertProject]
+  );
+
+  // PR-CS-6 Edge 2: two-way toggle pinning a finding to the active project's
+  // investigation lineage (`sections.investigationLineage.findingIds`). Merges
+  // the `findingIds` array only (preserves `hypothesisIds`) + stamps `updatedAt`.
+  // PWA is session-only (.vrs) so the in-memory store write is the durable path.
+  const handleToggleProjectLineage = useCallback(
+    (findingId: string) => {
+      const activeIP = activeIPContext.activeIP;
+      if (!activeIP) return;
+      upsertProject(toggleLineageFinding(activeIP, findingId));
+    },
+    [activeIPContext.activeIP, upsertProject]
+  );
+
   // ── Measurement plan callbacks for WallCanvas planningProps ─────────────
   // PWA uses 'analyst@local' as the single-user identity (no auth).
   const PWA_WALL_USER_ID = 'analyst@local';
@@ -1305,6 +1361,12 @@ function AppMain() {
                 findingsState={scopedFindingsState}
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={investigation.handleSetFindingStatus}
+                onPromoteFindingAction={
+                  activeIPContext.activeIP ? handlePromoteFindingAction : undefined
+                }
+                onToggleProjectLineage={
+                  activeIPContext.activeIP ? handleToggleProjectLineage : undefined
+                }
                 drillPath={drillPath}
                 columnAliases={columnAliases}
                 resolvedMode={resolved}

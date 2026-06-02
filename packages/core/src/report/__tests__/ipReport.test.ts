@@ -166,6 +166,29 @@ describe('selectIPReportScope', () => {
     expect(scope.controlRecord?.id).toBe('sus-1');
     expect(scope.controlHandoff?.id).toBe('handoff-1');
   });
+
+  it('PR-CS-6 Edge 2: unions explicit lineage findingIds with hypothesis-derived findings (deduped)', () => {
+    // `find-lineage` is pinned via investigationLineage only (no hypothesis);
+    // `find-1` is reached via the scoped hypothesis only. Both must surface.
+    const ip = project({
+      sections: {
+        background: {},
+        investigationLineage: { hypothesisIds: ['hyp-1'], findingIds: ['find-lineage'] },
+        approach: {},
+        outcomeReference: {},
+      },
+    });
+    const scope = selectIPReportScope({
+      ip,
+      hypotheses: [hypothesis()], // hyp-1 → findingIds: ['find-1']
+      findings: [finding(), finding({ id: 'find-lineage' }), finding({ id: 'find-unrelated' })],
+    });
+
+    const ids = scope.findings.map(f => f.id).sort();
+    expect(ids).toEqual(['find-1', 'find-lineage']);
+    // Unrelated finding (neither pinned nor hypothesis-linked) is excluded.
+    expect(ids).not.toContain('find-unrelated');
+  });
 });
 
 describe('deriveIPReportNarrative', () => {

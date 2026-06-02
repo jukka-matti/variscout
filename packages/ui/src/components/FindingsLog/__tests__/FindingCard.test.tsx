@@ -2,7 +2,7 @@
  * Tests for the FindingCard window-context footer (multi-level SCOUT V1).
  */
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import FindingCard from '../FindingCard';
 import type { Finding } from '@variscout/core';
 
@@ -64,5 +64,118 @@ describe('FindingCard window-context footer', () => {
     render(<FindingCard finding={finding} {...noopHandlers} />);
 
     expect(screen.queryByTestId('finding-window-footer')).toBeNull();
+  });
+});
+
+describe('FindingCard — PR-CS-6 Edge 1 promote action', () => {
+  const analyzedFinding = (actionOverrides: Record<string, unknown> = {}) =>
+    makeFinding({
+      status: 'analyzed',
+      statusChangedAt: Date.now(),
+      actions: [
+        {
+          id: 'a-1',
+          text: 'Recalibrate gauge',
+          createdAt: 1000,
+          deletedAt: null,
+          ...actionOverrides,
+        },
+      ],
+    } as Partial<Finding>);
+
+  it('shows the promote button and fires onPromoteAction when not yet promoted', () => {
+    const onPromoteAction = vi.fn();
+    render(
+      <FindingCard
+        finding={analyzedFinding()}
+        {...noopHandlers}
+        onAddAction={vi.fn()}
+        onPromoteAction={onPromoteAction}
+      />
+    );
+
+    const btn = screen.getByTestId('promote-action-btn');
+    fireEvent.click(btn);
+    expect(onPromoteAction).toHaveBeenCalledWith('f-window-1', 'a-1');
+  });
+
+  it('hides the promote button once the action carries parentImprovementProjectId', () => {
+    render(
+      <FindingCard
+        finding={analyzedFinding({ parentImprovementProjectId: 'ip-7' })}
+        {...noopHandlers}
+        onAddAction={vi.fn()}
+        onPromoteAction={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByTestId('promote-action-btn')).toBeNull();
+    expect(screen.getByTestId('action-promoted-marker')).toBeDefined();
+  });
+
+  it('does not show the promote button when onPromoteAction is absent (no active IP)', () => {
+    render(<FindingCard finding={analyzedFinding()} {...noopHandlers} onAddAction={vi.fn()} />);
+
+    expect(screen.queryByTestId('promote-action-btn')).toBeNull();
+  });
+});
+
+describe('FindingCard — PR-CS-6 Edge 2 project-lineage toggle', () => {
+  it('renders the toggle and fires onToggleProjectLineage on click', () => {
+    const onToggleProjectLineage = vi.fn();
+    render(
+      <FindingCard
+        finding={makeFinding()}
+        {...noopHandlers}
+        onToggleProjectLineage={onToggleProjectLineage}
+        isInProjectLineage={false}
+      />
+    );
+
+    const btn = screen.getByTestId('toggle-lineage-btn');
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(btn);
+    expect(onToggleProjectLineage).toHaveBeenCalledWith('f-window-1');
+  });
+
+  it('reflects pressed state when the finding is already in the lineage', () => {
+    render(
+      <FindingCard
+        finding={makeFinding()}
+        {...noopHandlers}
+        onToggleProjectLineage={vi.fn()}
+        isInProjectLineage
+      />
+    );
+
+    expect(screen.getByTestId('toggle-lineage-btn').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('hides the toggle when onToggleProjectLineage is absent (no active IP)', () => {
+    render(<FindingCard finding={makeFinding()} {...noopHandlers} />);
+
+    expect(screen.queryByTestId('toggle-lineage-btn')).toBeNull();
+  });
+});
+
+describe('FindingCard — PR-CS-6 Edge 4 origin-step breadcrumb', () => {
+  it('renders the "from {step}" breadcrumb with the resolved step name', () => {
+    render(
+      <FindingCard
+        finding={makeFinding({ originStepId: 'step-fill-1' })}
+        {...noopHandlers}
+        originStepName="Filling"
+      />
+    );
+
+    const crumb = screen.getByTestId('finding-origin-step');
+    expect(crumb.textContent).toContain('from Filling');
+  });
+
+  it('does not render the breadcrumb when no resolved name is passed (unresolved step)', () => {
+    // originStepId present but the app wrapper could not resolve it → no prop.
+    render(<FindingCard finding={makeFinding({ originStepId: 'step-gone' })} {...noopHandlers} />);
+
+    expect(screen.queryByTestId('finding-origin-step')).toBeNull();
   });
 });

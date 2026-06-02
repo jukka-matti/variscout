@@ -126,6 +126,13 @@ export interface UseFindingsReturn {
   toggleActionComplete: (id: string, actionId: string) => void;
   /** Delete an action item */
   deleteAction: (id: string, actionId: string) => void;
+  /**
+   * Stamp a finding-level action's `parentImprovementProjectId` so it is marked
+   * as promoted to the project action tracker (PR-CS-6 Edge 1 re-promotion guard).
+   * COPY semantics: the action stays on the finding (Report still reads it); this
+   * only records that a project-tracker copy was made so the promote button hides.
+   */
+  promoteAction: (id: string, actionId: string, projectId: string) => void;
   /** Set outcome assessment */
   setOutcome: (id: string, outcome: FindingOutcome) => void;
   /** Mark a finding as the project benchmark (clears previous benchmark) */
@@ -569,6 +576,26 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
+  const promoteAction = useCallback(
+    (id: string, actionId: string, projectId: string) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === id
+            ? {
+                ...f,
+                actions: f.actions?.map(a =>
+                  a.id === actionId ? { ...a, parentImprovementProjectId: projectId } : a
+                ),
+              }
+            : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
   const setOutcome = useCallback(
     (id: string, outcome: FindingOutcome) => {
       setFindings(prev => {
@@ -672,6 +699,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     completeAction,
     toggleActionComplete,
     deleteAction,
+    promoteAction,
     setOutcome,
     setBenchmark,
     clearBenchmark,

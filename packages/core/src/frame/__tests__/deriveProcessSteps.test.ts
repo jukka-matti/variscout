@@ -21,6 +21,13 @@ describe('deriveProcessSteps', () => {
     expect(deriveProcessSteps(mapWith([]))).toEqual([]);
   });
 
+  it('returns [] for a degenerate map whose nodes array is missing (does not throw)', () => {
+    // A partial / in-construction ProcessMap may lack `nodes` entirely.
+    expect(deriveProcessSteps({} as unknown as Parameters<typeof deriveProcessSteps>[0])).toEqual(
+      []
+    );
+  });
+
   it('projects nodes down to { id, name, order } only', () => {
     const map = mapWith([
       {

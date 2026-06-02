@@ -176,10 +176,6 @@ const ReportView: React.FC<ReportViewProps> = ({
     () => new Set(activeIPLineage?.hypothesisIds ?? []),
     [activeIPLineage]
   );
-  const reportFindings = useMemo(
-    () => (activeIPScope ? findings.filter(finding => scopedFindingIds.has(finding.id)) : findings),
-    [activeIPScope, findings, scopedFindingIds]
-  );
   const reportHypotheses = useMemo(
     () =>
       activeIPScope
@@ -187,6 +183,19 @@ const ReportView: React.FC<ReportViewProps> = ({
         : hypotheses,
     [activeIPScope, hypotheses, scopedHypothesisIds]
   );
+  // PR-CS-6 Edge 2: surface findings reached BOTH via the explicit
+  // `investigationLineage.findingIds` (the pin gesture) AND via the
+  // hypothesis-derived projection (findings attached to scoped hypotheses).
+  // Union, deduped by id (each finding appears at most once in `findings`).
+  const reportFindings = useMemo(() => {
+    if (!activeIPScope) return findings;
+    const unionIds = new Set(scopedFindingIds);
+    for (const hypothesis of reportHypotheses) {
+      for (const id of hypothesis.findingIds) unionIds.add(id);
+      for (const id of hypothesis.counterFindingIds ?? []) unionIds.add(id);
+    }
+    return findings.filter(finding => unionIds.has(finding.id));
+  }, [activeIPScope, findings, scopedFindingIds, reportHypotheses]);
   const activeIP = activeIPScope ? (providedActiveIP ?? null) : null;
   const ipReportScope = useMemo(
     () =>

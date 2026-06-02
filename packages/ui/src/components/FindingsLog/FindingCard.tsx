@@ -3,6 +3,9 @@ import {
   Activity,
   BarChart3,
   Layers,
+  Link2,
+  Link2Off,
+  MapPin,
   MessageCircle,
   Pencil,
   Share2,
@@ -77,6 +80,28 @@ export interface FindingCardProps {
   onCompleteAction?: (id: string, actionId: string) => void;
   /** Callback to delete an action item */
   onDeleteAction?: (id: string, actionId: string) => void;
+  /**
+   * Callback to COPY a finding-level action into the active project's action
+   * tracker (PR-CS-6 Edge 1). Hidden by ActionItemsSection unless provided AND
+   * the action has no `parentImprovementProjectId` yet (re-promotion guard).
+   */
+  onPromoteAction?: (findingId: string, actionId: string) => void;
+  /**
+   * PR-CS-6 Edge 2: two-way toggle pinning this finding to the active project's
+   * investigation lineage. Hidden unless provided (no active IP). Pairs with
+   * `isInProjectLineage` to render the add/remove state.
+   */
+  onToggleProjectLineage?: (findingId: string) => void;
+  /** Whether this finding is already pinned to the active project's lineage (PR-CS-6 Edge 2). */
+  isInProjectLineage?: boolean;
+  /**
+   * PR-CS-6 Edge 4: resolved name of the ProcessMap step this finding was
+   * captured from (`Finding.originStepId` → step name). The app wrapper resolves
+   * the id against the current ProcessMap and passes the name; FindingCard stays
+   * pure. Omitted (silently) when the step no longer resolves (non-durable across
+   * map re-derivation).
+   */
+  originStepName?: string;
   /** Projected Cpk from the linked improvement idea (for projected vs actual comparison) */
   projectedCpk?: number;
   /** Callback to set outcome */
@@ -154,6 +179,10 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAddAction,
   onCompleteAction,
   onDeleteAction,
+  onPromoteAction,
+  onToggleProjectLineage,
+  isInProjectLineage = false,
+  originStepName,
   projectedCpk,
   onSetOutcome,
   onProjectImprovement,
@@ -218,6 +247,16 @@ const FindingCard: React.FC<FindingCardProps> = ({
                         : (finding.source as { category: string }).category}
                 </span>
               </button>
+            )}
+            {originStepName && (
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-surface-tertiary/50 text-[0.625rem] text-content-muted rounded"
+                title={`Captured from step: ${originStepName}`}
+                data-testid="finding-origin-step"
+              >
+                <MapPin size={9} />
+                <span>from {originStepName}</span>
+              </span>
             )}
             {filterEntries.map(([factor, values]) => {
               const label = columnAliases[factor] || factor;
@@ -293,6 +332,33 @@ const FindingCard: React.FC<FindingCardProps> = ({
               </p>
             )}
             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 touch-show transition-opacity flex-shrink-0">
+              {onToggleProjectLineage && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onToggleProjectLineage(finding.id);
+                  }}
+                  className={`p-1 rounded transition-colors ${
+                    isInProjectLineage
+                      ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-400/10'
+                      : 'text-content-muted hover:text-blue-400 hover:bg-blue-400/10'
+                  }`}
+                  title={
+                    isInProjectLineage
+                      ? 'Unpin from project lineage'
+                      : 'Pin to project investigation lineage'
+                  }
+                  aria-label={
+                    isInProjectLineage
+                      ? 'Unpin finding from project lineage'
+                      : 'Pin finding to project lineage'
+                  }
+                  aria-pressed={isInProjectLineage}
+                  data-testid="toggle-lineage-btn"
+                >
+                  {isInProjectLineage ? <Link2Off size={12} /> : <Link2 size={12} />}
+                </button>
+              )}
               {onAssign && (
                 <button
                   onClick={e => {
@@ -410,6 +476,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             onAddAction={onAddAction}
             onCompleteAction={onCompleteAction}
             onDeleteAction={onDeleteAction}
+            onPromoteAction={onPromoteAction}
             onAskCoScout={onAskCoScoutQuestion}
             readOnly={status === 'resolved'}
             renderActionAssigneePicker={renderActionAssigneePicker}

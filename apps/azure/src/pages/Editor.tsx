@@ -86,7 +86,7 @@ import type { SurveyRecommendation } from '@variscout/core/survey';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { createProjectActionItem, type BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
-import { createNewIP } from '@variscout/core/improvementProject';
+import { createNewIP, toggleLineageFinding } from '@variscout/core/improvementProject';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
@@ -1312,6 +1312,61 @@ export const Editor: React.FC<EditorProps> = ({
       activeIPContext.isIPScoped ? { ...findingsState, findings: scopedFindings } : findingsState,
     [activeIPContext.isIPScoped, findingsState, scopedFindings]
   );
+
+  // PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
+  // tracker (`IP.metadata.actions`) via the existing ACTION_ITEM_ADD dispatch.
+  // The source finding action is stamped with `parentImprovementProjectId` so the
+  // promote affordance hides afterward (re-promotion guard). Report keeps reading
+  // `finding.actions`, so there is NO double-count — the tracker is a separate
+  // collection. Only available when an active IP exists.
+  const handlePromoteFindingAction = useCallback(
+    (findingId: string, actionId: string) => {
+      if (!activeIP) return;
+      const source = findingsState.findings
+        .find(f => f.id === findingId)
+        ?.actions?.find(a => a.id === actionId);
+      if (!source || source.parentImprovementProjectId) return;
+      const projectAction = createProjectActionItem({
+        text: source.text,
+        parentImprovementProjectId: activeIP.id,
+      });
+      // Carry the origin breadcrumb (dueAt / assignee / stepId) onto the tracker copy.
+      const enriched = {
+        ...projectAction,
+        ...(source.dueAt != null ? { dueAt: source.dueAt } : {}),
+        ...(source.assignedTo != null ? { assignedTo: source.assignedTo } : {}),
+        ...(source.stepId != null ? { stepId: source.stepId } : {}),
+      };
+      applyAction({ kind: 'ACTION_ITEM_ADD', hubId: activeIP.hubId, actionItem: enriched });
+      // Stamp the source so the promote button disappears (re-promotion guard).
+      findingsState.promoteAction(findingId, actionId, activeIP.id);
+    },
+    [activeIP, applyAction, findingsState]
+  );
+
+  // PR-CS-6 Edge 2: two-way toggle pinning a finding to the active project's
+  // investigation lineage (`sections.investigationLineage.findingIds`). Merges
+  // the `findingIds` array only (preserves `hypothesisIds`) + stamps `updatedAt`.
+  // Ungated analysis write (Member + Lead edit; Sponsor read-only) — same
+  // `canAccess` boundary as Charter writes, enforced upstream by `canEditCharter`.
+  const handleToggleProjectLineage = useCallback(
+    (findingId: string) => {
+      if (!activeIP) return;
+      const nextIP = toggleLineageFinding(activeIP, findingId);
+      upsertProject(nextIP);
+      const { findingIds, updatedAt } = nextIP.sections.investigationLineage;
+      void azureHubRepository
+        .dispatch({
+          kind: 'IMPROVEMENT_PROJECT_UPDATE',
+          projectId: activeIP.id,
+          patch: { sections: { investigationLineage: { findingIds, updatedAt } } },
+        })
+        .catch((error: unknown) => {
+          console.error('[lineage] Failed to persist investigation-lineage toggle', error);
+        });
+    },
+    [activeIP, upsertProject]
+  );
   const activeIPAnalyzeFactorRequest = useMemo(
     () =>
       activeIPContext.isIPScoped && activeIPScopeLabels?.factorLabels[0]
@@ -1977,6 +2032,8 @@ export const Editor: React.FC<EditorProps> = ({
                 handleSetFindingStatus={handleSetFindingStatus}
                 handleNavigateToChart={handleNavigateToChart}
                 handleShareFinding={handleShareFinding}
+                onPromoteFindingAction={activeIP ? handlePromoteFindingAction : undefined}
+                onToggleProjectLineage={activeIP ? handleToggleProjectLineage : undefined}
                 drillPath={drillPath}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
                 handleAddPhoto={handleAddPhoto}

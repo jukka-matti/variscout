@@ -64,6 +64,18 @@ export interface FindingsLogProps {
   onCompleteAction?: (id: string, actionId: string) => void;
   /** Delete an action item */
   onDeleteAction?: (id: string, actionId: string) => void;
+  /** Copy a finding-level action into the active project's action tracker (PR-CS-6 Edge 1) */
+  onPromoteAction?: (findingId: string, actionId: string) => void;
+  /** Two-way toggle pinning a finding to the active project's lineage (PR-CS-6 Edge 2) */
+  onToggleProjectLineage?: (findingId: string) => void;
+  /** Ids of findings currently in the active project's investigation lineage (PR-CS-6 Edge 2) */
+  projectLineageFindingIds?: ReadonlySet<string>;
+  /**
+   * PR-CS-6 Edge 4: resolved origin-step name per finding id (`Finding.originStepId`
+   * → ProcessMap step name). The app wrapper resolves; FindingCard renders the
+   * "from {step}" breadcrumb. Findings whose step no longer resolves are absent.
+   */
+  originStepNameByFindingId?: ReadonlyMap<string, string>;
   /** Set outcome assessment */
   onSetOutcome?: (
     id: string,
@@ -124,6 +136,10 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onAddAction,
   onCompleteAction,
   onDeleteAction,
+  onPromoteAction,
+  onToggleProjectLineage,
+  projectLineageFindingIds,
+  originStepNameByFindingId,
   onSetOutcome,
   onProjectImprovement,
   hasSpecs,
@@ -179,6 +195,10 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onAddAction={onAddAction}
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
+          onPromoteAction={onPromoteAction}
+          onToggleProjectLineage={onToggleProjectLineage}
+          projectLineageFindingIds={projectLineageFindingIds}
+          originStepNameByFindingId={originStepNameByFindingId}
           onSetOutcome={onSetOutcome}
           voiceInput={voiceInput}
         />
@@ -222,6 +242,10 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
             onAddAction={onAddAction}
             onCompleteAction={onCompleteAction}
             onDeleteAction={onDeleteAction}
+            onPromoteAction={onPromoteAction}
+            onToggleProjectLineage={onToggleProjectLineage}
+            isInProjectLineage={projectLineageFindingIds?.has(finding.id) ?? false}
+            originStepName={originStepNameByFindingId?.get(finding.id)}
             onSetOutcome={onSetOutcome}
             onProjectImprovement={onProjectImprovement}
             hasSpecs={hasSpecs}
