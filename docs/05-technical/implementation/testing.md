@@ -297,7 +297,6 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `PasteScreen`           | ✅     | Paste input, parseText integration, column mapping                             |
 | `easyAuth`              | ✅     | Mock user on localhost, AuthError codes, proactive token refresh, login/logout |
 | `storage`               | ✅     | Offline-first storage, IndexedDB operations                                    |
-| `PresentationView`      | ✅     | Full-screen chart grid, focused chart navigation                               |
 | `SyncToast`             | ✅     | Toast notifications, auto-dismiss, action buttons                              |
 | `aiService`             | ✅     | Structured output parsing, Responses API endpoint format (mocked)              |
 | `useAICoScout`          | ✅     | `streamResponsesWithToolLoop` with tool handler injection, tool dispatch       |
@@ -686,7 +685,6 @@ apps/azure/
 │   │   ├── FilterBreadcrumb.test.tsx
 │   │   ├── (removed: FactorManagerPopover — replaced by ColumnMapping re-edit)
 │   │   ├── PasteScreen.test.tsx
-│   │   ├── PresentationView.test.tsx
 │   │   └── SyncToast.test.tsx
 │   ├── components/settings/__tests__/
 │   │   └── SettingsPanel.test.tsx
@@ -988,7 +986,7 @@ Note: `data-flow` uses `useReducer` (not Zustand) — hook testing is a separate
 
 - ChartAnnotationLayer, CreateFactorModal, SpecsPopover, FocusedChartViewBase
 - PasteScreen (both apps), PerformanceSetupPanel
-- PresentationView, SettingsPanel, SelectionPanel
+- SettingsPanel, SelectionPanel
 
 ### P3 — Performance Chart Tests (~half day)
 
