@@ -46,6 +46,14 @@ Investigation diamond state diagram for the Investigate phase — hypothesis dia
 
 The canonical Analyze-tab spine: scope-first drill → Finding → `ProblemStatementScope` (WHERE) → Hypotheses (WHY) → evaluate → What-If → Improve, with the first-class entity model (ADR-085/086/088). **Start here for the current investigation model.**
 
+### [Findings & Hypotheses](findings-hypotheses.md)
+
+The evidence domain beneath the spine — Finding lifecycle + sources, Hypothesis status derivation, CausalLink DAG, ImprovementIdea, ActionItem.
+
+### [Collaboration](collaboration.md)
+
+The team layer — comments / @mentions / attachments, invitations + roster + `collaboratedAt`, active-IP cascade, Azure-vs-PWA split.
+
 ---
 
 ## Core Workflows
