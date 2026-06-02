@@ -254,16 +254,6 @@ const mockInvestigationOverlays: CanvasAnalyzeOverlayModel = {
   byStep: {
     'step-1': {
       stepId: 'step-1',
-      questions: [
-        {
-          id: 'q-1',
-          text: 'Does bake time drive fill weight?',
-          status: 'open',
-          factor: 'Bake_Time',
-          // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
-          focus: { kind: 'question', id: 'q-1' },
-        },
-      ],
       findings: [],
       hypotheses: [],
       causalLinks: [],
@@ -271,7 +261,7 @@ const mockInvestigationOverlays: CanvasAnalyzeOverlayModel = {
     },
   },
   arrows: [],
-  unresolved: { questions: [], findings: [], hypotheses: [], causalLinks: [] },
+  unresolved: { findings: [], hypotheses: [], causalLinks: [] },
 };
 
 vi.mock('@variscout/hooks', () => ({
@@ -511,7 +501,6 @@ vi.mock('@variscout/hooks', () => ({
       eventsPerWeek,
       activeColumns,
       hubs: [],
-      questions: [],
       problemContributionTree: undefined,
     })
   ),

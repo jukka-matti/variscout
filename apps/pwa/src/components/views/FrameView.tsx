@@ -267,9 +267,9 @@ const FrameView: React.FC = () => {
   }, []);
 
   const handleOpenInvestigationFocus = React.useCallback((focus: CanvasAnalyzeFocus) => {
-    // IM-1: focus a hypothesis hub node (the 'question'/'suspected-cause' kinds
-    // both resolve to a hub id now that the Question entity is retired).
-    if (focus.kind === 'question' || focus.kind === 'suspected-cause') {
+    // Focus a hypothesis hub node by its hub id (the Question entity is retired
+    // per ADR-085, so 'suspected-cause' is the only hub-resolving focus kind).
+    if (focus.kind === 'suspected-cause') {
       useAnalyzeFeatureStore.getState().expandToHypothesis(focus.id);
     }
     usePanelsStore.getState().showAnalyze();

@@ -27,7 +27,6 @@ const baseCard: CanvasStepCardModel = {
 
 const detailedOverlay: CanvasStepAnalyzeOverlay = {
   stepId: 'step-1',
-  questions: [],
   findings: [
     {
       id: 'finding-1',
@@ -52,7 +51,6 @@ const detailedOverlay: CanvasStepAnalyzeOverlay = {
 
 const overlayWithPromoted: CanvasStepAnalyzeOverlay = {
   stepId: 'step-1',
-  questions: [],
   findings: [],
   hypotheses: [
     {

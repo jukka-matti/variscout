@@ -273,12 +273,12 @@ vi.mock('@variscout/ui', async () => {
           {
             type: 'button',
             'data-testid': 'overlay-question',
-            // IM-1: CanvasAnalyzeFocus is a discriminated union with `kind` + `id`;
-            // `questionId` shape is retired. Pass kind:'question' so FrameView's
-            // handler branch fires and calls expandToHypothesis(focus.id).
-            onClick: () => props.onOpenInvestigationFocus?.({ kind: 'question', id: 'q-1' }),
+            // CanvasAnalyzeFocus is a discriminated union with `kind` + `id`.
+            // Pass kind:'suspected-cause' so FrameView's handler branch fires and
+            // calls expandToHypothesis(focus.id). (ADR-085: Question entity retired.)
+            onClick: () => props.onOpenInvestigationFocus?.({ kind: 'suspected-cause', id: 'q-1' }),
           },
-          'Overlay question'
+          'Overlay focus'
         ),
         React.createElement(
           'button',
@@ -670,8 +670,8 @@ describe('FrameView (PWA shell)', () => {
   });
 
   it('opens Investigation and expands a hypothesis for overlay focus', () => {
-    // IM-1: Question entity retired. FrameView.handleOpenInvestigationFocus maps
-    // focus.kind === 'question' | 'suspected-cause' to expandToHypothesis(focus.id).
+    // ADR-085: Question entity retired. FrameView.handleOpenInvestigationFocus
+    // maps focus.kind === 'suspected-cause' to expandToHypothesis(focus.id).
     render(<FrameView />);
 
     fireEvent.click(screen.getByTestId('overlay-question'));

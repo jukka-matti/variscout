@@ -231,9 +231,9 @@ vi.mock('@variscout/ui', async () => {
           {
             type: 'button',
             'data-testid': 'overlay-question',
-            onClick: () => props.onOpenInvestigationFocus?.({ kind: 'question', id: 'q-1' }),
+            onClick: () => props.onOpenInvestigationFocus?.({ kind: 'suspected-cause', id: 'q-1' }),
           },
-          'Overlay question'
+          'Overlay focus'
         ),
         React.createElement(
           'button',
