@@ -45,12 +45,13 @@ implements:
 
 ### What this spec resolves
 
-The wedge pivot (2026-05-16) set strategy + nav over ~6 weeks of pre-wedge accreted code; the IM/FE rebuild then rebuilt the investigation core. Neither went surface-by-surface deciding **what each surface _is_ in V1** and **how you move between them**. The result: "is this V1?" keeps recurring, several surfaces are partial old-model answers to an un-designed question, and a unification (ADR-086) was scoped but only partly built. This spec settles four things:
+The wedge pivot (2026-05-16) set strategy + nav over ~6 weeks of pre-wedge accreted code; the IM/FE rebuild then rebuilt the investigation core. Neither went surface-by-surface deciding **what each surface _is_ in V1** and **how you move between them**. The result: "is this V1?" keeps recurring, several surfaces are partial old-model answers to an un-designed question, and a unification (ADR-086) was scoped but only partly built. This spec settles five things:
 
 1. **The V1 boundary** — re-derived from the value prop, not inherited from "what was built minus the explicit cuts" (§2).
-2. **The connective surface model** — how Process, Explore, and Analyze coexist on a **laptop** (§3), and the **where-from / where-to navigation spine** that links every entity across Frame ↔ Explore ↔ Analyze ↔ Improve ↔ Control (§4).
-3. **Framing-on-data-load** — the entry experience, treated surgically because it is V1-core and delicate (§5).
-4. **Parity + cleanup + docs** — PWA↔Azure parity (§6), the partial-implementation debt (§7), and the holistic documentation propagation (§10).
+2. **The Process tab, holistically** — what the surface _is_ as one coherent **orient → dive** design, with the per-step capability view (§2A) — the original "what IS the Process tab?" question, finally answered.
+3. **The connective surface model** — how Process, Explore, and Analyze coexist on a **laptop** (§3), and the **where-from / where-to navigation spine** that links every entity across Frame ↔ Explore ↔ Analyze ↔ Improve ↔ Control (§4).
+4. **Framing-on-data-load** — the entry experience, treated surgically because it is V1-core and delicate (§5).
+5. **Parity + cleanup + docs** — PWA↔Azure parity (§6), the partial-implementation debt (§7), and the holistic documentation propagation (§10).
 
 ### Grounding method + the over-classification guard
 
@@ -100,6 +101,74 @@ So the only thing lost on un-mount is the monitoring-queue UI — which is named
 ### §2.3 · This spec records the decision; the follow-up executes it
 
 Analysis does not _depend_ on the cadence loop (read-only, §2.2) — but the cadence _UI_ is **code-fused** with three things V1 keeps: the Control region (`ProcessHubControlRegion`, nested in `ProcessHubCadenceQueues`), Survey/Inbox (`InboxDigest`), and the click-to-Explore chip wiring. So un-mounting is safe in principle yet requires **surgical disentanglement**, not a simple delete — its own holistic design (§9). **This spec declares the boundary** (so the Process tab is designable as "the map"); **the follow-up performs the surgical extraction.** Decision 0 + the follow-up are logged in `decision-log.md` and `investigations.md` (§10).
+
+---
+
+## §2A · The Process tab — holistic V1 design
+
+Decision 0 settled the Process tab's _identity_ (the map + framing); this section designs it as **one coherent surface**, finally answering "what IS the Process tab, holistically." Grounded by a complete mount-tree inventory (the Capability tab and band-structure were previously un-examined).
+
+### §2A.1 · The job — orient → dive (each level answers one question)
+
+The Process tab is **not a passive map** and **not** a copy of Explore. Its job is to **frame the investigation, orient (is there a problem · where), and launch the dive:**
+
+```
+FRAME (set up the map + connect columns) → L1 "are we capable?" → L2 "which step?" → drill a step → EXPLORE (the data) ⟷ ANALYZE (the causes)
+```
+
+- **L1 — "are we capable?"** the framed outcome vs target (Cpk vs target) — _is there a problem?_ First-class (the entry to the whole loop), not just a header pill.
+- **L2 — "which step is the problem?"** the per-step view (§2A.3) — _where?_
+- **drill → Explore** — the deep dive on that step's data; the Process tab _orients_, Explore _dives_. Clean handoff: which-step → its-data → its-causes.
+
+**Spatial spine:** the **8f canvas L1/L2/L3 zoom** (Outcome → Process-flow → Local-mechanism) is the V1 spatial model. The "**3-band Layered Process View**" was **never built as a component** (grep-confirmed) — retire the term; do not resurrect a band concept.
+
+### §2A.2 · "Which step is the problem?" — two honestly-different axes, no leaderboard
+
+Same question, **two distinct concepts** — never conflated (the grounding confirmed they are separate analyses over a shared step spine):
+
+| Axis                                     | What it is                                                                                                                             | Rankable?                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **Cycle-time bottleneck**                | a _flow constraint_ — the slowest/lowest-throughput step caps the line (Theory of Constraints; relieve it → the whole flow speeds up). | always (`computeBottleneck` → lowest rate) |
+| **Worst-capability step (weakest link)** | the _least-capable_ step (worst Cpk vs its own spec) — where the quality problem _concentrates_. Not a constraint; it does not "move." | **often not** (see below)                  |
+
+**No ranking leaderboard.** The "which step" answer is **visual**: the per-step **boxplot** (§2A.3) — the worst step's box is visibly wide / off-center / spilling its spec — and the analyst's eye finds it (methodology.md: _"the analyst's eye does the pattern recognition"_). Forcing a Cpk rank fights ADR-073: when a step's contexts resolve to **different specs**, there is deliberately **no single sortable Cpk** (`nodeCapability.ts` leaves the node scalar undefined → show the per-context distribution). What _does_ rank legitimately: **counts** (the existing **step error Pareto** — keep as-is) and **time** (a light "this is the constraint" highlight, not a leaderboard).
+
+### §2A.3 · The per-step view — connected boxplot, Values⇄Capability, own-values harmonized scale
+
+**Connected to the flow, not a separate dashboard.** A per-step boxplot's x-axis _is_ the process steps — so the world-class layout puts the **process flow as the axis**: each step's box sits at/under its node; the worst is visibly loud. The map node carries a **light capability flag** (the at-a-glance pointer); the aligned box carries the **distribution**. For a **branching** map (tributaries), keep map + a capability strip as **two linked views with coordinated highlight** (the Model A linked-panels pattern, _inside_ the Process tab). This replaces the current decoupled Production-Line-Glance 2×2 panel (which re-creates the accretion feel).
+
+**Values ⇄ Capability toggle** (the same toggle as Explore, for consistency):
+
+- **Capability angle** — per-step **Cpk** vs each step's target. Unitless → the only honest _cross-step_ compare.
+- **Values angle** — each step's **own real values** with its **spec/target drawn on the box** (readable: "498 g"). Made cross-step-comparable by **own-values harmonized scaling** (below).
+
+**Own-values harmonized, spec-aware scaling (a distinctive VariScout viz — design principle):** keep each step's **real values** (readable — _not_ pure ±1 normalization, which hides the numbers), but make the y-scale **dynamic and harmonized relative to the others** so heterogeneous units (weight vs temperature) compare: the **spec window is drawn at a common visual height** across steps (the yardstick), so a box _filling and spilling_ its spec reads instantly as "too wide." The **baseline is spec-type-aware** (not "always 0"):
+
+- **Two-sided spec (target ± limits)** → anchor to the **spec window** (0 would compress it to a sliver).
+- **One-sided toward 0 / ratio quality** (impurity, defect rate) → **start at 0**.
+- **Cycle-time** → **always 0** (ratio scale).
+
+The exact tick/scale mechanic is tuned at build and **verified on a 13–15″ viewport with `--chrome`** (laptop rule 12).
+
+### §2A.4 · Heterogeneous per-step data + specs at framing
+
+Each step owns its **own CTQ + its own spec** — the data model is an **array of `ProcessMapNode`** (`frame/types.ts`), never one global measure:
+
+- **`ctqColumn`** per node — the measure, assigned at framing via `canvasStore.setStepCtq` (built).
+- **`capabilityScope.specRules`** — a sparse, **context-indexed** `SpecRule[]` (most-specific-match, `specRuleLookup.ts`); `calculateNodeCapability` computes per-`(node × context-tuple)` Cpk (the anti-aggregation engine — built). Cpk target cascades spec → hub → investigation → 1.33 (`resolveCpkTarget`, built; hub-level `CpkTargetInput` authorable today).
+- **`StepTimingBinding`** per step (paired start/end or duration) for the time axis — built; `computeBottleneck`/`computeOutputRate` already run.
+
+> **Net-new (the gap is authoring + viz, not engines):** the **per-step spec-authoring UI** does not exist (deferred IM-0b-2 — only fixtures populate `specRules`); tributary `contextColumns` authoring is unbuilt; the **cycle-time visualization** is deferred (the engine runs but renders nothing); and **per-step time _specs_ do not exist** (a net-new analog to `capabilityScope` if "Cpk-of-time / cycle-time targets" is wanted). So this section's build is mostly **UI on top of shipped engines**.
+
+### §2A.5 · What V1-core / net-new / sheds
+
+- **V1-core (keep):** the canvas (CanvasWorkspace + L1/L2/L3 + framing/column-connection) · the **per-step capability spatial row** (`CapabilityBoxplot` + `StepErrorPareto`, re-homed as the connected per-step view) · cross-surface badges (§4.2) · outcome pill.
+- **Net-new (UI on shipped engines):** the connected per-step boxplot + harmonized scaling + Values⇄Capability toggle; the per-step **spec-authoring UI**; the **cycle-time viz** (per-step time view + light bottleneck highlight); the L1 "are we capable" first-class element.
+- **Sheds → named-future:** the cadence/Status rollup (`ProcessHubReviewPanel`: Active/Readiness/Verification/Overdue) — a **portfolio dashboard, not a process-map surface** (strengthens Decision 0; the **Status/Capability two-tab collapses**); the empty Capability **temporal row** → hidden (don't ship blank slots, `feedback_hidden_vs_disabled_cta`).
+
+### §2A.6 · Parity
+
+The Process tab + per-step capability are **Azure-only today** (PWA has the canvas but no `ProcessHubView`). Per §6, the per-step capability **comes to PWA** (it is analysis; the learner should transfer). The cadence/Status rollup does not (it's named-future regardless).
 
 ---
 
@@ -287,12 +356,13 @@ Explore's Y/X (`projectStore`) and step-filtering/auto-link (`ProcessMap`) live 
 
 **Parity gaps grounding found (accidental drift — this spec must decide each):**
 
-| Gap                                    | Today                                                                  | Decision                                                                                                                                                                            |
-| -------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PWA Analyze has **no Evidence Map**    | `AnalyzeView.tsx` "Map" toggle renders `FindingsLog`                   | Bring the Evidence Map to PWA Analyze at parity — **Layer 1 (statistical) always**; **Layers 2/3 under the same gate Azure already uses** (not forced on PWA, not Azure-exclusive). |
-| **click-to-Explore is a no-op in PWA** | `onChipExploreJump` undefined in PWA `FrameView`                       | Wire it (mirror the Azure block) — the connective spine (§4.1) requires it in both.                                                                                                 |
-| **disconfirmation omitted from PWA**   | `onRecordDisconfirmation` Azure-only → PWA can't reach top status tier | Wire it in PWA (the Measure⇄Analyze loop and the disconfirmation gate are V1-core, not paid).                                                                                       |
-| **ScopeRail Azure-only**               | multi-scope nav absent in PWA                                          | Bring to PWA (parity) — scope navigation is analysis, not collaboration.                                                                                                            |
+| Gap                                                 | Today                                                                  | Decision                                                                                                                                                                            |
+| --------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PWA Analyze has **no Evidence Map**                 | `AnalyzeView.tsx` "Map" toggle renders `FindingsLog`                   | Bring the Evidence Map to PWA Analyze at parity — **Layer 1 (statistical) always**; **Layers 2/3 under the same gate Azure already uses** (not forced on PWA, not Azure-exclusive). |
+| **click-to-Explore is a no-op in PWA**              | `onChipExploreJump` undefined in PWA `FrameView`                       | Wire it (mirror the Azure block) — the connective spine (§4.1) requires it in both.                                                                                                 |
+| **disconfirmation omitted from PWA**                | `onRecordDisconfirmation` Azure-only → PWA can't reach top status tier | Wire it in PWA (the Measure⇄Analyze loop and the disconfirmation gate are V1-core, not paid).                                                                                       |
+| **ScopeRail Azure-only**                            | multi-scope nav absent in PWA                                          | Bring to PWA (parity) — scope navigation is analysis, not collaboration.                                                                                                            |
+| **Process tab + per-step capability is Azure-only** | PWA has the canvas but no `ProcessHubView`                             | Bring the per-step capability view (§2A) to PWA — it is analysis; the learner should transfer. The cadence/Status rollup does NOT come (named-future).                              |
 
 Each parity fix is **targeted wiring of what Azure already has**, not new design. Where a surface is genuinely Azure-only, the spec states it explicitly (collaboration roster, CoScout panel, signoff) so "Azure-only" is never accidental again.
 
@@ -321,16 +391,17 @@ The 3-CTA canvas-drill "response paths" (wedge §3.3.4) were **superseded by Cli
 
 ## §8 · Net-new vs reused vs deleted
 
-| Area                             | Reused (shipped substrate)                                                                      | Net-new                                                                                                                               | Deleted                                                                                        |
-| -------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Shared scope (Model A)           | `analysisScopeStore`, Process↔Explore bridge                                                    | persistent chip in chrome; highlight coordination; Analyze subscription; IP-scope reset                                               | —                                                                                              |
-| Reasoning canvas (Model B)       | `WallCanvas`, `CausalLink`, Focus lens, `wallLayout`, `ModelBuilderBand`, `ScopeRail`           | Finding-link rendering on the canvas (+ optional CausalLink overlay); domain-weighted DOI; minimap polish; 3-representation reconcile | `CanvasWallOverlay`; `LocalMechanismView` embedded overlay                                     |
-| Analytical flow + scoring (§4.0) | best-subsets model-builder; `deriveHypothesisStatus`; FE-2 evaluate; CoScout                    | analyst-set status + soft-suggestion chip; finish the FE-2 per-factor stat triad; step `FindingSource` + capture affordance           | auto-status-gate-as-authority; R²-ranking on the cluster suggestion                            |
-| Connective spine                 | cross-surface badges; `useActiveIPContext`                                                      | findings-on-step (incl. the step `FindingSource` variant); focus-on-arrival; origin `stepId`; Finding→Action + lineage wires          | `quick-actions` stub                                                                           |
-| Measure⇄Analyze                  | `useReingestAutoLink` (column-matching), Measurement-Plan DCP                                   | analyst-confirm prompt for the link/plan-bump; analyst tests the new data + sets the status                                           | silent auto-Finding writes + auto-plan-status-bump                                             |
-| Framing-on-load                  | `CanvasWorkspace`, `canvasStore`, b0/b1                                                         | refine (preserve the 6 seams)                                                                                                         | `ProcessMapBase` (deprecated wrapper)                                                          |
-| Parity                           | Azure Evidence Map / click-to-Explore / disconfirmation / ScopeRail; CoScout (Azure-only, §4.0) | wire the 4 analysis gaps into PWA                                                                                                     | —                                                                                              |
-| Cleanup                          | —                                                                                               | —                                                                                                                                     | `questions` cargo; `NarratorRail`; `DroppableGateBadge`; dead factor edges; response-path CTAs |
+| Area                             | Reused (shipped substrate)                                                                                             | Net-new                                                                                                                                                                                                                               | Deleted                                                                                                                  |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Shared scope (Model A)           | `analysisScopeStore`, Process↔Explore bridge                                                                           | persistent chip in chrome; highlight coordination; Analyze subscription; IP-scope reset                                                                                                                                               | —                                                                                                                        |
+| Reasoning canvas (Model B)       | `WallCanvas`, `CausalLink`, Focus lens, `wallLayout`, `ModelBuilderBand`, `ScopeRail`                                  | Finding-link rendering on the canvas (+ optional CausalLink overlay); domain-weighted DOI; minimap polish; 3-representation reconcile                                                                                                 | `CanvasWallOverlay`; `LocalMechanismView` embedded overlay                                                               |
+| Analytical flow + scoring (§4.0) | best-subsets model-builder; `deriveHypothesisStatus`; FE-2 evaluate; CoScout                                           | analyst-set status + soft-suggestion chip; finish the FE-2 per-factor stat triad; step `FindingSource` + capture affordance                                                                                                           | auto-status-gate-as-authority; R²-ranking on the cluster suggestion                                                      |
+| Connective spine                 | cross-surface badges; `useActiveIPContext`                                                                             | findings-on-step (incl. the step `FindingSource` variant); focus-on-arrival; origin `stepId`; Finding→Action + lineage wires                                                                                                          | `quick-actions` stub                                                                                                     |
+| Measure⇄Analyze                  | `useReingestAutoLink` (column-matching), Measurement-Plan DCP                                                          | analyst-confirm prompt for the link/plan-bump; analyst tests the new data + sets the status                                                                                                                                           | silent auto-Finding writes + auto-plan-status-bump                                                                       |
+| Framing-on-load                  | `CanvasWorkspace`, `canvasStore`, b0/b1                                                                                | refine (preserve the 6 seams)                                                                                                                                                                                                         | `ProcessMapBase` (deprecated wrapper)                                                                                    |
+| Process tab (§2A)                | CanvasWorkspace + L1/L2/L3; CapabilityBoxplot + StepErrorPareto; calculateNodeCapability / computeBottleneck (engines) | connected per-step boxplot + own-values harmonized spec-aware scaling + Values⇄Capability toggle; per-step spec-authoring UI; cycle-time viz + light bottleneck highlight; first-class L1 capable element; per-step capability to PWA | Status/Capability two-tab (collapses); empty Capability temporal row (hidden); cadence rollup → named-future (follow-up) |
+| Parity                           | Azure Evidence Map / click-to-Explore / disconfirmation / ScopeRail; CoScout (Azure-only, §4.0)                        | wire the 4 analysis gaps into PWA                                                                                                                                                                                                     | —                                                                                                                        |
+| Cleanup                          | —                                                                                                                      | —                                                                                                                                                                                                                                     | `questions` cargo; `NarratorRail`; `DroppableGateBadge`; dead factor edges; response-path CTAs                           |
 
 ---
 
@@ -406,6 +477,8 @@ _Inbound links (doc-gate ≥1 each, added on the same apply-phase PR):_ `process
 4. **Scope desync across the 3 satellite popouts** — adopt JMP's "selection changed" nudge + Reset + a serializable scope predicate (lean: yes).
 5. **Re-evaluate cascade depth** — V1 has the analyst re-test the targeted hypothesis on re-ingest (§4.5, analyst-owned status); confirm the full replace-re-evaluate cascade across all scopes/conditions stays a named follow-up.
 6. **Upstream best-subsets screening placement (advanced design)** — where does the _global_ "watch these factors" guide live (§4.0a / §4.0): in Frame, a Frame-adjacent "what to watch" surface, or at the Explore entry? Get it right so it directs attention without reading as the tool naming causes; the per-scope re-rank in Analyze is settled.
+7. **Per-step spec-authoring UI (§2A.4)** — ship the deferred IM-0b-2 `capabilityScope` editor (per-step LSL/USL/target by context) at framing, or hub-default-only for V1? (lean: ship it — "ask the specs" is core to the per-step view.)
+8. **Per-step time specs (§2A.4)** — model per-step cycle-time targets (a `StepTimingBinding` analog to `capabilityScope`) for a "Cpk-of-time" view, or keep cycle-time as a raw bottleneck/throughput view only? (lean: raw bottleneck view for V1; time-specs deferred.)
 
 ---
 
@@ -425,11 +498,14 @@ _Inbound links (doc-gate ≥1 each, added on the same apply-phase PR):_ `process
 
 ## §14 · Delivery sequencing (high level — master plan to follow)
 
-**Model B — the reasoning canvas — is the destination, not an optional "big rock."** The owner's bar: it is **designed _and fully implemented_ before VariScout is shown to potential customers.** Phases 1 + 3 are its runway; Phase 2 is the bar.
+**The analytics centerpiece — the Analyze reasoning canvas (Model B) AND the Process-tab per-step capability view (§2A) — is the destination.** The owner's bar: both are **designed _and fully implemented_ before VariScout is shown to potential customers** (they are the analytics VariScout promotes). Phases 1 + 3 are the runway; Phase 2 is the bar.
 
-1. **Phase 1 — clear the ground + lay the spine (runway):** the §7.2 orphan cleanup + §7.3 response-path retirement + the §7.1 ADR-086 "superseded"-retraction (build Model B on cleared ground, not on the glue); Model A shared-scope spine + chip + highlight + IP-scope fix; the connective-spine wires (findings-on-step incl. the step `FindingSource`, focus-on-arrival, origin `stepId`, Finding→Action + lineage); the PWA parity fixes.
-2. **Phase 2 — Model B, the reasoning canvas, built to completion (the centerpiece, Opus-grade):** the bipartite `CausalLink` factor↔cause edges + the best-subsets factor projection (§4.0/§4.3); **the analytical flow** — the per-factor stat triad (boxplot / regression / Cp-Cpk) summoned onto a focused hypothesis → see-the-chart → explicit call → typed Finding; **the de-automated scoring** (analyst-owned 5-state status + the soft-suggestion chip; auto-link → confirm prompt; cluster-grouping without ranking; `'confirmed' → 'evidence-survived-test'`); **CoScout as the interpretation partner**; domain-weighted Focus lens + minimap; retire the `CanvasWallOverlay` / `LocalMechanismView` glue. **This is the bar to hit before customer demos.**
-3. **Phase 3 (parallelizable):** framing-on-load refinement (surgical) · the holistic doc propagation (§10) per-PR.
+1. **Phase 1 — clear the ground + lay the spine (runway):** the §7.2 orphan cleanup + §7.3 response-path retirement + the §7.1 ADR-086 "superseded"-retraction; Model A shared-scope spine + chip + highlight + IP-scope fix; the connective-spine wires (findings-on-step incl. the step `FindingSource`, focus-on-arrival, origin `stepId`, Finding→Action + lineage); the PWA parity fixes; **the Process-tab orient foundation** — the L1/L2/L3 levels as the spine; **shed the cadence/Status rollup → named-future + collapse the Status/Capability two-tab; hide the empty Capability temporal row; re-home the per-step capability spatial row** (§2A.5).
+2. **Phase 2 — the analytics centerpiece, built to completion (Opus-grade) — two bodies:**
+   - **(a) Model B reasoning canvas:** bipartite `CausalLink` factor↔cause edges + best-subsets factor projection (§4.0/§4.3); **the analytical flow** (per-factor stat triad → see-the-chart → explicit call → typed Finding); **de-automated scoring** (analyst-owned status + soft-suggestion chip; auto-link → confirm prompt; cluster-grouping without ranking; `'confirmed' → 'evidence-survived-test'`); CoScout as interpretation partner; domain-weighted Focus lens + minimap; retire the `CanvasWallOverlay` / `LocalMechanismView` glue.
+   - **(b) the Process-tab per-step view (§2A):** the **connected per-step boxplot** (flow = x-axis; light node flag + aligned/linked) + **own-values harmonized, spec-aware scaling** (incl. the baseline rule) + **Values⇄Capability toggle**; the **per-step spec-authoring UI** (§12 Q7); the **cycle-time viz + light bottleneck highlight** (engine exists); the first-class **L1 "are we capable"**; **per-step capability to PWA** (parity). No leaderboard — the boxplot + eye (§2A.2).
+   - **Both (a) + (b) are the bar to hit before customer demos.**
+3. **Phase 3 (parallelizable):** framing-on-load refinement (surgical, §5) · the holistic doc propagation (§10) per-PR.
 4. **Follow-up (separate spec):** the process-as-operations extraction (§9).
 
 Promoted via `superpowers:writing-plans` → the [**master plan** at PR granularity](../plans/2026-06-02-connective-surface-model-master-plan.md) → per-PR sub-plans (`feedback_master_plan_for_multi_subsystem_specs`); subagent-driven-development; each PR amends its nearest docs in-PR.

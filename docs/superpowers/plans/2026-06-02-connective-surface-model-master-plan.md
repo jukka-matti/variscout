@@ -165,6 +165,57 @@ layer: spec
 
 ---
 
+## Phase 2P — The Process tab (§2A — the other half of the analytics centerpiece)
+
+> The Process-tab per-step capability view is, with Model B, part of the customer-demo bar. CS-P1 is runway (Phase-1-adjacent); CS-P2…P5 are the bar.
+
+### PR-CS-P1 · Process-tab orient foundation + shed the cadence accretion
+
+- **Goal:** make the Process tab the coherent orient surface; remove the accretion.
+- **Touches:** establish the L1/L2/L3 levels as the spine (retire the "3-band" term); **un-mount the cadence/Status rollup** (`ProcessHubReviewPanel` Active/Readiness/Verification/Overdue) → named-future and **collapse the Status/Capability two-tab**; **hide the empty Capability temporal row** (`cpkTrend`/`cpkGapTrend`); re-home the per-step capability spatial row (`CapabilityBoxplot` + `StepErrorPareto`).
+- **Depends on:** — (Phase 1, runway). _(Coordinate with the §9 follow-up: this hides/collapses the Process-tab cadence UI; the follow-up does the full extraction + disentangles Control/Survey.)_
+- **Model:** Sonnet (re-home + hide; verify the per-step row still renders).
+- **Acceptance:** Process tab shows the canvas + per-step capability, no cadence rollup, no empty slots, single coherent surface; gate green.
+- **Spec ref:** §2A.1, §2A.5.
+
+### PR-CS-P2 · Connected per-step boxplot + own-values harmonized spec-aware scaling + Values⇄Capability
+
+- **Goal:** the world-class per-step "which step" view.
+- **Touches:** lay the per-step boxplot on the flow (each box at its node + light capability flag; aligned for linear, linked+coordinated-highlight for branching); the **Values⇄Capability toggle**; the **own-values harmonized, spec-aware scaling** with the **baseline rule** (two-sided → spec window; one-sided/ratio → 0; time → 0). **No leaderboard** — boxplot + eye; keep the error Pareto.
+- **Depends on:** CS-P1; CS-3 (linked-panels pattern).
+- **Model:** Opus (the distinctive viz; judgment-heavy; **verify on a 13–15″ viewport with `--chrome`**).
+- **Acceptance:** heterogeneous steps compare on the spec-anchored scale while keeping real values; the worst step is visibly obvious without a rank; ADR-073 honored (per-context distribution when specs diverge — no forced Cpk rank).
+- **Spec ref:** §2A.2, §2A.3.
+
+### PR-CS-P3 · Per-step spec-authoring UI at framing
+
+- **Goal:** "ask the specs" — author per-step LSL/USL/target by context (the deferred IM-0b-2 `capabilityScope` editor).
+- **Touches:** a framing UI (canvasStore `setCapabilityScope`/`editCapabilityScope`) to author `ProcessMapNode.capabilityScope.specRules`; respect the canvasStore authoring boundary (ADR-087); the engine already consumes them.
+- **Depends on:** CS-15 (framing refinement), CS-P2.
+- **Model:** Opus (framing seam, delicate — §5 seams).
+- **Acceptance:** analyst sets a step's spec (per context); `calculateNodeCapability` uses it; the per-step view reflects it. (§12 Q7 decision.)
+- **Spec ref:** §2A.4.
+
+### PR-CS-P4 · Cycle-time visualization + light bottleneck highlight
+
+- **Goal:** surface the time axis (engine exists, viz deferred).
+- **Touches:** render `computeOutputRate`/`computeBottleneck` results — a per-step time view + a light "this is the constraint" highlight on the bottleneck step; the `Values⇄Capability`-style axis switch to the time axis where framed data has `StepTimingBinding`.
+- **Depends on:** CS-P2.
+- **Model:** Sonnet (wiring the shipped engine to a viz).
+- **Acceptance:** when timing data is framed, the per-step view shows the cycle-time bottleneck (the constraint highlighted), distinct from the worst-capability step (never conflated). (Per-step time _specs_ stay deferred per §12 Q8.)
+- **Spec ref:** §2A.2, §2A.4.
+
+### PR-CS-P5 · Per-step capability to PWA (parity)
+
+- **Goal:** bring the Process-tab per-step view to PWA.
+- **Touches:** mount the per-step capability view in PWA (PWA has the canvas but no `ProcessHubView`); the cadence/Status rollup does NOT come (named-future).
+- **Depends on:** CS-P2.
+- **Model:** Sonnet (parity wiring).
+- **Acceptance:** PWA shows the per-step capability view at parity with Azure; only collaboration/CoScout/cloud/audit differ.
+- **Spec ref:** §2A.6, §6.
+
+---
+
 ## Phase 3 — Refinement + docs (parallelizable with late Phase 2)
 
 ### PR-CS-15 · Framing-on-load refinement (surgical)
