@@ -25,6 +25,7 @@ import {
   BANNER_BODY_LINES,
 } from './docs-frontmatter-schema.mjs';
 import { parseEntry, isEntryHeaderLine } from './docs-toolbox/lib/edit-types.mjs';
+import { checkApplyPhase } from './apply-phase-sensor.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const DOCS = join(ROOT, 'docs');
@@ -107,6 +108,8 @@ const violations = {
   errorBrokenServesPath: [],
   // SDD WARNs (heuristic; HARD-FAIL once L3 bodies are filled in M3+ next-edit)
   warnL3MissingIntentDiagram: [],
+  // Apply-phase sensor (Play 2b extension) — delivered spec w/ un-applied implements targets
+  warnApplyPhaseUnapplied: [],
   // Diff-mode WARNs (--diff only) — don't fail the build
   diffWarnDecisionLogOldLine: [],
   diffWarnSpecAmendmentHeading: [],
@@ -300,6 +303,20 @@ function check(file) {
     }
   }
 
+  // Apply-phase sensor: a delivered design spec whose implements: targets show no
+  // sign of doc propagation (Play 2b extension, 2026-06-02).
+  const readTargetFm = (relTarget) => {
+    try {
+      const raw = extractFrontmatter(readFileSync(join(ROOT, relTarget), 'utf8'));
+      return raw ? (parseYaml(raw) ?? {}) : {};
+    } catch {
+      return null;
+    }
+  };
+  for (const w of checkApplyPhase(rel, fm, readTargetFm)) {
+    violations.warnApplyPhaseUnapplied.push(w);
+  }
+
   // L3 intent-diagram heuristic (WARN — many stubs lack diagrams pending next-edit work).
   // Skip kind: infrastructure (those carry "no surface" disclosure per the spec).
   const intentBearingKinds = new Set(['ui', 'workflow', 'engine']);
@@ -419,7 +436,8 @@ const warningTotal =
   violations.diffWarnSpecAmendmentHeading.length +
   violations.diffWarnNonCanonicalEditType.length +
   violations.diffWarnDeliveredNoBanner.length +
-  violations.warnL3MissingIntentDiagram.length;
+  violations.warnL3MissingIntentDiagram.length +
+  violations.warnApplyPhaseUnapplied.length;
 
 function report() {
   if (REPORT_MODE) {
@@ -464,6 +482,7 @@ function report() {
   show('SDD — implements: path does not exist (HARD-FAIL)', violations.errorBrokenImplementsPath, 10, false);
   show('SDD — serves: path does not exist (HARD-FAIL)', violations.errorBrokenServesPath, 10, false);
   show('SDD — L3 (ui/workflow/engine) missing intent diagram (WARN — next-edit work)', violations.warnL3MissingIntentDiagram, 5, true);
+  show('Apply-phase: delivered spec with un-applied implements target (WARN)', violations.warnApplyPhaseUnapplied, 10, true);
   show('Decision-log: edit on entry >7 days old (use new supersession entry)', violations.diffWarnDecisionLogOldLine, 5, true);
   show('Decision-log: non-canonical edit-type vocabulary', violations.diffWarnNonCanonicalEditType, 5, true);
   show('Design spec: ## Amendment heading added (ADR-only pattern)', violations.diffWarnSpecAmendmentHeading, 5, true);
