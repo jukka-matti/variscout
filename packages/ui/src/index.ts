@@ -796,13 +796,20 @@ export * from './components/Improve';
 export * from './components/Explore/Probability/InflectionBinning';
 
 // Explore tab — Scope chrome (SingleSelectPopover + FilterChipDropdown reuse, wedge V1 LV1-E)
-export { ScopeChrome, ScopeChip, AddFilterButton, EmptyStateHint } from './components/Explore';
+export {
+  ScopeChrome,
+  ScopeChip,
+  AddFilterButton,
+  EmptyStateHint,
+  PersistentScopeChip,
+} from './components/Explore';
 export type {
   ScopeChromeProps,
   ScopeChipProps,
   ScopeChipKind,
   AddFilterButtonProps,
   EmptyStateHintProps,
+  PersistentScopeChipProps,
 } from './components/Explore';
 export { SingleSelectPopover } from './components/SingleSelectPopover';
 export type {
