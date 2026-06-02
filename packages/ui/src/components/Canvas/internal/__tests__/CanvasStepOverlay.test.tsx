@@ -48,93 +48,11 @@ function makeAction(overrides: Partial<ActionItem> = {}): ActionItem {
 
 function renderOverlay(overrides: Partial<React.ComponentProps<typeof CanvasStepOverlay>> = {}) {
   return render(
-    <CanvasStepOverlay
-      card={baseCard}
-      onClose={() => undefined}
-      actionItems={[]}
-      onQuickAction={() => undefined}
-      onFocusedInvestigation={() => undefined}
-      onCharter={() => undefined}
-      {...overrides}
-    />
+    <CanvasStepOverlay card={baseCard} onClose={() => undefined} actionItems={[]} {...overrides} />
   );
 }
 
-describe('CanvasStepOverlay — response-path CTA rendering', () => {
-  it('renders exactly 3 CTAs when all handlers wired', () => {
-    renderOverlay();
-    for (const path of ['quick-action', 'focused-investigation', 'charter']) {
-      const cta = screen.getByTestId(`canvas-cta-${path}`);
-      expect(cta).toHaveAttribute('data-cta-state', 'active');
-      expect(cta).not.toBeDisabled();
-    }
-    expect(screen.queryByTestId('canvas-cta-sustainment')).toBeNull();
-    expect(screen.queryByTestId('canvas-cta-handoff')).toBeNull();
-  });
-
-  it('renders quick-action as active', () => {
-    renderOverlay();
-    const cta = screen.getByTestId('canvas-cta-quick-action');
-    expect(cta).toHaveAttribute('data-cta-state', 'active');
-    expect(cta).not.toBeDisabled();
-  });
-
-  it('renders focused-investigation as active', () => {
-    renderOverlay();
-    const cta = screen.getByTestId('canvas-cta-focused-investigation');
-    expect(cta).toHaveAttribute('data-cta-state', 'active');
-    expect(cta).not.toBeDisabled();
-  });
-
-  it('renders Improvement Project as active (DMAIC Define-phase, no prerequisite)', () => {
-    renderOverlay();
-    const cta = screen.getByTestId('canvas-cta-charter');
-    expect(cta).toHaveTextContent('Improvement Project');
-    expect(cta).toHaveAttribute('data-cta-state', 'active');
-    expect(cta).not.toBeDisabled();
-  });
-
-  it('sustainment and handoff CTAs are never rendered', () => {
-    renderOverlay();
-    expect(screen.queryByTestId('canvas-cta-sustainment')).toBeNull();
-    expect(screen.queryByTestId('canvas-cta-handoff')).toBeNull();
-  });
-
-  it('hides a CTA whose handler is not wired', () => {
-    renderOverlay({
-      onCharter: undefined,
-    });
-    expect(screen.queryByTestId('canvas-cta-charter')).toBeNull();
-    expect(screen.queryByTestId('canvas-cta-quick-action')).not.toBeNull();
-    expect(screen.queryByTestId('canvas-cta-focused-investigation')).not.toBeNull();
-  });
-
-  it('clicking an active CTA invokes its handler with the step id', () => {
-    const onCharter = vi.fn();
-    renderOverlay({ onCharter });
-    const cta = screen.getByTestId('canvas-cta-charter');
-    cta.click();
-    expect(onCharter).toHaveBeenCalledWith('step-1');
-  });
-
-  it('opens LogActionModal from Quick action and submits payload with the step id', () => {
-    const onLogQuickAction = vi.fn();
-    renderOverlay({ onQuickAction: undefined, onLogQuickAction });
-
-    fireEvent.click(screen.getByTestId('canvas-cta-quick-action'));
-    expect(screen.getByRole('dialog', { name: 'Log action — Bake step' })).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText('What'), {
-      target: { value: 'Refill buffer tank' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Log action' }));
-
-    expect(onLogQuickAction).toHaveBeenCalledWith('step-1', {
-      text: 'Refill buffer tank',
-      status: 'done',
-    });
-  });
-
+describe('CanvasStepOverlay — recent activity', () => {
   it('renders selected-step orphan quick actions in Recent activity after expanding', () => {
     renderOverlay({
       actionItems: [
@@ -159,7 +77,7 @@ describe('CanvasStepOverlay — response-path CTA rendering', () => {
     expect(screen.queryByText('Linked project action')).toBeNull();
   });
 
-  it('renders linked context badge counts above the response-path CTAs', () => {
+  it('renders linked context badge counts above the recent-activity panel', () => {
     const { container } = renderOverlay({
       contextLinkGroups: [
         {
@@ -182,9 +100,9 @@ describe('CanvasStepOverlay — response-path CTA rendering', () => {
     });
     expect(screen.getByRole('button', { name: 'Wall threads: 2 linked items' })).toBeTruthy();
 
-    const quickActionCta = screen.getByTestId('canvas-cta-quick-action');
+    const recentActivity = screen.getByText('Recent activity');
     expect(
-      improvementBadge.compareDocumentPosition(quickActionCta) & Node.DOCUMENT_POSITION_FOLLOWING
+      improvementBadge.compareDocumentPosition(recentActivity) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
     expect(container.querySelector('[data-testid="canvas-step-overlay"]')).toContainElement(
       improvementBadge

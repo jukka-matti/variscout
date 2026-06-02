@@ -173,7 +173,6 @@ vi.mock('@variscout/ui', async () => {
       ),
     CanvasWorkspace: (props: {
       onSeeData: () => void;
-      onQuickAction?: (stepId: string) => void;
       onLogQuickAction?: (
         stepId: string,
         payload: { text: string; status: 'open' | 'done'; assignedTo?: unknown; dueAt?: string }

@@ -8,20 +8,21 @@
  * non-hang pattern).
  *
  * Coverage is intentionally focused — most behavior is covered elsewhere:
- *   - 3 response-path CTA rendering + click + hidden-when-no-handler
+ *   - Step-overlay capture-as-Finding + recent-activity surfaces
  *     → `internal/__tests__/CanvasStepOverlay.test.tsx` (unit)
- *     → `internal/__tests__/responsePathCta.test.ts` (state machine)
- *   - Workspace integration of step-overlay callbacks → app shell
- *     → `CanvasWorkspace.test.tsx:1093`
+ *
+ * Note: the legacy 3-CTA canvas-drill "response paths" (Quick action /
+ * Focused investigation / Improvement-Project charter) were retired in
+ * PR-CS-2 (superseded by Click-to-Explore + inline capture-as-Finding,
+ * connective-surface spec §7.3). The L3 mechanism view (`LocalMechanismView`)
+ * keeps its own inline CTAs until its Phase-2 retirement (PR-CS-12).
  *
  * This file tests Canvas-direct surface only: smoke render, level routing,
- * chip rail visibility by mode, Wall overlay toggle visibility, and one
- * wedge-V1 integration check (step click → overlay shows 3 CTAs with
- * correct testids per wedge spec §3.3.4).
+ * chip rail visibility by mode, and Wall overlay toggle visibility.
  *
  * Note: the `useHypothesisDrawTool`, `useCanvasKeyboard`, and
  * `useCanvasHypothesisDrawing` mocks below are intentional no-op stubs — none
- * of the 6 tests here exercise hypothesis drawing or canvas keyboard
+ * of the tests here exercise hypothesis drawing or canvas keyboard
  * shortcuts. If you add coverage for those flows, copy the richer stateful
  * implementations from `CanvasWorkspace.test.tsx` instead of expanding the
  * stubs in place.
@@ -465,43 +466,6 @@ describe('Canvas', () => {
     renderCanvas();
     expect(screen.getByTestId('canvas-step-card-step-1')).toBeInTheDocument();
     expect(screen.getByTestId('canvas-step-card-step-2')).toBeInTheDocument();
-  });
-
-  it('opens the step overlay with all three wedge-V1 response-path CTAs on step click', () => {
-    const onQuickAction = vi.fn();
-    const onFocusedInvestigation = vi.fn();
-    const onCharter = vi.fn();
-    renderCanvas({ onQuickAction, onFocusedInvestigation, onCharter });
-
-    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
-
-    expect(screen.getByTestId('canvas-cta-quick-action')).toBeInTheDocument();
-    expect(screen.getByTestId('canvas-cta-focused-investigation')).toBeInTheDocument();
-    expect(screen.getByTestId('canvas-cta-charter')).toBeInTheDocument();
-  });
-
-  it('fires onCharter with the step id when the Charter CTA is clicked (wedge V1 §3.3.4)', () => {
-    const onCharter = vi.fn();
-    renderCanvas({
-      onQuickAction: vi.fn(),
-      onFocusedInvestigation: vi.fn(),
-      onCharter,
-    });
-
-    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
-    fireEvent.click(screen.getByTestId('canvas-cta-charter'));
-
-    expect(onCharter).toHaveBeenCalledWith('step-1');
-  });
-
-  it('hides the Charter CTA when no onCharter handler is provided (hidden, not teased)', () => {
-    renderCanvas({ onQuickAction: vi.fn(), onFocusedInvestigation: vi.fn() });
-
-    fireEvent.click(screen.getByTestId('canvas-step-card-step-1'));
-
-    expect(screen.queryByTestId('canvas-cta-charter')).not.toBeInTheDocument();
-    expect(screen.getByTestId('canvas-cta-quick-action')).toBeInTheDocument();
-    expect(screen.getByTestId('canvas-cta-focused-investigation')).toBeInTheDocument();
   });
 
   it('renders the mobile Wall shortcut button only when on mobile, investigation content exists, and onOpenWall is wired', () => {
