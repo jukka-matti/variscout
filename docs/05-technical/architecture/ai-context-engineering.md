@@ -44,25 +44,25 @@ Placed first in the system prompt for maximum cache hit rate.
 
 The static prefix exceeds 1,024 tokens when glossary + concepts are both included, enabling Azure AI Foundry prompt caching.
 
-> **Entry point:** `assembleCoScoutPrompt()` is the sole prompt-assembly entry point — it returns a `CoScoutPromptTiers` object rather than a flat string. (The `assembleCoScoutPrompt()` monolith / `coScout/legacy.ts` was deleted 2026-05-30, ADR-068 complete.)
+> **Entry point:** `assembleCoScoutPrompt()` is the sole prompt-assembly entry point — it returns a `CoScoutPromptTiers` object rather than a flat string. (The `buildCoScoutSystemPrompt()` monolith / `coScout/legacy.ts` was deleted 2026-05-30, ADR-068 complete.)
 
 ### Tier 2 — Semi-Static: Investigation State + Ideas
 
 Changes when the investigation progresses (new hypotheses, status changes, ideas added). Fields are ordered by position-aware priority: start (framing context), middle (evidence), end (action state). See §2c below.
 
-| Content                     | Source                                                                            | Tokens (~) |
-| --------------------------- | --------------------------------------------------------------------------------- | ---------- |
-| Issue statement             | `ProcessContext.issueStatement` (input; AI-derived `problemStatement` is output)  | ~20        |
-| Problem statement           | `AIContext.investigation.problemStatement` (Watson's 3 questions output, ADR-060) | ~30        |
-| Focused question            | `AIContext.investigation.focusedQuestionId` + `focusedQuestionText`               | ~20        |
-| Question tree               | `AIContext.investigation.questionTree`                                            | ~50-200    |
-| Top findings                | `AIContext.investigation.topFindings` (up to 5, with evidence type + status)      | ~200       |
-| Improvement ideas           | `AIContext.investigation.allHypotheses[].ideas` (enriched with effort/impact)     | ~40        |
-| Outcome summaries           | `AIContext.investigation.outcomeSummaries`                                        | ~50        |
-| Comment signal              | `AIContext.investigation.recentComments` (latest comment per finding)             | ~20        |
-| Overdue actions             | `AIContext.investigation.overdueActions`                                          | ~60        |
-| Phase-specific instructions | Phase detection in prompt template                                                | ~50        |
-| Investigation categories    | `AIContext.investigation.categories`                                              | ~30        |
+| Content                     | Source                                                                             | Tokens (~) |
+| --------------------------- | ---------------------------------------------------------------------------------- | ---------- |
+| Issue statement             | `ProcessContext.issueStatement` (input; AI-derived `problemStatement` is output)   | ~20        |
+| Problem statement           | `AIContext.investigation.problemStatement` (Watson's 3 questions output, ADR-060)  | ~30        |
+| Focused question            | `AIContext.investigation.focusedQuestionId` _(retired ADR-085; dead path)_         | ~20        |
+| Question tree               | `AIContext.investigation.questionTree` _(retired ADR-085; dead path, unpopulated)_ | ~50-200    |
+| Top findings                | `AIContext.investigation.topFindings` (up to 5, with evidence type + status)       | ~200       |
+| Improvement ideas           | `AIContext.investigation.allHypotheses[].ideas` (enriched with effort/impact)      | ~40        |
+| Outcome summaries           | `AIContext.investigation.outcomeSummaries`                                         | ~50        |
+| Comment signal              | `AIContext.investigation.recentComments` (latest comment per finding)              | ~20        |
+| Overdue actions             | `AIContext.investigation.overdueActions`                                           | ~60        |
+| Phase-specific instructions | Phase detection in prompt template                                                 | ~50        |
+| Investigation categories    | `AIContext.investigation.categories`                                               | ~30        |
 
 **Total Tier 2 estimate:** ~570–790 tokens (up from ~180–370 before ADR-060 enrichment).
 
