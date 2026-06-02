@@ -14,8 +14,6 @@ export { TagChip } from './TagChip';
 export type { TagChipProps } from './TagChip';
 export { GateBadge } from './GateBadge';
 export type { GateBadgeProps } from './GateBadge';
-export { NarratorRail } from './NarratorRail';
-export type { NarratorRailProps, NarratorMessage } from './NarratorRail';
 export { TributaryFooter } from './TributaryFooter';
 export type { TributaryFooterProps } from './TributaryFooter';
 export { ModelBuilderBand } from './ModelBuilderBand';
