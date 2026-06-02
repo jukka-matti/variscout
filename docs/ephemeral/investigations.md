@@ -36,7 +36,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Severity:** architectural-maintenance roadmap — not blocking current product work, but useful before more workflow/state code piles onto known drift.
 
-### Doc + user-journey alignment after the investigation-surface + Factors&Evaluation delivery [LOGGED 2026-05-31 · VERIFIED + SIZED 2026-06-02]
+### Doc + user-journey alignment after the investigation-surface + Factors&Evaluation delivery [LOGGED 2026-05-31 · VERIFIED + SIZED 2026-06-02 · RESOLVED 2026-06-02]
 
 **Surfaced by:** 14 PRs this session (#250–#263) closed the whole investigation-surface arc (IM-0a…IM-7) + the Factors&Evaluation follow-on (model-builder + test-plan triad + evaluate + disconfirmation fusion) + IM-6 (retire mode/lens). This shipped major new product behavior; the **canonical L1/L2/L3 docs + user journeys now lag the shipped reality** and need a deliberate alignment pass.
 
@@ -68,7 +68,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Correction (NOT a code bug):** the Project stage enum value `'sustainment'` is a _deliberately preserved code identifier_ (same pattern as `confirmed` / `investigationId`); only the **user-facing label** is "Control". The stale docs are `specifications.md` / `business-bible.md` printing "Sustainment" as the user-facing stage — doc drift, not a code/spec mismatch. Do not "fix" the enum.
 
-**→ Holistic doc-alignment master spec written 2026-06-02:** [`docs/superpowers/specs/2026-06-02-documentation-alignment-design.md`](../superpowers/specs/2026-06-02-documentation-alignment-design.md) (brainstorm → `superpowers:writing-plans` → execute). It embeds the full coverage matrix (57 capabilities: 10 current / 7 stale / 12 partial / 28 missing), the root-cause finding (the SDD **Apply phase** is systematically skipped), the cluster→canonical-doc map, the 6-wave sequence, and the governance fix (ship Play 2b validator). The per-tab/per-capability stale-evidence line lists live in the audit + Wave plans, not here.
+**→ RESOLVED 2026-06-02 — all 6 waves delivered** (commits `0b0d4cc0`…`0ecd5d51`; each wave grounded-against-code + adversarially reviewed; the R-series freeze is lifted per decision-log 2026-06-02). Master spec: [`docs/superpowers/specs/2026-06-02-documentation-alignment-design.md`](../superpowers/specs/2026-06-02-documentation-alignment-design.md); tracker `docs/superpowers/plans/2026-06-02-doc-alignment-master-plan.md`. It embeds the full coverage matrix (57 capabilities: 10 current / 7 stale / 12 partial / 28 missing), the root-cause finding (the SDD **Apply phase** is systematically skipped), the cluster→canonical-doc map, the 6-wave sequence, and the governance fix (ship Play 2b validator). The per-tab/per-capability stale-evidence line lists live in the audit + Wave plans, not here.
 
 **Promotion path:** a FRESH-SESSION doc-alignment pass — grounded against shipped code (per [[feedback_subagent_grounding_catches_drift]]), using the docs toolbox (`pnpm docs:find`/`docs:related`) + a multi-lens audit; update L1/L2/L3 + journeys to match; follow the Propose→Apply→Archive doc-discipline. Canonical "what shipped" sources: the spec `docs/superpowers/specs/2026-05-31-factors-evaluation-design.md` + the 2026-05-30 Wall spec + ADR-086/088/089 + the 2026-05-31 decision-log entries.
 

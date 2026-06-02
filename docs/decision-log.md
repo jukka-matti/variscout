@@ -34,6 +34,8 @@ Decisions we keep relitigating. Each entry: short statement, rationale, closing 
 
   **Decision:** run the doc-alignment initiative (6 waves, adopting the existing SDD stack — invents nothing) **before any further product refactoring.** The R-series (R6f / R7+) **pauses** so docs are written against a frozen code state, not a moving target. **Primary reader = internal** (dev + AI agents grounding + onboarding), not end-user/marketing — terse/mechanical/grounded over prose polish. **Driver = coherence, not launch timing** (so Analyze-rewrite stays Wave 1; Save/Access stays Wave 2). Governance fix bundled: ship the Play 2b SSoT validator in Wave 0 so the Apply phase becomes mechanical and the backlog stops recurring. Supersedes the "R6f next" sequencing in the 2026-06-01 R5/R6 entry below until the initiative completes.
 
+  **Completion (2026-06-02):** all 6 waves delivered (commits `0b0d4cc0`…`0ecd5d51`; master plan `docs/superpowers/plans/2026-06-02-doc-alignment-master-plan.md`). Each wave was grounded-against-code then adversarially reviewed — the reviews caught real errors a green gate could not (PWA-print claim, 7-vs-8 sections, `createAction`, ETag backoff). Net-new canonical docs (`investigation-surface`, `findings-hypotheses`, `collaboration`, `save-and-load`, `home`, `report` + 2 L4 notes) + refreshes + the superseded `question-driven-analyze` + the **Apply-phase validator sensor** (so the backlog can't silently recur). **The R-series freeze is now LIFTED — product refactoring (R6f / R7+) may resume.**
+
   _Pinned 2026-06-02._
 
 - **2026-06-01 — R5/R6 refactoring recalibration: thin adapters before document persistence.** Spec edit: recalibrate the refactoring roadmap and persistence architecture docs after R6c.
