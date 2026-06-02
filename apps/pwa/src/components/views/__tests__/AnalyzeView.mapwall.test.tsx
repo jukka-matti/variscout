@@ -13,7 +13,7 @@
  * IMPORTANT: vi.mock() calls must appear before any component imports.
  */
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 
 // ── 1. Mocks BEFORE component imports ──────────────────────────────────────
@@ -257,6 +257,92 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     expect(screen.queryByRole('button', { name: /^list$/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /^board$/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /^tree$/i })).toBeNull();
+  });
+
+  // ── PR-CS-7: Evidence Map (Layer 1) parity in PWA Analyze ──────────────────
+  // A factor that cleanly separates the outcome (eta² high) yields a meaningful
+  // best-subsets model so the Evidence Map content switch enables; selecting it
+  // mounts the Layer-1 graph host. Layers 2/3 self-suppress (no causal/convergence
+  // data passed to useEvidenceMapData). FindingsLog stays reachable via Findings.
+  describe('Evidence Map content switch (PR-CS-7)', () => {
+    // The responsive EvidenceMap wrapper (visx withParentSize) calls
+    // `new ResizeObserver(...)` on mount. jsdom/happy-dom has none — provide a
+    // no-op stub so the host mounts cleanly (the inner SVG only paints once a
+    // non-zero size is observed, which the real browser supplies).
+    const originalResizeObserver = globalThis.ResizeObserver;
+    beforeEach(() => {
+      class ResizeObserverStub {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      }
+      globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
+    });
+    afterEach(() => {
+      globalThis.ResizeObserver = originalResizeObserver;
+    });
+
+    // Two factors; `Machine` strongly drives Y so best-subsets rSquaredAdj > 0.05.
+    const evidenceData = [
+      { Machine: 'A', Shift: 'Day', Y: 10 },
+      { Machine: 'A', Shift: 'Night', Y: 11 },
+      { Machine: 'A', Shift: 'Day', Y: 10 },
+      { Machine: 'A', Shift: 'Night', Y: 12 },
+      { Machine: 'B', Shift: 'Day', Y: 30 },
+      { Machine: 'B', Shift: 'Night', Y: 31 },
+      { Machine: 'B', Shift: 'Day', Y: 29 },
+      { Machine: 'B', Shift: 'Night', Y: 32 },
+    ];
+
+    // AnalyzeView reads `outcome` from useProjectStore (not the prop), so the
+    // Layer-1 stat gate keys off the store outcome. Seed it for these cases.
+    function evidenceProps() {
+      useProjectStore.setState({ outcome: 'Y' });
+      return makeMinimalProps({
+        outcome: 'Y',
+        factors: ['Machine', 'Shift'],
+        filteredData: evidenceData,
+      });
+    }
+
+    it('exposes a Findings / Evidence Map content switch in Map mode', () => {
+      render(<AnalyzeView {...evidenceProps()} />);
+      expect(screen.getByRole('button', { name: /^findings$/i })).toBeTruthy();
+      expect(screen.getByRole('button', { name: /^evidence map$/i })).toBeTruthy();
+    });
+
+    it('enables the Evidence Map button when a meaningful model exists', () => {
+      render(<AnalyzeView {...evidenceProps()} />);
+      const mapBtn = screen.getByRole('button', { name: /^evidence map$/i });
+      expect(mapBtn.hasAttribute('disabled')).toBe(false);
+    });
+
+    it('disables the Evidence Map button with no factors (no model)', () => {
+      useProjectStore.setState({ outcome: 'Y' });
+      render(
+        <AnalyzeView {...makeMinimalProps({ outcome: 'Y', factors: [], filteredData: [] })} />
+      );
+      const mapBtn = screen.getByRole('button', { name: /^evidence map$/i });
+      expect(mapBtn.hasAttribute('disabled')).toBe(true);
+    });
+
+    it('mounts the Evidence Map host (Layer 1) when selected; findings stays reachable', () => {
+      render(<AnalyzeView {...evidenceProps()} />);
+
+      // Default content is the findings list.
+      expect(screen.getByTestId('findings-log')).toBeTruthy();
+      expect(screen.queryByTestId('analyze-evidence-map')).toBeNull();
+
+      // Switch to the Evidence Map graph.
+      fireEvent.click(screen.getByRole('button', { name: /^evidence map$/i }));
+      expect(screen.getByTestId('analyze-evidence-map')).toBeTruthy();
+      expect(screen.queryByTestId('findings-log')).toBeNull();
+
+      // Findings list is still reachable.
+      fireEvent.click(screen.getByRole('button', { name: /^findings$/i }));
+      expect(screen.getByTestId('findings-log')).toBeTruthy();
+      expect(screen.queryByTestId('analyze-evidence-map')).toBeNull();
+    });
   });
 
   it('returns from Wall to the saved Improvement Project target once', () => {
