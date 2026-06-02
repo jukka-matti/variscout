@@ -3,6 +3,8 @@ import {
   Activity,
   BarChart3,
   Layers,
+  Link2,
+  Link2Off,
   MessageCircle,
   Pencil,
   Share2,
@@ -83,6 +85,14 @@ export interface FindingCardProps {
    * the action has no `parentImprovementProjectId` yet (re-promotion guard).
    */
   onPromoteAction?: (findingId: string, actionId: string) => void;
+  /**
+   * PR-CS-6 Edge 2: two-way toggle pinning this finding to the active project's
+   * investigation lineage. Hidden unless provided (no active IP). Pairs with
+   * `isInProjectLineage` to render the add/remove state.
+   */
+  onToggleProjectLineage?: (findingId: string) => void;
+  /** Whether this finding is already pinned to the active project's lineage (PR-CS-6 Edge 2). */
+  isInProjectLineage?: boolean;
   /** Projected Cpk from the linked improvement idea (for projected vs actual comparison) */
   projectedCpk?: number;
   /** Callback to set outcome */
@@ -161,6 +171,8 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onCompleteAction,
   onDeleteAction,
   onPromoteAction,
+  onToggleProjectLineage,
+  isInProjectLineage = false,
   projectedCpk,
   onSetOutcome,
   onProjectImprovement,
@@ -300,6 +312,33 @@ const FindingCard: React.FC<FindingCardProps> = ({
               </p>
             )}
             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 touch-show transition-opacity flex-shrink-0">
+              {onToggleProjectLineage && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onToggleProjectLineage(finding.id);
+                  }}
+                  className={`p-1 rounded transition-colors ${
+                    isInProjectLineage
+                      ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-400/10'
+                      : 'text-content-muted hover:text-blue-400 hover:bg-blue-400/10'
+                  }`}
+                  title={
+                    isInProjectLineage
+                      ? 'Unpin from project lineage'
+                      : 'Pin to project investigation lineage'
+                  }
+                  aria-label={
+                    isInProjectLineage
+                      ? 'Unpin finding from project lineage'
+                      : 'Pin finding to project lineage'
+                  }
+                  aria-pressed={isInProjectLineage}
+                  data-testid="toggle-lineage-btn"
+                >
+                  {isInProjectLineage ? <Link2Off size={12} /> : <Link2 size={12} />}
+                </button>
+              )}
               {onAssign && (
                 <button
                   onClick={e => {

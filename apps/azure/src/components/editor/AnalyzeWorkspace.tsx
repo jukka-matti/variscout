@@ -119,6 +119,11 @@ interface AnalyzeWorkspaceProps {
    * promote button once the source action carries `parentImprovementProjectId`.
    */
   onPromoteFindingAction?: (findingId: string, actionId: string) => void;
+  /**
+   * PR-CS-6 Edge 2: two-way toggle pinning a finding to the active project's
+   * investigation lineage. Provided only when an active IP exists.
+   */
+  onToggleProjectLineage?: (findingId: string) => void;
   // Comments
   handleAddCommentWithAuthor: (
     findingId: string,
@@ -178,6 +183,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   handleNavigateToChart,
   handleShareFinding,
   onPromoteFindingAction,
+  onToggleProjectLineage,
   // IM-1: drillPath no longer consumed (drillFactors derivation removed); kept on
   // the props interface for API stability + the call site that still passes it.
   drillPath: _drillPath,
@@ -1356,6 +1362,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}
                 onPromoteAction={onPromoteFindingAction}
+                onToggleProjectLineage={onToggleProjectLineage}
+                projectLineageFindingIds={scopedFindingIds}
                 onSetOutcome={findingsState.setOutcome}
                 onShareFinding={handleShareFinding}
                 onNavigateToChart={handleNavigateToChart}

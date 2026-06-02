@@ -67,6 +67,7 @@ import {
 } from '@variscout/stores';
 import { createProjectActionItem } from '@variscout/core/findings';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
+import { toggleLineageFinding } from '@variscout/core/improvementProject';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
@@ -861,6 +862,19 @@ function AppMain() {
     [activeIPContext.activeIP, findingsState, upsertProject]
   );
 
+  // PR-CS-6 Edge 2: two-way toggle pinning a finding to the active project's
+  // investigation lineage (`sections.investigationLineage.findingIds`). Merges
+  // the `findingIds` array only (preserves `hypothesisIds`) + stamps `updatedAt`.
+  // PWA is session-only (.vrs) so the in-memory store write is the durable path.
+  const handleToggleProjectLineage = useCallback(
+    (findingId: string) => {
+      const activeIP = activeIPContext.activeIP;
+      if (!activeIP) return;
+      upsertProject(toggleLineageFinding(activeIP, findingId));
+    },
+    [activeIPContext.activeIP, upsertProject]
+  );
+
   // ── Measurement plan callbacks for WallCanvas planningProps ─────────────
   // PWA uses 'analyst@local' as the single-user identity (no auth).
   const PWA_WALL_USER_ID = 'analyst@local';
@@ -1349,6 +1363,9 @@ function AppMain() {
                 handleSetFindingStatus={investigation.handleSetFindingStatus}
                 onPromoteFindingAction={
                   activeIPContext.activeIP ? handlePromoteFindingAction : undefined
+                }
+                onToggleProjectLineage={
+                  activeIPContext.activeIP ? handleToggleProjectLineage : undefined
                 }
                 drillPath={drillPath}
                 columnAliases={columnAliases}

@@ -83,6 +83,11 @@ interface AnalyzeViewProps {
    * promote button once the source action carries `parentImprovementProjectId`.
    */
   onPromoteFindingAction?: (findingId: string, actionId: string) => void;
+  /**
+   * PR-CS-6 Edge 2: two-way toggle pinning a finding to the active project's
+   * investigation lineage. Provided only when an active IP exists.
+   */
+  onToggleProjectLineage?: (findingId: string) => void;
   drillPath: DrillStep[];
   // Column aliases
   columnAliases: Record<string, string>;
@@ -106,6 +111,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   handleRestoreFinding,
   handleSetFindingStatus,
   onPromoteFindingAction,
+  onToggleProjectLineage,
   drillPath: _drillPath,
   columnAliases,
   resolvedMode: _resolvedMode,
@@ -652,6 +658,8 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}
                 onPromoteAction={onPromoteFindingAction}
+                onToggleProjectLineage={onToggleProjectLineage}
+                projectLineageFindingIds={scopedFindingIds}
                 onSetOutcome={findingsState.setOutcome}
               />
             </div>

@@ -66,6 +66,10 @@ export interface FindingsLogProps {
   onDeleteAction?: (id: string, actionId: string) => void;
   /** Copy a finding-level action into the active project's action tracker (PR-CS-6 Edge 1) */
   onPromoteAction?: (findingId: string, actionId: string) => void;
+  /** Two-way toggle pinning a finding to the active project's lineage (PR-CS-6 Edge 2) */
+  onToggleProjectLineage?: (findingId: string) => void;
+  /** Ids of findings currently in the active project's investigation lineage (PR-CS-6 Edge 2) */
+  projectLineageFindingIds?: ReadonlySet<string>;
   /** Set outcome assessment */
   onSetOutcome?: (
     id: string,
@@ -127,6 +131,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onCompleteAction,
   onDeleteAction,
   onPromoteAction,
+  onToggleProjectLineage,
+  projectLineageFindingIds,
   onSetOutcome,
   onProjectImprovement,
   hasSpecs,
@@ -183,6 +189,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
           onPromoteAction={onPromoteAction}
+          onToggleProjectLineage={onToggleProjectLineage}
+          projectLineageFindingIds={projectLineageFindingIds}
           onSetOutcome={onSetOutcome}
           voiceInput={voiceInput}
         />
@@ -227,6 +235,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
             onCompleteAction={onCompleteAction}
             onDeleteAction={onDeleteAction}
             onPromoteAction={onPromoteAction}
+            onToggleProjectLineage={onToggleProjectLineage}
+            isInProjectLineage={projectLineageFindingIds?.has(finding.id) ?? false}
             onSetOutcome={onSetOutcome}
             onProjectImprovement={onProjectImprovement}
             hasSpecs={hasSpecs}

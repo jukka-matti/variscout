@@ -86,7 +86,7 @@ import type { SurveyRecommendation } from '@variscout/core/survey';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { createProjectActionItem, type BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
-import { createNewIP } from '@variscout/core/improvementProject';
+import { createNewIP, toggleLineageFinding } from '@variscout/core/improvementProject';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
@@ -1343,6 +1343,30 @@ export const Editor: React.FC<EditorProps> = ({
     },
     [activeIP, applyAction, findingsState]
   );
+
+  // PR-CS-6 Edge 2: two-way toggle pinning a finding to the active project's
+  // investigation lineage (`sections.investigationLineage.findingIds`). Merges
+  // the `findingIds` array only (preserves `hypothesisIds`) + stamps `updatedAt`.
+  // Ungated analysis write (Member + Lead edit; Sponsor read-only) — same
+  // `canAccess` boundary as Charter writes, enforced upstream by `canEditCharter`.
+  const handleToggleProjectLineage = useCallback(
+    (findingId: string) => {
+      if (!activeIP) return;
+      const nextIP = toggleLineageFinding(activeIP, findingId);
+      upsertProject(nextIP);
+      const { findingIds, updatedAt } = nextIP.sections.investigationLineage;
+      void azureHubRepository
+        .dispatch({
+          kind: 'IMPROVEMENT_PROJECT_UPDATE',
+          projectId: activeIP.id,
+          patch: { sections: { investigationLineage: { findingIds, updatedAt } } },
+        })
+        .catch((error: unknown) => {
+          console.error('[lineage] Failed to persist investigation-lineage toggle', error);
+        });
+    },
+    [activeIP, upsertProject]
+  );
   const activeIPAnalyzeFactorRequest = useMemo(
     () =>
       activeIPContext.isIPScoped && activeIPScopeLabels?.factorLabels[0]
@@ -2009,6 +2033,7 @@ export const Editor: React.FC<EditorProps> = ({
                 handleNavigateToChart={handleNavigateToChart}
                 handleShareFinding={handleShareFinding}
                 onPromoteFindingAction={activeIP ? handlePromoteFindingAction : undefined}
+                onToggleProjectLineage={activeIP ? handleToggleProjectLineage : undefined}
                 drillPath={drillPath}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
                 handleAddPhoto={handleAddPhoto}

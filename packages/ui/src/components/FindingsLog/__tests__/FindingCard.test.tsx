@@ -119,3 +119,41 @@ describe('FindingCard — PR-CS-6 Edge 1 promote action', () => {
     expect(screen.queryByTestId('promote-action-btn')).toBeNull();
   });
 });
+
+describe('FindingCard — PR-CS-6 Edge 2 project-lineage toggle', () => {
+  it('renders the toggle and fires onToggleProjectLineage on click', () => {
+    const onToggleProjectLineage = vi.fn();
+    render(
+      <FindingCard
+        finding={makeFinding()}
+        {...noopHandlers}
+        onToggleProjectLineage={onToggleProjectLineage}
+        isInProjectLineage={false}
+      />
+    );
+
+    const btn = screen.getByTestId('toggle-lineage-btn');
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(btn);
+    expect(onToggleProjectLineage).toHaveBeenCalledWith('f-window-1');
+  });
+
+  it('reflects pressed state when the finding is already in the lineage', () => {
+    render(
+      <FindingCard
+        finding={makeFinding()}
+        {...noopHandlers}
+        onToggleProjectLineage={vi.fn()}
+        isInProjectLineage
+      />
+    );
+
+    expect(screen.getByTestId('toggle-lineage-btn').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('hides the toggle when onToggleProjectLineage is absent (no active IP)', () => {
+    render(<FindingCard finding={makeFinding()} {...noopHandlers} />);
+
+    expect(screen.queryByTestId('toggle-lineage-btn')).toBeNull();
+  });
+});

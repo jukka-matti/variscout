@@ -46,6 +46,8 @@ export interface FindingBoardViewProps {
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
   onPromoteAction?: (findingId: string, actionId: string) => void;
+  onToggleProjectLineage?: (findingId: string) => void;
+  projectLineageFindingIds?: ReadonlySet<string>;
   onSetOutcome?: (
     id: string,
     outcome: {
@@ -88,6 +90,8 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   onCompleteAction,
   onDeleteAction,
   onPromoteAction,
+  onToggleProjectLineage,
+  projectLineageFindingIds,
   onSetOutcome,
   voiceInput,
 }) => {
@@ -176,6 +180,8 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     onCompleteAction={onCompleteAction}
                     onDeleteAction={onDeleteAction}
                     onPromoteAction={onPromoteAction}
+                    onToggleProjectLineage={onToggleProjectLineage}
+                    isInProjectLineage={projectLineageFindingIds?.has(finding.id) ?? false}
                     onSetOutcome={onSetOutcome}
                     voiceInput={voiceInput}
                   />
