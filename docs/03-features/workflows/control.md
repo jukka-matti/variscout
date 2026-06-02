@@ -22,7 +22,7 @@ Improvement projects fail when the team stops monitoring after the fix lands —
 
 ## Capability claim
 
-Control domain types live in `packages/core/src/sustainment.ts` (`SustainmentCadence` weekly through annual, `SustainmentVerdict` of `'holding' | 'drifting' | 'broken' | 'inconclusive'`, `SustainmentStatus`, and `ControlHandoffSurface` enumerating `'mes-recipe' | 'scada-alarm' | 'qms-procedure' | 'work-instruction'`), with Azure UI in `apps/azure/src/components/sustainment/SustainmentPanel.tsx` + editors and CoScout auto-fire on Control events per ADR-080. Note: code identifiers (`sustainment`, `SustainmentCadence`, etc.) are preserved as stable tokens per Task #40 rename discipline.
+Control domain types live in `packages/core/src/control.ts` (`ControlCadence` weekly through annual; `ControlVerdict` of `'holding' | 'drifting' | 'broken' | 'inconclusive'`; `ControlStatus` of `'pending' | 'confirmed-sustained' | 'drifted'`; `ControlHandoffStatus`; and `ControlHandoffSurface` enumerating nine handoff targets — `'mes-recipe' | 'scada-alarm' | 'qms-procedure' | 'work-instruction' | 'training-record' | 'audit-program' | 'dashboard-only' | 'ticket-queue' | 'other'`), with the `ControlRecord` entity and Azure UI in `apps/azure/src/components/control/ControlPanel.tsx` + editors, and CoScout auto-fire on Control events per [ADR-080](../../07-decisions/adr-080-control-auto-fire-pattern.md). Note: the control-domain **code identifiers are `Control*`** — the Sustainment → Control vocabulary rename propagated to code here (unlike the `sustainment` narrative tokens preserved elsewhere).
 
 ## Intent diagram
 
@@ -42,11 +42,11 @@ flowchart LR
     Continue --> Cadence
 ```
 
-Third Project stage in the wedge V1 `Charter → Approach → Control` model. `SustainmentVerdict` drives the branch (`holding | drifting | broken | inconclusive`); CoScout auto-fires on Control events per ADR-080.
+Third Project stage in the wedge V1 `Charter → Approach → Control` model. `ControlVerdict` drives the branch (`holding | drifting | broken | inconclusive`); CoScout auto-fires on Control events per ADR-080.
 
 ## Acceptance signals
 
-TBD — testable conditions to be added on next edit. See related tests at `packages/core/src/__tests__/sustainment.test.ts`, `packages/core/src/__tests__/sustainment.paths.test.ts`, and `apps/azure/src/components/__tests__/SustainmentEditors.test.tsx` for current verification.
+TBD — testable conditions to be added on next edit. See related tests at `packages/core/src/__tests__/control.test.ts` and `packages/core/src/__tests__/control.paths.test.ts` for current verification.
 
 ## Out of scope / non-goals
 
@@ -54,6 +54,6 @@ TBD.
 
 ## Links
 
-- **Code**: `packages/core/src/sustainment.ts`, `packages/core/src/actions/sustainmentActions.ts`, `packages/core/src/survey/sustainment.ts`, `apps/azure/src/components/sustainment/`, `apps/azure/src/pages/Editor.sustainment.tsx`
-- **Tests**: `packages/core/src/__tests__/sustainment.test.ts`, `packages/core/src/__tests__/sustainment.paths.test.ts`
+- **Code**: `packages/core/src/control.ts`, `packages/core/src/actions/controlActions.ts`, `packages/core/src/actions/controlHandoffActions.ts`, `packages/core/src/survey/control.ts`, `apps/azure/src/components/control/`, `apps/azure/src/pages/Editor.control.tsx`
+- **Tests**: `packages/core/src/__tests__/control.test.ts`, `packages/core/src/__tests__/control.paths.test.ts`
 - **Related**: `docs/07-decisions/adr-080-control-auto-fire-pattern.md`, `docs/07-decisions/adr-082-wedge-architecture.md`, `docs/03-features/workflows/improvement-workspace.md`
