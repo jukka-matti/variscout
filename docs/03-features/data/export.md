@@ -8,10 +8,11 @@ layer: L3
 kind: workflow
 serves:
   - docs/02-journeys/index.md
-last-reviewed: 2026-06-01
+last-verified: 2026-06-02
+verified-against-commit: 7f6945d0
 ---
 
-> **L3 feature stub** — created 2026-05-18 as part of M0 SDD migration inventory (Option A). Body to be expanded in M3 audit or on next feature edit.
+> **L3 feature stub** (M0 SDD inventory, 2026-05-18). Verified accurate against R6 code 2026-06-02; full body expansion deferred to M3. See **[save-and-load.md](save-and-load.md)** for the save/load/access contract.
 
 # Export
 

@@ -5,12 +5,13 @@ title: Project Persistence
 audience: human
 category: data
 status: active
-related: [indexeddb, blob-storage, browser-cache, document-snapshot]
+related: [indexeddb, blob-storage, browser-cache, document-snapshot, save-and-load]
 layer: L3
 kind: infrastructure
 serves:
   - docs/02-journeys/ia-nav-model.md
-last-reviewed: 2026-06-01
+last-verified: 2026-06-02
+verified-against-commit: 7f6945d0
 ---
 
 # Project Persistence
