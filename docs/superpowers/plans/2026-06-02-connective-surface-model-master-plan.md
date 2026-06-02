@@ -31,6 +31,17 @@ layer: spec
 
 ## Phase 1 — Clear the ground + lay the spine (the runway)
 
+### PR-CS-0 · Make scope durable + IP-keyed (the connective prerequisite)
+
+- **Goal:** the drill produces a first-class, **durable, IP-keyed `ProblemStatementScope`** — the foundation the connective spine (§4) + the orient→dive handoff assume. (The 2026-06-02 user-POV eval found this **unwired despite IM-4 reading "delivered."**)
+- **Touches:** wire the drill→scope bridge (`buildConditionFromCategoricalFilters → createProblemStatementScope`/`analyzeStore.addScope` — **zero live callers today**); fix capture-as-Finding to snapshot the drill condition (not legacy `projectStore.filters`); key `analysisScopeStore` to `activeIPId` + clear on IP switch (the §4.1 bleed fix, supersedes PR-CS-4); seed scope from `projectStore.outcome` on every Process→Explore transition (the "See the data" scope-fix).
+- **Depends on:** — (**FIRST — prerequisite**; verify what IM-4 actually delivered before building).
+- **Model:** Opus (the scope lifecycle is the connective foundation; judgment-heavy).
+- **Acceptance:** a drill becomes a persisted `ProblemStatementScope` that survives reload; switching IP resets drill state (no bleed); "See the data" lands in a scoped Explore; capture-as-Finding records the drill condition.
+- **Spec ref:** §2A.1a, §4.1, §4.5.
+
+> **§2A.1a coherence items fold into existing PRs:** the **b0→b1 transition affordance + the role-assignment/factor-screening terminology** → CS-15 (framing) + CS-P1; the **best-subsets-in-orient placement** (§12 Q6 resolved) → CS-8 / CS-P2 (the orient view's "which factor" signal). PR-CS-4 (IP-scope bleed) is **absorbed into PR-CS-0**.
+
 ### PR-CS-1 · Orphan cleanup + ADR-086 retraction
 
 - **Goal:** delete the confirmed dead code so Model B builds on cleared ground.

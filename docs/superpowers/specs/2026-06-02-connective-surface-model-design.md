@@ -122,6 +122,17 @@ FRAME (set up the map + connect columns) → L1 "are we capable?" → L2 "which 
 
 **Spatial spine:** the **8f canvas L1/L2/L3 zoom** (Outcome → Process-flow → Local-mechanism) is the V1 spatial model. The "**3-band Layered Process View**" was **never built as a component** (grep-confirmed) — retire the term; do not resurrect a band concept.
 
+### §2A.1a · The orient surface — coherence-hardening (from the 2026-06-02 user-POV pass)
+
+A user-POV coherence walk found the forward path works but the Process tab fragments into stacked paradigms (edit-canvas · altitude-zoom · statistical-grid) with a few unannounced seams. This hardens it:
+
+- **"Where do I look first?" has two signals, both in the orient view:** _which **step**_ (the per-step capability / weakest-link + cycle-time, §2A.2–3) **and** _which **factor**_ (the best-subsets guide). **Decision (resolves §12 Q6):** the **global best-subsets "watch these factors" guide lives in the orient view, surfaced right after framing** — "of your assigned factors, watch these first." The per-scope re-rank stays in Analyze (settled). This gives the framing moment its first-class attention guide.
+- **Disambiguate the two "factor selections"** (they collide today): **(1) role assignment** — _which columns ARE my factors / steps / outcome_ (framing; `projectStore.setFactors` + the `canvasStore` map). **(2) factor screening / attention guide** — _which assigned factors statistically matter_ (best-subsets). Spec + UI say "**role assignment**" (framing) and "**factor screening**" (best-subsets) — never the bare "factor selection."
+- **Make the b0→b1→orient transition explicit.** Adding the first step silently swaps `FrameViewB0` for the canvas — the mental model changes (pick-outcome → drag-onto-a-map → orient) unannounced. Add a **light transition affordance** ("your process is set — here it is at a glance"), so framing visibly hands off to the orient view.
+- **One way out, always scoped.** The plain "**See the data**" path must carry scope (today only chip-clicks do — `FrameView.handleSeeData` calls `showExplore()` with no `analysisScopeStore` mutation). Seed the scope from `projectStore.outcome` on every Process→Explore transition (§4.1) so the user never lands in an unseeded Explore.
+
+> **Coherence prerequisite — scope must become durable.** The connective story assumes the drill produces a first-class `ProblemStatementScope`, but grounding found **the drill never becomes one** (the `buildConditionFromCategoricalFilters → createProblemStatementScope` bridge has **zero live callers**; capture-as-Finding still snapshots legacy `projectStore.filters`) — even though IM-4 read as "delivered." Plus `analysisScopeStore` is **not IP-keyed** (bleeds across IPs, lost on reload). **Wiring the drill → a durable, IP-keyed scope is a prerequisite** the connective spine (§4) and the orient→dive handoff depend on (master plan **PR-CS-0**). _(The dual `projectStore` vs `canvasStore` assignment seam, §5.4, stays a known-acknowledged risk, preserved for V1.)_
+
 ### §2A.2 · "Which step is the problem?" — two honestly-different axes, no leaderboard
 
 Same question, **two distinct concepts** — never conflated (the grounding confirmed they are separate analyses over a shared step spine):
@@ -476,7 +487,7 @@ _Inbound links (doc-gate ≥1 each, added on the same apply-phase PR):_ `process
 3. **`CausalLink` overlay in V1** — is the optional factor-graph overlay (§4.3) worth surfacing in V1, or is Finding-mediated the whole V1 story? (lean: ship Finding-mediated; the `CausalLink` overlay is a candidate defer/cut.)
 4. **Scope desync across the 3 satellite popouts** — adopt JMP's "selection changed" nudge + Reset + a serializable scope predicate (lean: yes).
 5. **Re-evaluate cascade depth** — V1 has the analyst re-test the targeted hypothesis on re-ingest (§4.5, analyst-owned status); confirm the full replace-re-evaluate cascade across all scopes/conditions stays a named follow-up.
-6. **Upstream best-subsets screening placement (advanced design)** — where does the _global_ "watch these factors" guide live (§4.0a / §4.0): in Frame, a Frame-adjacent "what to watch" surface, or at the Explore entry? Get it right so it directs attention without reading as the tool naming causes; the per-scope re-rank in Analyze is settled.
+6. **Upstream best-subsets screening placement** — **RESOLVED 2026-06-02 (§2A.1a):** the global "watch these factors" guide lives in the **Process-tab orient view, surfaced after framing** (alongside per-step capability — the "which factor" + "which step" answer to "where do I look first"); the per-scope re-rank stays in Analyze. It directs attention as factor _screening_, never naming causes.
 7. **Per-step spec-authoring UI (§2A.4)** — ship the deferred IM-0b-2 `capabilityScope` editor (per-step LSL/USL/target by context) at framing, or hub-default-only for V1? (lean: ship it — "ask the specs" is core to the per-step view.)
 8. **Per-step time specs (§2A.4)** — model per-step cycle-time targets (a `StepTimingBinding` analog to `capabilityScope`) for a "Cpk-of-time" view, or keep cycle-time as a raw bottleneck/throughput view only? (lean: raw bottleneck view for V1; time-specs deferred.)
 
