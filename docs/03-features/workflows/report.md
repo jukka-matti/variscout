@@ -35,7 +35,7 @@ flowchart LR
   F -->|actions / outcomes| S["Improvement Story<br/>all 8 sections + Cpk Learning Loop + Control Review"]
 ```
 
-Sections are tagged by **workspace origin** and colour-coded: Analysis (green), Findings (amber), Improvement (purple). The 8 ordered sections: `current-condition`, `drivers`, `evidence-trail`, `hypothesis-summary`, `improvement-plan`, `actions-taken`, `verification`, + optional `hub-portfolio`. `ReportImprovementSummary` maps `Hypothesis.status` (the `confirmed` status renders as **"Supported"**).
+Sections are tagged by **workspace origin** and colour-coded: Analysis (green), Findings (amber), Improvement (purple). The 7 section ids: `current-condition`, `drivers`, `evidence-trail`, `improvement-plan`, `actions-taken`, `verification`, + optional `hub-portfolio` (hypothesis summaries render _within_ `evidence-trail`, not as a separate id). `ReportImprovementSummary` maps `Hypothesis.status` (the `confirmed` status renders as **"Supported"**).
 
 ## Audience toggle
 
@@ -47,8 +47,9 @@ Capability is shown as **per-step boxplot distributions side-by-side, never an a
 
 ## Export
 
-- **Azure: PDF** via the browser print dialog (`window.print()` + an `@media print` stylesheet — no PDF library, zero bundle cost; expands all sections, switches to a light theme). Optional AI narrative (CoScout) in the findings/evidence sections, labelled "AI-generated" (Azure only; PWA has no AI, P8).
-- **PWA: export-only** — `.vrs` (a VariScout Report Snapshot, the `DocumentSnapshot` envelope). No print/PDF (ADR-031, Azure-only). Read-mostly sections render; durability is the `.vrs`.
+- **Print / PDF (both apps)** via the browser print dialog (`handlePrintReport` → `window.print()` + an `@media print` stylesheet — no PDF library; expands all sections, switches to a light theme). _(ADR-031 predates the PWA Report view and is stale on its "Azure-only" claim — both apps print.)_
+- **`.vrs` snapshot (both apps)** — the report's `DocumentSnapshot` envelope; on PWA this is the only _durable_ path (R6d export-only).
+- **AI narrative** — Azure only (CoScout, labelled "AI-generated"); PWA has no AI (P8).
 
 ## Access
 
@@ -59,7 +60,7 @@ The **Sponsor** is read-only on the Report (the role's primary surface); Lead/Me
 |                        | Azure (€120) | PWA (free)      |
 | ---------------------- | ------------ | --------------- |
 | Report tab             | ✓            | ✓ (read-mostly) |
-| PDF export             | ✓ (print)    | —               |
+| Print / PDF            | ✓ (print)    | ✓ (print)       |
 | `.vrs` snapshot export | ✓            | ✓               |
 | AI narrative           | ✓            | —               |
 

@@ -60,7 +60,7 @@ The entry surface — PWA training-funnel vs Azure durable portfolio; the active
 
 ### [Report](report.md)
 
-The terminal compilation surface — 3 auto-detected report types, distributions-not-aggregates (ADR-073), PDF (Azure) vs `.vrs` (PWA), Sponsor read-only.
+The terminal compilation surface — 3 auto-detected report types, distributions-not-aggregates (ADR-073), print/PDF + `.vrs` export (both apps), Sponsor read-only.
 
 ---
 
