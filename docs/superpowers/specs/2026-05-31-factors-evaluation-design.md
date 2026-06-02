@@ -3,9 +3,10 @@ tier: living
 purpose: design
 title: 'Factors & Evaluation — the model-builder, the hypothesis test-plan, and the What-If handoff'
 audience: human
-status: draft
+status: delivered
 date: 2026-05-31
 last-reviewed: 2026-05-31
+delivered-by: 'FE-1/2a/2b (PRs #260–#262)'
 layer: spec
 topic: [investigation, factors, best-subset, hypotheses, evaluation, improve, wedge-v1]
 related:
@@ -14,12 +15,13 @@ related:
   - docs/07-decisions/adr-088-level-native-contribution.md
   - docs/decision-log.md
 implements:
-  - docs/superpowers/specs/2026-05-30-investigation-wall-unified-canvas-design.md
+  - docs/03-features/workflows/analyze-wall.md
+  - docs/03-features/workflows/findings-hypotheses.md
 ---
 
 # Factors & Evaluation — the model-builder, the hypothesis test-plan, and the What-If handoff
 
-> **Draft · 2026-05-31.** The V-next initiative on top of the merged Investigation Wall (IM-4a/b/c). It turns the Wall from a _manual evidence-curation_ surface into one where **VariScout hands you the right tool, you tap to run, and the result auto-files as support-or-counter** — built on a parsimony engine that **already exists** (`computeBestSubsets`). Grounded against shipped code via four prior fan-out explorations (factor↔cause model · model-simplification UX · hypothesis-stage walkthrough); design forks settled with the product owner (a Six Sigma MBB). Canonical "why" lives in [ADR-086 Amendment 2026-05-31](../../07-decisions/adr-086-unified-investigation-canvas.md) + the [2026-05-31 decision-log entry](../../decision-log.md); the hypothesis-card triad is sketched in [the 2026-05-30 Wall spec §6.1](2026-05-30-investigation-wall-unified-canvas-design.md).
+> ✅ **Delivered 2026-06-02** — FE-1/2a/2b shipped (PRs #260–#262); documented in doc-alignment Wave 1 (`analyze-wall.md` model-builder / test-plan / disconfirmation sections + `findings-hypotheses.md`). _Originally drafted 2026-05-31._ The V-next initiative on top of the merged Investigation Wall (IM-4a/b/c). It turns the Wall from a _manual evidence-curation_ surface into one where **VariScout hands you the right tool, you tap to run, and the result auto-files as support-or-counter** — built on a parsimony engine that **already exists** (`computeBestSubsets`). Grounded against shipped code via four prior fan-out explorations (factor↔cause model · model-simplification UX · hypothesis-stage walkthrough); design forks settled with the product owner (a Six Sigma MBB). Canonical "why" lives in [ADR-086 Amendment 2026-05-31](../../07-decisions/adr-086-unified-investigation-canvas.md) + the [2026-05-31 decision-log entry](../../decision-log.md); the hypothesis-card triad is sketched in [the 2026-05-30 Wall spec §6.1](2026-05-30-investigation-wall-unified-canvas-design.md).
 
 ## §1 · The gap this closes
 

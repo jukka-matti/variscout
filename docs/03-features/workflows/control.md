@@ -8,7 +8,8 @@ layer: L3
 kind: workflow
 serves:
   - docs/02-journeys/index.md
-last-reviewed: 2026-05-30
+last-verified: 2026-06-02
+verified-against-commit: c289d920
 ---
 
 > **L3 feature stub** — created 2026-05-18 as part of M0 SDD migration inventory (Option A). Body to be expanded in M3 audit or on next feature edit.

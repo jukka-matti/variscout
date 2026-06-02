@@ -52,16 +52,16 @@ The core statistical charts based on Watson's Four Lenses:
 
 ## Analysis Journey
 
-| Map                                                         | Description                                             |
-| ----------------------------------------------------------- | ------------------------------------------------------- |
-| [Analysis Journey Map](workflows/analysis-journey-map.md)   | 4-phase model: Frame → Scout → Investigate → Improve    |
-| [Analyze Lifecycle Map](workflows/analyze-lifecycle-map.md) | Analyze diamond state diagram for the Investigate phase |
+| Map                                                         | Description                                                          |
+| ----------------------------------------------------------- | -------------------------------------------------------------------- |
+| [Analysis Journey Map](workflows/analysis-journey-map.md)   | 5-verb activity frame: Frame → Explore → Analyze → Improve → Control |
+| [Analyze Lifecycle Map](workflows/analyze-lifecycle-map.md) | Analyze diamond state diagram for the Analyze phase                  |
 
 ## Analyst Workflows
 
 Workflows organized by journey phase. See the [Analysis Journey Map](workflows/analysis-journey-map.md) for the full visual guide.
 
-### SCOUT — Discover Variation
+### EXPLORE — Discover Variation
 
 | Workflow                                                   | Description                            |
 | ---------------------------------------------------------- | -------------------------------------- |
@@ -73,14 +73,14 @@ Workflows organized by journey phase. See the [Analysis Journey Map](workflows/a
 | [Performance Mode](workflows/performance-mode-workflow.md) | Multi-channel analysis workflow        |
 | [Process Maps](workflows/process-maps.md)                  | Step-by-step visual action maps        |
 
-### INVESTIGATE — Understand Causes
+### ANALYZE — Understand Causes
 
-| Workflow                                                        | Description                             |
-| --------------------------------------------------------------- | --------------------------------------- |
-| [Analyze to Action](workflows/analyze-to-action.md)             | Findings, hypotheses, actions, outcomes |
-| [Question-Driven Analyze](workflows/question-driven-analyze.md) | Question tree, validation, evidence     |
-| [Analyze Lifecycle Map](workflows/analyze-lifecycle-map.md)     | Diamond state diagrams                  |
-| [Knowledge Base Search](workflows/knowledge-base-search.md)     | Organizational knowledge (Team)         |
+| Workflow                                                                       | Description                                                                             |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| [Analyze to Action](workflows/analyze-to-action.md)                            | Findings, hypotheses, actions, outcomes                                                 |
+| [Question-Driven Analyze](workflows/question-driven-analyze.md) _(superseded)_ | Retired question tree — see [Investigation Surface](workflows/investigation-surface.md) |
+| [Analyze Lifecycle Map](workflows/analyze-lifecycle-map.md)                    | Diamond state diagrams                                                                  |
+| [Knowledge Base Search](workflows/knowledge-base-search.md)                    | Organizational knowledge (Team)                                                         |
 
 ### Cross-Phase
 
@@ -104,14 +104,15 @@ How users explore and filter data:
 
 Data handling and storage:
 
-| Feature                                      | Description                                   |
-| -------------------------------------------- | --------------------------------------------- |
-| [Data Input](data/data-input.md)             | File upload and parsing                       |
-| [Validation](data/validation.md)             | Data quality checks                           |
-| [Storage](data/storage.md)                   | IndexedDB persistence                         |
-| [Cloud Sync](data/cloud-sync.md)             | Azure Blob persistence + team-tier sync       |
-| [ETag Concurrency](data/etag-concurrency.md) | Optimistic concurrency control for hub writes |
-| [Access Control](data/acl.md)                | Per-project Lead/Member/Sponsor ACLs          |
+| Feature                                      | Description                                          |
+| -------------------------------------------- | ---------------------------------------------------- |
+| [Data Input](data/data-input.md)             | File upload and parsing                              |
+| [Validation](data/validation.md)             | Data quality checks                                  |
+| [Save & Load](data/save-and-load.md)         | Save / Save As / Open + `.vrs` export (PWA vs Azure) |
+| [Storage](data/storage.md)                   | IndexedDB persistence                                |
+| [Cloud Sync](data/cloud-sync.md)             | Azure Blob persistence + team-tier sync              |
+| [ETag Concurrency](data/etag-concurrency.md) | Optimistic concurrency control for hub writes        |
+| [Access Control](data/acl.md)                | Per-project Lead/Member/Sponsor ACLs                 |
 
 ---
 

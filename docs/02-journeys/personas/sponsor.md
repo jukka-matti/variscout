@@ -5,7 +5,8 @@ tier: living
 status: active
 audience: both
 layer: L2
-last-reviewed: 2026-05-27
+last-verified: 2026-06-02
+verified-against-commit: c289d920
 ---
 
 # Sponsor Persona Journey

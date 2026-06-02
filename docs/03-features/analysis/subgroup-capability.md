@@ -11,6 +11,8 @@ kind: ui
 serves:
   - docs/02-journeys/personas/lead.md
   - docs/02-journeys/personas/member.md
+last-verified: 2026-06-02
+verified-against-commit: c289d920
 ---
 
 # Subgroup Capability Analysis
@@ -31,7 +33,7 @@ A single overall capability number is a black box — it tells you the result bu
 
 Values ⇄ Capability is the one surviving analysis **view** ([ADR-089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md)) — a specs-gated toggle on the I-Chart, _not_ a mode or lens. The analyst switches between Values (variation analysis) and Capability (target compliance) at any point during analysis. Both views work on the same filtered data — drill-down, findings, and investigation are identical in both.
 
-Time-based subgrouping uses extracted time columns from FRAME (TimeExtractionPanel with minute-interval support), ensuring subgroups appear as Boxplot-filterable categories and work seamlessly with findings. For fixed-size subgroups where a specific subgroup fails, the analyst can use the Brush → Create Factor flow to isolate problematic data points for deeper investigation.
+Time-based subgrouping uses extracted time columns from the Frame stage (TimeExtractionPanel with minute-interval support), ensuring subgroups appear as Boxplot-filterable categories and work seamlessly with findings. For fixed-size subgroups where a specific subgroup fails, the analyst can use the Brush → Create Factor flow to isolate problematic data points for deeper investigation.
 
 See [Analysis Flow](../workflows/analysis-flow.md) for the complete two-thread analysis journey.
 

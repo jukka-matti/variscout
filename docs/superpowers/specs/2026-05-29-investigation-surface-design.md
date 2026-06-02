@@ -3,9 +3,10 @@ tier: living
 purpose: design
 title: 'Investigation Surface — unified canvas, scope-vs-cause entity model, level-native contribution'
 audience: human
-status: draft
+status: delivered
 date: 2026-05-29
 last-reviewed: 2026-05-29
+delivered-by: 'IM-0…IM-7 (PRs #243–#263; #263 closes the initiative)'
 layer: spec
 topic: [investigation, canvas, findings, methodology, capability, wedge-v1]
 related:
@@ -34,7 +35,7 @@ implements:
 
 # Investigation Surface
 
-> **Draft · 2026-05-29.** Graduates the holistic investigation-model design (Clusters A + B + C, settled 2026-05-29) from a decision-log candidate into a buildable spec. Promoted from `docs/ephemeral/investigations.md` → "Investigation-model design direction". Decisions captured here are recorded in five ADRs ([ADR-085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md) … [ADR-089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md)); delivery is sequenced by the companion master plan. **This is full-vision (PWA + Azure); the plan sequences V1 delivery.** Grounded against actual source via 8 grounding agents + the methodology author's GB "Measure" decks (~144 pp).
+> ✅ **Delivered 2026-06-02** — build slices IM-0…IM-7 shipped (PRs #243–#263; #263 closes the initiative), documented in doc-alignment Wave 1 (`investigation-surface.md` + `findings-hypotheses.md`). _Originally drafted 2026-05-29._ Graduates the holistic investigation-model design (Clusters A + B + C, settled 2026-05-29) from a decision-log candidate into a buildable spec. Promoted from `docs/ephemeral/investigations.md` → "Investigation-model design direction". Decisions captured here are recorded in five ADRs ([ADR-085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md) … [ADR-089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md)); delivery is sequenced by the companion master plan. **This is full-vision (PWA + Azure); the plan sequences V1 delivery.** Grounded against actual source via 8 grounding agents + the methodology author's GB "Measure" decks (~144 pp).
 
 ---
 
