@@ -1,13 +1,9 @@
 import React from 'react';
-import { Briefcase, MessageSquare, ShieldCheck, Zap, type LucideIcon } from 'lucide-react';
+import { Briefcase, MessageSquare, ShieldCheck, type LucideIcon } from 'lucide-react';
 
 import { MultiLinkPicker, type ContextLinkItem } from './MultiLinkPicker';
 
-export type ContextSurfaceType =
-  | 'improvement-projects'
-  | 'wall-threads'
-  | 'quick-actions'
-  | 'sustainment';
+export type ContextSurfaceType = 'improvement-projects' | 'wall-threads' | 'sustainment';
 
 export interface ContextLinkGroup<TItem extends ContextLinkItem = ContextLinkItem> {
   surfaceType: ContextSurfaceType;
@@ -25,7 +21,6 @@ export interface ContextBadgesRowProps<TItem extends ContextLinkItem = ContextLi
 const SURFACE_META: Record<ContextSurfaceType, { label: string; Icon: LucideIcon }> = {
   'improvement-projects': { label: 'Improvement projects', Icon: Briefcase },
   'wall-threads': { label: 'Wall threads', Icon: MessageSquare },
-  'quick-actions': { label: 'Quick actions', Icon: Zap },
   sustainment: { label: 'Control', Icon: ShieldCheck },
 };
 

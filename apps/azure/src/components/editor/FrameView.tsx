@@ -198,7 +198,6 @@ const FrameView: React.FC<FrameViewProps> = ({ canEditCanvas, activeIP, outcomeS
           description: hypothesis.status,
         })),
       },
-      { surfaceType: 'quick-actions', items: [] },
       {
         // Wedge V1 (ADR-082) folds Handoff into Control-closure; control handoffs surface here too.
         surfaceType: 'sustainment',
