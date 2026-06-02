@@ -6,3 +6,5 @@ export { AddFilterButton } from './AddFilterButton';
 export type { AddFilterButtonProps } from './AddFilterButton';
 export { EmptyStateHint } from './EmptyStateHint';
 export type { EmptyStateHintProps } from './EmptyStateHint';
+export { PersistentScopeChip } from './PersistentScopeChip';
+export type { PersistentScopeChipProps } from './PersistentScopeChip';

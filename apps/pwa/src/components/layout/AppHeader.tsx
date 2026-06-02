@@ -9,7 +9,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
-import { IPContextChip, WorkflowNav, type WorkflowTabId } from '@variscout/ui';
+import { IPContextChip, PersistentScopeChip, WorkflowNav, type WorkflowTabId } from '@variscout/ui';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
@@ -171,6 +171,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           onExitIP={onExitActiveIP}
         />
       ) : null}
+
+      {/* PR-CS-3a: always-visible live analysis-scope chip (self-hides when no scope). */}
+      {hasData && (
+        <PersistentScopeChip onOpen={onPhaseChange ? () => onPhaseChange('explore') : undefined} />
+      )}
 
       {/* Toolbar */}
       <div className="flex items-center gap-1">
