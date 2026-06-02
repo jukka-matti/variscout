@@ -1968,6 +1968,7 @@ export const Editor: React.FC<EditorProps> = ({
               <AnalyzeWorkspace
                 activeIPScope={activeIPScope}
                 activeIPLineage={activeIPLineage}
+                scopeInvestigationId={activeIPContext.activeIP?.id ?? 'general-unassigned'}
                 findingsState={scopedFindingsState}
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={handleSetFindingStatus}
