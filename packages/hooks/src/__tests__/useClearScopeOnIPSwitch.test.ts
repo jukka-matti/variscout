@@ -1,12 +1,12 @@
 import { renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { useClearScopeOnIPSwitch } from '../useClearScopeOnIPSwitch';
 
 describe('useClearScopeOnIPSwitch', () => {
-  let clearFn: ReturnType<typeof vi.fn>;
+  let clearFn: Mock<() => void>;
 
   beforeEach(() => {
-    clearFn = vi.fn();
+    clearFn = vi.fn<() => void>();
   });
 
   it('does NOT call clearFn on initial render with a non-null id', () => {
@@ -17,7 +17,7 @@ describe('useClearScopeOnIPSwitch', () => {
   it('calls clearFn exactly once when switching from A to B', () => {
     const { rerender } = renderHook(
       ({ id }: { id: string | null }) => useClearScopeOnIPSwitch(id, clearFn),
-      { initialProps: { id: 'A' } }
+      { initialProps: { id: 'A' as string | null } }
     );
     rerender({ id: 'B' });
     expect(clearFn).toHaveBeenCalledTimes(1);
@@ -26,7 +26,7 @@ describe('useClearScopeOnIPSwitch', () => {
   it('does NOT call clearFn again when id stays the same (B→B)', () => {
     const { rerender } = renderHook(
       ({ id }: { id: string | null }) => useClearScopeOnIPSwitch(id, clearFn),
-      { initialProps: { id: 'A' } }
+      { initialProps: { id: 'A' as string | null } }
     );
     rerender({ id: 'B' });
     clearFn.mockClear();
@@ -37,7 +37,7 @@ describe('useClearScopeOnIPSwitch', () => {
   it('does NOT call clearFn on null→id (activation)', () => {
     const { rerender } = renderHook(
       ({ id }: { id: string | null }) => useClearScopeOnIPSwitch(id, clearFn),
-      { initialProps: { id: null } }
+      { initialProps: { id: null as string | null } }
     );
     rerender({ id: 'A' });
     expect(clearFn).not.toHaveBeenCalled();
@@ -46,7 +46,7 @@ describe('useClearScopeOnIPSwitch', () => {
   it('does NOT call clearFn on id→null (deactivation)', () => {
     const { rerender } = renderHook(
       ({ id }: { id: string | null }) => useClearScopeOnIPSwitch(id, clearFn),
-      { initialProps: { id: 'A' } }
+      { initialProps: { id: 'A' as string | null } }
     );
     rerender({ id: null });
     expect(clearFn).not.toHaveBeenCalled();
@@ -55,7 +55,7 @@ describe('useClearScopeOnIPSwitch', () => {
   it('calls clearFn exactly once for the sequence null→A→B', () => {
     const { rerender } = renderHook(
       ({ id }: { id: string | null }) => useClearScopeOnIPSwitch(id, clearFn),
-      { initialProps: { id: null } }
+      { initialProps: { id: null as string | null } }
     );
     // null → A: activation — must NOT fire
     rerender({ id: 'A' });
