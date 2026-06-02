@@ -5,9 +5,10 @@ title: 'Positioning Bible'
 audience: human
 category: reference
 status: active
-last-reviewed: 2026-05-17
 related: [strategy, positioning, methodology, category, messaging]
 layer: L1
+last-verified: 2026-06-02
+verified-against-commit: c289d920
 ---
 
 # Positioning Bible
@@ -146,7 +147,7 @@ The methodology nests:
 - **Project** is the formal container (Charter → Approach → Control),
   invited team, Report. Improvement actions are owned by the **Improve tab** —
   a top-level verb tab scoped to the active project, not a stage inside it.
-- **FRAME → SCOUT → INVESTIGATE → IMPROVE** explains how one investigation is
+- **Frame → Explore → Analyze → Improve → Control** explains how one investigation is
   done inside a Project (or as quick analysis without one).
 - **Questions** drive the reasoning. Each question can be answered by data,
   gemba, or expert evidence — and each Hypothesis can be confirmed or

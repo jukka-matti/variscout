@@ -12,6 +12,8 @@ serves:
   - docs/02-journeys/personas/lead.md
   - docs/02-journeys/personas/member.md
   - docs/02-journeys/personas/sponsor.md
+last-verified: 2026-06-02
+verified-against-commit: c289d920
 ---
 
 # Investigation to Action Workflow
@@ -20,13 +22,15 @@ serves:
 
 From variation discovery to projected improvement — the analyst workflow.
 
+> **Partially superseded (2026-06-02).** The Analyze → Improve workflow narrative below is current, but its **entity model predates [ADR-085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md)**. The settled investigation entities are **Finding + Hypothesis + CausalLink + ProblemStatementScope** — see [Findings & Hypotheses](findings-hypotheses.md) and the [Investigation Surface](investigation-surface.md). Specifically: the **`Question` entity is retired** (scopes + hypotheses replace the question tree), **`SuspectedCauseHub` was never shipped** (the "SuspectedCause Hub Model" section below is retained for historical context only), and VariScout reports **contribution / suspected cause**, never proof of "root cause" (invariant P5).
+
 ## Intent diagram
 
 ```mermaid
 flowchart LR
     Drill[Drill factors<br/>ANOVA η²] --> Pin[Pin findings<br/>observed]
     Pin --> Inv[Investigating<br/>blue]
-    Inv --> Anly[Analyzed<br/>+ SuspectedCauseHub]
+    Inv --> Anly[Analyzed<br/>+ Hypotheses + causal links]
     Anly --> Syn[Convergence<br/>synthesis]
     Syn --> Ideas[Brainstorm ideas<br/>Prevent / Detect /<br/>Simplify / Eliminate]
     Ideas --> Proj[What-If projection<br/>Cpk / yield]
@@ -172,15 +176,15 @@ As findings accumulate, track their investigation progress. The available status
 
 #### 5-Status Model (Azure Standard and Team)
 
-| Status            | Badge  | Meaning                                     | Journey Phase                               | PDCA Mapping |
-| ----------------- | ------ | ------------------------------------------- | ------------------------------------------- | ------------ |
-| **Observed**      | Amber  | Pattern spotted, not yet investigated       | INVESTIGATE (diamond: Initial)              | —            |
-| **Investigating** | Blue   | Actively drilling into this finding         | INVESTIGATE (diamond: Diverging/Validating) | —            |
-| **Analyzed**      | Purple | Suspected cause identified                  | INVESTIGATE (diamond: Converging)           | —            |
-| **Improving**     | Cyan   | Corrective actions assigned and in progress | IMPROVE                                     | PDCA: Do     |
-| **Resolved**      | Green  | Actions completed, outcome verified         | IMPROVE                                     | PDCA: Act    |
+| Status            | Badge  | Meaning                                     | Journey Phase                           | PDCA Mapping |
+| ----------------- | ------ | ------------------------------------------- | --------------------------------------- | ------------ |
+| **Observed**      | Amber  | Pattern spotted, not yet investigated       | Analyze (diamond: Initial)              | —            |
+| **Investigating** | Blue   | Actively drilling into this finding         | Analyze (diamond: Diverging/Validating) | —            |
+| **Analyzed**      | Purple | Suspected cause identified                  | Analyze (diamond: Converging)           | —            |
+| **Improving**     | Cyan   | Corrective actions assigned and in progress | IMPROVE                                 | PDCA: Do     |
+| **Resolved**      | Green  | Actions completed, outcome verified         | IMPROVE                                 | PDCA: Act    |
 
-> **Note:** The transition from `analyzed` → `improving` maps to the boundary between INVESTIGATE and IMPROVE. Improvement ideation and action selection happen while the finding is still `analyzed` (PDCA: Plan); the first corrective action triggers the transition to `improving` (PDCA: Do). Confirmation that a root cause is correct only comes when the outcome shows the process improved to target — not when the investigation converges.
+> **Note:** The transition from `analyzed` → `improving` maps to the boundary between Analyze and Improve. Improvement ideation and action selection happen while the finding is still `analyzed` (PDCA: Plan); the first corrective action triggers the transition to `improving` (PDCA: Do). Confirmation that a suspected cause is correct only comes when the outcome shows the process improved to target — not when the investigation converges.
 
 #### 3-Status Model (PWA)
 
@@ -244,9 +248,11 @@ When a finding reaches "Analyzed" status, document why the variation is happenin
 
 A hypothesis links to a specific factor and is automatically validated via ANOVA eta-squared thresholds. For causes that cannot be validated with data (physical inspection, domain expertise), gemba and expert validation types are available.
 
-For structured investigation with multiple competing theories, use the **Question-Driven Investigation Flow** — a diamond pattern of diverge (generate questions), validate (test each), and converge (eliminate contradicted, confirm supported). See [Question-Driven Investigation](question-driven-analyze.md) for the full workflow.
+For structured investigation with multiple competing theories, the analyst diverges (generate hypotheses), validates (test each), and converges (eliminate contradicted, confirm supported) on a [ProblemStatementScope](findings-hypotheses.md). _The legacy "Question-Driven Investigation" diamond ([question-driven-analyze.md](question-driven-analyze.md)) predates [ADR-085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md); the question tree is retired in favour of scopes + hypotheses — see the [Investigation Surface](investigation-surface.md)._
 
 ### SuspectedCause Hub Model (Azure only)
+
+> ⚠️ **Retained for historical context — `SuspectedCauseHub` was never shipped as an entity.** The canonical causal model is **Finding + Hypothesis + CausalLink** on a per-scope cause tree; see [Findings & Hypotheses](findings-hypotheses.md). Read this section as original design intent, not current behaviour.
 
 When questions are answered and evidence accumulates, the analyst creates **SuspectedCause hubs** — named entities that connect multiple evidence threads into one coherent causal story. A hub is not a tag applied to a single question; it is a grouping mechanism.
 
@@ -260,7 +266,7 @@ When questions are answered and evidence accumulates, the analyst creates **Susp
 
 When hubs exist and the finding is at `analyzed` status or higher, the **FindingCard** shows a "Suspected causes" section listing all hubs ranked by total evidence (η² / R²adj), with contributing questions beneath each hub name. This makes the convergence conclusion visible directly on the finding card without opening the full tree view.
 
-> Note: the legacy `causeRole: 'primary' | 'contributing'` field on the `Hypothesis` type is deprecated. New investigations use `SuspectedCauseHub` entities. Existing projects using `causeRole` continue to display correctly via a read-only migration view.
+> Note: the legacy `causeRole: 'primary' | 'contributing'` field is deprecated — the shipped `Hypothesis` type carries evidence + status, and causal grouping is expressed via `CausalLink` relations rather than a `SuspectedCauseHub` entity.
 
 **"Question" vs "root cause":** VariScout identifies _where_ variation is hiding (the key factors), but identifying a factor (Machine A explains 47%) is not proving root cause. The investigation diamond converges on **suspected causes** — the best-supported theories, confident enough to act on. True confirmation only comes when the process improves to target (outcome = effective at "Resolved" status). A suspected cause becomes **confirmed** only when the outcome shows the fix was effective.
 
@@ -291,7 +297,7 @@ VariScout's improvement ideation follows the RDMAIC framework, which structures 
 
 | Direction     | Question                                                  | Example                                         |
 | ------------- | --------------------------------------------------------- | ----------------------------------------------- |
-| **Prevent**   | Can the root cause be prevented from occurring?           | Poka-yoke fixture that blocks wrong orientation |
+| **Prevent**   | Can the suspected cause be prevented from occurring?      | Poka-yoke fixture that blocks wrong orientation |
 | **Detect**    | Can the problem be made visible so it's caught earlier?   | In-line sensor alarm at ±2σ threshold           |
 | **Simplify**  | Can the work be made easier or less error-prone?          | Pre-measured kits replacing manual weighing     |
 | **Eliminate** | Can the work step be removed or fundamentally redesigned? | Automation of the manual adjustment step        |
@@ -302,14 +308,14 @@ Working through all four directions before evaluating prevents premature converg
 
 **Four Feasibility Criteria** — quality filter applied to each idea. The best improvement says "yes" to all four:
 
-| Criterion                   | Why it matters                                       |
-| --------------------------- | ---------------------------------------------------- |
-| **Removes root cause?**     | Treating symptoms isn't enough — the problem returns |
-| **Can we do it ourselves?** | Dependencies on others delay weeks                   |
-| **Can we try small?**       | Small experiment, big learning; failure is cheap     |
-| **Can we measure it?**      | Without a metric, you won't know if it worked        |
+| Criterion                    | Why it matters                                       |
+| ---------------------------- | ---------------------------------------------------- |
+| **Removes suspected cause?** | Treating symptoms isn't enough — the problem returns |
+| **Can we do it ourselves?**  | Dependencies on others delay weeks                   |
+| **Can we try small?**        | Small experiment, big learning; failure is cheap     |
+| **Can we measure it?**       | Without a metric, you won't know if it worked        |
 
-**Prioritization principle:** Prefer lean improvements (no investment) first. The best improvement is the simplest one that addresses the root cause. A cheap experiment that removes the root cause beats a capital project that merely reduces symptoms. The **Prioritization Matrix** (impact vs timeframe scatter plot) visualizes all ideas at once, making it easy to spot quick wins (high impact, short timeframe) and avoid time sinks (low impact, long timeframe). See [Improvement Prioritization](improvement-prioritization.md) for the full matrix design.
+**Prioritization principle:** Prefer lean improvements (no investment) first. The best improvement is the simplest one that addresses the suspected cause. A cheap experiment that removes the suspected cause beats a capital project that merely reduces symptoms. The **Prioritization Matrix** (impact vs timeframe scatter plot) visualizes all ideas at once, making it easy to spot quick wins (high impact, short timeframe) and avoid time sinks (low impact, long timeframe). See [Improvement Prioritization](improvement-prioritization.md) for the full matrix design.
 
 ### Idea → What-If Round-Trip
 
@@ -539,7 +545,7 @@ Filter to Store C + Weekend, then use What-If:
 
 ## Convergence Synthesis
 
-The convergence synthesis is a deliberate pause between the INVESTIGATE and IMPROVE phases. Before shifting to improvement planning, the analyst writes a concise narrative summarizing what the evidence points to.
+The convergence synthesis is a deliberate pause between the Analyze and Improve phases. Before shifting to improvement planning, the analyst writes a concise narrative summarizing what the evidence points to.
 
 ### When It Occurs
 
@@ -653,7 +659,7 @@ Every step works without AI. CoScout enhances but never gates:
 - [Four Lenses Workflow](four-lenses-workflow.md) — Foundational methodology
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
 - [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
-- [Question-Driven Investigation](question-driven-analyze.md) — Diamond pattern root cause investigation
+- [Question-Driven Investigation](question-driven-analyze.md) — _superseded_ (see [Investigation Surface](investigation-surface.md)); diamond-pattern contribution analysis
 - [Improvement Prioritization](improvement-prioritization.md) — Prioritization matrix, cost/risk assessment, idea comparison
 - [ADR-015: Investigation Board](../../07-decisions/adr-015-analyze-board.md) — Architectural decisions
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-analyze-workflow.md) — Hypothesis model decisions

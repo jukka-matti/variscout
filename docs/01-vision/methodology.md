@@ -6,6 +6,8 @@ audience: human
 category: methodology
 status: active
 layer: L1
+last-verified: 2026-06-02
+verified-against-commit: c289d920
 ---
 
 # VariScout Methodology
@@ -95,7 +97,7 @@ stronger frame is the Y / X / x three-level set of process understanding
 | **Flow / process model**       | What flows through which steps, at what rate, and where is loss? | CTQ per step, rate, cycle time, wait, throughput, bottleneck |
 | **Local mechanism / evidence** | What physics, recipe, condition, or measurement issue explains?  | settings, material, equipment, subgroup, gemba, Signal Card  |
 
-The FRAME process map is one important flow-level lens. It is not the whole
+The Process-tab process map is one important flow-level lens. It is not the whole
 method. The full model links one-off datasets, investigations, recurring
 Evidence Sources, Process Hub cadence, and sustainment/control handoff. See
 [VariScout Product Vision](../archive/specs/2026-05-03-variscout-vision-design.md) (supersedes the 2026-04-27 operating-model spec, now archived).
@@ -108,7 +110,7 @@ These levels generalize the older three-level EDA language:
 | X / concentration      | Flow / process model       |
 | x / local mechanism    | Local mechanism / evidence |
 
-The FRAME workspace renders these levels as three visible bands — **Outcome**,
+The Process workspace renders these levels as three visible bands — **Outcome**,
 **Process Flow**, and **Operations** — stacked vertically with the river-styled
 SIPOC inside the Process Flow band. The visual structure makes the methodology
 visible by default. See the [Layered Process View design spec](../archive/specs/2026-04-27-layered-process-view-design.md) for band semantics, surface variations, and phasing.
@@ -267,16 +269,16 @@ What can I do with this evidence, what would I miss, and what should I collect o
 ```
 
 Survey is not a fifth phase and not a standalone statistical mode. It is a
-readiness check that can run in FRAME, SCOUT, INVESTIGATE, IMPROVE, REPORT, and
+readiness check that can run in Process, Explore, Analyze, Improve, Report, and
 Process Hub cadence reviews.
 
 | Context     | Survey evaluates                                                                 |
 | ----------- | -------------------------------------------------------------------------------- |
-| FRAME       | Data affordance, missing columns, process-map gaps                               |
-| SCOUT       | Available analysis modes and practical next checks                               |
-| INVESTIGATE | Branch trust, power, counter-checks, and blind spots                             |
-| IMPROVE     | Verification data and before/after evidence readiness                            |
-| REPORT      | Whether claims are backed by signals and branches                                |
+| Process     | Data affordance, missing columns, process-map gaps                               |
+| Explore     | Available analysis modes and practical next checks                               |
+| Analyze     | Branch trust, power, counter-checks, and blind spots                             |
+| Improve     | Verification data and before/after evidence readiness                            |
+| Report      | Whether claims are backed by signals and branches                                |
 | Process Hub | Which investigations are ready to act, verify, sustain, or collect more evidence |
 
 ---
@@ -313,13 +315,13 @@ The lens metaphor is useful for marketing and teaching, but the methodology work
 
 ### Data shape is set at Frame, not picked ([ADR-089](../07-decisions/adr-089-retire-mode-lens-user-axis.md))
 
-The analyst tunes a **measure (Y) + factor(s)**; the four charts are always shown and always drillable. There is **no mode-picker and no lens-picker**. What used to read like "alternative analysis modes" is really the **data shape**, set automatically at FRAME/setup time:
+The analyst tunes a **measure (Y) + factor(s)**; the four charts are always shown and always drillable. There is **no mode-picker and no lens-picker**. What used to read like "alternative analysis modes" is really the **data shape**, set automatically at Frame/setup time:
 
 - **Performance** (`AnalysisMode = 'performance'`) — multi-channel Cpk comparison for wide-format data (fill heads, cavities, nozzles). Set by the wide-channel transform during setup, not by a menu.
 - **Defect** (`AnalysisMode = 'defect'`) — set by the defect-rate ingest transform.
 - **Standard** otherwise.
 
-`AnalysisMode` is a Frame-derived data-shape discriminant, never a user knob. The one genuine analysis **view** the analyst toggles is **Values ⇄ Capability**: per-subgroup Cp/Cpk stability analysis on the I-Chart, answering "Are we capable when stable?" It is specs-gated and Cp/Cpk-only ([ADR-084](../07-decisions/adr-084-capability-indices-cp-cpk-only.md)) — never Pp/Ppk — and is _not_ a lens and _not_ an `AnalysisMode`. Time-based subgrouping uses extracted time columns from FRAME. See [Subgroup Capability Analysis](../03-features/analysis/subgroup-capability.md) and [Analysis Flow](../03-features/workflows/analysis-flow.md).
+`AnalysisMode` is a Frame-derived data-shape discriminant, never a user knob. The one genuine analysis **view** the analyst toggles is **Values ⇄ Capability**: per-subgroup Cp/Cpk stability analysis on the I-Chart, answering "Are we capable when stable?" It is specs-gated and Cp/Cpk-only ([ADR-084](../07-decisions/adr-084-capability-indices-cp-cpk-only.md)) — never Pp/Ppk — and is _not_ a lens and _not_ an `AnalysisMode`. Time-based subgrouping uses extracted time columns from the Frame stage. See [Subgroup Capability Analysis](../03-features/analysis/subgroup-capability.md) and [Analysis Flow](../03-features/workflows/analysis-flow.md).
 
 > Yamazumi mode (lean time study with stacked VA / NVA / Waste / Wait activity bars + cycle-time decomposition) was removed in wedge V1 via PR-LV1-0 (2026-05-28). Process-flow mode covers the flow-analysis use case; activity-classified time-study data is deferred to a future pivot-table capability. See [ADR-034](../07-decisions/adr-034-yamazumi-analysis-mode.md) (superseded).
 

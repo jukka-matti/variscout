@@ -45,7 +45,7 @@ Three panels:
 - **Center** — Hub with pinned Prioritization Matrix at top (~40% height) and scrollable `IdeaGroupCard` list below (~60%); resizable divider
 - **Right (280px)** — `CoScoutPanelBase` with mode-aware coaching (lean methodology prompts for Plan view, tracking prompts for Track view)
 
-The PI Panel is hidden in the Improvement workspace — its investigation content (question tree, ANOVA stats) is already embedded in idea card headers via evidence badges.
+The PI Panel is hidden in the Improvement workspace — its investigation content (hypotheses, ANOVA stats) is already embedded in idea card headers via evidence badges.
 
 ## Context Panel
 
