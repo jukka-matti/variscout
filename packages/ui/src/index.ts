@@ -322,12 +322,6 @@ export {
   type ParetoChartWrapperBaseProps,
 } from './components/ParetoChartWrapper';
 
-// Presentation View
-export {
-  PresentationViewBase,
-  type PresentationViewBaseProps,
-} from './components/PresentationView';
-
 // Mobile Category Sheet
 export {
   MobileCategorySheet,

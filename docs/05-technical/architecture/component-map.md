@@ -366,11 +366,10 @@ flowchart TB
         verifevidence["VerificationEvidenceBase"]
     end
 
-    subgraph investigation["Investigation (6)"]
+    subgraph investigation["Investigation (5)"]
         investsidebar["InvestigationSidebar"]
         stagedcomp["StagedComparisonCard"]
         investphase["InvestigationPhaseBadge"]
-        presentview["PresentationViewBase"]
         investprompt2["InvestigationPrompt"]
         dashlayout["DashboardLayoutBase"]
     end
