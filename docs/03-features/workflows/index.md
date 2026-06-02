@@ -42,6 +42,10 @@ The unified 4-phase model: **FRAME → SCOUT → INVESTIGATE → IMPROVE** with 
 
 Investigation diamond state diagram for the Investigate phase — hypothesis diamond, finding status lifecycle, and CoScout behavior at each state.
 
+### [Investigation Surface](investigation-surface.md)
+
+The canonical Analyze-tab spine: scope-first drill → Finding → `ProblemStatementScope` (WHERE) → Hypotheses (WHY) → evaluate → What-If → Improve, with the first-class entity model (ADR-085/086/088). **Start here for the current investigation model.**
+
 ---
 
 ## Core Workflows
