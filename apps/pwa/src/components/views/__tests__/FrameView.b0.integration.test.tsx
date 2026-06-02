@@ -68,7 +68,10 @@ vi.mock('@variscout/stores', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/stores')>();
   return {
     ...actual,
-    useProjectStore: vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
+    useProjectStore: Object.assign(
+      vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
+      { getState: () => storeStateRef.current }
+    ),
   };
 });
 
