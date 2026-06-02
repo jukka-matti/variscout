@@ -80,6 +80,28 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Severity:** doc-drift — the canonical journeys now materially lag a major delivery; not blocking, but the docs should be re-aligned before they mislead. User-flagged as the explicit next-session follow-up (2026-05-31).
 
+### Connective navigation & surface model for the updated investigation approach — DESIGN INITIATIVE [LOGGED 2026-06-02]
+
+**Surfaced by:** the 2026-06-02 **surface-vision triage** (12 shipped surfaces evaluated keep/cut/defer against wedge V1 + the IM/FE investigation model). The triage's real finding: the IM/FE work shipped the new investigation **core** (scope=`ProblemStatementScope` / cause=`Hypothesis`, unified canvas, always-on charts) but **never holistically designed the connective tissue** — how surfaces link, and what each surface _is_ in V1. Several shipped surfaces are partial **old-model** answers to that un-designed question.
+
+**Design scope (3 surfaces + 2 threads):**
+
+- **Connective navigation** — spine (owner's words): _"from a process step, see its linked findings → jump to Analyze to see the hypothesis,"_ generalized to a **where-from / where-to** path for every entity across **Frame ↔ Explore ↔ Analyze ↔ Improve ↔ Control**.
+- **Multi-screen** — Process view + Analysis Wall + Explore on **separate, synced screens** (build on the existing `usePopoutChannel`/`BroadcastChannel` popout infra).
+- **The Process tab, holistically** — owner's realization: it's an **accretion of ~6-8 initiatives** (Layered Process View · Process Hub cadence · Production-Line-Glance Capability · Framing Layer · Canvas/8f · Canvas-Connection badges · RPS state-items), not a single coherent design. Includes the V1-vs-named-future line _inside_ `ProcessHubReviewPanel`: the cadence-monitoring loop is named-future "VariScout Process" but is code-entangled with V1 response-paths (`buildCurrentProcessState`), the Control region (`ProcessHubControlRegion`, nested in `ProcessHubCadenceQueues`), and Survey/Inbox (a keep).
+
+**Out of scope** — 8 surfaces triaged solid-V1 (document-only): CoScout Tools · Hub Creation · Survey/Inbox · Document Shelf · offline-first PWA · PWA mobile · process-map state-items · Admin Hub.
+
+**Decisions locked (2026-06-02):**
+
+- **Cross-surface connection badges → KEPT** (cut was reverted). They implement wedge §3.3.2 "in-flight references" + are the seed of the connective-nav redesign — not dead code. (`packages/ui/src/components/CrossSurface/*` via `CanvasStepOverlay`.)
+- **PresentationView → CUT** — shipped as **PR #281** (dead since `ee52e664`).
+- **Process Hub cadence strip → NOT a mechanical delete** — it's the "what is the Process Hub Status tab in V1" design question above.
+
+**Promotion path:** `superpowers:brainstorming` → spec, recommended in a **fresh chat** (the originating session was cleanup-heavy). Full context + a ready pickup prompt are in the `connective-surface-redesign` agent memory. Honor the full-vision-spec norm.
+
+**Severity:** design-debt — the new investigation core lacks designed connective navigation + a coherent Process tab; the owner wants the "step → findings → hypothesis" capability and flagged the Process tab as not-holistically-designed.
+
 ### Hypothesis-stage walkthrough — Wall honesty bugs + test-plan-triad gaps + "confirm" terminology [LOGGED 2026-05-31]
 
 **Surfaced by:** the grounded hypothesis-stage analyst walkthrough (3-lens exploration) during the "Factors & Evaluation" V-next design. Splits into (a) two shipped-state honesty BUGS worth a small near-term PR, (b) the V-next initiative's design gaps, (c) a terminology follow-up.
