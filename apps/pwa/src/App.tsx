@@ -49,6 +49,7 @@ import {
   useDefectTransform,
   useDefectSummary,
   useReingestAutoLink,
+  useClearScopeOnIPSwitch,
 } from '@variscout/hooks';
 import type { FindingsActionMessage } from '@variscout/hooks';
 import {
@@ -58,6 +59,7 @@ import {
   useCanvasViewportStore,
   useViewStore,
   useProjectMembershipStore,
+  useAnalysisScopeStore,
   hydrateDocumentSnapshot,
   reconstructProcessHubFromDocumentSnapshot,
   type DocumentSnapshotVrsFile,
@@ -172,6 +174,8 @@ function AppMain() {
   // documentSnapshot. Analysts restore work explicitly from .vrs on Home.
   const { hub: sessionHub, setHub: setSessionHub, goalNarrative, setGoalNarrative } = useSession();
   const activeIPContext = useActiveIPContext(sessionHub);
+  const clearScope = useAnalysisScopeStore(s => s.clearScope);
+  useClearScopeOnIPSwitch(activeIPContext.activeIP?.id ?? null, clearScope);
 
   // ── Zustand store selectors (replaces useDataStateCtx) ──────────────────
   const rawData = useProjectStore(s => s.rawData);

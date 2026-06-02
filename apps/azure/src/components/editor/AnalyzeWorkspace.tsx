@@ -97,6 +97,14 @@ const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 interface AnalyzeWorkspaceProps {
   activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
   activeIPLineage?: ActiveIPLineageIds | null;
+  /**
+   * PR-CS-0 Task 2: id under which drill-materialized ProblemStatementScopes are
+   * keyed. Threaded from the active Improvement Project (`activeIP.id`) so scopes
+   * are durable per-IP and don't co-mingle across projects. Defaults to the
+   * `'general-unassigned'` sentinel for the quick-analysis flow (no active IP) and
+   * for render harnesses that don't pass the prop.
+   */
+  scopeInvestigationId?: string;
   // Findings
   findingsState: UseFindingsReturn;
   handleRestoreFinding: UseFindingsOrchestrationReturn['handleRestoreFinding'];
@@ -156,6 +164,7 @@ interface AnalyzeWorkspaceProps {
 export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   activeIPScope,
   activeIPLineage,
+  scopeInvestigationId = 'general-unassigned',
   findingsState,
   handleRestoreFinding,
   handleSetFindingStatus,
@@ -249,13 +258,15 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // (SCOPE_ARCHIVE) — not here.
   const categoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
   const scopes = useAnalyzeStore(s => s.scopes);
-  const scopeInvestigationId = 'general-unassigned'; // sentinel until F6 first-class investigations
+  // PR-CS-0 Task 2: scopeInvestigationId arrives as a prop (active IP id, or the
+  // 'general-unassigned' sentinel for the quick-analysis flow). It is now a dep
+  // of every consumer below so an IP switch re-keys materialization + the rail.
   useEffect(() => {
     if (!outcome) return;
     useAnalyzeStore
       .getState()
       .syncScopeFromDrill(scopeInvestigationId, outcome, categoricalFilters);
-  }, [categoricalFilters, outcome]);
+  }, [categoricalFilters, outcome, scopeInvestigationId]);
   const activeScope = useMemo(() => {
     if (!outcome) return undefined;
     const predicates = buildConditionFromCategoricalFilters(categoricalFilters);
@@ -267,7 +278,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         s.outcome === outcome &&
         predicateSetKey(s.predicates) === key
     );
-  }, [categoricalFilters, outcome, scopes]);
+  }, [categoricalFilters, outcome, scopes, scopeInvestigationId]);
   // Per-outcome spec limits for the scope's What-If projection (IM-5).
   const activeScopeSpecs = useMemo(
     () => (outcome ? (measureSpecs[outcome] ?? specs) : undefined),
@@ -290,7 +301,9 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         : '—';
       const finding = findingsState.addFinding(
         `Model: ${factorList} accounts for the spread (R²adj ${r2adjLabel}) in ${snapshot.scopeLabel}`,
-        { activeFilters, cumulativeScope: null }
+        { activeFilters, cumulativeScope: null },
+        undefined,
+        activeScope?.id
       );
       // Snapshot the model into the Finding's projection.modelContext (the
       // canonical home — rSquaredAdj / scopeLabel / linkedFactor). This is a
@@ -312,7 +325,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       };
       findingsState.setProjection(finding.id, projection);
     },
-    [findingsState]
+    [findingsState, activeScope]
   );
   const modelBuilderProps = useMemo<WallCanvasModelBuilderProps | undefined>(() => {
     if (!outcome || factors.length === 0) return undefined;
@@ -373,10 +386,15 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         findingsState.setValidation(existing.id, result.validationStatus, result.refutes);
         findingId = existing.id;
       } else {
-        const finding = findingsState.addFinding(result.findingText, {
-          activeFilters,
-          cumulativeScope: null,
-        });
+        const finding = findingsState.addFinding(
+          result.findingText,
+          {
+            activeFilters,
+            cumulativeScope: null,
+          },
+          undefined,
+          activeScope?.id
+        );
         // Classify BEFORE connecting so the finding is never read as an
         // unclassified "support" clue on the Wall in the interim.
         findingsState.setValidation(finding.id, result.validationStatus, result.refutes);
@@ -415,14 +433,14 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         hypothesesState.recordDisconfirmation(hypothesisId, attempt);
       }
     },
-    [outcome, filteredData, findingsState, hypothesesState, members, userId]
+    [outcome, filteredData, findingsState, hypothesesState, members, userId, activeScope]
   );
 
   // ── IM-4b Task 5 — multi-scope rail ──────────────────────────────────────
   // Active (non-archived) scopes for the current investigation + outcome.
   const railScopes = useMemo(
     () => scopes.filter(s => s.investigationId === scopeInvestigationId && s.deletedAt === null),
-    [scopes]
+    [scopes, scopeInvestigationId]
   );
   // Re-anchor: selecting a scope chip rewrites the drill filters to that scope's
   // compound WHERE (IM-4a's predicateSetKey-matched producer then re-selects the
@@ -962,10 +980,11 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       findingsState.addFinding(
         `Observation about ${factor}`,
         { activeFilters, cumulativeScope: null },
-        { chart: 'boxplot', category: factor, timeLens: usePreferencesStore.getState().timeLens }
+        { chart: 'boxplot', category: factor, timeLens: usePreferencesStore.getState().timeLens },
+        activeScope?.id
       );
     },
-    [findingsState]
+    [findingsState, activeScope]
   );
 
   const handleMapAskCoScout = useCallback(

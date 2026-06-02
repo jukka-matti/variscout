@@ -19,6 +19,7 @@ import {
   type PhotoAttachment,
   type PhotoUploadStatus,
   type BenchmarkStats,
+  type ProblemStatementScope,
 } from '@variscout/core';
 
 export interface UseFindingsOptions {
@@ -33,8 +34,13 @@ export interface UseFindingsOptions {
 export interface UseFindingsReturn {
   /** Current findings list */
   findings: Finding[];
-  /** Add a new finding with the given note and context, optionally linked to a chart source */
-  addFinding: (text: string, context: FindingContext, source?: FindingSource) => Finding;
+  /** Add a new finding with the given note and context, optionally linked to a chart source and a durable drill scope */
+  addFinding: (
+    text: string,
+    context: FindingContext,
+    source?: FindingSource,
+    scopeId?: ProblemStatementScope['id']
+  ) => Finding;
   /** Update an existing finding's note text */
   editFinding: (id: string, text: string) => void;
   /** Delete a finding */
@@ -142,8 +148,13 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
   const [findings, setFindings] = useState<Finding[]>(() => initialFindings ?? []);
 
   const addFinding = useCallback(
-    (text: string, context: FindingContext, source?: FindingSource): Finding => {
-      const finding = createFinding(
+    (
+      text: string,
+      context: FindingContext,
+      source?: FindingSource,
+      scopeId?: ProblemStatementScope['id']
+    ): Finding => {
+      const base = createFinding(
         text,
         context.activeFilters,
         context.cumulativeScope,
@@ -152,6 +163,8 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
         source,
         'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
       );
+      // Durable finding→scope edge (PR-CS-0 Task 7): set post-factory; optional + back-compat.
+      const finding = scopeId ? { ...base, scopeId } : base;
       setFindings(prev => {
         const next = [finding, ...prev];
         onFindingsChange?.(next);

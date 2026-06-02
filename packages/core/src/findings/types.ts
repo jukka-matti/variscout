@@ -495,6 +495,8 @@ export interface Finding extends EntityBase {
   statusChangedAt: number;
   /** FK to the owning investigation. Required for normalized storage. */
   investigationId: ProcessHubAnalyze['id'];
+  /** Durable FK to the ProblemStatementScope this finding was captured within; undefined for findings not tied to a drill scope. */
+  scopeId?: ProblemStatementScope['id'];
   /** Chart observation origin — links finding to a specific chart element */
   source?: FindingSource;
   /** Optional assignee for Team plan @mention workflow */
