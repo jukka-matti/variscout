@@ -77,6 +77,12 @@ interface AnalyzeViewProps {
   findingsState: UseFindingsReturn;
   handleRestoreFinding: (id: string) => void;
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
+  /**
+   * PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
+   * tracker. Provided only when an active IP exists; FindingCard hides the
+   * promote button once the source action carries `parentImprovementProjectId`.
+   */
+  onPromoteFindingAction?: (findingId: string, actionId: string) => void;
   drillPath: DrillStep[];
   // Column aliases
   columnAliases: Record<string, string>;
@@ -99,6 +105,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   findingsState,
   handleRestoreFinding,
   handleSetFindingStatus,
+  onPromoteFindingAction,
   drillPath: _drillPath,
   columnAliases,
   resolvedMode: _resolvedMode,
@@ -644,6 +651,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 onAddAction={findingsState.addAction}
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}
+                onPromoteAction={onPromoteFindingAction}
                 onSetOutcome={findingsState.setOutcome}
               />
             </div>

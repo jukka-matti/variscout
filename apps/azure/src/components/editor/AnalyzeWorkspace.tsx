@@ -113,6 +113,12 @@ interface AnalyzeWorkspaceProps {
   handleNavigateToChart: UseFindingsOrchestrationReturn['handleNavigateToChart'];
   handleShareFinding: UseFindingsOrchestrationReturn['handleShareFinding'];
   drillPath: UseFindingsOrchestrationReturn['drillPath'];
+  /**
+   * PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
+   * tracker. Provided only when an active IP exists; FindingCard hides the
+   * promote button once the source action carries `parentImprovementProjectId`.
+   */
+  onPromoteFindingAction?: (findingId: string, actionId: string) => void;
   // Comments
   handleAddCommentWithAuthor: (
     findingId: string,
@@ -171,6 +177,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   handleSetFindingStatus,
   handleNavigateToChart,
   handleShareFinding,
+  onPromoteFindingAction,
   // IM-1: drillPath no longer consumed (drillFactors derivation removed); kept on
   // the props interface for API stability + the call site that still passes it.
   drillPath: _drillPath,
@@ -1348,6 +1355,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onAddAction={findingsState.addAction}
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}
+                onPromoteAction={onPromoteFindingAction}
                 onSetOutcome={findingsState.setOutcome}
                 onShareFinding={handleShareFinding}
                 onNavigateToChart={handleNavigateToChart}

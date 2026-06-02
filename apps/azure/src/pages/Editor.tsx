@@ -1312,6 +1312,37 @@ export const Editor: React.FC<EditorProps> = ({
       activeIPContext.isIPScoped ? { ...findingsState, findings: scopedFindings } : findingsState,
     [activeIPContext.isIPScoped, findingsState, scopedFindings]
   );
+
+  // PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
+  // tracker (`IP.metadata.actions`) via the existing ACTION_ITEM_ADD dispatch.
+  // The source finding action is stamped with `parentImprovementProjectId` so the
+  // promote affordance hides afterward (re-promotion guard). Report keeps reading
+  // `finding.actions`, so there is NO double-count — the tracker is a separate
+  // collection. Only available when an active IP exists.
+  const handlePromoteFindingAction = useCallback(
+    (findingId: string, actionId: string) => {
+      if (!activeIP) return;
+      const source = findingsState.findings
+        .find(f => f.id === findingId)
+        ?.actions?.find(a => a.id === actionId);
+      if (!source || source.parentImprovementProjectId) return;
+      const projectAction = createProjectActionItem({
+        text: source.text,
+        parentImprovementProjectId: activeIP.id,
+      });
+      // Carry the origin breadcrumb (dueAt / assignee / stepId) onto the tracker copy.
+      const enriched = {
+        ...projectAction,
+        ...(source.dueAt != null ? { dueAt: source.dueAt } : {}),
+        ...(source.assignedTo != null ? { assignedTo: source.assignedTo } : {}),
+        ...(source.stepId != null ? { stepId: source.stepId } : {}),
+      };
+      applyAction({ kind: 'ACTION_ITEM_ADD', hubId: activeIP.hubId, actionItem: enriched });
+      // Stamp the source so the promote button disappears (re-promotion guard).
+      findingsState.promoteAction(findingId, actionId, activeIP.id);
+    },
+    [activeIP, applyAction, findingsState]
+  );
   const activeIPAnalyzeFactorRequest = useMemo(
     () =>
       activeIPContext.isIPScoped && activeIPScopeLabels?.factorLabels[0]
@@ -1977,6 +2008,7 @@ export const Editor: React.FC<EditorProps> = ({
                 handleSetFindingStatus={handleSetFindingStatus}
                 handleNavigateToChart={handleNavigateToChart}
                 handleShareFinding={handleShareFinding}
+                onPromoteFindingAction={activeIP ? handlePromoteFindingAction : undefined}
                 drillPath={drillPath}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
                 handleAddPhoto={handleAddPhoto}

@@ -1075,6 +1075,56 @@ describe('useFindings', () => {
     });
   });
 
+  // --- PR-CS-6 Edge 1: promote (re-promotion guard) ---
+
+  describe('promoteAction', () => {
+    it('stamps parentImprovementProjectId on the source action (re-promotion guard)', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Fix it', createdAt: 1000, deletedAt: null }],
+        }),
+      ];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      act(() => {
+        result.current.promoteAction('f-1', 'a-1', 'ip-42');
+      });
+
+      expect(result.current.findings[0].actions![0].parentImprovementProjectId).toBe('ip-42');
+      // COPY semantics — the action stays on the finding (Report still reads it).
+      expect(result.current.findings[0].actions).toHaveLength(1);
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('leaves other actions untouched', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          actions: [
+            { id: 'a-1', text: 'First', createdAt: 1000, deletedAt: null },
+            { id: 'a-2', text: 'Second', createdAt: 2000, deletedAt: null },
+          ],
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.promoteAction('f-1', 'a-1', 'ip-42');
+      });
+
+      expect(result.current.findings[0].actions![0].parentImprovementProjectId).toBe('ip-42');
+      expect(result.current.findings[0].actions![1].parentImprovementProjectId).toBeUndefined();
+    });
+  });
+
   // --- 5-Status: Outcome ---
 
   describe('setOutcome', () => {

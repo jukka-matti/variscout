@@ -68,6 +68,8 @@ export interface FindingsPanelBaseProps {
   ) => React.ReactNode;
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
+  /** Copy a finding-level action into the active project's action tracker (PR-CS-6 Edge 1) */
+  onPromoteAction?: (findingId: string, actionId: string) => void;
   onSetOutcome?: (
     id: string,
     outcome: {
@@ -144,6 +146,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onAddAction,
   onCompleteAction,
   onDeleteAction,
+  onPromoteAction,
   onSetOutcome,
   renderActionAssigneePicker,
   viewMode: externalViewMode,
@@ -346,6 +349,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onAddAction={onAddAction}
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
+          onPromoteAction={onPromoteAction}
           onSetOutcome={onSetOutcome}
           renderActionAssigneePicker={renderActionAssigneePicker}
           onAskCoScoutAboutFinding={onAskCoScoutAboutFinding}

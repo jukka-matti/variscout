@@ -45,6 +45,7 @@ export interface FindingBoardViewProps {
   ) => void;
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
+  onPromoteAction?: (findingId: string, actionId: string) => void;
   onSetOutcome?: (
     id: string,
     outcome: {
@@ -86,6 +87,7 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   onAddAction,
   onCompleteAction,
   onDeleteAction,
+  onPromoteAction,
   onSetOutcome,
   voiceInput,
 }) => {
@@ -173,6 +175,7 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     onAddAction={onAddAction}
                     onCompleteAction={onCompleteAction}
                     onDeleteAction={onDeleteAction}
+                    onPromoteAction={onPromoteAction}
                     onSetOutcome={onSetOutcome}
                     voiceInput={voiceInput}
                   />

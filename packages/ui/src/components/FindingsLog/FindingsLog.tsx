@@ -64,6 +64,8 @@ export interface FindingsLogProps {
   onCompleteAction?: (id: string, actionId: string) => void;
   /** Delete an action item */
   onDeleteAction?: (id: string, actionId: string) => void;
+  /** Copy a finding-level action into the active project's action tracker (PR-CS-6 Edge 1) */
+  onPromoteAction?: (findingId: string, actionId: string) => void;
   /** Set outcome assessment */
   onSetOutcome?: (
     id: string,
@@ -124,6 +126,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onAddAction,
   onCompleteAction,
   onDeleteAction,
+  onPromoteAction,
   onSetOutcome,
   onProjectImprovement,
   hasSpecs,
@@ -179,6 +182,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onAddAction={onAddAction}
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
+          onPromoteAction={onPromoteAction}
           onSetOutcome={onSetOutcome}
           voiceInput={voiceInput}
         />
@@ -222,6 +226,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
             onAddAction={onAddAction}
             onCompleteAction={onCompleteAction}
             onDeleteAction={onDeleteAction}
+            onPromoteAction={onPromoteAction}
             onSetOutcome={onSetOutcome}
             onProjectImprovement={onProjectImprovement}
             hasSpecs={hasSpecs}

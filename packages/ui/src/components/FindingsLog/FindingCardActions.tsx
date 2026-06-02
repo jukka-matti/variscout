@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  ArrowUpRight,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -19,10 +20,21 @@ export interface ActionItemsSectionProps {
     dueDate?: string;
     completedAt?: number;
     createdAt: number;
+    /**
+     * Set once this finding-level action has been promoted (COPIED) into the
+     * project action tracker. When present, the "Promote to project" affordance
+     * is hidden (PR-CS-6 Edge 1 re-promotion guard).
+     */
+    parentImprovementProjectId?: null | string;
   }>;
   onAddAction: (id: string, text: string, assignee?: FindingAssignee, dueDate?: string) => void;
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
+  /**
+   * Copy a finding-level action into the active project's action tracker.
+   * Hidden unless provided AND an active project exists (gated by the wrapper).
+   */
+  onPromoteAction?: (findingId: string, actionId: string) => void;
   onAskCoScout?: (question: string) => void;
   readOnly?: boolean;
   renderActionAssigneePicker?: (onSelect: (a: FindingAssignee) => void) => React.ReactNode;
@@ -34,6 +46,7 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
   onAddAction,
   onCompleteAction,
   onDeleteAction,
+  onPromoteAction,
   onAskCoScout,
   readOnly,
   renderActionAssigneePicker,
@@ -113,6 +126,29 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
                   </div>
                 )}
               </div>
+              {onPromoteAction && !action.parentImprovementProjectId && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onPromoteAction(findingId, action.id);
+                  }}
+                  className="p-0.5 rounded text-content-muted hover:text-blue-400 opacity-0 group-hover/action:opacity-100 touch-show transition-opacity"
+                  title="Promote to project action tracker"
+                  aria-label="Promote action to project"
+                  data-testid="promote-action-btn"
+                >
+                  <ArrowUpRight size={10} />
+                </button>
+              )}
+              {action.parentImprovementProjectId && (
+                <span
+                  className="text-[0.5rem] text-blue-400/80 flex-shrink-0 mt-0.5"
+                  title="Promoted to the project action tracker"
+                  data-testid="action-promoted-marker"
+                >
+                  in project
+                </span>
+              )}
               {!action.completedAt && onAskCoScout && (
                 <button
                   onClick={e => {

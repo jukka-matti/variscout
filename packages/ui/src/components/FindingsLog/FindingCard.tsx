@@ -77,6 +77,12 @@ export interface FindingCardProps {
   onCompleteAction?: (id: string, actionId: string) => void;
   /** Callback to delete an action item */
   onDeleteAction?: (id: string, actionId: string) => void;
+  /**
+   * Callback to COPY a finding-level action into the active project's action
+   * tracker (PR-CS-6 Edge 1). Hidden by ActionItemsSection unless provided AND
+   * the action has no `parentImprovementProjectId` yet (re-promotion guard).
+   */
+  onPromoteAction?: (findingId: string, actionId: string) => void;
   /** Projected Cpk from the linked improvement idea (for projected vs actual comparison) */
   projectedCpk?: number;
   /** Callback to set outcome */
@@ -154,6 +160,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAddAction,
   onCompleteAction,
   onDeleteAction,
+  onPromoteAction,
   projectedCpk,
   onSetOutcome,
   onProjectImprovement,
@@ -410,6 +417,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             onAddAction={onAddAction}
             onCompleteAction={onCompleteAction}
             onDeleteAction={onDeleteAction}
+            onPromoteAction={onPromoteAction}
             onAskCoScout={onAskCoScoutQuestion}
             readOnly={status === 'resolved'}
             renderActionAssigneePicker={renderActionAssigneePicker}

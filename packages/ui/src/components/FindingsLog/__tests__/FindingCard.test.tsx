@@ -2,7 +2,7 @@
  * Tests for the FindingCard window-context footer (multi-level SCOUT V1).
  */
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import FindingCard from '../FindingCard';
 import type { Finding } from '@variscout/core';
 
@@ -64,5 +64,58 @@ describe('FindingCard window-context footer', () => {
     render(<FindingCard finding={finding} {...noopHandlers} />);
 
     expect(screen.queryByTestId('finding-window-footer')).toBeNull();
+  });
+});
+
+describe('FindingCard — PR-CS-6 Edge 1 promote action', () => {
+  const analyzedFinding = (actionOverrides: Record<string, unknown> = {}) =>
+    makeFinding({
+      status: 'analyzed',
+      statusChangedAt: Date.now(),
+      actions: [
+        {
+          id: 'a-1',
+          text: 'Recalibrate gauge',
+          createdAt: 1000,
+          deletedAt: null,
+          ...actionOverrides,
+        },
+      ],
+    } as Partial<Finding>);
+
+  it('shows the promote button and fires onPromoteAction when not yet promoted', () => {
+    const onPromoteAction = vi.fn();
+    render(
+      <FindingCard
+        finding={analyzedFinding()}
+        {...noopHandlers}
+        onAddAction={vi.fn()}
+        onPromoteAction={onPromoteAction}
+      />
+    );
+
+    const btn = screen.getByTestId('promote-action-btn');
+    fireEvent.click(btn);
+    expect(onPromoteAction).toHaveBeenCalledWith('f-window-1', 'a-1');
+  });
+
+  it('hides the promote button once the action carries parentImprovementProjectId', () => {
+    render(
+      <FindingCard
+        finding={analyzedFinding({ parentImprovementProjectId: 'ip-7' })}
+        {...noopHandlers}
+        onAddAction={vi.fn()}
+        onPromoteAction={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByTestId('promote-action-btn')).toBeNull();
+    expect(screen.getByTestId('action-promoted-marker')).toBeDefined();
+  });
+
+  it('does not show the promote button when onPromoteAction is absent (no active IP)', () => {
+    render(<FindingCard finding={analyzedFinding()} {...noopHandlers} onAddAction={vi.fn()} />);
+
+    expect(screen.queryByTestId('promote-action-btn')).toBeNull();
   });
 });
