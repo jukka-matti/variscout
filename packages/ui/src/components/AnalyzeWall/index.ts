@@ -14,8 +14,6 @@ export { TagChip } from './TagChip';
 export type { TagChipProps } from './TagChip';
 export { GateBadge } from './GateBadge';
 export type { GateBadgeProps } from './GateBadge';
-export { NarratorRail } from './NarratorRail';
-export type { NarratorRailProps, NarratorMessage } from './NarratorRail';
 export { TributaryFooter } from './TributaryFooter';
 export type { TributaryFooterProps } from './TributaryFooter';
 export { ModelBuilderBand } from './ModelBuilderBand';
@@ -43,8 +41,6 @@ export type {
 } from './hooks/useWallDragDrop';
 export { DraggableHypothesisCard } from './DraggableHypothesisCard';
 export type { DraggableHypothesisCardProps } from './DraggableHypothesisCard';
-export { DroppableGateBadge } from './DroppableGateBadge';
-export type { DroppableGateBadgeProps } from './DroppableGateBadge';
 export { CommandPalette } from './CommandPalette';
 export type { CommandPaletteProps } from './CommandPalette';
 export { Minimap } from './Minimap';

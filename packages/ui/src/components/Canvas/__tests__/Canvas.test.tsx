@@ -281,7 +281,6 @@ vi.mock('@variscout/hooks', () => ({
       eventsPerWeek,
       activeColumns,
       hubs: [],
-      questions: [],
       problemContributionTree: undefined,
     })
   ),
@@ -370,16 +369,6 @@ const investigationOverlays: CanvasAnalyzeOverlayModel = {
   byStep: {
     'step-1': {
       stepId: 'step-1',
-      questions: [
-        {
-          id: 'q-1',
-          text: 'Does pressure drive fill?',
-          status: 'open',
-          factor: 'Pressure',
-          // IM-1: questionId plumbing retained for the IM-4 unified-Wall draw-tool; not wired to a Question entity
-          focus: { kind: 'question', id: 'q-1' },
-        },
-      ],
       findings: [],
       hypotheses: [
         {
@@ -394,7 +383,7 @@ const investigationOverlays: CanvasAnalyzeOverlayModel = {
     },
   },
   arrows: [],
-  unresolved: { questions: [], findings: [], hypotheses: [], causalLinks: [] },
+  unresolved: { findings: [], hypotheses: [], causalLinks: [] },
 };
 
 const wallFinding = {

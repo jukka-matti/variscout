@@ -66,18 +66,9 @@ export function coerceCanvasOverlays(values: readonly unknown[]): CanvasOverlayI
 }
 
 export type CanvasAnalyzeFocus =
-  | { kind: 'question'; id: string }
   | { kind: 'finding'; id: string }
   | { kind: 'suspected-cause'; id: string }
   | { kind: 'causal-link'; id: string };
-
-export interface CanvasOverlayQuestionItem {
-  id: string;
-  text: string;
-  status: string;
-  factor?: string;
-  focus: CanvasAnalyzeFocus;
-}
 
 export interface CanvasOverlayFindingItem {
   id: string;
@@ -103,7 +94,6 @@ export interface CanvasOverlayCausalLinkItem {
 
 export interface CanvasStepAnalyzeOverlay {
   stepId: string;
-  questions: CanvasOverlayQuestionItem[];
   findings: CanvasOverlayFindingItem[];
   hypotheses: CanvasOverlayHypothesisItem[];
   causalLinks: CanvasOverlayCausalLinkItem[];
@@ -118,7 +108,6 @@ export interface CanvasAnalyzeOverlayModel {
   byStep: Record<string, CanvasStepAnalyzeOverlay>;
   arrows: CanvasOverlayCausalLinkItem[];
   unresolved: {
-    questions: string[];
     findings: string[];
     hypotheses: string[];
     causalLinks: string[];
@@ -137,7 +126,6 @@ export type UseCanvasAnalyzeOverlaysArgs = BuildCanvasInvestigationOverlaysArgs;
 function emptyStepOverlay(stepId: string): CanvasStepAnalyzeOverlay {
   return {
     stepId,
-    questions: [],
     findings: [],
     hypotheses: [],
     causalLinks: [],
@@ -233,7 +221,6 @@ export function buildCanvasAnalyzeOverlays({
   for (const node of map.nodes) byStep[node.id] = emptyStepOverlay(node.id);
 
   const unresolved = {
-    questions: [] as string[],
     findings: [] as string[],
     hypotheses: [] as string[],
     causalLinks: [] as string[],

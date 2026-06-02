@@ -31,7 +31,7 @@ export interface WallNodePos {
 export interface WallEdge {
   fromId: string;
   toId: string;
-  kind: 'support' | 'refute' | 'factor';
+  kind: 'support' | 'refute';
 }
 
 export interface WallLayout {
@@ -43,7 +43,7 @@ export interface WallLayout {
   factorPositions: Map<string, WallNodePos>;
   /** Problem-condition card head. */
   scopeAnchor: WallNodePos;
-  /** Tethers: finding/factor → hub (support / refute / factor). */
+  /** Tethers: finding → hub (support / refute). */
   edges: WallEdge[];
   /** Findings linked to no hub, in input order — the orphan lane occupants. */
   orphanFindingIds: string[];
@@ -234,24 +234,14 @@ export function computeWallLayout(args: WallLayoutArgs): WallLayout {
   });
 
   // ── Factor band (ordered by contribution desc) ──────────────────────────
-  // V1 STATUS: WallCanvas does NOT yet pass `factors` here — the contributing-
-  // factors band still renders via TributaryFooter, so `factorPositions` is
-  // empty in production today. This positioning + the `kind: 'factor'` edges are
-  // the forward hook for the V-next "vital-few model-builder" increment that
-  // wires the best-subset stats band (R²adj + p) into the unified coordinate
-  // space. Factors stay scope-level by design; a cause's factors are a DERIVED
-  // projection, never stored. See ADR-086 Amendment (2026-05-31) + the
-  // decision-log entry of 2026-05-31. Do not treat the empty map as a bug.
+  // `factorPositions` places the candidate-factor band in the unified
+  // coordinate space; WallCanvas anchors the ModelBuilderBand to these
+  // positions. Factors stay scope-level by design; a cause's factors are a
+  // DERIVED projection, never stored (ADR-086 Amendment 2026-05-31).
   [...factors]
     .sort((a, b) => b.contribution - a.contribution)
     .forEach((factor, i) => {
       factorPositions.set(factor.key, { x: FACTOR_X0 + i * FACTOR_GAP, y: FACTOR_Y });
-      // A factor tethers to the highest-contribution hub when one exists; in V1
-      // the factor band is informational, so we only emit an edge when there is
-      // at least one hub to anchor to (first hub in input order).
-      if (hubs.length > 0) {
-        edges.push({ fromId: factor.key, toId: hubs[0].id, kind: 'factor' });
-      }
     });
 
   return {

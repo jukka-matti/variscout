@@ -40,7 +40,7 @@ function makeOverlays(
         focus: { kind: 'causal-link', id },
       },
     ],
-    unresolved: { questions: [], findings: [], hypotheses: [], causalLinks: [] },
+    unresolved: { findings: [], hypotheses: [], causalLinks: [] },
   };
 }
 

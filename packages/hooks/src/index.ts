@@ -489,7 +489,6 @@ export {
   type CanvasOverlayDefinition,
   type CanvasOverlayFindingItem,
   type CanvasOverlayId,
-  type CanvasOverlayQuestionItem,
   type CanvasOverlayHypothesisItem,
   type CanvasStepAnalyzeOverlay,
   type UseCanvasAnalyzeOverlaysArgs,

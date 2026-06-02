@@ -256,8 +256,7 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
                 Linked investigations
               </h4>
               {investigationOverlay &&
-              (investigationOverlay.questions.length > 0 ||
-                investigationOverlay.findings.length > 0 ||
+              (investigationOverlay.findings.length > 0 ||
                 investigationOverlay.hypotheses.length > 0 ||
                 investigationOverlay.causalLinks.length > 0) ? (
                 <div className="mt-2 grid gap-2">
@@ -279,16 +278,6 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
                       onClick={() => onOpenInvestigationFocus?.(finding.focus)}
                     >
                       Finding: {finding.text}
-                    </button>
-                  ))}
-                  {investigationOverlay.questions.map(question => (
-                    <button
-                      key={`question-${question.id}`}
-                      type="button"
-                      className="rounded border border-edge bg-surface-primary px-2 py-1 text-left text-content-secondary hover:bg-surface-tertiary hover:text-content"
-                      onClick={() => onOpenInvestigationFocus?.(question.focus)}
-                    >
-                      Question: {question.text}
                     </button>
                   ))}
                   {investigationOverlay.causalLinks.map(link => (

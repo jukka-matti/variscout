@@ -209,7 +209,6 @@ describe('CanvasStepOverlay — response-path CTA rendering', () => {
 describe('CanvasStepOverlay causal link removal', () => {
   const overlay = {
     stepId: 'step-1',
-    questions: [],
     findings: [],
     hypotheses: [],
     causalLinks: [
