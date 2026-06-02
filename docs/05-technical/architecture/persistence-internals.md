@@ -42,7 +42,7 @@ All Azure Blob list/read/write goes through **same-origin `/api/storage/*`** end
 
 ## ETag conditional writes
 
-Document writes send the prior `ETag` as `If-Match` (`apps/azure/src/services/blobClient.ts`); `412` → `{ ok: false, reason: 'precondition-failed' }` → caller saves a `(conflict copy)`. The evidence-snapshot catalog retries `If-Match` with exponential backoff **100/200/400 ms** (3 attempts), then emits a non-blocking paste-conflict event. Detail: [etag-concurrency.md](../../03-features/data/etag-concurrency.md).
+Document writes send the prior `ETag` as `If-Match` (`apps/azure/src/services/blobClient.ts`); `412` → `{ ok: false, reason: 'precondition-failed' }` → caller saves a `(conflict copy)`. The evidence-snapshot catalog retries `If-Match` with exponential backoff (**100 ms then 200 ms**, across 3 total attempts — the loop exits before a third sleep), then emits a non-blocking paste-conflict event. Detail: [etag-concurrency.md](../../03-features/data/etag-concurrency.md).
 
 ## See also
 

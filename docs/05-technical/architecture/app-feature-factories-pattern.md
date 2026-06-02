@@ -26,11 +26,11 @@ A factory is stateless; each app instantiates its own singleton and re-exports t
 
 ## The three categories
 
-| Category                          | Shared helper                                                                                                  | App-owned                                                                            |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **Store factories** (R5a)         | `createAnalyzeFeatureStore()`, `createFindingsFeatureStore()`, `buildIdeaImpacts()`                            | the singleton wrapper (`const useAnalyzeFeatureStore = createAnalyzeFeatureStore()`) |
-| **Pure builders** (R5c)           | `createAction`, default-stamping in `@variscout/core/findings/factories.ts`                                    | dispatch/persistence wrappers                                                        |
-| **Lifecycle hooks** (R5b/R5d/R5e) | `useStoreDataIngestionActions`, `useControlPanelModel`, `useImprovementProjectPanelModel` (`@variscout/hooks`) | repositories + panel rendering + row limits                                          |
+| Category                          | Shared helper                                                                                                           | App-owned                                                                            |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Store factories** (R5a)         | `createAnalyzeFeatureStore()`, `createFindingsFeatureStore()`, `buildIdeaImpacts()`                                     | the singleton wrapper (`const useAnalyzeFeatureStore = createAnalyzeFeatureStore()`) |
+| **Pure builders** (R5c)           | `createActionItem` / `createProjectActionItem` / `createStepQuickActionItem` in `@variscout/core/findings/factories.ts` | dispatch/persistence wrappers                                                        |
+| **Lifecycle hooks** (R5b/R5d/R5e) | `useStoreDataIngestionActions`, `useControlPanelModel`, `useImprovementProjectPanelModel` (`@variscout/hooks`)          | repositories + panel rendering + row limits                                          |
 
 ## Shared vs app-owned — the dividing line
 
