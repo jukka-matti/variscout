@@ -77,3 +77,19 @@ export function focusOpacity(doi: number): number {
   if (doi === 1) return MID_OPACITY;
   return DIM_OPACITY;
 }
+
+/**
+ * Domain-weighted opacity (PR-CS-12, spec §3.3 rule 8; van Ham & Perer
+ * DOI = a-priori-interest − distance): an entity's normalized contribution
+ * (association strength, 0..1) lifts it AT MOST ONE opacity tier toward
+ * vivid. `contribution01 = 0` reproduces `focusOpacity` exactly, so
+ * hubs/findings (which carry no contribution) are untouched. Weighting reads
+ * contributions; it never recomputes model metrics (ADR-086 Amendment §4).
+ */
+export function domainWeightedOpacity(doi: number, contribution01: number): number {
+  const c = Math.min(1, Math.max(0, contribution01));
+  const base = focusOpacity(doi);
+  if (c === 0) return base;
+  const lifted = focusOpacity(Math.max(0, doi - 1));
+  return base + (lifted - base) * c;
+}

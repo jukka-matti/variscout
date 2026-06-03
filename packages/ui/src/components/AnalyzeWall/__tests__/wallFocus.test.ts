@@ -7,7 +7,7 @@
  * CanvasLevel / LOD (spec §9).
  */
 import { describe, it, expect } from 'vitest';
-import { wallDegreeOfInterest, focusOpacity } from '../wallFocus';
+import { wallDegreeOfInterest, focusOpacity, domainWeightedOpacity } from '../wallFocus';
 import type { WallEdge } from '../wallLayout';
 
 // h1 ── f1 (support), h1 ── f2 (refute); h2 is an unrelated sibling with f3.
@@ -63,5 +63,36 @@ describe('focusOpacity', () => {
     expect(dim).toBeLessThan(focusOpacity(1));
     expect(focusOpacity(5)).toBeCloseTo(dim);
     expect(dim).toBeGreaterThan(0);
+  });
+});
+
+describe('domainWeightedOpacity (PR-CS-12, spec §3.3 rule 8)', () => {
+  it('contribution 0 → identical to focusOpacity (backward compatible)', () => {
+    for (const doi of [0, 1, 2, 3]) {
+      expect(domainWeightedOpacity(doi, 0)).toBe(focusOpacity(doi));
+    }
+  });
+
+  it('contribution 1 lifts exactly one tier: dim→mid, mid→vivid', () => {
+    expect(domainWeightedOpacity(2, 1)).toBe(focusOpacity(1)); // dim → mid
+    expect(domainWeightedOpacity(1, 1)).toBe(focusOpacity(0)); // mid → vivid
+  });
+
+  it('focused entity stays vivid regardless of contribution', () => {
+    expect(domainWeightedOpacity(0, 0)).toBe(1);
+    expect(domainWeightedOpacity(0, 1)).toBe(1);
+  });
+
+  it('partial contribution interpolates between tiers (monotonic)', () => {
+    const at0 = domainWeightedOpacity(2, 0);
+    const at05 = domainWeightedOpacity(2, 0.5);
+    const at1 = domainWeightedOpacity(2, 1);
+    expect(at05).toBeGreaterThan(at0);
+    expect(at05).toBeLessThan(at1);
+  });
+
+  it('clamps out-of-range contribution', () => {
+    expect(domainWeightedOpacity(2, -1)).toBe(focusOpacity(2));
+    expect(domainWeightedOpacity(2, 5)).toBe(focusOpacity(1));
   });
 });
