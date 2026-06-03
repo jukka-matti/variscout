@@ -18,8 +18,12 @@ import type { SurveyHint, SurveyRule } from './types';
  * 3. `evidenced` — fewer than 2 distinct evidence types.
  * 4. `needs-disconfirmation` — ≥2 distinct evidence types but no survived
  *    disconfirmation attempt yet.
- * 5. `confirmed` — ≥2 distinct evidence types AND ≥1 survived disconfirmation
- *    attempt.
+ * 5. `evidence-survived-test` — ≥2 distinct evidence types AND ≥1 survived
+ *    disconfirmation attempt.
+ *
+ * Note (CS-10): this derivation is **advisory** — the analyst owns the stored
+ * `Hypothesis.status` (set via `setHubStatus`). The Wall surfaces this as a
+ * suggestion chip, never as the displayed status, and never writes it.
  */
 export function deriveHypothesisStatus(h: Hypothesis, findings: Finding[]): HypothesisStatus {
   const linkedFindings = findings.filter(f => h.findingIds.includes(f.id));

@@ -281,7 +281,7 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
   whatIf?: { cpk: number | null; coveragePct: number | null };
   /**
    * FE-2b — the §4.1 soft caveat read-model. When this hub's derived status is
-   * "Supported" (`confirmed`) but its sole survived disconfirmation attempt has an
+   * "Supported" (`evidence-survived-test`) but its sole survived disconfirmation attempt has an
    * EMPTY `linkedFindingIds` (an unbacked survived — a manual gemba/expert claim or
    * legacy self-grade), the card renders an ambient muted caveat + a "back it with
    * a test →" link. Read-model only — status stays engine-derived. Pass `false`

@@ -877,7 +877,7 @@ export const en: MessageCatalog = {
   'wall.card.missingColumnAria': 'Condition references missing column',
   'wall.card.ariaLabel': 'Mechanism Branch {name}, {status}, {count} supporting clues',
   'wall.card.oneStepAway':
-    '1 step away — running a disconfirmation test would promote this from evidenced to confirmed',
+    '1 step away — running a disconfirmation test would let you mark this Supported',
   'wall.problem.title': 'Problem condition',
   'wall.problem.eventsPerWeek': '{count} events',
   'wall.problem.ariaLabel': 'Problem condition: {column}, Cpk {cpk}, {count} events',

@@ -231,8 +231,10 @@ export interface AnalyzeActions {
    * stamps the attempt's id + timestamps (deterministic — mirrors the
    * MEASUREMENT_PLAN_ADD pattern; no Date.now/RNG inside the store). The derived
    * status (`deriveHypothesisStatus`) then reflects it: a `survived` attempt +
-   * ≥2 evidence types promotes to `confirmed`; a `pending` attempt holds at
-   * `needs-disconfirmation`. No-op for an unknown hub id.
+   * ≥2 evidence types makes the derived *advisory* suggestion
+   * `evidence-survived-test`; a `pending` attempt holds at
+   * `needs-disconfirmation`. Status itself is analyst-owned (CS-10) — this
+   * appends the attempt only; it does not set status. No-op for an unknown hub id.
    */
   recordDisconfirmation: (hubId: string, attempt: DisconfirmationAttempt) => void;
   /**
