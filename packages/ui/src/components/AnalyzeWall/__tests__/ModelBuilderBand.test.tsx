@@ -208,4 +208,37 @@ describe('ModelBuilderBand', () => {
     // The constant factor is NOT a toggleable candidate.
     expect(screen.queryByTestId('model-candidate-factor-Machine')).toBeNull();
   });
+
+  it('shows a ΔR² (association strength) value for each kept factor', () => {
+    renderInSvg(
+      <ModelBuilderBand
+        rows={shiftDominatedRows()}
+        candidateFactors={['Shift', 'Machine', 'Noise']}
+        outcome="Y"
+        scopeLabel="All data"
+        x={0}
+        y={0}
+        width={320}
+        height={260}
+      />
+    );
+    expect(screen.getByTestId('model-deltaR2-Shift')).toBeInTheDocument();
+    expect(screen.getByTestId('model-deltaR2-Shift').textContent).toMatch(/ΔR²/);
+  });
+
+  it('shows the "association, not a verdict" framing', () => {
+    renderInSvg(
+      <ModelBuilderBand
+        rows={shiftDominatedRows()}
+        candidateFactors={['Shift', 'Machine', 'Noise']}
+        outcome="Y"
+        scopeLabel="All data"
+        x={0}
+        y={0}
+        width={320}
+        height={260}
+      />
+    );
+    expect(screen.getByTestId('model-not-a-verdict')).toHaveTextContent(/not a verdict/i);
+  });
 });
