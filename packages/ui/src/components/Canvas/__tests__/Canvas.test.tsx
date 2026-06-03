@@ -15,10 +15,14 @@
  * Focused investigation / Improvement-Project charter) were retired in
  * PR-CS-2 (superseded by Click-to-Explore + inline capture-as-Finding,
  * connective-surface spec §7.3). The L3 mechanism view (`LocalMechanismView`)
- * keeps its own inline CTAs until its Phase-2 retirement (PR-CS-12).
+ * was trimmed to step-local content in PR-CS-12 (§7.1): its glued WallCanvas +
+ * EvidenceMapBase stack and the per-column response-path CTAs are gone, and the
+ * canvas L2 'wall' overlay (CanvasWallOverlay) was deleted — the Analyze-tab
+ * WallCanvas is the single Wall home (ADR-086). The surviving Wall affordance
+ * here is the mobile WallShortcutButton.
  *
  * This file tests Canvas-direct surface only: smoke render, level routing,
- * chip rail visibility by mode, and Wall overlay toggle visibility.
+ * chip rail visibility by mode, and the mobile Wall shortcut button.
  *
  * Note: the `useHypothesisDrawTool`, `useCanvasKeyboard`, and
  * `useCanvasHypothesisDrawing` mocks below are intentional no-op stubs — none
@@ -187,18 +191,10 @@ vi.mock('@variscout/hooks', () => ({
       enabled: true,
       description: 'Recent finding pins anchored to process steps.',
     },
-    wall: {
-      id: 'wall',
-      label: 'Wall',
-      enabled: true,
-      description: 'Investigation Wall overlay.',
-    },
   },
   coerceCanvasOverlays: vi.fn((values: unknown[]) =>
     values.filter(value =>
-      ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings', 'wall'].includes(
-        String(value)
-      )
+      ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings'].includes(String(value))
     )
   ),
   enabledCanvasOverlays: vi.fn(() => [
@@ -206,7 +202,6 @@ vi.mock('@variscout/hooks', () => ({
     { id: 'hypotheses', label: 'Hypotheses', enabled: true, description: '' },
     { id: 'hypothesis-hubs', label: 'Hypothesis hubs', enabled: true, description: '' },
     { id: 'findings', label: 'Findings', enabled: true, description: '' },
-    { id: 'wall', label: 'Wall', enabled: true, description: '' },
   ]),
   CANVAS_EMPTY_DROP_ID: 'canvas:empty',
   coerceCanvasLens: vi.fn((value: unknown) =>

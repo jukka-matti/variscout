@@ -1,63 +1,13 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
-import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Finding, Hypothesis, ProcessMap } from '@variscout/core';
+import type { Hypothesis, ProcessMap } from '@variscout/core';
 import { getAnalyzeInitialState, useAnalyzeStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import { LocalMechanismView } from '../LocalMechanismView';
 
 // Cast helper: acceptable inside test files per project convention
 const h = (id: string) => id as ProcessHubId;
-
-vi.mock('@variscout/charts', async () => {
-  const actual = await vi.importActual<typeof import('@variscout/charts')>('@variscout/charts');
-  return {
-    ...actual,
-    EvidenceMapBase: (props: {
-      stepColumns?: readonly string[];
-      factorNodes: Array<{ factor: string }>;
-      onFactorClick?: (factor: string) => void;
-    }) => (
-      <div
-        data-testid="mock-evidence-map-base"
-        data-step-columns={(props.stepColumns ?? []).join('|')}
-        data-factor-count={props.factorNodes.length}
-      >
-        <button type="button" onClick={() => props.onFactorClick?.('Machine')}>
-          evidence factor
-        </button>
-      </div>
-    ),
-  };
-});
-
-vi.mock('../../../AnalyzeWall/WallCanvas', () => ({
-  WallCanvas: (props: {
-    mode?: string;
-    filterByStepId?: string;
-    hubs: Hypothesis[];
-    findings: Finding[];
-    rows?: ReadonlyArray<Record<string, unknown>>;
-    columnTypes?: Record<string, string>;
-    outcomeColumn?: string | null;
-    onSelectHub?: (id: string) => void;
-  }) => (
-    <div
-      data-testid="mock-wall-canvas"
-      data-mode={props.mode}
-      data-filter-by-step-id={props.filterByStepId}
-      data-hubs-count={props.hubs.length}
-      data-findings-count={props.findings.length}
-      data-rows-count={props.rows?.length ?? 0}
-      data-outcome-column={props.outcomeColumn ?? ''}
-    >
-      <button type="button" onClick={() => props.onSelectHub?.(h('hub-1'))}>
-        select wall hub
-      </button>
-    </div>
-  ),
-}));
 
 const map: ProcessMap = {
   version: 1,
@@ -113,7 +63,6 @@ function hub(overrides: Partial<Hypothesis> = {}): Hypothesis {
 function renderView(overrides: Partial<React.ComponentProps<typeof LocalMechanismView>> = {}) {
   return render(
     <LocalMechanismView
-      hubId={h('hub-main')}
       focalStepId="mix"
       map={map}
       rows={rows}
@@ -124,10 +73,6 @@ function renderView(overrides: Partial<React.ComponentProps<typeof LocalMechanis
         Shift: 'categorical',
         Temperature: 'numeric',
       }}
-      findings={[]}
-      problemCpk={0.72}
-      eventsPerWeek={33}
-      activeColumns={['Outcome', 'Machine', 'Operator', 'Shift', 'Temperature']}
       {...overrides}
     />
   );
@@ -146,59 +91,6 @@ describe('LocalMechanismView', () => {
     expect(screen.getByText('Operator')).toBeInTheDocument();
     expect(screen.getByText('Shift')).toBeInTheDocument();
     expect(screen.getByText('Temperature')).toBeInTheDocument();
-  });
-
-  it('passes focal step columns to EvidenceMapBase and focuses factor clicks via hypothesis condition', () => {
-    const onOpenInvestigationFocus = vi.fn();
-    // IM-1: factor identity lives in hypothesis.condition, not Question entity
-    useAnalyzeStore.setState({
-      hypotheses: [
-        hub({
-          id: h('hub-machine'),
-          condition: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
-        }),
-      ],
-    });
-    renderView({ onOpenInvestigationFocus });
-
-    expect(screen.getByTestId('evidence-map-base')).toHaveAttribute(
-      'data-step-columns',
-      'Machine|Operator|Temperature|Shift'
-    );
-    expect(screen.getByTestId('mock-evidence-map-base')).toHaveAttribute(
-      'data-step-columns',
-      'Machine|Operator|Temperature|Shift'
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'evidence factor' }));
-
-    // IM-1: focus is on the hypothesis (suspected-cause), not a question
-    expect(onOpenInvestigationFocus).toHaveBeenCalledWith({
-      kind: 'suspected-cause',
-      id: h('hub-machine'),
-    });
-  });
-
-  it('renders WallCanvas in overlay mode filtered to the focal step and forwards selection callbacks', () => {
-    const onSelectWallHub = vi.fn();
-    const onOpenWall = vi.fn();
-    useAnalyzeStore.setState({ hypotheses: [hub()] });
-
-    renderView({ findings: [{ id: 'f-1' } as Finding], onSelectWallHub, onOpenWall });
-
-    const wall = screen.getByTestId('wall-canvas');
-    expect(wall).toBeInTheDocument();
-
-    const mockedWall = screen.getByTestId('mock-wall-canvas');
-    expect(mockedWall).toHaveAttribute('data-mode', 'overlay');
-    expect(mockedWall).toHaveAttribute('data-filter-by-step-id', 'mix');
-    expect(mockedWall).toHaveAttribute('data-hubs-count', '1');
-    expect(mockedWall).toHaveAttribute('data-findings-count', '1');
-
-    fireEvent.click(screen.getByRole('button', { name: 'select wall hub' }));
-
-    expect(onSelectWallHub).toHaveBeenCalledWith('hub-1');
-    expect(onOpenWall).toHaveBeenCalledTimes(1);
   });
 
   it('gates factor contribution rankings to focal investigation context via hypothesis condition', () => {
@@ -257,30 +149,6 @@ describe('LocalMechanismView', () => {
     expect(onOpenColumnDetail).toHaveBeenCalledWith('Machine', 'mix');
   });
 
-  it('renders 2 additional response-path CTA buttons per column when callbacks provided', () => {
-    const onFocusedInvestigation = vi.fn();
-    const onCharter = vi.fn();
-    renderView({ onFocusedInvestigation, onCharter });
-
-    const ctaGroups = screen.getAllByTestId('response-path-ctas');
-    // 4 columns for the 'mix' step — each column card gets the CTA row
-    expect(ctaGroups).toHaveLength(4);
-
-    // Use within first CTA group to target a single column's buttons.
-    const firstGroup = ctaGroups[0];
-
-    fireEvent.click(within(firstGroup).getByText('Analyze'));
-    expect(onFocusedInvestigation).toHaveBeenCalledWith('mix');
-
-    fireEvent.click(within(firstGroup).getByText('Charter'));
-    expect(onCharter).toHaveBeenCalledWith('mix');
-  });
-
-  it('does not render the response-path CTA row when no callbacks are provided', () => {
-    renderView();
-    expect(screen.queryAllByTestId('response-path-ctas')).toHaveLength(0);
-  });
-
   it('submits quick action payload with focal step and column context', () => {
     const onLogQuickAction = vi.fn();
     renderView({ onLogQuickAction });
@@ -293,5 +161,30 @@ describe('LocalMechanismView', () => {
       text: '[Machine] Check setup sheet',
       status: 'done',
     });
+  });
+
+  // CS-12 §7.1/§7.3: the glued stack (embedded WallCanvas + compact
+  // EvidenceMapBase) and the per-column response-path CTA row retired. Negative
+  // controls — none of those surfaces may render, even when an investigation
+  // context (which previously triggered them) is present.
+  it('does not render the retired glued stack or response-path CTAs', () => {
+    act(() => {
+      useAnalyzeStore.setState({
+        hypotheses: [
+          hub({
+            condition: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+          }),
+        ],
+      });
+    });
+    renderView();
+
+    // Rankings (kept) still render under investigation context — proves the
+    // negative controls aren't passing because nothing rendered at all.
+    expect(screen.getByTestId('factor-contribution-rankings')).toBeInTheDocument();
+
+    expect(screen.queryByTestId('wall-canvas')).toBeNull();
+    expect(screen.queryByTestId('evidence-map-base')).toBeNull();
+    expect(screen.queryByTestId('response-path-ctas')).toBeNull();
   });
 });
