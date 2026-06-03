@@ -19,7 +19,7 @@ interface SynthesisLayerProps {
 
 function getStatusColor(status?: string): string {
   switch (status) {
-    case 'confirmed':
+    case 'evidence-survived-test':
       return chartColors.pass;
     case 'refuted':
       return getChromeColors(true).labelMuted; // slate-500
@@ -92,10 +92,10 @@ const SynthesisLayer: React.FC<SynthesisLayerProps> = ({
                   {point.hubName.length > 22 ? point.hubName.slice(0, 20) + '...' : point.hubName}
                 </text>
                 <text x={0} y={zoneRadius + 30} textAnchor="middle" fill={statusColor} fontSize={7}>
-                  {point.hubStatus === 'confirmed'
-                    ? 'CONFIRMED'
+                  {point.hubStatus === 'evidence-survived-test'
+                    ? 'SUPPORTED'
                     : point.hubStatus === 'refuted'
-                      ? 'NOT CONFIRMED'
+                      ? 'REFUTED'
                       : point.hubStatus === 'needs-disconfirmation'
                         ? 'NEEDS DISCONFIRMATION'
                         : point.hubStatus === 'evidenced'
