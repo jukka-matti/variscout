@@ -39,6 +39,8 @@ import {
   buildHypothesisTestPlan,
   collectConditionLeaves,
   deriveHypothesisFactors,
+  deriveScatterFitData,
+  groupOutcomeByFactor,
 } from '@variscout/core/findings';
 import type { HypothesisTestPlanFactor } from '@variscout/core/findings';
 import { computeScopeWhatIfProjection, computeConditionCoverage } from '@variscout/core/variation';
@@ -53,7 +55,11 @@ import { GateBadge } from './GateBadge';
 import { FindingChip } from './FindingChip';
 import { HypothesisCard } from './HypothesisCard';
 import { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
-import type { EvaluateFactorOptions, ConfoundRivalView } from './HypothesisCardWithPlans';
+import type {
+  EvaluateFactorOptions,
+  ConfoundRivalView,
+  TriadFactorChart,
+} from './HypothesisCardWithPlans';
 import { DraggableHypothesisCard } from './DraggableHypothesisCard';
 import { TributaryFooter } from './TributaryFooter';
 import { ModelBuilderBand } from './ModelBuilderBand';
@@ -569,6 +575,36 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   // node focuses it; clicking empty canvas clears focus. `focusFor` maps a node
   // id → { opacity, doi } via degree-of-interest over the layout's tethers.
   const focusedWallEntityId = useViewStore(s => s.focusedWallEntityId);
+  // PR-CS-9 — compute the per-factor stat chart for the FOCUSED hub's ready
+  // factors only (spec §4.0 "summoned onto a focused hypothesis, not always-on").
+  // The regression fit only runs for the one focused hub, keeping the Wall cheap.
+  const focusedTriadCharts = useMemo(() => {
+    const map = new Map<string, TriadFactorChart>();
+    if (!focusedWallEntityId || !outcomeColumn || !rows) return map;
+    const triad = hubTriadById.get(focusedWallEntityId);
+    if (!triad?.testPlanFactors) return map;
+    const chartRows = [...rows] as DataRow[];
+    for (const tp of triad.testPlanFactors) {
+      if (tp.readiness !== 'ready' || !tp.tool) continue;
+      if (tp.tool === 'regression') {
+        const sf = deriveScatterFitData(chartRows, tp.factor, outcomeColumn);
+        map.set(tp.factor, {
+          kind: 'scatter',
+          points: sf.points,
+          fittedLine: sf.fittedLine,
+          isSignificant: sf.isSignificant,
+        });
+      } else {
+        // two-sample (and the reserved capability tool) → boxplot of the outcome
+        // grouped by the factor's levels.
+        map.set(tp.factor, {
+          kind: 'boxplot',
+          groups: groupOutcomeByFactor(chartRows, tp.factor, outcomeColumn),
+        });
+      }
+    }
+    return map;
+  }, [focusedWallEntityId, hubTriadById, rows, outcomeColumn]);
   const setFocusedWallEntity = useViewStore(s => s.setFocusedWallEntity);
   const focusFor = useCallback(
     (nodeId: string) => {
@@ -905,7 +941,15 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     // from the SAME core engine the rest of the Wall uses (not injected as a leaf
     // prop) so a dead wiring renders the engine's real output, not a fake.
     const hubTriad = hubTriadById.get(hub.id);
-    const hubTestPlanFactors = hubTriad?.testPlanFactors;
+    // PR-CS-9 — enrich the focused hub's triad rows with their precomputed charts.
+    const hubTestPlanFactors =
+      hub.id === focusedWallEntityId && hubTriad?.testPlanFactors
+        ? hubTriad.testPlanFactors.map(tp =>
+            focusedTriadCharts.has(tp.factor)
+              ? { ...tp, chart: focusedTriadCharts.get(tp.factor) }
+              : tp
+          )
+        : hubTriad?.testPlanFactors;
     const hubWhatIf = hubTriad?.whatIf;
     // FE-2b — the per-hub disconfirmation read-models (soft caveat + confound).
     const hubDisconfirm = hubDisconfirmById.get(hub.id);
