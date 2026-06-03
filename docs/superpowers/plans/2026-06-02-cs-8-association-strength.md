@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: 'PR-CS-8 — Best-subsets attention-guide: per-scope association strength (ΔR²)'
-status: draft
+status: delivered
 date: 2026-06-02
 layer: spec
 serves: docs/superpowers/specs/2026-06-02-connective-surface-model-design.md
