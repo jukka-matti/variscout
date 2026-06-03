@@ -126,9 +126,10 @@ layer: spec
 - **Goal:** "which factors matter inside this drilled scope?" — the per-scope re-rank (settled placement).
 - **Touches:** `ModelBuilderBand` re-run on the active `ProblemStatementScope`; label ΔR² as **association strength** (not "which cause matters"); analyst-controlled (toggle/snap-back).
 - **Depends on:** PR-CS-3 (scope).
-- **Model:** Opus.
+- **Model:** ~~Opus~~ → **Sonnet** (re-sized after grounding — see sub-plan; design judgment pinned in the sub-plan).
 - **Acceptance:** drilling a scope re-ranks the vital-few **for that scope**; no "cause" verdict language; analyst controls the model.
 - **Spec ref:** §4.0, §4.0a. _(The **global** guide placement is **advanced design — §12 Q6**: write a short design note before its PR; do NOT build the global guide blind.)_
+- **Sub-plan (grounded 2026-06-03):** [`2026-06-02-cs-8-association-strength.md`](2026-06-02-cs-8-association-strength.md). **Grounding (7-agent fan-out) re-sized this PR:** the per-scope re-rank + toggle/snap-back + capture-as-Finding **already ship** — the real delta is the **ΔR² association-strength magnitude + framing + the missing per-scope-re-rank integration test**. Design pinned: the magnitude = per-factor **semipartial R²** (`R²(kept) − R²(kept∖f)`, raw so ≥0, **non-summing per ADR-073**) — the effect size paired with the existing partial p; **refines LOCKED #2** (effect-size-with-p, still no Cp/BIC). **Execution paused pre-branch 2026-06-03** — resume via `superpowers:subagent-driven-development` (branch `feat/cs-8-association-strength`).
 
 ### PR-CS-9 · The analytical flow — per-factor stat triad (finish FE-2)
 
