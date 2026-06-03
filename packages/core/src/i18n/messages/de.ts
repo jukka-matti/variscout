@@ -874,6 +874,7 @@ export const de: MessageCatalog = {
   'wall.evidence.supports': 'Supports',
   'wall.evidence.countsAgainst': 'Counts against',
   'wall.evidence.contributingFactors': 'Contributing factors',
+  'wall.factorGlyph.aria': 'Focus factor {factor}',
   'wall.disconfirm.prompt': 'We tried to break this — did it hold?',
   'wall.disconfirm.descriptionLabel': 'What did you try?',
   'wall.disconfirm.verdictLabel': 'Did it hold?',

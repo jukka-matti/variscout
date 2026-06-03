@@ -964,6 +964,7 @@ export interface MessageCatalog {
   'wall.evidence.supports': string;
   'wall.evidence.countsAgainst': string;
   'wall.evidence.contributingFactors': string;
+  'wall.factorGlyph.aria': string;
   'wall.disconfirm.prompt': string;
   'wall.disconfirm.descriptionLabel': string;
   'wall.disconfirm.verdictLabel': string;

@@ -9,7 +9,7 @@
  * hub↔finding re-layout is IM-4). Renders EmptyState when no hubs exist.
  */
 
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { useCanvasViewportInput } from '@variscout/hooks';
 import { useViewStore } from '@variscout/stores';
@@ -46,11 +46,12 @@ import {
 import type { HypothesisTestPlanFactor } from '@variscout/core/findings';
 import { computeScopeWhatIfProjection, computeConditionCoverage } from '@variscout/core/variation';
 import { deriveProcessSteps } from '@variscout/core/frame';
-import { getMessage } from '@variscout/core/i18n';
+import { getMessage, formatMessage } from '@variscout/core/i18n';
 import { surveyWallRules, deriveHypothesisStatus } from '@variscout/core/survey';
 import { chartColors } from '@variscout/charts';
 import { computeWallLayout, buildWallLayoutArgs } from './wallLayout';
-import { wallDegreeOfInterest, focusOpacity } from './wallFocus';
+import { wallDegreeOfInterest, domainWeightedOpacity } from './wallFocus';
+import { FactorGlyph } from './FactorGlyph';
 import { ProblemConditionCard } from './ProblemConditionCard';
 import { GateBadge } from './GateBadge';
 import { FindingChip } from './FindingChip';
@@ -579,7 +580,14 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       computeWallLayout(
         buildWallLayoutArgs({
           hubs: filteredHubs,
-          findings,
+          // PR-CS-12 — thread each finding's capture-condition columns so
+          // computeWallLayout can emit the Finding-MEDIATED factor↔hub edges
+          // (`factor:${column}`), deriving the reasoning canvas from the same
+          // position authority (never stored — ADR-086 Amendment §1).
+          findings: findings.map(f => ({
+            id: f.id,
+            conditionColumns: Object.keys(f.context.activeFilters),
+          })),
           factors: layoutFactors,
           processMap,
           // tributaryGroups already encodes the groupByTributary && processMap
@@ -628,12 +636,33 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     return map;
   }, [focusedWallEntityId, hubTriadById, rows, outcomeColumn]);
   const setFocusedWallEntity = useViewStore(s => s.setFocusedWallEntity);
+  // PR-CS-12: the band reports its live kept+ΔR² (single source of truth — the
+  // Wall never recomputes best-subsets). Drives glyph bars + DOI weighting.
+  const [modelStats, setModelStats] = useState<{
+    kept: string[];
+    deltaR2: ReadonlyMap<string, number>;
+  } | null>(null);
+  // Normalize the band's per-factor association strength (ΔR²) to 0..1 (keyed by
+  // the namespaced `factor:${key}` DOI node id). Read-only over the band's live
+  // map — never mutated (ADR-086 Amendment §4: weighting reads, never recomputes).
+  const factorContribution01 = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!modelStats) return map;
+    let max = 0;
+    for (const v of modelStats.deltaR2.values()) max = Math.max(max, v);
+    if (max <= 0) return map;
+    for (const [k, v] of modelStats.deltaR2) map.set(`factor:${k}`, Math.max(0, v) / max);
+    return map;
+  }, [modelStats]);
   const focusFor = useCallback(
     (nodeId: string) => {
       const doi = wallDegreeOfInterest(focusedWallEntityId, nodeId, wallLayout.edges);
-      return { opacity: focusOpacity(doi), doi };
+      return {
+        opacity: domainWeightedOpacity(doi, factorContribution01.get(nodeId) ?? 0),
+        doi,
+      };
     },
-    [focusedWallEntityId, wallLayout.edges]
+    [focusedWallEntityId, wallLayout.edges, factorContribution01]
   );
 
   // FE-1 model-builder band (spec §3). Anchored in the factor-band zone from the
@@ -677,6 +706,10 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         width={PANEL_W}
         height={PANEL_H}
         onCaptureModel={modelBuilderProps.onCaptureModel}
+        // PR-CS-12: lift the live kept+ΔR² to the Wall. Pass the useState setter
+        // DIRECTLY (stable identity) — do NOT wrap or add to this dep array, or
+        // the band→memo→engine→effect→setState cycle would loop.
+        onModelStatsChange={setModelStats}
       />
     );
   }, [modelBuilderProps, outcomeColumn, rows, wallLayout.factorPositions]);
@@ -687,6 +720,75 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const handleClearFocus = useCallback(() => {
     if (focusedWallEntityId !== null) setFocusedWallEntity(null);
   }, [focusedWallEntityId, setFocusedWallEntity]);
+
+  // PR-CS-12 factor glyphs: one node per candidate factor at the layout's
+  // factor-band positions (positions keyed RAW; DOI node ids namespaced).
+  const factorGlyphLayer = useMemo(() => {
+    if (wallLayout.factorPositions.size === 0) return null;
+    return (
+      <g data-wall-factor-glyphs>
+        {[...wallLayout.factorPositions.entries()].map(([key, pos]) => {
+          const nodeId = `factor:${key}`;
+          const { opacity, doi } = focusFor(nodeId);
+          return (
+            <FactorGlyph
+              key={key}
+              factorKey={key}
+              x={pos.x}
+              y={pos.y}
+              contribution01={factorContribution01.get(nodeId) ?? 0}
+              opacity={opacity}
+              doi={doi}
+              focused={focusedWallEntityId === nodeId}
+              ariaLabel={formatMessage(locale, 'wall.factorGlyph.aria', { factor: key })}
+              onFocus={handleFocusNode}
+            />
+          );
+        })}
+      </g>
+    );
+  }, [
+    wallLayout.factorPositions,
+    focusFor,
+    factorContribution01,
+    focusedWallEntityId,
+    locale,
+    handleFocusNode,
+  ]);
+
+  // PR-CS-12 factor↔hypothesis edges: solid (vs the dashed finding tethers),
+  // refute LOUD per §7. Edge opacity = the dimmer endpoint, so the Focus lens
+  // fades whole irrelevant connections together.
+  const factorEdgeLayer = useMemo(() => {
+    const factorEdges = wallLayout.edges.filter(e => e.kind.startsWith('factor-'));
+    if (factorEdges.length === 0) return null;
+    return (
+      <g data-wall-factor-edges>
+        {factorEdges.map(edge => {
+          const fromPos = wallLayout.factorPositions.get(edge.fromId.slice('factor:'.length));
+          const toPos = wallLayout.hubPositions.get(edge.toId);
+          if (!fromPos || !toPos) return null;
+          const opacity = Math.min(focusFor(edge.fromId).opacity, focusFor(edge.toId).opacity);
+          const isRefute = edge.kind === 'factor-refute';
+          return (
+            <line
+              key={`${edge.fromId}→${edge.toId}|${edge.kind}`}
+              data-factor-edge={`${edge.fromId}→${edge.toId}`}
+              data-factor-edge-kind={edge.kind}
+              x1={fromPos.x}
+              y1={fromPos.y - 24}
+              x2={toPos.x}
+              y2={toPos.y + 30}
+              strokeWidth={1.5}
+              opacity={opacity * 0.6}
+              stroke={isRefute ? chartColors.warning : undefined}
+              className={isRefute ? undefined : 'stroke-edge'}
+            />
+          );
+        })}
+      </g>
+    );
+  }, [wallLayout.edges, wallLayout.factorPositions, wallLayout.hubPositions, focusFor]);
 
   // Scope-anchor (IM-4a): derive the Problem-condition card's live display
   // values from the active scope + data window. Reuses the shipped IM-5 math +
@@ -809,6 +911,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             role="img"
             aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
           >
+            {/* PR-CS-12 glyphs render at cold start too (screen-first); no edge
+                layer here — zero hubs means zero factor↔hub edges. */}
+            {factorGlyphLayer}
             {modelBuilderBand}
           </svg>
           <EmptyState
@@ -1105,6 +1210,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             strokeDasharray="4 6"
           />
 
+          {/* PR-CS-12 factor↔hypothesis edges — painted UNDER the cards/glyphs. */}
+          {factorEdgeLayer}
+
           {tributaryGroups
             ? (() => {
                 // Slice the canvas horizontally into equal-width bands, one per
@@ -1186,6 +1294,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
               })}
             </g>
           )}
+
+          {/* PR-CS-12 factor glyphs — painted OVER the edges + below the band. */}
+          {factorGlyphLayer}
 
           {/* FE-1 model-builder band (spec §3) — see the memoized `modelBuilderBand`. */}
           {modelBuilderBand}
