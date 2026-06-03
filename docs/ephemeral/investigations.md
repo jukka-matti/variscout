@@ -26,6 +26,16 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Cadence-UI orphans after CS-P1 shed → §9 cadence extraction [LOGGED 2026-06-03]
+
+**Surfaced by:** PR-CS-P1 shed the cadence/Status rollup from `ProcessHubReviewPanel` (hide-not-extract; the cadence engines stay live).
+
+**Summary:** `apps/azure/src/components/ProcessHubCadenceQuestions.tsx` + `ProcessHubCadenceQueues.tsx` now have **zero importers** (grep-verified) — dead code retained intentionally. A clean delete now would be a _partial_ extraction: it would also orphan their unique `ProcessHubFormat` helpers (`processQuestionAnswers`, `sustainmentBandAnswer`, `formatTopFocus`, …) and leave the still-live cadence engines untouched (`buildProcessHubCadence`/`buildCurrentProcessState` are still consumed by ReviewPanel's header `latestActivity` + the lifted `ProcessHubControlRegion`). So the coherent removal — the 2 components + their unique helpers + any engine that becomes dead once the new monitoring surface exists — belongs to the §9 process-as-operations follow-up, not CS-P1.
+
+**Promotion path:** delete as part of the §9 named-future cadence extraction (see `decision-log.md` §3 row "Per-step capability on the editor Process tab"). Until then they compile harmlessly (no importer, no test).
+
+**Severity:** Minor — dead code retained, tracked; not blocking.
+
 ### Refactoring roadmap sequencer [LOGGED 2026-05-31]
 
 **Surfaced by:** read-only refactoring-opportunity evaluation using four explorer subagents across core/data/stats, stores/hooks, UI/app workflow surfaces, and tooling/package health.

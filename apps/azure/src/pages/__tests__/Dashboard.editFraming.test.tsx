@@ -37,6 +37,16 @@ vi.mock('../../services/storage', () => ({
   }),
 }));
 
+// CS-P1: the Status/Capability two-tab collapsed, so ProcessHubView now mounts
+// ProcessHubCapabilityTab unconditionally. Its visx charts need ResizeObserver,
+// which this integration suite doesn't polyfill — and the capability content is
+// out of scope here (framing-prompt wiring). Mock it (mirrors the mocks in
+// Dashboard.processHub.test.tsx + ProcessHubView.test.tsx).
+vi.mock('../../components/ProcessHubCapabilityTab', () => ({
+  ProcessHubCapabilityTab: () => <div data-testid="mock-process-hub-capability-tab" />,
+  default: () => <div data-testid="mock-process-hub-capability-tab" />,
+}));
+
 vi.mock('../../auth/easyAuth', () => ({
   getEasyAuthUser: vi.fn(() => Promise.resolve({ userId: 'local' })),
 }));

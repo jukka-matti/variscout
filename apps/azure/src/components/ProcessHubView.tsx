@@ -1,13 +1,14 @@
 /**
- * ProcessHubView — tab container around ProcessHubReviewPanel.
+ * ProcessHubView — the portfolio Dashboard's Process Hub surface.
  *
- * Two tabs: "Status" (the existing flat layout, default) and "Capability"
- * (the production-line-glance dashboard). Plan C1 — see spec
- * docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md.
+ * CS-P1: the Status/Capability two-tab collapsed into one coherent scroll
+ * surface — the Capability content (production-line-glance dashboard) above
+ * the Review keeps (CurrentStatePanel + Inbox + the lifted Control region).
+ * See spec docs/superpowers/specs/2026-06-02-connective-surface-model-design.md §2A.
  *
- * T11: B0 migration banner (above tablist) + modal (overlay).
+ * T11: B0 migration banner + modal (overlay).
  */
-import React, { useState } from 'react';
+import React from 'react';
 import type {
   Finding,
   ProcessHubAnalyze,
@@ -60,8 +61,6 @@ export interface ProcessHubViewProps {
   onEditFraming?: (hubId: string) => void;
 }
 
-type TabKey = 'status' | 'capability';
-
 export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
   rollup,
   persistInvestigation,
@@ -70,7 +69,6 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
   onEditFraming,
   ...reviewProps
 }) => {
-  const [activeTab, setActiveTab] = useState<TabKey>('status');
   const hubIsComplete = isProcessHubComplete(rollup.hub);
 
   const migration = useHubMigrationState({
@@ -79,11 +77,6 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
     canonicalMap: rollup.hub.canonicalProcessMap,
     persistInvestigation,
   });
-
-  const tabClass = (key: TabKey) =>
-    activeTab === key
-      ? 'border-b-2 border-blue-600 px-4 py-2 text-sm font-medium text-content'
-      : 'border-b-2 border-transparent px-4 py-2 text-sm text-content-secondary hover:text-content';
 
   return (
     <div className="flex h-full flex-col">
@@ -159,52 +152,14 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
         onDecline={migration.handleDecline}
         onClose={migration.closeModal}
       />
-      <div
-        role="tablist"
-        aria-label="Process Hub view"
-        className="flex border-b border-edge bg-surface"
-      >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'status'}
-          aria-controls="process-hub-status-tab-panel"
-          onClick={() => setActiveTab('status')}
-          className={tabClass('status')}
-        >
-          Status
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'capability'}
-          aria-controls="process-hub-capability-tab-panel"
-          onClick={() => setActiveTab('capability')}
-          className={tabClass('capability')}
-        >
-          Capability
-        </button>
+      {/* CS-P1: one coherent scroll surface — the Capability orient content
+          (production-line-glance) above the Review keeps (CurrentStatePanel +
+          Inbox + the lifted Control region). The Status/Capability tablist is
+          retired; Task 1's data-presence gate self-hides the empty temporal row. */}
+      <div className="flex-1 overflow-y-auto" data-testid="process-hub-surface">
+        <ProcessHubCapabilityTab rollup={rollup} onHubCpkTargetCommit={onHubCpkTargetCommit} />
+        <ProcessHubReviewPanel rollup={rollup} {...reviewProps} />
       </div>
-
-      {activeTab === 'status' ? (
-        <div
-          role="tabpanel"
-          id="process-hub-status-tab-panel"
-          data-testid="process-hub-status-tab-panel"
-          className="flex-1 overflow-y-auto"
-        >
-          <ProcessHubReviewPanel rollup={rollup} {...reviewProps} />
-        </div>
-      ) : (
-        <div
-          role="tabpanel"
-          id="process-hub-capability-tab-panel"
-          data-testid="process-hub-capability-tab-panel"
-          className="flex-1 overflow-y-auto"
-        >
-          <ProcessHubCapabilityTab rollup={rollup} onHubCpkTargetCommit={onHubCpkTargetCommit} />
-        </div>
-      )}
     </div>
   );
 };

@@ -198,6 +198,7 @@ layer: spec
 - **Model:** Sonnet (re-home + hide; verify the per-step row still renders).
 - **Acceptance:** Process tab shows the canvas + per-step capability, no cadence rollup, no empty slots, single coherent surface; gate green.
 - **Spec ref:** §2A.1, §2A.5.
+- **Sub-plan:** [`2026-06-03-cs-p1-process-orient-foundation.md`](2026-06-03-cs-p1-process-orient-foundation.md). **Scope refined by grounding → foundation-only:** the cadence rollup / two-tab / per-step capability live in the portfolio Dashboard's `ProcessHubView`, not the editor canvas Process tab (which already has the L1/L2/L3 spine + L1 "are we capable?"); and per-step capability needs CS-P3 authoring to be non-empty. So CS-P1 sheds the cadence rollup (lifting Control out) + collapses the two-tab + gates the empty temporal row; the per-step-capability **lift onto the editor canvas moves to CS-P2** (which retires the Dashboard 2×2). See `decision-log.md` §3 + spec §2A grounding-correction.
 
 ### PR-CS-P2 · Connected per-step boxplot + own-values harmonized spec-aware scaling + Values⇄Capability
 

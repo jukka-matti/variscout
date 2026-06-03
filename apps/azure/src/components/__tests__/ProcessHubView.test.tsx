@@ -40,29 +40,11 @@ const baseProps = {
 } as const;
 
 describe('ProcessHubView', () => {
-  it('renders Status tab as default', () => {
+  it('renders both the review panel and the capability content with no tablist', () => {
     render(<ProcessHubView {...baseProps} />);
-    expect(screen.getByRole('tab', { name: /status/i })).toHaveAttribute('aria-selected', 'true');
-  });
-
-  it('switches to Capability tab on click', () => {
-    render(<ProcessHubView {...baseProps} />);
-    fireEvent.click(screen.getByRole('tab', { name: /capability/i }));
-    expect(screen.getByRole('tab', { name: /capability/i })).toHaveAttribute(
-      'aria-selected',
-      'true'
-    );
-  });
-
-  it('renders the Status tab panel by default', () => {
-    render(<ProcessHubView {...baseProps} />);
-    expect(screen.getByTestId('process-hub-status-tab-panel')).toBeInTheDocument();
-  });
-
-  it('renders the Capability tab panel when selected', () => {
-    render(<ProcessHubView {...baseProps} />);
-    fireEvent.click(screen.getByRole('tab', { name: /capability/i }));
-    expect(screen.getByTestId('process-hub-capability-tab-panel')).toBeInTheDocument();
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(screen.getByTestId('mock-process-hub-review-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-process-hub-capability-tab')).toBeInTheDocument();
   });
 
   it('renders the GoalBanner above the tab container when hub.processGoal is set', () => {

@@ -33,6 +33,11 @@ export const ProductionLineGlanceDashboard: React.FC<ProductionLineGlanceDashboa
   onModeChange: _onModeChange,
 }) => {
   const isSpatial = mode === 'spatial';
+  // V1: the temporal row (per-snapshot line-level Cp/Cpk) is structurally empty
+  // (ADR-073 — no Cp/Cpk aggregation across heterogeneous nodes). Don't ship a
+  // blank slot: render it only when a future engine actually populates it. The
+  // `mode='spatial'` collapse still applies for the data-present case.
+  const temporalHasData = cpkTrend.data.length > 0 || cpkGapTrend.series.length > 0;
   return (
     <div className="flex h-full w-full flex-col">
       {title ? (
@@ -51,25 +56,30 @@ export const ProductionLineGlanceDashboard: React.FC<ProductionLineGlanceDashboa
       ) : null}
 
       <div className="flex flex-1 flex-col">
-        <div
-          data-testid="dashboard-temporal-row"
-          aria-hidden={isSpatial ? 'true' : 'false'}
-          className={`grid grid-cols-2 gap-px bg-edge overflow-hidden transition-[max-height] duration-300 ease-in-out ${
-            isSpatial ? 'max-h-0' : 'max-h-[50vh]'
-          }`}
-        >
-          <div data-testid="slot-cpk-trend" className="bg-surface p-3">
-            <IChart
-              data={[...cpkTrend.data]}
-              stats={cpkTrend.stats}
-              specs={cpkTrend.specs}
-              yAxisLabel={cpkTrend.yAxisLabel ?? 'Cpk'}
-            />
+        {temporalHasData ? (
+          <div
+            data-testid="dashboard-temporal-row"
+            aria-hidden={isSpatial ? 'true' : 'false'}
+            className={`grid grid-cols-2 gap-px bg-edge overflow-hidden transition-[max-height] duration-300 ease-in-out ${
+              isSpatial ? 'max-h-0' : 'max-h-[50vh]'
+            }`}
+          >
+            <div data-testid="slot-cpk-trend" className="bg-surface p-3">
+              <IChart
+                data={[...cpkTrend.data]}
+                stats={cpkTrend.stats}
+                specs={cpkTrend.specs}
+                yAxisLabel={cpkTrend.yAxisLabel ?? 'Cpk'}
+              />
+            </div>
+            <div data-testid="slot-cpk-gap" className="bg-surface p-3">
+              <CapabilityGapTrendChart
+                gapSeries={cpkGapTrend.series}
+                gapStats={cpkGapTrend.stats}
+              />
+            </div>
           </div>
-          <div data-testid="slot-cpk-gap" className="bg-surface p-3">
-            <CapabilityGapTrendChart gapSeries={cpkGapTrend.series} gapStats={cpkGapTrend.stats} />
-          </div>
-        </div>
+        ) : null}
 
         <div className="grid flex-1 grid-cols-2 gap-px bg-edge">
           <div data-testid="slot-capability-boxplot" className="relative bg-surface p-3">
