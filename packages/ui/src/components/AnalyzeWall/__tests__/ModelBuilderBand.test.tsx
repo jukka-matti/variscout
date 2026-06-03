@@ -248,39 +248,49 @@ describe('ModelBuilderBand', () => {
 
   /**
    * Conditional structure: globally Region drives Y (0 vs 500 — massive gap);
-   * WITHIN Region A, Machine drives the residual (X≈0 vs Y≈8), but Region B rows
-   * are clustered so tightly that Machine adds no global marginal R² worth keeping.
-   * → global vital few = [Region] only; drill to Region=A (Region constant) → [Machine].
+   * WITHIN Region A, Machine drives the residual (X≈0 vs Y≈8), while Noise is a
+   * balanced junk factor with no association anywhere. Region B rows are clustered
+   * so tightly that Machine adds no global marginal R² worth keeping.
+   * → global vital few = [Region] only; drill to Region=A (Region constant) →
+   *   [Machine] (and Noise stays below the line even though it is also eligible).
    *
    * The Region effect (500-unit gap) is ~62× larger than Machine (8 units), so the
    * semipartial R² for Machine after partialling out Region is negligible globally.
+   * The wobble cycles -1/0/1 and is balanced within each 6-row cell, so Noise (which
+   * only ever differs by wobble) carries exactly zero signal.
    */
   function buildConditionalData(): DataRow[] {
     const rows: DataRow[] = [];
     let i = 0;
-    const push = (Region: string, Machine: string, base: number, mEff: number) => {
+    const push = (Region: string, Machine: string, Noise: string, base: number, mEff: number) => {
       for (let r = 0; r < 6; r++) {
-        const wobble = ((i * 3) % 3) - 1; // deterministic, always -1 (0*3%3-1=-1)
-        rows.push({ Region, Machine, Y: base + mEff + wobble });
+        const wobble = (i % 3) - 1; // deterministic -1, 0, 1 rotation (sums to 0 per 6-row cell)
+        rows.push({ Region, Machine, Noise, Y: base + mEff + wobble });
         i++;
       }
     };
-    push('A', 'X', 0, 0);
-    push('A', 'Y', 0, 8);
-    push('B', 'X', 500, 0);
-    push('B', 'Y', 500, 0);
+    // Region A (base 0): Machine drives the residual (X=0, Y=8); Noise is junk.
+    push('A', 'X', 'p', 0, 0);
+    push('A', 'X', 'q', 0, 0);
+    push('A', 'Y', 'p', 0, 8);
+    push('A', 'Y', 'q', 0, 8);
+    // Region B (base 500): Machine flat, Noise junk.
+    push('B', 'X', 'p', 500, 0);
+    push('B', 'X', 'q', 500, 0);
+    push('B', 'Y', 'p', 500, 0);
+    push('B', 'Y', 'q', 500, 0);
     return rows;
   }
 
   it('re-ranks the vital few when the analyst drills into a scope', () => {
     const all = buildConditionalData();
 
-    // Global view: Region is the vital few; Machine is below the line.
+    // Global view: Region is the vital few; Machine and Noise are below the line.
     const { unmount } = render(
       <svg width={400} height={300}>
         <ModelBuilderBand
           rows={all}
-          candidateFactors={['Region', 'Machine']}
+          candidateFactors={['Region', 'Machine', 'Noise']}
           outcome="Y"
           scopeLabel="All data"
           x={0}
@@ -292,15 +302,19 @@ describe('ModelBuilderBand', () => {
     );
     expect(screen.getByTestId('model-kept-factor-Region')).toBeInTheDocument();
     expect(screen.queryByTestId('model-kept-factor-Machine')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('model-kept-factor-Noise')).not.toBeInTheDocument();
     unmount();
 
-    // Drilled to Region=A: Region constant in scope → Machine becomes the vital few.
+    // Drilled to Region=A: Region is constant in scope, so Machine AND Noise are
+    // both eligible candidates. Keeping Machine but NOT Noise is load-bearing on
+    // the band actually re-running the engine over the Region-A rows — it can't
+    // pass by merely showing the sole remaining factor.
     const regionA = all.filter((r: DataRow) => r['Region'] === 'A');
     render(
       <svg width={400} height={300}>
         <ModelBuilderBand
           rows={regionA}
-          candidateFactors={['Region', 'Machine']}
+          candidateFactors={['Region', 'Machine', 'Noise']}
           outcome="Y"
           scopeLabel="Region = A"
           constantFactors={['Region']}
@@ -312,6 +326,7 @@ describe('ModelBuilderBand', () => {
       </svg>
     );
     expect(screen.getByTestId('model-kept-factor-Machine')).toBeInTheDocument();
+    expect(screen.queryByTestId('model-kept-factor-Noise')).not.toBeInTheDocument();
     expect(screen.getByTestId('model-constant-factor-Region')).toBeInTheDocument();
   });
 });
