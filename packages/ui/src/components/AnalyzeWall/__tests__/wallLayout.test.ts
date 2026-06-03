@@ -190,3 +190,82 @@ describe('computeWallLayout — tributary grouping', () => {
     expect(layout.hubPositions.get('h1')!.x).toBeCloseTo(CANVAS_W / 2);
   });
 });
+
+describe('factor↔hypothesis edges (PR-CS-12, spec §4.3)', () => {
+  const args = (over: Partial<WallLayoutArgs> = {}): WallLayoutArgs => ({
+    hubs: [
+      { id: 'hub-1', findingIds: ['f-support'], counterFindingIds: ['f-counter'] },
+      { id: 'hub-2', findingIds: [], counterFindingIds: [] },
+    ],
+    findings: [
+      { id: 'f-support', conditionColumns: ['Line', 'Shift'] },
+      { id: 'f-counter', conditionColumns: ['Temp'] },
+      { id: 'f-orphan', conditionColumns: ['Line'] },
+    ],
+    factors: [
+      { key: 'Line', contribution: 0 },
+      { key: 'Temp', contribution: -1 },
+      { key: 'Noise', contribution: -2 }, // distractor: no finding mentions it
+    ],
+    grouping: 'linear',
+    canvasW: 2000,
+    canvasH: 1400,
+    ...over,
+  });
+
+  it('emits a factor-support edge for each candidate factor a supporting finding condition mentions', () => {
+    const layout = computeWallLayout(args());
+    expect(layout.edges).toContainEqual({
+      fromId: 'factor:Line',
+      toId: 'hub-1',
+      kind: 'factor-support',
+    });
+  });
+
+  it('emits a factor-refute edge when the linking finding is a counter-finding', () => {
+    const layout = computeWallLayout(args());
+    expect(layout.edges).toContainEqual({
+      fromId: 'factor:Temp',
+      toId: 'hub-1',
+      kind: 'factor-refute',
+    });
+  });
+
+  it('LOAD-BEARING NEGATIVE CONTROL: a candidate factor no finding mentions gets NO edge', () => {
+    const layout = computeWallLayout(args());
+    expect(layout.edges.filter(e => e.fromId === 'factor:Noise')).toHaveLength(0);
+  });
+
+  it('a condition column NOT in the candidate-factor band gets NO edge (Shift is not a factor)', () => {
+    const layout = computeWallLayout(args());
+    expect(layout.edges.filter(e => e.fromId === 'factor:Shift')).toHaveLength(0);
+  });
+
+  it('orphan findings (linked to no hub) produce no factor edges', () => {
+    const layout = computeWallLayout(args());
+    // f-orphan mentions Line, but only hub-linked findings mediate edges:
+    // the only factor:Line edge is the one via f-support → hub-1.
+    expect(layout.edges.filter(e => e.fromId === 'factor:Line')).toHaveLength(1);
+  });
+
+  it('dedupes: two supporting findings mentioning the same factor → one edge', () => {
+    const layout = computeWallLayout(
+      args({
+        hubs: [{ id: 'hub-1', findingIds: ['f-a', 'f-b'], counterFindingIds: [] }],
+        findings: [
+          { id: 'f-a', conditionColumns: ['Line'] },
+          { id: 'f-b', conditionColumns: ['Line'] },
+        ],
+      })
+    );
+    expect(
+      layout.edges.filter(e => e.fromId === 'factor:Line' && e.kind === 'factor-support')
+    ).toHaveLength(1);
+  });
+
+  it('finding→hub tethers are unchanged (regression)', () => {
+    const layout = computeWallLayout(args());
+    expect(layout.edges).toContainEqual({ fromId: 'f-support', toId: 'hub-1', kind: 'support' });
+    expect(layout.edges).toContainEqual({ fromId: 'f-counter', toId: 'hub-1', kind: 'refute' });
+  });
+});
