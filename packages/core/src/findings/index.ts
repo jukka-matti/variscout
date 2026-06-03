@@ -93,3 +93,5 @@ export {
   type ColumnTypeMap,
 } from './miniChart';
 export type { ChartSelection } from './chartSelection';
+export { deriveScatterFitData, groupOutcomeByFactor } from './factorChartData';
+export type { ScatterFitData } from './factorChartData';

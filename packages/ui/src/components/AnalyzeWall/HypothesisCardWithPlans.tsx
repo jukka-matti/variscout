@@ -29,6 +29,8 @@ import { MeasurementPlanChip } from './MeasurementPlanChip';
 import { AddPlanForm, type StepOption } from './AddPlanForm';
 import { LinkFindingPicker } from './LinkFindingPicker';
 import { HypothesisComments } from './HypothesisComments';
+import { MiniBoxplot } from './MiniBoxplot';
+import { MiniScatterFit } from './MiniScatterFit';
 import { useWallLocale } from './hooks/useWallLocale';
 import ImprovementIdeasSection from '../FindingsLog/ImprovementIdeasSection';
 
@@ -61,6 +63,11 @@ const PLANS_GAP = 8;
 const TEST_PLAN_HEADER_H = 28;
 /** Height of one test-plan factor row (factor + tool + CTA) (px). */
 const TEST_PLAN_ROW_H = 40;
+/** PR-CS-9 — inline triad chart dimensions (px). */
+const TRIAD_CHART_W = 240;
+const TRIAD_CHART_H = 56;
+/** PR-CS-9 — extra height a triad row gains when it carries an inline chart (chart + gap). */
+const TEST_PLAN_CHART_H = 64;
 /** FE-2b — extra height added to a triad row whose "Try to break it" is checked
  * (the premortem prediction field + hint). */
 const BREAK_IT_EXPANSION_H = 96;
@@ -269,11 +276,28 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
   onMarkConfoundOpposite?: (rivalHypothesisId: string, findingId: string) => void;
 }
 
+/** A scatter/boxplot chart payload for a triad row (precomputed by the parent). */
+export type TriadFactorChart =
+  | {
+      kind: 'scatter';
+      points: Array<{ x: number; y: number }>;
+      fittedLine: Array<{ x: number; y: number }> | null;
+      isSignificant: boolean;
+    }
+  | { kind: 'boxplot'; groups: Array<{ category: string; values: number[] }> };
+
 /** A single test-plan triad row passed to the card (FE-2a). */
 export interface TestPlanFactorView {
   factor: string;
   readiness: 'ready' | 'gap';
   tool: 'two-sample' | 'regression' | 'capability' | null;
+  /**
+   * PR-CS-9 — the precomputed inline chart for this factor (spec §4.0 "see the
+   * chart"). Populated by the parent (WallCanvas) ONLY for the focused hub, so the
+   * charts are summoned onto a focused hypothesis, not always-on. Undefined → no
+   * inline chart for this row.
+   */
+  chart?: TriadFactorChart;
 }
 
 /** FE-2b — the per-evaluate options carried up by the fused triad row. */
@@ -394,6 +418,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   const testPlanRowsH = (testPlanFactors ?? []).reduce((sum, tp) => {
     let rowH = TEST_PLAN_ROW_H;
     if (tp.readiness === 'ready') {
+      if (tp.chart) rowH += TEST_PLAN_CHART_H;
       if (breakItByFactor[tp.factor]) rowH += BREAK_IT_EXPANSION_H;
       if (confoundByFactor?.[tp.factor]) rowH += CONFOUND_PROMPT_H;
     }
@@ -600,6 +625,29 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                             </button>
                           )}
                         </div>
+
+                        {/* PR-CS-9 — the inline stat chart (spec §4.0 "sees the
+                            actual chart"). Present only for a ready factor whose
+                            parent supplied a chart payload (focused hub). */}
+                        {tp.readiness === 'ready' && tp.chart && (
+                          <div className="mt-1" data-testid={`triad-chart-${tp.factor}`}>
+                            {tp.chart.kind === 'scatter' ? (
+                              <MiniScatterFit
+                                points={tp.chart.points}
+                                fittedLine={tp.chart.fittedLine}
+                                isSignificant={tp.chart.isSignificant}
+                                width={TRIAD_CHART_W}
+                                height={TRIAD_CHART_H}
+                              />
+                            ) : (
+                              <MiniBoxplot
+                                groups={tp.chart.groups}
+                                width={TRIAD_CHART_W}
+                                height={TRIAD_CHART_H}
+                              />
+                            )}
+                          </div>
+                        )}
 
                         {/* FE-2b keystone — the fused "Try to break it" checkbox.
                             The engine grades the verdict; the analyst never picks
