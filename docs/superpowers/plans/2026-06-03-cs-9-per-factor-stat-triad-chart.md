@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: 'PR-CS-9 — per-factor stat triad: see-the-chart (sub-plan)'
-status: draft
+status: delivered
 date: 2026-06-03
 layer: spec
 implements: docs/superpowers/specs/2026-06-02-connective-surface-model-design.md
