@@ -36,7 +36,15 @@ import {
 export interface HypothesisCardProps {
   hub: Hypothesis;
   branch?: MechanismBranchViewModel;
+  /** The STORED analyst-owned status — what the card's status badge displays. */
   displayStatus: HypothesisStatus;
+  /**
+   * CS-10 — the DERIVED advisory suggestion (`deriveHypothesisStatus`), passed
+   * in by the parent. The presentational card never computes it; it only carries
+   * it so `HypothesisCardWithPlans` can surface the suggestion chip. Advisory
+   * only — it never overrides `displayStatus`.
+   */
+  suggestedStatus?: HypothesisStatus;
   x: number;
   y: number;
   hasGap?: boolean;
