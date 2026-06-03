@@ -258,6 +258,19 @@ describe('ModelBuilderBand', () => {
       expect(latestCall).not.toBeNull();
       expect(latestCall.kept).not.toContain(firstKeptFactor);
     });
+
+    it('reports null when the engine cannot compute (no outcome)', () => {
+      const onModelStatsChange = vi.fn();
+      renderInSvg(
+        <ModelBuilderBand
+          {...baseProps}
+          rows={shiftDominatedRows()}
+          outcome={null}
+          onModelStatsChange={onModelStatsChange}
+        />
+      );
+      expect(onModelStatsChange).toHaveBeenCalledWith(null);
+    });
   });
 
   it('shows the "association, not a verdict" framing', () => {

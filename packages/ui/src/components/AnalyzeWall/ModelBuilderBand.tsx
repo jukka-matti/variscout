@@ -81,7 +81,9 @@ export interface ModelBuilderBandProps {
    * strength (semipartial ΔR²) up to the Wall, for factor glyphs +
    * domain-weighted DOI. Fires whenever the analyst's kept set or its ΔR² map
    * changes; `null` when the engine can't produce a model. Single source of
-   * truth — the Wall must NOT recompute best-subsets.
+   * truth — the Wall must NOT recompute best-subsets. Pass a stable callback
+   * (e.g. a useState setter); an inline arrow re-fires the effect on every
+   * parent render.
    */
   onModelStatsChange?: (
     stats: { kept: string[]; deltaR2: ReadonlyMap<string, number> } | null
