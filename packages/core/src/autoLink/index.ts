@@ -15,4 +15,3 @@ export type {
 } from './engine';
 export { computeMissingColumnFlags } from './reEvaluate';
 export type { MissingColumnFlags } from './reEvaluate';
-export { mintAutoLinkFindingId } from './mintFindingId';

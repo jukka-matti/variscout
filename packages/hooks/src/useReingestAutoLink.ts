@@ -1,17 +1,22 @@
 /**
- * useReingestAutoLink — the IM-3 reactive cascade hook (SHARED by Azure + PWA).
+ * useReingestAutoLink — the IM-3 / CS-11 reactive cascade hook (SHARED by Azure + PWA).
  *
- * Subscribes to `useProjectStore.rawData` and, after a debounce, runs the
- * core-pure auto-link engine and EXECUTES its actions:
- *   - dispatches `MEASUREMENT_PLAN_LINK_FINDING` + `MEASUREMENT_PLAN_UPDATE`
- *     through the injected `HubRepository` (Dexie-backed in both apps),
- *   - injects the bare auto-Findings into `useAnalyzeStore` (the runtime source of
- *     truth for findings in BOTH apps — Azure `applyAction` treats `FINDING_*` as a
- *     no-op, so the cascade does NOT dispatch finding actions).
+ * Subscribes to `useProjectStore.rawData` and, after a debounce, runs the core-pure
+ * auto-link engine and SURFACES its pending-match descriptors via `onPendingMatches`.
+ *
+ * # De-automation (CS-11 — "tool assists, analyst decides")
+ *
+ * The hook is READ-COMPUTE-SURFACE ONLY. It performs ZERO writes: it does NOT inject
+ * auto-Findings into `useAnalyzeStore`, does NOT dispatch any link/status `HubAction`,
+ * and does NOT advance plan status. Instead it computes the engine's
+ * `pendingMatches` (pure `(plan, column)` descriptors) and hands them to the host via
+ * `onPendingMatches`. The host (Tasks 5/6) renders an analyst-confirm prompt and, when
+ * the analyst confirms, performs the writes on its own path. This replaces the prior
+ * silent auto-link cascade (direct `setState` Finding injection + dispatch loop).
  *
  * # Two-app symmetry (LOCKED #6)
  *
- * This single hook is the entire executor. Azure + PWA each mount it with their own
+ * This single hook is the shared surfacer. Azure + PWA each mount it with their own
  * `HubRepository` singleton (`azureHubRepository` / `pwaHubRepository`). The
  * Azure-has-mergeRows / PWA-doesn't asymmetry is neutralized: BOTH apps funnel
  * every data transition through `setRawData`, so a single `rawData`-change
@@ -20,8 +25,8 @@
  * # Append vs replace (LOCKED #3 / #4) — derived from the column delta
  *
  * The hook keys off the COLUMN-UNIVERSE delta, not the `MatchSummaryActionChoice`:
- *   - columns that APPEARED (added) → APPEND-cascade: run the matcher + auto-link
- *     (preserve everything; never orphan).
+ *   - columns that APPEARED (added) → APPEND-cascade: run the matcher and surface
+ *     pending matches (the analyst decides whether to link).
  *   - columns that DISAPPEARED (removed) → REPLACE re-evaluation: compute
  *     missing-column flags (FLAG, never delete). The badge itself renders reactively
  *     from `conditionHasMissingColumn` in WallCanvas; the hook surfaces the report
@@ -29,38 +34,23 @@
  *     see the REPLACE branch below).
  * A single re-ingest can do both at once (some columns added, some removed).
  *
- * # IDEMPOTENCY (the #1 risk)
+ * # DEDUP (in-session, column-delta only)
  *
- * The subscription re-fires on every `rawData` change, so a re-run on identical
- * data must NOT double-add findings or re-progress status:
- *   1. The engine mints CONTENT-DERIVED finding ids (`mintAutoLinkFindingId(planId,
- *      column)`), stable across runs.
- *   2. Before injecting, the hook drops any `findingsToAdd` whose id already exists
- *      in `useAnalyzeStore.findings` → no duplicate finding.
- *   3. `MEASUREMENT_PLAN_LINK_FINDING` is idempotent in the reducer (re-linking the
- *      same id is a no-op).
- *   4. The status bump fires only for `planned` plans, so a plan already
- *      `in-progress` is never re-progressed even though it re-matches.
+ * The subscription re-fires on every `rawData` change, so the hook short-circuits when
+ * the column universe is unchanged (`addedColumns.length === 0`): a column is only
+ * "new" once per session. The engine's `pendingMatches` carry a deterministic
+ * `id` (`${planId}:${column}`) so the HOST can dedup/dismiss across re-fires and
+ * across sessions — the hook itself holds no dismissal state (that is host state,
+ * Task 6).
  *
  * # AUTO-LINK IS RE-INGEST-ONLY (link-at-creation boundary)
  *
- * The auto-link cascade fires exclusively on rawData changes (re-ingests). A plan
- * created AFTER the current column universe is already present will NOT be auto-linked
- * until a fresh re-ingest changes the column universe (no link-at-creation path).
- * This is intentional: link-at-creation would require a separate plan-creation
- * subscription with different idempotency semantics. The analyst can trigger a
- * re-ingest (or re-load the same file) to pick up plans created against already-present
- * columns.
- *
- * # CROSS-SESSION IDEMPOTENCY NOTE
- *
- * The in-session duplicate-finding guard (step 2 above) depends on the auto-Finding
- * being present in `useAnalyzeStore.findings` when the hook re-fires. In Azure, the
- * `applyAction` path treats `FINDING_*` as a no-op (ADR-085), so findings survive only
- * while the store is live. After a full page reload the store is re-hydrated from the
- * blob, which means the auto-Finding must have been committed to the analyze blob before
- * the session ended for the cross-session idempotency guarantee to hold. Do not overstate
- * this guarantee: it is best-effort across sessions, strong within a session.
+ * The cascade fires exclusively on rawData changes (re-ingests). A plan created AFTER
+ * the current column universe is already present will NOT be surfaced until a fresh
+ * re-ingest changes the column universe (no link-at-creation path). This is
+ * intentional: link-at-creation would require a separate plan-creation subscription
+ * with different semantics. The analyst can trigger a re-ingest (or re-load the same
+ * file) to pick up plans created against already-present columns.
  */
 
 import { useEffect } from 'react';
@@ -68,12 +58,11 @@ import { useProjectStore, useAnalyzeStore } from '@variscout/stores';
 import {
   computeReingestAutoLink,
   computeMissingColumnFlags,
-  mintAutoLinkFindingId,
   type MissingColumnFlags,
+  type ReingestPendingMatch,
 } from '@variscout/core/autoLink';
 import type { HubRepository } from '@variscout/core/persistence';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
-import type { Finding } from '@variscout/core';
 
 /** Default debounce window (ms) — mirrors `useWallBackgroundJobs`. */
 const DEFAULT_DEBOUNCE_MS = 2000;
@@ -88,18 +77,23 @@ export interface UseReingestAutoLinkOptions {
    */
   onMissingColumns?: (flags: MissingColumnFlags) => void;
   /**
-   * Called AFTER the APPEND-cascade dispatches at least one plan link or status
-   * action (i.e. the cascade actually wrote something — not fired on a no-op run).
+   * Called with the engine's pending-match descriptors whenever a re-ingest adds
+   * columns that one or more MeasurementPlans named. The host renders these as an
+   * analyst-confirm prompt and performs any link/status writes from the analyst's
+   * confirm path — the hook NEVER writes. Each descriptor carries a deterministic
+   * `id` (`${planId}:${column}`) so the host can dedup/dismiss across re-fires.
+   * Not called on a no-op run (empty `pendingMatches`).
+   */
+  onPendingMatches?: (matches: ReingestPendingMatch[]) => void;
+  /**
+   * UI-refresh nonce for plan writes; post-CS-11 the host fires this from the
+   * analyst's confirm path — the hook no longer writes.
    *
-   * Use this to invalidate any UI state that reads MeasurementPlans directly from
-   * IndexedDB but is NOT keyed on the hypothesis-id list. Without this callback,
-   * a plan's status advance (`planned → in-progress`) or a new `linkedFindingIds`
-   * entry written to Dexie will be stale in any `wallMeasurementPlans` state that
-   * only reloads on hypothesis-list changes.
-   *
-   * Both apps wire this to bump a refresh nonce that is included in the
-   * `wallMeasurementPlans` load-effect deps so that `listByHypothesis` re-fires
-   * across all hypotheses and the Wall reflects the updated plan status.
+   * The option stays on the type so apps can re-wire it to the manual confirm path
+   * (Task 6). Historically the hook bumped this after auto-dispatching link/status
+   * actions so any `wallMeasurementPlans` state keyed only on the hypothesis-id list
+   * would re-read `listByHypothesis` and reflect the advanced plan status. CS-11
+   * removed the silent writes, so the hook no longer calls it.
    */
   onPlansChanged?: () => void;
 }
@@ -147,7 +141,7 @@ export function useReingestAutoLink(
   repository: HubRepository | null | undefined,
   options: UseReingestAutoLinkOptions = {}
 ): void {
-  const { debounceMs = DEFAULT_DEBOUNCE_MS, onMissingColumns, onPlansChanged } = options;
+  const { debounceMs = DEFAULT_DEBOUNCE_MS, onMissingColumns, onPendingMatches } = options;
 
   useEffect(() => {
     if (!repository) return;
@@ -204,7 +198,12 @@ export function useReingestAutoLink(
         }
       }
 
-      // --- APPEND-cascade: columns added → match + auto-link (preserve all) ---
+      // --- APPEND-cascade: columns added → match + SURFACE pending matches ---
+      //
+      // CS-11: read-compute-surface only. We compute the engine's pending-match
+      // descriptors and hand them to the host via `onPendingMatches`; the hook writes
+      // NOTHING (no Finding injection, no link/status dispatch, no status advance).
+      // The host renders the analyst-confirm prompt and performs confirmed writes.
       if (addedColumns.length === 0) return;
 
       const hypothesisIds = hypotheses.map(h => h.id);
@@ -214,46 +213,11 @@ export function useReingestAutoLink(
       const result = computeReingestAutoLink({
         newColumns: addedColumns,
         plans,
-        // Bare observation: no active drill scope threaded here (LOCKED #5).
-        activeScopeFilters: {},
-        investigationId: hypotheses[0]?.investigationId ?? 'general-unassigned',
-        minters: {
-          mintFindingId: mintAutoLinkFindingId,
-          now: () => Date.now(),
-        },
       });
 
-      if (result.findingsToAdd.length === 0) return;
+      if (cancelled || result.pendingMatches.length === 0) return;
 
-      // Idempotency gate: re-read findings AT EXECUTION TIME and drop ids already
-      // present (a prior debounced run, a reload, or a manual link). Stable ids make
-      // this a reliable set-membership check.
-      const existingIds = new Set(useAnalyzeStore.getState().findings.map(f => f.id));
-      const novelFindings: Finding[] = result.findingsToAdd.filter(f => !existingIds.has(f.id));
-
-      if (novelFindings.length > 0) {
-        useAnalyzeStore.setState(state => ({
-          // Prepend to match `addFinding`'s newest-first ordering.
-          findings: [...novelFindings, ...state.findings],
-        }));
-      }
-
-      // Link + status actions are dispatched regardless (both are idempotent at the
-      // reducer/guard level), so a plan linked by a prior run stays consistent even
-      // if the finding was deduped above.
-      for (const action of [...result.linkActions, ...result.statusActions]) {
-        if (cancelled) return;
-        await repository.dispatch(action);
-      }
-
-      // Notify the app that plans have been written (link + status actions dispatched).
-      // Without this callback, any `wallMeasurementPlans` state keyed only on the
-      // hypothesis-id list will not see the plan status advance (planned → in-progress)
-      // because the cascade does NOT change the hypothesis-id list. The app increments
-      // a nonce to force a re-read of `listByHypothesis` across all hypotheses.
-      if (!cancelled) {
-        onPlansChanged?.();
-      }
+      onPendingMatches?.(result.pendingMatches);
     };
 
     const scheduleRun = (): void => {
@@ -272,5 +236,5 @@ export function useReingestAutoLink(
       if (timer !== undefined) clearTimeout(timer);
       unsubscribe();
     };
-  }, [repository, debounceMs, onMissingColumns, onPlansChanged]);
+  }, [repository, debounceMs, onMissingColumns, onPendingMatches]);
 }
