@@ -487,4 +487,19 @@ describe('useHypotheses', () => {
       );
     });
   });
+
+  describe('setHubStatus', () => {
+    it('setHubStatus updates local state and fires onHubsChange (analyst-owned)', () => {
+      const onHubsChange = vi.fn();
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHubs: [createHypothesis('H', 'S')], onHubsChange })
+      );
+      const id = result.current.hubs[0].id;
+      act(() => result.current.setHubStatus(id, 'evidence-survived-test'));
+      expect(result.current.hubs[0].status).toBe('evidence-survived-test');
+      expect(onHubsChange).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ id, status: 'evidence-survived-test' })])
+      );
+    });
+  });
 });

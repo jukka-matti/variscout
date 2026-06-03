@@ -62,6 +62,8 @@ export interface UseHypothesesReturn {
    * No-op if the hub is not found.
    */
   recordDisconfirmation: (hubId: string, attempt: DisconfirmationAttempt) => void;
+  /** Analyst-owned status setter; routes through update() so onHubsChange syncs. */
+  setHubStatus: (hubId: string, status: Hypothesis['status']) => void;
   /**
    * IM-4b Task 1 — append a team comment to a hub. Routes through the hook's
    * `update()` so the Wall (which reads `hubs` from this hook) re-renders with
@@ -217,6 +219,13 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
           };
         })
       );
+    },
+    [update]
+  );
+
+  const setHubStatus = useCallback(
+    (hubId: string, status: Hypothesis['status']): void => {
+      update(prev => prev.map(h => (h.id !== hubId ? h : { ...h, status, updatedAt: Date.now() })));
     },
     [update]
   );
@@ -399,6 +408,7 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
     disconnectFinding,
     getHubForFinding,
     recordDisconfirmation,
+    setHubStatus,
     addComment,
     editComment,
     deleteComment,
