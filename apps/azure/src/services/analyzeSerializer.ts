@@ -38,7 +38,7 @@ interface LegacyStoredHub extends Omit<Hypothesis, 'evidence'> {
 const VALID_HYPOTHESIS_STATUSES: ReadonlySet<HypothesisStatus> = new Set([
   'proposed',
   'evidenced',
-  'confirmed',
+  'evidence-survived-test',
   'refuted',
   'needs-disconfirmation',
 ]);
@@ -47,8 +47,9 @@ const VALID_HYPOTHESIS_STATUSES: ReadonlySet<HypothesisStatus> = new Set([
  * Strict status validator — fails loud on unknown values.
  *
  * Per RPS V1 spec D15 (no backward compatibility, design-phase clean breaks),
- * we do not silently translate legacy status values like 'suspected' or
- * 'not-confirmed'. Dev fixtures reset via `pnpm dev:reset` (OQ7).
+ * we do not silently translate legacy status values like 'suspected',
+ * 'not-confirmed', or the now-renamed 'confirmed' (CS-10 → 'evidence-survived-test').
+ * Dev fixtures carrying a stale 'confirmed' value reset via `pnpm dev:reset` (OQ7).
  */
 function assertHypothesisStatus(status: HypothesisStatus): HypothesisStatus {
   if (!VALID_HYPOTHESIS_STATUSES.has(status)) {
