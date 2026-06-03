@@ -113,7 +113,8 @@ import { buildChartSharePayload } from '../services/shareContent';
 import { isKnowledgeBaseAvailable } from '../services/searchService';
 import { buildSubPageId } from '../services/deepLinks';
 import { azureHubRepository } from '../persistence';
-import type { MeasurementPlan } from '@variscout/core/measurementPlan';
+import type { MeasurementPlan, MeasurementPlanStatus } from '@variscout/core/measurementPlan';
+import type { ReingestPendingMatch } from '@variscout/core/autoLink';
 import { useToast } from '../context/ToastContext';
 import { ControlEntryRow } from './Editor.control';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
@@ -371,9 +372,10 @@ export const Editor: React.FC<EditorProps> = ({
   const deleteIdea = useAnalyzeStore(s => s.deleteIdea);
 
   // Measurement plans — loaded from IndexedDB for all hypotheses in the active investigation.
-  // Re-loads when the hypothesis list changes OR when the IM-3 auto-link cascade writes
-  // plan updates (link + status advance). planLoadNonce is bumped by onPlansChanged so that
-  // the Wall reflects `status:'in-progress'` after a re-ingest without a hypothesis-list change.
+  // Re-loads when the hypothesis list changes OR when planLoadNonce bumps. Post-CS-11 the
+  // nonce is bumped from the analyst's MANUAL plan writes (onSetPlanStatus + onLinkFinding)
+  // so the Wall reflects the advanced plan status without a hypothesis-list change. The
+  // re-ingest cascade no longer writes plans, so it no longer drives the nonce.
   const [wallMeasurementPlans, setWallMeasurementPlans] = useState<MeasurementPlan[]>([]);
   const [planLoadNonce, setPlanLoadNonce] = useState(0);
   const hypothesisIds = useMemo(() => hypotheses.map(h => h.id), [hypotheses]);
@@ -393,16 +395,44 @@ export const Editor: React.FC<EditorProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hypothesisIdsKey, planLoadNonce]);
 
-  // IM-3: reactive auto-link cascade. On re-ingest, match newly-available columns
-  // to MeasurementPlans (link + progress planned→in-progress) and flag hypotheses
-  // referencing now-absent columns. Shared engine with PWA; idempotent.
-  // onPlansChanged bumps planLoadNonce so wallMeasurementPlans reloads after the
-  // cascade writes status/link updates — without this the Wall is stale until the
-  // next hypothesis-list change (the effect is keyed on hypothesisIdsKey, which the
-  // cascade never touches).
+  // PR-CS-11: re-ingest confirm prompt. On re-ingest the cascade matches
+  // newly-available columns to MeasurementPlans and SURFACES pending-match
+  // descriptors (it writes NOTHING). "Hints navigate, chips apply." — the Wall
+  // chip is the single apply surface; the analyst's manual writes (onSetPlanStatus
+  // / onLinkFinding below) fire the plan-load nonce so wallMeasurementPlans reloads
+  // and the Wall reflects the advanced status. Dismiss is session-only.
+  const [pendingMatches, setPendingMatches] = useState<ReingestPendingMatch[]>([]);
+  const [dismissedMatchIds, setDismissedMatchIds] = useState<Set<string>>(() => new Set());
+  // Latest dismissed-id set, read inside onPendingMatches without re-subscribing the hook.
+  const dismissedMatchIdsRef = useRef(dismissedMatchIds);
+  dismissedMatchIdsRef.current = dismissedMatchIds;
   useReingestAutoLink(azureHubRepository, {
-    onPlansChanged: () => setPlanLoadNonce(n => n + 1),
+    onPendingMatches: (matches: ReingestPendingMatch[]) => {
+      const dismissed = dismissedMatchIdsRef.current;
+      setPendingMatches(prev => {
+        const byId = new Map(prev.map(m => [m.id, m]));
+        for (const m of matches) {
+          if (!dismissed.has(m.id)) byId.set(m.id, m);
+        }
+        return Array.from(byId.values());
+      });
+    },
   });
+
+  // Group the live (non-dismissed) pending matches by planId for the Wall chips.
+  const pendingMatchByPlanId = useMemo(() => {
+    const map: Record<string, { id: string; column: string }> = {};
+    for (const m of pendingMatches) {
+      if (dismissedMatchIds.has(m.id)) continue;
+      map[m.planId] = { id: m.id, column: m.column };
+    }
+    return map;
+  }, [pendingMatches, dismissedMatchIds]);
+
+  // Drop every pending match whose plan id matches (a status/link action handles it).
+  const clearPendingMatchesForPlan = useCallback((planId: string) => {
+    setPendingMatches(prev => prev.filter(m => m.planId !== planId));
+  }, []);
 
   // Preferences store (annotation-per-user)
   const aiEnabled = usePreferencesStore(s => s.aiEnabled);
@@ -735,6 +765,11 @@ export const Editor: React.FC<EditorProps> = ({
             });
           return next;
         });
+        // PR-CS-11 — an analyst plan-write: bump the plan-load nonce (so the Wall
+        // re-reads, incl. when the link arrives via the re-ingest prompt) + clear
+        // the plan's pending match (linking is the resolution the prompt offered).
+        setPlanLoadNonce(n => n + 1);
+        clearPendingMatchesForPlan(planId);
       },
       onEditPlan: (planId: string) => {
         console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);
@@ -778,8 +813,40 @@ export const Editor: React.FC<EditorProps> = ({
         // onHubsChange then propagates to the domain store via resetHubs.
         setHubStatusRef.current(hubId, status);
       },
+      // PR-CS-11 — the re-ingest confirm prompt's APPLY surface (Wall chip).
+      pendingMatchByPlanId,
+      onSetPlanStatus: (planId: string, status: MeasurementPlanStatus) => {
+        // Optimistic local update so the chip reflects the new status immediately.
+        setWallMeasurementPlans(prev => {
+          const snapshot = prev;
+          const next = prev.map(p => (p.id === planId ? { ...p, status } : p));
+          azureHubRepository
+            .dispatch({ kind: 'MEASUREMENT_PLAN_UPDATE', planId, patch: { status } })
+            .catch((err: unknown) => {
+              setWallMeasurementPlans(snapshot);
+              console.error('[wall] Failed to update measurement plan status:', err);
+            });
+          return next;
+        });
+        // Relocated nonce: an analyst plan-write fires the Wall plan-load refresh.
+        setPlanLoadNonce(n => n + 1);
+        // The status action handles the prompt — clear that plan's pending match.
+        clearPendingMatchesForPlan(planId);
+      },
+      onDismissPendingMatch: (id: string) => {
+        // Session-only dismiss: remember the id so re-fires don't resurface it.
+        setDismissedMatchIds(prev => new Set(prev).add(id));
+        setPendingMatches(prev => prev.filter(m => m.id !== id));
+      },
     }),
-    [wallMeasurementPlans, wallActiveIPMembers, currentUser?.email, currentUser?.name]
+    [
+      wallMeasurementPlans,
+      wallActiveIPMembers,
+      currentUser?.email,
+      currentUser?.name,
+      pendingMatchByPlanId,
+      clearPendingMatchesForPlan,
+    ]
   );
 
   // Action item dispatch — wired to useImprovementProjectStore via upsertProject
@@ -2023,6 +2090,7 @@ export const Editor: React.FC<EditorProps> = ({
                   canEditCanvas={canEditCanvas}
                   activeIP={activeIPContext.activeIP}
                   outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
+                  reingestPendingMatches={pendingMatches}
                 />
               </div>
             ) : activeView === 'charter' ? (

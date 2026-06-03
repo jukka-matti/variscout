@@ -31,8 +31,9 @@ import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { canAccess } from '@variscout/core/projectMembership';
 import { getMessage } from '@variscout/core/i18n';
+import type { MeasurementPlanStatus } from '@variscout/core/measurementPlan';
 import { HypothesisCard, type HypothesisCardProps } from './HypothesisCard';
-import { MeasurementPlanChip } from './MeasurementPlanChip';
+import { MeasurementPlanChip, type MeasurementPlanChipPendingMatch } from './MeasurementPlanChip';
 import { AddPlanForm, type StepOption } from './AddPlanForm';
 import { LinkFindingPicker } from './LinkFindingPicker';
 import { HypothesisComments } from './HypothesisComments';
@@ -153,6 +154,28 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    * V1: pass-through — parent decides behaviour (edit UI not in this PR).
    */
   onEditPlan: (planId: string) => void;
+  /**
+   * PR-CS-11 (Task 5) — analyst-owned plan-status setter, threaded to each
+   * MeasurementPlanChip. When wired AND the user can edit, every chip renders the
+   * 4-state status select (free choice) + the one-click "Mark in-progress" in the
+   * pending-match prompt. The app dispatches the status update (Task 6 wires it).
+   * Optional — omit to leave the chips status-display-only.
+   */
+  onSetPlanStatus?: (planId: string, status: MeasurementPlanStatus) => void;
+  /**
+   * PR-CS-11 (Task 5) — the re-ingest pending matches for THIS hypothesis's
+   * plans, keyed by planId. The app resolves these from the engine's
+   * `ReingestPendingMatch` descriptors (Task 6). A chip whose plan id is present
+   * renders the apply prompt ("Factor … arrived"). Omit/empty → no prompts (the
+   * quiet default). Presentational pass-through — the card computes nothing.
+   */
+  pendingMatchByPlanId?: Record<string, MeasurementPlanChipPendingMatch | undefined>;
+  /**
+   * PR-CS-11 (Task 5) — dismiss a pending match (called with the descriptor id).
+   * Threaded to each chip's ✕. The app drops the match (Task 6). Omit to hide
+   * the dismiss control.
+   */
+  onDismissPendingMatch?: (id: string) => void;
   /**
    * Process steps for the processLocation picker in AddPlanForm.
    * Derived at WallCanvas level from `deriveProcessSteps(processMap)`.
@@ -373,6 +396,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onAddPlan,
   onLinkFinding,
   onEditPlan,
+  onSetPlanStatus,
+  pendingMatchByPlanId,
+  onDismissPendingMatch,
   onAddHypothesisAction,
   onCompleteHypothesisAction,
   onRecordDisconfirmation,
@@ -1145,6 +1171,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     canEdit={canEdit}
                     onEdit={onEditPlan}
                     onLinkFinding={id => setLinkFindingForPlanId(id)}
+                    pendingMatch={pendingMatchByPlanId?.[plan.id] ?? null}
+                    onSetPlanStatus={onSetPlanStatus}
+                    onDismissPendingMatch={onDismissPendingMatch}
                   />
                 </div>
               );

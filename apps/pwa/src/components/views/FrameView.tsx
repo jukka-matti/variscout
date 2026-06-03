@@ -32,6 +32,7 @@ import type {
   ControlRecord,
 } from '@variscout/core';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
+import type { ReingestPendingMatch } from '@variscout/core/autoLink';
 import {
   createStepQuickActionItem,
   type ActionItem,
@@ -71,7 +72,18 @@ function priorStepStatsFromSnapshots(
   return new Map(stamps.map(stamp => [stamp.stepId, stamp]));
 }
 
-const FrameView: React.FC = () => {
+interface FrameViewProps {
+  /**
+   * PR-CS-11 — the re-ingest confirm prompt's NAVIGATE-only breadcrumb. The
+   * live (non-dismissed) pending matches from App.tsx. Composed into the Inbox
+   * digest as one entry per match; clicking opens Analyze focused on the match's
+   * hypothesis (the CS-5 focus path). NO apply here — the Wall chip is the single
+   * apply surface ("hints navigate, chips apply"). Optional/empty → no breadcrumbs.
+   */
+  reingestPendingMatches?: ReingestPendingMatch[];
+}
+
+const FrameView: React.FC<FrameViewProps> = ({ reingestPendingMatches = [] }) => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
@@ -205,8 +217,8 @@ const FrameView: React.FC = () => {
     ];
   }, [activeHubId, controlHandoffs, hypotheses, liveProject, controlRecords]);
 
-  const inboxPrompts = React.useMemo(() => {
-    return surveyInboxRules({
+  const inboxPrompts = React.useMemo<InboxDigestPrompt[]>(() => {
+    const surveyPrompts = surveyInboxRules({
       hub: activeHub ?? undefined,
       improvementProject: liveProject,
       controlRecords,
@@ -214,7 +226,28 @@ const FrameView: React.FC = () => {
       controlHandoffs,
       now: Date.now(),
     });
-  }, [activeHub?.controlReviews, activeHubId, controlHandoffs, liveProject, controlRecords]);
+    // PR-CS-11 — re-ingest confirm breadcrumb: one navigate-only entry per pending
+    // match. opensSurface 'analyze-focus' + opensId=hypothesisId routes to the CS-5
+    // focus path in handleInboxNavigate. No apply callback (chips apply, hints navigate).
+    const reingestPrompts: InboxDigestPrompt[] = reingestPendingMatches.map(m => ({
+      id: `reingest:${m.id}`,
+      severity: 'info' as const,
+      message: `Needed factor "${m.column}" arrived for "${m.planLabel}"`,
+      action: {
+        label: 'Review on the Wall',
+        opensSurface: 'analyze-focus',
+        opensId: m.hypothesisId,
+      },
+    }));
+    return [...reingestPrompts, ...surveyPrompts];
+  }, [
+    activeHub?.controlReviews,
+    activeHubId,
+    controlHandoffs,
+    liveProject,
+    controlRecords,
+    reingestPendingMatches,
+  ]);
 
   // CS-0 Task 6: seed Explore Y from the project outcome so Explore opens
   // anchored on what's being investigated. Read outcome imperatively so deps
@@ -344,18 +377,27 @@ const FrameView: React.FC = () => {
     usePanelsStore.getState().showCharter();
   }, []);
 
-  const handleInboxNavigate = React.useCallback((prompt: InboxDigestPrompt) => {
-    const surface = prompt.action?.opensSurface;
-    if (surface === 'sustainment') {
-      usePanelsStore.getState().showControl(prompt.action?.opensId);
-      return;
-    }
-    if (surface === 'improvement-projects') {
-      usePanelsStore.getState().showCharter();
-      return;
-    }
-    usePanelsStore.getState().showAnalyze();
-  }, []);
+  const handleInboxNavigate = React.useCallback(
+    (prompt: InboxDigestPrompt) => {
+      const surface = prompt.action?.opensSurface;
+      if (surface === 'sustainment') {
+        usePanelsStore.getState().showControl(prompt.action?.opensId);
+        return;
+      }
+      if (surface === 'improvement-projects') {
+        usePanelsStore.getState().showCharter();
+        return;
+      }
+      // PR-CS-11 — re-ingest breadcrumb: open Analyze focused on the hypothesis
+      // (CS-5 focus path). Navigate-only; the apply lives on the Wall chip.
+      if (surface === 'analyze-focus' && prompt.action?.opensId) {
+        handleOpenInvestigationFocus({ kind: 'suspected-cause', id: prompt.action.opensId });
+        return;
+      }
+      usePanelsStore.getState().showAnalyze();
+    },
+    [handleOpenInvestigationFocus]
+  );
 
   const handleNavigateContextLink = React.useCallback(
     (item: ContextLinkItem) => {

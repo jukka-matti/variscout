@@ -9,7 +9,6 @@ export interface SynthesisPromptProps {
 
 const SynthesisPrompt: React.FC<SynthesisPromptProps> = ({ cluster, onNameCause, onDismiss }) => {
   const factorLabel = cluster.factors.join(' + ');
-  const pct = Math.round(cluster.rSquaredAdj * 100);
   const count = cluster.findingIds.length;
 
   return (
@@ -19,9 +18,7 @@ const SynthesisPrompt: React.FC<SynthesisPromptProps> = ({ cluster, onNameCause,
     >
       <div className="text-[11px] text-amber-500 font-medium mb-1">Related evidence detected</div>
       <p className="text-xs text-content-secondary leading-relaxed mb-2">
-        {count} findings relate to <span className="font-medium text-content">{factorLabel}</span>{' '}
-        factors
-        {pct > 0 && ` (combined R\u00b2adj ${pct}%)`}
+        {count} findings relate to <span className="font-medium text-content">{factorLabel}</span>
       </p>
       <div className="flex items-center gap-2">
         <button

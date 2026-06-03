@@ -11,7 +11,6 @@ function makeCluster(overrides: Partial<EvidenceCluster> = {}): EvidenceCluster 
   return {
     factors: ['Shift', 'Head'],
     findingIds: ['f1', 'f2', 'f3'],
-    rSquaredAdj: 0.42,
     ...overrides,
   };
 }
@@ -21,12 +20,17 @@ function makeCluster(overrides: Partial<EvidenceCluster> = {}): EvidenceCluster 
 // ---------------------------------------------------------------------------
 
 describe('SynthesisPrompt', () => {
-  it('renders cluster info: factor names, finding count, R\u00b2adj', () => {
+  it('renders cluster info: factor names and finding count', () => {
     render(<SynthesisPrompt cluster={makeCluster()} onNameCause={vi.fn()} onDismiss={vi.fn()} />);
 
     expect(screen.getByText(/Shift \+ Head/)).toBeInTheDocument();
     expect(screen.getByText(/3 findings/)).toBeInTheDocument();
-    expect(screen.getByText(/R\u00b2adj 42%/)).toBeInTheDocument();
+  });
+
+  it('never renders R\u00b2, combined, or percent text (analyst decides relevance)', () => {
+    render(<SynthesisPrompt cluster={makeCluster()} onNameCause={vi.fn()} onDismiss={vi.fn()} />);
+
+    expect(screen.queryByText(/R\u00b2|combined|%/)).toBeNull();
   });
 
   it('"Name this cause" button calls onNameCause', () => {
@@ -45,17 +49,5 @@ describe('SynthesisPrompt', () => {
 
     fireEvent.click(screen.getByTestId('synthesis-prompt-dismiss'));
     expect(onDismiss).toHaveBeenCalled();
-  });
-
-  it('hides R\u00b2adj when zero', () => {
-    render(
-      <SynthesisPrompt
-        cluster={makeCluster({ rSquaredAdj: 0 })}
-        onNameCause={vi.fn()}
-        onDismiss={vi.fn()}
-      />
-    );
-
-    expect(screen.queryByText(/R\u00b2adj/)).not.toBeInTheDocument();
   });
 });

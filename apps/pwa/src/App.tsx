@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useState, useEffect, useMemo } from 'react';
+import React, { Suspense, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { downloadCSV } from './lib/export';
 import { lazyWithRetry } from './lib/chunkReload';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
@@ -34,7 +34,8 @@ import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
 import { pwaHubRepository } from './persistence';
 import { generateDeterministicId } from '@variscout/core/identity';
-import type { MeasurementPlan } from '@variscout/core/measurementPlan';
+import type { MeasurementPlan, MeasurementPlanStatus } from '@variscout/core/measurementPlan';
+import type { ReingestPendingMatch } from '@variscout/core/autoLink';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
   useFindings,
@@ -209,9 +210,10 @@ function AppMain() {
 
   // Measurement plans — loaded from IndexedDB for all current hypotheses.
   // Re-loads whenever the hypothesis list changes (new hub added or removed) OR when
-  // the IM-3 auto-link cascade writes plan updates. planLoadNonce is bumped by
-  // onPlansChanged so the Wall reflects `status:'in-progress'` after a re-ingest
-  // that matches a new column without changing the hypothesis-id list.
+  // planLoadNonce bumps. Post-CS-11 the nonce is bumped from the analyst's MANUAL
+  // plan writes (onSetPlanStatus + onLinkFinding) so the Wall reflects the advanced
+  // plan status without a hypothesis-list change; the re-ingest cascade no longer
+  // writes plans, so it no longer drives the nonce.
   // Passed into WallCanvas planningProps so plan chips stay in sync with
   // the underlying store without requiring a separate Zustand layer.
   const [wallMeasurementPlans, setWallMeasurementPlans] = useState<MeasurementPlan[]>([]);
@@ -233,14 +235,44 @@ function AppMain() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hypothesisIdsKey, planLoadNonce]);
 
-  // IM-3: reactive auto-link cascade (shared engine with Azure; idempotent). On
-  // re-ingest, match newly-available columns to MeasurementPlans (link + progress
-  // planned→in-progress) and flag hypotheses referencing now-absent columns.
-  // onPlansChanged bumps planLoadNonce so wallMeasurementPlans reloads after the
-  // cascade writes status/link updates without a hypothesis-list change.
+  // PR-CS-11: re-ingest confirm prompt (shared engine with Azure; idempotent). On
+  // re-ingest the cascade matches newly-available columns to MeasurementPlans and
+  // SURFACES pending-match descriptors (it writes NOTHING). "Hints navigate, chips
+  // apply." — the Wall chip is the single apply surface; the analyst's manual writes
+  // (onSetPlanStatus / onLinkFinding below) fire the plan-load nonce. Dismiss is
+  // session-only.
+  const [pendingMatches, setPendingMatches] = useState<ReingestPendingMatch[]>([]);
+  const [dismissedMatchIds, setDismissedMatchIds] = useState<Set<string>>(() => new Set());
+  // Latest dismissed-id set, read inside onPendingMatches without re-subscribing the hook.
+  const dismissedMatchIdsRef = useRef(dismissedMatchIds);
+  dismissedMatchIdsRef.current = dismissedMatchIds;
   useReingestAutoLink(pwaHubRepository, {
-    onPlansChanged: () => setPlanLoadNonce(n => n + 1),
+    onPendingMatches: (matches: ReingestPendingMatch[]) => {
+      const dismissed = dismissedMatchIdsRef.current;
+      setPendingMatches(prev => {
+        const byId = new Map(prev.map(m => [m.id, m]));
+        for (const m of matches) {
+          if (!dismissed.has(m.id)) byId.set(m.id, m);
+        }
+        return Array.from(byId.values());
+      });
+    },
   });
+
+  // Group the live (non-dismissed) pending matches by planId for the Wall chips.
+  const pendingMatchByPlanId = useMemo(() => {
+    const map: Record<string, { id: string; column: string }> = {};
+    for (const m of pendingMatches) {
+      if (dismissedMatchIds.has(m.id)) continue;
+      map[m.planId] = { id: m.id, column: m.column };
+    }
+    return map;
+  }, [pendingMatches, dismissedMatchIds]);
+
+  // Drop every pending match whose plan id matches (a status/link action handles it).
+  const clearPendingMatchesForPlan = useCallback((planId: string) => {
+    setPendingMatches(prev => prev.filter(m => m.planId !== planId));
+  }, []);
 
   // Project membership store — pending invitations for the Home view banner.
   // PWA is single-user; use 'analyst@local' as the stable per-user key.
@@ -923,6 +955,11 @@ function AppMain() {
             });
           return next;
         });
+        // PR-CS-11 — an analyst plan-write: bump the plan-load nonce (so the Wall
+        // re-reads, incl. when the link arrives via the re-ingest prompt) + clear
+        // the plan's pending match (linking is the resolution the prompt offered).
+        setPlanLoadNonce(n => n + 1);
+        clearPendingMatchesForPlan(planId);
       },
       onEditPlan: (planId: string) => {
         console.warn(`[wall] Plan edit UI deferred to V2 — planId: ${planId}`);
@@ -948,6 +985,32 @@ function AppMain() {
       },
       onSetStatus: (id: string, status: HypothesisStatus) =>
         useAnalyzeStore.getState().setHubStatus(id, status),
+      // PR-CS-11 — the re-ingest confirm prompt's APPLY surface (Wall chip). Plans
+      // persist via pwaHubRepository.dispatch (the established plan-write path);
+      // status display reads from wallMeasurementPlans, so we update it optimistically.
+      pendingMatchByPlanId,
+      onSetPlanStatus: (planId: string, status: MeasurementPlanStatus) => {
+        setWallMeasurementPlans(prev => {
+          const snapshot = prev;
+          const next = prev.map(p => (p.id === planId ? { ...p, status } : p));
+          pwaHubRepository
+            .dispatch({ kind: 'MEASUREMENT_PLAN_UPDATE', planId, patch: { status } })
+            .catch((err: unknown) => {
+              setWallMeasurementPlans(snapshot);
+              console.error('[wall] Failed to update measurement plan status:', err);
+            });
+          return next;
+        });
+        // Relocated nonce: an analyst plan-write fires the Wall plan-load refresh.
+        setPlanLoadNonce(n => n + 1);
+        // The status action handles the prompt — clear that plan's pending match.
+        clearPendingMatchesForPlan(planId);
+      },
+      onDismissPendingMatch: (id: string) => {
+        // Session-only dismiss: remember the id so re-fires don't resurface it.
+        setDismissedMatchIds(prev => new Set(prev).add(id));
+        setPendingMatches(prev => prev.filter(m => m.id !== id));
+      },
       // IM-4b Task 1 — hub comment thread. The PWA Wall (AnalyzeView) reads hubs
       // from useAnalyzeStore, so comment/task/idea writes route through the store
       // (its source of truth). parseMentions resolves @-tags against members.
@@ -986,7 +1049,14 @@ function AppMain() {
         useAnalyzeStore.getState().selectIdea(hypothesisId, ideaId, selected),
     }),
 
-    [wallMeasurementPlans, wallActiveIPMembers, PWA_WALL_USER_ID, investigation]
+    [
+      wallMeasurementPlans,
+      wallActiveIPMembers,
+      PWA_WALL_USER_ID,
+      investigation,
+      pendingMatchByPlanId,
+      clearPendingMatchesForPlan,
+    ]
   );
 
   const activeIPAnalyzeFactorRequest = useMemo(
@@ -1336,7 +1406,7 @@ function AppMain() {
                     surface="Process"
                   />
                 ) : null}
-                <FrameView />
+                <FrameView reingestPendingMatches={pendingMatches} />
               </div>
             ) : panels.activeView === 'charter' ? (
               <ImprovementProjectPanel

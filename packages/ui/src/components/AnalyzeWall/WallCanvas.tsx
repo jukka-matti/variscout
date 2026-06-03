@@ -27,7 +27,7 @@ import type {
 } from '@variscout/core';
 import type { DataRow } from '@variscout/core';
 import type { ColumnTypeMap, ConditionLeaf } from '@variscout/core/findings';
-import type { MeasurementPlan } from '@variscout/core/measurementPlan';
+import type { MeasurementPlan, MeasurementPlanStatus } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import {
   conditionHasMissingColumn,
@@ -56,6 +56,7 @@ import { GateBadge } from './GateBadge';
 import { FindingChip } from './FindingChip';
 import { HypothesisCard } from './HypothesisCard';
 import { HypothesisCardWithPlans } from './HypothesisCardWithPlans';
+import type { MeasurementPlanChipPendingMatch } from './MeasurementPlanChip';
 import type {
   EvaluateFactorOptions,
   ConfoundRivalView,
@@ -127,6 +128,24 @@ export interface WallCanvasPlanningProps {
   ) => void;
   /** CS-10 — Analyst-owned status setter; passed through to HypothesisCardWithPlans. */
   onSetStatus?: (hubId: string, status: HypothesisStatus) => void;
+  /**
+   * PR-CS-11 (Task 6) — analyst-owned plan-status setter, threaded to each
+   * MeasurementPlanChip via HypothesisCardWithPlans. The app dispatches the
+   * MEASUREMENT_PLAN_UPDATE status write + bumps the plan-load nonce. Omit to
+   * leave the chips status-display-only.
+   */
+  onSetPlanStatus?: (planId: string, status: MeasurementPlanStatus) => void;
+  /**
+   * PR-CS-11 (Task 6) — the re-ingest pending matches, keyed by planId. Resolved
+   * by the app from the engine's `ReingestPendingMatch` descriptors. A chip whose
+   * plan id is present renders the apply prompt. Omit/empty → no prompts.
+   */
+  pendingMatchByPlanId?: Record<string, MeasurementPlanChipPendingMatch | undefined>;
+  /**
+   * PR-CS-11 (Task 6) — dismiss a pending match (called with the descriptor id).
+   * Session-only at the app layer. Omit to hide the dismiss control.
+   */
+  onDismissPendingMatch?: (id: string) => void;
   /**
    * IM-4b Task 1 — team comment thread on each hub. When `onAddHubComment` is
    * provided, the card mounts `HypothesisComments`; the ACL gate lives inside
@@ -985,6 +1004,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onEditPlan: planningProps.onEditPlan,
           onRecordDisconfirmation: planningProps.onRecordDisconfirmation,
           onSetStatus: planningProps.onSetStatus,
+          // PR-CS-11 Task 6 — re-ingest confirm prompt: plan-status setter,
+          // pending-match map (scoped to this hub's plans), dismiss handler.
+          onSetPlanStatus: planningProps.onSetPlanStatus,
+          pendingMatchByPlanId: planningProps.pendingMatchByPlanId,
+          onDismissPendingMatch: planningProps.onDismissPendingMatch,
           // IM-4b Task 1 — comment thread
           onAddHubComment: planningProps.onAddHubComment,
           onEditHubComment: planningProps.onEditHubComment,

@@ -16,7 +16,7 @@
  * IM-3 does NOT persist a missing-column record for the REPLACE path, and does NOT
  * dispatch any HubAction from this branch. Persisting a separate missing-column
  * record would be redundant with the reactive badge and would add a second source of
- * truth that can drift (decision-log 2026-05-30 IM-3 entry). If a future initiative
+ * truth that can drift (spec §4.5/§5.2 — REPLACE-path telemetry-only contract). If a future initiative
  * needs persisted column-gap alerts (e.g. push notifications to plan owners), that
  * is an explicit scope extension — not implicit in the current design.
  *

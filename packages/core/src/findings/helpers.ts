@@ -499,8 +499,6 @@ export interface EvidenceCluster {
   factors: string[];
   /** Finding IDs in the cluster */
   findingIds: string[];
-  /** Combined R²adj of the cluster (from the best-subsets model, when available) */
-  rSquaredAdj: number;
 }
 
 /**
@@ -510,16 +508,17 @@ export interface EvidenceCluster {
  *
  * Groups investigating/analyzed findings by the columns of their
  * `activeFilters` snapshot, excludes columns already covered by existing hubs,
- * and returns clusters with 2+ findings sorted by combined R²adj.
+ * and returns clusters with 2+ findings in first-seen (stable) order.
+ *
+ * Ordering is intentionally NOT ranked by R²adj — the analyst decides which
+ * grouping is meaningful; the tool only surfaces the mechanical overlap.
  *
  * @param findings - All findings in scope
  * @param existingHubs - Existing Hypothesis hubs (covered columns excluded)
- * @param bestSubsetsResult - Best Subsets result for per-factor R²adj, or null
  */
 export function detectEvidenceClusters(
   findings: Finding[],
-  existingHubs: Hypothesis[],
-  bestSubsetsResult: BestSubsetsResult | null = null
+  existingHubs: Hypothesis[]
 ): EvidenceCluster[] {
   // Collect columns already covered by existing hubs
   const coveredFactors = new Set<string>();
@@ -529,17 +528,7 @@ export function detectEvidenceClusters(
     }
   }
 
-  // Per-factor R²adj lookup from single-factor subsets, when a model is present
-  const factorRSquared = new Map<string, number>();
-  if (bestSubsetsResult) {
-    for (const subset of bestSubsetsResult.subsets) {
-      if (subset.factors.length === 1) {
-        factorRSquared.set(subset.factors[0], subset.rSquaredAdj);
-      }
-    }
-  }
-
-  // Group eligible findings by each referenced factor column
+  // Group eligible findings by each referenced factor column (insertion order = first-seen)
   const factorFindings = new Map<string, Finding[]>();
   for (const finding of findings) {
     if (finding.status !== 'analyzed' && finding.status !== 'investigating') continue;
@@ -550,23 +539,18 @@ export function detectEvidenceClusters(
     }
   }
 
-  // Build clusters from columns with 2+ findings
+  // Build clusters from columns with 2+ findings; order is stable (Map insertion = first-seen)
   const clusters: EvidenceCluster[] = [];
   for (const [factor, fs] of factorFindings.entries()) {
     if (fs.length < 2) continue;
 
     const findingIds = [...new Set(fs.map(f => f.id))];
-    const rSquaredAdj = factorRSquared.get(factor) ?? 0;
 
     clusters.push({
       factors: [factor],
       findingIds,
-      rSquaredAdj,
     });
   }
-
-  // Sort by combined R²adj descending
-  clusters.sort((a, b) => b.rSquaredAdj - a.rSquaredAdj);
 
   return clusters;
 }

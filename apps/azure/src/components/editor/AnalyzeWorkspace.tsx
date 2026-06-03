@@ -819,8 +819,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 
   // Detect evidence clusters for synthesis prompts
   const evidenceClusters = useMemo(
-    () => detectEvidenceClusters(findingsState.findings, scopedHubs, bestSubsets),
-    [findingsState.findings, scopedHubs, bestSubsets]
+    () => detectEvidenceClusters(findingsState.findings, scopedHubs),
+    [findingsState.findings, scopedHubs]
   );
 
   // Left panel resizable

@@ -1014,6 +1014,12 @@ export interface MessageCatalog {
   'wall.collect.status.complete': string;
   'wall.collect.status.skipped': string;
   'wall.collect.due': string;
+  // PR-CS-11 — analyst-owned plan-status select + re-ingest pending-match prompt (Task 5)
+  'wall.collect.setStatusLabel': string;
+  'wall.collect.pending.prompt': string;
+  'wall.collect.pending.linkFinding': string;
+  'wall.collect.pending.markInProgress': string;
+  'wall.collect.pending.dismiss': string;
   'wall.gate.and': string;
   'wall.gate.or': string;
   'wall.gate.not': string;
