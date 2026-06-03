@@ -41,7 +41,7 @@ export function deriveHypothesisStatus(h: Hypothesis, findings: Finding[]): Hypo
     a => a.verdict === 'survived'
   );
 
-  return hasResolvedDisconfirmation ? 'confirmed' : 'needs-disconfirmation';
+  return hasResolvedDisconfirmation ? 'evidence-survived-test' : 'needs-disconfirmation';
 }
 
 /**

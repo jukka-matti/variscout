@@ -73,7 +73,7 @@ function deriveReadiness(
   counterClues: MechanismBranchClueView[]
 ): MechanismBranchActionStateView {
   if (hub.status === 'refuted') return { value: 'closed', label: READINESS_LABELS.closed };
-  if (hub.status === 'confirmed') {
+  if (hub.status === 'evidence-survived-test') {
     return { value: 'ready-to-act', label: READINESS_LABELS['ready-to-act'] };
   }
   if (supportingClues.length > 0 && counterClues.length === 0) {

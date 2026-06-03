@@ -622,7 +622,7 @@ function addBranchRecommendations(
   projected.forEach((branchView, index) => {
     const priority = 200 + index * 2;
     const needsCounterCheck =
-      branchView.branchStatus !== 'confirmed' &&
+      branchView.branchStatus !== 'evidence-survived-test' &&
       branchView.branchStatus !== 'refuted' &&
       branchView.supportingClues.length > 0 &&
       branchView.counterClues.length === 0;
@@ -643,7 +643,7 @@ function addBranchRecommendations(
     // ADR-085 retired Question-derived "open checks"; an untested branch (no
     // clues yet) now signals the need to gather evidence.
     if (
-      branchView.branchStatus !== 'confirmed' &&
+      branchView.branchStatus !== 'evidence-survived-test' &&
       branchView.branchStatus !== 'refuted' &&
       branchView.readiness.value === 'not-tested'
     ) {

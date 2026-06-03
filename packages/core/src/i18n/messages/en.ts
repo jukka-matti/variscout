@@ -858,7 +858,8 @@ export const en: MessageCatalog = {
   // Analyze Wall
   'wall.status.proposed': 'Proposed',
   'wall.status.evidenced': 'Evidenced',
-  // Label only: the status code stays 'confirmed', but falsification logic never
+  // Catalog key is kept as `wall.status.confirmed` for stability; the status
+  // CODE is now `'evidence-survived-test'` (CS-10). Falsification logic never
   // *confirms* a hypothesis — it can only fail to break it — so the user-facing
   // word is "Supported". (Other locales still carry the literal English
   // 'Confirmed' placeholder; their retranslation is a tracked follow-up.)
