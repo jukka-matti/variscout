@@ -878,6 +878,12 @@ export const zhHant: MessageCatalog = {
   'wall.collect.status.complete': 'complete',
   'wall.collect.status.skipped': 'skipped',
   'wall.collect.due': 'Due: {date}',
+  // PR-CS-11 — analyst-owned plan-status select + re-ingest pending-match prompt (Task 5)
+  'wall.collect.setStatusLabel': 'Set plan status',
+  'wall.collect.pending.prompt': 'Factor “{column}” arrived — needed by this plan',
+  'wall.collect.pending.linkFinding': 'Link finding…',
+  'wall.collect.pending.markInProgress': 'Mark in-progress',
+  'wall.collect.pending.dismiss': 'Dismiss matched factor',
   'wall.scope.archive': 'Archive scope {condition}',
   'wall.gate.and': 'AND',
   'wall.gate.or': 'OR',
