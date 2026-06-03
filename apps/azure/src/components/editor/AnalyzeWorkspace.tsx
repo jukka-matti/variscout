@@ -838,14 +838,15 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // contribution view that renders it arrives in IM-5.
   //
   // NOTE: this reads `h.status` (the stored value) directly, not
-  // `deriveHypothesisStatus`. Status is derived (deriveHypothesisStatus) + the
-  // disconfirmation gesture — there is NO manual status-override action
-  // (IM-4c removed the dead setHubStatus orphan per spec §10 #1). factories.ts
-  // seeds 'proposed', so `h.status === 'evidence-survived-test'` is a dead branch
-  // here until IM-6 persists the derived value. The Wall surface (WallCanvas +
-  // MobileCardList) correctly calls `deriveHypothesisStatus`. See
-  // investigations.md §"stored-vs-derived status deferral (IM-4a)" for the open
-  // question: migrate these readers OR persist the derived value in IM-6.
+  // `deriveHypothesisStatus`. Status is now analyst-owned (CS-10): the analyst
+  // sets it via `setHubStatus` (re-introduced in CS-10 after IM-4a, commit
+  // `84045c42`, deleted it). `deriveHypothesisStatus` is demoted to an advisory
+  // suggestion chip on the Wall — it never auto-applies. factories.ts seeds
+  // 'proposed'; `h.status === 'evidence-survived-test'` becomes live once the
+  // analyst explicitly sets it via the UI. The Wall surface (WallCanvas +
+  // MobileCardList) displays the analyst-set stored status (also reads
+  // `hub.status`). See investigations.md §"stored-vs-derived status" (RESOLVED
+  // 2026-06-03) and §"PWA/Azure conclusion-categorizer parity divergence".
   const { hypotheses, ruledOut } = useMemo(() => {
     const suspected: Hypothesis[] = [];
     const ruled: Hypothesis[] = [];

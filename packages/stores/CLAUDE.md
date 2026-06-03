@@ -35,7 +35,7 @@
 - `CausalLink` belongs to `analyzeStore`, never `improvementStore`. Cycle prevention is mandatory: `wouldCreateCycle()` from `@variscout/core/stats` (`causalGraph.ts`); `addCausalLink` calls it internally — don't bypass the store.
 - `FindingSource` (`@variscout/core/findings`) is a discriminated union (`chart` discriminant, 6 variants). Always narrow before accessing variant fields. Breadcrumb-pinned findings have no `source` — guard before access.
 - Persistence: the analyze snapshot — `findings`, `categories`, `hypotheses`, `causalLinks`, `scopes` — serializes via the `DocumentSnapshot.analyze` facet through `useProjectActions` into `.vrs` (Apr 2026 fix). New analyze entities also need `apps/azure/src/db/schema.ts` + `useEditorDataFlow.ts` updates.
-- Control (RPS V1, ADR-080) auto-fires once a `Hypothesis` reaches `confirmed` AND the matching improvement is "implemented". `controlRecords`, `controlReviews`, `controlHandoffs` are NOT yet HubAction-dispatched — direct `apps/azure/src/services/localDb.ts` writes (R13 allow-listed). F5 may unify.
+- Control (RPS V1, ADR-080) auto-fires once a `Hypothesis` reaches `evidence-survived-test` (now analyst-set, CS-10) AND the matching improvement is "implemented". `controlRecords`, `controlReviews`, `controlHandoffs` are NOT yet HubAction-dispatched — direct `apps/azure/src/services/localDb.ts` writes (R13 allow-listed). F5 may unify.
 
 ## Testing (`pnpm --filter @variscout/stores test`)
 

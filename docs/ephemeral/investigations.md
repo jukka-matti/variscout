@@ -143,7 +143,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Severity:** (a) medium (trust/honesty, cheap); (b) low (terminology, real but non-blocking); (c) the initiative itself.
 
-### Stored-vs-derived `hub.status` split (IM-4a adversarial review) [LOGGED 2026-05-30]
+### Stored-vs-derived `hub.status` split (IM-4a adversarial review) [LOGGED 2026-05-30 · RESOLVED 2026-06-03]
 
 **Surfaced by:** IM-4a adversarial review. IM-4a makes `WallCanvas` + `MobileCardList` call `deriveHypothesisStatus` (the live Survey-rule derivation) rather than reading `hub.status`. This creates a structural split: the Wall derives status correctly, but ~8 other readers across the codebase still trust the stored `hub.status` field.
 
@@ -163,6 +163,18 @@ IM-4a makes the split structural (Wall derives; others still read stored). The A
 **Open question for IM-4b / IM-6:** two options — (A) migrate the ~8 readers to call `deriveHypothesisStatus(h, findings)` at their call site (requires threading `findings`); (B) persist the derived value back to `hub.status` on each Wall render (simpler consumers, but adds a write path). PWA `onRecordDisconfirmation` is Azure-only (consistent with the LV1 PWA-Mount-Deferral); no PWA wiring needed until PWA tab expands.
 
 **Severity:** low — readers are already dead branches. Not blocking IM-4a. Resolution is IM-4b/IM-6 scope.
+
+**→ RESOLVED 2026-06-03 (PR-CS-10) — third path taken.** Neither option A (migrate readers to derivation) nor option B (persist derived back to stored) was chosen. Instead: `setHubStatus` re-introduced as the analyst-owned source of truth (the setter deleted in IM-4a, commit `84045c42`, returns); the ~8 `hub.status` readers now read a real analyst-set value; `deriveHypothesisStatus` is demoted to an advisory suggestion chip on the Wall (never auto-applies). The split is resolved: stored status is authoritative everywhere.
+
+### PWA/Azure conclusion-categorizer parity divergence [LOGGED 2026-06-03]
+
+**Surfaced by:** PR-CS-10 (analyst-owned status). The Wall now displays the analyst-set stored `hub.status`, which exposed the fact that the two apps categorize conclusion status differently.
+
+**Summary:** PWA buckets hypotheses 3-way (`suspected` / `contributing` / `ruledOut`) in `apps/pwa/src/components/views/AnalyzeView.tsx`; Azure buckets 2-way (`suspected` / `ruledOut`) in `apps/azure/src/components/editor/AnalyzeWorkspace.tsx`. Both read the same stored `hub.status` field. CS-10 left this divergence untouched (status-only scope). A parity follow-up should align the two conclusion-categorizer memos (or consolidate into a shared hook) before the `contributing` bucket in PWA becomes user-visible.
+
+**Promotion path:** align in a dedicated parity follow-up PR. Not blocking CS-10. See also `decision-log.md` 2026-06-03 PR-CS-10 entry.
+
+**Severity:** low — the divergence is latent today (contributing bucket empty until analysts set that status); becomes visible when `setHubStatus` is wired to UI controls.
 
 ### IM-1 execution deferrals + tech-debt (drop-Question cascade) [LOGGED 2026-05-30]
 
