@@ -45,6 +45,7 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 ## i18n loading invariants
 
 - Apps call `registerLocaleLoaders()` once at startup before any `preloadLocale()`. Tests must register their own loader via `import.meta.glob` before `beforeAll` / `beforeEach` — without it, all locales silently fall back to English.
+- **Adding a message key is all-or-nothing:** `MessageCatalog` (`i18n/types.ts`) is a CLOSED interface, so a new key must land in the interface + ALL 32 catalogs in `i18n/messages/` (`en.ts` + 31 others; English placeholder is the convention for technical labels, translate later). The `tsc` build + the i18n completeness test enforce it — one missing locale = build break. (`check:i18n` needs `tsx`, absent locally + not in `pr-ready-check`.)
 - Chinese locales: `zh-Hans` → `zhHans.ts`, `zh-Hant` → `zhHant.ts` via the `LOCALE_TO_FILENAME` map in `i18n/index.ts`. Don't rename — the camelCase ↔ BCP-47 mismatch is intentional.
 - Stat values in UI go through `formatStatistic()` (handles `Number.isFinite()` + locale formatting). `.toFixed()` is ESLint-forbidden on stat outputs.
 
