@@ -398,7 +398,7 @@ describe('detectEvidenceClusters', () => {
       }),
     ];
 
-    const clusters = detectEvidenceClusters(findings, [], null);
+    const clusters = detectEvidenceClusters(findings, []);
 
     // Machine has 2 analyzed findings → cluster
     expect(clusters.length).toBe(1);
@@ -434,7 +434,7 @@ describe('detectEvidenceClusters', () => {
     // Hub already covers Machine via f1
     const existingHubs = [makeHub({ id: 'hub1', findingIds: ['f1'] })];
 
-    const clusters = detectEvidenceClusters(findings, existingHubs, null);
+    const clusters = detectEvidenceClusters(findings, existingHubs);
 
     // Machine is covered by hub → excluded. Shift has 2 findings → cluster
     expect(clusters.length).toBe(1);
@@ -455,7 +455,7 @@ describe('detectEvidenceClusters', () => {
       }),
     ];
 
-    const clusters = detectEvidenceClusters(findings, [], null);
+    const clusters = detectEvidenceClusters(findings, []);
     expect(clusters).toEqual([]);
   });
 
