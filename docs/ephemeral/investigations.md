@@ -26,6 +26,26 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Ingest match-summary 'plans waiting for this data' line [LOGGED 2026-06-03]
+
+**Surfaced by:** CS-11 host-design review — the pending-match prompt on the Wall chip is one touch-point; a complementary line in the ingest match-summary panel (surfacing how many Measurement Plans the new columns satisfy) would make the signal visible at import-time, before the analyst reaches the Wall.
+
+**Summary:** optional polish: add a "N plan(s) matched to new columns" line to the match-summary rendered after successful ingest, alongside the existing column-count and row-count lines. The pending descriptors (`computeReingestAutoLink`) already contain the count; it is a display-only addition, no new engine work. A third touch beside the chip prompt + the Inbox breadcrumb.
+
+**Promotion path:** a small standalone UI PR (Azure + PWA match-summary component). Not blocking any CS-series PR.
+
+**Severity:** low — polish, not correctness.
+
+### PWA cluster-prompt parity [LOGGED 2026-06-03]
+
+**Surfaced by:** CS-11 scope discipline — the cluster detector (`detectEvidenceClusters`) is computed only in Azure's `AnalyzeWorkspace`; `SynthesisPrompt` is an Azure-only component. CS-11 de-ranked the detector (removed `rSquaredAdj` sort + "combined R²adj %" display) but did not extend the cluster-prompt UI to PWA.
+
+**Summary:** PWA's `AnalyzeConclusion` never receives cluster output. The detector is core-pure and already shared; only the prompt rendering is Azure-only. Extending to PWA would require mounting `detectEvidenceClusters` in the PWA Analyze path and rendering an equivalent `SynthesisPrompt` (or a shared component extracted from it).
+
+**Promotion path:** a parity PR when the cluster-prompt surface stabilises (post-Model-B reasoning canvas, CS-12+). Not blocking.
+
+**Severity:** low — Azure-only surface was always the declared scope; PWA parity is follow-up work.
+
 ### Cadence-UI orphans after CS-P1 shed → §9 cadence extraction [LOGGED 2026-06-03]
 
 **Surfaced by:** PR-CS-P1 shed the cadence/Status rollup from `ProcessHubReviewPanel` (hide-not-extract; the cadence engines stay live).

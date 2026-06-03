@@ -321,6 +321,8 @@ New data is collected **to test a specific hypothesis** and must **join onto exi
 
 **Decision (de-automated per §4.0):** keep the mechanical matching; **replace the silent writes with an analyst-confirm prompt** — _"the factor you needed for '&lt;hypothesis&gt;' arrived — link it? mark the plan in-progress?"_ The analyst then **runs the stat test on the new data** (the §4.0 per-factor triad), sees the chart, makes the support/counts-against call → a typed Finding → and **sets the hypothesis status** (now analyst-owned, §4.0). So re-ingest _invites_ the analyst to test; it never credits evidence for them. The broader replace-re-evaluate cascade across _all_ scopes/conditions stays a named follow-up (§12 Q5).
 
+**Delivered 2026-06-03 (PR-CS-11):** the three silent writes (the source-less auto-Finding — which was `validationStatus:'inconclusive'`, not `status` — the auto-link dispatch, and the `'in-progress'` auto-bump) are replaced by pending-match descriptors applied only from the Wall plan chip ('hints navigate, chips apply'; a navigate-only Inbox breadcrumb in both apps routes to the focused hypothesis). Plans gained a full analyst-owned 4-state status control (the auto-bump had been the only producer of `in-progress`). The cluster detector now groups without the R²-ranking. The §12 Q5 replace-re-evaluate cascade stays deferred.
+
 ### §4.6 · The downstream where-from / where-to (Improve · Control · Report)
 
 The active-IP cascade is shipped and functional (`useActiveIPContext`, `Editor.tsx:633`). Grounded gaps to close so the spine reaches the end:
