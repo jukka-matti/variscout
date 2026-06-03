@@ -48,14 +48,19 @@ export function FactorGlyph({
       className="cursor-pointer"
       onClick={() => onFocus(nodeId)}
       onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') onFocus(nodeId);
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onFocus(nodeId);
+        }
       }}
     >
       <rect
         width={GLYPH_W}
         height={GLYPH_H}
         rx={8}
-        className={focused ? 'fill-blue-100 stroke-blue-500' : 'fill-surface-primary stroke-edge'}
+        className={
+          focused ? 'fill-status-info-soft stroke-status-info' : 'fill-surface-primary stroke-edge'
+        }
         strokeWidth={focused ? 2 : 1}
       />
       <text x={12} y={18} className="fill-content text-[12px] font-medium">
@@ -70,7 +75,7 @@ export function FactorGlyph({
             width={Math.max(4, BAR_W * Math.min(1, contribution01))}
             height={6}
             rx={3}
-            className="fill-blue-400"
+            className="fill-status-info"
             data-testid={`factor-glyph-bar-${factorKey}`}
           />
         </>

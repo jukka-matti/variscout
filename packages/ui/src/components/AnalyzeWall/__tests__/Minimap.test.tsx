@@ -183,8 +183,13 @@ describe('Minimap', () => {
     );
     expect(factorEdge).toBeDefined();
 
-    // Render the Minimap with the same hub — it internally calls buildWallLayoutArgs
-    // and wallDegreeOfInterest over layout.edges; assert all hub dots still appear.
+    // Render half: the Minimap is constructed with only this hub and no factors/findings
+    // props, so its internal buildWallLayoutArgs receives no factor edges.  This half
+    // therefore does NOT prove factor-edge traversal in the Minimap's own layout call.
+    // Coverage split: the layout half above asserts the factor-support edge exists in
+    // computeWallLayout's output (the wallLayout regression); this render half only
+    // proves that Minimap hub-dot emission is unaffected by the same hub set when
+    // factor-* edges are present in the DOI graph at the WallCanvas level.
     const { container } = render(
       <Minimap hubs={[factorHub]} zoom={1} pan={{ x: 0, y: 0 }} onPanTo={vi.fn()} />
     );
