@@ -94,13 +94,13 @@ describe('GoalSection', () => {
           makeHypothesis({
             id: 'h-linked',
             name: 'Already linked',
-            status: 'confirmed',
+            status: 'evidence-survived-test',
           }),
           makeHypothesis({
             id: 'h-confirmed',
             name: 'Night shift setup drift',
             synthesis: 'Setup standard varies after handoff',
-            status: 'confirmed',
+            status: 'evidence-survived-test',
             condition: { kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' },
           }),
           makeHypothesis({
@@ -144,8 +144,8 @@ describe('GoalSection', () => {
         factorControls={factorControls}
         onFactorControlsChange={onFactorControlsChange}
         confirmedHypotheses={[
-          makeHypothesis({ id: 'h-1', name: 'Shift effect', status: 'confirmed' }),
-          makeHypothesis({ id: 'h-2', name: 'Machine effect', status: 'confirmed' }),
+          makeHypothesis({ id: 'h-1', name: 'Shift effect', status: 'evidence-survived-test' }),
+          makeHypothesis({ id: 'h-2', name: 'Machine effect', status: 'evidence-survived-test' }),
         ]}
       />
     );

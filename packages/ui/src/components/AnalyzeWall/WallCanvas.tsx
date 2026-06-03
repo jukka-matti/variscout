@@ -473,7 +473,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       const status = deriveHypothesisStatus(hub, findings);
       const survived = (hub.disconfirmationAttempts ?? []).filter(a => a.verdict === 'survived');
       const unbackedSurvived =
-        status === 'confirmed' &&
+        status === 'evidence-survived-test' &&
         survived.length > 0 &&
         survived.every(a => (a.linkedFindingIds ?? []).length === 0);
 

@@ -27,7 +27,7 @@ export interface ConclusionCardProps {
 const HUB_STATUS_DOT: Record<HypothesisHub['status'], string> = {
   proposed: 'bg-slate-400',
   evidenced: 'bg-amber-500',
-  confirmed: 'bg-green-500',
+  'evidence-survived-test': 'bg-green-500',
   refuted: 'bg-content-muted/40',
   'needs-disconfirmation': 'bg-orange-500',
 };

@@ -48,7 +48,7 @@ function firstLeafColumn(condition: HypothesisCondition | undefined): string | u
 }
 
 function confirmedOnly(hypotheses: Hypothesis[] = []): Hypothesis[] {
-  return hypotheses.filter(hypothesis => hypothesis.status === 'confirmed');
+  return hypotheses.filter(hypothesis => hypothesis.status === 'evidence-survived-test');
 }
 
 function selectedValues(select: HTMLSelectElement): string[] {

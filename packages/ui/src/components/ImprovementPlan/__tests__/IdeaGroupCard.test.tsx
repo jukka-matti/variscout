@@ -17,7 +17,7 @@ import type { IdeaGroupCardProps } from '../IdeaGroupCard';
 const baseHypothesis: IdeaGroupCardProps['hypothesis'] = {
   id: 'h1',
   text: 'Shift (Night)',
-  status: 'confirmed',
+  status: 'evidence-survived-test',
 };
 
 describe('IdeaGroupCard — parked ideas', () => {

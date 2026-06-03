@@ -34,7 +34,7 @@ export interface MobileCardListProps {
 const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
   proposed: 'wall.status.proposed',
   evidenced: 'wall.status.evidenced',
-  confirmed: 'wall.status.confirmed',
+  'evidence-survived-test': 'wall.status.confirmed', // catalog key unchanged — value already 'Supported'
   refuted: 'wall.status.refuted',
   'needs-disconfirmation': 'wall.status.needsDisconfirmation',
 };
@@ -47,7 +47,7 @@ const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
 const STATUS_ACCENT: Record<HypothesisStatus, string> = {
   proposed: chartColors.mean,
   evidenced: chartColors.control,
-  confirmed: chartColors.pass,
+  'evidence-survived-test': chartColors.pass,
   refuted: chartColors.fail,
   'needs-disconfirmation': chartColors.warning,
 };

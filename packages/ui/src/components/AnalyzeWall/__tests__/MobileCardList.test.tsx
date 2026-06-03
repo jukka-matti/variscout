@@ -37,12 +37,12 @@ const makeFinding = (overrides: Partial<Finding>): Finding =>
 
 /**
  * Findings that satisfy the ≥2 distinct evidence types prerequisite for
- * `needs-disconfirmation` / `confirmed` status derivation.
+ * `needs-disconfirmation` / `evidence-survived-test` status derivation.
  */
 const dataFinding = makeFinding({ id: 'f-data', evidenceType: 'data' });
 const gembaFinding = makeFinding({ id: 'f-gemba', evidenceType: 'gemba' });
 
-/** Hub fully wired to derive `confirmed` (≥2 types + survived attempt). */
+/** Hub fully wired to derive `evidence-survived-test` (≥2 types + survived attempt). */
 const confirmedAttempt: DisconfirmationAttempt = {
   id: 'da-survived',
   attemptedAt: '2026-05-30T00:00:00Z',
@@ -56,7 +56,7 @@ const hubConfirmed: Hypothesis = makeHub({
   id: 'hA',
   name: 'Nozzle runs hot',
   findingIds: ['f-data', 'f-gemba'],
-  status: 'confirmed', // stored; derived independently by MobileCardList
+  status: 'evidence-survived-test', // stored; derived independently by MobileCardList
   disconfirmationAttempts: [confirmedAttempt],
 });
 
@@ -74,11 +74,11 @@ describe('MobileCardList', () => {
     expect(screen.getByTestId('wall-mobile-hub-hB')).toBeInTheDocument();
   });
 
-  it('derives confirmed status via deriveHypothesisStatus (not hub.status)', () => {
-    // hubConfirmed has ≥2 distinct evidence types + survived attempt → confirmed
+  it('derives evidence-survived-test status via deriveHypothesisStatus (not hub.status)', () => {
+    // hubConfirmed has ≥2 distinct evidence types + survived attempt → evidence-survived-test
     render(<MobileCardList hubs={[hubConfirmed]} findings={[dataFinding, gembaFinding]} />);
     const card = screen.getByTestId('wall-mobile-hub-hA');
-    expect(card).toHaveAttribute('data-status', 'confirmed'); // status code unchanged
+    expect(card).toHaveAttribute('data-status', 'evidence-survived-test'); // status code (CS-10)
     expect(card.textContent).toMatch(/Supported/); // user-facing label relabeled
   });
 
@@ -125,10 +125,10 @@ describe('MobileCardList', () => {
    * Mobile-breakpoint status-derivation test (MAJOR 1 adversarial review):
    * MobileCardList must derive the same status as WallCanvas (both call
    * `deriveHypothesisStatus`). A hub that moves from `needs-disconfirmation`
-   * to `confirmed` after a survived attempt must show `confirmed` at mobile
-   * widths without requiring a store reload.
+   * to `evidence-survived-test` after a survived attempt must show
+   * `evidence-survived-test` at mobile widths without requiring a store reload.
    */
-  it('mobile: survived disconfirmation advances data-status to confirmed without reload', () => {
+  it('mobile: survived disconfirmation advances data-status to evidence-survived-test without reload', () => {
     // Pre-attempt: hub has ≥2 evidence types but no survived attempt → needs-disconfirmation
     const hub = makeHub({
       id: 'h-mobile-gate',
@@ -142,7 +142,7 @@ describe('MobileCardList', () => {
       'needs-disconfirmation'
     );
 
-    // After attempt: hub now has a survived disconfirmation → confirmed
+    // After attempt: hub now has a survived disconfirmation → evidence-survived-test
     const hubAfter: Hypothesis = {
       ...hub,
       disconfirmationAttempts: [confirmedAttempt],
@@ -150,7 +150,7 @@ describe('MobileCardList', () => {
     rerender(<MobileCardList hubs={[hubAfter]} findings={[dataFinding, gembaFinding]} />);
     expect(screen.getByTestId('wall-mobile-hub-h-mobile-gate')).toHaveAttribute(
       'data-status',
-      'confirmed'
+      'evidence-survived-test'
     );
   });
 

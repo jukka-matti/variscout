@@ -75,7 +75,7 @@ const hub: Hypothesis = {
   name: 'Nozzle runs hot',
   synthesis: '',
   findingIds: ['f1', 'f2', 'f3'],
-  status: 'confirmed',
+  status: 'evidence-survived-test',
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
@@ -267,11 +267,11 @@ describe('WallCanvas', () => {
     expect(container.querySelector('[data-status="needs-disconfirmation"]')).toBeTruthy();
   });
 
-  it('derives confirmed only with ≥2 evidence types AND a survived disconfirmation', () => {
+  it('derives evidence-survived-test only with ≥2 evidence types AND a survived disconfirmation', () => {
     const confirmedHub: Hypothesis = {
       ...hub,
       id: 'h-confirmed',
-      // Stored echo says proposed; derivation must override to confirmed.
+      // Stored echo says proposed; derivation must override to evidence-survived-test.
       status: 'proposed',
       findingIds: ['f-data', 'f-gemba'],
       disconfirmationAttempts: [
@@ -297,14 +297,14 @@ describe('WallCanvas', () => {
         eventsPerWeek={42}
       />
     );
-    expect(container.querySelector('[data-status="confirmed"]')).toBeTruthy();
+    expect(container.querySelector('[data-status="evidence-survived-test"]')).toBeTruthy();
   });
 
-  it('derives evidenced (not confirmed) with only 1 evidence type, ignoring a stored confirmed echo', () => {
+  it('derives evidenced (not evidence-survived-test) with only 1 evidence type, ignoring a stored evidence-survived-test echo', () => {
     const oneTypeHub: Hypothesis = {
       ...hub,
       id: 'h-one-type',
-      status: 'confirmed', // stale echo — must NOT survive derivation
+      status: 'evidence-survived-test', // stale echo — must NOT survive derivation
       findingIds: ['f-data'],
     };
     const oneTypeFindings: Finding[] = [
@@ -319,7 +319,7 @@ describe('WallCanvas', () => {
       />
     );
     expect(container.querySelector('[data-status="evidenced"]')).toBeTruthy();
-    expect(container.querySelector('[data-status="confirmed"]')).toBeNull();
+    expect(container.querySelector('[data-status="evidence-survived-test"]')).toBeNull();
   });
 
   it('renders branch cards without a process map', () => {

@@ -18,7 +18,7 @@ const hub: Hypothesis = {
   name: 'Nozzle runs hot on night shift',
   synthesis: '',
   findingIds: ['f1', 'f2', 'f3'],
-  status: 'confirmed',
+  status: 'evidence-survived-test',
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
@@ -29,18 +29,18 @@ describe('HypothesisCard', () => {
   it('renders hub name and status', () => {
     render(
       <svg>
-        <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} />
+        <HypothesisCard hub={hub} displayStatus="evidence-survived-test" x={0} y={0} />
       </svg>
     );
     expect(screen.getByText(/Nozzle runs hot on night shift/)).toBeInTheDocument();
-    // displayStatus 'confirmed' renders the user-facing label "Supported".
+    // displayStatus 'evidence-survived-test' renders the user-facing label "Supported".
     expect(screen.getAllByText(/supported/i).length).toBeGreaterThan(0);
   });
 
   it('shows supporting clue count from legacy linked findings', () => {
     render(
       <svg>
-        <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} />
+        <HypothesisCard hub={hub} displayStatus="evidence-survived-test" x={0} y={0} />
       </svg>
     );
     expect(screen.getByText(/3 supporting clues/)).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe('HypothesisCard', () => {
       <svg>
         <HypothesisCard
           hub={{ ...hub, themeTags: ['Night Shift', 'Nozzle Temp'] }}
-          displayStatus="confirmed"
+          displayStatus="evidence-survived-test"
           x={0}
           y={0}
         />
@@ -68,7 +68,7 @@ describe('HypothesisCard', () => {
       <svg>
         <HypothesisCard
           hub={{ ...hub, themeTags: ['Night Shift'] }}
-          displayStatus="confirmed"
+          displayStatus="evidence-survived-test"
           x={0}
           y={0}
         />
@@ -95,7 +95,7 @@ describe('HypothesisCard', () => {
   it('does not render a theme tag container when no tags are present', () => {
     const { container } = render(
       <svg>
-        <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} />
+        <HypothesisCard hub={hub} displayStatus="evidence-survived-test" x={0} y={0} />
       </svg>
     );
 
@@ -107,7 +107,13 @@ describe('HypothesisCard', () => {
     const taggedHub = { ...hub, themeTags: ['Night Shift'] };
     const { rerender } = render(
       <svg>
-        <HypothesisCard hub={taggedHub} displayStatus="confirmed" x={0} y={0} zoomScale={0.5} />
+        <HypothesisCard
+          hub={taggedHub}
+          displayStatus="evidence-survived-test"
+          x={0}
+          y={0}
+          zoomScale={0.5}
+        />
       </svg>
     );
 
@@ -115,7 +121,13 @@ describe('HypothesisCard', () => {
 
     rerender(
       <svg>
-        <HypothesisCard hub={taggedHub} displayStatus="confirmed" x={0} y={0} zoomScale={0.2} />
+        <HypothesisCard
+          hub={taggedHub}
+          displayStatus="evidence-survived-test"
+          x={0}
+          y={0}
+          zoomScale={0.2}
+        />
       </svg>
     );
 
@@ -223,7 +235,7 @@ describe('HypothesisCard', () => {
   it('shows warning badge when hasGap is true', () => {
     render(
       <svg>
-        <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} hasGap />
+        <HypothesisCard hub={hub} displayStatus="evidence-survived-test" x={0} y={0} hasGap />
       </svg>
     );
     expect(screen.getByLabelText(/evidence gap/i)).toBeInTheDocument();
@@ -284,7 +296,13 @@ describe('HypothesisCard', () => {
     it('renders glyph + hub name (no findings/chart) when zoomScale < 0.6', () => {
       const { container } = render(
         <svg>
-          <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} zoomScale={0.5} />
+          <HypothesisCard
+            hub={hub}
+            displayStatus="evidence-survived-test"
+            x={0}
+            y={0}
+            zoomScale={0.5}
+          />
         </svg>
       );
       expect(container.querySelector('[data-wall-lod="medium"]')).toBeTruthy();
@@ -296,7 +314,13 @@ describe('HypothesisCard', () => {
     it('renders full card when zoomScale >= 0.6', () => {
       render(
         <svg>
-          <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} zoomScale={0.8} />
+          <HypothesisCard
+            hub={hub}
+            displayStatus="evidence-survived-test"
+            x={0}
+            y={0}
+            zoomScale={0.8}
+          />
         </svg>
       );
       expect(screen.getByText(/Nozzle runs hot on night shift/)).toBeInTheDocument();
@@ -306,7 +330,7 @@ describe('HypothesisCard', () => {
     it('renders full card when zoomScale is undefined (no LOD)', () => {
       render(
         <svg>
-          <HypothesisCard hub={hub} displayStatus="confirmed" x={0} y={0} />
+          <HypothesisCard hub={hub} displayStatus="evidence-survived-test" x={0} y={0} />
         </svg>
       );
       expect(screen.getByText(/Nozzle runs hot on night shift/)).toBeInTheDocument();

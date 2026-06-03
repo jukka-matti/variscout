@@ -42,7 +42,7 @@ export interface ReportImprovementSummaryProps {
 const STATUS_BADGE_LABELS: Record<HypothesisStatus, string> = {
   proposed: 'Proposed',
   evidenced: 'Evidenced',
-  confirmed: 'Supported', // label only — status code stays 'confirmed' (see HubCard)
+  'evidence-survived-test': 'Supported',
   refuted: 'Refuted',
   'needs-disconfirmation': 'Needs disconfirmation',
 };
@@ -50,7 +50,7 @@ const STATUS_BADGE_LABELS: Record<HypothesisStatus, string> = {
 const STATUS_BADGE_COLORS: Record<HypothesisStatus, string> = {
   proposed: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
   evidenced: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-  confirmed: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+  'evidence-survived-test': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
   refuted: 'bg-slate-100 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300',
   'needs-disconfirmation': 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
 };

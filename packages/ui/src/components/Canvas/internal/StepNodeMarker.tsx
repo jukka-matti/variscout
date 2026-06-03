@@ -15,7 +15,9 @@ export interface StepNodeMarkerProps {
 export function StepNodeMarker({ hubs, onClick }: StepNodeMarkerProps) {
   if (hubs.length === 0) return null;
 
-  const anyOpen = hubs.some(hub => hub.status !== 'confirmed' && hub.status !== 'refuted');
+  const anyOpen = hubs.some(
+    hub => hub.status !== 'evidence-survived-test' && hub.status !== 'refuted'
+  );
   const colorClasses = anyOpen
     ? 'border-status-warning bg-status-warning-soft text-status-warning'
     : 'border-status-info bg-status-info-soft text-status-info';
