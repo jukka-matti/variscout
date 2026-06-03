@@ -120,6 +120,19 @@ describe('ProductionLineGlanceDashboard', () => {
     expect(temporal).toHaveAttribute('aria-hidden', 'false');
   });
 
+  it('does not render the temporal row when cpkTrend and cpkGapTrend are empty', () => {
+    const { container } = render(
+      <ProductionLineGlanceDashboard
+        {...baseProps}
+        cpkTrend={{ data: [], stats: baseProps.cpkTrend.stats, specs: baseProps.cpkTrend.specs }}
+        cpkGapTrend={{ series: [], stats: baseProps.cpkGapTrend.stats }}
+      />
+    );
+    expect(container.querySelector('[data-testid="dashboard-temporal-row"]')).toBeNull();
+    // spatial row still present
+    expect(container.querySelector('[data-testid="slot-capability-boxplot"]')).not.toBeNull();
+  });
+
   it('collapses temporal row to aria-hidden when mode="spatial"', () => {
     const { container } = render(<ProductionLineGlanceDashboard {...baseProps} mode="spatial" />);
     const temporal = container.querySelector('[data-testid="dashboard-temporal-row"]');
