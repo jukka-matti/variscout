@@ -1851,7 +1851,8 @@ export const Editor: React.FC<EditorProps> = ({
           activeView === 'charter' || activeView === 'sustainment' ? undefined : activeView
         }
         openQuestionCount={
-          hypotheses.filter(h => h.status !== 'confirmed' && h.status !== 'refuted').length
+          hypotheses.filter(h => h.status !== 'evidence-survived-test' && h.status !== 'refuted')
+            .length
         }
         selectedIdeaCount={selectedIdeaIds.size}
         isPISidebarOpen={isPISidebarOpen}

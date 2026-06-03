@@ -841,8 +841,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // `deriveHypothesisStatus`. Status is derived (deriveHypothesisStatus) + the
   // disconfirmation gesture — there is NO manual status-override action
   // (IM-4c removed the dead setHubStatus orphan per spec §10 #1). factories.ts
-  // seeds 'proposed', so `h.status === 'confirmed'` is a dead branch here until
-  // IM-6 persists the derived value. The Wall surface (WallCanvas +
+  // seeds 'proposed', so `h.status === 'evidence-survived-test'` is a dead branch
+  // here until IM-6 persists the derived value. The Wall surface (WallCanvas +
   // MobileCardList) correctly calls `deriveHypothesisStatus`. See
   // investigations.md §"stored-vs-derived status deferral (IM-4a)" for the open
   // question: migrate these readers OR persist the derived value in IM-6.
@@ -851,7 +851,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     const ruled: Hypothesis[] = [];
     for (const h of hypothesesState.hubs) {
       if (h.status === 'refuted') ruled.push(h);
-      else if (h.status === 'confirmed') suspected.push(h);
+      else if (h.status === 'evidence-survived-test') suspected.push(h);
     }
     return { hypotheses: suspected, ruledOut: ruled };
   }, [hypothesesState.hubs]);
