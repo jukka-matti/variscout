@@ -13,7 +13,9 @@
  * useState (LOCKED #4 — nothing persists until capture-as-Finding). Toggling is
  * an O(1) `lookupSubset` into the already-enumerated subsets (no recompute).
  *
- * Surface metrics = adjusted R² + per-factor p ONLY (LOCKED #2 — no Cp/BIC).
+ * Surface metrics = adjusted R² + per-factor p + per-factor ΔR² (semipartial R²,
+ * "association strength") ONLY (LOCKED #2, refined CS-8 — no Cp/BIC; ΔR² is the
+ * effect size behind the partial p, never a model-selection criterion).
  * Copy uses factor-side verbs only ("accounts for the spread", "vital few").
  */
 

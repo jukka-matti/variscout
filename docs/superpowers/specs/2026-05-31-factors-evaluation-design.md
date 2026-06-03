@@ -42,7 +42,7 @@ The Wall ships with a live-derived status, comments, ActionItem tasks, the Measu
 ### Locked design calls (product owner, 2026-05-31)
 
 1. **"Simplest adequate" default** = the fewest factors **within 1 point of the max adjusted R²** where each kept factor's **p < .15**; the analyst adjusts from there. (ADR-088 amendment + a tunable.)
-2. **Surface metrics = adjusted R² + per-factor p ONLY.** No Mallows Cp / BIC on the surface (Cp may be an _internal_ picker metric only). Keep it simple and meaningful.
+2. **Surface metrics = adjusted R² + per-factor p + per-factor ΔR² ("association strength") ONLY.** No Mallows Cp / BIC on the surface (Cp may be an _internal_ picker metric only). Keep it simple and meaningful. _(Refined CS-8, 2026-06-03: ΔR² = each factor's **semipartial R²** — `R²(kept) − R²(kept∖f)` for a kept factor, gain-on-add for a candidate — the effect-size magnitude paired with the existing partial p, on the same numerator. Raw R² so ≥0, on the share-of-the-spread scale, and **non-summing per ADR-073**. It is an effect size, not a model-selection criterion, so it does not reopen the Cp/BIC question.)_
 3. **Evaluate is one-tap, never auto-run** (avoids implying a post-selection p is a clean pre-planned test).
 4. **A manual model override is VIEW-STATE while exploring; the _concluded_ model is saved via capture-as-Finding** (the Finding snapshots the factors — `FindingProjectionModelContext` already carries `rSquaredAdj`/`scopeLabel`/`linkedFactor`). No stored selection field; no Finding-per-toggle.
 5. **Terminology:** top status label is **"Supported"** (shipped #259); "Counts against" stays loud.

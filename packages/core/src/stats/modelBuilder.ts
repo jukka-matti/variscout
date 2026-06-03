@@ -13,8 +13,10 @@
  *      exact (order-independent) factor set, so toggling a candidate across the
  *      "vital-few line" never recomputes the regression.
  *   3. `perFactorPValues`— each kept factor's p for the surface header. We surface
- *      adjusted R² + per-factor p ONLY (LOCKED #2: no Mallows Cp / BIC on the
- *      surface). p source: the OLS per-predictor p (group min per factorName)
+ *      adjusted R² + per-factor p + per-factor ΔR² (semipartial R², the effect size
+ *      behind the partial p — see `perFactorDeltaR2`) ONLY (LOCKED #2, refined CS-8:
+ *      still no Mallows Cp / BIC on the surface — ΔR² is an effect size, never a
+ *      model-selection criterion). p source: the OLS per-predictor p (group min per factorName)
  *      when present, else the factor's own single-factor subset overall-F p
  *      (always enumerated). Both are deterministic + engine-derived.
  *   4. `redundancyHint`  — multicollinearity honesty (spec §3): toggling a
