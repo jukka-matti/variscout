@@ -267,6 +267,15 @@ layer: spec
 
 **Process-as-operations extraction** — un-mount the named-future cadence layer + disentangle the V1-coupled Control region / Survey-Inbox / click-to-Explore wiring (one-way contract preserved; `onPlansChanged` nonce-bump preserved). Own holistic design (§9). Logged in `decision-log.md` + `investigations.md`.
 
+## Tracked follow-ups (deferred _within_ this initiative — small, not their own spec)
+
+Surfaced + deferred during PR delivery; durable home is `docs/ephemeral/investigations.md` (this list is the sequencer-visible pointer so they don't get lost). Each is non-blocking for the customer-demo bar; fold into a later CS-PR or a small standalone PR when convenient.
+
+- **ΔR² → `Finding.modelContext`** (CS-8 deferral, cross-app) — when a Finding is captured from the best-subsets band, record the per-scope **semipartial-R² association-strength map** onto the captured Finding's `modelContext` so the magnitude travels with the Finding (not just the live band). Engine (`perFactorDeltaR2`) already ships from CS-8; this is the capture-time wiring. _Not yet in investigations.md — logged there alongside this entry._
+- **PWA/Azure conclusion-categorizer parity** (CS-10) — PWA buckets conclusions 3-way (`suspected`/`contributing`/`ruledOut`), Azure 2-way (`suspected`/`ruledOut`); both read the same stored `hub.status`. Align (or consolidate into a shared hook) before the PWA `contributing` bucket becomes user-visible. See `investigations.md` "PWA/Azure conclusion-categorizer parity divergence [LOGGED 2026-06-03]".
+- **Non-English status-label retranslation** — the 31 non-en locales still carry English placeholders for `wall.status.confirmed` (= "Confirmed") and the CS-10-added `wall.card.oneStepAway` / `wall.status.suggestSupported` / `wall.status.setLabel` copy. A locale-retranslation sweep is the existing tracked debt (`investigations.md`, 2026-05-31 entry). Catalog **keys** are complete (completeness test green); only **values** await translation.
+- **Optional laptop-viewport visual glances** (CS-8 ΔR² bars · CS-9 triad chart · CS-10 status chip + control) — non-blocking `--chrome` QA on a 13–15″ viewport (laptop rule 12). Height/legibility math was reviewed clean in each PR; a human glance is the belt-and-suspenders.
+
 ---
 
 ## Sequencing summary

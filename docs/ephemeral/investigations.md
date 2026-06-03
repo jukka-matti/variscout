@@ -176,6 +176,16 @@ IM-4a makes the split structural (Wall derives; others still read stored). The A
 
 **Severity:** low — the divergence is latent today (contributing bucket empty until analysts set that status); becomes visible when `setHubStatus` is wired to UI controls.
 
+### ΔR² association-strength → `Finding.modelContext` (capture-time wiring) [LOGGED 2026-06-03]
+
+**Surfaced by:** PR-CS-8 (best-subsets association strength), explicitly deferred there and NOT folded into CS-9 or CS-10.
+
+**Summary:** CS-8 shipped the per-scope **semipartial-R² association-strength** magnitude (`perFactorDeltaR2` in `@variscout/core/stats`) as a live signal in `ModelBuilderBand` (ΔR² bars paired with the partial p). When the analyst captures a Finding from that band, the ΔR² magnitude is **not** recorded onto the Finding — so the association strength lives only in the live band, not on the persisted Finding. The follow-up: write the per-scope ΔR² map onto the captured Finding's `modelContext` at capture time so the magnitude travels with the Finding (Evidence Map, Report, re-open). Cross-app (Azure + PWA capture paths).
+
+**Promotion path:** a small standalone PR or fold into a nearby Findings-touching CS-PR (e.g. CS-12 reasoning canvas, which renders Finding-mediated links). Engine already exists; this is capture-time plumbing + a `modelContext` field check. Not blocking the customer-demo bar.
+
+**Severity:** low — the ΔR² is recomputable from the live band; persisting it is a fidelity/portability nicety, not a correctness gap.
+
 ### IM-1 execution deferrals + tech-debt (drop-Question cascade) [LOGGED 2026-05-30]
 
 **Surfaced by:** IM-1 (PR #249, drop `Question` + `ProblemStatementScope`) execution + its 4-dimension adversarial review. Net-new follow-ups beyond the master-plan IM-4/IM-5 scope, captured so they aren't lost. Full build context: [[investigation-surface-build]] memory.
