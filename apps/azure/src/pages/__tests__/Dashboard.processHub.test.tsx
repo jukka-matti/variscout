@@ -43,6 +43,16 @@ vi.mock('../../components/SampleDataPicker', () => ({
   default: () => null,
 }));
 
+// CS-P1: ProcessHubView now renders ProcessHubCapabilityTab unconditionally (no
+// longer behind the retired Capability tab). Its visx charts need ResizeObserver,
+// which this integration suite (Dashboard ↔ ProcessHubView ↔ ReviewPanel) doesn't
+// provide. The per-step capability charts are out of scope here — covered by
+// ProcessHubCapabilityTab.test.tsx — so stub the tab to a marker.
+vi.mock('../../components/ProcessHubCapabilityTab', () => ({
+  ProcessHubCapabilityTab: () => <div data-testid="mock-process-hub-capability-tab" />,
+  default: () => <div data-testid="mock-process-hub-capability-tab" />,
+}));
+
 function makeProject(): CloudProject {
   return {
     id: 'line-4-a',

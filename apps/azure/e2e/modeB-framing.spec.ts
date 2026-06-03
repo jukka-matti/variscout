@@ -126,7 +126,7 @@ test.describe('Azure Mode B framing — GoalBanner edit roundtrip (portfolio)', 
     await expect(openHubButton).toBeVisible({ timeout: 5000 });
     await openHubButton.click();
 
-    // 2. GoalBanner is shown above the hub tabs when processGoal is set
+    // 2. GoalBanner is shown above the hub surface when processGoal is set
     const goalBanner = page.getByTestId('goal-banner');
     await expect(goalBanner).toBeVisible({ timeout: 5000 });
 
