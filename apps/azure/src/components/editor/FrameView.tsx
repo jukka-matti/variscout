@@ -341,10 +341,6 @@ const FrameView: React.FC<FrameViewProps> = ({
       .addFinding(`Observation at ${card.stepName}`, context, undefined, undefined, card.stepId);
   }, []);
 
-  const handleFocusedInvestigation = React.useCallback(() => {
-    usePanelsStore.getState().showAnalyze();
-  }, []);
-
   const handleOpenWall = React.useCallback(() => {
     const panelsStore = usePanelsStore.getState();
     useCanvasViewportStore.getState().setViewMode('wall');
@@ -387,10 +383,6 @@ const FrameView: React.FC<FrameViewProps> = ({
 
   const handleRemoveCausalLink = React.useCallback((linkId: string) => {
     useAnalyzeStore.getState().removeCausalLink(linkId);
-  }, []);
-
-  const handleCharter = React.useCallback(() => {
-    usePanelsStore.getState().showCharter();
   }, []);
 
   const handleInboxNavigate = React.useCallback(
@@ -477,7 +469,6 @@ const FrameView: React.FC<FrameViewProps> = ({
         setProcessContext={setProcessContext}
         onSeeData={handleSeeData}
         onLogQuickAction={handleLogQuickAction}
-        onFocusedInvestigation={handleFocusedInvestigation}
         findings={findings}
         hypotheses={hypotheses}
         causalLinks={causalLinks}
@@ -485,7 +476,6 @@ const FrameView: React.FC<FrameViewProps> = ({
         onOpenInvestigationFocus={handleOpenInvestigationFocus}
         onAddCausalLink={handleAddCausalLink}
         onRemoveCausalLink={handleRemoveCausalLink}
-        onCharter={handleCharter}
         contextLinkGroups={contextLinkGroups}
         onNavigateContextLink={handleNavigateContextLink}
         onCaptureFindingFromStep={handleCaptureFindingFromStep}

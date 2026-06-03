@@ -1,43 +1,24 @@
 import React from 'react';
-import type { DataRow, Finding, Hypothesis, ProcessMap } from '@variscout/core';
+import type { DataRow, Hypothesis, ProcessMap } from '@variscout/core';
 import { getStepColumnAssignments } from '@variscout/core/frame';
-import {
-  calculateAnova,
-  computeBestSubsets,
-  computeMainEffects,
-  conditionReferencesStep,
-} from '@variscout/core';
+import { calculateAnova, conditionReferencesStep } from '@variscout/core';
 import { formatMessage, formatStatistic, getMessage } from '@variscout/core/i18n';
 import type { Locale } from '@variscout/core';
 import type { ColumnTypeMap } from '@variscout/core/findings';
-import { EvidenceMapBase } from '@variscout/charts';
-import { useEvidenceMapData, type CanvasAnalyzeFocus } from '@variscout/hooks';
 import { useAnalyzeStore } from '@variscout/stores';
-import type { ProcessHubId } from '@variscout/core/processHub';
-import { WallCanvas } from '../../AnalyzeWall/WallCanvas';
 import { MiniBoxplot } from '../../AnalyzeWall/MiniBoxplot';
 import { MiniIChart } from '../../AnalyzeWall/MiniIChart';
 import { useWallLocale } from '../../AnalyzeWall/hooks/useWallLocale';
 import { LogActionModal, type LogActionPayload } from '../../QuickAction';
 
 export interface LocalMechanismViewProps {
-  hubId: ProcessHubId;
   focalStepId: string;
   map: ProcessMap;
   rows?: ReadonlyArray<DataRow>;
   outcomeColumn: string | null | undefined;
   columnTypes: ColumnTypeMap;
-  findings: ReadonlyArray<Finding>;
-  problemCpk?: number;
-  eventsPerWeek?: number;
-  activeColumns: ReadonlyArray<string> | undefined;
-  onOpenWall?: () => void;
-  onSelectWallHub?: (hubId: string) => void;
-  onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
-  onFocusedInvestigation?: (stepId: string) => void;
-  onCharter?: (stepId: string) => void;
 }
 
 const EMPTY_ROWS: ReadonlyArray<DataRow> = [];
@@ -173,8 +154,6 @@ function ColumnMiniChart({
   locale,
   onOpenColumnDetail,
   onOpenQuickAction,
-  onFocusedInvestigation,
-  onCharter,
 }: {
   column: string;
   kind: string | undefined;
@@ -183,8 +162,6 @@ function ColumnMiniChart({
   locale: Locale;
   onOpenColumnDetail?: (column: string) => void;
   onOpenQuickAction: (column: string) => void;
-  onFocusedInvestigation?: (column: string) => void;
-  onCharter?: (column: string) => void;
 }) {
   const values = numericValues(rows, column);
   const categories = distribution(rows, column);
@@ -212,32 +189,6 @@ function ColumnMiniChart({
           {getMessage(locale, 'canvas.localMechanism.actionButton')}
         </button>
       </div>
-      {onFocusedInvestigation || onCharter ? (
-        <div className="flex flex-wrap gap-1" data-testid="response-path-ctas">
-          {onFocusedInvestigation ? (
-            <button
-              type="button"
-              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
-              aria-label={formatMessage(locale, 'canvas.localMechanism.focusedAnalyzeAria', {
-                column,
-              })}
-              onClick={() => onFocusedInvestigation(column)}
-            >
-              {getMessage(locale, 'canvas.localMechanism.focusedAnalyze')}
-            </button>
-          ) : null}
-          {onCharter ? (
-            <button
-              type="button"
-              className="rounded border border-edge px-2 py-1 text-xs text-content-secondary hover:bg-surface-secondary"
-              aria-label={formatMessage(locale, 'canvas.localMechanism.charterAria', { column })}
-              onClick={() => onCharter(column)}
-            >
-              {getMessage(locale, 'canvas.localMechanism.charter')}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
       <button
         type="button"
         data-testid="column-mini-chart"
@@ -278,31 +229,18 @@ function ColumnMiniChart({
 }
 
 export function LocalMechanismView({
-  hubId,
   focalStepId,
   map,
   rows,
   outcomeColumn,
   columnTypes,
-  findings,
-  problemCpk,
-  eventsPerWeek,
-  activeColumns,
-  onOpenWall,
-  onSelectWallHub,
-  onOpenInvestigationFocus,
   onOpenColumnDetail,
   onLogQuickAction,
-  onFocusedInvestigation,
-  onCharter,
 }: LocalMechanismViewProps) {
   const locale = useWallLocale();
   const hypotheses = useAnalyzeStore(state => state.hypotheses);
-  const causalLinks = useAnalyzeStore(state => state.causalLinks);
   const [quickActionColumn, setQuickActionColumn] = React.useState<string | null>(null);
   const safeRows = rows ?? EMPTY_ROWS;
-  const dataRows = React.useMemo(() => [...safeRows] as DataRow[], [safeRows]);
-  const safeFindings = React.useMemo(() => [...findings], [findings]);
 
   const stepColumns = React.useMemo(() => focalStepColumns(map, focalStepId), [focalStepId, map]);
   const statisticalFactors = React.useMemo(
@@ -310,42 +248,10 @@ export function LocalMechanismView({
     [outcomeColumn, stepColumns]
   );
 
-  const bestSubsets = React.useMemo(
-    () =>
-      outcomeColumn && safeRows.length >= 3 && statisticalFactors.length > 0
-        ? computeBestSubsets(dataRows, outcomeColumn, statisticalFactors)
-        : null,
-    [dataRows, outcomeColumn, safeRows.length, statisticalFactors]
-  );
-  const mainEffects = React.useMemo(
-    () =>
-      outcomeColumn && safeRows.length >= 3 && statisticalFactors.length > 0
-        ? computeMainEffects(dataRows, outcomeColumn, statisticalFactors)
-        : null,
-    [dataRows, outcomeColumn, safeRows.length, statisticalFactors]
-  );
-  const evidenceMapData = useEvidenceMapData({
-    bestSubsets,
-    mainEffects,
-    interactions: null,
-    containerSize: { width: 680, height: 360 },
-    mode: 'capability',
-    causalLinks: [...causalLinks],
-    findings: safeFindings,
-    hypotheses: [...hypotheses],
-  });
   const showRankings = hasInvestigationContext(hypotheses, focalStepId, map, stepColumns);
   const rankings = React.useMemo(
     () => contributionRankings(safeRows, outcomeColumn, statisticalFactors),
     [outcomeColumn, safeRows, statisticalFactors]
-  );
-
-  const handleSelectWallHub = React.useCallback(
-    (selectedHubId: string) => {
-      onSelectWallHub?.(selectedHubId);
-      onOpenWall?.();
-    },
-    [onOpenWall, onSelectWallHub]
   );
 
   const handleLogQuickAction = React.useCallback(
@@ -355,23 +261,6 @@ export function LocalMechanismView({
       setQuickActionColumn(null);
     },
     [focalStepId, onLogQuickAction, quickActionColumn]
-  );
-  const handleEvidenceFactorClick = React.useCallback(
-    (factor: string) => {
-      // The Question entity was retired (IM-1); factor identity now lives in
-      // the hypothesis condition. Focus the first hypothesis whose condition
-      // references the clicked factor column.
-      const matchingHypothesis = hypotheses.find(
-        hypothesis =>
-          hypothesis.condition && collectConditionColumns(hypothesis.condition).has(factor)
-      );
-      if (!matchingHypothesis) return;
-      onOpenInvestigationFocus?.({
-        kind: 'suspected-cause',
-        id: matchingHypothesis.id,
-      });
-    },
-    [onOpenInvestigationFocus, hypotheses]
   );
 
   return (
@@ -387,57 +276,9 @@ export function LocalMechanismView({
             locale={locale}
             onOpenColumnDetail={columnName => onOpenColumnDetail?.(columnName, focalStepId)}
             onOpenQuickAction={setQuickActionColumn}
-            onFocusedInvestigation={
-              onFocusedInvestigation ? () => onFocusedInvestigation(focalStepId) : undefined
-            }
-            onCharter={onCharter ? () => onCharter(focalStepId) : undefined}
           />
         ))}
       </div>
-
-      <section
-        className="rounded-md border border-edge bg-surface p-3"
-        data-testid="evidence-map-base"
-        data-step-columns={stepColumns.join('|')}
-      >
-        <h3 className="mb-2 text-sm font-semibold text-content">
-          {getMessage(locale, 'canvas.localMechanism.evidenceMap')}
-        </h3>
-        <EvidenceMapBase
-          parentWidth={680}
-          parentHeight={360}
-          outcomeNode={evidenceMapData.outcomeNode}
-          factorNodes={evidenceMapData.factorNodes}
-          relationshipEdges={evidenceMapData.relationshipEdges}
-          equation={evidenceMapData.equation}
-          causalEdges={evidenceMapData.causalEdges}
-          convergencePoints={evidenceMapData.convergencePoints}
-          compact
-          stepColumns={stepColumns}
-          onFactorClick={handleEvidenceFactorClick}
-        />
-      </section>
-
-      <section className="rounded-md border border-edge bg-surface p-3" data-testid="wall-canvas">
-        <h3 className="mb-2 text-sm font-semibold text-content">
-          {getMessage(locale, 'canvas.localMechanism.analyzeWall')}
-        </h3>
-        <WallCanvas
-          hubId={hubId}
-          hubs={hypotheses}
-          findings={safeFindings}
-          processMap={map}
-          problemCpk={problemCpk ?? 0}
-          eventsPerWeek={eventsPerWeek ?? 0}
-          activeColumns={activeColumns}
-          mode="overlay"
-          filterByStepId={focalStepId}
-          rows={safeRows}
-          columnTypes={columnTypes}
-          outcomeColumn={outcomeColumn ?? null}
-          onSelectHub={handleSelectWallHub}
-        />
-      </section>
 
       {showRankings ? (
         <section

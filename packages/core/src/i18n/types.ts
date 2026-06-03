@@ -1223,20 +1223,14 @@ export interface MessageCatalog {
   // Canvas — LocalMechanismView
   'canvas.localMechanism.actionButton': string;
   'canvas.localMechanism.etaSquaredLabel': string;
-  'canvas.localMechanism.evidenceMap': string;
   'canvas.localMechanism.factorContribution': string;
-  'canvas.localMechanism.analyzeWall': string;
   'canvas.localMechanism.logActionAria': string;
   'canvas.localMechanism.noNumericValues': string;
   'canvas.localMechanism.openChartAria': string;
   'canvas.localMechanism.openColumnAria': string;
   'canvas.localMechanism.quickActionTitle': string;
-  'canvas.localMechanism.focusedAnalyze': string;
-  'canvas.localMechanism.charter': string;
   'canvas.localMechanism.control': string;
   'canvas.localMechanism.handoff': string;
-  'canvas.localMechanism.focusedAnalyzeAria': string;
-  'canvas.localMechanism.charterAria': string;
   'canvas.localMechanism.controlAria': string;
   'canvas.localMechanism.handoffAria': string;
 }

@@ -219,8 +219,6 @@ export interface CanvasProps {
   investigationOverlays?: CanvasAnalyzeOverlayModel;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
-  onFocusedInvestigation?: (stepId: string) => void;
-  onCharter?: (stepId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
@@ -229,12 +227,8 @@ export interface CanvasProps {
   onCaptureFindingFromStep?: (card: CanvasStepCardModel) => void;
   actionItems?: ActionItem[];
   findings?: ReadonlyArray<Finding>;
-  problemCpk?: number;
-  eventsPerWeek?: number;
-  activeColumns?: ReadonlyArray<string>;
   onOpenScout?: (hubId: ProcessHubId) => void;
   onOpenWall?: () => void;
-  onSelectWallHub?: (hubId: string) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;
 }
 
@@ -287,8 +281,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   investigationOverlays,
   onStepSpecsRequest,
   onLogQuickAction,
-  onFocusedInvestigation,
-  onCharter,
   onOpenInvestigationFocus,
   onRemoveCausalLink,
   onCaptureFindingFromStep,
@@ -296,12 +288,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   onNavigateContextLink,
   actionItems = EMPTY_ACTION_ITEMS,
   findings = EMPTY_FINDINGS,
-  problemCpk,
-  eventsPerWeek,
-  activeColumns,
   onOpenScout,
   onOpenWall,
-  onSelectWallHub,
   onOpenColumnDetail,
   rows,
 }) => {
@@ -725,17 +713,8 @@ export const Canvas: React.FC<CanvasProps> = ({
       onKeyboardChipPickUp={setKeyboardChipId}
       onKeyboardChipDrop={handleKeyboardChipDrop}
       columnTypes={columnTypes}
-      problemCpk={problemCpk}
-      eventsPerWeek={eventsPerWeek}
-      availableColumns={availableColumns}
-      activeColumns={activeColumns}
-      onOpenWall={onOpenWall}
-      onSelectWallHub={onSelectWallHub}
-      onOpenInvestigationFocus={onOpenInvestigationFocus}
       onOpenColumnDetail={onOpenColumnDetail}
       onLogQuickAction={onLogQuickAction}
-      onFocusedInvestigation={onFocusedInvestigation}
-      onCharter={onCharter}
       resolvedL3Archetype={resolvedL3Archetype}
     />
   );
