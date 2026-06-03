@@ -459,37 +459,40 @@ describe('detectEvidenceClusters', () => {
     expect(clusters).toEqual([]);
   });
 
-  it('sorts clusters by R²adj descending when bestSubsets provided', () => {
-    const bestSubsets = makeBestSubsetsResult(
-      [makeSubset(['Shift'], 0.1, new Map()), makeSubset(['Machine'], 0.5, new Map())],
-      50
-    );
+  it('groups findings by shared factor WITHOUT ranking by R² (high-R² cluster is NOT promoted to first)', () => {
+    // Build two clusters where the SECOND-seen factor ('machine') would have the HIGHER R²adj
+    // under the old impl (so the old sort would promote it to first). Assert order is
+    // grouping-stable (first-seen), NOT R²-descending — the OLD implementation FAILS this test.
     const findings: Finding[] = [
+      // 'shift' findings appear first in iteration order
       makeFinding({
         id: 'f1',
         status: 'analyzed',
-        context: { activeFilters: { Shift: ['Night'] }, cumulativeScope: null },
+        context: { activeFilters: { shift: ['Night'] }, cumulativeScope: null },
       }),
       makeFinding({
         id: 'f2',
         status: 'analyzed',
-        context: { activeFilters: { Shift: ['Day'] }, cumulativeScope: null },
+        context: { activeFilters: { shift: ['Day'] }, cumulativeScope: null },
       }),
+      // 'machine' findings appear second — with higher R²adj under old impl
       makeFinding({
         id: 'f3',
         status: 'analyzed',
-        context: { activeFilters: { Machine: ['A'] }, cumulativeScope: null },
+        context: { activeFilters: { machine: ['A'] }, cumulativeScope: null },
       }),
       makeFinding({
         id: 'f4',
         status: 'analyzed',
-        context: { activeFilters: { Machine: ['B'] }, cumulativeScope: null },
+        context: { activeFilters: { machine: ['B'] }, cumulativeScope: null },
       }),
     ];
 
-    const clusters = detectEvidenceClusters(findings, [], bestSubsets);
+    const clusters = detectEvidenceClusters(findings, []);
     expect(clusters.length).toBe(2);
-    expect(clusters[0].factors).toEqual(['Machine']); // Higher R²adj
-    expect(clusters[1].factors).toEqual(['Shift']);
+    // First-seen order: 'shift' before 'machine'
+    expect(clusters.map(c => c.factors[0])).toEqual(['shift', 'machine']);
+    // No rSquaredAdj on the cluster — the analyst decides relevance, not the tool
+    expect(clusters[0]).not.toHaveProperty('rSquaredAdj');
   });
 });
