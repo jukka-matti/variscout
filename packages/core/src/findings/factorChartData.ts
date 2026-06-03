@@ -17,17 +17,26 @@ import { getBestSingleFactor, predictFromUnifiedModel } from '../stats/bestSubse
 export interface ScatterFitData {
   /** Raw (x = factor, y = outcome) pairs with finite values. */
   points: Array<{ x: number; y: number }>;
-  /** The OLS fitted line as two endpoints [minX, maxX], or null when not fittable. */
+  /**
+   * The OLS fitted line sampled at FITTED_LINE_SAMPLES evenly-spaced x values
+   * across [minX, maxX], or null when not fittable. For a linear model the
+   * samples are collinear (straight line); for a quadratic model they trace the
+   * parabola faithfully.
+   */
   fittedLine: Array<{ x: number; y: number }> | null;
   /** Whether the single-factor regression is significant (drives the line colour). */
   isSignificant: boolean;
 }
 
+/** Number of evenly-spaced x values used to sample the fitted curve. */
+const FITTED_LINE_SAMPLES = 24;
+
 /**
  * Scatter points + an OLS fitted line for `factor` against `outcome`. The fitted
- * line is the model's prediction at the x-range endpoints (a straight segment for
- * a linear single-factor model). Returns `fittedLine: null` (and `isSignificant:
- * false`) when the factor has no usable x-variance or the engine declines to fit.
+ * line is the model's prediction sampled at FITTED_LINE_SAMPLES evenly-spaced x
+ * values across [minX, maxX] — faithful for both linear and quadratic fits.
+ * Returns `fittedLine: null` (and `isSignificant: false`) when the factor has no
+ * usable x-variance or the engine declines to fit.
  */
 export function deriveScatterFitData(
   rows: ReadonlyArray<DataRow>,
@@ -55,13 +64,16 @@ export function deriveScatterFitData(
     if (maxX > minX) {
       const subset = getBestSingleFactor([...rows], outcome, [factor]);
       if (subset && subset.intercept !== undefined && (subset.predictors?.length ?? 0) > 0) {
-        const y0 = predictFromUnifiedModel(subset, { [factor]: minX });
-        const y1 = predictFromUnifiedModel(subset, { [factor]: maxX });
-        if (y0 !== null && y1 !== null && Number.isFinite(y0) && Number.isFinite(y1)) {
-          fittedLine = [
-            { x: minX, y: y0 },
-            { x: maxX, y: y1 },
-          ];
+        const sampledLine: Array<{ x: number; y: number }> = [];
+        for (let i = 0; i < FITTED_LINE_SAMPLES; i++) {
+          const x = minX + (maxX - minX) * (i / (FITTED_LINE_SAMPLES - 1));
+          const y = predictFromUnifiedModel(subset, { [factor]: x });
+          if (y !== null && Number.isFinite(y)) {
+            sampledLine.push({ x, y });
+          }
+        }
+        if (sampledLine.length >= 2) {
+          fittedLine = sampledLine;
           isSignificant = subset.isSignificant;
         }
       }

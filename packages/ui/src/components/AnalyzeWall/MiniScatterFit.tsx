@@ -69,14 +69,13 @@ export function MiniScatterFit({
         />
       ))}
       {fittedLine && fittedLine.length > 1 && (
-        <line
+        <polyline
           data-testid="mini-scatter-fit-line"
-          x1={xFor(fittedLine[0].x)}
-          y1={yFor(fittedLine[0].y)}
-          x2={xFor(fittedLine[fittedLine.length - 1].x)}
-          y2={yFor(fittedLine[fittedLine.length - 1].y)}
+          points={fittedLine.map(p => `${xFor(p.x)},${yFor(p.y)}`).join(' ')}
+          fill="none"
           stroke={lineColor}
           strokeWidth={1.5}
+          strokeLinejoin="round"
           strokeLinecap="round"
         />
       )}

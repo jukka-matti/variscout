@@ -49,6 +49,29 @@ describe('MiniScatterFit', () => {
     expect(screen.queryByTestId('mini-scatter-fit-line')).toBeNull();
   });
 
+  it('renders a single polyline element for a multi-point (sampled) fittedLine', () => {
+    // A 3-point fittedLine (e.g. from a quadratic fit) should render exactly one
+    // mini-scatter-fit-line element — not one per segment.
+    renderInSvg(
+      <MiniScatterFit
+        points={[
+          { x: -1, y: 1 },
+          { x: 0, y: 0 },
+          { x: 1, y: 1 },
+        ]}
+        fittedLine={[
+          { x: -1, y: 1 },
+          { x: 0, y: 0 },
+          { x: 1, y: 1 },
+        ]}
+        isSignificant
+        width={200}
+        height={56}
+      />
+    );
+    expect(screen.getAllByTestId('mini-scatter-fit-line')).toHaveLength(1);
+  });
+
   it('renders nothing when there are no points', () => {
     renderInSvg(
       <MiniScatterFit points={[]} fittedLine={null} isSignificant={false} width={200} height={56} />
