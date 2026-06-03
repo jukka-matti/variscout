@@ -86,6 +86,11 @@ function fmtP(value: number): string {
   if (value < 0.001) return '<.001';
   return value.toFixed(3);
 }
+/** Sort factors by descending association strength (ΔR²); shared by capture + both lists. */
+const byDeltaR2Desc =
+  (m: Map<string, number>) =>
+  (a: string, b: string): number =>
+    (m.get(b) ?? 0) - (m.get(a) ?? 0);
 
 /** A small inline association-strength bar; width = ΔR² (0..1), honest scale. */
 const DeltaBar = ({ value }: { value: number }) => {
@@ -238,10 +243,7 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
     const perFactorP: Record<string, number> = {};
     for (const f of kept) perFactorP[f] = keptP.get(f) ?? 1;
     // top factor = the kept factor with the highest association strength (ΔR²).
-    const topFactor =
-      kept.length > 0
-        ? [...kept].sort((a, b) => (deltaR2.get(b) ?? 0) - (deltaR2.get(a) ?? 0))[0]
-        : null;
+    const topFactor = kept.length > 0 ? [...kept].sort(byDeltaR2Desc(deltaR2))[0] : null;
     onCaptureModel({
       factors: [...kept],
       rSquaredAdj: keptSubset.rSquaredAdj,
@@ -252,10 +254,10 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
   }, [onCaptureModel, keptSubset, kept, keptP, scopeLabel, deltaR2]);
 
   // ── Render ────────────────────────────────────────────────────────────────
-  const keptSorted = [...kept].sort((a, b) => (deltaR2.get(b) ?? 0) - (deltaR2.get(a) ?? 0));
+  const keptSorted = [...kept].sort(byDeltaR2Desc(deltaR2));
   const candidatesBelowLine = eligibleFactors
     .filter(f => !kept.includes(f))
-    .sort((a, b) => (deltaR2.get(b) ?? 0) - (deltaR2.get(a) ?? 0));
+    .sort(byDeltaR2Desc(deltaR2));
 
   return (
     <foreignObject
