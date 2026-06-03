@@ -478,17 +478,28 @@ describe('perFactorDeltaR2', () => {
   });
 
   it('for a KEPT factor returns the drop-on-remove (semipartial R²)', () => {
-    const full = index.byKey.get(['Shift', 'Machine'].sort().join('\x00'))!;
-    const reduced = index.byKey.get('Machine')!;
+    // Use the public lookupSubset accessor (not raw byKey.get) so the test
+    // stays decoupled from the internal subset-key encoding.
+    const full = lookupSubset(index, ['Shift', 'Machine'])!;
+    const reduced = lookupSubset(index, ['Machine'])!;
     const d = perFactorDeltaR2(['Shift', 'Machine'], ['Shift'], index);
     expect(d.get('Shift')!).toBeCloseTo(full.rSquared - reduced.rSquared, 10);
   });
 
   it('for a NON-KEPT candidate returns the gain-on-add', () => {
     const kept = ['Machine'];
-    const augmented = index.byKey.get(['Machine', 'Shift'].sort().join('\x00'))!;
-    const base = index.byKey.get('Machine')!;
+    const augmented = lookupSubset(index, ['Machine', 'Shift'])!;
+    const base = lookupSubset(index, ['Machine'])!;
     const d = perFactorDeltaR2(kept, ['Shift'], index);
     expect(d.get('Shift')!).toBeCloseTo(augmented.rSquared - base.rSquared, 10);
+  });
+
+  it('with no kept factors a candidate gets its single-factor marginal R² (empty baseline)', () => {
+    // The Analyze Wall opens a fresh scope with zero factors selected; the
+    // baseline R² is then 0, so a candidate's ΔR² is its standalone
+    // single-factor R². Guards the lookupSubset([]) → null empty-set path.
+    const single = lookupSubset(index, ['Shift'])!;
+    const d = perFactorDeltaR2([], ['Shift'], index);
+    expect(d.get('Shift')!).toBeCloseTo(single.rSquared, 10);
   });
 });
