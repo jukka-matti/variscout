@@ -15,8 +15,7 @@ import type {
 } from '@variscout/core';
 import { InboxDigest, ProcessHubCurrentStatePanel, type InboxDigestPrompt } from '@variscout/ui';
 import { surveyInboxRules } from '@variscout/core/survey';
-import ProcessHubCadenceQuestions from './ProcessHubCadenceQuestions';
-import ProcessHubCadenceQueues from './ProcessHubCadenceQueues';
+import ProcessHubControlRegion from './ProcessHubControlRegion';
 import { formatLatestActivity } from './ProcessHubFormat';
 
 interface ProcessHubReviewPanelProps {
@@ -37,25 +36,6 @@ interface ProcessHubReviewPanelProps {
   onChipClick: (item: ProcessStateItem, hubId: string, count: number) => void;
   onFindingSelect: (item: ProcessStateItem, finding: Finding, hubId: string) => void;
 }
-
-const SnapshotCard: React.FC<{
-  label: string;
-  value: number;
-  testId: string;
-  tone?: 'default' | 'amber' | 'green';
-}> = ({ label, value, testId, tone = 'default' }) => {
-  const toneClass =
-    tone === 'amber' ? 'text-amber-400' : tone === 'green' ? 'text-green-400' : 'text-content';
-
-  return (
-    <div className="rounded-md border border-edge bg-surface px-3 py-2">
-      <p className="text-xs font-medium text-content-secondary">{label}</p>
-      <p className={`mt-1 text-xl font-semibold ${toneClass}`} data-testid={testId}>
-        {value}
-      </p>
-    </div>
-  );
-};
 
 const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
   rollup,
@@ -256,38 +236,7 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
         }}
       />
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-5">
-        <SnapshotCard
-          label="Active"
-          value={cadence.snapshot.active}
-          testId="cadence-snapshot-active"
-        />
-        <SnapshotCard
-          label="Readiness"
-          value={cadence.snapshot.readiness}
-          testId="cadence-snapshot-readiness"
-        />
-        <SnapshotCard
-          label="Verification"
-          value={cadence.snapshot.verification}
-          testId="cadence-snapshot-verification"
-        />
-        <SnapshotCard
-          label="Overdue Actions"
-          value={cadence.snapshot.overdueActions}
-          testId="cadence-snapshot-overdue-actions"
-          tone={cadence.snapshot.overdueActions > 0 ? 'amber' : 'default'}
-        />
-        <SnapshotCard
-          label="Control"
-          value={cadence.snapshot.control}
-          testId="cadence-snapshot-control"
-          tone={cadence.snapshot.control > 0 ? 'green' : 'default'}
-        />
-      </div>
-
-      <ProcessHubCadenceQuestions rollup={rollup} />
-      <ProcessHubCadenceQueues
+      <ProcessHubControlRegion
         cadence={cadence}
         rollup={rollup}
         onOpenInvestigation={onOpenInvestigation}

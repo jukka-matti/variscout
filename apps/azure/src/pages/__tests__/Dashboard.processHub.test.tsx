@@ -134,34 +134,6 @@ function makeResolvedProject(): CloudProject {
   };
 }
 
-function makeReadinessProject(index = 1): CloudProject {
-  return {
-    id: `line-4-readiness-${index}`,
-    name: `Frame missing process context ${index}`,
-    modified: `2026-04-26T0${index}:00:00.000Z`,
-    location: 'personal',
-    metadata: {
-      phase: 'frame',
-      findingCounts: {},
-      questionCounts: {},
-      actionCounts: { total: 0, completed: 0, overdue: 0 },
-      assignedTaskCount: 0,
-      hasOverdueTasks: false,
-      lastViewedAt: {},
-      processHubId: 'line-4',
-      analyzeDepth: 'focused',
-      analyzeStatus: 'framing',
-      surveyReadiness: {
-        possibilityStatus: 'ask-for-next',
-        powerStatus: 'can-do-with-caution',
-        trustStatus: 'ask-for-next',
-        recommendationCount: 2,
-        topRecommendations: ['Map one customer-felt outcome.'],
-      },
-    },
-  };
-}
-
 describe('Dashboard Process Hub home', () => {
   it('renders Process Hub cards before investigation cards and starts work in a hub', async () => {
     const onOpenProject = vi.fn();
@@ -215,109 +187,21 @@ describe('Dashboard Process Hub home', () => {
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
     const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
+    // Current Process State panel (CurrentStatePanel) — V1 keep.
     expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
     expect(within(panel).getByText('Capability below target')).toBeInTheDocument();
     expect(within(panel).getAllByText('Focused investigation').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Outcome').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Measurement').length).toBeGreaterThan(0);
-    expect(within(panel).getByText('Process State Questions')).toBeInTheDocument();
-    expect(within(panel).getByText('Are we meeting the requirement?')).toBeInTheDocument();
-    expect(
-      within(panel).getByText('Fill weight must stay inside customer specs.')
-    ).toBeInTheDocument();
-    expect(within(panel).getByText('What changed?')).toBeInTheDocument();
-    expect(within(panel).getByText('Latest evidence has 2 change signals.')).toBeInTheDocument();
-    expect(within(panel).getByText('Where should we focus?')).toBeInTheDocument();
-    expect(within(panel).getByText('Focus on Machine / B.')).toBeInTheDocument();
-    expect(within(panel).getByText('Daily huddle')).toBeInTheDocument();
-    expect(within(panel).getByText('Weekly process review')).toBeInTheDocument();
-    expect(within(panel).getByText('Latest Signals')).toBeInTheDocument();
-    expect(within(panel).getByText('Active Work')).toBeInTheDocument();
-    expect(within(panel).getByText('Quick')).toBeInTheDocument();
-    expect(within(panel).getByText('Focused')).toBeInTheDocument();
-    expect(within(panel).getByText('Chartered')).toBeInTheDocument();
-    expect(within(panel).getByText('Where to Focus')).toBeInTheDocument();
-    expect(within(panel).getAllByText('Night shift overfill').length).toBeGreaterThan(0);
-    expect(within(panel).getByText('Machine / B')).toBeInTheDocument();
-    expect(within(panel).getAllByText('2 change signals').length).toBeGreaterThan(0);
-    expect(within(panel).getAllByText('Cpk 0.82 vs target 1.33').length).toBeGreaterThan(0);
-    expect(within(panel).getAllByText('Verification').length).toBeGreaterThan(0);
-    expect(within(panel).getAllByText('Post-action shift check').length).toBeGreaterThan(0);
-    expect(within(panel).getByText('1 overdue action')).toBeInTheDocument();
-    expect(
-      within(panel).getAllByText('Compare post-action Cpk after the next batch.').length
-    ).toBeGreaterThan(0);
+    // top-focus state item rendered by CurrentStatePanel (its label; the 'Machine / B'
+    // detail string lived only in the shed cadence queue, so the panel shows the label).
+    expect(within(panel).getByText('Variation concentration')).toBeInTheDocument();
+    // Control region (lifted out of the shed cadence queues) — V1 keep.
     expect(within(panel).getAllByText('Control').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Nozzle replacement verified').length).toBeGreaterThan(0);
     expect(
       within(panel).getByLabelText('Set up control cadence for Nozzle replacement verified')
     ).toBeInTheDocument();
-
-    fireEvent.click(within(panel).getAllByLabelText('Open review item Night shift overfill')[0]);
-    expect(onOpenProject).toHaveBeenCalledWith('line-4-a');
-  });
-
-  it('shows readiness queue reasons in the cadence review panel', async () => {
-    mockListProjects.mockResolvedValue([makeReadinessProject()]);
-    mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
-    ]);
-
-    render(<Dashboard onOpenProject={vi.fn()} />);
-
-    await screen.findByText('Line 4');
-    fireEvent.click(screen.getByLabelText('Open Line 4'));
-
-    const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
-    expect(within(panel).getAllByText('Readiness').length).toBeGreaterThan(0);
-    expect(within(panel).getAllByText('Frame missing process context 1').length).toBeGreaterThan(0);
-    expect(within(panel).getByText('Complete process context')).toBeInTheDocument();
-    expect(within(panel).getByText('Clarify customer requirement')).toBeInTheDocument();
-    expect(within(panel).getByText('Survey needs input')).toBeInTheDocument();
-    expect(within(panel).getByText('Map one customer-felt outcome.')).toBeInTheDocument();
-  });
-
-  it('renders a current process state board with snapshot metrics and truncated queues', async () => {
-    mockListProjects.mockResolvedValue([
-      makeProject(),
-      makeVerificationProject(),
-      makeResolvedProject(),
-      makeReadinessProject(1),
-      makeReadinessProject(2),
-      makeReadinessProject(3),
-      makeReadinessProject(4),
-      makeReadinessProject(5),
-    ]);
-    mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
-    ]);
-    mockListControlRecords.mockResolvedValue([
-      {
-        id: 'rec-1',
-        investigationId: 'line-4-c',
-        hubId: 'line-4',
-        cadence: 'monthly',
-        nextReviewDue: '2026-04-25T00:00:00.000Z',
-        createdAt: 1743465600000,
-        updatedAt: 1743465600000,
-        deletedAt: null,
-      },
-    ]);
-
-    render(<Dashboard onOpenProject={vi.fn()} />);
-
-    await screen.findByText('Line 4');
-    fireEvent.click(screen.getByLabelText('Open Line 4'));
-
-    const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
-    expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
-    expect(within(panel).getByText('Decision Queues')).toBeInTheDocument();
-    expect(within(panel).getByTestId('cadence-snapshot-active')).toHaveTextContent('7');
-    expect(within(panel).getByTestId('cadence-snapshot-readiness')).toHaveTextContent('7');
-    expect(within(panel).getByTestId('cadence-snapshot-verification')).toHaveTextContent('1');
-    expect(within(panel).getByTestId('cadence-snapshot-overdue-actions')).toHaveTextContent('1');
-    expect(within(panel).getByTestId('cadence-snapshot-control')).toHaveTextContent('1');
-    expect(within(panel).getByText('+3 more')).toBeInTheDocument();
   });
 
   it('keeps process hubs visible when search filters the investigation list', async () => {
@@ -338,7 +222,7 @@ describe('Dashboard Process Hub home', () => {
 
     expect(screen.getByLabelText('Open Line 4')).toBeInTheDocument();
     const panel = screen.getByRole('region', { name: 'Line 4 Current Process State' });
-    expect(within(panel).getByTestId('cadence-snapshot-active')).toHaveTextContent('1');
+    expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
     expect(screen.queryByTestId('project-card')).not.toBeInTheDocument();
   });
 
@@ -354,12 +238,14 @@ describe('Dashboard Process Hub home', () => {
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
     const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
-    expect(within(panel).getByText('Daily huddle')).toBeInTheDocument();
-    expect(within(panel).getByText('Weekly process review')).toBeInTheDocument();
-    expect(within(panel).getByText('No latest signals yet')).toBeInTheDocument();
-    expect(within(panel).getByText('No active analyzes yet')).toBeInTheDocument();
-    expect(within(panel).getByText('No active review items yet')).toBeInTheDocument();
-    expect(within(panel).getByText('No requirement signal yet')).toBeInTheDocument();
+    // The panel mounts for an empty hub without crashing; CurrentStatePanel header +
+    // the lifted Control region's empty state are the surviving keeps.
+    expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
+    expect(
+      within(panel).getByText(
+        'No control items yet — analyzes move here once resolved or controlled.'
+      )
+    ).toBeInTheDocument();
   });
 
   it('defers evidence loading until a hub is selected', async () => {
@@ -430,26 +316,5 @@ describe('Dashboard Process Hub home', () => {
     expect(screen.getByTestId('hub-framing-prompt')).toBeInTheDocument();
     // Clicking Add framing triggers onEditFraming which calls onOpenProject.
     // (Full GoalBanner inline-edit saveProcessHub path tested by ProcessHubView.test.tsx)
-  });
-
-  it('renders cadence column labels as eyebrow text, not as duplicate section headings', async () => {
-    mockListProjects.mockResolvedValue([]);
-    mockListProcessHubs.mockResolvedValue([
-      { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
-    ]);
-
-    render(<Dashboard onOpenProject={vi.fn()} />);
-
-    await screen.findByText('Line 4');
-    fireEvent.click(screen.getByLabelText('Open Line 4'));
-
-    const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
-    const headings = within(panel)
-      .getAllByRole('heading')
-      .map(h => h.textContent?.trim());
-    expect(headings).not.toContain('Daily huddle');
-    expect(headings).not.toContain('Weekly process review');
-    expect(headings).toContain('Latest Signals');
-    expect(headings).toContain('Active Work');
   });
 });
