@@ -866,6 +866,10 @@ export const en: MessageCatalog = {
   'wall.status.confirmed': 'Supported',
   'wall.status.refuted': 'Refuted',
   'wall.status.needsDisconfirmation': 'Needs disconfirmation',
+  // CS-10 — analyst-owned status. The suggestion chip is advisory only; the
+  // analyst decides. "mark Supported?" never auto-applies.
+  'wall.status.suggestSupported': '2 evidence types + a survived test — mark Supported?',
+  'wall.status.setLabel': 'Set status',
   'wall.card.hypothesisLabel': 'Mechanism Branch',
   'wall.card.findings': '{count} findings',
   'wall.card.evidenceGap': 'Evidence gap',

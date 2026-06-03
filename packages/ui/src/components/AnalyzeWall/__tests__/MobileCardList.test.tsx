@@ -74,16 +74,23 @@ describe('MobileCardList', () => {
     expect(screen.getByTestId('wall-mobile-hub-hB')).toBeInTheDocument();
   });
 
-  it('derives evidence-survived-test status via deriveHypothesisStatus (not hub.status)', () => {
-    // hubConfirmed has ≥2 distinct evidence types + survived attempt → evidence-survived-test
-    render(<MobileCardList hubs={[hubConfirmed]} findings={[dataFinding, gembaFinding]} />);
-    const card = screen.getByTestId('wall-mobile-hub-hA');
-    expect(card).toHaveAttribute('data-status', 'evidence-survived-test'); // status code (CS-10)
-    expect(card.textContent).toMatch(/Supported/); // user-facing label relabeled
+  it('renders the stored analyst-set status, not the derivation (CS-10 de-automation)', () => {
+    // Stored 'evidenced', but the linked findings (2 evidence types + a survived
+    // attempt) would DERIVE 'evidence-survived-test'. The card must show STORED.
+    const hub = makeHub({
+      id: 'h-stored',
+      findingIds: ['f-data', 'f-gemba'],
+      status: 'evidenced',
+      disconfirmationAttempts: [confirmedAttempt],
+    });
+    render(<MobileCardList hubs={[hub]} findings={[dataFinding, gembaFinding]} />);
+    const card = screen.getByTestId('wall-mobile-hub-h-stored');
+    // Displayed status = stored value (analyst-owned); the derivation is advisory only.
+    expect(card).toHaveAttribute('data-status', 'evidenced');
+    expect(card.textContent).toMatch(/Evidenced/);
   });
 
-  it('derives needs-disconfirmation (≥2 evidence types, no survived attempt)', () => {
-    // Same findings but no disconfirmationAttempts → needs-disconfirmation
+  it('renders the stored needs-disconfirmation status', () => {
     const hub = makeHub({
       id: 'h-needs-disconfirmation',
       findingIds: ['f-data', 'f-gemba'],
@@ -95,15 +102,14 @@ describe('MobileCardList', () => {
     expect(card.textContent).toMatch(/Needs disconfirmation/);
   });
 
-  it('derives evidenced status (1 evidence type, single linked finding)', () => {
-    // One finding linked → evidenced (findingIds > 0, distinctTypes < 2)
+  it('renders the stored evidenced status', () => {
     const hub = makeHub({ id: 'h-ev', findingIds: ['f-data'], status: 'evidenced' });
     render(<MobileCardList hubs={[hub]} findings={[dataFinding]} />);
     expect(screen.getByTestId('wall-mobile-hub-h-ev')).toHaveAttribute('data-status', 'evidenced');
   });
 
-  it('derives proposed when no findings are linked', () => {
-    const hub = makeHub({ id: 'h-proposed', findingIds: [] });
+  it('renders the stored proposed status', () => {
+    const hub = makeHub({ id: 'h-proposed', findingIds: [], status: 'proposed' });
     render(<MobileCardList hubs={[hub]} findings={[]} />);
     expect(screen.getByTestId('wall-mobile-hub-h-proposed')).toHaveAttribute(
       'data-status',
@@ -111,9 +117,9 @@ describe('MobileCardList', () => {
     );
   });
 
-  it('derives refuted when any linked finding has refutes:true', () => {
+  it('renders the stored refuted status (even if the derivation would also say refuted)', () => {
     const refutingFinding = makeFinding({ id: 'f-refute', refutes: true });
-    const hub = makeHub({ id: 'h-refuted', findingIds: ['f-refute'] });
+    const hub = makeHub({ id: 'h-refuted', findingIds: ['f-refute'], status: 'refuted' });
     render(<MobileCardList hubs={[hub]} findings={[refutingFinding]} />);
     expect(screen.getByTestId('wall-mobile-hub-h-refuted')).toHaveAttribute(
       'data-status',
@@ -122,36 +128,31 @@ describe('MobileCardList', () => {
   });
 
   /**
-   * Mobile-breakpoint status-derivation test (MAJOR 1 adversarial review):
-   * MobileCardList must derive the same status as WallCanvas (both call
-   * `deriveHypothesisStatus`). A hub that moves from `needs-disconfirmation`
-   * to `evidence-survived-test` after a survived attempt must show
-   * `evidence-survived-test` at mobile widths without requiring a store reload.
+   * CS-10 de-automation: status is analyst-owned. Recording a survived
+   * disconfirmation (which the derivation would read as `evidence-survived-test`)
+   * must NOT auto-advance the displayed status — the card keeps showing whatever
+   * the analyst stored until they explicitly change it.
    */
-  it('mobile: survived disconfirmation advances data-status to evidence-survived-test without reload', () => {
-    // Pre-attempt: hub has ≥2 evidence types but no survived attempt → needs-disconfirmation
+  it('recording a survived disconfirmation does NOT auto-advance the status (analyst-owned)', () => {
+    // Stored 'evidenced'; ≥2 evidence types but no survived attempt yet.
     const hub = makeHub({
-      id: 'h-mobile-gate',
+      id: 'h-na',
       findingIds: ['f-data', 'f-gemba'],
+      status: 'evidenced',
     });
     const { rerender } = render(
       <MobileCardList hubs={[hub]} findings={[dataFinding, gembaFinding]} />
     );
-    expect(screen.getByTestId('wall-mobile-hub-h-mobile-gate')).toHaveAttribute(
-      'data-status',
-      'needs-disconfirmation'
-    );
+    expect(screen.getByTestId('wall-mobile-hub-h-na')).toHaveAttribute('data-status', 'evidenced');
 
-    // After attempt: hub now has a survived disconfirmation → evidence-survived-test
+    // After a survived disconfirmation is recorded, the STORED status is unchanged
+    // (the analyst has not promoted it) — the derivation never auto-applies.
     const hubAfter: Hypothesis = {
       ...hub,
       disconfirmationAttempts: [confirmedAttempt],
     };
     rerender(<MobileCardList hubs={[hubAfter]} findings={[dataFinding, gembaFinding]} />);
-    expect(screen.getByTestId('wall-mobile-hub-h-mobile-gate')).toHaveAttribute(
-      'data-status',
-      'evidence-survived-test'
-    );
+    expect(screen.getByTestId('wall-mobile-hub-h-na')).toHaveAttribute('data-status', 'evidenced');
   });
 
   it('renders findings count via i18n', () => {

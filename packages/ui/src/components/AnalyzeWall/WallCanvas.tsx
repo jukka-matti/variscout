@@ -918,7 +918,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     const hubProps = {
       hub,
       branch: branchByHubId.get(hub.id),
-      displayStatus: deriveHypothesisStatus(hub, findings),
+      // CS-10 — displayed status is the STORED analyst-owned value. The
+      // derivation is surfaced separately as an advisory `suggestedStatus`
+      // (the rich card's suggestion chip) and never overrides the display.
+      displayStatus: hub.status,
+      suggestedStatus: deriveHypothesisStatus(hub, findings),
       x,
       y: hubY,
       hasGap: hubsWithGap.has(hub.id),

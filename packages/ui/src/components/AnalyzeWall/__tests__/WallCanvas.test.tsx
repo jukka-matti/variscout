@@ -231,14 +231,14 @@ describe('WallCanvas', () => {
     expect(screen.getByText(/Fill weight excursions/i)).toBeInTheDocument();
   });
 
-  it('derives needs-disconfirmation from evidence (≥2 types, no survived disconfirmation)', () => {
-    // IM-4a Task 3: status comes from deriveHypothesisStatus, not a stored echo.
-    // ≥2 distinct evidence types + no survived disconfirmation → needs-disconfirmation.
+  it('displays the stored needs-disconfirmation status (analyst-owned, not derived)', () => {
+    // CS-10: displayStatus = hub.status (analyst-owned). Even though the evidence
+    // (≥2 distinct types, no survived attempt) would DERIVE needs-disconfirmation,
+    // the card reads the STORED value — here they happen to coincide.
     const evidencedHub: Hypothesis = {
       ...hub,
       id: 'h-needs-disconfirmation',
-      // Stored status deliberately differs from the derived one to prove the echo is gone.
-      status: 'proposed',
+      status: 'needs-disconfirmation',
       findingIds: ['f-data', 'f-gemba'],
     };
     const twoTypeFindings: Finding[] = [
@@ -267,12 +267,15 @@ describe('WallCanvas', () => {
     expect(container.querySelector('[data-status="needs-disconfirmation"]')).toBeTruthy();
   });
 
-  it('derives evidence-survived-test only with ≥2 evidence types AND a survived disconfirmation', () => {
-    const confirmedHub: Hypothesis = {
+  it('displays the stored status, NOT the derivation, when the two diverge (analyst wins)', () => {
+    // The evidence (≥2 types + a survived attempt) would DERIVE
+    // evidence-survived-test, but the analyst has stored 'evidenced'. The
+    // displayed status must be the STORED 'evidenced' — the derivation never
+    // overrides the analyst-owned value (CS-10 precedence contract).
+    const storedHub: Hypothesis = {
       ...hub,
-      id: 'h-confirmed',
-      // Stored echo says proposed; derivation must override to evidence-survived-test.
-      status: 'proposed',
+      id: 'h-stored',
+      status: 'evidenced',
       findingIds: ['f-data', 'f-gemba'],
       disconfirmationAttempts: [
         {
@@ -291,20 +294,24 @@ describe('WallCanvas', () => {
     ];
     const { container } = render(
       <WallCanvas
-        hubs={[confirmedHub]}
+        hubs={[storedHub]}
         findings={twoTypeFindings}
         problemCpk={0.78}
         eventsPerWeek={42}
       />
     );
-    expect(container.querySelector('[data-status="evidence-survived-test"]')).toBeTruthy();
+    // Stored 'evidenced' wins; the derived 'evidence-survived-test' must NOT show.
+    expect(container.querySelector('[data-status="evidenced"]')).toBeTruthy();
+    expect(container.querySelector('[data-status="evidence-survived-test"]')).toBeNull();
   });
 
-  it('derives evidenced (not evidence-survived-test) with only 1 evidence type, ignoring a stored evidence-survived-test echo', () => {
+  it('displays the stored evidence-survived-test status even when the derivation would say evidenced', () => {
+    // Inverse: only 1 evidence type → the derivation would say 'evidenced', but
+    // the analyst has stored 'evidence-survived-test'. The stored value wins.
     const oneTypeHub: Hypothesis = {
       ...hub,
       id: 'h-one-type',
-      status: 'evidence-survived-test', // stale echo — must NOT survive derivation
+      status: 'evidence-survived-test',
       findingIds: ['f-data'],
     };
     const oneTypeFindings: Finding[] = [
@@ -318,8 +325,8 @@ describe('WallCanvas', () => {
         eventsPerWeek={42}
       />
     );
-    expect(container.querySelector('[data-status="evidenced"]')).toBeTruthy();
-    expect(container.querySelector('[data-status="evidence-survived-test"]')).toBeNull();
+    expect(container.querySelector('[data-status="evidence-survived-test"]')).toBeTruthy();
+    expect(container.querySelector('[data-status="evidenced"]')).toBeNull();
   });
 
   it('renders branch cards without a process map', () => {
