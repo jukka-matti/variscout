@@ -223,7 +223,11 @@ describe('ModelBuilderBand', () => {
       />
     );
     expect(screen.getByTestId('model-deltaR2-Shift')).toBeInTheDocument();
-    expect(screen.getByTestId('model-deltaR2-Shift').textContent).toMatch(/ΔR²/);
+    const text = screen.getByTestId('model-deltaR2-Shift').textContent ?? '';
+    expect(text).toMatch(/ΔR²/);
+    // Numeric-signal guard: ΔR² must be > 0 for the dominant Shift factor — catches
+    // dead-wiring where the engine is disconnected and all values fall back to 0.
+    expect(parseFloat(text.replace(/[^\d.]/g, ''))).toBeGreaterThan(0);
   });
 
   it('shows the "association, not a verdict" framing', () => {
@@ -240,5 +244,74 @@ describe('ModelBuilderBand', () => {
       />
     );
     expect(screen.getByTestId('model-not-a-verdict')).toHaveTextContent(/not a verdict/i);
+  });
+
+  /**
+   * Conditional structure: globally Region drives Y (0 vs 500 — massive gap);
+   * WITHIN Region A, Machine drives the residual (X≈0 vs Y≈8), but Region B rows
+   * are clustered so tightly that Machine adds no global marginal R² worth keeping.
+   * → global vital few = [Region] only; drill to Region=A (Region constant) → [Machine].
+   *
+   * The Region effect (500-unit gap) is ~62× larger than Machine (8 units), so the
+   * semipartial R² for Machine after partialling out Region is negligible globally.
+   */
+  function buildConditionalData(): DataRow[] {
+    const rows: DataRow[] = [];
+    let i = 0;
+    const push = (Region: string, Machine: string, base: number, mEff: number) => {
+      for (let r = 0; r < 6; r++) {
+        const wobble = ((i * 3) % 3) - 1; // deterministic, always -1 (0*3%3-1=-1)
+        rows.push({ Region, Machine, Y: base + mEff + wobble });
+        i++;
+      }
+    };
+    push('A', 'X', 0, 0);
+    push('A', 'Y', 0, 8);
+    push('B', 'X', 500, 0);
+    push('B', 'Y', 500, 0);
+    return rows;
+  }
+
+  it('re-ranks the vital few when the analyst drills into a scope', () => {
+    const all = buildConditionalData();
+
+    // Global view: Region is the vital few; Machine is below the line.
+    const { unmount } = render(
+      <svg width={400} height={300}>
+        <ModelBuilderBand
+          rows={all}
+          candidateFactors={['Region', 'Machine']}
+          outcome="Y"
+          scopeLabel="All data"
+          x={0}
+          y={0}
+          width={320}
+          height={260}
+        />
+      </svg>
+    );
+    expect(screen.getByTestId('model-kept-factor-Region')).toBeInTheDocument();
+    expect(screen.queryByTestId('model-kept-factor-Machine')).not.toBeInTheDocument();
+    unmount();
+
+    // Drilled to Region=A: Region constant in scope → Machine becomes the vital few.
+    const regionA = all.filter((r: DataRow) => r['Region'] === 'A');
+    render(
+      <svg width={400} height={300}>
+        <ModelBuilderBand
+          rows={regionA}
+          candidateFactors={['Region', 'Machine']}
+          outcome="Y"
+          scopeLabel="Region = A"
+          constantFactors={['Region']}
+          x={0}
+          y={0}
+          width={320}
+          height={260}
+        />
+      </svg>
+    );
+    expect(screen.getByTestId('model-kept-factor-Machine')).toBeInTheDocument();
+    expect(screen.getByTestId('model-constant-factor-Region')).toBeInTheDocument();
   });
 });
