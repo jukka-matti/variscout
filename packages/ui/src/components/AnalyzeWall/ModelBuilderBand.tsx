@@ -13,7 +13,9 @@
  * useState (LOCKED #4 — nothing persists until capture-as-Finding). Toggling is
  * an O(1) `lookupSubset` into the already-enumerated subsets (no recompute).
  *
- * Surface metrics = adjusted R² + per-factor p ONLY (LOCKED #2 — no Cp/BIC).
+ * Surface metrics = adjusted R² + per-factor p + per-factor ΔR² (semipartial R²,
+ * "association strength") ONLY (LOCKED #2, refined CS-8 — no Cp/BIC; ΔR² is the
+ * effect size behind the partial p, never a model-selection criterion).
  * Copy uses factor-side verbs only ("accounts for the spread", "vital few").
  */
 
@@ -29,6 +31,7 @@ import {
   redundancyHint,
   computeSubsetVIF,
   factorSetKey,
+  perFactorDeltaR2,
 } from '@variscout/core/stats';
 import { formatMessage } from '@variscout/core/i18n';
 import { useWallLocale } from './hooks/useWallLocale';
@@ -85,6 +88,21 @@ function fmtP(value: number): string {
   if (value < 0.001) return '<.001';
   return value.toFixed(3);
 }
+/** Sort factors by descending association strength (ΔR²); shared by capture + both lists. */
+const byDeltaR2Desc =
+  (m: Map<string, number>) =>
+  (a: string, b: string): number =>
+    (m.get(b) ?? 0) - (m.get(a) ?? 0);
+
+/** A small inline association-strength bar; width = ΔR² (0..1), honest scale. */
+const DeltaBar = ({ value }: { value: number }) => {
+  const pct = Math.max(0, Math.min(1, value)) * 100;
+  return (
+    <span className="bg-surface-secondary inline-block h-1.5 w-10 overflow-hidden rounded-sm align-middle">
+      <span className="block h-full bg-blue-300" style={{ width: `${pct}%` }} />
+    </span>
+  );
+};
 
 export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
   rows,
@@ -168,6 +186,13 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
     return computeSubsetVIF([...rows], outcome, kept);
   }, [keptSubset, rows, outcome, kept]);
 
+  // Per-factor association strength (semipartial R²) for kept + candidate
+  // factors. O(1) reads off the enumerated index (see perFactorDeltaR2).
+  const deltaR2 = useMemo<Map<string, number>>(() => {
+    if (!engine) return new Map();
+    return perFactorDeltaR2(kept, eligibleFactors, engine.index);
+  }, [engine, kept, eligibleFactors]);
+
   // Has the analyst deviated from the engine suggestion? Drives the snap-back.
   const deviated = useMemo(() => {
     if (!engine) return false;
@@ -219,11 +244,8 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
     if (!onCaptureModel || !keptSubset || kept.length === 0) return;
     const perFactorP: Record<string, number> = {};
     for (const f of kept) perFactorP[f] = keptP.get(f) ?? 1;
-    // top factor = the kept factor with the lowest p (most explanatory).
-    const topFactor =
-      kept.length > 0
-        ? [...kept].sort((a, b) => (keptP.get(a) ?? 1) - (keptP.get(b) ?? 1))[0]
-        : null;
+    // top factor = the kept factor with the highest association strength (ΔR²).
+    const topFactor = kept.length > 0 ? [...kept].sort(byDeltaR2Desc(deltaR2))[0] : null;
     onCaptureModel({
       factors: [...kept],
       rSquaredAdj: keptSubset.rSquaredAdj,
@@ -231,10 +253,13 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
       scopeLabel,
       topFactor,
     });
-  }, [onCaptureModel, keptSubset, kept, keptP, scopeLabel]);
+  }, [onCaptureModel, keptSubset, kept, keptP, scopeLabel, deltaR2]);
 
   // ── Render ────────────────────────────────────────────────────────────────
-  const candidatesBelowLine = eligibleFactors.filter(f => !kept.includes(f));
+  const keptSorted = [...kept].sort(byDeltaR2Desc(deltaR2));
+  const candidatesBelowLine = eligibleFactors
+    .filter(f => !kept.includes(f))
+    .sort(byDeltaR2Desc(deltaR2));
 
   return (
     <foreignObject
@@ -285,12 +310,20 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
               </span>
             </div>
 
+            {/* Association framing — this is a magnitude, not a cause verdict. */}
+            <div
+              data-testid="model-not-a-verdict"
+              className="text-content-subtle mb-1 text-[10px] italic"
+            >
+              {formatMessage(locale, 'wall.model.notAVerdict')}
+            </div>
+
             {/* KEPT — the vital few, above the line. */}
             <div className="text-content-subtle text-[10px] font-semibold uppercase">
               {formatMessage(locale, 'wall.model.keptHeading')}
             </div>
             <ul data-testid="model-kept" className="mb-1 space-y-0.5">
-              {kept.map(factor => (
+              {keptSorted.map(factor => (
                 <li key={factor} className="flex items-center justify-between gap-2">
                   <button
                     type="button"
@@ -302,20 +335,32 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
                   >
                     {factor}
                   </button>
-                  <span
-                    data-testid={`model-p-${factor}`}
-                    title={
-                      keptVif.get(factor) !== undefined
-                        ? formatMessage(locale, 'wall.model.vifTooltip', {
-                            value: fmtR2(keptVif.get(factor)!),
-                          })
-                        : undefined
-                    }
-                    className="text-content-muted font-mono"
-                  >
-                    {formatMessage(locale, 'wall.model.factorP', {
-                      value: fmtP(keptP.get(factor) ?? 1),
-                    })}
+                  <span className="flex items-center gap-1.5">
+                    <DeltaBar value={deltaR2.get(factor) ?? 0} />
+                    <span
+                      data-testid={`model-deltaR2-${factor}`}
+                      title={formatMessage(locale, 'wall.model.deltaR2Caption')}
+                      className="text-content font-mono"
+                    >
+                      {formatMessage(locale, 'wall.model.deltaR2', {
+                        value: fmtR2(deltaR2.get(factor) ?? 0),
+                      })}
+                    </span>
+                    <span
+                      data-testid={`model-p-${factor}`}
+                      title={
+                        keptVif.get(factor) !== undefined
+                          ? formatMessage(locale, 'wall.model.vifTooltip', {
+                              value: fmtR2(keptVif.get(factor)!),
+                            })
+                          : undefined
+                      }
+                      className="text-content-muted font-mono"
+                    >
+                      {formatMessage(locale, 'wall.model.factorP', {
+                        value: fmtP(keptP.get(factor) ?? 1),
+                      })}
+                    </span>
                   </span>
                 </li>
               ))}
@@ -337,17 +382,25 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
                 </div>
                 <ul data-testid="model-candidates" className="space-y-0.5 opacity-60">
                   {candidatesBelowLine.map(factor => (
-                    <li key={factor}>
+                    <li key={factor} className="flex items-center justify-between gap-2">
                       <button
                         type="button"
                         data-no-wall-pan
                         data-testid={`model-candidate-factor-${factor}`}
                         onClick={() => toggleFactor(factor)}
                         aria-label={formatMessage(locale, 'wall.model.addToModel', { factor })}
-                        className="hover:bg-surface-secondary w-full rounded px-1 text-left"
+                        className="hover:bg-surface-secondary flex-1 rounded px-1 text-left"
                       >
                         {factor}
                       </button>
+                      <span
+                        data-testid={`model-deltaR2-${factor}`}
+                        className="text-content-muted font-mono"
+                      >
+                        {formatMessage(locale, 'wall.model.deltaR2', {
+                          value: fmtR2(deltaR2.get(factor) ?? 0),
+                        })}
+                      </span>
                     </li>
                   ))}
                   {constantFactors.map(factor => (

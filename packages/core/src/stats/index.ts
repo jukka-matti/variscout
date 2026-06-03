@@ -131,6 +131,7 @@ export {
   buildSubsetIndex,
   lookupSubset,
   perFactorPValues,
+  perFactorDeltaR2,
   selectVitalFew,
   isFitOnlyEstimate,
   redundancyHint,
