@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: 'PR-CS-10 — De-automated scoring: analyst-owned hypothesis status'
-status: draft
+status: delivered
 date: 2026-06-03
 layer: spec
 implements: docs/superpowers/specs/2026-06-02-connective-surface-model-design.md
