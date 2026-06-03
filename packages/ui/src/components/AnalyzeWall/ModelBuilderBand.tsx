@@ -19,7 +19,7 @@
  * Copy uses factor-side verbs only ("accounts for the spread", "vital few").
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DataRow, BestSubsetResult } from '@variscout/core';
 import {
   computeBestSubsets,
@@ -76,6 +76,16 @@ export interface ModelBuilderBandProps {
    * modelContext (rSquaredAdj / scopeLabel / linkedFactor). Omit to hide.
    */
   onCaptureModel?: (snapshot: CapturedModelSnapshot) => void;
+  /**
+   * PR-CS-12: report the CURRENT model's kept set + per-factor association
+   * strength (semipartial ΔR²) up to the Wall, for factor glyphs +
+   * domain-weighted DOI. Fires whenever the analyst's kept set or its ΔR² map
+   * changes; `null` when the engine can't produce a model. Single source of
+   * truth — the Wall must NOT recompute best-subsets.
+   */
+  onModelStatsChange?: (
+    stats: { kept: string[]; deltaR2: ReadonlyMap<string, number> } | null
+  ) => void;
 }
 
 /** Format an R²adj as a 2-decimal string (deterministic, locale-agnostic). */
@@ -115,6 +125,7 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
   width,
   height,
   onCaptureModel,
+  onModelStatsChange,
 }) => {
   const locale = useWallLocale();
   const [dismissedRedundancy, setDismissedRedundancy] = useState<string | null>(null);
@@ -192,6 +203,12 @@ export const ModelBuilderBand: React.FC<ModelBuilderBandProps> = ({
     if (!engine) return new Map();
     return perFactorDeltaR2(kept, eligibleFactors, engine.index);
   }, [engine, kept, eligibleFactors]);
+
+  // PR-CS-12: lift the live model stats to the Wall (glyph bars + DOI weights).
+  useEffect(() => {
+    if (!onModelStatsChange) return;
+    onModelStatsChange(engine ? { kept, deltaR2 } : null);
+  }, [onModelStatsChange, engine, kept, deltaR2]);
 
   // Has the analyst deviated from the engine suggestion? Drives the snap-back.
   const deviated = useMemo(() => {
