@@ -298,6 +298,8 @@ The real issue is **three overlapping representations of "factor relates to caus
 
 **Decision (corrected per §4.0 — the Finding is the unit).** The **primary** factor↔cause connection is **Finding-mediated**: a `Finding` captures the `{factors + filters}` **condition** (found via Explore's variation + visuals) and links to the hypothesis with a sign — that is the spine, and the Model B canvas draws _those_ links. **`CausalLink` is demoted to an _optional richer layer_**: when an analyst wants to assert an explicit factor-relationship belonging to a cause (carrying ΔR² as _association strength_), it is available as an overlay on the canvas — but it is **not** required and **not** the canonical edge. The **best-subsets band stays the attention-guide / candidate set** (§4.0), never a cause assertion. Do **not** introduce a `Hypothesis.factorIds` reverse list (derive it). So the canonical traversal is `process step → Finding (condition) → hypothesis → its evidence → back`, with the `CausalLink` factor-graph as an optional overlay for analysts who want it. (The Model B build still consumes `wallLayout.factorPositions` to place factors and retires the `CanvasWallOverlay`/`LocalMechanismView` glue — §7 — it just draws Finding-links first, CausalLink edges optionally.)
 
+**Delivered 2026-06-04 (PR-CS-12):** factor glyphs (`FactorGlyph.tsx`) at the Wall's factor band; Finding-mediated signed factor↔hypothesis edges in `computeWallLayout` (derived from `Finding.context.activeFilters` keys ∩ candidate band; `fromId` = `factor:${key}`; kinds `factor-support` / `factor-refute`; never stored). The `CausalLink` Wall overlay stays not-now (§12 Q3 resolved 2026-06-03; CausalLink remains in Evidence Map + Report).
+
 ### §4.4 · Zoom + Focus as the navigation + density mechanism
 
 Four distinct, already-shipped (except one) zoom/focus layers carry the navigation:
@@ -308,6 +310,8 @@ Four distinct, already-shipped (except one) zoom/focus layers carry the navigati
 | LOD-by-zoom on Wall cards                         | zoom out → glyph (`<0.3`) → header (`<0.6`) → full; drops the chart slot at low zoom | shipped (`HypothesisCard.tsx`)                    |
 | Focus lens (DOI dimming)                          | click a cause → it + its factors + edges stay vivid, siblings dim                    | shipped (`wallFocus.ts`)                          |
 | Semantic factor-family clustering + edge bundling | zoom out → factors collapse into families                                            | **deferred** (keep deferred; not required for V1) |
+
+**Delivered 2026-06-04 (PR-CS-12):** domain-weighted Focus lens via `domainWeightedOpacity(doi, contribution01)` in `wallFocus.ts` — normalized per-factor semipartial ΔR² (lifted live from `ModelBuilderBand` via `onModelStatsChange`) lifts a top-ΔR² factor at most one opacity tier toward vivid; hubs/findings remain contribution-0 (unchanged). Focus still never recomputes model metrics (Amendment §4 intact).
 
 Zoom is the laptop density valve (rule 8): zoom out for the overview (glyphs, no charts), zoom in to one cause/step for full detail. The Model B canvas tunes the Focus lens to **domain-weighted** relevance.
 
@@ -389,8 +393,11 @@ A dead-code audit (grep-backed) confirmed a **focused** debt (not rot): the ADR-
 
 ### §7.1 · Resolve the ADR-086 unification debt (the core)
 
+> **Grounding correction (CS-12, 2026-06-04) — §7.1 premise was false on both counts.** The original §7.1 claimed that `wallLayout.factorPositions` was empty in production and that `kind:'factor'` edges were never drawn. Grounding against the branch found: (1) `wallLayout.factorPositions` was **live in production** — FE-1 anchored the `ModelBuilderBand`; both apps passed `modelBuilderProps`; positions were populated. (2) The `kind:'factor'` edge was **already deleted by CS-1** (`ded680d8`), not "never drawn." CS-12's real delta was: factor **glyphs** (`FactorGlyph.tsx`) at the factor band; **Finding-mediated signed factor↔hypothesis edges** derived in `computeWallLayout`; **domain-weighted DOI** via `domainWeightedOpacity` + `onModelStatsChange`; and the **glue retirement** (`CanvasWallOverlay` deleted, `LocalMechanismView` trimmed to step-local). The §7.1 rationale (replacement never finished) was a mis-read of the pre-branch state.
+
 - `CanvasWallOverlay` (`Canvas/internal/CanvasWallOverlay.tsx`, mounted `Canvas/index.tsx:661`) and `LocalMechanismView` (`Canvas/internal/LocalMechanismView.tsx:280`, mounted `CanvasLevelRouter.tsx:173`) are the "glued, not unified" surfaces ADR-086 §Consequences claims were superseded. **They are still mounted and reachable** because the replacement was never finished (`wallLayout.factorPositions` empty in production; `kind:'factor'` edges never drawn).
 - **Decision:** Model B **finishes the unification** — draw the factor↔hypothesis edges (§4.3, consuming `factorPositions`), then **retire `CanvasWallOverlay` + the `LocalMechanismView` embedded overlay**, and **amend ADR-086** to describe the delivered state (see §11). **Phasing:** this retirement is **Phase 2** (it rides Model B), _not_ Phase 1 — only the §7.2 zero-risk orphans are Phase 1. Until Model B lands, the ADR's "superseded" language is **retracted now** (drift-now) so docs stop claiming a state the code lacks.
+- **Delivered 2026-06-04 (PR-CS-12):** `CanvasWallOverlay` deleted; `LocalMechanismView` trimmed to step-local content; Finding-mediated signed edges + factor glyphs delivered on the Analyze-tab Wall. ADR-086 amended to describe the delivered state.
 
 ### §7.2 · Delete the orphans (zero-risk)
 
@@ -488,7 +495,7 @@ _Inbound links (doc-gate ≥1 each, added on the same apply-phase PR):_ `process
 
 1. **Evidence Map on PWA-laptop** — confirm §6's resolution (Layer 1 always + Layers 2/3 under Azure's existing gate, rather than forcing full 3-layer on PWA).
 2. **Highlight vs filter default per surface** — confirm the per-surface Filter/Highlight/None set and the default (lean: highlight-default everywhere).
-3. **`CausalLink` overlay in V1** — is the optional factor-graph overlay (§4.3) worth surfacing in V1, or is Finding-mediated the whole V1 story? (lean: ship Finding-mediated; the `CausalLink` overlay is a candidate defer/cut.)
+3. **`CausalLink` overlay in V1** — **RESOLVED 2026-06-03 (not-now).** Finding-mediated is the whole V1 Wall story. `CausalLink` stays a factor→factor DAG edge rendered in the Evidence Map + Report; the Wall overlay is not-now. Revive trigger = real user demand for mechanism arrows on the Wall. See decision-log 2026-06-04 + ADR-086 Amendment 2026-06-04 §2.
 4. **Scope desync across the 3 satellite popouts** — adopt JMP's "selection changed" nudge + Reset + a serializable scope predicate (lean: yes).
 5. **Re-evaluate cascade depth** — V1 has the analyst re-test the targeted hypothesis on re-ingest (§4.5, analyst-owned status); confirm the full replace-re-evaluate cascade across all scopes/conditions stays a named follow-up.
 6. **Upstream best-subsets screening placement** — **RESOLVED 2026-06-02 (§2A.1a):** the global "watch these factors" guide lives in the **Process-tab orient view, surfaced after framing** (alongside per-step capability — the "which factor" + "which step" answer to "where do I look first"); the per-scope re-rank stays in Analyze. It directs attention as factor _screening_, never naming causes.
