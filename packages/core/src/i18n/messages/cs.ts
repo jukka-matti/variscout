@@ -871,6 +871,12 @@ export const cs: MessageCatalog = {
   'wall.model.vitalFewLine': 'vital-few line',
   'wall.model.rSquaredAdj': 'R²adj {value}',
   'wall.model.factorP': 'p {value}',
+  'wall.model.associationStrength': 'Association strength',
+  'wall.model.deltaR2': 'ΔR² {value}',
+  'wall.model.notAVerdict':
+    'Associated with the spread in this scope — a clue to investigate, not a verdict.',
+  'wall.model.deltaR2Caption':
+    'Each bar is a factor’s unique share of the spread; correlated factors overlap, so they need not sum to the model fit.',
   'wall.model.useSuggested': '↩ Use suggested model',
   'wall.model.addToModel': 'Add {factor} to the model',
   'wall.model.removeFromModel': 'Remove {factor} from the model',

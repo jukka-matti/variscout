@@ -1045,6 +1045,10 @@ export interface MessageCatalog {
   'wall.model.vitalFewLine': string;
   'wall.model.rSquaredAdj': string;
   'wall.model.factorP': string;
+  'wall.model.associationStrength': string;
+  'wall.model.deltaR2': string;
+  'wall.model.notAVerdict': string;
+  'wall.model.deltaR2Caption': string;
   'wall.model.useSuggested': string;
   'wall.model.addToModel': string;
   'wall.model.removeFromModel': string;
