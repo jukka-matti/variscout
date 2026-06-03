@@ -51,7 +51,12 @@ describe('useImprovementProjections', () => {
 
     it('returns projectedCpkMap entries when at least one active hub exists', () => {
       const hubs = [
-        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'confirmed' }),
+        makeHub({
+          id: 'h1',
+          name: 'Machine',
+          selectedForImprovement: true,
+          status: 'evidence-survived-test',
+        }),
       ];
       const { result } = renderHook(() => useImprovementProjections(hubs, { Machine: 1.45 }));
       expect(result.current.hypotheses).toHaveLength(1);
@@ -63,7 +68,12 @@ describe('useImprovementProjections', () => {
       // The hook returns ALL projectedCpkMap entries when there is ≥1 active hub —
       // the hub list acts as a gate, not a filter on factors.
       const hubs = [
-        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'confirmed' }),
+        makeHub({
+          id: 'h1',
+          name: 'Machine',
+          selectedForImprovement: true,
+          status: 'evidence-survived-test',
+        }),
       ];
       const { result } = renderHook(() =>
         useImprovementProjections(hubs, { Machine: 1.2, Shift: 0.9 })
@@ -86,7 +96,12 @@ describe('useImprovementProjections', () => {
 
     it('returns entries from map with correct projectedCpk values', () => {
       const hubs = [
-        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'confirmed' }),
+        makeHub({
+          id: 'h1',
+          name: 'Machine',
+          selectedForImprovement: true,
+          status: 'evidence-survived-test',
+        }),
         makeHub({ id: 'h2', name: 'Shift', selectedForImprovement: true, status: 'proposed' }),
       ];
       const projectedCpkMap = { Machine: 1.3, Shift: 1.6 };
@@ -118,7 +133,12 @@ describe('useImprovementProjections', () => {
     it('is independent of the hubs list — uses all map values', () => {
       // combinedProjectedCpk comes from the map, not filtered by hub selection
       const hubs = [
-        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'confirmed' }),
+        makeHub({
+          id: 'h1',
+          name: 'Machine',
+          selectedForImprovement: true,
+          status: 'evidence-survived-test',
+        }),
       ];
       const { result } = renderHook(() =>
         useImprovementProjections(hubs, { Machine: 1.2, Shift: 2.0 })
@@ -146,7 +166,12 @@ describe('useImprovementProjections', () => {
       expect(result.current.hypotheses).toHaveLength(0);
 
       hubs = [
-        makeHub({ id: 'h1', name: 'Machine', selectedForImprovement: true, status: 'confirmed' }),
+        makeHub({
+          id: 'h1',
+          name: 'Machine',
+          selectedForImprovement: true,
+          status: 'evidence-survived-test',
+        }),
       ];
       rerender({ hs: hubs, map: { Machine: 1.5 } });
 

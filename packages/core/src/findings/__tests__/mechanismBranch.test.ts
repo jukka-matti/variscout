@@ -110,7 +110,7 @@ describe('projectMechanismBranch', () => {
     ).toEqual({ value: 'evidence-backed', label: 'Evidence backed' });
 
     expect(
-      projectMechanismBranch(makeHub({ status: 'confirmed' }), {
+      projectMechanismBranch(makeHub({ status: 'evidence-survived-test' }), {
         findings: [],
       }).readiness
     ).toEqual({ value: 'ready-to-act', label: 'Ready to act' });

@@ -427,7 +427,9 @@ describe('useHypotheses', () => {
       });
 
       // The hook's local hub state now carries the attempt — gate advances
-      expect(deriveHypothesisStatus(result.current.hubs[0], findings)).toBe('confirmed');
+      expect(deriveHypothesisStatus(result.current.hubs[0], findings)).toBe(
+        'evidence-survived-test'
+      );
     });
 
     it('derives needs-disconfirmation when attempt is pending (not yet survived)', () => {

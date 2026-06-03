@@ -244,24 +244,27 @@ describe('serializeHypotheses', () => {
       synthesis: 'Both factors confirm the pattern.',
       findingIds: ['f-1'],
       evidence,
-      status: 'confirmed',
+      status: 'evidence-survived-test',
     });
     const parsed = JSON.parse(serializeHypotheses([hub]));
     expect(parsed.name).toBe('Nozzle wear on night shift');
     expect(parsed.synthesis).toBe('Both factors confirm the pattern.');
     expect(parsed.findingIds).toEqual(['f-1']);
     expect(parsed.evidence).toEqual(evidence);
-    expect(parsed.status).toBe('confirmed');
+    expect(parsed.status).toBe('evidence-survived-test');
   });
 
   it('includes selectedForImprovement when set', () => {
-    const hub = makeHypothesis({ status: 'confirmed', selectedForImprovement: true });
+    const hub = makeHypothesis({ status: 'evidence-survived-test', selectedForImprovement: true });
     const parsed = JSON.parse(serializeHypotheses([hub]));
     expect(parsed.selectedForImprovement).toBe(true);
   });
 
   it('omits selectedForImprovement when undefined', () => {
-    const hub = makeHypothesis({ status: 'confirmed', selectedForImprovement: undefined });
+    const hub = makeHypothesis({
+      status: 'evidence-survived-test',
+      selectedForImprovement: undefined,
+    });
     const parsed = JSON.parse(serializeHypotheses([hub]));
     expect(parsed.selectedForImprovement).toBeUndefined();
   });
@@ -269,7 +272,7 @@ describe('serializeHypotheses', () => {
   it('excludes refuted hubs from Foundry IQ output', () => {
     const hubs = [
       makeHypothesis({ id: 'sc-1', status: 'proposed' }),
-      makeHypothesis({ id: 'sc-2', status: 'confirmed' }),
+      makeHypothesis({ id: 'sc-2', status: 'evidence-survived-test' }),
       makeHypothesis({ id: 'sc-3', status: 'refuted' }),
     ];
     const jsonl = serializeHypotheses(hubs);
