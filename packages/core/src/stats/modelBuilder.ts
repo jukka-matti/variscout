@@ -431,3 +431,49 @@ export function redundancyHint(
 
   return { removedFactor, vif, rSquaredAdjDelta: delta };
 }
+
+// ============================================================================
+// Per-factor association strength (semipartial R²)
+// ============================================================================
+
+/**
+ * Per-factor **semipartial R²** ("association strength, ΔR²") for the current
+ * model — the *unique* share of the spread each factor accounts for.
+ *
+ *   - KEPT factor `f`:   ΔR²_f = R²(kept) − R²(kept \ {f})  (drop-on-remove)
+ *   - NON-KEPT factor `c`: ΔR²_c = R²(kept ∪ {c}) − R²(kept) (gain-on-add)
+ *
+ * Uses RAW R² (not adjusted), so values are always ≥ 0 and read on the
+ * "share of the total spread" scale. The KEPT delta is the SAME numerator the
+ * nested-F partial p in `perFactorPValues` is built on (p = significance,
+ * ΔR² = magnitude). By design these do NOT sum to the model R²: under
+ * collinearity the shared variance is attributed to no single factor (ADR-073 —
+ * contribution, never a forced decomposition). Every value is an O(1) lookup in
+ * the already-enumerated subset index; no regression is re-run. Returns 0 for a
+ * factor whose required subset was not enumerated (defensive).
+ */
+export function perFactorDeltaR2(
+  keptFactors: readonly string[],
+  factors: readonly string[],
+  index: SubsetIndex
+): Map<string, number> {
+  const out = new Map<string, number>();
+  const kept = [...keptFactors];
+  const keptSubset = lookupSubset(index, kept);
+  const r2Kept = keptSubset?.rSquared ?? 0;
+
+  for (const f of factors) {
+    let delta: number;
+    if (kept.includes(f)) {
+      const reducedFactors = kept.filter(k => k !== f);
+      const reduced = reducedFactors.length > 0 ? lookupSubset(index, reducedFactors) : null;
+      const r2Reduced = reducedFactors.length === 0 ? 0 : (reduced?.rSquared ?? 0);
+      delta = r2Kept - r2Reduced;
+    } else {
+      const augmented = lookupSubset(index, [...kept, f]);
+      delta = (augmented?.rSquared ?? r2Kept) - r2Kept;
+    }
+    out.set(f, Math.max(0, delta));
+  }
+  return out;
+}

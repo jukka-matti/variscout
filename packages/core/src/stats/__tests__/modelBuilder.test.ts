@@ -15,6 +15,7 @@ import {
   buildSubsetIndex,
   lookupSubset,
   perFactorPValues,
+  perFactorDeltaR2,
   selectVitalFew,
   isFitOnlyEstimate,
   redundancyHint,
@@ -431,5 +432,63 @@ describe('redundancyHint', () => {
     const hint = redundancyHint('B', noVif, withoutB, { vif: 25 });
     expect(hint).not.toBeNull();
     expect(hint!.vif).toBeCloseTo(25, 10);
+  });
+});
+
+// ============================================================================
+// perFactorDeltaR2 — per-factor semipartial R² (association strength)
+// ============================================================================
+
+/** Deterministic: Shift dominates Y, Machine adds a little, Noise is junk. */
+function buildRerankData(): DataRow[] {
+  const shiftEffect: Record<string, number> = { A: 0, B: 10, C: 20 };
+  const machineEffect: Record<string, number> = { X: 0, Y: 2 };
+  const rows: DataRow[] = [];
+  let i = 0;
+  for (const s of ['A', 'B', 'C']) {
+    for (const m of ['X', 'Y']) {
+      for (const nz of ['p', 'q']) {
+        for (let r = 0; r < 3; r++) {
+          const wobble = ((i * 7) % 5) - 2; // deterministic -2..2
+          rows.push({
+            Shift: s,
+            Machine: m,
+            Noise: nz,
+            Y: shiftEffect[s] + machineEffect[m] + wobble,
+          });
+          i++;
+        }
+      }
+    }
+  }
+  return rows;
+}
+
+describe('perFactorDeltaR2', () => {
+  const data = buildRerankData();
+  const result = computeBestSubsets(data, 'Y', ['Shift', 'Machine', 'Noise'])!;
+  const index = buildSubsetIndex(result);
+
+  it('ranks the dominant factor highest and junk near zero, all >= 0', () => {
+    const kept = ['Shift', 'Machine', 'Noise'];
+    const d = perFactorDeltaR2(kept, ['Shift', 'Machine', 'Noise'], index);
+    expect(d.get('Shift')!).toBeGreaterThan(d.get('Machine')!);
+    expect(d.get('Machine')!).toBeGreaterThan(d.get('Noise')!);
+    for (const v of d.values()) expect(v).toBeGreaterThanOrEqual(0);
+  });
+
+  it('for a KEPT factor returns the drop-on-remove (semipartial R²)', () => {
+    const full = index.byKey.get(['Shift', 'Machine'].sort().join('\x00'))!;
+    const reduced = index.byKey.get('Machine')!;
+    const d = perFactorDeltaR2(['Shift', 'Machine'], ['Shift'], index);
+    expect(d.get('Shift')!).toBeCloseTo(full.rSquared - reduced.rSquared, 10);
+  });
+
+  it('for a NON-KEPT candidate returns the gain-on-add', () => {
+    const kept = ['Machine'];
+    const augmented = index.byKey.get(['Machine', 'Shift'].sort().join('\x00'))!;
+    const base = index.byKey.get('Machine')!;
+    const d = perFactorDeltaR2(kept, ['Shift'], index);
+    expect(d.get('Shift')!).toBeCloseTo(augmented.rSquared - base.rSquared, 10);
   });
 });
