@@ -22,7 +22,7 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 
 ## Domain modeling invariants
 
-- **`FindingSource` is a discriminated union** (`src/findings/types.ts`) with 5 variants — discriminant is `chart`. Always narrow with `'category' in src` or an exhaustive `switch` before accessing variant fields. A new variant requires updating every exhaustive switch (TypeScript will surface them via `never` exhaustiveness errors).
+- **`FindingSource` is a discriminated union** (`src/findings/types.ts`) with **4 variants** (5 `chart` discriminant values: `boxplot`/`pareto` share one variant, plus `ichart`, `probability`, `coscout`) — discriminant is `chart`. Always narrow with `'category' in src` or an exhaustive `switch` before accessing variant fields. A new variant requires updating every exhaustive switch (TypeScript will surface them via `never` exhaustiveness errors).
 - **`wouldCreateCycle()` lives in `src/stats/causalGraph.ts`** (not in `findings/`). It is a graph utility, not a domain operation. Import: `import { wouldCreateCycle } from '@variscout/core/stats'`.
 - **Interaction patterns are geometric, not role-based.** `classifyInteractionPattern()` returns `'ordinal'` or `'disordinal'`. Never call interactions "moderator" or "primary" — ESLint rule `no-interaction-moderator` enforces.
 - **Never write "root cause"** in code, prompts, tests, or doc comments — say "contribution" / "suspected cause" / "mechanism" (constitution P5 amended). ESLint rule `no-root-cause-language` enforces in `ai/prompts/`.
