@@ -262,29 +262,6 @@ vi.mock('@variscout/hooks', () => ({
       values ? `${key} ${Object.values(values).join(' ')}` : key,
   }),
   useHasAnalyzeContent: vi.fn(() => hasInvestigationContentRef.current),
-  useSharedWallProps: vi.fn(
-    ({
-      findings,
-      processMap,
-      problemCpk,
-      eventsPerWeek,
-      activeColumns,
-    }: {
-      findings: unknown[];
-      processMap: unknown;
-      problemCpk: number;
-      eventsPerWeek: number;
-      activeColumns: ReadonlyArray<string> | undefined;
-    }) => ({
-      findings,
-      processMap,
-      problemCpk,
-      eventsPerWeek,
-      activeColumns,
-      hubs: [],
-      problemContributionTree: undefined,
-    })
-  ),
   useEvidenceMapData: vi.fn(() => ({
     nodes: [],
     edges: [],

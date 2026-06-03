@@ -63,7 +63,6 @@ import {
 } from './internal/HypothesisDraftPopover';
 import { CanvasStepCard } from './internal/CanvasStepCard';
 import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
-import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
 import { sortedProcessSteps } from './internal/NoFocalStepPrompt';
 import { useWallIsMobile } from '../AnalyzeWall';
@@ -101,18 +100,12 @@ const DEFAULT_CANVAS_VIEWPORT: CanvasViewportSnapshot = {
   nodePositions: {},
   groupByTributary: false,
 };
-const CANVAS_VIEWPORT_IGNORED_TARGET = '[data-canvas-wall-overlay]';
-
 const CANVAS_FIT_REQUEST_EVENT = 'variscout:canvas-fit-request';
 const FIT_TO_CONTENT_MARGIN = 0.95;
 
 interface CanvasFitRequestDetail {
   hubId: ProcessHubId;
   level?: CanvasLevel;
-}
-
-function shouldHandleCanvasViewportInput(event: Event): boolean {
-  return !(event.target instanceof Element && event.target.closest(CANVAS_VIEWPORT_IGNORED_TARGET));
 }
 
 function measureCanvasFit(
@@ -322,17 +315,11 @@ export const Canvas: React.FC<CanvasProps> = ({
     () => coerceCanvasOverlays(activeOverlays),
     [activeOverlays]
   );
-  const wallFindings = React.useMemo(() => [...findings], [findings]);
   const hasInvestigationContent = useHasAnalyzeContent({ findingsCount: findings.length });
   const wallIsMobile = useWallIsMobile();
-  const availableOverlays = React.useMemo<CanvasOverlayId[]>(() => {
-    const base: CanvasOverlayId[] = ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings'];
-    return hasInvestigationContent ? [...base, 'wall'] : base;
-  }, [hasInvestigationContent]);
-  const pickerAvailableOverlays = React.useMemo(
-    () =>
-      wallIsMobile ? availableOverlays.filter(overlay => overlay !== 'wall') : availableOverlays,
-    [availableOverlays, wallIsMobile]
+  const availableOverlays = React.useMemo<CanvasOverlayId[]>(
+    () => ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings'],
+    []
   );
   const sortedSteps = React.useMemo(() => sortedProcessSteps(map), [map]);
   const firstStepId = sortedSteps[0]?.id;
@@ -449,7 +436,6 @@ export const Canvas: React.FC<CanvasProps> = ({
     hubId,
     ref: lodInputSurfaceRef,
     disabled: wallIsMobile || disabled || activeCanvasTool === 'draw-hypothesis',
-    filter: shouldHandleCanvasViewportInput,
   });
   useCanvasViewportShortcuts({
     hubId,
@@ -576,7 +562,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         <CanvasLensPicker activeLens={resolvedLens} onChange={onLensChange} />
         <CanvasOverlayPicker
           activeOverlays={resolvedOverlays}
-          availableOverlays={pickerAvailableOverlays}
+          availableOverlays={availableOverlays}
           onToggle={onOverlayToggle}
         />
         {wallIsMobile && hasInvestigationContent && onOpenWall ? (
@@ -659,17 +645,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             {stepCardGrid}
           </CanvasViewport>
         )}
-        <CanvasWallOverlay
-          hubId={hubId}
-          activeOverlays={resolvedOverlays}
-          activeCanvasTool={activeCanvasTool}
-          findings={wallFindings}
-          processMap={map}
-          problemCpk={problemCpk ?? 0}
-          eventsPerWeek={eventsPerWeek ?? 0}
-          activeColumns={activeColumns ?? availableColumns}
-          onOpenWall={onOpenWall}
-        />
         {drawTool.state.phase === 'awaitingForm' ? (
           <HypothesisDraftPopover
             sourceLabel={endpointLabel(drawTool.state.source)}

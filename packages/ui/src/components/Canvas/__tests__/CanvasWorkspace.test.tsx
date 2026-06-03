@@ -1,13 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
-import type {
-  Finding,
-  ScopeFilter,
-  SpecLimits,
-  StepCapabilityStamp,
-  TimelineWindow,
-} from '@variscout/core';
+import type { ScopeFilter, SpecLimits, StepCapabilityStamp, TimelineWindow } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 import type {
   CanvasAnalyzeOverlayModel,
@@ -15,7 +9,7 @@ import type {
   CanvasOverlayId,
   CanvasStepCardModel,
 } from '@variscout/hooks';
-import { useCanvasAnalyzeOverlays, useCanvasStepCards, useSharedWallProps } from '@variscout/hooks';
+import { useCanvasAnalyzeOverlays, useCanvasStepCards } from '@variscout/hooks';
 import {
   getAnalysisScopeInitialState,
   getCanvasViewportInitialState,
@@ -481,29 +475,6 @@ vi.mock('@variscout/hooks', () => ({
   useCanvasStepCards: vi.fn(() => ({ cards: mockStepCards })),
   useCanvasAnalyzeOverlays: vi.fn(() => ({ overlays: mockInvestigationOverlays })),
   useHasAnalyzeContent: vi.fn(({ findingsCount }: { findingsCount: number }) => findingsCount > 0),
-  useSharedWallProps: vi.fn(
-    ({
-      findings,
-      processMap,
-      problemCpk,
-      eventsPerWeek,
-      activeColumns,
-    }: {
-      findings: unknown[];
-      processMap: unknown;
-      problemCpk: number;
-      eventsPerWeek: number;
-      activeColumns: ReadonlyArray<string> | undefined;
-    }) => ({
-      findings,
-      processMap,
-      problemCpk,
-      eventsPerWeek,
-      activeColumns,
-      hubs: [],
-      problemContributionTree: undefined,
-    })
-  ),
   useSessionCanvasFilters: vi.fn(() => canvasFiltersStateRef.current),
   useCanvasViewportInput: vi.fn(),
   useCanvasHypothesisDrawing: vi.fn(
@@ -613,19 +584,6 @@ const rawData = [
   { Fill_Weight: 11, Bake_Time: 29, Machine: 'A' },
 ];
 
-const wallFinding = {
-  id: 'finding-wall-1',
-  text: 'Bake defects cluster after changeover',
-  context: { activeFilters: {}, cumulativeScope: null },
-  evidenceType: 'data',
-  status: 'observed',
-  comments: [],
-  statusChangedAt: 0,
-  investigationId: 'inv-1',
-  createdAt: 0,
-  deletedAt: null,
-} satisfies Finding;
-
 const emptyMap = (): ProcessMap => ({
   version: 1,
   nodes: [],
@@ -691,7 +649,6 @@ describe('CanvasWorkspace', () => {
     dndMockHandlersRef.current = [];
     useCanvasStore.setState(useCanvasStore.getInitialState());
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
-    vi.mocked(useSharedWallProps).mockClear();
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
       scopeFilter: undefined,
@@ -888,70 +845,6 @@ describe('CanvasWorkspace', () => {
 
     expect(canvasFiltersStateRef.current.toggleCanvasOverlay).toHaveBeenCalledWith(
       'investigations'
-    );
-  });
-
-  it('threads Wall overlay data props into Canvas', () => {
-    canvasFiltersStateRef.current = {
-      ...canvasFiltersStateRef.current,
-      activeCanvasOverlays: ['wall'],
-    };
-
-    renderWorkspace({
-      processContext: { processMap: mapWithStep() },
-      findings: [wallFinding],
-      problemCpk: 0.74,
-      eventsPerWeek: 12,
-      activeColumns: ['Bake_Time', 'Machine'],
-      onOpenWall: vi.fn(),
-    });
-
-    expect(screen.getByTestId('canvas-wall-overlay')).toBeInTheDocument();
-    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-findings-count', '1');
-    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-problem-cpk', '0.74');
-    expect(screen.getByTestId('wall-canvas')).toHaveAttribute('data-events-per-week', '12');
-    expect(screen.getByTestId('wall-canvas')).toHaveAttribute(
-      'data-active-columns',
-      'Bake_Time,Machine'
-    );
-  });
-
-  it('threads process hub id into Canvas Wall props', () => {
-    canvasFiltersStateRef.current = {
-      ...canvasFiltersStateRef.current,
-      activeCanvasOverlays: ['wall'],
-    };
-
-    renderWorkspace({
-      processContext: { processHubId: h('hub-frame-2'), processMap: mapWithStep() },
-      findings: [wallFinding],
-      onOpenWall: vi.fn(),
-    });
-
-    expect(useSharedWallProps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        hubId: h('hub-frame-2'),
-      })
-    );
-  });
-
-  it('uses explicit canvas viewport hub id when process context has no hub id', () => {
-    canvasFiltersStateRef.current = {
-      ...canvasFiltersStateRef.current,
-      activeCanvasOverlays: ['wall'],
-    };
-
-    renderWorkspace({
-      canvasViewportHubId: 'session-hub-1',
-      processContext: { processMap: mapWithStep() },
-      findings: [wallFinding],
-      onOpenWall: vi.fn(),
-    });
-
-    expect(useSharedWallProps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        hubId: 'session-hub-1',
-      })
     );
   });
 
@@ -1270,7 +1163,6 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
     dndMockHandlersRef.current = [];
     useCanvasStore.setState(useCanvasStore.getInitialState());
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
-    vi.mocked(useSharedWallProps).mockClear();
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
       scopeFilter: undefined,
@@ -1564,7 +1456,6 @@ describe('Task 10 — kebab calculate-from dispatch', () => {
     dndMockHandlersRef.current = [];
     useCanvasStore.setState(useCanvasStore.getInitialState());
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
-    vi.mocked(useSharedWallProps).mockClear();
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
       scopeFilter: undefined,
@@ -1760,7 +1651,6 @@ describe('Task 11 — formula derivation + batch-hint banner end-to-end', () => 
     dndMockHandlersRef.current = [];
     useCanvasStore.setState(useCanvasStore.getInitialState());
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
-    vi.mocked(useSharedWallProps).mockClear();
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
       scopeFilter: undefined,
@@ -1945,7 +1835,6 @@ describe('D3 Task 7 — kebab use-as-time-factors dispatch', () => {
     dndMockHandlersRef.current = [];
     useCanvasStore.setState(useCanvasStore.getInitialState());
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
-    vi.mocked(useSharedWallProps).mockClear();
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
       scopeFilter: undefined,
@@ -2191,7 +2080,6 @@ describe('D3 Task 8 — time-decomposition end-to-end', () => {
     dndMockHandlersRef.current = [];
     useCanvasStore.setState(useCanvasStore.getInitialState());
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
-    vi.mocked(useSharedWallProps).mockClear();
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
       scopeFilter: undefined,
@@ -2429,7 +2317,6 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     dndMockHandlersRef.current = [];
     useCanvasStore.setState(useCanvasStore.getInitialState());
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
-    vi.mocked(useSharedWallProps).mockClear();
     canvasFiltersStateRef.current = {
       timelineWindow: { kind: 'cumulative' },
       scopeFilter: undefined,

@@ -795,9 +795,6 @@ export const zhHans: MessageCatalog = {
   'action.viewDetails': 'View Details',
 
   // Canvas Wall overlay
-  'canvas.wall.overlayLabel': 'Wall',
-  'canvas.wall.overlayDescription':
-    'Investigation Wall projected onto the canvas. Click any hub to open the Wall destination view.',
   'canvas.wall.shortcutLabel': 'Open Wall',
 
   // Investigation Wall

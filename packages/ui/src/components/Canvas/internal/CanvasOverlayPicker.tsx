@@ -2,7 +2,6 @@ import React from 'react';
 import {
   coerceCanvasOverlays,
   enabledCanvasOverlays,
-  useTranslation,
   type CanvasOverlayId,
 } from '@variscout/hooks';
 
@@ -17,7 +16,6 @@ export const CanvasOverlayPicker: React.FC<CanvasOverlayPickerProps> = ({
   availableOverlays,
   onToggle,
 }) => {
-  const { t } = useTranslation();
   const active = coerceCanvasOverlays(activeOverlays);
   const allowed = availableOverlays ? new Set(availableOverlays) : undefined;
   const overlays = enabledCanvasOverlays().filter(overlay => !allowed || allowed.has(overlay.id));
@@ -26,9 +24,8 @@ export const CanvasOverlayPicker: React.FC<CanvasOverlayPickerProps> = ({
     <div className="flex flex-wrap items-center gap-1" data-testid="canvas-overlay-picker">
       {overlays.map(overlay => {
         const pressed = active.includes(overlay.id);
-        const label = overlay.id === 'wall' ? t('canvas.wall.overlayLabel') : overlay.label;
-        const description =
-          overlay.id === 'wall' ? t('canvas.wall.overlayDescription') : overlay.description;
+        const label = overlay.label;
+        const description = overlay.description;
         return (
           <button
             key={overlay.id}

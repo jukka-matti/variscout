@@ -934,8 +934,6 @@ export interface MessageCatalog {
   'action.viewDetails': string;
 
   // Canvas Wall overlay
-  'canvas.wall.overlayLabel': string;
-  'canvas.wall.overlayDescription': string;
   'canvas.wall.shortcutLabel': string;
 
   // Investigation Wall
