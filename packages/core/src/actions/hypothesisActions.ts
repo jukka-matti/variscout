@@ -17,9 +17,10 @@ export type HypothesisAction =
       /**
        * Record a falsification attempt against a hypothesis (IM-4a). Appends to
        * `Hypothesis.disconfirmationAttempts[]`; the derived status
-       * (`deriveHypothesisStatus`) reflects it — a `survived` attempt + ≥2
-       * evidence types promotes to `confirmed`; a `pending` attempt holds the
-       * hypothesis at `needs-disconfirmation`.
+       * (`deriveHypothesisStatus`) reflects it advisorily — a `survived` attempt
+       * + ≥2 evidence types makes the suggestion `evidence-survived-test`; a
+       * `pending` attempt holds at `needs-disconfirmation`. Status is
+       * analyst-owned (CS-10); this records the attempt only.
        */
       kind: 'HYPOTHESIS_RECORD_DISCONFIRMATION';
       hypothesisId: Hypothesis['id'];

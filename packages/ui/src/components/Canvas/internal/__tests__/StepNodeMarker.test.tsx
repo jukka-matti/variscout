@@ -11,7 +11,7 @@ const suspectedHub = {
 const confirmedHub = {
   id: 'hub-2',
   name: 'Shift change effect',
-  status: 'confirmed' as const,
+  status: 'evidence-survived-test' as const,
 };
 
 describe('StepNodeMarker', () => {

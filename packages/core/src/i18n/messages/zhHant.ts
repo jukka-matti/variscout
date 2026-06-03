@@ -806,6 +806,8 @@ export const zhHant: MessageCatalog = {
   'wall.status.confirmed': 'Confirmed',
   'wall.status.refuted': 'Refuted',
   'wall.status.needsDisconfirmation': 'Needs disconfirmation',
+  'wall.status.suggestSupported': '2 evidence types + a survived test — mark Supported?',
+  'wall.status.setLabel': 'Set status',
   'wall.card.hypothesisLabel': 'Mechanism Branch',
   'wall.card.findings': '{count} findings',
   'wall.card.evidenceGap': 'Evidence gap',

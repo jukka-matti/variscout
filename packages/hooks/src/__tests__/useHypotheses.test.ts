@@ -427,7 +427,9 @@ describe('useHypotheses', () => {
       });
 
       // The hook's local hub state now carries the attempt — gate advances
-      expect(deriveHypothesisStatus(result.current.hubs[0], findings)).toBe('confirmed');
+      expect(deriveHypothesisStatus(result.current.hubs[0], findings)).toBe(
+        'evidence-survived-test'
+      );
     });
 
     it('derives needs-disconfirmation when attempt is pending (not yet survived)', () => {
@@ -482,6 +484,21 @@ describe('useHypotheses', () => {
       // pending does NOT advance the gate
       expect(deriveHypothesisStatus(result.current.hubs[0], findings)).toBe(
         'needs-disconfirmation'
+      );
+    });
+  });
+
+  describe('setHubStatus', () => {
+    it('setHubStatus updates local state and fires onHubsChange (analyst-owned)', () => {
+      const onHubsChange = vi.fn();
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHubs: [createHypothesis('H', 'S')], onHubsChange })
+      );
+      const id = result.current.hubs[0].id;
+      act(() => result.current.setHubStatus(id, 'evidence-survived-test'));
+      expect(result.current.hubs[0].status).toBe('evidence-survived-test');
+      expect(onHubsChange).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ id, status: 'evidence-survived-test' })])
       );
     });
   });

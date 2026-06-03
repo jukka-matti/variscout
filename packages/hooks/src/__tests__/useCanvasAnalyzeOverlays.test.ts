@@ -147,14 +147,14 @@ describe('buildCanvasAnalyzeOverlays', () => {
       hypotheses: [
         hub({
           id: 'hub-explicit',
-          status: 'confirmed',
+          status: 'evidence-survived-test',
           tributaryIds: ['trib-fill-head'],
         }),
       ],
     });
 
     expect(overlays.byStep.fill.hypotheses).toEqual([
-      expect.objectContaining({ id: 'hub-explicit', status: 'confirmed' }),
+      expect.objectContaining({ id: 'hub-explicit', status: 'evidence-survived-test' }),
     ]);
     expect(overlays.byStep.fill.investigationCounts.supported).toBe(1);
   });
@@ -182,7 +182,7 @@ describe('buildCanvasAnalyzeOverlays', () => {
     });
     const promoted = buildCanvasAnalyzeOverlays({
       map,
-      hypotheses: [hub({ id: 'hub-promoted', status: 'confirmed' })],
+      hypotheses: [hub({ id: 'hub-promoted', status: 'evidence-survived-test' })],
       causalLinks: [link({ id: 'link-promoted', hypothesisId: 'hub-promoted' })],
     });
 

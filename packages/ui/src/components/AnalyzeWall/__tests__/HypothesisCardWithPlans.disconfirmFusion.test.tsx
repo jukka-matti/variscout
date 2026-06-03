@@ -134,7 +134,7 @@ describe('FE-2b — the §4.1 soft caveat for an unbacked survived', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
-        displayStatus="confirmed"
+        displayStatus="evidence-survived-test"
         testPlanFactors={readyFactors}
         onEvaluateFactor={onEvaluateFactor}
         unbackedSurvived
@@ -153,7 +153,7 @@ describe('FE-2b — the §4.1 soft caveat for an unbacked survived', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
-        displayStatus="confirmed"
+        displayStatus="evidence-survived-test"
         testPlanFactors={readyFactors}
         onEvaluateFactor={vi.fn()}
       />

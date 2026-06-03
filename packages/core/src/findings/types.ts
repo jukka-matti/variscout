@@ -630,11 +630,21 @@ export interface HypothesisEvidence {
 // Hypothesis (Investigation Reframing)
 // ============================================================================
 
-/** Canonical hypothesis lifecycle status. */
+/**
+ * Canonical hypothesis lifecycle status.
+ *
+ * - `proposed` — named mechanism, no evidence yet.
+ * - `evidenced` — has supporting evidence but not yet challenged.
+ * - `evidence-survived-test` — ≥2 distinct evidence types AND ≥1 survived
+ *   disconfirmation. Falsification can only fail to break a hypothesis, never
+ *   confirm it, so this state asserts "evidence survived a test", not certainty.
+ * - `refuted` — a disconfirmation attempt overturned the hypothesis.
+ * - `needs-disconfirmation` — has evidence but no falsification attempt recorded.
+ */
 export type HypothesisStatus =
   | 'proposed'
   | 'evidenced'
-  | 'confirmed'
+  | 'evidence-survived-test'
   | 'refuted'
   | 'needs-disconfirmation';
 
@@ -655,7 +665,7 @@ export interface DisconfirmationAttempt {
    * `pending` — attempt scheduled / in flight; rule treats hypothesis as
    *   "needs-disconfirmation" still.
    * `survived` — attempt failed to refute; the hypothesis is strengthened
-   *   (Survey rule promotes status to `confirmed` when triangulated).
+   *   (Survey rule promotes status to `evidence-survived-test` when triangulated).
    * `refuted` — attempt overturned the hypothesis.
    */
   verdict: 'pending' | 'survived' | 'refuted';

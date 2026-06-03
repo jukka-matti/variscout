@@ -300,7 +300,7 @@ export function useImprovementOrchestration({
               : display?.etaSquared != null
                 ? `η² ${Math.round(display.etaSquared * 100)}%`
                 : '',
-          role: (h.status === 'confirmed' ? 'suspected-cause' : 'contributing') as
+          role: (h.status === 'evidence-survived-test' ? 'suspected-cause' : 'contributing') as
             | 'suspected-cause'
             | 'contributing'
             | 'ruled-out',

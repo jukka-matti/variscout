@@ -10,7 +10,7 @@ function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
     name: 'Shift',
     synthesis: '',
     findingIds: [],
-    status: 'confirmed',
+    status: 'evidence-survived-test',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
@@ -277,7 +277,7 @@ describe('useProblemStatement', () => {
           outcome: 'Fill Weight',
           characteristicType: 'nominal',
           locationFactor,
-          hypothesisHubs: [makeHub({ name: 'Operator', status: 'confirmed' })],
+          hypothesisHubs: [makeHub({ name: 'Operator', status: 'evidence-survived-test' })],
         })
       );
       expect(result.current.liveStatement).toContain('Shift');
@@ -290,7 +290,7 @@ describe('useProblemStatement', () => {
           outcome: 'Fill Weight',
           characteristicType: 'nominal',
           locationFactor,
-          hypothesisHubs: [makeHub({ name: 'Shift', status: 'confirmed' })],
+          hypothesisHubs: [makeHub({ name: 'Shift', status: 'evidence-survived-test' })],
         })
       );
       // Should contain Shift only once (from locationFactor)

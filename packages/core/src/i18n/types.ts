@@ -944,6 +944,10 @@ export interface MessageCatalog {
   'wall.status.confirmed': string;
   'wall.status.refuted': string;
   'wall.status.needsDisconfirmation': string;
+  // CS-10 — analyst-owned status: the advisory suggestion chip copy + the
+  // analyst-set control label.
+  'wall.status.suggestSupported': string;
+  'wall.status.setLabel': string;
   'wall.card.hypothesisLabel': string;
   'wall.card.findings': string;
   'wall.card.evidenceGap': string;

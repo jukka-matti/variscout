@@ -809,6 +809,27 @@ describe('analyzeStore — hypothesis hubs', () => {
 });
 
 // ============================================================================
+// setHubStatus — analyst-owned status setter
+// ============================================================================
+
+describe('analyzeStore — setHubStatus', () => {
+  it('setHubStatus persists the analyst-chosen status (analyst-owned)', () => {
+    const hub = useAnalyzeStore.getState().createHub('Test', 'Synth');
+    useAnalyzeStore.getState().setHubStatus(hub.id, 'evidence-survived-test');
+    expect(useAnalyzeStore.getState().hypotheses[0].status).toBe('evidence-survived-test');
+  });
+
+  it('setHubStatus writes any state the analyst picks, even one the derivation would not produce', () => {
+    // Negative control: a hub with zero findings would DERIVE 'proposed'; the analyst
+    // marks it 'refuted' anyway. The store stores the analyst value verbatim —
+    // proves the setter is authoritative, not gated by the derivation.
+    const hub = useAnalyzeStore.getState().createHub('Test', 'Synth');
+    useAnalyzeStore.getState().setHubStatus(hub.id, 'refuted');
+    expect(useAnalyzeStore.getState().hypotheses[0].status).toBe('refuted');
+  });
+});
+
+// ============================================================================
 // addHubComment — optimistic + SSE queue fallback
 // ============================================================================
 

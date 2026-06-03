@@ -10,7 +10,7 @@ describe('HypothesisStatus', () => {
     const statuses = [
       'proposed',
       'evidenced',
-      'confirmed',
+      'evidence-survived-test',
       'refuted',
       'needs-disconfirmation',
     ] as const satisfies readonly HypothesisStatus[];
@@ -20,7 +20,7 @@ describe('HypothesisStatus', () => {
     expect(statuses).toEqual([
       'proposed',
       'evidenced',
-      'confirmed',
+      'evidence-survived-test',
       'refuted',
       'needs-disconfirmation',
     ]);
@@ -59,7 +59,7 @@ describe('Hypothesis', () => {
       synthesis: 'Thermal drift during night runs',
       findingIds: ['f-1'],
       investigationId: 'investigation-1',
-      status: 'confirmed',
+      status: 'evidence-survived-test',
       ideas: [
         {
           id: 'idea-1',

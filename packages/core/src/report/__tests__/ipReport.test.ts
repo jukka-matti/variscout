@@ -53,7 +53,7 @@ function hypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
     findingIds: ['find-1'],
     updatedAt: now,
     investigationId: 'inv-1',
-    status: 'confirmed',
+    status: 'evidence-survived-test',
     selectedForImprovement: true,
     // ADR-085: ideas re-homed from retired Question entity to Hypothesis
     ideas: [

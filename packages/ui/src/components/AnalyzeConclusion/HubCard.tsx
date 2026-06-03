@@ -16,9 +16,9 @@ export interface HubCardProps {
 const STATUS_STYLES: Record<Hypothesis['status'], { dot: string; label: string }> = {
   proposed: { dot: 'bg-slate-400', label: 'Proposed' },
   evidenced: { dot: 'bg-amber-500', label: 'Evidenced' },
-  // Label only — status code stays 'confirmed'. Falsification can only fail to
-  // break a hypothesis, never *confirm* it, so the user-facing word is "Supported".
-  confirmed: { dot: 'bg-green-500', label: 'Supported' },
+  // Falsification can only fail to break a hypothesis, never *confirm* it, so
+  // both the status code and the user-facing word say "supported", not "confirmed".
+  'evidence-survived-test': { dot: 'bg-green-500', label: 'Supported' },
   refuted: { dot: 'bg-content-muted/40', label: 'Refuted' },
   'needs-disconfirmation': { dot: 'bg-orange-500', label: 'Needs disconfirmation' },
 };

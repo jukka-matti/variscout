@@ -858,13 +858,18 @@ export const en: MessageCatalog = {
   // Analyze Wall
   'wall.status.proposed': 'Proposed',
   'wall.status.evidenced': 'Evidenced',
-  // Label only: the status code stays 'confirmed', but falsification logic never
+  // Catalog key is kept as `wall.status.confirmed` for stability; the status
+  // CODE is now `'evidence-survived-test'` (CS-10). Falsification logic never
   // *confirms* a hypothesis — it can only fail to break it — so the user-facing
   // word is "Supported". (Other locales still carry the literal English
   // 'Confirmed' placeholder; their retranslation is a tracked follow-up.)
   'wall.status.confirmed': 'Supported',
   'wall.status.refuted': 'Refuted',
   'wall.status.needsDisconfirmation': 'Needs disconfirmation',
+  // CS-10 — analyst-owned status. The suggestion chip is advisory only; the
+  // analyst decides. "mark Supported?" never auto-applies.
+  'wall.status.suggestSupported': '2 evidence types + a survived test — mark Supported?',
+  'wall.status.setLabel': 'Set status',
   'wall.card.hypothesisLabel': 'Mechanism Branch',
   'wall.card.findings': '{count} findings',
   'wall.card.evidenceGap': 'Evidence gap',
@@ -872,7 +877,7 @@ export const en: MessageCatalog = {
   'wall.card.missingColumnAria': 'Condition references missing column',
   'wall.card.ariaLabel': 'Mechanism Branch {name}, {status}, {count} supporting clues',
   'wall.card.oneStepAway':
-    '1 step away — running a disconfirmation test would promote this from evidenced to confirmed',
+    '1 step away — running a disconfirmation test would let you mark this Supported',
   'wall.problem.title': 'Problem condition',
   'wall.problem.eventsPerWeek': '{count} events',
   'wall.problem.ariaLabel': 'Problem condition: {column}, Cpk {cpk}, {count} events',

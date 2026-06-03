@@ -45,7 +45,7 @@ const STATUS_DOT_COLORS: Record<FindingStatus, string> = {
 const QUESTION_STATUS_ICONS: Record<HypothesisStatus, string> = {
   proposed: '?',
   evidenced: '\u25D0',
-  confirmed: '\u2713',
+  'evidence-survived-test': '\u2713',
   refuted: '\u2717',
   'needs-disconfirmation': '!',
 };

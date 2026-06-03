@@ -40,7 +40,7 @@ describe('AnalyzeLineageSection', () => {
           makeHypothesis({
             id: 'h-1',
             name: 'Night shift setup drift',
-            status: 'confirmed',
+            status: 'evidence-survived-test',
             synthesis: 'Setup standards vary after handoff.',
             themeTags: ['handoff', 'setup'],
           }),
@@ -51,7 +51,7 @@ describe('AnalyzeLineageSection', () => {
     const chip = screen.getByText('Night shift setup drift').closest('article');
 
     expect(chip).toHaveTextContent('Night shift setup drift');
-    expect(chip).toHaveTextContent('confirmed');
+    expect(chip).toHaveTextContent('evidence survived test');
     expect(chip).toHaveTextContent('Setup standards vary after handoff.');
     expect(chip).toHaveTextContent('handoff');
     expect(chip).toHaveTextContent('setup');
@@ -154,7 +154,11 @@ describe('ImprovementProjectForm investigation lineage integration', () => {
       <ImprovementProjectForm
         lineageProps={{
           hypotheses: [
-            makeHypothesis({ id: 'h-1', name: 'Night shift setup drift', status: 'confirmed' }),
+            makeHypothesis({
+              id: 'h-1',
+              name: 'Night shift setup drift',
+              status: 'evidence-survived-test',
+            }),
           ],
           findings: [makeFinding({ id: 'f-1', text: 'Setup time spikes on night shift.' })],
         }}
@@ -173,7 +177,11 @@ describe('ImprovementProjectForm investigation lineage integration', () => {
       <ImprovementProjectForm
         lineageProps={{
           hypotheses: [
-            makeHypothesis({ id: 'h-1', name: 'Night shift setup drift', status: 'confirmed' }),
+            makeHypothesis({
+              id: 'h-1',
+              name: 'Night shift setup drift',
+              status: 'evidence-survived-test',
+            }),
           ],
         }}
         sectionContent={{

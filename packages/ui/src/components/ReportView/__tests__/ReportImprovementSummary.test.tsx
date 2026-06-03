@@ -20,7 +20,7 @@ const makeProps = (
     {
       id: 'h1',
       text: 'Temperature causes defects',
-      status: 'confirmed',
+      status: 'evidence-survived-test',
       ideas: [
         makeIdea({ id: 'i1', text: 'Install sensor', selected: true, direction: 'detect' }),
         makeIdea({ id: 'i2', text: 'Add insulation', selected: false, direction: 'prevent' }),

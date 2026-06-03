@@ -34,7 +34,7 @@ export interface MobileCardListProps {
 const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
   proposed: 'wall.status.proposed',
   evidenced: 'wall.status.evidenced',
-  confirmed: 'wall.status.confirmed',
+  'evidence-survived-test': 'wall.status.confirmed', // catalog key unchanged — value already 'Supported'
   refuted: 'wall.status.refuted',
   'needs-disconfirmation': 'wall.status.needsDisconfirmation',
 };
@@ -47,7 +47,7 @@ const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
 const STATUS_ACCENT: Record<HypothesisStatus, string> = {
   proposed: chartColors.mean,
   evidenced: chartColors.control,
-  confirmed: chartColors.pass,
+  'evidence-survived-test': chartColors.pass,
   refuted: chartColors.fail,
   'needs-disconfirmation': chartColors.warning,
 };
@@ -80,7 +80,17 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
       aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
     >
       {hubs.map(hub => {
-        const status = deriveHypothesisStatus(hub, findings);
+        // CS-10 — displayed status is the STORED analyst-owned value. The
+        // derivation stays an advisory signal only; it never becomes the
+        // displayed status here.
+        const status = hub.status;
+        // Advisory: when the evidence would derive "Supported" but the analyst
+        // has not yet promoted the hub, surface a passive read-only hint. Mobile
+        // has no status control (no edit affordances), so this is non-interactive
+        // — the interactive suggestion chip + control live on the rich card.
+        const suggestedStatus = deriveHypothesisStatus(hub, findings);
+        const showSupportedHint =
+          suggestedStatus === 'evidence-survived-test' && status !== 'evidence-survived-test';
         const branch = projectMechanismBranch(hub, {
           findings,
           processContext: processMap ? { processMap } : undefined,
@@ -132,6 +142,14 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
             </div>
             {branch.nextMove && (
               <div className="text-xs text-content-secondary mt-2">Next: {branch.nextMove}</div>
+            )}
+            {showSupportedHint && (
+              <div
+                data-testid={`wall-mobile-hub-${hub.id}-supported-hint`}
+                className="mt-2 rounded border border-edge bg-surface px-2 py-1 text-[11px] text-content-muted"
+              >
+                {getMessage(locale, 'wall.status.suggestSupported')}
+              </div>
             )}
             <div className="text-xs font-mono text-content-muted mt-1 flex gap-3">
               <span data-testid={`wall-mobile-hub-${hub.id}-findings`}>{findingsLabel}</span>

@@ -288,7 +288,7 @@ export function buildCanvasAnalyzeOverlays({
       if (!step) continue;
       if (isPromotedHub(hub)) addUnique(step.hypotheses, item);
       if (hub.status === 'refuted') step.investigationCounts.refuted += 1;
-      else if (hub.status === 'confirmed') step.investigationCounts.supported += 1;
+      else if (hub.status === 'evidence-survived-test') step.investigationCounts.supported += 1;
       else step.investigationCounts.open += 1;
     }
   }

@@ -18,7 +18,14 @@
  */
 
 import React, { useState } from 'react';
-import type { Finding, ActionItem, ImprovementIdea, IdeaImpact } from '@variscout/core';
+import type {
+  Finding,
+  ActionItem,
+  ImprovementIdea,
+  IdeaImpact,
+  HypothesisStatus,
+  MessageCatalog,
+} from '@variscout/core';
 import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
@@ -82,12 +89,41 @@ const RESPAWN_FORM_H = 132;
 const SUPERSEDED_H = 24;
 /** Height of the per-hypothesis What-If block (px). */
 const WHATIF_H = 56;
+/** CS-10 — height of the analyst-set status control row (label + select). */
+const STATUS_CONTROL_H = 56;
+/** CS-10 — extra height for the advisory suggestion chip when shown. */
+const STATUS_CHIP_H = 36;
 /** Horizontal offset of the foreignObject from the card's center-top anchor. */
 const FO_X = -(CARD_W / 2);
 /** Fixed height reserved for the ImprovementIdeasSection foreignObject (px). */
 const IDEAS_SECTION_H = 300;
 /** Fixed height reserved for the HypothesisComments foreignObject (px). */
 const COMMENTS_SECTION_H = 320;
+
+/**
+ * CS-10 — the 5 analyst-selectable statuses (free choice — the control offers
+ * every state, no gating). Order mirrors the investigation progression.
+ */
+const STATUS_OPTIONS: ReadonlyArray<HypothesisStatus> = [
+  'proposed',
+  'evidenced',
+  'needs-disconfirmation',
+  'evidence-survived-test',
+  'refuted',
+];
+
+/**
+ * CS-10 — status → i18n label key. `evidence-survived-test` maps to the
+ * `wall.status.confirmed` catalog key (value "Supported") — the key name is kept
+ * for stability; the status CODE changed in CS-10.
+ */
+const STATUS_LABEL_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
+  proposed: 'wall.status.proposed',
+  evidenced: 'wall.status.evidenced',
+  'evidence-survived-test': 'wall.status.confirmed',
+  refuted: 'wall.status.refuted',
+  'needs-disconfirmation': 'wall.status.needsDisconfirmation',
+};
 
 export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
   /** All measurement plans for this hypothesis (non-deleted). */
@@ -156,6 +192,16 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
     hypothesisId: string,
     input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
   ) => void;
+  /**
+   * CS-10 — Analyst-owned status setter. When wired AND the user has edit rights,
+   * the card renders (a) the analyst-set status control offering all 5 states as
+   * a free choice (no validation, no contradiction warning — owner decision), and
+   * (b) the advisory "mark Supported?" suggestion chip when the derivation
+   * (`suggestedStatus`) says evidence-survived-test but the analyst has not yet
+   * promoted the hub. Picking a state / clicking the chip calls back with the
+   * chosen status. Omit to hide both.
+   */
+  onSetStatus?: (hubId: string, status: HypothesisStatus) => void;
   /**
    * Task 6 (IM-4b) — IdeaImpact map keyed by ideaId.
    * Passed through to ImprovementIdeasSection for rendering impact badges.
@@ -235,7 +281,7 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
   whatIf?: { cpk: number | null; coveragePct: number | null };
   /**
    * FE-2b — the §4.1 soft caveat read-model. When this hub's derived status is
-   * "Supported" (`confirmed`) but its sole survived disconfirmation attempt has an
+   * "Supported" (`evidence-survived-test`) but its sole survived disconfirmation attempt has an
    * EMPTY `linkedFindingIds` (an unbacked survived — a manual gemba/expert claim or
    * legacy self-grade), the card renders an ambient muted caveat + a "back it with
    * a test →" link. Read-model only — status stays engine-derived. Pass `false`
@@ -330,6 +376,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onAddHypothesisAction,
   onCompleteHypothesisAction,
   onRecordDisconfirmation,
+  onSetStatus,
   ideaImpacts,
   onProjectIdea,
   onAddIdea,
@@ -389,6 +436,18 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // user has edit-contributions access (the same ACL gate as the plans zone).
   const showDisconfirmGesture = canEdit && Boolean(onRecordDisconfirmation);
 
+  // CS-10 — the analyst-set status control. Same ACL gate as the disconfirmation
+  // gesture: shown when the parent wires onSetStatus AND the user can edit.
+  const showStatusControl = canEdit && Boolean(onSetStatus);
+  // The advisory "mark Supported?" suggestion chip. Renders ONLY when the control
+  // is available, the derivation (advisory) says evidence-survived-test, and the
+  // analyst has NOT yet promoted the hub (no nagging once promoted). The stored
+  // hub.status is the authority — never the suggestion.
+  const showSuggestionChip =
+    showStatusControl &&
+    cardProps.suggestedStatus === 'evidence-survived-test' &&
+    cardProps.hub.status !== 'evidence-survived-test';
+
   // ImprovementIdeasSection mounts when the parent wires the impacts map AND the
   // hub carries at least one idea (Task 6 IM-4b). Hoisted so the comments
   // foreignObject can offset itself below the ideas section.
@@ -437,7 +496,12 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // read-only lineage marker, visible to everyone).
   const showSuperseded = cardProps.displayStatus === 'refuted' && Boolean(supersededByName);
   const supersededH = showSuperseded ? SUPERSEDED_H : 0;
+  // CS-10 — the analyst-set status control + the optional advisory suggestion chip.
+  const statusControlH = showStatusControl
+    ? STATUS_CONTROL_H + (showSuggestionChip ? STATUS_CHIP_H : 0)
+    : 0;
   const plansSectionH =
+    statusControlH +
     actionRowsTotalH +
     addTaskBtnH +
     addTaskFormH +
@@ -555,6 +619,48 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
           data-testid="plans-section"
         >
           <div className="bg-white border border-gray-200 rounded-b shadow-sm overflow-visible">
+            {/* CS-10 — analyst-owned status. The status is the analyst's call:
+                the control offers ALL 5 states as a free choice (no validation,
+                no contradiction warning — owner decision). The advisory
+                "mark Supported?" suggestion chip appears only when the derivation
+                says evidence-survived-test and the analyst has not yet promoted
+                the hub; it never auto-applies. */}
+            {showStatusControl && (
+              <div
+                data-testid="analyst-set-status-section"
+                className="border-b border-gray-100 px-3 py-2"
+              >
+                {showSuggestionChip && (
+                  <button
+                    type="button"
+                    data-testid="status-suggestion-chip"
+                    className="mb-1.5 inline-flex items-center rounded-full border border-green-600 bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-800 hover:bg-green-100"
+                    onClick={() => onSetStatus?.(cardProps.hub.id, 'evidence-survived-test')}
+                  >
+                    {getMessage(locale, 'wall.status.suggestSupported')}
+                  </button>
+                )}
+                <label className="block text-xs font-medium text-gray-700">
+                  {getMessage(locale, 'wall.status.setLabel')}
+                  <select
+                    data-testid="analyst-set-status-control"
+                    aria-label={getMessage(locale, 'wall.status.setLabel')}
+                    className="mt-1 w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                    value={cardProps.hub.status}
+                    onChange={e =>
+                      onSetStatus?.(cardProps.hub.id, e.target.value as HypothesisStatus)
+                    }
+                  >
+                    {STATUS_OPTIONS.map(s => (
+                      <option key={s} value={s}>
+                        {getMessage(locale, STATUS_LABEL_KEY[s])}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+
             {/* FE-2a — the hypothesis test-plan triad: "How do I test this?".
                 Each relevant factor + its auto-suggested tool + a one-tap
                 Evaluate (ready) or "+ Measurement Plan" (gap). The factors are a

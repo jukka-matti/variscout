@@ -75,7 +75,7 @@ describe('deriveHypothesisStatus', () => {
     ).toBe('needs-disconfirmation');
   });
 
-  it('confirmed with 2 types and resolved disconfirmation', () => {
+  it('evidence-survived-test with 2 types and resolved disconfirmation', () => {
     const findings = [
       { id: 'f1', evidenceType: 'data' } as Finding,
       { id: 'f2', evidenceType: 'gemba' } as Finding,
@@ -93,7 +93,7 @@ describe('deriveHypothesisStatus', () => {
         },
       ],
     });
-    expect(deriveHypothesisStatus(h, findings)).toBe('confirmed');
+    expect(deriveHypothesisStatus(h, findings)).toBe('evidence-survived-test');
   });
 });
 
@@ -123,7 +123,7 @@ describe('surveyWallRules', () => {
     expect(hints[0].severity).toBe('info');
   });
 
-  it('emits no hint for confirmed hypothesis', () => {
+  it('emits no hint for evidence-survived-test hypothesis', () => {
     const hypotheses = [
       {
         id: 'h1',

@@ -23,6 +23,7 @@ import type {
   ProblemStatementScope,
   ImprovementIdea,
   IdeaImpact,
+  HypothesisStatus,
 } from '@variscout/core';
 import type { DataRow } from '@variscout/core';
 import type { ColumnTypeMap, ConditionLeaf } from '@variscout/core/findings';
@@ -124,6 +125,8 @@ export interface WallCanvasPlanningProps {
     hypothesisId: string,
     input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
   ) => void;
+  /** CS-10 — Analyst-owned status setter; passed through to HypothesisCardWithPlans. */
+  onSetStatus?: (hubId: string, status: HypothesisStatus) => void;
   /**
    * IM-4b Task 1 — team comment thread on each hub. When `onAddHubComment` is
    * provided, the card mounts `HypothesisComments`; the ACL gate lives inside
@@ -473,7 +476,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       const status = deriveHypothesisStatus(hub, findings);
       const survived = (hub.disconfirmationAttempts ?? []).filter(a => a.verdict === 'survived');
       const unbackedSurvived =
-        status === 'confirmed' &&
+        status === 'evidence-survived-test' &&
         survived.length > 0 &&
         survived.every(a => (a.linkedFindingIds ?? []).length === 0);
 
@@ -915,7 +918,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     const hubProps = {
       hub,
       branch: branchByHubId.get(hub.id),
-      displayStatus: deriveHypothesisStatus(hub, findings),
+      // CS-10 — displayed status is the STORED analyst-owned value. The
+      // derivation is surfaced separately as an advisory `suggestedStatus`
+      // (the rich card's suggestion chip) and never overrides the display.
+      displayStatus: hub.status,
+      suggestedStatus: deriveHypothesisStatus(hub, findings),
       x,
       y: hubY,
       hasGap: hubsWithGap.has(hub.id),
@@ -977,6 +984,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onLinkFinding: planningProps.onLinkFinding,
           onEditPlan: planningProps.onEditPlan,
           onRecordDisconfirmation: planningProps.onRecordDisconfirmation,
+          onSetStatus: planningProps.onSetStatus,
           // IM-4b Task 1 — comment thread
           onAddHubComment: planningProps.onAddHubComment,
           onEditHubComment: planningProps.onEditHubComment,

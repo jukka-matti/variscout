@@ -36,7 +36,15 @@ import {
 export interface HypothesisCardProps {
   hub: Hypothesis;
   branch?: MechanismBranchViewModel;
+  /** The STORED analyst-owned status — what the card's status badge displays. */
   displayStatus: HypothesisStatus;
+  /**
+   * CS-10 — the DERIVED advisory suggestion (`deriveHypothesisStatus`), passed
+   * in by the parent. The presentational card never computes it; it only carries
+   * it so `HypothesisCardWithPlans` can surface the suggestion chip. Advisory
+   * only — it never overrides `displayStatus`.
+   */
+  suggestedStatus?: HypothesisStatus;
   x: number;
   y: number;
   hasGap?: boolean;
@@ -93,7 +101,7 @@ const ONE_STEP_AWAY_Y = CARD_H - 60; // 228
 const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
   proposed: 'wall.status.proposed',
   evidenced: 'wall.status.evidenced',
-  confirmed: 'wall.status.confirmed',
+  'evidence-survived-test': 'wall.status.confirmed', // catalog key unchanged — value already 'Supported'
   refuted: 'wall.status.refuted',
   'needs-disconfirmation': 'wall.status.needsDisconfirmation',
 };
@@ -102,7 +110,7 @@ const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
 const STATUS_STROKE: Record<HypothesisStatus, string> = {
   proposed: chartColors.mean, // blue-500 — neutral/open
   evidenced: chartColors.control, // cyan-500 — data linked
-  confirmed: chartColors.pass, // green-500 — outcome verified
+  'evidence-survived-test': chartColors.pass, // green-500 — evidence survived test
   refuted: chartColors.fail, // red-500 — mechanism rejected
   'needs-disconfirmation': chartColors.warning, // amber — needs disconfirmation check
 };

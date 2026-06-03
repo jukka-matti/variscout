@@ -526,7 +526,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     const ruled: Hypothesis[] = [];
     for (const h of scopedWallHubs) {
       if (h.status === 'refuted') ruled.push(h);
-      else if (h.status === 'confirmed') suspected.push(h);
+      else if (h.status === 'evidence-survived-test') suspected.push(h);
       else contrib.push(h);
     }
     return { hypotheses: suspected, contributing: contrib, ruledOut: ruled };

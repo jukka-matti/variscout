@@ -160,7 +160,7 @@ describe('evaluateSurvey', () => {
       findings: [finding()],
     };
 
-    for (const status of ['confirmed', 'refuted'] as const) {
+    for (const status of ['evidence-survived-test', 'refuted'] as const) {
       const survey = evaluateSurvey({
         ...baseInput,
         branches: [branch({ status })],
