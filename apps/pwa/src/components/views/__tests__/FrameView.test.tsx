@@ -8,7 +8,6 @@ const setFactorsMock = vi.fn();
 const showExploreMock = vi.fn();
 const showImprovementMock = vi.fn();
 const showAnalyzeMock = vi.fn();
-const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
 const showHomeMock = vi.fn();
 const expandToHypothesisMock = vi.fn();
@@ -265,7 +264,6 @@ vi.mock('@variscout/ui', async () => {
         stepId: string,
         payload: { text: string; status: 'open' | 'done'; assignedTo?: unknown; dueAt?: string }
       ) => void;
-      onFocusedInvestigation?: (stepId: string) => void;
       onOpenWall?: () => void;
       onOpenInvestigationFocus?: (focus: { kind: string; id: string }) => void;
       onAddCausalLink?: (
@@ -275,7 +273,6 @@ vi.mock('@variscout/ui', async () => {
         options?: { questionIds?: string[] }
       ) => void;
       onRemoveCausalLink?: (linkId: string) => void;
-      onCharter?: () => void;
       priorStepStats?: ReadonlyMap<string, unknown>;
       actionItems?: unknown[];
       contextLinkGroups?: { surfaceType: string; items: { id: string }[] }[];
@@ -312,15 +309,6 @@ vi.mock('@variscout/ui', async () => {
           'button',
           {
             type: 'button',
-            'data-testid': 'focused-investigation',
-            onClick: () => props.onFocusedInvestigation?.('step-1'),
-          },
-          'Focused investigation'
-        ),
-        React.createElement(
-          'button',
-          {
-            type: 'button',
             'data-testid': 'overlay-question',
             // CanvasAnalyzeFocus is a discriminated union with `kind` + `id`.
             // Pass kind:'suspected-cause' so FrameView's handler branch fires and
@@ -337,11 +325,6 @@ vi.mock('@variscout/ui', async () => {
             onClick: () => props.onOpenWall?.(),
           },
           'Open wall'
-        ),
-        React.createElement(
-          'button',
-          { type: 'button', 'data-testid': 'cta-charter', onClick: props.onCharter },
-          'Charter'
         ),
         // PR-CS-7: chip "Open in Explore" — fire a factor-kind chip target.
         React.createElement(
@@ -369,7 +352,6 @@ vi.mock('../../../features/panels/panelsStore', () => ({
       showExplore: showExploreMock,
       showImprovement: showImprovementMock,
       showAnalyze: showAnalyzeMock,
-      showCharter: showCharterMock,
       showControl: showSustainmentMock,
       showHome: showHomeMock,
     }),
@@ -423,7 +405,6 @@ describe('FrameView (PWA shell)', () => {
     showExploreMock.mockClear();
     showImprovementMock.mockClear();
     showAnalyzeMock.mockClear();
-    showCharterMock.mockClear();
     showSustainmentMock.mockClear();
     showHomeMock.mockClear();
     expandToHypothesisMock.mockClear();
@@ -726,14 +707,6 @@ describe('FrameView (PWA shell)', () => {
     });
   });
 
-  it('wires Canvas focused investigation response path to the PWA Investigation panel', () => {
-    render(<FrameView />);
-
-    fireEvent.click(screen.getByTestId('focused-investigation'));
-
-    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
-  });
-
   it('opens Investigation and expands a hypothesis for overlay focus', () => {
     // ADR-085: Question entity retired. FrameView.handleOpenInvestigationFocus
     // maps focus.kind === 'suspected-cause' to expandToHypothesis(focus.id).
@@ -799,14 +772,6 @@ describe('FrameView (PWA shell)', () => {
     );
     expect(linkQuestionToCausalLinkMock).not.toHaveBeenCalled();
     expect(removeCausalLinkMock).toHaveBeenCalledWith('link-created');
-  });
-
-  it('wires Canvas charter CTA to the panels-store show action', () => {
-    render(<FrameView />);
-
-    fireEvent.click(screen.getByTestId('cta-charter'));
-
-    expect(showCharterMock).toHaveBeenCalledTimes(1);
   });
 
   it('includes sustainment context links when a live record is confirmed', async () => {

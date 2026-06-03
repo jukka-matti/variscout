@@ -24,8 +24,6 @@ export const CanvasOverlayPicker: React.FC<CanvasOverlayPickerProps> = ({
     <div className="flex flex-wrap items-center gap-1" data-testid="canvas-overlay-picker">
       {overlays.map(overlay => {
         const pressed = active.includes(overlay.id);
-        const label = overlay.label;
-        const description = overlay.description;
         return (
           <button
             key={overlay.id}
@@ -36,11 +34,11 @@ export const CanvasOverlayPicker: React.FC<CanvasOverlayPickerProps> = ({
                 : 'border-edge bg-surface-primary text-content-secondary hover:bg-surface-secondary'
             }`}
             aria-pressed={pressed}
-            aria-label={`${label} overlay`}
-            title={description}
+            aria-label={`${overlay.label} overlay`}
+            title={overlay.description}
             onClick={() => onToggle?.(overlay.id)}
           >
-            {label}
+            {overlay.label}
           </button>
         );
       })}

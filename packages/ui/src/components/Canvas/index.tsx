@@ -93,6 +93,12 @@ const EMPTY_OVERLAYS: CanvasOverlayId[] = [];
 const EMPTY_QUESTIONS: CanvasQuestionOption[] = [];
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
 const EMPTY_FINDINGS: Finding[] = [];
+const AVAILABLE_OVERLAYS: CanvasOverlayId[] = [
+  'investigations',
+  'hypotheses',
+  'hypothesis-hubs',
+  'findings',
+];
 const DEFAULT_CANVAS_VIEWPORT: CanvasViewportSnapshot = {
   zoom: 1,
   pan: { x: 0, y: 0 },
@@ -305,10 +311,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   );
   const hasInvestigationContent = useHasAnalyzeContent({ findingsCount: findings.length });
   const wallIsMobile = useWallIsMobile();
-  const availableOverlays = React.useMemo<CanvasOverlayId[]>(
-    () => ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings'],
-    []
-  );
   const sortedSteps = React.useMemo(() => sortedProcessSteps(map), [map]);
   const firstStepId = sortedSteps[0]?.id;
   const columnTypes = React.useMemo<ColumnTypeMap>(() => {
@@ -550,7 +552,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         <CanvasLensPicker activeLens={resolvedLens} onChange={onLensChange} />
         <CanvasOverlayPicker
           activeOverlays={resolvedOverlays}
-          availableOverlays={availableOverlays}
+          availableOverlays={AVAILABLE_OVERLAYS}
           onToggle={onOverlayToggle}
         />
         {wallIsMobile && hasInvestigationContent && onOpenWall ? (

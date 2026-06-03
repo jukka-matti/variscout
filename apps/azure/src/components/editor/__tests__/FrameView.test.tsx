@@ -8,7 +8,6 @@ const setFactorsMock = vi.fn();
 const showExploreMock = vi.fn();
 const showImprovementMock = vi.fn();
 const showAnalyzeMock = vi.fn();
-const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
 const showDashboardMock = vi.fn();
 const expandToHypothesisMock = vi.fn();
@@ -189,7 +188,6 @@ vi.mock('@variscout/ui', async () => {
         stepId: string,
         payload: { text: string; status: 'open' | 'done'; assignedTo?: unknown; dueAt?: string }
       ) => void;
-      onFocusedInvestigation?: (stepId: string) => void;
       onOpenWall?: () => void;
       onOpenInvestigationFocus?: (focus: { kind: string; id: string }) => void;
       onAddCausalLink?: (
@@ -199,7 +197,6 @@ vi.mock('@variscout/ui', async () => {
         options?: { questionIds?: string[] }
       ) => void;
       onRemoveCausalLink?: (linkId: string) => void;
-      onCharter?: () => void;
       priorStepStats?: ReadonlyMap<string, unknown>;
       actionItems?: unknown[];
       contextLinkGroups?: { surfaceType: string; items: { id: string }[] }[];
@@ -235,15 +232,6 @@ vi.mock('@variscout/ui', async () => {
           'button',
           {
             type: 'button',
-            'data-testid': 'focused-investigation',
-            onClick: () => props.onFocusedInvestigation?.('step-1'),
-          },
-          'Focused investigation'
-        ),
-        React.createElement(
-          'button',
-          {
-            type: 'button',
             'data-testid': 'overlay-question',
             onClick: () => props.onOpenInvestigationFocus?.({ kind: 'suspected-cause', id: 'q-1' }),
           },
@@ -257,11 +245,6 @@ vi.mock('@variscout/ui', async () => {
             onClick: () => props.onOpenWall?.(),
           },
           'Open wall'
-        ),
-        React.createElement(
-          'button',
-          { type: 'button', 'data-testid': 'cta-charter', onClick: props.onCharter },
-          'Charter'
         ),
         // LV1-D: simulate a chip Explore-jump so the FrameView integration
         // test can assert that handleChipExploreJump wires correctly.
@@ -298,7 +281,6 @@ vi.mock('../../../features/panels/panelsStore', () => ({
       showExplore: showExploreMock,
       showImprovement: showImprovementMock,
       showAnalyze: showAnalyzeMock,
-      showCharter: showCharterMock,
       showControl: showSustainmentMock,
       showDashboard: showDashboardMock,
       setAnalyzeViewMode: setAnalyzeViewModeMock,
@@ -363,7 +345,6 @@ describe('FrameView (Azure shell)', () => {
     showExploreMock.mockClear();
     showImprovementMock.mockClear();
     showAnalyzeMock.mockClear();
-    showCharterMock.mockClear();
     showSustainmentMock.mockClear();
     showDashboardMock.mockClear();
     expandToHypothesisMock.mockClear();
@@ -657,14 +638,6 @@ describe('FrameView (Azure shell)', () => {
     });
   });
 
-  it('wires Canvas focused investigation response path to the Azure Investigation panel', () => {
-    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
-
-    fireEvent.click(screen.getByTestId('focused-investigation'));
-
-    expect(showAnalyzeMock).toHaveBeenCalledTimes(1);
-  });
-
   it('opens Investigation and expands a hypothesis hub for overlay focus', () => {
     render(<FrameView activeIP={DEFAULT_TEST_IP} />);
 
@@ -728,14 +701,6 @@ describe('FrameView (Azure shell)', () => {
     );
     // linkQuestionToCausalLink is retired in IM-1 — no longer called.
     expect(removeCausalLinkMock).toHaveBeenCalledWith('link-created');
-  });
-
-  it('wires Canvas charter CTA to the panels-store show action', () => {
-    render(<FrameView activeIP={DEFAULT_TEST_IP} />);
-
-    fireEvent.click(screen.getByTestId('cta-charter'));
-
-    expect(showCharterMock).toHaveBeenCalledTimes(1);
   });
 
   it('PR-CS-5: capture-from-step creates a finding noted with the step id (originStepId)', () => {

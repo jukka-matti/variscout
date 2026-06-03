@@ -6,13 +6,13 @@ export interface UseHasAnalyzeContentArgs {
 
 /**
  * Returns true iff the investigation graph has Wall-renderable content. Used
- * to gate the canvas Wall overlay toggle: when this is false, 'wall' is
- * filtered out of CanvasOverlayPicker.availableOverlays.
+ * to gate the mobile WallShortcutButton in Canvas/index.tsx: the button is
+ * only shown when there is Wall content worth opening.
  *
  * Findings live in app-level feature stores. Callers pass findingsCount from
  * their app's findings selector so this hook stays downward-dependent only.
  * V1 findings render as hub evidence, not standalone Wall nodes, so a
- * findings-only graph should not advertise the Wall overlay yet.
+ * findings-only graph should not advertise the Wall shortcut yet.
  */
 export function useHasAnalyzeContent(args: UseHasAnalyzeContentArgs): boolean {
   const hubsCount = useAnalyzeStore(state => state.hypotheses.length);
