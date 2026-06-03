@@ -18,7 +18,13 @@
  */
 
 import React, { useState } from 'react';
-import type { Finding, ActionItem, ImprovementIdea, IdeaImpact } from '@variscout/core';
+import type {
+  Finding,
+  ActionItem,
+  ImprovementIdea,
+  IdeaImpact,
+  HypothesisStatus,
+} from '@variscout/core';
 import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
@@ -156,6 +162,13 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
     hypothesisId: string,
     input: { description: string; verdict: 'pending' | 'survived' | 'refuted' }
   ) => void;
+  /**
+   * CS-10 — Analyst-owned status setter. When wired, the analyst can explicitly
+   * set the hypothesis status to any of the 5 states. No control is rendered in
+   * this task (Task 3 adds the chip); the prop is declared here so the wiring
+   * compiles end-to-end.
+   */
+  onSetStatus?: (hubId: string, status: HypothesisStatus) => void;
   /**
    * Task 6 (IM-4b) — IdeaImpact map keyed by ideaId.
    * Passed through to ImprovementIdeasSection for rendering impact badges.
@@ -330,6 +343,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onAddHypothesisAction,
   onCompleteHypothesisAction,
   onRecordDisconfirmation,
+  onSetStatus: _onSetStatus, // CS-10 Task 3 will render the status chip; declared here for prop wiring
   ideaImpacts,
   onProjectIdea,
   onAddIdea,

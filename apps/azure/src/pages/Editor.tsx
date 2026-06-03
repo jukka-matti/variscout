@@ -81,6 +81,7 @@ import type {
   ProcessContext,
   ProcessHub,
   DisconfirmationAttempt,
+  HypothesisStatus,
 } from '@variscout/core';
 import type { SurveyRecommendation } from '@variscout/core/survey';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -686,6 +687,10 @@ export const Editor: React.FC<EditorProps> = ({
     }
   );
 
+  const setHubStatusRef = useRef<(hubId: string, status: HypothesisStatus) => void>(() => {
+    console.warn('[wall] setHubStatus called before hypothesesState was ready');
+  });
+
   const wallActiveIPMembers = useMemo(
     () => activeIPContext.activeIP?.metadata.members ?? [],
     [activeIPContext.activeIP]
@@ -767,6 +772,11 @@ export const Editor: React.FC<EditorProps> = ({
           .catch((err: unknown) => {
             console.error('[wall] Failed to record disconfirmation:', err);
           });
+      },
+      onSetStatus: (hubId: string, status: HypothesisStatus) => {
+        // Route through the hook (via ref) so local hook state syncs immediately.
+        // onHubsChange then propagates to the domain store via resetHubs.
+        setHubStatusRef.current(hubId, status);
       },
     }),
     [wallMeasurementPlans, wallActiveIPMembers, currentUser?.email, currentUser?.name]
@@ -1239,6 +1249,7 @@ export const Editor: React.FC<EditorProps> = ({
   // where `hypothesesState`, `ideaImpacts`, and `handleProjectIdea` are reactively
   // in scope (Editor's wallPlanningProps memo is TDZ-bound before the hook).
   recordDisconfirmationRef.current = hypothesesState.recordDisconfirmation;
+  setHubStatusRef.current = hypothesesState.setHubStatus;
 
   const projectionTarget = useAnalyzeFeatureStore(s => s.projectionTarget);
 

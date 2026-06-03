@@ -79,6 +79,7 @@ import {
   type ExclusionReason,
   type ImprovementIdea,
   type DisconfirmationAttempt,
+  type HypothesisStatus,
   toNumericValue,
   extractHubName,
   parseMentions,
@@ -945,6 +946,8 @@ function AppMain() {
         };
         useAnalyzeStore.getState().recordDisconfirmation(hypothesisId, attempt);
       },
+      onSetStatus: (id: string, status: HypothesisStatus) =>
+        useAnalyzeStore.getState().setHubStatus(id, status),
       // IM-4b Task 1 — hub comment thread. The PWA Wall (AnalyzeView) reads hubs
       // from useAnalyzeStore, so comment/task/idea writes route through the store
       // (its source of truth). parseMentions resolves @-tags against members.
