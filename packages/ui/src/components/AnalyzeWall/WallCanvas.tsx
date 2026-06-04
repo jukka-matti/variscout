@@ -259,6 +259,17 @@ export interface WallCanvasProps {
    */
   onProposeHypothesis?: (findingId: string) => void;
   /**
+   * CS-13 — the crossing-back (spec §4.0a). When provided, the focused factor
+   * glyph and each hypothesis card header render a → jump button. Fired with
+   * the RAW factor column name (glyph: its factorKey; card: the hub's primary
+   * `deriveHypothesisFactors` column). DATA-PRESENCE-GATED: no affordance when
+   * the factor is absent from `activeColumns` — the measurement-plan chip owns
+   * the awaiting-collection case. Apps wire this through
+   * `navigateToExploreForChip({kind:'factor', columnName, outcomeColumn})` +
+   * `showExplore()` — the same primitive as the Process-tab chips.
+   */
+  onExploreFactor?: (factorColumn: string) => void;
+  /**
    * When provided, enables drag-drop gate composition. Hubs become draggable
    * sources; gate badges become drop targets. Fired on a valid hub→gate
    * drop — callers should wire this to `analyzeStore.composeGate`.
@@ -383,6 +394,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   onSeedFromFactorIntel,
   onFocusHubFromGap,
   onProposeHypothesis,
+  onExploreFactor,
   onComposeGate,
   zoom = 1,
   pan = { x: 0, y: 0 },
@@ -417,6 +429,15 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const columnSet = useMemo(
     () => (activeColumns ? new Set(activeColumns) : undefined),
     [activeColumns]
+  );
+  // CS-13 — each hub's primary factor for the card → jump (condition columns,
+  // falling back to linked findings' filter columns; undefined when none).
+  const primaryFactorByHub = useMemo(
+    () =>
+      new Map<string, string | undefined>(
+        filteredHubs.map(h => [h.id, deriveHypothesisFactors(h, findings)[0]])
+      ),
+    [filteredHubs, findings]
   );
   const branchByHubId = useMemo(() => {
     const entries = filteredHubs.map(
@@ -773,6 +794,10 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
               focused={focusedWallEntityId === nodeId}
               ariaLabel={formatMessage(locale, 'wall.factorGlyph.aria', { factor: key })}
               onFocus={handleFocusNode}
+              onExplore={
+                onExploreFactor && (!columnSet || columnSet.has(key)) ? onExploreFactor : undefined
+              }
+              exploreAriaLabel={formatMessage(locale, 'wall.exploreJump.aria', { factor: key })}
             />
           );
         })}
@@ -785,6 +810,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     focusedWallEntityId,
     locale,
     handleFocusNode,
+    onExploreFactor,
+    columnSet,
   ]);
 
   // PR-CS-12 factor↔hypothesis edges: solid (vs the dashed finding tethers),
@@ -1070,6 +1097,10 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   };
 
   const renderHubAt = (hub: Hypothesis, x: number) => {
+    // CS-13 — card → jump: resolved primary factor, data-presence-gated.
+    const primaryFactor = primaryFactorByHub.get(hub.id);
+    const exploreEnabled =
+      onExploreFactor && primaryFactor && (!columnSet || columnSet.has(primaryFactor));
     const hubProps = {
       hub,
       branch: branchByHubId.get(hub.id),
@@ -1091,6 +1122,10 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       rows,
       columnTypes,
       outcomeColumn,
+      onExplore: exploreEnabled ? () => onExploreFactor(primaryFactor) : undefined,
+      exploreAriaLabel: exploreEnabled
+        ? formatMessage(locale, 'wall.exploreJump.aria', { factor: primaryFactor })
+        : undefined,
     };
 
     // Derive per-hypothesis plans (non-deleted only) when planningProps are provided.
