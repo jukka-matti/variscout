@@ -1,7 +1,7 @@
 /**
  * AnalyzeView (PWA) — empty-lineage-means-unfiltered Wall filter (item 1).
  *
- * Mirrors the Azure AnalyzeWorkspace.emptyLineage.seam test.
+ * Mirrors the Azure AnalyzeWorkspace.emptyLineage.seam test (hub paths; the findings pair is covered Azure-side only).
  * Mechanism: `IP.sections.investigationLineage.hypothesisIds` has no UI writer.
  * With active-IP scope engaged, the old filter compared against always-empty set
  * → every hypothesis hidden. Interim semantic: empty lineage = show everything.

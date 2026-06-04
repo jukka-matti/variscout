@@ -264,7 +264,7 @@ describe('WallCanvas — model-builder band seam', () => {
     const [, vbY, vbW, vbH] = parts;
     // Cropped: y offset into the canvas (not 0 — content is near y=1300).
     expect(vbY).toBeGreaterThan(0);
-    // Width: at least 700 (min-width guard) but strictly less than CANVAS_W (2000).
+    // Width: at least 700 (min-width guard) but less than CANVAS_W for this 3-factor fixture (the crop grows with factor count by design).
     expect(vbW).toBeGreaterThanOrEqual(700);
     expect(vbW).toBeLessThan(2000);
     // Height: covers the content but much less than full canvas height (1400).
