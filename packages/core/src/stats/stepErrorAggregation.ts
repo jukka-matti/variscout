@@ -1,4 +1,4 @@
-import type { ProcessHub, ProcessHubAnalyze } from '../processHub';
+import type { ProcessHub, ProcessStepCapabilityMember } from '../processHub';
 import type { ProcessMap, ProcessMapNode } from '../frame/types';
 import type { DataRow, SpecLookupContext } from '../types';
 
@@ -6,7 +6,11 @@ export type StepErrorRollupHub = Pick<ProcessHub, 'id' | 'canonicalProcessMap'>;
 
 export interface StepErrorRollupInput {
   hub: StepErrorRollupHub;
-  members: readonly ProcessHubAnalyze[];
+  members: readonly ProcessStepCapabilityMember[];
+  /**
+   * Per-member raw rows. Dead-in-prod today; CS-P2 wires editor rawData.
+   */
+  rowsByAnalyze: ReadonlyMap<string, readonly DataRow[]>;
   defectColumns?: readonly string[];
   contextFilter?: SpecLookupContext;
 }
@@ -55,7 +59,7 @@ function rowHasDefect(row: DataRow, defectColumns: readonly string[]): boolean {
  * `useProductionLineGlanceData` (T3) to populate the bottom-right Pareto slot.
  */
 export function rollupStepErrors(input: StepErrorRollupInput): StepErrorRollupResult[] {
-  const { hub, members, defectColumns = [], contextFilter } = input;
+  const { hub, members, rowsByAnalyze, defectColumns = [], contextFilter } = input;
   const map: ProcessMap | undefined = hub.canonicalProcessMap;
   if (!map) return [];
 
@@ -65,15 +69,13 @@ export function rollupStepErrors(input: StepErrorRollupInput): StepErrorRollupRe
   }
 
   for (const member of members) {
-    // Filter to investigations belonging to this hub via metadata.processHubId
+    // Filter to members belonging to this hub via metadata.processHubId
     if (member.metadata?.processHubId !== hub.id) continue;
 
     const nodeMappings = member.metadata?.nodeMappings;
     if (!nodeMappings || nodeMappings.length === 0) continue;
 
-    // rows is not on the base ProcessHubAnalyze type; apps attach it at
-    // runtime on extended investigation objects. Access via a cast.
-    const rows = (member as { rows?: readonly DataRow[] }).rows ?? [];
+    const rows = rowsByAnalyze.get(member.id) ?? [];
     if (rows.length === 0) continue;
 
     const mappedNodeIds = new Set(nodeMappings.map(m => m.nodeId));

@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { rollupStepErrors } from '../stepErrorAggregation';
-import type { ProcessHub, ProcessHubAnalyze, ProcessHubAnalyzeMetadata } from '../../processHub';
+import type {
+  ProcessHub,
+  ProcessStepCapabilityMember,
+  ProcessStepCapabilityMemberMetadata,
+} from '../../processHub';
 import type { ProcessMap } from '../../frame/types';
 import type { DataRow } from '../../types';
 
@@ -27,21 +31,23 @@ const hub: ProcessHub = {
 function makeMember(opts: {
   id: string;
   rows: DataRow[];
-  nodeMappings: ProcessHubAnalyzeMetadata['nodeMappings'];
-}): ProcessHubAnalyze {
-  return {
+  nodeMappings: ProcessStepCapabilityMemberMetadata['nodeMappings'];
+}): { member: ProcessStepCapabilityMember; rows: DataRow[] } {
+  const member: ProcessStepCapabilityMember = {
     id: opts.id,
     name: `Investigation ${opts.id}`,
-    createdAt: 1745836800000,
-    updatedAt: 1745836800000,
-    deletedAt: null,
     metadata: {
       processHubId: 'hub-1',
       nodeMappings: opts.nodeMappings,
-      canonicalMapVersion: '2026-04-28',
-    } as never,
-    rows: opts.rows,
-  } as unknown as ProcessHubAnalyze;
+    },
+  };
+  return { member, rows: opts.rows };
+}
+
+function rowsMap(
+  ...entries: { member: ProcessStepCapabilityMember; rows: DataRow[] }[]
+): ReadonlyMap<string, readonly DataRow[]> {
+  return new Map(entries.map(e => [e.member.id, e.rows]));
 }
 
 describe('rollupStepErrors', () => {
@@ -66,7 +72,8 @@ describe('rollupStepErrors', () => {
     });
     const result = rollupStepErrors({
       hub,
-      members: [m1, m2],
+      members: [m1.member, m2.member],
+      rowsByAnalyze: rowsMap(m1, m2),
       defectColumns: ['defect'],
     });
     expect(result.find(s => s.nodeId === 'n1')?.errorCount).toBe(2);
@@ -86,7 +93,8 @@ describe('rollupStepErrors', () => {
     });
     const result = rollupStepErrors({
       hub,
-      members: [m],
+      members: [m.member],
+      rowsByAnalyze: rowsMap(m),
       defectColumns: ['defect'],
       contextFilter: { product: 'A' },
     });
@@ -101,7 +109,8 @@ describe('rollupStepErrors', () => {
     });
     const result = rollupStepErrors({
       hub,
-      members: [m],
+      members: [m.member],
+      rowsByAnalyze: rowsMap(m),
       defectColumns: ['defect'],
     });
     expect(result.find(s => s.nodeId === 'n1')?.errorCount).toBe(0);
@@ -123,7 +132,8 @@ describe('rollupStepErrors', () => {
     });
     const result = rollupStepErrors({
       hub,
-      members: [m1, m2],
+      members: [m1.member, m2.member],
+      rowsByAnalyze: rowsMap(m1, m2),
       defectColumns: ['defect'],
     });
     expect(result.find(s => s.nodeId === 'n1')?.errorCount).toBe(3);
@@ -135,11 +145,11 @@ describe('rollupStepErrors', () => {
       rows: [{ mixCpk: 1.0, defect: 'crack' }],
       nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }],
     });
-    const meta = (otherHub as { metadata?: ProcessHubAnalyzeMetadata }).metadata;
-    if (meta) (meta as { processHubId: string }).processHubId = 'hub-2';
+    if (otherHub.member.metadata) otherHub.member.metadata.processHubId = 'hub-2';
     const result = rollupStepErrors({
       hub,
-      members: [otherHub],
+      members: [otherHub.member],
+      rowsByAnalyze: rowsMap(otherHub),
       defectColumns: ['defect'],
     });
     expect(result.find(s => s.nodeId === 'n1')?.errorCount).toBe(0);
@@ -150,7 +160,12 @@ describe('rollupStepErrors', () => {
       ...hub,
       canonicalProcessMap: undefined,
     };
-    const result = rollupStepErrors({ hub: noMapHub, members: [], defectColumns: ['defect'] });
+    const result = rollupStepErrors({
+      hub: noMapHub,
+      members: [],
+      rowsByAnalyze: new Map(),
+      defectColumns: ['defect'],
+    });
     expect(result).toEqual([]);
   });
 
@@ -160,7 +175,7 @@ describe('rollupStepErrors', () => {
       rows: [{ mixCpk: 1.0, defect: 'crack' }],
       nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }],
     });
-    const result = rollupStepErrors({ hub, members: [m] });
+    const result = rollupStepErrors({ hub, members: [m.member], rowsByAnalyze: rowsMap(m) });
     expect(result.every(s => s.errorCount === 0)).toBe(true);
   });
 });

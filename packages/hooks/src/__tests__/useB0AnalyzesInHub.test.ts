@@ -1,22 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useB0AnalyzesInHub } from '../useB0AnalyzesInHub';
-import type { ProcessHubAnalyze, ProcessHubAnalyzeMetadata } from '@variscout/core';
+import type {
+  ProcessStepCapabilityMember,
+  ProcessStepCapabilityMemberMetadata,
+} from '@variscout/core';
 
-type NodeMappings = NonNullable<ProcessHubAnalyzeMetadata['nodeMappings']>;
+type NodeMappings = NonNullable<ProcessStepCapabilityMemberMetadata['nodeMappings']>;
 
 function inv(opts: {
   id: string;
   hubId: string;
   nodeMappings: NodeMappings;
   declined?: string;
-}): ProcessHubAnalyze {
+}): ProcessStepCapabilityMember {
   return {
     id: opts.id,
     name: opts.id,
-    createdAt: 1714000000000,
-    updatedAt: 1714000000000,
-    deletedAt: null,
     metadata: {
       processHubId: opts.hubId,
       nodeMappings: opts.nodeMappings,

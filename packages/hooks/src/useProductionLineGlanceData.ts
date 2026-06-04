@@ -11,8 +11,7 @@ import type {
   DataRow,
   IChartDataPoint,
   ProcessHub,
-  ProcessHubAnalyze,
-  ProcessHubAnalyzeMetadata,
+  ProcessStepCapabilityMember,
   StatsResult,
   TimelineWindow,
 } from '@variscout/core';
@@ -26,7 +25,7 @@ export type ProductionLineGlanceHub = Pick<
 
 export interface UseProductionLineGlanceDataInput {
   hub: ProductionLineGlanceHub;
-  members: readonly ProcessHubAnalyze[];
+  members: readonly ProcessStepCapabilityMember[];
   rowsByAnalyze: ReadonlyMap<string, readonly DataRow[]>;
   contextFilter: SpecLookupContext;
   defectColumns?: readonly string[];
@@ -141,7 +140,7 @@ export function useProductionLineGlanceData(
       if (!node.capabilityScope) continue;
       for (const member of members) {
         if (member.metadata?.processHubId !== hub.id) continue;
-        const meta = member.metadata as ProcessHubAnalyzeMetadata;
+        const meta = member.metadata;
         if (!meta?.nodeMappings?.some(m => m.nodeId === node.id)) continue;
         const rows = windowedRowsByInvestigation.get(member.id) ?? [];
         const filtered = rows.filter(r => rowMatchesFilter(r, contextFilter));
@@ -162,31 +161,18 @@ export function useProductionLineGlanceData(
     return results;
   }, [map, members, windowedRowsByInvestigation, contextFilter, hub.id, hub.contextColumns]);
 
-  // Roll up step error counts. rollupStepErrors reads rows from member objects
-  // directly (duck-typed cast in core). When a window is active we hand it
-  // shadow members whose `rows` field has been clipped per the same per-
-  // investigation window logic — so step-error counts honor the same temporal
-  // window as the capability boxplot, without rollupStepErrors needing to know
-  // about windows.
-  const windowedMembers = useMemo<readonly ProcessHubAnalyze[]>(() => {
-    if (!window) return members;
-    return members.map(member => {
-      const windowedRows = windowedRowsByInvestigation.get(member.id);
-      // Preserve all original member fields; swap rows only when we have
-      // a windowed view for it.
-      if (!windowedRows) return member;
-      return { ...member, rows: windowedRows } as ProcessHubAnalyze;
-    });
-  }, [members, window, windowedRowsByInvestigation]);
-
+  // Roll up step error counts. rollupStepErrors reads rows from the explicit
+  // `rowsByAnalyze` map; we hand it the per-investigation windowed rows so
+  // step-error counts honor the same temporal window as the capability boxplot.
   const errorSteps = useMemo(() => {
     return rollupStepErrors({
       hub,
-      members: windowedMembers,
+      members,
+      rowsByAnalyze: windowedRowsByInvestigation,
       defectColumns,
       contextFilter,
     });
-  }, [hub, windowedMembers, defectColumns, contextFilter]);
+  }, [hub, members, windowedRowsByInvestigation, defectColumns, contextFilter]);
 
   // Plan C1 ships an empty top row for the dashboard. The full top-left "Cpk
   // vs target i-chart" slot requires a per-snapshot line-level Cp/Cpk series

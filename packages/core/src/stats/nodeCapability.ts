@@ -1,7 +1,7 @@
 import type { DataRow, SpecLimits, SpecLookupContext, SpecRule } from '../types';
 import { toNumericValue } from '../types';
 import type { ProcessMap, ProcessMapNode } from '../frame/types';
-import type { ProcessHubAnalyzeMetadata, ProcessHub, ProcessHubAnalyze } from '../processHub';
+import type { ProcessStepCapabilityMemberMetadata } from '../processHub';
 import { lookupSpecRule } from './specRuleLookup';
 import { sampleConfidenceFor, type SampleConfidence } from './sampleConfidence';
 import { safeDivide } from './safeMath';
@@ -25,9 +25,7 @@ export interface NodeCapabilityResult {
   /** Confidence band derived from total `n`. */
   sampleConfidence: SampleConfidence;
   /** Source kind that produced this result. */
-  source: 'column' | 'children' | 'mixed';
-  /** Investigation IDs that contributed (only for `children` source). */
-  contributingInvestigations?: string[];
+  source: 'column';
   /** Per-context results — one row per distinct context tuple. */
   perContextResults?: Array<{
     contextTuple: SpecLookupContext;
@@ -38,25 +36,19 @@ export interface NodeCapabilityResult {
   }>;
 }
 
-export type CalculateNodeCapabilitySource =
-  | {
-      kind: 'column';
-      processMap: ProcessMap;
-      investigationMeta: ProcessHubAnalyzeMetadata;
-      data: readonly DataRow[];
-      /**
-       * Hub-level context dimensions (e.g. `hub.contextColumns`). Merged with
-       * tributary-attached `contextColumns` and SpecRule `when` keys when
-       * grouping rows. Optional — single-investigation flows that don't yet
-       * have a hub may omit this.
-       */
-      hubContextColumns?: readonly string[];
-    }
-  | {
-      kind: 'children';
-      hub: ProcessHub;
-      members: readonly ProcessHubAnalyze[];
-    };
+export type CalculateNodeCapabilitySource = {
+  kind: 'column';
+  processMap: ProcessMap;
+  investigationMeta: ProcessStepCapabilityMemberMetadata;
+  data: readonly DataRow[];
+  /**
+   * Hub-level context dimensions (e.g. `hub.contextColumns`). Merged with
+   * tributary-attached `contextColumns` and SpecRule `when` keys when
+   * grouping rows. Optional — single-investigation flows that don't yet
+   * have a hub may omit this.
+   */
+  hubContextColumns?: readonly string[];
+};
 
 const EMPTY_INSUFFICIENT: NodeCapabilityResult = {
   nodeId: '',
@@ -69,24 +61,17 @@ const EMPTY_INSUFFICIENT: NodeCapabilityResult = {
 };
 
 /**
- * Compute capability for a single canonical-map node. Two modes:
+ * Compute capability for a single canonical-map node.
  *
- * - `kind: 'column'` — read measurements from one investigation's data,
- *   resolved via `investigationMeta.nodeMappings`. Per-context-tuple Cp/Cpk
- *   computed by looking up `SpecRule` from `node.capabilityScope.specRules`.
- *
- * - `kind: 'children'` — aggregate per-investigation `reviewSignal` values
- *   from `members` whose `processHubId === hub.id` and which are tagged for
- *   this node via their `nodeMappings`. (Implemented in Task 9.)
+ * - `kind: 'column'` — read measurements from one project's data, resolved via
+ *   `investigationMeta.nodeMappings`. Per-context-tuple Cp/Cpk computed by
+ *   looking up `SpecRule` from `node.capabilityScope.specRules`.
  */
 export function calculateNodeCapability(
   nodeId: string,
   source: CalculateNodeCapabilitySource
 ): NodeCapabilityResult {
-  if (source.kind === 'column') {
-    return calculateFromColumn(nodeId, source);
-  }
-  return calculateFromChildren(nodeId, source);
+  return calculateFromColumn(nodeId, source);
 }
 
 // ============================================================================
@@ -99,7 +84,7 @@ function findNode(processMap: ProcessMap, nodeId: string): ProcessMapNode | unde
 
 function getMeasurementColumn(
   node: ProcessMapNode,
-  meta: ProcessHubAnalyzeMetadata
+  meta: ProcessStepCapabilityMemberMetadata
 ): string | undefined {
   const mapping = meta.nodeMappings?.find(m => m.nodeId === node.id);
   if (mapping?.measurementColumn) return mapping.measurementColumn;
@@ -108,7 +93,7 @@ function getMeasurementColumn(
 
 function getEffectiveSpecRules(
   node: ProcessMapNode,
-  meta: ProcessHubAnalyzeMetadata
+  meta: ProcessStepCapabilityMemberMetadata
 ): readonly { when?: Record<string, string | null>; specs: SpecLimits }[] {
   const mapping = meta.nodeMappings?.find(m => m.nodeId === node.id);
   if (mapping?.specsOverride) {
@@ -273,64 +258,6 @@ function calculateFromColumn(
     n: totalN,
     sampleConfidence: sampleConfidenceFor(totalN),
     source: 'column',
-    perContextResults,
-  };
-}
-
-// ============================================================================
-// Children-source implementation
-// ============================================================================
-
-function calculateFromChildren(
-  nodeId: string,
-  source: Extract<CalculateNodeCapabilitySource, { kind: 'children' }>
-): NodeCapabilityResult {
-  const { hub, members } = source;
-  const contributing: NonNullable<NodeCapabilityResult['contributingInvestigations']> = [];
-  const perContextResults: NonNullable<NodeCapabilityResult['perContextResults']> = [];
-  let totalN = 0;
-
-  for (const member of members) {
-    const meta = member.metadata;
-    if (!meta) continue;
-    if (meta.processHubId !== hub.id) continue;
-    const tagged = meta.nodeMappings?.some(m => m.nodeId === nodeId) ?? false;
-    if (!tagged) continue;
-    const signal = meta.reviewSignal;
-    if (!signal) continue;
-    const cpk = signal.capability?.cpk;
-    const cp = signal.capability?.cp;
-    const n = signal.rowCount ?? 0;
-    if (n <= 0) continue;
-    contributing.push(member.id);
-    totalN += n;
-    // Each contributing investigation contributes one perContextResult row.
-    // Per-investigation cpk values come pre-computed against THAT
-    // investigation's own specs — we cannot tell whether sibling investigations
-    // used identical specs, so node-level cpk/cp are intentionally left
-    // undefined. Callers render the per-investigation distribution.
-    // See spec line 148: cross-hub comparison is visual, never collapsed.
-    perContextResults.push({
-      contextTuple: { investigationId: member.id },
-      cpk,
-      cp,
-      n,
-      sampleConfidence: sampleConfidenceFor(n),
-    });
-  }
-
-  // Node-level cpk/cp are deliberately undefined for the children source.
-  // Future: when reviewSignal carries per-context results with their resolved
-  // SpecRule identity, we could populate the scalar in the same-rule case
-  // (mirroring the column-source policy).
-  return {
-    nodeId,
-    cpk: undefined,
-    cp: undefined,
-    n: totalN,
-    sampleConfidence: sampleConfidenceFor(totalN),
-    source: 'children',
-    contributingInvestigations: contributing,
     perContextResults,
   };
 }

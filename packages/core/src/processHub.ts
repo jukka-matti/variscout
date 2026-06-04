@@ -173,6 +173,35 @@ export interface AnalyzeNodeMapping {
 }
 
 /**
+ * Typed per-step capability carrier — the CS-P2 contract (PO-4).
+ * Replaces the dissolved `ProcessHubAnalyze` projection in the per-step
+ * capability path. Members are sourced from `ProcessContext` via the project
+ * document (the `ProjectMetadata` projection); raw rows travel separately as
+ * `rowsByAnalyze` maps (dead-in-prod today — CS-P2 wires the editor's live
+ * `rawData` through the existing `rowsByAnalyze` input seam).
+ */
+export interface ProcessStepCapabilityMemberMetadata {
+  /** Durable process context that owns this step's project (1:1). */
+  processHubId?: string;
+  /** Per-node measurement-column mappings — FULL shape incl. `specsOverride`. */
+  nodeMappings?: AnalyzeNodeMapping[];
+  /** ISO 8601 marker for dismissed B0 migration prompts. */
+  migrationDeclinedAt?: string;
+}
+
+export interface ProcessStepCapabilityMember {
+  /** The ImprovementProject id under Project⟷Hub 1:1. */
+  id: string;
+  name: string;
+  metadata?: ProcessStepCapabilityMemberMetadata;
+}
+
+export interface ProcessStepCapabilitySource {
+  hub: ProcessHub;
+  members: readonly ProcessStepCapabilityMember[];
+}
+
+/**
  * Canvas-wide scope filter applied to the active Analyze entry. Populated when
  * the user clicks a Pareto bar (or adds a chip explicitly). Drives downstream
  * chart filtering across the canvas surface. Absent → no scope filter.

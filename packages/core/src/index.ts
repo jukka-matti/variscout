@@ -553,6 +553,9 @@ export type {
   ProcessHubRollup,
   ProcessHubSurveyReadinessSummary,
   ProcessParticipantRef,
+  ProcessStepCapabilityMember,
+  ProcessStepCapabilityMemberMetadata,
+  ProcessStepCapabilitySource,
 } from './processHub';
 export {
   buildAIContext,

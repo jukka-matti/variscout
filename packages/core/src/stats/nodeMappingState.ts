@@ -1,5 +1,5 @@
 import type { ProcessMap } from '../frame/types';
-import type { ProcessHubAnalyzeMetadata, AnalyzeNodeMapping } from '../processHub';
+import type { ProcessStepCapabilityMemberMetadata, AnalyzeNodeMapping } from '../processHub';
 
 /**
  * Returns true if the investigation has no node mappings yet — i.e., still
@@ -8,7 +8,7 @@ import type { ProcessHubAnalyzeMetadata, AnalyzeNodeMapping } from '../processHu
  * dashboards. This is UI state about the cascade flow, not a back-compat
  * data migration.
  */
-export function isUnmappedAnalyze(meta: ProcessHubAnalyzeMetadata): boolean {
+export function isUnmappedAnalyze(meta: ProcessStepCapabilityMemberMetadata): boolean {
   if (!meta.nodeMappings) return true;
   return meta.nodeMappings.length === 0;
 }
