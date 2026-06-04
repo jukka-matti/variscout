@@ -658,10 +658,6 @@ export { navigateToExploreForChip } from './components/Canvas';
 export type { ChipNavigationTarget } from './components/Canvas';
 export { ExploreJumpButton } from './components/Canvas';
 export { CanvasWorkspace, type CanvasWorkspaceProps } from './components/Canvas/CanvasWorkspace';
-export {
-  ProcessHubCurrentStatePanel,
-  type ProcessHubCurrentStatePanelProps,
-} from './components/ProcessHubCurrentStatePanel';
 
 // Hooks
 export {
