@@ -1,20 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import {
-  buildProcessHubRollups,
-  normalizeProcessHubId,
-  linkFindingsToStateItems,
-} from '@variscout/core';
+import { buildProcessHubRollups, normalizeProcessHubId } from '@variscout/core';
 import type { ProcessHub, ProcessHubAnalyze, ControlRecord, ControlHandoff } from '@variscout/core';
 import type { EvidenceSnapshot } from '@variscout/core';
-import type { Finding } from '@variscout/core';
-import type {
-  ProcessStateItem,
-  ProcessStateNote,
-  ProcessStateNoteKind,
-  ResponsePathAction,
-} from '@variscout/core';
-import { actionToHref } from '../lib/processHubRoutes';
-import { safeTrackEvent } from '../lib/appInsights';
 import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { useNewHubProvision } from '../features/hubCreation/useNewHubProvision';
@@ -24,10 +11,8 @@ import { FileBrowseButton, type FilePickerResult } from '../components/FileBrows
 import ProjectCard from '../components/ProjectCard';
 import ProcessHubCard from '../components/ProcessHubCard';
 import ProcessHubEvidencePanel from '../components/ProcessHubEvidencePanel';
-import EvidenceSheet from '../components/EvidenceSheet';
 import ProcessHubView from '../components/ProcessHubView';
 import SampleDataPicker from '../components/SampleDataPicker';
-import StateItemNotesDrawer from '../components/StateItemNotesDrawer';
 
 interface DashboardProps {
   onOpenProject: (id?: string, processHubId?: string, startPaste?: boolean) => void;
@@ -73,17 +58,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSamplePickerOpen, setIsSamplePickerOpen] = useState(false);
-  const [notesDrawerState, setNotesDrawerState] = useState<
-    | { mode: 'add'; item: ProcessStateItem; hubId: string }
-    | { mode: 'edit'; item: ProcessStateItem; note: ProcessStateNote; hubId: string }
-    | null
-  >(null);
-  const [isSavingNote, setIsSavingNote] = useState(false);
-  const [sheetState, setSheetState] = useState<{
-    item: ProcessStateItem;
-    hubId: string;
-    findings: readonly Finding[] | null;
-  } | null>(null);
 
   // Fetch current user ID for task ownership display
   useEffect(() => {
@@ -211,275 +185,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const selectedHubRollup = hubRollups.find(rollup => rollup.hub.id === selectedHubId);
   const selectedHub = selectedHubRollup?.hub ?? processHubs.find(hub => hub.id === selectedHubId);
-
-  const handleSetupSustainment = useCallback(
-    (analyzeId: string) => {
-      onOpenProject(analyzeId);
-    },
-    [onOpenProject]
-  );
-
-  const handleLogReview = useCallback(
-    (recordId: string) => {
-      const record = controlRecords.find(r => r.id === recordId);
-      if (record) onOpenProject(record.investigationId);
-    },
-    [controlRecords, onOpenProject]
-  );
-
-  const handleResponsePathAction = useCallback(
-    (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => {
-      const href = actionToHref(action);
-      if (!href) return; // unsupported
-
-      safeTrackEvent('process_hub.response_path_click', {
-        hubId,
-        responsePath: item.responsePath,
-        lens: item.lens,
-        severity: item.severity,
-      });
-
-      // Dashboard already exposes onOpenProject for analyze navigation.
-      // For now, route through that callback by extracting the analyze
-      // id from the action. Full URL routing (intent + control surface
-      // query params) is a follow-up — see plan PR #4 Task 12 note.
-      if (action.kind === 'open-analyze' || action.kind === 'open-control') {
-        onOpenProject(action.analyzeId);
-      }
-    },
-    [onOpenProject]
-  );
-
-  const loadFindingsForItem = React.useCallback(
-    async (item: ProcessStateItem, hubId: string): Promise<readonly Finding[]> => {
-      // Find the rollup for this hub to know which analyzes belong to it
-      const rollup = hubRollups.find(r => r.hub.id === hubId);
-      if (!rollup) return [];
-
-      // Resolver mirrors the one used in ProcessHubReviewPanel.notesFor:
-      // per-analyze items use item.analyzeIds; aggregate items use all
-      const analyzeIds =
-        item.analyzeIds && item.analyzeIds.length > 0
-          ? item.analyzeIds
-          : rollup.analyzes.map(i => i.id);
-
-      // Look up each analyze's project name (loadProject uses name+location)
-      const hubProjects = projects.filter(
-        p => normalizeProcessHubId(p.metadata?.processHubId) === normalizeProcessHubId(hubId)
-      );
-
-      // Load findings from each linked analyze in parallel
-      const findingsByInv = new Map<string, readonly Finding[]>();
-      await Promise.all(
-        analyzeIds.map(async invId => {
-          const projectMeta = hubProjects.find(p => (p.id || p.name) === invId);
-          if (!projectMeta) return;
-          const project = await loadProject(projectMeta.name, projectMeta.location);
-          if (!project) return;
-          const findings = (project as { findings?: Finding[] }).findings;
-          if (Array.isArray(findings)) {
-            findingsByInv.set(invId, findings);
-          }
-        })
-      );
-
-      // Use the pure aggregator to filter to relevant statuses + match by item
-      const result = linkFindingsToStateItems([item], findingsByInv, () => analyzeIds);
-      return result.byItemId.get(item.id) ?? [];
-    },
-    [hubRollups, projects, loadProject]
-  );
-
-  const handleChipClick = React.useCallback(
-    async (item: ProcessStateItem, hubId: string, count: number) => {
-      safeTrackEvent('process_hub.evidence_sheet_opened', {
-        hubId,
-        responsePath: item.responsePath,
-        lens: item.lens,
-        evidenceCount: count,
-      });
-      setSheetState({ item, hubId, findings: null });
-      try {
-        const findings = await loadFindingsForItem(item, hubId);
-        // Race guard: only apply if same item is still selected
-        setSheetState(prev =>
-          prev?.item.id === item.id && prev.hubId === hubId ? { ...prev, findings } : prev
-        );
-      } catch (err) {
-        console.error('[Dashboard] Loading evidence findings failed:', err);
-        setSheetState(prev =>
-          prev?.item.id === item.id && prev.hubId === hubId ? { ...prev, findings: [] } : prev
-        );
-      }
-    },
-    [loadFindingsForItem]
-  );
-
-  const handleFindingSelect = React.useCallback(
-    (item: ProcessStateItem, finding: Finding, hubId: string) => {
-      safeTrackEvent('process_hub.evidence_sheet_finding_clicked', {
-        hubId,
-        lens: item.lens,
-        findingStatus: finding.status,
-      });
-      setSheetState(null);
-      // Navigate to the linked analyze. Use the same heuristic as elsewhere:
-      // item.analyzeIds[0], falling back to first hub analyze.
-      const rollup = hubRollups.find(r => r.hub.id === hubId);
-      const targetInvestigationId = item.analyzeIds?.[0] ?? rollup?.analyzes[0]?.id;
-      if (targetInvestigationId) {
-        onOpenProject(targetInvestigationId);
-        // Best-effort hash for finding deep-link; editor may or may not honor it yet.
-        // Always set — assigning the same value is a no-op in browsers.
-        setTimeout(() => {
-          window.location.hash = `finding-${finding.id}`;
-        }, 100);
-      }
-    },
-    [hubRollups, onOpenProject]
-  );
-
-  const handleRequestAddNote = useCallback((item: ProcessStateItem, hubId: string) => {
-    setNotesDrawerState({ mode: 'add', item, hubId });
-  }, []);
-
-  const handleRequestEditNote = useCallback(
-    (item: ProcessStateItem, note: ProcessStateNote, hubId: string) => {
-      setNotesDrawerState({ mode: 'edit', item, note, hubId });
-    },
-    []
-  );
-
-  const handleSaveNote = useCallback(
-    async (kind: ProcessStateNoteKind, text: string) => {
-      if (!notesDrawerState) return;
-      if (isSavingNote) return;
-      setIsSavingNote(true);
-      try {
-        const { item, hubId } = notesDrawerState;
-        // Find a target analyze: prefer item's first linked, fall back to
-        // the most-recent analyze in the hub.
-        const hubProjects = projects.filter(
-          p => normalizeProcessHubId(p.metadata?.processHubId) === normalizeProcessHubId(hubId)
-        );
-        const targetInvestigationId =
-          item.analyzeIds?.[0] ??
-          hubProjects.sort((a, b) => (b.modified ?? '').localeCompare(a.modified ?? ''))[0]?.id;
-        if (!targetInvestigationId) {
-          setNotesDrawerState(null);
-          return;
-        }
-        // Find the project for loadProject (it takes name + location)
-        const targetProjectMeta = hubProjects.find(p => p.id === targetInvestigationId);
-        if (!targetProjectMeta) {
-          setNotesDrawerState(null);
-          return;
-        }
-        const project = await loadProject(targetProjectMeta.name, targetProjectMeta.location);
-        if (!project) {
-          setNotesDrawerState(null);
-          return;
-        }
-        const processContext = project.project.processContext ?? {};
-        const existingNotes = Array.isArray(processContext.stateNotes)
-          ? (processContext.stateNotes as ProcessStateNote[])
-          : [];
-        const nowIso = new Date().toISOString();
-
-        let nextNotes: ProcessStateNote[];
-        if (notesDrawerState.mode === 'add') {
-          const newNote: ProcessStateNote = {
-            id: `note-${crypto.randomUUID()}`,
-            itemId: item.id,
-            kind,
-            text,
-            author: userId,
-            createdAt: nowIso,
-          };
-          nextNotes = [...existingNotes, newNote];
-          safeTrackEvent('process_hub.state_note_added', {
-            hubId,
-            kind,
-            severity: item.severity,
-            lens: item.lens,
-          });
-        } else {
-          // mode === 'edit'
-          const noteId = notesDrawerState.note.id;
-          nextNotes = existingNotes.map(n =>
-            n.id === noteId ? { ...n, text, kind, updatedAt: nowIso } : n
-          );
-          safeTrackEvent('process_hub.state_note_edited', { hubId, kind });
-        }
-
-        const nextProject = {
-          ...project,
-          project: {
-            ...project.project,
-            processContext: {
-              ...processContext,
-              stateNotes: nextNotes,
-            },
-          },
-        };
-        await saveProject(nextProject, targetProjectMeta.name, targetProjectMeta.location);
-        await loadProjects();
-      } catch (err) {
-        console.error('[Dashboard] State note save failed:', err);
-        // Keep the drawer open so the user can retry.
-        return;
-      } finally {
-        setIsSavingNote(false);
-      }
-      setNotesDrawerState(null);
-    },
-    [notesDrawerState, isSavingNote, projects, loadProject, saveProject, userId, loadProjects]
-  );
-
-  const handleDeleteNote = useCallback(
-    async (item: ProcessStateItem, noteId: string, hubId: string) => {
-      if (isSavingNote) return;
-      setIsSavingNote(true);
-      try {
-        const hubProjects = projects.filter(
-          p => normalizeProcessHubId(p.metadata?.processHubId) === normalizeProcessHubId(hubId)
-        );
-        const targetInvestigationId =
-          item.analyzeIds?.[0] ??
-          hubProjects.sort((a, b) => (b.modified ?? '').localeCompare(a.modified ?? ''))[0]?.id;
-        if (!targetInvestigationId) return;
-        const targetProjectMeta = hubProjects.find(p => p.id === targetInvestigationId);
-        if (!targetProjectMeta) return;
-        const project = await loadProject(targetProjectMeta.name, targetProjectMeta.location);
-        if (!project) return;
-        const processContext = project.project.processContext ?? {};
-        const existingNotes = Array.isArray(processContext.stateNotes)
-          ? (processContext.stateNotes as ProcessStateNote[])
-          : [];
-        const note = existingNotes.find(n => n.id === noteId);
-        if (!note) return;
-        const nextNotes = existingNotes.filter(n => n.id !== noteId);
-        const nextProject = {
-          ...project,
-          project: {
-            ...project.project,
-            processContext: {
-              ...processContext,
-              stateNotes: nextNotes,
-            },
-          },
-        };
-        await saveProject(nextProject, targetProjectMeta.name, targetProjectMeta.location);
-        safeTrackEvent('process_hub.state_note_deleted', { hubId, kind: note.kind });
-        await loadProjects();
-      } catch (err) {
-        console.error('[Dashboard] State note delete failed:', err);
-      } finally {
-        setIsSavingNote(false);
-      }
-    },
-    [isSavingNote, projects, loadProject, saveProject, loadProjects]
-  );
 
   /**
    * Persist a mutated ProcessHubAnalyze back to storage.
@@ -789,18 +494,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <>
               <ProcessHubView
                 rollup={selectedHubRollup}
-                onOpenInvestigation={id => onOpenProject(id)}
-                onStartInvestigation={() => onOpenProject(undefined, selectedHubRollup.hub.id)}
-                onSetupControl={handleSetupSustainment}
-                onLogReview={handleLogReview}
-                onResponsePathAction={handleResponsePathAction}
-                onRequestAddNote={handleRequestAddNote}
-                onRequestEditNote={handleRequestEditNote}
-                onDeleteNote={handleDeleteNote}
-                currentUserId={userId}
-                loadFindingsForItem={loadFindingsForItem}
-                onChipClick={handleChipClick}
-                onFindingSelect={handleFindingSelect}
                 persistInvestigation={handlePersistInvestigation}
                 onHubCpkTargetCommit={handleHubCpkTargetCommit}
                 onHubGoalChange={handleHubGoalChange}
@@ -837,30 +530,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         onClose={() => setIsSamplePickerOpen(false)}
         onSelectSample={handleSampleSelect}
       />
-
-      {/* Team notes drawer — overlays the review panel */}
-      {notesDrawerState && (
-        <StateItemNotesDrawer
-          open={true}
-          initialKind={notesDrawerState.mode === 'edit' ? notesDrawerState.note.kind : 'question'}
-          initialText={notesDrawerState.mode === 'edit' ? notesDrawerState.note.text : ''}
-          onSave={handleSaveNote}
-          onCancel={() => setNotesDrawerState(null)}
-          disabled={isSavingNote}
-        />
-      )}
-
-      {/* Evidence sheet — bottom sheet for finding click-thru */}
-      {sheetState && (
-        <EvidenceSheet
-          item={sheetState.item}
-          findings={sheetState.findings}
-          onSelectFinding={finding =>
-            handleFindingSelect(sheetState.item, finding, sheetState.hubId)
-          }
-          onClose={() => setSheetState(null)}
-        />
-      )}
     </div>
   );
 };

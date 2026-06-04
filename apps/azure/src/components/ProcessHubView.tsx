@@ -1,22 +1,16 @@
 /**
- * ProcessHubView — the portfolio Dashboard's Process Hub surface.
+ * ProcessHubView — the portfolio Dashboard's thin Process Hub host.
  *
- * CS-P1: the Status/Capability two-tab collapsed into one coherent scroll
- * surface — the Capability content (production-line-glance dashboard) above
- * the Review keeps (CurrentStatePanel + Inbox + the lifted Control region).
+ * PO-3: the review surface (ProcessHubReviewPanel — CurrentStatePanel + Inbox +
+ * state-item UI) is retired. The host keeps the Capability orient content
+ * (production-line-glance dashboard) as its single scroll surface, plus the
+ * GoalBanner, framing prompt, OutcomePin row, and the B0 migration banner/modal.
  * See spec docs/superpowers/specs/2026-06-02-connective-surface-model-design.md §2A.
  *
  * T11: B0 migration banner + modal (overlay).
  */
 import React from 'react';
-import type {
-  Finding,
-  ProcessHubAnalyze,
-  ProcessHubRollup,
-  ProcessStateItem,
-  ProcessStateNote,
-  ResponsePathAction,
-} from '@variscout/core';
+import type { ProcessHubAnalyze, ProcessHubRollup } from '@variscout/core';
 import { isProcessHubComplete } from '@variscout/core';
 import {
   GoalBanner,
@@ -24,40 +18,20 @@ import {
   ProductionLineGlanceMigrationBanner,
   ProductionLineGlanceMigrationModal,
 } from '@variscout/ui';
-import ProcessHubReviewPanel from './ProcessHubReviewPanel';
 import { ProcessHubCapabilityTab } from './ProcessHubCapabilityTab';
 import { useHubMigrationState } from '../features/processHub/useHubMigrationState';
 
 export interface ProcessHubViewProps {
   rollup: ProcessHubRollup<ProcessHubAnalyze>;
-  onOpenInvestigation: (id: string) => void;
-  onStartInvestigation: () => void;
-  onSetupControl: (analyzeId: string) => void;
-  onLogReview: (recordId: string) => void;
-  onResponsePathAction: (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => void;
-  onRequestAddNote: (item: ProcessStateItem, hubId: string) => void;
-  onRequestEditNote: (item: ProcessStateItem, note: ProcessStateNote, hubId: string) => void;
-  onDeleteNote: (item: ProcessStateItem, noteId: string, hubId: string) => void;
-  currentUserId: string;
-  loadFindingsForItem: (item: ProcessStateItem, hubId: string) => Promise<readonly Finding[]>;
-  onChipClick: (item: ProcessStateItem, hubId: string, count: number) => void;
-  onFindingSelect: (item: ProcessStateItem, finding: Finding, hubId: string) => void;
   persistInvestigation: (next: ProcessHubAnalyze) => void;
   /**
    * Persist the hub-level Cpk target default (cascade level "hub"). Writes to
    * `processHub.reviewSignal.capability.cpkTarget`. `undefined` clears it.
    */
   onHubCpkTargetCommit: (hubId: string, next: number | undefined) => void;
-  /**
-   * Called when the analyst edits the goal narrative inline via GoalBanner.
-   * Absent → GoalBanner is read-only (existing behaviour pre-Task H).
-   */
+  /** Called when the analyst edits the goal narrative inline via GoalBanner. */
   onHubGoalChange?: (hubId: string, next: string) => void;
-  /**
-   * Opens the framing flow for this hub (HubCreationFlow or equivalent).
-   * When provided, an "Edit framing" / "Add framing" CTA is shown on hubs
-   * that fail isProcessHubComplete(). Absent → no CTA rendered.
-   */
+  /** Opens the framing flow for this hub. Absent → no CTA rendered. */
   onEditFraming?: (hubId: string) => void;
 }
 
@@ -67,7 +41,6 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
   onHubCpkTargetCommit,
   onHubGoalChange,
   onEditFraming,
-  ...reviewProps
 }) => {
   const hubIsComplete = isProcessHubComplete(rollup.hub);
 
@@ -152,13 +125,11 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
         onDecline={migration.handleDecline}
         onClose={migration.closeModal}
       />
-      {/* CS-P1: one coherent scroll surface — the Capability orient content
-          (production-line-glance) above the Review keeps (CurrentStatePanel +
-          Inbox + the lifted Control region). The Status/Capability tablist is
-          retired; Task 1's data-presence gate self-hides the empty temporal row. */}
+      {/* PO-3: the review surface (ProcessHubReviewPanel — CurrentStatePanel +
+          Inbox + state-item UI) is retired. The thin host keeps the Capability
+          orient content (production-line-glance) as the single scroll surface. */}
       <div className="flex-1 overflow-y-auto" data-testid="process-hub-surface">
         <ProcessHubCapabilityTab rollup={rollup} onHubCpkTargetCommit={onHubCpkTargetCommit} />
-        <ProcessHubReviewPanel rollup={rollup} {...reviewProps} />
       </div>
     </div>
   );

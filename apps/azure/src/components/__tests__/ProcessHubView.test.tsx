@@ -4,10 +4,6 @@ import { ProcessHubView } from '../ProcessHubView';
 import type { ProcessHubRollup, ProcessHubAnalyze, ProcessHub } from '@variscout/core';
 import type { OutcomeSpec } from '@variscout/core/processHub';
 
-vi.mock('../ProcessHubReviewPanel', () => ({
-  default: () => <div data-testid="mock-process-hub-review-panel" />,
-}));
-
 vi.mock('../ProcessHubCapabilityTab', () => ({
   ProcessHubCapabilityTab: () => <div data-testid="mock-process-hub-capability-tab" />,
   default: () => <div data-testid="mock-process-hub-capability-tab" />,
@@ -20,30 +16,16 @@ const rollup = {
   evidenceSnapshots: [],
 } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
 
-const noop = vi.fn();
 const baseProps = {
   rollup,
-  onOpenInvestigation: noop,
-  onStartInvestigation: noop,
-  onSetupControl: noop,
-  onLogReview: noop,
-  onResponsePathAction: noop,
-  onRequestAddNote: noop,
-  onRequestEditNote: noop,
-  onDeleteNote: noop,
-  currentUserId: 'user-1',
-  loadFindingsForItem: vi.fn().mockResolvedValue([]),
-  onChipClick: noop,
-  onFindingSelect: noop,
   persistInvestigation: vi.fn(),
   onHubCpkTargetCommit: vi.fn(),
 } as const;
 
 describe('ProcessHubView', () => {
-  it('renders both the review panel and the capability content with no tablist', () => {
+  it('renders the capability content with no tablist', () => {
     render(<ProcessHubView {...baseProps} />);
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
-    expect(screen.getByTestId('mock-process-hub-review-panel')).toBeInTheDocument();
     expect(screen.getByTestId('mock-process-hub-capability-tab')).toBeInTheDocument();
   });
 
