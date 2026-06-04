@@ -1,12 +1,7 @@
 // src/services/localDb.ts
 // IndexedDB operations for project persistence (Dexie wrapper)
 
-import {
-  DEFAULT_PROCESS_HUB,
-  buildHubReviewSignal,
-  buildProjectMetadata,
-  evaluateSurvey,
-} from '@variscout/core';
+import { DEFAULT_PROCESS_HUB, buildProjectMetadata, evaluateSurvey } from '@variscout/core';
 import type {
   ControlHandoff,
   EvidenceSnapshot,
@@ -57,18 +52,7 @@ export function extractMetadataInputs(
     const outcome = project.project.outcome;
     const factors = project.project.factors;
     const specs = project.project.specs;
-    const cpkTarget = project.project.cpkTarget;
     const timeColumn = project.project.timeColumn;
-    const dataFilename = project.project.dataFilename;
-    const reviewSignal = buildHubReviewSignal({
-      rawData,
-      outcome,
-      factors,
-      specs,
-      cpkTarget,
-      timeColumn,
-      dataFilename,
-    });
     const surveyReadiness = summarizeSurveyReadiness(
       evaluateSurvey({
         data: rawData,
@@ -88,7 +72,7 @@ export function extractMetadataInputs(
       userId,
       existingLastViewedAt,
       processContext,
-      reviewSignal,
+      undefined,
       surveyReadiness
     );
   } catch {

@@ -153,7 +153,7 @@ describe('localDb Process Hub support', () => {
     expect(metadata?.surveyReadiness?.recommendationCount).toBeGreaterThan(0);
   });
 
-  it('extracts a hub review signal from saved investigation data', () => {
+  it('does not include a hub review signal in extracted metadata (projection retired — PO-2)', () => {
     const metadata = extractMetadataInputs(
       snapshot({
         rawData: [
@@ -173,20 +173,10 @@ describe('localDb Process Hub support', () => {
       'local'
     );
 
-    expect(metadata?.reviewSignal).toMatchObject({
-      rowCount: 4,
-      outcome: 'Weight',
-      dataFilename: 'line-4.csv',
-      latestTimeValue: '2026-04-26T04:00:00Z',
-      topFocus: {
-        factor: 'Machine',
-        value: 'B',
-      },
-      capability: {
-        cpkTarget: 1.33,
-        outOfSpecPercentage: 50,
-      },
-    });
+    // reviewSignal is no longer saved into ProjectMetadata (PO-2 retirement);
+    // buildHubReviewSignal still lives in core but is no longer called on save.
+    expect(metadata).not.toBeNull();
+    expect((metadata as unknown as Record<string, unknown>)?.reviewSignal).toBeUndefined();
   });
 
   it('creates and lists the default hub lazily', async () => {

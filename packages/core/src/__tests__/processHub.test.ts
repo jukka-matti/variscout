@@ -10,19 +10,15 @@ import {
   isProcessHubId,
   normalizeProcessHubId,
 } from '../processHub';
-import type { ProcessHub, ProjectMetadata } from '../index';
+import type { ProcessHub } from '../index';
+import type { ProcessHubAnalyzeMetadata } from '../processHub';
 import type { EvidenceSnapshot } from '../evidenceSources';
 import type { ControlHandoff, ControlRecord } from '../control';
 
-function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata {
+function makeMetadata(
+  overrides: Partial<ProcessHubAnalyzeMetadata> = {}
+): ProcessHubAnalyzeMetadata {
   return {
-    phase: 'scout',
-    findingCounts: {},
-    questionCounts: {},
-    actionCounts: { total: 0, completed: 0, overdue: 0 },
-    assignedTaskCount: 0,
-    hasOverdueTasks: false,
-    lastViewedAt: {},
     processHubId: DEFAULT_PROCESS_HUB_ID,
     analyzeStatus: 'scouting',
     ...overrides,
@@ -1088,7 +1084,6 @@ describe('buildProcessHubRollups', () => {
             hunchCount: 2,
           },
           findingCounts: { analyzed: 2, resolved: 1 },
-          questionCounts: { open: 1, answered: 2, 'ruled-out': 1 },
           currentUnderstandingSummary: 'Variation is concentrated on night shift.',
           problemConditionSummary: 'Cpk is below target on Heads 5-8.',
           nextMove: 'Inspect nozzle wear during night shift.',

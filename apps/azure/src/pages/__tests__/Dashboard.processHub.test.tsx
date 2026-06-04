@@ -75,21 +75,6 @@ function makeProject(): CloudProject {
       currentUnderstandingSummary: 'Variation is concentrated on night shift.',
       problemConditionSummary: 'Cpk is below target on Heads 5-8.',
       nextMove: 'Inspect nozzle wear.',
-      reviewSignal: {
-        rowCount: 125,
-        outcome: 'Weight',
-        dataFilename: 'line-4.csv',
-        computedAt: '2026-04-26T09:00:00.000Z',
-        topFocus: { factor: 'Machine', value: 'B', variationPct: 48.2 },
-        capability: { cpk: 0.82, cpkTarget: 1.33, outOfSpecPercentage: 4.8 },
-        changeSignals: {
-          total: 2,
-          outOfControlCount: 1,
-          nelsonRule2Count: 1,
-          nelsonRule3Count: 0,
-        },
-        latestTimeValue: '2026-04-26T08:00:00Z',
-      },
     },
   };
 }
