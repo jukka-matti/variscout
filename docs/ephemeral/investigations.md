@@ -26,6 +26,44 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### "Pin as finding" crashes both apps — click event flows into the finding text [LOGGED 2026-06-04]
+
+**Surfaced by:** the CS-12 `--chrome` laptop verify. Clicking **Pin as finding** (dashboard `ProcessHealthBar`) crashes the whole app to the error boundary: `Converting circular structure to JSON — starting at object with constructor 'SVGSVGElement' … 'FiberNode' … 'stateNode' closes the circle`. **Confirmed identical on origin/main** (replayed the same Hospital Ward → drill `Time_Period: Afternoon` → Pin-as-finding flow on a main dev server) — pre-existing, NOT a CS-12 regression.
+
+**Suspected mechanism:** `ProcessHealthBar.tsx:601` passes the raw click handler — `onClick={onPinFinding}` — into a prop typed `onPinFinding?: (noteText?: string) => void`, so the React `MouseEvent` (whose target is an SVG element) arrives as `noteText` and rides into the created Finding's text; serialization (persistence/snapshot) then hits the circular DOM/fiber structure. One-line fix candidate: `onClick={() => onPinFinding()}` (+ a type-level guard so an event can never satisfy `noteText`).
+
+**Promotion path:** immediate small fix PR — this breaks the core evidence-capture loop in BOTH apps and is customer-demo-blocking.
+
+**Severity:** HIGH — core analyst loop crashes the app; pre-existing on main.
+
+### Wall empty-state CTAs silently no-op [LOGGED 2026-06-04]
+
+**Surfaced by:** the CS-12 `--chrome` laptop verify. On a fresh investigation (data loaded, zero hypotheses), the Analyze-tab Wall empty state's two CTAs — **"Write a suspected mechanism"** and **"Seed 3 from Factor Intelligence"** — produce no visible action and no console errors when clicked. **Confirmed identical on origin/main** — pre-existing, NOT a CS-12 regression. Combined with the Pin-as-finding crash above, there is currently NO working UI path from a fresh dataset to a populated Wall — worth treating as one demo-blocking cluster. (Minor, same surface: the cold-start Wall svg renders the ModelBuilderBand + factor glyph at a tiny scale — the 2000×1400 user-space compresses into the container; pre-existing for the band, CS-12 only added the adjacent glyph.)
+
+**Promotion path:** investigate the CTA handlers (modal not mounted? handler gated on missing state?) alongside the Pin-as-finding fix; one combined "Wall entry paths" fix PR is the likely shape.
+
+**Severity:** HIGH (cluster) — blocks the fresh-data → Wall journey before customer demos.
+
+### Evidence Map post-Model-B fate [LOGGED 2026-06-04]
+
+**Surfaced by:** CS-12 (reasoning canvas) now renders per-factor glyphs + Finding-mediated factor↔hypothesis edges on the Analyze-tab Wall. With both surfaces live side-by-side, the question of what the Evidence Map's unique residue is deserves evaluation before the next connective-surface build cycle.
+
+**Summary:** with the Wall now showing factors + signed factor↔hypothesis edges, the Evidence Map's distinguishing residue is: (a) the **cross-scope overview** (the "muuttuja kartta" — multiple conditions + factor network at once); (b) **factor→factor `CausalLink` arrows** (the analyst-authored DAG, analyst-creatable and not-now on the Wall per decision-log 2026-06-04); (c) **R²-sized node visual** (contribution-proportional node area, not glyph). Evaluation options: keep as a separate cross-scope surface, absorb its unique residue into the Wall (e.g. optional CausalLink overlay), or retire if Model B makes it redundant. Touches ADR-074/086, CS-7 parity, Report (where CausalLinks render), and where `CausalLink` edges are best surfaced. The CausalLink Wall overlay decision (not-now) and the Evidence Map fate are linked but distinct.
+
+**Promotion path:** evaluate when both surfaces are in active use with real data (post-customer-demo). Promotion candidates: decision-log if a choice is made, or a new connective-surface spec addendum.
+
+**Severity:** low — both surfaces are live, nothing is broken; this is a medium-term UX coherence question.
+
+### Orphaned canvas.localMechanism control/handoff i18n keys [LOGGED 2026-06-04]
+
+**Surfaced by:** CS-12 glue-retirement audit. The keys `canvas.localMechanism.control`, `canvas.localMechanism.controlAria`, `canvas.localMechanism.handoff`, `canvas.localMechanism.handoffAria` appear in 33 locale files (all languages) but have **zero code consumers** — they pre-date CS-12, originating from the sustainment→control rename (`94da8a95`), and were never wired to any rendered string.
+
+**Summary:** these 4 keys × 33 locale files are pure dead i18n weight. They are not causing harm (unused), but they add noise to locale diffs and inflate the i18n key surface. Safe to delete in a future i18n dead-key sweep alongside any other unresolved orphans.
+
+**Promotion path:** fold into a future i18n dead-key sweep (not its own PR). Not blocking.
+
+**Severity:** low — cosmetic dead weight, no runtime effect.
+
 ### Ingest match-summary 'plans waiting for this data' line [LOGGED 2026-06-03]
 
 **Surfaced by:** CS-11 host-design review — the pending-match prompt on the Wall chip is one touch-point; a complementary line in the ingest match-summary panel (surfacing how many Measurement Plans the new columns satisfy) would make the signal visible at import-time, before the analyst reaches the Wall.
@@ -202,7 +240,7 @@ IM-4a makes the split structural (Wall derives; others still read stored). The A
 
 **Summary:** CS-8 shipped the per-scope **semipartial-R² association-strength** magnitude (`perFactorDeltaR2` in `@variscout/core/stats`) as a live signal in `ModelBuilderBand` (ΔR² bars paired with the partial p). When the analyst captures a Finding from that band, the ΔR² magnitude is **not** recorded onto the Finding — so the association strength lives only in the live band, not on the persisted Finding. The follow-up: write the per-scope ΔR² map onto the captured Finding's `modelContext` at capture time so the magnitude travels with the Finding (Evidence Map, Report, re-open). Cross-app (Azure + PWA capture paths).
 
-**Promotion path:** a small standalone PR or fold into a nearby Findings-touching CS-PR (e.g. CS-12 reasoning canvas, which renders Finding-mediated links). Engine already exists; this is capture-time plumbing + a `modelContext` field check. Not blocking the customer-demo bar.
+**Promotion path:** a small standalone PR or fold into a nearby Findings-touching CS-PR (e.g. CS-12 reasoning canvas, which renders Finding-mediated links). Engine already exists; this is capture-time plumbing + a `modelContext` field check. Not blocking the customer-demo bar. CS-12 fold-in nomination not taken (owner); stays deferred.
 
 **Severity:** low — the ΔR² is recomputable from the live band; persisting it is a fidelity/portability nicety, not a correctness gap.
 

@@ -200,8 +200,6 @@ describe('Investigation Wall keys', () => {
     'wall.palette.placeholder',
     'wall.palette.empty',
     'wall.minimap.ariaLabel',
-    'canvas.wall.overlayLabel',
-    'canvas.wall.overlayDescription',
     'canvas.wall.shortcutLabel',
     // IM-4a scope + evidence keys
     'wall.scope.whatIf',
@@ -222,10 +220,6 @@ describe('Investigation Wall keys', () => {
     expect(getMessage('en', 'wall.toolbar.groupByTributary')).toBe('Group by tributary');
     expect(getMessage('en', 'wall.palette.placeholder')).toBe('Search hubs, questions, findings…');
     expect(getMessage('en', 'wall.minimap.ariaLabel')).toBe('Investigation Wall minimap');
-    expect(getMessage('en', 'canvas.wall.overlayLabel')).toBe('Wall');
-    expect(getMessage('en', 'canvas.wall.overlayDescription')).toBe(
-      'Investigation Wall projected onto the canvas. Click any hub to open the Wall destination view.'
-    );
     expect(getMessage('en', 'canvas.wall.shortcutLabel')).toBe('Open Wall');
   });
 

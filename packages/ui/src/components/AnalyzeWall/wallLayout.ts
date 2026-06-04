@@ -31,7 +31,14 @@ export interface WallNodePos {
 export interface WallEdge {
   fromId: string;
   toId: string;
-  kind: 'support' | 'refute';
+  /**
+   * `support`/`refute` = finding→hub tethers (IM-4c).
+   * `factor-support`/`factor-refute` = the PR-CS-12 Finding-MEDIATED
+   * factor↔hypothesis edges (spec §4.3): derived, never stored
+   * (ADR-086 Amendment §1); `fromId` is namespaced `factor:${key}` so column
+   * names can never collide with entity ids in the DOI graph.
+   */
+  kind: 'support' | 'refute' | 'factor-support' | 'factor-refute';
 }
 
 export interface WallLayout {
@@ -64,7 +71,7 @@ export interface WallLayoutGroup {
 
 export interface WallLayoutArgs {
   hubs: WallLayoutHubInput[];
-  findings: { id: string }[];
+  findings: { id: string; conditionColumns?: readonly string[] }[];
   factors: { key: string; contribution: number }[];
   /** `'linear'` = single evenly-spaced row; `'tributary'` = grouped vertical bands. */
   grouping: 'linear' | 'tributary';
@@ -90,7 +97,7 @@ export interface WallLayoutProcessMapLike {
 
 export interface BuildWallLayoutArgsInput {
   hubs: readonly WallLayoutHubLike[];
-  findings?: readonly { id: string }[];
+  findings?: readonly { id: string; conditionColumns?: readonly string[] }[];
   factors?: readonly { key: string; contribution: number }[];
   processMap?: WallLayoutProcessMapLike;
   groupByTributary?: boolean;
@@ -147,7 +154,7 @@ export function buildWallLayoutArgs(input: BuildWallLayoutArgsInput): WallLayout
 
   return {
     hubs: hubInputs,
-    findings: findings.map(f => ({ id: f.id })),
+    findings: findings.map(f => ({ id: f.id, conditionColumns: f.conditionColumns })),
     factors: factors.map(f => ({ key: f.key, contribution: f.contribution })),
     grouping,
     groups,
@@ -243,6 +250,35 @@ export function computeWallLayout(args: WallLayoutArgs): WallLayout {
     .forEach((factor, i) => {
       factorPositions.set(factor.key, { x: FACTOR_X0 + i * FACTOR_GAP, y: FACTOR_Y });
     });
+
+  // ── Factor↔hypothesis edges (PR-CS-12, spec §4.3) ────────────────────────
+  // Finding-MEDIATED + DERIVED: factor F connects to hub H iff a finding
+  // linked to H (support or counter) was captured under a condition mentioning
+  // F (`conditionColumns` ∩ the candidate-factor band). Sign rides the
+  // finding's side. Never stored (ADR-086 Amendment §1). Edges join `edges`
+  // so the Focus-lens BFS + Minimap DOI inherit them.
+  const factorKeys = new Set(factors.map(f => f.key));
+  const conditionsByFinding = new Map(findings.map(f => [f.id, f.conditionColumns ?? []]));
+  const seenFactorEdges = new Set<string>();
+  for (const hub of hubs) {
+    if (!hubPositions.has(hub.id)) continue;
+    const counterIds = new Set(hub.counterFindingIds ?? []);
+    const linked: { id: string; kind: 'factor-support' | 'factor-refute' }[] = [
+      ...hub.findingIds
+        .filter(id => !counterIds.has(id))
+        .map(id => ({ id, kind: 'factor-support' as const })),
+      ...[...counterIds].map(id => ({ id, kind: 'factor-refute' as const })),
+    ];
+    for (const { id, kind } of linked) {
+      for (const column of conditionsByFinding.get(id) ?? []) {
+        if (!factorKeys.has(column)) continue;
+        const dedupeKey = `${column}|${hub.id}|${kind}`;
+        if (seenFactorEdges.has(dedupeKey)) continue;
+        seenFactorEdges.add(dedupeKey);
+        edges.push({ fromId: `factor:${column}`, toId: hub.id, kind });
+      }
+    }
+  }
 
   return {
     hubPositions,

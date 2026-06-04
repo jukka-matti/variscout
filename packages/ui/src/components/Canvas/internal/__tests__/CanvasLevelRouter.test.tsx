@@ -79,13 +79,11 @@ const baseProps = {
   l2Content: <div data-testid="l2-content">L2 content</div>,
   rows: [],
   stepCards: [],
-  systemQuestions: [],
   hypotheses: [],
   findings: [],
   chips: [],
   canPlaceChips: false,
   columnTypes: {},
-  availableColumns: [],
   resolvedL3Archetype: 'b0' as const,
 };
 

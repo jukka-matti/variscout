@@ -13,7 +13,6 @@ import type { ProcessHubId } from '@variscout/core/processHub';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import type { Locale } from '@variscout/core';
 import type { ChipRailEntry } from '../../ChipRail';
-import type { CanvasAnalyzeFocus } from '@variscout/hooks';
 import type { LogActionPayload } from '../../QuickAction';
 import { LODSwitcher } from './LODSwitcher';
 import { SystemLevelView } from './SystemLevelView';
@@ -61,17 +60,8 @@ export interface CanvasLevelRouterProps {
   onKeyboardChipDrop?: (stepId: string) => void;
   // L3 read props
   columnTypes: ColumnTypeMap;
-  problemCpk?: number;
-  eventsPerWeek?: number;
-  availableColumns: string[];
-  activeColumns?: ReadonlyArray<string>;
-  onOpenWall?: () => void;
-  onSelectWallHub?: (hubId: string) => void;
-  onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
-  onFocusedInvestigation?: (stepId: string) => void;
-  onCharter?: (stepId: string) => void;
   // L3 archetype routing (b0 = read-only LocalMechanismView; b1 = AuthorL3View)
   resolvedL3Archetype: CanvasL3Archetype;
 }
@@ -105,17 +95,8 @@ export function CanvasLevelRouter({
   onKeyboardChipPickUp,
   onKeyboardChipDrop,
   columnTypes,
-  problemCpk,
-  eventsPerWeek,
-  availableColumns,
-  activeColumns,
-  onOpenWall,
-  onSelectWallHub,
-  onOpenInvestigationFocus,
   onOpenColumnDetail,
   onLogQuickAction,
-  onFocusedInvestigation,
-  onCharter,
   resolvedL3Archetype,
 }: CanvasLevelRouterProps): React.JSX.Element {
   const lensValidAtCurrentLevel = isCanvasLensValidAtLevel(rawLens, currentLevel);
@@ -171,23 +152,13 @@ export function CanvasLevelRouter({
 
   const readL3Content = focalStepId ? (
     <LocalMechanismView
-      hubId={hubId}
       focalStepId={focalStepId}
       map={map}
       rows={rows}
       outcomeColumn={map.ctsColumn}
       columnTypes={columnTypes}
-      findings={[...findings]}
-      problemCpk={problemCpk ?? 0}
-      eventsPerWeek={eventsPerWeek ?? 0}
-      activeColumns={activeColumns ?? availableColumns}
-      onOpenWall={onOpenWall}
-      onSelectWallHub={onSelectWallHub}
-      onOpenInvestigationFocus={onOpenInvestigationFocus}
       onOpenColumnDetail={onOpenColumnDetail}
       onLogQuickAction={onLogQuickAction}
-      onFocusedInvestigation={onFocusedInvestigation}
-      onCharter={onCharter}
     />
   ) : (
     <NoFocalStepPrompt hubId={hubId} map={map} />

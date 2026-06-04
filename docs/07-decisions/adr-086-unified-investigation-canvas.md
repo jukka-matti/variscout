@@ -13,7 +13,7 @@ related:
   - 2026-05-29-investigation-surface-design
   - 2026-04-19-investigation-wall-design
 layer: L5
-last-verified: 2026-05-29
+last-verified: 2026-06-04
 ---
 
 # ADR-086: Unified investigation canvas — bipartite factor↔hypothesis with Focus lens
@@ -71,6 +71,18 @@ A 5-lens factor-model exploration (grounded against the shipped engine) + the [2
 
 **Delivery:** IM-4a (spine wiring, PR #256) + IM-4b (collaboration + multi-scope + detached flows, PR #257) shipped. IM-4c ships the positioned scope band + Focus-lens dimming + orphan-finding lane + `createHubFromFinding` CTA (factors-as-band is correct for V1). The model-builder is a clean **V-next initiative** that upgrades the same band component in place. Deferred per spec §9: factor-family LOD + edge bundling, child-scope recursion, the ACH matrix (dropped). See [[investigation-surface-build]] and the decision-log entry of 2026-05-31.
 
+## Amendment (2026-06-04) — delivered state (PR-CS-12)
+
+The connective-surface build (PR-CS-12, reasoning canvas) completes the Model B delivery. These items are binding where they differ from or extend the 2026-05-31 Amendment:
+
+1. **Finding-mediated factor↔hypothesis edges are DELIVERED on the Wall.** The Analyze-tab `WallCanvas` now renders per-factor **glyphs** (`FactorGlyph.tsx`) at the layout's factor band, and **derived signed factor↔hypothesis edges** — computed in `computeWallLayout` from `Finding.context.activeFilters` keys ∩ the candidate-factor band, with `fromId` namespaced `factor:${key}` and kinds `factor-support` / `factor-refute`. These edges are **never stored** (ADR-086 Amendment §1 honored — no `Hypothesis.factorIds`; no persisted factor→cause edge). This supersedes the 2026-05-31 Amendment §2's "typed edge is DEFERRED" **for the derived form**, which is exactly what §1 prescribed (derived projection, not a stored ownership).
+
+2. **`CausalLink` Wall overlay is NOT-NOW per connective-spec §12 Q3 (resolved 2026-06-03).** `CausalLink` stays a factor→factor DAG edge rendered in the Evidence Map and Report only. The Wall is 100% evidence-derived; mechanism arrows on the Wall are deliberately not present. Revive trigger: real user demand for mechanism arrows on the Wall. This closes the open question opened by §Decision line 50 + §Consequences "Refute is rendered LOUD."
+
+3. **The glue is retired (PR-CS-12).** `CanvasWallOverlay` is deleted (including the `'wall'` overlay id from `CanvasOverlayId`, registry entries, picker branches, `useSharedWallProps`, and 2 `canvas.wall.overlay*` i18n keys across 33 files). `LocalMechanismView` is trimmed to step-local content (mini-charts grid + η² rankings + quick-action modal; the embedded `WallCanvas`, compact `EvidenceMapBase`, and the response-path CTAs removed). The **Analyze-tab Wall is the single `WallCanvas` home**. Mobile reaches it via `WallShortcutButton` (`Canvas/index.tsx`), which is gated by `useHasAnalyzeContent` — that hook **survives** (it retains its third consumer, the mobile gate, so the plan's "delete" direction was overridden by grounding).
+
+4. **Focus lens is domain-weighted; never moves model metrics (Amendment §4 holds).** `domainWeightedOpacity(doi, contribution01)` in `wallFocus.ts` lifts a top-ΔR² factor at most one opacity tier toward vivid (contribution source = `ModelBuilderBand` live model via `onModelStatsChange` callback). Hubs and findings are contribution-0 — unchanged. The dimming never recomputes R²adj/p — there is no per-cause model (Amendment §4 stands exactly).
+
 ## Rationale
 
 - **One graph, one mental model.** `y = f(x)` is a single object. Surfacing it as two screens forces the user to be the join. A bipartite layout makes "which factors refute this explanation?" a glance, not a cross-screen reconciliation. The Focus lens is what makes a single canvas legible at scale — it is the load-bearing part of "unify them", not a nice-to-have.
@@ -83,7 +95,7 @@ A 5-lens factor-model exploration (grounded against the shipped engine) + the [2
 
 ### Code-level
 
-- **A true bipartite layout is net-new, not an assembly of existing primitives.** It requires re-laying-out factor x/y in `useEvidenceMapData` **and** restructuring `WallCanvas`'s river layout into the right column of one shared coordinate space. `LocalMechanismView` (vertical stack) and `CanvasWallOverlay` (absolute overlay) **will be superseded by the unified layout once it is built** (not yet — the unified bipartite surface is deferred per the Amendment §2; both components remain live in V1)**, not extended.**
+- **A true bipartite layout is net-new, not an assembly of existing primitives.** It requires re-laying-out factor x/y in `useEvidenceMapData` **and** restructuring `WallCanvas`'s river layout into the right column of one shared coordinate space. `LocalMechanismView` (vertical stack) and `CanvasWallOverlay` (absolute overlay) **were superseded and retired by PR-CS-12 (2026-06-04)** — `CanvasWallOverlay` deleted; `LocalMechanismView` trimmed to step-local content (mini-charts grid + η² rankings + quick-action modal; the embedded `WallCanvas`, compact `EvidenceMapBase`, and response-path CTAs removed).
 - **`EvidenceMapBase` vs `CrossTypeEvidenceMap` must be disambiguated in code and docs.** `EvidenceMapBase` (`packages/charts/src/EvidenceMap/EvidenceMapBase.tsx:23`) is the factor projection of this canvas. `CrossTypeEvidenceMap` (`packages/ui/src/components/EvidenceMap/CrossTypeEvidenceMap.tsx:20`) is **not** this surface — it is the radial defect-mode map. Its fate: **keep it as a defect-frame view** (it serves `AnalyzeMapView` + `MobileDashboard`) under a clearly separate name, or retire it if the defect frame absorbs it; do not let "Evidence Map" ambiguously name both.
 - **`FactorNode` gains a `ruledOut` flag.** `FactorNode` (`packages/charts/src/EvidenceMap/FactorNode.tsx`) already sizes by contribution and dims two states: _weak_ (grey, R²adj < 0.10 — a statistical fact) and _un-examined_ (`explored === false`). There is **no `ruledOut` state** — add one. **Ruled-out is an analyst decision (a deliberate strike), distinct from weak/low-contribution (a statistic).** A 9% factor is weak; a factor the analyst examined and dismissed is ruled-out. They must render differently and never be conflated.
 - **`WallCanvas`'s `questions: Question[]` prop is redefined by [ADR-085](adr-085-drop-question-problem-statement-scope.md), not merely deleted.** `WallCanvas` (`packages/ui/src/components/AnalyzeWall/WallCanvas.tsx:84`) requires a `questions` prop today; `CausalLink` (`packages/core/src/findings/types.ts:790`) carries `questionIds`. Dropping `Question` as an entity (ADR-085) means this prop and field are re-specified as part of that cascade — coordinate the change, do not delete `Question` in one place and leave `WallCanvas` requiring it.

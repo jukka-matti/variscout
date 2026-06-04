@@ -850,9 +850,6 @@ export const en: MessageCatalog = {
   'action.viewDetails': 'View Details',
 
   // Canvas Wall overlay
-  'canvas.wall.overlayLabel': 'Wall',
-  'canvas.wall.overlayDescription':
-    'Investigation Wall projected onto the canvas. Click any hub to open the Wall destination view.',
   'canvas.wall.shortcutLabel': 'Open Wall',
 
   // Analyze Wall
@@ -886,6 +883,7 @@ export const en: MessageCatalog = {
   'wall.evidence.supports': 'Supports',
   'wall.evidence.countsAgainst': 'Counts against',
   'wall.evidence.contributingFactors': 'Contributing factors',
+  'wall.factorGlyph.aria': 'Focus factor {factor}',
   'wall.disconfirm.prompt': 'We tried to break this — did it hold?',
   'wall.disconfirm.descriptionLabel': 'What did you try?',
   'wall.disconfirm.verdictLabel': 'Did it hold?',
@@ -1156,20 +1154,14 @@ export const en: MessageCatalog = {
   // Canvas — LocalMechanismView
   'canvas.localMechanism.actionButton': 'Action',
   'canvas.localMechanism.etaSquaredLabel': 'eta² {value}',
-  'canvas.localMechanism.evidenceMap': 'Local evidence map',
   'canvas.localMechanism.factorContribution': 'Factor contribution evidence',
-  'canvas.localMechanism.analyzeWall': 'Investigation Wall',
   'canvas.localMechanism.logActionAria': 'Log action for {column}',
   'canvas.localMechanism.noNumericValues': 'No numeric values',
   'canvas.localMechanism.openChartAria': 'Open {column} details mini chart',
   'canvas.localMechanism.openColumnAria': 'Open {column} details',
   'canvas.localMechanism.quickActionTitle': '{column} quick action',
-  'canvas.localMechanism.focusedAnalyze': 'Analyze',
-  'canvas.localMechanism.charter': 'Charter',
   'canvas.localMechanism.control': 'Control',
   'canvas.localMechanism.handoff': 'Handoff',
-  'canvas.localMechanism.focusedAnalyzeAria': 'Start focused analysis for {column}',
-  'canvas.localMechanism.charterAria': 'Open improvement charter for {column}',
   'canvas.localMechanism.controlAria': 'Open control for {column}',
   'canvas.localMechanism.handoffAria': 'Open handoff for {column}',
 };

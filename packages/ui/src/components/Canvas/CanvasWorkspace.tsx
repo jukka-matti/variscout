@@ -100,14 +100,9 @@ export interface CanvasWorkspaceProps {
   setProcessContext: (context: ProcessContext | null) => void;
   onSeeData: () => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
-  onFocusedInvestigation?: (stepId: string) => void;
-  onCharter?: (stepId: string) => void;
   findings?: readonly Finding[];
   hypotheses?: readonly Hypothesis[];
   causalLinks?: readonly CausalLink[];
-  problemCpk?: number;
-  eventsPerWeek?: number;
-  activeColumns?: ReadonlyArray<string>;
   onOpenWall?: () => void;
   onOpenScout?: (hubId: ProcessHubId) => void;
   onAddCausalLink?: (
@@ -289,14 +284,9 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   setProcessContext,
   onSeeData,
   onLogQuickAction,
-  onFocusedInvestigation,
-  onCharter,
   findings = [],
   hypotheses = [],
   causalLinks = [],
-  problemCpk,
-  eventsPerWeek,
-  activeColumns,
   onOpenWall,
   onOpenScout,
   onAddCausalLink,
@@ -1216,16 +1206,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       hypotheses={hypotheses}
       investigationOverlays={investigationOverlays}
       findings={findings}
-      problemCpk={problemCpk}
-      eventsPerWeek={eventsPerWeek}
-      activeColumns={activeColumns ?? availableColumns}
       onOpenScout={onOpenScout}
       onOpenWall={onOpenWall}
       onAddCausalLink={onAddCausalLink}
       onRemoveCausalLink={onRemoveCausalLink}
       onLogQuickAction={onLogQuickAction}
-      onFocusedInvestigation={onFocusedInvestigation}
-      onCharter={onCharter}
       onOpenInvestigationFocus={onOpenInvestigationFocus}
       onOpenColumnDetail={onOpenColumnDetail}
       contextLinkGroups={contextLinkGroups}

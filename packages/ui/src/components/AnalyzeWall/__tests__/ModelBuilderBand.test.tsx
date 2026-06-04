@@ -230,6 +230,49 @@ describe('ModelBuilderBand', () => {
     expect(parseFloat(text.replace(/[^\d.]/g, ''))).toBeGreaterThan(0);
   });
 
+  describe('onModelStatsChange (PR-CS-12)', () => {
+    it('reports kept factors + ΔR² map once the engine computes, and again on analyst toggle', () => {
+      const onModelStatsChange = vi.fn();
+      renderInSvg(
+        <ModelBuilderBand
+          {...baseProps}
+          rows={shiftDominatedRows()}
+          onModelStatsChange={onModelStatsChange}
+        />
+      );
+
+      // 1) After initial render: called with { kept: string[], deltaR2: Map }
+      expect(onModelStatsChange).toHaveBeenCalled();
+      const firstCall = onModelStatsChange.mock.calls[onModelStatsChange.mock.calls.length - 1][0];
+      expect(firstCall).not.toBeNull();
+      expect(Array.isArray(firstCall.kept)).toBe(true);
+      expect(firstCall.kept.length).toBeGreaterThan(0);
+      expect(firstCall.deltaR2.get(firstCall.kept[0])).toBeGreaterThanOrEqual(0);
+
+      // 2) Toggle the first kept factor off via the band's real toggle UI.
+      const firstKeptFactor = firstCall.kept[0];
+      fireEvent.click(screen.getByTestId(`model-kept-factor-${firstKeptFactor}`));
+
+      // The LATEST call's kept must NOT contain the toggled-off factor.
+      const latestCall = onModelStatsChange.mock.calls[onModelStatsChange.mock.calls.length - 1][0];
+      expect(latestCall).not.toBeNull();
+      expect(latestCall.kept).not.toContain(firstKeptFactor);
+    });
+
+    it('reports null when the engine cannot compute (no outcome)', () => {
+      const onModelStatsChange = vi.fn();
+      renderInSvg(
+        <ModelBuilderBand
+          {...baseProps}
+          rows={shiftDominatedRows()}
+          outcome={null}
+          onModelStatsChange={onModelStatsChange}
+        />
+      );
+      expect(onModelStatsChange).toHaveBeenCalledWith(null);
+    });
+  });
+
   it('shows the "association, not a verdict" framing', () => {
     renderInSvg(
       <ModelBuilderBand

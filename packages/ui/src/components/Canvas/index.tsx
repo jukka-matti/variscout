@@ -63,7 +63,6 @@ import {
 } from './internal/HypothesisDraftPopover';
 import { CanvasStepCard } from './internal/CanvasStepCard';
 import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
-import { CanvasWallOverlay } from './internal/CanvasWallOverlay';
 import { WallShortcutButton } from './internal/WallShortcutButton';
 import { sortedProcessSteps } from './internal/NoFocalStepPrompt';
 import { useWallIsMobile } from '../AnalyzeWall';
@@ -94,6 +93,12 @@ const EMPTY_OVERLAYS: CanvasOverlayId[] = [];
 const EMPTY_QUESTIONS: CanvasQuestionOption[] = [];
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
 const EMPTY_FINDINGS: Finding[] = [];
+const AVAILABLE_OVERLAYS: CanvasOverlayId[] = [
+  'investigations',
+  'hypotheses',
+  'hypothesis-hubs',
+  'findings',
+];
 const DEFAULT_CANVAS_VIEWPORT: CanvasViewportSnapshot = {
   zoom: 1,
   pan: { x: 0, y: 0 },
@@ -101,18 +106,12 @@ const DEFAULT_CANVAS_VIEWPORT: CanvasViewportSnapshot = {
   nodePositions: {},
   groupByTributary: false,
 };
-const CANVAS_VIEWPORT_IGNORED_TARGET = '[data-canvas-wall-overlay]';
-
 const CANVAS_FIT_REQUEST_EVENT = 'variscout:canvas-fit-request';
 const FIT_TO_CONTENT_MARGIN = 0.95;
 
 interface CanvasFitRequestDetail {
   hubId: ProcessHubId;
   level?: CanvasLevel;
-}
-
-function shouldHandleCanvasViewportInput(event: Event): boolean {
-  return !(event.target instanceof Element && event.target.closest(CANVAS_VIEWPORT_IGNORED_TARGET));
 }
 
 function measureCanvasFit(
@@ -226,8 +225,6 @@ export interface CanvasProps {
   investigationOverlays?: CanvasAnalyzeOverlayModel;
   onStepSpecsRequest?: (column: string, stepId: string) => void;
   onLogQuickAction?: (stepId: string, payload: LogActionPayload) => void;
-  onFocusedInvestigation?: (stepId: string) => void;
-  onCharter?: (stepId: string) => void;
   onOpenInvestigationFocus?: (focus: CanvasAnalyzeFocus) => void;
   onRemoveCausalLink?: (linkId: string) => void;
   contextLinkGroups?: readonly ContextLinkGroup[];
@@ -236,12 +233,8 @@ export interface CanvasProps {
   onCaptureFindingFromStep?: (card: CanvasStepCardModel) => void;
   actionItems?: ActionItem[];
   findings?: ReadonlyArray<Finding>;
-  problemCpk?: number;
-  eventsPerWeek?: number;
-  activeColumns?: ReadonlyArray<string>;
   onOpenScout?: (hubId: ProcessHubId) => void;
   onOpenWall?: () => void;
-  onSelectWallHub?: (hubId: string) => void;
   onOpenColumnDetail?: (column: string, stepId: string) => void;
 }
 
@@ -294,8 +287,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   investigationOverlays,
   onStepSpecsRequest,
   onLogQuickAction,
-  onFocusedInvestigation,
-  onCharter,
   onOpenInvestigationFocus,
   onRemoveCausalLink,
   onCaptureFindingFromStep,
@@ -303,12 +294,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   onNavigateContextLink,
   actionItems = EMPTY_ACTION_ITEMS,
   findings = EMPTY_FINDINGS,
-  problemCpk,
-  eventsPerWeek,
-  activeColumns,
   onOpenScout,
   onOpenWall,
-  onSelectWallHub,
   onOpenColumnDetail,
   rows,
 }) => {
@@ -322,18 +309,8 @@ export const Canvas: React.FC<CanvasProps> = ({
     () => coerceCanvasOverlays(activeOverlays),
     [activeOverlays]
   );
-  const wallFindings = React.useMemo(() => [...findings], [findings]);
   const hasInvestigationContent = useHasAnalyzeContent({ findingsCount: findings.length });
   const wallIsMobile = useWallIsMobile();
-  const availableOverlays = React.useMemo<CanvasOverlayId[]>(() => {
-    const base: CanvasOverlayId[] = ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings'];
-    return hasInvestigationContent ? [...base, 'wall'] : base;
-  }, [hasInvestigationContent]);
-  const pickerAvailableOverlays = React.useMemo(
-    () =>
-      wallIsMobile ? availableOverlays.filter(overlay => overlay !== 'wall') : availableOverlays,
-    [availableOverlays, wallIsMobile]
-  );
   const sortedSteps = React.useMemo(() => sortedProcessSteps(map), [map]);
   const firstStepId = sortedSteps[0]?.id;
   const columnTypes = React.useMemo<ColumnTypeMap>(() => {
@@ -449,7 +426,6 @@ export const Canvas: React.FC<CanvasProps> = ({
     hubId,
     ref: lodInputSurfaceRef,
     disabled: wallIsMobile || disabled || activeCanvasTool === 'draw-hypothesis',
-    filter: shouldHandleCanvasViewportInput,
   });
   useCanvasViewportShortcuts({
     hubId,
@@ -576,7 +552,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         <CanvasLensPicker activeLens={resolvedLens} onChange={onLensChange} />
         <CanvasOverlayPicker
           activeOverlays={resolvedOverlays}
-          availableOverlays={pickerAvailableOverlays}
+          availableOverlays={AVAILABLE_OVERLAYS}
           onToggle={onOverlayToggle}
         />
         {wallIsMobile && hasInvestigationContent && onOpenWall ? (
@@ -659,17 +635,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             {stepCardGrid}
           </CanvasViewport>
         )}
-        <CanvasWallOverlay
-          hubId={hubId}
-          activeOverlays={resolvedOverlays}
-          activeCanvasTool={activeCanvasTool}
-          findings={wallFindings}
-          processMap={map}
-          problemCpk={problemCpk ?? 0}
-          eventsPerWeek={eventsPerWeek ?? 0}
-          activeColumns={activeColumns ?? availableColumns}
-          onOpenWall={onOpenWall}
-        />
         {drawTool.state.phase === 'awaitingForm' ? (
           <HypothesisDraftPopover
             sourceLabel={endpointLabel(drawTool.state.source)}
@@ -750,17 +715,8 @@ export const Canvas: React.FC<CanvasProps> = ({
       onKeyboardChipPickUp={setKeyboardChipId}
       onKeyboardChipDrop={handleKeyboardChipDrop}
       columnTypes={columnTypes}
-      problemCpk={problemCpk}
-      eventsPerWeek={eventsPerWeek}
-      availableColumns={availableColumns}
-      activeColumns={activeColumns}
-      onOpenWall={onOpenWall}
-      onSelectWallHub={onSelectWallHub}
-      onOpenInvestigationFocus={onOpenInvestigationFocus}
       onOpenColumnDetail={onOpenColumnDetail}
       onLogQuickAction={onLogQuickAction}
-      onFocusedInvestigation={onFocusedInvestigation}
-      onCharter={onCharter}
       resolvedL3Archetype={resolvedL3Archetype}
     />
   );
