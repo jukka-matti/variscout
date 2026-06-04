@@ -545,6 +545,24 @@ describe('ProcessHealthBar', () => {
     });
   });
 
+  describe('pin finding — circular-JSON guard (Bug 1)', () => {
+    it('invokes onPinFinding with NO arguments (never the click event) — circular-JSON guard', () => {
+      // mechanism: onClick={onPinFinding} passed the MouseEvent into noteText,
+      // which became finding.text and crashed JSON serialization (circular SVG).
+      const onPinFinding = vi.fn();
+      render(
+        <ProcessHealthBar
+          {...defaultProps}
+          filterChipData={sampleChips}
+          onPinFinding={onPinFinding}
+        />
+      );
+      fireEvent.click(screen.getByTestId('btn-pin-finding'));
+      expect(onPinFinding).toHaveBeenCalledTimes(1);
+      expect(onPinFinding.mock.calls[0]).toHaveLength(0); // LOAD-BEARING: fails on onClick={onPinFinding}
+    });
+  });
+
   describe('IM-5 scope coverage bar', () => {
     it('renders the coverage bar + What-If text when scopeCoverage is provided', () => {
       render(
