@@ -9,7 +9,7 @@ import {
   type ControlHandoff,
 } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import { formatSustainmentVerdict, formatSustainmentDue } from './ProcessHubFormat';
+import { formatSustainmentVerdict, formatSustainmentDue } from './controlFormat';
 
 export interface ProcessHubControlRegionProps {
   /**
