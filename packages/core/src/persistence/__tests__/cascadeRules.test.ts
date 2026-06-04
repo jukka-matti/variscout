@@ -7,9 +7,9 @@ import {
 } from '../cascadeRules';
 
 // ADR-085: 'question' retired → 'scope' (ProblemStatementScope).
-// PO-4: the 'investigation' EntityKind retired with the ProcessHubAnalyze
-// entity; finding/scope/causalLink/hypothesis tables are PO-6 territory and no
-// longer cascade from hub deletion in the V1 ruleset.
+// PO-4: the 'investigation' EntityKind retired with the per-step analyze
+// projection entity; finding/scope/causalLink/hypothesis tables are PO-6
+// territory and no longer cascade from hub deletion in the V1 ruleset.
 const ALL_KINDS: EntityKind[] = [
   'hub',
   'outcome',

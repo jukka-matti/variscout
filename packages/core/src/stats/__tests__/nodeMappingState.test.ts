@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { isUnmappedAnalyze, suggestNodeMappings } from '../nodeMappingState';
-import type { ProcessHubAnalyzeMetadata } from '../../processHub';
+import type { ProcessStepCapabilityMemberMetadata } from '../../processHub';
 import type { ProcessMap } from '../../frame/types';
 
 describe('isUnmappedAnalyze', () => {
@@ -14,7 +14,7 @@ describe('isUnmappedAnalyze', () => {
   });
 
   it('returns false when at least one mapping is present', () => {
-    const meta: ProcessHubAnalyzeMetadata = {
+    const meta: ProcessStepCapabilityMemberMetadata = {
       nodeMappings: [{ nodeId: 'n1', measurementColumn: 'col' }],
     };
     expect(isUnmappedAnalyze(meta)).toBe(false);

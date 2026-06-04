@@ -27,7 +27,7 @@
 // was dropped at v10 — ProblemStatementScope persists via the analyze blob.
 // The former documentSnapshots table was dropped at v12 when PWA durability
 // became export-only (.vrs). The never-written `investigations` projection
-// table was dropped at v13 (PO-4 — ProcessHubAnalyze dissolved).
+// table was dropped at v13 (PO-4 — the per-step analyze projection dissolved).
 //
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
@@ -213,10 +213,10 @@ export class PwaDatabase extends Dexie {
     // browser documentSnapshot store from the latest schema.
     this.version(12).stores({ documentSnapshots: null });
 
-    // v13 (PO-4): ProcessHubAnalyze dissolved — the never-written
-    // `investigations` projection table retires (tableName: null; the v1
-    // store declaration stays per the Dexie monotonic-chain rule, mirroring
-    // the v10 `questions: null` precedent).
+    // v13 (PO-4): the per-step analyze projection entity dissolved — the
+    // never-written `investigations` projection table retires (tableName: null;
+    // the v1 store declaration stays per the Dexie monotonic-chain rule,
+    // mirroring the v10 `questions: null` precedent).
     this.version(13).stores({ investigations: null });
   }
 }

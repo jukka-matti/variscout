@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { ProcessHubAnalyzeMetadata, AnalyzeNodeMapping } from '../processHub';
+import type { ProcessStepCapabilityMemberMetadata, AnalyzeNodeMapping } from '../processHub';
 
 describe('AnalyzeNodeMapping', () => {
   it('is a per-node mapping with optional spec override', () => {
@@ -20,14 +20,14 @@ describe('AnalyzeNodeMapping', () => {
   });
 });
 
-describe('ProcessHubAnalyzeMetadata.nodeMappings', () => {
+describe('ProcessStepCapabilityMemberMetadata.nodeMappings', () => {
   it('is optional', () => {
-    const minimal: ProcessHubAnalyzeMetadata = {};
+    const minimal: ProcessStepCapabilityMemberMetadata = {};
     expect(minimal.nodeMappings).toBeUndefined();
   });
 
   it('accepts node mappings', () => {
-    const meta: ProcessHubAnalyzeMetadata = {
+    const meta: ProcessStepCapabilityMemberMetadata = {
       processHubId: 'hub-1',
       nodeMappings: [
         { nodeId: 'n1', measurementColumn: 'mix_weight' },

@@ -745,7 +745,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 
   // ── Hub model computations (Hypothesis hubs) ───────────────────────
   const hubs = hypothesesState.hubs;
-  // Interim curation semantics (decision-log OQ 2026-06-04, ProcessHubAnalyze
+  // Interim curation semantics (decision-log OQ 2026-06-04, Project⟷Hub entity
   // disposition): an EMPTY lineage list means "nothing curated into the project
   // yet" → show everything. lineage.hypothesisIds currently has no UI writer at
   // all, so filtering against it blanked the Wall under active-IP scope.

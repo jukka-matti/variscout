@@ -1,13 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { detectScope, detectScopeFromMap } from '../scopeDetection';
-import type { ProcessHubAnalyze, AnalyzeNodeMapping } from '../processHub';
+import type { ProcessStepCapabilityMember, AnalyzeNodeMapping } from '../processHub';
 
-const makeInvestigation = (nodeMappings?: AnalyzeNodeMapping[]): ProcessHubAnalyze => ({
+const makeInvestigation = (nodeMappings?: AnalyzeNodeMapping[]): ProcessStepCapabilityMember => ({
   id: 'test',
   name: 'Test Investigation',
-  createdAt: 1777420800000,
-  updatedAt: 1777420800000,
-  deletedAt: null,
   metadata: {
     processHubId: 'hub-1',
     nodeMappings,
