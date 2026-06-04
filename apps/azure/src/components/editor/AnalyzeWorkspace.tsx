@@ -1055,20 +1055,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     [aiOrch]
   );
 
-  const handleMapDrillDown = useCallback(
-    (factor: string) => {
-      usePanelsStore.getState().setHighlightedFactor(factor);
-      // CS-13 — route the Evidence-Map drill through the scoped path so the
-      // two Analyze→Explore gestures can't diverge (the drill previously
-      // switched tabs WITHOUT writing the scope the Explore charts read).
-      navigateToExploreForChip(
-        { kind: 'factor', columnName: factor, outcomeColumn: outcome ?? undefined },
-        () => usePanelsStore.getState().showExplore()
-      );
-    },
-    [outcome]
-  );
-
   // CS-13 — the crossing-back (spec §4.0a): from a Wall hypothesis/factor,
   // land in Explore scoped to its local y=f(x). Same primitive as the
   // Process-tab chips (FrameView.handleChipExploreJump).
@@ -1080,6 +1066,18 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       );
     },
     [outcome]
+  );
+
+  const handleMapDrillDown = useCallback(
+    (factor: string) => {
+      usePanelsStore.getState().setHighlightedFactor(factor);
+      // CS-13 — route the Evidence-Map drill through the SAME scoped path as the
+      // Wall affordances (the drill previously switched tabs WITHOUT writing the
+      // scope the Explore charts read). Composing handleExploreFactor keeps the
+      // two Analyze→Explore gestures structurally unable to diverge.
+      handleExploreFactor(factor);
+    },
+    [handleExploreFactor]
   );
 
   const handleConfirmCausalLink = useCallback(

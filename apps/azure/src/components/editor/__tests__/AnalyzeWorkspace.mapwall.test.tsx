@@ -1045,4 +1045,24 @@ describe('AnalyzeWorkspace — Evidence-Map drill writes analysis scope (CS-13 r
     onDrillDown('SHIFT');
     expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('SHIFT');
   });
+
+  it('mounts WallCanvas with the onExploreFactor wire (CS-13)', () => {
+    // Render in wall mode — mirrors the onProposeHypothesis assertion pattern (~line 521).
+    useCanvasViewportStore.getState().setViewMode('wall');
+    const props = makeMinimalProps();
+    props.hypothesesState.hubs = [
+      {
+        id: 'hub-1',
+        name: 'Existing',
+        synthesis: '',
+        findingIds: [],
+        status: 'proposed',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ] as never;
+    capturedWallCanvasProps.current = null;
+    render(<AnalyzeWorkspace {...props} />);
+    expect(capturedWallCanvasProps.current?.onExploreFactor).toBeTypeOf('function');
+  });
 });
