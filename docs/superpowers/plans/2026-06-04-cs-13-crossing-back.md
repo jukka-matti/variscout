@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: 'PR-CS-13 — The crossing-back: Analyze → scoped Explore'
-status: active
+status: delivered
 date: 2026-06-04
 layer: spec
 implements: docs/superpowers/specs/2026-06-02-connective-surface-model-design.md
