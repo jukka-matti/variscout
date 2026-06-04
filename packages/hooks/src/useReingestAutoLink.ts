@@ -85,17 +85,6 @@ export interface UseReingestAutoLinkOptions {
    * Not called on a no-op run (empty `pendingMatches`).
    */
   onPendingMatches?: (matches: ReingestPendingMatch[]) => void;
-  /**
-   * UI-refresh nonce for plan writes; post-CS-11 the host fires this from the
-   * analyst's confirm path — the hook no longer writes.
-   *
-   * The option stays on the type so apps can re-wire it to the manual confirm path
-   * (Task 6). Historically the hook bumped this after auto-dispatching link/status
-   * actions so any `wallMeasurementPlans` state keyed only on the hypothesis-id list
-   * would re-read `listByHypothesis` and reflect the advanced plan status. CS-11
-   * removed the silent writes, so the hook no longer calls it.
-   */
-  onPlansChanged?: () => void;
 }
 
 /**

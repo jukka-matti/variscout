@@ -14,7 +14,6 @@ import type {
 import type { HubReviewSignal } from './processReviewSignal';
 import type { ProcessStateNote } from './processStateNote';
 import type { SurveyStatus } from './survey/types';
-import type { TimelineWindow } from './timeline';
 import type { SpecLimits } from './types';
 import {
   isControlDue,
@@ -239,23 +238,10 @@ export interface ProcessHubAnalyzeMetadata {
    */
   sustainment?: ControlMetadataProjection;
   /**
-   * Pinned version of the hub's canonicalProcessMap at Analyze-entry
-   * creation. Used by `pull-latest` to detect drift. Absent for legacy
-   * entries or hubs without canonical maps.
-   */
-  canonicalMapVersion?: string;
-  /**
    * Per-node measurement-column mappings. Drives per-(node × context-tuple)
    * capability computation. See `AnalyzeNodeMapping` above.
    */
   nodeMappings?: AnalyzeNodeMapping[];
-  /**
-   * Optional timeline window applied to this Analyze entry's data when
-   * computing findings/charts. Co-located with nodeMappings per Decision #1
-   * (see docs/superpowers/plans/2026-04-29-multi-level-scout-v1-decisions.md).
-   * Absent → callers should use the mode's default window (typically `cumulative`).
-   */
-  timelineWindow?: TimelineWindow;
   /**
    * ISO 8601 timestamp set when the analyst dismisses the B0 migration banner
    * for this Analyze entry. Dismissed entries remain B0; the banner
@@ -265,16 +251,6 @@ export interface ProcessHubAnalyzeMetadata {
    * section "B0 migration UX".
    */
   migrationDeclinedAt?: string;
-  /**
-   * Per-Analyze-entry scope filter — set by Pareto bar click or chip add.
-   * See spec §10 + ADR-073. Composable with `timelineWindow`. Absent → no scope filter.
-   */
-  scopeFilter?: ScopeFilter;
-  /**
-   * Per-Analyze-entry Pareto group-by column. Default = first primary scope dimension
-   * from the Hub config. Absent → caller picks default at render time.
-   */
-  paretoGroupBy?: string;
 }
 
 export interface ProcessHubAnalyze extends EntityBase {

@@ -91,7 +91,7 @@ export interface ParetoChartWrapperBaseProps {
   onFactorSwitch?: (factorName: string) => void;
   /**
    * Currently-active scope filter values for `factor`. Drives `selectedBars`
-   * highlight on the chart. Caller derives this from `useCanvasFilters.scopeFilter`
+   * highlight on the chart. Caller derives this from `useSessionCanvasFilters().scopeFilter`
    * when `scopeFilter.factor === factor`; pass empty array otherwise.
    *
    * When provided, takes precedence over the legacy `filters[factor]` source for

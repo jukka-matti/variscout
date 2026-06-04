@@ -61,6 +61,7 @@ related:
 - **Model:** Sonnet (mechanical against an explicit list; the `UseCanvasFiltersResult` inline is the one judgment point — called out in the sub-plan).
 - **Acceptance:** gate green + app test suites; no behavior change anywhere (`--chrome` smoke of Dashboard + Editor); deleted-surface i18n keys untouched (they go with their UI in PO-2/PO-3).
 - **Spec ref:** §3 (DELETE rows + 1:1 hygiene + consumer enumeration), §2.
+- **Sub-plan:** [`2026-06-04-po-1-dead-shed.md`](2026-06-04-po-1-dead-shed.md).
 
 ### PR-PO-2 · Phase B1 — Control re-source + re-homes (the judgment PR)
 

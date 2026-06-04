@@ -55,8 +55,8 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
   const filter = useProductionLineGlanceFilter();
 
   // Hub-level window state. Hub doesn't carry its own TimelineWindow envelope
-  // in V1 — `useTimelineWindow` is keyed on a single ProcessHubAnalyze,
-  // and the hub view aggregates many. Local useState is the correct V1 fit.
+  // in V1 — the session-scoped `useSessionCanvasFilters` window is keyed
+  // to a single Analyze session, and the hub view aggregates many. Local useState is the correct V1 fit.
   // TODO(multi-level-scout V1.5): default the window to rolling matched to
   // hub.cadence on first mount.
   // TODO(multi-level-scout V2): wire hub-level window persistence.

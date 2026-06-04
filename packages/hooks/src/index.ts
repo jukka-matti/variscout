@@ -626,12 +626,6 @@ export {
 } from './useActiveIPContext';
 
 export {
-  useTimelineWindow,
-  type UseTimelineWindowArgs,
-  type UseTimelineWindowResult,
-} from './useTimelineWindow';
-
-export {
   RETURN_NAVIGATION_STORAGE_KEY,
   useReturnNavigation,
   type CaptureReturnTargetArgs,
@@ -645,11 +639,6 @@ export {
   type UseReturnNavigationReturn,
 } from './useReturnNavigation';
 
-export {
-  useCanvasFilters,
-  type UseCanvasFiltersArgs,
-  type UseCanvasFiltersResult,
-} from './useCanvasFilters';
 export {
   useSessionCanvasFilters,
   type UseSessionCanvasFiltersResult,

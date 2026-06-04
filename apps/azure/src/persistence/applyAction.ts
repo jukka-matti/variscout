@@ -17,7 +17,7 @@
 //     EVIDENCE_SOURCE_ADD, EVIDENCE_SOURCE_UPDATE_CURSOR, EVIDENCE_SOURCE_REMOVE
 //
 //   Session-only / no Azure Dexie table today (F3 normalizes):
-//     INVESTIGATION_*, FINDING_*, SCOPE_*, CAUSAL_LINK_*, HYPOTHESIS_*
+//     FINDING_*, SCOPE_*, CAUSAL_LINK_*, HYPOTHESIS_*
 //
 //   Canvas mutations (flow through canvasStore → HUB_PERSIST_SNAPSHOT):
 //     PLACE_CHIP_ON_STEP, UNASSIGN_CHIP, REORDER_CHIP_IN_STEP, ADD_STEP,
@@ -448,22 +448,6 @@ export async function applyAction(action: HubAction): Promise<void> {
       });
       return;
     }
-
-    // -------------------------------------------------------------------------
-    // Session-only — Azure has no dedicated Dexie table today; F3 normalizes.
-    // -------------------------------------------------------------------------
-
-    case 'INVESTIGATION_CREATE':
-      // Azure has no 'investigation' table today; F3 normalizes — no-op.
-      return;
-
-    case 'INVESTIGATION_UPDATE_METADATA':
-      // Azure has no 'investigation' table today; F3 normalizes — no-op.
-      return;
-
-    case 'INVESTIGATION_ARCHIVE':
-      // Azure has no 'investigation' table today; F3 normalizes — no-op.
-      return;
 
     case 'FINDING_ADD':
       // Azure has no 'finding' table today; F3 normalizes — no-op.

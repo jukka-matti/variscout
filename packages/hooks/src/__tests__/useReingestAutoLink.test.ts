@@ -124,11 +124,8 @@ describe('useReingestAutoLink — APPEND-cascade (columns added)', () => {
 
   it('surfaces pending matches via onPendingMatches and performs ZERO writes', async () => {
     const onPendingMatches = vi.fn();
-    const onPlansChanged = vi.fn();
     const { repo } = makeFakeRepo({ 'hyp-1': [plan({})] });
-    renderHook(() =>
-      useReingestAutoLink(repo, { debounceMs: DEBOUNCE, onPendingMatches, onPlansChanged })
-    );
+    renderHook(() => useReingestAutoLink(repo, { debounceMs: DEBOUNCE, onPendingMatches }));
 
     // Append a column matching a plan's neededFactors → advance debounce timers.
     act(() => {
@@ -143,7 +140,6 @@ describe('useReingestAutoLink — APPEND-cascade (columns added)', () => {
     // De-automation negative controls:
     expect(useAnalyzeStore.getState().findings).toHaveLength(0); // no auto-Finding injected
     expect(repo.dispatch).not.toHaveBeenCalled(); // no link, no status bump
-    expect(onPlansChanged).not.toHaveBeenCalled(); // nonce no longer fires from the cascade
   });
 
   it('same-delta re-fire does not duplicate pending matches', async () => {

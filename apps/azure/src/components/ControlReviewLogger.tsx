@@ -39,8 +39,6 @@ const ControlReviewLogger: React.FC<ControlReviewLoggerProps> = ({
   const [verdict, setVerdict] = useState<ControlVerdict>('holding');
   const [observation, setObservation] = useState('');
   const [snapshotId, setSnapshotId] = useState(latestSnapshotId ?? '');
-  const [escalatedInvestigationId, setEscalatedInvestigationId] = useState('');
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -58,7 +56,6 @@ const ControlReviewLogger: React.FC<ControlReviewLoggerProps> = ({
       verdict,
       snapshotId: snapshotId || undefined,
       observation: observation || undefined,
-      escalatedInvestigationId: escalatedInvestigationId || undefined,
     };
 
     await storage.saveControlReview(review);
@@ -142,21 +139,6 @@ const ControlReviewLogger: React.FC<ControlReviewLoggerProps> = ({
           type="text"
           value={snapshotId}
           onChange={e => setSnapshotId(e.target.value)}
-          className="w-full rounded-md border border-edge bg-surface-secondary px-2 py-1 text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs font-medium text-content-secondary" htmlFor="srl-escalated">
-          Escalated analyze ID
-        </label>
-        <input
-          id="srl-escalated"
-          aria-label="Escalated analyze ID"
-          type="text"
-          value={escalatedInvestigationId}
-          onChange={e => setEscalatedInvestigationId(e.target.value)}
-          placeholder="Optional"
           className="w-full rounded-md border border-edge bg-surface-secondary px-2 py-1 text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>

@@ -1,7 +1,6 @@
 export type { OutcomeAction } from './outcomeActions';
 export type { EvidenceAction } from './evidenceActions';
 export type { EvidenceSourceAction } from './evidenceSourceActions';
-export type { AnalyzeAction } from './analyzeActions';
 export type { FindingAction } from './findingActions';
 export type { ScopeAction } from './scopeActions';
 export type { CausalLinkAction } from './causalLinkActions';
