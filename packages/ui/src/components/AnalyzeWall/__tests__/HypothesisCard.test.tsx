@@ -407,4 +407,21 @@ describe('CS-13 HypothesisCard explore affordance', () => {
     );
     expect(screen.queryByTestId('hub-explore-jump')).toBeNull();
   });
+
+  it('coexists with the hasGap badge — both render, click still reaches onExplore', () => {
+    const onExplore = vi.fn();
+    render(
+      <svg>
+        <HypothesisCard
+          {...baseCardProps}
+          hasGap
+          onExplore={onExplore}
+          exploreAriaLabel="Open SHIFT in Explore"
+        />
+      </svg>
+    );
+    expect(screen.getByTestId('hub-explore-jump')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('hub-explore-jump'));
+    expect(onExplore).toHaveBeenCalledTimes(1);
+  });
 });

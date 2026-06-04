@@ -317,7 +317,8 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
         {mechanismName}
       </text>
       {onExplore && (
-        <foreignObject x={CARD_W - 34} y={8} width={26} height={24} data-no-wall-pan>
+        <foreignObject x={CARD_W - 64} y={8} width={26} height={24} data-no-wall-pan>
+          {/* CS-13 → jump — x=246 leaves the CARD_W-34 lane (x:246–272) to the hasGap badge (cx=256±10) */}
           <button
             type="button"
             data-testid="hub-explore-jump"
