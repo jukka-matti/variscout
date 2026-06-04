@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProcessHubView } from '../ProcessHubView';
-import type { ProcessHubRollup, ProcessHubAnalyze, ProcessHub } from '@variscout/core';
+import type { ProcessStepCapabilitySource, ProcessHub } from '@variscout/core';
 import type { OutcomeSpec } from '@variscout/core/processHub';
 
 vi.mock('../ProcessHubCapabilityTab', () => ({
@@ -10,14 +10,10 @@ vi.mock('../ProcessHubCapabilityTab', () => ({
 }));
 
 const hub: ProcessHub = { id: 'h1', name: 'Line A' } as ProcessHub;
-const rollup = {
-  hub,
-  analyzes: [],
-  evidenceSnapshots: [],
-} as unknown as ProcessHubRollup<ProcessHubAnalyze>;
+const source: ProcessStepCapabilitySource = { hub, members: [] };
 
 const baseProps = {
-  rollup,
+  source,
   persistInvestigation: vi.fn(),
   onHubCpkTargetCommit: vi.fn(),
 } as const;
@@ -35,12 +31,8 @@ describe('ProcessHubView', () => {
       name: 'Line B',
       processGoal: 'We mold barrels for medical customers.',
     } as ProcessHub;
-    const goalRollup = {
-      hub: goalHub,
-      analyzes: [],
-      evidenceSnapshots: [],
-    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
-    render(<ProcessHubView {...baseProps} rollup={goalRollup} />);
+    const goalSource: ProcessStepCapabilitySource = { hub: goalHub, members: [] };
+    render(<ProcessHubView {...baseProps} source={goalSource} />);
     expect(screen.getByTestId('goal-banner')).toBeInTheDocument();
   });
 
@@ -56,12 +48,8 @@ describe('ProcessHubView', () => {
       name: 'Line B',
       processGoal: 'Initial goal.',
     } as ProcessHub;
-    const goalRollup = {
-      hub: goalHub,
-      analyzes: [],
-      evidenceSnapshots: [],
-    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
-    render(<ProcessHubView {...baseProps} rollup={goalRollup} onHubGoalChange={onHubGoalChange} />);
+    const goalSource: ProcessStepCapabilitySource = { hub: goalHub, members: [] };
+    render(<ProcessHubView {...baseProps} source={goalSource} onHubGoalChange={onHubGoalChange} />);
     // GoalBanner enters edit mode on click; saves via Save button
     fireEvent.click(screen.getByTestId('goal-banner'));
     const textarea = screen.getByRole('textbox');
@@ -85,13 +73,9 @@ describe('ProcessHubView', () => {
       processGoal: 'Reduce fill weight variation.',
       outcomes: [completeOutcome],
     } as ProcessHub;
-    const completeRollup = {
-      hub: completeHub,
-      analyzes: [],
-      evidenceSnapshots: [],
-    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
+    const completeSource: ProcessStepCapabilitySource = { hub: completeHub, members: [] };
     const onEditFraming = vi.fn();
-    render(<ProcessHubView {...baseProps} rollup={completeRollup} onEditFraming={onEditFraming} />);
+    render(<ProcessHubView {...baseProps} source={completeSource} onEditFraming={onEditFraming} />);
     expect(screen.queryByTestId('hub-framing-prompt')).not.toBeInTheDocument();
   });
 
@@ -126,12 +110,8 @@ describe('ProcessHubView', () => {
       processGoal: 'Reduce fill weight variation.',
       outcomes: [outcome1, outcome2],
     } as ProcessHub;
-    const completeRollup = {
-      hub: completeHub,
-      analyzes: [],
-      evidenceSnapshots: [],
-    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
-    render(<ProcessHubView {...baseProps} rollup={completeRollup} />);
+    const completeSource: ProcessStepCapabilitySource = { hub: completeHub, members: [] };
+    render(<ProcessHubView {...baseProps} source={completeSource} />);
     const pins = screen.getAllByTestId('outcome-pin');
     expect(pins).toHaveLength(2);
   });

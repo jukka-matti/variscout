@@ -1,14 +1,18 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useB0AnalyzesInHub, type UseB0AnalyzesInHubResult } from '@variscout/hooks';
-import type { ProcessHubAnalyze, ProcessHubAnalyzeMetadata, ProcessMap } from '@variscout/core';
+import type {
+  ProcessStepCapabilityMember,
+  ProcessStepCapabilityMemberMetadata,
+  ProcessMap,
+} from '@variscout/core';
 import { suggestNodeMappings } from '@variscout/core/stats';
 import type { ProductionLineGlanceMigrationModalEntry } from '@variscout/ui';
 
 export interface UseHubMigrationStateInput {
   hubId: string;
-  members: readonly ProcessHubAnalyze[];
+  members: readonly ProcessStepCapabilityMember[];
   canonicalMap?: ProcessMap;
-  persistInvestigation: (next: ProcessHubAnalyze) => void;
+  persistInvestigation: (next: ProcessStepCapabilityMember) => void;
 }
 
 export interface UseHubMigrationStateResult extends UseB0AnalyzesInHubResult {
@@ -22,16 +26,6 @@ export interface UseHubMigrationStateResult extends UseB0AnalyzesInHubResult {
   handleDecline: (investigationId: string) => void;
 }
 
-function getDatasetColumns(inv: ProcessHubAnalyze): string[] {
-  const rows = (inv as { rows?: ReadonlyArray<Record<string, unknown>> }).rows ?? [];
-  if (rows.length === 0) return [];
-  const cols = new Set<string>();
-  for (const row of rows.slice(0, 10)) {
-    for (const k of Object.keys(row)) cols.add(k);
-  }
-  return [...cols];
-}
-
 export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMigrationStateResult {
   const { hubId, members, canonicalMap, persistInvestigation } = input;
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,7 +37,9 @@ export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMi
   const modalEntries = useMemo<ProductionLineGlanceMigrationModalEntry[]>(
     () =>
       b0.unmapped.map(inv => {
-        const cols = getDatasetColumns(inv);
+        // CS-P2 seam: the portfolio source carries no rows, so no dataset
+        // columns are reachable here; the editor's live rawData wires in at lift.
+        const cols: string[] = [];
         const engineSuggestions = canonicalMap ? suggestNodeMappings(canonicalMap, cols) : [];
         const suggestions = engineSuggestions.map(s => {
           const node = canonicalMap?.nodes.find(n => n.id === s.nodeId);
@@ -72,11 +68,11 @@ export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMi
       for (const inv of members) {
         const m = byId.get(inv.id);
         if (!m) continue;
-        const existing = (inv as { metadata?: ProcessHubAnalyzeMetadata }).metadata;
-        const meta: ProcessHubAnalyzeMetadata = existing
+        const existing = inv.metadata;
+        const meta: ProcessStepCapabilityMemberMetadata = existing
           ? { ...existing, processHubId: hubId }
           : { processHubId: hubId };
-        const next: ProcessHubAnalyze = {
+        const next: ProcessStepCapabilityMember = {
           ...inv,
           metadata: {
             ...meta,
@@ -94,11 +90,11 @@ export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMi
     (investigationId: string) => {
       const inv = members.find(m => m.id === investigationId);
       if (!inv) return;
-      const existing = (inv as { metadata?: ProcessHubAnalyzeMetadata }).metadata;
-      const meta: ProcessHubAnalyzeMetadata = existing
+      const existing = inv.metadata;
+      const meta: ProcessStepCapabilityMemberMetadata = existing
         ? { ...existing, processHubId: hubId }
         : { processHubId: hubId };
-      const next: ProcessHubAnalyze = {
+      const next: ProcessStepCapabilityMember = {
         ...inv,
         metadata: {
           ...meta,

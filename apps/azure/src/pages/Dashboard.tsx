@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { buildProcessHubRollups, normalizeProcessHubId } from '@variscout/core';
-import type { ProcessHub, ProcessHubAnalyze, ControlRecord, ControlHandoff } from '@variscout/core';
-import type { EvidenceSnapshot } from '@variscout/core';
+import { normalizeProcessHubId } from '@variscout/core';
+import type {
+  ProcessHub,
+  ProcessStepCapabilityMember,
+  ProcessStepCapabilitySource,
+} from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { useNewHubProvision } from '../features/hubCreation/useNewHubProvision';
@@ -9,7 +12,6 @@ import { getEasyAuthUser } from '../auth/easyAuth';
 import { RefreshCw, Cloud, CloudOff, FolderOpen, Search, FlaskConical } from 'lucide-react';
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
 import ProjectCard from '../components/ProjectCard';
-import ProcessHubCard from '../components/ProcessHubCard';
 import ProcessHubEvidencePanel from '../components/ProcessHubEvidencePanel';
 import ProcessHubView from '../components/ProcessHubView';
 import SampleDataPicker from '../components/SampleDataPicker';
@@ -27,25 +29,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onLoadProjectFile,
   onLoadSample,
 }) => {
-  const {
-    listProjects,
-    listProcessHubs,
-    saveProcessHub,
-    loadProject,
-    saveProject,
-    listEvidenceSources,
-    listEvidenceSnapshots,
-    listControlRecords,
-    listControlHandoffs,
-    syncStatus,
-  } = useStorage();
+  const { listProjects, listProcessHubs, saveProcessHub, loadProject, saveProject, syncStatus } =
+    useStorage();
 
   const [userId, setUserId] = useState('local');
   const [projects, setProjects] = useState<CloudProject[]>([]);
   const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
-  const [evidenceSnapshots, setEvidenceSnapshots] = useState<EvidenceSnapshot[]>([]);
-  const [controlRecords, setControlRecords] = useState<ControlRecord[]>([]);
-  const [controlHandoffs, setControlHandoffs] = useState<ControlHandoff[]>([]);
   const [selectedHubId, setSelectedHubId] = useState<string | null>(null);
 
   const { createHubFromGoal } = useNewHubProvision({
@@ -102,51 +91,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     loadProjects();
   }, [loadProjects]);
 
-  const loadEvidenceForHub = useCallback(
-    async (hubId: string): Promise<void> => {
-      try {
-        const sources = await listEvidenceSources(hubId);
-        const snapshotLists = await Promise.all(
-          sources.map(source => listEvidenceSnapshots(hubId, source.id).catch(() => []))
-        );
-        setEvidenceSnapshots(snapshotLists.flat());
-      } catch (error) {
-        console.error('Failed to load evidence for hub:', error);
-        setEvidenceSnapshots([]);
-      }
-    },
-    [listEvidenceSources, listEvidenceSnapshots]
-  );
-
-  const loadSustainmentForHub = useCallback(
-    async (hubId: string): Promise<void> => {
-      try {
-        const [records, handoffs] = await Promise.all([
-          listControlRecords(hubId),
-          listControlHandoffs(hubId),
-        ]);
-        setControlRecords(records);
-        setControlHandoffs(handoffs);
-      } catch (error) {
-        console.error('Failed to load control for hub:', error);
-        setControlRecords([]);
-        setControlHandoffs([]);
-      }
-    },
-    [listControlRecords, listControlHandoffs]
-  );
-
-  useEffect(() => {
-    if (!selectedHubId) {
-      setEvidenceSnapshots([]);
-      setControlRecords([]);
-      setControlHandoffs([]);
-      return;
-    }
-    loadEvidenceForHub(selectedHubId);
-    loadSustainmentForHub(selectedHubId);
-  }, [selectedHubId, loadEvidenceForHub, loadSustainmentForHub]);
-
   // Sort by recency — newest activity first (work-item sort keys shed per spec §3)
   const sortedProjects = useMemo(() => {
     return [...projects].sort((a, b) => {
@@ -156,20 +100,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
   }, [projects]);
 
-  const hubRollups = useMemo(() => {
-    return buildProcessHubRollups(
-      processHubs,
-      sortedProjects.map(project => ({
-        id: project.id || project.name,
-        name: project.name,
-        createdAt: new Date(project.modified).getTime() || 0,
-        updatedAt: new Date(project.modified).getTime() || 0,
-        deletedAt: null,
-        metadata: project.metadata,
-      })),
-      { evidenceSnapshots, controlRecords, controlHandoffs }
-    );
-  }, [evidenceSnapshots, controlRecords, controlHandoffs, processHubs, sortedProjects]);
+  const selectedHub = useMemo(
+    () => processHubs.find(hub => hub.id === selectedHubId),
+    [processHubs, selectedHubId]
+  );
+
+  const capabilitySource = useMemo<ProcessStepCapabilitySource | undefined>(() => {
+    if (!selectedHub) return undefined;
+    return {
+      hub: selectedHub,
+      members: sortedProjects
+        .filter(p => normalizeProcessHubId(p.metadata?.processHubId) === selectedHub.id)
+        .map(p => ({ id: p.id || p.name, name: p.name, metadata: p.metadata })),
+    };
+  }, [selectedHub, sortedProjects]);
 
   const visibleProjects = useMemo(() => {
     const normalizedSearchQuery = searchQuery.trim().toLowerCase();
@@ -183,18 +127,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
   }, [searchQuery, selectedHubId, sortedProjects]);
 
-  const selectedHubRollup = hubRollups.find(rollup => rollup.hub.id === selectedHubId);
-  const selectedHub = selectedHubRollup?.hub ?? processHubs.find(hub => hub.id === selectedHubId);
-
   /**
-   * Persist a mutated ProcessHubAnalyze back to storage.
-   * The analyze is a lightweight projection of the underlying project;
+   * Persist a mutated per-step capability member back to storage.
+   * The member is a lightweight projection of the underlying project;
    * we load the full project, merge the updated metadata fields (nodeMappings,
    * migrationDeclinedAt), then save it back. Fires-and-forgets; refreshes the
    * project list on success.
    */
   const handlePersistInvestigation = useCallback(
-    (next: ProcessHubAnalyze): void => {
+    (next: ProcessStepCapabilityMember): void => {
       const projectMeta = projects.find(p => (p.id || p.name) === next.id);
       if (!projectMeta) return;
       void (async () => {
@@ -439,7 +380,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex items-center justify-center py-16">
           <RefreshCw size={32} className="text-content-muted animate-spin" />
         </div>
-      ) : sortedProjects.length === 0 && hubRollups.length === 0 ? (
+      ) : sortedProjects.length === 0 && processHubs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FolderOpen size={48} className="text-content-muted mb-4" />
           <h3 className="text-lg font-medium text-content mb-2">
@@ -467,42 +408,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <section>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold text-content">Process Hubs</h3>
-              {selectedHubId && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedHubId(null)}
-                  className="text-xs text-content-secondary hover:text-content"
-                >
-                  Show all analyzes
-                </button>
-              )}
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              {hubRollups.map(rollup => (
-                <ProcessHubCard
-                  key={rollup.hub.id}
-                  rollup={rollup}
-                  isSelected={selectedHubId === rollup.hub.id}
-                  onOpen={() => setSelectedHubId(rollup.hub.id)}
-                  onStartInvestigation={() => onOpenProject(undefined, rollup.hub.id)}
-                />
+            <select
+              aria-label="Select process hub"
+              value={selectedHubId ?? ''}
+              onChange={e => setSelectedHubId(e.target.value || null)}
+              className="w-full max-w-md rounded-lg border border-edge bg-surface px-3 py-2 text-sm text-content"
+            >
+              <option value="">All process hubs</option>
+              {processHubs.map(hub => (
+                <option key={hub.id} value={hub.id}>
+                  {hub.name}
+                </option>
               ))}
-            </div>
+            </select>
           </section>
 
-          {selectedHubRollup && (
+          {selectedHub && capabilitySource && (
             <>
               <ProcessHubView
-                rollup={selectedHubRollup}
+                source={capabilitySource}
                 persistInvestigation={handlePersistInvestigation}
                 onHubCpkTargetCommit={handleHubCpkTargetCommit}
                 onHubGoalChange={handleHubGoalChange}
                 onEditFraming={handleEditFraming}
               />
-              <ProcessHubEvidencePanel
-                hubId={selectedHubRollup.hub.id}
-                onEvidenceChanged={() => loadEvidenceForHub(selectedHubRollup.hub.id)}
-              />
+              <ProcessHubEvidencePanel hubId={selectedHub.id} />
             </>
           )}
 

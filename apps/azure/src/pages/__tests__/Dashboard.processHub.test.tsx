@@ -63,18 +63,11 @@ function makeProject(): CloudProject {
       phase: 'analyze',
       findingCounts: {},
       questionCounts: {},
-      actionCounts: { total: 1, completed: 0, overdue: 0 },
+      actionCounts: { total: 0, completed: 0, overdue: 0 },
       assignedTaskCount: 0,
       hasOverdueTasks: false,
       lastViewedAt: {},
       processHubId: 'line-4',
-      analyzeDepth: 'focused',
-      analyzeStatus: 'investigating',
-      processDescription: 'Line 4 filling process.',
-      customerRequirementSummary: 'Fill weight must stay inside customer specs.',
-      currentUnderstandingSummary: 'Variation is concentrated on night shift.',
-      problemConditionSummary: 'Cpk is below target on Heads 5-8.',
-      nextMove: 'Inspect nozzle wear.',
     },
   };
 }
@@ -89,17 +82,11 @@ function makeVerificationProject(): CloudProject {
       phase: 'improve',
       findingCounts: {},
       questionCounts: {},
-      actionCounts: { total: 2, completed: 1, overdue: 1 },
+      actionCounts: { total: 0, completed: 0, overdue: 0 },
       assignedTaskCount: 0,
       hasOverdueTasks: false,
       lastViewedAt: {},
       processHubId: 'line-4',
-      analyzeDepth: 'quick',
-      analyzeStatus: 'verifying',
-      processDescription: 'Line 4 filling process.',
-      customerRequirementSummary: 'Fill weight must stay inside customer specs.',
-      currentUnderstandingSummary: 'Post-action data is ready for comparison.',
-      nextMove: 'Compare post-action Cpk after the next batch.',
     },
   };
 }
@@ -114,23 +101,21 @@ function makeResolvedProject(): CloudProject {
       phase: 'improve',
       findingCounts: {},
       questionCounts: {},
-      actionCounts: { total: 1, completed: 1, overdue: 0 },
+      actionCounts: { total: 0, completed: 0, overdue: 0 },
       assignedTaskCount: 0,
       hasOverdueTasks: false,
       lastViewedAt: {},
       processHubId: 'line-4',
-      analyzeDepth: 'chartered',
-      analyzeStatus: 'resolved',
-      processDescription: 'Line 4 filling process.',
-      customerRequirementSummary: 'Fill weight must stay inside customer specs.',
-      currentUnderstandingSummary: 'Nozzle replacement reduced variation.',
-      nextMove: 'Review sustainment during the weekly hub cadence.',
     },
   };
 }
 
+async function selectHub(hubId: string): Promise<void> {
+  fireEvent.change(screen.getByLabelText('Select process hub'), { target: { value: hubId } });
+}
+
 describe('Dashboard Process Hub home', () => {
-  it('renders Process Hub cards before investigation cards and starts work in a hub', async () => {
+  it('renders a hub selector and starts work in a hub via the project card', async () => {
     const onOpenProject = vi.fn();
     mockListProjects.mockResolvedValue([makeProject()]);
     mockListProcessHubs.mockResolvedValue([
@@ -140,22 +125,17 @@ describe('Dashboard Process Hub home', () => {
 
     render(<Dashboard onOpenProject={onOpenProject} />);
 
-    await screen.findByText('Line 4');
+    await screen.findByLabelText('Select process hub');
     expect(screen.getByText('Night shift overfill')).toBeInTheDocument();
 
-    const hubCard = screen.getAllByTestId('process-hub-card')[0];
-    const projectCard = screen.getByTestId('project-card');
-    expect(hubCard.compareDocumentPosition(projectCard)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-
-    fireEvent.click(screen.getByLabelText('Start analyze in Line 4'));
-    await waitFor(() => expect(onOpenProject).toHaveBeenCalledWith(undefined, 'line-4'));
+    fireEvent.click(screen.getByTestId('project-card'));
+    await waitFor(() => expect(onOpenProject).toHaveBeenCalledWith('line-4-a'));
   });
 
-  // reviewSignal projection retired in PO-2 Task 6 — the Latest Signals block on
-  // ProcessHubCard no longer renders (rollup.reviewSignal is undefined when no
-  // analyze-projection computes it). ProcessHubCard itself retires in PO-4.
+  // IM-0a: the hub-card grid + the per-card "Start analyze in <name>" / "Open
+  // <name>" affordances retire in PO-4. A minimal <select> replaces them.
   // Negative control: guard against accidental re-introduction.
-  it('Latest Signals block is absent from Process Hub cards (reviewSignal retired)', async () => {
+  it('renders no hub cards and no start-analyze affordance (IM-0a)', async () => {
     mockListProjects.mockResolvedValue([makeProject()]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
@@ -163,8 +143,10 @@ describe('Dashboard Process Hub home', () => {
 
     render(<Dashboard onOpenProject={vi.fn()} />);
 
-    await screen.findByText('Line 4');
-    expect(screen.queryByText('Latest Signals')).not.toBeInTheDocument();
+    await screen.findByLabelText('Select process hub'); // survivor present
+    expect(screen.queryByTestId('process-hub-card')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Open / })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Start analyze in/ })).not.toBeInTheDocument();
   });
 
   // PO-3: the ProcessHubReviewPanel review surface (CurrentStatePanel + Inbox +
@@ -184,8 +166,8 @@ describe('Dashboard Process Hub home', () => {
 
     render(<Dashboard onOpenProject={onOpenProject} />);
 
-    await screen.findByText('Line 4');
-    fireEvent.click(screen.getByLabelText('Open Line 4'));
+    await screen.findByLabelText('Select process hub');
+    await selectHub('line-4');
 
     await screen.findByTestId('process-hub-surface'); // survivor present
     expect(
@@ -193,7 +175,7 @@ describe('Dashboard Process Hub home', () => {
     ).not.toBeInTheDocument(); // the retired surface must NOT come back
   });
 
-  it('keeps process hubs visible when search filters the investigation list', async () => {
+  it('keeps the hub host visible when search filters the investigation list', async () => {
     mockListProjects.mockResolvedValue([makeProject()]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
@@ -201,15 +183,15 @@ describe('Dashboard Process Hub home', () => {
 
     render(<Dashboard onOpenProject={vi.fn()} />);
 
-    await screen.findByText('Line 4');
-    fireEvent.click(screen.getByLabelText('Open Line 4'));
+    await screen.findByLabelText('Select process hub');
+    await selectHub('line-4');
     await screen.findByTestId('process-hub-surface');
 
     fireEvent.change(screen.getByPlaceholderText('Search analyzes...'), {
       target: { value: 'zzzz no matching project' },
     });
 
-    expect(screen.getByLabelText('Open Line 4')).toBeInTheDocument();
+    expect(screen.getByLabelText('Select process hub')).toBeInTheDocument();
     expect(screen.getByTestId('process-hub-surface')).toBeInTheDocument();
     expect(screen.queryByTestId('project-card')).not.toBeInTheDocument();
   });
@@ -222,33 +204,32 @@ describe('Dashboard Process Hub home', () => {
 
     render(<Dashboard onOpenProject={vi.fn()} />);
 
-    await screen.findByText('Line 4');
-    fireEvent.click(screen.getByLabelText('Open Line 4'));
+    await screen.findByLabelText('Select process hub');
+    await selectHub('line-4');
 
     // The thin host mounts for an empty hub without crashing; the process-hub
-    // surface (Capability orient content) is the surviving keep. PO-3 retired
-    // the Current Process State review surface entirely.
+    // surface (Capability orient content) is the surviving keep.
     expect(await screen.findByTestId('process-hub-surface')).toBeInTheDocument();
   });
 
-  it('defers evidence loading until a hub is selected', async () => {
+  it('mounts the EvidencePanel only once a hub is selected', async () => {
     mockListProjects.mockResolvedValue([]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
       { id: 'line-5', name: 'Line 5', createdAt: 1745539200000, deletedAt: null },
-      { id: 'line-6', name: 'Line 6', createdAt: 1745539200000, deletedAt: null },
     ]);
     mockListEvidenceSources.mockClear();
-    mockListEvidenceSnapshots.mockClear();
 
     render(<Dashboard onOpenProject={vi.fn()} />);
 
-    await screen.findByText('Line 4');
+    await screen.findByLabelText('Select process hub');
+    // No hub selected → EvidencePanel not mounted → no evidence-source reads.
     expect(mockListEvidenceSources).not.toHaveBeenCalled();
-    expect(mockListEvidenceSnapshots).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByLabelText('Open Line 5'));
+    await selectHub('line-5');
 
+    // The mounted ProcessHubEvidencePanel self-loads its own sources for the
+    // selected hub.
     await waitFor(() => expect(mockListEvidenceSources).toHaveBeenCalled());
     const calledHubIds = new Set(mockListEvidenceSources.mock.calls.map(call => call[0]));
     expect(calledHubIds).toEqual(new Set(['line-5']));
@@ -288,8 +269,8 @@ describe('Dashboard Process Hub home', () => {
 
     render(<Dashboard onOpenProject={vi.fn()} />);
 
-    await screen.findByText('Line 4');
-    fireEvent.click(screen.getByLabelText('Open Line 4'));
+    await screen.findByLabelText('Select process hub');
+    await selectHub('line-4');
 
     // Wait for ProcessHubView to render.
     await screen.findByTestId('process-hub-surface');
