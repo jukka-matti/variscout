@@ -713,6 +713,37 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       />
     );
   }, [modelBuilderProps, outcomeColumn, rows, wallLayout.factorPositions]);
+
+  // Cold-start cropped viewBox (FE-1 item 3): when there are no hubs/orphans but
+  // candidate factors exist, the content (band + glyph row) sits near y≈1300 in
+  // the full 2000×1400 space — everything renders tiny with the default viewBox.
+  // Compute a box that covers just the band top → glyph row bottom + 80px padding
+  // on all sides, min-width 700 (prevents over-zoom on narrow factor sets).
+  // Only used by the cold-start branch; the main populated-Wall SVG, Minimap, and
+  // pan/zoom state are untouched.
+  const coldStartViewBox = useMemo(() => {
+    const firstFactor = wallLayout.factorPositions.values().next().value;
+    if (!firstFactor) return `0 0 ${CANVAS_W} ${CANVAS_H}`;
+    const BAND_PANEL_H = 300;
+    const BAND_PANEL_W = 460;
+    const GLYPH_RADIUS = 24;
+    const PADDING = 80;
+    const bandX = Math.max(40, (firstFactor.x as number) - 40);
+    const bandY = (firstFactor.y as number) - BAND_PANEL_H - 40;
+    const glyphBottom = (firstFactor.y as number) + GLYPH_RADIUS;
+    const contentTop = bandY;
+    const contentBottom = glyphBottom;
+    // Include all factor glyph x positions to cover multi-factor rows.
+    const maxFactorX =
+      Math.max(...[...wallLayout.factorPositions.values()].map(p => p.x as number)) + GLYPH_RADIUS;
+    const contentRight = Math.max(bandX + BAND_PANEL_W, maxFactorX);
+    const vbX = Math.max(0, bandX - PADDING);
+    const vbY = Math.max(0, contentTop - PADDING);
+    const vbW = Math.max(700, contentRight - vbX + PADDING);
+    const vbH = contentBottom - vbY + PADDING;
+    return `${vbX} ${vbY} ${vbW} ${vbH}`;
+  }, [wallLayout.factorPositions]);
+
   const handleFocusNode = useCallback(
     (nodeId: string) => setFocusedWallEntity(nodeId),
     [setFocusedWallEntity]
@@ -779,8 +810,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
               y1={fromPos.y - 24}
               x2={toPos.x}
               y2={toPos.y + 30}
-              strokeWidth={1.5}
-              opacity={opacity * 0.6}
+              strokeWidth={2}
+              opacity={opacity * 0.85}
               stroke={isRefute ? chartColors.warning : undefined}
               className={isRefute ? undefined : 'stroke-edge'}
             />
@@ -905,7 +936,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       return (
         <div className="w-full h-full flex flex-col" data-testid="wall-cold-start-with-band">
           <svg
-            viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
+            viewBox={coldStartViewBox}
             preserveAspectRatio="xMidYMid meet"
             className="bg-background text-content flex-1"
             role="img"
