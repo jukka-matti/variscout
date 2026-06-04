@@ -220,8 +220,7 @@ import {
 import { usePanelsStore } from '../../../features/panels/panelsStore';
 import { AnalyzeWorkspace } from '../AnalyzeWorkspace';
 import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
-import { createHypothesis } from '@variscout/core/findings';
-import type { Finding } from '@variscout/core';
+import { createHypothesis, createFinding } from '@variscout/core/findings';
 
 // ── 3. Fixtures ─────────────────────────────────────────────────────────────
 
@@ -230,40 +229,15 @@ const activeScope: { title: string; labels: ActiveIPScopeLabels } = {
   labels: {
     outcomeLabel: 'Defect Rate',
     factorLabels: [],
-    since: 'Jan 1',
-    memberCount: 1,
+    timelineLabel: 'Jan 1',
   },
 };
 
 const hub1 = { ...createHypothesis('Mech A', '', [], 'inv-1'), id: 'hub-A' };
 const hub2 = { ...createHypothesis('Mech B', '', [], 'inv-1'), id: 'hub-B' };
 
-const finding1: Finding = {
-  id: 'f-A',
-  text: 'Evidence A',
-  status: 'open',
-  tags: [],
-  context: { activeFilters: {}, scopeLabel: '' },
-  refutes: false,
-  originStepId: undefined,
-  projection: undefined,
-  createdAt: 1,
-  updatedAt: 1,
-  deletedAt: null,
-};
-const finding2: Finding = {
-  id: 'f-B',
-  text: 'Evidence B',
-  status: 'open',
-  tags: [],
-  context: { activeFilters: {}, scopeLabel: '' },
-  refutes: false,
-  originStepId: undefined,
-  projection: undefined,
-  createdAt: 2,
-  updatedAt: 2,
-  deletedAt: null,
-};
+const finding1 = { ...createFinding('Evidence A', {}, null, undefined, 'observed'), id: 'f-A' };
+const finding2 = { ...createFinding('Evidence B', {}, null, undefined, 'observed'), id: 'f-B' };
 
 function makeMinimalProps(): React.ComponentProps<typeof AnalyzeWorkspace> {
   const noOp = vi.fn();
