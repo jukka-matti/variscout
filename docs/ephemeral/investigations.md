@@ -26,6 +26,24 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### "Pin as finding" crashes both apps — click event flows into the finding text [LOGGED 2026-06-04]
+
+**Surfaced by:** the CS-12 `--chrome` laptop verify. Clicking **Pin as finding** (dashboard `ProcessHealthBar`) crashes the whole app to the error boundary: `Converting circular structure to JSON — starting at object with constructor 'SVGSVGElement' … 'FiberNode' … 'stateNode' closes the circle`. **Confirmed identical on origin/main** (replayed the same Hospital Ward → drill `Time_Period: Afternoon` → Pin-as-finding flow on a main dev server) — pre-existing, NOT a CS-12 regression.
+
+**Suspected mechanism:** `ProcessHealthBar.tsx:601` passes the raw click handler — `onClick={onPinFinding}` — into a prop typed `onPinFinding?: (noteText?: string) => void`, so the React `MouseEvent` (whose target is an SVG element) arrives as `noteText` and rides into the created Finding's text; serialization (persistence/snapshot) then hits the circular DOM/fiber structure. One-line fix candidate: `onClick={() => onPinFinding()}` (+ a type-level guard so an event can never satisfy `noteText`).
+
+**Promotion path:** immediate small fix PR — this breaks the core evidence-capture loop in BOTH apps and is customer-demo-blocking.
+
+**Severity:** HIGH — core analyst loop crashes the app; pre-existing on main.
+
+### Wall empty-state CTAs silently no-op [LOGGED 2026-06-04]
+
+**Surfaced by:** the CS-12 `--chrome` laptop verify. On a fresh investigation (data loaded, zero hypotheses), the Analyze-tab Wall empty state's two CTAs — **"Write a suspected mechanism"** and **"Seed 3 from Factor Intelligence"** — produce no visible action and no console errors when clicked. **Confirmed identical on origin/main** — pre-existing, NOT a CS-12 regression. Combined with the Pin-as-finding crash above, there is currently NO working UI path from a fresh dataset to a populated Wall — worth treating as one demo-blocking cluster. (Minor, same surface: the cold-start Wall svg renders the ModelBuilderBand + factor glyph at a tiny scale — the 2000×1400 user-space compresses into the container; pre-existing for the band, CS-12 only added the adjacent glyph.)
+
+**Promotion path:** investigate the CTA handlers (modal not mounted? handler gated on missing state?) alongside the Pin-as-finding fix; one combined "Wall entry paths" fix PR is the likely shape.
+
+**Severity:** HIGH (cluster) — blocks the fresh-data → Wall journey before customer demos.
+
 ### Evidence Map post-Model-B fate [LOGGED 2026-06-04]
 
 **Surfaced by:** CS-12 (reasoning canvas) now renders per-factor glyphs + Finding-mediated factor↔hypothesis edges on the Analyze-tab Wall. With both surfaces live side-by-side, the question of what the Evidence Map's unique residue is deserves evaluation before the next connective-surface build cycle.
