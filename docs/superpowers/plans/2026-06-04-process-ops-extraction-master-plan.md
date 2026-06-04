@@ -71,7 +71,7 @@ related:
 - **Model:** Opus (core-engine re-signature + predicate design + UI re-homes; partial-integration posture: re-signed types co-exist with the not-yet-deleted entity until PO-4).
 - **Acceptance:** Control buckets populate identically for a fixture with records/handoffs (negative control: a project with the old status word but no record must NOT appear control-eligible — the label-can't-lie test); `--chrome` verify Project-tab Control region + slimmed Home cards; gate + app suites green.
 - **Spec ref:** §3 (analyzeStatus/reviewSignal rows + consumer enumeration), §5.1–5.3, §8.
-- **Sub-plan:** [`2026-06-04-po-2-control-resource.md`](2026-06-04-po-2-control-resource.md). _Grounding amendments 2026-06-04: predicate source = NO new field (`ip.status==='closed'` + the live `ControlRecord.improvementProjectId` join; `outcomeReference` FKs found zero-writer → logged for #12); **Survey dedup moved to PO-3** (panel dies whole); ProjectCard "Your tasks" block sheds (§3-consistent)._
+- **Sub-plan:** [`2026-06-04-po-2-control-resource.md`](2026-06-04-po-2-control-resource.md). **DELIVERED 2026-06-04 via PR #299** (`11ad356e`; predicate w/ zero new fields; final adversarial review traced the predicate end-to-end; non-blocking carries: interim cadence-bridge opt-out broadening [dies PO-3] · vestigial storage.ts reopen-tombstone branch [#12]). _Grounding amendments 2026-06-04: predicate source = NO new field (`ip.status==='closed'` + the live `ControlRecord.improvementProjectId` join; `outcomeReference` FKs found zero-writer → logged for #12); **Survey dedup moved to PO-3** (panel dies whole); ProjectCard "Your tasks" block sheds (§3-consistent)._
 
 ### PR-PO-3 · Phase B2 — engine delete (cadence layer out)
 

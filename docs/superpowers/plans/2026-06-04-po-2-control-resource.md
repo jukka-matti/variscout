@@ -3,7 +3,7 @@ tier: living
 purpose: design
 title: 'PO-2 · Control re-source + re-homes — sub-plan (facts not labels)'
 audience: human
-status: active
+status: delivered
 date: 2026-06-04
 last-reviewed: 2026-06-04
 layer: spec
@@ -20,7 +20,8 @@ related:
 **Goal:** Control reads facts not labels — the Control-readiness predicate replaces the `analyzeStatus` gates; the ControlRegion re-homes to the Project tab's Control stage; the Editor work-item strip retires (its Status select was the predicate's only writer — atomic with the re-source); ProjectCard slims to the §8 interim contract; the `reviewSignal` save-call retires.
 
 **Grounded decisions (2026-06-04, 5-reader workflow — encode, don't re-derive):**
-- **The predicate's typed source = NO NEW FIELD.** IP lifecycle is `ImprovementProjectStatus = 'draft'|'active'|'closed'` (`improvementProject/types.ts:15`); the Control stage is *derived* — `deriveStageState` maps `closed` → Control current (`packages/ui/src/components/IPDetail/stageState.ts:25-45`); the live artifact join is **`ControlRecord.improvementProjectId`** (Editor already joins on it). So: `controlEligible(ip, records, handoffs) = ip.status === 'closed' OR ∃ record/handoff with improvementProjectId === ip.id`; `isControlled(ip, records) = ∃ active (non-tombstoned) record for ip.id`. This matches the existing `getIPStageLabel` shape (`activeIPPresentation.ts:21-35`).
+
+- **The predicate's typed source = NO NEW FIELD.** IP lifecycle is `ImprovementProjectStatus = 'draft'|'active'|'closed'` (`improvementProject/types.ts:15`); the Control stage is _derived_ — `deriveStageState` maps `closed` → Control current (`packages/ui/src/components/IPDetail/stageState.ts:25-45`); the live artifact join is **`ControlRecord.improvementProjectId`** (Editor already joins on it). So: `controlEligible(ip, records, handoffs) = ip.status === 'closed' OR ∃ record/handoff with improvementProjectId === ip.id`; `isControlled(ip, records) = ∃ active (non-tombstoned) record for ip.id`. This matches the existing `getIPStageLabel` shape (`activeIPPresentation.ts:21-35`).
 - **`ip.sections.outcomeReference.{sustainmentRecordId,controlHandoffId}` have ZERO writers** (3 readers, no writer — another lineage-pattern fossil). NOT wired in PO-2; logged to `investigations.md` for the #12 closure-model brainstorm.
 - **The selector join re-points to the live FK**: `selectControlBuckets`/`selectControlReviews` currently key records/handoffs by `investigationId` (`control.ts:329-330,377-378`); the re-signature joins via `improvementProjectId` (honest, already live in Editor.tsx ~:867 + PWA App.tsx ~:1092).
 - **Survey dedup MOVED to PO-3** (the panel dies whole; no half-stripped interim).
@@ -36,6 +37,7 @@ related:
 ### Task 1: Core — the Control-readiness predicate + selector re-signature (Opus)
 
 **Files:**
+
 - Create: `packages/core/src/controlReadiness.ts` (+ barrel export in `packages/core/src/index.ts`)
 - Modify: `packages/core/src/control.ts` (selectors), `packages/core/src/processHub.ts` (`ProcessHubReviewItem` re-type, ~:316)
 - Test: create `packages/core/src/__tests__/controlReadiness.test.ts`; modify the existing control selector tests
@@ -48,11 +50,21 @@ import { isControlEligible, isControlled } from '../controlReadiness';
 // build minimal ImprovementProject + ControlRecord/Handoff fixtures (mirror existing control.ts test fixtures)
 
 describe('isControlEligible', () => {
-  it('true when ip.status === "closed" (Control stage reached)', () => { /* status closed, no records */ });
-  it('true when a ControlRecord exists for the project (improvementProjectId join)', () => { /* status active + record */ });
-  it('true when a ControlHandoff exists for the project', () => { /* status active + handoff */ });
-  it('NEGATIVE CONTROL — the label cannot lie: active project, no record/handoff → false', () => { /* even though the old analyzeStatus could have said resolved */ });
-  it('ignores records belonging to OTHER projects (join is by improvementProjectId)', () => { /* distractor record with different improvementProjectId → false */ });
+  it('true when ip.status === "closed" (Control stage reached)', () => {
+    /* status closed, no records */
+  });
+  it('true when a ControlRecord exists for the project (improvementProjectId join)', () => {
+    /* status active + record */
+  });
+  it('true when a ControlHandoff exists for the project', () => {
+    /* status active + handoff */
+  });
+  it('NEGATIVE CONTROL — the label cannot lie: active project, no record/handoff → false', () => {
+    /* even though the old analyzeStatus could have said resolved */
+  });
+  it('ignores records belonging to OTHER projects (join is by improvementProjectId)', () => {
+    /* distractor record with different improvementProjectId → false */
+  });
 });
 describe('isControlled', () => {
   it('true only when an active (non-tombstoned) ControlRecord exists for the project', () => {});
@@ -69,6 +81,7 @@ describe('isControlled', () => {
 ### Task 2: Azure — ControlRegion re-home to the Project tab's Control stage (Opus)
 
 **Files:**
+
 - Modify: `apps/azure/src/components/ProcessHubControlRegion.tsx`, `apps/azure/src/components/ProjectsTabView.tsx`, `packages/ui/src/components/IPDetail/IPDetailPage.tsx` (Control-stage branch, ~:255-279), `apps/azure/src/pages/Editor.tsx` (data plumbing ~:860-884 + the ReviewPanel mount site), `apps/azure/src/components/ProcessHubReviewPanel.tsx` (remove the ControlRegion mount)
 - Test: rewrite `apps/azure/src/components/__tests__/ProcessHubControlRegion.test.tsx` (6 cases) + ADD an integration test at the new mount
 
@@ -82,6 +95,7 @@ describe('isControlled', () => {
 ### Task 3: Azure — the Editor work-item strip retires (Sonnet, after Task 2)
 
 **Files:**
+
 - Modify: `apps/azure/src/pages/Editor.tsx` — the `AnalyzeMetadataPanel` component (def ~:182-272, mount ~:1967-1971) + the auto-set nextMove (~:987)
 
 - [ ] **Step 1:** Delete `AnalyzeMetadataPanel` (Depth select ~:195-205, Status select ~:209-219 — **the only `analyzeStatus` writer**, Owner ~:223, Sponsor ~:233, Contributors ~:241, NextMove ~:256-263) + its mount + props + the `INVESTIGATION_DEPTHS`/`INVESTIGATION_STATUSES`/`formatStatusLabel` helpers if orphaned. The `ControlEntryRow` it hosted survives per Task 2 Step 4 — re-host it before deleting the panel.
@@ -93,6 +107,7 @@ describe('isControlled', () => {
 ### Task 4: Azure — ProcessHubFormat Control-helper extraction (Sonnet)
 
 **Files:**
+
 - Create: `apps/azure/src/components/controlFormat.ts`
 - Modify: `apps/azure/src/components/ProcessHubFormat.ts`, `apps/azure/src/components/ProcessHubControlRegion.tsx` (import re-point)
 - Test: re-point `apps/azure/src/components/__tests__/ProcessHubFormat.control.test.ts` (23 cases) → the new module path
@@ -102,6 +117,7 @@ describe('isControlled', () => {
 ### Task 5: Azure — ProjectCard slim + the §8 interim chips (Sonnet)
 
 **Files:**
+
 - Modify: `apps/azure/src/components/ProjectCard.tsx`
 - Test: `apps/azure/src/components/__tests__/ProjectCard.test.tsx` (15 cases — 4 rewrite/delete + 1 net-new)
 
@@ -113,6 +129,7 @@ describe('isControlled', () => {
 ### Task 6: Azure — retire the reviewSignal save-call (Sonnet)
 
 **Files:**
+
 - Modify: `apps/azure/src/services/localDb.ts` (~:63-71 inside `extractMetadataInputs` ~:46-97), `packages/core/src/projectMetadata.ts` (param ~:138, field ~:80, write ~:227)
 
 - [ ] Remove the `buildHubReviewSignal` call + `reviewSignal` var from `extractMetadataInputs`; drop the `reviewSignal` param/field/write from `buildProjectMetadata` + `ProjectMetadata`. `buildHubReviewSignal` + `HubReviewSignal` STAY in core (engine fn). **Guard:** zero edits to hub-level `processHub.reviewSignal` / the Dashboard cpkTarget commit / `ProcessHubCapabilityTab` / `documentSnapshot.ts`. tsc will surface the remaining analyze-projection readers (`processHubReview.ts`, `processState.ts`, rollup internals, `ProcessHubCard`) — those are PO-3/PO-4 territory: **if tsc reds on them, the field removal from the TYPE moves to PO-4 and this task removes only the save-call + the write** (decide by what tsc says; report which branch you took). Verify core + azure targeted tests; commit — `feat(po-2): retire the analyze-projection reviewSignal save-call (engine fn stays in core)`
