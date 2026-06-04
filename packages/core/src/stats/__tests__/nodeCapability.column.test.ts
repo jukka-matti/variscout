@@ -40,7 +40,6 @@ const nodeMappings: AnalyzeNodeMapping[] = [{ nodeId: 'n-fill', measurementColum
 
 const investigationMeta: ProcessHubAnalyzeMetadata = {
   processHubId: 'hub-1',
-  canonicalMapVersion: '2026-04-28T10:00:00Z',
   nodeMappings,
 };
 
