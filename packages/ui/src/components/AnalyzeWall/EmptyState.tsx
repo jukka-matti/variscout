@@ -30,20 +30,24 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       </h2>
       <p className="text-xs text-content-muted">{getMessage(locale, 'wall.empty.subtitle')}</p>
       <div className="flex flex-col gap-2 w-full max-w-xs">
-        <button
-          type="button"
-          onClick={onWriteHypothesis}
-          className="rounded bg-surface-secondary border border-edge px-3 py-2 text-sm text-content hover:bg-surface"
-        >
-          {getMessage(locale, 'wall.empty.writeHypothesis')}
-        </button>
-        <button
-          type="button"
-          onClick={onSeedFromFactorIntel}
-          className="rounded bg-surface-secondary border border-edge px-3 py-2 text-sm text-content hover:bg-surface"
-        >
-          {getMessage(locale, 'wall.empty.seedFromFactorIntel')}
-        </button>
+        {onWriteHypothesis && (
+          <button
+            type="button"
+            onClick={onWriteHypothesis}
+            className="rounded bg-surface-secondary border border-edge px-3 py-2 text-sm text-content hover:bg-surface"
+          >
+            {getMessage(locale, 'wall.empty.writeHypothesis')}
+          </button>
+        )}
+        {onSeedFromFactorIntel && (
+          <button
+            type="button"
+            onClick={onSeedFromFactorIntel}
+            className="rounded bg-surface-secondary border border-edge px-3 py-2 text-sm text-content hover:bg-surface"
+          >
+            {getMessage(locale, 'wall.empty.seedFromFactorIntel')}
+          </button>
+        )}
       </div>
     </section>
   );

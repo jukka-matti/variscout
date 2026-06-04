@@ -91,12 +91,28 @@ vi.mock('@variscout/ui', async importOriginal => {
     },
     QuestionLinkPrompt: () => null,
     useWallIsMobile: () => false,
-    WallCanvas: (props: { hubs: unknown[]; planningProps?: Record<string, unknown> }) => {
+    WallCanvas: (props: {
+      hubs: unknown[];
+      planningProps?: Record<string, unknown>;
+      onWriteHypothesis?: () => void;
+      onSeedFromFactorIntel?: () => void;
+    }) => {
       capturedWallCanvasProps.current = props as Record<string, unknown>;
       return props.hubs.length > 0 ? (
         <div data-testid="wall-canvas" data-has-process-map={String('processMap' in props)} />
       ) : (
-        <div data-testid="wall-canvas-empty" data-has-process-map={String('processMap' in props)} />
+        <div data-testid="wall-canvas-empty" data-has-process-map={String('processMap' in props)}>
+          {props.onWriteHypothesis && (
+            <button data-testid="empty-write-hypothesis" onClick={props.onWriteHypothesis}>
+              Write a suspected mechanism
+            </button>
+          )}
+          {props.onSeedFromFactorIntel && (
+            <button data-testid="empty-seed-factors" onClick={props.onSeedFromFactorIntel}>
+              Seed 3 from Factor Intelligence
+            </button>
+          )}
+        </div>
       );
     },
   };
@@ -946,5 +962,62 @@ describe('AnalyzeWorkspace — model-builder band wiring (FE-1)', () => {
     expect(projection.modelContext?.rSquaredAdj).toBeCloseTo(0.68, 10);
     expect(projection.modelContext?.linkedFactor).toBe('Shift');
     expect(projection.modelContext?.scopeLabel).toBe('All data');
+  });
+});
+
+// Wall empty-state CTA wiring (Bug 2 — investigations.md 2026-06-04).
+// The CTAs were never passed to the destination WallCanvas mount; only the
+// retired CanvasWallOverlay ever wired them. These tests assert the seam:
+// AnalyzeWorkspace → WallCanvas → (mock) CTA buttons create hubs.
+describe('AnalyzeWorkspace — Wall empty-state CTA wiring (Bug 2)', () => {
+  beforeEach(() => {
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    useCanvasViewportStore.getState().setViewMode('wall');
+    usePanelsStore.getState().setAnalyzeViewMode('map');
+    useAnalysisScopeStore.setState({ categoricalFilters: [] });
+    useAnalyzeStore.setState({ scopes: [] });
+    capturedWallCanvasProps.current = null;
+  });
+
+  it('(a) zero hubs — clicking "Write a suspected mechanism" creates one hub named "New mechanism branch"', () => {
+    const createHub = vi.fn(() => ({ id: 'hub-write' }) as never);
+    const props = makeMinimalProps();
+    props.hypothesesState = { ...props.hypothesesState, createHub, hubs: [] } as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    // The empty-state renders because hubs.length === 0
+    fireEvent.click(screen.getByTestId('empty-write-hypothesis'));
+
+    expect(createHub).toHaveBeenCalledTimes(1);
+    expect((createHub.mock.calls[0] as unknown[])[0]).toBe('New mechanism branch');
+  });
+
+  it('(b) zero hubs + factors — clicking "Seed 3 from Factor Intelligence" creates min(3, factors) hubs', () => {
+    const createHub = vi.fn(() => ({ id: 'hub-seed' }) as never);
+    const props = makeMinimalProps();
+    props.hypothesesState = { ...props.hypothesesState, createHub, hubs: [] } as never;
+    // Set 2 factors in the project store — seed should create 2 (min(3, 2)) hubs
+    useProjectStore.setState({ outcome: 'Y', factors: ['Shift', 'Machine'] });
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    fireEvent.click(screen.getByTestId('empty-seed-factors'));
+
+    expect(createHub).toHaveBeenCalledTimes(2);
+    expect((createHub.mock.calls[0] as unknown[])[0]).toBe('Suspected mechanism: Shift');
+    expect((createHub.mock.calls[1] as unknown[])[0]).toBe('Suspected mechanism: Machine');
+  });
+
+  it('(c) NEGATIVE CONTROL — zero candidate factors → Seed button NOT in document', () => {
+    // LOAD-BEARING: fails if onSeedFromFactorIntel gating is dropped
+    const props = makeMinimalProps();
+    props.hypothesesState = { ...props.hypothesesState, hubs: [] } as never;
+    // factors defaults to [] in the project store
+    useProjectStore.setState({ outcome: null, factors: [] });
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    expect(screen.queryByTestId('empty-seed-factors')).toBeNull();
   });
 });

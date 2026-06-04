@@ -598,7 +598,7 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
             {/* Pin finding */}
             {onPinFinding && chips.length > 0 && (
               <button
-                onClick={onPinFinding}
+                onClick={() => onPinFinding()}
                 data-testid="btn-pin-finding"
                 className="p-1 rounded text-content-muted hover:text-blue-400 hover:bg-blue-400/10 transition-colors"
                 title="Save current filters as a finding"

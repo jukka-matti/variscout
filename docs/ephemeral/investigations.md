@@ -26,6 +26,14 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Created hubs don't register into active-IP lineage [LOGGED 2026-06-04]
+
+**Surfaced by:** the Wall-entry fix review. When an active IP is scoped, both apps filter the Wall to `activeIPLineage.hypothesisIds` — but NO hub-creation path (`handleProposeHypothesis`, `createHubFromFinding`, and the newly wired write/seed CTAs) registers the new hub into the lineage. A hub created while IP-scoped-with-zero-lineage-hubs won't appear on the scoped Wall. Identical pre-existing behavior across all creation paths; common unscoped case unaffected.
+
+**Promotion path:** decide whether hub creation should auto-register into the active IP's lineage (likely yes — one-line per path) as a small follow-up.
+
+**Severity:** low-medium — confusing edge case under IP scoping; consistent across paths.
+
 ### "Pin as finding" crashes both apps — click event flows into the finding text [LOGGED 2026-06-04]
 
 **Surfaced by:** the CS-12 `--chrome` laptop verify. Clicking **Pin as finding** (dashboard `ProcessHealthBar`) crashes the whole app to the error boundary: `Converting circular structure to JSON — starting at object with constructor 'SVGSVGElement' … 'FiberNode' … 'stateNode' closes the circle`. **Confirmed identical on origin/main** (replayed the same Hospital Ward → drill `Time_Period: Afternoon` → Pin-as-finding flow on a main dev server) — pre-existing, NOT a CS-12 regression.
@@ -36,6 +44,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Severity:** HIGH — core analyst loop crashes the app; pre-existing on main.
 
+**[RESOLVED 2026-06-04]** — fixed in this PR (ProcessHealthBar arrow-wrap + Azure boundary guard). Correction: the crash was **Azure-only** — PWA's handler takes no parameters and was never affected; the original entry over-claimed "both apps".
+
 ### Wall empty-state CTAs silently no-op [LOGGED 2026-06-04]
 
 **Surfaced by:** the CS-12 `--chrome` laptop verify. On a fresh investigation (data loaded, zero hypotheses), the Analyze-tab Wall empty state's two CTAs — **"Write a suspected mechanism"** and **"Seed 3 from Factor Intelligence"** — produce no visible action and no console errors when clicked. **Confirmed identical on origin/main** — pre-existing, NOT a CS-12 regression. Combined with the Pin-as-finding crash above, there is currently NO working UI path from a fresh dataset to a populated Wall — worth treating as one demo-blocking cluster. (Minor, same surface: the cold-start Wall svg renders the ModelBuilderBand + factor glyph at a tiny scale — the 2000×1400 user-space compresses into the container; pre-existing for the band, CS-12 only added the adjacent glyph.)
@@ -43,6 +53,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 **Promotion path:** investigate the CTA handlers (modal not mounted? handler gated on missing state?) alongside the Pin-as-finding fix; one combined "Wall entry paths" fix PR is the likely shape.
 
 **Severity:** HIGH (cluster) — blocks the fresh-data → Wall journey before customer demos.
+
+**[RESOLVED 2026-06-04]** — both CTAs wired on the destination mounts (write → createHub; seed → top-3 candidate factors); Seed hidden when no factors. The cold-start tiny-scale note remains open (minor, not fixed here).
 
 ### Evidence Map post-Model-B fate [LOGGED 2026-06-04]
 

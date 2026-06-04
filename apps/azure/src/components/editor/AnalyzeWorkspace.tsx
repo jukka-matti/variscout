@@ -980,6 +980,19 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     [findingsState.findings, hypothesesState]
   );
 
+  // Wall empty-state entry points (investigations.md 2026-06-04 — the CTAs were
+  // never wired on the destination mount; only the retired CanvasWallOverlay
+  // passed them). Create directly + let the analyst rename on the card — the
+  // same convention as handleProposeHypothesis.
+  const handleWriteHypothesis = useCallback(() => {
+    hypothesesState.createHub('New mechanism branch', '');
+  }, [hypothesesState]);
+  const handleSeedFromFactorIntel = useCallback(() => {
+    for (const factor of factors.slice(0, 3)) {
+      hypothesesState.createHub(`Suspected mechanism: ${factor}`, '');
+    }
+  }, [hypothesesState, factors]);
+
   const handleToggleHubSelect = useCallback(
     (hubId: string) => {
       const hub = hubs.find(h => h.id === hubId);
@@ -1299,6 +1312,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   groupByTributary={Boolean(processMap && wallGroupByTributary)}
                   planningProps={enrichedPlanningProps}
                   modelBuilderProps={modelBuilderProps}
+                  onWriteHypothesis={handleWriteHypothesis}
+                  onSeedFromFactorIntel={factors.length > 0 ? handleSeedFromFactorIntel : undefined}
                   onProposeHypothesis={handleProposeHypothesis}
                 />
                 {/* Minimap + CommandPalette are desktop-only. WallCanvas

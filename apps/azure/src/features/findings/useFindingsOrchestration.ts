@@ -144,6 +144,8 @@ export function useFindingsOrchestration({
   // Pin current filter state
   const handlePinFinding = useCallback(
     (noteText?: string) => {
+      // Boundary guard: a non-string (e.g. a leaked DOM event) must never become finding.text — it crashes JSON serialization downstream.
+      const text = typeof noteText === 'string' ? noteText : '';
       const existing = findingsState.findDuplicate(filters);
       if (existing) {
         usePanelsStore.getState().setFindingsOpen(true);
@@ -151,7 +153,7 @@ export function useFindingsOrchestration({
         return;
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
-      const newFinding = findingsState.addFinding(noteText || '', context);
+      const newFinding = findingsState.addFinding(text, context);
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
     },

@@ -320,6 +320,20 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     useAnalyzeStore.getState().createHubFromFinding(findingId);
   }, []);
 
+  // Wall empty-state entry points (investigations.md 2026-06-04 — the CTAs were
+  // never wired on the destination mount; only the retired CanvasWallOverlay
+  // passed them). Create directly + let the analyst rename on the card — the
+  // same convention as handleProposeHypothesis.
+  const handleWriteHypothesis = useCallback(() => {
+    useAnalyzeStore.getState().createHub('New mechanism branch', '');
+  }, []);
+  const handleSeedFromFactorIntel = useCallback(() => {
+    const store = useAnalyzeStore.getState();
+    for (const factor of factors.slice(0, 3)) {
+      store.createHub(`Suspected mechanism: ${factor}`, '');
+    }
+  }, [factors]);
+
   // FE-2a — one-tap evaluate of a hypothesis factor (PRODUCTION seam). The PWA
   // Wall reads hubs + findings from `useAnalyzeStore` REACTIVELY, so the typed
   // Finding MUST be written there (not the separate `findingsState`) to render
@@ -724,6 +738,8 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 groupByTributary={Boolean(processMap && wallGroupByTributary)}
                 planningProps={enrichedPlanningProps}
                 modelBuilderProps={modelBuilderProps}
+                onWriteHypothesis={handleWriteHypothesis}
+                onSeedFromFactorIntel={factors.length > 0 ? handleSeedFromFactorIntel : undefined}
                 onProposeHypothesis={handleProposeHypothesis}
               />
               {/* Minimap + CommandPalette are desktop-only. WallCanvas
