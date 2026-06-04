@@ -1369,3 +1369,7 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 **Promotion path:** Small doc edit, 1 file.
 
 **Severity:** functional gap (parity matrix omits a real differential that affects whether `.vrs` round-trips Sustainment state).
+
+## `outcomeReference` FKs are zero-writer (lineage-pattern fossil) [LOGGED 2026-06-04]
+
+`ip.sections.outcomeReference.{sustainmentRecordId, controlHandoffId}` have 3 readers (`activeIPPresentation.ts`, `ipReport.ts`, `survey/control.ts`) and **zero writers** on main — the Control-entry actions (`ControlRecordEditor`/`ControlHandoffEditor`) write the entities + `ControlRecord.improvementProjectId`/`controlHandoffId` but never patch the IP. Surfaced by the PO-2 grounding (process-ops master plan). PO-2's Control-readiness predicate deliberately derives from the live `improvementProjectId` join instead. **Disposition belongs to the #12 Control-closure-model brainstorm**: wire the back-reference at Control-entry, or retire the section (the readers can derive from the join). Same shape as the retired `investigationLineage.hypothesisIds`.
