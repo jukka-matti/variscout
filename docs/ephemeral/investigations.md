@@ -26,6 +26,14 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Created hubs don't register into active-IP lineage [LOGGED 2026-06-04]
+
+**Surfaced by:** the Wall-entry fix review. When an active IP is scoped, both apps filter the Wall to `activeIPLineage.hypothesisIds` — but NO hub-creation path (`handleProposeHypothesis`, `createHubFromFinding`, and the newly wired write/seed CTAs) registers the new hub into the lineage. A hub created while IP-scoped-with-zero-lineage-hubs won't appear on the scoped Wall. Identical pre-existing behavior across all creation paths; common unscoped case unaffected.
+
+**Promotion path:** decide whether hub creation should auto-register into the active IP's lineage (likely yes — one-line per path) as a small follow-up.
+
+**Severity:** low-medium — confusing edge case under IP scoping; consistent across paths.
+
 ### "Pin as finding" crashes both apps — click event flows into the finding text [LOGGED 2026-06-04]
 
 **Surfaced by:** the CS-12 `--chrome` laptop verify. Clicking **Pin as finding** (dashboard `ProcessHealthBar`) crashes the whole app to the error boundary: `Converting circular structure to JSON — starting at object with constructor 'SVGSVGElement' … 'FiberNode' … 'stateNode' closes the circle`. **Confirmed identical on origin/main** (replayed the same Hospital Ward → drill `Time_Period: Afternoon` → Pin-as-finding flow on a main dev server) — pre-existing, NOT a CS-12 regression.
