@@ -1,14 +1,8 @@
-import { buildReviewItem } from './processHubReview';
 import type { EntityBase } from './identity';
-import type {
-  ProcessHub,
-  ProcessHubAttentionReason,
-  ProcessHubAnalyze,
-  ProcessHubReviewItem,
-  ProcessParticipantRef,
-} from './processHub';
+import type { ProcessHub, ProcessHubAnalyze, ProcessParticipantRef } from './processHub';
 import type { EvidenceSnapshot } from './evidenceSources';
-import type { ImprovementProjectGoal } from './improvementProject';
+import type { ImprovementProject, ImprovementProjectGoal } from './improvementProject';
+import { isControlEligible, isControlled } from './controlReadiness';
 
 export type ControlCadence =
   | 'weekly'
@@ -300,60 +294,106 @@ export function isControlOverdue(record: ControlRecord, now: Date, graceDays: nu
 }
 
 /**
- * Wrap the canonical `buildReviewItem` factory so both sustainment selectors
- * project the same fields (`cpkGap`, `topFocusVariationPct`, etc.) that the
- * rest of the cadence board surfaces. Keeps the call sites in this file
- * narrow on the `<TInv>` generic.
+ * One row of the cadence-board control queue. The unit is the
+ * {@link ImprovementProject} (PR-PO-2 — the project, not the investigation),
+ * paired with the live ControlRecord that placed it in a bucket.
+ *
+ * Replaces the former `ProcessHubReviewItem<TInv>` projection — the control
+ * queue is now project-keyed (facts, not the `analyzeStatus` label).
  */
-function buildControlReviewItem<TInv extends ProcessHubAnalyze>(
-  investigation: TInv,
-  reasons: ProcessHubAttentionReason[]
-): ProcessHubReviewItem<TInv> {
-  return buildReviewItem(investigation, reasons);
+export interface ControlReviewItem {
+  project: ImprovementProject;
+  record: ControlRecord;
+}
+
+function buildControlReviewItem(
+  project: ImprovementProject,
+  record: ControlRecord
+): ControlReviewItem {
+  return { project, record };
+}
+
+/** First non-tombstoned ControlRecord whose FK points at this project. */
+function liveRecordFor(
+  project: ImprovementProject,
+  recordsByProject: Map<string, ControlRecord[]>
+): ControlRecord | undefined {
+  return recordsByProject.get(project.id)?.find(r => r.deletedAt === null);
 }
 
 /**
- * Returns the cadence-board sustainment queue: investigations whose effective
- * status is in SUSTAINMENT_STATUSES (`resolved` or `controlled`), whose record
- * is due (per `isControlDue`), and which are not opted out via a
- * ControlHandoff with `retainControlReview = false`.
- *
- * Tombstoned records are excluded by the underlying `isControlDue` check.
+ * The live ControlHandoff bridging to this project (handoffs carry no project
+ * FK — they join via a record sharing `investigationId`). Returns the first
+ * live handoff whose `investigationId` matches the project's record.
  */
-export function selectControlReviews<TInv extends ProcessHubAnalyze>(
-  investigations: TInv[],
+function handoffFor(
+  record: ControlRecord | undefined,
+  handoffByInvestigation: Map<string, ControlHandoff>
+): ControlHandoff | undefined {
+  if (!record) return undefined;
+  return handoffByInvestigation.get(record.investigationId);
+}
+
+function indexRecordsByProject(records: ControlRecord[]): Map<string, ControlRecord[]> {
+  const byProject = new Map<string, ControlRecord[]>();
+  for (const record of records) {
+    const projectId = record.improvementProjectId;
+    if (!projectId) continue;
+    const list = byProject.get(projectId);
+    if (list) list.push(record);
+    else byProject.set(projectId, [record]);
+  }
+  return byProject;
+}
+
+/**
+ * Returns the cadence-board control queue: projects that are control-eligible
+ * by FACT (`isControlEligible` — closed lifecycle status OR a live control
+ * artifact), whose live ControlRecord is due (per `isControlDue`), and which
+ * are not opted out via a ControlHandoff with `retainControlReview = false`
+ * (only relevant when the project is actually controlled).
+ *
+ * Tombstoned records are excluded by `liveRecordFor` + the underlying
+ * `isControlDue` check. The gate change (label → facts) is sanctioned: an
+ * 'active' project with no record/handoff is no longer queued even if its
+ * (soon-dead) analyzeStatus once said 'resolved'.
+ */
+export function selectControlReviews(
+  projects: ImprovementProject[],
   records: ControlRecord[],
   handoffs: ControlHandoff[],
   now: Date
-): ProcessHubReviewItem<TInv>[] {
-  const recordByInvestigation = new Map(records.map(r => [r.investigationId, r]));
+): ControlReviewItem[] {
+  const recordsByProject = indexRecordsByProject(records);
   const handoffByInvestigation = new Map(handoffs.map(h => [h.investigationId, h]));
 
-  return investigations
-    .filter(inv => {
-      const status = inv.metadata?.analyzeStatus;
-      if (status !== 'resolved' && status !== 'controlled') return false;
-      const record = recordByInvestigation.get(inv.id);
-      if (!record || !isControlDue(record, now)) return false;
-      if (status === 'controlled') {
-        const handoff = handoffByInvestigation.get(inv.id);
-        if (handoff && handoff.retainControlReview === false) return false;
-      }
-      return true;
-    })
-    .map(inv => buildControlReviewItem(inv, ['control-due']));
+  const items: ControlReviewItem[] = [];
+  for (const project of projects) {
+    if (!isControlEligible(project, records, handoffs)) continue;
+    const record = liveRecordFor(project, recordsByProject);
+    if (!record || !isControlDue(record, now)) continue;
+    if (isControlled(project, records)) {
+      const handoff = handoffFor(record, handoffByInvestigation);
+      if (handoff && handoff.retainControlReview === false) continue;
+    }
+    items.push(buildControlReviewItem(project, record));
+  }
+  return items;
 }
 
 /**
- * Three-bucket projection of the sustainment review queue: items whose record
+ * Three-bucket projection of the control review queue: items whose record
  * is due-but-not-overdue, overdue (past `graceDays`), and recently-reviewed
  * (latestReviewAt within `recentReviewWindowDays`). Excludes tombstoned and
  * handoff-opted-out records, mirroring `selectControlReviews`.
+ *
+ * Unit is the {@link ImprovementProject} (PR-PO-2 — facts, not the
+ * `analyzeStatus` label).
  */
-export interface ControlBuckets<TInv extends ProcessHubAnalyze> {
-  dueNow: ProcessHubReviewItem<TInv>[];
-  overdue: ProcessHubReviewItem<TInv>[];
-  recentlyReviewed: ProcessHubReviewItem<TInv>[];
+export interface ControlBuckets {
+  dueNow: ControlReviewItem[];
+  overdue: ControlReviewItem[];
+  recentlyReviewed: ControlReviewItem[];
 }
 
 export interface ControlBucketOptions {
@@ -363,46 +403,46 @@ export interface ControlBucketOptions {
   recentReviewWindowDays?: number;
 }
 
-export function selectControlBuckets<TInv extends ProcessHubAnalyze>(
-  investigations: TInv[],
+export function selectControlBuckets(
+  projects: ImprovementProject[],
   records: ControlRecord[],
   handoffs: ControlHandoff[],
   now: Date,
   options: ControlBucketOptions = {}
-): ControlBuckets<TInv> {
+): ControlBuckets {
   const graceDays = Math.max(0, options.graceDays ?? 0);
   const recentReviewWindowDays = Math.max(0, options.recentReviewWindowDays ?? 14);
   const recentCutoffMs = now.getTime() - recentReviewWindowDays * 24 * 60 * 60 * 1000;
 
-  const recordByInvestigation = new Map(records.map(r => [r.investigationId, r]));
+  const recordsByProject = indexRecordsByProject(records);
   const handoffByInvestigation = new Map(handoffs.map(h => [h.investigationId, h]));
 
-  const dueNow: ProcessHubReviewItem<TInv>[] = [];
-  const overdue: ProcessHubReviewItem<TInv>[] = [];
-  const recentlyReviewed: ProcessHubReviewItem<TInv>[] = [];
+  const dueNow: ControlReviewItem[] = [];
+  const overdue: ControlReviewItem[] = [];
+  const recentlyReviewed: ControlReviewItem[] = [];
 
-  for (const inv of investigations) {
-    const status = inv.metadata?.analyzeStatus;
-    if (status !== 'resolved' && status !== 'controlled') continue;
-    const record = recordByInvestigation.get(inv.id);
-    if (!record || record.deletedAt !== null) continue;
-    if (status === 'controlled') {
-      const handoff = handoffByInvestigation.get(inv.id);
+  for (const project of projects) {
+    if (!isControlEligible(project, records, handoffs)) continue;
+    // liveRecordFor already drops tombstoned records (deletedAt !== null).
+    const record = liveRecordFor(project, recordsByProject);
+    if (!record) continue;
+    if (isControlled(project, records)) {
+      const handoff = handoffFor(record, handoffByInvestigation);
       if (handoff && handoff.retainControlReview === false) continue;
     }
 
     if (isControlOverdue(record, now, graceDays)) {
-      overdue.push(buildControlReviewItem(inv, ['control-due']));
+      overdue.push(buildControlReviewItem(project, record));
       continue;
     }
     if (isControlDue(record, now)) {
-      dueNow.push(buildControlReviewItem(inv, ['control-due']));
+      dueNow.push(buildControlReviewItem(project, record));
       continue;
     }
     if (record.latestReviewAt) {
       const reviewedMs = new Date(record.latestReviewAt).getTime();
       if (Number.isFinite(reviewedMs) && reviewedMs >= recentCutoffMs) {
-        recentlyReviewed.push(buildControlReviewItem(inv, ['control']));
+        recentlyReviewed.push(buildControlReviewItem(project, record));
       }
     }
   }

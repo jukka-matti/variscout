@@ -56,6 +56,13 @@ export interface IPDetailPageProps {
   sustainmentPerCauseRows?: Array<{ factor: string; inControl: boolean; observation?: string }>;
   /** "Open legacy Control panel" handler. */
   onOpenLegacyControl?: () => void;
+  /**
+   * App-provided Control region (PR-PO-2). Rendered in the Control ("sustainment")
+   * stage alongside — never replacing — ControlOverview / ControlSections.
+   * Architecture: IPDetailPage lives in @variscout/ui and must not import from
+   * apps, so the Azure app passes its `ProcessHubControlRegion` through this slot.
+   */
+  controlRegionSlot?: React.ReactNode;
   /** "Nudge owner" handler (Plan 3 wires actual notification). */
   onNudgeProcessOwner?: () => void;
   /** Activity/signoff inputs for the team rail. */
@@ -91,6 +98,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   closureInputs,
   sustainmentPerCauseRows,
   onOpenLegacyControl,
+  controlRegionSlot,
   onNudgeProcessOwner: _onNudgeProcessOwner,
   ideas,
   actions,
@@ -276,6 +284,13 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               No Control record linked yet. Close the IP (Approach stage) to auto-create one per
               ADR-080.
             </p>
+          )}
+          {/* PR-PO-2: app-provided Control region (cadence-board buckets). Renders
+              alongside the overview/sections content above, never replacing it. */}
+          {activeStage === 'sustainment' && controlRegionSlot && (
+            <div className="mt-6" data-testid="control-region-slot">
+              {controlRegionSlot}
+            </div>
           )}
         </main>
         <div

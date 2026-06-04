@@ -2,83 +2,44 @@ import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ProcessHubControlRegion from '../ProcessHubControlRegion';
-import type {
-  ProcessHubCadenceSummary,
-  ProcessHubAnalyze,
-  ProcessHubRollup,
-  ControlRecord,
-} from '@variscout/core';
+import type { ControlRecord, ControlHandoff } from '@variscout/core';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 
-const HUB = {
-  id: 'hub-1',
-  name: 'Line 4',
-  createdAt: 1735689600000,
-  deletedAt: null,
-};
+// PR-PO-2: the Control region is project-keyed and reads FACTS (control
+// artifacts + lifecycle status), not the free-text analyzeStatus label. The
+// Project tab is single-project, so most fixtures pass a single project, but the
+// selectors degrade gracefully across any number of projects.
 
-function makeInvestigation(
-  overrides: Partial<ProcessHubAnalyze> & { id: string; name: string }
-): ProcessHubAnalyze {
+function makeProject({
+  id,
+  title,
+  ...overrides
+}: Partial<ImprovementProject> & { id: string; title: string }): ImprovementProject {
   return {
-    id: overrides.id,
-    name: overrides.name,
+    id,
+    hubId: 'hub-1',
     createdAt: 1735689600000,
     updatedAt: 1735689600000,
     deletedAt: null,
-    metadata: overrides.metadata,
+    status: 'active',
+    goal: { outcomeGoals: [] },
+    sections: {
+      background: {},
+      investigationLineage: {},
+      approach: {},
+      outcomeReference: {},
+    },
+    ...overrides,
+    metadata: { title, ...(overrides.metadata ?? {}) },
   };
 }
 
-function makeEmptyCadence(): ProcessHubCadenceSummary<ProcessHubAnalyze> {
-  const emptyQueue = { totalCount: 0, hiddenCount: 0, items: [] };
+function makeRecord(projectId: string, overrides: Partial<ControlRecord> = {}): ControlRecord {
   return {
-    hub: HUB,
-    activeAnalyzeCount: 0,
-    latestActivity: null,
-    snapshot: {
-      active: 0,
-      readiness: 0,
-      verification: 0,
-      overdueActions: 0,
-      control: 0,
-      latestSignals: 0,
-      nextMoves: 0,
-    },
-    latestSignals: emptyQueue,
-    latestEvidenceSignals: { totalCount: 0, hiddenCount: 0, items: [] },
-    readiness: emptyQueue,
-    verification: emptyQueue,
-    actions: emptyQueue,
-    control: emptyQueue,
-    nextMoves: emptyQueue,
-    activeWork: {
-      quick: emptyQueue,
-      focused: emptyQueue,
-      chartered: emptyQueue,
-    },
-  } as ProcessHubCadenceSummary<ProcessHubAnalyze>;
-}
-
-function makeEmptyRollup(analyzes: ProcessHubAnalyze[] = []): ProcessHubRollup<ProcessHubAnalyze> {
-  return {
-    hub: HUB,
-    analyzes,
-    activeAnalyzeCount: analyzes.length,
-    statusCounts: {},
-    depthCounts: {},
-    overdueActionCount: 0,
-    latestActivity: null,
-    evidenceSnapshots: [],
-    controlRecords: [],
-    controlHandoffs: [],
-  } as ProcessHubRollup<ProcessHubAnalyze>;
-}
-
-function makeRecord(analyzeId: string, overrides: Partial<ControlRecord> = {}): ControlRecord {
-  return {
-    id: `rec-${analyzeId}`,
+    id: `rec-${projectId}`,
     title: 'Control cadence',
-    investigationId: analyzeId,
+    investigationId: `inv-${projectId}`,
+    improvementProjectId: projectId,
     hubId: 'hub-1',
     status: 'pending',
     consecutiveOnTargetTicks: 0,
@@ -86,56 +47,75 @@ function makeRecord(analyzeId: string, overrides: Partial<ControlRecord> = {}): 
     lastEvaluatedSnapshotId: undefined,
     cadence: 'monthly',
     createdAt: 1735689600000, // 2026-01-01T00:00:00.000Z
-    updatedAt: 1735689600000, // 2026-01-01T00:00:00.000Z
+    updatedAt: 1735689600000,
     deletedAt: null,
     ...overrides,
   };
 }
 
+function makeHandoff(
+  investigationId: string,
+  overrides: Partial<ControlHandoff> = {}
+): ControlHandoff {
+  return {
+    id: `ho-${investigationId}`,
+    investigationId,
+    hubId: 'hub-1',
+    status: 'operational',
+    surface: 'qms-procedure',
+    systemName: 'QMS',
+    operationalOwner: { displayName: 'Alice' },
+    handoffDate: 1740787200000,
+    description: 'Procedure updated',
+    retainControlReview: true,
+    createdAt: 1740787200000,
+    deletedAt: null,
+    recordedBy: { displayName: 'Alice' },
+    ...overrides,
+  };
+}
+
 const noOp = vi.fn();
+// Anchor for deterministic bucket math.
+const NOW = new Date('2026-05-01T00:00:00.000Z');
 
 describe('ProcessHubControlRegion', () => {
-  it('renders the empty-state line when there are no eligible analyzes', () => {
-    const cadence = makeEmptyCadence();
-    const rollup = makeEmptyRollup([
-      makeInvestigation({
-        id: 'inv-1',
-        name: 'Fill Weight',
-        metadata: { analyzeStatus: 'scouting' },
-      }),
-    ]);
+  it('renders the empty-state line when no project is control-eligible', () => {
+    // active project, no control artifacts → not eligible → empty state.
+    const projects = [makeProject({ id: 'p-1', title: 'Fill Weight', status: 'active' })];
 
     render(
       <ProcessHubControlRegion
-        cadence={cadence}
-        rollup={rollup}
-        onOpenInvestigation={noOp}
+        projects={projects}
+        records={[]}
+        handoffs={[]}
+        renderDate={NOW}
+        onOpenProject={noOp}
         onSetupControl={noOp}
         onLogReview={noOp}
       />
     );
 
     expect(
-      screen.getByText('No control items yet — analyzes move here once resolved or controlled.')
+      screen.getByText(
+        'No control items yet — projects move here once they reach the Control stage.'
+      )
     ).toBeInTheDocument();
   });
 
-  it('renders the setup prompt for a resolved analyze with no control metadata', () => {
+  it('renders the setup prompt for an eligible-but-not-controlled project (closed, no record)', () => {
     const onSetupControl = vi.fn();
-    const cadence = makeEmptyCadence();
-    const rollup = makeEmptyRollup([
-      makeInvestigation({
-        id: 'inv-2',
-        name: 'Syringe Barrel',
-        metadata: { analyzeStatus: 'resolved' },
-      }),
-    ]);
+    // Closed lifecycle status makes it control-eligible by FACT, even with no
+    // record yet → it surfaces as a setup candidate (facts, not the label).
+    const projects = [makeProject({ id: 'p-2', title: 'Syringe Barrel', status: 'closed' })];
 
     render(
       <ProcessHubControlRegion
-        cadence={cadence}
-        rollup={rollup}
-        onOpenInvestigation={noOp}
+        projects={projects}
+        records={[]}
+        handoffs={[]}
+        renderDate={NOW}
+        onOpenProject={noOp}
         onSetupControl={onSetupControl}
         onLogReview={noOp}
       />
@@ -147,57 +127,28 @@ describe('ProcessHubControlRegion', () => {
     fireEvent.click(
       screen.getByRole('button', { name: /Set up control cadence for Syringe Barrel/ })
     );
-    expect(onSetupControl).toHaveBeenCalledWith('inv-2');
+    expect(onSetupControl).toHaveBeenCalledWith('p-2');
   });
 
   it('renders the overdue bucket when a record is past due, calls onLogReview with the recordId', () => {
     const onLogReview = vi.fn();
-    const inv = makeInvestigation({
-      id: 'inv-3',
-      name: 'Coffee Moisture',
-      metadata: {
-        analyzeStatus: 'controlled',
-        sustainment: {
-          recordId: 'rec-abc',
-          cadence: 'monthly',
-          nextReviewDue: '2026-04-20T00:00:00.000Z',
-          latestVerdict: 'holding',
-        },
-      },
-    });
-
-    const cadence = makeEmptyCadence();
-    const rollup = makeEmptyRollup([inv]);
-    rollup.controlRecords = [
-      makeRecord('inv-3', {
+    const projects = [makeProject({ id: 'p-3', title: 'Coffee Moisture', status: 'closed' })];
+    const records = [
+      makeRecord('p-3', {
         id: 'rec-abc',
-        nextReviewDue: '2026-04-20T00:00:00.000Z',
+        nextReviewDue: '2026-04-20T00:00:00.000Z', // before NOW → overdue
         latestVerdict: 'holding',
       }),
     ];
-    rollup.controlHandoffs = [
-      {
-        id: 'ho-1',
-        investigationId: 'inv-3',
-        hubId: 'hub-1',
-        status: 'operational',
-        surface: 'qms-procedure',
-        systemName: 'QMS',
-        operationalOwner: { displayName: 'Alice' },
-        handoffDate: 1740787200000, // 2026-03-01T00:00:00.000Z
-        description: 'Procedure updated',
-        retainControlReview: true,
-        createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z (formerly recordedAt)
-        deletedAt: null,
-        recordedBy: { displayName: 'Alice' },
-      },
-    ];
+    const handoffs = [makeHandoff('inv-p-3', { retainControlReview: true })];
 
     render(
       <ProcessHubControlRegion
-        cadence={cadence}
-        rollup={rollup}
-        onOpenInvestigation={noOp}
+        projects={projects}
+        records={records}
+        handoffs={handoffs}
+        renderDate={NOW}
+        onOpenProject={noOp}
         onSetupControl={noOp}
         onLogReview={onLogReview}
       />
@@ -208,36 +159,18 @@ describe('ProcessHubControlRegion', () => {
     expect(screen.getByTestId('control-overdue')).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole('button', {
-        name: /Log overdue control review for Coffee Moisture/,
-      })
+      screen.getByRole('button', { name: /Log overdue control review for Coffee Moisture/ })
     );
     expect(onLogReview).toHaveBeenCalledWith('rec-abc');
   });
 
   it('renders the recently-reviewed bucket for a not-yet-due record with a recent review', () => {
-    const today = new Date();
-    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    const oneMonthFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const sevenDaysAgo = new Date(NOW.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const oneMonthFromNow = new Date(NOW.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    const inv = makeInvestigation({
-      id: 'inv-recent',
-      name: 'Pasteurizer Temp',
-      metadata: {
-        analyzeStatus: 'resolved',
-        sustainment: {
-          recordId: 'rec-recent',
-          cadence: 'monthly',
-          nextReviewDue: oneMonthFromNow,
-          latestVerdict: 'holding',
-        },
-      },
-    });
-
-    const cadence = makeEmptyCadence();
-    const rollup = makeEmptyRollup([inv]);
-    rollup.controlRecords = [
-      makeRecord('inv-recent', {
+    const projects = [makeProject({ id: 'p-recent', title: 'Pasteurizer Temp', status: 'closed' })];
+    const records = [
+      makeRecord('p-recent', {
         id: 'rec-recent',
         nextReviewDue: oneMonthFromNow,
         latestReviewAt: sevenDaysAgo,
@@ -247,9 +180,11 @@ describe('ProcessHubControlRegion', () => {
 
     render(
       <ProcessHubControlRegion
-        cadence={cadence}
-        rollup={rollup}
-        onOpenInvestigation={noOp}
+        projects={projects}
+        records={records}
+        handoffs={[]}
+        renderDate={NOW}
+        onOpenProject={noOp}
         onSetupControl={noOp}
         onLogReview={noOp}
       />
@@ -259,52 +194,33 @@ describe('ProcessHubControlRegion', () => {
     expect(screen.getByText('Pasteurizer Temp')).toBeInTheDocument();
   });
 
-  it('hides all control buckets when a controlled analyze has retainControlReview=false', () => {
-    const inv = makeInvestigation({
-      id: 'inv-5',
-      name: 'Pressure Drop',
-      metadata: {
-        analyzeStatus: 'controlled',
-        sustainment: {
-          recordId: 'rec-xyz',
-          cadence: 'quarterly',
-          nextReviewDue: '2026-04-01T00:00:00.000Z',
-        },
-      },
-    });
-
-    const cadence = makeEmptyCadence();
-    const rollup = makeEmptyRollup([inv]);
-    rollup.controlRecords = [
-      makeRecord('inv-5', {
+  it('hides all control buckets when a controlled project has a retainControlReview=false handoff', () => {
+    const projects = [makeProject({ id: 'p-5', title: 'Pressure Drop', status: 'closed' })];
+    const records = [
+      makeRecord('p-5', {
         id: 'rec-xyz',
         cadence: 'quarterly',
-        nextReviewDue: '2026-04-01T00:00:00.000Z',
+        nextReviewDue: '2026-04-01T00:00:00.000Z', // overdue but opted-out
       }),
     ];
-    rollup.controlHandoffs = [
-      {
+    const handoffs = [
+      makeHandoff('inv-p-5', {
         id: 'ho-2',
-        investigationId: 'inv-5',
-        hubId: 'hub-1',
-        status: 'operational',
         surface: 'dashboard-only',
         systemName: 'Dashboard',
         operationalOwner: { displayName: 'Bob' },
-        handoffDate: 1742000000000, // 2026-03-15T~
-        description: 'Dashboard monitoring in place',
         retainControlReview: false,
-        createdAt: 1742000000000, // (formerly recordedAt)
-        deletedAt: null,
         recordedBy: { displayName: 'Bob' },
-      },
+      }),
     ];
 
     render(
       <ProcessHubControlRegion
-        cadence={cadence}
-        rollup={rollup}
-        onOpenInvestigation={noOp}
+        projects={projects}
+        records={records}
+        handoffs={handoffs}
+        renderDate={NOW}
+        onOpenProject={noOp}
         onSetupControl={noOp}
         onLogReview={noOp}
       />
@@ -313,10 +229,40 @@ describe('ProcessHubControlRegion', () => {
     expect(screen.queryByTestId('control-overdue')).not.toBeInTheDocument();
     expect(screen.queryByTestId('control-due')).not.toBeInTheDocument();
     expect(screen.queryByTestId('control-recently-reviewed')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('control-handoff')).not.toBeInTheDocument();
-    expect(screen.queryByText('Set up control cadence')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('control-setup')).not.toBeInTheDocument();
     expect(
-      screen.getByText('No control items yet — analyzes move here once resolved or controlled.')
+      screen.getByText(
+        'No control items yet — projects move here once they reach the Control stage.'
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('NEGATIVE CONTROL — the label cannot lie: an active project with no record/handoff renders NO setup candidate', () => {
+    // Pre-PO-2 a 'resolved' analyzeStatus label could have surfaced a setup
+    // prompt. The label is gone: eligibility now reads FACTS, so an 'active'
+    // project with zero control artifacts is NOT eligible → no setup candidate,
+    // just empty state.
+    const projects = [makeProject({ id: 'p-lie', title: 'Label Lies', status: 'active' })];
+
+    render(
+      <ProcessHubControlRegion
+        projects={projects}
+        records={[]}
+        handoffs={[]}
+        renderDate={NOW}
+        onOpenProject={noOp}
+        onSetupControl={noOp}
+        onLogReview={noOp}
+      />
+    );
+
+    expect(screen.queryByTestId('control-setup')).not.toBeInTheDocument();
+    expect(screen.queryByText('Set up control cadence')).not.toBeInTheDocument();
+    expect(screen.queryByText('Label Lies')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'No control items yet — projects move here once they reach the Control stage.'
+      )
     ).toBeInTheDocument();
   });
 });

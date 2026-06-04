@@ -43,21 +43,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   const { name, modified, modifiedBy, location, metadata } = project;
 
-  const hasOverdueTasks = metadata?.hasOverdueTasks ?? false;
-  const assignedTaskCount = metadata?.assignedTaskCount ?? 0;
   const phase = metadata?.phase;
   const phaseConfig = phase ? PHASE_CONFIG[phase] : undefined;
 
-  // Finding + question + action counts for footer
+  // Finding + question counts for footer (§8 interim contract)
   const findingTotal = metadata
     ? Object.values(metadata.findingCounts).reduce((sum, n) => sum + n, 0)
     : 0;
   const questionTotal = metadata
     ? Object.values(metadata.questionCounts).reduce((sum, n) => sum + n, 0)
     : 0;
-  const overdueActions = metadata?.actionCounts.overdue ?? 0;
-  const statusLabel = metadata?.analyzeStatus?.replace(/-/g, ' ');
-  const depthLabel = metadata?.analyzeDepth;
+
+  // Control due-ness chip (§8 interim contract — ControlMetadataProjection)
+  const nextReviewDue = metadata?.sustainment?.nextReviewDue;
+  const isControlOverdue = nextReviewDue ? new Date(nextReviewDue).getTime() < Date.now() : false;
 
   // Location label
   const locationLabel = location === 'team' ? 'Team' : 'Personal';
@@ -72,14 +71,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   }
   const subtitle = subtitleParts.join(' · ');
 
-  // Left border accent: amber if overdue tasks, transparent otherwise
-  const borderAccent = hasOverdueTasks
-    ? 'border-l-4 border-l-amber-500'
-    : 'border-l-4 border-l-transparent';
-
   return (
     <div
-      className={`rounded-lg border border-edge bg-surface-secondary p-4 cursor-pointer hover:bg-surface-primary transition-colors space-y-3 ${borderAccent}`}
+      className="rounded-lg border border-edge bg-surface-secondary p-4 cursor-pointer hover:bg-surface-primary transition-colors space-y-3 border-l-4 border-l-transparent"
       onClick={onClick}
       data-testid="project-card"
     >
@@ -99,41 +93,31 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
       {/* Subtitle: location + who updated when */}
       <p className="text-xs text-content-secondary">{subtitle}</p>
 
-      {(statusLabel ||
-        depthLabel ||
-        metadata?.currentUnderstandingSummary ||
+      {(metadata?.currentUnderstandingSummary ||
         metadata?.problemConditionSummary ||
-        metadata?.nextMove) && (
+        metadata?.nextMove ||
+        metadata?.processHubId) && (
         <div className="space-y-1 text-xs text-content-secondary" data-testid="project-card-hub">
-          {(statusLabel || depthLabel) && (
-            <p>
-              {[depthLabel, statusLabel].filter(Boolean).join(' · ')}
-              {metadata?.processHubId ? ` · ${metadata.processHubId}` : ''}
-            </p>
-          )}
+          {metadata?.processHubId && <p>{metadata.processHubId}</p>}
           {metadata?.currentUnderstandingSummary && <p>{metadata.currentUnderstandingSummary}</p>}
           {metadata?.problemConditionSummary && <p>{metadata.problemConditionSummary}</p>}
           {metadata?.nextMove && <p className="text-content">Next: {metadata.nextMove}</p>}
         </div>
       )}
 
-      {/* "Your tasks" section — only when assignedTaskCount > 0 */}
-      {assignedTaskCount > 0 && (
-        <div
-          className="flex items-center justify-between rounded-md bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-700 px-3 py-2"
-          data-testid="project-card-your-tasks"
-        >
-          <span className="text-xs text-indigo-700 dark:text-indigo-300">
-            {assignedTaskCount} task{assignedTaskCount !== 1 ? 's' : ''} assigned to you
+      {/* Control due-ness chip — only when nextReviewDue is set */}
+      {nextReviewDue && (
+        <div>
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-medium border ${
+              isControlOverdue
+                ? 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-700'
+                : 'text-content-secondary bg-surface-primary border-edge'
+            }`}
+            data-testid="project-card-control-due"
+          >
+            {isControlOverdue ? 'Review overdue' : 'Review due'}
           </span>
-          {hasOverdueTasks && (
-            <span
-              className="text-xs font-medium text-amber-400"
-              data-testid="project-card-overdue-flag"
-            >
-              Overdue
-            </span>
-          )}
         </div>
       )}
 
@@ -153,10 +137,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               {questionTotal} {questionTotal !== 1 ? 'questions' : 'question'}
             </span>
           )}
-          {overdueActions > 0 && <span className="text-amber-500">{overdueActions} overdue</span>}
-          {findingTotal === 0 && questionTotal === 0 && overdueActions === 0 && (
-            <span>No findings yet</span>
-          )}
+          {findingTotal === 0 && questionTotal === 0 && <span>No findings yet</span>}
         </div>
       )}
     </div>

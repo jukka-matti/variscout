@@ -64,6 +64,7 @@ import {
   computeBestSubsets,
   evaluateSurvey,
   getColumnNames,
+  isControlEligible,
   normalizeProcessHubId,
   computeTimeDecompositionColumns,
   computeBinnedFactorColumn,
@@ -76,14 +77,10 @@ import type {
   ExclusionReason,
   Finding,
   IdeaDirection,
-  AnalyzeDepth,
-  AnalyzeStatus,
-  ProcessContext,
   ProcessHub,
   DisconfirmationAttempt,
   HypothesisStatus,
 } from '@variscout/core';
-import type { SurveyRecommendation } from '@variscout/core/survey';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { createProjectActionItem, type BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
@@ -129,23 +126,11 @@ import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
 import ProjectsTabView from '../components/ProjectsTabView';
+import ProcessHubControlRegion from '../components/ProcessHubControlRegion';
 import { useAIStore } from '../features/ai/aiStore';
 
 const WhatIfPage = lazyWithRetry(() => import('../components/WhatIfPage'));
 const ReportView = lazyWithRetry(() => import('../components/views/ReportView'));
-
-const INVESTIGATION_DEPTHS: AnalyzeDepth[] = ['quick', 'focused', 'chartered'];
-const INVESTIGATION_STATUSES: AnalyzeStatus[] = [
-  'issue-captured',
-  'framing',
-  'scouting',
-  'investigating',
-  'ready-to-improve',
-  'improving',
-  'verifying',
-  'resolved',
-  'controlled',
-];
 
 /** Derive a clean project name from a data filename */
 function cleanProjectName(filename: string | null): string {
@@ -163,113 +148,6 @@ function cleanProjectName(filename: string | null): string {
 function defaultSaveName(filename: string | null): string {
   return cleanProjectName(filename) || cleanProjectName(null);
 }
-
-function participantFromText(value: string): { displayName: string } | undefined {
-  const trimmed = value.trim();
-  return trimmed ? { displayName: trimmed } : undefined;
-}
-
-function formatStatusLabel(value: string): string {
-  return value.replace(/-/g, ' ');
-}
-
-interface AnalyzeMetadataPanelProps {
-  projectId: string | null;
-  processContext: ProcessContext | undefined;
-  onChange: (context: ProcessContext) => void;
-}
-
-const AnalyzeMetadataPanel: React.FC<AnalyzeMetadataPanelProps> = ({
-  projectId,
-  processContext,
-  onChange,
-}) => {
-  const context = processContext ?? {};
-  const update = (patch: Partial<ProcessContext>) => onChange({ ...context, ...patch });
-
-  return (
-    <div className="mx-2 mb-2 rounded-lg border border-edge bg-surface-secondary/70 p-3">
-      <div className="grid gap-3 lg:grid-cols-6">
-        <label className="text-xs text-content-secondary">
-          <span className="mb-1 block">Depth</span>
-          <select
-            value={context.analyzeDepth ?? 'quick'}
-            onChange={event => update({ analyzeDepth: event.target.value as AnalyzeDepth })}
-            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
-          >
-            {INVESTIGATION_DEPTHS.map(depth => (
-              <option key={depth} value={depth}>
-                {depth}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs text-content-secondary">
-          <span className="mb-1 block">Status</span>
-          <select
-            value={context.analyzeStatus ?? 'scouting'}
-            onChange={event => update({ analyzeStatus: event.target.value as AnalyzeStatus })}
-            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
-          >
-            {INVESTIGATION_STATUSES.map(status => (
-              <option key={status} value={status}>
-                {formatStatusLabel(status)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs text-content-secondary">
-          <span className="mb-1 block">Owner</span>
-          <input
-            value={context.investigationOwner?.displayName ?? ''}
-            onChange={event =>
-              update({ investigationOwner: participantFromText(event.target.value) })
-            }
-            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
-          />
-        </label>
-        <label className="text-xs text-content-secondary">
-          <span className="mb-1 block">Sponsor</span>
-          <input
-            value={context.sponsor?.displayName ?? ''}
-            onChange={event => update({ sponsor: participantFromText(event.target.value) })}
-            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
-          />
-        </label>
-        <label className="text-xs text-content-secondary">
-          <span className="mb-1 block">Contributors</span>
-          <input
-            value={context.contributors?.map(c => c.displayName).join(', ') ?? ''}
-            onChange={event =>
-              update({
-                contributors: event.target.value
-                  .split(',')
-                  .map(name => name.trim())
-                  .filter(Boolean)
-                  .map(displayName => ({ displayName })),
-              })
-            }
-            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
-          />
-        </label>
-      </div>
-      <label className="mt-3 block text-xs text-content-secondary">
-        <span className="mb-1 block">Next Move</span>
-        <input
-          value={context.nextMove ?? ''}
-          onChange={event => update({ nextMove: event.target.value })}
-          className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
-        />
-      </label>
-      {(context.analyzeStatus === 'resolved' || context.analyzeStatus === 'controlled') && (
-        <ControlEntryRow
-          investigationId={projectId}
-          hubId={context.processHubId ?? DEFAULT_PROCESS_HUB_ID}
-        />
-      )}
-    </div>
-  );
-};
 
 interface EditorProps {
   projectId: string | null;
@@ -883,6 +761,25 @@ export const Editor: React.FC<EditorProps> = ({
       }
     : undefined;
 
+  // PR-PO-2: the Control region re-homes to the Project tab's Control stage.
+  // The Project tab is single-project, so we pass the active project + its
+  // scoped control record/handoff. The region's cadence buckets degrade
+  // gracefully to the single-project case (facts, not the analyzeStatus label).
+  const projectsControlRegionSlot = activeIPContext.activeIP ? (
+    <ProcessHubControlRegion
+      projects={[activeIPContext.activeIP]}
+      records={_azureLiveControlRecords}
+      handoffs={_azureLiveControlHandoffs}
+      onOpenProject={id => usePanelsStore.getState().showProjects(id)}
+      onSetupControl={() =>
+        usePanelsStore.getState().showControl(projectsControlRecord?.investigationId ?? undefined)
+      }
+      onLogReview={() =>
+        usePanelsStore.getState().showControl(projectsControlRecord?.investigationId ?? undefined)
+      }
+    />
+  ) : null;
+
   const dataFlow = useEditorDataFlow({
     rawData,
     outcome,
@@ -982,16 +879,6 @@ export const Editor: React.FC<EditorProps> = ({
       persistedFindings,
       hypotheses,
     ]
-  );
-
-  const handleAcceptSurveyRecommendation = useCallback(
-    (recommendation: SurveyRecommendation) => {
-      setProcessContext({
-        ...(processContext ?? {}),
-        nextMove: recommendation.actionText,
-      });
-    },
-    [processContext, setProcessContext]
   );
 
   // Ref to allow ingestion callbacks to reach dataFlow setters
@@ -1964,11 +1851,23 @@ export const Editor: React.FC<EditorProps> = ({
         </div>
       )}
 
-      <AnalyzeMetadataPanel
-        projectId={projectId}
-        processContext={processContext}
-        onChange={setProcessContext}
-      />
+      {/* PR-PO-2: ControlEntryRow re-hosted OUT of the work-item strip (which
+          Task 3 deletes). Gated by the Control-readiness predicate over the
+          active project — facts, not the analyzeStatus label. The active-IP
+          cascade gives the project; no project active → not shown. */}
+      {activeIPContext.activeIP &&
+        isControlEligible(
+          activeIPContext.activeIP,
+          activeHub?.controlRecords ?? [],
+          activeHub?.controlHandoffs ?? []
+        ) && (
+          <div className="mx-2 mb-2">
+            <ControlEntryRow
+              investigationId={projectId}
+              hubId={processContext?.processHubId ?? DEFAULT_PROCESS_HUB_ID}
+            />
+          </div>
+        )}
 
       {/* Pending invitations banner — layout chrome above tab content */}
       <PendingInvitesBanner
@@ -2154,6 +2053,7 @@ export const Editor: React.FC<EditorProps> = ({
                 controlRecord={projectsControlRecord}
                 controlHandoff={projectsControlHandoff}
                 closureInputs={projectsClosureInputs}
+                controlRegionSlot={projectsControlRegionSlot}
                 onOpenLegacyControl={() =>
                   usePanelsStore
                     .getState()
@@ -2357,11 +2257,7 @@ export const Editor: React.FC<EditorProps> = ({
               </button>
             </div>
             <div className="max-h-[calc(80vh-52px)] overflow-auto">
-              <SurveyNotebookBase
-                compact={true}
-                evaluation={surveyEvaluation}
-                onAcceptRecommendation={handleAcceptSurveyRecommendation}
-              />
+              <SurveyNotebookBase compact={true} evaluation={surveyEvaluation} />
             </div>
           </div>
         </>

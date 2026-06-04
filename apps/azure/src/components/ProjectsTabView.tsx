@@ -33,6 +33,12 @@ interface ProjectsTabViewProps {
   onStartNewProject?: () => void;
   /** Current user's identifier (EasyAuth email/UPN). Threads into IPDetailPage for wedge ACL guards. */
   currentUserId?: string;
+  /**
+   * App-provided Control region (PR-PO-2). Forwarded into IPDetailPage's Control
+   * stage. Editor builds it from the single active project + its scoped control
+   * record/handoff arrays.
+   */
+  controlRegionSlot?: React.ReactNode;
 }
 
 function liveProjects(hub: ProcessHub | undefined): ImprovementProject[] {
@@ -109,6 +115,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onNudgeSignoff,
   onStartNewProject,
   currentUserId,
+  controlRegionSlot,
 }) => {
   const [now] = React.useState(() => Date.now());
   const storedProject = useImprovementProjectStore(s =>
@@ -168,6 +175,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         controlHandoff={controlHandoff}
         closureInputs={closureInputs}
         onOpenLegacyControl={onOpenLegacyControl}
+        controlRegionSlot={controlRegionSlot}
         onNudgeProcessOwner={onNudgeProcessOwner}
         activeHub={activeHub}
         ideas={approachInputs?.ideas}

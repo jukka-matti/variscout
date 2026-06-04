@@ -3,9 +3,9 @@ import {
   formatSustainmentVerdict,
   formatSustainmentDue,
   formatHandoffSurface,
-} from '../ProcessHubFormat';
+} from '../controlFormat';
 
-describe('ProcessHubFormat control helpers', () => {
+describe('controlFormat', () => {
   describe('formatSustainmentVerdict', () => {
     it('formats holding verdict', () => {
       expect(formatSustainmentVerdict('holding')).toBe('Holding');

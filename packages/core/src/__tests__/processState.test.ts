@@ -5,18 +5,14 @@ import {
   DEFAULT_PROCESS_HUB_ID,
 } from '../processHub';
 import { buildCurrentProcessState } from '../processState';
-import type { EvidenceSnapshot, ProcessHub, ProjectMetadata } from '../index';
+import type { EvidenceSnapshot, ProcessHub } from '../index';
+import type { ProcessHubAnalyzeMetadata } from '../processHub';
 import type { ControlHandoff, ControlRecord } from '../control';
 
-function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata {
+function makeMetadata(
+  overrides: Partial<ProcessHubAnalyzeMetadata> = {}
+): ProcessHubAnalyzeMetadata {
   return {
-    phase: 'scout',
-    findingCounts: {},
-    questionCounts: {},
-    actionCounts: { total: 0, completed: 0, overdue: 0 },
-    assignedTaskCount: 0,
-    hasOverdueTasks: false,
-    lastViewedAt: {},
     processHubId: DEFAULT_PROCESS_HUB_ID,
     analyzeStatus: 'scouting',
     ...overrides,

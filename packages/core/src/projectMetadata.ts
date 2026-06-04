@@ -8,7 +8,6 @@
 
 import type { Finding, FindingStatus } from './findings';
 import type { JourneyPhase, ProcessContext } from './ai/types';
-import type { HubReviewSignal } from './processReviewSignal';
 import {
   analyzeStatusFromJourneyPhase,
   type AnalyzeNodeMapping,
@@ -76,8 +75,6 @@ export interface ProjectMetadata {
   problemConditionSummary?: string;
   /** Compact next move shown on hub cards. */
   nextMove?: string;
-  /** Latest lightweight review signal shown on Process Hub cards. */
-  reviewSignal?: HubReviewSignal;
   /** Lightweight projection of the active ControlRecord for this project.
    *  Field name `sustainment` preserved — matches persisted ProjectMetadata schema. */
   sustainment?: ControlMetadataProjection;
@@ -135,7 +132,6 @@ export function buildProjectMetadata(
   userId: string,
   existingLastViewedAt?: Record<string, number>,
   processContext?: ProcessContext | null,
-  reviewSignal?: HubReviewSignal | null,
   surveyReadiness?: ProcessHubSurveyReadinessSummary | null
 ): ProjectMetadata {
   const now = Date.now();
@@ -224,7 +220,6 @@ export function buildProjectMetadata(
       processContext?.problemCondition?.summary ??
       processContext?.currentUnderstanding?.problemCondition?.summary,
     nextMove: processContext?.nextMove,
-    reviewSignal: reviewSignal ?? undefined,
     stateNotes: processContext?.stateNotes,
   };
 }

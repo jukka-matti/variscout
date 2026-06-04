@@ -18,8 +18,6 @@ import type { SpecLimits } from './types';
 import {
   isControlDue,
   isControlOverdue,
-  selectControlBuckets,
-  selectControlReviews,
   type ControlHandoff,
   type ControlMetadataProjection,
   type ControlRecord,
@@ -839,6 +837,64 @@ function evidenceSignalQueue(signals: EvidenceLatestSignal[]) {
   };
 }
 
+/**
+ * Count of live (non-tombstoned) control records that are due now, after
+ * dropping records whose project opted out of control review via a
+ * ControlHandoff with `retainControlReview === false`.
+ *
+ * PR-PO-2: the control SELECTORS (`selectControlReviews` / `selectControlBuckets`)
+ * are now keyed on `ImprovementProject` (facts, not the `analyzeStatus` label),
+ * but `buildProcessHubCadence` operates on an analyze-based `ProcessHubRollup`
+ * that does not carry projects. The hub cadence's analyze-keyed control queue
+ * is therefore derived directly here, preserving the prior `selectControlReviews`
+ * SEMANTICS identically (due records, opt-out filtered, joined back to their
+ * analyze by `investigationId`) — only the project-based selectors moved.
+ *
+ * Interim bridge — deleted with the cadence engine in PO-3 (process-ops master plan).
+ */
+function buildControlReviewQueue<TAnalyze extends ProcessHubAnalyze>(
+  analyzes: TAnalyze[],
+  records: ControlRecord[],
+  handoffs: ControlHandoff[],
+  now: Date
+): ProcessHubReviewItem<TAnalyze>[] {
+  const recordByInvestigation = new Map(records.map(r => [r.investigationId, r]));
+  const optedOutInvestigations = new Set(
+    handoffs.filter(h => h.retainControlReview === false).map(h => h.investigationId)
+  );
+
+  const items: ProcessHubReviewItem<TAnalyze>[] = [];
+  for (const analyze of analyzes) {
+    if (!SUSTAINMENT_STATUSES.has(analyze.metadata?.analyzeStatus ?? 'scouting')) continue;
+    const record = recordByInvestigation.get(analyze.id);
+    if (!record || record.deletedAt !== null) continue;
+    if (!isControlDue(record, now)) continue;
+    if (optedOutInvestigations.has(analyze.id)) continue;
+    items.push(buildReviewItem(analyze, ['control-due']));
+  }
+  return items;
+}
+
+function controlRecentlyReviewedCount(
+  records: ControlRecord[],
+  handoffs: ControlHandoff[],
+  now: Date,
+  recentReviewWindowDays = 14
+): number {
+  const cutoffMs = now.getTime() - Math.max(0, recentReviewWindowDays) * 24 * 60 * 60 * 1000;
+  const optedOutInvestigations = new Set(
+    handoffs.filter(h => h.retainControlReview === false).map(h => h.investigationId)
+  );
+  return records.filter(record => {
+    if (record.deletedAt !== null) return false;
+    if (optedOutInvestigations.has(record.investigationId)) return false;
+    if (isControlDue(record, now)) return false;
+    if (!record.latestReviewAt) return false;
+    const reviewedMs = new Date(record.latestReviewAt).getTime();
+    return Number.isFinite(reviewedMs) && reviewedMs >= cutoffMs;
+  }).length;
+}
+
 export function buildProcessHubCadence<TAnalyze extends ProcessHubAnalyze>(
   rollup: ProcessHubRollup<TAnalyze>,
   now: Date = new Date()
@@ -846,15 +902,13 @@ export function buildProcessHubCadence<TAnalyze extends ProcessHubAnalyze>(
   const review = buildProcessHubReview(rollup);
   const latestEvidenceSignals = evidenceSignals(rollup);
 
-  const controlReviews = selectControlReviews(
+  const controlItems = buildControlReviewQueue(
     rollup.analyzes,
     rollup.controlRecords,
     rollup.controlHandoffs,
     now
   );
-  const controlItems = [...controlReviews];
-  const controlBuckets = selectControlBuckets(
-    rollup.analyzes,
+  const controlReviewed = controlRecentlyReviewedCount(
     rollup.controlRecords,
     rollup.controlHandoffs,
     now
@@ -872,8 +926,8 @@ export function buildProcessHubCadence<TAnalyze extends ProcessHubAnalyze>(
   if (latestEvidenceSignals.length > 0) {
     snapshot.latestEvidenceSignals = latestEvidenceSignals.length;
   }
-  if (controlBuckets.recentlyReviewed.length > 0) {
-    snapshot.controlReviewed = controlBuckets.recentlyReviewed.length;
+  if (controlReviewed > 0) {
+    snapshot.controlReviewed = controlReviewed;
   }
 
   return {

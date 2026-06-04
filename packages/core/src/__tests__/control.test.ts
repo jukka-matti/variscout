@@ -10,12 +10,10 @@ import {
   type ControlHandoff,
   type ControlHandoffSurface,
   type ControlHandoffStatus,
-  type ControlCadence,
   type ControlRecord,
-  type ControlVerdict,
 } from '../control';
 import type { EvidenceSnapshot } from '../evidenceSources';
-import type { ProcessHubAnalyze } from '../processHub';
+import type { ImprovementProject } from '../improvementProject';
 
 describe('nextDueFromCadence', () => {
   it('adds 7 days for weekly cadence anchored to a known timestamp', () => {
@@ -344,40 +342,41 @@ describe('isControlOverdue', () => {
   });
 });
 
-function makeInvestigation(
+// ── PR-PO-2: the control selectors are now keyed on ImprovementProject. ──────
+// `makeProject` is the unit; `recordFor` joins via `improvementProjectId` and
+// `makeHandoff` bridges via a shared `investigationId` (handoffs carry no
+// project FK). The investigationId convention used below is `inv-<projectId>`.
+
+function makeProject(
   id: string,
-  status: NonNullable<ProcessHubAnalyze['metadata']>['analyzeStatus'],
-  sustainmentProjection?: {
-    recordId: string;
-    cadence: ControlCadence;
-    nextReviewDue?: string;
-    latestVerdict?: ControlVerdict;
-  }
-): ProcessHubAnalyze {
+  status: ImprovementProject['status'] = 'active'
+): ImprovementProject {
   return {
     id,
-    name: id,
+    hubId: 'hub-1',
+    status,
+    metadata: { title: `Project ${id}` },
+    goal: { outcomeGoals: [] },
+    sections: {
+      background: {},
+      investigationLineage: {},
+      approach: {},
+      outcomeReference: {},
+    },
     createdAt: 1777161600000,
     updatedAt: 1777161600000,
     deletedAt: null,
-    metadata: {
-      findingCounts: {},
-      actionCounts: { total: 0, completed: 0, overdue: 0 },
-      processHubId: 'hub-1',
-      analyzeStatus: status,
-      sustainment: sustainmentProjection,
-    },
   };
 }
 
 function makeHandoff(
-  investigationId: string,
+  projectId: string,
   retain: boolean,
   surface: ControlHandoffSurface = 'mes-recipe'
 ): ControlHandoff {
   return {
-    id: `h-${investigationId}`,
-    investigationId,
+    id: `h-${projectId}`,
+    investigationId: `inv-${projectId}`, // bridges to the project via its record
     hubId: 'hub-1',
     status: 'operational',
     surface,
@@ -392,59 +391,57 @@ function makeHandoff(
   };
 }
 
+function recordForProject(
+  projectId: string,
+  nextReviewDue?: string,
+  overrides: Partial<ControlRecord> = {}
+): ControlRecord {
+  return {
+    id: `rec-${projectId}`,
+    title: `Control record for ${projectId}`,
+    investigationId: `inv-${projectId}`,
+    improvementProjectId: projectId,
+    hubId: 'hub-1',
+    cadence: 'monthly',
+    status: 'pending',
+    consecutiveOnTargetTicks: 0,
+    hasOverride: false,
+    lastEvaluatedSnapshotId: undefined,
+    nextReviewDue,
+    createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z
+    updatedAt: 1743465600000, // 2026-04-01T00:00:00.000Z
+    deletedAt: null,
+    ...overrides,
+  };
+}
+
 describe('selectControlReviews', () => {
-  it('returns only investigations with a due record', () => {
-    const due = {
-      ...makeRecord('2026-04-25T00:00:00.000Z'),
-      id: 'rec-due',
-      investigationId: 'inv-1',
-    };
-    const future = {
-      ...makeRecord('2026-05-25T00:00:00.000Z'),
-      id: 'rec-future',
-      investigationId: 'inv-2',
-    };
-    const investigations = [
-      makeInvestigation('inv-1', 'resolved', {
-        recordId: due.id,
-        cadence: 'monthly',
-        nextReviewDue: due.nextReviewDue,
-      }),
-      makeInvestigation('inv-2', 'controlled', {
-        recordId: future.id,
-        cadence: 'monthly',
-        nextReviewDue: future.nextReviewDue,
-      }),
-      makeInvestigation('inv-3', 'investigating'),
+  it('returns only projects with a due record', () => {
+    const due = recordForProject('p-1', '2026-04-25T00:00:00.000Z');
+    const future = recordForProject('p-2', '2026-05-25T00:00:00.000Z');
+    const projects = [
+      makeProject('p-1'),
+      makeProject('p-2'),
+      makeProject('p-3'), // active, no record → not eligible
     ];
 
     const result = selectControlReviews(
-      investigations,
+      projects,
       [due, future],
       [],
       new Date('2026-04-26T00:00:00.000Z')
     );
 
-    expect(result.map(r => r.analyze.id)).toEqual(['inv-1']);
+    expect(result.map(r => r.project.id)).toEqual(['p-1']);
   });
 
-  it('excludes controlled investigations whose ControlHandoff.retainControlReview is false', () => {
-    const due = {
-      ...makeRecord('2026-04-25T00:00:00.000Z'),
-      id: 'rec-1',
-      investigationId: 'inv-1',
-    };
-    const investigations = [
-      makeInvestigation('inv-1', 'controlled', {
-        recordId: 'rec-1',
-        cadence: 'monthly',
-        nextReviewDue: due.nextReviewDue,
-      }),
-    ];
-    const handoffs: ControlHandoff[] = [makeHandoff('inv-1', false)];
+  it('excludes controlled projects whose ControlHandoff.retainControlReview is false', () => {
+    const due = recordForProject('p-1', '2026-04-25T00:00:00.000Z');
+    const projects = [makeProject('p-1')];
+    const handoffs: ControlHandoff[] = [makeHandoff('p-1', false)];
 
     const result = selectControlReviews(
-      investigations,
+      projects,
       [due],
       handoffs,
       new Date('2026-04-26T00:00:00.000Z')
@@ -453,48 +450,29 @@ describe('selectControlReviews', () => {
     expect(result).toEqual([]);
   });
 
-  it('keeps controlled investigations whose handoff retains sustainment review', () => {
-    const due = {
-      ...makeRecord('2026-04-25T00:00:00.000Z'),
-      id: 'rec-1',
-      investigationId: 'inv-1',
-    };
-    const investigations = [
-      makeInvestigation('inv-1', 'controlled', {
-        recordId: 'rec-1',
-        cadence: 'monthly',
-        nextReviewDue: due.nextReviewDue,
-      }),
-    ];
-    const handoffs: ControlHandoff[] = [makeHandoff('inv-1', true)];
+  it('keeps controlled projects whose handoff retains control review', () => {
+    const due = recordForProject('p-1', '2026-04-25T00:00:00.000Z');
+    const projects = [makeProject('p-1')];
+    const handoffs: ControlHandoff[] = [makeHandoff('p-1', true)];
 
     const result = selectControlReviews(
-      investigations,
+      projects,
       [due],
       handoffs,
       new Date('2026-04-26T00:00:00.000Z')
     );
 
-    expect(result.map(r => r.analyze.id)).toEqual(['inv-1']);
+    expect(result.map(r => r.project.id)).toEqual(['p-1']);
   });
 
   it('skips soft-deleted records (deletedAt !== null)', () => {
-    const softDeleted = {
-      ...makeRecord('2026-04-25T00:00:00.000Z'),
-      id: 'rec-1',
-      investigationId: 'inv-1',
+    const softDeleted = recordForProject('p-1', '2026-04-25T00:00:00.000Z', {
       deletedAt: 1745625600000, // 2026-04-26T00:00:00.000Z
-    };
-    const investigations = [
-      makeInvestigation('inv-1', 'resolved', {
-        recordId: 'rec-1',
-        cadence: 'monthly',
-        nextReviewDue: softDeleted.nextReviewDue,
-      }),
-    ];
+    });
+    const projects = [makeProject('p-1')];
 
     const result = selectControlReviews(
-      investigations,
+      projects,
       [softDeleted],
       [],
       new Date('2026-04-26T00:00:00.000Z')
@@ -502,160 +480,115 @@ describe('selectControlReviews', () => {
 
     expect(result).toEqual([]);
   });
+
+  it("label-can't-lie: an active project with no record/handoff is not queued even if a (gone) status said resolved", () => {
+    // The predicate gate replaces the analyzeStatus gate. No live artifact +
+    // non-closed lifecycle status → not control-eligible → not queued.
+    const projects = [makeProject('p-1', 'active')];
+    const result = selectControlReviews(projects, [], [], new Date('2026-04-26T00:00:00.000Z'));
+    expect(result).toEqual([]);
+  });
 });
 
 describe('selectControlBuckets', () => {
   const NOW = new Date('2026-04-26T00:00:00.000Z');
 
-  function recordFor(
-    investigationId: string,
-    nextReviewDue?: string,
-    overrides: Partial<ControlRecord> = {}
-  ): ControlRecord {
-    return {
-      id: `rec-${investigationId}`,
-      title: `Control record for ${investigationId}`,
-      investigationId,
-      hubId: 'hub-1',
-      cadence: 'monthly',
-      status: 'pending',
-      consecutiveOnTargetTicks: 0,
-      hasOverride: false,
-      lastEvaluatedSnapshotId: undefined,
-      nextReviewDue,
-      createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z
-      updatedAt: 1743465600000, // 2026-04-01T00:00:00.000Z
-      deletedAt: null,
-      ...overrides,
-    };
-  }
-
   it('places due-but-not-overdue records in dueNow', () => {
-    const inv = makeInvestigation('inv-1', 'controlled', {
-      recordId: 'rec-inv-1',
-      cadence: 'monthly',
-    });
-    const record = recordFor('inv-1', '2026-04-26T00:00:00.000Z'); // exactly due, grace=0 → due, not overdue
-    const result = selectControlBuckets([inv], [record], [], NOW);
+    const project = makeProject('p-1');
+    const record = recordForProject('p-1', '2026-04-26T00:00:00.000Z'); // exactly due, grace=0 → due, not overdue
+    const result = selectControlBuckets([project], [record], [], NOW);
     expect(result.dueNow).toHaveLength(1);
-    expect(result.dueNow[0]?.analyze.id).toBe('inv-1');
+    expect(result.dueNow[0]?.project.id).toBe('p-1');
     expect(result.overdue).toHaveLength(0);
     expect(result.recentlyReviewed).toHaveLength(0);
   });
 
   it('places strictly-past-due records in overdue with default graceDays=0', () => {
-    const inv = makeInvestigation('inv-1', 'controlled', {
-      recordId: 'rec-inv-1',
-      cadence: 'monthly',
-    });
-    const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z'); // 1 day past due, grace=0 → overdue
-    const result = selectControlBuckets([inv], [record], [], NOW);
+    const project = makeProject('p-1');
+    const record = recordForProject('p-1', '2026-04-25T00:00:00.000Z'); // 1 day past due, grace=0 → overdue
+    const result = selectControlBuckets([project], [record], [], NOW);
     expect(result.overdue).toHaveLength(1);
     expect(result.dueNow).toHaveLength(0);
   });
 
   it('honors graceDays — within grace counts as dueNow, past grace as overdue', () => {
-    const inv1 = makeInvestigation('inv-1', 'controlled', {
-      recordId: 'rec-inv-1',
-      cadence: 'weekly',
-    });
-    const inv2 = makeInvestigation('inv-2', 'controlled', {
-      recordId: 'rec-inv-2',
-      cadence: 'weekly',
-    });
-    // Both due 7 days ago. With graceDays=7, inv-1 is at exactly the grace cutoff (still dueNow);
-    // inv-2 due 8 days ago is past grace (overdue).
+    const p1 = makeProject('p-1');
+    const p2 = makeProject('p-2');
+    // Both due 7 days ago. With graceDays=7, p-1 is at exactly the grace cutoff (still dueNow);
+    // p-2 due 8 days ago is past grace (overdue).
     const records = [
-      recordFor('inv-1', '2026-04-19T00:00:00.000Z'),
-      recordFor('inv-2', '2026-04-18T00:00:00.000Z'),
+      recordForProject('p-1', '2026-04-19T00:00:00.000Z'),
+      recordForProject('p-2', '2026-04-18T00:00:00.000Z'),
     ];
-    const result = selectControlBuckets([inv1, inv2], records, [], NOW, { graceDays: 7 });
-    expect(result.dueNow.map(r => r.analyze.id)).toEqual(['inv-1']);
-    expect(result.overdue.map(r => r.analyze.id)).toEqual(['inv-2']);
+    const result = selectControlBuckets([p1, p2], records, [], NOW, { graceDays: 7 });
+    expect(result.dueNow.map(r => r.project.id)).toEqual(['p-1']);
+    expect(result.overdue.map(r => r.project.id)).toEqual(['p-2']);
   });
 
   it('places not-yet-due records with recent review in recentlyReviewed', () => {
-    const inv = makeInvestigation('inv-1', 'controlled', {
-      recordId: 'rec-inv-1',
-      cadence: 'monthly',
-    });
-    const record = recordFor('inv-1', '2026-05-15T00:00:00.000Z', {
+    const project = makeProject('p-1');
+    const record = recordForProject('p-1', '2026-05-15T00:00:00.000Z', {
       latestReviewAt: '2026-04-20T00:00:00.000Z', // 6 days before NOW (within default 14-day window)
       latestVerdict: 'holding',
     });
-    const result = selectControlBuckets([inv], [record], [], NOW);
+    const result = selectControlBuckets([project], [record], [], NOW);
     expect(result.recentlyReviewed).toHaveLength(1);
-    expect(result.recentlyReviewed[0]?.analyze.id).toBe('inv-1');
+    expect(result.recentlyReviewed[0]?.project.id).toBe('p-1');
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
   });
 
   it('drops records reviewed before the recent window from all buckets', () => {
-    const inv = makeInvestigation('inv-1', 'controlled', {
-      recordId: 'rec-inv-1',
-      cadence: 'monthly',
-    });
-    const record = recordFor('inv-1', '2026-05-15T00:00:00.000Z', {
+    const project = makeProject('p-1');
+    const record = recordForProject('p-1', '2026-05-15T00:00:00.000Z', {
       latestReviewAt: '2026-03-20T00:00:00.000Z', // 37 days back, default window = 14 → out
     });
-    const result = selectControlBuckets([inv], [record], [], NOW);
+    const result = selectControlBuckets([project], [record], [], NOW);
     expect(result.recentlyReviewed).toHaveLength(0);
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
   });
 
   it('respects custom recentReviewWindowDays', () => {
-    const inv = makeInvestigation('inv-1', 'controlled', {
-      recordId: 'rec-inv-1',
-      cadence: 'monthly',
-    });
-    const record = recordFor('inv-1', '2026-05-15T00:00:00.000Z', {
+    const project = makeProject('p-1');
+    const record = recordForProject('p-1', '2026-05-15T00:00:00.000Z', {
       latestReviewAt: '2026-04-15T00:00:00.000Z', // 11 days back
     });
     expect(
-      selectControlBuckets([inv], [record], [], NOW, { recentReviewWindowDays: 10 })
+      selectControlBuckets([project], [record], [], NOW, { recentReviewWindowDays: 10 })
         .recentlyReviewed
     ).toHaveLength(0);
     expect(
-      selectControlBuckets([inv], [record], [], NOW, { recentReviewWindowDays: 30 })
+      selectControlBuckets([project], [record], [], NOW, { recentReviewWindowDays: 30 })
         .recentlyReviewed
     ).toHaveLength(1);
   });
 
   it('excludes soft-deleted records from all buckets', () => {
-    const inv = makeInvestigation('inv-1', 'controlled', {
-      recordId: 'rec-inv-1',
-      cadence: 'monthly',
-    });
-    const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z', {
+    const project = makeProject('p-1');
+    const record = recordForProject('p-1', '2026-04-25T00:00:00.000Z', {
       deletedAt: 1745020800000, // 2026-04-24T00:00:00.000Z
       latestReviewAt: '2026-04-20T00:00:00.000Z',
     });
-    const result = selectControlBuckets([inv], [record], [], NOW);
+    const result = selectControlBuckets([project], [record], [], NOW);
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
     expect(result.recentlyReviewed).toHaveLength(0);
   });
 
-  it('excludes controlled investigations whose handoff opted out of sustainment review', () => {
-    const inv = makeInvestigation('inv-1', 'controlled', {
-      recordId: 'rec-inv-1',
-      cadence: 'monthly',
-    });
-    const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z');
-    const handoffs = [makeHandoff('inv-1', false)];
-    const result = selectControlBuckets([inv], [record], handoffs, NOW);
+  it('excludes controlled projects whose handoff opted out of control review', () => {
+    const project = makeProject('p-1');
+    const record = recordForProject('p-1', '2026-04-25T00:00:00.000Z');
+    const handoffs = [makeHandoff('p-1', false)];
+    const result = selectControlBuckets([project], [record], handoffs, NOW);
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
   });
 
-  it('skips investigations whose status is not resolved or controlled', () => {
-    const inv = makeInvestigation('inv-1', 'investigating', {
-      recordId: 'rec-inv-1',
-      cadence: 'monthly',
-    });
-    const record = recordFor('inv-1', '2026-04-25T00:00:00.000Z');
-    const result = selectControlBuckets([inv], [record], [], NOW);
+  it("label-can't-lie: an active project with no live record/handoff is not bucketed", () => {
+    // Predicate gate (isControlEligible) replaces the old analyzeStatus gate.
+    const project = makeProject('p-1', 'active');
+    const result = selectControlBuckets([project], [], [], NOW);
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
     expect(result.recentlyReviewed).toHaveLength(0);
@@ -664,41 +597,29 @@ describe('selectControlBuckets', () => {
   it('drops on-demand records with no latestReviewAt and no nextReviewDue from all buckets', () => {
     // on-demand cadence has no nextReviewDue (per nextDueFromCadence). Until first review,
     // there is nothing to bucket — the parent UI must surface these via a separate path.
-    const inv = makeInvestigation('inv-1', 'controlled', {
-      recordId: 'rec-inv-1',
-      cadence: 'on-demand',
-    });
-    const record = recordFor('inv-1', undefined, { cadence: 'on-demand' });
-    const result = selectControlBuckets([inv], [record], [], NOW);
+    const project = makeProject('p-1');
+    const record = recordForProject('p-1', undefined, { cadence: 'on-demand' });
+    const result = selectControlBuckets([project], [record], [], NOW);
     expect(result.dueNow).toHaveLength(0);
     expect(result.overdue).toHaveLength(0);
     expect(result.recentlyReviewed).toHaveLength(0);
   });
 
-  it('partitions multi-record hubs across all three buckets without double-counting', () => {
-    const overdueInv = makeInvestigation('inv-overdue', 'controlled', {
-      recordId: 'rec-overdue',
-      cadence: 'monthly',
-    });
-    const dueInv = makeInvestigation('inv-due', 'controlled', {
-      recordId: 'rec-due',
-      cadence: 'monthly',
-    });
-    const reviewedInv = makeInvestigation('inv-reviewed', 'resolved', {
-      recordId: 'rec-reviewed',
-      cadence: 'monthly',
-    });
+  it('partitions multiple projects across all three buckets without double-counting', () => {
+    const overdueP = makeProject('p-overdue');
+    const dueP = makeProject('p-due');
+    const reviewedP = makeProject('p-reviewed');
     const records = [
-      recordFor('inv-overdue', '2026-04-19T00:00:00.000Z'), // 7 days past due, grace=0 → overdue
-      recordFor('inv-due', '2026-04-26T00:00:00.000Z'), // exactly due → dueNow
-      recordFor('inv-reviewed', '2026-05-26T00:00:00.000Z', {
+      recordForProject('p-overdue', '2026-04-19T00:00:00.000Z'), // 7 days past due, grace=0 → overdue
+      recordForProject('p-due', '2026-04-26T00:00:00.000Z'), // exactly due → dueNow
+      recordForProject('p-reviewed', '2026-05-26T00:00:00.000Z', {
         latestReviewAt: '2026-04-22T00:00:00.000Z', // 4 days back → recentlyReviewed
       }),
     ];
-    const result = selectControlBuckets([overdueInv, dueInv, reviewedInv], records, [], NOW);
-    expect(result.overdue.map(r => r.analyze.id)).toEqual(['inv-overdue']);
-    expect(result.dueNow.map(r => r.analyze.id)).toEqual(['inv-due']);
-    expect(result.recentlyReviewed.map(r => r.analyze.id)).toEqual(['inv-reviewed']);
+    const result = selectControlBuckets([overdueP, dueP, reviewedP], records, [], NOW);
+    expect(result.overdue.map(r => r.project.id)).toEqual(['p-overdue']);
+    expect(result.dueNow.map(r => r.project.id)).toEqual(['p-due']);
+    expect(result.recentlyReviewed.map(r => r.project.id)).toEqual(['p-reviewed']);
     const totalLength =
       result.overdue.length + result.dueNow.length + result.recentlyReviewed.length;
     expect(totalLength).toBe(3);
