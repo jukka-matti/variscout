@@ -456,9 +456,6 @@ export async function updateLastViewedAt(
             phase: 'frame',
             findingCounts: {},
             questionCounts: {},
-            actionCounts: { total: 0, completed: 0, overdue: 0 },
-            assignedTaskCount: 0,
-            hasOverdueTasks: false,
             lastViewedAt: updatedLastViewed,
           };
       await db.projects.update(projectName, { meta: newMeta });

@@ -1,18 +1,16 @@
 // src/services/localDb.ts
 // IndexedDB operations for project persistence (Dexie wrapper)
 
-import { DEFAULT_PROCESS_HUB, buildProjectMetadata, evaluateSurvey } from '@variscout/core';
+import { DEFAULT_PROCESS_HUB, buildProjectMetadata } from '@variscout/core';
 import type {
   ControlHandoff,
   EvidenceSnapshot,
   EvidenceSource,
   ProcessHub,
-  ProcessHubSurveyReadinessSummary,
   ProjectMetadata,
   ControlMetadataProjection,
   ControlRecord,
   ControlReview,
-  SurveyEvaluation,
 } from '@variscout/core';
 import { db } from '../db/schema';
 import type { DocumentAccess, ProjectRecord } from '../db/schema';
@@ -22,18 +20,6 @@ import type { DocumentSnapshot } from '@variscout/stores';
 export type Project = DocumentSnapshot;
 
 // ── Metadata extraction ─────────────────────────────────────────────────
-
-function summarizeSurveyReadiness(evaluation: SurveyEvaluation): ProcessHubSurveyReadinessSummary {
-  return {
-    possibilityStatus: evaluation.possibility.overallStatus,
-    powerStatus: evaluation.power.overallStatus,
-    trustStatus: evaluation.trust.overallStatus,
-    recommendationCount: evaluation.recommendations.length,
-    topRecommendations: evaluation.recommendations
-      .slice(0, 3)
-      .map(recommendation => recommendation.title),
-  };
-}
 
 /**
  * Extract portfolio metadata from the canonical DocumentSnapshot shape.
@@ -49,21 +35,6 @@ export function extractMetadataInputs(
     const rawData = project.project.rawData;
     const hasData = rawData.length > 0;
     const processContext = project.project.processContext ?? undefined;
-    const outcome = project.project.outcome;
-    const factors = project.project.factors;
-    const specs = project.project.specs;
-    const timeColumn = project.project.timeColumn;
-    const surveyReadiness = summarizeSurveyReadiness(
-      evaluateSurvey({
-        data: rawData,
-        outcomeColumn: outcome,
-        factorColumns: factors,
-        timeColumn,
-        specs,
-        processContext,
-        findings,
-      })
-    );
 
     return buildProjectMetadata(
       findings,
@@ -71,8 +42,7 @@ export function extractMetadataInputs(
       hasData,
       userId,
       existingLastViewedAt,
-      processContext,
-      surveyReadiness
+      processContext
     );
   } catch {
     return null;
@@ -305,31 +275,6 @@ export async function recomputeSustainmentProjectionForRecord(
     : undefined;
   const projection = buildSustainmentProjection(record, handoff);
   await updateProjectSustainmentProjectionInIndexedDB(record.investigationId, projection);
-}
-
-export async function tombstoneControlRecordsForInvestigation(
-  investigationId: string,
-  deletedAt: number
-): Promise<number> {
-  const records = await db.controlRecords
-    .where('investigationId')
-    .equals(investigationId)
-    .toArray();
-  if (records.length === 0) return 0;
-  let updated = 0;
-  for (const record of records) {
-    if (record.deletedAt !== null) continue; // already archived; skip
-    await db.controlRecords.update(record.id, {
-      deletedAt,
-      updatedAt: deletedAt,
-    });
-    updated += 1;
-  }
-  if (updated > 0) {
-    // Clear the project's meta.sustainment projection — the live record is gone.
-    await clearProjectSustainmentProjectionInIndexedDB(investigationId);
-  }
-  return updated;
 }
 
 export async function clearProjectSustainmentProjectionInIndexedDB(

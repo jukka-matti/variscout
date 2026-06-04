@@ -89,68 +89,30 @@ describe('localDb Process Hub support', () => {
     await db.delete();
   });
 
-  it('extracts Process Hub metadata from persisted processContext', () => {
+  it('extracts the KEEP-set Process Hub metadata from persisted processContext', () => {
     const metadata = extractMetadataInputs(
       snapshot({
         rawData: [{ Value: 1 }],
         processContext: {
           processHubId: 'line-4',
-          analyzeDepth: 'focused',
-          analyzeStatus: 'investigating',
-          currentUnderstanding: { summary: 'Night shift variation is concentrated.' },
-          problemCondition: { summary: 'Cpk is below target.' },
-          nextMove: 'Inspect nozzle wear.',
-          description: 'Bottle filling from rinse through palletizing.',
-          processMap: {
-            version: 1,
-            nodes: [{ id: 'fill', name: 'Fill', order: 0, ctqColumn: 'Weight' }],
-            tributaries: [{ id: 'machine', stepId: 'fill', column: 'Machine' }],
-            ctsColumn: 'Weight',
-            subgroupAxes: ['machine'],
-            hunches: [{ id: 'h1', text: 'Nozzle wear', tributaryId: 'machine' }],
-            createdAt: '2026-04-26T00:00:00.000Z',
-            updatedAt: '2026-04-26T00:00:00.000Z',
-          },
+          nodeMappings: [{ nodeId: 'fill', measurementColumn: 'Weight' }],
+          migrationDeclinedAt: '2026-04-28T10:00:00.000Z',
         },
       }),
       'local'
     );
 
+    // PO-4: the narrative/work-item projection fields were shed from
+    // ProjectMetadata. Only the KEEP set survives.
     expect(metadata).toMatchObject({
+      phase: 'scout',
       processHubId: 'line-4',
-      analyzeDepth: 'focused',
-      analyzeStatus: 'investigating',
-      currentUnderstandingSummary: 'Night shift variation is concentrated.',
-      problemConditionSummary: 'Cpk is below target.',
-      nextMove: 'Inspect nozzle wear.',
-      processDescription: 'Bottle filling from rinse through palletizing.',
-      customerRequirementSummary: 'Weight',
-      processMapSummary: {
-        stepCount: 1,
-        tributaryCount: 1,
-        ctsColumn: 'Weight',
-        subgroupAxisCount: 1,
-        hunchCount: 1,
-      },
+      nodeMappings: [{ nodeId: 'fill', measurementColumn: 'Weight' }],
+      migrationDeclinedAt: '2026-04-28T10:00:00.000Z',
     });
-  });
-
-  it('extracts Survey readiness for Process Hub review queues', () => {
-    const metadata = extractMetadataInputs(
-      snapshot({
-        rawData: [{ Machine: 'A', Weight: 10 }],
-        outcome: 'Weight',
-        factors: [],
-        processContext: { processHubId: 'line-4' },
-      }),
-      'local'
-    );
-
-    expect(metadata?.surveyReadiness).toMatchObject({
-      recommendationCount: expect.any(Number),
-      topRecommendations: expect.any(Array),
-    });
-    expect(metadata?.surveyReadiness?.recommendationCount).toBeGreaterThan(0);
+    expect((metadata as unknown as Record<string, unknown>)?.analyzeStatus).toBeUndefined();
+    expect((metadata as unknown as Record<string, unknown>)?.surveyReadiness).toBeUndefined();
+    expect((metadata as unknown as Record<string, unknown>)?.nextMove).toBeUndefined();
   });
 
   it('does not include a hub review signal in extracted metadata (projection retired — PO-2)', () => {
@@ -343,17 +305,7 @@ describe('localDb Process Hub support', () => {
         factors: ['Machine'],
         processContext: {
           processHubId: 'line-4',
-          analyzeDepth: 'focused',
-          description: 'Bottle filling from rinse through palletizing.',
-          processMap: {
-            version: 1,
-            nodes: [{ id: 'fill', name: 'Fill', order: 0, ctqColumn: 'Weight' }],
-            tributaries: [{ id: 'machine', stepId: 'fill', column: 'Machine' }],
-            ctsColumn: 'Weight',
-            subgroupAxes: ['machine'],
-            createdAt: '2026-04-26T00:00:00.000Z',
-            updatedAt: '2026-04-26T00:00:00.000Z',
-          },
+          nodeMappings: [{ nodeId: 'fill', measurementColumn: 'Weight' }],
         },
       }),
     });
@@ -362,14 +314,10 @@ describe('localDb Process Hub support', () => {
     const projects = await listFromIndexedDB('local');
 
     expect(updated).toBe(1);
+    // PO-4: only the KEEP-set metadata is backfilled.
     expect(projects[0].metadata).toMatchObject({
       processHubId: 'line-4',
-      analyzeDepth: 'focused',
-      processDescription: 'Bottle filling from rinse through palletizing.',
-      customerRequirementSummary: 'Weight',
-      surveyReadiness: {
-        recommendationCount: expect.any(Number),
-      },
+      nodeMappings: [{ nodeId: 'fill', measurementColumn: 'Weight' }],
     });
   });
 });

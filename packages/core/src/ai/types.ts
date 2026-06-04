@@ -6,12 +6,7 @@ import type { InsightChartType } from './chartInsights';
 import type { Locale } from '../i18n/types';
 import type { AnalysisMode } from '../types';
 import type { ProcessMap } from '../frame/types';
-import type {
-  AnalyzeDepth,
-  AnalyzeNodeMapping,
-  AnalyzeStatus,
-  ProcessParticipantRef,
-} from '../processHub';
+import type { AnalyzeNodeMapping, ProcessParticipantRef } from '../processHub';
 import type { EvidenceSource, EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessMomentDefinition } from '../processMoments';
 import type { SignalCard } from '../signalCards';
@@ -90,10 +85,6 @@ export type JourneyPhase = 'frame' | 'scout' | 'analyze' | 'improve';
 export interface ProcessContext {
   /** Durable process context that owns this investigation */
   processHubId?: string;
-  /** Investigation depth inside the Process Hub */
-  analyzeDepth?: AnalyzeDepth;
-  /** Process Hub status for this investigation */
-  analyzeStatus?: AnalyzeStatus;
   /** Investigation-to-process-map bindings for hub rollups. */
   nodeMappings?: AnalyzeNodeMapping[];
   /** Timestamp marker for declining B0-to-hub migration prompts. */
