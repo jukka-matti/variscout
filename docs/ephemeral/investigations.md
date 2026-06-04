@@ -26,6 +26,46 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### `Finding.investigationId` FK rename — parked, blast radius named [LOGGED 2026-06-04]
+
+**Surfaced by:** the 2026-06-04 analyze-session grounding pass on `ProcessHubAnalyze` entity disposition.
+
+**Summary:** the rename re-keys the FK from the old multi-hub `investigationId` token to the `ProjectId` under the Project⟷Hub 1:1 model. Explicitly deferred by the investigation-surface build ("does NOT cover") with a stable-token rationale; blast radius is ~130 files across persistence, serialization, and FK consumers. Any analyze-entity surgery (see `ProcessHubAnalyze` OQ in `decision-log.md §2`) must treat this as its own pre-step, never a drive-by change inside a V1 PR.
+
+**Promotion path:** pre-step of the analyze-entity surgery brainstorm. Atomic rename PR, not bundled.
+
+**Severity:** low (intentionally parked) — pointer so the brainstorm finds it and doesn't discover the blast radius mid-flight.
+
+### `ScopeFilter` (processHub.ts:203) → `ProblemStatementScope` reconcile ordering [LOGGED 2026-06-04]
+
+**Surfaced by:** the 2026-06-04 analyze-session grounding pass. ADR-085 mandates a reconcile decision for the `scopeFilter` field on analyze-session metadata.
+
+**Summary:** the analyze-session metadata carries a `scopeFilter` field (typed `ScopeFilter` in `processHub.ts:~203`) alongside the V1-canonical `ProblemStatementScope` entity (ADR-085). ADR-085 mandates a reconcile decision: the `scopeFilter` field must NOT be removed before the durable scope-WHERE is verifiably wired through `ProblemStatementScope`. PR-CS-0 previously found zero live callers for the scope materialization path, so removal before wiring would silently drop the scope-WHERE signal entirely. This is an ordering constraint, not a removal veto.
+
+**Promotion path:** analyze-entity surgery brainstorm; resolve before any `ProcessHubAnalyze` field removal PR.
+
+**Severity:** medium — ordering constraint; removing `scopeFilter` before `ProblemStatementScope` is fully wired repeats the PR-CS-0 zero-caller mistake.
+
+### `investigationLineage` is under-wired, not a relic [LOGGED 2026-06-04]
+
+**Surfaced by:** the 2026-06-04 analyze-session grounding pass; corrects an over-claim that lineage was a multi-project leftover ready to delete.
+
+**Summary:** `IP.sections.investigationLineage.findingIds` has a write path (CS-6 pin gesture) but `investigationLineage.hypothesisIds` has **zero writers anywhere** in the codebase — the active-IP Wall filter that reads it produces an empty set by construction, making the filter meaningless on every IP today. This is a live defect, not a doc issue. Even under Project⟷Hub 1:1, lineage legitimately distinguishes project-curated work from quick-analysis-without-a-Project (the no-Project free-PWA onramp — OVERVIEW §3.0). The full curation/membership model belongs to the analyze-entity surgery brainstorm. **Interim fix** (separate small PR, not blocked by the brainstorm): treat empty `hypothesisIds` as "unfiltered" on the Wall filter so the scoped Wall is not silently empty for every IP today.
+
+**Promotion path:** two paths — (1) interim empty-set-means-unfiltered fix, small PR now; (2) full curation/membership model in the analyze-entity surgery brainstorm.
+
+**Severity:** medium-high — live defect (the Wall IP-scope filter is inoperative for hypotheses on every project) + design gap (curation model unbuilt).
+
+### Stale continuous-ops journey docs [LOGGED 2026-06-04]
+
+**Surfaced by:** the 2026-06-04 analyze-session grounding pass; both docs are `status: active` but their narrative rests on the pre-wedge model.
+
+**Summary:** `docs/02-journeys/project-reopen.md` and `docs/02-journeys/azure-daily-use.md` rest on ARCHIVED ADR-043 and narrate the pre-wedge continuous-operations model ("open/create/continue analysis", overdue-batch flags, per-hub analysis cadence). Under the wedge V1 model these journeys either belong to the named-future process-as-operations layer (§9) or need re-narration from the improvement-specialist perspective. They currently mislead any agent or onboarder reading the L2 journeys tier.
+
+**Promotion path:** re-narrate or mark `status: named-future` during the §9 / §10 doc propagation sweep (the process-as-operations follow-up spec). Not blocking active build work.
+
+**Severity:** low (doc drift) — no runtime effect, but misleads documentation readers and doc-grounding agents.
+
 ### Created hubs don't register into active-IP lineage [LOGGED 2026-06-04]
 
 **Surfaced by:** the Wall-entry fix review. When an active IP is scoped, both apps filter the Wall to `activeIPLineage.hypothesisIds` — but NO hub-creation path (`handleProposeHypothesis`, `createHubFromFinding`, and the newly wired write/seed CTAs) registers the new hub into the lineage. A hub created while IP-scoped-with-zero-lineage-hubs won't appear on the scoped Wall. Identical pre-existing behavior across all creation paths; common unscoped case unaffected.
@@ -33,6 +73,8 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 **Promotion path:** decide whether hub creation should auto-register into the active IP's lineage (likely yes — one-line per path) as a small follow-up.
 
 **Severity:** low-medium — confusing edge case under IP scoping; consistent across paths.
+
+**[NOTE 2026-06-04]** superseded-in-framing by the `investigationLineage is under-wired` entry above: the gap is the missing `hypothesisIds` write-path + curation model, not per-creation registration; the interim empty-set-means-unfiltered fix covers the symptom.
 
 ### "Pin as finding" crashes both apps — click event flows into the finding text [LOGGED 2026-06-04]
 
