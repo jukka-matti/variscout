@@ -177,12 +177,20 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     () => new Set(activeIPLineage?.findingIds ?? []),
     [activeIPLineage]
   );
+  // Interim curation semantics (decision-log OQ 2026-06-04, ProcessHubAnalyze
+  // disposition): an EMPTY lineage list means "nothing curated into the project
+  // yet" → show everything. lineage.hypothesisIds currently has no UI writer at
+  // all, so filtering against it blanked the Wall under active-IP scope.
   const scopedWallHubs = useMemo(
-    () => (activeIPScope ? hubs.filter(h => scopedHubIds.has(h.id)) : hubs),
+    () =>
+      activeIPScope && scopedHubIds.size > 0 ? hubs.filter(h => scopedHubIds.has(h.id)) : hubs,
     [activeIPScope, hubs, scopedHubIds]
   );
   const scopedWallFindings = useMemo(
-    () => (activeIPScope ? wallFindings.filter(f => scopedFindingIds.has(f.id)) : wallFindings),
+    () =>
+      activeIPScope && scopedFindingIds.size > 0
+        ? wallFindings.filter(f => scopedFindingIds.has(f.id))
+        : wallFindings,
     [activeIPScope, scopedFindingIds, wallFindings]
   );
 
