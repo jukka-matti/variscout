@@ -78,6 +78,15 @@ export interface HypothesisCardProps {
    * badge stays a passive label (the Survey hint remains the only ambient nudge).
    */
   onOneStepAwayAction?: (hubId: string) => void;
+  /**
+   * CS-13 crossing-back — when provided, renders a → jump button in the card
+   * header (top-right). The PARENT resolves the hub's primary factor and gates
+   * on data presence (no button when the factor awaits collection — the
+   * measurement-plan chip owns that case). Fired with no args.
+   */
+  onExplore?: () => void;
+  /** Pre-formatted aria label for the → button (`wall.exploreJump.aria`). */
+  exploreAriaLabel?: string;
 }
 
 const CARD_W = 280;
@@ -203,6 +212,8 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   onSelect,
   onContextMenu,
   onOneStepAwayAction,
+  onExplore,
+  exploreAriaLabel,
 }) => {
   const locale = useWallLocale();
   const statusLabel = getMessage(locale, STATUS_KEY[displayStatus]);
@@ -305,6 +316,23 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
       <text x={16} y={48} className="fill-content font-semibold text-sm">
         {mechanismName}
       </text>
+      {onExplore && (
+        <foreignObject x={CARD_W - 64} y={8} width={26} height={24} data-no-wall-pan>
+          {/* CS-13 → jump at x:216–242 — leaves the x:246–272 lane to the hasGap badge (cx=256±10) */}
+          <button
+            type="button"
+            data-testid="hub-explore-jump"
+            aria-label={exploreAriaLabel}
+            className="flex h-full w-full items-center justify-center rounded border border-edge bg-surface text-xs text-content-muted hover:bg-surface-primary hover:text-content"
+            onClick={e => {
+              e.stopPropagation();
+              onExplore();
+            }}
+          >
+            →
+          </button>
+        </foreignObject>
+      )}
       {!isMedium && (
         <>
           <rect

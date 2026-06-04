@@ -963,6 +963,8 @@ export interface MessageCatalog {
   'wall.evidence.countsAgainst': string;
   'wall.evidence.contributingFactors': string;
   'wall.factorGlyph.aria': string;
+  /** CS-13 crossing-back — aria label for the Wall → Explore jump buttons. */
+  'wall.exploreJump.aria': string;
   'wall.disconfirm.prompt': string;
   'wall.disconfirm.descriptionLabel': string;
   'wall.disconfirm.verdictLabel': string;
