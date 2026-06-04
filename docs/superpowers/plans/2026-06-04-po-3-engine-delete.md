@@ -3,7 +3,7 @@ tier: living
 purpose: design
 title: 'PO-3 · Engine delete — sub-plan (cadence layer out)'
 audience: human
-status: active
+status: delivered
 date: 2026-06-04
 last-reviewed: 2026-06-04
 layer: spec
@@ -111,9 +111,7 @@ git rm apps/azure/src/components/ProcessHubReviewPanel.tsx \
 it('renders the thin hub host without the retired current-state review surface', async () => {
   // ...existing render arrangement...
   await screen.findByTestId('process-hub-surface'); // survivor present
-  expect(
-    screen.queryByRole('region', { name: /Current Process State/i })
-  ).not.toBeInTheDocument(); // the retired surface must NOT come back
+  expect(screen.queryByRole('region', { name: /Current Process State/i })).not.toBeInTheDocument(); // the retired surface must NOT come back
 });
 ```
 

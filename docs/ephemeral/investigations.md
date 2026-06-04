@@ -1373,3 +1373,13 @@ Until then: stays as a logged investigation. The current tripwire remains the en
 ## `outcomeReference` FKs are zero-writer (lineage-pattern fossil) [LOGGED 2026-06-04]
 
 `ip.sections.outcomeReference.{sustainmentRecordId, controlHandoffId}` have 3 readers (`activeIPPresentation.ts`, `ipReport.ts`, `survey/control.ts`) and **zero writers** on main — the Control-entry actions (`ControlRecordEditor`/`ControlHandoffEditor`) write the entities + `ControlRecord.improvementProjectId`/`controlHandoffId` but never patch the IP. Surfaced by the PO-2 grounding (process-ops master plan). PO-2's Control-readiness predicate deliberately derives from the live `improvementProjectId` join instead. **Disposition belongs to the #12 Control-closure-model brainstorm**: wire the back-reference at Control-entry, or retire the section (the readers can derive from the join). Same shape as the retired `investigationLineage.hypothesisIds`.
+
+## Blocking native dialogs (`window.prompt`/`window.confirm`) in Save-As + replace-data paths [LOGGED 2026-06-04]
+
+Surfaced by the PO-3 `--chrome` verify (PR #300): `Editor.tsx` Save-As/Rename fire `window.prompt`, and the data-flow replace-data paths fire `window.confirm` (`useEditorDataFlow.ts`, 4 sites — one already commented as "legacy"). Verified **pre-existing on main**, not a PO-3 artifact. Two costs: (1) browser-automation hostile — they wedge CDP-driven verification (each chrome verify will trip on them) and Playwright needs explicit dialog handlers; (2) dated UX relative to the app's own modal language (`HubCreationFlow`, `ProductionLineGlanceMigrationModal` show the house pattern).
+
+**Possible directions:** replace with house modal components (a small `NameDialog` + the existing confirm-toast patterns); or keep + document dialog handlers in the chrome-verify playbook.
+
+**Promotion path:** small UI refactor, 2 files; no design decision pending.
+
+**Severity:** low (cosmetic/UX + automation friction; no data risk).
