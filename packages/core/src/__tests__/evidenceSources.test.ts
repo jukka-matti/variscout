@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   AGENT_REVIEW_LOG_PROFILE,
-  buildProcessHubCadence,
-  buildProcessHubRollups,
   detectDataProfiles,
   processHubEvidenceBlobPath,
   validateEvidenceSourceSnapshot,
@@ -126,45 +124,6 @@ describe('Evidence Sources and Data Profiles', () => {
     expect(processHubEvidenceBlobPath('hub-1', 'source-1', 'snapshot-1', 'application.json')).toBe(
       'process-hubs/hub-1/evidence-sources/source-1/snapshots/snapshot-1/application.json'
     );
-  });
-
-  it('allows Process Hub cadence to include latest evidence snapshots as first-class signals', () => {
-    const application = AGENT_REVIEW_LOG_PROFILE.apply(rows, {
-      flagColor: 'flagColor',
-      confidenceScore: 'confidence',
-      greenAuditResult: 'auditResult',
-    });
-    const snapshot: EvidenceSnapshot = {
-      id: 'snapshot-1',
-      hubId: 'hub-1',
-      sourceId: source.id,
-      capturedAt: '2026-04-26T12:00:00.000Z',
-      rowCount: rows.length,
-      profileApplication: application,
-      origin: 'fixture:latest-evidence-signals',
-      importedAt: 1745668800000,
-      createdAt: 1745668800000,
-      deletedAt: null,
-      latestSignals: [
-        {
-          id: 'false-green',
-          label: 'False green',
-          value: 1,
-          severity: 'red',
-          capturedAt: '2026-04-26T12:00:00.000Z',
-        },
-      ],
-    };
-
-    const [rollup] = buildProcessHubRollups(
-      [{ id: 'hub-1', name: 'Claims hub', createdAt: 1777161600000, deletedAt: null }],
-      [],
-      { evidenceSnapshots: [snapshot] }
-    );
-    const cadence = buildProcessHubCadence(rollup);
-
-    expect(cadence.snapshot.latestEvidenceSignals).toBe(1);
-    expect(cadence.latestEvidenceSignals.items).toEqual([snapshot.latestSignals![0]]);
   });
 });
 

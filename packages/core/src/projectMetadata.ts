@@ -19,7 +19,6 @@ import {
   type ProcessHubSurveyReadinessSummary,
 } from './processHub';
 import type { ControlMetadataProjection } from './control';
-import type { ProcessStateNote } from './processStateNote';
 
 export interface ProjectMetadata {
   /** High-level analysis journey phase */
@@ -78,11 +77,6 @@ export interface ProjectMetadata {
   /** Lightweight projection of the active ControlRecord for this project.
    *  Field name `sustainment` preserved — matches persisted ProjectMetadata schema. */
   sustainment?: ControlMetadataProjection;
-  /**
-   * Team notes for current-state items, copied from processContext.stateNotes
-   * so the Dashboard rollup can surface them without loading the full project.
-   */
-  stateNotes?: ProcessStateNote[];
 }
 
 /**
@@ -220,6 +214,5 @@ export function buildProjectMetadata(
       processContext?.problemCondition?.summary ??
       processContext?.currentUnderstanding?.problemCondition?.summary,
     nextMove: processContext?.nextMove,
-    stateNotes: processContext?.stateNotes,
   };
 }

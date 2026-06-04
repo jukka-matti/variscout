@@ -37,7 +37,7 @@ export const PasteConflictToast: React.FC = () => {
 
   const dismiss = () => setLatestEvent(null);
 
-  // Close on Escape key — consistent with EvidenceSheet / SampleDataPicker pattern.
+  // Close on Escape key — consistent with SampleDataPicker pattern.
   useEffect(() => {
     if (!latestEvent) return;
     const onKey = (e: KeyboardEvent) => {

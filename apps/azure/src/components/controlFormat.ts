@@ -1,7 +1,6 @@
 /**
  * Project-typed Control formatters serving the re-homed ControlRegion.
- * These survive long-term; ProcessHubFormat.ts houses the panel helpers that
- * die with ProcessHubReviewPanel in PO-3.
+ * These survive long-term.
  */
 import type { ControlVerdict, ControlHandoffSurface } from '@variscout/core';
 import { formatPlural } from '@variscout/core/i18n';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Dashboard } from '../Dashboard';
 import type { CloudProject } from '../../services/storage';
 import type { EvidenceSource } from '@variscout/core';
@@ -167,7 +167,11 @@ describe('Dashboard Process Hub home', () => {
     expect(screen.queryByText('Latest Signals')).not.toBeInTheDocument();
   });
 
-  it('renders an inline Current Process State panel for the selected hub', async () => {
+  // PO-3: the ProcessHubReviewPanel review surface (CurrentStatePanel + Inbox +
+  // state-item UI) is retired. ProcessHubView is now a thin host — only the
+  // Capability orient content survives. Negative control: the retired
+  // 'Current Process State' aria region must NOT come back.
+  it('renders the thin hub host without the retired current-state review surface', async () => {
     const onOpenProject = vi.fn();
     mockListProjects.mockResolvedValue([
       makeProject(),
@@ -183,22 +187,10 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
-    const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
-    // Current Process State panel (CurrentStatePanel) — V1 keep.
-    expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
-    // Lens count cards always render for all 5 lenses — not reviewSignal-derived.
-    expect(within(panel).getAllByText('Outcome').length).toBeGreaterThan(0);
-    expect(within(panel).getAllByText('Measurement').length).toBeGreaterThan(0);
-    // Active-work item from makeProject (analyzeDepth:'focused', analyzeStatus:'investigating')
-    // → active:focused item → responsePath 'focused-analyze' → rendered as 'Focused investigation'.
-    expect(within(panel).getAllByText('Focused investigation').length).toBeGreaterThan(0);
-    // reviewSignal-derived items ('Capability below target', 'Variation concentration') are
-    // intentionally absent — reviewSignal projection retired in PO-2 Task 6.
-    expect(within(panel).queryByText('Capability below target')).not.toBeInTheDocument();
-    expect(within(panel).queryByText('Variation concentration')).not.toBeInTheDocument();
-    // PR-PO-2 Task 2: ProcessHubControlRegion (control items, "Nozzle replacement verified",
-    // "Set up control cadence" button) is re-homed to the Project tab (IPDetailPage).
-    // Coverage lives in ProcessHubControlRegion.test.tsx + ProjectsTabView.test.tsx.
+    await screen.findByTestId('process-hub-surface'); // survivor present
+    expect(
+      screen.queryByRole('region', { name: /Current Process State/i })
+    ).not.toBeInTheDocument(); // the retired surface must NOT come back
   });
 
   it('keeps process hubs visible when search filters the investigation list', async () => {
@@ -211,19 +203,18 @@ describe('Dashboard Process Hub home', () => {
 
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
-    await screen.findByRole('region', { name: 'Line 4 Current Process State' });
+    await screen.findByTestId('process-hub-surface');
 
     fireEvent.change(screen.getByPlaceholderText('Search analyzes...'), {
       target: { value: 'zzzz no matching project' },
     });
 
     expect(screen.getByLabelText('Open Line 4')).toBeInTheDocument();
-    const panel = screen.getByRole('region', { name: 'Line 4 Current Process State' });
-    expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
+    expect(screen.getByTestId('process-hub-surface')).toBeInTheDocument();
     expect(screen.queryByTestId('project-card')).not.toBeInTheDocument();
   });
 
-  it('shows the current-state panel for a selected hub without investigations', async () => {
+  it('mounts the thin hub host for a selected hub without investigations', async () => {
     mockListProjects.mockResolvedValue([]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
@@ -234,11 +225,10 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByText('Line 4');
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
-    const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
-    // The panel mounts for an empty hub without crashing; CurrentStatePanel header is the
-    // surviving keep. PR-PO-2 Task 2: the ControlRegion empty-state ("No control items yet…")
-    // is re-homed to the Project tab — coverage in ProcessHubControlRegion.test.tsx.
-    expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
+    // The thin host mounts for an empty hub without crashing; the process-hub
+    // surface (Capability orient content) is the surviving keep. PO-3 retired
+    // the Current Process State review surface entirely.
+    expect(await screen.findByTestId('process-hub-surface')).toBeInTheDocument();
   });
 
   it('defers evidence loading until a hub is selected', async () => {
@@ -302,7 +292,7 @@ describe('Dashboard Process Hub home', () => {
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
     // Wait for ProcessHubView to render.
-    await screen.findByRole('region', { name: 'Line 4 Current Process State' });
+    await screen.findByTestId('process-hub-surface');
 
     // Hub has no processGoal and no outcomes → framing prompt is visible (onEditFraming wired).
     // This confirms that ProcessHubView receives onEditFraming from Dashboard.

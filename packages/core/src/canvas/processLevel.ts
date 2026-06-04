@@ -4,9 +4,8 @@
  *
  * ADR-088 #1 ("Level before mode"): this is a thin NAMING and routing alias, not
  * a new store or state machine. The level decides which native share is in view
- * (Outcome → Y, Flow → X, Local → x). Do NOT collide with the live
- * `ProcessStateLens` ('outcome'|'flow'|'conversion'|'measurement'|'sustainment')
- * or `TimeLens` — those are orthogonal axes.
+ * (Outcome → Y, Flow → X, Local → x). Do NOT collide with `TimeLens` — that is
+ * an orthogonal axis.
  */
 
 import type { CanvasLevel } from './viewport';
