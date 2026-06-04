@@ -81,6 +81,7 @@ related:
 - **Model:** Sonnet/Opus split per sub-plan (deletions Sonnet; the CoScout context slim + `JourneyPhase`-consumer guard Opus). **Guard:** PO-3 grounding verifies `JourneyPhase` consumers (CoScout `phases` gating) are untouched — the CoScout phase + journey model is a routed follow-up, not this PR.
 - **Acceptance:** Process-tab editor canvas + the surviving thin `ProcessHubView` render clean; CoScout prompt assembly tests green with the slimmed context; gate + app suites green.
 - **Spec ref:** §5.3–5.5, §8 (CoScout follow-up row).
+- **Sub-plan:** [`2026-06-04-po-3-engine-delete.md`](2026-06-04-po-3-engine-delete.md). _Grounding amendments 2026-06-04 (7-slice workflow + owner ratification): **`buildProcessHubContext` deletes wholesale** — zero live callers; the "slim for CoScout" rationale was phantom (CoScout's real path is `buildAIContext`; the "CoScout prompt assembly tests" acceptance criterion has no referent — `coScoutModes.test.ts` is the JourneyPhase sentinel instead) · **`stateNotes`/`ProcessStateNote` strips fully** (UI + type + 3 persisted shapes + the CoScout-context field) · **i18n catalog task = zero work items** (the dying UI never had catalog keys) · hidden cascade members join the delete list: `EvidenceSheet`, `processHubRoutes.ts`/`actionToHref`, core `processEvidence.ts` + `responsePathAction.ts`, the Dashboard handler cluster · build order = reverse-dependency ladder (azure → ui → core), every intermediate state green._
 
 ### PR-PO-4 · Phase C — entity dissolution (**Opus atomic cascade**)
 
