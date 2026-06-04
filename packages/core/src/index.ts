@@ -543,6 +543,10 @@ export {
   controlHandoffBlobPath,
   controlCatalogPath,
 } from './control';
+export type { ControlReviewItem } from './control';
+
+// Control-readiness predicates (PR-PO-2 — facts, not labels)
+export { isControlEligible, isControlled } from './controlReadiness';
 
 // Survey evaluator (QDE 2.0 foundation)
 export { evaluateSurvey, SURVEY_RECOMMENDATION_KIND_LABELS, SURVEY_STATUS_LABELS } from './survey';
