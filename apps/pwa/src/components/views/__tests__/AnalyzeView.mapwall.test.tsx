@@ -380,6 +380,14 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     expect(window.sessionStorage.getItem(RETURN_NAVIGATION_STORAGE_KEY)).toBeNull();
   });
 
+  it('mounts WallCanvas with the onExploreFactor wire (CS-13)', () => {
+    // Render in wall mode — mirrors the onProposeHypothesis assertion pattern.
+    useCanvasViewportStore.getState().setViewMode('wall');
+    capturedWallCanvasProps.current = null;
+    render(<AnalyzeView {...makeMinimalProps()} />);
+    expect(capturedWallCanvasProps.current?.onExploreFactor).toBeTypeOf('function');
+  });
+
   describe('planningProps pass-through', () => {
     beforeEach(() => {
       capturedWallCanvasProps.current = null;

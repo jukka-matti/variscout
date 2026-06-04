@@ -17,6 +17,7 @@ import {
   AnalyzeConclusion,
   FindingsLog,
   WallCanvas,
+  navigateToExploreForChip,
   CommandPalette,
   Minimap,
   CANVAS_W,
@@ -327,6 +328,19 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   const handleProposeHypothesis = useCallback((findingId: string) => {
     useAnalyzeStore.getState().createHubFromFinding(findingId);
   }, []);
+
+  // CS-13 — the crossing-back (spec §4.0a). PWA parity note: the scope lands in
+  // analysisScopeStore + the chrome chip; the PWA Explore chart mirror is the
+  // deferred lv1-pwa-mount follow-up (matches the existing chip path).
+  const handleExploreFactor = useCallback(
+    (factor: string) => {
+      navigateToExploreForChip(
+        { kind: 'factor', columnName: factor, outcomeColumn: outcome ?? undefined },
+        () => usePanelsStore.getState().showExplore()
+      );
+    },
+    [outcome]
+  );
 
   // Wall empty-state entry points (investigations.md 2026-06-04 — the CTAs were
   // never wired on the destination mount; only the retired CanvasWallOverlay
@@ -749,6 +763,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 onWriteHypothesis={handleWriteHypothesis}
                 onSeedFromFactorIntel={factors.length > 0 ? handleSeedFromFactorIntel : undefined}
                 onProposeHypothesis={handleProposeHypothesis}
+                onExploreFactor={handleExploreFactor}
               />
               {/* Minimap + CommandPalette are desktop-only. WallCanvas
                 self-gates to MobileCardList below 768px. */}
