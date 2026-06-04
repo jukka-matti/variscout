@@ -176,14 +176,12 @@ function formatStatusLabel(value: string): string {
 interface AnalyzeMetadataPanelProps {
   projectId: string | null;
   processContext: ProcessContext | undefined;
-  processHubs: ProcessHub[];
   onChange: (context: ProcessContext) => void;
 }
 
 const AnalyzeMetadataPanel: React.FC<AnalyzeMetadataPanelProps> = ({
   projectId,
   processContext,
-  processHubs,
   onChange,
 }) => {
   const context = processContext ?? {};
@@ -192,20 +190,6 @@ const AnalyzeMetadataPanel: React.FC<AnalyzeMetadataPanelProps> = ({
   return (
     <div className="mx-2 mb-2 rounded-lg border border-edge bg-surface-secondary/70 p-3">
       <div className="grid gap-3 lg:grid-cols-6">
-        <label className="text-xs text-content-secondary">
-          <span className="mb-1 block">Process Hub</span>
-          <select
-            value={context.processHubId ?? DEFAULT_PROCESS_HUB_ID}
-            onChange={event => update({ processHubId: event.target.value })}
-            className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
-          >
-            {processHubs.map(hub => (
-              <option key={hub.id} value={hub.id}>
-                {hub.name}
-              </option>
-            ))}
-          </select>
-        </label>
         <label className="text-xs text-content-secondary">
           <span className="mb-1 block">Depth</span>
           <select
@@ -1983,7 +1967,6 @@ export const Editor: React.FC<EditorProps> = ({
       <AnalyzeMetadataPanel
         projectId={projectId}
         processContext={processContext}
-        processHubs={processHubs}
         onChange={setProcessContext}
       />
 

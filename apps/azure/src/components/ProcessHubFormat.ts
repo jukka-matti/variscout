@@ -1,25 +1,10 @@
-import type {
-  EvidenceLatestSignal,
-  EvidenceSnapshot,
-  AnalyzeStatus,
-  ProcessHubAnalyze,
-  ProcessHubReviewItem,
-  ProcessHubRollup,
-  ControlVerdict,
-  ControlHandoffSurface,
-} from '@variscout/core';
+import type { AnalyzeStatus, ControlVerdict, ControlHandoffSurface } from '@variscout/core';
 import { formatStatistic, formatPlural } from '@variscout/core/i18n';
 
 export const formatMetric = (value: number): string => formatStatistic(value, 'en', 2);
 
 export const formatStatus = (status?: AnalyzeStatus): string =>
   (status ?? 'scouting').replace(/-/g, ' ');
-
-export const formatChangeSignals = (count: number): string =>
-  `${count} ${formatPlural(count, { one: 'change signal', other: 'change signals' })}`;
-
-export const formatOverdueActions = (count: number): string =>
-  `${count} ${formatPlural(count, { one: 'overdue action', other: 'overdue actions' })}`;
 
 export const formatLatestActivity = (value: number | null): string => {
   if (value === null || value === undefined) return 'No activity yet';
@@ -30,64 +15,6 @@ export const formatLatestActivity = (value: number | null): string => {
     day: 'numeric',
     year: 'numeric',
   })}`;
-};
-
-export const formatTopFocus = (item: ProcessHubReviewItem): string | null => {
-  const topFocus = item.analyze.metadata?.reviewSignal?.topFocus;
-  if (!topFocus) return null;
-  return topFocus.value === undefined ? topFocus.factor : `${topFocus.factor} / ${topFocus.value}`;
-};
-
-export const formatHubTopFocus = (rollup: ProcessHubRollup<ProcessHubAnalyze>): string | null => {
-  const topFocus = rollup.reviewSignal?.topFocus;
-  if (!topFocus) return null;
-  return topFocus.value === undefined ? topFocus.factor : `${topFocus.factor} / ${topFocus.value}`;
-};
-
-export const formatCapability = (item: ProcessHubReviewItem): string | null => {
-  const capability = item.analyze.metadata?.reviewSignal?.capability;
-  if (capability?.cpk === undefined || capability.cpkTarget === undefined) return null;
-  return `Cpk ${formatMetric(capability.cpk)} vs target ${formatMetric(capability.cpkTarget)}`;
-};
-
-export const formatHubCapability = (rollup: ProcessHubRollup<ProcessHubAnalyze>): string | null => {
-  const capability = rollup.reviewSignal?.capability;
-  if (capability?.cpk === undefined || capability.cpkTarget === undefined) return null;
-  return `Cpk ${formatMetric(capability.cpk)} vs target ${formatMetric(capability.cpkTarget)}`;
-};
-
-const firstDefined = <T>(values: Array<T | undefined>): T | undefined =>
-  values.find(value => value !== undefined && value !== null);
-
-export const requirementSummary = (rollup: ProcessHubRollup<ProcessHubAnalyze>): string | null =>
-  firstDefined(
-    rollup.analyzes.map(
-      analyze =>
-        analyze.metadata?.customerRequirementSummary ??
-        analyze.metadata?.processMapSummary?.ctsColumn
-    )
-  ) ?? null;
-
-export const processQuestionAnswers = (
-  rollup: ProcessHubRollup<ProcessHubAnalyze>
-): { requirement: string; change: string; focus: string } => {
-  const requirement = requirementSummary(rollup);
-  const capability = formatHubCapability(rollup);
-  const topFocus = formatHubTopFocus(rollup);
-  const latestChangeSignalCount = rollup.reviewSignal?.changeSignals.total ?? 0;
-
-  return {
-    requirement: requirement ?? capability ?? 'No requirement signal yet',
-    change:
-      latestChangeSignalCount > 0
-        ? `Latest evidence has ${formatChangeSignals(latestChangeSignalCount)}.`
-        : 'No change signal yet',
-    focus:
-      (topFocus && `Focus on ${topFocus}.`) ??
-      (rollup.problemConditionSummary && `Focus on ${rollup.problemConditionSummary}.`) ??
-      (rollup.nextMove && `Next move: ${rollup.nextMove}`) ??
-      'No focus signal yet',
-  };
 };
 
 const VERDICT_LABELS: Record<ControlVerdict, string> = {
@@ -124,58 +51,3 @@ const HANDOFF_LABELS: Record<ControlHandoffSurface, string> = {
 };
 
 export const formatHandoffSurface = (s: ControlHandoffSurface): string => HANDOFF_LABELS[s];
-
-const pickLatestSnapshotSignal = (
-  snapshots: EvidenceSnapshot[]
-): { signal: EvidenceLatestSignal; capturedAt: string } | null => {
-  if (snapshots.length === 0) return null;
-  const sorted = [...snapshots]
-    .filter(s => Number.isFinite(new Date(s.capturedAt).getTime()))
-    .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
-  for (const snap of sorted) {
-    const signal = snap.latestSignals?.[0];
-    if (signal) return { signal, capturedAt: snap.capturedAt };
-  }
-  return null;
-};
-
-const formatSnapshotContext = (snapshots: EvidenceSnapshot[] | undefined): string | null => {
-  const found = pickLatestSnapshotSignal(snapshots ?? []);
-  if (!found) return null;
-  const { signal, capturedAt } = found;
-  const dateStr = new Date(capturedAt).toLocaleDateString('en', {
-    month: 'short',
-    day: 'numeric',
-  });
-  return `Latest signal: ${signal.severity} ${signal.label}=${formatMetric(signal.value)} (${dateStr}).`;
-};
-
-export const sustainmentBandAnswer = (
-  rollup: ProcessHubRollup<ProcessHubAnalyze>,
-  now: Date
-): string | null => {
-  const records = rollup.controlRecords ?? [];
-  const sustainmentEligible = rollup.analyzes.some(
-    inv =>
-      inv.metadata?.analyzeStatus === 'resolved' || inv.metadata?.analyzeStatus === 'controlled'
-  );
-  if (!sustainmentEligible) return null;
-  const due = records.filter(
-    r => r.nextReviewDue && new Date(r.nextReviewDue) <= now && r.deletedAt === null
-  ).length;
-  const holdingCount = records.filter(
-    r => r.latestVerdict === 'holding' && r.deletedAt === null
-  ).length;
-
-  let base: string;
-  if (due === 0 && holdingCount > 0) {
-    base = `${holdingCount} ${holdingCount === 1 ? 'analyze is' : 'analyzes are'} holding; no review due.`;
-  } else if (due > 0) {
-    base = `${due} control ${due === 1 ? 'review' : 'reviews'} due now.`;
-  } else {
-    return 'Set up control cadence to monitor this.';
-  }
-
-  const snapshotContext = formatSnapshotContext(rollup.evidenceSnapshots);
-  return snapshotContext ? `${base} ${snapshotContext}` : base;
-};

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-  DEFAULT_PROCESS_HUB_ID,
   buildProcessHubRollups,
   normalizeProcessHubId,
   linkFindingsToStateItems,
@@ -20,7 +19,7 @@ import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { useNewHubProvision } from '../features/hubCreation/useNewHubProvision';
 import { getEasyAuthUser } from '../auth/easyAuth';
-import { Plus, RefreshCw, Cloud, CloudOff, FolderOpen, Search, FlaskConical } from 'lucide-react';
+import { RefreshCw, Cloud, CloudOff, FolderOpen, Search, FlaskConical } from 'lucide-react';
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
 import ProjectCard from '../components/ProjectCard';
 import ProcessHubCard from '../components/ProcessHubCard';
@@ -174,21 +173,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
     loadSustainmentForHub(selectedHubId);
   }, [selectedHubId, loadEvidenceForHub, loadSustainmentForHub]);
 
-  // Sort projects: overdue tasks first, then assigned tasks, then by modified date
+  // Sort by recency — newest activity first (work-item sort keys shed per spec §3)
   const sortedProjects = useMemo(() => {
     return [...projects].sort((a, b) => {
-      // 1. Has overdue tasks first
-      const aHasOverdue = a.metadata?.hasOverdueTasks ?? false;
-      const bHasOverdue = b.metadata?.hasOverdueTasks ?? false;
-      if (aHasOverdue !== bHasOverdue) return aHasOverdue ? -1 : 1;
-
-      // 2. Has assigned tasks
-      const aHasTasks = (a.metadata?.assignedTaskCount ?? 0) > 0;
-      const bHasTasks = (b.metadata?.assignedTaskCount ?? 0) > 0;
-      if (aHasTasks !== bHasTasks) return aHasTasks ? -1 : 1;
-
-      // 3. Recently modified
-      return new Date(b.modified).getTime() - new Date(a.modified).getTime();
+      const aModified = new Date(a.modified).getTime();
+      const bModified = new Date(b.modified).getTime();
+      return bModified - aModified;
     });
   }, [projects]);
 
@@ -688,13 +678,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Action row */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <button
-          onClick={() => onOpenProject(undefined, selectedHubId ?? DEFAULT_PROCESS_HUB_ID)}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium sm:w-auto w-full"
-        >
-          <Plus size={18} />
-          New Analyze
-        </button>
-        <button
           onClick={handleCreateHub}
           className="flex items-center justify-center gap-2 px-4 py-2 border border-edge rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors font-medium"
         >
@@ -764,13 +747,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </p>
           {projects.length === 0 && (
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-6">
-              <button
-                onClick={() => onOpenProject(undefined, selectedHubId ?? DEFAULT_PROCESS_HUB_ID)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                <Plus size={18} />
-                New Analyze
-              </button>
               <button
                 onClick={() => setIsSamplePickerOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 border border-edge rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors font-medium"
