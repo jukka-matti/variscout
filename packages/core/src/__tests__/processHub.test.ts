@@ -759,6 +759,127 @@ describe('buildProcessHubCadence — control lane', () => {
     expect(cadence.control.totalCount).toBe(1);
     expect(cadence.control.items[0].analyze.id).toBe('inv-due');
   });
+
+  it('controlRecentlyReviewedCount — opted-out record does NOT count (negative control)', () => {
+    // A record whose handoff sets retainControlReview=false must be excluded from
+    // the cadence snapshot's controlReviewed tally even when it passes every
+    // other recently-reviewed predicate.
+    const hubs: ProcessHub[] = [
+      { id: 'hub-1', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
+    ];
+    const now = new Date('2026-04-26T00:00:00.000Z');
+    const analyzes = [
+      {
+        id: 'inv-opted-out',
+        name: 'Opted-out review',
+        updatedAt: 1777161600000,
+        createdAt: 1777161600000,
+        deletedAt: null,
+        metadata: makeMetadata({ processHubId: 'hub-1', analyzeStatus: 'resolved' }),
+      },
+    ];
+    // Record is recently reviewed (within 14-day window) and NOT due — would normally count.
+    const controlRecords: ControlRecord[] = [
+      {
+        id: 'rec-opted-out',
+        title: 'Sustain fill-weight gains',
+        investigationId: 'inv-opted-out',
+        hubId: 'hub-1',
+        cadence: 'monthly',
+        status: 'pending',
+        consecutiveOnTargetTicks: 0,
+        hasOverride: false,
+        lastEvaluatedSnapshotId: undefined,
+        nextReviewDue: '2026-05-20T00:00:00.000Z', // future — not due
+        latestReviewAt: '2026-04-20T00:00:00.000Z', // 6 days ago — within window
+        createdAt: 1742860800000,
+        updatedAt: 1745539200000,
+        deletedAt: null,
+      },
+    ];
+    // Handoff opts out → record must NOT count toward controlReviewed.
+    const controlHandoffs: ControlHandoff[] = [
+      {
+        id: 'h-opted-out',
+        investigationId: 'inv-opted-out',
+        hubId: 'hub-1',
+        status: 'operational',
+        surface: 'mes-recipe',
+        systemName: 'MES',
+        operationalOwner: { displayName: 'Op owner' },
+        handoffDate: 1745539200000,
+        description: '',
+        retainControlReview: false,
+        recordedBy: { displayName: 'Analyst' },
+        createdAt: 1745539200000,
+        deletedAt: null,
+      },
+    ];
+
+    const [rollup] = buildProcessHubRollups(hubs, analyzes, { controlRecords, controlHandoffs });
+    const cadence = buildProcessHubCadence(rollup, now);
+
+    expect(cadence.snapshot.controlReviewed).toBeUndefined();
+  });
+
+  it('controlRecentlyReviewedCount — non-opted-out record counts (positive control)', () => {
+    // Same setup but retainControlReview=true — the record must count.
+    const hubs: ProcessHub[] = [
+      { id: 'hub-1', name: 'Line 4', createdAt: 1777075200000, deletedAt: null },
+    ];
+    const now = new Date('2026-04-26T00:00:00.000Z');
+    const analyzes = [
+      {
+        id: 'inv-retained',
+        name: 'Retained review',
+        updatedAt: 1777161600000,
+        createdAt: 1777161600000,
+        deletedAt: null,
+        metadata: makeMetadata({ processHubId: 'hub-1', analyzeStatus: 'resolved' }),
+      },
+    ];
+    const controlRecords: ControlRecord[] = [
+      {
+        id: 'rec-retained',
+        title: 'Sustain fill-weight gains',
+        investigationId: 'inv-retained',
+        hubId: 'hub-1',
+        cadence: 'monthly',
+        status: 'pending',
+        consecutiveOnTargetTicks: 0,
+        hasOverride: false,
+        lastEvaluatedSnapshotId: undefined,
+        nextReviewDue: '2026-05-20T00:00:00.000Z', // future — not due
+        latestReviewAt: '2026-04-20T00:00:00.000Z', // 6 days ago — within window
+        createdAt: 1742860800000,
+        updatedAt: 1745539200000,
+        deletedAt: null,
+      },
+    ];
+    // Handoff retains control review → record MUST count.
+    const controlHandoffs: ControlHandoff[] = [
+      {
+        id: 'h-retained',
+        investigationId: 'inv-retained',
+        hubId: 'hub-1',
+        status: 'operational',
+        surface: 'mes-recipe',
+        systemName: 'MES',
+        operationalOwner: { displayName: 'Op owner' },
+        handoffDate: 1745539200000,
+        description: '',
+        retainControlReview: true,
+        recordedBy: { displayName: 'Analyst' },
+        createdAt: 1745539200000,
+        deletedAt: null,
+      },
+    ];
+
+    const [rollup] = buildProcessHubRollups(hubs, analyzes, { controlRecords, controlHandoffs });
+    const cadence = buildProcessHubCadence(rollup, now);
+
+    expect(cadence.snapshot.controlReviewed).toBe(1);
+  });
 });
 
 describe('buildProcessHubRollups', () => {

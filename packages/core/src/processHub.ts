@@ -849,6 +849,8 @@ function evidenceSignalQueue(signals: EvidenceLatestSignal[]) {
  * is therefore derived directly here, preserving the prior `selectControlReviews`
  * SEMANTICS identically (due records, opt-out filtered, joined back to their
  * analyze by `investigationId`) — only the project-based selectors moved.
+ *
+ * Interim bridge — deleted with the cadence engine in PO-3 (process-ops master plan).
  */
 function buildControlReviewQueue<TAnalyze extends ProcessHubAnalyze>(
   analyzes: TAnalyze[],
@@ -875,12 +877,17 @@ function buildControlReviewQueue<TAnalyze extends ProcessHubAnalyze>(
 
 function controlRecentlyReviewedCount(
   records: ControlRecord[],
+  handoffs: ControlHandoff[],
   now: Date,
   recentReviewWindowDays = 14
 ): number {
   const cutoffMs = now.getTime() - Math.max(0, recentReviewWindowDays) * 24 * 60 * 60 * 1000;
+  const optedOutInvestigations = new Set(
+    handoffs.filter(h => h.retainControlReview === false).map(h => h.investigationId)
+  );
   return records.filter(record => {
     if (record.deletedAt !== null) return false;
+    if (optedOutInvestigations.has(record.investigationId)) return false;
     if (isControlDue(record, now)) return false;
     if (!record.latestReviewAt) return false;
     const reviewedMs = new Date(record.latestReviewAt).getTime();
@@ -901,7 +908,11 @@ export function buildProcessHubCadence<TAnalyze extends ProcessHubAnalyze>(
     rollup.controlHandoffs,
     now
   );
-  const controlReviewed = controlRecentlyReviewedCount(rollup.controlRecords, now);
+  const controlReviewed = controlRecentlyReviewedCount(
+    rollup.controlRecords,
+    rollup.controlHandoffs,
+    now
+  );
 
   const snapshot: ProcessHubCadenceSnapshot = {
     active: rollup.activeAnalyzeCount,
