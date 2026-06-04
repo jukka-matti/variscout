@@ -180,7 +180,7 @@ describe('Dashboard Process Hub home', () => {
     expect(screen.getByText('2 change signals')).toBeInTheDocument();
   });
 
-  it('renders an inline Current Process State panel for the selected hub and opens review items', async () => {
+  it('renders an inline Current Process State panel for the selected hub', async () => {
     const onOpenProject = vi.fn();
     mockListProjects.mockResolvedValue([
       makeProject(),
@@ -206,12 +206,9 @@ describe('Dashboard Process Hub home', () => {
     // top-focus state item rendered by CurrentStatePanel (its label; the 'Machine / B'
     // detail string lived only in the shed cadence queue, so the panel shows the label).
     expect(within(panel).getByText('Variation concentration')).toBeInTheDocument();
-    // Control region (lifted out of the shed cadence queues) — V1 keep.
-    expect(within(panel).getAllByText('Control').length).toBeGreaterThan(0);
-    expect(within(panel).getAllByText('Nozzle replacement verified').length).toBeGreaterThan(0);
-    expect(
-      within(panel).getByLabelText('Set up control cadence for Nozzle replacement verified')
-    ).toBeInTheDocument();
+    // PR-PO-2 Task 2: ProcessHubControlRegion (control items, "Nozzle replacement verified",
+    // "Set up control cadence" button) is re-homed to the Project tab (IPDetailPage).
+    // Coverage lives in ProcessHubControlRegion.test.tsx + ProjectsTabView.test.tsx.
   });
 
   it('keeps process hubs visible when search filters the investigation list', async () => {
@@ -236,7 +233,7 @@ describe('Dashboard Process Hub home', () => {
     expect(screen.queryByTestId('project-card')).not.toBeInTheDocument();
   });
 
-  it('shows empty review states for a selected hub without investigations', async () => {
+  it('shows the current-state panel for a selected hub without investigations', async () => {
     mockListProjects.mockResolvedValue([]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
@@ -248,14 +245,10 @@ describe('Dashboard Process Hub home', () => {
     fireEvent.click(screen.getByLabelText('Open Line 4'));
 
     const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
-    // The panel mounts for an empty hub without crashing; CurrentStatePanel header +
-    // the lifted Control region's empty state are the surviving keeps.
+    // The panel mounts for an empty hub without crashing; CurrentStatePanel header is the
+    // surviving keep. PR-PO-2 Task 2: the ControlRegion empty-state ("No control items yet…")
+    // is re-homed to the Project tab — coverage in ProcessHubControlRegion.test.tsx.
     expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
-    expect(
-      within(panel).getByText(
-        'No control items yet — analyzes move here once resolved or controlled.'
-      )
-    ).toBeInTheDocument();
   });
 
   it('defers evidence loading until a hub is selected', async () => {
