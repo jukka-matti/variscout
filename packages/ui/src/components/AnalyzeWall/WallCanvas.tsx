@@ -779,8 +779,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
               y1={fromPos.y - 24}
               x2={toPos.x}
               y2={toPos.y + 30}
-              strokeWidth={1.5}
-              opacity={opacity * 0.6}
+              strokeWidth={2}
+              opacity={opacity * 0.85}
               stroke={isRefute ? chartColors.warning : undefined}
               className={isRefute ? undefined : 'stroke-edge'}
             />
