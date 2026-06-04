@@ -81,7 +81,6 @@ import type {
   DisconfirmationAttempt,
   HypothesisStatus,
 } from '@variscout/core';
-import type { SurveyRecommendation } from '@variscout/core/survey';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { createProjectActionItem, type BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
@@ -881,11 +880,6 @@ export const Editor: React.FC<EditorProps> = ({
       hypotheses,
     ]
   );
-
-  const handleAcceptSurveyRecommendation = useCallback((_recommendation: SurveyRecommendation) => {
-    // nextMove auto-set retired (PR-PO-2 Task 3) — strip removed, field loses writer here.
-    // PISection.tsx carries its own independent survey handler.
-  }, []);
 
   // Ref to allow ingestion callbacks to reach dataFlow setters
   const dataFlowRef = React.useRef(dataFlow);
@@ -2263,11 +2257,7 @@ export const Editor: React.FC<EditorProps> = ({
               </button>
             </div>
             <div className="max-h-[calc(80vh-52px)] overflow-auto">
-              <SurveyNotebookBase
-                compact={true}
-                evaluation={surveyEvaluation}
-                onAcceptRecommendation={handleAcceptSurveyRecommendation}
-              />
+              <SurveyNotebookBase compact={true} evaluation={surveyEvaluation} />
             </div>
           </div>
         </>
