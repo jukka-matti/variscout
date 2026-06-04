@@ -76,4 +76,15 @@ describe('navigateToExploreForChip', () => {
     navigateToExploreForChip({ kind: 'factor', columnName: 'Vessel' }, onNavigate);
     expect(useAnalysisScopeStore.getState().yColumn).toBe('Existing');
   });
+
+  it('factor target with an EMPTY outcomeColumn is treated as absent — yColumn untouched (falsy guard contract)', () => {
+    useAnalysisScopeStore.setState({ yColumn: 'Existing' });
+    const onNavigate = vi.fn();
+    navigateToExploreForChip(
+      { kind: 'factor', columnName: 'Vessel', outcomeColumn: '' },
+      onNavigate
+    );
+    expect(useAnalysisScopeStore.getState().yColumn).toBe('Existing');
+    expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('Vessel');
+  });
 });
