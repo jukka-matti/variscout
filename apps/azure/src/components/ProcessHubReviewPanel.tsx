@@ -15,13 +15,15 @@ import type {
 } from '@variscout/core';
 import { InboxDigest, ProcessHubCurrentStatePanel, type InboxDigestPrompt } from '@variscout/ui';
 import { surveyInboxRules } from '@variscout/core/survey';
-import ProcessHubControlRegion from './ProcessHubControlRegion';
 import { formatLatestActivity } from './ProcessHubFormat';
 
 interface ProcessHubReviewPanelProps {
   rollup: ProcessHubRollup<ProcessHubAnalyze>;
   onOpenInvestigation: (id: string) => void;
   onStartInvestigation: () => void;
+  // PR-PO-2: the Control region re-homed to the Project tab's Control stage
+  // (IPDetailPage). The Survey/inbox + Current-State content stays here until
+  // PO-3. onSetupControl + onLogReview are still wired into handleInboxNavigate.
   onSetupControl: (analyzeId: string) => void;
   onLogReview: (recordId: string) => void;
   onResponsePathAction: (item: ProcessStateItem, action: ResponsePathAction, hubId: string) => void;
@@ -234,14 +236,6 @@ const ProcessHubReviewPanel: React.FC<ProcessHubReviewPanelProps> = ({
           onDeleteNote: (item, noteId) => onDeleteNote(item, noteId, rollup.hub.id),
           currentUserId,
         }}
-      />
-
-      <ProcessHubControlRegion
-        cadence={cadence}
-        rollup={rollup}
-        onOpenInvestigation={onOpenInvestigation}
-        onSetupControl={onSetupControl}
-        onLogReview={onLogReview}
       />
     </section>
   );

@@ -64,6 +64,7 @@ import {
   computeBestSubsets,
   evaluateSurvey,
   getColumnNames,
+  isControlEligible,
   normalizeProcessHubId,
   computeTimeDecompositionColumns,
   computeBinnedFactorColumn,
@@ -129,6 +130,7 @@ import { EditorModals } from '../components/editor/EditorModals';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
 import ProjectsTabView from '../components/ProjectsTabView';
+import ProcessHubControlRegion from '../components/ProcessHubControlRegion';
 import { useAIStore } from '../features/ai/aiStore';
 
 const WhatIfPage = lazyWithRetry(() => import('../components/WhatIfPage'));
@@ -174,13 +176,11 @@ function formatStatusLabel(value: string): string {
 }
 
 interface AnalyzeMetadataPanelProps {
-  projectId: string | null;
   processContext: ProcessContext | undefined;
   onChange: (context: ProcessContext) => void;
 }
 
 const AnalyzeMetadataPanel: React.FC<AnalyzeMetadataPanelProps> = ({
-  projectId,
   processContext,
   onChange,
 }) => {
@@ -261,12 +261,6 @@ const AnalyzeMetadataPanel: React.FC<AnalyzeMetadataPanelProps> = ({
           className="w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-content"
         />
       </label>
-      {(context.analyzeStatus === 'resolved' || context.analyzeStatus === 'controlled') && (
-        <ControlEntryRow
-          investigationId={projectId}
-          hubId={context.processHubId ?? DEFAULT_PROCESS_HUB_ID}
-        />
-      )}
     </div>
   );
 };
@@ -882,6 +876,25 @@ export const Editor: React.FC<EditorProps> = ({
         cadenceOwner: projectsControlRecord?.owner?.displayName,
       }
     : undefined;
+
+  // PR-PO-2: the Control region re-homes to the Project tab's Control stage.
+  // The Project tab is single-project, so we pass the active project + its
+  // scoped control record/handoff. The region's cadence buckets degrade
+  // gracefully to the single-project case (facts, not the analyzeStatus label).
+  const projectsControlRegionSlot = activeIPContext.activeIP ? (
+    <ProcessHubControlRegion
+      projects={[activeIPContext.activeIP]}
+      records={_azureLiveControlRecords}
+      handoffs={_azureLiveControlHandoffs}
+      onOpenProject={id => usePanelsStore.getState().showProjects(id)}
+      onSetupControl={() =>
+        usePanelsStore.getState().showControl(projectsControlRecord?.investigationId ?? undefined)
+      }
+      onLogReview={() =>
+        usePanelsStore.getState().showControl(projectsControlRecord?.investigationId ?? undefined)
+      }
+    />
+  ) : null;
 
   const dataFlow = useEditorDataFlow({
     rawData,
@@ -1964,11 +1977,25 @@ export const Editor: React.FC<EditorProps> = ({
         </div>
       )}
 
-      <AnalyzeMetadataPanel
-        projectId={projectId}
-        processContext={processContext}
-        onChange={setProcessContext}
-      />
+      <AnalyzeMetadataPanel processContext={processContext} onChange={setProcessContext} />
+
+      {/* PR-PO-2: ControlEntryRow re-hosted OUT of the work-item strip (which
+          Task 3 deletes). Gated by the Control-readiness predicate over the
+          active project — facts, not the analyzeStatus label. The active-IP
+          cascade gives the project; no project active → not shown. */}
+      {activeIPContext.activeIP &&
+        isControlEligible(
+          activeIPContext.activeIP,
+          activeHub?.controlRecords ?? [],
+          activeHub?.controlHandoffs ?? []
+        ) && (
+          <div className="mx-2 mb-2">
+            <ControlEntryRow
+              investigationId={projectId}
+              hubId={processContext?.processHubId ?? DEFAULT_PROCESS_HUB_ID}
+            />
+          </div>
+        )}
 
       {/* Pending invitations banner — layout chrome above tab content */}
       <PendingInvitesBanner
@@ -2154,6 +2181,7 @@ export const Editor: React.FC<EditorProps> = ({
                 controlRecord={projectsControlRecord}
                 controlHandoff={projectsControlHandoff}
                 closureInputs={projectsClosureInputs}
+                controlRegionSlot={projectsControlRegionSlot}
                 onOpenLegacyControl={() =>
                   usePanelsStore
                     .getState()

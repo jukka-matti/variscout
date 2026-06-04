@@ -1,9 +1,11 @@
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
-import type { ProcessHub } from '@variscout/core';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import type { ProcessHub, ControlRecord } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { getImprovementProjectInitialState, useImprovementProjectStore } from '@variscout/stores';
 import ProjectsTabView from '../ProjectsTabView';
+import ProcessHubControlRegion from '../ProcessHubControlRegion';
 
 const baseHub: ProcessHub = {
   id: 'hub-1',
@@ -309,6 +311,62 @@ describe('ProjectsTabView', () => {
     expect(useImprovementProjectStore.getState().getProjectForHub('hub-1')?.collaboratedAt).toBe(
       existingMarker
     );
+  });
+
+  it('renders the Control region slot in the Control stage when a due record exists (PR-PO-2)', () => {
+    // A closed project lands on the Control ("sustainment") stage by default.
+    const closedIP = makeIP({
+      id: 'ip-1',
+      status: 'closed',
+      metadata: { title: 'Closed project' },
+    });
+    const hub: ProcessHub = { ...baseHub, improvementProject: closedIP };
+
+    const dueRecord: ControlRecord = {
+      id: 'rec-due',
+      title: 'Control cadence',
+      investigationId: 'inv-ip-1',
+      improvementProjectId: 'ip-1',
+      hubId: 'hub-1',
+      status: 'pending',
+      consecutiveOnTargetTicks: 0,
+      hasOverride: false,
+      lastEvaluatedSnapshotId: undefined,
+      cadence: 'monthly',
+      nextReviewDue: '2000-01-01T00:00:00.000Z', // long past → overdue/due
+      latestVerdict: 'holding',
+      createdAt: 0,
+      updatedAt: 0,
+      deletedAt: null,
+    };
+
+    const slot = (
+      <ProcessHubControlRegion
+        projects={[closedIP]}
+        records={[dueRecord]}
+        handoffs={[]}
+        onOpenProject={() => {}}
+        onSetupControl={() => {}}
+        onLogReview={() => {}}
+      />
+    );
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        controlRegionSlot={slot}
+      />
+    );
+
+    // The slot wrapper is present in the Control stage...
+    const slotEl = screen.getByTestId('control-region-slot');
+    expect(slotEl).toBeInTheDocument();
+    // ...and the region rendered the due project (not the empty-state line).
+    expect(within(slotEl).getByTestId('control-region')).toBeInTheDocument();
+    expect(within(slotEl).getByText('Closed project')).toBeInTheDocument();
+    expect(within(slotEl).queryByText(/No control items yet/)).not.toBeInTheDocument();
   });
 
   it('does not clear collaboratedAt when a member is removed (durable marker)', () => {
