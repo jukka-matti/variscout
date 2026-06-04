@@ -26,6 +26,14 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### CS-13 follow-up: carry the WHERE across the crossing-back (condition → categoricalFilters + an Explore chart mirror) [LOGGED 2026-06-04]
+
+**Surfaced by:** CS-13 build. The crossing-back carries y+x only (owner-locked). Two missing pieces before a hypothesis's full territory (its WHERE — e.g. "Line 2, night shift") can cross: (1) no inverse `ConditionLeaf[] → categoricalFilters` converter exists anywhere (every shipped converter goes the other way); (2) no Explore chart reads `analysisScopeStore.categoricalFilters` (the scope chip displays them; `Dashboard.tsx` mirrors only `yColumn`/`boxplotFactor`). Writing the WHERE today would make the chip claim a scope the charts don't honor. Intersects CS-3b (highlight-coordination) — when the dim layer lands, the WHERE-carry likely rides it. Also adjacent: the inert `stepId` mirror (`TODO(lv1-e-step-mirror)`) and the PWA chart mirror (`DEFERRED(lv1-pwa-mount)`).
+
+**Promotion path:** deferred as a follow-up to CS-13 (scope + design clarity needed; not blocking the crossing-back merge).
+
+**Severity:** low — the WHERE-carry is out-of-scope for CS-13 (owner decision); design question for downstream refactor work.
+
 ### `Finding.investigationId` FK rename — parked, blast radius named [LOGGED 2026-06-04]
 
 **Surfaced by:** the 2026-06-04 analyze-session grounding pass on `ProcessHubAnalyze` entity disposition.
