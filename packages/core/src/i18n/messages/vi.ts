@@ -820,6 +820,7 @@ export const vi: MessageCatalog = {
   'wall.evidence.countsAgainst': 'Counts against',
   'wall.evidence.contributingFactors': 'Contributing factors',
   'wall.factorGlyph.aria': 'Focus factor {factor}',
+  'wall.exploreJump.aria': 'Open {factor} in Explore',
   'wall.disconfirm.prompt': 'We tried to break this — did it hold?',
   'wall.disconfirm.descriptionLabel': 'What did you try?',
   'wall.disconfirm.verdictLabel': 'Did it hold?',

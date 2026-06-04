@@ -207,6 +207,8 @@ describe('Investigation Wall keys', () => {
     'wall.evidence.supports',
     'wall.evidence.countsAgainst',
     'wall.evidence.contributingFactors',
+    // CS-13 crossing-back
+    'wall.exploreJump.aria',
   ] as const;
 
   it('has English values for all wall keys', () => {
@@ -221,6 +223,7 @@ describe('Investigation Wall keys', () => {
     expect(getMessage('en', 'wall.palette.placeholder')).toBe('Search hubs, questions, findings…');
     expect(getMessage('en', 'wall.minimap.ariaLabel')).toBe('Investigation Wall minimap');
     expect(getMessage('en', 'canvas.wall.shortcutLabel')).toBe('Open Wall');
+    expect(getMessage('en', 'wall.exploreJump.aria')).toBe('Open {factor} in Explore');
   });
 
   it('every locale defines every wall.* key with a non-empty value', () => {
