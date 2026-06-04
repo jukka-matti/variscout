@@ -8,7 +8,6 @@
 
 import type { Finding, FindingStatus } from './findings';
 import type { JourneyPhase, ProcessContext } from './ai/types';
-import type { HubReviewSignal } from './processReviewSignal';
 import {
   analyzeStatusFromJourneyPhase,
   type AnalyzeNodeMapping,
@@ -133,7 +132,6 @@ export function buildProjectMetadata(
   userId: string,
   existingLastViewedAt?: Record<string, number>,
   processContext?: ProcessContext | null,
-  _reviewSignal?: HubReviewSignal | null,
   surveyReadiness?: ProcessHubSurveyReadinessSummary | null
 ): ProjectMetadata {
   const now = Date.now();

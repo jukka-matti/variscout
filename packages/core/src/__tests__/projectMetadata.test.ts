@@ -374,21 +374,10 @@ describe('buildProjectMetadata — Process Hub fields', () => {
   });
 
   it('does not copy review signal (projection retired — reviewSignal removed from ProjectMetadata)', () => {
-    const result = buildProjectMetadata([], [], true, 'local', undefined, undefined, {
-      rowCount: 4,
-      outcome: 'Weight',
-      computedAt: '2026-04-26T00:00:00.000Z',
-      topFocus: { factor: 'Machine', value: 'B', variationPct: 94 },
-      changeSignals: {
-        total: 1,
-        outOfControlCount: 1,
-        nelsonRule2Count: 0,
-        nelsonRule3Count: 0,
-      },
-    });
+    const result = buildProjectMetadata([], [], true, 'local');
 
-    // reviewSignal is no longer written to ProjectMetadata (PO-2 retirement);
-    // the _reviewSignal arg is accepted for call-site arity but silently dropped.
+    // reviewSignal is no longer written to ProjectMetadata (PO-2 retirement).
+    // Load-bearing: fails if the projection write is ever re-added.
     expect((result as unknown as Record<string, unknown>).reviewSignal).toBeUndefined();
   });
 });

@@ -72,7 +72,6 @@ export function extractMetadataInputs(
       userId,
       existingLastViewedAt,
       processContext,
-      undefined,
       surveyReadiness
     );
   } catch {
