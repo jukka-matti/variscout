@@ -1063,6 +1063,9 @@ describe('AnalyzeWorkspace — Evidence-Map drill writes analysis scope (CS-13 r
     ] as never;
     capturedWallCanvasProps.current = null;
     render(<AnalyzeWorkspace {...props} />);
-    expect(capturedWallCanvasProps.current?.onExploreFactor).toBeTypeOf('function');
+    // The `as` re-widens — tsc otherwise narrows `current` to null at the reset
+    // above (render()'s mutation is opaque to control-flow analysis).
+    const wallProps = capturedWallCanvasProps.current as Record<string, unknown> | null;
+    expect(wallProps?.onExploreFactor).toBeTypeOf('function');
   });
 });

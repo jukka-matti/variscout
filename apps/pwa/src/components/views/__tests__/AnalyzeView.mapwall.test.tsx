@@ -385,7 +385,10 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     useCanvasViewportStore.getState().setViewMode('wall');
     capturedWallCanvasProps.current = null;
     render(<AnalyzeView {...makeMinimalProps()} />);
-    expect(capturedWallCanvasProps.current?.onExploreFactor).toBeTypeOf('function');
+    // The `as` re-widens — tsc otherwise narrows `current` to null at the reset
+    // above (render()'s mutation is opaque to control-flow analysis).
+    const wallProps = capturedWallCanvasProps.current as Record<string, unknown> | null;
+    expect(wallProps?.onExploreFactor).toBeTypeOf('function');
   });
 
   describe('planningProps pass-through', () => {
