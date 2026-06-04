@@ -58,4 +58,22 @@ describe('navigateToExploreForChip', () => {
     expect(useAnalysisScopeStore.getState().stepId).toBe('step-1');
     expect(onNavigate).toHaveBeenCalledTimes(1);
   });
+
+  it('factor target with outcomeColumn sets BOTH yColumn and boxplotFactor (CS-13 crossing-back)', () => {
+    const onNavigate = vi.fn();
+    navigateToExploreForChip(
+      { kind: 'factor', columnName: 'Vessel', outcomeColumn: 'Diameter' },
+      onNavigate
+    );
+    expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('Vessel');
+    expect(useAnalysisScopeStore.getState().yColumn).toBe('Diameter');
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('factor target without outcomeColumn leaves an existing yColumn untouched (chip-path regression guard)', () => {
+    useAnalysisScopeStore.setState({ yColumn: 'Existing' });
+    const onNavigate = vi.fn();
+    navigateToExploreForChip({ kind: 'factor', columnName: 'Vessel' }, onNavigate);
+    expect(useAnalysisScopeStore.getState().yColumn).toBe('Existing');
+  });
 });
