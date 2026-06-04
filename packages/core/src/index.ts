@@ -192,10 +192,6 @@ export type {
   HubReviewTopFocus,
 } from './processReviewSignal';
 
-// Process state notes (team notes attached to current-state items)
-export { PROCESS_STATE_NOTE_KINDS, isProcessStateNoteKind } from './processStateNote';
-export type { ProcessStateNote, ProcessStateNoteKind } from './processStateNote';
-
 // Signal Cards
 export {
   buildBranchSignalWarnings,
@@ -492,31 +488,12 @@ export {
   DEFAULT_PROCESS_HUB_NAME,
   asProcessHubId,
   isProcessHubId,
-  buildProcessHubCadence,
-  buildProcessHubContext,
-  buildProcessHubReview,
   buildProcessHubRollups,
   analyzeStatusFromJourneyPhase,
   isProcessHubComplete,
   normalizeProcessHubId,
 } from './processHub';
 export type { ProcessHubId } from './processHub';
-export { buildCurrentProcessState } from './processState';
-export type {
-  CurrentProcessState,
-  ProcessStateItem,
-  ProcessStateLens,
-  ProcessStateMetric,
-  ProcessStateResponsePath,
-  ProcessStateSeverity,
-  ProcessStateSource,
-} from './processState';
-
-// Process Evidence — link findings to current-state items
-export { linkFindingsToStateItems, RELEVANT_FINDING_STATUSES } from './processEvidence';
-export type { LinkFindingsResult } from './processEvidence';
-export { deriveResponsePathAction } from './responsePathAction';
-export type { ResponsePathAction } from './responsePathAction';
 
 // Control (Phase 6)
 export type {
@@ -568,24 +545,13 @@ export type {
   AnalyzeDepth,
   AnalyzeStatus,
   OutcomeSpec,
-  ProcessHubAttentionReason,
   ScopeFilter,
-  ProcessHubCadenceQueue,
-  ProcessHubCadenceSnapshot,
-  ProcessHubCadenceSummary,
-  ProcessHubContextContract,
-  ProcessHubContextAnalyze,
   ProcessHub,
   ProcessHubAnalyze,
   ProcessHubAnalyzeMetadata,
-  ProcessHubMetricContext,
   ProcessHubProcessMapSummary,
-  ProcessHubReadinessReason,
-  ProcessHubReview,
-  ProcessHubReviewItem,
   ProcessHubRollup,
   ProcessHubSurveyReadinessSummary,
-  ProcessHubVariationConcentration,
   ProcessParticipantRef,
 } from './processHub';
 export {
