@@ -83,35 +83,17 @@ describe('ProjectCard', () => {
     expect(footer).toHaveTextContent('1 question');
   });
 
-  it('shows Your tasks section when assignedTaskCount > 0', () => {
+  it('does not render Your-tasks block (work-item layer shed in §8)', () => {
     const project = makeProject({
       metadata: makeMetadata({ assignedTaskCount: 2 }),
     });
     render(<ProjectCard {...defaultProps} project={project} />);
-    expect(screen.getByTestId('project-card-your-tasks')).toBeInTheDocument();
-    expect(screen.getByTestId('project-card-your-tasks')).toHaveTextContent(
-      '2 tasks assigned to you'
-    );
-  });
-
-  it('hides Your tasks section when assignedTaskCount === 0', () => {
-    const project = makeProject({ metadata: makeMetadata({ assignedTaskCount: 0 }) });
-    render(<ProjectCard {...defaultProps} project={project} />);
     expect(screen.queryByTestId('project-card-your-tasks')).not.toBeInTheDocument();
   });
 
-  it('shows amber border when hasOverdueTasks is true', () => {
+  it('always uses transparent left border (static — no amber work-item accent)', () => {
     const project = makeProject({
-      metadata: makeMetadata({ assignedTaskCount: 1, hasOverdueTasks: true }),
-    });
-    render(<ProjectCard {...defaultProps} project={project} />);
-    const card = screen.getByTestId('project-card');
-    expect(card.className).toContain('border-l-amber-500');
-  });
-
-  it('does not show amber border when hasOverdueTasks is false', () => {
-    const project = makeProject({
-      metadata: makeMetadata({ hasOverdueTasks: false }),
+      metadata: makeMetadata({ hasOverdueTasks: true, assignedTaskCount: 1 }),
     });
     render(<ProjectCard {...defaultProps} project={project} />);
     const card = screen.getByTestId('project-card');
@@ -119,12 +101,92 @@ describe('ProjectCard', () => {
     expect(card.className).toContain('border-l-transparent');
   });
 
-  it('shows overdue flag inside Your tasks when hasOverdueTasks', () => {
+  // ── negative control ─────────────────────────────────────────────────────────
+  // A project whose metadata still carries legacy work-item fields must NOT
+  // render any of the shed surfaces. The card must silently ignore them.
+  it('negative control: legacy work-item fields are silently ignored', () => {
     const project = makeProject({
-      metadata: makeMetadata({ assignedTaskCount: 1, hasOverdueTasks: true }),
+      metadata: makeMetadata({
+        // Fields stay on the ProjectMetadata TYPE until PO-4 — card must ignore them
+        analyzeStatus: 'controlled',
+        analyzeDepth: 'chartered',
+        actionCounts: { total: 5, completed: 0, overdue: 5 },
+        hasOverdueTasks: true,
+        assignedTaskCount: 3,
+      }),
     });
     render(<ProjectCard {...defaultProps} project={project} />);
-    expect(screen.getByTestId('project-card-overdue-flag')).toBeInTheDocument();
+    const card = screen.getByTestId('project-card');
+
+    // No status chip or depth label
+    expect(screen.queryByText(/controlled/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/chartered/i)).not.toBeInTheDocument();
+    // No amber border
+    expect(card.className).not.toContain('border-l-amber-500');
+    // No Your-tasks block
+    expect(screen.queryByTestId('project-card-your-tasks')).not.toBeInTheDocument();
+    // No overdue footer from actionCounts
+    expect(screen.queryByText(/overdue/i)).not.toBeInTheDocument();
+    // No overdue-flag
+    expect(screen.queryByTestId('project-card-overdue-flag')).not.toBeInTheDocument();
+  });
+
+  // ── control due-ness chip ────────────────────────────────────────────────────
+
+  it('shows overdue chip when nextReviewDue is in the past', () => {
+    const pastDate = new Date(NOW - 2 * 24 * 60 * 60 * 1000).toISOString(); // 2 days ago
+    const project = makeProject({
+      metadata: makeMetadata({
+        sustainment: {
+          recordId: 'r-1',
+          cadence: 'weekly',
+          nextReviewDue: pastDate,
+        },
+      }),
+    });
+    render(<ProjectCard {...defaultProps} project={project} />);
+    const chip = screen.getByTestId('project-card-control-due');
+    expect(chip).toBeInTheDocument();
+    expect(chip).toHaveTextContent('Review overdue');
+    expect(chip.className).toContain('amber');
+  });
+
+  it('shows upcoming chip when nextReviewDue is in the future', () => {
+    const futureDate = new Date(NOW + 3 * 24 * 60 * 60 * 1000).toISOString(); // 3 days from now
+    const project = makeProject({
+      metadata: makeMetadata({
+        sustainment: {
+          recordId: 'r-2',
+          cadence: 'monthly',
+          nextReviewDue: futureDate,
+        },
+      }),
+    });
+    render(<ProjectCard {...defaultProps} project={project} />);
+    const chip = screen.getByTestId('project-card-control-due');
+    expect(chip).toBeInTheDocument();
+    expect(chip).toHaveTextContent('Review due');
+    expect(chip.className).not.toContain('amber');
+  });
+
+  it('shows no control chip when sustainment is absent', () => {
+    const project = makeProject({ metadata: makeMetadata() });
+    render(<ProjectCard {...defaultProps} project={project} />);
+    expect(screen.queryByTestId('project-card-control-due')).not.toBeInTheDocument();
+  });
+
+  it('shows no control chip when sustainment exists but nextReviewDue is absent', () => {
+    const project = makeProject({
+      metadata: makeMetadata({
+        sustainment: {
+          recordId: 'r-3',
+          cadence: 'weekly',
+          // nextReviewDue deliberately absent
+        },
+      }),
+    });
+    render(<ProjectCard {...defaultProps} project={project} />);
+    expect(screen.queryByTestId('project-card-control-due')).not.toBeInTheDocument();
   });
 
   it('calls onClick when card is clicked', () => {
