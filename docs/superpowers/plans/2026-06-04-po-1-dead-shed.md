@@ -3,7 +3,7 @@ tier: living
 purpose: design
 title: 'PO-1 · Dead shed — sub-plan (zero-consumer deletions)'
 audience: human
-status: active
+status: delivered
 date: 2026-06-04
 last-reviewed: 2026-06-04
 layer: spec
@@ -30,6 +30,7 @@ related:
 ### Task 1: Hooks package — inline the result type, delete the dead hooks
 
 **Files:**
+
 - Modify: `packages/hooks/src/useSessionCanvasFilters.ts`
 - Delete: `packages/hooks/src/useCanvasFilters.ts`, `packages/hooks/src/useTimelineWindow.ts`
 - Delete: `packages/hooks/src/__tests__/useCanvasFilters.test.ts`, `packages/hooks/src/__tests__/useTimelineWindow.test.ts`
@@ -63,6 +64,7 @@ Match the import specifiers to whatever `useCanvasFilters.ts` actually uses (ver
 ### Task 2: Core — delete the 4 dead persisted metadata fields
 
 **Files:**
+
 - Modify: `packages/core/src/processHub.ts`
 
 - [ ] **Step 1: Delete fields + their doc comments** from `ProcessHubAnalyzeMetadata`: `canonicalMapVersion` (~:241-246), `timelineWindow` (~:252-258), `scopeFilter` (~:268-272), `paretoGroupBy` (~:273-277). KEEP the `ScopeFilter` interface (~:204) and `AnalyzeNodeMapping` untouched. KEEP `stateNotes`/`sustainment`/`nodeMappings`/`migrationDeclinedAt` untouched.
@@ -70,22 +72,24 @@ Match the import specifiers to whatever `useCanvasFilters.ts` actually uses (ver
 - [ ] **Step 3: Verify** — `pnpm --filter @variscout/core test` + core typecheck. Expected: green.
 - [ ] **Step 4: Commit** — `chore(po-1): drop the dead persisted analyze-metadata fields (scopeFilter/paretoGroupBy/timelineWindow/canonicalMapVersion)`
 
-### Task 3: The dead INVESTIGATION_* action surface
+### Task 3: The dead INVESTIGATION\_\* action surface
 
 **Files:**
+
 - Delete: `packages/core/src/actions/analyzeActions.ts`
 - Modify: `packages/core/src/actions/index.ts` (union + barrel), `apps/azure/src/persistence/applyAction.ts` (~:456-466), `apps/pwa/src/persistence/applyAction.ts` (~:379-381)
 - Modify tests: `packages/core/src/actions/__tests__/exhaustiveness.test.ts`, `packages/core/src/actions/__tests__/hypothesisActionItems.test.ts`, `apps/azure/src/persistence/__tests__/applyAction.test.ts`, `apps/pwa/src/persistence/__tests__/applyAction.test.ts`, `apps/azure/src/persistence/__tests__/AzureHubRepository.test.ts`
 
 - [ ] **Step 1:** `git rm packages/core/src/actions/analyzeActions.ts`; remove the `AnalyzeAction` import/union members (`INVESTIGATION_CREATE`/`INVESTIGATION_UPDATE_METADATA`/`INVESTIGATION_ARCHIVE`) + barrel export from `actions/index.ts`.
 - [ ] **Step 2:** Delete the three no-op `case` blocks in each app's `applyAction.ts` (azure ~:456-466, pwa ~:379-381 — locate by the `case 'INVESTIGATION_` strings, don't trust line numbers).
-- [ ] **Step 3:** Update the tests: remove the `INVESTIGATION_*` case statements from the exhaustiveness + hypothesisActionItems switches; delete the "INVESTIGATION_* resolves cleanly" cases in both apps' `applyAction.test.ts`; delete the "INVESTIGATION_ARCHIVE delegates to applyAction (P5.3)" case in `AzureHubRepository.test.ts`. TypeScript's `never` exhaustiveness will confirm the union shrank correctly.
+- [ ] **Step 3:** Update the tests: remove the `INVESTIGATION_*` case statements from the exhaustiveness + hypothesisActionItems switches; delete the "INVESTIGATION\_\* resolves cleanly" cases in both apps' `applyAction.test.ts`; delete the "INVESTIGATION_ARCHIVE delegates to applyAction (P5.3)" case in `AzureHubRepository.test.ts`. TypeScript's `never` exhaustiveness will confirm the union shrank correctly.
 - [ ] **Step 4: Verify** — `pnpm --filter @variscout/core test -- actions` then each app's `applyAction` test file (`pnpm --filter @variscout/azure-app test -- applyAction`, same for pwa). Expected: green.
 - [ ] **Step 5: Commit** — `chore(po-1): delete the dead INVESTIGATION_* action surface (no-op reducers, zero dispatchers)`
 
 ### Task 4: Azure UI shed (orphans · formatters · escalation input · New Analyze · hub picker · sort)
 
 **Files:**
+
 - Delete: `apps/azure/src/components/ProcessHubCadenceQueues.tsx`, `apps/azure/src/components/ProcessHubCadenceQuestions.tsx`
 - Modify: `apps/azure/src/components/ProcessHubFormat.ts`, `apps/azure/src/components/__tests__/ProcessHubFormat.control.test.ts`, `apps/azure/src/components/ControlReviewLogger.tsx`, `apps/azure/src/pages/Dashboard.tsx`, `apps/azure/src/pages/Editor.tsx`
 
@@ -113,6 +117,7 @@ Adapt the field name to the actual `ImprovementProject` shape (verify: `modified
 ### Task 5: The vestigial onPlansChanged option
 
 **Files:**
+
 - Modify: `packages/hooks/src/useReingestAutoLink.ts` (~:88-98), `packages/hooks/src/__tests__/useReingestAutoLink.test.ts` (~:127,130,146)
 
 - [ ] **Step 1:** Delete the `onPlansChanged?: () => void;` option + its full doc-comment block (~:88-98). Keep the inline comment near ~:144 noting the hook performs no writes (adjust wording if it references the deleted option).

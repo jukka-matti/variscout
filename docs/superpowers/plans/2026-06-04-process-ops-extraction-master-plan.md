@@ -46,8 +46,8 @@ related:
 
 ## Phase 0 · Drift-now doc fixes (direct commits to main — no PR, push before any branch)
 
-- [ ] Fix root `CLAUDE.md` operating-model pointer → `docs/archive/specs/2026-04-27-process-learning-operating-model-design.md` (+ the `2026-04-25-process-hub-design.md` pointer, same drift).
-- [ ] Fix `apps/azure/CLAUDE.md` stale claim "MatchSummaryCard pill renders from `snapshot.provenance`" → renders from in-memory `MatchSummaryClassification`; the facet is write-only (ADR-077 durability artifact).
+- [x] Fix root `CLAUDE.md` operating-model pointer → `docs/archive/specs/2026-04-27-process-learning-operating-model-design.md` (+ the `2026-04-25-process-hub-design.md` pointer, same drift).
+- [x] Fix `apps/azure/CLAUDE.md` stale claim "MatchSummaryCard pill renders from `snapshot.provenance`" → renders from in-memory `MatchSummaryClassification`; the facet is write-only (ADR-077 durability artifact).
 
 ---
 
@@ -61,7 +61,7 @@ related:
 - **Model:** Sonnet (mechanical against an explicit list; the `UseCanvasFiltersResult` inline is the one judgment point — called out in the sub-plan).
 - **Acceptance:** gate green + app test suites; no behavior change anywhere (`--chrome` smoke of Dashboard + Editor); deleted-surface i18n keys untouched (they go with their UI in PO-2/PO-3).
 - **Spec ref:** §3 (DELETE rows + 1:1 hygiene + consumer enumeration), §2.
-- **Sub-plan:** [`2026-06-04-po-1-dead-shed.md`](2026-06-04-po-1-dead-shed.md).
+- **Sub-plan:** [`2026-06-04-po-1-dead-shed.md`](2026-06-04-po-1-dead-shed.md). **DELIVERED 2026-06-04 via PR #298** (`094b563b`; ~ -880 lines; final adversarial review verified the zero-behavior-change invariant; the ReviewPanel New-Analyze button noted for PO-3).
 
 ### PR-PO-2 · Phase B1 — Control re-source + re-homes (the judgment PR)
 
