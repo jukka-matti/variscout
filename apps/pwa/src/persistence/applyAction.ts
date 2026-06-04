@@ -24,7 +24,7 @@
 //
 // Out of scope (no-op with comments):
 //   - EVIDENCE_SOURCE_ADD / EVIDENCE_SOURCE_REMOVE — pending future use.
-//   - INVESTIGATION_* / FINDING_* / SCOPE_* / CAUSAL_LINK_* /
+//   - FINDING_* / SCOPE_* / CAUSAL_LINK_* /
 //     HYPOTHESIS_* — F5 wires this when investigation entity action
 //     coverage lands.
 //   - CANVAS_* — canvasStore remains the canonical mutation surface;
@@ -370,15 +370,12 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     }
 
     // -----------------------------------------------------------------------
-    // Investigation entity actions (investigation / finding / scope /
+    // Investigation entity actions (finding / scope /
     // causalLink / hypothesis) — F5 wires these when the investigation
     // entity action coverage lands. The corresponding tables already exist
     // (declared by F3 P1) but writes are not yet routed here.
     // -----------------------------------------------------------------------
 
-    case 'INVESTIGATION_CREATE':
-    case 'INVESTIGATION_UPDATE_METADATA':
-    case 'INVESTIGATION_ARCHIVE':
     case 'FINDING_ADD':
     case 'FINDING_UPDATE':
     case 'FINDING_ARCHIVE':

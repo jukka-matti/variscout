@@ -950,7 +950,6 @@ export type {
   OutcomeAction,
   EvidenceAction,
   EvidenceSourceAction,
-  AnalyzeAction,
   FindingAction,
   ScopeAction,
   CausalLinkAction,

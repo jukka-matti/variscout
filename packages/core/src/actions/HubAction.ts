@@ -1,7 +1,6 @@
 import type { OutcomeAction } from './outcomeActions';
 import type { EvidenceAction } from './evidenceActions';
 import type { EvidenceSourceAction } from './evidenceSourceActions';
-import type { AnalyzeAction } from './analyzeActions';
 import type { FindingAction } from './findingActions';
 import type { ScopeAction } from './scopeActions';
 import type { CausalLinkAction } from './causalLinkActions';
@@ -23,7 +22,6 @@ export type HubAction =
   | OutcomeAction
   | EvidenceAction
   | EvidenceSourceAction
-  | AnalyzeAction
   | FindingAction
   | ScopeAction
   | CausalLinkAction

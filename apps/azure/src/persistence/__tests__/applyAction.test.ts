@@ -22,7 +22,6 @@
 //     cascade + parent update in single transaction; rollback on failure
 //
 //   No-op kinds:
-//     INVESTIGATION_ARCHIVE — resolves cleanly, no Dexie writes
 //     PLACE_CHIP_ON_STEP (canvas) — resolves cleanly, no Dexie writes
 //
 //   Exhaustiveness:
@@ -570,29 +569,6 @@ describe('applyAction — session-only no-ops', () => {
   // nothing from the payload — they are structural no-ops. Full type-safety is
   // enforced at real call sites; cast only in tests for session-only no-ops.
 
-  it('INVESTIGATION_CREATE resolves cleanly with no Dexie writes', async () => {
-    const hub = makeHub('hub-noop');
-    await db.processHubs.put(hub);
-
-    await expect(
-      applyAction({
-        kind: 'INVESTIGATION_CREATE',
-        hubId: 'hub-noop',
-        investigation: { id: 'inv-1' },
-      } as HubAction)
-    ).resolves.toBeUndefined();
-
-    // Hub blob unchanged.
-    const saved = await db.processHubs.get('hub-noop');
-    expect(saved?.name).toBe('Hub hub-noop');
-  });
-
-  it('INVESTIGATION_ARCHIVE resolves cleanly with no Dexie writes', async () => {
-    await expect(
-      applyAction({ kind: 'INVESTIGATION_ARCHIVE', investigationId: 'inv-99' })
-    ).resolves.toBeUndefined();
-  });
-
   it('FINDING_ADD resolves cleanly', async () => {
     await expect(
       applyAction({
@@ -831,9 +807,6 @@ describe('exhaustiveness — every HubAction kind has a handler', () => {
     { kind: 'EVIDENCE_SOURCE_UPDATE_CURSOR', sourceId, cursor: makeCursor(hubId, sourceId) },
     { kind: 'EVIDENCE_SOURCE_REMOVE', sourceId },
     // Session-only no-ops: cast to HubAction to avoid complex payload fixtures.
-    { kind: 'INVESTIGATION_CREATE', hubId, investigation: { id: 'inv-x' } } as HubAction,
-    { kind: 'INVESTIGATION_UPDATE_METADATA', investigationId: 'inv-x', patch: {} } as HubAction,
-    { kind: 'INVESTIGATION_ARCHIVE', investigationId: 'inv-x' },
     { kind: 'FINDING_ADD', investigationId: 'inv-x', finding: { id: 'f-1' } } as HubAction,
     { kind: 'FINDING_UPDATE', findingId: 'f-1', patch: {} } as HubAction,
     { kind: 'FINDING_ARCHIVE', findingId: 'f-1' },

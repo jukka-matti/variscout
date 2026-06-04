@@ -64,13 +64,6 @@ function _exhaustiveWithHypothesisActions(action: HubAction): void {
       return;
     case 'EVIDENCE_SOURCE_REMOVE':
       return;
-    // Investigation
-    case 'INVESTIGATION_CREATE':
-      return;
-    case 'INVESTIGATION_UPDATE_METADATA':
-      return;
-    case 'INVESTIGATION_ARCHIVE':
-      return;
     // Finding
     case 'FINDING_ADD':
       return;

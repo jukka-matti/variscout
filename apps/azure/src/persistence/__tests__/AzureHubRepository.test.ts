@@ -237,14 +237,6 @@ describe('AzureHubRepository dispatch', () => {
     expect(mocks.applyAction).toHaveBeenCalledWith(action);
   });
 
-  it('INVESTIGATION_ARCHIVE delegates to applyAction (P5.3)', async () => {
-    const action: HubAction = { kind: 'INVESTIGATION_ARCHIVE', investigationId: 'inv-1' };
-    await repo.dispatch(action);
-
-    expect(mocks.applyAction).toHaveBeenCalledOnce();
-    expect(mocks.applyAction).toHaveBeenCalledWith(action);
-  });
-
   it('OUTCOME_UPDATE delegates to applyAction (P5.3)', async () => {
     const action: HubAction = {
       kind: 'OUTCOME_UPDATE',

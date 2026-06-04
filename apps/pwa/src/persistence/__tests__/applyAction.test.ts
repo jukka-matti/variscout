@@ -556,22 +556,6 @@ describe('applyAction — OUTCOME_ARCHIVE', () => {
 // ---------------------------------------------------------------------------
 
 describe('applyAction — no-op action kinds', () => {
-  it('INVESTIGATION_CREATE does not mutate any table', async () => {
-    await applyAction(db, {
-      kind: 'INVESTIGATION_CREATE',
-      hubId: 'hub-x',
-      investigation: {
-        id: 'inv-x',
-        hubId: 'hub-x',
-        name: 'inv',
-        createdAt: NOW,
-        deletedAt: null,
-      },
-    } as unknown as HubAction);
-
-    expect(await db.investigations.count()).toBe(0);
-  });
-
   it('FINDING_ADD does not mutate any table', async () => {
     await applyAction(db, {
       kind: 'FINDING_ADD',
@@ -705,8 +689,6 @@ describe('applyAction — no-op and session-only kinds', () => {
     // EVIDENCE_SOURCE_UPDATE_CURSOR is no longer a no-op (F3.5 P5.1 wired it).
     // See applyAction.cursor.test.ts for its full coverage.
     'EVIDENCE_SOURCE_REMOVE',
-    'INVESTIGATION_UPDATE_METADATA',
-    'INVESTIGATION_ARCHIVE',
     'FINDING_UPDATE',
     'FINDING_ARCHIVE',
     // IM-1 (ADR-085): QUESTION_UPDATE / QUESTION_ARCHIVE removed from HubAction union.
