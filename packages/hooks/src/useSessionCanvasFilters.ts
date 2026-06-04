@@ -1,9 +1,24 @@
 import { useCallback, useState } from 'react';
 import type { ScopeFilter, TimelineWindow } from '@variscout/core';
-import type { UseCanvasFiltersResult } from './useCanvasFilters';
 import type { CanvasLensId } from './useCanvasStepCards';
 import type { CanvasOverlayId } from './useCanvasAnalyzeOverlays';
 import type { CanvasToolId } from './useHypothesisDrawTool';
+
+/** Inlined from the retired useCanvasFilters (PO-1) — the session hook's base shape. */
+export interface UseCanvasFiltersResult {
+  /** Current timeline window. Defaults to { kind: 'cumulative' } when unset. */
+  timelineWindow: TimelineWindow;
+  /** Setter for the timeline window. */
+  setTimelineWindow: (window: TimelineWindow) => void;
+  /** Current scope filter, or undefined when not set. */
+  scopeFilter: ScopeFilter | undefined;
+  /** Setter for the scope filter; pass undefined to clear. */
+  setScopeFilter: (filter: ScopeFilter | undefined) => void;
+  /** Current Pareto group-by column name, or undefined when caller should use default. */
+  paretoGroupBy: string | undefined;
+  /** Setter for the group-by column; pass undefined to clear. */
+  setParetoGroupBy: (factor: string | undefined) => void;
+}
 
 const DEFAULT_CUMULATIVE: TimelineWindow = { kind: 'cumulative' };
 const HYPOTHESES_OVERLAY: CanvasOverlayId = 'hypotheses';
