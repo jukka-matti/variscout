@@ -267,7 +267,7 @@ layer: spec
 
 ## Follow-up (separate spec + master plan — NOT this plan)
 
-**Process-as-operations extraction** — un-mount the named-future cadence layer + disentangle the V1-coupled Control region / Survey-Inbox / click-to-Explore wiring (one-way contract preserved; `onPlansChanged` nonce-bump preserved). Own holistic design (§9). Logged in `decision-log.md` + `investigations.md`.
+**Process-as-operations extraction + `ProcessHubAnalyze` disposition** — scope COMBINED 2026-06-04 (decision-log OQ, routing amended): un-mount the named-future cadence layer + disentangle the V1-coupled Control region / Survey-Inbox / click-to-Explore wiring (one-way contract preserved; `onPlansChanged` nonce-bump preserved) **AND** the analyze-entity surgery the 2026-06-04 grounding surfaced (the entity = the cadence layer's backbone — three roles: work-item→named-future, container→moot per ADR-078 D3, moment→the Finding): metadata-strip field-by-field re-home (Owner/Sponsor → Project personas; Depth/Status/NextMove → named-future), `investigationLineage` curation model + Report-write wiring, `ScopeFilter`→`ProblemStatementScope` reconcile, no-Project quick-analysis re-home, `Finding.investigationId` FK re-key (~130 files, ordered pre-step). ONE brainstorm → ONE spec; **phasing by dependency + risk, NOT demo urgency** (owner re-weighting 2026-06-04: design-right-over-demo — the §"Owner bar" demo framing below does not drive THIS design's sequencing). Session brief: memory `project_process_ops_entity_design`. Logged in `decision-log.md` + `investigations.md`.
 
 ## Tracked follow-ups (deferred _within_ this initiative — small, not their own spec)
 
