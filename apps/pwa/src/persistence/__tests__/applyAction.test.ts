@@ -578,9 +578,8 @@ describe('applyAction — no-op action kinds', () => {
       scope: { id: 'sc-x' },
     } as unknown as HubAction);
 
-    // No table holds scopes — both findings and investigations stay 0.
+    // No table holds scopes — findings stays 0.
     expect(await db.findings.count()).toBe(0);
-    expect(await db.investigations.count()).toBe(0);
   });
 
   it('CAUSAL_LINK_ADD does not mutate any table', async () => {

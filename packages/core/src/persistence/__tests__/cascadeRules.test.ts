@@ -6,8 +6,10 @@ import {
   type CascadeRuleset,
 } from '../cascadeRules';
 
-// ADR-085: 'question' retired → 'scope' (ProblemStatementScope). Cascade rules
-// are updated accordingly: hub → investigation → [finding, scope, causalLink, hypothesis].
+// ADR-085: 'question' retired → 'scope' (ProblemStatementScope).
+// PO-4: the 'investigation' EntityKind retired with the ProcessHubAnalyze
+// entity; finding/scope/causalLink/hypothesis tables are PO-6 territory and no
+// longer cascade from hub deletion in the V1 ruleset.
 const ALL_KINDS: EntityKind[] = [
   'hub',
   'outcome',
@@ -15,7 +17,6 @@ const ALL_KINDS: EntityKind[] = [
   'rowProvenance',
   'evidenceSource',
   'evidenceSourceCursor',
-  'investigation',
   'finding',
   'scope',
   'causalLink',
@@ -54,34 +55,22 @@ describe('transitiveCascade', () => {
       'outcome',
       'evidenceSnapshot',
       'evidenceSource',
-      'investigation',
       'canvasState',
       'rowProvenance',
       'evidenceSourceCursor',
-      'finding',
-      'scope',
-      'causalLink',
-      'hypothesis',
     ];
     for (const kind of expected) {
       expect(resultSet.has(kind)).toBe(true);
     }
+    // PO-4: finding/scope/causalLink/hypothesis no longer cascade from hub
+    // (the 'investigation' intermediary that linked them retired).
+    expect(resultSet.has('finding')).toBe(false);
     // hub itself should not appear in its own cascade
     expect(resultSet.has('hub')).toBe(false);
   });
 
   it('outcome returns empty (leaf node)', () => {
     expect(transitiveCascade('outcome')).toHaveLength(0);
-  });
-
-  it('investigation returns its 4 direct children (all leaves)', () => {
-    const result = transitiveCascade('investigation');
-    const resultSet = new Set(result);
-    expect(resultSet.has('finding')).toBe(true);
-    expect(resultSet.has('scope')).toBe(true);
-    expect(resultSet.has('causalLink')).toBe(true);
-    expect(resultSet.has('hypothesis')).toBe(true);
-    expect(result).toHaveLength(4);
   });
 
   it('evidenceSnapshot returns rowProvenance only', () => {

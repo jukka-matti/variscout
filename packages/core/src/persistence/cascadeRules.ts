@@ -12,7 +12,6 @@ export type EntityKind =
   | 'rowProvenance'
   | 'evidenceSource'
   | 'evidenceSourceCursor'
-  | 'investigation'
   | 'finding'
   | 'scope'
   | 'causalLink'
@@ -27,14 +26,13 @@ export type CascadeRuleset = Readonly<Record<EntityKind, CascadeRule>>;
 
 export const cascadeRules: CascadeRuleset = {
   hub: {
-    cascadesTo: ['outcome', 'evidenceSnapshot', 'evidenceSource', 'investigation', 'canvasState'],
+    cascadesTo: ['outcome', 'evidenceSnapshot', 'evidenceSource', 'canvasState'],
   },
   outcome: { cascadesTo: [] },
   evidenceSnapshot: { cascadesTo: ['rowProvenance'] },
   rowProvenance: { cascadesTo: [] },
   evidenceSource: { cascadesTo: ['evidenceSourceCursor'] },
   evidenceSourceCursor: { cascadesTo: [] },
-  investigation: { cascadesTo: ['finding', 'scope', 'causalLink', 'hypothesis'] },
   finding: { cascadesTo: [] },
   scope: { cascadesTo: [] },
   causalLink: { cascadesTo: [] },

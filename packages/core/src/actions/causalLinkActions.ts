@@ -1,10 +1,10 @@
 import type { CausalLink } from '../findings/types';
-import type { ProcessHubAnalyze } from '../processHub';
+import type { ImprovementProject } from '../improvementProject';
 
 export type CausalLinkAction =
   | {
       kind: 'CAUSAL_LINK_ADD';
-      investigationId: ProcessHubAnalyze['id'];
+      investigationId: ImprovementProject['id'];
       link: CausalLink;
     }
   | { kind: 'CAUSAL_LINK_UPDATE'; linkId: CausalLink['id']; patch: Partial<CausalLink> }

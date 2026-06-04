@@ -3,7 +3,7 @@
 // Azure persistence model: per-entity Dexie tables.
 // Unlike the PWA hub-blob, Azure stores hubs, evidence sources, evidence snapshots,
 // and evidence source cursors in dedicated Dexie tables (see src/db/schema.ts).
-// Entities that Azure does not have dedicated tables for today (investigations, findings,
+// Entities that Azure does not have dedicated tables for today (findings,
 // scopes, causalLinks, hypotheses, canvas state) are stubbed — F3 normalizes
 // them into Dexie tables.
 
@@ -13,7 +13,6 @@ import type {
   OutcomeReadAPI,
   EvidenceSnapshotReadAPI,
   EvidenceSourceReadAPI,
-  AnalyzeReadAPI,
   FindingReadAPI,
   ScopeReadAPI,
   CausalLinkReadAPI,
@@ -224,18 +223,8 @@ export class AzureHubRepository implements HubRepository {
 
   // ---------------------------------------------------------------------------
   // Stub read APIs — entities not yet in dedicated Azure Dexie tables.
-  // F3 normalizes these into dedicated tables (investigations, findings, etc.).
+  // F3 normalizes these into dedicated tables (findings, etc.).
   // ---------------------------------------------------------------------------
-
-  investigations: AnalyzeReadAPI = {
-    // Azure has no dedicated investigations table today; F3 normalizes this.
-    async get(_id) {
-      return undefined;
-    },
-    async listByHub(_hubId) {
-      return [];
-    },
-  };
 
   findings: FindingReadAPI = {
     // Azure has no dedicated findings table today; F3 normalizes this.

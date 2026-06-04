@@ -155,14 +155,6 @@ async function archiveKindRows(
     }
 
     // -----------------------------------------------------------------------
-    // investigation — no Azure Dexie table today; F3 normalizes.
-    // -----------------------------------------------------------------------
-    case 'investigation':
-      // Azure has no 'investigation' table today; F3 normalization will add
-      // the table; updating this helper is part of F3.
-      return;
-
-    // -----------------------------------------------------------------------
     // finding — no Azure Dexie table today; F3 normalizes.
     // -----------------------------------------------------------------------
     case 'finding':

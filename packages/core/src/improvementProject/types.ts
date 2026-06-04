@@ -1,10 +1,5 @@
 import type { EntityBase } from '../identity';
-import type {
-  ProcessHub,
-  OutcomeSpec,
-  ProcessParticipantRef,
-  ProcessHubAnalyze,
-} from '../processHub';
+import type { ProcessHub, OutcomeSpec, ProcessParticipantRef } from '../processHub';
 import type { Hypothesis, Finding, ImprovementIdea, ActionItem } from '../findings/types';
 import type { ControlRecord, ControlHandoff } from '../control';
 import type { ProjectMember } from '../projectMembership/types';
@@ -42,7 +37,8 @@ export interface ImprovementProjectMetadata {
    *  per ADR-082. Optional only for the bootstrap window; future schema work may
    *  promote to required. */
   members?: ProjectMember[];
-  investigationId?: ProcessHubAnalyze['id'];
+  /** Field name preserved (the projectId rename is PO-7); a self-FK under Project⟷Hub 1:1. */
+  investigationId?: ImprovementProject['id'];
   /** Improvement actions tracked at the project level. Read-write via reduceActionItems. */
   actions?: ActionItem[];
 }

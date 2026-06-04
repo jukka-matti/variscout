@@ -212,30 +212,6 @@ describe('cascadeArchiveDescendants — hub parent (multi-table)', () => {
   });
 });
 
-describe('cascadeArchiveDescendants — investigation parent (no-op)', () => {
-  it('resolves cleanly without any Dexie writes', async () => {
-    // Insert some rows to confirm they are not mutated.
-    const hubId = 'hub-1';
-    const srcId = 'src-1';
-    await db.processHubs.put(makeHub(hubId));
-    await db.evidenceSources.put(makeEvidenceSource(srcId, hubId));
-
-    await expect(
-      cascadeArchiveDescendants('investigation', 'inv-99', NOW)
-    ).resolves.toBeUndefined();
-
-    // No side effects on existing rows.
-    const source = await db.evidenceSources.get(srcId);
-    expect(source?.deletedAt).toBeNull();
-  });
-
-  it('resolves cleanly with empty database', async () => {
-    await expect(
-      cascadeArchiveDescendants('investigation', 'inv-99', NOW)
-    ).resolves.toBeUndefined();
-  });
-});
-
 describe('cascadeArchiveDescendants — rollback path', () => {
   it('rolls back partial writes when bulkUpdate throws mid-cascade', async () => {
     const hubId = 'hub-rollback';
