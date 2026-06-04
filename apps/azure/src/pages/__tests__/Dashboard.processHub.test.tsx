@@ -151,7 +151,11 @@ describe('Dashboard Process Hub home', () => {
     await waitFor(() => expect(onOpenProject).toHaveBeenCalledWith(undefined, 'line-4'));
   });
 
-  it('shows latest hub review signals on Process Hub cards', async () => {
+  // reviewSignal projection retired in PO-2 Task 6 — the Latest Signals block on
+  // ProcessHubCard no longer renders (rollup.reviewSignal is undefined when no
+  // analyze-projection computes it). ProcessHubCard itself retires in PO-4.
+  // Negative control: guard against accidental re-introduction.
+  it('Latest Signals block is absent from Process Hub cards (reviewSignal retired)', async () => {
     mockListProjects.mockResolvedValue([makeProject()]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
@@ -159,10 +163,8 @@ describe('Dashboard Process Hub home', () => {
 
     render(<Dashboard onOpenProject={vi.fn()} />);
 
-    await screen.findByText('Latest Signals');
-    expect(screen.getByText('Top focus: Machine / B (48%)')).toBeInTheDocument();
-    expect(screen.getByText('Cpk 0.82 vs target 1.33')).toBeInTheDocument();
-    expect(screen.getByText('2 change signals')).toBeInTheDocument();
+    await screen.findByText('Line 4');
+    expect(screen.queryByText('Latest Signals')).not.toBeInTheDocument();
   });
 
   it('renders an inline Current Process State panel for the selected hub', async () => {
@@ -184,13 +186,16 @@ describe('Dashboard Process Hub home', () => {
     const panel = await screen.findByRole('region', { name: 'Line 4 Current Process State' });
     // Current Process State panel (CurrentStatePanel) — V1 keep.
     expect(within(panel).getByText('Current Process State')).toBeInTheDocument();
-    expect(within(panel).getByText('Capability below target')).toBeInTheDocument();
-    expect(within(panel).getAllByText('Focused investigation').length).toBeGreaterThan(0);
+    // Lens count cards always render for all 5 lenses — not reviewSignal-derived.
     expect(within(panel).getAllByText('Outcome').length).toBeGreaterThan(0);
     expect(within(panel).getAllByText('Measurement').length).toBeGreaterThan(0);
-    // top-focus state item rendered by CurrentStatePanel (its label; the 'Machine / B'
-    // detail string lived only in the shed cadence queue, so the panel shows the label).
-    expect(within(panel).getByText('Variation concentration')).toBeInTheDocument();
+    // Active-work item from makeProject (analyzeDepth:'focused', analyzeStatus:'investigating')
+    // → active:focused item → responsePath 'focused-analyze' → rendered as 'Focused investigation'.
+    expect(within(panel).getAllByText('Focused investigation').length).toBeGreaterThan(0);
+    // reviewSignal-derived items ('Capability below target', 'Variation concentration') are
+    // intentionally absent — reviewSignal projection retired in PO-2 Task 6.
+    expect(within(panel).queryByText('Capability below target')).not.toBeInTheDocument();
+    expect(within(panel).queryByText('Variation concentration')).not.toBeInTheDocument();
     // PR-PO-2 Task 2: ProcessHubControlRegion (control items, "Nozzle replacement verified",
     // "Set up control cadence" button) is re-homed to the Project tab (IPDetailPage).
     // Coverage lives in ProcessHubControlRegion.test.tsx + ProjectsTabView.test.tsx.
