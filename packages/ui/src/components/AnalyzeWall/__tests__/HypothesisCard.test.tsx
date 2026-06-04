@@ -11,7 +11,12 @@ vi.mock('@variscout/stores', () => ({
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { HypothesisCard } from '../HypothesisCard';
-import { projectMechanismBranch, type Finding, type Hypothesis } from '@variscout/core';
+import {
+  projectMechanismBranch,
+  createHypothesis,
+  type Finding,
+  type Hypothesis,
+} from '@variscout/core';
 
 const hub: Hypothesis = {
   id: 'h1',
@@ -364,5 +369,42 @@ describe('HypothesisCard', () => {
       );
       expect(screen.queryByTestId('one-step-away-action')).toBeNull();
     });
+  });
+});
+
+// ── CS-13 explore affordance ──────────────────────────────────────────────────
+const baseHub: Hypothesis = {
+  ...createHypothesis('Temp drift on night shift', '', [], 'inv-test'),
+  id: 'h1',
+  condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'Night' },
+};
+const baseCardProps = { hub: baseHub, displayStatus: 'proposed' as const, x: 140, y: 0 };
+
+describe('CS-13 HypothesisCard explore affordance', () => {
+  it('renders the header → button when onExplore is provided; click fires onExplore, NOT onSelect', () => {
+    const onExplore = vi.fn();
+    const onSelect = vi.fn();
+    render(
+      <svg>
+        <HypothesisCard
+          {...baseCardProps}
+          onSelect={onSelect}
+          onExplore={onExplore}
+          exploreAriaLabel="Open SHIFT in Explore"
+        />
+      </svg>
+    );
+    fireEvent.click(screen.getByTestId('hub-explore-jump'));
+    expect(onExplore).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('renders no → button when onExplore is omitted', () => {
+    render(
+      <svg>
+        <HypothesisCard {...baseCardProps} />
+      </svg>
+    );
+    expect(screen.queryByTestId('hub-explore-jump')).toBeNull();
   });
 });

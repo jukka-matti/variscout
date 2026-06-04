@@ -11,6 +11,14 @@ export interface FactorGlyphProps {
   focused: boolean;
   ariaLabel: string;
   onFocus: (nodeId: string) => void;
+  /**
+   * CS-13 crossing-back — when provided AND the glyph is focused, renders a →
+   * jump button beside the glyph. Fired with the RAW factorKey (never the
+   * `factor:`-namespaced DOI node id). Parent gates on data presence.
+   */
+  onExplore?: (factorKey: string) => void;
+  /** Pre-formatted aria label for the → button (`wall.exploreJump.aria`). */
+  exploreAriaLabel?: string;
 }
 
 const GLYPH_W = 150;
@@ -33,6 +41,8 @@ export function FactorGlyph({
   focused,
   ariaLabel,
   onFocus,
+  onExplore,
+  exploreAriaLabel,
 }: FactorGlyphProps) {
   const nodeId = `factor:${factorKey}`;
   return (
@@ -79,6 +89,28 @@ export function FactorGlyph({
             data-testid={`factor-glyph-bar-${factorKey}`}
           />
         </>
+      )}
+      {focused && onExplore && (
+        <foreignObject
+          x={GLYPH_W + 4}
+          y={(GLYPH_H - 24) / 2}
+          width={26}
+          height={24}
+          data-no-wall-pan
+        >
+          <button
+            type="button"
+            data-testid={`factor-glyph-explore-${factorKey}`}
+            aria-label={exploreAriaLabel}
+            className="flex h-full w-full items-center justify-center rounded border border-edge bg-surface-secondary text-xs text-content-muted hover:bg-surface-primary hover:text-content"
+            onClick={e => {
+              e.stopPropagation();
+              onExplore(factorKey);
+            }}
+          >
+            →
+          </button>
+        </foreignObject>
       )}
     </g>
   );
