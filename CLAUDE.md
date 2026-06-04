@@ -25,7 +25,7 @@ Full index with canonical homes + enforcement mechanisms: `.claude/INVARIANTS.md
 ## Where to look
 
 - **Product context**: `docs/OVERVIEW.md`, `docs/USER-JOURNEYS.md`, `docs/DATA-FLOW.md`.
-- **Operating model**: `docs/superpowers/specs/2026-04-27-process-learning-operating-model-design.md` — three-level methodology, Process Measurement System, response paths.
+- **Operating model**: `docs/archive/specs/2026-04-27-process-learning-operating-model-design.md` (superseded — pre-wedge heritage; the cadence/ops layer is named-future per connective Decision 0) — three-level methodology, Process Measurement System, response paths.
 - **Roadmap**: `docs/superpowers/specs/2026-04-27-product-method-roadmap-design.md` — H0–H4 horizons.
 - **Package-specific**: nested `CLAUDE.md` in each `packages/*/` and `apps/*/`.
 - **Agent manifest**: `docs/llms.txt` — map of priority entry points.
