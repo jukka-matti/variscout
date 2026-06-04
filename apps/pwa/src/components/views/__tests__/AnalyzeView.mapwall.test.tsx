@@ -48,13 +48,29 @@ vi.mock('@variscout/ui', async importOriginal => {
     AnalyzeConclusion: () => null,
     FindingsLog: () => <div data-testid="findings-log" />,
     useWallIsMobile: () => false,
-    WallCanvas: (props: { hubs: unknown[]; planningProps?: Record<string, unknown> }) => {
+    WallCanvas: (props: {
+      hubs: unknown[];
+      planningProps?: Record<string, unknown>;
+      onWriteHypothesis?: () => void;
+      onSeedFromFactorIntel?: () => void;
+    }) => {
       // Capture props for assertion in planningProps tests
       capturedWallCanvasProps.current = props as Record<string, unknown>;
       return props.hubs.length > 0 ? (
         <div data-testid="wall-canvas" />
       ) : (
-        <div data-testid="wall-canvas-empty" />
+        <div data-testid="wall-canvas-empty">
+          {props.onWriteHypothesis && (
+            <button data-testid="empty-write-hypothesis" onClick={props.onWriteHypothesis}>
+              Write a suspected mechanism
+            </button>
+          )}
+          {props.onSeedFromFactorIntel && (
+            <button data-testid="empty-seed-factors" onClick={props.onSeedFromFactorIntel}>
+              Seed 3 from Factor Intelligence
+            </button>
+          )}
+        </div>
       );
     },
   };
@@ -476,5 +492,37 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
       expect(captured!.projection?.modelContext?.rSquaredAdj).toBeCloseTo(0.71, 10);
       expect(captured!.projection?.modelContext?.linkedFactor).toBe('Shift');
     });
+  });
+});
+
+// Wall empty-state CTA wiring (Bug 2 — investigations.md 2026-06-04).
+// The CTAs were never passed to the destination WallCanvas mount; only the
+// retired CanvasWallOverlay ever wired them. These tests assert the PWA seam:
+// AnalyzeView → WallCanvas → (mock) CTA buttons create hubs via useAnalyzeStore.
+describe('PWA AnalyzeView — Wall empty-state CTA wiring (Bug 2)', () => {
+  beforeEach(() => {
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    useCanvasViewportStore.getState().setViewMode('wall');
+    useProjectStore.setState(getProjectInitialState());
+    useAnalyzeStore.setState(getAnalyzeInitialState());
+    capturedWallCanvasProps.current = null;
+  });
+
+  it('(a) zero hubs — clicking "Write a suspected mechanism" creates one hub named "New mechanism branch"', () => {
+    render(<AnalyzeView {...makeMinimalProps({ factors: [] })} />);
+
+    // The empty-state renders because hubs.length === 0
+    fireEvent.click(screen.getByTestId('empty-write-hypothesis'));
+
+    const hubs = useAnalyzeStore.getState().hypotheses;
+    expect(hubs).toHaveLength(1);
+    expect(hubs[0].name).toBe('New mechanism branch');
+  });
+
+  it('(c) NEGATIVE CONTROL — zero candidate factors → Seed button NOT in document', () => {
+    // LOAD-BEARING: fails if onSeedFromFactorIntel gating is dropped
+    render(<AnalyzeView {...makeMinimalProps({ factors: [] })} />);
+
+    expect(screen.queryByTestId('empty-seed-factors')).toBeNull();
   });
 });
