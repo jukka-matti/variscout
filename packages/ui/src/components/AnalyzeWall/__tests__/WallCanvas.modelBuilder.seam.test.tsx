@@ -230,6 +230,48 @@ describe('WallCanvas — model-builder band seam', () => {
     expect(screen.queryByTestId('model-builder-band')).toBeNull();
   });
 
+  it('cold-start SVG viewBox is cropped to content — NOT the full 0 0 2000 1400 canvas', () => {
+    // FE-1 item 3: without hubs/orphans the band + glyphs sit near y≈1300 in the
+    // full 2000×1400 space → everything renders tiny. The fix crops the viewBox to
+    // the band + glyph row + generous padding so the content fills the container.
+    //
+    // LOAD-BEARING: reverting coldStartViewBox to `0 0 ${CANVAS_W} ${CANVAS_H}`
+    // makes the first assertion fail (viewBox === default → test catches regression).
+    const { container } = render(
+      <WallCanvas
+        hubId={'test-hub' as never}
+        hubs={[]}
+        findings={[]}
+        problemCpk={0.8}
+        eventsPerWeek={10}
+        rows={scopeRows()}
+        outcomeColumn="Y"
+        modelBuilderProps={baseModelBuilderProps()}
+      />
+    );
+    // Find the cold-start SVG (inside wall-cold-start-with-band).
+    const coldStartSvg = container
+      .querySelector('[data-testid="wall-cold-start-with-band"]')
+      ?.querySelector('svg');
+    expect(coldStartSvg).not.toBeNull();
+    const viewBox = coldStartSvg!.getAttribute('viewBox');
+    // Must NOT be the full canvas (the tiny-content regression).
+    expect(viewBox).not.toBe('0 0 2000 1400');
+    // Must be a cropped box — vbY should be substantially less than CANVAS_H (1400)
+    // because it crops to the band/glyph content (which starts around y≈880).
+    const parts = (viewBox ?? '').split(' ').map(Number);
+    expect(parts).toHaveLength(4);
+    const [, vbY, vbW, vbH] = parts;
+    // Cropped: y offset into the canvas (not 0 — content is near y=1300).
+    expect(vbY).toBeGreaterThan(0);
+    // Width: at least 700 (min-width guard) but strictly less than CANVAS_W (2000).
+    expect(vbW).toBeGreaterThanOrEqual(700);
+    expect(vbW).toBeLessThan(2000);
+    // Height: covers the content but much less than full canvas height (1400).
+    expect(vbH).toBeGreaterThan(0);
+    expect(vbH).toBeLessThan(800); // cropped, not the full 1400
+  });
+
   it('chips a scope-constant factor when the scope drilled on it', () => {
     render(
       <WallCanvas
