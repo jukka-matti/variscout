@@ -1021,3 +1021,28 @@ describe('AnalyzeWorkspace — Wall empty-state CTA wiring (Bug 2)', () => {
     expect(screen.queryByTestId('empty-seed-factors')).toBeNull();
   });
 });
+
+// CS-13 Evidence-Map drill retrofit (spec §4.0a).
+// handleMapDrillDown previously switched tabs WITHOUT writing the scope the
+// Explore charts read. The retrofit routes it through navigateToExploreForChip,
+// which writes BOTH yColumn and boxplotFactor to useAnalysisScopeStore.
+// The mocked panelsStore's showExplore is a throwaway vi.fn — we assert the
+// REAL store write (the part the retrofit adds); tab-switch is seam-covered.
+describe('AnalyzeWorkspace — Evidence-Map drill writes analysis scope (CS-13 retrofit)', () => {
+  beforeEach(() => {
+    useCanvasViewportStore.setState(getCanvasViewportInitialState());
+    capturedMapViewProps.current = null;
+    usePanelsStore.getState().setAnalyzeViewMode('map');
+    useAnalysisScopeStore.setState({ categoricalFilters: [] });
+    useAnalyzeStore.setState({ scopes: [] });
+    useProjectStore.setState({ outcome: null });
+  });
+
+  it('map drill-down writes the analysis scope before switching to Explore (CS-13 retrofit)', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    const onDrillDown = capturedMapViewProps.current?.onDrillDown as (f: string) => void;
+    expect(onDrillDown).toBeDefined();
+    onDrillDown('SHIFT');
+    expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('SHIFT');
+  });
+});

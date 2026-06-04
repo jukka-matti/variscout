@@ -14,6 +14,7 @@ import {
   ActiveIPScopeRibbon,
   useWallKeyboard,
   useWallIsMobile,
+  navigateToExploreForChip,
   type HubComposerBranchFields,
 } from '@variscout/ui';
 import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
@@ -1054,10 +1055,32 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     [aiOrch]
   );
 
-  const handleMapDrillDown = useCallback((factor: string) => {
-    usePanelsStore.getState().setHighlightedFactor(factor);
-    usePanelsStore.getState().showExplore();
-  }, []);
+  const handleMapDrillDown = useCallback(
+    (factor: string) => {
+      usePanelsStore.getState().setHighlightedFactor(factor);
+      // CS-13 — route the Evidence-Map drill through the scoped path so the
+      // two Analyze→Explore gestures can't diverge (the drill previously
+      // switched tabs WITHOUT writing the scope the Explore charts read).
+      navigateToExploreForChip(
+        { kind: 'factor', columnName: factor, outcomeColumn: outcome ?? undefined },
+        () => usePanelsStore.getState().showExplore()
+      );
+    },
+    [outcome]
+  );
+
+  // CS-13 — the crossing-back (spec §4.0a): from a Wall hypothesis/factor,
+  // land in Explore scoped to its local y=f(x). Same primitive as the
+  // Process-tab chips (FrameView.handleChipExploreJump).
+  const handleExploreFactor = useCallback(
+    (factor: string) => {
+      navigateToExploreForChip(
+        { kind: 'factor', columnName: factor, outcomeColumn: outcome ?? undefined },
+        () => usePanelsStore.getState().showExplore()
+      );
+    },
+    [outcome]
+  );
 
   const handleConfirmCausalLink = useCallback(
     (
@@ -1320,6 +1343,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   onWriteHypothesis={handleWriteHypothesis}
                   onSeedFromFactorIntel={factors.length > 0 ? handleSeedFromFactorIntel : undefined}
                   onProposeHypothesis={handleProposeHypothesis}
+                  onExploreFactor={handleExploreFactor}
                 />
                 {/* Minimap + CommandPalette are desktop-only. WallCanvas
                   self-gates to MobileCardList below 768px, so these
