@@ -14,7 +14,8 @@ import { renderHook, act } from '@testing-library/react';
 // ── Mocks BEFORE component imports ────────────────────────────────────────
 
 const addFindingMock = vi.hoisted(() => vi.fn(() => ({ id: 'f-new', text: '' }) as never));
-const findDuplicateMock = vi.hoisted(() => vi.fn(() => undefined as never));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const findDuplicateMock = vi.hoisted(() => vi.fn((): any => undefined));
 const setHighlightedFindingIdMock = vi.hoisted(() => vi.fn());
 const setFindingsOpenMock = vi.hoisted(() => vi.fn());
 
