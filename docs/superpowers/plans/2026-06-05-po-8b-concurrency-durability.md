@@ -3,7 +3,7 @@ tier: living
 purpose: design
 title: 'PO-8b · Concurrency + durability (Azure) — sub-plan (reload-or-branch dialog + Web Locks + persist/estimate + save telemetry + projection heal)'
 audience: human
-status: active
+status: delivered
 date: 2026-06-05
 last-reviewed: 2026-06-05
 layer: spec
