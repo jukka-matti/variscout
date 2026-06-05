@@ -60,6 +60,7 @@ function cloneJson<T>(value: T): T {
 
 function buildProjectSnapshot(state: ProjectState): ProjectDocumentSnapshot {
   return cloneJson({
+    // The active-document identity — NOT the ImprovementProject self-FK (metadata.projectId, PO-7).
     projectId: state.projectId ?? '',
     projectName: state.projectName ?? '',
     rawData: state.rawData,
