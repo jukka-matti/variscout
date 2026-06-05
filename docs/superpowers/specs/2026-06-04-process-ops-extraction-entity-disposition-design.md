@@ -320,3 +320,21 @@ One relocation doc — **"VariScout Process: the process-operations layer"** —
 - B0-migration UX final home — decided at CS-P3 sub-plan time (§5 note); interim placement specified.
 - EvidenceSnapshot pruning policy — pre-existing watch-item, logged, not this spec's to fix.
 - Whether Home attention chips warrant per-user read-state — belongs to the Home-launchpad brainstorm (§8), not here.
+
+---
+
+## §15 · Post-delivery grounding corrections (2026-06-05, PO-7 build)
+
+> **Note (2026-06-05):** The following corrections were discovered during PO-7 implementation grounding (11-agent workflow + 4 adversarial verdicts). They supersede the §6 wording at the specific points named below. Historical spec text is left intact as the build rationale; these corrections are the durable ground truth for downstream readers.
+
+**Correction 1 — `AnalyzeNodeMapping.investigationId` never existed.**
+
+§6 bullet "AnalyzeNodeMapping.investigationId (migration-modal concept) → re-keys to project in the same sweep" is a misnomer. The core `AnalyzeNodeMapping` type (`packages/core/src/processHub.ts`) carries only `{ nodeId, measurementColumn, specsOverride? }` — no `investigationId` field exists on it (confirmed unanimous: 6 readers + 3 verifiers in the PO-7 grounding workflow). The real rename surface was the **migration-modal entry type** `ProductionLineGlanceMigrationModalEntry` (in `packages/ui/src/components/ProductionLineGlanceMigration/`) + the `useHubMigrationState` hook signatures, where the value IS a project id under the Project⟷Hub 1:1 model (`inv.id` in the `modalEntries` builder). These were renamed `investigationId`/`investigationName` → `projectId`/`projectName` in PO-7 Commit 3. The persisted `nodeMappings` shape (`{nodeId, measurementColumn}`) is byte-identical and untouched.
+
+**Correction 2 — `escalatedInvestigationId` had zero writers since PO-1, not since CS-6.**
+
+§6 bullet "ControlReview.escalatedInvestigationId strips (write-only, zero readers)" correctly records the deletion, but the surrounding spec context (§1 guardrails table, §12 PO-1 row) implies `ControlReviewLogger.tsx` was the writer. Grounding confirmed: PO-1 (commit `71a6ab020`, PR #298) already removed `ControlReviewLogger`'s escalation input. By PO-7 the field had **zero writers and zero readers**. The PO-7 strip was therefore a 1-line type-member delete with no migration, no test-fixture cleanup, and no Dexie implications — simpler than the §6 framing suggests.
+
+**Correction 3 — `SerializedInvestigationState` (Azure serializer-internal type) deliberately left intact.**
+
+`SerializedInvestigationState` is an Azure analyzeSerializer-internal type name. It carries broader "Investigation" vocabulary (naming the serialized analyze-session state), which is outside the FK-rename boundary (`investigationId` field names → `projectId`). Per the sub-plan rename boundary ("OUT of scope: broader 'Investigation' vocabulary tokens"), this type was deliberately NOT renamed in PO-7. It is not a stale reference — it is an intentional keep. Downstream readers should not flag it as rename drift.

@@ -32,6 +32,7 @@
 ## Investigation domain
 
 - The first-class cause entity is `Hypothesis` (not `SuspectedCause` — no such type exists; ADR-085 corrects the stale ADR-064 claim). Multiple hypotheses coexist within a `ProblemStatementScope`; each evidenced/confirmed hypothesis drives improvement ideas via `Hypothesis.ideas[]`.
+- `ProblemStatementScope.projectId` + `ControlRecord/Review/Handoff.projectId` + `ImprovementProject.metadata.projectId` are the PO-7 renames of `investigationId`. Scope FK may carry `'general-unassigned'`; Control join key may carry `${hub.id}:sustainment` (see `ControlRecord.projectId` inline doc). `improvementProjectId` is the distinct direct project FK — NOT renamed.
 - `CausalLink` belongs to `analyzeStore`, never `improvementStore`. Cycle prevention is mandatory: `wouldCreateCycle()` from `@variscout/core/stats` (`causalGraph.ts`); `addCausalLink` calls it internally — don't bypass the store.
 - `FindingSource` (`@variscout/core/findings`) is a discriminated union (`chart` discriminant, 4 variants — 5 `chart` discriminant values: `boxplot`/`pareto` share one variant, plus `ichart`, `probability`, `coscout`). Always narrow before accessing variant fields. Breadcrumb-pinned findings have no `source` — guard before access.
 - Persistence: the analyze snapshot — `findings`, `categories`, `hypotheses`, `causalLinks`, `scopes` — serializes via the `DocumentSnapshot.analyze` facet through `useProjectActions` into `.vrs` (Apr 2026 fix). New analyze entities also need `apps/azure/src/db/schema.ts` + `useEditorDataFlow.ts` updates.

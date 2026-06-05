@@ -15,7 +15,7 @@ VariScout is **structured investigation for process improvement**. A browser-bas
 
 Two ways to use it, both first-class:
 
-- **Quick analysis.** Paste data, explore in charts, save findings. No project ceremony required. Free PWA supports session-only use; Azure tier adds persistence.
+- **Quick analysis.** Paste data, explore in charts, save findings. No project ceremony required. Quick-analysis findings and pins round-trip through `.vrs` export/import without a Project (PO-6, PR #303). Free PWA supports session-only use; Azure tier adds persistence.
 - **Project-anchored investigation.** Create a Project (Charter ceremony), invite your team (Lead / Member / Sponsor roles), run the formal lifecycle: **Charter → Approach → Control**. Each project produces a report a Sponsor can sign off.
 
 Canonical V1 design lives in the [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md).
