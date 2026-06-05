@@ -18,7 +18,7 @@ function project(overrides: Partial<ImprovementProject> = {}): ImprovementProjec
     id: 'ip-1',
     hubId: 'hub-1',
     status: 'active',
-    metadata: { title: 'Fill Cpk lift', investigationId: 'inv-1' },
+    metadata: { title: 'Fill Cpk lift', projectId: 'inv-1' },
     goal: {
       outcomeGoals: [{ outcomeSpecId: 'out-fill', baseline: 0.86, target: 1.33 }],
       factorControls: [
@@ -108,7 +108,7 @@ function finding(overrides: Partial<Finding> = {}): Finding {
 function sustainment(overrides: Partial<ControlRecord> = {}): ControlRecord {
   return {
     id: 'sus-1',
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     status: 'confirmed-sustained',
     title: 'Fill Cpk sustainment',
@@ -129,7 +129,7 @@ function sustainment(overrides: Partial<ControlRecord> = {}): ControlRecord {
 function handoff(overrides: Partial<ControlHandoff> = {}): ControlHandoff {
   return {
     id: 'handoff-1',
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     status: 'operational',
     surface: 'work-instruction',
@@ -157,7 +157,7 @@ describe('selectIPReportScope', () => {
         sustainment(),
         sustainment({ id: 'sus-other', improvementProjectId: 'ip-other' }),
       ],
-      controlHandoffs: [handoff(), handoff({ id: 'handoff-other', investigationId: 'inv-other' })],
+      controlHandoffs: [handoff(), handoff({ id: 'handoff-other', projectId: 'inv-other' })],
     });
 
     // ALL input hypotheses are in scope now (no lineage membership filter).

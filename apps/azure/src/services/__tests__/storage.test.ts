@@ -925,7 +925,7 @@ describe('storage service', () => {
     const localControlRecord = {
       id: 'control-local',
       hubId: 'hub-1',
-      investigationId: 'investigation-1',
+      projectId: 'investigation-1',
       title: 'Cached Control',
       status: 'pending',
       cadence: 'weekly',

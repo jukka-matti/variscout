@@ -21,7 +21,7 @@ import type {
 const makeRecord = (overrides: Partial<ControlRecord> = {}): ControlRecord => ({
   id: 'rec-1',
   title: 'Control cadence',
-  investigationId: 'inv-1',
+  projectId: 'inv-1',
   hubId: 'hub-1',
   status: 'pending',
   consecutiveOnTargetTicks: 0,
@@ -56,7 +56,7 @@ describe('sustainment storage round-trip', () => {
     const r1: ControlReview = {
       id: 'r-1',
       recordId: 'rec-1',
-      investigationId: 'inv-1',
+      projectId: 'inv-1',
       hubId: 'hub-1',
       reviewedAt: 1745107200000, // 2026-04-20T00:00:00.000Z
       createdAt: 1745107200000,
@@ -81,7 +81,7 @@ describe('sustainment storage round-trip', () => {
   it('round-trips a ControlHandoff', async () => {
     const handoff: ControlHandoff = {
       id: 'h-1',
-      investigationId: 'inv-1',
+      projectId: 'inv-1',
       hubId: 'hub-1',
       status: 'operational',
       surface: 'mes-recipe',
@@ -139,15 +139,15 @@ describe('sustainment projection recompute', () => {
     expect(updated?.meta?.sustainment?.cadence).toBe('monthly');
   });
 
-  it('no-ops when no project matches the investigationId', async () => {
-    const record: ControlRecord = makeRecord({ investigationId: 'nonexistent' });
+  it('no-ops when no project matches the projectId', async () => {
+    const record: ControlRecord = makeRecord({ projectId: 'nonexistent' });
     await expect(recomputeSustainmentProjectionForRecord(record)).resolves.toBeUndefined();
   });
 
   it('builds projection with handoff surface when controlHandoffId resolves', async () => {
     const handoff: ControlHandoff = {
       id: 'h-1',
-      investigationId: 'inv-1',
+      projectId: 'inv-1',
       hubId: 'hub-1',
       status: 'operational',
       surface: 'mes-recipe',
@@ -172,7 +172,7 @@ describe('sustainment projection recompute', () => {
 
     const handoff: ControlHandoff = {
       id: 'h-2',
-      investigationId: 'inv-1',
+      projectId: 'inv-1',
       hubId: 'hub-1',
       status: 'operational',
       surface: 'qms-procedure',

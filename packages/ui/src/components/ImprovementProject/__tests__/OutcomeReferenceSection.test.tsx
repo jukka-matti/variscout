@@ -12,7 +12,7 @@ const makeControlRecord = (
     createdAt: 1,
     deletedAt: null,
     updatedAt: 1,
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     ...overrides,
   }) as ControlRecord & { title?: string };
@@ -23,7 +23,7 @@ const makeHandoff = (
   ({
     createdAt: 1,
     deletedAt: null,
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     operationalOwner: { displayName: 'Process Owner' },
     handoffDate: Date.UTC(2026, 5, 15),

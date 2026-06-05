@@ -324,7 +324,7 @@ describe('ProjectsTabView', () => {
     const dueRecord: ControlRecord = {
       id: 'rec-due',
       title: 'Control cadence',
-      investigationId: 'inv-ip-1',
+      projectId: 'inv-ip-1',
       improvementProjectId: 'ip-1',
       hubId: 'hub-1',
       status: 'pending',

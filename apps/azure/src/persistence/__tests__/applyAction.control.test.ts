@@ -24,7 +24,7 @@ function makeRecord(
   return {
     id,
     title: 'Hold improved fill weight',
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId,
     cadence: 'weekly',
     status: 'pending',
@@ -94,7 +94,7 @@ describe('applyAction (Azure) — sustainment records', () => {
       review: {
         id: 'review-1',
         recordId: 'record-1',
-        investigationId: 'inv-1',
+        projectId: 'inv-1',
         hubId: 'hub-1',
         reviewedAt: NOW,
         reviewer: { displayName: 'System' },
@@ -172,7 +172,7 @@ function makeHandoff(
 ): ControlHandoff {
   return {
     id,
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId,
     status: 'pending',
     surface: 'qms-procedure',

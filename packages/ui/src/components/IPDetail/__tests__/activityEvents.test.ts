@@ -17,7 +17,7 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
     status: 'active',
     metadata: {
       title: 'Fill Cpk lift',
-      investigationId: 'inv-1',
+      projectId: 'inv-1',
     },
     goal: {
       outcomeGoals: [{ outcomeSpecId: 'outcome-1', baseline: 0.8, target: 1.33 }],
@@ -71,7 +71,7 @@ function makeSustainment(overrides: Partial<ControlRecord> = {}): ControlRecord 
     id: 'sus-1',
     createdAt: now - 4 * hour,
     deletedAt: null,
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     status: 'pending',
     title: 'Fill Cpk lift sustainment',
@@ -91,7 +91,7 @@ function makeHandoff(overrides: Partial<ControlHandoff> = {}): ControlHandoff {
     id: 'handoff-1',
     createdAt: now - 2 * hour,
     deletedAt: null,
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     status: 'pending',
     surface: 'work-instruction',

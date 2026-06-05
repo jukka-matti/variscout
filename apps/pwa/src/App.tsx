@@ -1060,7 +1060,7 @@ function AppMain() {
     r => r.improvementProjectId === selectedOrActiveProjectId
   );
   const projectsControlHandoff = _liveControlHandoffs.find(
-    h => h.investigationId === (projectsControlRecord?.investigationId ?? '')
+    h => h.projectId === (projectsControlRecord?.projectId ?? '')
   );
   const projectsClosureInputs = projectsControlHandoff
     ? {
@@ -1445,7 +1445,7 @@ function AppMain() {
                 onOpenLegacyControl={() =>
                   usePanelsStore
                     .getState()
-                    .showControl(projectsControlRecord?.investigationId ?? undefined)
+                    .showControl(projectsControlRecord?.projectId ?? undefined)
                 }
                 onNudgeProcessOwner={() => {
                   // Plan 3 will emit EngagementEvent webhook here.

@@ -70,7 +70,7 @@ function makeSustainment(overrides: Partial<ControlRecord> = {}): ControlRecord 
     id: 'sus-1',
     createdAt: now - 2 * hour,
     deletedAt: null,
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     status: 'pending',
     title: 'Control check',

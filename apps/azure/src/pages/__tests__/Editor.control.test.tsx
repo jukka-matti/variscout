@@ -54,19 +54,19 @@ beforeEach(() => {
 });
 
 describe('ControlEntryRow', () => {
-  it('renders the "Set up control cadence" button when investigationId is set and no record exists', async () => {
-    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
+  it('renders the "Set up control cadence" button when projectId is set and no record exists', async () => {
+    render(<ControlEntryRow projectId="inv-123" hubId="hub-1" />);
     expect(await screen.findByText('Set up control cadence')).toBeInTheDocument();
   });
 
   it('opens ControlRecordEditor when the button is clicked', async () => {
-    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow projectId="inv-123" hubId="hub-1" />);
     fireEvent.click(await screen.findByText('Set up control cadence'));
     expect(screen.getByTestId('sustainment-record-editor')).toBeInTheDocument();
   });
 
   it('shows confirmation and hides editor after save', async () => {
-    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow projectId="inv-123" hubId="hub-1" />);
     fireEvent.click(await screen.findByText('Set up control cadence'));
     fireEvent.click(screen.getByText('Save'));
     expect(screen.queryByTestId('sustainment-record-editor')).not.toBeInTheDocument();
@@ -74,15 +74,15 @@ describe('ControlEntryRow', () => {
   });
 
   it('hides editor when cancel is clicked', async () => {
-    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow projectId="inv-123" hubId="hub-1" />);
     fireEvent.click(await screen.findByText('Set up control cadence'));
     fireEvent.click(screen.getByText('Cancel'));
     expect(screen.queryByTestId('sustainment-record-editor')).not.toBeInTheDocument();
     expect(screen.getByText('Set up control cadence')).toBeInTheDocument();
   });
 
-  it('renders disabled button with hint when investigationId is null', () => {
-    render(<ControlEntryRow investigationId={null} hubId="hub-1" />);
+  it('renders disabled button with hint when projectId is null', () => {
+    render(<ControlEntryRow projectId={null} hubId="hub-1" />);
     const btn = screen.getByRole('button', { name: 'Set up control cadence' });
     expect(btn).toBeDisabled();
     expect(screen.getByText('Save the analyze first.')).toBeInTheDocument();
@@ -92,7 +92,7 @@ describe('ControlEntryRow', () => {
     mockListControlRecords.mockResolvedValue([
       {
         id: 'rec-1',
-        investigationId: 'inv-123',
+        projectId: 'inv-123',
         hubId: 'hub-1',
         cadence: 'monthly',
         createdAt: 1745625600000,
@@ -100,7 +100,7 @@ describe('ControlEntryRow', () => {
         deletedAt: null,
       },
     ]);
-    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow projectId="inv-123" hubId="hub-1" />);
     expect(await screen.findByText('Edit control cadence')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Edit control cadence'));
     expect(screen.getByTestId('editor-mode')).toHaveTextContent('edit:rec-1');
@@ -110,7 +110,7 @@ describe('ControlEntryRow', () => {
     mockListControlRecords.mockResolvedValue([
       {
         id: 'rec-old',
-        investigationId: 'inv-123',
+        projectId: 'inv-123',
         hubId: 'hub-1',
         cadence: 'monthly',
         deletedAt: 1745107200000, // 2026-04-20T00:00:00.000Z
@@ -118,7 +118,7 @@ describe('ControlEntryRow', () => {
         updatedAt: 1745107200000, // 2026-04-20T00:00:00.000Z
       },
     ]);
-    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow projectId="inv-123" hubId="hub-1" />);
     expect(await screen.findByText('Set up control cadence')).toBeInTheDocument();
   });
 
@@ -126,7 +126,7 @@ describe('ControlEntryRow', () => {
     mockListControlRecords.mockResolvedValue([
       {
         id: 'rec-1',
-        investigationId: 'inv-123',
+        projectId: 'inv-123',
         hubId: 'hub-1',
         cadence: 'monthly',
         createdAt: 1745625600000,
@@ -134,7 +134,7 @@ describe('ControlEntryRow', () => {
         deletedAt: null,
       },
     ]);
-    render(<ControlEntryRow investigationId="inv-123" hubId="hub-1" />);
+    render(<ControlEntryRow projectId="inv-123" hubId="hub-1" />);
     fireEvent.click(await screen.findByText('Edit control cadence'));
     fireEvent.click(screen.getByText('Save'));
     await waitFor(() => expect(screen.getByText('Control cadence updated.')).toBeInTheDocument());

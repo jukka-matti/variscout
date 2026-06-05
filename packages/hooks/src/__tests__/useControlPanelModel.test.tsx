@@ -12,7 +12,7 @@ function makeProject(overrides: Partial<ImprovementProject> = {}): ImprovementPr
     id: 'ip-1',
     hubId: 'hub-1',
     status: 'closed',
-    metadata: { title: 'Reduce defects', investigationId: 'inv-1' },
+    metadata: { title: 'Reduce defects', projectId: 'inv-1' },
     goal: {
       outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 98 }],
       freeText: 'Hold first pass yield at 98%.',
@@ -47,7 +47,7 @@ function makeRecord(overrides: Partial<ControlRecord> = {}): ControlRecord {
   return {
     id: 'sr-1',
     hubId: 'hub-1',
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     status: 'pending',
     title: 'Existing sustainment',
     consecutiveOnTargetTicks: 1,
@@ -66,7 +66,7 @@ function makeReview(overrides: Partial<ControlReview> = {}): ControlReview {
     id: 'review-1',
     recordId: 'sr-1',
     hubId: 'hub-1',
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     reviewedAt: 1_714_000_000_000,
     reviewer: { displayName: 'Reviewer' },
     verdict: 'holding',
@@ -125,7 +125,7 @@ describe('useControlPanelModel', () => {
         hubId: 'hub-1',
         record: expect.objectContaining({
           hubId: 'hub-1',
-          investigationId: 'inv-1',
+          projectId: 'inv-1',
           improvementProjectId: 'ip-1',
           title: 'Sustain Reduce defects',
           goal: expect.objectContaining({ freeText: 'Hold first pass yield at 98%.' }),

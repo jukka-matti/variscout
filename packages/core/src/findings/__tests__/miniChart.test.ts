@@ -104,7 +104,7 @@ const ip = (overrides: Partial<ImprovementProject> = {}): ImprovementProject =>
     id: 'ip-1',
     hubId: 'hub-1',
     status: 'active',
-    metadata: { title: 'Fill Cpk lift', investigationId: 'inv-1' },
+    metadata: { title: 'Fill Cpk lift', projectId: 'inv-1' },
     goal: {
       outcomeGoals: [{ outcomeSpecId: 'fill', target: 1.33 }],
       factorControls: [],

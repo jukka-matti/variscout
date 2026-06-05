@@ -13,9 +13,9 @@ export interface HeaderMetadataSectionProps {
   onBusinessCaseChange?: (value: string) => void;
   financialImpact?: ImprovementProjectMetadata['financialImpact'];
   onFinancialImpactChange?: (value: FinancialImpact) => void;
-  investigationId?: string;
-  investigationOptions?: Array<{ id: string; name: string }>;
-  onInvestigationIdChange?: (id: string | undefined) => void;
+  projectId?: string;
+  projectOptions?: Array<{ id: string; name: string }>;
+  onProjectIdChange?: (id: string | undefined) => void;
 }
 
 const MEMBER_ROLES: Array<{ value: ProjectRole; label: string }> = [
@@ -61,9 +61,9 @@ export const HeaderMetadataSection: React.FC<HeaderMetadataSectionProps> = ({
   onBusinessCaseChange,
   financialImpact,
   onFinancialImpactChange,
-  investigationId,
-  investigationOptions = [],
-  onInvestigationIdChange,
+  projectId,
+  projectOptions = [],
+  onProjectIdChange,
 }) => {
   const titleErrorId = 'improvement-project-title-error';
   const titleIsBlank = title.trim().length === 0;
@@ -226,13 +226,13 @@ export const HeaderMetadataSection: React.FC<HeaderMetadataSectionProps> = ({
         <span className={labelClassName}>Linked investigation</span>
         <select
           className={inputClassName}
-          value={investigationId ?? ''}
+          value={projectId ?? ''}
           onChange={event =>
-            onInvestigationIdChange?.(event.target.value === '' ? undefined : event.target.value)
+            onProjectIdChange?.(event.target.value === '' ? undefined : event.target.value)
           }
         >
           <option value="">No linked investigation</option>
-          {investigationOptions.map(option => (
+          {projectOptions.map(option => (
             <option key={option.id} value={option.id}>
               {option.name}
             </option>

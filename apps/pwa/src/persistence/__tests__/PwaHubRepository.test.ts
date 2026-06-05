@@ -114,7 +114,7 @@ function makeControlRecord(
   return {
     id,
     hubId,
-    investigationId: `inv-${id}`,
+    projectId: `inv-${id}`,
     status: 'pending',
     title: `Record ${id}`,
     consecutiveOnTargetTicks: 0,
@@ -138,7 +138,7 @@ function makeControlReview(
     id,
     recordId,
     hubId,
-    investigationId: `inv-${recordId}`,
+    projectId: `inv-${recordId}`,
     reviewedAt: NOW,
     reviewer: { displayName: 'Reviewer' },
     verdict: 'holding',

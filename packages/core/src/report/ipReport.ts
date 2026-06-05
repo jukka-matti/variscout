@@ -95,7 +95,7 @@ function selectControlRecord(
   return (
     live.find(record => record.id === ip.sections.outcomeReference.sustainmentRecordId) ??
     live.find(record => record.improvementProjectId === ip.id) ??
-    live.find(record => record.investigationId === ip.metadata.investigationId)
+    live.find(record => record.projectId === ip.metadata.projectId)
   );
 }
 
@@ -108,7 +108,7 @@ function selectControlHandoff(
   return (
     live.find(handoff => handoff.id === ip.sections.outcomeReference.controlHandoffId) ??
     live.find(handoff => handoff.id === controlRecord?.controlHandoffId) ??
-    live.find(handoff => handoff.investigationId === ip.metadata.investigationId)
+    live.find(handoff => handoff.projectId === ip.metadata.projectId)
   );
 }
 

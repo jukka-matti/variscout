@@ -62,7 +62,7 @@ function makeControlRecord(id: string, hubId: string): ControlRecord {
   return {
     id,
     hubId,
-    investigationId: `inv-${id}`,
+    projectId: `inv-${id}`,
     status: 'pending',
     title: `Record ${id}`,
     consecutiveOnTargetTicks: 0,
@@ -80,7 +80,7 @@ function makeControlReview(id: string, recordId: string, hubId: string): Control
     id,
     recordId,
     hubId,
-    investigationId: `inv-${recordId}`,
+    projectId: `inv-${recordId}`,
     reviewedAt: NOW,
     reviewer: { displayName: 'Reviewer' },
     verdict: 'holding',

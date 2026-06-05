@@ -32,9 +32,16 @@ export interface ControlRecord extends EntityBase {
   // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null)
   // deletedAt replaces the former tombstoneAt field (renamed 2026-05-06, P1.4b).
   // Archived-but-readable when the owning project leaves the control surface.
-  // `investigationId` field name preserved (the projectId rename is PO-7);
-  // value is structurally an ImprovementProject id under Project⟷Hub 1:1.
-  investigationId: ImprovementProject['id'];
+  /**
+   * The Control join key (PO-7 honest rename of the former FK — name-only; join
+   * semantics unchanged). Usually the owning ImprovementProject id under
+   * Project⟷Hub 1:1; records created without an associated closed project carry
+   * the synthetic `${hub.id}:sustainment` fallback (see
+   * `useControlPanelModel.buildDraftRecord`), so this is NOT guaranteed to
+   * resolve to a live project. The OTHER member below — the direct optional
+   * project FK — is distinct; THIS field is the bridge key handoffs join through.
+   */
+  projectId: ImprovementProject['id'];
   hubId: ProcessHub['id'];
   status: ControlStatus;
   title: string;
@@ -70,7 +77,7 @@ export interface ControlReview extends EntityBase {
   // reviewedAt is the domain field for "when was this review conducted";
   // createdAt is the EntityBase lifecycle field. They are set to the same value at creation.
   recordId: ControlRecord['id'];
-  investigationId: ImprovementProject['id'];
+  projectId: ImprovementProject['id'];
   hubId: ProcessHub['id'];
   reviewedAt: number;
   reviewer: ProcessParticipantRef;
@@ -84,7 +91,7 @@ export interface ControlHandoff extends EntityBase {
   // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null).
   // recordedAt was renamed to createdAt (P1.4b, 2026-05-06) — they were semantically identical
   // (the system timestamp when this handoff entity was created).
-  investigationId: ImprovementProject['id'];
+  projectId: ImprovementProject['id'];
   hubId: ProcessHub['id'];
   status: ControlHandoffStatus;
   surface: ControlHandoffSurface;
@@ -198,7 +205,7 @@ export function applyControlTick(
   const review: ControlReview = {
     id: `${record.id}:${snapshot.id}:review`,
     recordId: record.id,
-    investigationId: record.investigationId,
+    projectId: record.projectId,
     hubId: record.hubId,
     reviewedAt: now,
     reviewer: { displayName: 'System' },
@@ -324,15 +331,15 @@ function liveRecordFor(
 
 /**
  * The live ControlHandoff bridging to this project (handoffs carry no project
- * FK — they join via a record sharing `investigationId`). Returns the first
- * live handoff whose `investigationId` matches the project's record.
+ * FK — they join via a record sharing `projectId`). Returns the first
+ * live handoff whose `projectId` matches the project's record.
  */
 function handoffFor(
   record: ControlRecord | undefined,
-  handoffByInvestigation: Map<string, ControlHandoff>
+  handoffByJoinKey: Map<string, ControlHandoff>
 ): ControlHandoff | undefined {
   if (!record) return undefined;
-  return handoffByInvestigation.get(record.investigationId);
+  return handoffByJoinKey.get(record.projectId);
 }
 
 function indexRecordsByProject(records: ControlRecord[]): Map<string, ControlRecord[]> {
@@ -366,7 +373,7 @@ export function selectControlReviews(
   now: Date
 ): ControlReviewItem[] {
   const recordsByProject = indexRecordsByProject(records);
-  const handoffByInvestigation = new Map(handoffs.map(h => [h.investigationId, h]));
+  const handoffByJoinKey = new Map(handoffs.map(h => [h.projectId, h]));
 
   const items: ControlReviewItem[] = [];
   for (const project of projects) {
@@ -374,7 +381,7 @@ export function selectControlReviews(
     const record = liveRecordFor(project, recordsByProject);
     if (!record || !isControlDue(record, now)) continue;
     if (isControlled(project, records)) {
-      const handoff = handoffFor(record, handoffByInvestigation);
+      const handoff = handoffFor(record, handoffByJoinKey);
       if (handoff && handoff.retainControlReview === false) continue;
     }
     items.push(buildControlReviewItem(project, record));
@@ -416,7 +423,7 @@ export function selectControlBuckets(
   const recentCutoffMs = now.getTime() - recentReviewWindowDays * 24 * 60 * 60 * 1000;
 
   const recordsByProject = indexRecordsByProject(records);
-  const handoffByInvestigation = new Map(handoffs.map(h => [h.investigationId, h]));
+  const handoffByJoinKey = new Map(handoffs.map(h => [h.projectId, h]));
 
   const dueNow: ControlReviewItem[] = [];
   const overdue: ControlReviewItem[] = [];
@@ -428,7 +435,7 @@ export function selectControlBuckets(
     const record = liveRecordFor(project, recordsByProject);
     if (!record) continue;
     if (isControlled(project, records)) {
-      const handoff = handoffFor(record, handoffByInvestigation);
+      const handoff = handoffFor(record, handoffByJoinKey);
       if (handoff && handoff.retainControlReview === false) continue;
     }
 

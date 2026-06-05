@@ -66,7 +66,7 @@ function makeRecord(): ControlRecord {
   return {
     id: 'sr-1',
     hubId: 'hub-1',
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     status: 'pending',
     title: 'Existing sustainment',
     consecutiveOnTargetTicks: 1,
