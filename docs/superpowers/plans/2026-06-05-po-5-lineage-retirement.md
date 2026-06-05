@@ -3,7 +3,7 @@ tier: living
 purpose: design
 title: 'PO-5 · Lineage retirement + Report re-source — sub-plan (one judgment system)'
 audience: human
-status: active
+status: delivered
 date: 2026-06-05
 last-reviewed: 2026-06-05
 layer: spec
