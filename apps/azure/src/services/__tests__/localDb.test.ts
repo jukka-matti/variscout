@@ -331,13 +331,15 @@ describe('localDb Process Hub support', () => {
     };
 
     it('mergeProjectMetadata preserves the Control-owned sustainment projection over a recompute that lacks it', () => {
-      const existing: ProjectMetadata = {
+      // 'stale' deliberately simulates a key from a retired schema era — cast
+      // like the backfill seed below (tsc covers app test files).
+      const existing = {
         phase: 'frame',
         findingCounts: { stale: 9 },
         questionCounts: {},
         lastViewedAt: {},
         sustainment: seededSustainment,
-      };
+      } as ProjectMetadata;
       const recomputed: ProjectMetadata = {
         phase: 'scout',
         findingCounts: {},
