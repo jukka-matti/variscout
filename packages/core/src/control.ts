@@ -84,7 +84,6 @@ export interface ControlReview extends EntityBase {
   verdict: ControlVerdict;
   snapshotId?: EvidenceSnapshot['id'];
   observation?: string;
-  escalatedInvestigationId?: ImprovementProject['id'];
 }
 
 export interface ControlHandoff extends EntityBase {

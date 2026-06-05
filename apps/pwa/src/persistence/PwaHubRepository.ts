@@ -32,7 +32,6 @@ import type {
   OutcomeReadAPI,
   EvidenceSnapshotReadAPI,
   EvidenceSourceReadAPI,
-  ScopeReadAPI,
   CanvasStateReadAPI,
   ActionItemReadAPI,
   ControlRecordReadAPI,
@@ -209,18 +208,6 @@ export class PwaHubRepository implements HubRepository {
         .filter(c => c.hubId === hubId)
         .first();
       return row;
-    },
-  };
-
-  scopes: ScopeReadAPI = {
-    // ProblemStatementScope (ADR-085) has zero Dexie footprint — scopes persist
-    // via the analyze blob, not a table. Stubbed empty, mirroring the Azure
-    // repository; reads come from the analyzeStore.scopes slice in-session.
-    get: async _id => {
-      return undefined;
-    },
-    listByInvestigation: async _investigationId => {
-      return [];
     },
   };
 
