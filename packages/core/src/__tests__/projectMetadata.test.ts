@@ -18,10 +18,8 @@ function makeAction(overrides: Partial<ActionItem> = {}): ActionItem {
   return { ...base, ...overrides };
 }
 
-// A fixed "now" so overdue comparisons are deterministic
+// A fixed "now" so phase comparisons are deterministic
 const FIXED_NOW = new Date('2026-01-15T12:00:00.000Z').getTime();
-const PAST_DATE = '2026-01-10'; // 5 days before FIXED_NOW
-const FUTURE_DATE = '2026-01-20'; // 5 days after FIXED_NOW
 
 // ---------------------------------------------------------------------------
 // Phase detection
@@ -45,7 +43,7 @@ describe('buildProjectMetadata — phase detection', () => {
     expect(result.phase).toBe('scout');
   });
 
-  it('returns "investigate" when findings exist but no actions', () => {
+  it('returns "analyze" when findings exist but no actions', () => {
     const findings = [makeFinding(), makeFinding()];
     const result = buildProjectMetadata(findings, [], true, 'local');
     expect(result.phase).toBe('analyze');
@@ -58,7 +56,7 @@ describe('buildProjectMetadata — phase detection', () => {
     expect(result.phase).toBe('improve');
   });
 
-  it('returns "investigate" when finding has empty actions array', () => {
+  it('returns "analyze" when finding has empty actions array', () => {
     const finding = makeFinding({ actions: [] });
     const result = buildProjectMetadata([finding], [], true, 'local');
     expect(result.phase).toBe('analyze');
@@ -114,173 +112,40 @@ describe('buildProjectMetadata — questionCounts (retired ADR-085)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Action counts: total, completed, overdue
+// Work-item projections shed in PO-4
 // ---------------------------------------------------------------------------
 
-describe('buildProjectMetadata — actionCounts', () => {
-  beforeEach(() => {
-    vi.setSystemTime(FIXED_NOW);
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('returns zeros when no findings', () => {
-    const result = buildProjectMetadata([], [], true, 'local');
-    expect(result.actionCounts).toEqual({ total: 0, completed: 0, overdue: 0 });
-  });
-
-  it('returns zeros when findings have no actions', () => {
-    const findings = [makeFinding(), makeFinding()];
-    const result = buildProjectMetadata(findings, [], true, 'local');
-    expect(result.actionCounts).toEqual({ total: 0, completed: 0, overdue: 0 });
-  });
-
-  it('counts total actions across all findings', () => {
-    const findings = [
-      makeFinding({ actions: [makeAction(), makeAction()] }),
-      makeFinding({ actions: [makeAction()] }),
-    ];
-    const result = buildProjectMetadata(findings, [], true, 'local');
-    expect(result.actionCounts.total).toBe(3);
-  });
-
-  it('counts completed actions (have completedAt)', () => {
-    const findings = [
-      makeFinding({
-        actions: [
-          makeAction({ completedAt: FIXED_NOW - 1000 }),
-          makeAction(), // not completed
-        ],
-      }),
-    ];
-    const result = buildProjectMetadata(findings, [], true, 'local');
-    expect(result.actionCounts.completed).toBe(1);
-  });
-
-  it('counts overdue actions (dueDate in past, not completed)', () => {
-    const findings = [
-      makeFinding({
-        actions: [
-          makeAction({ dueDate: PAST_DATE }), // overdue
-          makeAction({ dueDate: FUTURE_DATE }), // not overdue
-          makeAction({ dueDate: PAST_DATE, completedAt: FIXED_NOW - 500 }), // past due but completed
-        ],
-      }),
-    ];
-    const result = buildProjectMetadata(findings, [], true, 'local');
-    expect(result.actionCounts.overdue).toBe(1);
-  });
-
-  it('handles actions with no dueDate (not counted as overdue)', () => {
-    const findings = [makeFinding({ actions: [makeAction()] })];
-    const result = buildProjectMetadata(findings, [], true, 'local');
-    expect(result.actionCounts.overdue).toBe(0);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Assigned task count for a specific userId
-// ---------------------------------------------------------------------------
-
-describe('buildProjectMetadata — assignedTaskCount', () => {
-  beforeEach(() => {
-    vi.setSystemTime(FIXED_NOW);
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('returns 0 when no findings', () => {
-    const result = buildProjectMetadata([], [], true, 'jane@contoso.com');
-    expect(result.assignedTaskCount).toBe(0);
-  });
-
-  it('counts actions assigned to matching UPN', () => {
-    const action1 = makeAction({ assignee: { upn: 'jane@contoso.com', displayName: 'Jane' } });
-    const action2 = makeAction({ assignee: { upn: 'john@contoso.com', displayName: 'John' } });
-    const action3 = makeAction({ assignee: { upn: 'jane@contoso.com', displayName: 'Jane' } });
-    const findings = [
-      makeFinding({ actions: [action1, action2] }),
-      makeFinding({ actions: [action3] }),
-    ];
-    const result = buildProjectMetadata(findings, [], true, 'jane@contoso.com');
-    expect(result.assignedTaskCount).toBe(2);
-  });
-
-  it('counts actions assigned to matching userId (Azure AD object ID)', () => {
-    const action = makeAction({
-      assignee: { upn: 'jane@contoso.com', displayName: 'Jane', userId: 'aad-1234' },
+describe('buildProjectMetadata — PO-4 shed fields', () => {
+  it('does not write actionCounts / assignedTaskCount / hasOverdueTasks (shed in PO-4)', () => {
+    const withAction = makeFinding({
+      actions: [makeAction({ assignee: { upn: 'jane@contoso.com', displayName: 'Jane' } })],
     });
-    const findings = [makeFinding({ actions: [action] })];
-    const result = buildProjectMetadata(findings, [], true, 'aad-1234');
-    expect(result.assignedTaskCount).toBe(1);
+    const result = buildProjectMetadata(
+      [withAction],
+      [],
+      true,
+      'jane@contoso.com'
+    ) as unknown as Record<string, unknown>;
+    expect(result.actionCounts).toBeUndefined();
+    expect(result.assignedTaskCount).toBeUndefined();
+    expect(result.hasOverdueTasks).toBeUndefined();
   });
 
-  it('returns 0 when userId does not match any assignee', () => {
-    const action = makeAction({ assignee: { upn: 'other@contoso.com', displayName: 'Other' } });
-    const findings = [makeFinding({ actions: [action] })];
-    const result = buildProjectMetadata(findings, [], true, 'jane@contoso.com');
-    expect(result.assignedTaskCount).toBe(0);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// hasOverdueTasks flag
-// ---------------------------------------------------------------------------
-
-describe('buildProjectMetadata — hasOverdueTasks', () => {
-  beforeEach(() => {
-    vi.setSystemTime(FIXED_NOW);
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('is false when user has no assigned tasks', () => {
-    const result = buildProjectMetadata([], [], true, 'jane@contoso.com');
-    expect(result.hasOverdueTasks).toBe(false);
-  });
-
-  it('is false when assigned tasks are not overdue', () => {
-    const action = makeAction({
-      assignee: { upn: 'jane@contoso.com', displayName: 'Jane' },
-      dueDate: FUTURE_DATE,
-    });
-    const findings = [makeFinding({ actions: [action] })];
-    const result = buildProjectMetadata(findings, [], true, 'jane@contoso.com');
-    expect(result.hasOverdueTasks).toBe(false);
-  });
-
-  it('is true when user has an overdue assigned task', () => {
-    const action = makeAction({
-      assignee: { upn: 'jane@contoso.com', displayName: 'Jane' },
-      dueDate: PAST_DATE,
-    });
-    const findings = [makeFinding({ actions: [action] })];
-    const result = buildProjectMetadata(findings, [], true, 'jane@contoso.com');
-    expect(result.hasOverdueTasks).toBe(true);
-  });
-
-  it('is false when overdue task is already completed', () => {
-    const action = makeAction({
-      assignee: { upn: 'jane@contoso.com', displayName: 'Jane' },
-      dueDate: PAST_DATE,
-      completedAt: FIXED_NOW - 1000,
-    });
-    const findings = [makeFinding({ actions: [action] })];
-    const result = buildProjectMetadata(findings, [], true, 'jane@contoso.com');
-    expect(result.hasOverdueTasks).toBe(false);
-  });
-
-  it('is false when overdue task belongs to a different user', () => {
-    const action = makeAction({
-      assignee: { upn: 'other@contoso.com', displayName: 'Other' },
-      dueDate: PAST_DATE,
-    });
-    const findings = [makeFinding({ actions: [action] })];
-    const result = buildProjectMetadata(findings, [], true, 'jane@contoso.com');
-    expect(result.hasOverdueTasks).toBe(false);
+  it('does not write the narrative projection fields (shed in PO-4)', () => {
+    const result = buildProjectMetadata([], [], true, 'local', undefined, {
+      processHubId: 'line-4',
+      currentUnderstanding: { summary: 'Variation concentrates on night shift.' },
+      nextMove: 'Inspect nozzle wear during night shift.',
+    }) as unknown as Record<string, unknown>;
+    expect(result.analyzeStatus).toBeUndefined();
+    expect(result.analyzeDepth).toBeUndefined();
+    expect(result.currentUnderstandingSummary).toBeUndefined();
+    expect(result.problemConditionSummary).toBeUndefined();
+    expect(result.nextMove).toBeUndefined();
+    expect(result.processDescription).toBeUndefined();
+    expect(result.customerRequirementSummary).toBeUndefined();
+    expect(result.processMapSummary).toBeUndefined();
+    expect(result.surveyReadiness).toBeUndefined();
   });
 });
 
@@ -309,68 +174,33 @@ describe('buildProjectMetadata — lastViewedAt', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Process Hub metadata
+// Process Hub metadata (KEEP set)
 // ---------------------------------------------------------------------------
 
 describe('buildProjectMetadata — Process Hub fields', () => {
   it('defaults legacy projects into General / Unassigned', () => {
     const result = buildProjectMetadata([], [], true, 'local');
     expect(result.processHubId).toBe('general-unassigned');
-    expect(result.analyzeStatus).toBe('scouting');
   });
 
-  it('copies investigation metadata and summaries from processContext', () => {
-    const processMap = {
-      version: 1 as const,
-      nodes: [
-        { id: 'rinse', name: 'Rinse', order: 0 },
-        { id: 'fill', name: 'Fill', order: 1, ctqColumn: 'Weight' },
-      ],
-      tributaries: [
-        { id: 'machine', stepId: 'fill', column: 'Machine' },
-        { id: 'shift', stepId: 'fill', column: 'Shift' },
-      ],
-      ctsColumn: 'Weight',
-      subgroupAxes: ['machine'],
-      hunches: [{ id: 'h1', text: 'Nozzle wear', tributaryId: 'machine' }],
-      createdAt: '2026-04-26T00:00:00.000Z',
-      updatedAt: '2026-04-26T00:00:00.000Z',
-    };
+  it('copies the KEEP-set investigation metadata from processContext', () => {
     const result = buildProjectMetadata([], [], true, 'local', undefined, {
       processHubId: 'line-4',
-      analyzeDepth: 'focused',
-      analyzeStatus: 'investigating',
-      description: 'Bottle filling from rinse through palletizing.',
-      measurement: 'Fill weight',
+      nodeMappings: [{ nodeId: 'fill', measurementColumn: 'Weight' }],
+      migrationDeclinedAt: '2026-04-28T10:00:00.000Z',
       processOwner: { displayName: 'Olivia Owner', upn: 'olivia@example.com' },
       investigationOwner: { displayName: 'Eeva Engineer', upn: 'eeva@example.com' },
       sponsor: { displayName: 'Sam Sponsor', upn: 'sam@example.com' },
       contributors: [{ displayName: 'Fiona Field', upn: 'fiona@example.com' }],
-      currentUnderstanding: { summary: 'Variation concentrates on night shift.' },
-      problemCondition: { summary: 'Cpk is below target on Heads 5-8.' },
-      nextMove: 'Inspect nozzle wear during night shift.',
-      processMap,
     });
 
     expect(result.processHubId).toBe('line-4');
-    expect(result.analyzeDepth).toBe('focused');
-    expect(result.analyzeStatus).toBe('investigating');
-    expect(result.processDescription).toBe('Bottle filling from rinse through palletizing.');
-    expect(result.customerRequirementSummary).toBe('Weight');
-    expect(result.processMapSummary).toEqual({
-      stepCount: 2,
-      tributaryCount: 2,
-      ctsColumn: 'Weight',
-      subgroupAxisCount: 1,
-      hunchCount: 1,
-    });
+    expect(result.nodeMappings).toEqual([{ nodeId: 'fill', measurementColumn: 'Weight' }]);
+    expect(result.migrationDeclinedAt).toBe('2026-04-28T10:00:00.000Z');
     expect(result.processOwner?.displayName).toBe('Olivia Owner');
     expect(result.investigationOwner?.displayName).toBe('Eeva Engineer');
     expect(result.sponsor?.displayName).toBe('Sam Sponsor');
     expect(result.contributors?.[0]?.displayName).toBe('Fiona Field');
-    expect(result.currentUnderstandingSummary).toBe('Variation concentrates on night shift.');
-    expect(result.problemConditionSummary).toBe('Cpk is below target on Heads 5-8.');
-    expect(result.nextMove).toBe('Inspect nozzle wear during night shift.');
   });
 
   it('does not copy review signal (projection retired — reviewSignal removed from ProjectMetadata)', () => {
@@ -392,14 +222,11 @@ describe('buildProjectMetadata — empty inputs', () => {
     expect(result.phase).toBe('scout');
     expect(result.findingCounts).toEqual({});
     expect(result.questionCounts).toEqual({});
-    expect(result.actionCounts).toEqual({ total: 0, completed: 0, overdue: 0 });
-    expect(result.assignedTaskCount).toBe(0);
-    expect(result.hasOverdueTasks).toBe(false);
   });
 
   it('handles findings with undefined actions gracefully', () => {
     const finding = makeFinding({ actions: undefined });
     const result = buildProjectMetadata([finding], [], true, 'local');
-    expect(result.actionCounts.total).toBe(0);
+    expect(result.findingCounts).toEqual({ observed: 1 });
   });
 });

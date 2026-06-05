@@ -6,12 +6,12 @@
 //   1. Full Mode B via Editor paste — from "Paste Data" button through HubGoalForm and
 //      ColumnMapping to the analysis canvas (I-chart visible confirms outcome is set).
 //   2. GoalBanner edit roundtrip via ProcessHubView — seeds a framed hub, navigates
-//      to portfolio, opens the hub card, edits GoalBanner inline, saves.
+//      to portfolio, selects the hub from the hub selector, edits GoalBanner inline, saves.
 //   3. "New Hub" from ProjectDashboard sidebar — loads a sample, navigates to Overview
 //      tab, clicks action-new-hub, runs Mode B paste flow again.
 //      Skips gracefully when sample picker is unavailable.
 //   4. Portfolio ProcessHubView "Add framing" CTA — seeds an incomplete hub, navigates
-//      to portfolio, clicks the hub card, verifies hub-framing-prompt and CTA routing.
+//      to portfolio, selects the hub from the hub selector, verifies hub-framing-prompt and CTA routing.
 import { test, expect } from '@playwright/test';
 import { confirmColumnMapping, pasteDataAndAnalyze, completeStage1, MODE_B_CSV } from './helpers';
 import { seedPortfolioHub, seedIncompleteHub } from './fixtures/portfolio-state';
@@ -117,14 +117,13 @@ test.describe('Azure Mode B framing — GoalBanner edit roundtrip (portfolio)', 
     // (Dashboard view). Returns when 'text=Process Hubs' is visible.
     await seedPortfolioHub(page);
 
-    // 1. Portfolio is already shown — open the seeded hub card by name.
-    //    ProcessHubCard renders an inner <button> with the hub name that calls onOpen().
-    //    The portfolio may also show "General / Unassigned" (default hub); target the
+    // 1. Portfolio is already shown — select the seeded hub by name from the
+    //    hub selector (PO-4: the hub-card grid retired in favor of a <select>).
+    //    The portfolio may also show "General / Unassigned" (default hub); pick the
     //    fixture hub specifically so we hit one with processGoal set.
-    //    Use the ArrowRight open-button (aria-label "Open <name>") for reliable click targeting.
-    const openHubButton = page.getByRole('button', { name: 'Open Fixture Syringe Barrel Line' });
-    await expect(openHubButton).toBeVisible({ timeout: 5000 });
-    await openHubButton.click();
+    const hubSelect = page.getByLabel('Select process hub');
+    await expect(hubSelect).toBeVisible({ timeout: 5000 });
+    await hubSelect.selectOption({ label: 'Fixture Syringe Barrel Line' });
 
     // 2. GoalBanner is shown above the hub surface when processGoal is set
     const goalBanner = page.getByTestId('goal-banner');
@@ -237,13 +236,11 @@ test.describe('Azure Mode B framing — portfolio ProcessHubView (incomplete hub
     // App.tsx auto-redirects to portfolio. Returns when 'text=Process Hubs' is visible.
     await seedIncompleteHub(page);
 
-    // Portfolio is already shown — open the seeded incomplete hub card.
-    //    ProcessHubCard renders an ArrowRight open-button (aria-label "Open <name>").
-    const openIncompleteHubButton = page.getByRole('button', {
-      name: 'Open Incomplete Hub Fixture',
-    });
-    await expect(openIncompleteHubButton).toBeVisible({ timeout: 5000 });
-    await openIncompleteHubButton.click();
+    // Portfolio is already shown — select the seeded incomplete hub from the
+    // hub selector (PO-4: the hub-card grid retired in favor of a <select>).
+    const hubSelect = page.getByLabel('Select process hub');
+    await expect(hubSelect).toBeVisible({ timeout: 5000 });
+    await hubSelect.selectOption({ label: 'Incomplete Hub Fixture' });
 
     // ProcessHubView should show the incomplete-hub framing prompt with Add framing CTA.
     await expect(page.getByTestId('hub-framing-prompt')).toBeVisible({ timeout: 8000 });

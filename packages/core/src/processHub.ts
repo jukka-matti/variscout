@@ -1,12 +1,8 @@
-import type { JourneyPhase } from './ai/types';
-import type { EvidenceSnapshot } from './evidenceSources';
-import type { FindingStatus } from './findings/types';
 import type { ProcessMap } from './frame/types';
 import type { EntityBase } from './identity';
 import type { HubReviewSignal } from './processReviewSignal';
-import type { SurveyStatus } from './survey/types';
 import type { SpecLimits } from './types';
-import type { ControlHandoff, ControlMetadataProjection, ControlRecord } from './control';
+import type { ControlRecord } from './control';
 
 export { isCharterReady, isControlReady } from './responsePathReadiness';
 export type { WorkflowReadinessSignals } from './responsePathReadiness';
@@ -41,19 +37,6 @@ export function isProcessHubId(value: unknown): value is ProcessHubId {
 
 export const DEFAULT_PROCESS_HUB_ID: ProcessHubId = 'general-unassigned' as ProcessHubId;
 export const DEFAULT_PROCESS_HUB_NAME = 'General / Unassigned';
-
-export type AnalyzeDepth = 'quick' | 'focused' | 'chartered';
-
-export type AnalyzeStatus =
-  | 'issue-captured'
-  | 'framing'
-  | 'scouting'
-  | 'investigating'
-  | 'ready-to-improve'
-  | 'improving'
-  | 'verifying'
-  | 'resolved'
-  | 'controlled';
 
 export interface ProcessParticipantRef {
   userId?: string;
@@ -173,6 +156,35 @@ export interface AnalyzeNodeMapping {
 }
 
 /**
+ * Typed per-step capability carrier — the CS-P2 contract (PO-4).
+ * Replaces the dissolved per-step analyze projection in the per-step
+ * capability path. Members are sourced from `ProcessContext` via the project
+ * document (the `ProjectMetadata` projection); raw rows travel separately as
+ * `rowsByAnalyze` maps (dead-in-prod today — CS-P2 wires the editor's live
+ * `rawData` through the existing `rowsByAnalyze` input seam).
+ */
+export interface ProcessStepCapabilityMemberMetadata {
+  /** Durable process context that owns this step's project (1:1). */
+  processHubId?: string;
+  /** Per-node measurement-column mappings — FULL shape incl. `specsOverride`. */
+  nodeMappings?: AnalyzeNodeMapping[];
+  /** ISO 8601 marker for dismissed B0 migration prompts. */
+  migrationDeclinedAt?: string;
+}
+
+export interface ProcessStepCapabilityMember {
+  /** The ImprovementProject id under Project⟷Hub 1:1. */
+  id: string;
+  name: string;
+  metadata?: ProcessStepCapabilityMemberMetadata;
+}
+
+export interface ProcessStepCapabilitySource {
+  hub: ProcessHub;
+  members: readonly ProcessStepCapabilityMember[];
+}
+
+/**
  * Canvas-wide scope filter applied to the active Analyze entry. Populated when
  * the user clicks a Pareto bar (or adds a chip explicitly). Drives downstream
  * chart filtering across the canvas surface. Absent → no scope filter.
@@ -187,97 +199,6 @@ export interface ScopeFilter {
   /** Selected category values (single-select default; multi-select via shift-click). */
   values: ReadonlyArray<string | number>;
 }
-
-export interface ProcessHubAnalyzeMetadata {
-  processHubId?: string;
-  analyzeDepth?: AnalyzeDepth;
-  analyzeStatus?: AnalyzeStatus;
-  findingCounts?: Partial<Record<FindingStatus, number>>;
-  actionCounts?: { total: number; completed: number; overdue: number };
-  processDescription?: string;
-  customerRequirementSummary?: string;
-  processMapSummary?: ProcessHubProcessMapSummary;
-  surveyReadiness?: ProcessHubSurveyReadinessSummary;
-  currentUnderstandingSummary?: string;
-  problemConditionSummary?: string;
-  nextMove?: string;
-  reviewSignal?: HubReviewSignal;
-  /**
-   * Lightweight projection of the active ControlRecord for this Analyze entry,
-   * surfaced on the hub for cadence rendering without re-querying the records list.
-   * The cycle between processHub.ts and control.ts is broken by `import type`,
-   * which is erased at compile time and produces no runtime dependency.
-   *
-   * Field name `sustainment` preserved — matches persisted ProjectMetadata
-   * schema; cloud blobs already key this projection by `sustainment`.
-   */
-  sustainment?: ControlMetadataProjection;
-  /**
-   * Per-node measurement-column mappings. Drives per-(node × context-tuple)
-   * capability computation. See `AnalyzeNodeMapping` above.
-   */
-  nodeMappings?: AnalyzeNodeMapping[];
-  /**
-   * ISO 8601 timestamp set when the analyst dismisses the B0 migration banner
-   * for this Analyze entry. Dismissed entries remain B0; the banner
-   * counts only un-dismissed unmapped entries.
-   *
-   * See spec: docs/superpowers/specs/2026-04-28-production-line-glance-surface-wiring-design.md
-   * section "B0 migration UX".
-   */
-  migrationDeclinedAt?: string;
-}
-
-export interface ProcessHubAnalyze extends EntityBase {
-  name: string;
-  /** Unix ms timestamp of the last modification. Renamed from the legacy `modified: string` field. */
-  updatedAt: number;
-  metadata?: ProcessHubAnalyzeMetadata;
-}
-
-export interface ProcessHubRollup<TAnalyze extends ProcessHubAnalyze = ProcessHubAnalyze> {
-  hub: ProcessHub;
-  analyzes: TAnalyze[];
-  activeAnalyzeCount: number;
-  statusCounts: Partial<Record<AnalyzeStatus, number>>;
-  depthCounts: Partial<Record<AnalyzeDepth, number>>;
-  overdueActionCount: number;
-  /** Unix ms timestamp of the most recently modified Analyze entry, or null if none. */
-  latestActivity: number | null;
-  currentUnderstandingSummary?: string;
-  problemConditionSummary?: string;
-  nextMove?: string;
-  reviewSignal?: HubReviewSignal;
-  evidenceSnapshots: EvidenceSnapshot[];
-  controlRecords: ControlRecord[];
-  controlHandoffs: ControlHandoff[];
-}
-
-export interface ProcessHubProcessMapSummary {
-  stepCount: number;
-  tributaryCount: number;
-  ctsColumn?: string;
-  subgroupAxisCount: number;
-  hunchCount: number;
-}
-
-export interface ProcessHubSurveyReadinessSummary {
-  possibilityStatus: SurveyStatus;
-  powerStatus: SurveyStatus;
-  trustStatus: SurveyStatus;
-  recommendationCount: number;
-  topRecommendations: string[];
-}
-
-const ACTIVE_STATUSES = new Set<AnalyzeStatus>([
-  'issue-captured',
-  'framing',
-  'scouting',
-  'investigating',
-  'ready-to-improve',
-  'improving',
-  'verifying',
-]);
 
 export function normalizeProcessHubId(processHubId?: string | null): ProcessHubId {
   const trimmed = processHubId?.trim();
@@ -303,143 +224,4 @@ export function isProcessHubComplete(hub: ProcessHub): boolean {
     hub.outcomes.length > 0 &&
     hub.outcomes.every(o => typeof o.columnName === 'string' && o.columnName.trim().length > 0);
   return hasGoal && hasOutcome;
-}
-
-export function analyzeStatusFromJourneyPhase(phase: JourneyPhase): AnalyzeStatus {
-  switch (phase) {
-    case 'frame':
-      return 'framing';
-    case 'scout':
-      return 'scouting';
-    case 'analyze':
-      return 'investigating';
-    case 'improve':
-      return 'improving';
-  }
-}
-
-function newestAnalyze<TAnalyze extends ProcessHubAnalyze>(
-  analyzes: TAnalyze[]
-): TAnalyze | undefined {
-  return [...analyzes].sort((a, b) => b.updatedAt - a.updatedAt)[0];
-}
-
-function synthesizeOrphanHub(hubId: string): ProcessHub {
-  return { id: hubId, name: 'Unknown hub', createdAt: 0, deletedAt: null };
-}
-
-export function buildProcessHubRollups<TAnalyze extends ProcessHubAnalyze>(
-  hubs: ProcessHub[],
-  analyzes: TAnalyze[],
-  options: {
-    evidenceSnapshots?: EvidenceSnapshot[];
-    controlRecords?: ControlRecord[];
-    controlHandoffs?: ControlHandoff[];
-  } = {}
-): ProcessHubRollup<TAnalyze>[] {
-  const hubMap = new Map<string, ProcessHub>();
-  hubMap.set(DEFAULT_PROCESS_HUB_ID, DEFAULT_PROCESS_HUB);
-  for (const hub of hubs) {
-    hubMap.set(normalizeProcessHubId(hub.id), hub);
-  }
-
-  for (const analyze of analyzes) {
-    const hubId = normalizeProcessHubId(analyze.metadata?.processHubId);
-    if (!hubMap.has(hubId)) {
-      hubMap.set(hubId, synthesizeOrphanHub(hubId));
-    }
-  }
-  for (const snapshot of options.evidenceSnapshots ?? []) {
-    const hubId = normalizeProcessHubId(snapshot.hubId);
-    if (!hubMap.has(hubId)) {
-      hubMap.set(hubId, synthesizeOrphanHub(hubId));
-    }
-  }
-
-  const grouped = new Map<string, TAnalyze[]>();
-  for (const analyze of analyzes) {
-    const hubId = normalizeProcessHubId(analyze.metadata?.processHubId);
-    grouped.set(hubId, [...(grouped.get(hubId) ?? []), analyze]);
-  }
-
-  const groupedControl = new Map<string, ControlRecord[]>();
-  for (const record of options.controlRecords ?? []) {
-    const hubId = normalizeProcessHubId(record.hubId);
-    groupedControl.set(hubId, [...(groupedControl.get(hubId) ?? []), record]);
-  }
-
-  const groupedHandoffs = new Map<string, ControlHandoff[]>();
-  for (const handoff of options.controlHandoffs ?? []) {
-    const hubId = normalizeProcessHubId(handoff.hubId);
-    groupedHandoffs.set(hubId, [...(groupedHandoffs.get(hubId) ?? []), handoff]);
-  }
-
-  return Array.from(hubMap.values())
-    .map(hub => {
-      const hubAnalyzes = [...(grouped.get(hub.id) ?? [])].sort(
-        (a, b) => b.updatedAt - a.updatedAt
-      );
-      const statusCounts: Partial<Record<AnalyzeStatus, number>> = {};
-      const depthCounts: Partial<Record<AnalyzeDepth, number>> = {};
-      let overdueActionCount = 0;
-      let activeAnalyzeCount = 0;
-
-      for (const analyze of hubAnalyzes) {
-        const status = analyze.metadata?.analyzeStatus ?? 'scouting';
-        statusCounts[status] = (statusCounts[status] ?? 0) + 1;
-        if (ACTIVE_STATUSES.has(status)) activeAnalyzeCount++;
-
-        const depth = analyze.metadata?.analyzeDepth;
-        if (depth) depthCounts[depth] = (depthCounts[depth] ?? 0) + 1;
-
-        overdueActionCount += analyze.metadata?.actionCounts?.overdue ?? 0;
-      }
-
-      const latest = newestAnalyze(hubAnalyzes);
-      const summarySource = hubAnalyzes.find(
-        analyze =>
-          analyze.metadata?.currentUnderstandingSummary ||
-          analyze.metadata?.problemConditionSummary ||
-          analyze.metadata?.nextMove
-      );
-      const reviewSignalSource = hubAnalyzes.find(analyze => analyze.metadata?.reviewSignal);
-      const evidenceSnapshots = (options.evidenceSnapshots ?? [])
-        .filter(snapshot => normalizeProcessHubId(snapshot.hubId) === hub.id)
-        .sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
-      const controlRecords = groupedControl.get(hub.id) ?? [];
-      const controlHandoffs = groupedHandoffs.get(hub.id) ?? [];
-
-      return {
-        hub,
-        analyzes: hubAnalyzes,
-        activeAnalyzeCount,
-        statusCounts,
-        depthCounts,
-        overdueActionCount,
-        latestActivity: latest?.updatedAt ?? null,
-        currentUnderstandingSummary: summarySource?.metadata?.currentUnderstandingSummary,
-        problemConditionSummary: summarySource?.metadata?.problemConditionSummary,
-        nextMove: summarySource?.metadata?.nextMove,
-        // Hub-level reviewSignal (analyst-set) wins over Analyze-entry-derived.
-        // Today only `capability.cpkTarget` is set on the hub directly; the
-        // Analyze-entry-derived signal still provides the rest of the fields
-        // when no hub-level signal exists.
-        reviewSignal: hub.reviewSignal ?? reviewSignalSource?.metadata?.reviewSignal,
-        evidenceSnapshots,
-        controlRecords,
-        controlHandoffs,
-      };
-    })
-    .filter(
-      rollup =>
-        rollup.analyzes.length > 0 ||
-        rollup.evidenceSnapshots.length > 0 ||
-        rollup.hub.id !== DEFAULT_PROCESS_HUB_ID
-    )
-    .sort((a, b) => {
-      const aTime = a.latestActivity ?? 0;
-      const bTime = b.latestActivity ?? 0;
-      if (aTime !== bTime) return bTime - aTime;
-      return a.hub.name.localeCompare(b.hub.name);
-    });
 }

@@ -488,8 +488,6 @@ export {
   DEFAULT_PROCESS_HUB_NAME,
   asProcessHubId,
   isProcessHubId,
-  buildProcessHubRollups,
-  analyzeStatusFromJourneyPhase,
   isProcessHubComplete,
   normalizeProcessHubId,
 } from './processHub';
@@ -542,17 +540,13 @@ export type {
   SurveyTrustItem,
 } from './survey';
 export type {
-  AnalyzeDepth,
-  AnalyzeStatus,
   OutcomeSpec,
   ScopeFilter,
   ProcessHub,
-  ProcessHubAnalyze,
-  ProcessHubAnalyzeMetadata,
-  ProcessHubProcessMapSummary,
-  ProcessHubRollup,
-  ProcessHubSurveyReadinessSummary,
   ProcessParticipantRef,
+  ProcessStepCapabilityMember,
+  ProcessStepCapabilityMemberMetadata,
+  ProcessStepCapabilitySource,
 } from './processHub';
 export {
   buildAIContext,

@@ -7,7 +7,8 @@ import type { HypothesisCondition, ConditionLeaf } from './hypothesisCondition';
 import type { TimelineWindow } from '../timeline';
 import type { TimeLens } from '../stats/timeLens';
 import type { EntityBase } from '../identity';
-import type { ProcessHubAnalyze, ProcessParticipantRef } from '../processHub';
+import type { ProcessParticipantRef } from '../processHub';
+import type { ImprovementProject } from '../improvementProject';
 import type { ProcessMapTributary } from '../frame/types';
 
 // ============================================================================
@@ -493,8 +494,10 @@ export interface Finding extends EntityBase {
   comments: FindingComment[];
   /** When status was last changed */
   statusChangedAt: number;
-  /** FK to the owning investigation. Required for normalized storage. */
-  investigationId: ProcessHubAnalyze['id'];
+  /** FK to the owning investigation. Required for normalized storage.
+   *  Field name preserved (the projectId rename is PO-7); value is structurally
+   *  an ImprovementProject id under Project⟷Hub 1:1. */
+  investigationId: ImprovementProject['id'];
   /** Durable FK to the ProblemStatementScope this finding was captured within; undefined for findings not tied to a drill scope. */
   scopeId?: ProblemStatementScope['id'];
   /**
@@ -695,8 +698,9 @@ export interface Hypothesis extends EntityBase {
   measurementPlanIds?: string[];
   /** Updated timestamp (Unix ms) */
   updatedAt: number;
-  /** FK to the owning investigation. Required for normalized storage. */
-  investigationId: ProcessHubAnalyze['id'];
+  /** FK to the owning investigation. Required for normalized storage.
+   *  Field name preserved (the projectId rename is PO-7). */
+  investigationId: ImprovementProject['id'];
   /** Mode-aware evidence — contribution stored, projection computed live */
   evidence?: HypothesisEvidence;
   /** Whether this hypothesis is selected for the current improvement round */
@@ -821,8 +825,8 @@ export type GateNode =
  * claim lives on `Hypothesis.condition`, never re-asserting the scope.
  */
 export interface ProblemStatementScope extends EntityBase {
-  /** FK to the owning investigation. */
-  investigationId: ProcessHubAnalyze['id'];
+  /** FK to the owning investigation. Field name preserved (projectId rename is PO-7). */
+  investigationId: ImprovementProject['id'];
   /** The Y this scope sharpens. */
   outcome: string;
   /** The `{factor=level}` WHERE — a flat AND of drill-chip leaves. */

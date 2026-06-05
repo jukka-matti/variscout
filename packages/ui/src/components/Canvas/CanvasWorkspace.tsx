@@ -30,7 +30,7 @@ import {
   type TimeDecompositionBinding,
   type ProcessContext,
   type ProcessHubId,
-  type ProcessHubAnalyze,
+  type ProcessStepCapabilityMember,
   type SpecLimits,
   type StepCapabilityStamp,
   type StepTimingBinding,
@@ -476,7 +476,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     />
   );
 
-  const previewRollup = React.useMemo(() => {
+  const previewSource = React.useMemo(() => {
     const previewHub = {
       id: 'frame-preview',
       canonicalProcessMap: map,
@@ -484,15 +484,15 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     };
     return {
       hub: previewHub,
-      members: [] as ProcessHubAnalyze[],
+      members: [] as ProcessStepCapabilityMember[],
       rowsByAnalyze: new Map<string, ReadonlyArray<DataRow>>(),
     };
   }, [map]);
 
   const data = useProductionLineGlanceData({
-    hub: previewRollup.hub,
-    members: previewRollup.members,
-    rowsByAnalyze: previewRollup.rowsByAnalyze,
+    hub: previewSource.hub,
+    members: previewSource.members,
+    rowsByAnalyze: previewSource.rowsByAnalyze,
     contextFilter: filter.value,
   });
 

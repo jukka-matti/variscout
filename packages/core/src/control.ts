@@ -1,5 +1,5 @@
 import type { EntityBase } from './identity';
-import type { ProcessHub, ProcessHubAnalyze, ProcessParticipantRef } from './processHub';
+import type { ProcessHub, ProcessParticipantRef } from './processHub';
 import type { EvidenceSnapshot } from './evidenceSources';
 import type { ImprovementProject, ImprovementProjectGoal } from './improvementProject';
 import { isControlEligible, isControlled } from './controlReadiness';
@@ -31,9 +31,10 @@ export type ControlHandoffSurface =
 export interface ControlRecord extends EntityBase {
   // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null)
   // deletedAt replaces the former tombstoneAt field (renamed 2026-05-06, P1.4b).
-  // Set to a non-null number when the investigation leaves SUSTAINMENT_STATUSES;
-  // record is archived but readable.
-  investigationId: ProcessHubAnalyze['id'];
+  // Archived-but-readable when the owning project leaves the control surface.
+  // `investigationId` field name preserved (the projectId rename is PO-7);
+  // value is structurally an ImprovementProject id under Project⟷Hub 1:1.
+  investigationId: ImprovementProject['id'];
   hubId: ProcessHub['id'];
   status: ControlStatus;
   title: string;
@@ -69,21 +70,21 @@ export interface ControlReview extends EntityBase {
   // reviewedAt is the domain field for "when was this review conducted";
   // createdAt is the EntityBase lifecycle field. They are set to the same value at creation.
   recordId: ControlRecord['id'];
-  investigationId: ProcessHubAnalyze['id'];
+  investigationId: ImprovementProject['id'];
   hubId: ProcessHub['id'];
   reviewedAt: number;
   reviewer: ProcessParticipantRef;
   verdict: ControlVerdict;
   snapshotId?: EvidenceSnapshot['id'];
   observation?: string;
-  escalatedInvestigationId?: ProcessHubAnalyze['id'];
+  escalatedInvestigationId?: ImprovementProject['id'];
 }
 
 export interface ControlHandoff extends EntityBase {
   // EntityBase contributes: id, createdAt (number, Unix ms), deletedAt (number | null).
   // recordedAt was renamed to createdAt (P1.4b, 2026-05-06) — they were semantically identical
   // (the system timestamp when this handoff entity was created).
-  investigationId: ProcessHubAnalyze['id'];
+  investigationId: ImprovementProject['id'];
   hubId: ProcessHub['id'];
   status: ControlHandoffStatus;
   surface: ControlHandoffSurface;
@@ -355,8 +356,8 @@ function indexRecordsByProject(records: ControlRecord[]): Map<string, ControlRec
  *
  * Tombstoned records are excluded by `liveRecordFor` + the underlying
  * `isControlDue` check. The gate change (label → facts) is sanctioned: an
- * 'active' project with no record/handoff is no longer queued even if its
- * (soon-dead) analyzeStatus once said 'resolved'.
+ * 'active' project with no record/handoff is no longer queued. The former
+ * free-text status label was removed in PO-4 — eligibility reads facts only.
  */
 export function selectControlReviews(
   projects: ImprovementProject[],

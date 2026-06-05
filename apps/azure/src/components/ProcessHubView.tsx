@@ -10,7 +10,7 @@
  * T11: B0 migration banner + modal (overlay).
  */
 import React from 'react';
-import type { ProcessHubAnalyze, ProcessHubRollup } from '@variscout/core';
+import type { ProcessStepCapabilityMember, ProcessStepCapabilitySource } from '@variscout/core';
 import { isProcessHubComplete } from '@variscout/core';
 import {
   GoalBanner,
@@ -22,8 +22,8 @@ import { ProcessHubCapabilityTab } from './ProcessHubCapabilityTab';
 import { useHubMigrationState } from '../features/processHub/useHubMigrationState';
 
 export interface ProcessHubViewProps {
-  rollup: ProcessHubRollup<ProcessHubAnalyze>;
-  persistInvestigation: (next: ProcessHubAnalyze) => void;
+  source: ProcessStepCapabilitySource;
+  persistInvestigation: (next: ProcessStepCapabilityMember) => void;
   /**
    * Persist the hub-level Cpk target default (cascade level "hub"). Writes to
    * `processHub.reviewSignal.capability.cpkTarget`. `undefined` clears it.
@@ -36,18 +36,18 @@ export interface ProcessHubViewProps {
 }
 
 export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
-  rollup,
+  source,
   persistInvestigation,
   onHubCpkTargetCommit,
   onHubGoalChange,
   onEditFraming,
 }) => {
-  const hubIsComplete = isProcessHubComplete(rollup.hub);
+  const hubIsComplete = isProcessHubComplete(source.hub);
 
   const migration = useHubMigrationState({
-    hubId: rollup.hub.id,
-    members: rollup.analyzes,
-    canonicalMap: rollup.hub.canonicalProcessMap,
+    hubId: source.hub.id,
+    members: source.members,
+    canonicalMap: source.hub.canonicalProcessMap,
     persistInvestigation,
   });
 
@@ -63,8 +63,8 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
         onChange wired to onHubGoalChange to persist inline edits (Task H).
       */}
       <GoalBanner
-        goal={rollup.hub.processGoal}
-        onChange={onHubGoalChange ? next => onHubGoalChange(rollup.hub.id, next) : undefined}
+        goal={source.hub.processGoal}
+        onChange={onHubGoalChange ? next => onHubGoalChange(source.hub.id, next) : undefined}
       />
 
       {/* Incomplete-hub framing prompt — shown when hub lacks goal or outcomes,
@@ -82,7 +82,7 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
           <button
             type="button"
             className="text-xs px-3 py-1 rounded border border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
-            onClick={() => onEditFraming(rollup.hub.id)}
+            onClick={() => onEditFraming(source.hub.id)}
             data-testid="hub-framing-prompt-cta"
           >
             Add framing
@@ -93,23 +93,23 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
           Stats are not available in the rollup model without a live analysis;
           the pin renders in the fallback (mean ± σ + n = 0) state and shows
           an "+ Add specs" chip that opens the framing flow for spec entry. */}
-      {hubIsComplete && rollup.hub.outcomes && rollup.hub.outcomes.length > 0 && (
+      {hubIsComplete && source.hub.outcomes && source.hub.outcomes.length > 0 && (
         <div
           className="flex flex-wrap gap-2 px-4 py-2 border-b border-edge bg-surface-secondary"
           data-testid="outcome-pin-row"
         >
-          {rollup.hub.outcomes.map(outcome => (
+          {source.hub.outcomes.map(outcome => (
             <OutcomePin
               key={outcome.columnName}
               outcome={outcome}
               stats={{
-                mean: rollup.reviewSignal?.capability
-                  ? ((rollup.reviewSignal as { mean?: number }).mean ?? 0)
+                mean: source.hub.reviewSignal?.capability
+                  ? ((source.hub.reviewSignal as { mean?: number }).mean ?? 0)
                   : 0,
                 sigma: 0,
-                n: rollup.reviewSignal?.rowCount ?? 0,
+                n: source.hub.reviewSignal?.rowCount ?? 0,
               }}
-              onAddSpecs={_col => onEditFraming?.(rollup.hub.id)}
+              onAddSpecs={_col => onEditFraming?.(source.hub.id)}
             />
           ))}
         </div>
@@ -129,7 +129,7 @@ export const ProcessHubView: React.FC<ProcessHubViewProps> = ({
           Inbox + state-item UI) is retired. The thin host keeps the Capability
           orient content (production-line-glance) as the single scroll surface. */}
       <div className="flex-1 overflow-y-auto" data-testid="process-hub-surface">
-        <ProcessHubCapabilityTab rollup={rollup} onHubCpkTargetCommit={onHubCpkTargetCommit} />
+        <ProcessHubCapabilityTab source={source} onHubCpkTargetCommit={onHubCpkTargetCommit} />
       </div>
     </div>
   );

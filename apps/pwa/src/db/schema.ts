@@ -20,18 +20,19 @@
 //      `hubId` foreign key (already on `OutcomeSpec` via core).
 //
 // All other tables (evidenceSnapshots, evidenceSources, evidenceSourceCursors,
-// rowProvenance, investigations, findings, causalLinks,
+// rowProvenance, findings, causalLinks,
 // hypotheses) start empty in F3 — the dispatch boundary will be wired by
-// F3.5 (evidence) and F5 (investigation/finding/causalLink/
+// F3.5 (evidence) and F5 (finding/causalLink/
 // hypothesis + canvas action coverage). The `questions` table (IM-1, ADR-085)
 // was dropped at v10 — ProblemStatementScope persists via the analyze blob.
 // The former documentSnapshots table was dropped at v12 when PWA durability
-// became export-only (.vrs).
+// became export-only (.vrs). The never-written `investigations` projection
+// table was dropped at v13 (PO-4 — the per-step analyze projection dissolved).
 //
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
 import Dexie, { type Table } from 'dexie';
-import type { ProcessHub, OutcomeSpec, ProcessHubAnalyze } from '@variscout/core/processHub';
+import type { ProcessHub, OutcomeSpec } from '@variscout/core/processHub';
 import type {
   EvidenceSnapshot,
   EvidenceSource,
@@ -84,7 +85,6 @@ export type EvidenceSnapshotRow = EvidenceSnapshot;
 export type EvidenceSourceRow = EvidenceSource;
 export type EvidenceSourceCursorRow = EvidenceSourceCursor;
 export type RowProvenanceRow = RowProvenanceTag;
-export type InvestigationRow = ProcessHubAnalyze;
 export type FindingRow = Finding;
 export type CausalLinkRow = CausalLink;
 export type HypothesisRow = Hypothesis;
@@ -106,7 +106,6 @@ export class PwaDatabase extends Dexie {
   rowProvenance!: Table<RowProvenanceRow, string>;
   evidenceSources!: Table<EvidenceSourceRow, string>;
   evidenceSourceCursors!: Table<EvidenceSourceCursorRow, string>;
-  investigations!: Table<InvestigationRow, string>;
   findings!: Table<FindingRow, string>;
   causalLinks!: Table<CausalLinkRow, string>;
   hypotheses!: Table<HypothesisRow, string>;
@@ -213,6 +212,12 @@ export class PwaDatabase extends Dexie {
     // Version 12: R6d — PWA durable persistence is export-only. Remove the
     // browser documentSnapshot store from the latest schema.
     this.version(12).stores({ documentSnapshots: null });
+
+    // v13 (PO-4): the per-step analyze projection entity dissolved — the
+    // never-written `investigations` projection table retires (tableName: null;
+    // the v1 store declaration stays per the Dexie monotonic-chain rule,
+    // mirroring the v10 `questions: null` precedent).
+    this.version(13).stores({ investigations: null });
   }
 }
 

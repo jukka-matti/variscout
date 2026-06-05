@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHubMigrationState } from '../useHubMigrationState';
-import type { ProcessHubAnalyze, ProcessMap } from '@variscout/core';
+import type { ProcessStepCapabilityMember, ProcessMap } from '@variscout/core';
 
 const map: ProcessMap = {
   version: 1,
@@ -14,22 +14,17 @@ const map: ProcessMap = {
 
 const member = (
   id: string,
-  mappings: unknown[] = [],
-  declined?: string,
-  rows: Record<string, unknown>[] = []
-): ProcessHubAnalyze =>
-  ({
-    id,
-    name: id,
+  mappings: { nodeId: string; measurementColumn: string }[] = [],
+  declined?: string
+): ProcessStepCapabilityMember => ({
+  id,
+  name: id,
+  metadata: {
     processHubId: 'h1',
-    metadata: {
-      processHubId: 'h1',
-      nodeMappings: mappings,
-      migrationDeclinedAt: declined,
-    },
-    rows,
-    reviewSignal: { ok: 0, review: 0, alarm: 0 },
-  }) as unknown as ProcessHubAnalyze;
+    nodeMappings: mappings,
+    migrationDeclinedAt: declined,
+  },
+});
 
 describe('useHubMigrationState', () => {
   it('isModalOpen toggles via openModal / closeModal', () => {
@@ -52,7 +47,11 @@ describe('useHubMigrationState', () => {
     const { result } = renderHook(() =>
       useHubMigrationState({
         hubId: 'h1',
-        members: [member('a'), member('b', [], '2026-04-28T10:00:00Z'), member('c', [{ x: 1 }])],
+        members: [
+          member('a'),
+          member('b', [], '2026-04-28T10:00:00Z'),
+          member('c', [{ nodeId: 'n1', measurementColumn: 'mixCpk' }]),
+        ],
         canonicalMap: map,
         persistInvestigation: vi.fn(),
       })
@@ -60,9 +59,8 @@ describe('useHubMigrationState', () => {
     expect(result.current.count).toBe(1);
   });
 
-  it('modalEntries derive suggestions from canonicalMap + investigation rows', () => {
-    // Investigation 'a' has a `mixCpk` column → suggests Mix node
-    const m = member('a', [], undefined, [{ mixCpk: 1.2, defect: 'pass' }]);
+  it('modalEntries surface one entry per unmapped member (no rows → no auto-suggestions, CS-P2 seam)', () => {
+    const m = member('a');
     const { result } = renderHook(() =>
       useHubMigrationState({
         hubId: 'h1',
@@ -72,8 +70,10 @@ describe('useHubMigrationState', () => {
       })
     );
     const entry = result.current.modalEntries.find(e => e.investigationId === 'a');
-    expect(entry?.suggestions.map(s => s.nodeId)).toContain('n1');
-    expect(entry?.suggestions.find(s => s.nodeId === 'n1')?.label).toBe('Mix');
+    expect(entry?.investigationName).toBe('a');
+    // The portfolio source carries no rows, so the engine cannot auto-suggest
+    // node mappings here; CS-P2 wires the editor's live rawData at lift.
+    expect(entry?.suggestions).toEqual([]);
   });
 
   it('handleSave calls persistInvestigation with merged nodeMappings per row', () => {

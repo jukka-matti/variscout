@@ -1,10 +1,10 @@
 import type { DisconfirmationAttempt, Hypothesis, ActionItem } from '../findings/types';
-import type { ProcessHubAnalyze } from '../processHub';
+import type { ImprovementProject } from '../improvementProject';
 
 export type HypothesisAction =
   | {
       kind: 'HYPOTHESIS_ADD';
-      investigationId: ProcessHubAnalyze['id'];
+      investigationId: ImprovementProject['id'];
       hypothesis: Hypothesis;
     }
   | {

@@ -19,7 +19,7 @@
 //     the in-memory `ProcessHub` shape consumers (stores, hooks) expect today.
 //   - `outcomes.get` / `outcomes.listByHub` filter by `deletedAt === null`.
 //   - `canvasState.getByHub` returns the row, stripped of the `hubId` FK.
-//   - `evidenceSnapshots` / `evidenceSources` / `investigations` /
+//   - `evidenceSnapshots` / `evidenceSources` /
 //     `findings` / `causalLinks` / `hypotheses` query the
 //     real (empty) tables. Until F3.5 (evidence) and F5 (investigation
 //     entities) wire writes, these consistently return empty rows.
@@ -32,7 +32,6 @@ import type {
   OutcomeReadAPI,
   EvidenceSnapshotReadAPI,
   EvidenceSourceReadAPI,
-  AnalyzeReadAPI,
   FindingReadAPI,
   ScopeReadAPI,
   CausalLinkReadAPI,
@@ -213,18 +212,6 @@ export class PwaHubRepository implements HubRepository {
         .filter(c => c.hubId === hubId)
         .first();
       return row;
-    },
-  };
-
-  investigations: AnalyzeReadAPI = {
-    get: async id => {
-      const row = await db.investigations.get(id);
-      if (!row || row.deletedAt !== null) return undefined;
-      return row;
-    },
-    listByHub: async hubId => {
-      const rows = await db.investigations.where('hubId').equals(hubId).toArray();
-      return rows.filter(r => r.deletedAt === null);
     },
   };
 

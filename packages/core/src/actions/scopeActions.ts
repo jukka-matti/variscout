@@ -1,5 +1,5 @@
 import type { ProblemStatementScope } from '../findings/types';
-import type { ProcessHubAnalyze } from '../processHub';
+import type { ImprovementProject } from '../improvementProject';
 
 /**
  * Problem-Statement scope write operations (ADR-085 — the WHERE, first-class).
@@ -9,7 +9,7 @@ import type { ProcessHubAnalyze } from '../processHub';
 export type ScopeAction =
   | {
       kind: 'SCOPE_ADD';
-      investigationId: ProcessHubAnalyze['id'];
+      investigationId: ImprovementProject['id'];
       scope: ProblemStatementScope;
     }
   | {

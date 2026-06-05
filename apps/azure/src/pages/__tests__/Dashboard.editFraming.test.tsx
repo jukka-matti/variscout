@@ -71,8 +71,8 @@ describe('Dashboard — onEditFraming wiring (P4.5)', () => {
   it('passes onEditFraming to ProcessHubView — framing prompt is visible for incomplete hub', async () => {
     render(<Dashboard onOpenProject={vi.fn()} />);
 
-    await screen.findByText('Line 4');
-    fireEvent.click(screen.getByLabelText('Open Line 4'));
+    await screen.findByLabelText('Select process hub');
+    fireEvent.change(screen.getByLabelText('Select process hub'), { target: { value: 'line-4' } });
 
     // Hub has no processGoal → framing prompt should be visible
     await screen.findByTestId('hub-framing-prompt');
@@ -83,8 +83,8 @@ describe('Dashboard — onEditFraming wiring (P4.5)', () => {
     const onOpenProject = vi.fn();
     render(<Dashboard onOpenProject={onOpenProject} />);
 
-    await screen.findByText('Line 4');
-    fireEvent.click(screen.getByLabelText('Open Line 4'));
+    await screen.findByLabelText('Select process hub');
+    fireEvent.change(screen.getByLabelText('Select process hub'), { target: { value: 'line-4' } });
 
     const cta = await screen.findByTestId('hub-framing-prompt-cta');
     fireEvent.click(cta);

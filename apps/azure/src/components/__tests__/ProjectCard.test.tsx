@@ -14,9 +14,6 @@ function makeMetadata(overrides: Partial<ProjectMetadata> = {}): ProjectMetadata
     phase: 'scout',
     findingCounts: {},
     questionCounts: {},
-    actionCounts: { total: 0, completed: 0, overdue: 0 },
-    assignedTaskCount: 0,
-    hasOverdueTasks: false,
     lastViewedAt: {},
     ...overrides,
   };
@@ -83,18 +80,14 @@ describe('ProjectCard', () => {
     expect(footer).toHaveTextContent('1 question');
   });
 
-  it('does not render Your-tasks block (work-item layer shed in §8)', () => {
-    const project = makeProject({
-      metadata: makeMetadata({ assignedTaskCount: 2 }),
-    });
+  it('does not render a Your-tasks block (work-item layer shed in §8 / PO-4)', () => {
+    const project = makeProject({ metadata: makeMetadata() });
     render(<ProjectCard {...defaultProps} project={project} />);
     expect(screen.queryByTestId('project-card-your-tasks')).not.toBeInTheDocument();
   });
 
   it('always uses transparent left border (static — no amber work-item accent)', () => {
-    const project = makeProject({
-      metadata: makeMetadata({ hasOverdueTasks: true, assignedTaskCount: 1 }),
-    });
+    const project = makeProject({ metadata: makeMetadata() });
     render(<ProjectCard {...defaultProps} project={project} />);
     const card = screen.getByTestId('project-card');
     expect(card.className).not.toContain('border-l-amber-500');
@@ -102,33 +95,32 @@ describe('ProjectCard', () => {
   });
 
   // ── negative control ─────────────────────────────────────────────────────────
-  // A project whose metadata still carries legacy work-item fields must NOT
-  // render any of the shed surfaces. The card must silently ignore them.
-  it('negative control: legacy work-item fields are silently ignored', () => {
+  // PO-4 shed the work-item + narrative projection fields from ProjectMetadata.
+  // The card renders only the KEEP-set surfaces; none of the shed surfaces
+  // (status chip, depth label, Your-tasks block, work-item amber accent) come back.
+  //
+  // The one REAL surviving overdue surface is the control-due chip
+  // (data-testid="project-card-control-due"), driven by
+  // `metadata.sustainment.nextReviewDue`. It must be ABSENT when no sustainment
+  // is set. The companion positive case ("shows overdue chip when nextReviewDue
+  // is in the past") lives in the "control due-ness chip" block below.
+  it('negative control: shed surfaces absent; control-due chip absent without sustainment', () => {
     const project = makeProject({
-      metadata: makeMetadata({
-        // Fields stay on the ProjectMetadata TYPE until PO-4 — card must ignore them
-        analyzeStatus: 'controlled',
-        analyzeDepth: 'chartered',
-        actionCounts: { total: 5, completed: 0, overdue: 5 },
-        hasOverdueTasks: true,
-        assignedTaskCount: 3,
-      }),
+      metadata: makeMetadata({ processHubId: 'line-4' }),
+      // No sustainment → nextReviewDue is absent → no control-due chip
     });
     render(<ProjectCard {...defaultProps} project={project} />);
     const card = screen.getByTestId('project-card');
 
-    // No status chip or depth label
-    expect(screen.queryByText(/controlled/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/chartered/i)).not.toBeInTheDocument();
-    // No amber border
+    // Work-item surfaces (shed in PO-4) do not render
     expect(card.className).not.toContain('border-l-amber-500');
-    // No Your-tasks block
     expect(screen.queryByTestId('project-card-your-tasks')).not.toBeInTheDocument();
-    // No overdue footer from actionCounts
-    expect(screen.queryByText(/overdue/i)).not.toBeInTheDocument();
-    // No overdue-flag
-    expect(screen.queryByTestId('project-card-overdue-flag')).not.toBeInTheDocument();
+
+    // The surviving control-due chip is ABSENT when sustainment has no nextReviewDue
+    expect(screen.queryByTestId('project-card-control-due')).not.toBeInTheDocument();
+
+    // The KEEP-set processHubId line still renders
+    expect(screen.getByTestId('project-card-hub')).toHaveTextContent('line-4');
   });
 
   // ── control due-ness chip ────────────────────────────────────────────────────

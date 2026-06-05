@@ -93,15 +93,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
       {/* Subtitle: location + who updated when */}
       <p className="text-xs text-content-secondary">{subtitle}</p>
 
-      {(metadata?.currentUnderstandingSummary ||
-        metadata?.problemConditionSummary ||
-        metadata?.nextMove ||
-        metadata?.processHubId) && (
+      {metadata?.processHubId && (
         <div className="space-y-1 text-xs text-content-secondary" data-testid="project-card-hub">
-          {metadata?.processHubId && <p>{metadata.processHubId}</p>}
-          {metadata?.currentUnderstandingSummary && <p>{metadata.currentUnderstandingSummary}</p>}
-          {metadata?.problemConditionSummary && <p>{metadata.problemConditionSummary}</p>}
-          {metadata?.nextMove && <p className="text-content">Next: {metadata.nextMove}</p>}
+          <p>{metadata.processHubId}</p>
         </div>
       )}
 

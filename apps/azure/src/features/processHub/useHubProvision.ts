@@ -2,35 +2,38 @@
  * useHubProvision — selects hub + members + rowsByAnalyze from the
  * azure-app data layer.
  *
- * V1 reads from `ProcessHubRollup` which already aggregates the data.
- * Future iterations may wire `useLiveQuery` for streaming Dexie updates
- * if rows are split across tables.
+ * V1 reads from `ProcessStepCapabilitySource` (built by the portfolio
+ * Dashboard from the project documents). The portfolio source carries no rows;
+ * CS-P2 wires the editor's live `rawData` through the `rowsByAnalyze` seam.
  */
 import { useMemo } from 'react';
-import type { DataRow, ProcessHub, ProcessHubAnalyze, ProcessHubRollup } from '@variscout/core';
+import type {
+  DataRow,
+  ProcessHub,
+  ProcessStepCapabilityMember,
+  ProcessStepCapabilitySource,
+} from '@variscout/core';
 
 export interface UseHubProvisionInput {
-  rollup: ProcessHubRollup<ProcessHubAnalyze>;
+  source: ProcessStepCapabilitySource;
 }
 
 export interface UseHubProvisionResult {
   hub: ProcessHub;
-  members: readonly ProcessHubAnalyze[];
+  members: readonly ProcessStepCapabilityMember[];
   rowsByAnalyze: ReadonlyMap<string, readonly DataRow[]>;
 }
 
 export function useHubProvision(input: UseHubProvisionInput): UseHubProvisionResult {
-  const { rollup } = input;
+  const { source } = input;
   return useMemo<UseHubProvisionResult>(() => {
+    // CS-P2 seam: populated from the editor's live rawData at lift; the
+    // portfolio source carries no rows.
     const rowsByAnalyze = new Map<string, readonly DataRow[]>();
-    for (const inv of rollup.analyzes) {
-      const rows = (inv as { rows?: readonly DataRow[] }).rows ?? [];
-      rowsByAnalyze.set(inv.id, rows);
-    }
     return {
-      hub: rollup.hub,
-      members: rollup.analyzes,
+      hub: source.hub,
+      members: source.members,
       rowsByAnalyze,
     };
-  }, [rollup]);
+  }, [source]);
 }

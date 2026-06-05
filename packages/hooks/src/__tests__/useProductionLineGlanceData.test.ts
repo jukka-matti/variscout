@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useProductionLineGlanceData } from '../useProductionLineGlanceData';
-import type { ProcessHub, ProcessHubAnalyze, DataRow } from '@variscout/core';
+import type { ProcessHub, ProcessStepCapabilityMember, DataRow } from '@variscout/core';
 
 const map = {
   version: 1 as const,
@@ -44,21 +44,16 @@ function makeMember(opts: {
   id: string;
   rows: DataRow[];
   nodeMappings: Array<{ nodeId: string; measurementColumn: string }>;
-}): ProcessHubAnalyze & { rows: DataRow[] } {
+}): ProcessStepCapabilityMember & { rows: DataRow[] } {
   return {
     id: opts.id,
     name: `Inv ${opts.id}`,
-    createdAt: 1745836800000,
-    updatedAt: 1745836800000,
-    deletedAt: null,
     metadata: {
       processHubId: 'hub-1',
       nodeMappings: opts.nodeMappings,
-      canonicalMapVersion: '2026-04-28',
     },
     rows: opts.rows,
-    reviewSignal: { ok: 0, review: 0, alarm: 0 },
-  } as unknown as ProcessHubAnalyze & { rows: DataRow[] };
+  };
 }
 
 describe('useProductionLineGlanceData', () => {

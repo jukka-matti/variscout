@@ -5,7 +5,7 @@
  * so whenever an active-IP scope engages, the old filter compared against an
  * always-empty set → every hypothesis hidden. The interim semantic is:
  * **empty lineage = nothing curated yet → show everything**; a non-empty list
- * still filters as before. See decision-log OQ 2026-06-04 (ProcessHubAnalyze
+ * still filters as before. See decision-log OQ 2026-06-04 (Project⟷Hub entity
  * disposition).
  *
  * LOAD-BEARING:

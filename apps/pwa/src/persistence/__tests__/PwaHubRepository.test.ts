@@ -160,7 +160,6 @@ beforeEach(async () => {
     db.evidenceSnapshots.clear(),
     db.evidenceSources.clear(),
     db.evidenceSourceCursors.clear(),
-    db.investigations.clear(),
     db.findings.clear(),
     // IM-1 (ADR-085): db.questions table dropped at schema v10. ProblemStatementScope
     // has no Dexie footprint — no table to clear.
@@ -549,11 +548,6 @@ describe('PwaHubRepository — stub read APIs (empty tables until F3.5/F5)', () 
     const repo = new PwaHubRepository();
     await db.evidenceSources.put(makeEvidenceSource('src-1', 'hub-x'));
     expect((await repo.evidenceSources.get('src-1'))?.id).toBe('src-1');
-  });
-
-  it('investigations.listByHub returns []', async () => {
-    const repo = new PwaHubRepository();
-    expect(await repo.investigations.listByHub('hub-x')).toEqual([]);
   });
 
   it('findings.listByInvestigation returns []', async () => {

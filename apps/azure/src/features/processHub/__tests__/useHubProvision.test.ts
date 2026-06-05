@@ -1,7 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useHubProvision } from '../useHubProvision';
-import type { ProcessHubRollup, ProcessHubAnalyze, ProcessHub } from '@variscout/core';
+import type {
+  ProcessStepCapabilitySource,
+  ProcessStepCapabilityMember,
+  ProcessHub,
+} from '@variscout/core';
 
 const hub: ProcessHub = {
   id: 'h1',
@@ -10,45 +14,30 @@ const hub: ProcessHub = {
   deletedAt: null,
 };
 
-const m1: ProcessHubAnalyze = {
+const m1: ProcessStepCapabilityMember = {
   id: 'i1',
   name: 'I1',
-  createdAt: 1745798400000,
-  updatedAt: 1745798400000,
-  deletedAt: null,
   metadata: { processHubId: 'h1', nodeMappings: [] },
-  rows: [{ a: 1 }, { a: 2 }],
-  reviewSignal: { ok: 0, review: 0, alarm: 0 },
-} as ProcessHubAnalyze;
+};
 
 describe('useHubProvision', () => {
-  it('returns hub, members, rowsByAnalyze from rollup', () => {
-    const rollup: ProcessHubRollup<ProcessHubAnalyze> = {
-      hub,
-      analyzes: [m1],
-    } as ProcessHubRollup<ProcessHubAnalyze>;
-    const { result } = renderHook(() => useHubProvision({ rollup }));
+  it('returns hub + members from the capability source', () => {
+    const source: ProcessStepCapabilitySource = { hub, members: [m1] };
+    const { result } = renderHook(() => useHubProvision({ source }));
     expect(result.current.hub).toBe(hub);
     expect(result.current.members).toEqual([m1]);
-    expect(result.current.rowsByAnalyze.get('i1')).toEqual([{ a: 1 }, { a: 2 }]);
   });
 
-  it('returns empty map for rollup with no investigations', () => {
-    const rollup = {
-      hub,
-      analyzes: [],
-    } as unknown as ProcessHubRollup<ProcessHubAnalyze>;
-    const { result } = renderHook(() => useHubProvision({ rollup }));
+  it('rowsByAnalyze is empty — the portfolio source carries no rows (CS-P2 seam)', () => {
+    const source: ProcessStepCapabilitySource = { hub, members: [m1] };
+    const { result } = renderHook(() => useHubProvision({ source }));
     expect(result.current.rowsByAnalyze.size).toBe(0);
   });
 
-  it('handles investigations without rows (treats as empty array)', () => {
-    const noRows = { ...m1, rows: undefined } as ProcessHubAnalyze;
-    const rollup: ProcessHubRollup<ProcessHubAnalyze> = {
-      hub,
-      analyzes: [noRows],
-    } as ProcessHubRollup<ProcessHubAnalyze>;
-    const { result } = renderHook(() => useHubProvision({ rollup }));
-    expect(result.current.rowsByAnalyze.get('i1')).toEqual([]);
+  it('returns empty members for a source with no members', () => {
+    const source: ProcessStepCapabilitySource = { hub, members: [] };
+    const { result } = renderHook(() => useHubProvision({ source }));
+    expect(result.current.members).toEqual([]);
+    expect(result.current.rowsByAnalyze.size).toBe(0);
   });
 });

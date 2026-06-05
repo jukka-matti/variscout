@@ -29,14 +29,14 @@ import {
   useProductionLineGlanceFilter,
 } from '@variscout/hooks';
 import { detectScope } from '@variscout/core';
-import { resolveCpkTarget } from '@variscout/core/capability';
 import { useProjectStore } from '@variscout/stores';
+import { resolveCapabilityNodeTargets } from '../features/processHub/resolveCapabilityNodeTargets';
 import type { TimelineWindow } from '@variscout/core';
 import { useHubProvision } from '../features/processHub';
-import type { ProcessHubAnalyze, ProcessHubRollup } from '@variscout/core';
+import type { ProcessStepCapabilitySource } from '@variscout/core';
 
 export interface ProcessHubCapabilityTabProps {
-  rollup: ProcessHubRollup<ProcessHubAnalyze>;
+  source: ProcessStepCapabilitySource;
   /**
    * Persist the hub-level Cpk target default. Writes to
    * `processHub.reviewSignal.capability.cpkTarget` (cascade level "hub").
@@ -48,10 +48,10 @@ export interface ProcessHubCapabilityTabProps {
 const DEFAULT_WINDOW: TimelineWindow = { kind: 'cumulative' };
 
 export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = ({
-  rollup,
+  source,
   onHubCpkTargetCommit,
 }) => {
-  const provision = useHubProvision({ rollup });
+  const provision = useHubProvision({ source });
   const filter = useProductionLineGlanceFilter();
 
   // Hub-level window state. Hub doesn't carry its own TimelineWindow envelope
@@ -103,24 +103,16 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
   // chart's per-node tick reflects the actual cascade resolution.
   const measureSpecs = useProjectStore(s => s.measureSpecs);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
-  const hubCpkTarget = rollup.hub.reviewSignal?.capability?.cpkTarget;
+  const hubCpkTarget = source.hub.reviewSignal?.capability?.cpkTarget;
   const canonicalProcessMap = provision.hub.canonicalProcessMap;
-  const capabilityNodesWithResolvedTarget = useMemo(() => {
-    const canonicalNodes = canonicalProcessMap?.nodes ?? [];
-    return data.capabilityNodes.map(node => {
-      const canonical = canonicalNodes.find(n => n.id === node.nodeId);
-      const column = canonical?.ctqColumn;
-      // No measurement column → no cascade-resolved target. Leave undefined
-      // so the chart simply omits the per-node tick.
-      if (!column) return { ...node, targetCpk: undefined };
-      const { value } = resolveCpkTarget(column, {
-        measureSpecs,
-        hubCpkTarget,
-        projectCpkTarget,
-      });
-      return { ...node, targetCpk: value };
-    });
-  }, [data.capabilityNodes, canonicalProcessMap, measureSpecs, hubCpkTarget, projectCpkTarget]);
+  const capabilityNodesWithResolvedTarget = useMemo(
+    () =>
+      resolveCapabilityNodeTargets(data.capabilityNodes, {
+        canonicalNodes: canonicalProcessMap?.nodes ?? [],
+        context: { measureSpecs, hubCpkTarget, projectCpkTarget },
+      }),
+    [data.capabilityNodes, canonicalProcessMap, measureSpecs, hubCpkTarget, projectCpkTarget]
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -133,9 +125,9 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
       <div className="flex flex-wrap items-center gap-3 px-3 py-2 border-b border-edge bg-surface">
         <TimelineWindowPicker window={window} onChange={setWindow} />
         <CpkTargetInput
-          value={rollup.hub.reviewSignal?.capability?.cpkTarget}
-          onCommit={next => onHubCpkTargetCommit(rollup.hub.id, next)}
-          columnLabel={`hub: ${rollup.hub.name}`}
+          value={source.hub.reviewSignal?.capability?.cpkTarget}
+          onCommit={next => onHubCpkTargetCommit(source.hub.id, next)}
+          columnLabel={`hub: ${source.hub.name}`}
           data-testid="hub-capability-cpk-target"
         />
       </div>

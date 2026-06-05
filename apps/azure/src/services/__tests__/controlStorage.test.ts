@@ -10,7 +10,6 @@ import {
   listControlHandoffsFromIndexedDB,
   buildSustainmentProjection,
   recomputeSustainmentProjectionForRecord,
-  tombstoneControlRecordsForInvestigation,
 } from '../localDb';
 import type {
   ControlRecord,
@@ -113,9 +112,6 @@ const seedProject = async () => {
       phase: 'frame',
       findingCounts: {},
       questionCounts: {},
-      actionCounts: { total: 0, completed: 0, overdue: 0 },
-      assignedTaskCount: 0,
-      hasOverdueTasks: false,
       lastViewedAt: {},
     } satisfies ProjectMetadata,
   });
@@ -196,92 +192,5 @@ describe('sustainment projection recompute', () => {
 
     const updated = await db.projects.get('inv-1');
     expect(updated?.meta?.sustainment?.handoffSurface).toBe('qms-procedure');
-  });
-});
-
-describe('tombstone on investigation reopen', () => {
-  beforeEach(async () => {
-    await db.delete();
-    await db.open();
-  });
-  afterEach(async () => {
-    await db.delete();
-  });
-
-  it('sets deletedAt on all matching records', async () => {
-    await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-1' }));
-    await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-2' }));
-    const deletedAt = 1745712000000; // 2026-04-27T00:00:00.000Z
-    const updated = await tombstoneControlRecordsForInvestigation('inv-1', deletedAt);
-    expect(updated).toBe(2);
-
-    const records = await listControlRecordsFromIndexedDB('hub-1');
-    expect(records.every(r => r.deletedAt === deletedAt)).toBe(true);
-    expect(records.every(r => r.updatedAt === deletedAt)).toBe(true);
-  });
-
-  it('skips records that are already soft-deleted', async () => {
-    const earlyDeletedAt = 1745107200000; // 2026-04-20T00:00:00.000Z
-    await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-1', deletedAt: earlyDeletedAt }));
-    const updated = await tombstoneControlRecordsForInvestigation(
-      'inv-1',
-      1745712000000 // 2026-04-27T00:00:00.000Z
-    );
-    expect(updated).toBe(0);
-    const [record] = await listControlRecordsFromIndexedDB('hub-1');
-    expect(record.deletedAt).toBe(earlyDeletedAt); // not overwritten
-  });
-
-  it('returns 0 when no records exist for the investigation', async () => {
-    const updated = await tombstoneControlRecordsForInvestigation(
-      'nonexistent',
-      1745712000000 // 2026-04-27T00:00:00.000Z
-    );
-    expect(updated).toBe(0);
-  });
-
-  it('clears project meta.sustainment when records are soft-deleted', async () => {
-    await seedProject();
-    await saveControlRecordToIndexedDB(makeRecord({ id: 'rec-1' }));
-    await recomputeSustainmentProjectionForRecord(makeRecord({ id: 'rec-1' }));
-
-    // Sanity: projection is set before soft-delete
-    const before = await db.projects.get('inv-1');
-    expect(before?.meta?.sustainment).toBeDefined();
-
-    await tombstoneControlRecordsForInvestigation('inv-1', 1745712000000);
-
-    const after = await db.projects.get('inv-1');
-    expect(after?.meta?.sustainment).toBeUndefined();
-    // Other meta fields preserved.
-    expect(after?.meta?.phase).toBe('frame');
-  });
-
-  it('leaves project meta untouched when no records were soft-deleted (idempotent)', async () => {
-    await seedProject();
-    // Pre-existing soft-deleted record — should not trigger a clear.
-    await saveControlRecordToIndexedDB(
-      makeRecord({ id: 'rec-1', deletedAt: 1745107200000 }) // 2026-04-20T00:00:00.000Z
-    );
-    await db.projects.update('inv-1', {
-      meta: {
-        phase: 'frame',
-        findingCounts: {},
-        questionCounts: {},
-        actionCounts: { total: 0, completed: 0, overdue: 0 },
-        assignedTaskCount: 0,
-        hasOverdueTasks: false,
-        lastViewedAt: {},
-        sustainment: {
-          recordId: 'rec-1',
-          cadence: 'monthly',
-        },
-      } satisfies ProjectMetadata,
-    });
-
-    await tombstoneControlRecordsForInvestigation('inv-1', 1745712000000);
-
-    const after = await db.projects.get('inv-1');
-    expect(after?.meta?.sustainment).toBeDefined();
   });
 });

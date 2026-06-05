@@ -26,6 +26,20 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### PO-4 CS-P2-pending dead seams — per-step capability row channel + `useHubMigrationState` suggestion derivation [LOGGED 2026-06-05]
+
+**Surfaced by:** PO-4 review (entity-dissolution PR) — two seams left intentionally inert until CS-P2 wires the editor's live `rawData` through the carrier.
+
+**Summary:** two seams in `apps/azure/src/features/processHub/` are unreachable in the current portfolio-source code path and will remain so until CS-P2:
+
+- **(a) Per-step capability row channel.** `useHubProvision` always returns an empty `rowsByAnalyze` map (see the `// CS-P2 seam:` comment in `useHubProvision.ts`). Consequently, `useProductionLineGlanceData`'s per-step capability boxplots in `ProcessHubCapabilityTab` are computed from zero rows for every canonical step — the capability-distribution rendering branch (`capabilityNodes`) is structurally unreachable until CS-P2 lifts the editor's live `rawData` into the portfolio carrier's `rowsByAnalyze` seam. The `resolveCapabilityNodeTargets` cascade logic is now unit-tested separately (PO-4 review fix), so the target-resolution correctness is covered; only the live-data path is dormant.
+
+- **(b) `useHubMigrationState` suggestion derivation.** The `suggestNodeMappings` engine call in `useHubMigrationState` always receives an empty `cols: string[]` array (dataset columns are not reachable from the portfolio source). `engineSuggestions` is therefore always `[]` and the modal entries carry no auto-suggestions. The engine itself stays unit-covered in `@variscout/core/stats`; only the wiring is dormant. Both code-comment annotations (`// CS-P2 seam:`) are in place so CS-P2 grounding picks them up.
+
+**Promotion path:** CS-P2's grounding phase should verify both seams and wire them in scope. The code comments are the durable pointer; this entry provides the cross-surface summary for any grounding agent that reads `investigations.md` before looking at the files.
+
+**Severity:** low — both seams are documented in code comments; no correctness gap, only dormant rendering paths. CS-P2 is the planned resolution.
+
 ### CS-13 follow-up: carry the WHERE across the crossing-back (condition → categoricalFilters + an Explore chart mirror) [LOGGED 2026-06-04]
 
 **Surfaced by:** CS-13 build. The crossing-back carries y+x only (owner-locked). Two missing pieces before a hypothesis's full territory (its WHERE — e.g. "Line 2, night shift") can cross: (1) no inverse `ConditionLeaf[] → categoricalFilters` converter exists anywhere (every shipped converter goes the other way); (2) no Explore chart reads `analysisScopeStore.categoricalFilters` (the scope chip displays them; `Dashboard.tsx` mirrors only `yColumn`/`boxplotFactor`). Writing the WHERE today would make the chip claim a scope the charts don't honor. Intersects CS-3b (highlight-coordination) — when the dim layer lands, the WHERE-carry likely rides it. Also adjacent: the inert `stepId` mirror (`TODO(lv1-e-step-mirror)`) and the PWA chart mirror (`DEFERRED(lv1-pwa-mount)`).

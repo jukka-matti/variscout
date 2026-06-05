@@ -9,7 +9,7 @@
 // - evidenceSnapshots.get / listByHub — wired against db.evidenceSnapshots
 // - evidenceSources.get / listByHub — wired against db.evidenceSources
 // - evidenceSources.getCursor — wired against db.evidenceSourceCursors
-// - stub read APIs (investigations, findings, questions, causalLinks, hypotheses)
+// - stub read APIs (findings, scopes, causalLinks, hypotheses)
 //
 // Mocking strategy: fake-indexeddb/auto (already a devDep) polyfills IndexedDB globally
 // so the real Dexie instance works end-to-end without a browser. No vi.mock needed here
@@ -490,14 +490,6 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
   // ---- stub read APIs ----
 
   describe('stub read APIs (F3 not yet implemented)', () => {
-    it('investigations.get returns undefined', async () => {
-      expect(await repo.investigations.get('any')).toBeUndefined();
-    });
-
-    it('investigations.listByHub returns []', async () => {
-      expect(await repo.investigations.listByHub('hub-azure-1')).toEqual([]);
-    });
-
     it('findings.get returns undefined', async () => {
       expect(await repo.findings.get('any')).toBeUndefined();
     });

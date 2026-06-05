@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
-import type { ProcessHubAnalyze } from '@variscout/core';
+import type { ProcessStepCapabilityMember } from '@variscout/core';
 
 export interface UseB0AnalyzesInHubInput {
   hubId: string;
-  members: readonly ProcessHubAnalyze[];
+  members: readonly ProcessStepCapabilityMember[];
 }
 
 export interface UseB0AnalyzesInHubResult {
-  unmapped: readonly ProcessHubAnalyze[];
+  unmapped: readonly ProcessStepCapabilityMember[];
   count: number;
 }
 

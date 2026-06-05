@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { calculateNodeCapability } from '../nodeCapability';
 import type { DataRow } from '../../types';
 import type { ProcessMap } from '../../frame/types';
-import type { ProcessHubAnalyzeMetadata, AnalyzeNodeMapping } from '../../processHub';
+import type { ProcessStepCapabilityMemberMetadata, AnalyzeNodeMapping } from '../../processHub';
 
 // Deterministic counter-based noise — never Math.random per .claude/rules/stats.md
 function deterministicNoise(i: number, scale: number): number {
@@ -38,7 +38,7 @@ const processMap: ProcessMap = {
 
 const nodeMappings: AnalyzeNodeMapping[] = [{ nodeId: 'n-fill', measurementColumn: 'fill_volume' }];
 
-const investigationMeta: ProcessHubAnalyzeMetadata = {
+const investigationMeta: ProcessStepCapabilityMemberMetadata = {
   processHubId: 'hub-1',
   nodeMappings,
 };

@@ -1,5 +1,6 @@
 import type { HubAction } from '../actions/HubAction';
-import type { ProcessHub, OutcomeSpec, ProcessHubAnalyze } from '../processHub';
+import type { ProcessHub, OutcomeSpec } from '../processHub';
+import type { ImprovementProject } from '../improvementProject';
 import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '../evidenceSources';
 import type {
   Finding,
@@ -36,29 +37,24 @@ export interface EvidenceSourceReadAPI {
   ): Promise<EvidenceSourceCursor | undefined>;
 }
 
-export interface AnalyzeReadAPI {
-  get(id: ProcessHubAnalyze['id']): Promise<ProcessHubAnalyze | undefined>;
-  listByHub(hubId: ProcessHub['id']): Promise<ProcessHubAnalyze[]>;
-}
-
 export interface FindingReadAPI {
   get(id: Finding['id']): Promise<Finding | undefined>;
-  listByInvestigation(investigationId: ProcessHubAnalyze['id']): Promise<Finding[]>;
+  listByInvestigation(investigationId: ImprovementProject['id']): Promise<Finding[]>;
 }
 
 export interface ScopeReadAPI {
   get(id: ProblemStatementScope['id']): Promise<ProblemStatementScope | undefined>;
-  listByInvestigation(investigationId: ProcessHubAnalyze['id']): Promise<ProblemStatementScope[]>;
+  listByInvestigation(investigationId: ImprovementProject['id']): Promise<ProblemStatementScope[]>;
 }
 
 export interface CausalLinkReadAPI {
   get(id: CausalLink['id']): Promise<CausalLink | undefined>;
-  listByInvestigation(investigationId: ProcessHubAnalyze['id']): Promise<CausalLink[]>;
+  listByInvestigation(investigationId: ImprovementProject['id']): Promise<CausalLink[]>;
 }
 
 export interface HypothesisReadAPI {
   get(id: Hypothesis['id']): Promise<Hypothesis | undefined>;
-  listByInvestigation(investigationId: ProcessHubAnalyze['id']): Promise<Hypothesis[]>;
+  listByInvestigation(investigationId: ImprovementProject['id']): Promise<Hypothesis[]>;
 }
 
 export interface CanvasStateReadAPI {
@@ -107,7 +103,6 @@ export interface HubRepository {
   outcomes: OutcomeReadAPI;
   evidenceSnapshots: EvidenceSnapshotReadAPI;
   evidenceSources: EvidenceSourceReadAPI;
-  investigations: AnalyzeReadAPI;
   findings: FindingReadAPI;
   scopes: ScopeReadAPI;
   causalLinks: CausalLinkReadAPI;
