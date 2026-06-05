@@ -372,3 +372,30 @@ One relocation doc — **"VariScout Process: the process-operations layer"** —
 **Correction 6 — line drift.** `viewState` serialization sits at `documentSnapshot.ts:96` (spec cited :95); the build-time `schemaVersion: 1` at `documentSnapshot.ts:158` (spec cited :157). The interface member at :47 is correct.
 
 **Correction 7 — the silent-downgrade hazard, recorded then mooted.** Grounding adversarially confirmed: a newer blob would have hydrated unconditionally (zero blob-path validation) and the 2-second autosave would have persisted a lossy downgrade. Under the dev-phase principle the version-skew scenario is out of scope, but the **shared-hydrate-seam strict-assert (delivered above) structurally closes it anyway**: a version-mismatched or corrupt document never hydrates, so it can never be autosaved-over. Post-first-customer, richer version-skew UX (if ever needed) builds on the same seam.
+
+---
+
+## §17 · PO-8b scope amendment + grounding corrections (2026-06-05, owner-ratified)
+
+### Grounding corrections (same class as §15/§16)
+
+- **TWO conflict-copy forks existed, not one** (§9.4 described a single auto-fork): the timestamp pre-flight (storage.ts `if (syncState?.baseStateJson)` block) AND the 412 catch (`ProjectDocumentConflictErrorClass`). PO-8b deleted the pre-flight outright (adversarially verified strictly dominated — the server PUT advances analysis.json's ETag and metadata.json's timestamp atomically, so If-Match/412 catches every state the timestamp compare caught) and replaced the 412 catch with the dialog. `getCloudModifiedDate` survives — its second caller is loadProject's load-time conflict detector.
+- **The cited test `storage.test.ts:1231` covered only the 412 fork**; no test exercised the pre-flight (nothing to rewrite there). The 412 test was rewritten to the dialog contract with a type-honest `precondition-failed` mock.
+- **ETag staleness on load**: loadProject refreshed `baseStateJson` but never `syncState.etag` — a Reload without an ETag refresh would 412 forever. The server GET already returns the etag in the body; PO-8b captures it on every cloud load.
+- **Phantom-412**: `saveToCloud` stored `etag: result.etag || now` — a fabricated timestamp as If-Match guarantees a false 412 (previously silently auto-forked; the dialog would have surfaced it to users). Fixed: never fabricate; recover the real etag with a follow-up GET; `''` (no If-Match) is the documented double-failure residual.
+
+### The heal is a MERGE, not a recompute (owner-ratified amendment to §9.2)
+
+`buildProjectMetadata` is a pure function of the aggregate and NEVER produces `sustainment` — the Control direct-Dexie bypass owns it and the ProjectCard due-ness chip reads it. The §9.2 wording "recomputed from the loaded aggregate and healed on mismatch" therefore reads, durably: **recompute the aggregate-derived fields and merge over the existing meta, preserving the sustainment projection**. PO-8b also fixed the pre-existing clobber sites this grounding exposed (the document-save meta build, the cloud-load cache write, the portfolio-list backfill — plus the adapter save that wiped meta entirely), with a seeded-sustainment negative control locking the contract.
+
+### Worker-marshal serialization: CUT (research-grounded; replaces the §9.4 item)
+
+The marshal-then-stringify worker is refuted by primary sources, not deferred for convenience: postMessage structured-clone serialization is SYNCHRONOUS on the sending thread (Surma, "Is postMessage slow?"), and for plain-object graphs structured clone is 2-3× slower than `JSON.parse(JSON.stringify())` — so marshalling the live snapshot costs the main thread as much as (or more than) the stringify it offloads. V8's stringify is >2× faster as of Chrome 138; tldraw and Excalidraw both serialize on the main thread; Salesforce's workers retrospective (hoped ~8×, got ~20% — serialization tax) is the canonical real-world confirmation. `StatsWorkerAPI` additionally must stay pure-compute (no-I/O core rule).
+
+**What ships instead:** main-thread save-serialize telemetry (`Document.Save.Serialize`: bytes + ms, PII-free) with a **dual re-architect trigger** (`Document.Save.ReArchitectTrigger`): >50 MB document OR >50 ms serialize (the web.dev long-task threshold). **Revive path when a real customer document trips it:** columnar transferable Structure-of-Arrays for raw rows (zero-copy postMessage; one contiguous buffer, never per-row arrays) or OPFS worker-owned persistence — never marshal-then-stringify. Named candidates short of re-architecture: `CompressionStream('gzip')` on the upload body; replacing the per-facet `cloneJson` deep-clone in `buildDocumentSnapshot` (the actual measured hotspot — logged in investigations.md).
+
+### Concurrency design decisions (encoding §9.4's gaps)
+
+- **Two-phase lock⟷dialog**: `navigator.locks.request` holds the lock for the callback's lifetime, so the dialog NEVER opens under the lock — the locked attempt returns a conflict result, the dialog runs lock-free, resolutions re-acquire the lock. Lock name: `variscout-project-save:<name>` (per-document, exclusive). Feature-detected (absent API → unlocked single-tab behavior).
+- **Shared read locks: not taken** (ratified deviation from §9.4's parenthetical "shared for reads") — the acceptance criterion is non-interleaved wholesale WRITES; Dexie's per-operation atomicity covers reads, and read-locking every load broadens the surface for no observed risk. Revisit only with evidence.
+- **Autosave conflicts** (the spec was silent; saves fire on a 2s debounce): the dialog opens on ANY 412 including autosave-triggered; autosave suspends while the conflict is pending; "Not now" defers autosave retries until resolution; a manual save re-opens the dialog. **Branch** = a full save under the shipped `"(conflict copy)"` name + the Editor adopts the copy as its active document (fresh identity → clean ETag). **Reload** = cloud fetch + Dexie/ETag/merge-base refresh + re-hydrate through the PO-8a strict-assert seam (typed errors caught — a corrupt remote never strands the mid-conflict user).
