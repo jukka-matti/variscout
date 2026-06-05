@@ -1633,9 +1633,11 @@ export const Editor: React.FC<EditorProps> = ({
     if (!conflictedName) return;
     dismissConflict();
     setConflictDeferred(false);
+    void requestPersistentStorageOnce(); // real save gesture — same as handleSaveAs
     // Branch = the shipped "(conflict copy)" naming, now user-chosen: a full
     // save under the copy name; the Editor adopts the copy as its active
-    // document (fresh identity → no stale ETag → next save round-trips clean).
+    // document (copy identity → its own ETag → no conflict from the original
+    // document's stale ETag on the next save).
     await saveAndRecordBaseline(`${conflictedName} (conflict copy)`);
   }, [dismissConflict, pendingConflict, saveAndRecordBaseline]);
 
