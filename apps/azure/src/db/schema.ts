@@ -213,6 +213,18 @@ export class VariScoutDatabase extends Dexie {
     // Per wedge V1 no-users / no-migration stance (ADR-082), NO upgrade
     // callback. The bump flushes cached schema; no destructive re-init.
     this.version(16).stores({});
+
+    // Version 17: PO-7 honest-rename — drop the phantom `investigationId` index
+    // from the three control tables (zero `.where('investigationId')` queries
+    // exist anywhere; control joins are post-fetch filters — PO-6 CausalLink
+    // precedent). The row FIELD renamed to `projectId` (in-row, unindexed; no
+    // `projectId` index added). No upgrade callback — wedge no-back-compat:
+    // pre-rename rows keep the old key in-row and simply stop joining.
+    this.version(17).stores({
+      controlRecords: 'id, hubId, nextReviewDue, updatedAt, deletedAt',
+      controlReviews: 'id, recordId, hubId, reviewedAt',
+      controlHandoffs: 'id, hubId, handoffDate',
+    });
   }
 }
 

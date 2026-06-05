@@ -10,6 +10,7 @@
 //   v12 — R6d (drop DocumentSnapshot browser save table; .vrs export-only)
 //   v13 — PO-4 (drop never-written investigations table; analyze projection dissolved)
 //   v14 — PO-6 (drop the dead findings/causalLinks/hypotheses tables)
+//   v15 — PO-7 (drop the phantom investigationId index from the control tables)
 //
 // Mirrors the Azure schema test pattern at
 // apps/azure/src/db/__tests__/schema.v6.test.ts.
@@ -18,7 +19,7 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../schema';
 
-const LATEST_SCHEMA_VERSION = 14;
+const LATEST_SCHEMA_VERSION = 15;
 
 describe('PWA IndexedDB schema (latest version)', () => {
   beforeEach(async () => {
