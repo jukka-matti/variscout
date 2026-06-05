@@ -36,6 +36,16 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Severity:** low — the interim is honest and non-blocking; the design questions outlive the PR.
 
+### `bestProjectedCpk` scans all hypothesis statuses post-PO-5 [LOGGED 2026-06-05]
+
+**Surfaced by:** the PO-5 final adversarial review. With the Report scope now status-keyed (`selectIPReportScope.hypotheses` = all live hypotheses), the `bestProjectedCpk` derivation in both apps' `ReportView` (`Math.max` over selected-idea `projection.projectedCpk` across `reportHypotheses`) has no status filter — a `refuted` or `proposed` hypothesis that still carries a selected idea with a projection contributes to "best projected Cpk."
+
+**Summary:** `ReportImprovementSummary` is _designed_ to render every status (it badges each with `STATUS_BADGE_LABELS`), so all-status display is intended; the question is narrower — should the aspirational _projection metric_ respect cause status (e.g. only `evidence-survived-test`/`evidenced`, matching the cause-row buckets)? Gating it is a product decision, not a PO-5 obligation.
+
+**Promotion path:** fold into the next Report-view design touch (or the #12 Control-closure brainstorm if the metric feeds closure framing).
+
+**Severity:** low — aspirational ceiling metric; no correctness impact.
+
 ### PO-4 CS-P2-pending dead seams — per-step capability row channel + `useHubMigrationState` suggestion derivation [LOGGED 2026-06-05]
 
 **Surfaced by:** PO-4 review (entity-dissolution PR) — two seams left intentionally inert until CS-P2 wires the editor's live `rawData` through the carrier.
