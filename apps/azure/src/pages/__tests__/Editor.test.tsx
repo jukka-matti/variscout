@@ -18,11 +18,12 @@ import {
   projectMembershipStorageKey,
 } from '@variscout/stores';
 import type { Invitation } from '@variscout/core/projectMembership';
+import type { AnalysisBrief } from '@variscout/core';
 
 const { mockUseAutoSave, stageFiveCapture } = vi.hoisted(() => ({
   mockUseAutoSave: vi.fn(),
   stageFiveCapture: {
-    onOpenInvestigation: undefined as ((brief: { hypothesisDraft?: string }) => void) | undefined,
+    onOpenInvestigation: undefined as ((brief: AnalysisBrief) => void) | undefined,
   },
 }));
 
@@ -205,9 +206,7 @@ vi.mock('@variscout/ui', async importOriginal => {
     JournalTabContent: () => null,
     DocumentShelfBase: () => null,
     WhatIfExplorerPage: () => null,
-    StageFiveModal: (props: {
-      onOpenInvestigation: (brief: { hypothesisDraft?: string }) => void;
-    }) => {
+    StageFiveModal: (props: { onOpenInvestigation: (brief: AnalysisBrief) => void }) => {
       stageFiveCapture.onOpenInvestigation = props.onOpenInvestigation;
       return null;
     },

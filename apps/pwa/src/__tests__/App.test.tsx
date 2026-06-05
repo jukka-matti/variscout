@@ -11,19 +11,18 @@
 import 'fake-indexeddb/auto';
 import { vi } from 'vitest';
 import Dexie from 'dexie';
+import type { AnalysisBrief } from '@variscout/core';
 
 // Capture the StageFiveModal onOpenInvestigation callback for Stage-5 draft tests.
 const stageFiveCapture = vi.hoisted(() => ({
-  onOpenInvestigation: undefined as ((brief: { hypothesisDraft?: string }) => void) | undefined,
+  onOpenInvestigation: undefined as ((brief: AnalysisBrief) => void) | undefined,
 }));
 
 vi.mock('@variscout/ui', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/ui')>();
   return {
     ...actual,
-    StageFiveModal: (props: {
-      onOpenInvestigation: (brief: { hypothesisDraft?: string }) => void;
-    }) => {
+    StageFiveModal: (props: { onOpenInvestigation: (brief: AnalysisBrief) => void }) => {
       stageFiveCapture.onOpenInvestigation = props.onOpenInvestigation;
       return null;
     },
