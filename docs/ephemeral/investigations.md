@@ -26,6 +26,16 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### PWA first-session journey — sample-data → Explore → first Finding is not smooth [LOGGED 2026-06-05]
+
+**Surfaced by:** owner live walk 2026-06-05 (during PO-8a execution): clicking a sample dataset in the PWA lands in Explore, but capturing the first Finding from there had visible friction — the wiring works, the _journey_ doesn't flow.
+
+**Summary:** the no-Project quick-analysis onramp (OVERVIEW §3.0 — the free-PWA teaser and the first five minutes of every demo) crosses several seams that were each built/fixed separately but never designed as ONE journey: sample-data entry → Explore charts → Finding capture (pin/brush gestures) → Wall/Analyze (PR #295 fixed the entry CTAs; CS-13 added the crossing-back; CS-12 noted the "+ Add condition" gesture not opening an editor in 2 live attempts). The friction is a holistic user-journey question, not a single defect: where does the user's eye go after sample load, what is the invitation to capture, how does the first Finding teach the Explore⟷Analyze loop. Adjacent-but-not-covering queued design sessions: Home launchpad (Azure arrival, attention contract) and CoScout phase + journey model (JourneyPhase fossil) — neither owns the PWA first-session capture ergonomics.
+
+**Promotion path:** its own brainstorm — "the first-session journey" (PWA onramp + sample entry + Explore→Finding capture flow + the handoff into Analyze/Wall). Timing per owner discussion 2026-06-05: NOT gated on CS-P2…P5 — the journey is demo-critical (demos start exactly here) and orthogonal to the Process-tab per-step work; candidate slot = after PO-8b ships (persistence launch-blockers done), before or parallel to the CS-P2 build.
+
+**Severity:** medium — no data loss / no crash, but it is the conversion path and the demo opening; rough edges here cost disproportionately.
+
 ### EvidenceSnapshot accumulation — no pruning policy [LOGGED 2026-06-05]
 
 **Surfaced by:** PO-7 doc propagation pass (spec §11 mandate — log if absent); grounding reference: spec `2026-06-04-process-ops-extraction-entity-disposition-design.md` §9.5 + §14.
