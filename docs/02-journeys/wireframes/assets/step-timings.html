@@ -1,0 +1,96 @@
+<h2>Multiple timestamps → process steps: the designed UI, given a front door</h2>
+<p class="subtitle">Panels 2 and 3 are the UI you designed (CCJ spec §4.3.1, shipped as StepTimingsModal + timing badges + derived chips). Panel 1 is the only new piece — the landing detection that routes into them.</p>
+
+<div class="section">
+  <div class="label" style="color:#5b8def">1 · NEW — the proposal banner on the paste landing (b0)</div>
+  <div class="mockup" style="margin:8px 0 18px">
+    <div class="mockup-body" style="background:#0f1729;padding:14px;font-size:13px">
+      <div style="background:rgba(91,141,239,.1);border:1px solid #3b5db8;border-radius:8px;padding:12px 14px;display:flex;gap:12px;align-items:center">
+        <span style="font-size:18px">⛓</span>
+        <div style="flex:1">
+          <div style="color:#dbeafe;font-weight:600">These look like step timestamps — 3 start/end pairs detected</div>
+          <div style="color:#94a3b8;font-size:12px">Prep_start+Prep_end · Assembly_start+Assembly_end · QC_start+QC_end</div>
+        </div>
+        <span style="background:#2563eb;color:#fff;padding:6px 14px;border-radius:6px;font-weight:600">Build process model</span>
+        <span style="color:#94a3b8">Not now</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label" style="color:#22c55e">2 · SHIPPED — StepTimingsModal, pre-filled by pair detection</div>
+  <div class="mockup" style="margin:8px 0 18px">
+    <div class="mockup-body" style="background:#0f1729;padding:18px;font-size:13px;display:flex;justify-content:center">
+      <div style="background:#16213a;border:1px solid #334155;border-radius:12px;padding:18px;width:520px">
+        <div style="color:#e2e8f0;font-weight:700;margin-bottom:12px">Step timings</div>
+        <div style="display:flex;gap:2px;margin-bottom:14px">
+          <span style="background:#1e3a8a;color:#dbeafe;padding:5px 14px;border-radius:6px 6px 0 0;font-weight:600">By step</span>
+          <span style="color:#64748b;padding:5px 14px">By column</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;color:#cbd5e1;font-size:12px">
+          <tr style="color:#64748b;text-align:left"><th style="padding:4px 8px">Step</th><th>Start</th><th>End</th><th>Duration</th></tr>
+          <tr><td style="padding:6px 8px;font-weight:600">Prep</td>
+            <td><span style="border:1px solid #155e75;background:#0e2a3a;padding:3px 8px;border-radius:5px"><span style="color:#22d3ee">●</span> Prep_start ▾</span></td>
+            <td><span style="border:1px solid #155e75;background:#0e2a3a;padding:3px 8px;border-radius:5px"><span style="color:#22d3ee">●</span> Prep_end ▾</span></td>
+            <td style="color:#94a3b8">~4.2 min</td></tr>
+          <tr><td style="padding:6px 8px;font-weight:600">Assembly</td>
+            <td><span style="border:1px solid #155e75;background:#0e2a3a;padding:3px 8px;border-radius:5px"><span style="color:#22d3ee">●</span> Assembly_start ▾</span></td>
+            <td><span style="border:1px solid #155e75;background:#0e2a3a;padding:3px 8px;border-radius:5px"><span style="color:#22d3ee">●</span> Assembly_end ▾</span></td>
+            <td style="color:#94a3b8">~11.8 min</td></tr>
+          <tr><td style="padding:6px 8px;font-weight:600">QC</td>
+            <td><span style="border:1px solid #155e75;background:#0e2a3a;padding:3px 8px;border-radius:5px"><span style="color:#22d3ee">●</span> QC_start ▾</span></td>
+            <td><span style="border:1px solid #155e75;background:#0e2a3a;padding:3px 8px;border-radius:5px"><span style="color:#22d3ee">●</span> QC_end ▾</span></td>
+            <td style="color:#94a3b8">~2.9 min</td></tr>
+        </table>
+        <div style="color:#22d3ee;font-size:11px;margin:6px 8px">● auto-detected from column names — change any picker to override</div>
+        <div style="border-top:1px solid #1e293b;margin-top:10px;padding-top:10px;color:#64748b;font-size:12px">Or use a single duration column: <span style="border:1px solid #334155;padding:3px 8px;border-radius:5px">— ▾</span></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:14px">
+          <span style="background:#2563eb;color:#fff;padding:7px 16px;border-radius:6px;font-weight:600">Save · 3 steps timed →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label" style="color:#22c55e">3 · SHIPPED — the process model materializes, flow metrics derive</div>
+  <div class="mockup" style="margin:8px 0 8px">
+    <div class="mockup-body" style="background:#0f1729;padding:18px;font-size:13px">
+      <div style="display:flex;gap:14px;align-items:center;justify-content:center;margin-bottom:16px">
+        <div style="background:#16213a;border:1px solid #334155;border-radius:10px;padding:12px 16px;text-align:center">
+          <div style="color:#e2e8f0;font-weight:700">Prep</div>
+          <div style="color:#7dd3fc;font-size:11px">⏱ 4.2 min</div>
+        </div>
+        <span style="color:#475569">→</span>
+        <div style="background:#16213a;border:1px solid #b45309;border-radius:10px;padding:12px 16px;text-align:center">
+          <div style="color:#e2e8f0;font-weight:700">Assembly</div>
+          <div style="color:#fbbf24;font-size:11px">⏱ 11.8 min · widest</div>
+        </div>
+        <span style="color:#475569">→</span>
+        <div style="background:#16213a;border:1px solid #334155;border-radius:10px;padding:12px 16px;text-align:center">
+          <div style="color:#e2e8f0;font-weight:700">QC</div>
+          <div style="color:#7dd3fc;font-size:11px">⏱ 2.9 min</div>
+        </div>
+      </div>
+      <div style="text-align:center;color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Derived from timings — land in L2 flow view</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <span style="background:#16213a;border:1px solid #5b21b6;color:#c4b5fd;padding:5px 12px;border-radius:8px">Lead_time</span>
+        <span style="background:#16213a;border:1px solid #5b21b6;color:#c4b5fd;padding:5px 12px;border-radius:8px">Total_work_time</span>
+        <span style="background:#16213a;border:1px solid #5b21b6;color:#c4b5fd;padding:5px 12px;border-radius:8px">Wait_time</span>
+      </div>
+    </div>
+  </div>
+  <p style="color:#475569;font-size:12px">Accepting the banner = the b0→b1 transition: steps materialize, the landing becomes the L2 flow view of YOUR process, and the Bottleneck story tells itself — Assembly is visibly the widest step before a single chart is opened.</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="lock-s1" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content"><h3>Lock Section 1 with the step-timestamp detection included</h3><p>Landing + Untitled project + vestibule retirement + all four detections</p></div>
+  </div>
+  <div class="option" data-choice="adjust" onclick="toggleSelect(this)">
+    <div class="letter">↺</div>
+    <div class="content"><h3>Adjust something</h3><p>Tell me in the terminal</p></div>
+  </div>
+</div>

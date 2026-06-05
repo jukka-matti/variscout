@@ -26,7 +26,7 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
-### PWA first-session journey — sample-data → Explore → first Finding is not smooth [LOGGED 2026-06-05]
+### PWA first-session journey — sample-data → Explore → first Finding is not smooth [PROMOTED 2026-06-06 → spec 2026-06-06-first-session-journey-design]
 
 **Surfaced by:** owner live walk 2026-06-05 (during PO-8a execution): clicking a sample dataset in the PWA lands in Explore, but capturing the first Finding from there had visible friction — the wiring works, the _journey_ doesn't flow.
 

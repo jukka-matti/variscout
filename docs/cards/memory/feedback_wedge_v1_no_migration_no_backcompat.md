@@ -1,30 +1,30 @@
 ---
 title: 'wedge-v1-no-migration-no-backcompat'
-description: 'Wedge V1 has no users yet — no migration scaffolding, no grandfathering, no back-compat shims; also skip browser walks for wedge engineering PRs'
+description: 'Development-phase principle (until first customer): no old data artifacts exist — no migration scaffolding, no back-compat shims, no forward-compat machinery (version-skew UX, migration seams). Cut clean.'
 purpose: remember
 tier: card
 status: active
-date: 2026-05-18
+date: 2026-06-05
 topic: [memory, feedback]
 related: []
-verified-against-commit: c6cf0f8c5
-last-verified: 2026-05-18
-source-hash: 1fac5e006f0ee1ff
+verified-against-commit: 7712f1edb
+last-verified: 2026-06-05
+source-hash: 831a98212b581d30
 origin-session-id: beeecb0e-3c3a-423f-ac5e-8b429351f010
 ---
 
 > 🤖 **Generated mirror** of `~/.claude/memory/feedback_wedge_v1_no_migration_no_backcompat.md`. Edit there, not here. Card synced by `scripts/docs/sync-memory-cards.mjs`; re-run via `pnpm docs:rebuild` (Phase 3 A4).
 
-For all wedge V1 engineering PRs (PR-WV1-1 through PR-WV1-6 and any post-V1 cleanup before public launch), **do not write migration code, grandfathering UI, communication artifacts, or backward-compatibility shims**. Cut clean. Code rules still apply (TDD, factories, importOriginal, no `--no-verify`, etc.), but the *data + customer* compatibility layer does not.
+**Development-phase principle (generalized 2026-06-05 at PO-8a, owner call): until the first real customer, no old `.vrs` files / blobs / Dexie rows exist in the wild. Do not write migration code, grandfathering UI, backward-compatibility shims, OR forward-compatibility machinery (newer-than-reader read-only modes, migration-dispatch seams, version-negotiation UX).** Cut clean. Code rules still apply (TDD, factories, importOriginal, no `--no-verify`, etc.), but the *data + customer* compatibility layer does not exist yet.
 
-**Why:** Wedge V1 has no users yet. ADR-082's economic model assumes a near-empty customer base; the user confirmed explicitly 2026-05-17 ("no need for migration, no backward compatibility for now"). Writing migration code or grandfathering UI is YAGNI debt that slows the wedge.
+**Why:** No users yet (originally confirmed 2026-05-17 for wedge PRs; re-confirmed and **generalized to ALL development-phase PRs 2026-06-05** during PO-8a scoping — "we are still in development phase, so we won't have old vrs files floating around, nor do we need any migration, nor backward compatibility"). Both apps are evergreen web deployments (tenant-wide Azure + hosted PWA) — "old reader meets newer file" is a stale-tab/stale-cache edge whose remedy is a refresh, not a SolidWorks-style installed-software version-skew problem. Compatibility machinery before the first customer is YAGNI debt.
 
 **How to apply:**
 
-- **`.vrs` schema changes** — drop fields directly; no `migrateX()` idempotent helpers, no "silent map on read" logic. The codebase has prior migration helpers (`migrateTeamToMembers`, `migrateFindingStatus`) from earlier work — don't model new ones on those for wedge V1 changes. (Keep the existing ones; they served pre-wedge users.) Supersedes [[feedback_strict_assert_over_silent_migration]] for the wedge V1 scope: prefer **outright deletion** over either strict-assert or silent migration.
-- **Marketplace + pricing** (PR-WV1-6) — flip the manifest to single €99 SKU; do NOT build `MigrationPrompt` UI, grandfather countdowns, in-product banners, FAQ docs, or email templates. Just commit the new manifest.
-- **API + type shapes** — required props by default; refactor consumers in the same PR. Don't stub deleted functions to return defaults; delete them and update consumers. (This already aligned with [[feedback_no_backcompat_clean_architecture]] — this entry strengthens it for wedge V1: even if it would have been "harmless" to stub, don't.)
-- **Browser walks** — skip them for wedge engineering PRs. `pr-ready-check.sh` green + Opus final code review is enough. (Counter-instructs [[feedback_verify_before_push]] for the wedge work specifically; restore browser walk verification for post-wedge feature PRs that change visual UX.)
-- **Sub-plans + PR bodies** — when writing wedge sub-plans, omit "browser walk" from verification sections + PR templates. Test plan = `pnpm test` + `pnpm build` + `pr-ready-check.sh` green.
+- **Schema changes** (`.vrs`, DocumentSnapshot, Dexie, type shapes) — drop/rename fields directly; no `migrateX()` helpers, no silent-map-on-read, no migration-dispatch tables scaffolded "for later". Old rows orphan / old keys deserialize to `undefined` — accepted, documented-by-test where useful (ADR-091 pattern).
+- **Version-skew UX** — no read-only modes, no "saved by a newer version" warning systems, no decline-or-branch dialogs for VERSION mismatches. Strict-reject with a clear user-facing message ("refresh the app" hint for version mismatch) is enough. (Concurrency conflicts between LIVE users are different — the PO-8b conflict dialog stays.)
+- **API + type shapes** — required props by default; refactor consumers in the same PR. Delete, don't stub. (Strengthens [[feedback_no_backcompat_clean_architecture]].) Supersedes [[feedback_strict_assert_over_silent_migration]] for dev-phase scope: prefer **outright deletion**; loud strict-assert is for CORRUPT data, not old data.
+- **Sub-plans + specs** — when a spec proposes compatibility machinery, challenge it against this principle at grounding time (PO-8a's spec §9.3 three-way-branch + migration seam were cut this way, owner-ratified).
+- ~~Browser walks — skip for wedge PRs~~ **Superseded**: current practice = `--chrome` verify on UI-touching PRs per the master-plan chrome matrix; rename-only/mechanical PRs may skip with recorded precedent (PO-7).
 
-**Scope:** Wedge V1 stack (PR-WV1-1 through PR-WV1-6) + post-V1 cleanup PRs until public launch. Reassess after the first paying customer or public Marketplace listing — at that point migration + UX-walk discipline reactivate.
+**Expiry: the first real customer's saved data is permanent history — at that instant this principle flips.** Migration + compatibility discipline activates THEN (designed as its own item, not pre-scaffolded). Canonical doc home: decision-log 2026-06-05 PO-8a entry + ADR-091 amendment.

@@ -1,0 +1,69 @@
+<h2>The capture grammar — one card, four ways in</h2>
+<p class="subtitle">A Finding is already "a bookmarked filter state with analyst notes" (core/findings/types.ts). Every gesture below just pre-fills the same draft card differently.</p>
+
+<div class="section" style="display:flex;gap:18px;align-items:stretch">
+  <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 12px;font-size:13px">
+      <div style="color:#bfdbfe;font-weight:700">📌 Pin — "this filter combination"</div>
+      <div style="color:#94a3b8">Condition = active filter chips<br><code style="color:#7dd3fc">Step=2 × Shift=Night</code></div>
+    </div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 12px;font-size:13px">
+      <div style="color:#bfdbfe;font-weight:700">🖱 Brush — "this range of points"</div>
+      <div style="color:#94a3b8">Condition = observation window<br><code style="color:#7dd3fc">obs 32–58</code> (brushedRange exists in FindingSource)</div>
+    </div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 12px;font-size:13px">
+      <div style="color:#bfdbfe;font-weight:700">👆 Point at a chart — "this thing here"</div>
+      <div style="color:#94a3b8">Condition = chart anchor (boxplot category, I-Chart point)<br>today right-click-only; becomes a visible shortcut</div>
+    </div>
+    <div style="background:#1e293b;border:1px solid #5b8def;border-radius:8px;padding:10px 12px;font-size:13px">
+      <div style="color:#bfdbfe;font-weight:700">⚠ Engine detection — "the system saw this"</div>
+      <div style="color:#94a3b8">"Process shift: 31 points above mean from obs 60" gets a <b style="color:#bfdbfe">Capture</b> button instead of only ✕ dismiss — the deterministic engine proposes, the analyst decides</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;color:#5b8def;font-size:28px">→</div>
+
+  <div style="flex:1.1;display:flex;align-items:center">
+    <div style="background:#0f1729;border:2px solid #5b8def;border-radius:12px;padding:16px;font-size:13px;width:100%">
+      <div style="color:#bfdbfe;font-weight:700;margin-bottom:8px">📌 New Finding (one draft card — option C)</div>
+      <div style="margin-bottom:6px"><span style="color:#64748b">CONDITION</span><br><span style="color:#e2e8f0">pre-filled by the gesture</span></div>
+      <div style="margin-bottom:6px"><span style="color:#64748b">EVIDENCE</span><br><span style="color:#e2e8f0">stats contrast auto-computed (mean 41.2 vs 35.1 · n=26 · window)</span></div>
+      <div style="margin-bottom:10px"><span style="color:#64748b">NOTE</span><br><span style="color:#94a3b8">"What did you notice?" (optional)</span></div>
+      <span style="background:#1e3a8a;color:#bfdbfe;padding:4px 12px;border-radius:6px">Save Finding</span>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;color:#5b8def;font-size:28px">→</div>
+
+  <div style="flex:0.9;display:flex;flex-direction:column;gap:10px;justify-content:center">
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 12px;font-size:13px">
+      <div style="color:#bfdbfe;font-weight:700">Findings panel</div>
+      <div style="color:#94a3b8">first Finding triggers the save nudge ("keep this session?")</div>
+    </div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 12px;font-size:13px">
+      <div style="color:#bfdbfe;font-weight:700">Analyze / Wall</div>
+      <div style="color:#94a3b8">condition's factors auto-derive hypothesis edges (CS-12: from Finding.context.activeFilters)</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>What this fixes from your walk</h3>
+  <ul style="color:#cbd5e1;font-size:14px;line-height:1.7">
+    <li>"How do I make a finding in the first place?" → one card, learned once, reached from whatever you were already doing</li>
+    <li>The lying empty state → copy becomes honest: "Brush a range, pin your filters, or capture a detected signal"</li>
+    <li>The space-hogging shift banner → compact signal chip with a Capture action (it's a <i>proposed finding</i>, not an announcement)</li>
+    <li>Right-click stops being a secret — pointing gets a visible affordance, right-click stays as the shortcut</li>
+  </ul>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content"><h3>Lock this as the core capture design</h3><p>One draft card, four entry gestures, engine proposes / analyst decides</p></div>
+  </div>
+  <div class="option" data-choice="revise" onclick="toggleSelect(this)">
+    <div class="letter">↺</div>
+    <div class="content"><h3>Close, but revise something</h3><p>Tell me in the terminal what doesn't sit right</p></div>
+  </div>
+</div>

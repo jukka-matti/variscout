@@ -1,15 +1,16 @@
 ---
-title: 'Internationalization Architecture'
+title: 'internationalization-architecture'
 description: 'ADR-025 i18n infrastructure — typed message catalogs + Intl APIs, lazy-loaded locales (English static, 32 dynamic)'
 purpose: remember
 tier: card
 status: active
-date: 2026-05-18
+date: 2026-06-05
 topic: [memory, project]
 related: []
-verified-against-commit: c6cf0f8c5
-last-verified: 2026-05-18
-source-hash: 49fa617375778f95
+verified-against-commit: 7712f1edb
+last-verified: 2026-06-05
+source-hash: 407549dca0d07c32
+origin-session-id: ba40152a-6f7e-4293-8f2a-9d88791516dd
 ---
 
 > 🤖 **Generated mirror** of `~/.claude/memory/project_i18n.md`. Edit there, not here. Card synced by `scripts/docs/sync-memory-cards.mjs`; re-run via `pnpm docs:rebuild` (Phase 3 A4).
@@ -29,3 +30,4 @@ ADR-025 Internationalization Architecture delivered (Phase 0, 2026-03-17). Local
 - Service worker runtime-caches locale chunks (StaleWhileRevalidate)
 - AI prompts stay English; AI response locale hint planned for future phase
 - Phase 1 (future): replace .toFixed() → formatStatistic() across ~51 files
+- **Adding a message key touches ALL 32 catalogs, not just `en.ts`** — `MessageCatalog` is a CLOSED interface; the tsc build (+ i18n completeness test) fails if any locale lacks the key. English placeholder is the convention for new technical labels (translate later). CS-8 (2026-06-03) planned a "1-file" i18n add that was really 33 files. Mechanics + enforcement now live in `packages/core/CLAUDE.md` §"i18n loading invariants".

@@ -1,0 +1,101 @@
+<h2>The paste landing — your shipped b0 framing view, pre-filled by inference</h2>
+<p class="subtitle">Faithful to FrameViewB0 as built (question-led copy is verbatim from the i18n catalog). Green tags = already shipped. Blue tags = new in this design.</p>
+
+<div style="display:flex;gap:20px;align-items:flex-start">
+  <div style="flex:1.6">
+    <div class="mockup">
+      <div class="mockup-header" style="display:flex;gap:14px;align-items:center;background:#0b1220;color:#cbd5e1;font-size:12px;padding:8px 12px">
+        <span style="color:#5b8def;font-weight:700">⩓ VariScout</span>
+        <span style="color:#64748b">Untitled project · unsaved</span>
+        <span style="flex:1"></span>
+        <span>Home · Project · <b style="color:#bfdbfe;border-bottom:2px solid #5b8def">Process</b> · Explore · Analyze · Improve · Report</span>
+      </div>
+      <div class="mockup-body" style="background:#0f1729;padding:22px;font-size:13px">
+
+        <!-- provenance + parse banner row -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+          <span style="color:#64748b;font-size:12px">Pasted · 800 rows · 6 columns · 0.4% missing</span>
+          <span style="flex:1"></span>
+          <span style="color:#64748b;font-size:12px;text-decoration:underline">Fix data…</span>
+        </div>
+
+        <!-- time proposal chip -->
+        <div style="background:rgba(91,141,239,.08);border:1px solid #2b3c5e;border-radius:8px;padding:8px 12px;margin-bottom:18px;display:flex;gap:10px;align-items:center">
+          <span style="color:#7dd3fc">⏱</span>
+          <span style="color:#cbd5e1">Dates detected in <b>Timestamp</b> — added <b>Day of Week</b> + <b>Month</b> as factors.</span>
+          <span style="color:#94a3b8;text-decoration:underline">Adjust ▾</span>
+          <span style="color:#64748b">✕</span>
+        </div>
+
+        <!-- Q1: Y picker -->
+        <div style="margin-bottom:20px">
+          <div style="color:#e2e8f0;font-weight:700;font-size:15px">What do you want to investigate?</div>
+          <div style="color:#64748b;margin-bottom:10px">your Y / output measurement <span style="color:#475569">(run order: Timestamp)</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="background:#1e3a8a;border:2px solid #5b8def;color:#dbeafe;padding:8px 14px;border-radius:8px;font-weight:600">Cycle_Time_sec <span style="opacity:.7;font-weight:400">▂▅▃▇▂ 36.5 ±7.5</span> ✓</span>
+            <span style="background:#16213a;border:1px solid #334155;color:#94a3b8;padding:8px 14px;border-radius:8px">Temp_C <span style="opacity:.6">▃▃▄▃▃</span></span>
+            <span style="background:#16213a;border:1px solid #334155;color:#94a3b8;padding:8px 14px;border-radius:8px">Pressure <span style="opacity:.6">▄▂▄▅▄</span></span>
+          </div>
+          <div style="color:#7dd3fc;margin-top:8px;font-size:12px">+ add spec limits (USL / LSL / target)</div>
+        </div>
+
+        <!-- Q2: X picker -->
+        <div style="margin-bottom:20px">
+          <div style="color:#e2e8f0;font-weight:700;font-size:15px">What might be affecting it?</div>
+          <div style="color:#64748b;margin-bottom:10px">your X's / inputs</div>
+          <div style="color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Selected</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <span style="background:#14532d33;border:1px solid #15803d;color:#bbf7d0;padding:6px 12px;border-radius:8px">Step <span style="opacity:.6">5 levels</span> ✓</span>
+            <span style="background:#14532d33;border:1px solid #15803d;color:#bbf7d0;padding:6px 12px;border-radius:8px">Operator <span style="opacity:.6">3 levels</span> ✓</span>
+            <span style="background:#14532d33;border:1px solid #15803d;color:#bbf7d0;padding:6px 12px;border-radius:8px">Day of Week <span style="opacity:.6">derived</span> ✓</span>
+          </div>
+          <div style="color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Available</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="background:#16213a;border:1px dashed #334155;color:#64748b;padding:6px 12px;border-radius:8px">Month <span style="opacity:.6">derived</span></span>
+            <span style="background:#16213a;border:1px dashed #334155;color:#64748b;padding:6px 12px;border-radius:8px">Batch_ID <span style="opacity:.6">42 levels</span></span>
+          </div>
+        </div>
+
+        <!-- process steps expander -->
+        <div style="border:1px solid #1e293b;border-radius:8px;padding:12px;margin-bottom:18px">
+          <div style="color:#cbd5e1;font-weight:600">▸ Add process steps</div>
+          <div style="color:#64748b;font-size:12px">optional — useful when your X's belong to specific stages</div>
+        </div>
+
+        <!-- CTA -->
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="background:#2563eb;color:#fff;padding:10px 22px;border-radius:8px;font-weight:700">See the data →</span>
+          <span style="color:#64748b;font-size:12px">opens Explore with this Y and these X's</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:0.7;font-size:13px">
+    <h3 style="margin-top:0">What's shipped vs. new</h3>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div><span style="background:#14532d;color:#bbf7d0;padding:1px 8px;border-radius:10px;font-size:11px">SHIPPED</span> Question-led Y picker, ranked candidates, sparklines</div>
+      <div><span style="background:#14532d;color:#bbf7d0;padding:1px 8px;border-radius:10px;font-size:11px">SHIPPED</span> X chips — selected above available, level counts</div>
+      <div><span style="background:#14532d;color:#bbf7d0;padding:1px 8px;border-radius:10px;font-size:11px">SHIPPED</span> Inline spec editor, process-steps expander, "See the data →" gate</div>
+      <div><span style="background:#14532d;color:#bbf7d0;padding:1px 8px;border-radius:10px;font-size:11px">SHIPPED</span> All the inference (detectColumns, rankYCandidates, time detection)</div>
+      <div style="margin-top:6px"><span style="background:#1e3a8a;color:#bfdbfe;padding:1px 8px;border-radius:10px;font-size:11px">NEW</span> Paste <b>routes here</b> instead of the wizard screen</div>
+      <div><span style="background:#1e3a8a;color:#bfdbfe;padding:1px 8px;border-radius:10px;font-size:11px">NEW</span> Top Y arrives <b>pre-selected</b>, siblings stay visible</div>
+      <div><span style="background:#1e3a8a;color:#bfdbfe;padding:1px 8px;border-radius:10px;font-size:11px">NEW</span> Provenance line + quiet proposal chips (time) / loud banner (defect, wide-format) when unit-of-analysis would change</div>
+      <div><span style="background:#1e3a8a;color:#bfdbfe;padding:1px 8px;border-radius:10px;font-size:11px">NEW</span> "Fix data…" hatch = the demoted wizard (messy pastes, stack names)</div>
+      <div><span style="background:#1e3a8a;color:#bfdbfe;padding:1px 8px;border-radius:10px;font-size:11px">NEW</span> "Untitled project · unsaved" in the header</div>
+    </div>
+    <h3>Not demo theater</h3>
+    <p style="color:#475569">Every addition is an honesty feature: the provenance line shows what the engine read, sibling chips show what it considered, banners ask before changing the unit of analysis. Nothing animates, nothing sells.</p>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="lock" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content"><h3>This is the landing — lock Section 1</h3><p>Shipped b0 + inference pre-fill + honesty chrome</p></div>
+  </div>
+  <div class="option" data-choice="adjust" onclick="toggleSelect(this)">
+    <div class="letter">↺</div>
+    <div class="content"><h3>Adjust something</h3><p>Tell me in the terminal</p></div>
+  </div>
+</div>
