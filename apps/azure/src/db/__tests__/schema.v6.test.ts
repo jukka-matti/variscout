@@ -131,11 +131,11 @@ describe('IndexedDB schema v14 (E1)', () => {
   });
 
   it('opens cleanly without erroring on the v17 statement', async () => {
-    // The v17 statement drops the phantom `investigationId` index from the
-    // control tables (PO-7), with no upgrade callback (per wedge V1
-    // no-back-compat policy). If a stale upgrade callback were registered or the
-    // version statement were malformed, openDb() would throw here. Successful
-    // open + correct verno is the implicit proof.
+    // The v17 statement drops the phantom join-key index from the control
+    // tables (PO-7), with no upgrade callback (per wedge V1 no-back-compat
+    // policy). If a stale upgrade callback were registered or the version
+    // statement were malformed, openDb() would throw here. Successful open +
+    // correct verno is the implicit proof.
     await expect(openDb()).resolves.toBeDefined();
     expect(db.verno).toBe(17);
   });

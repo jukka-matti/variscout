@@ -10,7 +10,7 @@
 //   v12 — R6d (drop DocumentSnapshot browser save table; .vrs export-only)
 //   v13 — PO-4 (drop never-written investigations table; analyze projection dissolved)
 //   v14 — PO-6 (drop the dead findings/causalLinks/hypotheses tables)
-//   v15 — PO-7 (drop the phantom investigationId index from the control tables)
+//   v15 — PO-7 (drop the phantom join-key index from the control tables)
 //
 // Mirrors the Azure schema test pattern at
 // apps/azure/src/db/__tests__/schema.v6.test.ts.
