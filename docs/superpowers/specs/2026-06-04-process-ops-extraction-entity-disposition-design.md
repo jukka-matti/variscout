@@ -247,6 +247,8 @@ Owner call 2026-06-04: **the spec gates, the build doesn't.**
 
 ### §9.3 · Schema policy
 
+> **⚠️ Amended 2026-06-05 (owner-ratified, §16):** the three-way branch (newer → read-only + warning) and the migration-dispatch seam are **CUT** under the dev-phase no-compat principle; the `processHub.ts:433 schemaVersion` claim below is a **phantom** (Correction 4). See §16 for the durable PO-8a scope.
+
 - **`schemaVersion` already exists** (review catch — the spec's first draft claimed it as net-new): `DocumentSnapshot.schemaVersion` is a literal `1` today (`documentSnapshot.ts:47,157`), the `.vrs` validator **strict-rejects any other value** (`documentSnapshotVrs.ts:34`), and `ProcessHub` carries its own separate `schemaVersion: 1` (`processHub.ts:433`). PO-8a is therefore **not "add the field"** but: _re-freeze v1 after the cleaned (post-E) shape lands, and replace the strict-reject-on-mismatch with a three-way branch_ — known-current → load · known-but-newer → read-only + warning · unknown/corrupt → strict-assert throw. The shipped behavior to unwind is exactly the "refusal" §9.3 forbids (`documentSnapshotVrs.test.ts:125` flips from newer-rejected to newer-opens-read-only).
 - **Strict-assert on load** for malformed/corrupt documents (loud failure per `feedback_strict_assert_over_silent_migration`) — **with a documented expiry: the first real customer's saved `.vrs`/blob is permanent history**; strict-reject of old versions becomes data loss at that instant.
 - **Migration-dispatch seam scaffolded now**: an (initially empty) `migrateVn→Vn+1` table + an additive-first content model — the tldraw/Automerge pattern — so the first post-customer schema change is a migration, not an event.
@@ -338,3 +340,35 @@ One relocation doc — **"VariScout Process: the process-operations layer"** —
 **Correction 3 — `SerializedInvestigationState` (Azure serializer-internal type) deliberately left intact.**
 
 `SerializedInvestigationState` is an Azure analyzeSerializer-internal type name. It carries broader "Investigation" vocabulary (naming the serialized analyze-session state), which is outside the FK-rename boundary (`investigationId` field names → `projectId`). Per the sub-plan rename boundary ("OUT of scope: broader 'Investigation' vocabulary tokens"), this type was deliberately NOT renamed in PO-7. It is not a stale reference — it is an intentional keep. Downstream readers should not flag it as rename drift.
+
+---
+
+## §16 · PO-8a scope amendment + grounding corrections (2026-06-05, owner-ratified)
+
+> **Note (2026-06-05):** Recorded at PO-8a sub-plan time, after the PO-8a grounding workflow (7 readers + 4 adversarial verifiers + completeness critic) and an explicit owner call. These amendments supersede §9.3 (and the §13 Phase-F acceptance line) at the specific points below. Historical text left intact as the design rationale; this section is the durable ground truth for the PO-8a build.
+
+### The dev-phase no-compat principle (owner call)
+
+**"We are still in development phase — no old `.vrs` files are floating around; we need no migration and no backward compatibility."** This generalizes the existing wedge no-back-compat policy (ADR-091 §9.5) into a standing principle: **until the first real customer, no compatibility machinery exists — backward (migrations, shims) or forward (newer-than-reader read-only modes, migration-dispatch seams, version-negotiation UX).** Both apps are evergreen web deployments (tenant-wide Azure + hosted PWA): an "older reader" is a stale browser tab or stale PWA cache, and its remedy is a refresh — the SolidWorks/FME installed-software pattern that motivated §9.3's read-only branch does not transfer. **Expiry: the first real customer's saved `.vrs`/blob is permanent history — at that instant the principle flips and migration discipline activates (designed then, not pre-scaffolded now).** Canonical record: decision-log 2026-06-05 PO-8a entry + ADR-091 Amendment.
+
+### What this cuts from §9.3 (and §13 / the master-plan PO-8a row)
+
+- **The three-way validator branch (known-newer → read-only + warning) — CUT.** Strict-reject of any non-current `schemaVersion` stays, upgraded from a generic throw to a **clear user-facing message** (version mismatch → "saved by a different version of VariScout — refresh the app"; corrupt → "invalid file"). No Editor read-only mode, no save-gating flag, no warning-banner machinery, no `documentSnapshotVrs.test.ts` newer-opens-read-only flip.
+- **The migration-dispatch seam (`migrateVn→Vn+1` table) — CUT.** "No migration until first customer" IS the principle; the seam would be pre-scaffolded YAGNI. The §9.3 "documented expiry" survives as the principle's own expiry clause.
+- **§13 Phase-F acceptance line amended accordingly:** "a newer-`schemaVersion` document opens read-only with the warning" → *a version-mismatched document is refused with the refresh-hint message; a corrupt document throws loudly at the shared hydrate seam; negative control: a current-version document loads normally.*
+
+### What PO-8a still delivers
+
+1. **Re-freeze v1** — a canonical full-shape post-PO-7 fixture round-trip test documents the cleaned shape as `schemaVersion: 1`.
+2. **Loud validation at the shared hydrate seam** (the ADR-091 "loud validation is PO-8a" promise, kept): a `validateDocumentSnapshot` strict-assert invoked by `hydrateDocumentSnapshot`, covering **all three load paths uniformly** — Azure blob, Azure Dexie cache, and `.vrs` import (grounding finding: the blob→Dexie→hydrate path had **zero** validation; only the `.vrs` parser checked anything). Version mismatch and corrupt-shape produce **distinct typed errors** with user-facing messages in both apps.
+3. **viewState strip** (§9.2 unchanged) — `viewState` leaves `buildProjectSnapshot`; the teammate-import-adopts-saver's-tabs violation closes; the dirty fingerprint stops false-flagging tab switches; fixture sweep budgeted.
+
+### Grounding corrections (same class as §15)
+
+**Correction 4 — `ProcessHub.schemaVersion` never existed.** §9.3's claim "`ProcessHub` carries its own separate `schemaVersion: 1` (`processHub.ts:433`)" is a phantom — zero `schemaVersion` matches in `packages/core/src/processHub.ts` (confirmed by grep + 2 independent readers + 1 verifier). The only schema-versioned artifact is `DocumentSnapshot`. `canonicalMapVersion` is a content version, not a schema gate.
+
+**Correction 5 — the "newer-rejected test at :125" never isolated the version dimension.** The actual test (`documentSnapshotVrs.test.ts:133-142`, "rejects malformed documentSnapshot payloads") uses a `schemaVersion: 2` fixture that ALSO omits required facets — the validator's `&&` short-circuit means it rejects on **shape**, not version. There was never a well-formed-but-newer test to "flip." PO-8a adds a full-shape version-mismatch fixture asserting the distinct version-mismatch error, and keeps the shape-malformed → corrupt test.
+
+**Correction 6 — line drift.** `viewState` serialization sits at `documentSnapshot.ts:96` (spec cited :95); the build-time `schemaVersion: 1` at `documentSnapshot.ts:158` (spec cited :157). The interface member at :47 is correct.
+
+**Correction 7 — the silent-downgrade hazard, recorded then mooted.** Grounding adversarially confirmed: a newer blob would have hydrated unconditionally (zero blob-path validation) and the 2-second autosave would have persisted a lossy downgrade. Under the dev-phase principle the version-skew scenario is out of scope, but the **shared-hydrate-seam strict-assert (delivered above) structurally closes it anyway**: a version-mismatched or corrupt document never hydrates, so it can never be autosaved-over. Post-first-customer, richer version-skew UX (if ever needed) builds on the same seam.

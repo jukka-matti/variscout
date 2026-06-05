@@ -214,3 +214,30 @@ dropped; loud validation is PO-8a."_
 - ADR-012 (PWA browser-only — the R6d constraint source)
 - ADR-078 (PWA + Azure architecture alignment — D2 persistence tier-gate)
 - ADR-090 (ProcessHubAnalyze dissolution — the trigger that made this declaration necessary)
+
+## Amendment — 2026-06-05 — PO-8a re-shaped under the dev-phase no-compat principle
+
+The §9.3-derived commitments above ("the loud validator (`schemaVersion` three-way
+branch) lands in PO-8a"; "migration-dispatch seam scaffolded in PO-8a") land
+**re-shaped** by an owner-ratified scope amendment (spec §16) made at PO-8a sub-plan
+time:
+
+- **Dev-phase no-compat principle (generalized from §9.5's wedge no-back-compat):**
+  until the first real customer, no compatibility machinery exists — backward
+  (migrations, shims) **or forward** (newer-than-reader read-only modes,
+  migration-dispatch seams, version-negotiation UX). Both apps are evergreen web
+  deployments; an "older reader" is a stale tab/cache whose remedy is a refresh —
+  the SolidWorks/FME installed-software pattern does not transfer.
+- **The three-way branch and the migration-dispatch seam are CUT.** Strict-reject
+  of any non-current `schemaVersion` stays.
+- **"Loud validation is PO-8a" is KEPT, strengthened in coverage:** a
+  `validateDocumentSnapshot` strict-assert at the shared hydrate seam covers
+  **all three load paths uniformly** (Azure blob · Azure Dexie cache · `.vrs`
+  import — grounding found the blob path had zero validation), with distinct typed
+  errors and user-facing messages (version mismatch → "refresh the app" hint;
+  corrupt → invalid file). The documentation-by-test in §9.5 stands.
+- **Expiry: the first real customer's saved `.vrs`/blob is permanent history** —
+  at that instant the principle flips and migration discipline activates (designed
+  then, not pre-scaffolded).
+
+Canonical record: spec §16 + decision-log 2026-06-05 PO-8a entry.

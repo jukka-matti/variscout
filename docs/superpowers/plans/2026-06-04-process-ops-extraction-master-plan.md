@@ -130,7 +130,9 @@ related:
 - **Depends on:** PO-7 (v1 freezes the post-rename shape).
 - **Model:** Opus (validator semantics + the viewState split are judgment-dense).
 - **Acceptance:** newer-`schemaVersion` doc opens read-only with warning (negative control: same-version opens editable); corrupt doc throws loudly; a teammate's import no longer adopts the saver's tabs/charts; gate + app suites green.
-- **Spec ref:** §9.2–9.3.
+- **Spec ref:** §9.2–9.3 **as amended by §16** (2026-06-05).
+
+_Scope amendment 2026-06-05 (grounding workflow: 7 readers + 4 adversarial verifiers + completeness critic; owner-ratified): the **dev-phase no-compat principle** ("still in development — no old `.vrs` files exist; no migration, no back-compat") **CUTS the three-way branch / read-only mode / warning UX and the migration-dispatch seam** (spec §16). What remains: (1) re-freeze v1 via a canonical full-shape fixture round-trip; (2) **loud validation at the shared hydrate seam** — `validateDocumentSnapshot` strict-assert in `hydrateDocumentSnapshot`, covering blob + Dexie + `.vrs` uniformly (grounding: the blob→Dexie→hydrate path had ZERO validation; adversarially confirmed silent-downgrade hazard is structurally closed by the seam) with distinct typed errors + user-facing messages (version mismatch → "refresh the app" hint; corrupt → invalid-file) in both apps; (3) **viewState STRIP** (owner call, split rejected) — verified load-compatible (`projectStore.ts:353` defaults `?? null`; consumers optional-chain; `panelsStore.initFromViewState` tolerates absence), kills the teammate-hijack + the tab-switch false-dirty. Grounding corrections: `ProcessHub.schemaVersion` is a **phantom** (no such field; spec §16 Correction 4); the ":125 newer-rejected test" rejects on SHAPE not version (`&&` short-circuit; §16 Correction 5) — PO-8a adds a full-shape version-mismatch fixture instead of "flipping"; line drift `documentSnapshot.ts:96/:158`. **Amended acceptance:** version-mismatched doc refused with the refresh-hint message (negative control: current-version doc loads normally + stays editable) · corrupt doc throws loudly at the seam · a teammate's import no longer adopts the saver's tabs/charts (negative control: durable content still round-trips) · a tab/chart switch no longer dirties the fingerprint (negative control: a durable content change still does) · gate + both app suites green. The PO-8a "read-only dialog" leaves the chrome matrix (no dialog exists); chrome verify re-targets the version-mismatch/corrupt import messages + the viewState-strip behavior. PO-8b is unaffected (conflict dialog = concurrent-edit semantics, not version semantics). Principle recorded: decision-log 2026-06-05 + ADR-091 Amendment; memory generalized._
 
 ### PR-PO-8b · Phase F2 — concurrency + durability (Azure)
 
@@ -153,8 +155,8 @@ CS-P track (other plan): CS-P3 · CS-P4 free now │ CS-P2 free now (consumes PO
 its lift deletes the ProcessHubView husk) │ CS-P5 after CS-P2
 ```
 
-The two **launch-blocking** F items (newer-than-reader read-only · the conflict dialog) gate the **first customer**, not other PRs.
+The two **launch-blocking** F items (~~newer-than-reader read-only~~ → **loud validation at the hydrate seam** per the 2026-06-05 §16 amendment · the conflict dialog) gate the **first customer**, not other PRs.
 
 ## Verification (every PR)
 
-`bash scripts/pr-ready-check.sh` green + **both app test suites** · per-PR adversarial review before merge · `--chrome` verify on UI-touching PRs (PO-2: Project-tab Control region + Home cards · PO-3: Process tab + thin ProcessHubView · PO-4: Dashboard project-card list · PO-8a/b: the two dialogs) · the spec §13 negative controls are non-negotiable sub-plan tasks (`feedback_load_bearing_tests`).
+`bash scripts/pr-ready-check.sh` green + **both app test suites** · per-PR adversarial review before merge · `--chrome` verify on UI-touching PRs (PO-2: Project-tab Control region + Home cards · PO-3: Process tab + thin ProcessHubView · PO-4: Dashboard project-card list · PO-8a: version-mismatch/corrupt import messages + viewState-strip behavior, per the §16 amendment · PO-8b: the conflict dialog) · the spec §13 negative controls are non-negotiable sub-plan tasks (`feedback_load_bearing_tests`).
