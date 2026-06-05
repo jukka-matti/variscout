@@ -401,6 +401,7 @@ function AppMain() {
     findingsState: {
       findings,
       setFindingStatus: useAnalyzeStore.getState().setFindingStatus,
+      // wrapper: addFindingAction has optional assignee/dueDate/ideaId params (slice wants (id, text) => void)
       addAction: (id, text) => {
         useAnalyzeStore.getState().addFindingAction(id, text);
       },
@@ -1557,6 +1558,7 @@ function AppMain() {
                 onSetFindingStatus={investigation.handleSetFindingStatus}
                 onSetFindingTag={useAnalyzeStore.getState().setFindingTag}
                 onAddComment={(id, text) => {
+                  // wrapper: the attachment param (Azure-only) is intentionally dropped in PWA
                   useAnalyzeStore.getState().addFindingComment(id, text);
                 }}
                 onEditComment={useAnalyzeStore.getState().editFindingComment}
