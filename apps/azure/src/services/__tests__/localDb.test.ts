@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_PROCESS_HUB_ID } from '@variscout/core';
+import type { ControlMetadataProjection, ProjectMetadata } from '@variscout/core';
 import type { DocumentSnapshot } from '@variscout/stores';
 import { db } from '../../db/schema';
 import {
@@ -13,6 +14,7 @@ import {
   listEvidenceSourcesFromIndexedDB,
   listProcessHubsFromIndexedDB,
   listFromIndexedDB,
+  mergeProjectMetadata,
   saveEvidenceSnapshotToIndexedDB,
   saveEvidenceSourceToIndexedDB,
   saveProcessHubToIndexedDB,
@@ -317,6 +319,64 @@ describe('localDb Process Hub support', () => {
     expect(projects[0].metadata).toMatchObject({
       processHubId: 'line-4',
       nodeMappings: [{ nodeId: 'fill', measurementColumn: 'Weight' }],
+    });
+  });
+
+  describe('PO-8b merge-preserving metadata (the heal contract)', () => {
+    const seededSustainment: ControlMetadataProjection = {
+      recordId: 'cr-1',
+      cadence: 'weekly',
+      nextReviewDue: '2026-07-01T00:00:00.000Z',
+      latestVerdict: 'holding',
+    };
+
+    it('mergeProjectMetadata preserves the Control-owned sustainment projection over a recompute that lacks it', () => {
+      // 'stale' deliberately simulates a key from a retired schema era — cast
+      // like the backfill seed below (tsc covers app test files).
+      const existing = {
+        phase: 'frame',
+        findingCounts: { stale: 9 },
+        questionCounts: {},
+        lastViewedAt: {},
+        sustainment: seededSustainment,
+      } as ProjectMetadata;
+      const recomputed: ProjectMetadata = {
+        phase: 'scout',
+        findingCounts: {},
+        questionCounts: {},
+        lastViewedAt: {},
+      };
+      const merged = mergeProjectMetadata(existing, recomputed);
+      expect(merged.phase).toBe('scout'); // aggregate-derived field healed
+      expect(merged.sustainment).toEqual(seededSustainment); // Control-owned field preserved
+      // no existing meta → recompute passes through unchanged
+      expect(mergeProjectMetadata(undefined, recomputed)).toEqual(recomputed);
+    });
+
+    it('backfill heals stale aggregate-derived meta while PRESERVING sustainment (PO-8b negative control)', async () => {
+      await db.projects.put({
+        name: 'heal-backfill',
+        location: 'personal',
+        modified: new Date(),
+        synced: true,
+        data: snapshot(),
+        meta: {
+          phase: 'improve', // stale vs the recompute
+          findingCounts: { stale: 9 },
+          questionCounts: {},
+          lastViewedAt: {},
+          sustainment: seededSustainment,
+        } as ProjectMetadata,
+      });
+
+      const updated = await backfillProjectMetadataInIndexedDB('user-1');
+      expect(updated).toBe(1); // the outer beforeEach wipes the DB — exactly the seeded record heals
+
+      const record = await db.projects.get('heal-backfill');
+      // healed from the aggregate…
+      expect(record?.meta?.findingCounts).not.toHaveProperty('stale');
+      // …but the distractor the heal must NOT touch survived byte-identical
+      expect(record?.meta?.sustainment).toEqual(seededSustainment);
     });
   });
 });

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import React from 'react';
 import type { DocumentSnapshot } from '@variscout/stores';
+import type { ProjectMetadata } from '@variscout/core';
 
 // ---------------------------------------------------------------------------
 // Hoisted mock objects (available inside vi.mock factories)
@@ -534,6 +535,358 @@ describe('storage service', () => {
       expect(result.current.syncStatus.status).toBe('saved');
       expect(result.current.syncStatus.message).toBe('Saved locally');
     });
+
+    it('PO-8b: an empty server ETag is never replaced by a fabricated timestamp (phantom-412 fix)', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      // markAsSynced only writes syncState when the project record exists
+      mockProjects.get.mockResolvedValue({
+        name: 'no-etag-project',
+        location: 'personal',
+        modified: new Date(),
+        synced: false,
+        data: sampleProject,
+      });
+      // PUT succeeds but returns no etag; the follow-up GET supplies the real one
+      mockSaveBlobProject.mockResolvedValueOnce({ ok: true, etag: '' });
+      mockLoadBlobProject.mockResolvedValueOnce({
+        project: sampleProject,
+        etag: '"recovered-etag"',
+      });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'no-etag-project', 'personal');
+      });
+
+      // markAsSynced stored the RECOVERED etag — never a Date timestamp
+      const syncPut = mockSyncState.put.mock.calls.at(-1)?.[0];
+      expect(syncPut?.etag).toBe('"recovered-etag"');
+      // negative control: the OLD fabrication stored an ISO timestamp here
+      expect(syncPut?.etag).not.toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // PO-8b conflict seam
+  // -------------------------------------------------------------------------
+  describe('PO-8b conflict seam', () => {
+    it('PO-8b negative control: a matching-ETag save writes silently — result saved, no conflict state', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockSyncState.get.mockResolvedValue({
+        name: 'clean-project',
+        cloudId: 'cloud-1',
+        lastSynced: '2026-06-01T00:00:00Z',
+        etag: '"current-etag"',
+      });
+      mockSaveBlobProject.mockResolvedValueOnce({ ok: true, etag: '"next-etag"' });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let saveResult: Awaited<ReturnType<typeof result.current.saveProject>> | undefined;
+      await act(async () => {
+        saveResult = await result.current.saveProject(sampleProject, 'clean-project', 'personal');
+      });
+
+      expect(saveResult).toEqual({ status: 'saved' });
+      expect(result.current.pendingConflict).toBeNull();
+      // the stored ETag rode as the If-Match precondition (4th saveBlobProject arg)
+      expect(mockSaveBlobProject).toHaveBeenCalledWith(
+        expect.anything(),
+        'cloud-1',
+        expect.anything(),
+        '"current-etag"'
+      );
+    });
+
+    it('PO-8b: a stale stored ETag conflicts via If-Match/412 alone — the retired pre-flight adds nothing (no metadata GET, no eager remote load)', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockSyncState.get.mockResolvedValue({
+        name: 'stale-project',
+        cloudId: 'cloud-2',
+        lastSynced: '2026-06-01T00:00:00Z',
+        etag: '"stale-etag"',
+        baseStateJson: JSON.stringify(sampleProject), // would have armed the OLD pre-flight
+      });
+      mockSaveBlobProject.mockResolvedValueOnce({ ok: false, reason: 'precondition-failed' });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'stale-project', 'personal');
+      });
+
+      expect(result.current.pendingConflict).toEqual({
+        name: 'stale-project',
+        location: 'personal',
+      });
+      // pre-flight retired: no loadBlobMetadata (getCloudModifiedDate) and no
+      // loadBlobProject (eager remote fetch) during the SAVE path
+      expect(mockLoadBlobMetadata).not.toHaveBeenCalled();
+      expect(mockLoadBlobProject).not.toHaveBeenCalled();
+    });
+
+    it('PO-8b: dismissConflict clears the pending decision', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockSaveBlobProject.mockResolvedValueOnce({ ok: false, reason: 'precondition-failed' });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'deferred-project', 'personal');
+      });
+      expect(result.current.pendingConflict).not.toBeNull();
+
+      act(() => {
+        result.current.dismissConflict();
+      });
+      expect(result.current.pendingConflict).toBeNull();
+    });
+
+    it('PO-8b: reloadProjectFromCloud adopts the remote copy — Dexie cache + ETag + merge base refresh; conflict cleared', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      const remote = makeSnapshot({
+        project: {
+          ...sampleProject.project,
+          projectName: 'Remote version',
+        } as DocumentSnapshot['project'],
+      });
+      mockSyncState.get.mockResolvedValue({
+        name: 'conflicted-project',
+        cloudId: 'cloud-3',
+        lastSynced: '2026-06-01T00:00:00Z',
+        etag: '"stale-etag"',
+      });
+      mockSaveBlobProject.mockResolvedValueOnce({ ok: false, reason: 'precondition-failed' });
+      mockLoadBlobProject.mockResolvedValueOnce({ project: remote, etag: '"fresh-etag"' });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'conflicted-project', 'personal');
+      });
+      expect(result.current.pendingConflict).not.toBeNull();
+
+      let reloaded: DocumentSnapshot | null = null;
+      await act(async () => {
+        reloaded = await result.current.reloadProjectFromCloud('conflicted-project', 'personal');
+      });
+
+      expect(reloaded).toEqual(remote);
+      expect(result.current.pendingConflict).toBeNull();
+      expect(mockProjects.put).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'conflicted-project', data: remote })
+      );
+      expect(mockSyncState.update).toHaveBeenCalledWith(
+        'conflicted-project',
+        expect.objectContaining({
+          etag: '"fresh-etag"',
+          baseStateJson: JSON.stringify(remote),
+        })
+      );
+    });
+
+    it('PO-8b: a failed reload leaves the local copy untouched + surfaces an error notification', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockSyncState.get.mockResolvedValue({
+        name: 'ghost-project',
+        cloudId: 'cloud-4',
+        lastSynced: '2026-06-01T00:00:00Z',
+        etag: '"e"',
+      });
+      mockLoadBlobProject.mockResolvedValueOnce(null); // blob gone
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let reloaded: DocumentSnapshot | null = sampleProject;
+      await act(async () => {
+        reloaded = await result.current.reloadProjectFromCloud('ghost-project', 'personal');
+      });
+
+      expect(reloaded).toBeNull();
+      expect(
+        result.current.notifications.some(
+          n => n.type === 'error' && /cloud version/i.test(n.message)
+        )
+      ).toBe(true);
+      expect(mockProjects.put).not.toHaveBeenCalled();
+    });
+
+    it('PO-8b: a reload whose LOCAL apply fails surfaces an error and never reports success (no unhandled rejection)', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockSyncState.get.mockResolvedValue({
+        name: 'quota-project',
+        cloudId: 'cloud-5',
+        lastSynced: '2026-06-01T00:00:00Z',
+        etag: '"e"',
+      });
+      mockLoadBlobProject.mockResolvedValueOnce({ project: sampleProject, etag: '"fresh"' });
+      mockProjects.put.mockRejectedValueOnce(new Error('QuotaExceededError (simulated)'));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let reloaded: DocumentSnapshot | null = sampleProject;
+      await act(async () => {
+        reloaded = await result.current.reloadProjectFromCloud('quota-project', 'personal');
+      });
+
+      expect(reloaded).toBeNull();
+      expect(
+        result.current.notifications.some(
+          n => n.type === 'error' && /apply the cloud version/i.test(n.message)
+        )
+      ).toBe(true);
+      // the failed apply never advanced the ETag/merge base
+      expect(mockSyncState.update).not.toHaveBeenCalled();
+    });
+
+    it('PO-8b: two concurrent saves of the same document cannot interleave under the Web Lock', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      // functional LockManager: a real exclusive queue per lock name
+      const queues = new Map<string, Promise<unknown>>();
+      Object.defineProperty(navigator, 'locks', {
+        configurable: true,
+        value: {
+          request: (lockName: string, _opts: unknown, cb: () => Promise<unknown>) => {
+            const prev = queues.get(lockName) ?? Promise.resolve();
+            const next = prev.then(() => cb());
+            queues.set(
+              lockName,
+              next.catch(() => undefined)
+            );
+            return next;
+          },
+        },
+      });
+
+      // markAsSynced only writes syncState when the project record exists
+      mockProjects.get.mockResolvedValue({
+        name: 'same-doc',
+        location: 'personal',
+        modified: new Date(),
+        synced: false,
+        data: sampleProject,
+      });
+
+      const events: string[] = [];
+      mockProjects.put.mockImplementation(async () => {
+        events.push('idb-write');
+      });
+      mockSaveBlobProject.mockImplementation(async () => {
+        events.push('put-start');
+        await new Promise(resolve => setTimeout(resolve, 20));
+        events.push('put-end');
+        return { ok: true, etag: '"e"' };
+      });
+      mockSyncState.put.mockImplementation(async () => {
+        events.push('mark-synced');
+      });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await Promise.all([
+          result.current.saveProject(sampleProject, 'same-doc', 'personal'),
+          result.current.saveProject(sampleProject, 'same-doc', 'personal'),
+        ]);
+      });
+
+      // tab B's wholesale write begins only AFTER tab A's full critical section
+      expect(events).toEqual([
+        'idb-write',
+        'put-start',
+        'put-end',
+        'mark-synced',
+        'idb-write',
+        'put-start',
+        'put-end',
+        'mark-synced',
+      ]);
+
+      Object.defineProperty(navigator, 'locks', { configurable: true, value: undefined });
+    });
+
+    it('PO-8b: a document save preserves the Control-owned sustainment projection (no clobber)', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      const seededSustainment = {
+        recordId: 'cr-1',
+        cadence: 'weekly',
+        nextReviewDue: '2026-07-01T00:00:00.000Z',
+        latestVerdict: 'holding',
+      };
+      mockProjects.get.mockResolvedValue({
+        name: 'control-project',
+        location: 'personal',
+        modified: new Date(),
+        synced: true,
+        data: sampleProject,
+        meta: {
+          phase: 'scout',
+          findingCounts: {},
+          questionCounts: {},
+          lastViewedAt: {},
+          sustainment: seededSustainment,
+        } as unknown as ProjectMetadata,
+      });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'control-project', 'personal');
+      });
+
+      expect(mockProjects.put).toHaveBeenCalledWith(
+        expect.objectContaining({
+          meta: expect.objectContaining({ sustainment: seededSustainment }),
+        })
+      );
+    });
+
+    it('PO-8b heal: an offline open recomputes stale aggregate-derived meta while PRESERVING sustainment', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+      const seededSustainment = {
+        recordId: 'cr-1',
+        cadence: 'weekly',
+        nextReviewDue: '2026-07-01T00:00:00.000Z',
+        latestVerdict: 'holding',
+      };
+      mockProjects.get.mockResolvedValue({
+        name: 'heal-me',
+        location: 'personal',
+        modified: new Date(),
+        synced: true,
+        data: sampleProject,
+        meta: {
+          phase: 'improve', // stale — the mocked buildProjectMetadata recomputes 'scout'
+          findingCounts: { stale: 99 },
+          questionCounts: {},
+          lastViewedAt: {},
+          sustainment: seededSustainment,
+        } as unknown as ProjectMetadata,
+      });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let loaded: DocumentSnapshot | null = null;
+      await act(async () => {
+        loaded = await result.current.loadProject('heal-me', 'personal');
+      });
+
+      expect(loaded).toEqual(sampleProject);
+      expect(mockProjects.update).toHaveBeenCalledWith('heal-me', {
+        meta: expect.objectContaining({ phase: 'scout', sustainment: seededSustainment }),
+      });
+    });
+
+    it('PO-8b heal negative control: an up-to-date meta is NOT rewritten on open', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+      // exactly what the mocked buildProjectMetadata recomputes (no sustainment seeded)
+      mockProjects.get.mockResolvedValue({
+        name: 'already-clean',
+        location: 'personal',
+        modified: new Date(),
+        synced: true,
+        data: sampleProject,
+        meta: { phase: 'scout', findingCounts: {}, questionCounts: {}, lastViewedAt: {} },
+      });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.loadProject('already-clean', 'personal');
+      });
+
+      expect(mockProjects.update).not.toHaveBeenCalled();
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -558,8 +911,8 @@ describe('storage service', () => {
       });
       // db.projects.get for conflict detection (no local record)
       mockProjects.get.mockResolvedValueOnce(null);
-      // loadBlobProject returns cloud data
-      mockLoadBlobProject.mockResolvedValueOnce(cloudData);
+      // loadBlobProject returns cloud data (new shape: { project, etag })
+      mockLoadBlobProject.mockResolvedValueOnce({ project: cloudData, etag: '"cloud-etag"' });
 
       const { result } = renderHook(() => useStorage(), { wrapper });
       let loaded: unknown;
@@ -728,6 +1081,30 @@ describe('storage service', () => {
       });
 
       expect(loaded).toBeNull();
+    });
+
+    it('PO-8b: a cloud load refreshes the stored ETag + merge base (kills post-open false 412s)', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockSyncState.get.mockResolvedValue({
+        name: 'etag-refresh',
+        cloudId: 'cloud-9',
+        lastSynced: '2026-06-01T00:00:00Z',
+        etag: '"stale-etag"',
+      });
+      mockLoadBlobProject.mockResolvedValueOnce({ project: sampleProject, etag: '"fresh-etag"' });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.loadProject('etag-refresh', 'personal');
+      });
+
+      expect(mockSyncState.update).toHaveBeenCalledWith(
+        'etag-refresh',
+        expect.objectContaining({
+          etag: '"fresh-etag"',
+          baseStateJson: JSON.stringify(sampleProject),
+        })
+      );
     });
   });
 
@@ -1225,26 +1602,31 @@ describe('storage service', () => {
       expect(result.current.notifications.some(n => n.type === 'info')).toBe(true);
     });
 
-    it('uses clear conflict-copy copy when ETag save detects a cloud conflict', async () => {
+    it('PO-8b: a 412 ETag conflict surfaces the reload-or-branch decision instead of the silent auto-fork', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
-      mockSaveBlobProject
-        .mockResolvedValueOnce({ ok: false, reason: 'concurrency-exhausted' })
-        .mockResolvedValueOnce({ ok: true, etag: '"conflict-copy-etag"' });
+      mockSaveBlobProject.mockResolvedValueOnce({ ok: false, reason: 'precondition-failed' });
 
       const { result } = renderHook(() => useStorage(), { wrapper });
 
+      let saveResult: Awaited<ReturnType<typeof result.current.saveProject>> | undefined;
       await act(async () => {
-        await result.current.saveProject(sampleProject, 'conflicted-project', 'personal');
+        saveResult = await result.current.saveProject(
+          sampleProject,
+          'conflicted-project',
+          'personal'
+        );
       });
 
-      expect(result.current.notifications).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            type: 'warning',
-            message:
-              'Cloud copy changed. Saved your version as "conflicted-project (conflict copy)".',
-          }),
-        ])
+      expect(saveResult).toEqual({ status: 'conflict' });
+      expect(result.current.pendingConflict).toEqual({
+        name: 'conflicted-project',
+        location: 'personal',
+      });
+      expect(result.current.syncStatus.status).toBe('conflict');
+      // the silent auto-fork is GONE: exactly ONE blob PUT — no "(conflict copy)" save
+      expect(mockSaveBlobProject).toHaveBeenCalledTimes(1);
+      expect(result.current.notifications.some(n => n.message.includes('(conflict copy)'))).toBe(
+        false
       );
     });
 

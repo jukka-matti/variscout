@@ -1473,3 +1473,15 @@ Surfaced by the PO-3 `--chrome` verify (PR #300): `Editor.tsx` Save-As/Rename fi
 **Promotion path:** small UI refactor, 2 files; no design decision pending.
 
 **Severity:** low (cosmetic/UX + automation friction; no data risk).
+
+## `cloneJson` per-facet deep-clone is the measured save-path hotspot (PO-8b research) [LOGGED 2026-06-05]
+
+`buildDocumentSnapshot` pays `JSON.parse(JSON.stringify())` per facet (stores `documentSnapshot.ts` cloneJson; same pattern in canvasStore) — this, not the final stringify, is the real main-thread cost on large documents, and no worker fixes it. Named candidates if the PO-8b telemetry trigger fires: structural-sharing clone where safe; `CompressionStream('gzip')` on the upload body (server must accept it). Owner: whoever picks up the re-architect trigger.
+
+## Editor records a saved baseline on cloud-failed (queued) saves [LOGGED 2026-06-05]
+
+Pre-existing: `saveAndRecordBaseline` clears the dirty state for `offline`/`error` results too (the local Dexie save did succeed — R6d reads this as "saved"); only `conflict` now skips the baseline (PO-8b). If queued-cloud-save honesty ever matters (e.g. a sync-pending chip), the `SaveProjectResult` union already carries the signal.
+
+## Dashboard `handlePersistInvestigation` ignores `SaveProjectResult` — silent latent conflict [LOGGED 2026-06-05]
+
+PO-8b final adversarial review: `Dashboard.tsx` (`handlePersistInvestigation`, the nodeMappings/`migrationDeclinedAt` writer) discards the `SaveProjectResult` union. On a 412 it sets `pendingConflict` + `syncStatus: 'conflict'` but the resolution dialog only mounts in the Editor — the Dashboard user gets no toast and the cloud write drops (the local Dexie write survives; the conflict surfaces when the document is next opened in the Editor). This is a feedback REGRESSION vs the pre-PO-8b auto-conflict-copy + warning toast on this path, accepted at merge because the trigger needs a concurrent editor advancing the cloud doc between the Dashboard's load and its mappings save (rare at 2–5 users) and there is no data loss. Candidate fix: inspect the result and raise a "Cloud copy changed — open the project to resolve" notification; or route the Dashboard persist through a conflict-aware path. Revisit with the CS-P2 Dashboard rework or the first-session-journey work.

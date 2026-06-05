@@ -42,12 +42,18 @@ export async function saveProjectLocally(
     synced: false,
   };
 
+  // PO-8b: preserve the portfolio projection across the adapter save — the
+  // previous full put wiped record.meta (incl. the Control-owned sustainment
+  // chip) and record.access on every Editor save.
+  const existing = await db.projects.get(name);
   await db.projects.put({
     name: project.name,
     location: project.location,
     modified: new Date(),
     synced: false,
     data: state,
+    meta: existing?.meta,
+    access: existing?.access,
   });
 
   return project;
@@ -70,12 +76,16 @@ export async function updateProjectLocally(
     synced: false,
   };
 
+  // PO-8b: preserve portfolio meta + access across updates (same fix as saveProjectLocally).
+  const existing = await db.projects.get(name);
   await db.projects.put({
     name: project.name,
     location: project.location,
     modified: new Date(),
     synced: false,
     data: state,
+    meta: existing?.meta,
+    access: existing?.access,
   });
 
   return project;
@@ -122,12 +132,15 @@ export async function renameProjectLocally(oldName: string, newName: string): Pr
   const record = await db.projects.get(oldName);
   if (record) {
     await db.projects.delete(oldName);
+    // PO-8b: carry meta + access to the renamed record.
     await db.projects.put({
       name: newName,
       location: record.location,
       modified: new Date(),
       synced: false,
       data: record.data,
+      meta: record.meta,
+      access: record.access,
     });
   }
 }

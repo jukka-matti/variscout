@@ -57,8 +57,36 @@ describe('blobClient same-origin storage adapter', () => {
       new Response(JSON.stringify({ project: { id: 'p1' }, etag: '"etag-v1"' }), { status: 200 })
     );
 
-    await expect(loadBlobProject('p1')).resolves.toEqual({ id: 'p1' });
+    await expect(loadBlobProject('p1')).resolves.toEqual({
+      project: { id: 'p1' },
+      etag: '"etag-v1"',
+    });
     expect(fetchSpy).toHaveBeenCalledWith('/api/storage/projects/p1', expect.any(Object));
+  });
+
+  it('PO-8b: loadBlobProject returns the blob ETag from the response body (header fallback)', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ project: { hubId: 'h1' }, etag: '"body-etag"' }), {
+        status: 200,
+      })
+    );
+
+    const loaded = await loadBlobProject('proj-1');
+    expect(loaded).toEqual({ project: { hubId: 'h1' }, etag: '"body-etag"' });
+
+    // header fallback when the body omits etag
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ project: { hubId: 'h1' } }), {
+        status: 200,
+        headers: { ETag: '"header-etag"' },
+      })
+    );
+    const fromHeader = await loadBlobProject('proj-1');
+    expect(fromHeader?.etag).toBe('"header-etag"');
+
+    // 404 still resolves null
+    fetchSpy.mockResolvedValueOnce(new Response('', { status: 404 }));
+    expect(await loadBlobProject('missing')).toBeNull();
   });
 
   it('saves a project with If-Match and maps the returned ETag', async () => {

@@ -175,11 +175,21 @@ export async function saveBlobProject(
   }
 }
 
-export async function loadBlobProject(projectId: string): Promise<Project | null> {
-  const loaded = await requestMaybeJson<{ project: Project }>(
+export interface LoadedBlobProject {
+  project: Project;
+  etag: string | null;
+}
+
+export async function loadBlobProject(projectId: string): Promise<LoadedBlobProject | null> {
+  const loaded = await requestMaybeJson<{ project: Project; etag?: string }>(
     `/api/storage/projects/${encode(projectId)}`
   );
-  return loaded?.data.project ?? null;
+  if (!loaded?.data.project) return null;
+  return {
+    project: loaded.data.project,
+    // server returns etag in the body (server.js GET handler); header is the fallback
+    etag: loaded.data.etag ?? loaded.res.headers.get('ETag'),
+  };
 }
 
 export async function loadBlobMetadata(projectId: string): Promise<BlobProjectMetadata | null> {
@@ -196,13 +206,6 @@ export async function listBlobProjects(): Promise<BlobProjectMetadata[]> {
 
 export async function updateBlobIndex(_projects: BlobProjectMetadata[]): Promise<void> {
   // R6e server writes _index.json as part of PUT /api/storage/projects/:projectId.
-}
-
-export async function getEtagForProject(projectId: string): Promise<string | null> {
-  const loaded = await requestMaybeJson<{ etag?: string }>(
-    `/api/storage/projects/${encode(projectId)}`
-  );
-  return loaded?.data.etag ?? loaded?.res.headers.get('ETag') ?? null;
 }
 
 // ── Process Hub catalog ────────────────────────────────────────────────

@@ -241,3 +241,20 @@ time:
   then, not pre-scaffolded).
 
 Canonical record: spec §16 + decision-log 2026-06-05 PO-8a entry.
+
+## Amendment (2026-06-05, PO-8b): concurrency delivered; worker-marshal cut
+
+PO-8b delivered §9.4's concurrency + durability hardening as: the explicit
+reload-or-branch dialog on 412 (the silent auto-conflict-copy and the redundant
+timestamp pre-flight are retired; If-Match/412 is the sole conflict surface) ·
+a per-document exclusive Web Lock around the wholesale Dexie write + blob PUT
+(two-phase: never await the dialog under the lock) · `navigator.storage.persist()`
+on a save gesture + `estimate()` in the Admin status tab · ETag capture on every
+cloud load (kills post-reload false 412s) · merge-preserving ProjectMetadata
+writes (the load-time heal; the Control-owned `sustainment` projection survives
+saves/loads/backfills). The worker-marshal serialization item is **CUT on
+research grounds** (spec §17): postMessage structured-clone is synchronous on
+the sending thread and slower than the stringify it would offload for
+plain-object graphs. Replacement: save-serialize telemetry with a dual
+re-architect trigger (>50 MB or >50 ms); revive path = columnar transferable
+SoA or OPFS worker-owned persistence, never marshal-then-stringify.
