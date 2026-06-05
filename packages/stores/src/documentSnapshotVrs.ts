@@ -51,7 +51,7 @@ export function isDocumentSnapshotVrsFile(value: unknown): value is DocumentSnap
   return (
     isRecord(value) &&
     value.kind === 'variscout.document' &&
-    value.version === 1 &&
+    value.version === CURRENT_DOCUMENT_SCHEMA_VERSION &&
     typeof value.exportedAt === 'string' &&
     !('hub' in value) &&
     !('rawData' in value) &&
