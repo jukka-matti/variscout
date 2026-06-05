@@ -564,10 +564,13 @@ describe('applyAction — EVIDENCE_SOURCE_REMOVE', () => {
 // ---------------------------------------------------------------------------
 
 describe('applyAction — session-only no-ops', () => {
-  // Session-only no-op tests use `as HubAction` casts for complex payloads
-  // (Finding, Question, CausalLink, Hypothesis) because the handlers consume
-  // nothing from the payload — they are structural no-ops. Full type-safety is
-  // enforced at real call sites; cast only in tests for session-only no-ops.
+  // Session-only no-op tests use `as HubAction` / `as unknown as HubAction` casts
+  // for partial payloads (Finding, CausalLink, Hypothesis) because the handlers
+  // consume nothing from the payload — they are structural no-ops. The stronger
+  // `as unknown as HubAction` form is needed where the partial payload no longer
+  // satisfies the discriminated-union literal (e.g. FINDING_ADD after FK drop).
+  // Full type-safety is enforced at real call sites; casts only in tests for
+  // session-only no-ops.
 
   it('FINDING_ADD resolves cleanly', async () => {
     await expect(
