@@ -18,11 +18,11 @@ export function ensureSessionProject(
   if (hub?.improvementProject && hub.improvementProject.deletedAt === null) {
     return hub;
   }
-  const base = hub ?? {
+  const base: Pick<ProcessHub, 'id' | 'name' | 'createdAt' | 'deletedAt'> = hub ?? {
     id: crypto.randomUUID(),
     name: '',
     createdAt: now(),
-    deletedAt: null as null,
+    deletedAt: null,
   };
   const ip = createNewIP({
     hubId: base.id,
@@ -30,5 +30,5 @@ export function ensureSessionProject(
     currentUserId: PWA_USER_ID,
     now,
   });
-  return { ...base, improvementProject: ip, updatedAt: now() } as ProcessHub;
+  return { ...base, improvementProject: ip, updatedAt: now() };
 }
