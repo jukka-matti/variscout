@@ -93,7 +93,6 @@ const FAKE_ACTIVE_IP_FOR_B0 = {
   goal: { outcomeGoals: [] },
   sections: {
     background: {},
-    investigationLineage: {},
     approach: {},
     outcomeReference: {},
   },

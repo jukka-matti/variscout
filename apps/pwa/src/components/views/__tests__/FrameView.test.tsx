@@ -30,7 +30,6 @@ const DEFAULT_TEST_IP = {
   goal: { outcomeGoals: [] },
   sections: {
     background: {},
-    investigationLineage: {},
     approach: {},
     outcomeReference: {},
   },
@@ -813,7 +812,6 @@ describe('FrameView (PWA shell)', () => {
       goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 98 }] },
       sections: {
         background: {},
-        investigationLineage: {},
         approach: {},
         outcomeReference: {},
       },

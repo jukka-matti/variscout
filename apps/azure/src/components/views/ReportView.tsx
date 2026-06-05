@@ -36,7 +36,7 @@ import {
   HubPortfolioReport,
   IPTechnicalReport,
 } from '@variscout/ui';
-import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
+import type { ActiveIPScopeLabels } from '@variscout/ui';
 import {
   useReportSections,
   useScrollSpy,
@@ -79,7 +79,6 @@ interface ReportViewProps {
   aiEnabled?: boolean;
   narrative?: string | null;
   activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
-  activeIPLineage?: ActiveIPLineageIds | null;
   activeIPTitle?: string | null;
   activeHub?: ProcessHub | null;
   activeIP?: ImprovementProject | null;
@@ -138,7 +137,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   aiEnabled,
   narrative,
   activeIPScope,
-  activeIPLineage,
   activeIPTitle,
   activeHub,
   activeIP: providedActiveIP,
@@ -168,34 +166,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   const findings = useAnalyzeStore(s => s.findings);
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
-  const scopedFindingIds = useMemo(
-    () => new Set(activeIPLineage?.findingIds ?? []),
-    [activeIPLineage]
-  );
-  const scopedHypothesisIds = useMemo(
-    () => new Set(activeIPLineage?.hypothesisIds ?? []),
-    [activeIPLineage]
-  );
-  const reportHypotheses = useMemo(
-    () =>
-      activeIPScope
-        ? hypotheses.filter(hypothesis => scopedHypothesisIds.has(hypothesis.id))
-        : hypotheses,
-    [activeIPScope, hypotheses, scopedHypothesisIds]
-  );
-  // PR-CS-6 Edge 2: surface findings reached BOTH via the explicit
-  // `investigationLineage.findingIds` (the pin gesture) AND via the
-  // hypothesis-derived projection (findings attached to scoped hypotheses).
-  // Union, deduped by id (each finding appears at most once in `findings`).
-  const reportFindings = useMemo(() => {
-    if (!activeIPScope) return findings;
-    const unionIds = new Set(scopedFindingIds);
-    for (const hypothesis of reportHypotheses) {
-      for (const id of hypothesis.findingIds) unionIds.add(id);
-      for (const id of hypothesis.counterFindingIds ?? []) unionIds.add(id);
-    }
-    return findings.filter(finding => unionIds.has(finding.id));
-  }, [activeIPScope, findings, scopedFindingIds, reportHypotheses]);
   const activeIP = activeIPScope ? (providedActiveIP ?? null) : null;
   const ipReportScope = useMemo(
     () =>
@@ -210,6 +180,10 @@ const ReportView: React.FC<ReportViewProps> = ({
         : null,
     [activeHub?.controlHandoffs, activeHub?.controlRecords, activeIP, findings, hypotheses]
   );
+  // PO-5: one composition path — the core engine (status-keyed) is the
+  // canonical Report scope; mirrors the PWA ReportView exactly.
+  const reportFindings = activeIP && ipReportScope ? ipReportScope.findings : findings;
+  const reportHypotheses = activeIP && ipReportScope ? ipReportScope.hypotheses : hypotheses;
   const ipNarrative = useMemo(
     () =>
       activeIP && ipReportScope

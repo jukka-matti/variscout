@@ -13,11 +13,6 @@ export interface ActiveIPCanvasFocus {
   focalStepId?: string;
 }
 
-export interface ActiveIPLineageIds {
-  hypothesisIds: string[];
-  findingIds: string[];
-}
-
 function formatDate(value: number): string {
   return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
@@ -64,11 +59,4 @@ export function deriveActiveIPCanvasFocus(
   }
 
   return { level: 'l1' };
-}
-
-export function deriveActiveIPLineageIds(ip: ImprovementProject): ActiveIPLineageIds {
-  return {
-    hypothesisIds: ip.sections.investigationLineage.hypothesisIds ?? [],
-    findingIds: ip.sections.investigationLineage.findingIds ?? [],
-  };
 }

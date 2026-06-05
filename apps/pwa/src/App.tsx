@@ -24,7 +24,6 @@ import {
   ActiveIPLaunchpadCard,
   ActiveIPScopeRibbon,
   deriveActiveIPCanvasFocus,
-  deriveActiveIPLineageIds,
   deriveActiveIPScopeLabels,
   PendingInvitesBanner,
   type ColumnShape,
@@ -68,7 +67,6 @@ import {
 } from '@variscout/stores';
 import { createProjectActionItem } from '@variscout/core/findings';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
-import { toggleLineageFinding } from '@variscout/core/improvementProject';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
@@ -832,30 +830,10 @@ function AppMain() {
           labels: activeIPScopeLabels,
         }
       : null;
-  const activeIPLineage = useMemo(
-    () => (activeIPContext.activeIP ? deriveActiveIPLineageIds(activeIPContext.activeIP) : null),
-    [activeIPContext.activeIP]
-  );
-  const activeIPLineageFindingIds = useMemo(
-    () => new Set(activeIPLineage?.findingIds ?? []),
-    [activeIPLineage]
-  );
-  // IM-1: activeIPLineageHypothesisIds + the scopedHypotheses memo are removed.
-  // On main scopedHypotheses existed only to derive the now-retired
-  // scopedQuestionIds; AnalyzeView scopes hubs internally from the activeIPLineage
-  // prop, so no scoped-hypothesis set needs threading from here.
-  const scopedFindings = useMemo(
-    () =>
-      activeIPContext.isIPScoped
-        ? findingsState.findings.filter(finding => activeIPLineageFindingIds.has(finding.id))
-        : findingsState.findings,
-    [activeIPContext.isIPScoped, activeIPLineageFindingIds, findingsState.findings]
-  );
-  const scopedFindingsState = useMemo(
-    () =>
-      activeIPContext.isIPScoped ? { ...findingsState, findings: scopedFindings } : findingsState,
-    [activeIPContext.isIPScoped, findingsState, scopedFindings]
-  );
+  // PO-5: the lineage section is retired — active-IP surfaces show the whole
+  // document (empty-set-means-unfiltered is now the permanent semantics). The
+  // scopedFindings/scopedFindingsState memos are gone; AnalyzeView receives
+  // findingsState directly.
 
   // PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
   // tracker (`IP.metadata.actions`) via ACTION_ITEM_ADD, then stamp the source so
@@ -893,19 +871,6 @@ function AppMain() {
       findingsState.promoteAction(findingId, actionId, activeIP.id);
     },
     [activeIPContext.activeIP, findingsState, upsertProject]
-  );
-
-  // PR-CS-6 Edge 2: two-way toggle pinning a finding to the active project's
-  // investigation lineage (`sections.investigationLineage.findingIds`). Merges
-  // the `findingIds` array only (preserves `hypothesisIds`) + stamps `updatedAt`.
-  // PWA is session-only (.vrs) so the in-memory store write is the durable path.
-  const handleToggleProjectLineage = useCallback(
-    (findingId: string) => {
-      const activeIP = activeIPContext.activeIP;
-      if (!activeIP) return;
-      upsertProject(toggleLineageFinding(activeIP, findingId));
-    },
-    [activeIPContext.activeIP, upsertProject]
   );
 
   // ── Measurement plan callbacks for WallCanvas planningProps ─────────────
@@ -1426,19 +1391,15 @@ function AppMain() {
             ) : panels.activeView === 'analyze' ? (
               <AnalyzeView
                 activeIPScope={activeIPScope}
-                activeIPLineage={activeIPLineage}
                 canvasViewportHubId={normalizeProcessHubId(canvasViewportHubId)}
                 filteredData={filteredData ?? []}
                 outcome={outcome}
                 factors={factors}
-                findingsState={scopedFindingsState}
+                findingsState={findingsState}
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={investigation.handleSetFindingStatus}
                 onPromoteFindingAction={
                   activeIPContext.activeIP ? handlePromoteFindingAction : undefined
-                }
-                onToggleProjectLineage={
-                  activeIPContext.activeIP ? handleToggleProjectLineage : undefined
                 }
                 drillPath={drillPath}
                 columnAliases={columnAliases}

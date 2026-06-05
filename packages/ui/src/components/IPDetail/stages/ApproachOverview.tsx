@@ -93,7 +93,7 @@ const ApproachOverview: React.FC<ApproachOverviewProps> = ({
             className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-100"
             data-testid="approach-continue-wall"
           >
-            Wall · {ip.sections.investigationLineage.hypothesisIds?.length ?? 0} hypotheses
+            Wall
           </button>
           <button
             type="button"

@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ProcessHub } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import {
-  deriveActiveIPCanvasFocus,
-  deriveActiveIPLineageIds,
-  deriveActiveIPScopeLabels,
-} from '../activeIPScope';
+import { deriveActiveIPCanvasFocus, deriveActiveIPScopeLabels } from '../activeIPScope';
 
 const hub: ProcessHub = {
   id: 'hub-1',
@@ -47,7 +43,6 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
     goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-weight', target: 1.33 }] },
     sections: {
       background: {},
-      investigationLineage: { hypothesisIds: ['h-1'], findingIds: ['f-1'] },
       approach: {},
       outcomeReference: {},
     },
@@ -97,12 +92,5 @@ describe('activeIPScope', () => {
         hub
       )
     ).toEqual({ level: 'l3', focalStepId: 'fill' });
-  });
-
-  it('returns lineage ids for tab scoping', () => {
-    expect(deriveActiveIPLineageIds(makeIP())).toEqual({
-      hypothesisIds: ['h-1'],
-      findingIds: ['f-1'],
-    });
   });
 });

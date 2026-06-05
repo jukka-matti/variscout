@@ -50,7 +50,6 @@ function makeProject(overrides: Partial<ImprovementProject> = {}): ImprovementPr
     },
     sections: {
       background: { manualNarrative: 'Current rework is high.' },
-      investigationLineage: { hypothesisIds: ['h-0'] },
       approach: { narrative: 'Stabilize nozzle temp.' },
       outcomeReference: { snapshotText: 'Baseline Cpk 0.9.' },
     },
@@ -134,7 +133,6 @@ describe('useImprovementProjectPanelModel', () => {
           },
           sections: {
             background: {},
-            investigationLineage: {},
             approach: {},
             outcomeReference: {},
           },
@@ -239,7 +237,6 @@ describe('useImprovementProjectPanelModel', () => {
           manualNarrative: 'Current rework is high.',
           snapshottedAt: '2026-05-31T00:00:00.000Z',
         },
-        investigationLineage: { hypothesisIds: ['h-0'] },
         approach: {
           narrative: 'Stabilize nozzle temp.',
           actionItemIds: ['action-1'],

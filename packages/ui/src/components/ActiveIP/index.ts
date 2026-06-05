@@ -9,10 +9,8 @@ export {
 } from './activeIPPresentation';
 export {
   deriveActiveIPCanvasFocus,
-  deriveActiveIPLineageIds,
   deriveActiveIPScopeLabels,
   type ActiveIPCanvasFocus,
-  type ActiveIPLineageIds,
   type ActiveIPScopeLabels,
 } from './activeIPScope';
 export { ActiveIPLaunchpadCard, type ActiveIPLaunchpadCardProps } from './ActiveIPLaunchpadCard';

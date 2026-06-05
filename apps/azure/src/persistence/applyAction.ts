@@ -288,10 +288,6 @@ export async function applyAction(action: HubAction): Promise<void> {
         sections: patch.sections
           ? {
               background: { ...existing.sections.background, ...(patch.sections.background ?? {}) },
-              investigationLineage: {
-                ...existing.sections.investigationLineage,
-                ...(patch.sections.investigationLineage ?? {}),
-              },
               approach: { ...existing.sections.approach, ...(patch.sections.approach ?? {}) },
               outcomeReference: {
                 ...existing.sections.outcomeReference,

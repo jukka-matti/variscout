@@ -12,7 +12,7 @@ const ip: ImprovementProject = {
   status: 'active',
   metadata: { title: 'Heads 5-8 Cpk shortfall' },
   goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', baseline: 0.61, target: 1.33 }] },
-  sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
+  sections: { background: {}, approach: {}, outcomeReference: {} },
 };
 
 describe('IPDetailHeader', () => {

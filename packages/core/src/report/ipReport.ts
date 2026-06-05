@@ -1,4 +1,5 @@
 import type { Finding, Hypothesis } from '../findings/types';
+import { groupHypothesesByStatus } from '../findings/helpers';
 import { deriveIPReportMiniChartType, type IPReportMiniChartType } from '../findings/miniChart';
 import type { ImprovementProject } from '../improvementProject';
 import type { ProcessHub } from '../processHub';
@@ -73,16 +74,9 @@ function unique<T>(values: Iterable<T>): T[] {
   return Array.from(new Set(values));
 }
 
-function linkedHypothesisIds(ip: ImprovementProject): Set<string> {
-  const ids = new Set(ip.sections.investigationLineage.hypothesisIds ?? []);
-  for (const control of ip.goal.factorControls ?? []) {
-    if (control.linkedHypothesisId) ids.add(control.linkedHypothesisId);
-  }
-  return ids;
-}
-
-function linkedFindingIds(ip: ImprovementProject, hypotheses: readonly Hypothesis[]): Set<string> {
-  const ids = new Set(ip.sections.investigationLineage.findingIds ?? []);
+/** Findings enter the Report via their hypothesis linkage + goal mechanism links (PO-5). */
+function reportFindingIds(ip: ImprovementProject, hypotheses: readonly Hypothesis[]): Set<string> {
+  const ids = new Set<string>();
   for (const goal of ip.goal.mechanismGoals ?? []) {
     for (const id of goal.linkedFindingIds ?? []) ids.add(id);
   }
@@ -119,9 +113,12 @@ function selectControlHandoff(
 }
 
 export function selectIPReportScope(input: IPReportScopeInput): IPReportScope {
-  const hypothesisIds = linkedHypothesisIds(input.ip);
-  const hypotheses = input.hypotheses.filter(hypothesis => hypothesisIds.has(hypothesis.id));
-  const findingIds = linkedFindingIds(input.ip, hypotheses);
+  // PO-5: the Report composes from analyst-owned status (CS-10), not lineage
+  // membership. Under Project⟷Hub 1:1 (IM-0a) the document boundary IS the
+  // project boundary — every live hypothesis has a Report destination
+  // (narrative / tested-and-excluded / open questions per its status).
+  const hypotheses = [...input.hypotheses];
+  const findingIds = reportFindingIds(input.ip, hypotheses);
   const findings = input.findings.filter(finding => findingIds.has(finding.id));
   const controlRecord = selectControlRecord(input.ip, input.controlRecords);
   const controlHandoff = selectControlHandoff(input.ip, input.controlHandoffs, controlRecord);
@@ -164,32 +161,34 @@ export function deriveIPCauseRows(input: {
   findings: readonly Finding[];
   controlRecord?: ControlRecord;
 }): IPCauseRow[] {
-  const hypothesisIds = linkedHypothesisIds(input.ip);
-  return input.hypotheses
-    .filter(hypothesis => hypothesisIds.has(hypothesis.id))
-    .map(hypothesis => {
-      const causeFindings = input.findings.filter(finding =>
-        hypothesis.findingIds.includes(finding.id)
-      );
-      const actions = actionsForCause(input.findings, hypothesis.findingIds);
-      return {
-        hypothesisId: hypothesis.id,
-        title: hypothesis.name,
-        synthesis: hypothesis.synthesis,
-        selectedIdea: selectedIdeaText(hypothesis),
-        actionProgressLabel: actionProgressLabel(actions),
-        verificationLabel: verificationLabel(input.controlRecord),
-        findingCount: causeFindings.length,
-        miniChartType: deriveIPReportMiniChartType({
-          ip: input.ip,
-          hypothesis,
-          linkedFindings: causeFindings,
-          // Legacy first-outcome access — multi-outcome report rendering is a later phase
-          // (Spec 2 §3.2.2 / PR-CCJ-C1).
-          outcome: input.ip.goal.outcomeGoals[0]?.outcomeSpecId ?? '',
-        }),
-      };
-    });
+  // PO-5: cause rows key on analyst-owned status — evidence that survived
+  // testing plus evidenced mechanisms. Refuted → tested-and-excluded;
+  // proposed/needs-disconfirmation → open questions (deriveIPReportNarrative).
+  const groups = groupHypothesesByStatus(input.hypotheses);
+  const causeHypotheses = [...groups['evidence-survived-test'], ...groups['evidenced']];
+  return causeHypotheses.map(hypothesis => {
+    const causeFindings = input.findings.filter(finding =>
+      hypothesis.findingIds.includes(finding.id)
+    );
+    const actions = actionsForCause(input.findings, hypothesis.findingIds);
+    return {
+      hypothesisId: hypothesis.id,
+      title: hypothesis.name,
+      synthesis: hypothesis.synthesis,
+      selectedIdea: selectedIdeaText(hypothesis),
+      actionProgressLabel: actionProgressLabel(actions),
+      verificationLabel: verificationLabel(input.controlRecord),
+      findingCount: causeFindings.length,
+      miniChartType: deriveIPReportMiniChartType({
+        ip: input.ip,
+        hypothesis,
+        linkedFindings: causeFindings,
+        // Legacy first-outcome access — multi-outcome report rendering is a later phase
+        // (Spec 2 §3.2.2 / PR-CCJ-C1).
+        outcome: input.ip.goal.outcomeGoals[0]?.outcomeSpecId ?? '',
+      }),
+    };
+  });
 }
 
 function goalItems(ip: ImprovementProject): string[] {
@@ -212,7 +211,9 @@ export function deriveIPReportNarrative(input: {
   controlHandoff?: ControlHandoff;
 }): IPReportOverviewSection[] {
   const causeRows = deriveIPCauseRows(input);
-  const refuted = input.hypotheses.filter(hypothesis => hypothesis.status === 'refuted');
+  const groups = groupHypothesesByStatus(input.hypotheses);
+  const refuted = groups['refuted'];
+  const openQuestions = [...groups['proposed'], ...groups['needs-disconfirmation']];
   const inProgress = causeRows.filter(row => !row.actionProgressLabel.startsWith('1 of 1'));
   const learnedItems = [
     ...(input.controlHandoff
@@ -262,10 +263,13 @@ export function deriveIPReportNarrative(input: {
     },
     {
       title: "What's next",
-      items:
-        inProgress.length > 0
-          ? inProgress.map(row => `${row.title}: ${row.actionProgressLabel}`)
-          : ['Continue cadence review and watch for new Survey hints.'],
+      items: [
+        ...inProgress.map(row => `${row.title}: ${row.actionProgressLabel}`),
+        ...openQuestions.map(hypothesis => `Open question: ${hypothesis.name}`),
+        ...(inProgress.length === 0 && openQuestions.length === 0
+          ? ['Continue cadence review and watch for new Survey hints.']
+          : []),
+      ],
     },
   ];
 }

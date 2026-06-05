@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Finding, Hypothesis } from '../../findings/types';
+import type { Finding, Hypothesis, HypothesisStatus } from '../../findings/types';
 import type { ImprovementProject } from '../../improvementProject';
 import type { ProcessHub } from '../../processHub';
 import type { ControlHandoff, ControlRecord } from '../../control';
@@ -32,7 +32,6 @@ function project(overrides: Partial<ImprovementProject> = {}): ImprovementProjec
     },
     sections: {
       background: { snapshotText: 'Baseline Cpk was below target.' },
-      investigationLineage: { hypothesisIds: ['hyp-1', 'hyp-ruled'], findingIds: ['find-1'] },
       approach: { improvementIdeaIds: ['idea-1'], actionItemIds: ['act-1'] },
       outcomeReference: { sustainmentRecordId: 'sus-1', controlHandoffId: 'handoff-1' },
     },
@@ -149,11 +148,13 @@ function handoff(overrides: Partial<ControlHandoff> = {}): ControlHandoff {
 }
 
 describe('selectIPReportScope', () => {
-  it('selects linked hypotheses, findings, sustainment record, and handoff (ADR-085: no questions)', () => {
+  it('returns all live input hypotheses (PO-5: status composes the Report, not lineage), with findings reached via hypothesis + mechanism links', () => {
+    // Under Project⟷Hub 1:1 every live hypothesis has a Report destination.
+    // Findings still surface only via their hypothesis/mechanism linkage.
     const scope = selectIPReportScope({
       ip: project(),
       hypotheses: [hypothesis(), hypothesis({ id: 'hyp-other', findingIds: ['find-other'] })],
-      findings: [finding(), finding({ id: 'find-other' })],
+      findings: [finding(), finding({ id: 'find-other' }), finding({ id: 'find-unrelated' })],
       controlRecords: [
         sustainment(),
         sustainment({ id: 'sus-other', improvementProjectId: 'ip-other' }),
@@ -161,33 +162,31 @@ describe('selectIPReportScope', () => {
       controlHandoffs: [handoff(), handoff({ id: 'handoff-other', investigationId: 'inv-other' })],
     });
 
-    expect(scope.hypotheses.map(h => h.id)).toEqual(['hyp-1']);
-    expect(scope.findings.map(f => f.id)).toEqual(['find-1']);
+    // ALL input hypotheses are in scope now (no lineage membership filter).
+    expect(scope.hypotheses.map(h => h.id).sort()).toEqual(['hyp-1', 'hyp-other']);
+    // Findings surface via hypothesis findingIds + goal.mechanismGoals.linkedFindingIds.
+    expect(scope.findings.map(f => f.id).sort()).toEqual(['find-1', 'find-other']);
+    expect(scope.findings.map(f => f.id)).not.toContain('find-unrelated');
     expect(scope.controlRecord?.id).toBe('sus-1');
     expect(scope.controlHandoff?.id).toBe('handoff-1');
   });
 
-  it('PR-CS-6 Edge 2: unions explicit lineage findingIds with hypothesis-derived findings (deduped)', () => {
-    // `find-lineage` is pinned via investigationLineage only (no hypothesis);
-    // `find-1` is reached via the scoped hypothesis only. Both must surface.
+  it('a hypothesis with Report-relevant status but NO goal back-ref appears in scope (PO-5)', () => {
+    // The semantic delta: today a hypothesis with no factorControl link silently
+    // vanished from the Report; now status alone earns it a Report destination.
     const ip = project({
-      sections: {
-        background: {},
-        investigationLineage: { hypothesisIds: ['hyp-1'], findingIds: ['find-lineage'] },
-        approach: {},
-        outcomeReference: {},
+      goal: {
+        outcomeGoals: [{ outcomeSpecId: 'out-fill', baseline: 0.86, target: 1.33 }],
+        factorControls: [], // no linkedHypothesisId back-ref anywhere
+        mechanismGoals: [],
       },
     });
     const scope = selectIPReportScope({
       ip,
-      hypotheses: [hypothesis()], // hyp-1 → findingIds: ['find-1']
-      findings: [finding(), finding({ id: 'find-lineage' }), finding({ id: 'find-unrelated' })],
+      hypotheses: [hypothesis({ id: 'hyp-status-only', status: 'evidence-survived-test' })],
+      findings: [],
     });
-
-    const ids = scope.findings.map(f => f.id).sort();
-    expect(ids).toEqual(['find-1', 'find-lineage']);
-    // Unrelated finding (neither pinned nor hypothesis-linked) is excluded.
-    expect(ids).not.toContain('find-unrelated');
+    expect(scope.hypotheses.map(h => h.id)).toContain('hyp-status-only');
   });
 });
 
@@ -232,6 +231,56 @@ describe('deriveIPCauseRows', () => {
         verificationLabel: 'Control holding · 4 ticks',
       }),
     ]);
+  });
+});
+
+describe('Report composes from analyst-owned status (PO-5)', () => {
+  const mkHyp = (id: string, status: HypothesisStatus) =>
+    hypothesis({ id, name: `name-${id}`, synthesis: `syn-${id}`, status, findingIds: [] });
+
+  it('NEGATIVE: a refuted hypothesis is NOT a cause row and NOT in the narrative findings; it is tested-and-excluded', () => {
+    const rows = deriveIPCauseRows({
+      ip: project(),
+      hypotheses: [mkHyp('hyp-ref', 'refuted')],
+      findings: [],
+    });
+    expect(rows).toHaveLength(0);
+    const sections = deriveIPReportNarrative({
+      ip: project(),
+      hypotheses: [mkHyp('hyp-ref', 'refuted')],
+      findings: [],
+    });
+    const found = sections.find(s => s.title === 'What we found + what we did')!;
+    expect(found.items.join(' ')).not.toContain('name-hyp-ref');
+    const learned = sections.find(s => s.title === 'What we standardized + learned')!;
+    expect(learned.items).toContain('Ruled out: name-hyp-ref');
+  });
+
+  it('NEGATIVE: a proposed hypothesis is NOT in tested-and-excluded; it is an open question', () => {
+    const sections = deriveIPReportNarrative({
+      ip: project(),
+      hypotheses: [mkHyp('hyp-open', 'proposed')],
+      findings: [],
+    });
+    const learned = sections.find(s => s.title === 'What we standardized + learned')!;
+    expect(learned.items.join(' ')).not.toContain('Ruled out: name-hyp-open');
+    const next = sections.find(s => s.title === "What's next")!;
+    expect(next.items).toContain('Open question: name-hyp-open');
+  });
+
+  it('cause rows include evidenced + evidence-survived-test, nothing else', () => {
+    const rows = deriveIPCauseRows({
+      ip: project(),
+      hypotheses: [
+        mkHyp('a', 'evidence-survived-test'),
+        mkHyp('b', 'evidenced'),
+        mkHyp('c', 'proposed'),
+        mkHyp('d', 'refuted'),
+        mkHyp('e', 'needs-disconfirmation'),
+      ],
+      findings: [],
+    });
+    expect(rows.map(r => r.hypothesisId).sort()).toEqual(['a', 'b']);
   });
 });
 

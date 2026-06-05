@@ -44,7 +44,6 @@ function makeIP(
     goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },

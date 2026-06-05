@@ -329,6 +329,15 @@ New data is collected **to test a specific hypothesis** and must **join onto exi
 
 ### §4.6 · The downstream where-from / where-to (Improve · Control · Report)
 
+> **Superseded by PO-5 (2026-06-05).** The Edge-2 lineage write below WAS wired
+> (CS-6 / PR #287: the FindingCard pin gesture populating
+> `IP.sections.investigationLineage.findingIds`) and is **deliberately
+> REVERSED by PO-5**: `sections.investigationLineage` is deleted; analyst-owned
+> CS-10 `HypothesisStatus` replaces membership lineage as the Report curation
+> system (the process-ops extraction spec §4.1–4.2). The bullet below predates
+> the CS-6 delivery and reads as if the wire was never built — both states are
+> historical now.
+
 The active-IP cascade is shipped and functional (`useActiveIPContext`, `Editor.tsx:633`). Grounded gaps to close so the spine reaches the end:
 
 - **No Finding→Action linkage** — `Finding.actions[]` exist but don't feed `IP.metadata.actions`; wire the promotion.

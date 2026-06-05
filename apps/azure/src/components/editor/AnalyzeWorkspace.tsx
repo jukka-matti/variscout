@@ -17,7 +17,7 @@ import {
   navigateToExploreForChip,
   type HubComposerBranchFields,
 } from '@variscout/ui';
-import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
+import type { ActiveIPScopeLabels } from '@variscout/ui';
 import {
   useResizablePanel,
   useProblemStatement,
@@ -32,7 +32,6 @@ import {
 import type {
   CurrentUnderstanding,
   FindingStatus,
-  Hypothesis,
   IdeaImpact,
   ProblemCondition,
   ProcessContext,
@@ -99,7 +98,6 @@ const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 
 interface AnalyzeWorkspaceProps {
   activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
-  activeIPLineage?: ActiveIPLineageIds | null;
   /**
    * PR-CS-0 Task 2: id under which drill-materialized ProblemStatementScopes are
    * keyed. Threaded from the active Improvement Project (`activeIP.id`) so scopes
@@ -121,11 +119,6 @@ interface AnalyzeWorkspaceProps {
    * promote button once the source action carries `parentImprovementProjectId`.
    */
   onPromoteFindingAction?: (findingId: string, actionId: string) => void;
-  /**
-   * PR-CS-6 Edge 2: two-way toggle pinning a finding to the active project's
-   * investigation lineage. Provided only when an active IP exists.
-   */
-  onToggleProjectLineage?: (findingId: string) => void;
   // Comments
   handleAddCommentWithAuthor: (
     findingId: string,
@@ -177,7 +170,6 @@ interface AnalyzeWorkspaceProps {
  */
 export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   activeIPScope,
-  activeIPLineage,
   scopeInvestigationId = 'general-unassigned',
   findingsState,
   handleRestoreFinding,
@@ -185,7 +177,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   handleNavigateToChart,
   handleShareFinding,
   onPromoteFindingAction,
-  onToggleProjectLineage,
   // IM-1: drillPath no longer consumed (drillFactors derivation removed); kept on
   // the props interface for API stability + the call site that still passes it.
   drillPath: _drillPath,
@@ -588,14 +579,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     if (!stats || !filteredData?.length) return 0;
     return Math.round((stats.outOfSpecPercentage / 100) * filteredData.length);
   }, [stats, filteredData]);
-  const scopedHubIds = useMemo(
-    () => new Set(activeIPLineage?.hypothesisIds ?? []),
-    [activeIPLineage]
-  );
-  const scopedFindingIds = useMemo(
-    () => new Set(activeIPLineage?.findingIds ?? []),
-    [activeIPLineage]
-  );
 
   // Wall hub-comment SSE subscription — no-op when viewMode !== 'wall' or
   // when there's no selection. Streams lifetime-bound to this component
@@ -744,23 +727,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   }, [bestSubsets]);
 
   // ── Hub model computations (Hypothesis hubs) ───────────────────────
+  // PO-5: active-IP scope shows the whole document — the Wall renders every hub
+  // and finding (the lineage-membership filter is retired; empty-set-means-
+  // unfiltered is the permanent semantics).
   const hubs = hypothesesState.hubs;
-  // Interim curation semantics (decision-log OQ 2026-06-04, Project⟷Hub entity
-  // disposition): an EMPTY lineage list means "nothing curated into the project
-  // yet" → show everything. lineage.hypothesisIds currently has no UI writer at
-  // all, so filtering against it blanked the Wall under active-IP scope.
-  const scopedHubs = useMemo(
-    () =>
-      activeIPScope && scopedHubIds.size > 0 ? hubs.filter(h => scopedHubIds.has(h.id)) : hubs,
-    [activeIPScope, hubs, scopedHubIds]
-  );
-  const scopedWallFindings = useMemo(
-    () =>
-      activeIPScope && scopedFindingIds.size > 0
-        ? findingsState.findings.filter(f => scopedFindingIds.has(f.id))
-        : findingsState.findings,
-    [activeIPScope, scopedFindingIds, findingsState.findings]
-  );
 
   // PR-CS-6 Edge 4: resolve each finding's `originStepId` to its ProcessMap step
   // name (FindingCard stays pure). Suppressed silently for findings whose step no
@@ -768,12 +738,12 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const originStepNameByFindingId = useMemo(() => {
     const stepNameById = new Map(deriveProcessSteps(processMap).map(s => [s.id, s.name]));
     const out = new Map<string, string>();
-    for (const f of scopedWallFindings) {
+    for (const f of findingsState.findings) {
       const name = f.originStepId ? stepNameById.get(f.originStepId) : undefined;
       if (name) out.set(f.id, name);
     }
     return out;
-  }, [processMap, scopedWallFindings]);
+  }, [processMap, findingsState.findings]);
 
   // Phase 13 — pan-to-node: center the viewport on a hub by id. IM-4c: consumes
   // the SHARED computeWallLayout authority with the SAME inputs WallCanvas + the
@@ -783,7 +753,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     (nodeId: string) => {
       const layout = computeWallLayout(
         buildWallLayoutArgs({
-          hubs: scopedHubs,
+          hubs,
           processMap,
           groupByTributary: Boolean(processMap && wallGroupByTributary),
           canvasW: CANVAS_W,
@@ -798,7 +768,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         });
       }
     },
-    [scopedHubs, processMap, wallGroupByTributary, wallHubId, setWallPan]
+    [hubs, processMap, wallGroupByTributary, wallHubId, setWallPan]
   );
 
   // PR-CS-5 Part 1 — focus-on-arrival pan. When a Process-tab hypothesis link
@@ -825,8 +795,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 
   // Detect evidence clusters for synthesis prompts
   const evidenceClusters = useMemo(
-    () => detectEvidenceClusters(findingsState.findings, scopedHubs),
-    [findingsState.findings, scopedHubs]
+    () => detectEvidenceClusters(findingsState.findings, hubs),
+    [findingsState.findings, hubs]
   );
 
   // Left panel resizable
@@ -837,31 +807,12 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const viewMode = externalViewMode ?? internalViewMode;
   const handleViewMode = onViewModeChange ?? setInternalViewMode;
 
-  // Categorize hypothesis hubs for AnalyzeConclusion (IM-1: status-derived,
-  // replacing the retired Question causeRole split). Only the suspected
-  // (confirmed) and ruledOut (refuted) sets gate the conclusion panel today;
-  // IM-1: the `contributing` set derivation is removed — the level-native
-  // contribution view that renders it arrives in IM-5.
-  //
-  // NOTE: this reads `h.status` (the stored value) directly, not
-  // `deriveHypothesisStatus`. Status is now analyst-owned (CS-10): the analyst
-  // sets it via `setHubStatus` (re-introduced in CS-10 after IM-4a, commit
-  // `84045c42`, deleted it). `deriveHypothesisStatus` is demoted to an advisory
-  // suggestion chip on the Wall — it never auto-applies. factories.ts seeds
-  // 'proposed'; `h.status === 'evidence-survived-test'` becomes live once the
-  // analyst explicitly sets it via the UI. The Wall surface (WallCanvas +
-  // MobileCardList) displays the analyst-set stored status (also reads
-  // `hub.status`). See investigations.md §"stored-vs-derived status" (RESOLVED
-  // 2026-06-03) and §"PWA/Azure conclusion-categorizer parity divergence".
-  const { hypotheses, ruledOut } = useMemo(() => {
-    const suspected: Hypothesis[] = [];
-    const ruled: Hypothesis[] = [];
-    for (const h of hypothesesState.hubs) {
-      if (h.status === 'refuted') ruled.push(h);
-      else if (h.status === 'evidence-survived-test') suspected.push(h);
-    }
-    return { hypotheses: suspected, ruledOut: ruled };
-  }, [hypothesesState.hubs]);
+  // PO-5: the conclusion-categorizer memo was gate-only ceremony — its
+  // suspected/ruledOut buckets partition `hubs`, so the conclusion-panel gate
+  // reduces to `hubs.length > 0`. AnalyzeConclusion renders all hubs flat
+  // (per-hub STATUS_STYLES badges; no internal bucketing). The one canonical
+  // status→bucket mapping now lives in core (`groupHypothesesByStatus`), keyed
+  // by the Report engine.
 
   // IM-1: drillFactors derivation removed; its only consumer was the retired
   // Question-driven evidence panel (factors={drillFactors}). The `drillPath`
@@ -1168,17 +1119,17 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           </div>
 
           {/* Investigation conclusion */}
-          {(hypotheses.length > 0 || ruledOut.length > 0 || scopedHubs.length > 0) && (
+          {hubs.length > 0 && (
             <div className="border-t border-edge px-3 py-2 flex-shrink-0">
               <AnalyzeConclusion
                 problemStatement={processContext?.problemStatement}
-                hasConclusions={hypotheses.length > 0 || scopedHubs.length > 0}
+                hasConclusions={hubs.length > 0}
                 problemStatementDraft={problemStatement.draft}
                 isProblemStatementReady={problemStatement.isReady}
                 onGenerateProblemStatement={problemStatement.generate}
                 onAcceptProblemStatement={problemStatement.accept}
                 onDismissProblemStatement={problemStatement.dismiss}
-                hubs={scopedHubs}
+                hubs={hubs}
                 hubEvidences={hubEvidences}
                 hubProjections={hubProjections}
                 onCreateHub={handleCreateHub}
@@ -1187,7 +1138,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onToggleHubSelect={handleToggleHubSelect}
                 onBrainstormHub={handleBrainstormHub}
                 evidenceClusters={evidenceClusters}
-                findings={scopedWallFindings}
+                findings={findingsState.findings}
               />
             </div>
           )}
@@ -1297,8 +1248,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
             )}
 
             <span className="ml-auto text-xs text-content-tertiary">
-              {scopedWallFindings.length} finding
-              {scopedWallFindings.length !== 1 ? 's' : ''}
+              {findingsState.findings.length} finding
+              {findingsState.findings.length !== 1 ? 's' : ''}
             </span>
           </div>
 
@@ -1322,8 +1273,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 )}
                 <WallCanvas
                   hubId={wallHubId}
-                  hubs={scopedHubs}
-                  findings={scopedWallFindings}
+                  hubs={hubs}
+                  findings={findingsState.findings}
                   processMap={processMap}
                   problemCpk={problemCpk}
                   eventsPerWeek={problemEvents}
@@ -1350,7 +1301,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   <>
                     <div className="absolute bottom-4 right-4 pointer-events-auto">
                       <Minimap
-                        hubs={scopedHubs}
+                        hubs={hubs}
                         zoom={wallZoom}
                         pan={wallPan}
                         onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
@@ -1362,8 +1313,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                       open={wallPaletteOpen}
                       onClose={() => setWallPaletteOpen(false)}
                       onPanTo={handleWallPanToNode}
-                      hubs={scopedHubs}
-                      findings={scopedWallFindings}
+                      hubs={hubs}
+                      findings={findingsState.findings}
                     />
                   </>
                 )}
@@ -1376,8 +1327,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   interactions,
                   mode: resolved,
                   causalLinks,
-                  findings: scopedWallFindings,
-                  hypotheses: scopedHubs,
+                  findings: findingsState.findings,
+                  hypotheses: hubs,
                 }}
                 onAskQuestion={handleMapAskQuestion}
                 onCreateFinding={handleMapCreateFinding}
@@ -1396,7 +1347,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           ) : (
             <div className="flex-1 overflow-y-auto px-3 py-2">
               <FindingsLog
-                findings={scopedWallFindings}
+                findings={findingsState.findings}
                 onEditFinding={findingsState.editFinding}
                 onDeleteFinding={findingsState.deleteFinding}
                 onRestoreFinding={handleRestoreFinding}
@@ -1419,8 +1370,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}
                 onPromoteAction={onPromoteFindingAction}
-                onToggleProjectLineage={onToggleProjectLineage}
-                projectLineageFindingIds={scopedFindingIds}
                 originStepNameByFindingId={originStepNameByFindingId}
                 onSetOutcome={findingsState.setOutcome}
                 onShareFinding={handleShareFinding}

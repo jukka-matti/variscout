@@ -41,7 +41,6 @@ function makeProject(overrides: Partial<ImprovementProject> = {}): ImprovementPr
     goal: { freeText: 'Raise first-pass yield.' },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },

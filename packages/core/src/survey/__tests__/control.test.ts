@@ -32,7 +32,6 @@ const improvementProject = (overrides: Partial<ImprovementProject>): Improvement
     goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },

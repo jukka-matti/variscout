@@ -95,13 +95,6 @@ export interface ImprovementProjectBackgroundSection {
   updatedAt?: number;
 }
 
-export interface ImprovementProjectInvestigationLineageSection {
-  hypothesisIds?: Hypothesis['id'][];
-  findingIds?: Finding['id'][];
-  /** Optional last-edit timestamp used by synthesized V1 activity feed events. */
-  updatedAt?: number;
-}
-
 export interface ImprovementProjectApproachSection {
   improvementIdeaIds?: ImprovementIdea['id'][];
   actionItemIds?: ActionItem['id'][];
@@ -130,7 +123,6 @@ export interface ImprovementProject extends EntityBase {
   goal: ImprovementProjectGoal;
   sections: {
     background: ImprovementProjectBackgroundSection;
-    investigationLineage: ImprovementProjectInvestigationLineageSection;
     approach: ImprovementProjectApproachSection;
     outcomeReference: ImprovementProjectOutcomeReferenceSection;
   };

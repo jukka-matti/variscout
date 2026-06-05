@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { computeHubEvidence, computeHubProjection, detectEvidenceClusters } from '../helpers';
-import type { Hypothesis, Finding } from '../types';
+import {
+  computeHubEvidence,
+  computeHubProjection,
+  detectEvidenceClusters,
+  groupHypothesesByStatus,
+} from '../helpers';
+import type { Hypothesis, Finding, HypothesisStatus } from '../types';
 import type { BestSubsetsResult, BestSubsetResult } from '../../stats/bestSubsets';
 
 // ---------------------------------------------------------------------------
@@ -494,5 +499,44 @@ describe('detectEvidenceClusters', () => {
     expect(clusters.map(c => c.factors[0])).toEqual(['shift', 'machine']);
     // No rSquaredAdj on the cluster — the analyst decides relevance, not the tool
     expect(clusters[0]).not.toHaveProperty('rSquaredAdj');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: groupHypothesesByStatus (PO-5 — the shared status→bucket mapping)
+// ---------------------------------------------------------------------------
+
+describe('groupHypothesesByStatus (PO-5 — the shared status→bucket mapping)', () => {
+  it('partitions all 5 HypothesisStatus values exhaustively', () => {
+    const statuses: HypothesisStatus[] = [
+      'proposed',
+      'evidenced',
+      'evidence-survived-test',
+      'refuted',
+      'needs-disconfirmation',
+    ];
+    const hubs = statuses.map((status, i) => makeHub({ id: `h-${i}`, name: `H${i}`, status }));
+    const groups = groupHypothesesByStatus(hubs);
+    expect(groups['proposed'].map(h => h.id)).toEqual(['h-0']);
+    expect(groups['evidenced'].map(h => h.id)).toEqual(['h-1']);
+    expect(groups['evidence-survived-test'].map(h => h.id)).toEqual(['h-2']);
+    expect(groups['refuted'].map(h => h.id)).toEqual(['h-3']);
+    expect(groups['needs-disconfirmation'].map(h => h.id)).toEqual(['h-4']);
+    // Every hub lands in exactly one bucket (partition property).
+    const total = statuses.reduce((n, s) => n + groups[s].length, 0);
+    expect(total).toBe(hubs.length);
+  });
+
+  it('reads the STORED analyst-owned status, never a derivation (CS-10 guard)', () => {
+    // A hub whose linked-finding evidence might suggest otherwise still buckets
+    // by its stored status — the categorizer must not route through
+    // deriveHypothesisStatus.
+    const hub = makeHub({
+      id: 'h-stored',
+      name: 'Stored wins',
+      status: 'proposed',
+      findingIds: ['f-1', 'f-2', 'f-3'],
+    });
+    expect(groupHypothesesByStatus([hub])['proposed'].map(h => h.id)).toEqual(['h-stored']);
   });
 });

@@ -546,10 +546,6 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
         sections: patch.sections
           ? {
               background: { ...existing.sections.background, ...(patch.sections.background ?? {}) },
-              investigationLineage: {
-                ...existing.sections.investigationLineage,
-                ...(patch.sections.investigationLineage ?? {}),
-              },
               approach: { ...existing.sections.approach, ...(patch.sections.approach ?? {}) },
               outcomeReference: {
                 ...existing.sections.outcomeReference,

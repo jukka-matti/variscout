@@ -37,7 +37,6 @@ describe('createNewIP', () => {
       },
       sections: {
         background: {},
-        investigationLineage: {},
         approach: {},
         outcomeReference: {},
       },
@@ -137,7 +136,6 @@ describe('createNewIP', () => {
     const a = createNewIP(baseInput);
     const b = createNewIP({ ...baseInput, id: 'other-id' });
     expect(a.sections.background).not.toBe(b.sections.background);
-    expect(a.sections.investigationLineage).not.toBe(b.sections.investigationLineage);
     expect(a.sections.approach).not.toBe(b.sections.approach);
     expect(a.sections.outcomeReference).not.toBe(b.sections.outcomeReference);
   });

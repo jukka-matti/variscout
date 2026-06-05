@@ -112,7 +112,6 @@ const ip = (overrides: Partial<ImprovementProject> = {}): ImprovementProject =>
     },
     sections: {
       background: {},
-      investigationLineage: { hypothesisIds: ['h1'], findingIds: [] },
       approach: {},
       outcomeReference: {},
     },

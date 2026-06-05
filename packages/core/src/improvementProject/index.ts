@@ -7,7 +7,6 @@ export type {
   ImprovementProjectMechanismGoal,
   ImprovementProjectGoal,
   ImprovementProjectBackgroundSection,
-  ImprovementProjectInvestigationLineageSection,
   ImprovementProjectApproachSection,
   ImprovementProjectOutcomeReferenceSection,
   ImprovementProjectSignoff,
@@ -20,4 +19,4 @@ export type { DriftableSnapshot, DriftableCurrent } from './snapshot';
 export { createNewIP } from './factories';
 export type { CreateNewIPInput } from './factories';
 
-export { isCollaborative, toggleLineageFinding } from './predicates';
+export { isCollaborative } from './predicates';

@@ -132,7 +132,7 @@ describe('useProjectMembershipStore — acceptInvite composite', () => {
       status: 'active',
       metadata: { title: 'Test', members: [] },
       goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', baseline: 0.5, target: 1.33 }] },
-      sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
+      sections: { background: {}, approach: {}, outcomeReference: {} },
     };
     useImprovementProjectStore.getState().setProjectForHub('hub-1', targetProject);
 

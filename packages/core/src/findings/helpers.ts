@@ -8,6 +8,7 @@ import type {
   FindingSource,
   AnalyzeCategory,
   Hypothesis,
+  HypothesisStatus,
   HypothesisEvidence,
 } from './types';
 import { collectReferencedColumns } from './hypothesisCondition';
@@ -59,6 +60,35 @@ export function groupFindingsByStatus(findings: Finding[]): Record<FindingStatus
     groups[finding.status].push(finding);
   }
 
+  return groups;
+}
+
+/**
+ * Group hypotheses by their analyst-owned STORED status (PO-5 — the shared
+ * status→bucket mapping; one judgment system).
+ *
+ * This is the single canonical status grouping: the Report engine keys its
+ * section placement on it (evidence-survived-test/evidenced → narrative +
+ * cause rows · refuted → tested-and-excluded · proposed/needs-disconfirmation
+ * → open questions), and it replaced the two divergent app-level conclusion
+ * categorizer memos (Azure 2-way / PWA 3-way — both were gate-only).
+ *
+ * Reads `hypothesis.status` (CS-10: analyst-owned) — NEVER routes through the
+ * advisory `deriveHypothesisStatus` derivation.
+ */
+export function groupHypothesesByStatus(
+  hypotheses: readonly Hypothesis[]
+): Record<HypothesisStatus, Hypothesis[]> {
+  const groups: Record<HypothesisStatus, Hypothesis[]> = {
+    proposed: [],
+    evidenced: [],
+    'evidence-survived-test': [],
+    refuted: [],
+    'needs-disconfirmation': [],
+  };
+  for (const hypothesis of hypotheses) {
+    groups[hypothesis.status].push(hypothesis);
+  }
   return groups;
 }
 

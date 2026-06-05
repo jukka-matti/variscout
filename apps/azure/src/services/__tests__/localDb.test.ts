@@ -192,7 +192,7 @@ describe('localDb Process Hub support', () => {
           ],
         },
         goal: { outcomeGoals: [] },
-        sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
+        sections: { background: {}, approach: {}, outcomeReference: {} },
         createdAt: 1,
         updatedAt: 1,
         deletedAt: null,

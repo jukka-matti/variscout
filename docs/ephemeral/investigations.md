@@ -26,6 +26,26 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### Project-tab stage overviews need their own design pass [LOGGED 2026-06-05]
+
+**Surfaced by:** PO-5's stage-overview-count cleanup (`CharterOverview` / `ApproachOverview`). The PO-5 owner call was "minimal-honest interim, design routed": the dead lineage counts (`{hypoCount} hypotheses · {findingCount} findings`, `Wall · {n} hypotheses`) were dropped — they read the now-deleted `investigationLineage` and were always 0-ish — and replaced with a static "Hypotheses + findings live on the Wall" pointer + bare `Investigation` / `Wall` button labels. Buttons + navigation + testids untouched.
+
+**Summary:** the Project-tab IP-detail stage overviews have accumulated drift that wants a dedicated brainstorm, not piecemeal patches: (1) the interim static Wall pointer is honest but inert — a **status-shaped-chips** candidate (dot · count · label, echoing `ProjectStatusCard`'s pattern, fed by the new core `groupHypothesesByStatus`) would restore a live signal without re-introducing a lineage filter; (2) "Continue in Investigation" / the `Investigation` button vocabulary is **stale post-WV1** (the tab is Analyze; the Wall is the brand); (3) the **orientation-vs-dashboard role** of these overviews is unsettled — are they a launchpad or a status surface? (4) pre-existing nit: both `CharterOverview` continue buttons carry the same `data-testid="charter-continue-analyze"` (duplicate testid); (5) the read-only **"Investigation lineage"** Charter form section + its progress step also carry vocabulary drift — named after the now-retired concept (rename candidate: **"Linked evidence"**), the section component is `AnalyzeLineageSection` and the `ImprovementProjectForm` props are `lineageProps`, wired live from store hypotheses/findings (decoupled from the deleted `investigationLineage` data field — PO-5 left it in place). The design session owns the rename.
+
+**Promotion path:** a dedicated "Project tab / IP-detail stage overviews" brainstorm → spec. Fed by `groupHypothesesByStatus` (already shipped in core by PO-5) for the status-chips candidate.
+
+**Severity:** low — the interim is honest and non-blocking; the design questions outlive the PR.
+
+### `bestProjectedCpk` scans all hypothesis statuses post-PO-5 [LOGGED 2026-06-05]
+
+**Surfaced by:** the PO-5 final adversarial review. With the Report scope now status-keyed (`selectIPReportScope.hypotheses` = all live hypotheses), the `bestProjectedCpk` derivation in both apps' `ReportView` (`Math.max` over selected-idea `projection.projectedCpk` across `reportHypotheses`) has no status filter — a `refuted` or `proposed` hypothesis that still carries a selected idea with a projection contributes to "best projected Cpk."
+
+**Summary:** `ReportImprovementSummary` is _designed_ to render every status (it badges each with `STATUS_BADGE_LABELS`), so all-status display is intended; the question is narrower — should the aspirational _projection metric_ respect cause status (e.g. only `evidence-survived-test`/`evidenced`, matching the cause-row buckets)? Gating it is a product decision, not a PO-5 obligation.
+
+**Promotion path:** fold into the next Report-view design touch (or the #12 Control-closure brainstorm if the metric feeds closure framing).
+
+**Severity:** low — aspirational ceiling metric; no correctness impact.
+
 ### PO-4 CS-P2-pending dead seams — per-step capability row channel + `useHubMigrationState` suggestion derivation [LOGGED 2026-06-05]
 
 **Surfaced by:** PO-4 review (entity-dissolution PR) — two seams left intentionally inert until CS-P2 wires the editor's live `rawData` through the carrier.
@@ -68,7 +88,9 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Severity:** medium — ordering constraint; removing `scopeFilter` before `ProblemStatementScope` is fully wired repeats the PR-CS-0 zero-caller mistake.
 
-### `investigationLineage` is under-wired, not a relic [LOGGED 2026-06-04]
+### `investigationLineage` is under-wired, not a relic [LOGGED 2026-06-04] [RESOLVED 2026-06-05 → PO-5]
+
+**[RESOLVED 2026-06-05 → PO-5]** Resolved by deletion. `sections.investigationLineage` is retired entirely: the zero-writer `hypothesisIds` half is gone (no more dead filter), and the `findingIds` CS-6 pin wire is deliberately reversed — analyst-owned `HypothesisStatus` (CS-10) is now the single Report-curation surface, and the empty-set-means-unfiltered Wall interim became the permanent semantics. See decision-log §1 2026-06-05 PO-5.
 
 **Surfaced by:** the 2026-06-04 analyze-session grounding pass; corrects an over-claim that lineage was a multi-project leftover ready to delete.
 
@@ -88,7 +110,9 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Severity:** low (doc drift) — no runtime effect, but misleads documentation readers and doc-grounding agents.
 
-### Created hubs don't register into active-IP lineage [LOGGED 2026-06-04]
+### Created hubs don't register into active-IP lineage [LOGGED 2026-06-04] [RESOLVED 2026-06-05 → PO-5]
+
+**[RESOLVED 2026-06-05 → PO-5]** Resolved by deletion. The lineage membership filter is gone — under active-IP scope the Wall now shows the whole document, so a newly created hub always appears regardless of any registration step. See decision-log §1 2026-06-05 PO-5.
 
 **Surfaced by:** the Wall-entry fix review. When an active IP is scoped, both apps filter the Wall to `activeIPLineage.hypothesisIds` — but NO hub-creation path (`handleProposeHypothesis`, `createHubFromFinding`, and the newly wired write/seed CTAs) registers the new hub into the lineage. A hub created while IP-scoped-with-zero-lineage-hubs won't appear on the scoped Wall. Identical pre-existing behavior across all creation paths; common unscoped case unaffected.
 
@@ -300,7 +324,9 @@ IM-4a makes the split structural (Wall derives; others still read stored). The A
 
 **→ RESOLVED 2026-06-03 (PR-CS-10) — third path taken.** Neither option A (migrate readers to derivation) nor option B (persist derived back to stored) was chosen. Instead: `setHubStatus` re-introduced as the analyst-owned source of truth (the setter deleted in IM-4a, commit `84045c42`, returns); the ~8 `hub.status` readers now read a real analyst-set value; `deriveHypothesisStatus` is demoted to an advisory suggestion chip on the Wall (never auto-applies). The split is resolved: stored status is authoritative everywhere.
 
-### PWA/Azure conclusion-categorizer parity divergence [LOGGED 2026-06-03]
+### PWA/Azure conclusion-categorizer parity divergence [LOGGED 2026-06-03] [PROMOTED 2026-06-05 → PO-5]
+
+**[PROMOTED 2026-06-05 → PO-5]** Resolved by deletion. Grounding found both app categorizer memos (Azure 2-way / PWA 3-way) were **gate-only ceremony** — their buckets partition `hubs`, so both conclusion-panel gates reduced to `hubs.length > 0` and `AnalyzeConclusion` renders all hubs flat regardless. PO-5 deleted both memos and shipped the one canonical status→bucket mapping in core (`groupHypothesesByStatus`), keyed by the Report engine. No status drops; the divergence is gone. See decision-log §1 2026-06-05 PO-5.
 
 **Surfaced by:** PR-CS-10 (analyst-owned status). The Wall now displays the analyst-set stored `hub.status`, which exposed the fact that the two apps categorize conclusion status differently.
 

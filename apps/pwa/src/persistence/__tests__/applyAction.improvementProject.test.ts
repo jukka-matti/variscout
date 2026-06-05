@@ -67,7 +67,6 @@ function makeProject(
     },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },
@@ -175,7 +174,6 @@ describe('applyAction — IMPROVEMENT_PROJECT_UPDATE', () => {
     const project = makeProject('proj-4', 'hub-4', {
       sections: {
         background: { manualNarrative: 'orig' },
-        investigationLineage: {},
         approach: {},
         outcomeReference: {},
       },
@@ -194,7 +192,6 @@ describe('applyAction — IMPROVEMENT_PROJECT_UPDATE', () => {
     // background shallow-merges: both keys present
     expect(row?.sections.background).toEqual({ manualNarrative: 'orig', snapshotText: 'snap' });
     // Other sub-sections must not be dropped
-    expect(row?.sections.investigationLineage).toBeDefined();
     expect(row?.sections.approach).toBeDefined();
     expect(row?.sections.outcomeReference).toBeDefined();
   });

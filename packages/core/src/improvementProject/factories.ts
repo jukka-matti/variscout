@@ -80,7 +80,6 @@ export function createNewIP(input: CreateNewIPInput): ImprovementProject {
     },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },

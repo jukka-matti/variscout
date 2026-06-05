@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 /**
  * Memoized FK-list → entity batch projection. Used by IP UI sections that
- * carry FK arrays (e.g. sections.investigationLineage.hypothesisIds[]) to
+ * carry FK arrays (e.g. sections.approach.actionItemIds[]) to
  * resolve them into rendered entities.
  *
  * `fetchBatch` is expected to be a referentially stable map-returning fn

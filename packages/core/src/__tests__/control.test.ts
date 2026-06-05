@@ -359,7 +359,6 @@ function makeProject(
     goal: { outcomeGoals: [] },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },

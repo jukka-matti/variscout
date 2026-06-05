@@ -18,7 +18,7 @@ const baseHub: ProcessHub = {
     status: 'active',
     metadata: { title: 'Heads 5-8 Cpk shortfall' },
     goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
-    sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
+    sections: { background: {}, approach: {}, outcomeReference: {} },
   },
 };
 

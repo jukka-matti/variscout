@@ -58,10 +58,6 @@ function mergeProjectPatch(
     sections: patch.sections
       ? {
           background: { ...project.sections.background, ...(patch.sections.background ?? {}) },
-          investigationLineage: {
-            ...project.sections.investigationLineage,
-            ...(patch.sections.investigationLineage ?? {}),
-          },
           approach: { ...project.sections.approach, ...(patch.sections.approach ?? {}) },
           outcomeReference: {
             ...project.sections.outcomeReference,
