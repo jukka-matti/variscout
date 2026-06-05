@@ -1,11 +1,11 @@
 /**
- * AnalyzeView (PWA) — empty-lineage-means-unfiltered Wall filter (item 1).
+ * AnalyzeView (PWA) — active-IP scope shows the whole document on the Wall
+ * (PO-5 permanent semantics).
  *
- * Mirrors the Azure AnalyzeWorkspace.emptyLineage.seam test (hub paths; the findings pair is covered Azure-side only).
- * Mechanism: `IP.sections.investigationLineage.hypothesisIds` has no UI writer.
- * With active-IP scope engaged, the old filter compared against always-empty set
- * → every hypothesis hidden. Interim semantic: empty lineage = show everything.
- * See decision-log OQ 2026-06-04.
+ * Mirrors the Azure AnalyzeWorkspace seam test. `IP.sections.investigationLineage`
+ * is retired (PO-5); active-IP surfaces no longer filter the Wall by a lineage
+ * membership set — under active-IP scope the Wall renders every hub.
+ * See decision-log 2026-06-05 (PO-5).
  *
  * IMPORTANT: vi.mock() calls must appear before any component imports.
  */
@@ -89,7 +89,7 @@ import {
   useAnalyzeStore,
 } from '@variscout/stores';
 import { createHypothesis, createFinding } from '@variscout/core/findings';
-import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
+import type { ActiveIPScopeLabels } from '@variscout/ui';
 import AnalyzeView from '../AnalyzeView';
 
 // ── 3. Fixtures ─────────────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ function makeMinimalProps(
 
 // ── 4. Tests ───────────────────────────────────────────────────────────────
 
-describe('PWA AnalyzeView — empty lineage means unfiltered (interim curation semantics)', () => {
+describe('PWA AnalyzeView — active IP shows the whole document on the Wall (PO-5 permanent semantics)', () => {
   beforeEach(() => {
     capturedWallCanvasProps.current = null;
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
@@ -155,33 +155,15 @@ describe('PWA AnalyzeView — empty lineage means unfiltered (interim curation s
     window.sessionStorage.clear();
   });
 
-  // LOAD-BEARING: old code → empty Set → hub1 + hub2 both filtered out → [] fails.
-  it('(1a) active-IP scope + EMPTY hypothesisIds → all hubs visible on Wall', () => {
-    const emptyLineage: ActiveIPLineageIds = { hypothesisIds: [], findingIds: [] };
-    render(
-      <AnalyzeView
-        {...makeMinimalProps()}
-        activeIPScope={activeScope}
-        activeIPLineage={emptyLineage}
-      />
-    );
+  // PO-5: under active-IP scope the Wall renders every hub (lineage filter retired).
+  it('(1) active-IP scope → all hubs visible on Wall', () => {
+    render(<AnalyzeView {...makeMinimalProps()} activeIPScope={activeScope} />);
     expect(capturedWallCanvasProps.current).not.toBeNull();
     const receivedHubs = capturedWallCanvasProps.current!.hubs as { id: string }[];
     expect(receivedHubs.map(h => h.id).sort()).toEqual(['hub-A', 'hub-B']);
   });
 
-  // REGRESSION: non-empty list must still filter.
-  it('(1b) active-IP scope + hypothesisIds = ["hub-A"] → only hub-A on Wall', () => {
-    const lineage: ActiveIPLineageIds = { hypothesisIds: ['hub-A'], findingIds: [] };
-    render(
-      <AnalyzeView {...makeMinimalProps()} activeIPScope={activeScope} activeIPLineage={lineage} />
-    );
-    const receivedHubs = capturedWallCanvasProps.current!.hubs as { id: string }[];
-    expect(receivedHubs).toHaveLength(1);
-    expect(receivedHubs[0].id).toBe('hub-A');
-  });
-
-  // CONTROL: no activeIPScope → all hubs visible regardless of lineage.
+  // CONTROL: no activeIPScope → all hubs visible.
   it('(control) no activeIPScope → all hubs visible', () => {
     render(<AnalyzeView {...makeMinimalProps()} />);
     const receivedHubs = capturedWallCanvasProps.current!.hubs as { id: string }[];

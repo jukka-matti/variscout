@@ -45,7 +45,6 @@ import {
   PendingInvitesBanner,
   CreateProjectModal,
   deriveActiveIPCanvasFocus,
-  deriveActiveIPLineageIds,
   deriveActiveIPScopeLabels,
   type ColumnShape,
 } from '@variscout/ui';
@@ -84,7 +83,7 @@ import type {
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { createProjectActionItem, type BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
-import { createNewIP, toggleLineageFinding } from '@variscout/core/improvementProject';
+import { createNewIP } from '@variscout/core/improvementProject';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
@@ -554,17 +553,9 @@ export const Editor: React.FC<EditorProps> = ({
           labels: activeIPScopeLabels,
         }
       : null;
-  const activeIPLineage = useMemo(
-    () => (activeIPContext.activeIP ? deriveActiveIPLineageIds(activeIPContext.activeIP) : null),
-    [activeIPContext.activeIP]
-  );
-  const activeIPLineageFindingIds = useMemo(
-    () => new Set(activeIPLineage?.findingIds ?? []),
-    [activeIPLineage]
-  );
-  // IM-1: activeIPLineageHypothesisIds removed — its only consumer was the
-  // Editor-level scopedHypotheses memo (also removed). AnalyzeWorkspace derives
-  // its own scoped hub set from the activeIPLineage prop.
+  // PO-5: investigationLineage retired — active-IP surfaces show the whole
+  // document (empty-set-means-unfiltered is now the permanent semantics). The
+  // Wall, Findings, and Report no longer filter by a lineage membership set.
 
   // Wall measurement-plan callbacks — mirrors PWA App.tsx wallPlanningProps pattern
   //
@@ -1245,22 +1236,9 @@ export const Editor: React.FC<EditorProps> = ({
     specs,
     stagedStats,
   });
-  const scopedFindings = useMemo(
-    () =>
-      activeIPContext.isIPScoped
-        ? findingsState.findings.filter(finding => activeIPLineageFindingIds.has(finding.id))
-        : findingsState.findings,
-    [activeIPContext.isIPScoped, activeIPLineageFindingIds, findingsState.findings]
-  );
-  // IM-1: the Editor-level scopedHypotheses memo is removed. On main it existed
-  // only to derive the now-retired scopedQuestionIds; AnalyzeWorkspace scopes
-  // hypotheses internally from activeIPLineage (scopedHubIds → scopedHubs), so
-  // no scoped-hypothesis set needs threading from here.
-  const scopedFindingsState = useMemo(
-    () =>
-      activeIPContext.isIPScoped ? { ...findingsState, findings: scopedFindings } : findingsState,
-    [activeIPContext.isIPScoped, findingsState, scopedFindings]
-  );
+  // PO-5: scopedFindings/scopedFindingsState removed — active-IP surfaces show
+  // the whole document (the lineage findingIds filter is retired). AnalyzeWorkspace
+  // receives findingsState directly.
 
   // PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
   // tracker (`IP.metadata.actions`) via the existing ACTION_ITEM_ADD dispatch.
@@ -1293,29 +1271,6 @@ export const Editor: React.FC<EditorProps> = ({
     [activeIP, applyAction, findingsState]
   );
 
-  // PR-CS-6 Edge 2: two-way toggle pinning a finding to the active project's
-  // investigation lineage (`sections.investigationLineage.findingIds`). Merges
-  // the `findingIds` array only (preserves `hypothesisIds`) + stamps `updatedAt`.
-  // Ungated analysis write (Member + Lead edit; Sponsor read-only) — same
-  // `canAccess` boundary as Charter writes, enforced upstream by `canEditCharter`.
-  const handleToggleProjectLineage = useCallback(
-    (findingId: string) => {
-      if (!activeIP) return;
-      const nextIP = toggleLineageFinding(activeIP, findingId);
-      upsertProject(nextIP);
-      const { findingIds, updatedAt } = nextIP.sections.investigationLineage;
-      void azureHubRepository
-        .dispatch({
-          kind: 'IMPROVEMENT_PROJECT_UPDATE',
-          projectId: activeIP.id,
-          patch: { sections: { investigationLineage: { findingIds, updatedAt } } },
-        })
-        .catch((error: unknown) => {
-          console.error('[lineage] Failed to persist investigation-lineage toggle', error);
-        });
-    },
-    [activeIP, upsertProject]
-  );
   const activeIPAnalyzeFactorRequest = useMemo(
     () =>
       activeIPContext.isIPScoped && activeIPScopeLabels?.factorLabels[0]
@@ -1987,15 +1942,13 @@ export const Editor: React.FC<EditorProps> = ({
             ) : activeView === 'analyze' ? (
               <AnalyzeWorkspace
                 activeIPScope={activeIPScope}
-                activeIPLineage={activeIPLineage}
                 scopeInvestigationId={activeIPContext.activeIP?.id ?? 'general-unassigned'}
-                findingsState={scopedFindingsState}
+                findingsState={findingsState}
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={handleSetFindingStatus}
                 handleNavigateToChart={handleNavigateToChart}
                 handleShareFinding={handleShareFinding}
                 onPromoteFindingAction={activeIP ? handlePromoteFindingAction : undefined}
-                onToggleProjectLineage={activeIP ? handleToggleProjectLineage : undefined}
                 drillPath={drillPath}
                 handleAddCommentWithAuthor={handleAddCommentWithAuthor}
                 handleAddPhoto={handleAddPhoto}
@@ -2111,7 +2064,6 @@ export const Editor: React.FC<EditorProps> = ({
                   aiEnabled={aiEnabled && isAIAvailable()}
                   narrative={aiOrch.narration.narrative}
                   activeIPScope={activeIPScope}
-                  activeIPLineage={activeIPLineage}
                   activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
                   activeHub={activeHub}
                   activeIP={activeIPContext.activeIP}

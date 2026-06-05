@@ -1,17 +1,16 @@
 /**
- * AnalyzeWorkspace — empty-lineage-means-unfiltered Wall filter (item 1 of wall-polish).
+ * AnalyzeWorkspace — active-IP scope shows the whole document on the Wall
+ * (PO-5 permanent semantics).
  *
- * Mechanism: `IP.sections.investigationLineage.hypothesisIds` has no UI writer,
- * so whenever an active-IP scope engages, the old filter compared against an
- * always-empty set → every hypothesis hidden. The interim semantic is:
- * **empty lineage = nothing curated yet → show everything**; a non-empty list
- * still filters as before. See decision-log OQ 2026-06-04 (Project⟷Hub entity
- * disposition).
+ * `IP.sections.investigationLineage` is retired (PO-5). Active-IP surfaces no
+ * longer filter the Wall by a lineage membership set — empty-set-means-
+ * unfiltered is now the permanent behavior: under active-IP scope, the Wall
+ * renders every hub + finding. See decision-log 2026-06-05 (PO-5).
  *
  * LOAD-BEARING:
- *  1. active-IP scope + EMPTY lineage → all hubs visible on the Wall.
- *  2. active-IP scope + NON-EMPTY lineage (one of two hub ids) → only that hub.
- *  3. Same pair for findings (Azure side).
+ *  1. active-IP scope → all hubs visible on the Wall.
+ *  2. active-IP scope → all findings visible on the Wall.
+ *  3. No active-IP scope → all hubs visible (control).
  *
  * IMPORTANT: vi.mock() calls must appear before any component imports.
  */
@@ -219,7 +218,7 @@ import {
 } from '@variscout/stores';
 import { usePanelsStore } from '../../../features/panels/panelsStore';
 import { AnalyzeWorkspace } from '../AnalyzeWorkspace';
-import type { ActiveIPLineageIds, ActiveIPScopeLabels } from '@variscout/ui';
+import type { ActiveIPScopeLabels } from '@variscout/ui';
 import { createHypothesis, createFinding } from '@variscout/core/findings';
 
 // ── 3. Fixtures ─────────────────────────────────────────────────────────────
@@ -282,7 +281,7 @@ function makeMinimalProps(): React.ComponentProps<typeof AnalyzeWorkspace> {
 
 // ── 4. Tests ───────────────────────────────────────────────────────────────
 
-describe('AnalyzeWorkspace — empty lineage means unfiltered (interim curation semantics)', () => {
+describe('AnalyzeWorkspace — active IP shows the whole document on the Wall (PO-5 permanent semantics)', () => {
   beforeEach(() => {
     capturedWallCanvasProps.current = null;
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
@@ -293,48 +292,18 @@ describe('AnalyzeWorkspace — empty lineage means unfiltered (interim curation 
     useAnalyzeStore.setState({ scopes: [] });
   });
 
-  // LOAD-BEARING: without the fix, scopedHubIds is an empty Set, so every hub
-  // is filtered out. After the fix, empty set means "show everything".
-  it('(1a) active-IP scope + EMPTY lineage → all hubs visible on the Wall', () => {
-    const emptyLineage: ActiveIPLineageIds = { hypothesisIds: [], findingIds: [] };
-    render(
-      <AnalyzeWorkspace
-        {...makeMinimalProps()}
-        activeIPScope={activeScope}
-        activeIPLineage={emptyLineage}
-      />
-    );
+  // PO-5: under active-IP scope the Wall renders every hub (lineage filter retired).
+  it('(1) active-IP scope → all hubs visible on the Wall', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} activeIPScope={activeScope} />);
     // WallCanvas receives ALL hubs (not an empty array)
     expect(capturedWallCanvasProps.current).not.toBeNull();
     const receivedHubs = capturedWallCanvasProps.current!.hubs as { id: string }[];
     expect(receivedHubs.map(h => h.id).sort()).toEqual(['hub-A', 'hub-B']);
   });
 
-  // REGRESSION: non-empty list must still filter.
-  it('(1b) active-IP scope + lineage.hypothesisIds = ["hub-A"] → only hub-A on the Wall', () => {
-    const lineage: ActiveIPLineageIds = { hypothesisIds: ['hub-A'], findingIds: [] };
-    render(
-      <AnalyzeWorkspace
-        {...makeMinimalProps()}
-        activeIPScope={activeScope}
-        activeIPLineage={lineage}
-      />
-    );
-    const receivedHubs = capturedWallCanvasProps.current!.hubs as { id: string }[];
-    expect(receivedHubs).toHaveLength(1);
-    expect(receivedHubs[0].id).toBe('hub-A');
-  });
-
-  // LOAD-BEARING: same pair for findings.
-  it('(2a) active-IP scope + EMPTY lineage.findingIds → all findings visible', () => {
-    const emptyLineage: ActiveIPLineageIds = { hypothesisIds: [], findingIds: [] };
-    render(
-      <AnalyzeWorkspace
-        {...makeMinimalProps()}
-        activeIPScope={activeScope}
-        activeIPLineage={emptyLineage}
-      />
-    );
+  // PO-5: same for findings — the whole document is in scope.
+  it('(2) active-IP scope → all findings visible on the Wall', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} activeIPScope={activeScope} />);
     const receivedFindings = capturedWallCanvasProps.current?.findings as { id: string }[];
     if (receivedFindings) {
       expect(receivedFindings.map(f => f.id).sort()).toEqual(['f-A', 'f-B']);
@@ -343,27 +312,8 @@ describe('AnalyzeWorkspace — empty lineage means unfiltered (interim curation 
     // still verifies the hub path above and doesn't false-fail.)
   });
 
-  // REGRESSION: non-empty findingIds must still filter.
-  it('(2b) active-IP scope + lineage.findingIds = ["f-A"] → only f-A in scopedWallFindings', () => {
-    const lineage: ActiveIPLineageIds = { hypothesisIds: [], findingIds: ['f-A'] };
-    // For findings, we check via FindingsLog which receives scopedWallFindings.
-    // The WallCanvas mock also receives findings prop:
-    render(
-      <AnalyzeWorkspace
-        {...makeMinimalProps()}
-        activeIPScope={activeScope}
-        activeIPLineage={lineage}
-      />
-    );
-    const receivedFindings = capturedWallCanvasProps.current?.findings as { id: string }[];
-    if (receivedFindings) {
-      expect(receivedFindings).toHaveLength(1);
-      expect(receivedFindings[0].id).toBe('f-A');
-    }
-  });
-
-  // CONTROL: no active-IP scope at all → hubs unfiltered regardless of lineage.
-  it('(control) no activeIPScope → all hubs visible regardless of lineage', () => {
+  // CONTROL: no active-IP scope at all → hubs unfiltered.
+  it('(control) no activeIPScope → all hubs visible', () => {
     render(<AnalyzeWorkspace {...makeMinimalProps()} />);
     const receivedHubs = capturedWallCanvasProps.current!.hubs as { id: string }[];
     expect(receivedHubs.map(h => h.id).sort()).toEqual(['hub-A', 'hub-B']);
