@@ -68,7 +68,7 @@ The condition    — the Finding: filters × window, factor-expressed
 - **One grammar — engine proposes, analyst decides** — at every altitude: Y inference (b0), step-timestamp pairs (L2), mode detections, shift signals (Explore), best-subsets vital-few (Wall). The same chip/banner language top to bottom; the system never blocks with modals it can answer itself.
 - **One unit — the Finding** — a condition captured at any altitude, filing **back up** to where it came from (`processLocation` join, investigation-surface spec §7), so the map deepens as you investigate.
 - **One wrapper — the Untitled project** (§3) — always exists; ceremony is opt-in.
-- **The landing rule (one sentence): land at the highest altitude your data has established.** No Y → b0 framing; Y but no map → L1; map with steps/timings → L2; drilled → L3.
+- **The landing rule (one sentence): land at the highest altitude your data has established.** "Established" = analyst-confirmed or sample-curated — engine-inferred Y/X are _proposals_, not establishment. No established framing → b0 (arriving pre-filled by inference for one-glance confirmation); framing established but no map → L1; map with steps/timings → L2; drilled → L3. One routing rule, destination varies: a raw paste lands at b0; a curated map-less sample at L1; The Bottleneck (once its map is seeded) at L2.
 
 Framing (b0) is not a separate concept — it is "altitude not yet established." The Edit zones are not a separate concept — they are _authoring at a level_. The wizard dies because it stood outside the altitude model entirely.
 
