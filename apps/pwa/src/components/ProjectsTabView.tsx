@@ -6,10 +6,7 @@ import type { ProjectMember } from '@variscout/core/projectMembership';
 import { useImprovementProjectStore } from '@variscout/stores';
 import { IPDetailPage } from '@variscout/ui/ipDetail';
 import type { CauseProjectionInputs, CauseRow, ControlClosureInputs } from '@variscout/ui/ipDetail';
-
-// PWA is single-user (no auth). Use a stable session-local identity so
-// wedge ACL guards treat the current user as a member of any project they created.
-const PWA_USER_ID = 'analyst@local';
+import { PWA_USER_ID } from '../lib/pwaUser';
 
 interface ProjectsTabViewProps {
   activeHub?: ProcessHub;

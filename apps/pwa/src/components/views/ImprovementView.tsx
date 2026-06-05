@@ -14,6 +14,7 @@ import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { createProjectActionItem } from '@variscout/core/findings';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { useImprovementProjectStore } from '@variscout/stores';
+import { PWA_USER_ID } from '../../lib/pwaUser';
 
 interface ImprovementViewProps {
   activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
@@ -22,8 +23,6 @@ interface ImprovementViewProps {
   /** Navigate to Home tab (used by NoActiveProjectGuidance). */
   onGoHome: () => void;
 }
-
-const PWA_USER_ID = 'analyst@local';
 
 /**
  * Build an `applyAction` dispatcher bound to the given IP + store mutator.
