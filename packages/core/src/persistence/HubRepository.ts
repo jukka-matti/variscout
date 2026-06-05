@@ -2,7 +2,7 @@ import type { HubAction } from '../actions/HubAction';
 import type { ProcessHub, OutcomeSpec } from '../processHub';
 import type { ImprovementProject } from '../improvementProject';
 import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '../evidenceSources';
-import type { ProblemStatementScope, ActionItem } from '../findings/types';
+import type { ProblemStatementScope, ActionItem, Hypothesis } from '../findings/types';
 import type { ProcessMap } from '../frame/types';
 import type { ControlHandoff, ControlRecord, ControlReview } from '../control';
 import type { MeasurementPlan } from '../measurementPlan/types';
@@ -64,7 +64,7 @@ export interface ControlHandoffReadAPI {
 
 export interface MeasurementPlanReadAPI {
   get(id: MeasurementPlan['id']): Promise<MeasurementPlan | undefined>;
-  listByHypothesis(hypothesisId: string): Promise<MeasurementPlan[]>;
+  listByHypothesis(hypothesisId: Hypothesis['id']): Promise<MeasurementPlan[]>;
 }
 
 /**
