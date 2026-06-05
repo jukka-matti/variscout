@@ -334,7 +334,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (syncState?.baseStateJson) {
           const cloudModified = await getCloudModifiedDate(token, name, location);
           if (cloudModified && cloudModified !== syncState.lastSynced) {
-            const remoteProject = await loadFromCloud(token, name, location);
+            const remoteProject = (await loadFromCloud(token, name, location))?.project ?? null;
             if (remoteProject) {
               const conflictName = `${name} (conflict copy)`;
               await saveToCloud(token, project, conflictName, location, meta, access);
@@ -465,17 +465,20 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
           }
 
-          const project = await loadFromCloud(token, name, location);
-          if (project) {
+          const loaded = await loadFromCloud(token, name, location);
+          if (loaded) {
+            const { project, etag } = loaded;
             // Cache locally
             const meta = extractMetadataInputs(project, userId) ?? undefined;
             await saveToIndexedDB(project, name, location, meta, userId);
 
-            // Store as merge base for future three-way merge
+            // Adopting the cloud copy: refresh the merge base AND the ETag —
+            // the stored ETag is the If-Match basis for the next save (PO-8b).
             const existingSyncState = await db.syncState.get(name);
             if (existingSyncState) {
               await db.syncState.update(name, {
                 baseStateJson: JSON.stringify(project),
+                ...(etag ? { etag, lastSynced: new Date().toISOString() } : {}),
               });
             }
 

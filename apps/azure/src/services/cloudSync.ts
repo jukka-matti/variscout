@@ -35,7 +35,7 @@ import {
   saveBlobControlReview,
   saveBlobControlHandoff,
 } from './blobClient';
-import type { BlobProjectMetadata } from './blobClient';
+import type { BlobProjectMetadata, LoadedBlobProject } from './blobClient';
 import type { DocumentAccess } from '../db/schema';
 
 // ── Fallback error ─────────────────────────────────────────────────────
@@ -260,7 +260,18 @@ export async function saveToCloud(
     if (import.meta.env.DEV) console.warn('[cloudSync] Index update failed:', err);
   });
 
-  return { id: projectId, etag: result.etag || now };
+  // PO-8b phantom-412 fix: never fabricate an If-Match value. A timestamp
+  // stored as the etag can never match a real blob ETag → guaranteed false
+  // 412 → a spurious conflict dialog. If the PUT response omitted the etag
+  // (defensive path; Azure Blob always returns one), recover it with a GET;
+  // '' as the final fallback means the next save sends no If-Match (documented
+  // residual: requires a double server failure).
+  let etag = result.etag;
+  if (!etag) {
+    const fresh = await wrapBlobCall(() => loadBlobProject(projectId)).catch(() => null);
+    etag = fresh?.etag ?? '';
+  }
+  return { id: projectId, etag };
 }
 
 export async function listProcessHubsFromCloud(_token: string): Promise<ProcessHub[]> {
@@ -366,7 +377,7 @@ export async function loadFromCloud(
   _token: string,
   name: string,
   _location: StorageLocation
-): Promise<Project | null> {
+): Promise<LoadedBlobProject | null> {
   const syncState = await db.syncState.get(name);
   if (!syncState?.cloudId) return null;
   return wrapBlobCall(() => loadBlobProject(syncState.cloudId));

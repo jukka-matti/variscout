@@ -534,6 +534,33 @@ describe('storage service', () => {
       expect(result.current.syncStatus.status).toBe('saved');
       expect(result.current.syncStatus.message).toBe('Saved locally');
     });
+
+    it('PO-8b: an empty server ETag is never replaced by a fabricated timestamp (phantom-412 fix)', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      // markAsSynced only writes syncState when the project record exists
+      mockProjects.get.mockResolvedValue({
+        name: 'no-etag-project',
+        location: 'personal',
+        modified: new Date(),
+        synced: false,
+        data: sampleProject,
+      });
+      // PUT succeeds but returns no etag; the follow-up GET supplies the real one
+      mockSaveBlobProject.mockResolvedValueOnce({ ok: true, etag: '' });
+      mockLoadBlobProject.mockResolvedValueOnce({
+        project: sampleProject,
+        etag: '"recovered-etag"',
+      });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'no-etag-project', 'personal');
+      });
+
+      // markAsSynced stored the RECOVERED etag — never a Date timestamp
+      const syncPut = mockSyncState.put.mock.calls.at(-1)?.[0];
+      expect(syncPut?.etag).toBe('"recovered-etag"');
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -558,8 +585,8 @@ describe('storage service', () => {
       });
       // db.projects.get for conflict detection (no local record)
       mockProjects.get.mockResolvedValueOnce(null);
-      // loadBlobProject returns cloud data
-      mockLoadBlobProject.mockResolvedValueOnce(cloudData);
+      // loadBlobProject returns cloud data (new shape: { project, etag })
+      mockLoadBlobProject.mockResolvedValueOnce({ project: cloudData, etag: '"cloud-etag"' });
 
       const { result } = renderHook(() => useStorage(), { wrapper });
       let loaded: unknown;
@@ -728,6 +755,30 @@ describe('storage service', () => {
       });
 
       expect(loaded).toBeNull();
+    });
+
+    it('PO-8b: a cloud load refreshes the stored ETag + merge base (kills post-open false 412s)', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockSyncState.get.mockResolvedValue({
+        name: 'etag-refresh',
+        cloudId: 'cloud-9',
+        lastSynced: '2026-06-01T00:00:00Z',
+        etag: '"stale-etag"',
+      });
+      mockLoadBlobProject.mockResolvedValueOnce({ project: sampleProject, etag: '"fresh-etag"' });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      await act(async () => {
+        await result.current.loadProject('etag-refresh', 'personal');
+      });
+
+      expect(mockSyncState.update).toHaveBeenCalledWith(
+        'etag-refresh',
+        expect.objectContaining({
+          etag: '"fresh-etag"',
+          baseStateJson: JSON.stringify(sampleProject),
+        })
+      );
     });
   });
 
