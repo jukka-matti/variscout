@@ -3,7 +3,7 @@ tier: living
 purpose: design
 title: 'PO-7 · Honest-rename sweep + docs — sub-plan (investigationId → projectId)'
 audience: human
-status: active
+status: delivered
 date: 2026-06-05
 last-reviewed: 2026-06-05
 layer: spec
@@ -67,7 +67,7 @@ related:
 
 ### Commit 1: Scope family (`ProblemStatementScope.investigationId` → `projectId`)
 
-**Files:** `packages/core/src/findings/types.ts` (ProblemStatementScope member ~821 + JSDoc) · `packages/core/src/findings/factories.ts` (`createProblemStatementScope` param + JSDoc + object key) · `packages/core/src/actions/scopeActions.ts` (`SCOPE_ADD.investigationId`) · `packages/stores/src/analyzeStore.ts` (`addScope` + `syncScopeFromDrill` interface sigs + impls + the idempotency read `s.investigationId === …`) · `apps/azure/src/components/editor/AnalyzeWorkspace.tsx` (prop `scopeInvestigationId` → `scopeProjectId`, default `'general-unassigned'` VALUE unchanged; the two live filters + the syncScopeFromDrill call + deps arrays) · `apps/azure/src/pages/Editor.tsx` (`scopeInvestigationId={…}` call site) · any `applyAction` SCOPE_* destructure both apps (tsc-driven).
+**Files:** `packages/core/src/findings/types.ts` (ProblemStatementScope member ~821 + JSDoc) · `packages/core/src/findings/factories.ts` (`createProblemStatementScope` param + JSDoc + object key) · `packages/core/src/actions/scopeActions.ts` (`SCOPE_ADD.investigationId`) · `packages/stores/src/analyzeStore.ts` (`addScope` + `syncScopeFromDrill` interface sigs + impls + the idempotency read `s.investigationId === …`) · `apps/azure/src/components/editor/AnalyzeWorkspace.tsx` (prop `scopeInvestigationId` → `scopeProjectId`, default `'general-unassigned'` VALUE unchanged; the two live filters + the syncScopeFromDrill call + deps arrays) · `apps/azure/src/pages/Editor.tsx` (`scopeInvestigationId={…}` call site) · any `applyAction` SCOPE\_\* destructure both apps (tsc-driven).
 
 - [ ] **Step 1:** Rename the type member; replace the stale "Field name preserved (projectId rename is PO-7)" comment with: `/** FK to the owning ImprovementProject (PO-7 rename of investigationId). May carry the quick-analysis sentinel 'general-unassigned' when no project is active. */`
 - [ ] **Step 2:** tsc-walk the family: factory, action, store (interface + impl + the load-bearing `s.projectId === projectId` idempotency read in `syncScopeFromDrill`), workspace filters, Editor call site. Run `pnpm --filter @variscout/core build && pnpm --filter @variscout/stores build`.
