@@ -555,8 +555,8 @@ describe('applyAction — OUTCOME_ARCHIVE', () => {
 // One representative test per category; smoke-test pattern.
 // PO-6 (v14): findings/causalLinks/hypotheses tables retired. Assertions
 // re-pointed to db.actionItems (a surviving table) as the proxy.
-// proxy table — the no-op must write nothing anywhere;
-// findings/hypotheses tables retired v14 (PO-6).
+// Proxy table: each no-op must write nothing anywhere — asserted via the surviving
+// actionItems table (the findings/causalLinks/hypotheses tables retired at v14, PO-6).
 // ---------------------------------------------------------------------------
 
 describe('applyAction — no-op action kinds', () => {
@@ -566,7 +566,6 @@ describe('applyAction — no-op action kinds', () => {
       finding: { id: 'f-x' },
     } as unknown as HubAction);
 
-    // proxy table — the no-op must write nothing anywhere; findings table retired v14 (PO-6)
     expect(await db.actionItems.count()).toBe(0);
   });
 
@@ -582,7 +581,6 @@ describe('applyAction — no-op action kinds', () => {
       scope: { id: 'sc-x' },
     } as unknown as HubAction);
 
-    // proxy table — the no-op must write nothing anywhere; findings/hypotheses tables retired v14 (PO-6)
     expect(await db.actionItems.count()).toBe(0);
   });
 
@@ -592,7 +590,6 @@ describe('applyAction — no-op action kinds', () => {
       link: { id: 'c-x' },
     } as unknown as HubAction);
 
-    // proxy table — the no-op must write nothing anywhere; causalLinks table retired v14 (PO-6)
     expect(await db.actionItems.count()).toBe(0);
   });
 
@@ -602,7 +599,6 @@ describe('applyAction — no-op action kinds', () => {
       hypothesis: { id: 'sc-x' },
     } as unknown as HubAction);
 
-    // proxy table — the no-op must write nothing anywhere; hypotheses table retired v14 (PO-6)
     expect(await db.actionItems.count()).toBe(0);
   });
 

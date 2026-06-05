@@ -170,7 +170,7 @@ export class PwaHubRepository implements HubRepository {
   };
 
   // ---------------------------------------------------------------------------
-  // Read APIs — entities the F3 schema declares but does not yet write.
+  // Read APIs — entities whose surviving F3 tables are declared but not yet written.
   // F3.5 (evidence) wires dispatch handlers; until then these reads return
   // empty rows from real (empty) tables.
   // ---------------------------------------------------------------------------

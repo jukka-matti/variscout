@@ -227,7 +227,7 @@ export class AzureHubRepository implements HubRepository {
 
   scopes: ScopeReadAPI = {
     // Azure has no dedicated scopes table today; scopes persist via the
-    // analyze blob (ADR-085) — read API stubbed, mirroring findings/hypotheses.
+    // analyze blob (ADR-085) — read API stubbed (same pattern as the former findings/hypotheses stubs, retired at v14/PO-6).
     async get(_id) {
       return undefined;
     },

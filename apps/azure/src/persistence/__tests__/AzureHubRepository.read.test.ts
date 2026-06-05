@@ -9,7 +9,7 @@
 // - evidenceSnapshots.get / listByHub — wired against db.evidenceSnapshots
 // - evidenceSources.get / listByHub — wired against db.evidenceSources
 // - evidenceSources.getCursor — wired against db.evidenceSourceCursors
-// - stub read APIs (findings, scopes, causalLinks, hypotheses)
+// - stub read APIs (scopes)
 //
 // Mocking strategy: fake-indexeddb/auto (already a devDep) polyfills IndexedDB globally
 // so the real Dexie instance works end-to-end without a browser. No vi.mock needed here
