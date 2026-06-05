@@ -30,7 +30,6 @@ describe('ImprovementProject', () => {
       },
       sections: {
         background: {},
-        investigationLineage: {},
         approach: {},
         outcomeReference: {},
       },
@@ -76,7 +75,6 @@ describe('ImprovementProject', () => {
       },
       sections: {
         background: {},
-        investigationLineage: {},
         approach: {},
         outcomeReference: {},
       },
@@ -106,7 +104,6 @@ describe('ImprovementProject', () => {
       },
       sections: {
         background: {},
-        investigationLineage: {},
         approach: {},
         outcomeReference: {},
       },
@@ -136,7 +133,6 @@ describe('ImprovementProject', () => {
       },
       sections: {
         background: {},
-        investigationLineage: {},
         approach: {},
         outcomeReference: {},
       },
@@ -163,7 +159,6 @@ describe('ImprovementProject', () => {
         },
         sections: {
           background: {},
-          investigationLineage: {},
           approach: {},
           outcomeReference: {},
         },
@@ -219,7 +214,6 @@ describe('ImprovementProject', () => {
         goal: { outcomeGoals: [{ outcomeSpecId: 'Yield_pct', target: 95 }] },
         sections: {
           background: {},
-          investigationLineage: {},
           approach: {},
           outcomeReference: {},
         },

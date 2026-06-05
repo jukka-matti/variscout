@@ -112,7 +112,6 @@ function makeProject(id: string, hubId: string, status: ImprovementProject['stat
     },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },

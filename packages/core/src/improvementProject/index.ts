@@ -7,7 +7,6 @@ export type {
   ImprovementProjectMechanismGoal,
   ImprovementProjectGoal,
   ImprovementProjectBackgroundSection,
-  ImprovementProjectInvestigationLineageSection,
   ImprovementProjectApproachSection,
   ImprovementProjectOutcomeReferenceSection,
   ImprovementProjectSignoff,

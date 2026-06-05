@@ -2,8 +2,8 @@
  * AnalyzeView (PWA) — active-IP scope shows the whole document on the Wall
  * (PO-5 permanent semantics).
  *
- * Mirrors the Azure AnalyzeWorkspace seam test. `IP.sections.investigationLineage`
- * is retired (PO-5); active-IP surfaces no longer filter the Wall by a lineage
+ * Mirrors the Azure AnalyzeWorkspace seam test. The IP lineage section is
+ * retired (PO-5); active-IP surfaces no longer filter the Wall by a lineage
  * membership set — under active-IP scope the Wall renders every hub.
  * See decision-log 2026-06-05 (PO-5).
  *

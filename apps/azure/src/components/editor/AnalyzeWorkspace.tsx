@@ -728,7 +728,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 
   // ── Hub model computations (Hypothesis hubs) ───────────────────────
   // PO-5: active-IP scope shows the whole document — the Wall renders every hub
-  // and finding (the investigationLineage filter is retired; empty-set-means-
+  // and finding (the lineage-membership filter is retired; empty-set-means-
   // unfiltered is the permanent semantics).
   const hubs = hypothesesState.hubs;
 

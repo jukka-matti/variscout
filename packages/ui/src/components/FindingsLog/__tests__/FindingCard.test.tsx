@@ -123,7 +123,7 @@ describe('FindingCard — PR-CS-6 Edge 1 promote action', () => {
 describe('FindingCard — lineage pin retired (PO-5)', () => {
   it('renders no lineage pin button; sibling card content survives', () => {
     render(<FindingCard finding={makeFinding()} {...noopHandlers} onAssign={vi.fn()} />);
-    // The CS-6 lineage pin (`investigationLineage`) is deleted in PO-5.
+    // The CS-6 finding-pin gesture (lineage membership) is deleted in PO-5.
     expect(screen.queryByTestId('toggle-lineage-btn')).toBeNull();
     // Sibling survival control — the card still renders the finding (its text
     // surfaces in the restore control's accessible name).

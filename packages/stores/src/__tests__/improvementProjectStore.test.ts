@@ -21,7 +21,6 @@ function makeProject(id: string, hubId: string): ImprovementProject {
     },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },

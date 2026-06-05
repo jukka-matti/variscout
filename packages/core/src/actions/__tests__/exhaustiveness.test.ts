@@ -216,7 +216,7 @@ describe('IMPROVEMENT_PROJECT actions', () => {
         status: 'draft',
         metadata: { title: 't' },
         goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1 }] },
-        sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
+        sections: { background: {}, approach: {}, outcomeReference: {} },
         updatedAt: 0,
       },
     };

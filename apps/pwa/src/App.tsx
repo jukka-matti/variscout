@@ -830,7 +830,7 @@ function AppMain() {
           labels: activeIPScopeLabels,
         }
       : null;
-  // PO-5: investigationLineage retired — active-IP surfaces show the whole
+  // PO-5: the lineage section is retired — active-IP surfaces show the whole
   // document (empty-set-means-unfiltered is now the permanent semantics). The
   // scopedFindings/scopedFindingsState memos are gone; AnalyzeView receives
   // findingsState directly.

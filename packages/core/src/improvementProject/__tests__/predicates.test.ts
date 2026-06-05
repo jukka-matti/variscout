@@ -14,7 +14,6 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
     goal: { outcomeGoals: [] },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },

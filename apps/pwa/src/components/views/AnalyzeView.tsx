@@ -162,7 +162,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   const hubs = useAnalyzeStore(s => s.hypotheses);
   const wallFindings = useAnalyzeStore(s => s.findings);
   // PO-5: active-IP scope shows the whole document — the Wall renders every hub
-  // and finding (the investigationLineage filter is retired; empty-set-means-
+  // and finding (the lineage-membership filter is retired; empty-set-means-
   // unfiltered is the permanent semantics).
 
   // PR-CS-6 Edge 4: resolve each finding's `originStepId` to its ProcessMap step

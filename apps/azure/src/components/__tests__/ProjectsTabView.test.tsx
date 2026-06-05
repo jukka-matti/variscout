@@ -29,7 +29,6 @@ function makeIP(overrides?: Partial<ImprovementProject>): ImprovementProject {
     goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-1', target: 1.33 }] },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },

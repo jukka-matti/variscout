@@ -13,7 +13,7 @@ const baseIP: ImprovementProject = {
   status: 'draft',
   metadata: { title: 'X' },
   goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
-  sections: { background: {}, investigationLineage: {}, approach: {}, outcomeReference: {} },
+  sections: { background: {}, approach: {}, outcomeReference: {} },
 };
 
 describe('CharterOverview', () => {

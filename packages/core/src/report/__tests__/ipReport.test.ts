@@ -32,10 +32,6 @@ function project(overrides: Partial<ImprovementProject> = {}): ImprovementProjec
     },
     sections: {
       background: { snapshotText: 'Baseline Cpk was below target.' },
-      // PO-5: the engine no longer reads investigationLineage; this inert seed
-      // only satisfies the still-standing type and is removed in the Commit 6
-      // type deletion + fixture sweep.
-      investigationLineage: {},
       approach: { improvementIdeaIds: ['idea-1'], actionItemIds: ['act-1'] },
       outcomeReference: { sustainmentRecordId: 'sus-1', controlHandoffId: 'handoff-1' },
     },

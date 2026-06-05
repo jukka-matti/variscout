@@ -25,9 +25,6 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
     },
     sections: {
       background: { manualNarrative: 'Baseline narrative', updatedAt: now - 7 * hour },
-      // PO-5: investigationLineage no longer emits activity events; inert seed
-      // removed in Commit 6.
-      investigationLineage: {},
       approach: {
         improvementIdeaIds: ['idea-1'],
         actionItemIds: ['action-1'],

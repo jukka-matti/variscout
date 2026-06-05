@@ -24,7 +24,6 @@ const ip: ImprovementProject = {
   },
   sections: {
     background: {},
-    investigationLineage: { hypothesisIds: ['h-1', 'h-2'] },
     approach: { improvementIdeaIds: ['idea-1', 'idea-2'], actionItemIds: ['a-1', 'a-2'] },
     outcomeReference: {},
   },

@@ -19,7 +19,6 @@ function makeProject(overrides: Partial<ImprovementProject> = {}): ImprovementPr
     },
     sections: {
       background: {},
-      investigationLineage: {},
       approach: { actionItemIds: ['action-1'] },
       outcomeReference: {},
     },

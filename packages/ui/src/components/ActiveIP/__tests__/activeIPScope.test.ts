@@ -43,8 +43,6 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
     goal: { outcomeGoals: [{ outcomeSpecId: 'outcome-weight', target: 1.33 }] },
     sections: {
       background: {},
-      // PO-5: investigationLineage no longer read; inert seed removed in Commit 6.
-      investigationLineage: {},
       approach: {},
       outcomeReference: {},
     },
