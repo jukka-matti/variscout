@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { FindingContext, ProcessHub } from '@variscout/core';
 import { buildDocumentSnapshotVrs, parseDocumentSnapshotVrs } from '../documentSnapshotVrs';
+import {
+  DocumentSnapshotCorruptError,
+  DocumentSnapshotVersionMismatchError,
+} from '../documentSnapshotValidation';
 import { hydrateDocumentSnapshot } from '../documentSnapshot';
 import { getAnalyzeInitialState, useAnalyzeStore } from '../analyzeStore';
 import { useCanvasStore } from '../canvasStore';
@@ -130,15 +134,51 @@ describe('document snapshot .vrs helpers', () => {
     ).toThrow(/invalid file format/i);
   });
 
-  it('rejects malformed documentSnapshot payloads', () => {
+  it('a WELL-FORMED .vrs with a different documentSnapshot.schemaVersion throws the version-mismatch error (spec §16: refused with refresh hint, never silently loaded)', () => {
+    // Build a real full-shape file, then bump ONLY the version.
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      rawData: [{ yield: 91 }],
+      outcome: 'yield',
+    });
+    const file = JSON.parse(buildDocumentSnapshotVrs({ activeHub: hub }));
+    file.documentSnapshot.schemaVersion = 2;
+
+    expect(() => parseDocumentSnapshotVrs(JSON.stringify(file))).toThrow(
+      DocumentSnapshotVersionMismatchError
+    );
+    expect(() => parseDocumentSnapshotVrs(JSON.stringify(file))).toThrow(/refresh/i);
+  });
+
+  it('a current-version .vrs with a shape-malformed documentSnapshot throws the corrupt error (the OLD conflated fixture, version conflation removed)', () => {
     const malformed = JSON.stringify({
       kind: 'variscout.document',
       version: 1,
       exportedAt: '2026-06-01T00:00:00.000Z',
-      documentSnapshot: { schemaVersion: 2, hubId: 'hub-1' },
+      documentSnapshot: { schemaVersion: 1, hubId: 'hub-1' }, // missing facets, CURRENT version
     });
 
+    expect(() => parseDocumentSnapshotVrs(malformed)).toThrow(DocumentSnapshotCorruptError);
     expect(() => parseDocumentSnapshotVrs(malformed)).toThrow(/invalid.*documentSnapshot/i);
+  });
+
+  it('a different numeric ENVELOPE version (co-versioned with schemaVersion) also throws version-mismatch; legacy string versions stay corrupt', () => {
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      rawData: [{ yield: 91 }],
+      outcome: 'yield',
+    });
+    const file = JSON.parse(buildDocumentSnapshotVrs({ activeHub: hub }));
+    file.version = 2;
+    expect(() => parseDocumentSnapshotVrs(JSON.stringify(file))).toThrow(
+      DocumentSnapshotVersionMismatchError
+    );
+    // legacy pre-snapshot files carry STRING versions — they are invalid format, not version-mismatched
+    expect(() =>
+      parseDocumentSnapshotVrs(
+        JSON.stringify({ kind: 'variscout.document', version: '1.0', exportedAt: 'x' })
+      )
+    ).toThrow(/invalid file format/i);
   });
 
   it('rejects snapshot files that still use top-level hub/rawData fields', () => {
