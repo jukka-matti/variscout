@@ -44,6 +44,7 @@ describe('SaveConflictDialog (PO-8b reload-or-branch)', () => {
     fireEvent.click(screen.getByRole('button', { name: /load cloud version/i }));
     expect(handlers.onReload).toHaveBeenCalledTimes(1);
     expect(handlers.onBranch).not.toHaveBeenCalled();
+    expect(handlers.onDismiss).not.toHaveBeenCalled();
   });
 
   it('"Not now" and ESC both defer via onDismiss', () => {
