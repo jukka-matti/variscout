@@ -577,7 +577,7 @@ describe('applyAction — no-op action kinds', () => {
     // blob — not Dexie. No table holds scopes.
     await applyAction(db, {
       kind: 'SCOPE_ADD',
-      investigationId: 'inv-x',
+      projectId: 'inv-x',
       scope: { id: 'sc-x' },
     } as unknown as HubAction);
 

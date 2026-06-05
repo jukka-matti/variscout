@@ -818,8 +818,8 @@ export type GateNode =
  * claim lives on `Hypothesis.condition`, never re-asserting the scope.
  */
 export interface ProblemStatementScope extends EntityBase {
-  /** FK to the owning investigation. Field name preserved (projectId rename is PO-7). */
-  investigationId: ImprovementProject['id'];
+  /** FK to the owning ImprovementProject (PO-7 rename of investigationId). May carry the quick-analysis sentinel 'general-unassigned' when no project is active. */
+  projectId: ImprovementProject['id'];
   /** The Y this scope sharpens. */
   outcome: string;
   /** The `{factor=level}` WHERE — a flat AND of drill-chip leaves. */

@@ -308,13 +308,13 @@ export function createCausalLink(
 /**
  * Create a new ProblemStatementScope (the WHERE) with a unique ID (ADR-085).
  *
- * @param investigationId - FK to the owning investigation.
+ * @param projectId - FK to the owning ImprovementProject.
  * @param outcome - The Y this scope sharpens.
  * @param predicates - The `{factor=level}` WHERE (flat AND of drill-chip leaves).
  * @param hypothesisIds - The suspected causes nested within this scope (the WHY).
  */
 export function createProblemStatementScope(
-  investigationId: string,
+  projectId: string,
   outcome: string,
   predicates: ConditionLeaf[] = [],
   hypothesisIds: string[] = []
@@ -322,7 +322,7 @@ export function createProblemStatementScope(
   const now = Date.now();
   return {
     id: generateDeterministicId(),
-    investigationId,
+    projectId,
     outcome,
     predicates,
     hypothesisIds,

@@ -58,7 +58,7 @@ describe('document snapshot .vrs helpers', () => {
       scopes: [
         {
           id: 'scope-1',
-          investigationId: 'inv-1',
+          projectId: 'inv-1',
           outcome: 'yield',
           predicates: [],
           hypothesisIds: [],

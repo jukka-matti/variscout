@@ -1942,7 +1942,7 @@ export const Editor: React.FC<EditorProps> = ({
             ) : activeView === 'analyze' ? (
               <AnalyzeWorkspace
                 activeIPScope={activeIPScope}
-                scopeInvestigationId={activeIPContext.activeIP?.id ?? 'general-unassigned'}
+                scopeProjectId={activeIPContext.activeIP?.id ?? 'general-unassigned'}
                 findingsState={findingsState}
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={handleSetFindingStatus}

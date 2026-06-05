@@ -357,12 +357,12 @@ describe('analyzeStore — scopes', () => {
     expect(useAnalyzeStore.getState().scopes).toEqual([]);
   });
 
-  it('addScope creates a scope with outcome and investigationId', () => {
+  it('addScope creates a scope with outcome and projectId', () => {
     const scope = useAnalyzeStore.getState().addScope('inv-1', 'High defect rate on Line 3');
     const state = useAnalyzeStore.getState();
     expect(state.scopes).toHaveLength(1);
     expect(state.scopes[0].outcome).toBe('High defect rate on Line 3');
-    expect(state.scopes[0].investigationId).toBe('inv-1');
+    expect(state.scopes[0].projectId).toBe('inv-1');
     expect(state.scopes[0].hypothesisIds).toEqual([]);
     expect(state.scopes[0].predicates).toEqual([]);
     expect(scope.id).toBe(state.scopes[0].id);
@@ -443,7 +443,7 @@ describe('analyzeStore — syncScopeFromDrill (IM-4a)', () => {
     const state = useAnalyzeStore.getState();
     expect(state.scopes).toHaveLength(1);
     expect(state.scopes[0].outcome).toBe('lead_time');
-    expect(state.scopes[0].investigationId).toBe('inv-1');
+    expect(state.scopes[0].projectId).toBe('inv-1');
     expect(state.scopes[0].predicates).toEqual([
       { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
       { kind: 'leaf', column: 'Product', op: 'eq', value: 'X' },
@@ -1108,7 +1108,7 @@ describe('analyzeStore — bulk operations', () => {
     };
     const scope: ProblemStatementScope = {
       id: 's-1',
-      investigationId: 'inv-test-001',
+      projectId: 'inv-test-001',
       outcome: 'High defect rate',
       predicates: [],
       hypothesisIds: ['h-1'],
@@ -1344,7 +1344,7 @@ describe('analyzeStore — setScopeGateNode', () => {
     };
     const scope: ProblemStatementScope = {
       id: 's-roundtrip',
-      investigationId: 'inv-1',
+      projectId: 'inv-1',
       outcome: 'Test',
       predicates: [],
       hypothesisIds: [],

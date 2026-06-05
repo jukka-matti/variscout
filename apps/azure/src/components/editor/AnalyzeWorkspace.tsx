@@ -105,7 +105,7 @@ interface AnalyzeWorkspaceProps {
    * `'general-unassigned'` sentinel for the quick-analysis flow (no active IP) and
    * for render harnesses that don't pass the prop.
    */
-  scopeInvestigationId?: string;
+  scopeProjectId?: string;
   // Findings
   findingsState: UseFindingsReturn;
   handleRestoreFinding: UseFindingsOrchestrationReturn['handleRestoreFinding'];
@@ -170,7 +170,7 @@ interface AnalyzeWorkspaceProps {
  */
 export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   activeIPScope,
-  scopeInvestigationId = 'general-unassigned',
+  scopeProjectId = 'general-unassigned',
   findingsState,
   handleRestoreFinding,
   handleSetFindingStatus,
@@ -265,15 +265,13 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // (SCOPE_ARCHIVE) — not here.
   const categoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
   const scopes = useAnalyzeStore(s => s.scopes);
-  // PR-CS-0 Task 2: scopeInvestigationId arrives as a prop (active IP id, or the
+  // PR-CS-0 Task 2: scopeProjectId arrives as a prop (active IP id, or the
   // 'general-unassigned' sentinel for the quick-analysis flow). It is now a dep
   // of every consumer below so an IP switch re-keys materialization + the rail.
   useEffect(() => {
     if (!outcome) return;
-    useAnalyzeStore
-      .getState()
-      .syncScopeFromDrill(scopeInvestigationId, outcome, categoricalFilters);
-  }, [categoricalFilters, outcome, scopeInvestigationId]);
+    useAnalyzeStore.getState().syncScopeFromDrill(scopeProjectId, outcome, categoricalFilters);
+  }, [categoricalFilters, outcome, scopeProjectId]);
   const activeScope = useMemo(() => {
     if (!outcome) return undefined;
     const predicates = buildConditionFromCategoricalFilters(categoricalFilters);
@@ -281,11 +279,11 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     const key = predicateSetKey(predicates);
     return scopes.find(
       s =>
-        s.investigationId === scopeInvestigationId &&
+        s.projectId === scopeProjectId &&
         s.outcome === outcome &&
         predicateSetKey(s.predicates) === key
     );
-  }, [categoricalFilters, outcome, scopes, scopeInvestigationId]);
+  }, [categoricalFilters, outcome, scopes, scopeProjectId]);
   // Per-outcome spec limits for the scope's What-If projection (IM-5).
   const activeScopeSpecs = useMemo(
     () => (outcome ? (measureSpecs[outcome] ?? specs) : undefined),
@@ -446,8 +444,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // ── IM-4b Task 5 — multi-scope rail ──────────────────────────────────────
   // Active (non-archived) scopes for the current investigation + outcome.
   const railScopes = useMemo(
-    () => scopes.filter(s => s.investigationId === scopeInvestigationId && s.deletedAt === null),
-    [scopes, scopeInvestigationId]
+    () => scopes.filter(s => s.projectId === scopeProjectId && s.deletedAt === null),
+    [scopes, scopeProjectId]
   );
   // Re-anchor: selecting a scope chip rewrites the drill filters to that scope's
   // compound WHERE (IM-4a's predicateSetKey-matched producer then re-selects the

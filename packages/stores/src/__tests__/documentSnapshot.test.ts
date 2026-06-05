@@ -63,7 +63,7 @@ function makeHypothesis(id = 'hypothesis-1'): Hypothesis {
 function makeScope(id = 'scope-1'): ProblemStatementScope {
   return {
     id,
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     outcome: 'yield',
     predicates: [{ field: 'line', op: 'eq', value: 'A' }],
     hypothesisIds: ['hypothesis-1'],
