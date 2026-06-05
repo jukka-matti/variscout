@@ -97,20 +97,29 @@ describe('ProjectCard', () => {
   // ── negative control ─────────────────────────────────────────────────────────
   // PO-4 shed the work-item + narrative projection fields from ProjectMetadata.
   // The card renders only the KEEP-set surfaces; none of the shed surfaces
-  // (status chip, depth label, Your-tasks block, overdue accent) come back.
-  it('negative control: shed work-item surfaces do not render for a KEEP-set project', () => {
+  // (status chip, depth label, Your-tasks block, work-item amber accent) come back.
+  //
+  // The one REAL surviving overdue surface is the control-due chip
+  // (data-testid="project-card-control-due"), driven by
+  // `metadata.sustainment.nextReviewDue`. It must be ABSENT when no sustainment
+  // is set. The companion positive case ("shows overdue chip when nextReviewDue
+  // is in the past") lives in the "control due-ness chip" block below.
+  it('negative control: shed surfaces absent; control-due chip absent without sustainment', () => {
     const project = makeProject({
       metadata: makeMetadata({ processHubId: 'line-4' }),
+      // No sustainment → nextReviewDue is absent → no control-due chip
     });
     render(<ProjectCard {...defaultProps} project={project} />);
     const card = screen.getByTestId('project-card');
 
-    // No amber border / Your-tasks / overdue surfaces
+    // Work-item surfaces (shed in PO-4) do not render
     expect(card.className).not.toContain('border-l-amber-500');
     expect(screen.queryByTestId('project-card-your-tasks')).not.toBeInTheDocument();
-    expect(screen.queryByText(/overdue/i)).not.toBeInTheDocument();
-    expect(screen.queryByTestId('project-card-overdue-flag')).not.toBeInTheDocument();
-    // The KEEP-set processHubId line still renders.
+
+    // The surviving control-due chip is ABSENT when sustainment has no nextReviewDue
+    expect(screen.queryByTestId('project-card-control-due')).not.toBeInTheDocument();
+
+    // The KEEP-set processHubId line still renders
     expect(screen.getByTestId('project-card-hub')).toHaveTextContent('line-4');
   });
 

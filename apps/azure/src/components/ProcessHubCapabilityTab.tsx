@@ -29,8 +29,8 @@ import {
   useProductionLineGlanceFilter,
 } from '@variscout/hooks';
 import { detectScope } from '@variscout/core';
-import { resolveCpkTarget } from '@variscout/core/capability';
 import { useProjectStore } from '@variscout/stores';
+import { resolveCapabilityNodeTargets } from '../features/processHub/resolveCapabilityNodeTargets';
 import type { TimelineWindow } from '@variscout/core';
 import { useHubProvision } from '../features/processHub';
 import type { ProcessStepCapabilitySource } from '@variscout/core';
@@ -105,22 +105,14 @@ export const ProcessHubCapabilityTab: React.FC<ProcessHubCapabilityTabProps> = (
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const hubCpkTarget = source.hub.reviewSignal?.capability?.cpkTarget;
   const canonicalProcessMap = provision.hub.canonicalProcessMap;
-  const capabilityNodesWithResolvedTarget = useMemo(() => {
-    const canonicalNodes = canonicalProcessMap?.nodes ?? [];
-    return data.capabilityNodes.map(node => {
-      const canonical = canonicalNodes.find(n => n.id === node.nodeId);
-      const column = canonical?.ctqColumn;
-      // No measurement column → no cascade-resolved target. Leave undefined
-      // so the chart simply omits the per-node tick.
-      if (!column) return { ...node, targetCpk: undefined };
-      const { value } = resolveCpkTarget(column, {
-        measureSpecs,
-        hubCpkTarget,
-        projectCpkTarget,
-      });
-      return { ...node, targetCpk: value };
-    });
-  }, [data.capabilityNodes, canonicalProcessMap, measureSpecs, hubCpkTarget, projectCpkTarget]);
+  const capabilityNodesWithResolvedTarget = useMemo(
+    () =>
+      resolveCapabilityNodeTargets(data.capabilityNodes, {
+        canonicalNodes: canonicalProcessMap?.nodes ?? [],
+        context: { measureSpecs, hubCpkTarget, projectCpkTarget },
+      }),
+    [data.capabilityNodes, canonicalProcessMap, measureSpecs, hubCpkTarget, projectCpkTarget]
+  );
 
   return (
     <div className="flex h-full flex-col">

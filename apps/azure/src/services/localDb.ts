@@ -276,13 +276,3 @@ export async function recomputeSustainmentProjectionForRecord(
   const projection = buildSustainmentProjection(record, handoff);
   await updateProjectSustainmentProjectionInIndexedDB(record.investigationId, projection);
 }
-
-export async function clearProjectSustainmentProjectionInIndexedDB(
-  investigationId: string
-): Promise<void> {
-  const project = await db.projects.get(investigationId);
-  if (!project?.meta?.sustainment) return;
-  const { sustainment: _removed, ...restMeta } = project.meta;
-  void _removed;
-  await db.projects.update(investigationId, { meta: restMeta });
-}
