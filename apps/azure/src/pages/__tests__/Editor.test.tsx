@@ -19,8 +19,11 @@ import {
 } from '@variscout/stores';
 import type { Invitation } from '@variscout/core/projectMembership';
 
-const { mockUseAutoSave } = vi.hoisted(() => ({
+const { mockUseAutoSave, stageFiveCapture } = vi.hoisted(() => ({
   mockUseAutoSave: vi.fn(),
+  stageFiveCapture: {
+    onOpenInvestigation: undefined as ((brief: { hypothesisDraft?: string }) => void) | undefined,
+  },
 }));
 
 // ── Mock child components ──
@@ -202,7 +205,12 @@ vi.mock('@variscout/ui', async importOriginal => {
     JournalTabContent: () => null,
     DocumentShelfBase: () => null,
     WhatIfExplorerPage: () => null,
-    StageFiveModal: () => null,
+    StageFiveModal: (props: {
+      onOpenInvestigation: (brief: { hypothesisDraft?: string }) => void;
+    }) => {
+      stageFiveCapture.onOpenInvestigation = props.onOpenInvestigation;
+      return null;
+    },
     computePresets: vi.fn(() => undefined),
     useIsMobile: () => false,
     useGlossary: () => ({ getTerm: (key: string) => key }),
@@ -726,5 +734,40 @@ describe('Editor', () => {
     useProjectMembershipStore.setState({ invitesByUser: { [membershipKey]: [inviteA] } });
     renderEditor();
     expect(await screen.findByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
+  });
+
+  // ── Stage-5 hypothesisDraft → proposed Hypothesis hub (PO-6) ──
+
+  describe('Stage-5 hypothesisDraft → proposed Hypothesis hub (PO-6)', () => {
+    beforeEach(() => {
+      useAnalyzeStore.setState({ hypotheses: [] });
+      stageFiveCapture.onOpenInvestigation = undefined;
+      renderEditor({
+        rawData: [{ Weight: 10, Machine: 'A' }],
+        outcome: 'Weight',
+        factors: ['Machine'],
+      });
+    });
+
+    afterEach(() => {
+      useAnalyzeStore.setState({ hypotheses: [] });
+    });
+
+    it('Stage-5 hypothesisDraft creates exactly one proposed hub', async () => {
+      await act(async () => {
+        stageFiveCapture.onOpenInvestigation!({ hypothesisDraft: 'Resin lot drift' });
+      });
+      const hubs = useAnalyzeStore.getState().hypotheses;
+      expect(hubs).toHaveLength(1);
+      expect(hubs[0].name).toBe('Resin lot drift');
+      expect(hubs[0].status).toBe('proposed');
+    });
+
+    it('NEGATIVE: a blank brief creates zero hubs', async () => {
+      await act(async () => {
+        stageFiveCapture.onOpenInvestigation!({});
+      });
+      expect(useAnalyzeStore.getState().hypotheses).toHaveLength(0);
+    });
   });
 });

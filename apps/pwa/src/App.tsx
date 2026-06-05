@@ -1678,11 +1678,15 @@ function AppMain() {
       <StageFiveModal
         open={stageFive.open}
         mode={stageFive.mode}
-        onOpenInvestigation={_brief => {
+        onOpenInvestigation={brief => {
           // IM-1 (F5, ADR-085): AnalysisBrief no longer seeds Question entities —
           // the Question entity is retired. Brief capture is informational only;
           // the analyst forms hypothesis hubs on the Wall.
-          // TODO slice 4: persist brief.hypothesisDraft to investigation as a draft Hypothesis entity.
+          // PO-6: persist the Stage-5 draft as a proposed Hypothesis hub (analyst renames
+          // on the card — same convention as handleWriteHypothesis / propose-hypothesis).
+          if (brief.hypothesisDraft) {
+            useAnalyzeStore.getState().createHub(brief.hypothesisDraft, '');
+          }
           // TODO (slice 4): wire brief.target into processContext once PWA gains a
           // processContext or equivalent improvement-target store field.
           stageFive.close();

@@ -2280,7 +2280,10 @@ export const Editor: React.FC<EditorProps> = ({
             setProcessContext(updatedContext);
             // IM-1 (F5): AnalysisBrief no longer seeds Question entities.
           }
-          // TODO slice 4: persist brief.hypothesisDraft to investigation as a draft Hypothesis entity.
+          // PO-6: persist the Stage-5 draft as a proposed Hypothesis hub.
+          if (brief.hypothesisDraft) {
+            hypothesesState.createHub(brief.hypothesisDraft, '');
+          }
           stageFive.close();
         }}
         onSkip={stageFive.close}
