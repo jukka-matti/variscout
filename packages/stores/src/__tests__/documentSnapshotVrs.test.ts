@@ -31,6 +31,9 @@ const hub: ProcessHub = {
   primaryScopeDimensions: ['line'],
 };
 
+// stats omitted — not needed for the round-trip arc
+const ctx: FindingContext = { activeFilters: {}, cumulativeScope: null };
+
 function resetStores() {
   useProjectStore.setState(getProjectInitialState());
   useAnalyzeStore.setState(getAnalyzeInitialState());
@@ -161,8 +164,6 @@ describe('document snapshot .vrs helpers', () => {
     ).toThrow(/invalid file format/i);
   });
 });
-
-const ctx: FindingContext = { activeFilters: {}, cumulativeScope: null };
 
 describe('PO-6: findings round-trip the .vrs arc (quick-analysis onramp)', () => {
   it('a store finding survives export → reset → import; a store-absent finding does NOT appear', () => {
