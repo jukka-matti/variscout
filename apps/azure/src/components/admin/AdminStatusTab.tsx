@@ -116,6 +116,9 @@ export function AdminStatusTab({ gatingMode }: AdminStatusTabProps) {
                   )}
                 </div>
                 <p className="text-xs text-content-secondary mt-0.5">{check.description}</p>
+                {check.detail && (
+                  <p className="text-xs text-content-muted mt-0.5">{check.detail}</p>
+                )}
                 {check.status === 'fail' && check.error && (
                   <div className="mt-2 space-y-1">
                     <p className="text-xs text-red-400 flex items-center gap-1">

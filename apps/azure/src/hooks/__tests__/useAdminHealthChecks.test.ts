@@ -6,6 +6,13 @@ vi.mock('../../auth/easyAuth', () => ({
   getAccessToken: vi.fn(() => Promise.resolve('mock-token')),
 }));
 
+vi.mock('../../services/storageDurability', () => ({
+  getStorageEstimate: vi
+    .fn()
+    .mockResolvedValue({ usageBytes: 1_048_576, quotaBytes: 10_485_760, persisted: false }),
+  formatStorageEstimate: vi.fn().mockReturnValue('Using 1.0 MB of 10.0 MB · persistent: no'),
+}));
+
 vi.mock('../../services/searchService', () => ({
   searchDocuments: vi.fn(),
 }));
@@ -29,7 +36,7 @@ describe('useAdminHealthChecks', () => {
 
   it('initializes all checks as idle', () => {
     const { result } = renderHook(() => useAdminHealthChecks());
-    expect(result.current.checks).toHaveLength(4);
+    expect(result.current.checks).toHaveLength(5);
     expect(result.current.checks.every(c => c.status === 'idle')).toBe(true);
     expect(result.current.isRunning).toBe(false);
   });
@@ -127,5 +134,15 @@ describe('useAdminHealthChecks', () => {
     // Graph checks now always pass (stubbed per ADR-059)
     const graphCheck = result.current.checks.find(c => c.id === 'graph-profile');
     expect(graphCheck?.status).toBe('pass');
+  });
+
+  it('PO-8b: storage-durability check reports the quota estimate as detail', async () => {
+    const { result } = renderHook(() => useAdminHealthChecks());
+    await act(async () => {
+      await result.current.runOne('storage-durability');
+    });
+    const check = result.current.checks.find(c => c.id === 'storage-durability');
+    expect(check?.status).toBe('pass');
+    expect(check?.detail).toBe('Using 1.0 MB of 10.0 MB · persistent: no');
   });
 });

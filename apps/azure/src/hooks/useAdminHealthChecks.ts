@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { isLocalDev } from '../auth/easyAuth';
 import { searchDocuments } from '../services/searchService';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
+import { formatStorageEstimate, getStorageEstimate } from '../services/storageDurability';
 
 export type CheckStatus = 'idle' | 'running' | 'pass' | 'fail' | 'na';
 
@@ -11,6 +12,7 @@ export interface HealthCheck {
   description: string;
   status: CheckStatus;
   error?: string;
+  detail?: string;
 }
 
 export interface UseAdminHealthChecks {
@@ -41,9 +43,16 @@ const CHECK_DEFINITIONS: Omit<HealthCheck, 'status' | 'error'>[] = [
     label: 'AI Search (Knowledge Base)',
     description: 'Verify Azure AI Search connectivity for Knowledge Base',
   },
+  {
+    id: 'storage-durability',
+    label: 'Local storage durability',
+    description: 'Persistent-storage grant + usage vs quota (cloud blob remains source of truth)',
+  },
 ];
 
-async function runCheck(id: string): Promise<{ status: CheckStatus; error?: string }> {
+async function runCheck(
+  id: string
+): Promise<{ status: CheckStatus; error?: string; detail?: string }> {
   if (isLocalDev() && id === 'auth') {
     return { status: 'pass' };
   }
@@ -82,6 +91,13 @@ async function runCheck(id: string): Promise<{ status: CheckStatus; error?: stri
         return { status: 'pass' };
       }
 
+      case 'storage-durability': {
+        const info = await getStorageEstimate();
+        if (!info)
+          return { status: 'na', error: 'navigator.storage not available in this browser' };
+        return { status: 'pass', detail: formatStorageEstimate(info) };
+      }
+
       default:
         return { status: 'fail', error: `Unknown check: ${id}` };
     }
@@ -109,7 +125,7 @@ export function useAdminHealthChecks(): UseAdminHealthChecks {
       const check = CHECK_DEFINITIONS.find(c => c.id === id);
       if (!check) return;
 
-      updateCheck(id, { status: 'running', error: undefined });
+      updateCheck(id, { status: 'running', error: undefined, detail: undefined });
       const result = await runCheck(id);
       updateCheck(id, result);
     },
@@ -121,7 +137,9 @@ export function useAdminHealthChecks(): UseAdminHealthChecks {
     abortRef.current = false;
 
     // Set all to running
-    setChecks(prev => prev.map(c => ({ ...c, status: 'running', error: undefined })));
+    setChecks(prev =>
+      prev.map(c => ({ ...c, status: 'running', error: undefined, detail: undefined }))
+    );
 
     // Run all in parallel
     const results = await Promise.allSettled(
@@ -140,7 +158,12 @@ export function useAdminHealthChecks(): UseAdminHealthChecks {
         prev.map(c => {
           const settled = results.find(r => r.status === 'fulfilled' && r.value.id === c.id);
           if (settled && settled.status === 'fulfilled') {
-            return { ...c, status: settled.value.status, error: settled.value.error };
+            return {
+              ...c,
+              status: settled.value.status,
+              error: settled.value.error,
+              detail: settled.value.detail,
+            };
           }
           return c;
         })
