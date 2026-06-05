@@ -426,6 +426,36 @@ describe('documentSnapshotFingerprint', () => {
 
     expect(documentSnapshotFingerprint(buildDocumentSnapshot())).toBe(beforeHistoryChange);
   });
+
+  it('PO-8a: viewState never enters the snapshot and never moves the fingerprint (negative control: durable content still does)', () => {
+    seedProjectStore();
+    const activeHub = makeHub('hub-1');
+    const baseline = documentSnapshotFingerprint(buildDocumentSnapshot({ activeHub }));
+
+    // a tab/chart switch is NOT a document change
+    useProjectStore.getState().setViewState({ activeView: 'report', focusedChart: 'boxplot' });
+    const snapshot = buildDocumentSnapshot({ activeHub });
+    expect(snapshot.project).not.toHaveProperty('viewState');
+    expect(documentSnapshotFingerprint(snapshot)).toBe(baseline);
+
+    // negative control: a durable content change DOES move the fingerprint
+    useProjectStore.getState().setOutcome('scrap');
+    expect(documentSnapshotFingerprint(buildDocumentSnapshot({ activeHub }))).not.toBe(baseline);
+  });
+
+  it('PO-8a anti-hijack: hydrating a legacy snapshot that still carries viewState does NOT adopt the saver working context', () => {
+    seedProjectStore();
+    const activeHub = makeHub('hub-1');
+    const legacy = JSON.parse(JSON.stringify(buildDocumentSnapshot({ activeHub })));
+    legacy.project.viewState = { activeView: 'report', focusedChart: 'pareto' }; // a teammate's saved context
+
+    resetStores();
+    hydrateDocumentSnapshot(legacy);
+    // the importer's working context is their own — never the saver's
+    expect(useProjectStore.getState().viewState).toBeNull();
+    // negative control: durable content DID hydrate
+    expect(useProjectStore.getState().rawData.length).toBeGreaterThan(0);
+  });
 });
 
 describe('hydrateDocumentSnapshot', () => {

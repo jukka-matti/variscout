@@ -300,17 +300,18 @@ describe('projectStore — additional setters', () => {
 
   // --- View state ---
 
-  it('setViewState updates viewState and marks unsaved', () => {
+  it('setViewState updates viewState WITHOUT marking unsaved (PO-8a: view changes are not document changes)', () => {
     useProjectStore.getState().setViewState({ activeView: 'analyze', isFindingsOpen: true });
     expect(useProjectStore.getState().viewState).toEqual({
       activeView: 'analyze',
       isFindingsOpen: true,
     });
-    expect(useProjectStore.getState().hasUnsavedChanges).toBe(true);
+    expect(useProjectStore.getState().hasUnsavedChanges).toBe(false);
   });
 
-  it('loadProject restores viewState', () => {
-    useProjectStore.getState().loadProject({
+  it('loadProject resets viewState to null — even when a legacy payload still carries one (PO-8a strip)', () => {
+    useProjectStore.getState().setViewState({ activeView: 'analyze' });
+    const legacyPayload = {
       projectId: 'p1',
       projectName: 'Test',
       rawData: [],
@@ -318,9 +319,10 @@ describe('projectStore — additional setters', () => {
       factors: [],
       specs: {},
       analysisMode: 'standard',
-      viewState: { activeView: 'report' },
-    });
-    expect(useProjectStore.getState().viewState).toEqual({ activeView: 'report' });
+      viewState: { activeView: 'report' }, // legacy field — no longer in SerializedProject
+    };
+    useProjectStore.getState().loadProject(legacyPayload as never);
+    expect(useProjectStore.getState().viewState).toBeNull();
   });
 });
 

@@ -94,7 +94,6 @@ function buildProjectSnapshot(state: ProjectState): ProjectDocumentSnapshot {
     separateParetoFilename: state.separateParetoFilename,
     processContext: state.processContext,
     entryScenario: state.entryScenario,
-    viewState: state.viewState,
   });
 }
 
