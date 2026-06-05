@@ -90,7 +90,6 @@ export interface SerializedProject {
   separateParetoFilename?: string | null;
   processContext?: ProcessContext;
   entryScenario?: EntryScenario;
-  viewState?: ViewState | null;
   findings?: Finding[];
   categories?: AnalyzeCategory[];
   hypotheses?: Hypothesis[];
@@ -350,7 +349,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
       separateParetoFilename: serialized.separateParetoFilename ?? null,
       processContext: serialized.processContext ?? null,
       entryScenario: serialized.entryScenario ?? null,
-      viewState: serialized.viewState ?? null,
+      viewState: null, // PO-8a: per-user session state — never adopted from a document
       findings: serialized.findings ?? [],
       categories: serialized.categories ?? [],
       hasUnsavedChanges: false,
@@ -425,7 +424,8 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(set => ({
 
   // --- View state ---
 
-  setViewState: setAndMark(set, 'viewState'),
+  // PO-8a: view changes are session-only — they no longer dirty the document
+  setViewState: value => set(() => ({ viewState: value })),
 
   // --- Findings ---
 

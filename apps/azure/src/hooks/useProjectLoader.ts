@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react';
+import {
+  DocumentSnapshotCorruptError,
+  DocumentSnapshotVersionMismatchError,
+} from '@variscout/stores';
 import { classifySyncError } from '../services/storage';
 
-type LoadErrorCode = 'not-found' | 'forbidden' | 'plan-mismatch' | 'offline' | 'auth' | 'unknown';
+export type LoadErrorCode =
+  | 'not-found'
+  | 'forbidden'
+  | 'plan-mismatch'
+  | 'offline'
+  | 'auth'
+  | 'version-mismatch'
+  | 'corrupt'
+  | 'unknown';
 
 export interface LoadError {
   code: LoadErrorCode;
@@ -18,6 +30,9 @@ const ERROR_MESSAGES: Record<LoadErrorCode, string> = {
   offline:
     "You're offline and this project isn't cached locally. Connect to the internet to load it.",
   auth: 'Your session has expired.',
+  'version-mismatch':
+    'This project was saved by a different version of VariScout. Refresh the app to update, then try again.',
+  corrupt: "This project's saved data is invalid or corrupted and cannot be opened.",
   unknown: 'Failed to load project. Please try again.',
 };
 
@@ -52,6 +67,22 @@ export function useProjectLoader({
       setLoadError(null);
       loadProject(projectId)
         .catch(error => {
+          if (error instanceof DocumentSnapshotVersionMismatchError) {
+            setLoadError({
+              code: 'version-mismatch',
+              message: ERROR_MESSAGES['version-mismatch'],
+              action: { label: 'Refresh', onClick: () => window.location.reload() },
+            });
+            return;
+          }
+          if (error instanceof DocumentSnapshotCorruptError) {
+            setLoadError({
+              code: 'corrupt',
+              message: ERROR_MESSAGES.corrupt,
+              action: { label: 'Go to Dashboard', onClick: onBack },
+            });
+            return;
+          }
           const classified = classifySyncError(error);
           const code: LoadErrorCode =
             classified.category === 'not_found'

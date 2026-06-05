@@ -111,6 +111,13 @@ export {
   resetDocumentStores,
 } from './documentSnapshot';
 export {
+  CURRENT_DOCUMENT_SCHEMA_VERSION,
+  DocumentSnapshotCorruptError,
+  DocumentSnapshotVersionMismatchError,
+  isDocumentSnapshot,
+  validateDocumentSnapshot,
+} from './documentSnapshotValidation';
+export {
   buildDocumentSnapshotVrs,
   isDocumentSnapshotVrsFile,
   parseDocumentSnapshotVrs,

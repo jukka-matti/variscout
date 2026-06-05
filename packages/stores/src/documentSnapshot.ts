@@ -11,6 +11,7 @@ import { useAnalyzeStore } from './analyzeStore';
 import { useCanvasStore, type CanvasDocumentSnapshot } from './canvasStore';
 import { useImprovementProjectStore } from './improvementProjectStore';
 import { useProjectStore, type SerializedProject, type ProjectState } from './projectStore';
+import { validateDocumentSnapshot } from './documentSnapshotValidation';
 
 export interface BuildDocumentSnapshotOptions {
   activeHub?: (Pick<ProcessHub, 'id'> & Partial<ProcessHub>) | null;
@@ -93,7 +94,6 @@ function buildProjectSnapshot(state: ProjectState): ProjectDocumentSnapshot {
     separateParetoFilename: state.separateParetoFilename,
     processContext: state.processContext,
     entryScenario: state.entryScenario,
-    viewState: state.viewState,
   });
 }
 
@@ -237,6 +237,10 @@ export function resetDocumentStores(): void {
 }
 
 export function hydrateDocumentSnapshot(snapshot: DocumentSnapshot): void {
+  // PO-8a (spec §16): the single loud validation seam — every load path
+  // (Azure blob, Azure Dexie cache, .vrs import) converges here.
+  validateDocumentSnapshot(snapshot);
+
   const { entryScenario, processContext, ...project } = cloneJson(snapshot.project);
   const serializedProject: SerializedProject = {
     ...project,

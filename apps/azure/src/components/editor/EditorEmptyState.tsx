@@ -4,14 +4,7 @@ import { FileText, PenLine, ClipboardPaste, Database, RefreshCw } from 'lucide-r
 import { SAMPLES } from '@variscout/data';
 import { FileBrowseButton, type FilePickerResult } from '../FileBrowseButton';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
-
-type LoadErrorCode = 'not-found' | 'forbidden' | 'plan-mismatch' | 'offline' | 'auth' | 'unknown';
-
-interface LoadError {
-  code: LoadErrorCode;
-  message: string;
-  action?: { label: string; onClick: () => void };
-}
+import type { LoadError } from '../../hooks/useProjectLoader';
 
 interface EditorEmptyStateProps {
   dataFlow: UseEditorDataFlowReturn;

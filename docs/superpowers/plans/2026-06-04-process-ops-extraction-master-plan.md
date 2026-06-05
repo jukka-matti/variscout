@@ -125,6 +125,7 @@ related:
 
 ### PR-PO-8a · Phase F1 — schema hardening (Azure)
 
+- **Sub-plan:** [`2026-06-05-po-8a-schema-hardening.md`](2026-06-05-po-8a-schema-hardening.md).
 - **Goal:** the cleaned shape frozen as v1; refusal replaced with graceful degradation.
 - **Touches:** re-freeze the existing `DocumentSnapshot.schemaVersion: 1` (`documentSnapshot.ts:47,157`) post-E · **replace the strict-reject validator** (`documentSnapshotVrs.ts:34`) with the three-way branch: known-current → load · **known-newer → read-only + "saved by a newer version" warning** (launch-blocking) · unknown/corrupt → strict-assert throw · flip `documentSnapshotVrs.test.ts:125` (newer-rejected → newer-opens-read-only) · the migration-dispatch seam (empty `migrateVn→Vn+1` table; additive-first model; strict-assert expiry documented = first customer) · **strip/split `viewState` from the shared snapshot** (known violation — `documentSnapshot.ts:95`; per-user session record or omit; budget the dirty-fingerprint `Editor.tsx:624` + fixtures).
 - **Depends on:** PO-7 (v1 freezes the post-rename shape).

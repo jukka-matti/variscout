@@ -3,6 +3,13 @@ import {
   type BuildDocumentSnapshotOptions,
   type DocumentSnapshot,
 } from './documentSnapshot';
+import {
+  CURRENT_DOCUMENT_SCHEMA_VERSION,
+  DocumentSnapshotCorruptError,
+  DocumentSnapshotVersionMismatchError,
+  isDocumentSnapshot,
+  validateDocumentSnapshot,
+} from './documentSnapshotValidation';
 
 export interface DocumentSnapshotVrsMetadata {
   exportSource?: 'pwa' | 'azure' | string;
@@ -28,28 +35,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function isDocumentSnapshot(value: unknown): value is DocumentSnapshot {
-  if (!isRecord(value)) return false;
-  return (
-    value.schemaVersion === 1 &&
-    'hubId' in value &&
-    (isRecord(value.hub) || value.hub === null) &&
-    isRecord(value.project) &&
-    isRecord(value.analyze) &&
-    Array.isArray(value.analyze.findings) &&
-    Array.isArray(value.analyze.categories) &&
-    Array.isArray(value.analyze.hypotheses) &&
-    Array.isArray(value.analyze.causalLinks) &&
-    Array.isArray(value.analyze.scopes) &&
-    isRecord(value.canvas) &&
-    'improvementProject' in value
-  );
-}
-
 export function buildDocumentSnapshotVrs(options: BuildDocumentSnapshotVrsOptions): string {
   const file: DocumentSnapshotVrsFile = {
     kind: 'variscout.document',
-    version: 1,
+    version: CURRENT_DOCUMENT_SCHEMA_VERSION,
     exportedAt: options.exportedAt ?? new Date().toISOString(),
     ...(options.metadata ? { metadata: options.metadata } : {}),
     documentSnapshot: buildDocumentSnapshot({ activeHub: options.activeHub }),
@@ -62,7 +51,7 @@ export function isDocumentSnapshotVrsFile(value: unknown): value is DocumentSnap
   return (
     isRecord(value) &&
     value.kind === 'variscout.document' &&
-    value.version === 1 &&
+    value.version === CURRENT_DOCUMENT_SCHEMA_VERSION &&
     typeof value.exportedAt === 'string' &&
     !('hub' in value) &&
     !('rawData' in value) &&
@@ -75,20 +64,28 @@ export function parseDocumentSnapshotVrs(json: string): DocumentSnapshotVrsFile 
   try {
     parsed = JSON.parse(json);
   } catch {
-    throw new Error('Invalid file format.');
+    throw new DocumentSnapshotCorruptError('Invalid file format.');
   }
 
-  if (!isRecord(parsed) || parsed.kind !== 'variscout.document' || parsed.version !== 1) {
-    throw new Error('Invalid file format.');
+  if (!isRecord(parsed) || parsed.kind !== 'variscout.document') {
+    throw new DocumentSnapshotCorruptError('Invalid file format.');
+  }
+
+  // Envelope version is co-versioned with documentSnapshot.schemaVersion (always
+  // written together — see buildDocumentSnapshotVrs). A different NUMERIC version
+  // is a version mismatch (refresh hint); anything else is invalid format.
+  if (typeof parsed.version === 'number' && parsed.version !== CURRENT_DOCUMENT_SCHEMA_VERSION) {
+    throw new DocumentSnapshotVersionMismatchError(parsed.version);
+  }
+  if (parsed.version !== CURRENT_DOCUMENT_SCHEMA_VERSION) {
+    throw new DocumentSnapshotCorruptError('Invalid file format.');
   }
 
   if ('hub' in parsed || 'rawData' in parsed) {
-    throw new Error('Invalid file format.');
+    throw new DocumentSnapshotCorruptError('Invalid file format.');
   }
 
-  if (!isDocumentSnapshot(parsed.documentSnapshot)) {
-    throw new Error('Invalid .vrs documentSnapshot payload.');
-  }
+  validateDocumentSnapshot(parsed.documentSnapshot);
 
   return parsed as unknown as DocumentSnapshotVrsFile;
 }
