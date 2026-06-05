@@ -12,7 +12,6 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
     text: 'Drift suspected on Line 2',
     createdAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'general-unassigned',
     context: {
       activeFilters: { Machine: ['B'] },
       cumulativeScope: 30,

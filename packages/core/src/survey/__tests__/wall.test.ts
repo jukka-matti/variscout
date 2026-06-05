@@ -7,7 +7,6 @@ const baseH = (overrides: Partial<Hypothesis>): Hypothesis =>
   ({
     id: 'h',
     hubId: 'hub',
-    investigationId: 'inv',
     name: '',
     synthesis: '',
     findingIds: [],

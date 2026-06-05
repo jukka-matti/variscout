@@ -29,7 +29,6 @@ describe('selectHubCommentStream', () => {
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
-      investigationId: 'inv-test-001',
       comments: [hubComment],
     };
     const f1: Finding = {
@@ -37,7 +36,6 @@ describe('selectHubCommentStream', () => {
       text: '',
       createdAt: 0,
       deletedAt: null,
-      investigationId: 'inv-test-001',
       context: { activeFilters: {}, cumulativeScope: null },
       status: 'observed',
       comments: [fComment1, fComment2],
@@ -81,7 +79,6 @@ describe('selectHypothesisTributaries', () => {
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
-      investigationId: 'inv-test-001',
       tributaryIds: ['t2'],
     };
     const result = selectHypothesisTributaries(hub, [], processMap);
@@ -98,7 +95,6 @@ describe('selectHypothesisTributaries', () => {
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
-      investigationId: 'inv-test-001',
     };
     const result = selectHypothesisTributaries(hub, [], processMap);
     expect(result).toEqual([]);
@@ -114,14 +110,12 @@ describe('selectHypothesisTributaries', () => {
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
-      investigationId: 'inv-test-001',
     };
     const f1: Finding = {
       id: 'f1',
       text: '',
       createdAt: 0,
       deletedAt: null,
-      investigationId: 'inv-test-001',
       context: {
         activeFilters: { SHIFT: ['night'] },
         cumulativeScope: null,
@@ -145,7 +139,6 @@ describe('selectHypothesisTributaries', () => {
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
-      investigationId: 'inv-test-001',
       tributaryIds: ['t2'],
     };
     const result = selectHypothesisTributaries(hub, [], undefined);

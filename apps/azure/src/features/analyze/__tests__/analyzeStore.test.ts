@@ -47,7 +47,6 @@ describe('analyzeStore wrapper', () => {
         createdAt: Date.now(),
         updatedAt: Date.now(),
         deletedAt: null,
-        investigationId: 'general-unassigned',
         ideas: [{ id: 'i1', text: 'Fix it', createdAt: 1714000000000, deletedAt: null }],
       },
     ];

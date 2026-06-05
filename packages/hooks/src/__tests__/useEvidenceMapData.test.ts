@@ -98,7 +98,6 @@ function makeFinding(id: string, activeFilters: Record<string, (string | number)
     createdAt: 1714000000000,
     statusChangedAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'inv-test-001',
     context: { activeFilters, cumulativeScope: null },
   };
 }

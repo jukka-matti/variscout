@@ -45,9 +45,7 @@ const baseHub: Hypothesis = {
   status: 'proposed',
   createdAt: 1,
   updatedAt: 1,
-  deletedAt: null,
-  investigationId: 'inv-test',
-  // SHIFT (categorical) is the cause's condition → the derived triad factor.
+  deletedAt: null, // SHIFT (categorical) is the cause's condition → the derived triad factor.
   condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'Night' },
 };
 

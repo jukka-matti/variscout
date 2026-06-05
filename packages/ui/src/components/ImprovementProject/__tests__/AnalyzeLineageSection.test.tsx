@@ -15,7 +15,6 @@ const makeHypothesis = (
     questionIds: [],
     findingIds: [],
     updatedAt: 1,
-    investigationId: 'inv-1',
     ...overrides,
   }) as Hypothesis;
 
@@ -28,7 +27,6 @@ const makeFinding = (overrides: Partial<Finding> & Pick<Finding, 'id' | 'text'>)
     status: 'observed',
     comments: [],
     statusChangedAt: 1,
-    investigationId: 'inv-1',
     ...overrides,
   }) as Finding;
 

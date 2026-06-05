@@ -13,7 +13,6 @@ const sampleHub: Hypothesis = {
   createdAt: 1714000000000,
   updatedAt: 1714000000000,
   deletedAt: null,
-  investigationId: 'inv-test-001',
 };
 
 describe('useHasAnalyzeContent', () => {

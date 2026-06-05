@@ -559,7 +559,6 @@ describe('applyAction — no-op action kinds', () => {
   it('FINDING_ADD does not mutate any table', async () => {
     await applyAction(db, {
       kind: 'FINDING_ADD',
-      investigationId: 'inv-x',
       finding: { id: 'f-x' },
     } as unknown as HubAction);
 
@@ -585,7 +584,6 @@ describe('applyAction — no-op action kinds', () => {
   it('CAUSAL_LINK_ADD does not mutate any table', async () => {
     await applyAction(db, {
       kind: 'CAUSAL_LINK_ADD',
-      investigationId: 'inv-x',
       link: { id: 'c-x' },
     } as unknown as HubAction);
 
@@ -595,7 +593,6 @@ describe('applyAction — no-op action kinds', () => {
   it('HYPOTHESIS_ADD does not mutate any table', async () => {
     await applyAction(db, {
       kind: 'HYPOTHESIS_ADD',
-      investigationId: 'inv-x',
       hypothesis: { id: 'sc-x' },
     } as unknown as HubAction);
 

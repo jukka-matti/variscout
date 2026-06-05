@@ -753,7 +753,6 @@ describe('analyzeStore — hypothesis hubs', () => {
         createdAt: 1714000000000,
         updatedAt: 1714000000000,
         deletedAt: null,
-        investigationId: 'inv-test-001',
       },
     ];
     useAnalyzeStore.getState().resetHubs(newHubs);
@@ -1091,7 +1090,6 @@ describe('analyzeStore — bulk operations', () => {
       text: 'Test',
       createdAt: 1714000000000,
       deletedAt: null as null,
-      investigationId: 'inv-test-001',
       context: ctx,
       status: 'observed' as const,
       comments: [],
@@ -1107,7 +1105,6 @@ describe('analyzeStore — bulk operations', () => {
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
-      investigationId: 'inv-test-001',
     };
     const scope: ProblemStatementScope = {
       id: 's-1',

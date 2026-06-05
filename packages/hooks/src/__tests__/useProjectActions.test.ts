@@ -53,7 +53,6 @@ function seedProject() {
         context: { activeFilters: {}, cumulativeScope: null, stats: { samples: 2 } },
         comments: [],
         statusChangedAt: now,
-        investigationId: 'inv-1',
         createdAt: now,
         deletedAt: null,
       },

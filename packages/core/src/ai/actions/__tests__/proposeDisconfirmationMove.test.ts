@@ -13,7 +13,6 @@ function finding(
     text: '',
     createdAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     evidenceType: 'data',
     status: 'observed',
@@ -33,7 +32,6 @@ function hub(id: string, findingIds: string[]): Hypothesis {
     status: 'proposed',
     createdAt: 1745625600000,
     updatedAt: 1745625600000,
-    investigationId: 'inv-test-001',
     deletedAt: null,
   };
 }

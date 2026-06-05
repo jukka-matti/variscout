@@ -395,8 +395,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
       context.cumulativeScope,
       context.stats,
       undefined,
-      source,
-      'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
+      source
     );
     // Durable finding→scope edge (PR-CS-0 Task 7) + finding→step edge
     // (PR-CS-5 Part 2): set post-factory to keep createFinding's positional

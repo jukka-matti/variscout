@@ -208,7 +208,6 @@ describe('Hypothesis.actions field', () => {
       createdAt: 1_748_649_600_000,
       updatedAt: 1_748_649_600_000,
       deletedAt: null,
-      investigationId: 'inv-1',
       actions: [action], // ← NEW field — must exist on Hypothesis
     };
 
@@ -227,7 +226,6 @@ describe('Hypothesis.actions field', () => {
       createdAt: 1_748_649_600_000,
       updatedAt: 1_748_649_600_000,
       deletedAt: null,
-      investigationId: 'inv-1',
     };
     // No actions field → undefined (optional, not required)
     expect(h.actions).toBeUndefined();

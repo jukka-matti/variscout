@@ -34,7 +34,6 @@ describe('Hypothesis', () => {
       name: 'Nozzle wear on night shift',
       synthesis: 'Worn nozzles overheat during long night runs',
       findingIds: ['finding-1'],
-      investigationId: 'investigation-1',
       status: 'evidenced',
       themeTags: ['equipment', 'night-shift'],
       selectedForImprovement: true,
@@ -58,7 +57,6 @@ describe('Hypothesis', () => {
       name: 'Nozzle heat drift',
       synthesis: 'Thermal drift during night runs',
       findingIds: ['f-1'],
-      investigationId: 'investigation-1',
       status: 'evidence-survived-test',
       ideas: [
         {
@@ -83,15 +81,13 @@ describe('createHypothesis', () => {
     const hypothesis = createHypothesis(
       'Nozzle wear on night shift',
       'Worn nozzles overheat during long night runs',
-      ['finding-1'],
-      'investigation-1'
+      ['finding-1']
     );
 
     expect(hypothesis.id).toBeTruthy();
     expect(hypothesis.name).toBe('Nozzle wear on night shift');
     expect(hypothesis.synthesis).toBe('Worn nozzles overheat during long night runs');
     expect(hypothesis.findingIds).toEqual(['finding-1']);
-    expect(hypothesis.investigationId).toBe('investigation-1');
     expect(hypothesis.status).toBe('proposed');
     expect(hypothesis.createdAt).toBeTruthy();
     expect(hypothesis.updatedAt).toBeTruthy();
@@ -117,7 +113,6 @@ describe('Hypothesis — measurementPlanIds field', () => {
       findingIds: ['f-1'],
       measurementPlanIds: [planId],
       status: 'proposed',
-      investigationId: 'inv-1',
     };
     expect(hyp.measurementPlanIds).toEqual(['mp-1']);
   });
@@ -132,7 +127,6 @@ describe('Hypothesis — measurementPlanIds field', () => {
       synthesis: '',
       findingIds: [],
       status: 'proposed',
-      investigationId: 'inv-1',
     };
     expect(hyp.measurementPlanIds).toBeUndefined();
   });

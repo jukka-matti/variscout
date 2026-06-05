@@ -15,7 +15,6 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
     text: 'Test finding',
     createdAt: LAST_VIEWED - 1000, // before lastViewed by default
     deletedAt: null,
-    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     evidenceType: 'data',
     status: 'observed',
@@ -35,7 +34,6 @@ function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
     createdAt: LAST_VIEWED - 5000,
     updatedAt: LAST_VIEWED - 5000, // before lastViewed by default
     deletedAt: null,
-    investigationId: 'general-unassigned',
     ...overrides,
   } as Hypothesis;
 }

@@ -15,7 +15,6 @@ const makeHypothesis = (
     questionIds: [],
     findingIds: [],
     updatedAt: 1,
-    investigationId: 'inv-1',
     ...overrides,
   }) as Hypothesis;
 

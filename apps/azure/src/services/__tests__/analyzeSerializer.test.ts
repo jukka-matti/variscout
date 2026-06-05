@@ -58,7 +58,6 @@ function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
     createdAt: 1704067200000, // 2024-01-01T00:00:00.000Z
     updatedAt: 1704153600000, // 2024-01-02T00:00:00.000Z
     deletedAt: null,
-    investigationId: 'general-unassigned',
     ...overrides,
   };
 }

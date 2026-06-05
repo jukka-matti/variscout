@@ -79,7 +79,6 @@ function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
     status: 'evidenced',
     synthesis: '',
     findingIds: [],
-    investigationId: 'inv-1',
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,

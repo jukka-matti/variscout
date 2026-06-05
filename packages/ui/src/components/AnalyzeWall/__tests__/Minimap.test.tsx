@@ -25,7 +25,6 @@ const hubs: Hypothesis[] = [
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,
-    investigationId: 'inv-test',
   },
   {
     id: 'h-2',
@@ -36,7 +35,6 @@ const hubs: Hypothesis[] = [
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,
-    investigationId: 'inv-test',
   },
 ];
 

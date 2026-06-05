@@ -67,7 +67,6 @@ function makeHypothesis(overrides?: Partial<Hypothesis>): Hypothesis {
     createdAt: Date.parse('2026-03-17T12:00:00.000Z'),
     updatedAt: Date.parse('2026-03-17T12:00:00.000Z'),
     deletedAt: null,
-    investigationId: 'general-unassigned',
     ...overrides,
   };
 }

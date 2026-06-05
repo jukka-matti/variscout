@@ -42,7 +42,6 @@ function makeFinding(id = 'finding-1'): Finding {
     status: 'observed',
     comments: [],
     statusChangedAt: now,
-    investigationId: 'inv-1',
     createdAt: now,
     deletedAt: null,
   };
@@ -56,7 +55,6 @@ function makeHypothesis(id = 'hypothesis-1'): Hypothesis {
     findingIds: ['finding-1'],
     status: 'proposed',
     updatedAt: now,
-    investigationId: 'inv-1',
     createdAt: now,
     deletedAt: null,
   };

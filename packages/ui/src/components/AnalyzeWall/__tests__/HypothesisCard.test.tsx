@@ -27,7 +27,6 @@ const hub: Hypothesis = {
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-test',
 };
 
 describe('HypothesisCard', () => {
@@ -157,7 +156,6 @@ describe('HypothesisCard', () => {
         text: 'Night shift has wider spread',
         createdAt: 1,
         deletedAt: null,
-        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         evidenceType: 'data',
         status: 'analyzed',
@@ -170,7 +168,6 @@ describe('HypothesisCard', () => {
         text: 'Nozzle temperature rises late in the run',
         createdAt: 2,
         deletedAt: null,
-        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         evidenceType: 'data',
         status: 'analyzed',
@@ -183,7 +180,6 @@ describe('HypothesisCard', () => {
         text: 'Day shift has one similar spread event',
         createdAt: 3,
         deletedAt: null,
-        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         evidenceType: 'data',
         status: 'analyzed',
@@ -198,7 +194,6 @@ describe('HypothesisCard', () => {
       text: 'Inconclusive check — needs more runs',
       createdAt: 4,
       deletedAt: null,
-      investigationId: 'inv-test',
       context: { activeFilters: {}, cumulativeScope: null },
       evidenceType: 'data',
       status: 'analyzed',
@@ -374,7 +369,7 @@ describe('HypothesisCard', () => {
 
 // ── CS-13 explore affordance ──────────────────────────────────────────────────
 const baseHub: Hypothesis = {
-  ...createHypothesis('Temp drift on night shift', '', [], 'inv-test'),
+  ...createHypothesis('Temp drift on night shift', '', []),
   id: 'h1',
   condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'Night' },
 };

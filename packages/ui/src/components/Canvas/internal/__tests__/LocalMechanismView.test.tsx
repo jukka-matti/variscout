@@ -55,7 +55,6 @@ function hub(overrides: Partial<Hypothesis> = {}): Hypothesis {
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,
-    investigationId: 'inv-1',
     ...overrides,
   };
 }

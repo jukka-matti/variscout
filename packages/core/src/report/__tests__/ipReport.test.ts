@@ -51,7 +51,6 @@ function hypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
     synthesis: 'Night shift settings explain the shortfall.',
     findingIds: ['find-1'],
     updatedAt: now,
-    investigationId: 'inv-1',
     status: 'evidence-survived-test',
     selectedForImprovement: true,
     // ADR-085: ideas re-homed from retired Question entity to Hypothesis
@@ -92,7 +91,6 @@ function finding(overrides: Partial<Finding> = {}): Finding {
     tag: 'key-driver',
     comments: [],
     statusChangedAt: now,
-    investigationId: 'inv-1',
     actions: [
       {
         id: 'act-1',

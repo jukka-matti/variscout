@@ -182,7 +182,6 @@ describe('useWallBackgroundJobs (azure)', () => {
             createdAt: Date.parse('2026-04-19T00:00:00Z'),
             updatedAt: Date.parse('2026-04-19T00:00:00Z'),
             deletedAt: null,
-            investigationId: 'general-unassigned',
             condition: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'M1' },
           },
         ],

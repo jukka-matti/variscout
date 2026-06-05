@@ -9,7 +9,6 @@ const finding: Finding = {
   text: 'Night-shift spike',
   createdAt: 0,
   deletedAt: null,
-  investigationId: 'inv-test',
   context: { activeFilters: {}, cumulativeScope: null },
   evidenceType: 'data',
   status: 'observed',

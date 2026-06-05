@@ -550,7 +550,6 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
             evidenceType: 'data',
             createdAt: 1,
             deletedAt: null,
-            investigationId: 'inv',
             context: { activeFilters: {}, cumulativeScope: null },
             status: 'observed',
             comments: [],

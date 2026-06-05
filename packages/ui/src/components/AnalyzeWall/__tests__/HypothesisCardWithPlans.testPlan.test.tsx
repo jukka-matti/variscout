@@ -32,7 +32,6 @@ const hub: Hypothesis = {
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-1',
 };
 
 const findings: Finding[] = [];

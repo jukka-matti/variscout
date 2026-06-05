@@ -494,10 +494,6 @@ export interface Finding extends EntityBase {
   comments: FindingComment[];
   /** When status was last changed */
   statusChangedAt: number;
-  /** FK to the owning investigation. Required for normalized storage.
-   *  Field name preserved (the projectId rename is PO-7); value is structurally
-   *  an ImprovementProject id under Project⟷Hub 1:1. */
-  investigationId: ImprovementProject['id'];
   /** Durable FK to the ProblemStatementScope this finding was captured within; undefined for findings not tied to a drill scope. */
   scopeId?: ProblemStatementScope['id'];
   /**
@@ -698,9 +694,6 @@ export interface Hypothesis extends EntityBase {
   measurementPlanIds?: string[];
   /** Updated timestamp (Unix ms) */
   updatedAt: number;
-  /** FK to the owning investigation. Required for normalized storage.
-   *  Field name preserved (the projectId rename is PO-7). */
-  investigationId: ImprovementProject['id'];
   /** Mode-aware evidence — contribution stored, projection computed live */
   evidence?: HypothesisEvidence;
   /** Whether this hypothesis is selected for the current improvement round */

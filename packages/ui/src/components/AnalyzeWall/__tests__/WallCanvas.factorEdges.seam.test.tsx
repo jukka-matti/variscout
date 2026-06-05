@@ -58,7 +58,7 @@ const counterFinding: Finding = {
 };
 
 const hub1: Hypothesis = {
-  ...createHypothesis('Line B drives lead time', '', ['f-support', 'f-counter'], 'inv-cs12'),
+  ...createHypothesis('Line B drives lead time', '', ['f-support', 'f-counter']),
   id: 'hub-1',
   counterFindingIds: ['f-counter'],
 };

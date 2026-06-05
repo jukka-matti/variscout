@@ -1,10 +1,8 @@
 import type { DisconfirmationAttempt, Hypothesis, ActionItem } from '../findings/types';
-import type { ImprovementProject } from '../improvementProject';
 
 export type HypothesisAction =
   | {
       kind: 'HYPOTHESIS_ADD';
-      investigationId: ImprovementProject['id'];
       hypothesis: Hypothesis;
     }
   | {

@@ -36,7 +36,6 @@ const hubA: Hypothesis = {
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-test',
 };
 const hubB: Hypothesis = {
   ...hubA,
@@ -52,7 +51,6 @@ const findings: Finding[] = [
     evidenceType: 'data',
     createdAt: 1,
     deletedAt: null,
-    investigationId: 'inv-test',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],

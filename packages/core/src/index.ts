@@ -820,7 +820,7 @@ export {
   projectMechanismBranches,
   detectEvidenceClusters,
 } from './findings';
-export type { HubProjection, EvidenceCluster } from './findings';
+export type { HubProjection, EvidenceCluster, AnalysisBrief } from './findings';
 
 // Report domain helpers
 export {

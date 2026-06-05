@@ -573,9 +573,8 @@ describe('applyAction — session-only no-ops', () => {
     await expect(
       applyAction({
         kind: 'FINDING_ADD',
-        investigationId: 'inv-1',
         finding: { id: 'f-1' },
-      } as HubAction)
+      } as unknown as HubAction)
     ).resolves.toBeUndefined();
   });
 
@@ -807,18 +806,17 @@ describe('exhaustiveness — every HubAction kind has a handler', () => {
     { kind: 'EVIDENCE_SOURCE_UPDATE_CURSOR', sourceId, cursor: makeCursor(hubId, sourceId) },
     { kind: 'EVIDENCE_SOURCE_REMOVE', sourceId },
     // Session-only no-ops: cast to HubAction to avoid complex payload fixtures.
-    { kind: 'FINDING_ADD', investigationId: 'inv-x', finding: { id: 'f-1' } } as HubAction,
+    { kind: 'FINDING_ADD', finding: { id: 'f-1' } } as HubAction,
     { kind: 'FINDING_UPDATE', findingId: 'f-1', patch: {} } as HubAction,
     { kind: 'FINDING_ARCHIVE', findingId: 'f-1' },
     { kind: 'SCOPE_ADD', investigationId: 'inv-x', scope: { id: 'scope-1' } } as HubAction,
     { kind: 'SCOPE_UPDATE', scopeId: 'scope-1', patch: {} } as HubAction,
     { kind: 'SCOPE_ARCHIVE', scopeId: 'scope-1' },
-    { kind: 'CAUSAL_LINK_ADD', investigationId: 'inv-x', link: { id: 'link-1' } } as HubAction,
+    { kind: 'CAUSAL_LINK_ADD', link: { id: 'link-1' } } as HubAction,
     { kind: 'CAUSAL_LINK_UPDATE', linkId: 'link-1', patch: {} } as HubAction,
     { kind: 'CAUSAL_LINK_ARCHIVE', linkId: 'link-1' },
     {
       kind: 'HYPOTHESIS_ADD',
-      investigationId: 'inv-x',
       hypothesis: { id: 'cause-1' },
     } as HubAction,
     { kind: 'HYPOTHESIS_UPDATE', hypothesisId: 'cause-1', patch: {} } as HubAction,

@@ -28,7 +28,6 @@ const ICHART_FINDING: Finding = {
   evidenceType: 'data',
   createdAt: 1714000000000,
   deletedAt: null,
-  investigationId: 'inv-test-001',
   comments: [],
   statusChangedAt: 1714000000000,
   source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3, timeLens: DEFAULT_TIME_LENS },

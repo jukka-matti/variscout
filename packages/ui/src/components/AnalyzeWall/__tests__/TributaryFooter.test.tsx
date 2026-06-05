@@ -39,7 +39,6 @@ describe('TributaryFooter', () => {
       createdAt: 1,
       updatedAt: 1,
       deletedAt: null,
-      investigationId: 'inv-test',
     };
     const { container } = render(
       <svg>

@@ -42,7 +42,6 @@ const hub: Hypothesis = {
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-1',
 };
 
 function renderInSvg(ui: React.ReactElement) {
