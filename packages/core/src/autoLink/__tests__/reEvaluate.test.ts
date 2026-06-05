@@ -9,7 +9,6 @@ function hyp(id: string, condition?: HypothesisCondition): Hypothesis {
     name: id,
     synthesis: '',
     findingIds: [],
-    investigationId: 'inv-1',
     status: 'proposed',
     createdAt: 0,
     updatedAt: 0,

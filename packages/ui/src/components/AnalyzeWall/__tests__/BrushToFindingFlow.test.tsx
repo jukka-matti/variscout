@@ -44,7 +44,6 @@ const baseHub: Hypothesis = {
   synthesis: '',
   findingIds: [],
   status: 'proposed',
-  investigationId: 'inv-test',
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,

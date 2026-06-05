@@ -132,18 +132,6 @@ function makeMinimalProps(
     filteredData: [],
     outcome: null,
     factors: [],
-    findingsState: {
-      findings: [],
-      addFinding: vi.fn(() => ({ id: 'f1', text: '' }) as never),
-      editFinding: noOp,
-      deleteFinding: noOp,
-      setFindingTag: noOp,
-      setOutcome: noOp,
-      addAction: noOp,
-      completeAction: noOp,
-      deleteAction: noOp,
-      addFindingComment: noOp,
-    } as never,
     handleRestoreFinding: noOp,
     handleSetFindingStatus: noOp,
     drillPath: [],
@@ -164,6 +152,8 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
     // Reset project store (no processMap by default)
     useProjectStore.setState(getProjectInitialState());
+    // PO-6: findings now come from the store — reset to empty state
+    useAnalyzeStore.setState(getAnalyzeInitialState());
     window.sessionStorage.clear();
     showCharterMock.mockClear();
   });

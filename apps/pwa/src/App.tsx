@@ -37,7 +37,6 @@ import type { MeasurementPlan, MeasurementPlanStatus } from '@variscout/core/mea
 import type { ReingestPendingMatch } from '@variscout/core/autoLink';
 import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
-  useFindings,
   useDrillPath,
   buildFindingContext,
   buildFindingSource,
@@ -82,6 +81,8 @@ import {
   toNumericValue,
   extractHubName,
   parseMentions,
+  findDuplicateFinding,
+  findDuplicateBySource,
 } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -372,8 +373,9 @@ function AppMain() {
     dismissWideFormat: importFlow.handleDismissWideFormat,
   });
 
-  // Findings state — useFindings is the CRUD engine, findingsStore holds UI-only state
-  const findingsState = useFindings();
+  // PO-6 §4.4: useAnalyzeStore.findings is the single findings source (the bare
+  // useFindings() React-state mirror retired — quick-analysis pins now round-trip .vrs).
+  const findings = useAnalyzeStore(s => s.findings);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
   const setHighlightedFindingId = useFindingsStore(s => s.setHighlightedFindingId);
 
@@ -381,7 +383,7 @@ function AppMain() {
 
   // PI Panel: journal entries (session-only; clears on refresh — PWA has no persistence)
   const journalEntries = useJournalEntries({
-    findings: findingsState.findings,
+    findings,
   });
 
   // IM-1: openQuestionCount removed — the PI Panel Questions tab + its count
@@ -397,9 +399,12 @@ function AppMain() {
   // Investigation orchestration (IM-1: hypothesis-driven, Question entity retired)
   const investigation = useAnalyzeOrchestration({
     findingsState: {
-      findings: findingsState.findings,
-      setFindingStatus: findingsState.setFindingStatus,
-      addAction: findingsState.addAction,
+      findings,
+      setFindingStatus: useAnalyzeStore.getState().setFindingStatus,
+      // wrapper: addFindingAction has optional assignee/dueDate/ideaId params (slice wants (id, text) => void)
+      addAction: (id, text) => {
+        useAnalyzeStore.getState().addFindingAction(id, text);
+      },
     },
     processContext: undefined,
     stats,
@@ -593,17 +598,17 @@ function AppMain() {
 
   // Findings: pin current filter state (one-click with duplicate detection)
   const handlePinFinding = useCallback(() => {
-    const existing = findingsState.findDuplicate(filters);
+    const existing = findDuplicateFinding(findings, filters);
     if (existing) {
       panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(existing.id);
       return;
     }
     const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
-    const newFinding = findingsState.addFinding('', context);
+    const newFinding = useAnalyzeStore.getState().addFinding('', context);
     panels.setIsFindingsPanelOpen(true);
     setHighlightedFindingId(newFinding.id);
-  }, [filters, drillPath, filteredData, outcome, specs, findingsState, panels]);
+  }, [filters, drillPath, filteredData, outcome, specs, findings, panels]);
 
   // Chart observation: create a Finding with source metadata
   const handleAddChartObservation = useCallback(
@@ -615,34 +620,31 @@ function AppMain() {
       anchorY?: number
     ) => {
       const source = buildFindingSource(chartType, categoryKey, anchorX, anchorY);
-      const existing = findingsState.findDuplicateSource(source);
+      const existing = findDuplicateBySource(findings, source);
       if (existing) {
         panels.setIsFindingsPanelOpen(true);
         setHighlightedFindingId(existing.id);
         return;
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
-      const newFinding = findingsState.addFinding('', context, source);
+      const newFinding = useAnalyzeStore.getState().addFinding('', context, source);
       panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(newFinding.id);
       // IM-1 (ADR-085): the post-observation question-link prompt is retired
       // (Question entity gone); analysts promote findings to hubs on the Wall.
     },
-    [filters, drillPath, filteredData, outcome, specs, findingsState, panels]
+    [filters, drillPath, filteredData, outcome, specs, findings, panels]
   );
 
   // Chart findings grouped by chart type for inline annotation display
-  const chartFindings = useMemo(
-    () => groupFindingsByChart(findingsState.findings),
-    [findingsState.findings]
-  );
+  const chartFindings = useMemo(() => groupFindingsByChart(findings), [findings]);
 
   // Findings: restore filter state AND time lens.
   // Single owner — the parallel useFindingsOrchestration hook was deleted (dead code,
   // never called from PWA). App.tsx is the canonical restore handler for the PWA.
   const handleRestoreFinding = useCallback(
     (id: string) => {
-      const finding = findingsState.findings.find(f => f.id === id);
+      const finding = findings.find(f => f.id === id);
       if (!finding) return;
       // Restore time lens first so chart data is scoped correctly when filters apply.
       if (finding.source?.timeLens) {
@@ -650,14 +652,14 @@ function AppMain() {
       }
       setFilters(finding.context.activeFilters);
     },
-    [findingsState.findings, setFilters]
+    [findings, setFilters]
   );
 
   // Findings popout: open in separate window
   const popupRef = React.useRef<Window | null>(null);
   const handleOpenFindingsPopout = useCallback(() => {
-    popupRef.current = openFindingsPopout(findingsState.findings, columnAliases, drillPath);
-  }, [findingsState.findings, columnAliases, drillPath]);
+    popupRef.current = openFindingsPopout(findings, columnAliases, drillPath);
+  }, [findings, columnAliases, drillPath]);
 
   // Mode B: when ColumnMapping confirms, fold the Stage 1 narrative + Stage 3
   // Hub-shaped payload (outcomes, primaryScopeDimensions) into the session Hub
@@ -773,8 +775,8 @@ function AppMain() {
   // Findings popout: sync data when findings/drillPath change
   useEffect(() => {
     if (!popupRef.current || popupRef.current.closed) return;
-    updateFindingsPopout(findingsState.findings, columnAliases, drillPath);
-  }, [findingsState.findings, columnAliases, drillPath]);
+    updateFindingsPopout(findings, columnAliases, drillPath);
+  }, [findings, columnAliases, drillPath]);
 
   // Findings popout: listen for actions from popout window via BroadcastChannel
   const { lastMessage: findingsPopoutMessage } = usePopoutChannel<FindingsActionMessage>({
@@ -786,29 +788,32 @@ function AppMain() {
     const action = (findingsPopoutMessage as FindingsActionMessage).payload;
     switch (action.action) {
       case 'edit':
-        if (action.text !== undefined) findingsState.editFinding(action.id, action.text);
+        if (action.text !== undefined)
+          useAnalyzeStore.getState().editFinding(action.id, action.text);
         break;
       case 'delete':
-        findingsState.deleteFinding(action.id);
+        useAnalyzeStore.getState().deleteFinding(action.id);
         break;
       case 'set-status':
-        if (action.status) findingsState.setFindingStatus(action.id, action.status);
+        if (action.status) useAnalyzeStore.getState().setFindingStatus(action.id, action.status);
         break;
       case 'set-tag':
-        findingsState.setFindingTag(action.id, action.tag ?? null);
+        useAnalyzeStore.getState().setFindingTag(action.id, action.tag ?? null);
         break;
       case 'add-comment':
-        if (action.text !== undefined) findingsState.addFindingComment(action.id, action.text);
+        if (action.text !== undefined)
+          useAnalyzeStore.getState().addFindingComment(action.id, action.text);
         break;
       case 'edit-comment':
         if (action.commentId && action.text !== undefined)
-          findingsState.editFindingComment(action.id, action.commentId, action.text);
+          useAnalyzeStore.getState().editFindingComment(action.id, action.commentId, action.text);
         break;
       case 'delete-comment':
-        if (action.commentId) findingsState.deleteFindingComment(action.id, action.commentId);
+        if (action.commentId)
+          useAnalyzeStore.getState().deleteFindingComment(action.id, action.commentId);
         break;
     }
-  }, [findingsPopoutMessage, findingsState]);
+  }, [findingsPopoutMessage]);
 
   const isOnline = useOnlineStatus();
   const selectedOrActiveProjectId = activeIPContext.activeIP?.id ?? panels.selectedProjectId;
@@ -832,8 +837,8 @@ function AppMain() {
       : null;
   // PO-5: the lineage section is retired — active-IP surfaces show the whole
   // document (empty-set-means-unfiltered is now the permanent semantics). The
-  // scopedFindings/scopedFindingsState memos are gone; AnalyzeView receives
-  // findingsState directly.
+  // scopedFindings/scopedFindingsState memos are gone; AnalyzeView reads findings
+  // from useAnalyzeStore directly (PO-6 §4.4 unification).
 
   // PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
   // tracker (`IP.metadata.actions`) via ACTION_ITEM_ADD, then stamp the source so
@@ -844,9 +849,7 @@ function AppMain() {
     (findingId: string, actionId: string) => {
       const activeIP = activeIPContext.activeIP;
       if (!activeIP) return;
-      const source = findingsState.findings
-        .find(f => f.id === findingId)
-        ?.actions?.find(a => a.id === actionId);
+      const source = findings.find(f => f.id === findingId)?.actions?.find(a => a.id === actionId);
       if (!source || source.parentImprovementProjectId) return;
       const projectAction = createProjectActionItem({
         text: source.text,
@@ -868,9 +871,9 @@ function AppMain() {
         ...activeIP,
         metadata: { ...activeIP.metadata, actions: nextActions },
       });
-      findingsState.promoteAction(findingId, actionId, activeIP.id);
+      useAnalyzeStore.getState().promoteFindingAction(findingId, actionId, activeIP.id);
     },
-    [activeIPContext.activeIP, findingsState, upsertProject]
+    [activeIPContext.activeIP, findings, upsertProject]
   );
 
   // ── Measurement plan callbacks for WallCanvas planningProps ─────────────
@@ -1395,7 +1398,6 @@ function AppMain() {
                 filteredData={filteredData ?? []}
                 outcome={outcome}
                 factors={factors}
-                findingsState={findingsState}
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={investigation.handleSetFindingStatus}
                 onPromoteFindingAction={
@@ -1429,7 +1431,7 @@ function AppMain() {
                 approachInputs={{
                   hypotheses,
                   ideas: hypotheses.flatMap(h => h.ideas ?? []),
-                  actions: findingsState.findings.flatMap(f => f.actions ?? []),
+                  actions: findings.flatMap(f => f.actions ?? []),
                 }}
                 onOpenCauseWorkbench={_cause => {
                   // V1: jump to Improve tab (legacy PDCA workbench).
@@ -1472,7 +1474,7 @@ function AppMain() {
                 onClose={panels.showExplore}
                 stats={stats}
                 specs={specs}
-                findings={findingsState.findings}
+                findings={findings}
                 columnAliases={columnAliases}
                 dataFilename={dataFilename}
                 sampleCount={lensedSampleCount}
@@ -1525,10 +1527,10 @@ function AppMain() {
                 findingsCallbacks={{
                   onAddChartObservation: handleAddChartObservation,
                   chartFindings,
-                  onEditFinding: findingsState.editFinding,
-                  onDeleteFinding: findingsState.deleteFinding,
+                  onEditFinding: useAnalyzeStore.getState().editFinding,
+                  onDeleteFinding: useAnalyzeStore.getState().deleteFinding,
                 }}
-                findings={findingsState.findings}
+                findings={findings}
               />
             )}
           </Suspense>
@@ -1549,15 +1551,18 @@ function AppMain() {
                   panels.handleCloseFindingsPanel();
                   setHighlightedFindingId(null);
                 }}
-                findings={findingsState.findings}
-                onEditFinding={findingsState.editFinding}
-                onDeleteFinding={findingsState.deleteFinding}
+                findings={findings}
+                onEditFinding={useAnalyzeStore.getState().editFinding}
+                onDeleteFinding={useAnalyzeStore.getState().deleteFinding}
                 onRestoreFinding={handleRestoreFinding}
                 onSetFindingStatus={investigation.handleSetFindingStatus}
-                onSetFindingTag={findingsState.setFindingTag}
-                onAddComment={(id, text) => findingsState.addFindingComment(id, text)}
-                onEditComment={findingsState.editFindingComment}
-                onDeleteComment={findingsState.deleteFindingComment}
+                onSetFindingTag={useAnalyzeStore.getState().setFindingTag}
+                onAddComment={(id, text) => {
+                  // wrapper: the attachment param (Azure-only) is intentionally dropped in PWA
+                  useAnalyzeStore.getState().addFindingComment(id, text);
+                }}
+                onEditComment={useAnalyzeStore.getState().editFindingComment}
+                onDeleteComment={useAnalyzeStore.getState().deleteFindingComment}
                 columnAliases={columnAliases}
                 drillPath={drillPath}
                 activeFindingId={highlightedFindingId}
@@ -1673,11 +1678,15 @@ function AppMain() {
       <StageFiveModal
         open={stageFive.open}
         mode={stageFive.mode}
-        onOpenInvestigation={_brief => {
+        onOpenInvestigation={brief => {
           // IM-1 (F5, ADR-085): AnalysisBrief no longer seeds Question entities —
           // the Question entity is retired. Brief capture is informational only;
           // the analyst forms hypothesis hubs on the Wall.
-          // TODO slice 4: persist brief.hypothesisDraft to investigation as a draft Hypothesis entity.
+          // PO-6: persist the Stage-5 draft as a proposed Hypothesis hub (analyst renames
+          // on the card — same convention as handleWriteHypothesis / propose-hypothesis).
+          if (brief.hypothesisDraft) {
+            useAnalyzeStore.getState().createHub(brief.hypothesisDraft, '');
+          }
           // TODO (slice 4): wire brief.target into processContext once PWA gains a
           // processContext or equivalent improvement-target store field.
           stageFive.close();
@@ -1691,7 +1700,7 @@ function AppMain() {
         <MobileTabBar
           activeTab={mobileActiveTab}
           onTabChange={handleMobileTabChange}
-          findingsCount={findingsState.findings.length}
+          findingsCount={findings.length}
           showImproveTab={true}
         />
       )}

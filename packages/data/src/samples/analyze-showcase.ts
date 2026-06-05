@@ -116,7 +116,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_LINE2_HIGH,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Line 2 runs consistently high — mean ~502g vs 500g target. Also shows wider spread than Lines 1 and 3.',
       createdAt: epoch(3),
       context: {
@@ -172,7 +171,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_NIGHT_SPREAD,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Night shift has wider spread across all lines. IQR is ~1.5× larger than Morning shift.',
       createdAt: epoch(6),
       context: {
@@ -200,7 +198,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_BATCHC_LOW,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Batch C fill weights slightly low but within spec. Mean ~499.5g.',
       createdAt: epoch(8),
       context: {
@@ -219,7 +216,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_LINE2_NIGHT,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Line 2 + Night shift combination shows worst Cpk (~0.35). This is the critical interaction.',
       createdAt: epoch(12),
       context: {
@@ -246,7 +242,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_BENCHMARK,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Line 1 Morning shift is the best-in-class benchmark. Centered at target with tight spread.',
       createdAt: epoch(20),
       context: {
@@ -274,7 +269,6 @@ function buildHypotheses(): Hypothesis[] {
     {
       id: IDS.HUB_NOZZLE,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       name: 'Line 2 nozzle wear',
       synthesis:
         'Line 2 consistently overfills by ~2g with approximately twice the variation of other lines. ' +

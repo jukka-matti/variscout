@@ -14,7 +14,6 @@ function hub(id: string, findingIds: string[]): Hypothesis {
     createdAt: FIXED_NOW,
     updatedAt: FIXED_NOW,
     deletedAt: null,
-    investigationId: 'general-unassigned',
   };
 }
 
@@ -24,7 +23,6 @@ function finding(id: string, validationStatus?: Finding['validationStatus']): Fi
     text: '',
     createdAt: FIXED_NOW,
     deletedAt: null,
-    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     evidenceType: 'data',
     status: 'observed',

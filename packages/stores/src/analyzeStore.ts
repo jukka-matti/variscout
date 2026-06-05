@@ -141,6 +141,8 @@ export interface AnalyzeActions {
   completeFindingAction: (findingId: string, actionId: string) => void;
   toggleFindingActionComplete: (findingId: string, actionId: string) => void;
   deleteFindingAction: (findingId: string, actionId: string) => void;
+  /** PR-CS-6 Edge 1 (PO-6): stamp a finding-level action as copied into a project tracker. */
+  promoteFindingAction: (findingId: string, actionId: string, projectId: string) => void;
   setFindingOutcome: (findingId: string, outcome: FindingOutcome) => void;
   setBenchmark: (findingId: string, stats: BenchmarkStats) => void;
   clearBenchmark: (findingId: string) => void;
@@ -393,8 +395,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
       context.cumulativeScope,
       context.stats,
       undefined,
-      source,
-      'general-unassigned' // TODO(F6): pass active investigationId when multi-investigation is first-class
+      source
     );
     // Durable finding→scope edge (PR-CS-0 Task 7) + finding→step edge
     // (PR-CS-5 Part 2): set post-factory to keep createFinding's positional
@@ -653,6 +654,21 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     set(state => ({
       findings: state.findings.map(f =>
         f.id === findingId ? { ...f, actions: f.actions?.filter(a => a.id !== actionId) } : f
+      ),
+    }));
+  },
+
+  promoteFindingAction: (findingId, actionId, projectId) => {
+    set(state => ({
+      findings: state.findings.map(f =>
+        f.id === findingId
+          ? {
+              ...f,
+              actions: f.actions?.map(a =>
+                a.id === actionId ? { ...a, parentImprovementProjectId: projectId } : a
+              ),
+            }
+          : f
       ),
     }));
   },

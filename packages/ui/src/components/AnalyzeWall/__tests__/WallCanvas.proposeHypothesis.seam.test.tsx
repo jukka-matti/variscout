@@ -23,7 +23,6 @@ const orphanFinding: Finding = {
   evidenceType: 'data',
   createdAt: 1,
   deletedAt: null,
-  investigationId: 'inv-test',
   context: { activeFilters: {}, cumulativeScope: null },
   status: 'observed',
   comments: [],

@@ -9,7 +9,7 @@
 // - evidenceSnapshots.get / listByHub — wired against db.evidenceSnapshots
 // - evidenceSources.get / listByHub — wired against db.evidenceSources
 // - evidenceSources.getCursor — wired against db.evidenceSourceCursors
-// - stub read APIs (findings, scopes, causalLinks, hypotheses)
+// - stub read APIs (scopes)
 //
 // Mocking strategy: fake-indexeddb/auto (already a devDep) polyfills IndexedDB globally
 // so the real Dexie instance works end-to-end without a browser. No vi.mock needed here
@@ -488,30 +488,6 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
   });
 
   // ---- stub read APIs ----
-
-  describe('stub read APIs (F3 not yet implemented)', () => {
-    it('findings.get returns undefined', async () => {
-      expect(await repo.findings.get('any')).toBeUndefined();
-    });
-
-    it('findings.listByInvestigation returns []', async () => {
-      expect(await repo.findings.listByInvestigation('inv-1')).toEqual([]);
-    });
-
-    it('causalLinks.get returns undefined', async () => {
-      expect(await repo.causalLinks.get('any')).toBeUndefined();
-    });
-
-    it('causalLinks.listByInvestigation returns []', async () => {
-      expect(await repo.causalLinks.listByInvestigation('inv-1')).toEqual([]);
-    });
-
-    it('hypotheses.get returns undefined', async () => {
-      expect(await repo.hypotheses.get('any')).toBeUndefined();
-    });
-
-    it('hypotheses.listByInvestigation returns []', async () => {
-      expect(await repo.hypotheses.listByInvestigation('inv-1')).toEqual([]);
-    });
-  });
+  // PO-6: findings/causalLinks/hypotheses ReadAPIs deleted — those entities
+  // persist via the .vrs DocumentSnapshot analyze facet only.
 });

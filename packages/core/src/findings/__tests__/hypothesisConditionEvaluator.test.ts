@@ -210,7 +210,6 @@ function hub(id: string, cond: HypothesisCondition | undefined): Hypothesis {
     condition: cond,
     createdAt: 1745625600000,
     updatedAt: 1745625600000,
-    investigationId: 'inv-test-001',
     deletedAt: null,
   };
 }

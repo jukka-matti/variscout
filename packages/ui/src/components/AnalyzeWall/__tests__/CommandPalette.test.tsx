@@ -20,7 +20,6 @@ const hubs: Hypothesis[] = [
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,
-    investigationId: 'inv-test',
   },
   {
     id: 'h-nozzle',
@@ -31,7 +30,6 @@ const hubs: Hypothesis[] = [
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,
-    investigationId: 'inv-test',
   },
   {
     id: 'h-cal',
@@ -42,7 +40,6 @@ const hubs: Hypothesis[] = [
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,
-    investigationId: 'inv-test',
   },
 ];
 

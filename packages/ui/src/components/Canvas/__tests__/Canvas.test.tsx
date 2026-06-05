@@ -367,7 +367,6 @@ const wallFinding = {
   status: 'observed',
   comments: [],
   statusChangedAt: 0,
-  investigationId: 'inv-1',
   createdAt: 0,
   deletedAt: null,
 } satisfies Finding;

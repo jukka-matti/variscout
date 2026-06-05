@@ -106,7 +106,6 @@ const hub: Hypothesis = {
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-1',
   comments: [existingComment],
 };
 

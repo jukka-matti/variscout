@@ -19,7 +19,6 @@ function makeFinding(overrides: Partial<Finding> & { id: string }): Finding {
     evidenceType: 'data',
     comments: [],
     statusChangedAt: 1714000000000,
-    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     createdAt: 1714000000000,
     deletedAt: null,
@@ -35,7 +34,6 @@ function makeHub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
     status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
-    investigationId: 'inv-test-001',
     deletedAt: null,
     ...overrides,
   };

@@ -26,6 +26,28 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### `useImprovementOrchestration` (PWA) appears orphaned [LOGGED 2026-06-05]
+
+**Surfaced by:** PO-6 grounding workflow (12-agent, 2026-06-05).
+
+**Summary:** `ImprovementView` was migrated to `ImproveTabRoot` (driven by `activeIP.metadata.actions`); the only remaining references to `useImprovementOrchestration` in `apps/pwa/src` are the hook's own definition file (`apps/pwa/src/features/improvement/useImprovementOrchestration.ts`) and the barrel re-export (`apps/pwa/src/features/improvement/index.ts:2,6`). A comment in `improvementStore.ts:5` names it but does not call it. No component or hook mounts it. The hook consumed the React-state findings slice that PO-6 retired. VERIFY before acting: `grep -rn "useImprovementOrchestration" apps/pwa/src` — confirm zero live callers remain.
+
+**Promotion path:** candidate dead-shed for a future hygiene PR (atomic delete: hook file + barrel line). Verify the barrel is not re-exported further up before deleting.
+
+**Severity:** low — no runtime effect; dead code weight only.
+
+### Azure `useFindings` mirror has a latent lost-write seam [LOGGED 2026-06-05]
+
+**Surfaced by:** PO-6 grounding workflow (12-agent, 2026-06-05).
+
+**Summary:** `useFindings` (`packages/hooks/src/useFindings.ts:156`) seeds local React state from `initialFindings` only at first render via a `useState` initializer — there is no re-sync effect. `BrushToFindingFlow` (mounted via `HypothesisCard` in `packages/ui`) writes `useAnalyzeStore` directly. An Azure mirror flush (`onFindingsChange` → `loadAnalyzeState({ findings })`, wired at `useFindingsOrchestration.ts:119-121` + `Editor.tsx` `setPersistedFindings`) can therefore clobber findings that were written to the store directly but not yet flushed through the mirror round-trip. The PWA escaped this class of issue via the PO-6 store-swap (findings now live exclusively in `useAnalyzeStore`, no React-state mirror); Azure still runs the mirror path.
+
+**Watch-item:** the seam is latent today because Azure does not yet use store-direct Wall writes from `BrushToFindingFlow`. It surfaces if Azure adopts the same store-direct write pattern. Candidate fix = an Azure store-swap mirroring PO-6 §4.4 (retire `useFindings` / `useFindingsOrchestration` in favour of a direct `useAnalyzeStore` subscription in the Editor).
+
+**Promotion path:** fold into the next Azure persistence-layer hygiene pass or the §9 CS-P2 carrier work if findings and the mirror are touched together.
+
+**Severity:** low (latent) — no observed data loss today; risk materialises only when Azure adopts store-direct Wall writes.
+
 ### Project-tab stage overviews need their own design pass [LOGGED 2026-06-05]
 
 **Surfaced by:** PO-5's stage-overview-count cleanup (`CharterOverview` / `ApproachOverview`). The PO-5 owner call was "minimal-honest interim, design routed": the dead lineage counts (`{hypoCount} hypotheses · {findingCount} findings`, `Wall · {n} hypotheses`) were dropped — they read the now-deleted `investigationLineage` and were always 0-ish — and replaced with a static "Hypotheses + findings live on the Wall" pointer + bare `Investigation` / `Wall` button labels. Buttons + navigation + testids untouched.

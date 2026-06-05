@@ -30,7 +30,6 @@ function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,
-    investigationId: 'inv-1',
     ...overrides,
   };
 }
@@ -44,7 +43,6 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
     status: 'observed',
     comments: [],
     statusChangedAt: 1,
-    investigationId: 'inv-1',
     createdAt: 1,
     deletedAt: null,
     ...overrides,

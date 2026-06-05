@@ -18,7 +18,6 @@ function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'general-unassigned',
     ...overrides,
   };
 }

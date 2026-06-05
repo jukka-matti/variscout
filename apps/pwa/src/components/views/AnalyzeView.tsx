@@ -36,7 +36,7 @@ import {
   computeInteractionEffects,
 } from '@variscout/core/stats';
 import type { ActiveIPScopeLabels } from '@variscout/ui';
-import { useResizablePanel, useReturnNavigation, type UseFindingsReturn } from '@variscout/hooks';
+import { useResizablePanel, useReturnNavigation } from '@variscout/hooks';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
 import type { CapturedModelSnapshot } from '@variscout/ui';
 import {
@@ -80,8 +80,6 @@ interface AnalyzeViewProps {
   filteredData: Record<string, unknown>[];
   outcome: string | null;
   factors: string[];
-  // Findings
-  findingsState: UseFindingsReturn;
   handleRestoreFinding: (id: string) => void;
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
   /**
@@ -108,7 +106,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   canvasViewportHubId,
   filteredData,
   factors,
-  findingsState,
   handleRestoreFinding,
   handleSetFindingStatus,
   onPromoteFindingAction,
@@ -179,10 +176,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   }, [processMap, wallFindings]);
 
   // Investigation phase detection (deterministic, from findings)
-  const analyzePhase = useMemo(
-    () => detectInvestigationPhase(findingsState.findings),
-    [findingsState.findings]
-  );
+  const analyzePhase = useMemo(() => detectInvestigationPhase(wallFindings), [wallFindings]);
 
   // Left panel resizable
   const leftPanel = useResizablePanel('variscout-pwa-analyze-left-width', 220, 400, 280, 'left');
@@ -328,8 +322,8 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
 
   // FE-2a — one-tap evaluate of a hypothesis factor (PRODUCTION seam). The PWA
   // Wall reads hubs + findings from `useAnalyzeStore` REACTIVELY, so the typed
-  // Finding MUST be written there (not the separate `findingsState`) to render
-  // as a clue + advance the hub via `deriveHypothesisStatus`. Run the real
+  // Finding MUST be written there to render as a clue + advance the hub via
+  // `deriveHypothesisStatus`. Run the real
   // engine on the active (scoped) data, write ONE typed Finding, classify it,
   // then connect it. NEVER auto-run. A non-significant result → 'inconclusive'
   // (NOT-tested), never supporting.
@@ -461,12 +455,10 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // Capture-as-Finding stamps the model snapshot into the Finding's
   // projection.modelContext (rSquaredAdj / scopeLabel / linkedFactor).
   //
-  // FE-1 fix: write the captured-model Finding into `useAnalyzeStore` — the PWA
-  // Wall's REACTIVE source of truth for findings (see `wallFindings` above) —
-  // not the separate `findingsState` (useFindings) engine, which the Wall never
-  // reads. Routing it here makes the captured model render on the PWA Wall as a
-  // clue (parity with FE-2a's evaluate path). Azure stays on `findingsState`
-  // because its Wall reads `findingsState`.
+  // FE-1 fix: write the captured-model Finding into `useAnalyzeStore` — the single
+  // source of truth for findings in both PWA and Azure (PO-6 §4.4 unification).
+  // Routing it here makes the captured model render on the PWA Wall as a clue
+  // (parity with FE-2a's evaluate path).
   const handleCaptureModel = useCallback((snapshot: CapturedModelSnapshot) => {
     const r2adjLabel = Number.isFinite(snapshot.rSquaredAdj)
       ? snapshot.rSquaredAdj.toFixed(2)
@@ -770,23 +762,26 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
             <div className="flex-1 overflow-y-auto px-3 py-2">
               <FindingsLog
                 findings={wallFindings}
-                onEditFinding={findingsState.editFinding}
-                onDeleteFinding={findingsState.deleteFinding}
+                onEditFinding={useAnalyzeStore.getState().editFinding}
+                onDeleteFinding={useAnalyzeStore.getState().deleteFinding}
                 onRestoreFinding={handleRestoreFinding}
                 viewMode={viewMode}
                 onSetFindingStatus={handleSetFindingStatus}
-                onSetFindingTag={findingsState.setFindingTag}
-                onAddComment={(id: string, text: string) =>
-                  findingsState.addFindingComment(id, text)
-                }
+                onSetFindingTag={useAnalyzeStore.getState().setFindingTag}
+                onAddComment={(id: string, text: string) => {
+                  // wrapper: the attachment param (Azure-only) is intentionally dropped in PWA
+                  useAnalyzeStore.getState().addFindingComment(id, text);
+                }}
                 columnAliases={columnAliases}
                 activeFindingId={highlightedFindingId}
-                onAddAction={findingsState.addAction}
-                onCompleteAction={findingsState.completeAction}
-                onDeleteAction={findingsState.deleteAction}
+                onAddAction={(id: string, text: string) => {
+                  useAnalyzeStore.getState().addFindingAction(id, text);
+                }}
+                onCompleteAction={useAnalyzeStore.getState().completeFindingAction}
+                onDeleteAction={useAnalyzeStore.getState().deleteFindingAction}
                 onPromoteAction={onPromoteFindingAction}
                 originStepNameByFindingId={originStepNameByFindingId}
-                onSetOutcome={findingsState.setOutcome}
+                onSetOutcome={useAnalyzeStore.getState().setFindingOutcome}
               />
             </div>
           )}

@@ -39,7 +39,6 @@ const findings = [
     status: 'observed',
     comments: [],
     statusChangedAt: 1,
-    investigationId: 'inv-1',
   },
   {
     id: 'finding-2',
@@ -51,7 +50,6 @@ const findings = [
     status: 'analyzed',
     comments: [],
     statusChangedAt: 2,
-    investigationId: 'inv-1',
   },
 ] as Finding[];
 
@@ -63,7 +61,6 @@ const hypothesis = (id: string, status: Hypothesis['status']): Hypothesis => ({
   synthesis: 'Candidate mechanism',
   findingIds: [],
   updatedAt: 1,
-  investigationId: 'inv-1',
   status,
 });
 

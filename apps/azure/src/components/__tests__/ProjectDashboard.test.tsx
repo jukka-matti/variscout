@@ -82,7 +82,6 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
     text: 'Test finding',
     createdAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'general-unassigned',
     context: {
       activeFilters: { Shift: ['Night'] },
       cumulativeScope: null,
@@ -105,7 +104,6 @@ function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'general-unassigned',
     ...overrides,
   } as Hypothesis;
 }

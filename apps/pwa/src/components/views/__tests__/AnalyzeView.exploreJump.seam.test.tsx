@@ -30,10 +30,10 @@ beforeEach(() => {
   usePanelsStore.getState().showAnalyze();
 });
 
-// createHypothesis is positional (name, synthesis, findingIds?, investigationId?);
+// createHypothesis is positional (name, synthesis, findingIds?);
 // id + condition land via spread (the evaluate.seam suite's typed-fixture precedent).
 const hub: Hypothesis = {
-  ...createHypothesis('Night shift runs hot', '', [], 'inv-test'),
+  ...createHypothesis('Night shift runs hot', '', []),
   id: 'h1',
   condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'Night' },
 };

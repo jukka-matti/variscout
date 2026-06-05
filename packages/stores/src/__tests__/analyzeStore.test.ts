@@ -753,7 +753,6 @@ describe('analyzeStore — hypothesis hubs', () => {
         createdAt: 1714000000000,
         updatedAt: 1714000000000,
         deletedAt: null,
-        investigationId: 'inv-test-001',
       },
     ];
     useAnalyzeStore.getState().resetHubs(newHubs);
@@ -1091,7 +1090,6 @@ describe('analyzeStore — bulk operations', () => {
       text: 'Test',
       createdAt: 1714000000000,
       deletedAt: null as null,
-      investigationId: 'inv-test-001',
       context: ctx,
       status: 'observed' as const,
       comments: [],
@@ -1107,7 +1105,6 @@ describe('analyzeStore — bulk operations', () => {
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
-      investigationId: 'inv-test-001',
     };
     const scope: ProblemStatementScope = {
       id: 's-1',
@@ -1650,5 +1647,30 @@ describe('analyzeStore — archiveScope (IM-4b Task 5)', () => {
       { kind: 'leaf', column: 'Product', op: 'eq', value: 'X' },
     ]);
     expect(sibling?.hypothesisIds).toEqual(['h-1']);
+  });
+});
+
+describe('analyzeStore — promoteFindingAction', () => {
+  it('stamps parentImprovementProjectId on the matching action only', () => {
+    const ctx = makeContext();
+    const finding = useAnalyzeStore.getState().addFinding('note', ctx);
+    useAnalyzeStore.getState().addFindingAction(finding.id, 'fix the fixture');
+    useAnalyzeStore.getState().addFindingAction(finding.id, 'leave me alone');
+    const updatedFinding = useAnalyzeStore.getState().findings.find(f => f.id === finding.id)!;
+    const a1Id = updatedFinding.actions![0].id;
+    const a2Id = updatedFinding.actions![1].id;
+
+    useAnalyzeStore.getState().promoteFindingAction(finding.id, a1Id, 'ip-123');
+
+    const updated = useAnalyzeStore.getState().findings.find(f => f.id === finding.id)!;
+    expect(updated.actions?.find(a => a.id === a1Id)?.parentImprovementProjectId).toBe('ip-123');
+    // negative control: the sibling action must NOT be stamped
+    expect(updated.actions?.find(a => a.id === a2Id)?.parentImprovementProjectId).toBeUndefined();
+  });
+
+  it('is a no-op for an unknown finding id', () => {
+    const before = useAnalyzeStore.getState().findings;
+    useAnalyzeStore.getState().promoteFindingAction('nope', 'nope', 'ip-123');
+    expect(useAnalyzeStore.getState().findings).toEqual(before);
   });
 });

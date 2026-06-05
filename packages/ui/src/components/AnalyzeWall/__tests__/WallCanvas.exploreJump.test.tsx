@@ -19,7 +19,7 @@ import { createHypothesis } from '@variscout/core/findings';
 import type { Hypothesis } from '@variscout/core';
 
 const makeHub = (id: string, name: string, column: string, value: string): Hypothesis => ({
-  ...createHypothesis(name, '', [], 'inv-test'),
+  ...createHypothesis(name, '', []),
   id,
   condition: { kind: 'leaf', column, op: 'eq', value },
 });

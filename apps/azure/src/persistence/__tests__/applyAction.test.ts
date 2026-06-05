@@ -564,18 +564,20 @@ describe('applyAction — EVIDENCE_SOURCE_REMOVE', () => {
 // ---------------------------------------------------------------------------
 
 describe('applyAction — session-only no-ops', () => {
-  // Session-only no-op tests use `as HubAction` casts for complex payloads
-  // (Finding, Question, CausalLink, Hypothesis) because the handlers consume
-  // nothing from the payload — they are structural no-ops. Full type-safety is
-  // enforced at real call sites; cast only in tests for session-only no-ops.
+  // Session-only no-op tests use `as HubAction` / `as unknown as HubAction` casts
+  // for partial payloads (Finding, CausalLink, Hypothesis) because the handlers
+  // consume nothing from the payload — they are structural no-ops. The stronger
+  // `as unknown as HubAction` form is needed where the partial payload no longer
+  // satisfies the discriminated-union literal (e.g. FINDING_ADD after FK drop).
+  // Full type-safety is enforced at real call sites; casts only in tests for
+  // session-only no-ops.
 
   it('FINDING_ADD resolves cleanly', async () => {
     await expect(
       applyAction({
         kind: 'FINDING_ADD',
-        investigationId: 'inv-1',
         finding: { id: 'f-1' },
-      } as HubAction)
+      } as unknown as HubAction)
     ).resolves.toBeUndefined();
   });
 
@@ -807,18 +809,17 @@ describe('exhaustiveness — every HubAction kind has a handler', () => {
     { kind: 'EVIDENCE_SOURCE_UPDATE_CURSOR', sourceId, cursor: makeCursor(hubId, sourceId) },
     { kind: 'EVIDENCE_SOURCE_REMOVE', sourceId },
     // Session-only no-ops: cast to HubAction to avoid complex payload fixtures.
-    { kind: 'FINDING_ADD', investigationId: 'inv-x', finding: { id: 'f-1' } } as HubAction,
+    { kind: 'FINDING_ADD', finding: { id: 'f-1' } } as HubAction,
     { kind: 'FINDING_UPDATE', findingId: 'f-1', patch: {} } as HubAction,
     { kind: 'FINDING_ARCHIVE', findingId: 'f-1' },
     { kind: 'SCOPE_ADD', investigationId: 'inv-x', scope: { id: 'scope-1' } } as HubAction,
     { kind: 'SCOPE_UPDATE', scopeId: 'scope-1', patch: {} } as HubAction,
     { kind: 'SCOPE_ARCHIVE', scopeId: 'scope-1' },
-    { kind: 'CAUSAL_LINK_ADD', investigationId: 'inv-x', link: { id: 'link-1' } } as HubAction,
+    { kind: 'CAUSAL_LINK_ADD', link: { id: 'link-1' } } as HubAction,
     { kind: 'CAUSAL_LINK_UPDATE', linkId: 'link-1', patch: {} } as HubAction,
     { kind: 'CAUSAL_LINK_ARCHIVE', linkId: 'link-1' },
     {
       kind: 'HYPOTHESIS_ADD',
-      investigationId: 'inv-x',
       hypothesis: { id: 'cause-1' },
     } as HubAction,
     { kind: 'HYPOTHESIS_UPDATE', hypothesisId: 'cause-1', patch: {} } as HubAction,

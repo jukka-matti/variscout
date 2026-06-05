@@ -10,7 +10,6 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
     text: 'High variation in fill head 3',
     createdAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'general-unassigned',
     status: 'observed',
     statusChangedAt: 1714000000000,
     comments: [],

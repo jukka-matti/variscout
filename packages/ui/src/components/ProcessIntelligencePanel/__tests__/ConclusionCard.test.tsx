@@ -16,7 +16,6 @@ function makeHub(id: string, name: string, status: Hypothesis['status'] = 'propo
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'general-unassigned',
     synthesis: '',
     selectedForImprovement: false,
   };

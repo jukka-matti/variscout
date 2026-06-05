@@ -163,7 +163,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_CAPABILITY_GAP,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Process is not capable: Cpk ≈ 0.76 against USL 12.30 / LSL 11.70 (within-subgroup sigma, n=5 rational subgroups). The distribution has a left tail — roughly 4% of parts are below LSL.',
       createdAt: epochAt(2),
       context: {
@@ -192,7 +191,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_LOT3_LIGHT,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Lot 3 runs ~0.10 g lighter than Lot 1 and Lot 2. Boxplot shows the entire L3 distribution shifted down.',
       createdAt: epochAt(8),
       context: {
@@ -221,7 +219,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_PRESSURE_SLOPE,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Hold Pressure is a continuous driver: weight increases ~0.015 g per bar. Linear regression R²adj ≈ 0.31 on pressure alone.',
       createdAt: epochAt(10),
       context: {
@@ -249,7 +246,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_INTERACTION,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Disordinal Lot × Hold-Pressure interaction: Lot 3 needs ~5 bar more pressure than L1/L2 to reach the same weight. L3 slope is ~0.027 g/bar vs ~0.015 g/bar for L1/L2.',
       createdAt: epochAt(16),
       context: {
@@ -277,7 +273,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_CAVITY2_LIGHT,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Cavity 2 runs ~0.11 g lighter than Cavity 1 on average (η² ≈ 10%). Secondary contributor — likely gate geometry — addressable during next mold maintenance.',
       createdAt: epochAt(12),
       context: {
@@ -305,7 +300,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_DEFECT_PARETO,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Underweight dominates the QC defect Pareto (34 events, 42% of non-OK). Short Shot and Flash follow at ~20 each. The underweight cluster is the same physical problem as the capability gap — fixing Lot 3 pressure should attack both at once.',
       createdAt: epochAt(14),
       context: {
@@ -334,7 +328,6 @@ function buildFindings(): Finding[] {
     {
       id: IDS.F_WITHIN_LOT_CPK,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       text: 'Within-lot Cpk varies widely on Lot 3: rolling n=5 subgroup Cpks span roughly 0.3–1.1 on L3 vs 0.8–1.6 on L1/L2. The tail is not uniform — L3 has weak subgroups that drive the overall gap.',
       createdAt: epochAt(18),
       context: {
@@ -365,7 +358,6 @@ function buildHypotheses(): Hypothesis[] {
     {
       id: IDS.HUB_LOT3_PRESSURE,
       deletedAt: null,
-      investigationId: 'general-unassigned',
       name: 'Lot 3 under-pressurized — regrind-rich material needs +5 bar',
       synthesis:
         'Lot 3 contains more regrind than Lots 1 and 2, which raises melt viscosity and makes weight more sensitive to hold pressure. At the current 83 bar setpoint, L3 barrels fall ~0.10 g light on average, producing the left tail that drives Cpk below 1.0. QC-caught "Underweight" defects cluster on the same population, confirming this is the 80/20 priority. A lot-specific pressure recipe (L3 → ~88 bar) is expected to recover the tail, collapse the Underweight Pareto bar, and restore capability. Cavity 2 contributes a secondary ~0.10 g main effect.',

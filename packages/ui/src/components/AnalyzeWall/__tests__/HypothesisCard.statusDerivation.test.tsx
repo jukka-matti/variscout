@@ -23,7 +23,6 @@ const hub: Hypothesis = {
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-test',
 };
 
 describe('HypothesisCard renders derived status', () => {

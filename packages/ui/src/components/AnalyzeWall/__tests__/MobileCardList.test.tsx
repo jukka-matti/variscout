@@ -12,7 +12,6 @@ const makeHub = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-test',
   ...overrides,
 });
 
@@ -24,7 +23,6 @@ const makeFinding = (overrides: Partial<Finding>): Finding =>
     createdAt: 1,
     updatedAt: 1,
     deletedAt: null,
-    investigationId: 'inv-test',
     context: { activeFilters: {}, cumulativeScope: null },
     evidenceType: 'data',
     status: 'observed',
@@ -173,7 +171,6 @@ describe('MobileCardList', () => {
         text: 'Night shift has wider spread',
         createdAt: 1,
         deletedAt: null,
-        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         evidenceType: 'data',
         status: 'analyzed',
@@ -186,7 +183,6 @@ describe('MobileCardList', () => {
         text: 'Day shift has one similar event',
         createdAt: 2,
         deletedAt: null,
-        investigationId: 'inv-test',
         context: { activeFilters: {}, cumulativeScope: null },
         evidenceType: 'data',
         status: 'analyzed',

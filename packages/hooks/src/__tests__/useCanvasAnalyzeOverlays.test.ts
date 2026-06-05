@@ -34,7 +34,6 @@ function finding(overrides: Partial<Finding> & { id: string }): Finding {
     text: `Finding ${id}`,
     createdAt: 1,
     deletedAt: null,
-    investigationId: 'inv-test-001',
     context: { activeFilters: {}, cumulativeScope: null },
     evidenceType: 'data',
     status: 'observed',
@@ -54,7 +53,6 @@ function hub(overrides: Partial<Hypothesis> & { id: string }): Hypothesis {
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'inv-test-001',
     ...overrides,
   };
 }

@@ -13,7 +13,6 @@ function makeHypothesis(overrides: Partial<Hypothesis> = {}): Hypothesis {
     createdAt: Date.now(),
     updatedAt: Date.now(),
     deletedAt: null,
-    investigationId: 'general-unassigned',
     ...overrides,
   } as Hypothesis;
 }

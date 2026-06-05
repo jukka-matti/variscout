@@ -487,7 +487,6 @@ describe('buildReportPrompt', () => {
     text: 'High variation in Machine B',
     createdAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'inv-test-001',
     context: {
       activeFilters: { Machine: ['B'] },
       cumulativeScope: 45.2,

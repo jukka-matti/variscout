@@ -79,7 +79,6 @@ const baseHub: Hypothesis = {
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-test',
 };
 
 const PWA_WALL_USER_ID = 'analyst@local';

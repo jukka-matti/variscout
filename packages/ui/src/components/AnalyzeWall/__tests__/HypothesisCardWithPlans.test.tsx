@@ -33,7 +33,6 @@ const hub: Hypothesis = {
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-1',
 };
 
 const finding1: Finding = {
@@ -44,7 +43,6 @@ const finding1: Finding = {
   status: 'observed',
   comments: [],
   statusChangedAt: 1,
-  investigationId: 'inv-1',
   createdAt: 1,
   deletedAt: null,
 };
@@ -57,7 +55,6 @@ const finding2: Finding = {
   status: 'observed',
   comments: [],
   statusChangedAt: 2,
-  investigationId: 'inv-1',
   createdAt: 2,
   deletedAt: null,
 };

@@ -44,7 +44,6 @@ const seedHub: Hypothesis = {
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-test',
   condition: { kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'Night' },
 };
 

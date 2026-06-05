@@ -11,7 +11,6 @@ const hub = (condition: Hypothesis['condition']): Hypothesis =>
     questionIds: [],
     findingIds: [],
     status: 'proposed',
-    investigationId: 'inv-1',
     createdAt: 0,
     updatedAt: 0,
     deletedAt: null,

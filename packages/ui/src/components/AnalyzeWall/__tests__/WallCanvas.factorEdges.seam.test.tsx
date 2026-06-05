@@ -33,15 +33,7 @@ import type { Finding, Hypothesis } from '@variscout/core';
 
 // ── Findings: a supporting finding captured under Line=B, a counter under Temp=high ──
 const supportFinding: Finding = {
-  ...createFinding(
-    'Line B runs spike',
-    { Line: ['B'] },
-    null,
-    undefined,
-    'observed',
-    undefined,
-    'inv-cs12'
-  ),
+  ...createFinding('Line B runs spike', { Line: ['B'] }, null, undefined, 'observed', undefined),
   id: 'f-support',
 };
 const counterFinding: Finding = {
@@ -51,14 +43,13 @@ const counterFinding: Finding = {
     null,
     undefined,
     'observed',
-    undefined,
-    'inv-cs12'
+    undefined
   ),
   id: 'f-counter',
 };
 
 const hub1: Hypothesis = {
-  ...createHypothesis('Line B drives lead time', '', ['f-support', 'f-counter'], 'inv-cs12'),
+  ...createHypothesis('Line B drives lead time', '', ['f-support', 'f-counter']),
   id: 'hub-1',
   counterFindingIds: ['f-counter'],
 };

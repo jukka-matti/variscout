@@ -14,7 +14,6 @@ function makeHub(overrides: Partial<Hypothesis> = {}): Hypothesis {
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'inv-test-001',
     evidence: {
       mode: 'standard',
       contribution: { value: 0.34, label: 'R²adj', description: 'Explains 34% of variation' },

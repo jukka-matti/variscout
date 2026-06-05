@@ -88,7 +88,6 @@ const hub: Hypothesis = {
   createdAt: 1_748_649_600_000,
   updatedAt: 1_748_649_600_000,
   deletedAt: null,
-  investigationId: 'inv-1',
   ideas: [idea1, idea2],
 };
 
@@ -121,7 +120,6 @@ const finding: Finding = {
   status: 'observed',
   comments: [],
   statusChangedAt: 1_748_649_600_000,
-  investigationId: 'inv-1',
   createdAt: 1_748_649_600_000,
   deletedAt: null,
   source: {

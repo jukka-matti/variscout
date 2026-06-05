@@ -18,7 +18,6 @@ const sampleHyp: Hypothesis = {
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  investigationId: 'inv-1',
   condition: { kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' },
 };
 

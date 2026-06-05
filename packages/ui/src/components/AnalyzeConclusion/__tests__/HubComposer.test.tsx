@@ -13,7 +13,6 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
     text: 'Night shift shows higher spread',
     createdAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'general-unassigned',
     context: { activeFilters: {}, cumulativeScope: null },
     evidenceType: 'data',
     status: 'observed',
@@ -114,7 +113,6 @@ describe('HubComposer', () => {
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
-      investigationId: 'general-unassigned',
     };
 
     render(<HubComposer {...defaultProps()} editingHub={editingHub} />);
@@ -136,7 +134,6 @@ describe('HubComposer', () => {
       createdAt: 1714000000000,
       updatedAt: 1714000000000,
       deletedAt: null,
-      investigationId: 'general-unassigned',
     };
 
     render(<HubComposer {...defaultProps()} editingHub={editingHub} />);

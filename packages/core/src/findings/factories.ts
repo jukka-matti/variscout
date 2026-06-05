@@ -28,10 +28,6 @@ export { generateDeterministicId as generateId } from '../identity';
 
 /**
  * Create a new Finding with a unique ID.
- *
- * @param investigationId - FK to the owning investigation. Callers must pass
- *   explicitly; use 'general-unassigned' as a sentinel until investigations
- *   become first-class (F6 named-future, tracked in docs/investigations.md).
  */
 export function createFinding(
   text: string,
@@ -39,8 +35,7 @@ export function createFinding(
   cumulativeScope: number | null,
   stats?: { mean: number; median?: number; cpk?: number; samples: number },
   status?: FindingStatus,
-  source?: FindingSource,
-  investigationId = 'general-unassigned' // callers should pass explicitly; sentinel until F6 first-class investigations
+  source?: FindingSource
 ): Finding {
   const now = Date.now();
   const finding: Finding = {
@@ -48,7 +43,6 @@ export function createFinding(
     text,
     createdAt: now,
     deletedAt: null,
-    investigationId,
     context: {
       activeFilters,
       cumulativeScope,
@@ -251,8 +245,7 @@ export function createImprovementIdea(text: string): ImprovementIdea {
 export function createHypothesis(
   name: string,
   synthesis: string,
-  findingIds: string[] = [],
-  investigationId = 'general-unassigned' // callers must pass explicitly; sentinel until F6 first-class investigations
+  findingIds: string[] = []
 ): Hypothesis {
   const now = Date.now();
   return {
@@ -260,7 +253,6 @@ export function createHypothesis(
     name,
     synthesis,
     findingIds,
-    investigationId,
     status: 'proposed',
     createdAt: now,
     updatedAt: now,

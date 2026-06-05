@@ -8,7 +8,6 @@ function makeFinding(overrides: Partial<Finding> & { id: string; text: string })
   return {
     createdAt: 1714000000000,
     deletedAt: null,
-    investigationId: 'inv-test-001',
     context: {
       activeFilters: {},
       cumulativeScope: null,
@@ -28,7 +27,6 @@ function makeHypothesis(overrides: Partial<Hypothesis> & { id: string; name: str
     status: 'proposed',
     createdAt: 1714000000000,
     updatedAt: 1714000000000,
-    investigationId: 'inv-test-001',
     deletedAt: null,
     ...overrides,
   };

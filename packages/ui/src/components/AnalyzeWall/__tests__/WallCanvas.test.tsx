@@ -79,7 +79,6 @@ const hub: Hypothesis = {
   createdAt: 1,
   updatedAt: 1,
   deletedAt: null,
-  investigationId: 'inv-test',
 };
 
 /**
@@ -100,7 +99,6 @@ const evidencedFindings: Finding[] = [
     evidenceType: 'data',
     createdAt: 1,
     deletedAt: null,
-    investigationId: 'inv-test',
     context: { activeFilters: {}, cumulativeScope: null },
     status: 'observed',
     comments: [],
@@ -1027,6 +1025,7 @@ describe('WallCanvas', () => {
 
     const scope = {
       id: 'scope-1',
+      // ProblemStatementScope keeps its FK until PO-7's rename sweep
       investigationId: 'inv-test',
       outcome: 'lead_time',
       predicates: [{ kind: 'leaf' as const, column: 'Machine', op: 'eq' as const, value: 'B' }],

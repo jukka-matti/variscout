@@ -11,6 +11,23 @@
 import 'fake-indexeddb/auto';
 import { vi } from 'vitest';
 import Dexie from 'dexie';
+import type { AnalysisBrief } from '@variscout/core';
+
+// Capture the StageFiveModal onOpenInvestigation callback for Stage-5 draft tests.
+const stageFiveCapture = vi.hoisted(() => ({
+  onOpenInvestigation: undefined as ((brief: AnalysisBrief) => void) | undefined,
+}));
+
+vi.mock('@variscout/ui', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/ui')>();
+  return {
+    ...actual,
+    StageFiveModal: (props: { onOpenInvestigation: (brief: AnalysisBrief) => void }) => {
+      stageFiveCapture.onOpenInvestigation = props.onOpenInvestigation;
+      return null;
+    },
+  };
+});
 
 vi.mock('../components/Dashboard', () => ({
   default: () => <div data-testid="dashboard-stub">Dashboard</div>,
@@ -55,6 +72,7 @@ import { registerLocaleLoaders, type MessageCatalog } from '@variscout/core';
 import { usePanelsStore, initialPanelsState } from '../features/panels/panelsStore';
 import {
   useProjectStore,
+  useAnalyzeStore,
   useProjectMembershipStore,
   projectMembershipStorageKey,
   type DocumentSnapshot,
@@ -270,5 +288,38 @@ describe('PendingInvitesBanner — mounted in App.tsx Home view (active-IP launc
     });
 
     expect(screen.getByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
+  });
+});
+
+describe('Stage-5 hypothesisDraft → proposed Hypothesis hub (PO-6)', () => {
+  beforeEach(async () => {
+    useAnalyzeStore.setState({ hypotheses: [] });
+    usePanelsStore.setState(initialPanelsState);
+    stageFiveCapture.onOpenInvestigation = undefined;
+    await act(async () => {
+      renderApp();
+    });
+  });
+
+  afterEach(() => {
+    useAnalyzeStore.setState({ hypotheses: [] });
+    usePanelsStore.setState(initialPanelsState);
+  });
+
+  it('Stage-5 hypothesisDraft creates exactly one proposed hub', () => {
+    act(() => {
+      stageFiveCapture.onOpenInvestigation!({ hypothesisDraft: 'Resin lot drift' });
+    });
+    const hubs = useAnalyzeStore.getState().hypotheses;
+    expect(hubs).toHaveLength(1);
+    expect(hubs[0].name).toBe('Resin lot drift');
+    expect(hubs[0].status).toBe('proposed');
+  });
+
+  it('NEGATIVE: a blank brief creates zero hubs', () => {
+    act(() => {
+      stageFiveCapture.onOpenInvestigation!({});
+    });
+    expect(useAnalyzeStore.getState().hypotheses).toHaveLength(0);
   });
 });

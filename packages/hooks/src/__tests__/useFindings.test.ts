@@ -20,7 +20,6 @@ const makeFinding = (
 ): Finding => ({
   createdAt: 1000,
   deletedAt: null,
-  investigationId: 'inv-test-001',
   evidenceType: 'data',
   status: 'observed',
   comments: [],

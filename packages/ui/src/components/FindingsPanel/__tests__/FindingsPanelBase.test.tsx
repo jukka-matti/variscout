@@ -55,7 +55,6 @@ const makeFinding = (id: string, text = 'Test finding'): Finding => ({
   evidenceType: 'data',
   createdAt: 1714000000000,
   deletedAt: null,
-  investigationId: 'general-unassigned',
   statusChangedAt: Date.now(),
   comments: [],
 });

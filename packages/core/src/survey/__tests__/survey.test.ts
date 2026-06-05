@@ -25,7 +25,6 @@ const finding = (overrides: Partial<Finding> = {}): Finding => ({
   text: 'Machine M2 has the highest fill-weight spread.',
   createdAt: 1760000000000,
   deletedAt: null,
-  investigationId: 'inv-test-001',
   context: { activeFilters: {}, cumulativeScope: null },
   evidenceType: 'data',
   status: 'analyzed',
@@ -43,7 +42,6 @@ const branch = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   status: 'proposed',
   createdAt: 1745625600000,
   updatedAt: 1745625600000,
-  investigationId: 'inv-test-001',
   deletedAt: null,
   ...overrides,
 });

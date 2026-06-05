@@ -3,9 +3,10 @@
 // Azure persistence model: per-entity Dexie tables.
 // Unlike the PWA hub-blob, Azure stores hubs, evidence sources, evidence snapshots,
 // and evidence source cursors in dedicated Dexie tables (see src/db/schema.ts).
-// Entities that Azure does not have dedicated tables for today (findings,
-// scopes, causalLinks, hypotheses, canvas state) are stubbed — F3 normalizes
-// them into Dexie tables.
+// Entities that Azure does not have dedicated tables for today (scopes,
+// canvas state) are stubbed. findings/causalLinks/hypotheses ReadAPIs were
+// deleted (PO-6): those entities persist via the .vrs DocumentSnapshot analyze
+// facet; no Dexie table exists in either build.
 
 import type {
   HubRepository,
@@ -13,10 +14,7 @@ import type {
   OutcomeReadAPI,
   EvidenceSnapshotReadAPI,
   EvidenceSourceReadAPI,
-  FindingReadAPI,
   ScopeReadAPI,
-  CausalLinkReadAPI,
-  HypothesisReadAPI,
   CanvasStateReadAPI,
   ActionItemReadAPI,
   ControlRecordReadAPI,
@@ -222,43 +220,14 @@ export class AzureHubRepository implements HubRepository {
   };
 
   // ---------------------------------------------------------------------------
-  // Stub read APIs — entities not yet in dedicated Azure Dexie tables.
-  // F3 normalizes these into dedicated tables (findings, etc.).
+  // Stub read APIs — entities not in dedicated Azure Dexie tables.
+  // findings/causalLinks/hypotheses ReadAPIs deleted (PO-6): those entities
+  // persist via the .vrs DocumentSnapshot analyze facet only.
   // ---------------------------------------------------------------------------
-
-  findings: FindingReadAPI = {
-    // Azure has no dedicated findings table today; F3 normalizes this.
-    async get(_id) {
-      return undefined;
-    },
-    async listByInvestigation(_investigationId) {
-      return [];
-    },
-  };
 
   scopes: ScopeReadAPI = {
     // Azure has no dedicated scopes table today; scopes persist via the
-    // analyze blob (ADR-085) — read API stubbed, mirroring findings/hypotheses.
-    async get(_id) {
-      return undefined;
-    },
-    async listByInvestigation(_investigationId) {
-      return [];
-    },
-  };
-
-  causalLinks: CausalLinkReadAPI = {
-    // Azure has no dedicated causalLinks table today; F3 normalizes this.
-    async get(_id) {
-      return undefined;
-    },
-    async listByInvestigation(_investigationId) {
-      return [];
-    },
-  };
-
-  hypotheses: HypothesisReadAPI = {
-    // Azure has no dedicated hypotheses table today; F3 normalizes this.
+    // analyze blob (ADR-085) — read API stubbed (same pattern as the former findings/hypotheses stubs, retired at v14/PO-6).
     async get(_id) {
       return undefined;
     },

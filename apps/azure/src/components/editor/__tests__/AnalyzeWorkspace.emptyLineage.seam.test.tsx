@@ -232,8 +232,8 @@ const activeScope: { title: string; labels: ActiveIPScopeLabels } = {
   },
 };
 
-const hub1 = { ...createHypothesis('Mech A', '', [], 'inv-1'), id: 'hub-A' };
-const hub2 = { ...createHypothesis('Mech B', '', [], 'inv-1'), id: 'hub-B' };
+const hub1 = { ...createHypothesis('Mech A', '', []), id: 'hub-A' };
+const hub2 = { ...createHypothesis('Mech B', '', []), id: 'hub-B' };
 
 const finding1 = { ...createFinding('Evidence A', {}, null, undefined, 'observed'), id: 'f-A' };
 const finding2 = { ...createFinding('Evidence B', {}, null, undefined, 'observed'), id: 'f-B' };
