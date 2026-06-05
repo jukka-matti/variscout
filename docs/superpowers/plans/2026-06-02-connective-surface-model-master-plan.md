@@ -105,6 +105,7 @@ layer: spec
 - **Model:** Sonnet.
 - **Acceptance:** a Finding can promote to an Action; lineage findingIds populate from a UI gesture; control-drift links back; Report reflects them.
 - **Spec ref:** §4.6.
+- **DELIVERED 2026-06-02 via PR #287** (Edges 1/2/4 — see decision-log). **Edge-2 REVERSED by PO-5 (2026-06-05)**: the `investigationLineage.findingIds` pin wire is deleted; analyst-owned CS-10 status replaces membership lineage as the Report curation system (process-ops spec §4.1; recorded design reversal, decision-log entry cites PR #287).
 
 ### PR-CS-7 · PWA↔Azure parity fixes
 
