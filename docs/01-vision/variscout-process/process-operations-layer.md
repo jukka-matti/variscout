@@ -117,40 +117,55 @@ process-owner's vocabulary; they have no V1 specialist equivalent (the specialis
 tracks progress through findings, hypotheses, and the Report narrative, not
 cadence metadata).
 
-| Field           | Role                                                                                                                                                                                                               | Disposition                                                                                       |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `analyzeDepth`  | Editorial depth signal (`'surface' \| 'adequate' \| 'thorough'`) — set by the process owner at their weekly review to characterise the investigation's analytical completeness                                     | **Shed → named-future** (PO-2)                                                                    |
-| `analyzeStatus` | Operational status enum (`'active' \| 'resolved' \| 'controlled' \| …`) — the source that Control-readiness predicates gated on before PO-2 introduced a control-eligible predicate from the stage marker directly | **Shed enum** (PO-2); Control-readiness re-sourced from the wedge stage + ControlRecord existence |
-| `nextMove`      | Free-text field: "what should happen next?" — set by the process owner at the weekly review or auto-set from a CoScout recommendation                                                                              | **Shed → named-future** (PO-2)                                                                    |
+| Field           | Role                                                                                                                                                                                                               | Disposition                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| `analyzeDepth`  | Editorial depth signal (`'surface' \| 'adequate' \| 'thorough'`) — set by the process owner at their weekly review to characterise the investigation's analytical completeness                                     | **On-screen strip shed** (PO-2); **type member deleted** (PO-4) |
+| `analyzeStatus` | Operational status enum (`'active' \| 'resolved' \| 'controlled' \| …`) — the source that Control-readiness predicates gated on before PO-2 introduced a control-eligible predicate from the stage marker directly | **Strip + predicate re-source** (PO-2); **enum deleted** (PO-4) |
+| `nextMove`      | Free-text field: "what should happen next?" — set by the process owner at the weekly review or auto-set from a CoScout recommendation                                                                              | **On-screen strip shed** (PO-2); **type member deleted** (PO-4) |
 
-Additionally, `stateNotes` (§4) was a map from `ProcessStateItem` ids to owner
-annotations — the way a process owner attached a brief operational note to a
-current-state narrative item ("we know, working on it").
+Additionally, `stateNotes` (§4) carried team notes attached to current-state
+narrative items — the way a process owner annotated what their team surfaced
+during a daily/weekly review ("we know, working on it").
 
-All four fields deleted at:
+On-screen strip (`analyzeDepth`/`analyzeStatus`/`nextMove`/owner selects on Editor)
+shed at:
 
 **PO-2, commit `11ad356e` (PR #299) — strip + re-homes.** The strip landed
 atomically with the Control-readiness predicate re-source (since `analyzeStatus`
 was the predicate's sole writer; the two had to move together).
 
+The underlying type members (`analyzeDepth`, `analyzeStatus`, `nextMove`) and enum
+types (`AnalyzeDepth`, `AnalyzeStatus`) deleted at:
+
+**PO-4, commit `57666bd98` (PR #301) — entity dissolution.** The
+`ProcessHubAnalyze`/`ProcessHubAnalyzeMetadata` entity carrying these fields was
+dissolved entirely; the type members disappeared with it.
+
 ---
 
 ## §4 · `stateNotes`
 
-`stateNotes` was a `Record<string, string>` on `ProcessHubAnalyzeMetadata`,
-mapping ephemeral `ProcessStateItem` ids to owner annotations. The dangling-id
-risk — a state-item id could be retired mid-cadence, leaving a stranded note with
-no display anchor — was accepted in the design on the grounds that the notes were
-ephemeral by nature (the next cadence cycle would regenerate the state items, and
-stale notes would simply not render).
+`stateNotes` was a `ProcessStateNote[]` array on `ProcessHubAnalyzeMetadata` (and
+on `ProcessContext` for the round-trip path). Each `ProcessStateNote` was a
+structured object `{ id, itemId, kind, text, author, createdAt, updatedAt? }` where
+`itemId` referenced a `ProcessStateItem` id and `kind` was one of `'question' |
+'gemba' | 'data-gap' | 'decision'`. The dangling-id risk — a state-item id could
+be retired mid-cadence, leaving a stranded note with no display anchor — was
+accepted in the design on the grounds that the notes were ephemeral by nature (the
+next cadence cycle would regenerate the state items, and stale notes would simply
+not render).
 
 The field made sense in the context of the Current Process State panel (§2.3) and
 the huddle ritual: the process owner annotated items their team surfaced during the
 daily/weekly review. Without the panel, the field has no home.
 
-Deleted with the rest of the `ProcessHubAnalyzeMetadata` projection at:
+Deleted (along with `processStateNote.ts` and the state-item modules) at:
 
-**PO-4, commit `09a52be98` (PR #301) — entity dissolution.**
+**PO-3, commit `ac3b33a7c` (PR #300) — engine delete.** The cadence engines,
+`processState.ts`, and `processStateNote.ts` were removed in this commit; the
+`stateNotes` facet stripped from `ProcessContext` and `ProcessHubAnalyzeMetadata`
+at the same time. The remainder of `ProcessHubAnalyzeMetadata` dissolved later at
+PO-4.
 
 ---
 
@@ -178,14 +193,14 @@ amber-border + amber-footer signals (`hasOverdueTasks`, `actionCounts.overdue`).
 **V1 survivors:** The Control-specific attention signals (overdue review, pending
 handoff) survive in V1 as project-card chips — `ProjectMetadata.sustainment`
 carries the control due-ness signal (the `ControlMetadataProjection`), and Home
-project cards render attention chips from exactly `sustainment` + `latestActivity`
-
-- `findingCounts`. The operations-layer full taxonomy — the depth/readiness
-  signals, the cross-investigation sort — is named-future.
+project cards render attention chips from exactly `sustainment` + `CloudProject.modified`
+(recency) + `findingCounts`. The operations-layer full taxonomy — the depth/readiness
+signals, the cross-investigation sort — is named-future.
 
 Dashboard phantom sort keys `hasOverdueTasks` / `assignedTaskCount` deleted at:
 
-**PO-4, commit `09a52be98` (PR #301) — entity dissolution.**
+**PO-1, commit `71a6ab020` (PR #298) — azure UI shed.** These sort keys were
+removed along with the cadence components and work-item sort logic in Dashboard.tsx.
 
 ---
 
@@ -241,13 +256,13 @@ design concepts are the source from which this document distils.
 
 ## §8 · Implementation commit trail
 
-| PR             | Commit      | Content deleted                                                                                                                                                                                                        |
-| -------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PO-1 (PR #298) | `094b563b`  | `ProcessHubCadenceQueues` · `ProcessHubCadenceQuestions` · cadence-only `ProcessHubFormat` helpers                                                                                                                     |
-| PO-2 (PR #299) | `11ad356e`  | `analyzeDepth`/`analyzeStatus`/`nextMove` strip · `useCanvasFilters.ts` · `analyzeActions.ts` · `onPlansChanged` option · "New Analyze" buttons · hub picker · phantom sort keys `hasOverdueTasks`/`assignedTaskCount` |
-| PO-3 (PR #300) | `b8923b449` | `buildProcessHubCadence` · `buildProcessHubReview` · `buildCurrentProcessState` · `processHubReview.ts` · `ProcessHubReviewPanel`                                                                                      |
-| PO-4 (PR #301) | `09a52be98` | `ProcessHubAnalyze` / `ProcessHubAnalyzeMetadata` / `ProcessHubRollup` entity types · `buildProcessHubRollups` · `ProcessHubCard` + Dashboard hub-card grid · `stateNotes` · phantom attention sort keys               |
-| PO-5 (PR #302) | `5612d904e` | `investigationLineage` section type + factory seed · both apps' `applyAction` lineage cases · `toggleLineageFinding` + the CS-6 pin button                                                                             |
+| PR             | Commit      | Content deleted                                                                                                                                                                                                                                                                         |
+| -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PO-1 (PR #298) | `094b563b`  | `ProcessHubCadenceQueues` · `ProcessHubCadenceQuestions` · cadence-only `ProcessHubFormat` helpers · `useCanvasFilters.ts` · "New Analyze" buttons · hub picker · phantom sort keys `hasOverdueTasks`/`assignedTaskCount`                                                               |
+| PO-2 (PR #299) | `11ad356e`  | Editor work-item UI strip (`analyzeDepth`/`analyzeStatus`/`nextMove`/owner/contributors/NextMove selects in `Editor.tsx`) · Control-readiness predicate re-sourced (facts not labels) · `ProjectCard` slim · `reviewSignal` save-call retired · `ControlRegion` re-homed to Project tab |
+| PO-3 (PR #300) | `b8923b449` | `buildProcessHubCadence` · `buildProcessHubReview` · `buildCurrentProcessState` · `processHubReview.ts` · `ProcessHubReviewPanel` · `processStateNote.ts` · `stateNotes` facet stripped from `ProcessContext` + `ProcessHubAnalyzeMetadata`                                             |
+| PO-4 (PR #301) | `09a52be98` | `ProcessHubAnalyze` / `ProcessHubAnalyzeMetadata` / `ProcessHubRollup` entity types · `buildProcessHubRollups` · `ProcessHubCard` + Dashboard hub-card grid · `AnalyzeDepth`/`AnalyzeStatus` enums + type members (`analyzeDepth`/`analyzeStatus`/`nextMove`)                           |
+| PO-5 (PR #302) | `5612d904e` | `investigationLineage` section type + factory seed · both apps' `applyAction` lineage cases · `toggleLineageFinding` + the CS-6 pin button                                                                                                                                              |
 
 `git show <commit> --stat` reconstructs the file-level change set for each PR.
 

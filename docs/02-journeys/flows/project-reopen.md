@@ -42,7 +42,7 @@ Before opening a project the specialist scans the Home list.
 | Finding / question counts   | `metadata.findingCounts` + `metadata.questionCounts` (computed at save) |
 | Control due-ness chip       | `metadata.sustainment.nextReviewDue` → "Review overdue" or "Review due" |
 
-Chips deep-link into the project: the control due-ness chip routes to the Project tab's Control region. Cards sort newest-modified first.
+The chip is a non-interactive display element — the card itself carries the `onClick` that opens the project. Opening the card lands the specialist in the 7-tab workflow; the Control region is on the Project tab. Cards sort newest-modified first.
 
 **Empty state:** when the specialist has no accessible projects, Home shows onboarding guidance and the option to start a new project.
 

@@ -72,10 +72,10 @@ VariScout adopts the **explicit two-tier persistence model** for the Azure build
 > note: quick-analysis findings now round-trip through `.vrs` (PO-6, PR #303) —
 > the PWA's "save findings" promise is true via export, not IndexedDB.
 
-| Tier                                                                                         | Entities                                                                                                                                                  | Persistence                                                                                    |
-| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| **Tier 1 — operational entities** (portfolio-visible, cross-session, individually addressed) | `ProcessHub` · `ImprovementProject` (+ `ProjectMetadata` projection) · `EvidenceSnapshot` + provenance · `ControlRecord/Review/Handoff` · `ProjectMember` | Per-entity Dexie tables · action-routed writes · per-entity blob sync                          |
-| **Tier 2 — the analysis aggregate** (the working set, loaded wholesale into the stores)      | raw data + findings + hypotheses + scopes + causal links + durable canvas structure                                                                       | `DocumentSnapshot` → one Azure blob / one `.vrs` file — **one schema, parity by construction** |
+| Tier                                                                                         | Entities                                                                                                                                                                                                                                               | Persistence                                                                                    |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| **Tier 1 — operational entities** (portfolio-visible, cross-session, individually addressed) | `ProcessHub` · `ImprovementProject` (+ `ProjectMetadata` projection) · `EvidenceSnapshot` + provenance · `ControlRecord/Review/Handoff` · `ProjectMember` (embedded in `ImprovementProject.metadata.members` — no separate Dexie table; action-routed) | Per-entity Dexie tables · action-routed writes · per-entity blob sync                          |
+| **Tier 2 — the analysis aggregate** (the working set, loaded wholesale into the stores)      | raw data + findings + hypotheses + scopes + causal links + durable canvas structure                                                                                                                                                                    | `DocumentSnapshot` → one Azure blob / one `.vrs` file — **one schema, parity by construction** |
 
 **Do not split Tier 2; do not normalise the analysis domain; no CRDTs for V1**
 (research verdict). The large aggregate is a **conscious deviation from Vernon's
@@ -113,8 +113,7 @@ document is in memory anyway. Invariants set the boundary, not size.
 
 - **`schemaVersion: 1` already exists** — `DocumentSnapshot.schemaVersion` is a
   literal `1` today; the `.vrs` validator **strict-rejects any other value**
-  (`documentSnapshotVrs.ts:34`); `ProcessHub` carries its own `schemaVersion: 1`
-  (`processHub.ts:433`). PO-8a is therefore not "add the field" but:
+  (`documentSnapshotVrs.ts:34`). PO-8a is therefore not "add the field" but:
   _re-freeze v1 after the cleaned post-PO-7 shape lands, and replace the
   strict-reject validator with a three-way branch_ — known-current → load ·
   known-but-newer → read-only + warning · unknown/corrupt → strict-assert throw.
