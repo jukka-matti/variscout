@@ -206,10 +206,10 @@ export function deriveIPCauseRows(input: {
 - [ ] **Step 4:** Extend `deriveIPReportNarrative` — `refuted` derivation re-points to the categorizer; 'What's next' gains open questions (everything else byte-identical):
 
 ```typescript
-  const causeRows = deriveIPCauseRows(input);
-  const groups = groupHypothesesByStatus(input.hypotheses);
-  const refuted = groups['refuted'];
-  const openQuestions = [...groups['proposed'], ...groups['needs-disconfirmation']];
+const causeRows = deriveIPCauseRows(input);
+const groups = groupHypothesesByStatus(input.hypotheses);
+const refuted = groups['refuted'];
+const openQuestions = [...groups['proposed'], ...groups['needs-disconfirmation']];
 ```
 
 and in the `"What's next"` section:
@@ -246,7 +246,11 @@ describe('Report composes from analyst-owned status (PO-5)', () => {
   it('NEGATIVE: a refuted hypothesis is NOT a cause row and NOT in the narrative items', () => {
     const rows = deriveIPCauseRows({ ip, hypotheses: [mkHyp('hyp-ref', 'refuted')], findings: [] });
     expect(rows).toHaveLength(0);
-    const sections = deriveIPReportNarrative({ ip, hypotheses: [mkHyp('hyp-ref', 'refuted')], findings: [] });
+    const sections = deriveIPReportNarrative({
+      ip,
+      hypotheses: [mkHyp('hyp-ref', 'refuted')],
+      findings: [],
+    });
     const found = sections.find(s => s.title === 'What we found + what we did')!;
     expect(found.items.join(' ')).not.toContain('name-hyp-ref');
     const learned = sections.find(s => s.title === 'What we standardized + learned')!;
@@ -254,7 +258,11 @@ describe('Report composes from analyst-owned status (PO-5)', () => {
   });
 
   it('NEGATIVE: a proposed hypothesis is NOT in tested-and-excluded; it is an open question', () => {
-    const sections = deriveIPReportNarrative({ ip, hypotheses: [mkHyp('hyp-open', 'proposed')], findings: [] });
+    const sections = deriveIPReportNarrative({
+      ip,
+      hypotheses: [mkHyp('hyp-open', 'proposed')],
+      findings: [],
+    });
     const learned = sections.find(s => s.title === 'What we standardized + learned')!;
     expect(learned.items.join(' ')).not.toContain('Ruled out: name-hyp-open');
     const next = sections.find(s => s.title === "What's next")!;
@@ -294,10 +302,10 @@ describe('Report composes from analyst-owned status (PO-5)', () => {
 - [ ] **Step 5: `ReportView.tsx` (azure) — adopt the PWA composition:** DELETE the `activeIPLineage` prop (decl `:82`, destructure `:141`) + the `ActiveIPLineageIds` import (`:39`) + `scopedFindingIds` (`:171-174`) + `scopedHypothesisIds` (`:175-178`) + the `reportHypotheses` lineage filter (`:179-185`) + the `reportFindings` pin-union + its PR-CS-6 comment (`:186-198`). MOVE the `activeIP` + `ipReportScope` memos ABOVE the replacements, then:
 
 ```typescript
-  // PO-5: one composition path — the core engine (status-keyed) is the
-  // canonical Report scope; mirrors the PWA ReportView exactly.
-  const reportFindings = activeIP && ipReportScope ? ipReportScope.findings : findings;
-  const reportHypotheses = activeIP && ipReportScope ? ipReportScope.hypotheses : hypotheses;
+// PO-5: one composition path — the core engine (status-keyed) is the
+// canonical Report scope; mirrors the PWA ReportView exactly.
+const reportFindings = activeIP && ipReportScope ? ipReportScope.findings : findings;
+const reportHypotheses = activeIP && ipReportScope ? ipReportScope.hypotheses : hypotheses;
 ```
 
 (All downstream consumers — Evidence Map, timeline, `bestProjectedCpk`, improvement-plan, summary findings — keep reading `reportHypotheses`/`reportFindings` unchanged. This is where the Report-collapse defect dies: hypotheses render under active IP.)
@@ -355,7 +363,12 @@ it('renders no lineage pin button; sibling actions survive (PO-5)', () => {
 grep -rIn 'investigationLineage' --include='*.ts' --include='*.tsx' --exclude-dir=dist packages apps scripts .claude | wc -l   # → 0
 grep -rIn 'toggleLineageFinding\|ActiveIPLineageIds\|deriveActiveIPLineageIds\|onToggleProjectLineage\|isInProjectLineage\|projectLineageFindingIds' --exclude-dir=dist --include='*.ts' --include='*.tsx' packages apps   # → zero
 grep -rIn "hypothesis-linked" --exclude-dir=dist --include='*.ts' --include='*.tsx' packages apps   # → zero
-grep -rIni 'PR-CS-6 Edge 2\|project lineage\|investigation lineage' --exclude-dir=dist --include='*.ts' --include='*.tsx' packages apps   # → zero (stale-comment sweep)
+grep -rIni 'PR-CS-6 Edge 2\|project lineage\|investigation lineage' --exclude-dir=dist --include='*.ts' --include='*.tsx' packages apps
+# → zero EXCEPT the pre-existing read-only ImprovementProjectForm "Investigation lineage" Charter
+#   section (ImprovementProjectForm.tsx / ProgressIndicator.tsx / AnalyzeLineageSection.tsx + its
+#   3 test files): fed live store hypotheses/findings, decoupled from the deleted data field, and
+#   deliberately out of scope here (its retired-concept NAMING is routed to the queued
+#   "Project tab / IP-detail stage overviews" design session).
 ```
 
 - [ ] **Step 4: Verify:** `pnpm --filter @variscout/core test && pnpm --filter @variscout/hooks test && pnpm --filter @variscout/ui test && pnpm build` → green (full package suites; the build proves the cascade compiles end-to-end incl. app test files via app tsc).
