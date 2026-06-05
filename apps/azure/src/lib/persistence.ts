@@ -161,8 +161,8 @@ export function importFromFile(file: File): Promise<ProjectImportPayload> {
       try {
         const content = e.target?.result as string;
         resolve({ kind: 'document-snapshot', file: parseDocumentSnapshotVrs(content) });
-      } catch {
-        reject(new Error('Invalid file format'));
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error('Invalid file format'));
       }
     };
     reader.onerror = () => reject(new Error('Failed to read file'));
