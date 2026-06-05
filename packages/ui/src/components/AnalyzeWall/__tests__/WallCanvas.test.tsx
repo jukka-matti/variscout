@@ -1025,6 +1025,8 @@ describe('WallCanvas', () => {
 
     const scope = {
       id: 'scope-1',
+      // ProblemStatementScope keeps its FK until PO-7's rename sweep
+      investigationId: 'inv-test',
       outcome: 'lead_time',
       predicates: [{ kind: 'leaf' as const, column: 'Machine', op: 'eq' as const, value: 'B' }],
       hypothesisIds: [],
