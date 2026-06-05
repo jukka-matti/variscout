@@ -186,6 +186,44 @@ describe('selectIPReportScope', () => {
     });
     expect(scope.hypotheses.map(h => h.id)).toContain('hyp-status-only');
   });
+
+  it('selects the control record via the metadata projectId join alone (clause 3 isolation)', () => {
+    // clause 1 (sustainmentRecordId) + clause 2 (improvementProjectId === ip.id)
+    // both deliberately MISS: id ≠ the ip's sustainmentRecordId, and
+    // improvementProjectId points elsewhere. ONLY clause 3 —
+    // `record.projectId === ip.metadata.projectId` — can select this record.
+    const ip = project(); // metadata.projectId === 'inv-1', sustainmentRecordId === 'sus-1'
+    const record = sustainment({
+      id: 'rec-meta-join', // ≠ 'sus-1' → clause 1 misses
+      projectId: 'inv-1', // === ip.metadata.projectId → clause 3 hits
+      improvementProjectId: 'some-other-ip', // ≠ ip.id ('ip-1') → clause 2 misses
+    });
+    const scope = selectIPReportScope({
+      ip,
+      hypotheses: [],
+      findings: [],
+      controlRecords: [record],
+    });
+    expect(scope.controlRecord?.id).toBe('rec-meta-join');
+  });
+
+  it('selects NO control record when the metadata join key mismatches (negative control)', () => {
+    // Same isolation setup, but the record's projectId no longer matches
+    // ip.metadata.projectId, so clause 3 also misses → no record surfaced.
+    const ip = project();
+    const record = sustainment({
+      id: 'rec-no-join',
+      projectId: 'unrelated', // ≠ ip.metadata.projectId → clause 3 misses
+      improvementProjectId: 'some-other-ip', // clause 2 misses
+    });
+    const scope = selectIPReportScope({
+      ip,
+      hypotheses: [],
+      findings: [],
+      controlRecords: [record],
+    });
+    expect(scope.controlRecord).toBeUndefined();
+  });
 });
 
 describe('deriveIPReportNarrative', () => {
