@@ -3,7 +3,7 @@ tier: living
 purpose: design
 title: 'First-Session Journey — the altitude model, the landing, and the capture grammar'
 audience: human
-status: draft
+status: active
 date: 2026-06-06
 last-reviewed: 2026-06-06
 layer: spec
@@ -33,7 +33,7 @@ implements:
 
 # First-Session Journey — the altitude model, the landing, and the capture grammar
 
-> **Draft · 2026-06-06.** Brainstormed with the owner (live `--chrome` walk + visual-companion wireframes), grounded by 9 subagent explorations + a 3-lens adversarial panel (wizard-reality / product-UX / architecture). Flips to `active` after owner spec review. Build phased P1–P4 (§9). Origin: `investigations.md` "PWA first-session journey — sample-data → Explore → first Finding is not smooth" (logged 2026-06-05, promoted here).
+> **Active · 2026-06-06.** Brainstormed with the owner (live `--chrome` walk + visual-companion wireframes), grounded by 9 subagent explorations + a 3-lens adversarial panel (wizard-reality / product-UX / architecture), then stress-tested by a **5-persona panel** (trainer/student · defect QE · invited Member · Sponsor · process engineer) whose amendments are folded in (§1 applicability, §4.2a re-framing, §6 humanization). Owner-reviewed + approved 2026-06-06. Build phased P1–P4 (§9). Origin: `investigations.md` "PWA first-session journey — sample-data → Explore → first Finding is not smooth" (logged 2026-06-05, promoted here).
 
 ## §0 · The felt friction (what this fixes)
 
@@ -68,7 +68,8 @@ The condition    — the Finding: filters × window, factor-expressed
 - **One grammar — engine proposes, analyst decides** — at every altitude: Y inference (b0), step-timestamp pairs (L2), mode detections, shift signals (Explore), best-subsets vital-few (Wall). The same chip/banner language top to bottom; the system never blocks with modals it can answer itself.
 - **One unit — the Finding** — a condition captured at any altitude, filing **back up** to where it came from (`processLocation` join, investigation-surface spec §7), so the map deepens as you investigate.
 - **One wrapper — the Untitled project** (§3) — always exists; ceremony is opt-in.
-- **The landing rule (one sentence): land at the highest altitude your data has established.** "Established" = analyst-confirmed or sample-curated — engine-inferred Y/X are _proposals_, not establishment. No established framing → b0 (arriving pre-filled by inference for one-glance confirmation); framing established but no map → L1; map with steps/timings → L2; drilled → L3. One routing rule, destination varies: a raw paste lands at b0; a curated map-less sample at L1; The Bottleneck (once its map is seeded) at L2.
+- **The landing rule (one sentence): no map → b0 · map → L2 · drilled → L3.** L1 is a zoom-out destination, never a cold landing — this matches the shipped scope gate (`detectScopeFromMap` routes on map nodes; a map-less L1 state doesn't exist in the router). Every first session therefore sees the framing surface: a raw paste lands at b0 as _confirm-the-proposals_ (engine-inferred Y/X pre-filled, one glance to fix); a curated sample lands at b0 as _here's-your-frame_ (fully confirmed, one click from "See the data"); The Bottleneck (once its map is seeded) lands at L2 with the bottleneck visible.
+- **Applicability boundary (persona-panel amendment 2026-06-06): the rule governs FRESH data entry only** — paste, sample, manual, `.vrs` import. **Existing-project opens keep their current landing** (Dashboard → persisted view; `Editor.tsx:1109-1117`) — do not re-route the most common Azure collaboration entry. **Embed mode (`?embed=true`) is exempt** — it renders the requested chart, never the journey spine (its current Explore landing is accidental; the exemption must be explicit in P1). **`.vrs` imports route by the same rule against the _hydrated snapshot_** — a map-bearing scenario lands at L2 — and **reconstruct, never create**: the envelope's own project is the wrapper (name from the envelope; no fresh Untitled wrap; current `variscout.document` v1 envelope only — wedge no-back-compat, old `.vrs` versions are nobody's problem).
 
 Framing (b0) is not a separate concept — it is "altitude not yet established." The Edit zones are not a separate concept — they are _authoring at a level_. The wizard dies because it stood outside the altitude model entirely.
 
@@ -92,9 +93,12 @@ Every data entry (sample, paste, manual, `.vrs` import) creates an **Untitled pr
 
 - **The E1 T6 Process-tab gate dissolves** — there is always an active project; `NoActiveProjectGuidance` branches become unreachable on the main flow. (Amendment to the E1 T6 decision; its real rationale — canvas edits need a persistence home — is satisfied by the always-present project.)
 - **IM-0a's Hub⟷Project 1:1 becomes total** (every hub always paired).
-- **Durability is Word-style in Azure:** in-memory until first explicit save; **save nudge fires when the first Finding is saved** ("this session became worth keeping"); `beforeunload` guard when dirty (native dialog; desktop-reliable, mobile/installed-PWA flakiness accepted). Corroborated by shipped code: Azure's `useNewHubProvision` already defaults to `'Untitled hub'`.
+- **Durability is Word-style in Azure:** in-memory until first explicit save; **save nudge fires when the first Finding is saved** ("this session became worth keeping") — the primary protection; `beforeunload` guard when dirty is the backstop (native dialog; desktop-reliable; iOS-Safari-tab flakiness accepted — there is **no installed-PWA context by ADR-012**, browser-only). Corroborated by shipped code: Azure's `useNewHubProvision` already defaults to `'Untitled hub'`.
 - **PWA unchanged per R6d:** the untitled project is in-memory; `.vrs` export _is_ its save; same nudge moments with "Export" verbs.
 - Azure relocations: the analysis brief, goal narrative, and hub naming move **off the paste path** onto the project framing surface — they are Charter content miscategorized as ingestion (panel finding).
+- **Name-before-invite (Sponsor-panel amendment):** the invite ceremony is exactly what makes a project visible to others — so the invite CTA gates on an explicit save + non-default title. A Sponsor never opens a project called "Untitled," and never reads an unsaved in-memory document whose loss they couldn't see.
+- **Hubs share the Word-style story:** `useNewHubProvision` today eagerly persists the hub on creation (vestibule-era path) — reworked in P1 so the Untitled pair (hub + project) has one in-memory-until-save durability story, keeping IM-0a's total 1:1 consistent.
+- **The save/export nudge fires on the user's _own_ first capture** — an imported scenario's trainer-authored findings don't trigger it (classroom reality: session-only is the communicated contract; the nudge is one calm line, single-fire, dismissible).
 - Doc amendment: OVERVIEW's "Project — the optional formal wrapper" reframes to _ceremony is optional_.
 
 ## §4 · The landing
@@ -108,7 +112,7 @@ The shipped `FrameViewB0` composition (question-led: _"What do you want to inves
 - **Top Y pre-selected with top-3 sibling candidates visible** (`rankYCandidates` already ranks; never bury the choice — a wrong pick is one glance + one click to fix).
 - **Provenance line**: "Pasted · 800 rows · 6 columns · 0.4% missing" — see the inference, don't trust it blind. (P2: per-candidate quality strip — %-missing, distinct count, inline distribution — data already in `ColumnAnalysis`.)
 - **No-numeric-Y guard:** when `rankYCandidates` returns empty (all-categorical paste), port the `OutcomeNoMatchBanner` ("I expected the outcome to be \_\_\_" + skip) into the no-Y b0 state — never a permanently disabled CTA.
-- **Multi-outcome guard:** ColumnMapping supports multi-outcome selection; b0 is single-Y today. The b0 picker must close this gap **before** the wizard demotes (guarded regression).
+- **Multi-outcome guard (resolved → "+ track another outcome"):** the landing keeps its one-question clarity (single-Y); a quiet **"+ track another outcome"** link beneath the Y section gives the multi-Y minority wizard parity in one tap — the first-selected Y stays the lead for Explore. (For defect data the real "multiple outcomes" are derived metrics, not columns — see §4.2a.) Must land **before** the wizard demotes (guarded regression).
 - **"Fix data…" hatch** = the demoted ColumnMapping, for messy pastes (title blocks, units rows), the wide-stack's two un-inferable name fields, and manual type overrides. It must **auto-surface when inference confidence is low** and must **not wipe `rawData` on cancel** (today's `handleMappingCancel` does — hostile; fix in P1).
 - Sample and paste land on **one path** (today samples skip mapping and paste doesn't — accidental fork removed). Demo-featured samples (The Bottleneck first) get **seeded `processMap` configs** — the machinery exists in `loadSample`; only `analyze-showcase` uses it.
 
@@ -120,6 +124,16 @@ The shipped `FrameViewB0` composition (question-led: _"What do you want to inves
 | **Loud banners** (unit-of-analysis; confirm-not-auto) | defect event-log (`detectDefectFormat`) · wide/multi-channel (`detectWideFormat`) · **step-timestamp pairs** (§4.3) | top-of-b0 proposal banner with one primary action; pre-computed `suggestedMapping` is the payload |
 
 Rationale (panel): in a stats tool a wrong unit of analysis silently produces a _confident, meaningless chart_ — interpretive failure, invisible. "Never modal" holds; "never interrupt" does not, for unit-of-analysis. The existing detection modals (`PerformanceDetectedModal`, `DefectDetectedModal`, `CapabilitySuggestionModal`) retire into this grammar.
+
+### §4.2a · Mode detections re-frame b0 — they never bypass it (persona-panel amendment 2026-06-06)
+
+b0 as shipped is a _measurement-data_ surface; event logs and wide channel data break it (the QE panel verdict was **breaks**: empty Y picker + disabled CTA under a blocking defect modal; the process-engineer panel: "pick one of 8 indistinguishable channels" with siblings polluting the X list, and the wide banner not wired into the b0 path at all). The fix is one principle: **a unit-of-analysis detection renders its banner _above_ the picker, pre-empting any wrong pick, and accepting it re-frames what b0 frames:**
+
+- **Defect event-log → accept sets `analysisMode='defect'` and the derived `DefectRate`/`DefectCount` becomes b0's pinned Y** (today the transform output is Dashboard-local `effectiveData` and never reaches b0's `rawData`-derived candidate list — that plumbing seam is named in §8). The Y question becomes a **derived-metric picker** (Count vs Rate, per `paretoYOptions`) — the honest "multiple outcomes" of defect data. **Honesty note:** defect confirmation carries real role decisions (type/count/result/units-produced — units often un-inferable from event logs); it is a short pre-filled confirm sequence, not a one-tap banner. Pretending otherwise would rebuild the vestibule as a chip.
+- **Wide/multi-channel → accept sets `analysisMode='performance'` + `measureColumns`** — per-channel Cp/Cpk is a distinct surface, **not** multi-Y; never route it through the "+ track another outcome" path. **Channel siblings leave the Y and X candidate lists** (an 8-way tie at base score across pattern-matched siblings _is_ the "no single Y exists" signal — surface it, don't pick `Head_1`). The **stack** (unpivot-to-long) is the _secondary_ disposition ("or combine into one measure"), hosting its two un-inferable name fields in the chip expansion or the hatch.
+- **No-Y floor is P1, not deferred:** the `OutcomeNoMatchBanner` port (§4.1) is the generic floor for _any_ all-categorical paste, detection-flagged or not.
+- **No worst-combo interim:** P1 routes measurement-shaped pastes to b0; defect/wide-shaped pastes **keep today's modal path until P2 lands the re-framing banners** — never an empty-Y b0 underneath a blocking modal.
+- **Step-timings can't false-positive on channels** (verified): pair detection requires date-kind `_start`/`_end` columns; numeric `Head_N` + one timestamp cannot trigger it.
 
 ### §4.3 · The step-timestamps chain — wireframe: [`step-timings`](../../02-journeys/wireframes/step-timings.md)
 
@@ -147,32 +161,37 @@ Brush specifics (owner-locked):
 - I-Chart only in V1; one range per finding (disjoint multi-range YAGNI).
 - Engine detections become **proposed findings**: the process-shift banner shrinks to a compact signal chip with a **Capture** action (and stops eating vertical space). Deterministic engine proposes; analyst decides.
 - The Findings empty state teaches the actual grammar: _"Brush a range, pin your filters, or capture a detected signal."_ The pin stays chip-gated (correct — no filters, no filter-state to pin; three other entries cover the zero-filter moment). Point-at-chart gets a visible affordance; right-click stays as the shortcut.
+- **Mobile (resolved): tap-capture only** — pin, point-at-chart, and engine chips work on touch unchanged; **brush is desktop-only in V1** (touch-brush revive trigger: evidence of mobile-first analysis sessions); the card renders as a **bottom sheet** on small screens (the established mobile pattern here).
+- **Performance mode:** point-at-chart captures per-channel via the cross-channel boxplot (`FindingSource.category` = channel label). The per-channel Cpk _scatter_ has no `FindingSource` variant — **capture is not offered there in V1** (a new variant is deferred, revive on demand; do not silently overload an existing variant).
 
 ## §6 · Crossing up — the Analyze handoff and the status ladder
 
 - **Findings-forward Wall arrival** — wireframe: [`wall-arrival`](../../02-journeys/wireframes/wall-arrival.md). With findings present, the Wall's empty state shows _your captured conditions as evidence waiting to be explained_ ("You've observed: [obs 32–58 elevated]. What do you suspect causes these?") — one tap promotes a finding's factor into a hypothesis hub. Plus the **afterglow**: saving a Finding shows a one-time "Take it to Analyze →" on the confirmation. Both paths land identically.
 - **The status ladder.** The five `HypothesisStatus` values are untouched (settled enum; feeds Report composition via `groupHypothesesByStatus`). Presentation changes from a flat dropdown to the epistemic ladder it is: `Proposed → Evidenced → Needs disconfirmation → Supported / ↘ Refuted`, one-line teaching microcopy per rung ("Supported — survived an attempt to break it"). **Gestures drive status; the dropdown becomes the override** — suggested transitions surface as proposal chips ("3 supporting findings — mark Evidenced?"). Analyst-owned status survives intact (CS-10); first-session users meet the ladder one rung at a time.
 - **Crossing back down:** "explore this factor" (CS-13) carries scope to Explore. Known gap, named: on PWA the Explore **chart mirror is deferred** (`lv1-pwa-mount`) so re-scoping isn't yet visible in the charts — a journey dependency, not silently absorbed.
+- **The Report humanization boundary (Sponsor-panel amendment 2026-06-06).** `ReportView` renders `finding.text` **verbatim** in Summary mode today — brush-primary capture would put _"Brushed indices 32-58 on Day_of_Week"_ in front of an executive. Two gates: (1) raw `finding.text` / auto-minted factor names never render on the executive Report path — they pass through a condition humanizer ("Day-of-Week, observations 32–58") or the analyst's edited label; (2) **promotion requires a plain-language hypothesis name** — "What might cause this?" prompts for it; an auto-derived factor name (`obs 32–58 in/out`) never becomes a hypothesis title unedited, because hypothesis names ARE the Sponsor's primary read (`ipReport` narrative rows). §7's "Report composition untouched" is amended: _composition logic untouched; display names humanized at the Report boundary._
 
 ## §7 · Scope fences + guarded regressions
 
-**Named but not touched:** Home session owns the populated launchpad + Azure arrival (this spec owns the empty landing end-to-end; Home inherits it locked). CS-P2…P5 build the §2A per-step capability view (this spec routes to it). CoScout / #12 Control / Project-tab sessions fully separate (overlap analysis 2026-06-05: no forcing design object). Second-paste **match-summary/provenance cascade untouched** — re-ingestion ≠ first-session; it keeps its own entry. The §5.4 projectStore↔ProcessMap store seam stays un-reconciled per the connective spec. `HypothesisStatus` enum + Report composition untouched. Manual entry (already bypasses the wizard — existence proof for the design), embed mode, `.vrs` envelope unchanged.
+**Named but not touched:** Home session owns the populated launchpad + Azure arrival (this spec owns the empty landing end-to-end; Home inherits it locked). CS-P2…P5 build the §2A per-step capability view (this spec routes to it). CoScout / #12 Control / Project-tab sessions fully separate (overlap analysis 2026-06-05: no forcing design object). Second-paste **match-summary/provenance cascade untouched** — re-ingestion ≠ first-session; it keeps its own entry (a Member pasting into a shared project hits that cascade, never this landing). The §5.4 projectStore↔ProcessMap store seam stays un-reconciled per the connective spec. `HypothesisStatus` enum + Report composition logic untouched (display names humanized at the boundary, §6). Manual entry (already bypasses the wizard — existence proof for the design; lands its typed grid on the same b0 afterward), embed mode (exempt per §1), `.vrs` envelope unchanged.
+
+**Load-bearing dependencies named (persona panel):** the **Sponsor ACL gate** (`IPDetailPage` routes sponsors to a Report-only branch — the _only_ reason authoring voice and capture gestures never reach the read-mostly role; a future routing change must not silently breach it). The **PendingInvitesBanner mounts in Editor chrome** (component lives under `ui/.../Home/`) — noted so the Home fence is accurate. The **invite→durable-membership seam** (accepting an invite is in-memory-only; durable cross-session access requires the Lead's save) belongs to the Home/collaboration session — logged in `investigations.md` with the `acceptInvite` silent-no-op bug.
 
 **Guarded regressions:** b0 single-Y vs wizard multi-outcome (§4.1 — close before demoting); no-numeric-Y stranding (§4.1); `handleMappingCancel` rawData wipe (§4.1); defect/wide must stay confirm-not-auto (mode transforms run before stats); paste currently has **no row-count guardrail** (file upload does) — close uniformly with a non-modal banner.
 
 ## §8 · Architecture notes
 
-- **Writer collapse, stated precisely:** one _interactive_ writer of `projectStore.outcome/factors` (the b0 picker) + seed writers (ingestion paths). Today three surfaces race through the same store actions (paste autodetect, mapping-confirm, b0 picker — mutually exclusive in time only). This strengthens connective-spec seam #3, whose stated invariant is already "the b0 picker is the only writer."
+- **Writer collapse, stated precisely:** one _interactive_ writer of `projectStore.outcome/factors` (the b0 picker) + seed writers (ingestion paths). Today three surfaces race through the same store actions (paste autodetect, mapping-confirm, b0 picker — mutually exclusive in time only). This strengthens connective-spec seam #3, whose stated invariant is already "the b0 picker is the only writer." **Defect-mode exception, named:** in defect mode the session outcome is owned by `defectResult.outcomeColumn` (the transform output, Dashboard-local today) — §4.2a's re-framing requires plumbing it into b0's candidate source (`columnAnalysis` is `rawData`-derived and mode-blind); until then "one interactive writer" holds for measurement modes only.
 - Inference relocates nowhere: `detectColumns` / `rankYCandidates` / `detectWideFormat` / `detectDefectFormat` live in `packages/core` and are already called by `CanvasWorkspace` independently of the wizard.
 - Azure twin (`useEditorDataFlow`, ~600 LOC, superset: hub provisioning + brief + Stage-3 confirm) mirrors the PWA reducer — **phase per-app, PWA first; never one cross-app PR**.
 - E2E: ~25 `confirmColumnMapping` call sites rewrite — budgeted first-class, not cleanup.
 
 ## §9 · Phasing (no throwaway; decreasing reversibility)
 
-- **P1** — route paste/sample → Process-tab landing (altitude rule); demote wizard to "Fix data…" hatch (demote ≠ delete); Untitled-project auto-create + auto-activate; seeded process maps for demo-featured samples; fix the rawData-wipe.
-- **P2** — detections → chips/banners (time · defect · wide · step-timestamp pairs); retire the detection modals; PWA first, Azure mirror second.
-- **P3** — capture card + brush-mints-factor + engine-signal capture + chart bands; findings-forward Wall + afterglow; status-ladder presentation; save nudge + `beforeunload` guard.
-- **P4** — writer collapse; wizard retirement from the primary path (hatch remains); E2E spine rewrite.
+- **P1** — route _measurement-shaped_ paste/sample → Process-tab landing (altitude rule; defect/wide-shaped pastes keep today's modal path until P2 — no worst-combo interim); `.vrs` import routing + embed exemption; demote wizard to "Fix data…" hatch (demote ≠ delete); Untitled-project auto-create + auto-activate (+ the hub eager-persist rework); no-Y `OutcomeNoMatchBanner` port; seeded process maps for demo-featured samples; fix the rawData-wipe.
+- **P2** — detections → chips/banners that **re-frame b0** (§4.2a: defect derived-metric picker · performance `measureColumns` + sibling exclusion · time · step-timestamp pairs); retire the detection modals; PWA first, Azure mirror second.
+- **P3** — capture card + brush-mints-factor + engine-signal capture + chart bands (mobile = tap-capture, bottom sheet); findings-forward Wall + afterglow (promotion prompts a plain-language hypothesis name); Report humanization boundary; status-ladder presentation; save nudge (own-capture rule) + `beforeunload` guard; name-before-invite gate.
+- **P4** — writer collapse (defect-mode seam plumbed); wizard retirement from the primary path (hatch remains); E2E spine rewrite.
 
 ## §10 · Success criteria
 
@@ -193,7 +212,15 @@ At delivery (Apply phase — per-initiative, not batch): rewrite `docs/02-journe
 
 ## §12 · Open questions
 
-- b0 multi-outcome picker design (the §4.1 guard) — small design task inside P1.
-- Capture-card mobile ergonomics (brush on touch; card placement) — follows the Wall mini-chart precedent; verify in P3.
-- `beforeunload` on installed PWAs — accepted flaky; revisit if mobile-first sessions become a real segment.
-- Whether the L1 system view needs richer content before it can be a landing (vs. landing at L2 whenever a map exists) — resolve in P1 with a `--chrome` walk.
+**Resolved 2026-06-06 (owner Q&A + 5-persona panel — trainer/student · defect QE · invited Member · Sponsor · process engineer; 4× holds-with-amendments, 1× breaks→fixed by §4.2a):**
+
+- ~~b0 multi-outcome~~ → **"+ track another outcome"** link (§4.1); defect's real multi-outcome is the derived-metric picker (§4.2a).
+- ~~Mobile ergonomics~~ → **tap-capture only; brush desktop-only; bottom-sheet card** (§5).
+- ~~`beforeunload` on installed PWAs~~ → moot: **no installed-PWA context exists by ADR-012** (browser-only); iOS-Safari-tab flakiness accepted, nudge is the primary protection (§3).
+- ~~L1-as-landing richness~~ → dissolved: **the rule is no map → b0 · map → L2**; L1 is a zoom-out destination only (§1).
+
+**Still open:**
+
+- A `FindingSource` variant for the per-channel Cpk scatter — deferred, revive on demand (§5).
+- Trainer-pinned student entry surface (`.vrs` doesn't serialize `viewState`, so a scenario can't open _on the Wall_ where the trainer intended) — a real education-funnel enhancement; route to a future education/trainer session, not this build.
+- The defect confirm-sequence's exact UI (how the pre-filled role decisions present inside the banner expansion) — P2 design detail, wireframe before build per §11.

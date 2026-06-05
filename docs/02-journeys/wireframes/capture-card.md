@@ -36,4 +36,4 @@ Every capture gesture in Explore opens this one pre-filled draft card. Converges
 - **The chart remembers**: saved windows render as subtle I-Chart bands; tap a band to reopen its finding.
 - Engine signals (process shift, etc.) are compact margin chips with a **Capture** action — proposed findings, not announcements; same card, pre-filled with the detected condition.
 - Findings-panel empty state teaches the grammar: "Brush a range, pin your filters, or capture a detected signal."
-- V1 bounds: I-Chart brush only; one range per finding.
+- V1 bounds: I-Chart brush only; one range per finding. **Mobile: tap-capture only** (pin / point / engine chips); brush is desktop-only; the card renders as a bottom sheet. **Performance mode:** point-at works on cross-channel boxplot categories; no capture on the per-channel Cpk scatter (no `FindingSource` variant — deferred).

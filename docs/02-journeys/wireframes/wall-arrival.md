@@ -39,7 +39,7 @@ What greets a user crossing into Analyze with captured Findings but no hypothese
 
 ## Interaction contract
 
-- "What might cause this?" promotes the finding's factor into a hypothesis hub — CS-12 derived edges connect them automatically.
+- "What might cause this?" promotes the finding's factor into a hypothesis hub — CS-12 derived edges connect them automatically. **Promotion prompts for a plain-language hypothesis name** — an auto-minted factor label (`obs 32–58 in/out`) never becomes a hypothesis title unedited (hypothesis names reach the executive Report verbatim; spec §6 humanization boundary).
 - The afterglow path (one-time "Take it to Analyze →" on the capture confirmation) lands identically.
 - `HypothesisStatus` enum untouched (feeds Report composition); this view changes **presentation only** — the ladder ordering is what makes Evidenced vs Supported legible.
 - Analyst-owned status survives (CS-10): suggestions are chips, never auto-applied.

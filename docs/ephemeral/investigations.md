@@ -26,6 +26,16 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### acceptInvite is in-memory-only + can silently no-op — durable membership requires the Lead's save [LOGGED 2026-06-06]
+
+**Surfaced by:** the first-session-journey 5-persona panel (invited-Member evaluator), 2026-06-06.
+
+**Summary:** `useProjectMembershipStore.acceptInvite` (≈`:117-145`) mutates the in-memory `projectsById` mirror and consumes the per-user localStorage invite, but never writes the new membership to `db.projects` or cloud — so accepting an invite does not, by itself, make the project pass `canAccessProjectRecord` (`localDb.ts:66-69`) in the Member's next session; only the Lead's subsequent project save durably grants access. Additionally, if the foreign project isn't hydrated in the Member's `projectsById` when they accept, the target-find misses and the invite is **consumed with no member added** (silent no-op). Pre-dates the first-session work; the Untitled-project model (spec 2026-06-06 §3) changes hub/project hydration timing and must not worsen it.
+
+**Promotion path:** the Home / collaboration-arrival design session owns the invite→durable-membership seam (the first-session spec §7 names it as a fenced dependency). The silent no-op is a candidate straight bug-fix PR independent of design.
+
+**Severity:** medium — collaboration onboarding can strand an invited Member without visible error; rare at 2–5 users but it is the _first_ thing a new Member does.
+
 ### PWA first-session journey — sample-data → Explore → first Finding is not smooth [PROMOTED 2026-06-06 → spec 2026-06-06-first-session-journey-design]
 
 **Surfaced by:** owner live walk 2026-06-05 (during PO-8a execution): clicking a sample dataset in the PWA lands in Explore, but capturing the first Finding from there had visible friction — the wiring works, the _journey_ doesn't flow.
