@@ -1653,14 +1653,15 @@ describe('analyzeStore — archiveScope (IM-4b Task 5)', () => {
   });
 });
 
-describe('promoteFindingAction', () => {
+describe('analyzeStore — promoteFindingAction', () => {
   it('stamps parentImprovementProjectId on the matching action only', () => {
     const ctx = makeContext();
     const finding = useAnalyzeStore.getState().addFinding('note', ctx);
     useAnalyzeStore.getState().addFindingAction(finding.id, 'fix the fixture');
     useAnalyzeStore.getState().addFindingAction(finding.id, 'leave me alone');
-    const a1Id = useAnalyzeStore.getState().findings.find(f => f.id === finding.id)!.actions![0].id;
-    const a2Id = useAnalyzeStore.getState().findings.find(f => f.id === finding.id)!.actions![1].id;
+    const updatedFinding = useAnalyzeStore.getState().findings.find(f => f.id === finding.id)!;
+    const a1Id = updatedFinding.actions![0].id;
+    const a2Id = updatedFinding.actions![1].id;
 
     useAnalyzeStore.getState().promoteFindingAction(finding.id, a1Id, 'ip-123');
 
