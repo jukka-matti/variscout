@@ -46,6 +46,17 @@ describe('trackDocumentSaveSerialize (PO-8b — research-grounded dual trigger)'
     );
   });
 
+  it('both thresholds exceeded → size wins the trigger label (the tie-break)', () => {
+    trackDocumentSaveSerialize({
+      sizeBytes: OVERSIZE_TRIGGER_BYTES + 1,
+      serializeMs: LONG_TASK_TRIGGER_MS + 1,
+    });
+    expect(mockSafeTrackEvent).toHaveBeenCalledWith(
+      'Document.Save.ReArchitectTrigger',
+      expect.objectContaining({ trigger: 'size' })
+    );
+  });
+
   it('negative control: a small fast save fires NO trigger event', () => {
     trackDocumentSaveSerialize({ sizeBytes: 1000, serializeMs: 3 });
     expect(mockSafeTrackEvent).toHaveBeenCalledTimes(1); // only the Serialize event
