@@ -21,7 +21,7 @@ layer: L5
 
 **Date**: 2026-05-05
 
-**Amendments:** 2026-05-16 retires D5 tier-feature gating via [ADR-082](adr-082-wedge-architecture.md); 2026-05-18 records the 9-store F4 reality; 2026-05-31 ratifies the 10-store model and actual package graph; 2026-06-01 corrects PWA persistence to R6d export-only durability and updates Azure persistence language for the R6e server-enforced storage boundary. The original D1-D4 shared-architecture decisions remain in force.
+**Amendments:** 2026-05-16 retires D5 tier-feature gating via [ADR-082](adr-082-wedge-architecture.md); 2026-05-18 records the 9-store F4 reality; 2026-05-31 ratifies the 10-store model and actual package graph; 2026-06-01 corrects PWA persistence to R6d export-only durability and updates Azure persistence language for the R6e server-enforced storage boundary; 2026-06-05 amends D3 — `ProcessHubAnalyze` entity dissolved (PO-4/PR #301); the multi-analyze named-future design relocated (see ADR-090 + §10 relocation doc); supersession pointer to ADR-090. The original D1-D4 shared-architecture decisions remain in force.
 
 **Supersedes**: The "State via React Context (`DataContext`). No Zustand stores in PWA." invariant previously documented in `apps/pwa/CLAUDE.md` (no formal ADR — the rule was an aspirational invariant that drifted silently as the PWA matured).
 
@@ -254,6 +254,31 @@ strings / Shared Key credentials are local-dev/test-only.
 - Slice 4 retro learnings: `feedback_slice_size_cap`, `feedback_plan_call_site_reachability`, `feedback_partial_integration_policy`, `feedback_one_worktree_per_agent`
 - PR #126 review (the trigger for this brainstorm): https://github.com/jukka-matti/variscout/pull/126#issuecomment-4377093546
 
+## Amendment — 2026-06-05 — D3 disposition: ProcessHubAnalyze dissolved, multi-analyze future relocated
+
+**D3 — Investigation lifecycle (deferred)** originally read: "multi-investigation-per-hub
+will be tier-gated (PWA single-Hub-of-one stays single-investigation by Q8 constraint;
+Azure can have many)." This framing is amended as follows:
+
+**The `ProcessHubAnalyze` / `ProcessHubAnalyzeMetadata` projection entity is
+dissolved** (PO-4, PR #301, commit `09a52be98`). Pre-extraction grounding revealed it
+was never a persisted entity in the DDD sense — Azure synthesised it from
+`ImprovementProject.metadata` at Dashboard render; the `INVESTIGATION_*` HubAction
+surface was dead (no-op reducers, zero dispatchers). The live "New Analyze" button
+(`Dashboard.tsx:690-696, 768-772`) that created sibling projects was also removed,
+as it violated the V1 Project⟷Hub 1:1 invariant (IM-0a).
+
+**The multi-analyze future is recorded intact** in the §10 relocation doc:
+[`docs/01-vision/variscout-process/process-operations-layer.md`](../01-vision/variscout-process/process-operations-layer.md).
+The cadence model, work-item fields, and the multi-analyze container design are
+preserved as VariScout Process territory — not deleted from institutional memory,
+only from V1 code.
+
+**Supersession pointer:** [ADR-090](adr-090-processhubanalyze-dissolution-lineage-retirement.md)
+records both structural calls (entity dissolution + `investigationLineage` retirement)
+that this amendment summarises. D1–D2 (shared domain stores + persistence tier-gate)
+remain active and unaffected.
+
 ---
 
 ## Status
@@ -263,5 +288,5 @@ Accepted (2026-05-05). Documentation pass (D1-D5) lands in the ADR's commit. Fut
 ## Supersedes / superseded by
 
 - Supersedes: the `apps/pwa/CLAUDE.md` "State via React Context (DataContext). No Zustand stores in PWA." invariant.
-- Superseded by: none (active).
+- Superseded by: none (active); D3 amended 2026-06-05 — see ADR-090.
 - Related: ADR-012 (preserved — PWA still browser-only), ADR-059 (preserved — Azure still cloud-tier), ADR-075 (preserved — PWA atomic deploy unchanged).

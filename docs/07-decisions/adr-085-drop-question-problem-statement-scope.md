@@ -92,3 +92,30 @@ There is also a stale claim in `packages/stores/CLAUDE.md` that "`SuspectedCause
 2. **Encode the scope as `Hypothesis.condition` on a designated "scope" hypothesis.** Rejected: collapses WHERE into WHY and lets any cause re-assert its own slice. A scope is not a mechanism; it needs its own type.
 3. **Widen `activeFilters` (`Record<col, values[]>`) to express compound predicates.** Rejected: would invent a second predicate language alongside the `hypothesisCondition` leaf+gate tree that already evaluates `eq/neq/lt/gt/between/in`. Reuse the one we have.
 4. **Split the `Question` deletion into 6–8 per-consumer sub-tasks.** Rejected per the CLAUDE.md atomic-deletion-cascade carve-out. Because `questionIds` is required on a central type, the change is one tsc-wide breaking edit (~550 non-test occurrences across ~153 non-test files; 740/211 including tests). Dispatch ONE Opus implementer with Architect → Migration → Validator internal phases and per-category commits, including the non-code surfaces (`packages/data` fixtures, i18n keys, `.vrs` serialization). Splitting an atomic cascade multiplies orchestration cost without buying review depth.
+
+---
+
+## Amendment — 2026-06-05 — ScopeFilter-reconcile mandate: closed by the PO cascade
+
+The Consequences § above recorded: **"`ScopeFilter` (`processHub.ts:203`) must be
+reconciled."** It is single-factor only (`{ factor, values }`) and cannot hold a compound
+scope. The mandate is **closed by deletion** — the PO extraction cascade resolved it:
+
+- `metadata.scopeFilter` (the persisted `ScopeFilter` variant on
+  `ProcessHubAnalyzeMetadata`) **deleted** (PO-1/PO-4 cascade). The field was dead
+  at extraction time: zero live writers, display-only chip via the dead
+  `useCanvasFilters` hook.
+- **The durable WHERE is `ProblemStatementScope` alone.** No widening of `ScopeFilter`
+  was needed because the persisted WHERE is now the fully-typed `ProblemStatementScope`
+  (`ConditionLeaf[]`) introduced by IM-1 (PR #249). The `ScopeFilter` _type_ survives
+  only as a session-scoped variant for Pareto highlight (no persistence, no compound
+  scope required).
+
+**PO-7 field rename note:** `ProblemStatementScope` fields that previously spelled
+`investigationId` now use `projectId` (PO-7 honest-rename sweep). Any shape examples
+in design docs that reference this field should read `projectId`. The join value is
+always an `ImprovementProject['id']` — the rename was name-only (values unchanged).
+
+**`ProblemCondition` (`ai/types.ts`) stays distinct** — it is the HOW-MUCH gap
+(`currentValue` vs `targetValue`), not the WHERE predicate. That boundary is
+unaffected by the PO cascade.
