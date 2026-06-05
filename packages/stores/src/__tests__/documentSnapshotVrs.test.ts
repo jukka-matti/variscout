@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { ProcessHub } from '@variscout/core';
+import type { FindingContext, ProcessHub } from '@variscout/core';
 import { buildDocumentSnapshotVrs, parseDocumentSnapshotVrs } from '../documentSnapshotVrs';
+import { hydrateDocumentSnapshot } from '../documentSnapshot';
 import { getAnalyzeInitialState, useAnalyzeStore } from '../analyzeStore';
 import { useCanvasStore } from '../canvasStore';
 import {
@@ -30,11 +31,15 @@ const hub: ProcessHub = {
   primaryScopeDimensions: ['line'],
 };
 
-beforeEach(() => {
+function resetStores() {
   useProjectStore.setState(getProjectInitialState());
   useAnalyzeStore.setState(getAnalyzeInitialState());
   useCanvasStore.setState(useCanvasStore.getInitialState());
   useImprovementProjectStore.setState(getImprovementProjectInitialState());
+}
+
+beforeEach(() => {
+  resetStores();
 });
 
 describe('document snapshot .vrs helpers', () => {
@@ -154,5 +159,43 @@ describe('document snapshot .vrs helpers', () => {
         })
       )
     ).toThrow(/invalid file format/i);
+  });
+});
+
+const ctx: FindingContext = { activeFilters: {}, cumulativeScope: null };
+
+describe('PO-6: findings round-trip the .vrs arc (quick-analysis onramp)', () => {
+  it('a store finding survives export → reset → import; a store-absent finding does NOT appear', () => {
+    // Seed: finding A lives in the store (the quick-analysis pin path post-unification)
+    useAnalyzeStore.getState().addFinding('finding A — pinned from Explore', ctx);
+    const vrsWithA = buildDocumentSnapshotVrs({
+      activeHub: hub,
+      metadata: { exportSource: 'pwa' },
+    });
+
+    // A second session exports a .vrs carrying ONLY finding B
+    resetStores();
+    useAnalyzeStore.getState().addFinding('finding B — different session', ctx);
+    const vrsWithB = buildDocumentSnapshotVrs({
+      activeHub: hub,
+      metadata: { exportSource: 'pwa' },
+    });
+
+    // Third session: the store is non-empty with A pre-import — hydrate must REPLACE, not merge
+    resetStores();
+    useAnalyzeStore.getState().addFinding('finding A — pinned from Explore', ctx);
+
+    const parsed = parseDocumentSnapshotVrs(vrsWithB);
+    hydrateDocumentSnapshot(parsed.documentSnapshot);
+
+    const texts = useAnalyzeStore.getState().findings.map(f => f.text);
+    expect(texts).toContain('finding B — different session'); // imported finding IS visible
+    expect(texts).not.toContain('finding A — pinned from Explore'); // store-absent finding does NOT appear
+    expect(useAnalyzeStore.getState().findings).toHaveLength(1);
+
+    // And the export side of the arc: the first export carried A
+    expect(
+      JSON.parse(vrsWithA).documentSnapshot.analyze.findings.map((f: { text: string }) => f.text)
+    ).toContain('finding A — pinned from Explore');
   });
 });
