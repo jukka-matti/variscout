@@ -5,7 +5,7 @@ import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
 export interface ControlRecordEditorProps {
-  investigationId: string;
+  projectId: string;
   hubId: string;
   currentUser: EasyAuthUser;
   existingRecord?: ControlRecord;
@@ -31,7 +31,7 @@ const suggestDueDate = (cadence: ControlCadence): string => {
 };
 
 const ControlRecordEditor: React.FC<ControlRecordEditorProps> = ({
-  investigationId,
+  projectId,
   hubId,
   currentUser,
   existingRecord,
@@ -74,7 +74,7 @@ const ControlRecordEditor: React.FC<ControlRecordEditorProps> = ({
     const record: ControlRecord = {
       id: existingRecord?.id ?? crypto.randomUUID(),
       title: existingRecord?.title ?? 'Control cadence',
-      investigationId,
+      projectId,
       hubId,
       status: existingRecord?.status ?? 'pending',
       consecutiveOnTargetTicks: existingRecord?.consecutiveOnTargetTicks ?? 0,

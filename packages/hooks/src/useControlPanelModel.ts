@@ -68,13 +68,18 @@ function firstClosedProjectLegacy(hub: ProcessHub): ImprovementProject | undefin
 function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): ControlRecord {
   const project = firstClosedProject(hub, preferredProjectId) ?? firstClosedProjectLegacy(hub);
   const now = Date.now();
-  const investigationId = project?.metadata.investigationId ?? `${hub.id}:sustainment`;
+  // The Control join key: the project's self-FK when a closed project exists,
+  // else the synthetic `${hub.id}:sustainment` fallback — the only join key for
+  // records created without an associated closed project. PO-7 renamed the
+  // FIELD to `projectId` (honest rename); the fallback VALUE is deliberately
+  // not a project id and is preserved byte-identical.
+  const joinKey = project?.metadata.projectId ?? `${hub.id}:sustainment`;
   const title = project ? `Sustain ${project.metadata.title}` : `Sustain ${hub.name}`;
 
   return {
     id: makeId(),
     hubId: hub.id,
-    investigationId,
+    projectId: joinKey,
     status: 'pending',
     title,
     improvementProjectId: project?.id,

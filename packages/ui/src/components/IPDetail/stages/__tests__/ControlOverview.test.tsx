@@ -10,7 +10,7 @@ const record: ControlRecord = {
   deletedAt: null,
   updatedAt: 0,
   hubId: 'hub-1',
-  investigationId: 'inv-1',
+  projectId: 'inv-1',
   improvementProjectId: 'ip-1',
   status: 'pending',
   title: 'Sustain Heads 5-8',

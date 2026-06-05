@@ -62,7 +62,7 @@ describe('ControlHandoff V1 lifecycle shape', () => {
     const states: ControlHandoffStatus[] = ['pending', 'acknowledged', 'operational'];
     const handoff: ControlHandoff = {
       id: 'handoff-1',
-      investigationId: 'inv-1',
+      projectId: 'inv-1',
       hubId: 'hub-1',
       status: 'acknowledged',
       surface: 'qms-procedure',
@@ -93,7 +93,7 @@ function makeRecord(nextReviewDue?: string): ControlRecord {
   return {
     id: 'rec-1',
     title: 'Sustain fill-weight gains',
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     cadence: 'monthly',
     status: 'pending',
@@ -344,8 +344,8 @@ describe('isControlOverdue', () => {
 
 // ── PR-PO-2: the control selectors are now keyed on ImprovementProject. ──────
 // `makeProject` is the unit; `recordFor` joins via `improvementProjectId` and
-// `makeHandoff` bridges via a shared `investigationId` (handoffs carry no
-// project FK). The investigationId convention used below is `inv-<projectId>`.
+// `makeHandoff` bridges via a shared `projectId` (handoffs carry no
+// project FK). The projectId convention used below is `inv-<projectId>`.
 
 function makeProject(
   id: string,
@@ -375,7 +375,7 @@ function makeHandoff(
 ): ControlHandoff {
   return {
     id: `h-${projectId}`,
-    investigationId: `inv-${projectId}`, // bridges to the project via its record
+    projectId: `inv-${projectId}`, // bridges to the project via its record
     hubId: 'hub-1',
     status: 'operational',
     surface,
@@ -398,7 +398,7 @@ function recordForProject(
   return {
     id: `rec-${projectId}`,
     title: `Control record for ${projectId}`,
-    investigationId: `inv-${projectId}`,
+    projectId: `inv-${projectId}`,
     improvementProjectId: projectId,
     hubId: 'hub-1',
     cadence: 'monthly',

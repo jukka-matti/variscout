@@ -29,7 +29,7 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
 function makeScope(overrides: Partial<ProblemStatementScope> = {}): ProblemStatementScope {
   return {
     id: 'scope-1',
-    investigationId: 'general-unassigned',
+    projectId: 'general-unassigned',
     outcome: 'Fill Weight',
     predicates: [],
     hypothesisIds: [],

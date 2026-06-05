@@ -26,6 +26,20 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### EvidenceSnapshot accumulation — no pruning policy [LOGGED 2026-06-05]
+
+**Surfaced by:** PO-7 doc propagation pass (spec §11 mandate — log if absent); grounding reference: spec `2026-06-04-process-ops-extraction-entity-disposition-design.md` §9.5 + §14.
+
+**Summary:** `EvidenceSnapshot`s accumulate per hub/source-key across re-ingests (the Measure⇄Analyze loop) with no pruning policy. Today snapshots can land with `stepCapabilities === undefined` (the producer-side stamping was a separate deferred item, resolved 2026-05-08), but the broader question — how many snapshots accumulate before this becomes a storage / load-time concern, and what is the eviction policy — is unanswered. The spec explicitly tags this as a "pre-existing watch-item, not changed here" (§9.5) and records the interim as: snapshots+provenance are hub/source-keyed and untouched by PO-4…PO-7; no pruning policy is a known gap. The `ScopeRail` archive prune path (for scopes) exists as a precedent shape.
+
+**Watch-item:** (a) monitor snapshot count growth per hub as real projects accumulate re-ingests; (b) when a threshold is hit or the load-time impact is observable, design the eviction policy (LRU-per-source, keep-N-most-recent, or user-driven archive prune mirroring the ScopeRail pattern). Nobody should re-introduce `investigationLineage` as a "performance fix" — the spec's bound is status + UI by design (§9.5).
+
+**Promotion path:** the §9 / ADR-091 persistence-model follow-up spec when triggered by data growth. Candidate design: keep-N-most-recent per source-key eviction, same prune-path shape as `ScopeRail`.
+
+**Severity:** low — no observed impact today; tracking for when re-ingest loops accumulate real volume.
+
+---
+
 ### `useImprovementOrchestration` (PWA) appears orphaned [LOGGED 2026-06-05]
 
 **Surfaced by:** PO-6 grounding workflow (12-agent, 2026-06-05).
@@ -90,7 +104,9 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Severity:** low — the WHERE-carry is out-of-scope for CS-13 (owner decision); design question for downstream refactor work.
 
-### `Finding.investigationId` FK rename — parked, blast radius named [LOGGED 2026-06-04]
+### `Finding.investigationId` FK rename — parked, blast radius named [LOGGED 2026-06-04] [RESOLVED 2026-06-05 → PO-6 + PO-7]
+
+**[RESOLVED 2026-06-05]** Two-step resolution: (1) `Finding.investigationId` + `Hypothesis.investigationId` were **deleted** in PO-6 (PR #303, spec §4.3 — the FKs were write-only `'general-unassigned'` sentinels never read at runtime; ownership = the document under 1:1); (2) the surviving FK instances on ProblemStatementScope / Control entities / `ImprovementProject.metadata` were **renamed to `projectId`** in PO-7 (PR `feat/po-7-rename-sweep`) — the atomic cascade per `feedback_atomic_sweep_one_dispatch`. The original blast-radius estimate (~130 files) conflated the Finding/Hypothesis FK (deleted), the `investigationLineage` membership FK (deleted in PO-5), and the surviving control-domain FKs (renamed in PO-7). See decision-log §1 2026-06-05 PO-7.
 
 **Surfaced by:** the 2026-06-04 analyze-session grounding pass on `ProcessHubAnalyze` entity disposition.
 
@@ -507,7 +523,9 @@ Each of the 3 files carries a top-of-file deferral comment (PR-WV1-NAV cleanup d
 
 ---
 
-### Foreign-key field name `investigationId` rename deferral
+### Foreign-key field name `investigationId` rename deferral [RESOLVED 2026-06-05 → PO-7]
+
+**[RESOLVED 2026-06-05 → PO-7]** The deferred FK rename was executed in `feat/po-7-rename-sweep` (PR `feat/po-7-rename-sweep`, 2026-06-05): `ControlRecord/Review/Handoff.investigationId` → `projectId`, `ImprovementProject.metadata.investigationId` → `projectId`, `ProblemStatementScope.investigationId` → `projectId`, migration-modal entry renamed. Option (b) from the possible-resolutions list — atomic Opus implementer sweep — was the delivery vehicle, per `feedback_atomic_sweep_one_dispatch`. Wedge no-back-compat: pre-rename persisted rows yield `projectId === undefined` and silently stop joining; the cost is documented-by-test (ADR-091; loud validation = PO-8a). See decision-log §1 2026-06-05 PO-7.
 
 **Surfaced by:** PR-WV1-NAV-2026-05-27 final-branch reviewer audit on the 22-commit Investigation → Analyze vocabulary rename.
 

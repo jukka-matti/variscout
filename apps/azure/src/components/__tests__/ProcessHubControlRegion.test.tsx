@@ -37,7 +37,7 @@ function makeRecord(projectId: string, overrides: Partial<ControlRecord> = {}): 
   return {
     id: `rec-${projectId}`,
     title: 'Control cadence',
-    investigationId: `inv-${projectId}`,
+    projectId: `inv-${projectId}`,
     improvementProjectId: projectId,
     hubId: 'hub-1',
     status: 'pending',
@@ -52,13 +52,10 @@ function makeRecord(projectId: string, overrides: Partial<ControlRecord> = {}): 
   };
 }
 
-function makeHandoff(
-  investigationId: string,
-  overrides: Partial<ControlHandoff> = {}
-): ControlHandoff {
+function makeHandoff(projectId: string, overrides: Partial<ControlHandoff> = {}): ControlHandoff {
   return {
-    id: `ho-${investigationId}`,
-    investigationId,
+    id: `ho-${projectId}`,
+    projectId,
     hubId: 'hub-1',
     status: 'operational',
     surface: 'qms-procedure',

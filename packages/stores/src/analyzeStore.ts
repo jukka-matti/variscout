@@ -150,7 +150,7 @@ export interface AnalyzeActions {
 
   // --- Scope actions (ADR-085 — first-class WHERE) ---
   addScope: (
-    investigationId: string,
+    projectId: string,
     outcome: string,
     predicates?: ConditionLeaf[],
     hypothesisIds?: string[]
@@ -170,7 +170,7 @@ export interface AnalyzeActions {
    * `undefined`. Single-value chips become `eq` leaves, multi-value become `in`.
    */
   syncScopeFromDrill: (
-    investigationId: string,
+    projectId: string,
     outcome: string,
     filters: ReadonlyArray<CategoricalFilterInput>
   ) => ProblemStatementScope | undefined;
@@ -728,13 +728,13 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   // Scope actions (ADR-085 — first-class WHERE)
   // ========================================================================
 
-  addScope: (investigationId, outcome, predicates?, hypothesisIds?) => {
-    const scope = createProblemStatementScope(investigationId, outcome, predicates, hypothesisIds);
+  addScope: (projectId, outcome, predicates?, hypothesisIds?) => {
+    const scope = createProblemStatementScope(projectId, outcome, predicates, hypothesisIds);
     set(state => ({ scopes: [...state.scopes, scope] }));
     return scope;
   },
 
-  syncScopeFromDrill: (investigationId, outcome, filters) => {
+  syncScopeFromDrill: (projectId, outcome, filters) => {
     // Reactive-on-condition-change with set-keyed idempotency (see AnalyzeWorkspace.tsx
     // §"Drill → scope spine" comment). Called from a useEffect on [categoricalFilters,
     // outcome] — NOT on an imperative commit gesture. Intermediate scopes accumulate
@@ -744,19 +744,17 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     // no compound WHERE to persist).
     if (predicates.length === 0) return undefined;
 
-    // Idempotency: key on the predicate SET, scoped to this investigation +
+    // Idempotency: key on the predicate SET, scoped to this project +
     // outcome. Re-firing on the same compound condition returns the existing
     // scope (regardless of chip order) rather than duplicating it.
     const key = predicateSetKey(predicates);
     const existing = get().scopes.find(
       s =>
-        s.investigationId === investigationId &&
-        s.outcome === outcome &&
-        predicateSetKey(s.predicates) === key
+        s.projectId === projectId && s.outcome === outcome && predicateSetKey(s.predicates) === key
     );
     if (existing) return existing;
 
-    return get().addScope(investigationId, outcome, predicates);
+    return get().addScope(projectId, outcome, predicates);
   },
 
   updateScope: (scopeId, patch) => {

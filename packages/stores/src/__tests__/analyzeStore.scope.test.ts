@@ -3,10 +3,10 @@
  *
  * Pins three invariants for Task 1 of PR-CS-0:
  *
- *  1. Per-IP isolation   — identical predicates under different investigationIds
+ *  1. Per-IP isolation   — identical predicates under different projectIds
  *                          produce separate ProblemStatementScopes (no co-mingling).
  *  2. Within-IP idempotency — re-firing with the same predicates under the same
- *                          investigationId returns the existing scope (no duplicate).
+ *                          projectId returns the existing scope (no duplicate).
  *  3. Empty-filter guard  — empty categoricalFilters returns undefined and creates
  *                          no scope entry.
  */
@@ -54,9 +54,9 @@ describe('analyzeStore — syncScopeFromDrill: per-IP isolation', () => {
     // They must be different objects with different ids.
     expect(scopeA!.id).not.toBe(scopeB!.id);
 
-    // Each scope carries the correct investigationId.
-    expect(scopeA!.investigationId).toBe(IP_A);
-    expect(scopeB!.investigationId).toBe(IP_B);
+    // Each scope carries the correct projectId.
+    expect(scopeA!.projectId).toBe(IP_A);
+    expect(scopeB!.projectId).toBe(IP_B);
 
     // The store must hold exactly 2 scopes — no co-mingling or deduplication
     // across IPs.

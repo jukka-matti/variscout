@@ -573,7 +573,7 @@ describe('createProblemStatementScope', () => {
   it('creates a scope with required fields', () => {
     const scope = createProblemStatementScope('inv-test-001', 'Fill Weight');
     expect(scope.id).toBeTruthy();
-    expect(scope.investigationId).toBe('inv-test-001');
+    expect(scope.projectId).toBe('inv-test-001');
     expect(scope.outcome).toBe('Fill Weight');
     expect(scope.createdAt).toBeTruthy();
     expect(scope.updatedAt).toBeTruthy();

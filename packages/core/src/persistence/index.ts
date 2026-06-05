@@ -4,7 +4,6 @@ export type {
   OutcomeReadAPI,
   EvidenceSnapshotReadAPI,
   EvidenceSourceReadAPI,
-  ScopeReadAPI,
   CanvasStateReadAPI,
   ActionItemReadAPI,
   ControlRecordReadAPI,

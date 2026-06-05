@@ -9,7 +9,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const controlRecord = (overrides: Partial<ControlRecord>): ControlRecord =>
   ({
     id: 'sr-1',
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     status: 'pending',
     title: 'Mix temperature control',

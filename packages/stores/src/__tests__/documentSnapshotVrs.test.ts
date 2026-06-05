@@ -58,7 +58,7 @@ describe('document snapshot .vrs helpers', () => {
       scopes: [
         {
           id: 'scope-1',
-          investigationId: 'inv-1',
+          projectId: 'inv-1',
           outcome: 'yield',
           predicates: [],
           hypothesisIds: [],
@@ -162,6 +162,69 @@ describe('document snapshot .vrs helpers', () => {
         })
       )
     ).toThrow(/invalid file format/i);
+  });
+});
+
+describe('PO-7: scope projectId round-trips the .vrs arc; pre-rename keys silently drop', () => {
+  it('a scope serialized with projectId round-trips — parsed scope has projectId and NO investigationId', () => {
+    useAnalyzeStore.getState().loadAnalyzeState({
+      scopes: [
+        {
+          id: 'scope-rt',
+          projectId: 'inv-1',
+          outcome: 'yield',
+          predicates: [],
+          hypothesisIds: [],
+          createdAt: now,
+          updatedAt: now,
+          deletedAt: null,
+        },
+      ],
+    });
+
+    const parsed = parseDocumentSnapshotVrs(
+      buildDocumentSnapshotVrs({ activeHub: hub, metadata: { exportSource: 'pwa' } })
+    );
+    resetStores();
+    hydrateDocumentSnapshot(parsed.documentSnapshot);
+
+    const scope = useAnalyzeStore.getState().scopes.find(s => s.id === 'scope-rt');
+    expect(scope?.projectId).toBe('inv-1');
+    expect(scope && 'investigationId' in scope).toBe(false);
+  });
+
+  it('a pre-rename .vrs scope (carrying the old FK key) deserializes without throwing and yields projectId === undefined', () => {
+    // wedge no-back-compat (ADR-091): pre-rename .vrs scope joins are silently
+    // dropped (projectId === undefined); loud validation is PO-8a.
+    const preRenameScope = {
+      id: 'scope-legacy',
+      investigationId: 'inv-legacy', // the OLD FK key — no migration shim reads it
+      outcome: 'yield',
+      predicates: [],
+      hypothesisIds: [],
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+    // Build a real snapshot, then splice the legacy scope into the analyze facet.
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      rawData: [{ yield: 91 }],
+      outcome: 'yield',
+    });
+    const fresh = JSON.parse(
+      buildDocumentSnapshotVrs({ activeHub: hub, metadata: { exportSource: 'pwa' } })
+    );
+    fresh.documentSnapshot.analyze.scopes = [preRenameScope];
+    const handBuilt = JSON.stringify(fresh);
+
+    resetStores();
+    const parsed = parseDocumentSnapshotVrs(handBuilt);
+    expect(() => hydrateDocumentSnapshot(parsed.documentSnapshot)).not.toThrow();
+
+    const scope = useAnalyzeStore.getState().scopes.find(s => s.id === 'scope-legacy');
+    expect(scope).toBeDefined();
+    expect(scope?.projectId).toBeUndefined();
   });
 });
 

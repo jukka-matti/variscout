@@ -14,7 +14,6 @@ import type {
   OutcomeReadAPI,
   EvidenceSnapshotReadAPI,
   EvidenceSourceReadAPI,
-  ScopeReadAPI,
   CanvasStateReadAPI,
   ActionItemReadAPI,
   ControlRecordReadAPI,
@@ -224,17 +223,6 @@ export class AzureHubRepository implements HubRepository {
   // findings/causalLinks/hypotheses ReadAPIs deleted (PO-6): those entities
   // persist via the .vrs DocumentSnapshot analyze facet only.
   // ---------------------------------------------------------------------------
-
-  scopes: ScopeReadAPI = {
-    // Azure has no dedicated scopes table today; scopes persist via the
-    // analyze blob (ADR-085) — read API stubbed (same pattern as the former findings/hypotheses stubs, retired at v14/PO-6).
-    async get(_id) {
-      return undefined;
-    },
-    async listByInvestigation(_investigationId) {
-      return [];
-    },
-  };
 
   actionItems: ActionItemReadAPI = {
     async get(id) {

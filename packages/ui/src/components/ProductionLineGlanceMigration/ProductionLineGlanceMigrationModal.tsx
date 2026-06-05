@@ -17,8 +17,8 @@ export interface ProductionLineGlanceMigrationSuggestion {
 }
 
 export interface ProductionLineGlanceMigrationModalEntry {
-  investigationId: string;
-  investigationName: string;
+  projectId: string;
+  projectName: string;
   measurementColumn: string;
   suggestions: ReadonlyArray<ProductionLineGlanceMigrationSuggestion>;
 }
@@ -27,9 +27,9 @@ export interface ProductionLineGlanceMigrationModalProps {
   isOpen: boolean;
   entries: ReadonlyArray<ProductionLineGlanceMigrationModalEntry>;
   onSave: (
-    mappings: Array<{ investigationId: string; nodeId: string; measurementColumn: string }>
+    mappings: Array<{ projectId: string; nodeId: string; measurementColumn: string }>
   ) => void;
-  onDecline: (investigationId: string) => void;
+  onDecline: (projectId: string) => void;
   onClose: () => void;
 }
 
@@ -40,7 +40,7 @@ function preselectFromSuggestions(
   for (const e of entries) {
     if (e.suggestions.length === 0) continue;
     const top = [...e.suggestions].sort((a, b) => b.confidence - a.confidence)[0];
-    out[e.investigationId] = top.nodeId;
+    out[e.projectId] = top.nodeId;
   }
   return out;
 }
@@ -60,10 +60,10 @@ export const ProductionLineGlanceMigrationModal: React.FC<
 
   const handleSave = () => {
     const mappings = entries
-      .filter(e => selected[e.investigationId])
+      .filter(e => selected[e.projectId])
       .map(e => ({
-        investigationId: e.investigationId,
-        nodeId: selected[e.investigationId],
+        projectId: e.projectId,
+        nodeId: selected[e.projectId],
         measurementColumn: e.measurementColumn,
       }));
     onSave(mappings);
@@ -91,20 +91,20 @@ export const ProductionLineGlanceMigrationModal: React.FC<
         <div className="space-y-4 p-4">
           {entries.map(entry => (
             <section
-              key={entry.investigationId}
-              data-testid={`migration-row-${entry.investigationId}`}
+              key={entry.projectId}
+              data-testid={`migration-row-${entry.projectId}`}
               className="rounded-md border border-edge bg-surface-secondary p-3"
             >
               <header className="mb-2 flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-content">{entry.investigationName}</h3>
+                  <h3 className="text-sm font-medium text-content">{entry.projectName}</h3>
                   <p className="text-xs text-content-secondary">
                     Column: <span className="font-mono">{entry.measurementColumn}</span>
                   </p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => onDecline(entry.investigationId)}
+                  onClick={() => onDecline(entry.projectId)}
                   className="text-xs text-content-secondary hover:text-content"
                 >
                   Skip
@@ -121,16 +121,16 @@ export const ProductionLineGlanceMigrationModal: React.FC<
                     <li key={s.nodeId} className="flex items-center gap-2">
                       <input
                         type="radio"
-                        name={`mapping-${entry.investigationId}`}
-                        id={`mapping-${entry.investigationId}-${s.nodeId}`}
+                        name={`mapping-${entry.projectId}`}
+                        id={`mapping-${entry.projectId}-${s.nodeId}`}
                         value={s.nodeId}
-                        checked={selected[entry.investigationId] === s.nodeId}
+                        checked={selected[entry.projectId] === s.nodeId}
                         onChange={() =>
-                          setSelected(prev => ({ ...prev, [entry.investigationId]: s.nodeId }))
+                          setSelected(prev => ({ ...prev, [entry.projectId]: s.nodeId }))
                         }
                       />
                       <label
-                        htmlFor={`mapping-${entry.investigationId}-${s.nodeId}`}
+                        htmlFor={`mapping-${entry.projectId}-${s.nodeId}`}
                         className="flex-1 text-sm text-content"
                       >
                         {s.label}

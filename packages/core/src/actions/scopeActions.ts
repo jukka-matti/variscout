@@ -9,7 +9,7 @@ import type { ImprovementProject } from '../improvementProject';
 export type ScopeAction =
   | {
       kind: 'SCOPE_ADD';
-      investigationId: ImprovementProject['id'];
+      projectId: ImprovementProject['id'];
       scope: ProblemStatementScope;
     }
   | {

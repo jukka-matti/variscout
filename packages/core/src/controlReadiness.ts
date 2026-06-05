@@ -19,7 +19,7 @@ import type { ImprovementProject } from './improvementProject';
  *     readable — they do NOT count as live control artifacts.
  *   - ControlHandoff → project: handoffs carry NO `improvementProjectId`. They
  *     bridge to a project through a ControlRecord that shares the handoff's
- *     `investigationId` (the live app bridge). A live (non-tombstoned) handoff
+ *     `projectId` (the live app bridge). A live (non-tombstoned) handoff
  *     bridging through any record (live or tombstoned) for the project still
  *     signals that control was handed off.
  */
@@ -32,32 +32,30 @@ function liveRecordForProject(project: ImprovementProject, records: ControlRecor
 }
 
 /**
- * Set of `investigationId`s of records (live OR tombstoned) belonging to this
- * project — the bridge keys a handoff can join through.
+ * Set of join keys (`projectId`) of records (live OR tombstoned) belonging to
+ * this project — the bridge keys a handoff can join through.
  */
-function bridgeInvestigationIds(
+function bridgeJoinKeys(
   project: ImprovementProject,
   records: ControlRecord[]
-): Set<ControlRecord['investigationId']> {
-  const ids = new Set<ControlRecord['investigationId']>();
+): Set<ControlRecord['projectId']> {
+  const ids = new Set<ControlRecord['projectId']>();
   for (const record of records) {
-    if (record.improvementProjectId === project.id) ids.add(record.investigationId);
+    if (record.improvementProjectId === project.id) ids.add(record.projectId);
   }
   return ids;
 }
 
-/** A live handoff that bridges to this project via a shared-`investigationId` record. */
+/** A live handoff that bridges to this project via a shared-`projectId` record. */
 function liveHandoffForProject(
   project: ImprovementProject,
   records: ControlRecord[],
   handoffs: ControlHandoff[]
 ): boolean {
   if (handoffs.length === 0) return false;
-  const bridge = bridgeInvestigationIds(project, records);
+  const bridge = bridgeJoinKeys(project, records);
   if (bridge.size === 0) return false;
-  return handoffs.some(
-    handoff => handoff.deletedAt === null && bridge.has(handoff.investigationId)
-  );
+  return handoffs.some(handoff => handoff.deletedAt === null && bridge.has(handoff.projectId));
 }
 
 /**

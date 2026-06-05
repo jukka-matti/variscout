@@ -1,8 +1,7 @@
 import type { HubAction } from '../actions/HubAction';
 import type { ProcessHub, OutcomeSpec } from '../processHub';
-import type { ImprovementProject } from '../improvementProject';
 import type { EvidenceSource, EvidenceSnapshot, EvidenceSourceCursor } from '../evidenceSources';
-import type { ProblemStatementScope, ActionItem, Hypothesis } from '../findings/types';
+import type { ActionItem, Hypothesis } from '../findings/types';
 import type { ProcessMap } from '../frame/types';
 import type { ControlHandoff, ControlRecord, ControlReview } from '../control';
 import type { MeasurementPlan } from '../measurementPlan/types';
@@ -29,11 +28,6 @@ export interface EvidenceSourceReadAPI {
     hubId: ProcessHub['id'],
     sourceId: EvidenceSource['id']
   ): Promise<EvidenceSourceCursor | undefined>;
-}
-
-export interface ScopeReadAPI {
-  get(id: ProblemStatementScope['id']): Promise<ProblemStatementScope | undefined>;
-  listByInvestigation(investigationId: ImprovementProject['id']): Promise<ProblemStatementScope[]>;
 }
 
 export interface CanvasStateReadAPI {
@@ -82,7 +76,6 @@ export interface HubRepository {
   outcomes: OutcomeReadAPI;
   evidenceSnapshots: EvidenceSnapshotReadAPI;
   evidenceSources: EvidenceSourceReadAPI;
-  scopes: ScopeReadAPI;
   canvasState: CanvasStateReadAPI;
   actionItems: ActionItemReadAPI;
   controlRecords: ControlRecordReadAPI;

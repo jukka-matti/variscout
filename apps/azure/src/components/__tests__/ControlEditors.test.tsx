@@ -55,7 +55,7 @@ describe('ControlRecordEditor', () => {
 
     render(
       <ControlRecordEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         onSave={onSave}
@@ -78,7 +78,7 @@ describe('ControlRecordEditor', () => {
 
     const saved = mockSaveControlRecord.mock.calls[0][0];
     expect(saved.cadence).toBe('monthly');
-    expect(saved.investigationId).toBe('inv-abc');
+    expect(saved.projectId).toBe('inv-abc');
     expect(saved.hubId).toBe('hub-1');
     expect(saved.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(saved.owner?.displayName).toBe('Jane Doe');
@@ -91,7 +91,7 @@ describe('ControlRecordEditor', () => {
   it('prefills the owner field with currentUser.name when no existing record', () => {
     render(
       <ControlRecordEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         onSave={vi.fn()}
@@ -107,7 +107,7 @@ describe('ControlRecordEditor', () => {
 
     render(
       <ControlRecordEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         onSave={onSave}
@@ -123,7 +123,7 @@ describe('ControlRecordEditor', () => {
   it('auto-suggests next-review-due from cadence on initial mount (no existing record)', () => {
     render(
       <ControlRecordEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         onSave={vi.fn()}
@@ -139,7 +139,7 @@ describe('ControlRecordEditor', () => {
   it('updates next-review-due when cadence changes if user has not edited the date', () => {
     render(
       <ControlRecordEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         onSave={vi.fn()}
@@ -156,7 +156,7 @@ describe('ControlRecordEditor', () => {
   it('preserves user-edited next-review-due when cadence changes after manual edit', () => {
     render(
       <ControlRecordEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         onSave={vi.fn()}
@@ -173,7 +173,7 @@ describe('ControlRecordEditor', () => {
     const existingRecord: ControlRecord = {
       id: 'rec-existing',
       title: 'Control cadence',
-      investigationId: 'inv-abc',
+      projectId: 'inv-abc',
       hubId: 'hub-1',
       status: 'pending',
       consecutiveOnTargetTicks: 0,
@@ -187,7 +187,7 @@ describe('ControlRecordEditor', () => {
     };
     render(
       <ControlRecordEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         existingRecord={existingRecord}
@@ -204,7 +204,7 @@ describe('ControlRecordEditor', () => {
   it('sets a min attribute equal to today on the next-review-due input', () => {
     render(
       <ControlRecordEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         onSave={vi.fn()}
@@ -227,7 +227,7 @@ describe('ControlRecordEditor', () => {
 
     render(
       <ControlRecordEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         onSave={vi.fn()}
@@ -254,7 +254,7 @@ describe('ControlReviewLogger', () => {
   const baseRecord: ControlRecord = {
     id: 'rec-1',
     title: 'Control cadence',
-    investigationId: 'inv-abc',
+    projectId: 'inv-abc',
     hubId: 'hub-1',
     status: 'pending',
     consecutiveOnTargetTicks: 0,
@@ -274,7 +274,7 @@ describe('ControlReviewLogger', () => {
     render(
       <ControlReviewLogger
         recordId="rec-1"
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         reviewerDisplayName="Alice"
@@ -299,7 +299,7 @@ describe('ControlReviewLogger', () => {
     const savedReview = mockSaveControlReview.mock.calls[0][0];
     expect(savedReview.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(savedReview.recordId).toBe('rec-1');
-    expect(savedReview.investigationId).toBe('inv-abc');
+    expect(savedReview.projectId).toBe('inv-abc');
     expect(savedReview.hubId).toBe('hub-1');
     expect(savedReview.verdict).toBe('holding');
     expect(savedReview.reviewer.displayName).toBe('Alice');
@@ -326,7 +326,7 @@ describe('ControlReviewLogger', () => {
     render(
       <ControlReviewLogger
         recordId="rec-1"
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         reviewerDisplayName="Bob"
@@ -353,7 +353,7 @@ describe('ControlHandoffEditor', () => {
 
     render(
       <ControlHandoffEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         recordedByDisplayName="Carol"
@@ -378,7 +378,7 @@ describe('ControlHandoffEditor', () => {
 
     const saved = mockSaveControlHandoff.mock.calls[0][0];
     expect(saved.id).toMatch(/^[0-9a-f-]{36}$/);
-    expect(saved.investigationId).toBe('inv-abc');
+    expect(saved.projectId).toBe('inv-abc');
     expect(saved.hubId).toBe('hub-1');
     expect(saved.surface).toBe('qms-procedure');
     expect(saved.systemName).toBe('Veeva QMS');
@@ -399,7 +399,7 @@ describe('ControlHandoffEditor', () => {
     const relatedRecord: ControlRecord = {
       id: 'rec-1',
       title: 'Control cadence',
-      investigationId: 'inv-abc',
+      projectId: 'inv-abc',
       hubId: 'hub-1',
       status: 'pending',
       consecutiveOnTargetTicks: 0,
@@ -415,7 +415,7 @@ describe('ControlHandoffEditor', () => {
 
     render(
       <ControlHandoffEditor
-        investigationId="inv-abc"
+        projectId="inv-abc"
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         recordedByDisplayName="Carol"

@@ -220,12 +220,12 @@ vi.mock('@variscout/core', async importOriginal => {
     // syncScopeFromDrill (analyzeStore) calls this on mount when a drill filter +
     // outcome are present; stub it so the effect doesn't throw under the mock.
     createProblemStatementScope: (
-      investigationId: string,
+      projectId: string,
       outcome: string,
       predicates: Array<{ column: string; value: unknown }> = []
     ) => ({
-      id: `scope-${investigationId}-${outcome}`,
-      investigationId,
+      id: `scope-${projectId}-${outcome}`,
+      projectId,
       outcome,
       predicates,
       deletedAt: null,
@@ -753,13 +753,13 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
       // Seed a drill chip (Machine=A) — same predicate shape the activeScope memo
       // re-derives via buildConditionFromCategoricalFilters + predicateSetKey.
       useAnalysisScopeStore.getState().addCategoricalValue('Machine', 'A');
-      // Materialize the matching scope in the analyze store (investigationId
-      // 'general-unassigned' === AnalyzeWorkspace.scopeInvestigationId).
+      // Materialize the matching scope in the analyze store (projectId
+      // 'general-unassigned' === AnalyzeWorkspace.scopeProjectId).
       useAnalyzeStore.setState({
         scopes: [
           {
             id: 'scope-machine-a',
-            investigationId: 'general-unassigned',
+            projectId: 'general-unassigned',
             outcome: 'Fill Weight',
             predicates: [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }],
             hypothesisIds: [],
@@ -823,11 +823,11 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
 // and archiving soft-deletes via analyzeStore.archiveScope.
 
 describe('AnalyzeWorkspace ScopeRail seam (IM-4b Task 5)', () => {
-  const SCOPE_INV = 'general-unassigned'; // matches AnalyzeWorkspace.scopeInvestigationId
+  const SCOPE_INV = 'general-unassigned'; // matches AnalyzeWorkspace.scopeProjectId
 
   const scopeA: ProblemStatementScope = {
     id: 'scope-a',
-    investigationId: SCOPE_INV,
+    projectId: SCOPE_INV,
     outcome: 'Fill Weight',
     predicates: [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' }],
     hypothesisIds: [],
@@ -837,7 +837,7 @@ describe('AnalyzeWorkspace ScopeRail seam (IM-4b Task 5)', () => {
   };
   const scopeB: ProblemStatementScope = {
     id: 'scope-b',
-    investigationId: SCOPE_INV,
+    projectId: SCOPE_INV,
     outcome: 'Fill Weight',
     predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' }],
     hypothesisIds: [],

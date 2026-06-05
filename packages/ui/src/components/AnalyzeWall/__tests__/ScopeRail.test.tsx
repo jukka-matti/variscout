@@ -31,7 +31,7 @@ import { ScopeRail } from '../ScopeRail';
 
 const scopeA: ProblemStatementScope = {
   id: 'scope-a',
-  investigationId: 'inv-1',
+  projectId: 'inv-1',
   outcome: 'lead_time',
   predicates: [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' }],
   hypothesisIds: [],
@@ -42,7 +42,7 @@ const scopeA: ProblemStatementScope = {
 
 const scopeB: ProblemStatementScope = {
   id: 'scope-b',
-  investigationId: 'inv-1',
+  projectId: 'inv-1',
   outcome: 'lead_time',
   predicates: [
     { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
@@ -56,7 +56,7 @@ const scopeB: ProblemStatementScope = {
 
 const scopeC: ProblemStatementScope = {
   id: 'scope-c',
-  investigationId: 'inv-1',
+  projectId: 'inv-1',
   outcome: 'defect_rate',
   predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' }],
   hypothesisIds: [],

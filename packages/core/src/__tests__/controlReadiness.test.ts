@@ -33,7 +33,7 @@ function makeRecord(
   return {
     id: `rec-${improvementProjectId}`,
     title: `Control record for ${improvementProjectId}`,
-    investigationId: `inv-${improvementProjectId}`,
+    projectId: `inv-${improvementProjectId}`,
     hubId: 'hub-1',
     improvementProjectId,
     cadence: 'monthly',
@@ -49,16 +49,13 @@ function makeRecord(
 }
 
 // ControlHandoff carries NO improvementProjectId — it joins to a project
-// through a ControlRecord that shares its `investigationId` (the live app
-// bridge: Editor.tsx ~:870 + PWA App.tsx ~:1094). The `investigationId`
+// through a ControlRecord that shares its `projectId` (the live app
+// bridge: Editor.tsx ~:870 + PWA App.tsx ~:1094). The `projectId`
 // here is the bridge key.
-function makeHandoff(
-  investigationId: string,
-  overrides: Partial<ControlHandoff> = {}
-): ControlHandoff {
+function makeHandoff(projectId: string, overrides: Partial<ControlHandoff> = {}): ControlHandoff {
   return {
-    id: `h-${investigationId}`,
-    investigationId,
+    id: `h-${projectId}`,
+    projectId,
     hubId: 'hub-1',
     status: 'operational',
     surface: 'mes-recipe',
@@ -87,12 +84,12 @@ describe('isControlEligible', () => {
   });
 
   it('is true when a ControlHandoff bridges to the project even though its record is tombstoned (active project)', () => {
-    // Handoffs carry no project FK; they join via a record sharing investigationId.
+    // Handoffs carry no project FK; they join via a record sharing projectId.
     // A tombstoned record turns OFF the live-record path, but a live handoff that
     // bridges through that record still makes the project control-eligible.
     const project = makeProject('p-1', 'active');
     const tombstonedRecord = [makeRecord('p-1', { deletedAt: 1_745_625_600_000 })];
-    const handoffs = [makeHandoff('inv-p-1')]; // shares the record's investigationId
+    const handoffs = [makeHandoff('inv-p-1')]; // shares the record's projectId
     expect(isControlEligible(project, tombstonedRecord, handoffs)).toBe(true);
   });
 

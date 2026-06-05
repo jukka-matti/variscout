@@ -31,7 +31,7 @@ function hasLiveHandoff(record: ControlRecord, handoffs: ControlHandoff[]): bool
   return handoffs.some(
     handoff =>
       isLiveHandoff(handoff) &&
-      (handoff.id === record.controlHandoffId || handoff.investigationId === record.investigationId)
+      (handoff.id === record.controlHandoffId || handoff.projectId === record.projectId)
   );
 }
 

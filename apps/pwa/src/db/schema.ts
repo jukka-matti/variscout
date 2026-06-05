@@ -219,6 +219,18 @@ export class PwaDatabase extends Dexie {
     // precedent). Findings/hypotheses persist via the .vrs DocumentSnapshot
     // analyze facet only (R6d: export-only, no IndexedDB document-save paths).
     this.version(14).stores({ findings: null, causalLinks: null, hypotheses: null });
+
+    // Version 15: PO-7 honest-rename — drop the phantom `investigationId` index
+    // from the three control tables (zero `.where('investigationId')` queries
+    // exist anywhere; control joins are post-fetch filters — PO-6 CausalLink
+    // precedent). The row FIELD renamed to `projectId` (in-row, unindexed; no
+    // `projectId` index added). No upgrade callback — wedge no-back-compat:
+    // pre-rename rows keep the old key in-row and simply stop joining.
+    this.version(15).stores({
+      controlRecords: '&id, hubId, nextReviewDue, updatedAt, deletedAt',
+      controlReviews: '&id, recordId, hubId, reviewedAt',
+      controlHandoffs: '&id, hubId, status, handoffDate, deletedAt',
+    });
   }
 }
 

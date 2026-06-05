@@ -12,10 +12,7 @@ export type ControlAction =
       kind: 'SUSTAINMENT_RECORD_UPDATE';
       recordId: ControlRecord['id'];
       patch: Partial<
-        Omit<
-          ControlRecord,
-          'id' | 'createdAt' | 'hubId' | 'investigationId' | 'updatedAt' | 'deletedAt'
-        >
+        Omit<ControlRecord, 'id' | 'createdAt' | 'hubId' | 'projectId' | 'updatedAt' | 'deletedAt'>
       >;
     }
   | {

@@ -37,8 +37,8 @@ export interface ImprovementProjectMetadata {
    *  per ADR-082. Optional only for the bootstrap window; future schema work may
    *  promote to required. */
   members?: ProjectMember[];
-  /** Field name preserved (the projectId rename is PO-7); a self-FK under Project⟷Hub 1:1. */
-  investigationId?: ImprovementProject['id'];
+  /** The project self-FK (PO-7 honest rename of the former FK) under Project⟷Hub 1:1. */
+  projectId?: ImprovementProject['id'];
   /** Improvement actions tracked at the project level. Read-write via reduceActionItems. */
   actions?: ActionItem[];
 }

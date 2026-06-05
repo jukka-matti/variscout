@@ -249,7 +249,7 @@ describe('SUSTAINMENT actions', () => {
       record: {
         id: 'sus-1',
         title: 'Hold improved fill weight',
-        investigationId: 'inv-1',
+        projectId: 'inv-1',
         hubId: 'hub-1',
         cadence: 'weekly',
         status: 'pending',
@@ -275,7 +275,7 @@ describe('SUSTAINMENT actions', () => {
       review: {
         id: 'review-1',
         recordId: 'sus-1',
-        investigationId: 'inv-1',
+        projectId: 'inv-1',
         hubId: 'hub-1',
         reviewedAt: 1_746_352_800_000,
         reviewer: { displayName: 'System' },

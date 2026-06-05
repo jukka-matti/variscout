@@ -114,7 +114,7 @@ function makeControlRecord(
   return {
     id,
     hubId,
-    investigationId: `inv-${id}`,
+    projectId: `inv-${id}`,
     status: 'pending',
     title: `Record ${id}`,
     consecutiveOnTargetTicks: 0,
@@ -138,7 +138,7 @@ function makeControlReview(
     id,
     recordId,
     hubId,
-    investigationId: `inv-${recordId}`,
+    projectId: `inv-${recordId}`,
     reviewedAt: NOW,
     reviewer: { displayName: 'Reviewer' },
     verdict: 'holding',
@@ -548,13 +548,5 @@ describe('PwaHubRepository — stub read APIs (empty tables until F3.5)', () => 
     const repo = new PwaHubRepository();
     await db.evidenceSources.put(makeEvidenceSource('src-1', 'hub-x'));
     expect((await repo.evidenceSources.get('src-1'))?.id).toBe('src-1');
-  });
-
-  it('scopes.listByInvestigation returns [] (IM-1: ProblemStatementScope has no Dexie footprint)', async () => {
-    // IM-1 (ADR-085): `questions` table dropped. ProblemStatementScope persists
-    // via the analyze blob. The repo exposes `scopes` (ScopeReadAPI) as a stub
-    // that always returns [] — reads come from the analyzeStore.scopes slice in-session.
-    const repo = new PwaHubRepository();
-    expect(await repo.scopes.listByInvestigation('inv-x')).toEqual([]);
   });
 });

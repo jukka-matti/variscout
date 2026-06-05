@@ -732,7 +732,7 @@ describe('FrameView (Azure shell)', () => {
       {
         id: 'sr-1',
         hubId: 'hub-1',
-        investigationId: 'inv-1',
+        projectId: 'inv-1',
         status: 'confirmed-sustained',
         title: 'Sustain Reduce rework',
         consecutiveOnTargetTicks: 4,

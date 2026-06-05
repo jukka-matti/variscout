@@ -8,7 +8,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const controlRecord = (overrides: Partial<ControlRecord>): ControlRecord =>
   ({
     id: 'sr-1',
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     status: 'confirmed-sustained',
     title: 'Mix temperature control',
@@ -25,7 +25,7 @@ const controlRecord = (overrides: Partial<ControlRecord>): ControlRecord =>
 const controlHandoff = (overrides: Partial<ControlHandoff>): ControlHandoff =>
   ({
     id: 'handoff-1',
-    investigationId: 'inv-1',
+    projectId: 'inv-1',
     hubId: 'hub-1',
     status: 'pending',
     surface: 'qms-procedure',
@@ -43,7 +43,7 @@ const controlHandoff = (overrides: Partial<ControlHandoff>): ControlHandoff =>
 describe('surveyHandoffRules', () => {
   it('prompts for handoff when confirmed sustainment is older than 6 weeks without live handoff', () => {
     const hints = surveyHandoffRules({
-      controlRecords: [controlRecord({ id: 'sr-old', investigationId: 'inv-old' })],
+      controlRecords: [controlRecord({ id: 'sr-old', projectId: 'inv-old' })],
       controlHandoffs: [],
       now: NOW,
     });
@@ -69,14 +69,14 @@ describe('surveyHandoffRules', () => {
       controlRecords: [
         controlRecord({
           id: 'sr-linked',
-          investigationId: 'inv-linked',
+          projectId: 'inv-linked',
           controlHandoffId: 'handoff-linked',
         }),
       ],
       controlHandoffs: [
         controlHandoff({
           id: 'handoff-linked',
-          investigationId: 'inv-linked',
+          projectId: 'inv-linked',
           status: 'acknowledged',
           acknowledgedAt: NOW - 7 * DAY_MS,
           deletedAt: null,

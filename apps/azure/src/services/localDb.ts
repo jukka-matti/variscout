@@ -256,15 +256,15 @@ export function buildSustainmentProjection(
 }
 
 export async function updateProjectSustainmentProjectionInIndexedDB(
-  investigationId: string,
+  projectId: string,
   projection: ControlMetadataProjection | undefined
 ): Promise<void> {
-  const project = await db.projects.get(investigationId);
+  const project = await db.projects.get(projectId);
   if (!project) return;
   const existingMeta = project.meta;
   const updatedMeta = existingMeta ? { ...existingMeta, sustainment: projection } : undefined;
   if (!updatedMeta) return;
-  await db.projects.update(investigationId, { meta: updatedMeta });
+  await db.projects.update(projectId, { meta: updatedMeta });
 }
 
 export async function recomputeSustainmentProjectionForRecord(
@@ -274,5 +274,5 @@ export async function recomputeSustainmentProjectionForRecord(
     ? await db.controlHandoffs.get(record.controlHandoffId).catch(() => undefined)
     : undefined;
   const projection = buildSustainmentProjection(record, handoff);
-  await updateProjectSustainmentProjectionInIndexedDB(record.investigationId, projection);
+  await updateProjectSustainmentProjectionInIndexedDB(record.projectId, projection);
 }

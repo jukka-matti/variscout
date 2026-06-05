@@ -5,8 +5,8 @@ import type { ProductionLineGlanceMigrationModalEntry } from '../ProductionLineG
 
 const entries: ProductionLineGlanceMigrationModalEntry[] = [
   {
-    investigationId: 'i1',
-    investigationName: 'Coffee Moisture',
+    projectId: 'i1',
+    projectName: 'Coffee Moisture',
     measurementColumn: 'moisture',
     suggestions: [
       { nodeId: 'n1', label: 'Mix', confidence: 0.92 },
@@ -14,8 +14,8 @@ const entries: ProductionLineGlanceMigrationModalEntry[] = [
     ],
   },
   {
-    investigationId: 'i2',
-    investigationName: 'Mill Hardness',
+    projectId: 'i2',
+    projectName: 'Mill Hardness',
     measurementColumn: 'hardness',
     suggestions: [{ nodeId: 'n3', label: 'Cast', confidence: 0.81 }],
   },
@@ -76,12 +76,12 @@ describe('ProductionLineGlanceMigrationModal', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
     expect(onSave).toHaveBeenCalledWith([
-      { investigationId: 'i1', nodeId: 'n1', measurementColumn: 'moisture' },
-      { investigationId: 'i2', nodeId: 'n3', measurementColumn: 'hardness' },
+      { projectId: 'i1', nodeId: 'n1', measurementColumn: 'moisture' },
+      { projectId: 'i2', nodeId: 'n3', measurementColumn: 'hardness' },
     ]);
   });
 
-  it('fires onDecline with investigationId when a per-row "Skip" is clicked', () => {
+  it('fires onDecline with projectId when a per-row "Skip" is clicked', () => {
     const onDecline = vi.fn();
     render(
       <ProductionLineGlanceMigrationModal

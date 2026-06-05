@@ -6,11 +6,11 @@ import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
 export interface ControlEntryRowProps {
-  investigationId: string | null;
+  projectId: string | null;
   hubId: string;
 }
 
-export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ investigationId, hubId }) => {
+export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ projectId, hubId }) => {
   const { listControlRecords } = useStorage();
   const [isEditing, setIsEditing] = useState(false);
   const [confirmation, setConfirmation] = useState<string | null>(null);
@@ -29,21 +29,21 @@ export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ investigationI
 
   useEffect(() => {
     let cancelled = false;
-    if (!investigationId) {
+    if (!projectId) {
       setExistingRecord(null);
       return;
     }
     listControlRecords(hubId).then(records => {
       if (cancelled) return;
-      const live = records.find(r => r.investigationId === investigationId && r.deletedAt === null);
+      const live = records.find(r => r.projectId === projectId && r.deletedAt === null);
       setExistingRecord(live ?? null);
     });
     return () => {
       cancelled = true;
     };
-  }, [investigationId, hubId, listControlRecords, confirmation]);
+  }, [projectId, hubId, listControlRecords, confirmation]);
 
-  if (!investigationId) {
+  if (!projectId) {
     return (
       <div className="mt-3">
         <button
@@ -62,7 +62,7 @@ export const ControlEntryRow: React.FC<ControlEntryRowProps> = ({ investigationI
     return (
       <div className="mt-3">
         <ControlRecordEditor
-          investigationId={investigationId}
+          projectId={projectId}
           hubId={hubId}
           currentUser={currentUser}
           existingRecord={existingRecord ?? undefined}

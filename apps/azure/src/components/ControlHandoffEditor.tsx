@@ -4,7 +4,7 @@ import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
 export interface ControlHandoffEditorProps {
-  investigationId: string;
+  projectId: string;
   hubId: string;
   currentUser: EasyAuthUser;
   existingHandoff?: ControlHandoff;
@@ -29,7 +29,7 @@ const SURFACE_OPTIONS: { value: ControlHandoffSurface; label: string }[] = [
 const todayString = (): string => new Date().toISOString().slice(0, 10);
 
 const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
-  investigationId,
+  projectId,
   hubId,
   currentUser,
   existingHandoff,
@@ -65,7 +65,7 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
 
     const handoff: ControlHandoff = {
       id: existingHandoff?.id ?? crypto.randomUUID(),
-      investigationId,
+      projectId,
       hubId,
       status: existingHandoff?.status ?? 'pending',
       surface,

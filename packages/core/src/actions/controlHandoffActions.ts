@@ -11,10 +11,7 @@ export type ControlHandoffAction =
       kind: 'CONTROL_HANDOFF_UPDATE';
       handoffId: ControlHandoff['id'];
       patch: Partial<
-        Omit<
-          ControlHandoff,
-          'id' | 'createdAt' | 'hubId' | 'investigationId' | 'updatedAt' | 'deletedAt'
-        >
+        Omit<ControlHandoff, 'id' | 'createdAt' | 'hubId' | 'projectId' | 'updatedAt' | 'deletedAt'>
       >;
     }
   | {

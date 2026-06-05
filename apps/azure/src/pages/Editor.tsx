@@ -737,7 +737,7 @@ export const Editor: React.FC<EditorProps> = ({
     r => r.improvementProjectId === selectedOrActiveProjectId
   );
   const projectsControlHandoff = _azureLiveControlHandoffs.find(
-    h => h.investigationId === (projectsControlRecord?.investigationId ?? '')
+    h => h.projectId === (projectsControlRecord?.projectId ?? '')
   );
   const projectsClosureInputs = projectsControlHandoff
     ? {
@@ -763,10 +763,10 @@ export const Editor: React.FC<EditorProps> = ({
       handoffs={_azureLiveControlHandoffs}
       onOpenProject={id => usePanelsStore.getState().showProjects(id)}
       onSetupControl={() =>
-        usePanelsStore.getState().showControl(projectsControlRecord?.investigationId ?? undefined)
+        usePanelsStore.getState().showControl(projectsControlRecord?.projectId ?? undefined)
       }
       onLogReview={() =>
-        usePanelsStore.getState().showControl(projectsControlRecord?.investigationId ?? undefined)
+        usePanelsStore.getState().showControl(projectsControlRecord?.projectId ?? undefined)
       }
     />
   ) : null;
@@ -1818,7 +1818,7 @@ export const Editor: React.FC<EditorProps> = ({
         ) && (
           <div className="mx-2 mb-2">
             <ControlEntryRow
-              investigationId={projectId}
+              projectId={projectId}
               hubId={processContext?.processHubId ?? DEFAULT_PROCESS_HUB_ID}
             />
           </div>
@@ -1942,7 +1942,7 @@ export const Editor: React.FC<EditorProps> = ({
             ) : activeView === 'analyze' ? (
               <AnalyzeWorkspace
                 activeIPScope={activeIPScope}
-                scopeInvestigationId={activeIPContext.activeIP?.id ?? 'general-unassigned'}
+                scopeProjectId={activeIPContext.activeIP?.id ?? 'general-unassigned'}
                 findingsState={findingsState}
                 handleRestoreFinding={handleRestoreFinding}
                 handleSetFindingStatus={handleSetFindingStatus}
@@ -2010,7 +2010,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onOpenLegacyControl={() =>
                   usePanelsStore
                     .getState()
-                    .showControl(projectsControlRecord?.investigationId ?? undefined)
+                    .showControl(projectsControlRecord?.projectId ?? undefined)
                 }
                 onNudgeProcessOwner={() => {
                   // Plan 3 will emit EngagementEvent webhook here.

@@ -6,7 +6,7 @@ import { useStorage } from '../services/storage';
 
 export interface ControlReviewLoggerProps {
   recordId: string;
-  investigationId: string;
+  projectId: string;
   hubId: string;
   currentUser: EasyAuthUser;
   reviewerDisplayName: string;
@@ -25,7 +25,7 @@ const VERDICTS: { value: ControlVerdict; label: string }[] = [
 
 const ControlReviewLogger: React.FC<ControlReviewLoggerProps> = ({
   recordId,
-  investigationId,
+  projectId,
   hubId,
   currentUser,
   reviewerDisplayName,
@@ -47,7 +47,7 @@ const ControlReviewLogger: React.FC<ControlReviewLoggerProps> = ({
     const review: ControlReview = {
       id: crypto.randomUUID(),
       recordId,
-      investigationId,
+      projectId,
       hubId,
       reviewedAt: nowMs,
       createdAt: nowMs,

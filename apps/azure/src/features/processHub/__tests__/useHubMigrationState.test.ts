@@ -69,8 +69,8 @@ describe('useHubMigrationState', () => {
         persistInvestigation: vi.fn(),
       })
     );
-    const entry = result.current.modalEntries.find(e => e.investigationId === 'a');
-    expect(entry?.investigationName).toBe('a');
+    const entry = result.current.modalEntries.find(e => e.projectId === 'a');
+    expect(entry?.projectName).toBe('a');
     // The portfolio source carries no rows, so the engine cannot auto-suggest
     // node mappings here; CS-P2 wires the editor's live rawData at lift.
     expect(entry?.suggestions).toEqual([]);
@@ -88,8 +88,8 @@ describe('useHubMigrationState', () => {
     );
     act(() =>
       result.current.handleSave([
-        { investigationId: 'a', nodeId: 'n1', measurementColumn: 'mix' },
-        { investigationId: 'b', nodeId: 'n2', measurementColumn: 'fill' },
+        { projectId: 'a', nodeId: 'n1', measurementColumn: 'mix' },
+        { projectId: 'b', nodeId: 'n2', measurementColumn: 'fill' },
       ])
     );
     expect(persist).toHaveBeenCalledTimes(2);

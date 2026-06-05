@@ -72,17 +72,17 @@ describe('HeaderMetadataSection', () => {
   });
 
   it('calls the investigation callback with selected ids and undefined when cleared', () => {
-    const onInvestigationIdChange = vi.fn();
+    const onProjectIdChange = vi.fn();
 
     render(
       <HeaderMetadataSection
         title="Reduce rework"
-        investigationId="inv-1"
-        investigationOptions={[
+        projectId="inv-1"
+        projectOptions={[
           { id: 'inv-1', name: 'Returns spike' },
           { id: 'inv-2', name: 'Late handoffs' },
         ]}
-        onInvestigationIdChange={onInvestigationIdChange}
+        onProjectIdChange={onProjectIdChange}
       />
     );
 
@@ -93,8 +93,8 @@ describe('HeaderMetadataSection', () => {
       target: { value: '' },
     });
 
-    expect(onInvestigationIdChange).toHaveBeenNthCalledWith(1, 'inv-2');
-    expect(onInvestigationIdChange).toHaveBeenNthCalledWith(2, undefined);
+    expect(onProjectIdChange).toHaveBeenNthCalledWith(1, 'inv-2');
+    expect(onProjectIdChange).toHaveBeenNthCalledWith(2, undefined);
   });
 
   it('calls onMembersChange with full next arrays for add, remove, role, and display name edits', () => {

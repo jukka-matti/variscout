@@ -812,7 +812,7 @@ describe('exhaustiveness — every HubAction kind has a handler', () => {
     { kind: 'FINDING_ADD', finding: { id: 'f-1' } } as HubAction,
     { kind: 'FINDING_UPDATE', findingId: 'f-1', patch: {} } as HubAction,
     { kind: 'FINDING_ARCHIVE', findingId: 'f-1' },
-    { kind: 'SCOPE_ADD', investigationId: 'inv-x', scope: { id: 'scope-1' } } as HubAction,
+    { kind: 'SCOPE_ADD', projectId: 'inv-x', scope: { id: 'scope-1' } } as HubAction,
     { kind: 'SCOPE_UPDATE', scopeId: 'scope-1', patch: {} } as HubAction,
     { kind: 'SCOPE_ARCHIVE', scopeId: 'scope-1' },
     { kind: 'CAUSAL_LINK_ADD', link: { id: 'link-1' } } as HubAction,

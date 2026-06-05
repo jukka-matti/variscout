@@ -170,12 +170,12 @@ vi.mock('@variscout/core', async importOriginal => {
         .sort()
         .join('|'),
     createProblemStatementScope: (
-      investigationId: string,
+      projectId: string,
       outcome: string,
       predicates: Array<{ column: string; value: unknown }> = []
     ) => ({
-      id: `scope-${investigationId}-${outcome}`,
-      investigationId,
+      id: `scope-${projectId}-${outcome}`,
+      projectId,
       outcome,
       predicates,
       hypothesisIds: [],

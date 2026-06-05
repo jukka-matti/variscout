@@ -89,8 +89,7 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
               updateSelectedProject({ metadata: { businessCase } }),
             onFinancialImpactChange: financialImpact =>
               updateSelectedProject({ metadata: { financialImpact } }),
-            onInvestigationIdChange: investigationId =>
-              updateSelectedProject({ metadata: { investigationId } }),
+            onProjectIdChange: projectId => updateSelectedProject({ metadata: { projectId } }),
           }}
           goalProps={{
             // Legacy first-outcome edit shape — GoalSection edits one outcome at a time;

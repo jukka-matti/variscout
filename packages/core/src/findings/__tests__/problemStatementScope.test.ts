@@ -9,7 +9,7 @@ import {
 describe('createProblemStatementScope', () => {
   it('creates a scope with required fields and lifecycle stamps', () => {
     const scope = createProblemStatementScope('inv-1', 'Fill Weight');
-    expect(scope.investigationId).toBe('inv-1');
+    expect(scope.projectId).toBe('inv-1');
     expect(scope.outcome).toBe('Fill Weight');
     expect(scope.predicates).toEqual([]);
     expect(scope.hypothesisIds).toEqual([]);
