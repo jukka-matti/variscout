@@ -5,7 +5,7 @@ import {
 } from '@variscout/stores';
 import { classifySyncError } from '../services/storage';
 
-type LoadErrorCode =
+export type LoadErrorCode =
   | 'not-found'
   | 'forbidden'
   | 'plan-mismatch'

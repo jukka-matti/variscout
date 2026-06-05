@@ -57,7 +57,6 @@ function snapshot(overrides: Partial<DocumentSnapshot['project']> = {}): Documen
       paretoAggregation: 'count',
       separateParetoData: null,
       separateParetoFilename: null,
-      viewState: null,
       ...overrides,
     },
     analyze: { findings: [], categories: [], hypotheses: [], causalLinks: [], scopes: [] },
