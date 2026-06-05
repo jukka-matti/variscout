@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { ProcessHub } from '@variscout/core';
-import { buildDocumentSnapshot } from '../documentSnapshot';
+import { buildDocumentSnapshot, hydrateDocumentSnapshot } from '../documentSnapshot';
 import {
   CURRENT_DOCUMENT_SCHEMA_VERSION,
   DocumentSnapshotCorruptError,
@@ -83,6 +83,42 @@ describe('validateDocumentSnapshot — the PO-8a loud hydrate-seam validation', 
     expect(() => validateDocumentSnapshot({ schemaVersion: 1 })).toThrow(
       /invalid.*documentSnapshot/i
     );
+  });
+});
+
+describe('hydrateDocumentSnapshot — the seam strict-asserts (covers blob/Dexie/.vrs uniformly)', () => {
+  it('refuses to hydrate a version-mismatched snapshot — stores stay untouched (closes the silent-downgrade hazard)', () => {
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      rawData: [{ yield: 91 }],
+      outcome: 'yield',
+    });
+    const foreign = JSON.parse(JSON.stringify(buildDocumentSnapshot({ activeHub: hub })));
+    foreign.schemaVersion = 2;
+    foreign.project.outcome = 'scrap';
+
+    resetStores();
+    expect(() => hydrateDocumentSnapshot(foreign)).toThrow(DocumentSnapshotVersionMismatchError);
+    // negative control: nothing hydrated — the foreign outcome never reached the store
+    expect(useProjectStore.getState().outcome).toBeNull();
+  });
+
+  it('refuses to hydrate corrupt data loudly', () => {
+    expect(() => hydrateDocumentSnapshot({ schemaVersion: 1, hubId: 'x' } as never)).toThrow(
+      DocumentSnapshotCorruptError
+    );
+  });
+
+  it('hydrates a valid current-version snapshot (negative control: the gate does not over-reject)', () => {
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      rawData: [{ yield: 91 }],
+      outcome: 'yield',
+    });
+    const snapshot = buildDocumentSnapshot({ activeHub: hub });
+    resetStores();
+    expect(() => hydrateDocumentSnapshot(snapshot)).not.toThrow();
+    expect(useProjectStore.getState().outcome).toBe('yield');
   });
 });
 
