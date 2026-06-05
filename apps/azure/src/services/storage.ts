@@ -71,9 +71,10 @@ import {
 import type { Project } from './localDb';
 import {
   saveToIndexedDB,
-  loadFromIndexedDB,
   listFromIndexedDB,
   markAsSynced,
+  mergeProjectMetadata,
+  metadataChanged,
   extractDocumentAccess,
   extractMetadataInputs,
   listProcessHubsFromIndexedDB,
@@ -92,11 +93,36 @@ import {
   recomputeSustainmentProjectionForRecord,
 } from './localDb';
 import { azureHubRepository } from '../persistence';
+import { withDocumentSaveLock } from './saveLock';
+import { trackDocumentSaveSerialize } from '../lib/saveTelemetry';
 
 // ── StorageProvider Context ─────────────────────────────────────────────
 
+/** PO-8b: the save outcome the Editor branches on (only 'conflict' changes its behavior). */
+export type SaveProjectResult =
+  | { status: 'saved' }
+  | { status: 'offline' }
+  | { status: 'conflict' }
+  | { status: 'error' };
+
+/** PO-8b: a 412 awaiting the user's reload-or-branch decision. */
+export interface PendingSaveConflict {
+  name: string;
+  location: StorageLocation;
+}
+
 interface StorageContextValue {
-  saveProject: (project: Project, name: string, location: StorageLocation) => Promise<void>;
+  saveProject: (
+    project: Project,
+    name: string,
+    location: StorageLocation
+  ) => Promise<SaveProjectResult>;
+  /** PO-8b: non-null while a 412 conflict awaits the user's reload-or-branch decision. */
+  pendingConflict: PendingSaveConflict | null;
+  /** PO-8b "Not now": clears the pending decision (the doc stays conflicted; a manual save re-opens it). */
+  dismissConflict: () => void;
+  /** PO-8b "Load cloud version": fetch remote, refresh Dexie cache + ETag + merge base, clear the conflict. */
+  reloadProjectFromCloud: (name: string, location: StorageLocation) => Promise<Project | null>;
   loadProject: (name: string, location: StorageLocation) => Promise<Project | null>;
   listProjects: () => Promise<CloudProject[]>;
   listProcessHubs: () => Promise<ProcessHub[]>;
@@ -139,6 +165,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     message: '',
   });
   const [notifications, setNotifications] = useState<SyncNotification[]>([]);
+  const [pendingConflict, setPendingConflict] = useState<PendingSaveConflict | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const processRetryQueueRef = useRef<() => Promise<void>>(async () => {});
 
@@ -282,153 +309,154 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // ── Save project (offline-first, with optimistic merge) ────────────
 
   const saveProject = useCallback(
-    async (project: Project, name: string, location: StorageLocation) => {
+    async (
+      project: Project,
+      name: string,
+      location: StorageLocation
+    ): Promise<SaveProjectResult> => {
       // Build lightweight metadata for portfolio view
       const user = await getEasyAuthUser().catch(() => null);
       const userId = user?.userId || user?.email || 'local';
-      // Read existing lastViewedAt so we preserve it across saves
+      // Read the existing record so the rebuild preserves lastViewedAt AND the
+      // Control-owned sustainment projection (PO-8b heal contract: merge, never clobber)
       const existingRecord = await db.projects.get(name).catch(() => null);
-      const existingLastViewed = existingRecord?.meta?.lastViewedAt;
-      const meta = extractMetadataInputs(project, userId, existingLastViewed) ?? undefined;
+      const recomputedMeta = extractMetadataInputs(
+        project,
+        userId,
+        existingRecord?.meta?.lastViewedAt
+      );
+      const meta = recomputedMeta
+        ? mergeProjectMetadata(existingRecord?.meta, recomputedMeta)
+        : undefined;
 
-      // Always save to IndexedDB first (instant feedback)
-      try {
-        await saveToIndexedDB(project, name, location, meta, userId);
-      } catch (dbError) {
-        const isQuota = dbError instanceof DOMException && dbError.name === 'QuotaExceededError';
-        const message = isQuota
-          ? 'Storage quota exceeded. Delete old projects to free space.'
-          : 'Local save failed. Your data may not be persisted.';
-        setSyncStatus({ status: 'error', message });
-        addNotification({ type: 'error', message, dismissAfter: isQuota ? 10000 : 5000 });
-        return; // Do not attempt cloud sync if local save failed
-      }
-
-      if (!navigator.onLine) {
-        await addToSyncQueue({ project, name, location });
-        setSyncStatus({
-          status: 'offline',
-          message: 'Saved offline, will sync when connected',
-        });
-        addNotification({
-          type: 'info',
-          message: 'Saved offline, will sync when connected',
-          dismissAfter: 3000,
-        });
-        return;
-      }
-
-      const token = STORAGE_API_BOUNDARY;
-
-      // Online: sync immediately (with conflict detection if needed)
-      try {
-        setSyncStatus({ status: 'syncing', message: 'Saving to cloud...' });
-
-        let baseStateForSync: string | undefined;
-        const access = extractDocumentAccess(project, userId);
-
-        // Check if the remote document changed since our last sync. R6c no longer
-        // attempts field-level payload merging; preserve the local
-        // document as a conflict copy and let the current save win.
-        const syncState = await db.syncState.get(name);
-        if (syncState?.baseStateJson) {
-          const cloudModified = await getCloudModifiedDate(token, name, location);
-          if (cloudModified && cloudModified !== syncState.lastSynced) {
-            const remoteProject = (await loadFromCloud(token, name, location))?.project ?? null;
-            if (remoteProject) {
-              const conflictName = `${name} (conflict copy)`;
-              await saveToCloud(token, project, conflictName, location, meta, access);
-              addNotification({
-                type: 'warning',
-                message: `Cloud copy changed. Saved your version as "${conflictName}".`,
-                dismissAfter: 8000,
-              });
-            }
-          }
+      // PO-8b two-phase concurrency: the wholesale IDB write + blob PUT run under
+      // an exclusive per-document Web Lock. On 412 the callback RETURNS (releasing
+      // the lock) carrying the conflict — the dialog renders lock-free; Branch and
+      // Reload re-acquire the lock for their writes. Never await human input here.
+      return withDocumentSaveLock(name, async (): Promise<SaveProjectResult> => {
+        // Always save to IndexedDB first (instant feedback)
+        try {
+          await saveToIndexedDB(project, name, location, meta, userId);
+        } catch (dbError) {
+          const isQuota = dbError instanceof DOMException && dbError.name === 'QuotaExceededError';
+          const message = isQuota
+            ? 'Storage quota exceeded. Delete old projects to free space.'
+            : 'Local save failed. Your data may not be persisted.';
+          setSyncStatus({ status: 'error', message });
+          addNotification({ type: 'error', message, dismissAfter: isQuota ? 10000 : 5000 });
+          return { status: 'error' }; // Do not attempt cloud sync if local save failed
         }
 
-        const { id, etag } = await saveToCloud(token, project, name, location, meta, access);
-        baseStateForSync = JSON.stringify(project);
-
-        // Fire-and-forget: write metadata sidecar alongside .vrs
-        const sidecarMeta = extractMetadataInputs(project, userId, existingLastViewed);
-        if (sidecarMeta) {
-          saveSidecarToCloud(token, sidecarMeta, name, location).catch(e => {
-            if (import.meta.env.DEV) console.warn('[Storage] Sidecar write failed:', e);
+        if (!navigator.onLine) {
+          await addToSyncQueue({ project, name, location });
+          setSyncStatus({
+            status: 'offline',
+            message: 'Saved offline, will sync when connected',
           });
-        }
-
-        await markAsSynced(name, id, etag, baseStateForSync);
-        setSyncStatus({
-          status: 'synced',
-          message: 'Saved to cloud',
-          lastSynced: new Date(),
-        });
-        addNotification({ type: 'success', message: 'Saved to cloud', dismissAfter: 3000 });
-      } catch (error) {
-        if (error instanceof ProjectDocumentConflictErrorClass) {
-          const conflictName = `${name} (conflict copy)`;
-          await saveToCloud(
-            token,
-            project,
-            conflictName,
-            location,
-            meta,
-            extractDocumentAccess(project, userId)
-          );
-          setSyncStatus({ status: 'conflict', message: 'Cloud version changed' });
-          addNotification({
-            type: 'warning',
-            message: `Cloud copy changed. Saved your version as "${conflictName}".`,
-            dismissAfter: 8000,
-          });
-          return;
-        }
-        if (error instanceof CloudSyncUnavailableErrorClass) {
-          // Cloud sync not yet available (ADR-059 Phase 2 pending)
-          setSyncStatus({ status: 'saved', message: 'Saved locally' });
           addNotification({
             type: 'info',
-            message: 'Cloud sync unavailable — Blob Storage migration pending. Data saved locally.',
-            dismissAfter: 5000,
+            message: 'Saved offline, will sync when connected',
+            dismissAfter: 3000,
           });
-          return;
+          return { status: 'offline' };
         }
 
-        if (import.meta.env.DEV) console.error('Cloud save failed:', error);
-        const classified = classifySyncError(error);
+        const token = STORAGE_API_BOUNDARY;
 
-        await addToSyncQueue({ project, name, location });
+        // Online: sync immediately. The 412/If-Match check in saveToCloud is the
+        // SOLE conflict surface — the timestamp pre-flight is retired (PO-8b; it
+        // was strictly dominated: the server PUT advances analysis.json's ETag
+        // and metadata.json's timestamp atomically, so If-Match catches every
+        // state the timestamp compare caught, one round-trip cheaper).
+        try {
+          setSyncStatus({ status: 'syncing', message: 'Saving to cloud...' });
+          const access = extractDocumentAccess(project, userId);
 
-        if (classified.category === 'auth') {
-          setSyncStatus({ status: 'error', message: 'Authentication expired' });
-          addNotification({
-            type: 'error',
-            message: 'Session expired. Please sign in again.',
-            action: {
-              label: 'Sign in',
-              onClick: () => {
-                window.location.href = '/.auth/login/aad';
+          // PO-8b telemetry: the merge-base string doubles as the size/duration
+          // measurement — no extra stringify pass.
+          const serializeStart = performance.now();
+          const baseStateForSync = JSON.stringify(project);
+          trackDocumentSaveSerialize({
+            sizeBytes: baseStateForSync.length,
+            serializeMs: performance.now() - serializeStart,
+          });
+
+          const { id, etag } = await saveToCloud(token, project, name, location, meta, access);
+
+          // Fire-and-forget: write metadata sidecar alongside .vrs
+          if (meta) {
+            saveSidecarToCloud(token, meta, name, location).catch(e => {
+              if (import.meta.env.DEV) console.warn('[Storage] Sidecar write failed:', e);
+            });
+          }
+
+          await markAsSynced(name, id, etag, baseStateForSync);
+          setSyncStatus({
+            status: 'synced',
+            message: 'Saved to cloud',
+            lastSynced: new Date(),
+          });
+          addNotification({ type: 'success', message: 'Saved to cloud', dismissAfter: 3000 });
+          return { status: 'saved' };
+        } catch (error) {
+          if (error instanceof ProjectDocumentConflictErrorClass) {
+            // PO-8b: the explicit reload-or-branch dialog replaces the silent
+            // auto-fork. State set inside the lock is fine — React renders the
+            // dialog only after this callback returns and the lock releases.
+            setPendingConflict({ name, location });
+            setSyncStatus({ status: 'conflict', message: 'Cloud version changed' });
+            return { status: 'conflict' };
+          }
+          if (error instanceof CloudSyncUnavailableErrorClass) {
+            // Cloud sync not yet available (ADR-059 Phase 2 pending)
+            setSyncStatus({ status: 'saved', message: 'Saved locally' });
+            addNotification({
+              type: 'info',
+              message:
+                'Cloud sync unavailable — Blob Storage migration pending. Data saved locally.',
+              dismissAfter: 5000,
+            });
+            return { status: 'saved' };
+          }
+
+          if (import.meta.env.DEV) console.error('Cloud save failed:', error);
+          const classified = classifySyncError(error);
+
+          await addToSyncQueue({ project, name, location });
+
+          if (classified.category === 'auth') {
+            setSyncStatus({ status: 'error', message: 'Authentication expired' });
+            addNotification({
+              type: 'error',
+              message: 'Session expired. Please sign in again.',
+              action: {
+                label: 'Sign in',
+                onClick: () => {
+                  window.location.href = '/.auth/login/aad';
+                },
               },
-            },
-          });
-        } else if (classified.retryable) {
-          setSyncStatus({
-            status: 'offline',
-            message: classified.message,
-          });
-          // Queue for retry with backoff
-          retryQueue.current.push({ project, name, location, attempt: 1 });
-          const delay = RETRY_DELAYS[0];
-          scheduleRetry(delay);
-          addNotification({ type: 'warning', message: classified.message, dismissAfter: 5000 });
-        } else {
-          setSyncStatus({
-            status: 'offline',
-            message: 'Save failed, will retry when connected',
-          });
+            });
+            return { status: 'error' };
+          } else if (classified.retryable) {
+            setSyncStatus({
+              status: 'offline',
+              message: classified.message,
+            });
+            // Queue for retry with backoff
+            retryQueue.current.push({ project, name, location, attempt: 1 });
+            const delay = RETRY_DELAYS[0];
+            scheduleRetry(delay);
+            addNotification({ type: 'warning', message: classified.message, dismissAfter: 5000 });
+            return { status: 'offline' };
+          } else {
+            setSyncStatus({
+              status: 'offline',
+              message: 'Save failed, will retry when connected',
+            });
+            return { status: 'offline' };
+          }
         }
-      }
+      });
     },
     [addNotification, scheduleRetry]
   );
@@ -437,11 +465,12 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const loadProject = useCallback(
     async (name: string, location: StorageLocation): Promise<Project | null> => {
+      const user = await getEasyAuthUser().catch(() => null);
+      const userId = user?.userId || user?.email || 'local';
+
       if (navigator.onLine) {
         try {
           const token = STORAGE_API_BOUNDARY;
-          const user = await getEasyAuthUser().catch(() => null);
-          const userId = user?.userId || user?.email || 'local';
 
           // Conflict detection: check if local has unsynced changes AND cloud is newer
           const localRecord = await db.projects.get(name);
@@ -468,8 +497,17 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const loaded = await loadFromCloud(token, name, location);
           if (loaded) {
             const { project, etag } = loaded;
-            // Cache locally
-            const meta = extractMetadataInputs(project, userId) ?? undefined;
+            // Cache locally — merge-preserving so the Control-owned sustainment
+            // projection survives a cloud refresh (PO-8b heal contract).
+            const existingRecord = await db.projects.get(name).catch(() => null);
+            const recomputed = extractMetadataInputs(
+              project,
+              userId,
+              existingRecord?.meta?.lastViewedAt
+            );
+            const meta = recomputed
+              ? mergeProjectMetadata(existingRecord?.meta, recomputed)
+              : undefined;
             await saveToIndexedDB(project, name, location, meta, userId);
 
             // Adopting the cloud copy: refresh the merge base AND the ETag —
@@ -498,8 +536,84 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      // Fallback to local
-      return loadFromIndexedDB(name);
+      // Fallback to local — heal the portfolio projection on open (PO-8b):
+      // recompute the aggregate-derived fields, merge-preserving the Control-owned
+      // sustainment projection; write only on an actual change; a null recompute
+      // (malformed aggregate) skips the heal — never write null meta.
+      const record = await db.projects.get(name).catch(() => null);
+      if (!record) return null;
+      const recomputed = extractMetadataInputs(record.data, userId, record.meta?.lastViewedAt);
+      if (recomputed) {
+        const merged = mergeProjectMetadata(record.meta, recomputed);
+        if (metadataChanged(record.meta, merged)) {
+          await db.projects.update(name, { meta: merged });
+        }
+      }
+      return record.data;
+    },
+    [addNotification]
+  );
+
+  // ── PO-8b conflict resolution ──────────────────────────────────────
+
+  const dismissConflict = useCallback(() => {
+    setPendingConflict(null);
+  }, []);
+
+  const reloadProjectFromCloud = useCallback(
+    async (name: string, location: StorageLocation): Promise<Project | null> => {
+      const token = STORAGE_API_BOUNDARY;
+      const user = await getEasyAuthUser().catch(() => null);
+      const userId = user?.userId || user?.email || 'local';
+
+      let loaded: Awaited<ReturnType<typeof loadFromCloud>> = null;
+      try {
+        loaded = await loadFromCloud(token, name, location);
+      } catch (error) {
+        errorService.logWarning('Conflict reload failed', {
+          component: 'storage',
+          action: 'reloadProjectFromCloud',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
+      }
+      if (!loaded) {
+        addNotification({
+          type: 'error',
+          message: 'Could not load the cloud version. Your local copy is unchanged.',
+          dismissAfter: 8000,
+        });
+        return null;
+      }
+      const { project, etag } = loaded;
+
+      // Adopting the remote copy is a wholesale write — same lock as a save.
+      await withDocumentSaveLock(name, async () => {
+        const existingRecord = await db.projects.get(name).catch(() => null);
+        const recomputed = extractMetadataInputs(
+          project,
+          userId,
+          existingRecord?.meta?.lastViewedAt
+        );
+        const meta = recomputed
+          ? mergeProjectMetadata(existingRecord?.meta, recomputed)
+          : undefined;
+        await saveToIndexedDB(project, name, location, meta, userId);
+
+        const syncState = await db.syncState.get(name);
+        if (syncState) {
+          // The fresh ETag is the If-Match basis for the next save — without
+          // this refresh, every post-reload save would 412 forever.
+          await db.syncState.update(name, {
+            lastSynced: new Date().toISOString(),
+            baseStateJson: JSON.stringify(project),
+            ...(etag ? { etag } : {}),
+          });
+        }
+      });
+
+      setPendingConflict(null);
+      setSyncStatus({ status: 'synced', message: 'Cloud version loaded', lastSynced: new Date() });
+      return project;
     },
     [addNotification]
   );
@@ -941,6 +1055,9 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const value: StorageContextValue = {
     saveProject,
+    pendingConflict,
+    dismissConflict,
+    reloadProjectFromCloud,
     loadProject,
     listProjects,
     listProcessHubs,
