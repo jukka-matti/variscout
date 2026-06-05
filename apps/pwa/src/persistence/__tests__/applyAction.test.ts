@@ -551,8 +551,12 @@ describe('applyAction — OUTCOME_ARCHIVE', () => {
 });
 
 // ---------------------------------------------------------------------------
-// No-op action kinds — F3 declares the tables but does not yet write.
+// No-op action kinds — F3 declares these as pass-through; they must not write.
 // One representative test per category; smoke-test pattern.
+// PO-6 (v14): findings/causalLinks/hypotheses tables retired. Assertions
+// re-pointed to db.actionItems (a surviving table) as the proxy.
+// proxy table — the no-op must write nothing anywhere;
+// findings/hypotheses tables retired v14 (PO-6).
 // ---------------------------------------------------------------------------
 
 describe('applyAction — no-op action kinds', () => {
@@ -562,7 +566,8 @@ describe('applyAction — no-op action kinds', () => {
       finding: { id: 'f-x' },
     } as unknown as HubAction);
 
-    expect(await db.findings.count()).toBe(0);
+    // proxy table — the no-op must write nothing anywhere; findings table retired v14 (PO-6)
+    expect(await db.actionItems.count()).toBe(0);
   });
 
   it('SCOPE_ADD does not mutate any table (IM-1: ProblemStatementScope has no Dexie footprint)', async () => {
@@ -577,8 +582,8 @@ describe('applyAction — no-op action kinds', () => {
       scope: { id: 'sc-x' },
     } as unknown as HubAction);
 
-    // No table holds scopes — findings stays 0.
-    expect(await db.findings.count()).toBe(0);
+    // proxy table — the no-op must write nothing anywhere; findings/hypotheses tables retired v14 (PO-6)
+    expect(await db.actionItems.count()).toBe(0);
   });
 
   it('CAUSAL_LINK_ADD does not mutate any table', async () => {
@@ -587,7 +592,8 @@ describe('applyAction — no-op action kinds', () => {
       link: { id: 'c-x' },
     } as unknown as HubAction);
 
-    expect(await db.causalLinks.count()).toBe(0);
+    // proxy table — the no-op must write nothing anywhere; causalLinks table retired v14 (PO-6)
+    expect(await db.actionItems.count()).toBe(0);
   });
 
   it('HYPOTHESIS_ADD does not mutate any table', async () => {
@@ -596,7 +602,8 @@ describe('applyAction — no-op action kinds', () => {
       hypothesis: { id: 'sc-x' },
     } as unknown as HubAction);
 
-    expect(await db.hypotheses.count()).toBe(0);
+    // proxy table — the no-op must write nothing anywhere; hypotheses table retired v14 (PO-6)
+    expect(await db.actionItems.count()).toBe(0);
   });
 
   it('canvas action (ADD_STEP) does not mutate any table', async () => {

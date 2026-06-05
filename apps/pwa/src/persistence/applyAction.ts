@@ -371,9 +371,10 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
 
     // -----------------------------------------------------------------------
     // Investigation entity actions (finding / scope /
-    // causalLink / hypothesis) — F5 wires these when the investigation
-    // entity action coverage lands. The corresponding tables already exist
-    // (declared by F3 P1) but writes are not yet routed here.
+    // causalLink / hypothesis) — the corresponding Dexie tables were retired
+    // at schema v14 (PO-6); findings/hypotheses round-trip via the analyze
+    // blob (.vrs DocumentSnapshot analyze facet; R6d: export-only).
+    // These no-op cases remain to exhaust the HubAction union.
     // -----------------------------------------------------------------------
 
     case 'FINDING_ADD':

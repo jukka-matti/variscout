@@ -488,30 +488,6 @@ describe('AzureHubRepository read APIs (Dexie tables)', () => {
   });
 
   // ---- stub read APIs ----
-
-  describe('stub read APIs (F3 not yet implemented)', () => {
-    it('findings.get returns undefined', async () => {
-      expect(await repo.findings.get('any')).toBeUndefined();
-    });
-
-    it('findings.listByInvestigation returns []', async () => {
-      expect(await repo.findings.listByInvestigation('inv-1')).toEqual([]);
-    });
-
-    it('causalLinks.get returns undefined', async () => {
-      expect(await repo.causalLinks.get('any')).toBeUndefined();
-    });
-
-    it('causalLinks.listByInvestigation returns []', async () => {
-      expect(await repo.causalLinks.listByInvestigation('inv-1')).toEqual([]);
-    });
-
-    it('hypotheses.get returns undefined', async () => {
-      expect(await repo.hypotheses.get('any')).toBeUndefined();
-    });
-
-    it('hypotheses.listByInvestigation returns []', async () => {
-      expect(await repo.hypotheses.listByInvestigation('inv-1')).toEqual([]);
-    });
-  });
+  // PO-6: findings/causalLinks/hypotheses ReadAPIs deleted — those entities
+  // persist via the .vrs DocumentSnapshot analyze facet only.
 });

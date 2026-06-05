@@ -160,11 +160,9 @@ beforeEach(async () => {
     db.evidenceSnapshots.clear(),
     db.evidenceSources.clear(),
     db.evidenceSourceCursors.clear(),
-    db.findings.clear(),
     // IM-1 (ADR-085): db.questions table dropped at schema v10. ProblemStatementScope
     // has no Dexie footprint — no table to clear.
-    db.causalLinks.clear(),
-    db.hypotheses.clear(),
+    // PO-6 (v14): findings/causalLinks/hypotheses tables retired — no tables to clear.
     db.controlRecords.clear(),
     db.controlReviews.clear(),
   ]);
@@ -523,11 +521,13 @@ describe('PwaHubRepository.evidenceSources.getCursor', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Stub read APIs — F3 declares tables, F3.5/F5 wire writes; reads must work
+// Stub read APIs — F3 declares tables, F3.5 wires writes; reads must work
 // against the (empty) tables today without throwing.
+// PO-6 (v14): findings/causalLinks/hypotheses ReadAPIs deleted — those
+// entities persist via the .vrs DocumentSnapshot analyze facet only.
 // ---------------------------------------------------------------------------
 
-describe('PwaHubRepository — stub read APIs (empty tables until F3.5/F5)', () => {
+describe('PwaHubRepository — stub read APIs (empty tables until F3.5)', () => {
   it('evidenceSnapshots.listByHub returns []', async () => {
     const repo = new PwaHubRepository();
     expect(await repo.evidenceSnapshots.listByHub('hub-x')).toEqual([]);
@@ -550,26 +550,11 @@ describe('PwaHubRepository — stub read APIs (empty tables until F3.5/F5)', () 
     expect((await repo.evidenceSources.get('src-1'))?.id).toBe('src-1');
   });
 
-  it('findings.listByInvestigation returns []', async () => {
-    const repo = new PwaHubRepository();
-    expect(await repo.findings.listByInvestigation('inv-x')).toEqual([]);
-  });
-
   it('scopes.listByInvestigation returns [] (IM-1: ProblemStatementScope has no Dexie footprint)', async () => {
     // IM-1 (ADR-085): `questions` table dropped. ProblemStatementScope persists
     // via the analyze blob. The repo exposes `scopes` (ScopeReadAPI) as a stub
     // that always returns [] — reads come from the analyzeStore.scopes slice in-session.
     const repo = new PwaHubRepository();
     expect(await repo.scopes.listByInvestigation('inv-x')).toEqual([]);
-  });
-
-  it('causalLinks.listByInvestigation returns []', async () => {
-    const repo = new PwaHubRepository();
-    expect(await repo.causalLinks.listByInvestigation('inv-x')).toEqual([]);
-  });
-
-  it('hypotheses.listByInvestigation returns []', async () => {
-    const repo = new PwaHubRepository();
-    expect(await repo.hypotheses.listByInvestigation('inv-x')).toEqual([]);
   });
 });

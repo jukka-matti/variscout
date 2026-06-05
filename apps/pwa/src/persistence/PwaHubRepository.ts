@@ -4,7 +4,7 @@
 //
 // Replaces the earlier single-blob PWA repository with the canonical implementation
 // of `@variscout/core/persistence#HubRepository` against the F3 normalized
-// 13-table schema (see `../db/schema.ts`).
+// schema (see `../db/schema.ts`).
 //
 // Write path:
 //   - `dispatch(action)` routes every HubAction to `applyAction(db, action)`,
@@ -19,10 +19,10 @@
 //     the in-memory `ProcessHub` shape consumers (stores, hooks) expect today.
 //   - `outcomes.get` / `outcomes.listByHub` filter by `deletedAt === null`.
 //   - `canvasState.getByHub` returns the row, stripped of the `hubId` FK.
-//   - `evidenceSnapshots` / `evidenceSources` /
-//     `findings` / `causalLinks` / `hypotheses` query the
-//     real (empty) tables. Until F3.5 (evidence) and F5 (investigation
-//     entities) wire writes, these consistently return empty rows.
+//   - `evidenceSnapshots` / `evidenceSources` query the real (empty) tables.
+//     Until F3.5 (evidence) wires writes, these consistently return empty rows.
+//   - `findings` / `causalLinks` / `hypotheses` tables retired at v14 (PO-6):
+//     these entities persist via the .vrs DocumentSnapshot analyze facet only.
 //   - `scopes` (ProblemStatementScope, ADR-085) has no Dexie table — it is
 //     stubbed empty and persists via the analyze blob.
 
@@ -32,10 +32,7 @@ import type {
   OutcomeReadAPI,
   EvidenceSnapshotReadAPI,
   EvidenceSourceReadAPI,
-  FindingReadAPI,
   ScopeReadAPI,
-  CausalLinkReadAPI,
-  HypothesisReadAPI,
   CanvasStateReadAPI,
   ActionItemReadAPI,
   ControlRecordReadAPI,
@@ -174,8 +171,8 @@ export class PwaHubRepository implements HubRepository {
 
   // ---------------------------------------------------------------------------
   // Read APIs — entities the F3 schema declares but does not yet write.
-  // F3.5 (evidence) and F5 (investigation entities) wire dispatch handlers;
-  // until then these reads return empty rows from real (empty) tables.
+  // F3.5 (evidence) wires dispatch handlers; until then these reads return
+  // empty rows from real (empty) tables.
   // ---------------------------------------------------------------------------
 
   evidenceSnapshots: EvidenceSnapshotReadAPI = {
@@ -215,18 +212,6 @@ export class PwaHubRepository implements HubRepository {
     },
   };
 
-  findings: FindingReadAPI = {
-    get: async id => {
-      const row = await db.findings.get(id);
-      if (!row || row.deletedAt !== null) return undefined;
-      return row;
-    },
-    listByInvestigation: async investigationId => {
-      const rows = await db.findings.where('investigationId').equals(investigationId).toArray();
-      return rows.filter(r => r.deletedAt === null);
-    },
-  };
-
   scopes: ScopeReadAPI = {
     // ProblemStatementScope (ADR-085) has zero Dexie footprint — scopes persist
     // via the analyze blob, not a table. Stubbed empty, mirroring the Azure
@@ -236,30 +221,6 @@ export class PwaHubRepository implements HubRepository {
     },
     listByInvestigation: async _investigationId => {
       return [];
-    },
-  };
-
-  causalLinks: CausalLinkReadAPI = {
-    get: async id => {
-      const row = await db.causalLinks.get(id);
-      if (!row || row.deletedAt !== null) return undefined;
-      return row;
-    },
-    listByInvestigation: async investigationId => {
-      const rows = await db.causalLinks.where('investigationId').equals(investigationId).toArray();
-      return rows.filter(r => r.deletedAt === null);
-    },
-  };
-
-  hypotheses: HypothesisReadAPI = {
-    get: async id => {
-      const row = await db.hypotheses.get(id);
-      if (!row || row.deletedAt !== null) return undefined;
-      return row;
-    },
-    listByInvestigation: async investigationId => {
-      const rows = await db.hypotheses.where('investigationId').equals(investigationId).toArray();
-      return rows.filter(r => r.deletedAt === null);
     },
   };
 

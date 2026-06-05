@@ -3,7 +3,7 @@
 // F3 normalized PWA Dexie schema.
 //
 // Renames the IDB database from `variscout-pwa` (legacy single-blob document store) to
-// `variscout-pwa-normalized` and declares 13 tables per spec §3 D3.
+// `variscout-pwa-normalized` and declares tables per spec §3 D3.
 //
 // Locked decisions:
 //   1. DB rename, not version chain. The legacy `variscout-pwa` DB is
@@ -20,14 +20,15 @@
 //      `hubId` foreign key (already on `OutcomeSpec` via core).
 //
 // All other tables (evidenceSnapshots, evidenceSources, evidenceSourceCursors,
-// rowProvenance, findings, causalLinks,
-// hypotheses) start empty in F3 — the dispatch boundary will be wired by
-// F3.5 (evidence) and F5 (finding/causalLink/
-// hypothesis + canvas action coverage). The `questions` table (IM-1, ADR-085)
-// was dropped at v10 — ProblemStatementScope persists via the analyze blob.
-// The former documentSnapshots table was dropped at v12 when PWA durability
-// became export-only (.vrs). The never-written `investigations` projection
-// table was dropped at v13 (PO-4 — the per-step analyze projection dissolved).
+// rowProvenance) start empty in F3 — the dispatch boundary will be wired by
+// F3.5 (evidence). The `questions` table (IM-1, ADR-085) was dropped at v10 —
+// ProblemStatementScope persists via the analyze blob. The former
+// documentSnapshots table was dropped at v12 when PWA durability became
+// export-only (.vrs). The never-written `investigations` projection table was
+// dropped at v13 (PO-4 — the per-step analyze projection dissolved). The
+// never-written `findings`/`causalLinks`/`hypotheses` tables were dropped at
+// v14 (PO-6 — findings/hypotheses persist via the .vrs DocumentSnapshot
+// analyze facet only; R6d: export-only, no IndexedDB document-save paths).
 //
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
@@ -42,7 +43,7 @@ import type {
   ControlReview,
   ControlHandoff,
 } from '@variscout/core';
-import type { Finding, CausalLink, Hypothesis, ActionItem } from '@variscout/core/findings';
+import type { ActionItem } from '@variscout/core/findings';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
@@ -85,9 +86,6 @@ export type EvidenceSnapshotRow = EvidenceSnapshot;
 export type EvidenceSourceRow = EvidenceSource;
 export type EvidenceSourceCursorRow = EvidenceSourceCursor;
 export type RowProvenanceRow = RowProvenanceTag;
-export type FindingRow = Finding;
-export type CausalLinkRow = CausalLink;
-export type HypothesisRow = Hypothesis;
 export type ImprovementProjectRow = ImprovementProject;
 export type ActionItemRow = ActionItem & { hubId: ProcessHub['id'] };
 export type ControlRecordRow = ControlRecord;
@@ -106,9 +104,6 @@ export class PwaDatabase extends Dexie {
   rowProvenance!: Table<RowProvenanceRow, string>;
   evidenceSources!: Table<EvidenceSourceRow, string>;
   evidenceSourceCursors!: Table<EvidenceSourceCursorRow, string>;
-  findings!: Table<FindingRow, string>;
-  causalLinks!: Table<CausalLinkRow, string>;
-  hypotheses!: Table<HypothesisRow, string>;
   improvementProjects!: Table<ImprovementProjectRow, string>;
   actionItems!: Table<ActionItemRow, string>;
   controlRecords!: Table<ControlRecordRow, string>;
@@ -218,6 +213,12 @@ export class PwaDatabase extends Dexie {
     // the v1 store declaration stays per the Dexie monotonic-chain rule,
     // mirroring the v10 `questions: null` precedent).
     this.version(13).stores({ investigations: null });
+
+    // v14 (PO-6): the never-written findings/causalLinks/hypotheses normalized
+    // tables retire (tableName: null — the v10 questions / v13 investigations
+    // precedent). Findings/hypotheses persist via the .vrs DocumentSnapshot
+    // analyze facet only (R6d: export-only, no IndexedDB document-save paths).
+    this.version(14).stores({ findings: null, causalLinks: null, hypotheses: null });
   }
 }
 
