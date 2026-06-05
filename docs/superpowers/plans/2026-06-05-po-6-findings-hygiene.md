@@ -3,7 +3,7 @@ tier: living
 purpose: design
 title: 'PO-6 · Findings hygiene — FK drop + PWA findings unification + Stage-5 fold (sub-plan)'
 audience: human
-status: active
+status: delivered
 date: 2026-06-05
 last-reviewed: 2026-06-05
 layer: spec
