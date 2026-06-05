@@ -5,7 +5,6 @@ import type { ImprovementProject } from '@variscout/core/improvementProject';
 export type IPActivityEventKind =
   | 'section-edit'
   | 'goal-changed'
-  | 'hypothesis-linked'
   | 'idea-selected'
   | 'action-status'
   | 'signoff-requested'
@@ -86,7 +85,6 @@ export function deriveIPActivityEvents(input: DeriveIPActivityEventsInput): IPAc
 
   const sectionEvents: Array<[keyof ImprovementProject['sections'], string]> = [
     ['background', 'Background'],
-    ['investigationLineage', 'Investigation lineage'],
     ['approach', 'Approach'],
     ['outcomeReference', 'Outcome reference'],
   ];
@@ -102,19 +100,6 @@ export function deriveIPActivityEvents(input: DeriveIPActivityEventsInput): IPAc
       object: label,
     });
   });
-
-  const lineageUpdatedAt = ip.sections.investigationLineage.updatedAt;
-  const hypothesisCount = ip.sections.investigationLineage.hypothesisIds?.length ?? 0;
-  if (lineageUpdatedAt !== undefined && hypothesisCount > 0) {
-    pushEvent(events, {
-      id: `${ip.id}:hypotheses:${lineageUpdatedAt}`,
-      kind: 'hypothesis-linked',
-      at: lineageUpdatedAt,
-      actor: systemActor,
-      verb: 'linked',
-      object: `${hypothesisCount} ${hypothesisCount === 1 ? 'hypothesis' : 'hypotheses'}`,
-    });
-  }
 
   (input.ideas ?? []).forEach(idea => {
     if (idea.deletedAt !== null || idea.selected !== true || idea.updatedAt === undefined) return;

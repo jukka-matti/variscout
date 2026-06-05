@@ -31,16 +31,11 @@ describe('CharterOverview', () => {
     expect(screen.getByTestId('kpi-goal')).toHaveTextContent(/not yet set/i);
   });
 
-  it('counts hypotheses + findings linked', () => {
-    const ip: ImprovementProject = {
-      ...baseIP,
-      sections: {
-        ...baseIP.sections,
-        investigationLineage: { hypothesisIds: ['h1', 'h2'], findingIds: ['f1', 'f2', 'f3'] },
-      },
-    };
-    render(<CharterOverview ip={ip} onOpenInvestigation={() => {}} onOpenAnalyze={() => {}} />);
-    expect(screen.getByTestId('kpi-analyze')).toHaveTextContent(/2 hypotheses · 3 findings/);
+  it('points the Investigation KPI to the Wall (PO-5 — no lineage counts)', () => {
+    render(<CharterOverview ip={baseIP} onOpenInvestigation={() => {}} onOpenAnalyze={() => {}} />);
+    expect(screen.getByTestId('kpi-analyze')).toHaveTextContent(
+      /Hypotheses \+ findings live on the Wall/
+    );
   });
 
   describe('Team section', () => {

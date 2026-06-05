@@ -44,8 +44,6 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
     (members.length === 0 || canAccess(currentUserId, members, 'manage-membership'));
   const issueSnapshot = ip.sections.background.snapshotText ?? '—';
   const goalSet = isGoalSet(ip);
-  const hypoCount = ip.sections.investigationLineage.hypothesisIds?.length ?? 0;
-  const findingCount = ip.sections.investigationLineage.findingIds?.length ?? 0;
 
   return (
     <div className="space-y-5">
@@ -103,9 +101,7 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
           <div className="text-[10px] font-semibold uppercase tracking-wide text-content-tertiary">
             Investigation
           </div>
-          <div className="mt-1 text-xs text-content">
-            {hypoCount} hypotheses · {findingCount} findings
-          </div>
+          <div className="mt-1 text-xs text-content">Hypotheses + findings live on the Wall</div>
         </div>
       </div>
 
@@ -121,7 +117,7 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
             className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-100"
             data-testid="charter-continue-analyze"
           >
-            Investigation · {hypoCount} hypotheses
+            Investigation
           </button>
           <button
             type="button"

@@ -25,10 +25,9 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
     },
     sections: {
       background: { manualNarrative: 'Baseline narrative', updatedAt: now - 7 * hour },
-      investigationLineage: {
-        hypothesisIds: ['hyp-1', 'hyp-2'],
-        updatedAt: now - 6 * hour,
-      },
+      // PO-5: investigationLineage no longer emits activity events; inert seed
+      // removed in Commit 6.
+      investigationLineage: {},
       approach: {
         improvementIdeaIds: ['idea-1'],
         actionItemIds: ['action-1'],
@@ -129,8 +128,6 @@ describe('deriveIPActivityEvents', () => {
       'System requested signoff · 3h ago',
       'System updated Outcome reference · 4h ago',
       'System updated Approach · 5h ago',
-      'System linked 2 hypotheses · 6h ago',
-      'System updated Investigation lineage · 6h ago',
       'System updated Background · 7h ago',
       'System changed goal · 8h ago',
     ]);
