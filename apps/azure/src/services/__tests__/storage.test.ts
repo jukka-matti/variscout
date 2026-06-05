@@ -560,6 +560,8 @@ describe('storage service', () => {
       // markAsSynced stored the RECOVERED etag — never a Date timestamp
       const syncPut = mockSyncState.put.mock.calls.at(-1)?.[0];
       expect(syncPut?.etag).toBe('"recovered-etag"');
+      // negative control: the OLD fabrication stored an ISO timestamp here
+      expect(syncPut?.etag).not.toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
   });
 

@@ -208,13 +208,6 @@ export async function updateBlobIndex(_projects: BlobProjectMetadata[]): Promise
   // R6e server writes _index.json as part of PUT /api/storage/projects/:projectId.
 }
 
-export async function getEtagForProject(projectId: string): Promise<string | null> {
-  const loaded = await requestMaybeJson<{ etag?: string }>(
-    `/api/storage/projects/${encode(projectId)}`
-  );
-  return loaded?.data.etag ?? loaded?.res.headers.get('ETag') ?? null;
-}
-
 // ── Process Hub catalog ────────────────────────────────────────────────
 
 export async function listBlobProcessHubs(): Promise<ProcessHub[]> {
