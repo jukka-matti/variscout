@@ -368,7 +368,7 @@ describe('localDb Process Hub support', () => {
       });
 
       const updated = await backfillProjectMetadataInIndexedDB('user-1');
-      expect(updated).toBeGreaterThanOrEqual(1);
+      expect(updated).toBe(1); // the outer beforeEach wipes the DB — exactly the seeded record heals
 
       const record = await db.projects.get('heal-backfill');
       // healed from the aggregate…
