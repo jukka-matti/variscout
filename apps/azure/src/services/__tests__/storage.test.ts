@@ -706,6 +706,33 @@ describe('storage service', () => {
       expect(mockProjects.put).not.toHaveBeenCalled();
     });
 
+    it('PO-8b: a reload whose LOCAL apply fails surfaces an error and never reports success (no unhandled rejection)', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockSyncState.get.mockResolvedValue({
+        name: 'quota-project',
+        cloudId: 'cloud-5',
+        lastSynced: '2026-06-01T00:00:00Z',
+        etag: '"e"',
+      });
+      mockLoadBlobProject.mockResolvedValueOnce({ project: sampleProject, etag: '"fresh"' });
+      mockProjects.put.mockRejectedValueOnce(new Error('QuotaExceededError (simulated)'));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let reloaded: DocumentSnapshot | null = sampleProject;
+      await act(async () => {
+        reloaded = await result.current.reloadProjectFromCloud('quota-project', 'personal');
+      });
+
+      expect(reloaded).toBeNull();
+      expect(
+        result.current.notifications.some(
+          n => n.type === 'error' && /apply the cloud version/i.test(n.message)
+        )
+      ).toBe(true);
+      // the failed apply never advanced the ETag/merge base
+      expect(mockSyncState.update).not.toHaveBeenCalled();
+    });
+
     it('PO-8b: two concurrent saves of the same document cannot interleave under the Web Lock', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
       // functional LockManager: a real exclusive queue per lock name

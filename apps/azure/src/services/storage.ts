@@ -586,30 +586,49 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
       const { project, etag } = loaded;
 
-      // Adopting the remote copy is a wholesale write — same lock as a save.
-      await withDocumentSaveLock(name, async () => {
-        const existingRecord = await db.projects.get(name).catch(() => null);
-        const recomputed = extractMetadataInputs(
-          project,
-          userId,
-          existingRecord?.meta?.lastViewedAt
-        );
-        const meta = recomputed
-          ? mergeProjectMetadata(existingRecord?.meta, recomputed)
-          : undefined;
-        await saveToIndexedDB(project, name, location, meta, userId);
+      try {
+        // Adopting the remote copy is a wholesale write — same lock as a save.
+        await withDocumentSaveLock(name, async () => {
+          const existingRecord = await db.projects.get(name).catch(() => null);
+          const recomputed = extractMetadataInputs(
+            project,
+            userId,
+            existingRecord?.meta?.lastViewedAt
+          );
+          const meta = recomputed
+            ? mergeProjectMetadata(existingRecord?.meta, recomputed)
+            : undefined;
+          await saveToIndexedDB(project, name, location, meta, userId);
 
-        const syncState = await db.syncState.get(name);
-        if (syncState) {
-          // The fresh ETag is the If-Match basis for the next save — without
-          // this refresh, every post-reload save would 412 forever.
-          await db.syncState.update(name, {
-            lastSynced: new Date().toISOString(),
-            baseStateJson: JSON.stringify(project),
-            ...(etag ? { etag } : {}),
-          });
-        }
-      });
+          // loadFromCloud's cloudId gate guarantees this row existed at fetch
+          // time, so a partial update (keeping cloudId intact) is the right op.
+          const syncState = await db.syncState.get(name);
+          if (syncState) {
+            // The fresh ETag is the If-Match basis for the next save — without
+            // this refresh, every post-reload save would 412 forever.
+            await db.syncState.update(name, {
+              lastSynced: new Date().toISOString(),
+              baseStateJson: JSON.stringify(project),
+              ...(etag ? { etag } : {}),
+            });
+          }
+        });
+      } catch (error) {
+        // A failed local apply (quota, Dexie abort) must never strand the
+        // mid-conflict user with an unhandled rejection — surface and bail.
+        errorService.logWarning('Conflict reload failed to apply locally', {
+          component: 'storage',
+          action: 'reloadProjectFromCloud',
+          metadata: { error: error instanceof Error ? error.message : String(error) },
+        });
+        addNotification({
+          type: 'error',
+          message:
+            'Could not apply the cloud version locally. Try again or keep your version as a copy.',
+          dismissAfter: 8000,
+        });
+        return null;
+      }
 
       setPendingConflict(null);
       setSyncStatus({ status: 'synced', message: 'Cloud version loaded', lastSynced: new Date() });
