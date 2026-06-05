@@ -122,6 +122,8 @@ import FrameView from '../components/editor/FrameView';
 import ImprovementProjectPanel from '../components/charter/ImprovementProjectPanel';
 import ControlPanel from '../components/control/ControlPanel';
 import { EditorModals } from '../components/editor/EditorModals';
+import { SaveConflictDialog } from '../components/SaveConflictDialog';
+import { requestPersistentStorageOnce } from '../services/storageDurability';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProjectDashboard from '../components/ProjectDashboard';
 import ProjectsTabView from '../components/ProjectsTabView';
@@ -190,6 +192,9 @@ export const Editor: React.FC<EditorProps> = ({
     listProcessHubs,
     saveProject: saveToCloud,
     saveProcessHub,
+    pendingConflict,
+    dismissConflict,
+    reloadProjectFromCloud,
   } = useStorage();
   const { locale } = useLocale();
   const { showToast } = useToast();
@@ -497,11 +502,10 @@ export const Editor: React.FC<EditorProps> = ({
       const trimmedName = name.trim() || defaultSaveName(dataFilename);
       setDefaultLocation('personal');
       useProjectStore.setState({ projectName: trimmedName });
-      const project = await projectActions.saveProject(trimmedName);
+      await projectActions.saveProject(trimmedName);
       // Trigger cloud sync with current store state snapshot
       const state = buildDocumentSnapshot({ activeHub });
-      await saveToCloud(state, trimmedName, 'personal');
-      return project;
+      return saveToCloud(state, trimmedName, 'personal');
     },
     [activeHub, dataFilename, projectActions, saveToCloud]
   );
@@ -1585,7 +1589,13 @@ export const Editor: React.FC<EditorProps> = ({
 
       setSaveStatus('saving');
       try {
-        await saveProject(targetName);
+        const result = await saveProject(targetName);
+        if (result?.status === 'conflict') {
+          // PO-8b: the cloud document was NOT saved — the reload-or-branch
+          // dialog owns resolution. Keep the dirty baseline (no false "saved").
+          setSaveStatus('idle');
+          return;
+        }
         const savedName = useProjectStore.getState().projectName || targetName;
         setSavedDocumentName(savedName);
         setSavedFingerprint(computeCurrentFingerprint());
@@ -1609,8 +1619,56 @@ export const Editor: React.FC<EditorProps> = ({
     const promptedName = window.prompt('Save As', suggestedName);
     const newName = promptedName?.trim();
     if (!newName) return;
+    void requestPersistentStorageOnce(); // PO-8b: durable-by-default on a real save gesture
     await saveAndRecordBaseline(newName);
   }, [currentProjectName, dataFilename, saveAndRecordBaseline, savedDocumentName]);
+
+  // ── PO-8b conflict resolution (the reload-or-branch dialog) ──────────────
+  // Deferral latch: "Not now" suspends AUTOSAVE retries (each would re-412 and
+  // re-open the dialog every 2s); a MANUAL save re-opens it via a fresh 412.
+  const [conflictDeferred, setConflictDeferred] = useState(false);
+
+  const handleConflictBranch = useCallback(async () => {
+    const conflictedName = pendingConflict?.name;
+    if (!conflictedName) return;
+    dismissConflict();
+    setConflictDeferred(false);
+    // Branch = the shipped "(conflict copy)" naming, now user-chosen: a full
+    // save under the copy name; the Editor adopts the copy as its active
+    // document (fresh identity → no stale ETag → next save round-trips clean).
+    await saveAndRecordBaseline(`${conflictedName} (conflict copy)`);
+  }, [dismissConflict, pendingConflict, saveAndRecordBaseline]);
+
+  const handleConflictReload = useCallback(async () => {
+    const conflictedName = pendingConflict?.name;
+    const conflictedLocation = pendingConflict?.location ?? 'personal';
+    if (!conflictedName) return;
+    dismissConflict();
+    setConflictDeferred(false);
+    const remote = await reloadProjectFromCloud(conflictedName, conflictedLocation);
+    if (!remote) return; // storage surfaced the error notification; local copy unchanged
+    try {
+      await projectActions.loadProject(conflictedName);
+      setSavedDocumentName(conflictedName);
+      setSavedFingerprint(computeCurrentFingerprint());
+    } catch {
+      // PO-8a strict-assert seam: a corrupt fetched copy refuses to hydrate.
+      // The in-memory document is unchanged; the user can retry or branch.
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
+  }, [
+    computeCurrentFingerprint,
+    dismissConflict,
+    pendingConflict,
+    projectActions,
+    reloadProjectFromCloud,
+  ]);
+
+  const handleConflictDismiss = useCallback(() => {
+    dismissConflict();
+    setConflictDeferred(true);
+  }, [dismissConflict]);
 
   const hasActiveSavedAzureDocument = Boolean(currentProjectId && savedDocumentName);
   const hasDocumentContent = rawData.length > 0;
@@ -1623,7 +1681,11 @@ export const Editor: React.FC<EditorProps> = ({
    * compared with the saved baseline. projectStore.hasUnsavedChanges remains
    * internal store state, not Azure document truth.
    */
-  useAutoSave(handleSave, [currentFingerprint], hasActiveSavedAzureDocument && isDocumentDirty);
+  useAutoSave(
+    handleSave,
+    [currentFingerprint],
+    hasActiveSavedAzureDocument && isDocumentDirty && !pendingConflict && !conflictDeferred
+  );
 
   const handleRenameProject = useCallback(() => {
     const newName = window.prompt('Rename project', currentProjectName || '');
@@ -2170,6 +2232,15 @@ export const Editor: React.FC<EditorProps> = ({
         cpkTarget={cpkTarget}
         onSpecsChange={setSpecs}
         onCpkTargetChange={setCpkTarget}
+      />
+
+      {/* PO-8b: explicit reload-or-branch conflict resolution (replaces the silent auto-fork) */}
+      <SaveConflictDialog
+        isOpen={Boolean(pendingConflict)}
+        documentName={pendingConflict?.name ?? ''}
+        onReload={handleConflictReload}
+        onBranch={handleConflictBranch}
+        onDismiss={handleConflictDismiss}
       />
 
       {/* Mobile Tab Bar (phone only, when data loaded) */}

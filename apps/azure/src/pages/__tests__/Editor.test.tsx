@@ -302,7 +302,10 @@ vi.mock('../../lib/persistenceAdapter', () => ({
 
 vi.mock('../../services/storage', () => ({
   useStorage: vi.fn(() => ({
-    saveProject: vi.fn(),
+    saveProject: vi.fn(() => Promise.resolve({ status: 'saved' as const })),
+    pendingConflict: null,
+    dismissConflict: vi.fn(),
+    reloadProjectFromCloud: vi.fn(() => Promise.resolve(null)),
     listProjects: vi.fn(() => Promise.resolve([])),
     listProcessHubs: vi.fn(() =>
       Promise.resolve([{ id: 'general-unassigned', name: 'General / Unassigned', createdAt: '' }])
