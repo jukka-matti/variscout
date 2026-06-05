@@ -21,9 +21,9 @@ export interface UseHubMigrationStateResult extends UseB0AnalyzesInHubResult {
   closeModal: () => void;
   modalEntries: ReadonlyArray<ProductionLineGlanceMigrationModalEntry>;
   handleSave: (
-    mappings: ReadonlyArray<{ investigationId: string; nodeId: string; measurementColumn: string }>
+    mappings: ReadonlyArray<{ projectId: string; nodeId: string; measurementColumn: string }>
   ) => void;
-  handleDecline: (investigationId: string) => void;
+  handleDecline: (projectId: string) => void;
 }
 
 export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMigrationStateResult {
@@ -47,8 +47,8 @@ export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMi
         });
         const measurementColumn = engineSuggestions[0]?.measurementColumn ?? '';
         return {
-          investigationId: inv.id,
-          investigationName: inv.name,
+          projectId: inv.id,
+          projectName: inv.name,
           measurementColumn,
           suggestions,
         };
@@ -59,12 +59,12 @@ export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMi
   const handleSave = useCallback(
     (
       mappings: ReadonlyArray<{
-        investigationId: string;
+        projectId: string;
         nodeId: string;
         measurementColumn: string;
       }>
     ) => {
-      const byId = new Map(mappings.map(m => [m.investigationId, m]));
+      const byId = new Map(mappings.map(m => [m.projectId, m]));
       for (const inv of members) {
         const m = byId.get(inv.id);
         if (!m) continue;
@@ -87,8 +87,8 @@ export function useHubMigrationState(input: UseHubMigrationStateInput): UseHubMi
   );
 
   const handleDecline = useCallback(
-    (investigationId: string) => {
-      const inv = members.find(m => m.id === investigationId);
+    (projectId: string) => {
+      const inv = members.find(m => m.id === projectId);
       if (!inv) return;
       const existing = inv.metadata;
       const meta: ProcessStepCapabilityMemberMetadata = existing
