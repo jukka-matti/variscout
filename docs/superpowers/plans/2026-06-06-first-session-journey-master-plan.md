@@ -1,0 +1,52 @@
+---
+tier: ephemeral
+purpose: build
+title: 'First-Session Journey — Master Plan (P1–P4 → PR-FSJ-1…10)'
+status: active
+layer: spec
+audience: human
+related:
+  - docs/superpowers/specs/2026-06-06-first-session-journey-design.md
+---
+
+# First-Session Journey — Master Plan
+
+> **For agentic workers:** this is the PR-level sequencer, NOT an implementation plan. Each PR gets its own sub-plan via `superpowers:writing-plans` immediately before its build (plan-as-you-execute per `feedback_master_plan_for_multi_subsystem_specs`). Execute sub-plans with `superpowers:subagent-driven-development`.
+
+**Spec:** [`2026-06-06-first-session-journey-design.md`](../specs/2026-06-06-first-session-journey-design.md) (active, owner-approved). Phasing authority: spec §9. Wireframes: [`docs/02-journeys/wireframes/`](../../02-journeys/wireframes/index.md) — reviewer pairs verify built interaction against the view docs (spec §11).
+
+**Standing constraints (all PRs):** PWA before Azure mirror — the two ingest reducers are independent ~600-LOC machines; never one cross-app PR. Wizard is demoted, never deleted, until P4. Defect/wide-shaped pastes keep today's modal path until P2 (no empty-b0-under-modal interim — spec §4.2a). `--chrome` verify each PR (it keeps earning its keep). Cap ~6–8 tasks/PR.
+
+## P1 — the landing + the project model
+
+| PR        | Scope                                                                                                                                                                                                                                                                                                                                                                                             | Gates                                                                                                                              |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **FSJ-1** | **PWA landing router + Untitled project** (no wizard touches): `ensureSessionProject` (auto-create hub+IP on data entry, auto-activate); landing router for **sample / `.vrs` / manual** entries → Process tab (canvas self-routes b0 vs b2 via `detectScopeFromMap`); `.vrs` = reconstruct-not-create; **embed exemption** explicit; seeded Bottleneck `processMap`.                             | Sub-plan: [`2026-06-06-fsj-1-landing-router-untitled-project.md`](2026-06-06-fsj-1-landing-router-untitled-project.md)             |
+| **FSJ-2** | **PWA paste lands at b0**: measurement-shaped pastes skip ColumnMapping (detection check routes defect/wide to today's modal path); wizard demotes to the **"Fix data…" hatch** off b0; `handleMappingCancel` rawData-wipe fix; **no-Y `OutcomeNoMatchBanner` port** into b0; `HubGoalForm` Stage-1 gate relocates off the paste path; **"+ track another outcome"** link (multi-outcome parity). | Multi-outcome parity + no-Y floor land in THIS PR — before the wizard leaves the primary paste path (spec §7 guarded regressions). |
+| **FSJ-3** | **Azure mirror**: `useEditorDataFlow`/Editor routing to the same landing; analysis brief + goal narrative relocate to the project framing surface; `useNewHubProvision` eager-persist rework (Word-style in-memory until save — hub+project one durability story).                                                                                                                                | FSJ-1+2 merged; Editor project-open landing untouched (spec §1 applicability boundary).                                            |
+
+## P2 — detections re-frame b0 (spec §4.2/§4.2a)
+
+| PR        | Scope                                                                                                                                                                                                                                                                                                                                                           | Gates                                                                        |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **FSJ-4** | **PWA chip/banner infra** + quiet time chip + **step-timestamps banner** (pair-regex lifts from `StepTimingsModal` pre-fill into core detection) → the shipped StepTimingsModal chain → L2 landing.                                                                                                                                                             | Wireframe `step-timings` is the contract.                                    |
+| **FSJ-5** | **PWA mode re-framing**: defect banner → `analysisMode='defect'` + derived-metric picker (Count vs Rate) as b0's pinned Y (plumb `defectResult.outcomeColumn` → b0 candidate source); wide banner → `analysisMode='performance'` + `measureColumns` + **sibling exclusion** from Y/X lists + stack as secondary disposition; retire the three detection modals. | Defect confirm-sequence UI gets its wireframe BEFORE build (spec §11 + §12). |
+| **FSJ-6** | **Azure mirror** of FSJ-4+5.                                                                                                                                                                                                                                                                                                                                    |                                                                              |
+
+## P3 — the capture grammar + crossing up (spec §5/§6)
+
+| PR        | Scope                                                                                                                                                                                                                                                                                                 | Gates                                                                          |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **FSJ-7** | **The capture card** (shared `ui` + both-app wiring): brush → card on release (mints derived factor on save; Capture / Factor-only); chart remembers (I-Chart bands); engine shift banner → compact signal chip with Capture; point-at-chart visible affordance; mobile = tap-capture + bottom sheet. | Converges with `BrushToFindingFlow`; wireframe `capture-card` is the contract. |
+| **FSJ-8** | **Findings-forward Wall** + afterglow nudge; **promotion prompts plain-language hypothesis name**; status-ladder presentation (gestures drive via proposal chips; dropdown = override; enum untouched).                                                                                               | Wireframe `wall-arrival` is the contract.                                      |
+| **FSJ-9** | **Durability UX**: save/export nudge (own-capture rule, single-fire); `beforeunload` dirty guard; **name-before-invite** gate; **Report humanization boundary** (no raw `finding.text`/auto factor names on the executive surface).                                                                   | Sponsor-panel amendments (spec §3/§6).                                         |
+
+## P4 — collapse + retirement (spec §8/§9)
+
+| PR         | Scope                                                                                                                                                                                                                          | Gates                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
+| **FSJ-10** | Writer collapse (one interactive writer + seed writers; defect-mode seam plumbed); wizard retires from the primary path (hatch remains); **E2E spine rewrite** (~25 `confirmColumnMapping` call sites — budgeted first-class). | All prior PRs merged + chrome-walked. |
+
+## Delivery closeout (Apply phase — spec §11, per-initiative)
+
+Rewrite `docs/02-journeys/flows/first-time.md` as the journey's L2 home (named-view links); update `pwa-solo-investigation.md` + `traceability.md` View column; OVERVIEW fixes (stale §3.0 citation, 4-verb spine); E1 T6 amendment + wedge "optional wrapper" reframe; decision-log delivery entries; investigations follow-ups (acceptInvite bug fix routing).
