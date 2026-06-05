@@ -120,41 +120,16 @@ describe('FindingCard — PR-CS-6 Edge 1 promote action', () => {
   });
 });
 
-describe('FindingCard — PR-CS-6 Edge 2 project-lineage toggle', () => {
-  it('renders the toggle and fires onToggleProjectLineage on click', () => {
-    const onToggleProjectLineage = vi.fn();
-    render(
-      <FindingCard
-        finding={makeFinding()}
-        {...noopHandlers}
-        onToggleProjectLineage={onToggleProjectLineage}
-        isInProjectLineage={false}
-      />
-    );
-
-    const btn = screen.getByTestId('toggle-lineage-btn');
-    expect(btn.getAttribute('aria-pressed')).toBe('false');
-    fireEvent.click(btn);
-    expect(onToggleProjectLineage).toHaveBeenCalledWith('f-window-1');
-  });
-
-  it('reflects pressed state when the finding is already in the lineage', () => {
-    render(
-      <FindingCard
-        finding={makeFinding()}
-        {...noopHandlers}
-        onToggleProjectLineage={vi.fn()}
-        isInProjectLineage
-      />
-    );
-
-    expect(screen.getByTestId('toggle-lineage-btn').getAttribute('aria-pressed')).toBe('true');
-  });
-
-  it('hides the toggle when onToggleProjectLineage is absent (no active IP)', () => {
-    render(<FindingCard finding={makeFinding()} {...noopHandlers} />);
-
+describe('FindingCard — lineage pin retired (PO-5)', () => {
+  it('renders no lineage pin button; sibling card content survives', () => {
+    render(<FindingCard finding={makeFinding()} {...noopHandlers} onAssign={vi.fn()} />);
+    // The CS-6 lineage pin (`investigationLineage`) is deleted in PO-5.
     expect(screen.queryByTestId('toggle-lineage-btn')).toBeNull();
+    // Sibling survival control — the card still renders the finding (its text
+    // surfaces in the restore control's accessible name).
+    expect(
+      screen.getByRole('button', { name: /Restore finding: Drift suspected on Line 2/i })
+    ).toBeDefined();
   });
 });
 

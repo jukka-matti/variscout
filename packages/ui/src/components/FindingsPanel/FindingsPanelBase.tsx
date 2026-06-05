@@ -70,10 +70,6 @@ export interface FindingsPanelBaseProps {
   onDeleteAction?: (id: string, actionId: string) => void;
   /** Copy a finding-level action into the active project's action tracker (PR-CS-6 Edge 1) */
   onPromoteAction?: (findingId: string, actionId: string) => void;
-  /** Two-way toggle pinning a finding to the active project's lineage (PR-CS-6 Edge 2) */
-  onToggleProjectLineage?: (findingId: string) => void;
-  /** Ids of findings currently in the active project's investigation lineage (PR-CS-6 Edge 2) */
-  projectLineageFindingIds?: ReadonlySet<string>;
   /** Resolved origin-step name per finding id for the "from {step}" breadcrumb (PR-CS-6 Edge 4) */
   originStepNameByFindingId?: ReadonlyMap<string, string>;
   onSetOutcome?: (
@@ -153,8 +149,6 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onCompleteAction,
   onDeleteAction,
   onPromoteAction,
-  onToggleProjectLineage,
-  projectLineageFindingIds,
   originStepNameByFindingId,
   onSetOutcome,
   renderActionAssigneePicker,
@@ -359,8 +353,6 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
           onPromoteAction={onPromoteAction}
-          onToggleProjectLineage={onToggleProjectLineage}
-          projectLineageFindingIds={projectLineageFindingIds}
           originStepNameByFindingId={originStepNameByFindingId}
           onSetOutcome={onSetOutcome}
           renderActionAssigneePicker={renderActionAssigneePicker}
