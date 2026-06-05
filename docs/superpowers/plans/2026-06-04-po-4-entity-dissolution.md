@@ -3,9 +3,9 @@ tier: living
 purpose: design
 title: 'PO-4 · Entity dissolution — sub-plan (ProcessHubAnalyze ceases to exist)'
 audience: human
-status: active
+status: delivered
 date: 2026-06-04
-last-reviewed: 2026-06-04
+last-reviewed: 2026-06-05
 layer: spec
 topic: [process-as-operations, entity-disposition, capability-carrier, sub-plan]
 related:
@@ -165,7 +165,7 @@ Body: `rollup.hub` → `source.hub`; `rollup.analyzes` → `source.members`; the
 </select>
 ```
 
-  - ADD the carrier build replacing the rollup memo:
+- ADD the carrier build replacing the rollup memo:
 
 ```typescript
 const selectedHub = processHubs.find(hub => hub.id === selectedHubId);
@@ -181,9 +181,10 @@ const capabilitySource = useMemo<ProcessStepCapabilitySource | undefined>(() => 
 ```
 
 (the members' raw `metadata.processHubId` re-filter inside the hooks is preserved behavior — do not normalize member metadata). The `<ProcessHubView>` mount becomes `{selectedHub && capabilitySource && (<><ProcessHubView source={capabilitySource} … /><ProcessHubEvidencePanel hubId={selectedHub.id} … /></>)}`.
-  - `handlePersistInvestigation` re-signs to `(next: ProcessStepCapabilityMember)` — the processContext merge body (nodeMappings/migrationDeclinedAt) byte-identical.
-  - Empty-state condition `sortedProjects.length === 0 && hubRollups.length === 0` → `… && processHubs.length === 0`.
-  - SHED (after grepping callers per keep-guard 8): the `evidenceSnapshots`/`controlRecords`/`controlHandoffs` state trio, their load effect, `loadEvidenceForHub`/`loadSustainmentForHub` if zero-consumer beyond it, and the now-unused `ControlRecord`/`ControlHandoff`/`EvidenceSnapshot` type imports. Handle `ProcessHubEvidencePanel.onEvidenceChanged` per the guard.
+
+- `handlePersistInvestigation` re-signs to `(next: ProcessStepCapabilityMember)` — the processContext merge body (nodeMappings/migrationDeclinedAt) byte-identical.
+- Empty-state condition `sortedProjects.length === 0 && hubRollups.length === 0` → `… && processHubs.length === 0`.
+- SHED (after grepping callers per keep-guard 8): the `evidenceSnapshots`/`controlRecords`/`controlHandoffs` state trio, their load effect, `loadEvidenceForHub`/`loadSustainmentForHub` if zero-consumer beyond it, and the now-unused `ControlRecord`/`ControlHandoff`/`EvidenceSnapshot` type imports. Handle `ProcessHubEvidencePanel.onEvidenceChanged` per the guard.
 - [ ] **Step 6:** `CanvasWorkspace.tsx` (packages/ui) — `members: [] as ProcessHubAnalyze[]` → `[] as ProcessStepCapabilityMember[]`; import swap (`@variscout/core`); `previewRollup` naming → `previewSource` optional.
 - [ ] **Step 7: Test rewrites.** `ProcessHubView.test.tsx`: fixtures → `source` (hub + members); GoalBanner/framing/OutcomePin/migration assertions read `hub.*` — survive. `Dashboard.processHub.test.tsx`: DELETE the hub-cards render test + the card-metrics test (the card is gone); re-anchor hub-selection tests from `getByLabelText('Open Line N')`/`'Start analyze in Line 4'` to `fireEvent.change(screen.getByLabelText('Select process hub'), { target: { value: <hubId> } })`; the evidence-defer test re-targets to "EvidencePanel mounts only when a hub is selected" if the state trio shed; ADD the negative control:
 
@@ -227,11 +228,11 @@ it('renders no hub cards and no start-analyze affordance (IM-0a)', async () => {
 - [ ] **Step 6:** `apps/pwa/src/db/schema.ts` — append after the v12 block:
 
 ```typescript
-    // v13 (PO-4): ProcessHubAnalyze dissolved — the never-written
-    // `investigations` projection table retires (tableName: null; the v1
-    // store declaration stays per the Dexie monotonic-chain rule, mirroring
-    // the v10 `questions: null` precedent).
-    this.version(13).stores({ investigations: null });
+// v13 (PO-4): ProcessHubAnalyze dissolved — the never-written
+// `investigations` projection table retires (tableName: null; the v1
+// store declaration stays per the Dexie monotonic-chain rule, mirroring
+// the v10 `questions: null` precedent).
+this.version(13).stores({ investigations: null });
 ```
 
 Delete the `InvestigationRow` alias + the `investigations!: Table<...>` member + `ProcessHubAnalyze` from the `@variscout/core/processHub` import + the header-comment mention. **Leave the v1 `investigations: '&id, hubId, deletedAt'` store declaration intact.** `schema.v7.test.ts`: `LATEST_SCHEMA_VERSION = 12` → `13` + the version comment block.
