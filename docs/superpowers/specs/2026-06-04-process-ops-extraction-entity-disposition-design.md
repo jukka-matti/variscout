@@ -355,7 +355,7 @@ One relocation doc — **"VariScout Process: the process-operations layer"** —
 
 - **The three-way validator branch (known-newer → read-only + warning) — CUT.** Strict-reject of any non-current `schemaVersion` stays, upgraded from a generic throw to a **clear user-facing message** (version mismatch → "saved by a different version of VariScout — refresh the app"; corrupt → "invalid file"). No Editor read-only mode, no save-gating flag, no warning-banner machinery, no `documentSnapshotVrs.test.ts` newer-opens-read-only flip.
 - **The migration-dispatch seam (`migrateVn→Vn+1` table) — CUT.** "No migration until first customer" IS the principle; the seam would be pre-scaffolded YAGNI. The §9.3 "documented expiry" survives as the principle's own expiry clause.
-- **§13 Phase-F acceptance line amended accordingly:** "a newer-`schemaVersion` document opens read-only with the warning" → *a version-mismatched document is refused with the refresh-hint message; a corrupt document throws loudly at the shared hydrate seam; negative control: a current-version document loads normally.*
+- **§13 Phase-F acceptance line amended accordingly:** "a newer-`schemaVersion` document opens read-only with the warning" → _a version-mismatched document is refused with the refresh-hint message; a corrupt document throws loudly at the shared hydrate seam; negative control: a current-version document loads normally._
 
 ### What PO-8a still delivers
 
