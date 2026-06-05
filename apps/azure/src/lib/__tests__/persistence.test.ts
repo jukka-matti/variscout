@@ -1,7 +1,10 @@
+import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ProcessHub } from '@variscout/core';
-import { getProjectInitialState, useProjectStore } from '@variscout/stores';
-import { exportToFile, importFromFile } from '../persistence';
+import type { ProjectMetadata } from '@variscout/core';
+import { buildDocumentSnapshot, getProjectInitialState, useProjectStore } from '@variscout/stores';
+import { exportToFile, importFromFile, saveProjectLocally } from '../persistence';
+import { db } from '../../db/schema';
 
 const hub: ProcessHub = {
   id: 'hub-1',
@@ -132,5 +135,52 @@ describe('Azure persistence .vrs import/export', () => {
     );
 
     await expect(importFromFile(file)).rejects.toThrow(/invalid file format/i);
+  });
+});
+
+describe('PO-8b: adapter saves preserve portfolio meta + access', () => {
+  it('saveProjectLocally no longer wipes record.meta / record.access', async () => {
+    useProjectStore.setState({
+      ...getProjectInitialState(),
+      rawData: [{ yield: 91 }],
+      outcome: 'yield',
+    });
+    const state = buildDocumentSnapshot({ activeHub: hub });
+
+    const meta: ProjectMetadata = {
+      phase: 'scout',
+      findingCounts: {},
+      questionCounts: {},
+      lastViewedAt: {},
+      sustainment: {
+        recordId: 'cr-1',
+        cadence: 'weekly' as const,
+        nextReviewDue: '2026-07-01T00:00:00.000Z',
+        latestVerdict: 'holding' as const,
+      },
+    };
+    const access = {
+      ownerUserId: 'u1',
+      memberUserIds: ['u1'],
+      hubId: 'hub-1',
+      projectId: null,
+    };
+    await db.projects.put({
+      name: 'keep-meta',
+      location: 'personal',
+      modified: new Date(),
+      synced: true,
+      data: state,
+      meta,
+      access,
+    });
+
+    await saveProjectLocally('keep-meta', state, 'personal');
+
+    const record = await db.projects.get('keep-meta');
+    expect(record?.meta).toEqual(meta); // preserved, not wiped
+    expect(record?.access).toEqual(access);
+    expect(record?.synced).toBe(false); // save still marks unsynced
+    await db.projects.delete('keep-meta');
   });
 });

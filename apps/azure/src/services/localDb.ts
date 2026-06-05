@@ -68,8 +68,26 @@ export function canAccessProjectRecord(record: ProjectRecord, userId: string): b
   return access.ownerUserId === userId || access.memberUserIds.includes(userId);
 }
 
-function metadataChanged(current: ProjectMetadata | undefined, next: ProjectMetadata): boolean {
+export function metadataChanged(
+  current: ProjectMetadata | undefined,
+  next: ProjectMetadata
+): boolean {
   return JSON.stringify(current ?? null) !== JSON.stringify(next);
+}
+
+/**
+ * PO-8b heal contract: ProjectMetadata writes are MERGES, never wholesale
+ * replaces. buildProjectMetadata is a pure function of the loaded aggregate
+ * and never produces `sustainment` — that projection is owned by the Control
+ * direct-Dexie bypass (updateProjectSustainmentProjectionInIndexedDB, R13)
+ * and read by the ProjectCard due-ness chip. A naive recompute-and-overwrite
+ * clobbers it (the pre-PO-8b defect on every save / list / cloud load).
+ */
+export function mergeProjectMetadata(
+  existing: ProjectMetadata | undefined,
+  recomputed: ProjectMetadata
+): ProjectMetadata {
+  return { ...recomputed, sustainment: existing?.sustainment ?? recomputed.sustainment };
 }
 
 async function backfillProjectMetadataRecords(
@@ -80,7 +98,8 @@ async function backfillProjectMetadataRecords(
   const nextRecords: ProjectRecord[] = [];
 
   for (const record of records) {
-    const nextMeta = extractMetadataInputs(record.data, userId, record.meta?.lastViewedAt);
+    const recomputed = extractMetadataInputs(record.data, userId, record.meta?.lastViewedAt);
+    const nextMeta = recomputed ? mergeProjectMetadata(record.meta, recomputed) : null;
     const nextAccess = record.access ?? extractDocumentAccess(record.data, userId);
     const accessChanged = !record.access;
     if (!nextMeta || (!metadataChanged(record.meta, nextMeta) && !accessChanged)) {
