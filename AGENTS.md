@@ -5,9 +5,10 @@ Structured analysis for process improvement. Browser-based, customer-owned data,
 ## Invariants
 
 - Browser-only processing; data stays in customer's tenant (ADR-059).
-- 10 Zustand stores split across 3 layers per ADR-078 + F4 (Document x4, Annotation x4 — 1 per-hub + 3 per-user, View x2); no DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
+- 9 Zustand stores split across 3 layers per ADR-078 + F4 (Document x4, Annotation x4 — 1 per-hub + 3 per-user, View x1); no DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
 - Deterministic stats engine is authority; CoScout (AI) adds context.
 - Package dependencies flow downward: core -> hooks -> ui -> apps.
+- Never write "root cause" in code, comments, or UI copy — say "contribution" / "suspected cause" / "mechanism" (P5; ESLint enforces). Never call interactions "moderator/primary" — use `'ordinal'` / `'disordinal'`.
 
 ## Commands
 
@@ -31,7 +32,8 @@ Structured analysis for process improvement. Browser-based, customer-owned data,
 ## Workflow
 
 - Tooling, docs, and config changes can go direct to `main`.
-- Product code changes should follow the repo PR workflow: branch, PR, `bash scripts/pr-ready-check.sh`, review, squash-merge by default. Use rebase-merge when the branch has multiple intentionally curated commits that should remain separate on `main`.
+- Product code changes should follow the repo PR workflow: branch, PR, `bash scripts/pr-ready-check.sh`, review, then **`gh pr merge --merge --delete-branch`** (a true merge commit — NEVER `--squash`, which collapses per-category commits + review polish into one mainline commit; see `feedback_preserve_commit_history`).
+- **Branch guard before every commit:** run `git rev-parse --abbrev-ref HEAD` and confirm it prints your assigned feature branch (and `pwd` is your `.worktrees/<branch>/`) BEFORE `git commit`. A parallel agent committing from the repo-root checkout lands work on `main` and corrupts the orchestrator's tree (incident 2026-06-06).
 - Prefer retrieval over recall. Read the relevant ADR, spec, or package doc before non-trivial edits.
 - **Use a dedicated worktree.** Codex must operate from `.worktrees/<branch>/` (not the repo root) when writing code, even for solo work — and ALWAYS when running concurrently with another agent. The repo root stays reserved for the human / main Claude Code session (docs, specs, decisions). Sharing a checkout across writing agents causes branch-switch races, stash accumulation, and dangling commits. See `~/.claude/projects/.../memory/feedback_one_worktree_per_agent.md` for the slice 4 followup retro evidence. Setup: `git worktree add .worktrees/<branch> -b <branch> origin/main && cd .worktrees/<branch> && pnpm install`.
 
