@@ -186,10 +186,14 @@ export function useCanvasHypothesisDrawing({
     [stepMetricColumns]
   );
 
-  // Reset draw tool when the active tool changes away from draw-hypothesis
+  // Reset draw tool when the active tool changes away from draw-hypothesis.
+  // Dep is the stable `reset` callback, NOT the whole drawTool object — the
+  // object's identity tracks draw state, and depending on it re-ran this
+  // effect on every state change (the b0-expander mount loop, 2026-06-06).
+  const resetDrawTool = drawTool.reset;
   useEffect(() => {
-    if (activeCanvasTool !== 'draw-hypothesis') drawTool.reset();
-  }, [activeCanvasTool, drawTool]);
+    if (activeCanvasTool !== 'draw-hypothesis') resetDrawTool();
+  }, [activeCanvasTool, resetDrawTool]);
 
   return {
     handlers: {

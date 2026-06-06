@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export type CanvasToolId = 'select' | 'draw-hypothesis';
 
@@ -101,18 +101,27 @@ export function useHypothesisDrawTool({
   );
 
   const reset = useCallback((): void => {
-    setState({ phase: 'idle' });
+    // Bail to the SAME reference when already idle — a fresh `{ phase: 'idle' }`
+    // object would defeat React's setState bail-out and re-render for nothing,
+    // which (with the result object below used as an effect dep) looped every
+    // Canvas mount at the b0 expander (max-update-depth, 2026-06-06).
+    setState(current => (current.phase === 'idle' ? current : { phase: 'idle' }));
   }, []);
 
-  return {
-    state,
-    onPointerDown,
-    onPointerMove,
-    onPointerUp,
-    onPointerCancel: reset,
-    cancel: reset,
-    reset,
-  };
+  // Memoized so consumers may safely use the result object itself as an
+  // effect/callback dep (Canvas does) — identity changes only with state.
+  return useMemo(
+    () => ({
+      state,
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel: reset,
+      cancel: reset,
+      reset,
+    }),
+    [state, onPointerDown, onPointerMove, onPointerUp, reset]
+  );
 }
 
 export function resolveEndpointToFactor(

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { useCanvasHypothesisDrawing } from '../useCanvasHypothesisDrawing';
 import { useHypothesisDrawTool } from '../useHypothesisDrawTool';
+import type { CanvasToolId } from '../useHypothesisDrawTool';
 import type { KeyboardEvent, PointerEvent, RefObject } from 'react';
 import type { ArrowEndpoint } from '../useHypothesisDrawTool';
 
@@ -261,5 +262,51 @@ describe('useCanvasHypothesisDrawing', () => {
     });
 
     expect(drawToolResult.current.state.phase).toBe('idle');
+  });
+});
+
+// b0-expander mount-loop regression (investigations 2026-06-06): the suites
+// above render the two hooks in SEPARATE renderHook calls, which hides the
+// production composition — Canvas calls BOTH hooks in one component and the
+// reset effect's `drawTool` dep is the draw-tool hook's result object. With
+// an unstable result + a non-bailing reset(), mounting the composition with
+// the default 'select' tool looped forever (Maximum update depth exceeded —
+// live at the FrameViewB0 process-steps expander, the only Canvas mount on
+// the PWA fresh-paste path).
+describe('useHypothesisDrawTool + useCanvasHypothesisDrawing composition (Canvas wiring)', () => {
+  function useComposedProbe(activeCanvasTool: CanvasToolId) {
+    const drawTool = useHypothesisDrawTool({ active: activeCanvasTool === 'draw-hypothesis' });
+    useCanvasHypothesisDrawing({
+      activeCanvasTool,
+      disabled: false,
+      drawTool,
+      cardSurfaceRef: makeSurfaceRef(),
+      onCanvasToolChange: vi.fn(),
+      stepMetricColumns: {},
+    });
+    return drawTool;
+  }
+
+  it("mounts with the default 'select' tool without a render loop", () => {
+    // Today this throws "Maximum update depth exceeded" before the fix.
+    const { result } = renderHook(() => useComposedProbe('select'));
+
+    expect(result.current.state).toEqual({ phase: 'idle' });
+  });
+
+  it('switching away from draw-hypothesis still resets an in-flight draw (negative control)', () => {
+    // The loop fix must not neuter the reset effect: a drawing in progress
+    // when the tool flips back to select MUST return to idle.
+    const { result, rerender } = renderHook(
+      ({ tool }: { tool: CanvasToolId }) => useComposedProbe(tool),
+      { initialProps: { tool: 'draw-hypothesis' as CanvasToolId } }
+    );
+
+    act(() => result.current.onPointerDown(stepA, { x: 5, y: 5 }));
+    expect(result.current.state.phase).toBe('drawing');
+
+    rerender({ tool: 'select' });
+
+    expect(result.current.state).toEqual({ phase: 'idle' });
   });
 });

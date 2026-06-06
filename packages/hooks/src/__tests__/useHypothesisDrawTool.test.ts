@@ -118,6 +118,29 @@ describe('useHypothesisDrawTool', () => {
 
     expect(result.current.state).toEqual({ phase: 'idle' });
   });
+
+  // b0-expander mount-loop regression (investigations 2026-06-06): reset()
+  // while already idle must be a true no-op — minting a fresh
+  // `{ phase: 'idle' }` object on every call defeats React's setState
+  // bail-out and, combined with an unstable hook result used as an effect
+  // dep, loops any mount of the composed drawing surface forever.
+  it('reset while already idle preserves state identity (setState bail-out)', () => {
+    const { result } = renderHook(() => useHypothesisDrawTool({ active: true }));
+    const before = result.current.state;
+
+    act(() => result.current.reset());
+
+    expect(result.current.state).toBe(before);
+  });
+
+  it('result object is referentially stable across re-renders', () => {
+    const { result, rerender } = renderHook(() => useHypothesisDrawTool({ active: true }));
+    const first = result.current;
+
+    rerender();
+
+    expect(result.current).toBe(first);
+  });
 });
 
 describe('resolveEndpointToFactor', () => {
