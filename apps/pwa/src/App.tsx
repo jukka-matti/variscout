@@ -87,6 +87,7 @@ import {
   parseMentions,
   findDuplicateFinding,
   findDuplicateBySource,
+  detectScopeFromMap,
 } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -580,6 +581,8 @@ function AppMain() {
   }, [isDrilling, outcome, filteredData, rawData]);
 
   const centeringOpp = useMemo(() => (stats ? computeCenteringOpportunity(stats) : null), [stats]);
+  const isProcessB0Landing =
+    panels.activeView === 'frame' && detectScopeFromMap(processContext?.processMap) === 'b0';
 
   // Sync complement + drilling state to projection store (sidebar reads from store)
   useEffect(() => {
@@ -598,6 +601,7 @@ function AppMain() {
       (factors.length > 0 || rawData.length >= 10) &&
       !capabilitySuggestionDismissed &&
       !showCapabilitySuggestion &&
+      !isProcessB0Landing &&
       !importFlow.wideFormatDetection &&
       !importFlow.defectDetection
     ) {
@@ -609,6 +613,7 @@ function AppMain() {
     factors.length,
     capabilitySuggestionDismissed,
     showCapabilitySuggestion,
+    isProcessB0Landing,
     importFlow.wideFormatDetection,
     importFlow.defectDetection,
   ]);
@@ -1729,7 +1734,7 @@ function AppMain() {
         })()}
 
       {/* Capability Suggestion Modal */}
-      {showCapabilitySuggestion && (
+      {showCapabilitySuggestion && !isProcessB0Landing && (
         <CapabilitySuggestionModal
           onStartCapability={config => {
             setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
