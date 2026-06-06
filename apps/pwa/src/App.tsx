@@ -350,6 +350,10 @@ function AppMain() {
   // because panels depends on importFlow). A ref lets onFreshPasteLanded read the
   // stable, always-current showFrame without forward-referencing a const across a
   // temporal dead zone. Pattern mirrors importFlowRef above.
+  // Safe: onFreshPasteLanded cannot fire until user interaction, which cannot happen
+  // before the first render completes — by then showFrameRef.current is populated.
+  // The ?.() at the call site is a TypeScript guard for the initial null type, not a
+  // live null-deref risk. Do NOT "simplify" to a direct panels.showFrame reference.
   const showFrameRef = React.useRef<(() => void) | null>(null);
 
   const importFlow = usePasteImportFlow({
