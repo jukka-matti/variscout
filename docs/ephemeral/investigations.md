@@ -1522,7 +1522,9 @@ Surfaced by the PR-0 verification walk: with the loop fixed, expanding "Add proc
 
 FSJ-2's quiet-tier interim auto-applies time extraction with the wizard defaults; a single-year dataset then shows `Timestamp_Year` as a selected X chip reading "2,026.00 ± 0.00 n=30". FSJ-4's quiet chip should either filter `hasVariation === false` derived columns at mint time or drop `extractYear` from the default config.
 
-## Embed mode shows the framing toolbar (FSJ-1-caused chrome leak) [LOGGED 2026-06-06]
+## Embed mode shows the framing toolbar (FSJ-1-caused chrome leak) [RESOLVED 2026-06-06]
+
+**RESOLVED via PR #315** (`cc1872aef`) — `!isEmbedMode` joined the toolbar condition (spec §1 exemption), red-test-first + positive control, chrome-verified both ways. Notably: **the first Codex-implemented commit in the repo** (the Claude-orchestrates/Codex-implements pilot — `codex exec` in its own worktree, AGENTS.md onboarding, Claude review + walk + merge; zero review fixes needed). Original entry below.
 
 `?embed=true` iframes now render the `+ New analyze / Export .vrs / Edit framing` toolbar above the chart: the toolbar gates on `sessionHub` existing, and FSJ-1's landing deliberately runs IP activation in embed (state consistency) — so the hub now exists there. One-line candidate fix: add `!isEmbedMode` to the framing-toolbar condition. Route with FSJ-3/4.
 
