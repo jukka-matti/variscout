@@ -28,6 +28,26 @@ export interface BrushCaptureDraftInput {
   existingColumnNames?: string[];
 }
 
+export interface CategoryPointCaptureDraftInput {
+  chart: 'boxplot' | 'pareto';
+  factor: string;
+  categoryKey: string | number;
+  outcome: string;
+  rows: DataRow[];
+  activeFilters: Record<string, (string | number)[]>;
+}
+
+export interface ProbabilityBandCaptureDraftInput {
+  outcome: string;
+  minValue: number;
+  maxValue: number;
+  rows: DataRow[];
+  activeFilters: Record<string, (string | number)[]>;
+  anchorX: number;
+  specs?: SpecLimits;
+  existingColumnNames?: string[];
+}
+
 function selectedBounds(selectedIndices: Set<number>): { startIdx: number; endIdx: number } {
   const sorted = Array.from(selectedIndices).sort((a, b) => a - b);
   return { startIdx: sorted[0] ?? 0, endIdx: sorted[sorted.length - 1] ?? 0 };
@@ -89,6 +109,17 @@ function evidenceContrastLabel(
   return parts.join(' · ');
 }
 
+function selectedIndicesWhere(
+  rows: DataRow[],
+  predicate: (row: DataRow, index: number) => boolean
+): Set<number> {
+  const selected = new Set<number>();
+  rows.forEach((row, index) => {
+    if (predicate(row, index)) selected.add(index);
+  });
+  return selected;
+}
+
 export function applyDerivedFactorToFilters(
   activeFilters: Record<string, (string | number)[]>,
   factorName: string
@@ -125,6 +156,24 @@ export function buildBrushDerivedColumn(
   }));
 }
 
+export function buildValueBandDerivedColumn(
+  rows: DataRow[],
+  outcome: string,
+  minValue: number,
+  maxValue: number,
+  factorName: string
+): DataRow[] {
+  const lo = Math.min(minValue, maxValue);
+  const hi = Math.max(minValue, maxValue);
+  return rows.map(row => {
+    const value = Number(row[outcome]);
+    return {
+      ...row,
+      [factorName]: Number.isFinite(value) && value >= lo && value <= hi ? 'in' : 'out',
+    };
+  });
+}
+
 export function buildBrushCaptureDraft({
   rows,
   outcome,
@@ -158,6 +207,81 @@ export function buildBrushCaptureDraft({
     activeFilters,
     proposedFactorName,
     conditionLabel,
+    evidenceLabel: evidenceContrastLabel(rows, outcome, selectedIndices, specs),
+    note: '',
+  };
+}
+
+export function buildCategoryPointCaptureDraft({
+  chart,
+  factor,
+  categoryKey,
+  outcome,
+  rows,
+  activeFilters,
+}: CategoryPointCaptureDraftInput): CaptureDraft {
+  const selectedValues = new Map<string, string | number>();
+  const selectedIndices = selectedIndicesWhere(rows, row => {
+    const value = row[factor];
+    if (String(value) !== String(categoryKey)) return false;
+    if (typeof value === 'string' || typeof value === 'number') {
+      selectedValues.set(`${typeof value}:${String(value)}`, value);
+    }
+    return true;
+  });
+  const filterValues =
+    selectedValues.size > 0 ? Array.from(selectedValues.values()) : [categoryKey];
+  const nextFilters = { ...activeFilters, [factor]: filterValues };
+  const source: FindingSource = {
+    chart,
+    category: String(categoryKey),
+    timeLens: usePreferencesStore.getState().timeLens,
+  };
+
+  return {
+    entryKind: 'point',
+    source,
+    activeFilters: nextFilters,
+    conditionLabel: formatActiveFilters(nextFilters),
+    evidenceLabel: evidenceContrastLabel(rows, outcome, selectedIndices),
+    note: '',
+  };
+}
+
+export function buildProbabilityBandCaptureDraft({
+  outcome,
+  minValue,
+  maxValue,
+  rows,
+  activeFilters,
+  anchorX,
+  specs,
+  existingColumnNames,
+}: ProbabilityBandCaptureDraftInput): CaptureDraft {
+  const lo = Math.min(minValue, maxValue);
+  const hi = Math.max(minValue, maxValue);
+  const selectedIndices = selectedIndicesWhere(rows, row => {
+    const value = Number(row[outcome]);
+    return Number.isFinite(value) && value >= lo && value <= hi;
+  });
+  const proposedFactorName = resolveDerivedFactorName(
+    `${outcome} ${formatNumber(lo)}-${formatNumber(hi)}`,
+    existingColumnNames ?? []
+  );
+  const filterLabel = formatActiveFilters(activeFilters);
+
+  return {
+    entryKind: 'probability-band',
+    source: {
+      chart: 'probability',
+      anchorX,
+      anchorY: lo,
+      anchorYMax: hi,
+      timeLens: usePreferencesStore.getState().timeLens,
+    },
+    activeFilters,
+    proposedFactorName,
+    conditionLabel: [filterLabel, proposedFactorName].filter(Boolean).join(' x '),
     evidenceLabel: evidenceContrastLabel(rows, outcome, selectedIndices, specs),
     note: '',
   };

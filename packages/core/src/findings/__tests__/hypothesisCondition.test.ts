@@ -143,6 +143,20 @@ describe('deriveConditionFromFindingSource', () => {
     expect(result).toEqual({ kind: 'leaf', column: 'FILL', op: 'between', value: [100, 110] });
   });
 
+  it('derives between leaf from probability source anchorYMax', () => {
+    const source: FindingSource = {
+      chart: 'probability',
+      anchorX: 10,
+      anchorY: 100,
+      anchorYMax: 110,
+      timeLens: { mode: 'cumulative' },
+    };
+    const result = deriveConditionFromFindingSource(source, {
+      metricColumn: 'FILL',
+    });
+    expect(result).toEqual({ kind: 'leaf', column: 'FILL', op: 'between', value: [100, 110] });
+  });
+
   it('returns undefined for coscout findings', () => {
     const source: FindingSource = {
       chart: 'coscout',

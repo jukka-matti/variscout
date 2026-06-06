@@ -41,6 +41,9 @@ const IChartBase: React.FC<IChartProps> = ({
   showBranding = true,
   brandingText,
   onPointClick,
+  onPointCapture,
+  brushedFindings = [],
+  onBrushFindingClick,
   enableBrushSelection = false,
   selectedPoints = new Set(),
   onSelectionChange,
@@ -198,6 +201,42 @@ const IChartBase: React.FC<IChartProps> = ({
             strokeOpacity={isStaged ? 0.15 : 0.4}
           />
 
+          {brushedFindings.map(finding => {
+            if (finding.source?.chart !== 'ichart' || !finding.source.brushedRange) return null;
+            const { startIdx, endIdx } = finding.source.brushedRange;
+            const x0 = xScale(Math.max(0, Math.min(startIdx, data.length - 1)));
+            const x1 = xScale(Math.max(0, Math.min(endIdx, data.length - 1)));
+            const left = Math.min(x0, x1);
+            const bandWidth = Math.max(Math.abs(x1 - x0), 8);
+            return (
+              <rect
+                key={finding.id}
+                data-testid={`ichart-brush-band-${finding.id}`}
+                role={onBrushFindingClick ? 'button' : undefined}
+                tabIndex={onBrushFindingClick ? 0 : undefined}
+                aria-label={`Open finding ${finding.id}`}
+                x={left - 4}
+                y={0}
+                width={bandWidth + 8}
+                height={height}
+                fill={chartColors.selected}
+                fillOpacity={0.08}
+                stroke={chartColors.selected}
+                strokeOpacity={0.35}
+                strokeWidth={1}
+                onClick={() => onBrushFindingClick?.(finding)}
+                onKeyDown={event => {
+                  if (!onBrushFindingClick) return;
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onBrushFindingClick(finding);
+                  }
+                }}
+                style={{ cursor: onBrushFindingClick ? 'pointer' : 'default' }}
+              />
+            );
+          })}
+
           {/* Control limits, spec limits, and secondary series limits */}
           <ControlLines
             width={width}
@@ -245,6 +284,7 @@ const IChartBase: React.FC<IChartProps> = ({
             chrome={chrome}
             t={t}
             onPointClick={onPointClick}
+            onPointCapture={onPointCapture}
             enableBrushSelection={enableBrushSelection}
             highlightedPointIndex={highlightedPointIndex}
             onSelectionChange={onSelectionChange}

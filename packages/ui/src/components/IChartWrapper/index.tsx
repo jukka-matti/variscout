@@ -62,6 +62,8 @@ export interface IChartWrapperBaseProps {
   onSelectionChange?: (indices: Set<number>) => void;
   /** Callback when a data point is clicked */
   onPointClick?: (index: number) => void;
+  /** Visible capture affordance callback for a data point */
+  onPointCapture?: (index: number, point: IChartDataPoint) => void;
   /** Callback when a spec label is clicked */
   onSpecClick?: (spec: 'usl' | 'lsl' | 'target') => void;
   /** Render the VariScout source-bar branding when true. Defaults to false. */
@@ -76,6 +78,8 @@ export interface IChartWrapperBaseProps {
   ichartFindings?: Finding[];
   /** Callback to create a chart observation at position */
   onCreateObservation?: (anchorX: number, anchorY: number) => void;
+  /** Callback when a saved brush band is clicked. */
+  onBrushFindingClick?: (finding: Finding) => void;
   /** Edit a finding's text from the annotation box */
   onEditFinding?: (id: string, text: string) => void;
   /** Delete a finding from the annotation box */
@@ -115,6 +119,7 @@ export const IChartWrapperBase = ({
   selectedPoints,
   onSelectionChange,
   onPointClick,
+  onPointCapture,
   onSpecClick,
   showBranding: showBrandingProp,
   brandingText: brandingTextProp,
@@ -122,6 +127,7 @@ export const IChartWrapperBase = ({
   highlightedPointIndex,
   ichartFindings = [],
   onCreateObservation,
+  onBrushFindingClick,
   onEditFinding,
   onDeleteFinding,
   isCapabilityMode = false,
@@ -188,6 +194,9 @@ export const IChartWrapperBase = ({
         showBranding={showBranding}
         brandingText={showBranding ? brandingText : undefined}
         onPointClick={onPointClick}
+        onPointCapture={isCapabilityMode ? undefined : onPointCapture}
+        brushedFindings={isCapabilityMode ? [] : ichartFindings}
+        onBrushFindingClick={isCapabilityMode ? undefined : onBrushFindingClick}
         onSpecClick={isCapabilityMode ? undefined : onSpecClick}
         onYAxisClick={isCapabilityMode ? undefined : () => setIsEditingScale(true)}
         enableBrushSelection={!isCapabilityMode}

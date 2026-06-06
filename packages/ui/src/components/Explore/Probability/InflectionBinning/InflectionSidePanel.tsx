@@ -37,9 +37,12 @@
 
 import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
+import { DEFAULT_TIME_LENS } from '@variscout/core';
 import type { BinnedFactorBinding, SegmentStats } from '@variscout/core/binning';
 import { formatStatistic } from '@variscout/core/i18n';
+import type { CaptureDraft } from '@variscout/hooks';
 import { ConfirmDialog } from '../../../ConfirmDialog/ConfirmDialog';
+import { CaptureCard } from '../../../CaptureCard';
 import {
   useInflectionBinningState,
   type UseInflectionBinningStateReturn,
@@ -111,6 +114,7 @@ export function InflectionSidePanelView({
     removeBinning,
   } = controller;
   const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
+  const [isCaptureCardOpen, setIsCaptureCardOpen] = useState(false);
   // `addCut` is reserved for future direct-canvas affordances (click on the prob
   // plot to add a cut). The panel does not expose a separate "+ Add" control
   // today — V1 ships with detect → drag → remove only.
@@ -168,6 +172,21 @@ export function InflectionSidePanelView({
 
   // ── State B: proposing ───────────────────────────────────────────────────
   if (state.kind === 'proposing') {
+    const draft: CaptureDraft = {
+      entryKind: 'inflection-binning',
+      source: {
+        chart: 'probability',
+        anchorX: state.cuts[0] ?? 0,
+        anchorY: state.cuts[0] ?? 0,
+        anchorYMax: state.cuts[state.cuts.length - 1] ?? state.cuts[0] ?? 0,
+        timeLens: DEFAULT_TIME_LENS,
+      },
+      activeFilters: {},
+      conditionLabel: `${sourceColumn}_bin`,
+      evidenceLabel: `${state.cuts.length} cut${state.cuts.length === 1 ? '' : 's'} · ${state.segments.length} level${state.segments.length === 1 ? '' : 's'}`,
+      note: '',
+    };
+
     return (
       <aside
         data-testid="inflection-side-panel"
@@ -199,12 +218,26 @@ export function InflectionSidePanelView({
         <button
           type="button"
           data-testid="create-bin-column-button"
-          onClick={commit}
+          onClick={() => setIsCaptureCardOpen(true)}
           disabled={state.cuts.length === 0}
           className="self-end rounded bg-cyan-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Create bin column →
         </button>
+
+        {isCaptureCardOpen && (
+          <CaptureCard
+            draft={draft}
+            onDraftChange={() => {}}
+            onCapture={commit}
+            onFactorOnly={() => {
+              commit();
+              setIsCaptureCardOpen(false);
+            }}
+            onCancel={() => setIsCaptureCardOpen(false)}
+            showCapture={false}
+          />
+        )}
       </aside>
     );
   }

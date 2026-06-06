@@ -54,6 +54,8 @@ export interface BoxplotWrapperBaseProps {
   yDomainMax: number;
   /** Drill-down callback (overrides filter toggle when provided) */
   onDrillDown?: (factor: string, value: string) => void;
+  /** Visible capture affordance callback for a category. */
+  onCaptureCategory?: (factor: string, value: string) => void;
   /**
    * LV1-F: Linked-views scope accumulation. Fires `(factor, key)` on every box /
    * whisker click. Caller (Azure thin wrapper) wires this to
@@ -114,6 +116,7 @@ export const BoxplotWrapperBase = ({
   yDomainMin,
   yDomainMax,
   onDrillDown,
+  onCaptureCategory,
   onScopeAccumulate,
   showBranding: showBrandingProp,
   brandingText: brandingTextProp,
@@ -192,6 +195,7 @@ export const BoxplotWrapperBase = ({
         yDomainOverride={{ min: yDomainMin, max: yDomainMax }}
         selectedGroups={selectedGroups}
         onBoxClick={handleBoxClick}
+        onBoxCapture={key => onCaptureCategory?.(factor, key)}
         sampleSize={filteredData.length}
         showViolin={displayOptions.showViolin}
         violinData={violinData}

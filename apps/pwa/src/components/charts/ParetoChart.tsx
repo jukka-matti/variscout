@@ -14,6 +14,7 @@ interface ParetoChartProps {
   parentWidth: number;
   parentHeight: number;
   onDrillDown?: (factor: string, value: string) => void;
+  onCaptureCategory?: (factor: string, value: string) => void;
   showComparison?: boolean;
   onToggleComparison?: () => void;
   onHide?: () => void;

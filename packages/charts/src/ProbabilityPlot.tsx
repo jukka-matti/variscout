@@ -79,6 +79,7 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
   selectedPoints,
   onSelectionChange,
   onChartContextMenu,
+  onPointCapture,
   onSeriesHover,
   overlay,
 }) => {
@@ -378,20 +379,56 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
                 const globalIdx = globalOffset + i;
                 const pointOpacity = hasSelection ? brushSelection.getPointOpacity(globalIdx) : 1;
                 const pointSize = hasSelection ? brushSelection.getPointSize(globalIdx) : 4;
+                const previousX = dp[i - 1]?.x;
+                const nextX = dp[i + 1]?.x;
+                const lowerBound = previousX === undefined ? d.x : (previousX + d.x) / 2;
+                const upperBound = nextX === undefined ? d.x : (d.x + nextX) / 2;
+                const capturePoint = {
+                  value: d.x,
+                  anchorX: d.x,
+                  anchorY: lowerBound,
+                  anchorYMax: upperBound,
+                  seriesKey: s.key,
+                };
 
                 return (
-                  <Circle
-                    key={i}
-                    cx={xScale(d.x)!}
-                    cy={yScale(d.z)!}
-                    r={pointSize}
-                    fill={color}
-                    stroke={chrome.pointStroke}
-                    strokeWidth={brushSelection.getPointStrokeWidth(globalIdx)}
-                    fillOpacity={pointOpacity}
-                    style={{ cursor: 'pointer' }}
-                    onClick={e => brushSelection.handlePointClick(globalIdx, e)}
-                  />
+                  <React.Fragment key={i}>
+                    <Circle
+                      cx={xScale(d.x)!}
+                      cy={yScale(d.z)!}
+                      r={pointSize}
+                      fill={color}
+                      stroke={chrome.pointStroke}
+                      strokeWidth={brushSelection.getPointStrokeWidth(globalIdx)}
+                      fillOpacity={pointOpacity}
+                      style={{ cursor: 'pointer' }}
+                      onClick={e => brushSelection.handlePointClick(globalIdx, e)}
+                    />
+                    {onPointCapture && (
+                      <g
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Capture probability point ${globalIdx + 1}`}
+                        data-testid={`probability-capture-point-${globalIdx}`}
+                        transform={`translate(${(xScale(d.x) ?? 0) + 8}, ${(yScale(d.z) ?? 0) - 8})`}
+                        style={{ cursor: 'pointer' }}
+                        onClick={(event: React.MouseEvent) => {
+                          event.stopPropagation();
+                          onPointCapture(capturePoint);
+                        }}
+                        onKeyDown={(event: React.KeyboardEvent) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            onPointCapture(capturePoint);
+                          }
+                        }}
+                      >
+                        <circle r={5} fill={colors.selected} stroke={chrome.pointStroke} />
+                        <path d="M-2 0h4M0-2v4" stroke={chrome.pointStroke} strokeWidth={1.25} />
+                      </g>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </g>

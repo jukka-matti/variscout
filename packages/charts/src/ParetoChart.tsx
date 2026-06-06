@@ -62,6 +62,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
   showBranding = true,
   brandingText,
   onBarClick,
+  onBarCapture,
   onYAxisClick,
   onXAxisClick,
   comparisonData,
@@ -155,42 +156,78 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             })}
 
           {/* Bars */}
-          {data.map((d, i) => (
-            <Bar
-              key={i}
-              x={xScale(d.key)}
-              y={yScale(d.value)}
-              width={xScale.bandwidth()}
-              height={height - yScale(d.value)}
-              fill={
-                othersKey && d.key === othersKey
-                  ? chrome.axisSecondary
-                  : highlightedCategories?.[d.key]
-                    ? highlightFillColors[highlightedCategories[d.key]]
-                    : isSelected(d.key)
-                      ? colors.selected
-                      : chrome.boxDefault
-              }
-              fillOpacity={highlightedCategories?.[d.key] ? 0.7 : 1}
-              rx={4}
-              onClick={(e: React.MouseEvent) => onBarClick?.(d.key, { shiftKey: e.shiftKey })}
-              onContextMenu={
-                onBarContextMenu
-                  ? (e: React.MouseEvent) => {
-                      e.preventDefault();
-                      onBarContextMenu(d.key, e);
-                    }
-                  : undefined
-              }
-              onMouseOver={() =>
-                showTooltipAtCoords((xScale(d.key) || 0) + xScale.bandwidth(), yScale(d.value), d)
-              }
-              onMouseLeave={hideTooltip}
-              className={onBarClick || onBarContextMenu ? interactionStyles.clickable : ''}
-              opacity={getOpacity(d.key)}
-              {...getBarA11yProps(d.key, d.value, onBarClick ? () => onBarClick(d.key) : undefined)}
-            />
-          ))}
+          {data.map((d, i) => {
+            const barX = xScale(d.key) ?? 0;
+            const barY = yScale(d.value);
+            const barWidth = xScale.bandwidth();
+            return (
+              <g key={i}>
+                <Bar
+                  x={barX}
+                  y={barY}
+                  width={barWidth}
+                  height={height - barY}
+                  fill={
+                    othersKey && d.key === othersKey
+                      ? chrome.axisSecondary
+                      : highlightedCategories?.[d.key]
+                        ? highlightFillColors[highlightedCategories[d.key]]
+                        : isSelected(d.key)
+                          ? colors.selected
+                          : chrome.boxDefault
+                  }
+                  fillOpacity={highlightedCategories?.[d.key] ? 0.7 : 1}
+                  rx={4}
+                  onClick={(e: React.MouseEvent) => onBarClick?.(d.key, { shiftKey: e.shiftKey })}
+                  onContextMenu={
+                    onBarContextMenu
+                      ? (e: React.MouseEvent) => {
+                          e.preventDefault();
+                          onBarContextMenu(d.key, e);
+                        }
+                      : undefined
+                  }
+                  onMouseOver={() => showTooltipAtCoords(barX + barWidth, barY, d)}
+                  onMouseLeave={hideTooltip}
+                  className={
+                    onBarClick || onBarContextMenu || onBarCapture
+                      ? interactionStyles.clickable
+                      : ''
+                  }
+                  opacity={getOpacity(d.key)}
+                  {...getBarA11yProps(
+                    d.key,
+                    d.value,
+                    onBarClick ? () => onBarClick(d.key) : undefined
+                  )}
+                />
+                {onBarCapture && (
+                  <g
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Capture ${d.key}`}
+                    data-testid={`pareto-capture-${d.key}`}
+                    transform={`translate(${barX + barWidth - 6}, ${Math.max(8, barY - 10)})`}
+                    onClick={(event: React.MouseEvent) => {
+                      event.stopPropagation();
+                      onBarCapture(d.key);
+                    }}
+                    onKeyDown={(event: React.KeyboardEvent) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        onBarCapture(d.key);
+                      }
+                    }}
+                    className={interactionStyles.clickable}
+                  >
+                    <circle r={6} fill={colors.selected} stroke={chrome.pointStroke} />
+                    <path d="M-2 0h4M0-2v4" stroke={chrome.pointStroke} strokeWidth={1.5} />
+                  </g>
+                )}
+              </g>
+            );
+          })}
 
           {/* 80% Reference Line */}
           <line

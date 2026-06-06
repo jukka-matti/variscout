@@ -56,6 +56,8 @@ export interface ParetoChartWrapperBaseProps {
   separateParetoData?: ParetoRow[] | null;
   /** Drill-down callback (overrides filter toggle when provided) */
   onDrillDown?: (factor: string, value: string) => void;
+  /** Visible capture affordance callback for a category. */
+  onCaptureCategory?: (factor: string, value: string) => void;
   /** Show ghost bars comparing filtered to full population */
   showComparison?: boolean;
   /** Callback to toggle comparison view */
@@ -292,6 +294,7 @@ export const ParetoChartWrapperBase = ({
   paretoMode,
   separateParetoData,
   onDrillDown,
+  onCaptureCategory,
   onScopeAccumulate,
   scopeFilterValues,
   showComparison = false,
@@ -513,6 +516,7 @@ export const ParetoChartWrapperBase = ({
         yAxisLabel={yAxisLabel}
         selectedBars={selectedBars}
         onBarClick={handleBarClick}
+        onBarCapture={key => onCaptureCategory?.(factor, key)}
         parentWidth={parentWidth}
         parentHeight={parentHeight}
         showBranding={showBranding}

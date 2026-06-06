@@ -72,13 +72,17 @@ export function deriveConditionFromFindingSource(
       if (!hints.metricColumn) return undefined;
       return { kind: 'leaf', column: hints.metricColumn, op: 'gte', value: source.anchorY };
     case 'probability':
-      if (!hints.metricColumn || hints.anchorYMax === undefined) return undefined;
-      return {
-        kind: 'leaf',
-        column: hints.metricColumn,
-        op: 'between',
-        value: [source.anchorY, hints.anchorYMax],
-      };
+      if (!hints.metricColumn) return undefined;
+      {
+        const anchorYMax = source.anchorYMax ?? hints.anchorYMax;
+        if (anchorYMax === undefined) return undefined;
+        return {
+          kind: 'leaf',
+          column: hints.metricColumn,
+          op: 'between',
+          value: [source.anchorY, anchorYMax],
+        };
+      }
     case 'coscout':
       return undefined;
   }
