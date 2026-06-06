@@ -26,6 +26,20 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### CapabilitySuggestionModal pops over the b0 landing [LOGGED 2026-06-06]
+
+**Surfaced by:** the FSJ-1 chrome walk (PR #307): loading a map-less sample with seeded specs (`?sample=coffee`) lands on the b0 picker — correct — with the "Specification limits detected" modal blocking it.
+
+**Summary:** pre-existing behavior (the modal fired over Explore before FSJ-1; now it fires over b0). Spec §4.2 (first-session journey) already names `CapabilitySuggestionModal` for retirement into the chip/banner grammar; this entry pins the live evidence + the P2 acceptance criterion: **no modal ever renders over the landing surface**. Input to FSJ-4/FSJ-5 planning.
+
+**Promotion path:** absorbed by P2 of the first-session master plan (FSJ-4/5). **Severity:** low-medium (demo-visible interstitial; dismissible).
+
+### Embed mode renders the chart title but no painted chart [LOGGED 2026-06-06]
+
+**Surfaced by:** the FSJ-1 chrome walk: `?sample=bottleneck&embed=true&chart=ichart` shows "I-Chart: Cycle_Time_sec" + an unpainted chart area — **identical on main and the FSJ-1 worktree**, so pre-existing, not a landing regression. Possibly a wrong `chart=` param value or an embed lazy-paint issue.
+
+**Promotion path:** verify the documented embed param contract (`docs/02-journeys/flows/pwa-education.md`) against the code; if genuinely broken, a small fix PR — embeds are the education funnel's delivery vehicle. **Severity:** medium-if-real (trainer-facing), unverified-params caveat.
+
 ### acceptInvite is in-memory-only + can silently no-op — durable membership requires the Lead's save [LOGGED 2026-06-06]
 
 **Surfaced by:** the first-session-journey 5-persona panel (invited-Member evaluator), 2026-06-06.
