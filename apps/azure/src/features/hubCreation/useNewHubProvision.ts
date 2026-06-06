@@ -1,6 +1,11 @@
 /**
- * useNewHubProvision — creates and persists a new ProcessHub from a goal
- * narrative during the Azure Mode B framing flow.
+ * useNewHubProvision — creates the in-memory Untitled hub + ImprovementProject
+ * pair from a goal narrative during the Azure Mode B framing flow.
+ *
+ * Word-style durability (first-session spec §3, FSJ-3a): the Untitled pair is
+ * born together in-memory; eager saveProcessHub is retired; first explicit save
+ * flushes the hub to the catalog. Pre-auth edge: no identity → bare hub only
+ * (the next authenticated entry's ensureHubProject completes the pair).
  *
  * Called by HubCreationFlow after Stage 1 (HubGoalForm) to materialise the
  * Hub row before Stage 3 (ColumnMapping) runs. The created hub id is written
@@ -10,17 +15,21 @@
 import { useCallback } from 'react';
 import { extractHubName } from '@variscout/core';
 import type { ProcessHub } from '@variscout/core/processHub';
-import { useStorage } from '../../services/storage';
+import { getCurrentUser } from '../../auth/getCurrentUser';
+import { useUnsavedHubsStore } from '../hubs/unsavedHubsStore';
+import { ensureHubProject } from '../../lib/landing';
 
 export interface UseNewHubProvisionOptions {
-  /** Called with the new hub once it has been persisted. */
+  /** Called with the new hub once it has been registered in-memory. */
   onCreated: (hub: ProcessHub) => void;
 }
 
 export interface UseNewHubProvisionResult {
   /**
-   * Create and persist a new Hub from the given goal narrative. Returns the
-   * hub so callers can immediately set processContext.processHubId.
+   * Create the Untitled hub + ImprovementProject pair in-memory from the given
+   * goal narrative. Returns the hub so callers can immediately set
+   * processContext.processHubId. Nothing is persisted — first explicit save
+   * flushes via saveProcessHub (Word-style, spec §3).
    */
   createHubFromGoal: (goalNarrative: string) => Promise<ProcessHub>;
   /** Whether a creation call is in-flight. */
@@ -30,14 +39,12 @@ export interface UseNewHubProvisionResult {
 export function useNewHubProvision({
   onCreated,
 }: UseNewHubProvisionOptions): UseNewHubProvisionResult {
-  const { saveProcessHub } = useStorage();
-
   const createHubFromGoal = useCallback(
     async (goalNarrative: string): Promise<ProcessHub> => {
       const trimmed = goalNarrative.trim();
       const name = extractHubName(trimmed) || 'Untitled hub';
       const now = Date.now();
-      const hub: ProcessHub = {
+      const base: ProcessHub = {
         id: crypto.randomUUID(),
         name,
         processGoal: trimmed || undefined,
@@ -45,12 +52,15 @@ export function useNewHubProvision({
         deletedAt: null,
         updatedAt: now,
       };
-
-      await saveProcessHub(hub);
+      const user = await getCurrentUser();
+      const hub = user
+        ? ensureHubProject(base, name === 'Untitled hub' ? 'Untitled project' : name, user)
+        : base;
+      useUnsavedHubsStore.getState().upsertHub(hub);
       onCreated(hub);
       return hub;
     },
-    [saveProcessHub, onCreated]
+    [onCreated]
   );
 
   return {
