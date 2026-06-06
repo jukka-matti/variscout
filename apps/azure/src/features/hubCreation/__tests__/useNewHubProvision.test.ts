@@ -122,4 +122,27 @@ describe('useNewHubProvision — in-memory Untitled pair (FSJ-3a spec §3)', () 
     const { result } = renderHook(() => useNewHubProvision({ onCreated: vi.fn() }));
     expect(result.current.isPending).toBe(false);
   });
+
+  it('auth fetch failure degrades to the pre-auth bare-hub path (no rejection)', async () => {
+    (getCurrentUser as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('network'));
+
+    const onCreated = vi.fn();
+    const { result } = renderHook(() => useNewHubProvision({ onCreated }));
+
+    let hub: HubWithOptionalIP | undefined;
+    // Must resolve, not reject
+    await act(async () => {
+      hub = (await result.current.createHubFromGoal('')) as HubWithOptionalIP;
+    });
+
+    // No IP on the bare hub — same as the pre-auth null path
+    expect(hub!.improvementProject).toBeUndefined();
+
+    // Still registered unsaved
+    expect(useUnsavedHubsStore.getState().isUnsaved(hub!.id)).toBe(true);
+
+    // onCreated fires
+    expect(onCreated).toHaveBeenCalledOnce();
+    expect(onCreated.mock.calls[0][0]).toBe(hub);
+  });
 });

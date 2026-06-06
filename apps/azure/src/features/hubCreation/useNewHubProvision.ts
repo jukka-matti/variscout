@@ -52,7 +52,8 @@ export function useNewHubProvision({
         deletedAt: null,
         updatedAt: now,
       };
-      const user = await getCurrentUser();
+      // A fetch-level auth failure degrades to the pre-auth path (bare hub), never a rejection.
+      const user = await getCurrentUser().catch(() => null);
       const hub = user
         ? ensureHubProject(base, name === 'Untitled hub' ? 'Untitled project' : name, user)
         : base;
