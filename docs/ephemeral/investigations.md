@@ -1509,3 +1509,31 @@ Pre-existing: `saveAndRecordBaseline` clears the dirty state for `offline`/`erro
 ## Dashboard `handlePersistInvestigation` ignores `SaveProjectResult` — silent latent conflict [LOGGED 2026-06-05]
 
 PO-8b final adversarial review: `Dashboard.tsx` (`handlePersistInvestigation`, the nodeMappings/`migrationDeclinedAt` writer) discards the `SaveProjectResult` union. On a 412 it sets `pendingConflict` + `syncStatus: 'conflict'` but the resolution dialog only mounts in the Editor — the Dashboard user gets no toast and the cloud write drops (the local Dexie write survives; the conflict surfaces when the document is next opened in the Editor). This is a feedback REGRESSION vs the pre-PO-8b auto-conflict-copy + warning toast on this path, accepted at merge because the trigger needs a concurrent editor advancing the cloud doc between the Dashboard's load and its mappings save (rare at 2–5 users) and there is no data loss. Candidate fix: inspect the result and raise a "Cloud copy changed — open the project to resolve" notification; or route the Dashboard persist through a conflict-aware path. Revisit with the CS-P2 Dashboard rework or the first-session-journey work.
+
+## b0 ProcessStepsExpander mount loop — "Maximum update depth exceeded" [LOGGED 2026-06-06]
+
+Confirmed live in the FSJ-2 chrome walk (57 console errors): expanding **"Add process steps" at b0** mounts Canvas inside `ProcessStepsExpander` and triggers a setState→render loop; React aborts and the expander shows a broken SCOUT-ish placeholder ("Outcome not selected" despite a set outcome) instead of the canvas. **Pre-existing** (the expander composition shipped with the Canvas migration; the old canvas-keyboard e2e exercised the same path), but FSJ-2 makes b0 the primary paste landing — the bug is now one click from every fresh session. Suspect (final-review analysis): the `hydrateCanvasDocument` effect chain in `CanvasWorkspace` (~:428) with unstable deps when Canvas mounts in a freshly-opened collapsible with an active hub. The canvas-keyboard e2e skip (`apps/pwa/e2e/canvas-keyboard.e2e.spec.ts` TODO) documents both this and the related finding that at b1 with `canEditCanvas=true` the `edit-mode-shell` replaces the `canvasNode`, leaving no chip-rail surface for keyboard coverage. **HIGH priority before FSJ-4** (step-timestamps banner routes INTO step authoring).
+
+## Zero-variance derived time factors pollute the b0 X list [LOGGED 2026-06-06]
+
+FSJ-2's quiet-tier interim auto-applies time extraction with the wizard defaults; a single-year dataset then shows `Timestamp_Year` as a selected X chip reading "2,026.00 ± 0.00 n=30". FSJ-4's quiet chip should either filter `hasVariation === false` derived columns at mint time or drop `extractYear` from the default config.
+
+## Embed mode shows the framing toolbar (FSJ-1-caused chrome leak) [LOGGED 2026-06-06]
+
+`?embed=true` iframes now render the `+ New analyze / Export .vrs / Edit framing` toolbar above the chart: the toolbar gates on `sessionHub` existing, and FSJ-1's landing deliberately runs IP activation in embed (state consistency) — so the hub now exists there. One-line candidate fix: add `!isEmbedMode` to the framing-toolbar condition. Route with FSJ-3/4.
+
+## critical-workflow.spec.ts: 6 legacy e2e tests broken by FSJ-1's deep-link landing [LOGGED 2026-06-06]
+
+`?sample=coffee` now lands on the Process tab (FSJ-1), so `chart-ichart`/`chart-stats`/`stat-value-*` assertions never see the dashboard; plus one pre-FSJ text drift (`Paste from Excel` → `Paste Data`). Verified broken-before-FSJ-2; FSJ-2 adapted only the paste test it owned. The P4/FSJ-10 e2e spine rewrite owns the sweep (or a quick adaptation PR: navigate to Explore after landing).
+
+## Match-summary cascade arms only after opt-in ceremony post-FSJ-2 [LOGGED 2026-06-06]
+
+`isProcessHubComplete` (goal AND outcomes) was always ceremony-gated — goal-skippers never armed it — but the forced Stage-1 gate used to collect goals more often. Post-FSJ-2 both inputs are opt-in (GoalBanner + hatch confirm), so second pastes hit the silent-replace path more often. Chrome-verified the armed path still works (goal via banner + outcomes via hatch → complete hub). Revisit re-ingestion UX in the Home/collaboration session.
+
+## OutcomeNoMatchBanner expectedOutcomeNote has no store home — now visible at two mounts [LOGGED 2026-06-06]
+
+Pre-existing: the wizard's confirm adapter drops `expectedOutcomeNote` (ColumnMapping comment says "ProcessHub has no field for this yet"); FSJ-2's b0 no-Y port wires `onExpectedChange` to a commented no-op for parity. Also pre-existing: the banner declares `onRename` but never invokes it. When ProcessHub gains the field, wire both mounts.
+
+## FSJ-2 b0 microcopy is hardcoded English pending the i18n catalog sweep [LOGGED 2026-06-06]
+
+Provenance line, "Fix data…", "＋ track another outcome", "＋ Set a process goal…" follow the OutcomeNoMatchBanner precedent (MessageCatalog is a closed 32-catalog interface). Sweep them together when the catalogs next open.
