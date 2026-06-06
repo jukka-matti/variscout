@@ -65,11 +65,11 @@ import {
   computeBestSubsets,
   evaluateSurvey,
   extractHubName,
-  getColumnNames,
   isControlEligible,
   normalizeProcessHubId,
   computeTimeDecompositionColumns,
   computeBinnedFactorColumn,
+  computeDefectRates,
 } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
@@ -77,6 +77,7 @@ import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
 import type {
   ExclusionReason,
+  DefectMapping,
   Finding,
   IdeaDirection,
   ProcessHub,
@@ -130,7 +131,6 @@ import { AnalyzeWorkspace } from '../components/editor/AnalyzeWorkspace';
 import FrameView from '../components/editor/FrameView';
 import ImprovementProjectPanel from '../components/charter/ImprovementProjectPanel';
 import ControlPanel from '../components/control/ControlPanel';
-import { EditorModals } from '../components/editor/EditorModals';
 import { SaveConflictDialog } from '../components/SaveConflictDialog';
 import { requestPersistentStorageOnce } from '../services/storageDurability';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
@@ -331,15 +331,13 @@ export const Editor: React.FC<EditorProps> = ({
   const setDataQualityReport = useProjectStore(s => s.setDataQualityReport);
   const setMeasureColumns = useProjectStore(s => s.setMeasureColumns);
   const setMeasureLabel = useProjectStore(s => s.setMeasureLabel);
+  const setSelectedMeasure = useProjectStore(s => s.setSelectedMeasure);
   const setColumnAliases = useProjectStore(s => s.setColumnAliases);
   const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
   const setDefectMapping = useProjectStore(s => s.setDefectMapping);
   const setFilters = useProjectStore(s => s.setFilters);
-  const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
   const setViewState = useProjectStore(s => s.setViewState);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
-  const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
-  const setCpkTarget = useProjectStore(s => s.setCpkTarget);
   const setCategories = useAnalyzeStore(s => s.setCategories);
 
   // Investigation store setters (via loadAnalyzeState for bulk updates)
@@ -861,6 +859,31 @@ export const Editor: React.FC<EditorProps> = ({
     onFreshPasteAnalyzed: handleFreshPasteAnalyzed,
   });
 
+  const hasB0ModeProposal =
+    dataFlow.defectDetection != null || dataFlow.wideFormatDetection != null;
+
+  const handleAcceptDefectDetection = useCallback(
+    (mapping: DefectMapping) => {
+      const nextDefectResult = computeDefectRates(rawData, mapping);
+      setDefectMapping(mapping);
+      setOutcome(nextDefectResult.outcomeColumn);
+      setAnalysisMode('defect');
+      dataFlow.dismissDefectDetection();
+    },
+    [dataFlow, rawData, setAnalysisMode, setDefectMapping, setOutcome]
+  );
+
+  const handleAcceptWideFormatDetection = useCallback(
+    (columns: string[], label: string) => {
+      setMeasureColumns(columns);
+      setMeasureLabel(label);
+      setSelectedMeasure(null);
+      setAnalysisMode('performance');
+      dataFlow.dismissWideFormatDetection();
+    },
+    [dataFlow, setAnalysisMode, setMeasureColumns, setMeasureLabel, setSelectedMeasure]
+  );
+
   // Start paste mode immediately when opened via "Add framing" CTA so the
   // analyst lands directly on PasteScreen rather than EditorEmptyState.
   useEffect(() => {
@@ -957,10 +980,6 @@ export const Editor: React.FC<EditorProps> = ({
     setAnalysisMode,
     onDone: () => dataFlow.manualEntryDone(),
   });
-
-  // Capability suggestion modal state
-  const [showCapabilitySuggestion, setShowCapabilitySuggestion] = useState(false);
-  const [capabilitySuggestionDismissed, setCapabilitySuggestionDismissed] = useState(false);
 
   // Load project data when opening an existing project
   const loadError = useProjectLoader({
@@ -1438,27 +1457,6 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Control violations for chart annotations (must be called unconditionally for hook order)
   const controlViolations = useControlViolations(filteredData, outcome, specs);
-
-  // Capability suggestion: show when specs are set
-  useEffect(() => {
-    if (
-      rawData.length > 0 &&
-      (specs?.usl !== undefined || specs?.lsl !== undefined) &&
-      (factors.length > 0 || rawData.length >= 10) &&
-      !capabilitySuggestionDismissed &&
-      !showCapabilitySuggestion &&
-      !dataFlow.defectDetection
-    ) {
-      setShowCapabilitySuggestion(true);
-    }
-  }, [
-    rawData.length,
-    factors.length,
-    specs,
-    capabilitySuggestionDismissed,
-    showCapabilitySuggestion,
-    dataFlow.defectDetection,
-  ]);
 
   // Show verification prompt when new data is uploaded while findings are improving
   const hasImprovingFindings = findingsState.findings.some(f => f.status === 'improving');
@@ -2042,7 +2040,7 @@ export const Editor: React.FC<EditorProps> = ({
             onSharePointFileImport={handleSharePointFileImport}
             onLoadSample={handleLoadSampleWithLanding}
           />
-        ) : outcome ? (
+        ) : outcome || hasB0ModeProposal ? (
           <>
             {/* Canvas framing toolbar — '+New investigation' on-demand entry
                 (Mode A.1 reopen path, spec §5.5). Visible whenever data + outcome are
@@ -2130,6 +2128,15 @@ export const Editor: React.FC<EditorProps> = ({
                   reingestPendingMatches={pendingMatches}
                   onFixData={dataFlow.openFactorManager}
                   onRenameColumn={dataFlow.handleColumnRename}
+                  quietTimeExtraction={dataFlow.quietTimeExtraction}
+                  onDismissQuietTimeExtraction={dataFlow.dismissQuietTimeExtraction}
+                  onUndoQuietTimeExtraction={dataFlow.undoQuietTimeExtraction}
+                  defectDetection={dataFlow.defectDetection}
+                  onAcceptDefectDetection={handleAcceptDefectDetection}
+                  onDismissDefectDetection={dataFlow.dismissDefectDetection}
+                  wideFormatDetection={dataFlow.wideFormatDetection}
+                  onAcceptWideFormatDetection={handleAcceptWideFormatDetection}
+                  onDismissWideFormatDetection={dataFlow.dismissWideFormatDetection}
                 />
               </div>
             ) : activeView === 'charter' ? (
@@ -2337,38 +2344,6 @@ export const Editor: React.FC<EditorProps> = ({
           />
         )}
       </div>
-
-      {/* Detection modals */}
-      <EditorModals
-        defectDetection={dataFlow.defectDetection}
-        columnNames={getColumnNames(rawData)}
-        onEnableDefect={mapping => {
-          setAnalysisMode('defect');
-          setDefectMapping(mapping);
-          dataFlow.dismissDefectDetection();
-        }}
-        onDeclineDefect={() => dataFlow.dismissDefectDetection()}
-        showCapabilitySuggestion={showCapabilitySuggestion}
-        onStartCapability={config => {
-          setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
-          setSubgroupConfig(config);
-          setShowCapabilitySuggestion(false);
-          setCapabilitySuggestionDismissed(true);
-        }}
-        onStartStandard={() => {
-          setShowCapabilitySuggestion(false);
-          setCapabilitySuggestionDismissed(true);
-        }}
-        factorColumns={factors}
-        dataFilename={dataFilename}
-        outcome={outcome}
-        rowCount={rawData.length}
-        specs={specs}
-        stats={stats}
-        cpkTarget={cpkTarget}
-        onSpecsChange={setSpecs}
-        onCpkTargetChange={setCpkTarget}
-      />
 
       {/* PO-8b: explicit reload-or-branch conflict resolution (replaces the silent auto-fork) */}
       <SaveConflictDialog

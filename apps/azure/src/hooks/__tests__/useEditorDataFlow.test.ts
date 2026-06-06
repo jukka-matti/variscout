@@ -87,6 +87,7 @@ describe('useEditorDataFlow', () => {
       outcome: null,
       factors: [],
       timeColumn: null,
+      confidence: 'low',
       columnAnalysis: [],
     });
     mockValidateData.mockReturnValue({ issues: [], warnings: [] });
@@ -246,13 +247,14 @@ describe('useEditorDataFlow', () => {
       expect(result.current.pasteError).toBe('Failed to parse data');
     });
 
-    it('detects wide format and enables performance mode', async () => {
+    it('detects wide format and lands with a performance proposal instead of auto-enabling performance mode', async () => {
       const parsedData = [{ Ch1: 10, Ch2: 11, Ch3: 12 }];
       mockParseText.mockResolvedValue(parsedData);
       mockDetectColumns.mockReturnValue({
         outcome: null,
         factors: [],
         timeColumn: null,
+        confidence: 'high',
         columnAnalysis: [],
       });
       mockDetectWideFormat.mockReturnValue({
@@ -267,9 +269,15 @@ describe('useEditorDataFlow', () => {
         await result.current.handlePasteAnalyze('Ch1\tCh2\tCh3\n10\t11\t12');
       });
 
-      expect(options.setMeasureColumns).toHaveBeenCalledWith(['Ch1', 'Ch2', 'Ch3']);
-      expect(options.setMeasureLabel).toHaveBeenCalledWith('Channel');
-      expect(options.setAnalysisMode).toHaveBeenCalledWith('performance');
+      expect(result.current.isMapping).toBe(false);
+      expect(result.current.wideFormatDetection?.channels.map(c => c.id)).toEqual([
+        'Ch1',
+        'Ch2',
+        'Ch3',
+      ]);
+      expect(options.setMeasureColumns).not.toHaveBeenCalled();
+      expect(options.setMeasureLabel).not.toHaveBeenCalled();
+      expect(options.setAnalysisMode).not.toHaveBeenCalledWith('performance');
     });
 
     it('does not enable performance mode for fewer than 3 channels', async () => {
@@ -278,6 +286,7 @@ describe('useEditorDataFlow', () => {
         outcome: null,
         factors: [],
         timeColumn: null,
+        confidence: 'high',
         columnAnalysis: [],
       });
       mockDetectWideFormat.mockReturnValue({
@@ -293,6 +302,167 @@ describe('useEditorDataFlow', () => {
       });
 
       expect(options.setAnalysisMode).not.toHaveBeenCalled();
+    });
+
+    it('clears stale b0 mode proposals when a later paste has no detection', async () => {
+      mockParseText
+        .mockResolvedValueOnce([{ Ch1: 10, Ch2: 11, Ch3: 12 }])
+        .mockResolvedValueOnce([{ Weight: 10, Operator: 'A' }]);
+      mockDetectColumns
+        .mockReturnValueOnce({
+          outcome: 'Ch1',
+          factors: [],
+          timeColumn: null,
+          confidence: 'high',
+          columnAnalysis: [],
+        })
+        .mockReturnValueOnce({
+          outcome: 'Weight',
+          factors: ['Operator'],
+          timeColumn: null,
+          confidence: 'high',
+          columnAnalysis: [],
+        });
+      mockDetectWideFormat
+        .mockReturnValueOnce({
+          isWideFormat: true,
+          channels: [{ id: 'Ch1' }, { id: 'Ch2' }, { id: 'Ch3' }],
+        })
+        .mockReturnValueOnce({ isWideFormat: false, channels: [] });
+
+      const { result } = renderHook(() => useEditorDataFlow(createMockOptions()));
+
+      await act(async () => {
+        await result.current.handlePasteAnalyze('Ch1\tCh2\tCh3\n10\t11\t12');
+      });
+      expect(result.current.wideFormatDetection?.isWideFormat).toBe(true);
+
+      await act(async () => {
+        await result.current.handlePasteAnalyze('Weight\tOperator\n10\tA');
+      });
+
+      expect(result.current.wideFormatDetection).toBeNull();
+      expect(result.current.defectDetection).toBeNull();
+    });
+
+    it('exposes an undoable quiet time chip for b0 time extraction', async () => {
+      const parsedData = [
+        {
+          Weight: 10,
+          Timestamp: '2026-05-01T10:00:00',
+          Timestamp_Month: 'May',
+          Timestamp_DayOfWeek: 'Friday',
+        },
+      ];
+      mockParseText.mockResolvedValue(parsedData);
+      mockDetectColumns.mockReturnValue({
+        outcome: 'Weight',
+        factors: ['Timestamp_Month', 'Timestamp_DayOfWeek'],
+        timeColumn: 'Timestamp',
+        confidence: 'high',
+        columnAnalysis: [
+          {
+            name: 'Timestamp',
+            type: 'date',
+            sampleValues: ['2026-05-01T10:00:00'],
+          },
+        ],
+      });
+
+      const options = createMockOptions({
+        rawData: parsedData,
+        factors: ['Timestamp_Month', 'Timestamp_DayOfWeek', 'Line'],
+      });
+      const { result } = renderHook(() => useEditorDataFlow(options));
+
+      await act(async () => {
+        await result.current.handlePasteAnalyze('Weight\tTimestamp\n10\t2026-05-01T10:00:00');
+      });
+
+      expect(options.applyTimeExtraction).toHaveBeenCalledWith('Timestamp', {
+        extractYear: false,
+        extractMonth: true,
+        extractWeek: false,
+        extractDayOfWeek: true,
+        extractHour: false,
+      });
+      expect(result.current.quietTimeExtraction).toEqual({
+        timeColumn: 'Timestamp',
+        newColumns: ['Timestamp_Month', 'Timestamp_DayOfWeek'],
+        dismissed: false,
+      });
+
+      act(() => {
+        result.current.undoQuietTimeExtraction();
+      });
+
+      expect(options.setRawData).toHaveBeenLastCalledWith([
+        { Weight: 10, Timestamp: '2026-05-01T10:00:00' },
+      ]);
+      expect(options.setFactors).toHaveBeenLastCalledWith(['Line']);
+      expect(result.current.quietTimeExtraction).toBeNull();
+    });
+
+    it('refreshes quiet time chip columns after Adjust confirms extraction changes', async () => {
+      const parsedData = [
+        {
+          Weight: 10,
+          Timestamp: '2026-05-01T10:00:00',
+          Timestamp_Month: 'May',
+          Timestamp_Week: 18,
+          Timestamp_DayOfWeek: 'Friday',
+        },
+      ];
+      mockParseText.mockResolvedValue(parsedData);
+      mockDetectColumns.mockReturnValue({
+        outcome: 'Weight',
+        factors: ['Timestamp_Month', 'Timestamp_DayOfWeek'],
+        timeColumn: 'Timestamp',
+        confidence: 'high',
+        columnAnalysis: [
+          {
+            name: 'Timestamp',
+            type: 'date',
+            sampleValues: ['2026-05-01T10:00:00'],
+          },
+        ],
+      });
+
+      const options = createMockOptions({
+        rawData: parsedData,
+        factors: ['Timestamp_Month', 'Timestamp_Week', 'Timestamp_DayOfWeek', 'Line'],
+      });
+      const { result } = renderHook(() => useEditorDataFlow(options));
+
+      await act(async () => {
+        await result.current.handlePasteAnalyze('Weight\tTimestamp\n10\t2026-05-01T10:00:00');
+      });
+      act(() => {
+        result.current.setTimeExtractionConfig(prev => ({ ...prev, extractWeek: true }));
+      });
+      act(() => {
+        result.current.handleMappingConfirm('Weight', [
+          'Timestamp_Month',
+          'Timestamp_Week',
+          'Timestamp_DayOfWeek',
+          'Line',
+        ]);
+      });
+
+      expect(result.current.quietTimeExtraction).toEqual({
+        timeColumn: 'Timestamp',
+        newColumns: ['Timestamp_Month', 'Timestamp_Week', 'Timestamp_DayOfWeek'],
+        dismissed: false,
+      });
+
+      act(() => {
+        result.current.undoQuietTimeExtraction();
+      });
+
+      expect(options.setRawData).toHaveBeenLastCalledWith([
+        { Weight: 10, Timestamp: '2026-05-01T10:00:00' },
+      ]);
+      expect(options.setFactors).toHaveBeenLastCalledWith(['Line']);
     });
 
     it('prompts confirm when replacing existing data', async () => {
@@ -314,13 +484,12 @@ describe('useEditorDataFlow', () => {
     });
 
     it('sets time extraction prompt when time column is detected on the wizard path', async () => {
-      // FSJ-3b: the time-extraction PROMPT is a wizard-path affordance. A measurement
+      // FSJ-6: the time-extraction PROMPT is a wizard-path affordance. A measurement
       // landing suppresses it (the landing branch nulls the prompt and auto-applies
       // extraction instead — covered by useEditorDataFlow.landing.test.ts). Here we
-      // keep the wizard path by making the paste defect-shaped (ANY isDefectFormat
-      // keeps the wizard — Azure's gate, decision 2), so the prompt wiring stays tested.
-      mockParseText.mockResolvedValue([{ Date: '2024-01-01T10:00', Defect_Type: 'Scratch' }]);
-      mockDetectDefectFormat.mockReturnValue({ isDefectFormat: true, confidence: 'high' });
+      // keep the wizard path with low confidence and no unit-of-analysis detection.
+      mockParseText.mockResolvedValue([{ Date: '2024-01-01T10:00', Label: 'Scratch' }]);
+      mockDetectDefectFormat.mockReturnValue({ isDefectFormat: false });
       mockDetectColumns.mockReturnValue({
         outcome: null,
         factors: [],
@@ -339,7 +508,7 @@ describe('useEditorDataFlow', () => {
       const { result } = renderHook(() => useEditorDataFlow(options));
 
       await act(async () => {
-        await result.current.handlePasteAnalyze('Date\tDefect_Type\n2024-01-01T10:00\tScratch');
+        await result.current.handlePasteAnalyze('Date\tLabel\n2024-01-01T10:00\tScratch');
       });
 
       expect(result.current.isMapping).toBe(true);
@@ -458,7 +627,7 @@ describe('useEditorDataFlow', () => {
 
       expect(options.applyTimeExtraction).toHaveBeenCalledWith(
         'Date',
-        expect.objectContaining({ extractYear: true, extractMonth: true })
+        expect.objectContaining({ extractYear: false, extractMonth: true, extractDayOfWeek: true })
       );
       expect(result.current.timeExtractionPrompt).toBeNull();
     });
@@ -769,7 +938,7 @@ describe('useEditorDataFlow', () => {
       const { result } = renderHook(() => useEditorDataFlow(options));
 
       expect(result.current.timeExtractionConfig).toEqual({
-        extractYear: true,
+        extractYear: false,
         extractMonth: true,
         extractWeek: false,
         extractDayOfWeek: true,

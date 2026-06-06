@@ -19,7 +19,19 @@ import {
   projectMembershipStorageKey,
 } from '@variscout/stores';
 import type { Invitation } from '@variscout/core/projectMembership';
-import type { AnalysisBrief } from '@variscout/core';
+import type {
+  AnalysisBrief,
+  DefectDetection,
+  DefectMapping,
+  WideFormatDetection,
+} from '@variscout/core';
+import {
+  computeDefectRates,
+  detectColumns,
+  detectDefectFormat,
+  detectWideFormat,
+  parseText,
+} from '@variscout/core';
 
 const { mockUseAutoSave, stageFiveCapture } = vi.hoisted(() => ({
   mockUseAutoSave: vi.fn(),
@@ -57,6 +69,58 @@ vi.mock('../../components/data/PasteScreen', () => ({
   ),
 }));
 
+vi.mock('../../components/editor/FrameView', () => ({
+  default: (props: {
+    defectDetection?: DefectDetection | null;
+    onAcceptDefectDetection?: (mapping: DefectMapping) => void;
+    onDismissDefectDetection?: () => void;
+    wideFormatDetection?: WideFormatDetection | null;
+    onAcceptWideFormatDetection?: (columns: string[], label: string) => void;
+    onDismissWideFormatDetection?: () => void;
+  }) => (
+    <div data-testid="frame-view">
+      {props.defectDetection ? (
+        <>
+          <button
+            type="button"
+            onClick={() =>
+              props.onAcceptDefectDetection?.({
+                dataShape: props.defectDetection!.dataShape,
+                aggregationUnit: props.defectDetection!.suggestedMapping.aggregationUnit ?? 'Batch',
+                defectTypeColumn: props.defectDetection!.suggestedMapping.defectTypeColumn,
+                unitsProducedColumn: props.defectDetection!.suggestedMapping.unitsProducedColumn,
+              })
+            }
+          >
+            Accept defect mode
+          </button>
+          <button type="button" onClick={() => props.onDismissDefectDetection?.()}>
+            Dismiss defect mode
+          </button>
+        </>
+      ) : null}
+      {props.wideFormatDetection ? (
+        <>
+          <button
+            type="button"
+            onClick={() =>
+              props.onAcceptWideFormatDetection?.(
+                props.wideFormatDetection!.channels.map(channel => channel.id),
+                'Channel'
+              )
+            }
+          >
+            Accept performance mode
+          </button>
+          <button type="button" onClick={() => props.onDismissWideFormatDetection?.()}>
+            Dismiss performance mode
+          </button>
+        </>
+      ) : null}
+    </div>
+  ),
+}));
+
 vi.mock('../../components/WhatIfPage', () => ({
   default: () => <div data-testid="what-if-page">WhatIfPage</div>,
 }));
@@ -78,12 +142,23 @@ vi.mock('@variscout/core', async importOriginal => {
     ...actual,
     parseText: vi.fn(async () => [{ Weight: 10, Machine: 'A' }]),
     detectColumns: vi.fn(() => ({ outcome: 'Weight', factors: ['Machine'], columnAnalysis: [] })),
-    detectWideFormat: vi.fn(() => ({ isWideFormat: false, channels: [] })),
+    detectWideFormat: vi.fn(() => ({
+      isWideFormat: false,
+      channels: [],
+      metadataColumns: [],
+      confidence: 'low',
+      reason: 'No wide format detected',
+    })),
     detectDefectFormat: vi.fn(() => ({
       isDefectFormat: false,
       confidence: 'low',
       dataShape: 'event-log',
       suggestedMapping: {},
+    })),
+    computeDefectRates: vi.fn(() => ({
+      data: [{ Batch: 'B1', DefectRate: 0.1, DefectCount: 1 }],
+      outcomeColumn: 'DefectRate',
+      factors: ['Batch'],
     })),
     validateData: vi.fn(() => ({ isValid: true, errors: [], warnings: [] })),
     downloadCSV: vi.fn(),
@@ -380,6 +455,32 @@ function renderEditor(
 describe('Editor', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.mocked(parseText).mockResolvedValue([{ Weight: 10, Machine: 'A' }]);
+    vi.mocked(detectColumns).mockReturnValue({
+      outcome: 'Weight',
+      factors: ['Machine'],
+      columnAnalysis: [],
+      timeColumn: null,
+      confidence: 'high',
+    });
+    vi.mocked(detectWideFormat).mockReturnValue({
+      isWideFormat: false,
+      channels: [],
+      metadataColumns: [],
+      confidence: 'low',
+      reason: 'No wide format detected',
+    });
+    vi.mocked(detectDefectFormat).mockReturnValue({
+      isDefectFormat: false,
+      confidence: 'low',
+      dataShape: 'event-log',
+      suggestedMapping: {},
+    });
+    vi.mocked(computeDefectRates).mockReturnValue({
+      data: [{ Batch: 'B1', DefectRate: 0.1, DefectCount: 1 }],
+      outcomeColumn: 'DefectRate',
+      factors: ['Batch'],
+    });
 
     // Reset panelsStore activeView to default state
     usePanelsStore.setState({ activeView: 'explore' });
@@ -554,6 +655,128 @@ describe('Editor', () => {
     const hub = useUnsavedHubsStore.getState().hubs[0];
     expect(hub.improvementProject).toBeDefined();
     expect(hub.improvementProject!.deletedAt).toBeNull();
+  });
+
+  it('accepts a defect-shaped b0 proposal inline and pins derived defect metrics', async () => {
+    vi.mocked(parseText).mockResolvedValue([
+      { Batch: 'B1', Defect_Type: 'Scratch', Units_Produced: 10 },
+    ]);
+    vi.mocked(detectDefectFormat).mockReturnValue({
+      isDefectFormat: true,
+      confidence: 'high',
+      dataShape: 'event-log',
+      suggestedMapping: {
+        aggregationUnit: 'Batch',
+        defectTypeColumn: 'Defect_Type',
+        unitsProducedColumn: 'Units_Produced',
+      },
+    });
+    vi.mocked(detectColumns).mockReturnValue({
+      outcome: null,
+      factors: [],
+      confidence: 'low',
+      columnAnalysis: [],
+      timeColumn: null,
+    });
+    vi.mocked(computeDefectRates).mockReturnValue({
+      data: [{ Batch: 'B1', DefectRate: 0.1, DefectCount: 1 }],
+      outcomeColumn: 'DefectRate',
+      factors: ['Batch'],
+    });
+
+    renderEditor();
+
+    fireEvent.click(screen.getByText('Paste Data'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Analyze'));
+    });
+
+    expect(screen.queryByTestId('column-mapping')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Accept defect mode' })).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Accept defect mode' }));
+    });
+
+    const state = useProjectStore.getState();
+    expect(computeDefectRates).toHaveBeenCalledWith(
+      [{ Batch: 'B1', Defect_Type: 'Scratch', Units_Produced: 10 }],
+      {
+        dataShape: 'event-log',
+        aggregationUnit: 'Batch',
+        defectTypeColumn: 'Defect_Type',
+        unitsProducedColumn: 'Units_Produced',
+      }
+    );
+    expect(state.analysisMode).toBe('defect');
+    expect(state.defectMapping).toEqual({
+      dataShape: 'event-log',
+      aggregationUnit: 'Batch',
+      defectTypeColumn: 'Defect_Type',
+      unitsProducedColumn: 'Units_Produced',
+    });
+    expect(state.outcome).toBe('DefectRate');
+    expect(screen.queryByRole('button', { name: 'Accept defect mode' })).not.toBeInTheDocument();
+  });
+
+  it('accepts a wide b0 proposal inline without paste-time performance mutation', async () => {
+    vi.mocked(parseText).mockResolvedValue([{ Timestamp: '2026-06-01', V1: 10, V2: 11, V3: 9 }]);
+    vi.mocked(detectWideFormat).mockReturnValue({
+      isWideFormat: true,
+      channels: [
+        {
+          id: 'V1',
+          label: 'V1',
+          n: 1,
+          preview: { min: 10, max: 10, mean: 10 },
+          matchedPattern: true,
+        },
+        {
+          id: 'V2',
+          label: 'V2',
+          n: 1,
+          preview: { min: 11, max: 11, mean: 11 },
+          matchedPattern: true,
+        },
+        { id: 'V3', label: 'V3', n: 1, preview: { min: 9, max: 9, mean: 9 }, matchedPattern: true },
+      ],
+      metadataColumns: ['Timestamp'],
+      confidence: 'high',
+      reason: 'Detected sibling measurement columns',
+    });
+    vi.mocked(detectColumns).mockReturnValue({
+      outcome: null,
+      factors: [],
+      confidence: 'low',
+      columnAnalysis: [],
+      timeColumn: null,
+    });
+
+    renderEditor();
+
+    fireEvent.click(screen.getByText('Paste Data'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Analyze'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Accept performance mode' })).toBeInTheDocument();
+    });
+    expect(useProjectStore.getState().analysisMode).toBe('standard');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Accept performance mode' }));
+    });
+
+    const state = useProjectStore.getState();
+    expect(state.analysisMode).toBe('performance');
+    expect(state.measureColumns).toEqual(['V1', 'V2', 'V3']);
+    expect(state.measureLabel).toBe('Channel');
+    expect(
+      screen.queryByRole('button', { name: 'Accept performance mode' })
+    ).not.toBeInTheDocument();
   });
 
   it('skips ColumnMapping for pre-configured samples', () => {

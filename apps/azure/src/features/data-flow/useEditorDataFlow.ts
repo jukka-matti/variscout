@@ -15,6 +15,7 @@ import type {
   DataQualityReport,
   TimeExtractionConfig,
   DefectDetection,
+  WideFormatDetection,
   StackConfig,
   ProcessHub,
 } from '@variscout/core';
@@ -36,6 +37,24 @@ import { detectMergeStrategy, mergeColumns, mergeRows } from '../../hooks/useDat
 
 /** Time-derived column suffixes used by augmentWithTimeColumns */
 const TIME_SUFFIXES = ['_Year', '_Month', '_Week', '_DayOfWeek', '_Hour'] as const;
+
+export interface QuietTimeExtractionChip {
+  timeColumn: string;
+  newColumns: string[];
+  dismissed: boolean;
+}
+
+function timeExtractionColumnsFor(timeColumn: string, config: TimeExtractionConfig): string[] {
+  const columns: string[] = [];
+  if (config.extractYear) columns.push(`${timeColumn}_Year`);
+  if (config.extractMonth) columns.push(`${timeColumn}_Month`);
+  if (config.extractWeek) columns.push(`${timeColumn}_Week`);
+  if (config.extractDayOfWeek) columns.push(`${timeColumn}_DayOfWeek`);
+  if (config.extractHour) columns.push(`${timeColumn}_Hour`);
+  if (config.extractMinuteInterval)
+    columns.push(`${timeColumn}_${config.extractMinuteInterval}min`);
+  return columns;
+}
 
 /**
  * Re-apply time column extraction on merged data.
@@ -302,10 +321,16 @@ export interface UseEditorDataFlowReturn {
   setTimeExtractionPrompt: (v: { timeColumn: string; hasTimeComponent: boolean } | null) => void;
   timeExtractionConfig: TimeExtractionConfig;
   setTimeExtractionConfig: React.Dispatch<React.SetStateAction<TimeExtractionConfig>>;
+  quietTimeExtraction: QuietTimeExtractionChip | null;
+  dismissQuietTimeExtraction: () => void;
+  undoQuietTimeExtraction: () => void;
   // Defect detection
   defectDetection: DefectDetection | null;
   dismissDefectDetection: () => void;
   handleDefectDetectedFromIngestion: (result: DefectDetection) => void;
+  // Wide-format detection
+  wideFormatDetection: WideFormatDetection | null;
+  dismissWideFormatDetection: () => void;
   // Match-summary (Mode A.2 paste into existing complete Hub)
   matchSummary: MatchSummaryPending | undefined;
   acceptMatchSummary: (choice: MatchSummaryActionChoice) => void;
@@ -368,12 +393,15 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     hasTimeComponent: boolean;
   } | null>(null);
   const [timeExtractionConfig, setTimeExtractionConfig] = useState<TimeExtractionConfig>({
-    extractYear: true,
+    extractYear: false,
     extractMonth: true,
     extractWeek: false,
     extractDayOfWeek: true,
     extractHour: false,
   });
+  const [quietTimeExtraction, setQuietTimeExtraction] = useState<QuietTimeExtractionChip | null>(
+    null
+  );
 
   // Defect detection state
   const [defectDetection, setDefectDetection] = useState<DefectDetection | null>(null);
@@ -382,6 +410,10 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     (result: DefectDetection) => setDefectDetection(result),
     []
   );
+
+  // Wide-format detection state
+  const [wideFormatDetection, setWideFormatDetection] = useState<WideFormatDetection | null>(null);
+  const dismissWideFormatDetection = useCallback(() => setWideFormatDetection(null), []);
 
   // Mode A.2 match-summary state — set when paste detects an existing complete Hub.
   const [matchSummary, setMatchSummary] = useState<MatchSummaryPending | undefined>(undefined);
@@ -456,6 +488,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
    */
   const _proceedWithParsedData = useCallback(
     (data: DataRow[], opts?: { reingest?: boolean }) => {
+      setDefectDetection(null);
+      setWideFormatDetection(null);
       setRawData(data);
       setDataFilename('Pasted Data');
 
@@ -469,27 +503,41 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       const defectResult = detectDefectFormat(data, detected.columnAnalysis);
       const wideFormat = detectWideFormat(data);
 
-      // FSJ-3b (spec §4.1/§4.2a): measurement-shaped fresh pastes skip the
-      // ColumnMapping vestibule and land at b0 pre-filled (Y/X written above).
-      // Kept on today's wizard path: ANY defect detection (Azure's modal has no
-      // confidence filter — preserving today's routing exactly; PWA gates on
-      // high|medium), wide shape (the ≥3-channel silent performance auto-apply
-      // stays untouched), low confidence (= no Y inferable — the mapping surface
-      // auto-surfaces), and re-ingest (not first-session, spec §7).
+      // FSJ-6 (spec §4.2a): unit-of-analysis detections re-frame b0. They land
+      // as loud proposals and are applied only after the analyst accepts.
+      // Kept on the wizard path: low-confidence pastes with no detection, and
+      // re-ingest (not first-session, spec §7).
       const landsAtB0 =
         !opts?.reingest &&
-        !defectResult.isDefectFormat &&
-        !wideFormat.isWideFormat &&
-        detected.confidence !== 'low';
+        (detected.confidence !== 'low' || defectResult.isDefectFormat || wideFormat.isWideFormat);
 
       if (landsAtB0) {
-        // Quiet-tier interim (spec §4.2): auto-apply time extraction with the
-        // current defaults; the adjust/undo chip arrives with FSJ-6.
-        if (detected.timeColumn) {
-          // FSJ-6 note: config is read at paste time; the adjust/undo chip must call applyTimeExtraction directly, not re-run this pipeline.
-          applyTimeExtraction(detected.timeColumn, timeExtractionConfig);
+        if (defectResult.isDefectFormat) {
+          setDefectDetection(defectResult);
         }
-        setTimeExtractionPrompt(null);
+        if (wideFormat.isWideFormat) {
+          setWideFormatDetection(wideFormat);
+        }
+        if (detected.timeColumn) {
+          applyTimeExtraction(detected.timeColumn, timeExtractionConfig);
+          const hasTime = detected.columnAnalysis.some(
+            c =>
+              c.name === detected.timeColumn &&
+              c.sampleValues.some(v => v.includes('T') || v.includes(':'))
+          );
+          setTimeExtractionPrompt({
+            timeColumn: detected.timeColumn,
+            hasTimeComponent: hasTime,
+          });
+          setQuietTimeExtraction({
+            timeColumn: detected.timeColumn,
+            newColumns: timeExtractionColumnsFor(detected.timeColumn, timeExtractionConfig),
+            dismissed: false,
+          });
+        } else {
+          setQuietTimeExtraction(null);
+          setTimeExtractionPrompt(null);
+        }
         dispatch({ type: 'PASTE_LANDED' });
         onFreshPasteLanded?.();
         return;
@@ -544,6 +592,37 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       onFreshPasteAnalyzed,
     ]
   );
+
+  const dismissQuietTimeExtraction = useCallback(() => {
+    setQuietTimeExtraction(current => (current == null ? null : { ...current, dismissed: true }));
+  }, []);
+
+  const undoQuietTimeExtraction = useCallback(() => {
+    if (quietTimeExtraction == null) return;
+    const removeColumns = new Set(quietTimeExtraction.newColumns);
+    const nextRawData = rawData.map(row => {
+      const nextRow: DataRow = { ...row };
+      for (const column of removeColumns) {
+        delete nextRow[column];
+      }
+      return nextRow;
+    });
+    const nextFactors = factors.filter(factor => !removeColumns.has(factor));
+
+    setRawData(nextRawData);
+    setFactors(nextFactors);
+    const report = validateData(nextRawData, outcome ? [outcome] : []);
+    setDataQualityReport(report);
+    setQuietTimeExtraction(null);
+  }, [
+    factors,
+    outcome,
+    quietTimeExtraction,
+    rawData,
+    setDataQualityReport,
+    setFactors,
+    setRawData,
+  ]);
 
   // Handle paste -> parse -> auto-detect -> show ColumnMapping (initial load).
   // When activeHub is a complete Hub (D9), route through match-summary card instead
@@ -943,6 +1022,14 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
       if (timeExtractionPrompt?.timeColumn) {
         applyTimeExtraction(timeExtractionPrompt.timeColumn, timeExtractionConfig);
+        setQuietTimeExtraction({
+          timeColumn: timeExtractionPrompt.timeColumn,
+          newColumns: timeExtractionColumnsFor(
+            timeExtractionPrompt.timeColumn,
+            timeExtractionConfig
+          ),
+          dismissed: false,
+        });
       }
       setTimeExtractionPrompt(null);
     },
@@ -1070,10 +1157,16 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     setTimeExtractionPrompt,
     timeExtractionConfig,
     setTimeExtractionConfig,
+    quietTimeExtraction,
+    dismissQuietTimeExtraction,
+    undoQuietTimeExtraction,
     // Defect detection
     defectDetection,
     dismissDefectDetection,
     handleDefectDetectedFromIngestion,
+    // Wide-format detection
+    wideFormatDetection,
+    dismissWideFormatDetection,
     // Match-summary (Mode A.2 paste into existing complete Hub)
     matchSummary,
     acceptMatchSummary,
