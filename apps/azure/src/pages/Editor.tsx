@@ -997,6 +997,18 @@ export const Editor: React.FC<EditorProps> = ({
     [processContext, setProcessContext, currentUser?.email]
   );
 
+  // FSJ-3a: shared landing deps — the paste path joins as the third caller in FSJ-3b.
+  const makeLandingDeps = useCallback(
+    () => ({
+      activeHub: activeHub ?? null,
+      registerHub: useUnsavedHubsStore.getState().upsertHub,
+      setProcessHubId: (hubId: string) =>
+        setProcessContext({ ...(processContext ?? {}), processHubId: hubId }),
+      showFrame: usePanelsStore.getState().showFrame,
+    }),
+    [activeHub, processContext, setProcessContext]
+  );
+
   // FSJ-3a landing (spec §1/§3): fresh sample entry lands on the Process tab
   // with an ensured + activated Untitled pair, named for the sample. The canvas
   // self-routes b0 (no map) vs L2 (seeded map — The Bottleneck) downstream.
@@ -1005,16 +1017,9 @@ export const Editor: React.FC<EditorProps> = ({
       if (!dataFlow.handleLoadSample(sample)) return;
       const user = currentUser ?? (await getCurrentUser().catch(() => null));
       if (!user) return; // pre-auth edge: keep today's no-project behavior
-      landFreshEntryOnProcess(sample.name, {
-        activeHub: activeHub ?? null,
-        registerHub: useUnsavedHubsStore.getState().upsertHub,
-        setProcessHubId: hubId =>
-          setProcessContext({ ...(processContext ?? {}), processHubId: hubId }),
-        showFrame: usePanelsStore.getState().showFrame,
-        user,
-      });
+      landFreshEntryOnProcess(sample.name, { ...makeLandingDeps(), user });
     },
-    [dataFlow, currentUser, activeHub, processContext, setProcessContext]
+    [dataFlow, currentUser, makeLandingDeps]
   );
 
   // Stable ref so the one-shot initialSample effect can call the latest version
@@ -1031,24 +1036,10 @@ export const Editor: React.FC<EditorProps> = ({
       void (async () => {
         const user = currentUser ?? (await getCurrentUser().catch(() => null));
         if (!user) return;
-        landFreshEntryOnProcess('Untitled project', {
-          activeHub: activeHub ?? null,
-          registerHub: useUnsavedHubsStore.getState().upsertHub,
-          setProcessHubId: hubId =>
-            setProcessContext({ ...(processContext ?? {}), processHubId: hubId }),
-          showFrame: usePanelsStore.getState().showFrame,
-          user,
-        });
+        landFreshEntryOnProcess('Untitled project', { ...makeLandingDeps(), user });
       })();
     },
-    [
-      handleManualDataAnalyze,
-      dataFlow.appendMode,
-      currentUser,
-      activeHub,
-      processContext,
-      setProcessContext,
-    ]
+    [handleManualDataAnalyze, dataFlow.appendMode, currentUser, makeLandingDeps]
   );
 
   // Share handlers
