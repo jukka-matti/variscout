@@ -1,6 +1,7 @@
 import React, { Suspense, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { downloadCSV } from './lib/export';
 import { lazyWithRetry } from './lib/chunkReload';
+import { landOnProcess, landVrsOnProcess, landManualOnProcess } from './lib/landing';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
@@ -60,8 +61,6 @@ import {
   useProjectMembershipStore,
   useAnalysisScopeStore,
   useImprovementProjectStore,
-  hydrateDocumentSnapshot,
-  reconstructProcessHubFromDocumentSnapshot,
   type DocumentSnapshotVrsFile,
 } from '@variscout/stores';
 import { createProjectActionItem } from '@variscout/core/findings';
@@ -70,7 +69,7 @@ import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
-import { SAMPLES } from '@variscout/data';
+import { SAMPLES, type SampleDataset } from '@variscout/data';
 import {
   DEFAULT_PROCESS_HUB_ID,
   normalizeProcessHubId,
@@ -494,7 +493,17 @@ function AppMain() {
     if (sampleKey && rawData.length === 0) {
       const sample = SAMPLES.find(s => s.urlKey === sampleKey);
       if (sample) {
-        ingestion.loadSample(sample);
+        // Use handleLoadSample so ?sample= deep-links also land on Process tab
+        // and get an auto-activated Untitled project (spec §1). The embed guard
+        // inside landOnProcess keeps ?embed=true&sample=… on the chart surface.
+        landOnProcess(sample, {
+          loadSample: ingestion.loadSample,
+          sessionHub,
+          setSessionHub,
+          showFrame: panels.showFrame,
+          // read the URL param, not the state — setState above hasn't re-rendered this closure
+          isEmbedMode: embedParam === 'true',
+        });
       }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -715,15 +724,55 @@ function AppMain() {
     [importFlow, goalNarrative, sessionHub, setSessionHub, stageFive]
   );
 
-  // .vrs import: hydrate the document snapshot and rebuild the session hub.
-  // Wired to HomeScreen's onImportVrs prop so trainers / returning analysts can
-  // reload a packaged scenario without re-pasting data.
+  // First-session landing (spec §1, §3): fresh sample entry lands on the
+  // Process tab with an auto-activated Untitled project.
+  // Thin wrapper — business logic lives in landOnProcess for testability.
+  const handleLoadSample = useCallback(
+    (sample: SampleDataset) => {
+      landOnProcess(sample, {
+        loadSample: ingestion.loadSample,
+        sessionHub,
+        setSessionHub,
+        showFrame: panels.showFrame,
+        isEmbedMode,
+      });
+    },
+    [ingestion.loadSample, sessionHub, setSessionHub, panels.showFrame, isEmbedMode]
+  );
+
+  // .vrs import: reconstruct the envelope's own project and land on Process
+  // (spec §1 applicability). reconstruct-not-create: the envelope's project is
+  // the wrapper — only a project-less hub gets an Untitled wrap. v1 envelope
+  // only (wedge no-back-compat). Embed mode: IP activation runs but navigation
+  // is skipped (spec §1 applicability).
+  // Thin wrapper — business logic lives in landVrsOnProcess for testability.
+  // ISP: LandHubOnProcessDeps no longer includes sessionHub; the reconstructed
+  // hub from the snapshot is the authoritative source (sessionHub unused there).
   const handleImportVrs = useCallback(
     (imported: DocumentSnapshotVrsFile) => {
-      hydrateDocumentSnapshot(imported.documentSnapshot);
-      setSessionHub(reconstructProcessHubFromDocumentSnapshot(imported.documentSnapshot));
+      landVrsOnProcess(imported, {
+        setSessionHub,
+        showFrame: panels.showFrame,
+        isEmbedMode,
+      });
     },
-    [setSessionHub]
+    [setSessionHub, panels.showFrame, isEmbedMode]
+  );
+
+  // Manual-entry landing: write data into the project store then land on the
+  // Process tab with an auto-activated 'Untitled project'.
+  // Thin wrapper — business logic lives in landManualOnProcess for testability.
+  const handleManualAnalyze = useCallback(
+    (...args: Parameters<typeof importFlow.handleManualDataAnalyze>) => {
+      landManualOnProcess(args[0], args[1], {
+        manualAnalyze: importFlow.handleManualDataAnalyze,
+        sessionHub,
+        setSessionHub,
+        showFrame: panels.showFrame,
+        isEmbedMode,
+      });
+    },
+    [importFlow.handleManualDataAnalyze, sessionHub, setSessionHub, panels.showFrame, isEmbedMode]
   );
 
   // Phase tab navigation handler (used by AppHeader inline tabs).
@@ -1274,12 +1323,12 @@ function AppMain() {
               />
             ) : importFlow.isManualEntry ? (
               <ManualEntry
-                onAnalyze={importFlow.handleManualDataAnalyze}
+                onAnalyze={handleManualAnalyze}
                 onCancel={importFlow.handleManualEntryCancel}
               />
             ) : rawData.length === 0 ? (
               <HomeScreen
-                onLoadSample={ingestion.loadSample}
+                onLoadSample={handleLoadSample}
                 onOpenPaste={importFlow.handleOpenPaste}
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
                 onImportVrs={handleImportVrs}

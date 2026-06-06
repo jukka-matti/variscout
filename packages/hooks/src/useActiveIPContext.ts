@@ -3,6 +3,11 @@ import type { ProcessHub } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { useActiveIPStore, type ActiveIPScope, type ActiveIPState } from '@variscout/stores';
 
+/** Default per-user scope key for active-IP state when the caller supplies no
+ *  identity (PWA free tier has no auth). Exported so writers outside the hook
+ *  (e.g. the PWA landing router) activate under the SAME key the hook reads. */
+export const DEFAULT_ACTIVE_IP_USER_ID = 'local';
+
 export interface ActiveIPContext {
   scope: ActiveIPScope | null;
   activeState: ActiveIPState | null;
@@ -53,7 +58,7 @@ export function useActiveIPContext(
   hub: ProcessHub | undefined | null,
   options: UseActiveIPContextOptions = {}
 ): ActiveIPContext {
-  const resolvedUserId = options.userId ?? 'local';
+  const resolvedUserId = options.userId ?? DEFAULT_ACTIVE_IP_USER_ID;
   const hubId = hub?.id ?? null;
   const scope = useMemo<ActiveIPScope | null>(
     () => (hubId ? { hubId, userId: resolvedUserId } : null),
