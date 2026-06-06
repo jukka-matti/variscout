@@ -9,6 +9,7 @@ import { Editor } from '../Editor';
 import * as StorageModule from '../../services/storage';
 import { azurePersistenceAdapter } from '../../lib/persistenceAdapter';
 import { usePanelsStore } from '../../features/panels/panelsStore';
+import { useUnsavedHubsStore } from '../../features/hubs/unsavedHubsStore';
 import {
   useProjectStore,
   useAnalyzeStore,
@@ -436,6 +437,7 @@ describe('Editor', () => {
     seedStores();
     useProjectMembershipStore.setState(getProjectMembershipInitialState());
     localStorage.removeItem(projectMembershipStorageKey('test@test.com'));
+    useUnsavedHubsStore.setState(useUnsavedHubsStore.getInitialState(), true);
   });
 
   it('renders empty state when rawData is empty', () => {
@@ -543,9 +545,11 @@ describe('Editor', () => {
 
   it('skips ColumnMapping for a measurement-shaped paste — lands at b0 (FSJ-3b spec §4.1)', async () => {
     // FSJ-3b: the mocked paste is measurement-shaped (detectColumns returns an outcome,
-    // not wide/defect/low), so it now lands at b0 rather than opening the mapping
-    // vestibule. (The Process-tab routing is wired in Task 2; here we assert the
-    // vestibule is skipped.)
+    // detectDefectFormat returns isDefectFormat:false, detectWideFormat returns
+    // isWideFormat:false). The pipeline fires onFreshPasteLanded → Editor's
+    // handleFreshPasteLanded → landFreshEntryOnProcess → showFrame.
+    // Full landed contract: no mapping vestibule + panelsStore.activeView='frame' +
+    // an unsaved hub registered (Untitled pair provisioned).
     renderEditor();
 
     fireEvent.click(screen.getByText('Paste Data'));
@@ -557,7 +561,19 @@ describe('Editor', () => {
       fireEvent.click(screen.getByText('Analyze'));
     });
 
+    // Mapping vestibule skipped
     expect(screen.queryByTestId('column-mapping')).not.toBeInTheDocument();
+
+    // Process-tab routing: getCurrentUser() resolves async → waitFor the effect
+    await waitFor(() => {
+      expect(usePanelsStore.getState().activeView).toBe('frame');
+    });
+
+    // Untitled pair registered in Word-style in-memory store
+    expect(useUnsavedHubsStore.getState().hubs.length).toBeGreaterThan(0);
+    const hub = useUnsavedHubsStore.getState().hubs[0];
+    expect(hub.improvementProject).toBeDefined();
+    expect(hub.improvementProject!.deletedAt).toBeNull();
   });
 
   it('skips ColumnMapping for pre-configured samples', () => {

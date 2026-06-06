@@ -117,7 +117,12 @@ import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 import { HubCreationFlow } from '../features/hubCreation';
 import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
-import { activateHubProject, bindProcessHubId, landFreshEntryOnProcess } from '../lib/landing';
+import {
+  activateHubProject,
+  bindProcessHubId,
+  ensureHubProject,
+  landFreshEntryOnProcess,
+} from '../lib/landing';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { AnalyzeWorkspace } from '../components/editor/AnalyzeWorkspace';
 import FrameView from '../components/editor/FrameView';
@@ -785,6 +790,45 @@ export const Editor: React.FC<EditorProps> = ({
     />
   ) : null;
 
+  // FSJ-3a: shared landing deps — the paste path joins as the third caller in FSJ-3b.
+  const makeLandingDeps = useCallback(
+    () => ({
+      activeHub: activeHub ?? null,
+      registerHub: useUnsavedHubsStore.getState().upsertHub,
+      setProcessHubId: bindProcessHubId,
+      showFrame: usePanelsStore.getState().showFrame,
+    }),
+    [activeHub]
+  );
+
+  // FSJ-3b: paste callbacks. Inline arrows re-capture state per render; the
+  // async user resolution mirrors handleLoadSampleWithLanding. landFreshEntry
+  // routes (spec §1); provisionFreshPaste ensures WITHOUT routing — the §3
+  // guarantee for wizard-path pastes (retires Stage-1's provisioning role and
+  // the empty-goal-Confirm asymmetry, investigations 2026-06-06).
+  const handleFreshPasteLanded = useCallback(() => {
+    void (async () => {
+      const user = currentUser ?? (await getCurrentUser().catch(() => null));
+      if (!user) return;
+      landFreshEntryOnProcess('Untitled project', { ...makeLandingDeps(), user });
+    })();
+  }, [currentUser, makeLandingDeps]);
+
+  const handleFreshPasteAnalyzed = useCallback(() => {
+    void (async () => {
+      const user = currentUser ?? (await getCurrentUser().catch(() => null));
+      if (!user) return;
+      const deps = makeLandingDeps();
+      const hub = ensureHubProject(deps.activeHub, 'Untitled project', user);
+      if (hub !== deps.activeHub) {
+        deps.registerHub(hub);
+        deps.setProcessHubId(hub.id);
+      }
+      activateHubProject(hub, user.email);
+      // no route — the wizard owns the screen (spec §3 provision-only)
+    })();
+  }, [currentUser, makeLandingDeps]);
+
   const dataFlow = useEditorDataFlow({
     rawData,
     outcome,
@@ -811,6 +855,8 @@ export const Editor: React.FC<EditorProps> = ({
     processFile: ingestion.processFile,
     loadSample: ingestion.loadSample,
     applyTimeExtraction: ingestion.applyTimeExtraction,
+    onFreshPasteLanded: handleFreshPasteLanded,
+    onFreshPasteAnalyzed: handleFreshPasteAnalyzed,
   });
 
   // Start paste mode immediately when opened via "Add framing" CTA so the
@@ -995,17 +1041,6 @@ export const Editor: React.FC<EditorProps> = ({
       if (currentUser?.email) activateHubProject(hub, currentUser.email);
     },
     [currentUser?.email]
-  );
-
-  // FSJ-3a: shared landing deps — the paste path joins as the third caller in FSJ-3b.
-  const makeLandingDeps = useCallback(
-    () => ({
-      activeHub: activeHub ?? null,
-      registerHub: useUnsavedHubsStore.getState().upsertHub,
-      setProcessHubId: bindProcessHubId,
-      showFrame: usePanelsStore.getState().showFrame,
-    }),
-    [activeHub]
   );
 
   // FSJ-3a landing (spec §1/§3): fresh sample entry lands on the Process tab
