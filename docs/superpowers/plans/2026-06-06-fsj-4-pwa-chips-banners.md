@@ -122,7 +122,7 @@ related:
   - `pnpm --filter @variscout/core test -- --run detectStepTimestampPairs`
   - `pnpm --filter @variscout/ui test -- --run CanvasWorkspace FrameViewB0`
   - `pnpm --filter @variscout/pwa test -- --run usePasteImportFlow FrameView App`
-- [ ] Run final gate: `bash scripts/pr-ready-check.sh`.
+- [x] Run final gate: `bash scripts/pr-ready-check.sh`.
 - [x] PR body must include grounding corrections, task list, test counts, OWNER-CALL-PENDING items, and live-browser checklist against `docs/02-journeys/wireframes/step-timings.md`.
 
 ## Self-Review Notes
@@ -131,4 +131,5 @@ related:
 - Defect/wide modal retirement remains FSJ-5; FSJ-4 only guards `CapabilitySuggestionModal` while Process is at b0.
 - No OWNER-CALL-PENDING items.
 - Verification completed before final gate: core `detectStepTimestampPairs` (5 tests), UI `CanvasWorkspace FrameViewB0` (83 tests), PWA `usePasteImportFlow FrameView App` (166 tests).
+- Final gate completed green: `bash scripts/pr-ready-check.sh`.
 - Live verification checklist for PR: paste a timestamp-pair dataset, confirm banner, accept, verify StepTimingsModal prefill, save, verify L2 flow/timing badges/derived chips; paste ordinary timestamp data, verify quiet chip/dismiss/undo; verify no capability modal over b0.
