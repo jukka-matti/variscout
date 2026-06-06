@@ -155,6 +155,46 @@ vi.mock('@variscout/charts', async importOriginal => {
 import FrameView from '../FrameView';
 import { SessionProvider } from '../../../store/sessionStore';
 import type { QuietTimeExtractionChip } from '../../../hooks/usePasteImportFlow';
+import type { DefectDetection, DefectMapping, WideFormatDetection } from '@variscout/core';
+
+const DEFECT_ROWS = Array.from({ length: 12 }, (_, i) => ({
+  Date: `2026-05-${String((i % 4) + 1).padStart(2, '0')}`,
+  Defect_Type: ['Scratch', 'Dent', 'Crack'][i % 3],
+  Shift: ['Day', 'Night'][i % 2],
+  Units_Produced: 100,
+}));
+
+const WIDE_ROWS = Array.from({ length: 12 }, (_, i) => ({
+  Batch: `B${i + 1}`,
+  V1: 10 + (i % 5),
+  V2: 11 + ((i * 2) % 5),
+  V3: 9 + ((i * 3) % 5),
+  V4: 12 + ((i * 4) % 5),
+}));
+
+const DEFECT_DETECTION: DefectDetection = {
+  isDefectFormat: true,
+  confidence: 'high',
+  dataShape: 'event-log',
+  suggestedMapping: {
+    aggregationUnit: 'Date',
+    defectTypeColumn: 'Defect_Type',
+    unitsProducedColumn: 'Units_Produced',
+  },
+};
+
+const WIDE_DETECTION: WideFormatDetection = {
+  isWideFormat: true,
+  confidence: 'high',
+  reason: '4/4 columns match channel naming patterns',
+  metadataColumns: ['Batch'],
+  channels: [
+    { id: 'V1', label: 'V1', n: 12, preview: { min: 10, max: 14, mean: 12 }, matchedPattern: true },
+    { id: 'V2', label: 'V2', n: 12, preview: { min: 11, max: 15, mean: 13 }, matchedPattern: true },
+    { id: 'V3', label: 'V3', n: 12, preview: { min: 9, max: 13, mean: 11 }, matchedPattern: true },
+    { id: 'V4', label: 'V4', n: 12, preview: { min: 12, max: 16, mean: 14 }, matchedPattern: true },
+  ],
+};
 
 interface RenderFrameViewOptions {
   onFixData?: () => void;
@@ -162,6 +202,12 @@ interface RenderFrameViewOptions {
   quietTimeExtraction?: QuietTimeExtractionChip | null;
   onDismissQuietTimeExtraction?: () => void;
   onUndoQuietTimeExtraction?: () => void;
+  defectDetection?: DefectDetection | null;
+  onAcceptDefectDetection?: (mapping: DefectMapping) => void;
+  onDismissDefectDetection?: () => void;
+  wideFormatDetection?: WideFormatDetection | null;
+  onAcceptWideFormatDetection?: (columns: string[], label: string) => void;
+  onDismissWideFormatDetection?: () => void;
 }
 
 function renderFrameView({
@@ -170,6 +216,12 @@ function renderFrameView({
   quietTimeExtraction,
   onDismissQuietTimeExtraction,
   onUndoQuietTimeExtraction,
+  defectDetection,
+  onAcceptDefectDetection,
+  onDismissDefectDetection,
+  wideFormatDetection,
+  onAcceptWideFormatDetection,
+  onDismissWideFormatDetection,
 }: RenderFrameViewOptions = {}) {
   return render(
     <SessionProvider>
@@ -179,6 +231,12 @@ function renderFrameView({
         quietTimeExtraction={quietTimeExtraction}
         onDismissQuietTimeExtraction={onDismissQuietTimeExtraction}
         onUndoQuietTimeExtraction={onUndoQuietTimeExtraction}
+        defectDetection={defectDetection}
+        onAcceptDefectDetection={onAcceptDefectDetection}
+        onDismissDefectDetection={onDismissDefectDetection}
+        wideFormatDetection={wideFormatDetection}
+        onAcceptWideFormatDetection={onAcceptWideFormatDetection}
+        onDismissWideFormatDetection={onDismissWideFormatDetection}
       />
     </SessionProvider>
   );
@@ -316,6 +374,69 @@ describe('FrameView b0 — happy-path integration', () => {
     renderFrameView({ onFixData: onFixDataMock });
     fireEvent.click(screen.getByTestId('b0-track-another-outcome'));
     expect(onFixDataMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the defect proposal and accepts the inline confirm sequence', () => {
+    const onAcceptDefectDetection = vi.fn();
+    const onDismissDefectDetection = vi.fn();
+    storeStateRef.current = {
+      ...baseStoreState,
+      rawData: DEFECT_ROWS as unknown as typeof baseStoreState.rawData,
+    };
+
+    renderFrameView({
+      defectDetection: DEFECT_DETECTION,
+      onAcceptDefectDetection,
+      onDismissDefectDetection,
+    });
+
+    const banner = screen.getByTestId('b0-defect-banner');
+    expect(banner).toHaveTextContent('These rows look like defect events');
+
+    fireEvent.click(screen.getByTestId('b0-defect-expand'));
+    expect(screen.getByTestId('b0-defect-confirm-panel')).toHaveTextContent('DATA TYPE');
+
+    fireEvent.click(screen.getByTestId('b0-defect-accept'));
+    expect(onAcceptDefectDetection).toHaveBeenCalledWith({
+      dataShape: 'event-log',
+      aggregationUnit: 'Date',
+      defectTypeColumn: 'Defect_Type',
+      unitsProducedColumn: 'Units_Produced',
+      countColumn: undefined,
+      resultColumn: undefined,
+    });
+
+    fireEvent.click(screen.getByTestId('b0-defect-dismiss'));
+    expect(onDismissDefectDetection).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the performance proposal and accepts detected channel columns', () => {
+    const onAcceptWideFormatDetection = vi.fn();
+    const onDismissWideFormatDetection = vi.fn();
+    storeStateRef.current = {
+      ...baseStoreState,
+      rawData: WIDE_ROWS as unknown as typeof baseStoreState.rawData,
+    };
+
+    renderFrameView({
+      onFixData: onFixDataMock,
+      wideFormatDetection: WIDE_DETECTION,
+      onAcceptWideFormatDetection,
+      onDismissWideFormatDetection,
+    });
+
+    const banner = screen.getByTestId('b0-performance-banner');
+    expect(banner).toHaveTextContent('These look like parallel channel measurements');
+    expect(banner).toHaveTextContent('V1, V2, V3, V4');
+
+    fireEvent.click(screen.getByTestId('b0-performance-accept'));
+    expect(onAcceptWideFormatDetection).toHaveBeenCalledWith(['V1', 'V2', 'V3', 'V4'], 'Channel');
+
+    fireEvent.click(screen.getByTestId('b0-performance-stack'));
+    expect(onFixDataMock).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByTestId('b0-performance-dismiss'));
+    expect(onDismissWideFormatDetection).toHaveBeenCalledTimes(1);
   });
 
   it('all-categorical data shows the OutcomeNoMatchBanner; skip proceeds to Explore (spec §4.1 no-Y floor)', () => {

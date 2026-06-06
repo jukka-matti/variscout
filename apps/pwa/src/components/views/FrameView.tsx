@@ -27,10 +27,14 @@ import {
 } from '@variscout/stores';
 import type { CanvasAnalyzeFocus, CanvasStepCardModel } from '@variscout/hooks';
 import type {
+  DefectDataShape,
+  DefectDetection,
+  DefectMapping,
   EvidenceSnapshot,
   StepCapabilityStamp,
   ControlHandoff,
   ControlRecord,
+  WideFormatDetection,
 } from '@variscout/core';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import type { ReingestPendingMatch } from '@variscout/core/autoLink';
@@ -51,6 +55,259 @@ const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
 const EMPTY_CONTROL_RECORDS: ControlRecord[] = [];
 const EMPTY_CONTROL_HANDOFFS: ControlHandoff[] = [];
+
+const DEFECT_SHAPE_LABELS: Record<DefectDataShape, string> = {
+  'event-log': 'Event log',
+  'pre-aggregated': 'Pre-aggregated counts',
+  'pass-fail': 'Pass/fail results',
+};
+
+function columnOptions(columnNames: readonly string[], allowNone = false) {
+  return (
+    <>
+      {allowNone ? <option value="">None</option> : null}
+      {columnNames.map(column => (
+        <option key={column} value={column}>
+          {column}
+        </option>
+      ))}
+    </>
+  );
+}
+
+interface B0DefectModeBannerProps {
+  detection: DefectDetection;
+  columnNames: readonly string[];
+  onAccept: (mapping: DefectMapping) => void;
+  onDismiss: () => void;
+}
+
+function B0DefectModeBanner({
+  detection,
+  columnNames,
+  onAccept,
+  onDismiss,
+}: B0DefectModeBannerProps) {
+  const [expanded, setExpanded] = React.useState(false);
+  const [dataShape, setDataShape] = React.useState<DefectDataShape>(detection.dataShape);
+  const [defectTypeColumn, setDefectTypeColumn] = React.useState<string | undefined>(
+    detection.suggestedMapping.defectTypeColumn
+  );
+  const [countColumn, setCountColumn] = React.useState<string | undefined>(
+    detection.suggestedMapping.countColumn
+  );
+  const [resultColumn, setResultColumn] = React.useState<string | undefined>(
+    detection.suggestedMapping.resultColumn
+  );
+  const [aggregationUnit, setAggregationUnit] = React.useState<string>(
+    detection.suggestedMapping.aggregationUnit ?? columnNames[0] ?? ''
+  );
+  const [unitsProducedColumn, setUnitsProducedColumn] = React.useState<string | undefined>(
+    detection.suggestedMapping.unitsProducedColumn
+  );
+
+  const accept = () => {
+    onAccept({
+      dataShape,
+      aggregationUnit,
+      defectTypeColumn,
+      countColumn,
+      resultColumn,
+      unitsProducedColumn,
+    });
+  };
+
+  return (
+    <div
+      data-testid="b0-defect-banner"
+      className="rounded-md border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-content"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-semibold">These rows look like defect events</span>
+        <span className="text-content-secondary">one row per defect.</span>
+        <button
+          type="button"
+          data-testid="b0-defect-expand"
+          onClick={() => setExpanded(true)}
+          className="ml-auto rounded border border-red-400/40 px-2 py-1 text-xs font-medium text-content hover:bg-red-500/10"
+        >
+          Confirm defect setup
+        </button>
+        <button
+          type="button"
+          data-testid="b0-defect-dismiss"
+          onClick={onDismiss}
+          className="rounded px-2 py-1 text-xs text-content-secondary hover:text-content"
+        >
+          Not now
+        </button>
+      </div>
+
+      {expanded ? (
+        <div
+          data-testid="b0-defect-confirm-panel"
+          className="mt-3 grid gap-3 rounded border border-edge bg-surface-primary p-3 text-xs"
+        >
+          <div>
+            <div className="mb-1 font-semibold text-content">DATA TYPE</div>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(DEFECT_SHAPE_LABELS).map(([shape, label]) => (
+                <button
+                  key={shape}
+                  type="button"
+                  aria-pressed={dataShape === shape}
+                  onClick={() => setDataShape(shape as DefectDataShape)}
+                  className={`rounded border px-2 py-1 ${
+                    dataShape === shape
+                      ? 'border-red-400 bg-red-500/10 text-content'
+                      : 'border-edge text-content-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <label className="grid gap-1">
+            <span className="font-medium text-content-secondary">Defect type</span>
+            <select
+              value={defectTypeColumn ?? ''}
+              onChange={event => setDefectTypeColumn(event.target.value || undefined)}
+              className="rounded border border-edge bg-surface-secondary px-2 py-1 text-content"
+            >
+              {columnOptions(columnNames, true)}
+            </select>
+          </label>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="grid gap-1">
+              <span className="font-medium text-content-secondary">Count column</span>
+              <select
+                value={countColumn ?? ''}
+                onChange={event => setCountColumn(event.target.value || undefined)}
+                className="rounded border border-edge bg-surface-secondary px-2 py-1 text-content"
+              >
+                {columnOptions(columnNames, true)}
+              </select>
+            </label>
+            <label className="grid gap-1">
+              <span className="font-medium text-content-secondary">Result column</span>
+              <select
+                value={resultColumn ?? ''}
+                onChange={event => setResultColumn(event.target.value || undefined)}
+                className="rounded border border-edge bg-surface-secondary px-2 py-1 text-content"
+              >
+                {columnOptions(columnNames, true)}
+              </select>
+            </label>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="grid gap-1">
+              <span className="font-medium text-content-secondary">Group by</span>
+              <select
+                value={aggregationUnit}
+                onChange={event => setAggregationUnit(event.target.value)}
+                className="rounded border border-edge bg-surface-secondary px-2 py-1 text-content"
+              >
+                {columnOptions(columnNames)}
+              </select>
+            </label>
+            <label className="grid gap-1">
+              <span className="font-medium text-content-secondary">Units produced</span>
+              <select
+                value={unitsProducedColumn ?? ''}
+                onChange={event => setUnitsProducedColumn(event.target.value || undefined)}
+                className="rounded border border-edge bg-surface-secondary px-2 py-1 text-content"
+              >
+                {columnOptions(columnNames, true)}
+              </select>
+            </label>
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              className="rounded px-2 py-1 text-content-secondary hover:text-content"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              data-testid="b0-defect-accept"
+              onClick={accept}
+              className="rounded bg-red-600 px-3 py-1 font-medium text-white hover:bg-red-500"
+            >
+              Use defect framing
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+interface B0PerformanceModeBannerProps {
+  detection: WideFormatDetection;
+  onAccept: (columns: string[], label: string) => void;
+  onDismiss: () => void;
+  onStack: () => void;
+}
+
+function B0PerformanceModeBanner({
+  detection,
+  onAccept,
+  onDismiss,
+  onStack,
+}: B0PerformanceModeBannerProps) {
+  const channelIds = React.useMemo(
+    () => detection.channels.map(channel => channel.id),
+    [detection]
+  );
+  const preview = channelIds.slice(0, 6).join(', ');
+  const suffix = channelIds.length > 6 ? ` and ${channelIds.length - 6} more` : '';
+
+  return (
+    <div
+      data-testid="b0-performance-banner"
+      className="rounded-md border border-blue-400/40 bg-blue-500/10 px-3 py-2 text-sm text-content"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-semibold">These look like parallel channel measurements</span>
+        <span className="text-content-secondary">
+          {preview}
+          {suffix}
+        </span>
+        <button
+          type="button"
+          data-testid="b0-performance-accept"
+          onClick={() => onAccept(channelIds, 'Channel')}
+          className="ml-auto rounded border border-blue-400/40 px-2 py-1 text-xs font-medium text-content hover:bg-blue-500/10"
+        >
+          Use performance framing
+        </button>
+        <button
+          type="button"
+          data-testid="b0-performance-stack"
+          onClick={onStack}
+          className="rounded px-2 py-1 text-xs text-content-secondary hover:text-content"
+        >
+          Combine into one measure
+        </button>
+        <button
+          type="button"
+          data-testid="b0-performance-dismiss"
+          onClick={onDismiss}
+          className="rounded px-2 py-1 text-xs text-content-secondary hover:text-content"
+        >
+          Not now
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function mergeActionItems(
   current: readonly ActionItem[],
@@ -99,6 +356,12 @@ interface FrameViewProps {
   quietTimeExtraction?: QuietTimeExtractionChip | null;
   onDismissQuietTimeExtraction?: () => void;
   onUndoQuietTimeExtraction?: () => void;
+  defectDetection?: DefectDetection | null;
+  onAcceptDefectDetection?: (mapping: DefectMapping) => void;
+  onDismissDefectDetection?: () => void;
+  wideFormatDetection?: WideFormatDetection | null;
+  onAcceptWideFormatDetection?: (columns: string[], label: string) => void;
+  onDismissWideFormatDetection?: () => void;
 }
 
 const FrameView: React.FC<FrameViewProps> = ({
@@ -108,6 +371,12 @@ const FrameView: React.FC<FrameViewProps> = ({
   quietTimeExtraction = null,
   onDismissQuietTimeExtraction,
   onUndoQuietTimeExtraction,
+  defectDetection = null,
+  onAcceptDefectDetection,
+  onDismissDefectDetection,
+  wideFormatDetection = null,
+  onAcceptWideFormatDetection,
+  onDismissWideFormatDetection,
 }) => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
@@ -457,6 +726,7 @@ const FrameView: React.FC<FrameViewProps> = ({
   // The provenance bar shows filename · rows · columns which matches the wireframe.
   const b0Slots = React.useMemo(() => {
     const columnCount = rawData.length > 0 ? Object.keys(rawData[0]).length : 0;
+    const columnNames = rawData.length > 0 ? Object.keys(rawData[0]) : [];
     const showQuietTimeChip =
       quietTimeExtraction != null &&
       !quietTimeExtraction.dismissed &&
@@ -479,6 +749,22 @@ const FrameView: React.FC<FrameViewProps> = ({
               </button>
             )}
           </div>
+          {defectDetection && onAcceptDefectDetection && onDismissDefectDetection ? (
+            <B0DefectModeBanner
+              detection={defectDetection}
+              columnNames={columnNames}
+              onAccept={onAcceptDefectDetection}
+              onDismiss={onDismissDefectDetection}
+            />
+          ) : null}
+          {wideFormatDetection && onAcceptWideFormatDetection && onDismissWideFormatDetection ? (
+            <B0PerformanceModeBanner
+              detection={wideFormatDetection}
+              onAccept={onAcceptWideFormatDetection}
+              onDismiss={onDismissWideFormatDetection}
+              onStack={() => onFixData?.()}
+            />
+          ) : null}
           {showQuietTimeChip ? (
             <div
               data-testid="b0-time-chip"
@@ -557,6 +843,12 @@ const FrameView: React.FC<FrameViewProps> = ({
     onDismissQuietTimeExtraction,
     onUndoQuietTimeExtraction,
     quietTimeExtraction,
+    defectDetection,
+    onAcceptDefectDetection,
+    onDismissDefectDetection,
+    wideFormatDetection,
+    onAcceptWideFormatDetection,
+    onDismissWideFormatDetection,
   ]);
 
   // E1 T6: Process tab is project-scoped. When no active project is selected,

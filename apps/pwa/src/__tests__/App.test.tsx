@@ -269,7 +269,7 @@ function setCapabilitySuggestionFixture(processMapNodes: Array<{ id: string; nam
   usePanelsStore.setState({ ...initialPanelsState, activeView: 'frame' });
 }
 
-describe('CapabilitySuggestionModal — FSJ-4 b0 suppression', () => {
+describe('CapabilitySuggestionModal — FSJ-5 PWA retirement', () => {
   beforeEach(() => {
     useProjectStore.setState({
       rawData: [],
@@ -303,14 +303,14 @@ describe('CapabilitySuggestionModal — FSJ-4 b0 suppression', () => {
     expect(screen.queryByTestId('capability-suggestion-modal')).toBeNull();
   });
 
-  it('still renders after the Process surface has an authored step', async () => {
+  it('does not render after the Process surface has an authored step', async () => {
     setCapabilitySuggestionFixture([{ id: 'step-1', name: 'Bake' }]);
 
     await act(async () => {
       renderApp();
     });
 
-    expect(await screen.findByTestId('capability-suggestion-modal')).toBeInTheDocument();
+    expect(screen.queryByTestId('capability-suggestion-modal')).toBeNull();
   });
 });
 

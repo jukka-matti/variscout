@@ -15,9 +15,6 @@ import {
   FindingsWindow,
   openFindingsPopout,
   updateFindingsPopout,
-  PerformanceDetectedModal,
-  CapabilitySuggestionModal,
-  DefectDetectedModal,
   MobileTabBar,
   type MobileTab,
   useIsMobile,
@@ -87,7 +84,6 @@ import {
   parseMentions,
   findDuplicateFinding,
   findDuplicateBySource,
-  detectScopeFromMap,
 } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -199,7 +195,6 @@ function AppMain() {
   const filters = useProjectStore(s => s.filters);
   const columnAliases = useProjectStore(s => s.columnAliases);
   const analysisMode = useProjectStore(s => s.analysisMode);
-  const displayOptions = useProjectStore(s => s.displayOptions);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
   const { value: cpkTarget } = resolveCpkTarget(outcome ?? '', {
@@ -315,10 +310,10 @@ function AppMain() {
   const setColumnAliases = useProjectStore(s => s.setColumnAliases);
   const clearSelection = useViewStore(s => s.clearSelection);
   const setAnalysisMode = useProjectStore(s => s.setAnalysisMode);
-  const setDisplayOptions = useProjectStore(s => s.setDisplayOptions);
-  const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
-  const setCpkTarget = useProjectStore(s => s.setCpkTarget);
   const setDefectMapping = useProjectStore(s => s.setDefectMapping);
+  const setMeasureColumns = useProjectStore(s => s.setMeasureColumns);
+  const setMeasureLabel = useProjectStore(s => s.setMeasureLabel);
+  const setSelectedMeasure = useProjectStore(s => s.setSelectedMeasure);
   // IM-1: addIdea (keyed by hypothesisId) is not read here — the PWA ideas surface
   // was the Question-driven FindingsLog/ImprovementIdeasSection path that IM-1
   // dismantled; its hypothesisId-keyed replacement (ImprovementIdeasSection in
@@ -481,10 +476,6 @@ function AppMain() {
     [panels]
   );
 
-  // Capability suggestion modal state
-  const [showCapabilitySuggestion, setShowCapabilitySuggestion] = useState(false);
-  const [capabilitySuggestionDismissed, setCapabilitySuggestionDismissed] = useState(false);
-
   // Embed mode state
   const [isEmbedMode, setIsEmbedMode] = useState(false);
   const [embedFocusChart, setEmbedFocusChart] = useState<
@@ -581,9 +572,6 @@ function AppMain() {
   }, [isDrilling, outcome, filteredData, rawData]);
 
   const centeringOpp = useMemo(() => (stats ? computeCenteringOpportunity(stats) : null), [stats]);
-  const isProcessB0Landing =
-    panels.activeView === 'frame' && detectScopeFromMap(processContext?.processMap) === 'b0';
-
   // Sync complement + drilling state to projection store (sidebar reads from store)
   useEffect(() => {
     useProjectionStore.setState({
@@ -592,31 +580,6 @@ function AppMain() {
       centeringOpportunity: centeringOpp,
     });
   }, [complementInsight, isDrilling, centeringOpp]);
-
-  // Capability suggestion: show when specs are set and no other detection modal is showing
-  useEffect(() => {
-    if (
-      rawData.length > 0 &&
-      (specs?.usl !== undefined || specs?.lsl !== undefined) &&
-      (factors.length > 0 || rawData.length >= 10) &&
-      !capabilitySuggestionDismissed &&
-      !showCapabilitySuggestion &&
-      !isProcessB0Landing &&
-      !importFlow.wideFormatDetection &&
-      !importFlow.defectDetection
-    ) {
-      setShowCapabilitySuggestion(true);
-    }
-  }, [
-    rawData.length,
-    specs,
-    factors.length,
-    capabilitySuggestionDismissed,
-    showCapabilitySuggestion,
-    isProcessB0Landing,
-    importFlow.wideFormatDetection,
-    importFlow.defectDetection,
-  ]);
 
   const handleExport = useCallback(async () => {
     const node = document.getElementById('dashboard-export-container');
@@ -1461,6 +1424,22 @@ function AppMain() {
                   quietTimeExtraction={importFlow.quietTimeExtraction}
                   onDismissQuietTimeExtraction={importFlow.dismissQuietTimeExtraction}
                   onUndoQuietTimeExtraction={importFlow.undoQuietTimeExtraction}
+                  defectDetection={importFlow.defectDetection}
+                  onAcceptDefectDetection={mapping => {
+                    setDefectMapping(mapping);
+                    setAnalysisMode('defect');
+                    importFlow.handleDismissDefect();
+                  }}
+                  onDismissDefectDetection={importFlow.handleDismissDefect}
+                  wideFormatDetection={importFlow.wideFormatDetection}
+                  onAcceptWideFormatDetection={(columns, label) => {
+                    setMeasureColumns(columns);
+                    setMeasureLabel(label);
+                    setSelectedMeasure(null);
+                    setAnalysisMode('performance');
+                    importFlow.handleDismissWideFormat();
+                  }}
+                  onDismissWideFormatDetection={importFlow.handleDismissWideFormat}
                 />
               </div>
             ) : panels.activeView === 'charter' ? (
@@ -1684,32 +1663,6 @@ function AppMain() {
         <AppFooter filteredCount={filteredData.length} totalCount={rawData.length} />
       )}
 
-      {/* Wide Format Detection — Performance Mode */}
-      {importFlow.wideFormatDetection && (
-        <PerformanceDetectedModal
-          detection={importFlow.wideFormatDetection}
-          onEnable={(_columns, _label) => {
-            setAnalysisMode('performance');
-            importFlow.handleDismissWideFormat();
-          }}
-          onDecline={importFlow.handleDismissWideFormat}
-        />
-      )}
-
-      {/* Defect Detection Modal */}
-      {importFlow.defectDetection && (
-        <DefectDetectedModal
-          detection={importFlow.defectDetection}
-          columnNames={rawData.length > 0 ? Object.keys(rawData[0]) : []}
-          onEnable={mapping => {
-            setAnalysisMode('defect');
-            setDefectMapping(mapping);
-            importFlow.handleDismissDefect();
-          }}
-          onDismiss={importFlow.handleDismissDefect}
-        />
-      )}
-
       {/* Match Summary Card — Mode A.2 paste into existing complete Hub.
           Rendered inline (not over a backdrop) per spec. */}
       {importFlow.matchSummary &&
@@ -1732,31 +1685,6 @@ function AppMain() {
             </div>
           );
         })()}
-
-      {/* Capability Suggestion Modal */}
-      {showCapabilitySuggestion && !isProcessB0Landing && (
-        <CapabilitySuggestionModal
-          onStartCapability={config => {
-            setDisplayOptions({ ...displayOptions, standardIChartMetric: 'capability' });
-            setSubgroupConfig(config);
-            setShowCapabilitySuggestion(false);
-            setCapabilitySuggestionDismissed(true);
-          }}
-          onStartStandard={() => {
-            setShowCapabilitySuggestion(false);
-            setCapabilitySuggestionDismissed(true);
-          }}
-          factorColumns={factors}
-          dataFilename={dataFilename}
-          outcome={outcome}
-          rowCount={rawData.length}
-          specs={specs}
-          stats={stats}
-          cpkTarget={cpkTarget}
-          onSpecsChange={setSpecs}
-          onCpkTargetChange={setCpkTarget}
-        />
-      )}
 
       {/* Stage 5 modal — investigation context capture.
           Opens after Mode B Stage 3 confirm (openModeB) and via on-demand button
