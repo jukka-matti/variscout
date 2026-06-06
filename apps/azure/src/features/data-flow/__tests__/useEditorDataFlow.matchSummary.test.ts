@@ -156,9 +156,9 @@ describe('useEditorDataFlow — match-summary wedge (P2.4 / D9)', () => {
 
     expect(result.current.matchSummary).toBeUndefined();
     // FSJ-3b: this paste is measurement-shaped (the mocked detectColumns returns an
-    // outcome with non-low confidence, and wide/defect are mocked false), so it now
-    // LANDS at b0 rather than opening the mapping vestibule — the data is still
-    // committed; the match-summary wedge simply doesn't apply (Mode B).
+    // outcome with confidence undefined ⇒ not 'low' — lands, and wide/defect are mocked
+    // false), so it now LANDS at b0 rather than opening the mapping vestibule — the data
+    // is still committed; the match-summary wedge simply doesn't apply (Mode B).
     expect(result.current.isMapping).toBe(false);
     expect(setRawData).toHaveBeenCalledWith(PARSED_ROWS);
   });

@@ -439,6 +439,7 @@ describe('useEditorDataFlow', () => {
         outcome: 'Weight',
         factors: [],
         timeColumn: 'Date',
+        confidence: 'low',
         columnAnalysis: [{ name: 'Date', type: 'date', sampleValues: ['2024-01-01'] }],
       });
 

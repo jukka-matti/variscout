@@ -486,6 +486,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         // Quiet-tier interim (spec §4.2): auto-apply time extraction with the
         // current defaults; the adjust/undo chip arrives with FSJ-6.
         if (detected.timeColumn) {
+          // FSJ-6 note: config is read at paste time; the adjust/undo chip must call applyTimeExtraction directly, not re-run this pipeline.
           applyTimeExtraction(detected.timeColumn, timeExtractionConfig);
         }
         setTimeExtractionPrompt(null);

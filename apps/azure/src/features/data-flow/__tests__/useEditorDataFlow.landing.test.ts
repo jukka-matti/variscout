@@ -166,9 +166,13 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
   });
 
   it('keeps the wizard path for a wide-shaped paste (negative control) + provisions the Untitled project (FSJ-3b §3)', async () => {
-    // Precondition: wide-format detected.
+    // Precondition: wide-format detected (a CHANNEL_PATTERNS drift must fail loudly).
     const parsed = await parseText(tsvOf(wideRows));
     expect(detectWideFormat(parsed).isWideFormat).toBe(true);
+    // Precondition: wide fixture must not accidentally trigger the low-confidence path
+    // (otherwise the test would pass for the wrong reason — the wizard fires for BOTH
+    // wide AND low-confidence, but this test is specifically about wide-format routing).
+    expect(detectColumns(parsed).confidence).not.toBe('low');
 
     const onFreshPasteLanded = vi.fn();
     const onFreshPasteAnalyzed = vi.fn();
