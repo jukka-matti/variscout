@@ -1,4 +1,5 @@
 import { createNewIP } from '@variscout/core/improvementProject';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessHub } from '@variscout/core/processHub';
 import { useActiveIPStore, useImprovementProjectStore } from '@variscout/stores';
 
@@ -26,17 +27,18 @@ export function ensureHubProject(
   title: string,
   user: AzureUserIdentity,
   now: () => number = Date.now
-): ProcessHub {
+): ProcessHub & { improvementProject: ImprovementProject } {
   const existingIP = hub?.improvementProject;
   if (existingIP && existingIP.deletedAt === null) {
-    return hub as ProcessHub;
+    return hub as ProcessHub & { improvementProject: ImprovementProject };
   }
+  const at = now();
   const base: ProcessHub = hub ?? {
     id: crypto.randomUUID(),
     name: 'Untitled hub',
-    createdAt: now(),
+    createdAt: at,
     deletedAt: null,
-    updatedAt: now(),
+    updatedAt: at,
   };
   const ip = createNewIP({
     hubId: base.id,
@@ -45,7 +47,7 @@ export function ensureHubProject(
     currentUserDisplayName: user.name,
     now,
   });
-  return { ...base, improvementProject: ip, updatedAt: now() };
+  return { ...base, improvementProject: ip, updatedAt: at };
 }
 
 /**
@@ -56,10 +58,6 @@ export function ensureHubProject(
  * Writes via getState() because the hook's scope for a just-created hub is stale
  * at closure time. Also mirrors the project into useImprovementProjectStore —
  * FrameView's liveProject/canvas-persistence reads come from there.
- *
- * NOTE: Azure has no embed mode — no showFrame exemption guard here,
- * unlike PWA's isEmbedMode dep (landHubOnProcess calls showFrame conditionally).
- * Azure always routes to the Process tab on fresh entry (grounding 2026-06-06).
  */
 export function activateHubProject(hub: ProcessHub, userId: string): void {
   const ip = hub.improvementProject;

@@ -17,10 +17,10 @@ describe('ensureHubProject (Untitled-pair guarantee, spec §3)', () => {
     expect(hub.id).toBeTruthy();
     expect(hub.name).toBe('Untitled hub');
     expect(hub.improvementProject).toBeTruthy();
-    expect(hub.improvementProject!.metadata.title).toBe('Case: The Bottleneck');
-    expect(hub.improvementProject!.hubId).toBe(hub.id);
-    expect(hub.improvementProject!.deletedAt).toBeNull();
-    expect(hub.improvementProject!.metadata.members[0]).toMatchObject({
+    expect(hub.improvementProject.metadata.title).toBe('Case: The Bottleneck');
+    expect(hub.improvementProject.hubId).toBe(hub.id);
+    expect(hub.improvementProject.deletedAt).toBeNull();
+    expect(hub.improvementProject.metadata.members[0]).toMatchObject({
       role: 'lead',
       userId: 'analyst@contoso.com',
     });
@@ -34,30 +34,30 @@ describe('ensureHubProject (Untitled-pair guarantee, spec §3)', () => {
       deletedAt: null,
       updatedAt: 1,
       processGoal: 'reduce cycle time',
-    } as ProcessHub;
+    } as unknown as ProcessHub;
     const hub = ensureHubProject(existing, 'Untitled project', USER, NOW);
     expect(hub.id).toBe('hub-1');
     expect(hub.name).toBe('My hub');
     expect(hub.processGoal).toBe('reduce cycle time');
-    expect(hub.improvementProject!.hubId).toBe('hub-1');
+    expect(hub.improvementProject.hubId).toBe('hub-1');
   });
 
   it('is a referential no-op when a live project already exists (reconstruct-not-create, spec §1)', () => {
     const withIP = ensureHubProject(null, 'Existing', USER, NOW);
     const again = ensureHubProject(withIP, 'SHOULD NOT APPLY', USER, NOW);
     expect(again).toBe(withIP);
-    expect(again.improvementProject!.metadata.title).toBe('Existing');
+    expect(again.improvementProject.metadata.title).toBe('Existing');
   });
 
   it('replaces a soft-deleted project with a fresh one', () => {
     const withIP = ensureHubProject(null, 'Old', USER, NOW);
     const softDeleted = {
       ...withIP,
-      improvementProject: { ...withIP.improvementProject!, deletedAt: 123 },
-    } as ProcessHub;
+      improvementProject: { ...withIP.improvementProject, deletedAt: 123 },
+    } as unknown as ProcessHub;
     const hub = ensureHubProject(softDeleted, 'Fresh', USER, NOW);
-    expect(hub.improvementProject!.deletedAt).toBeNull();
-    expect(hub.improvementProject!.metadata.title).toBe('Fresh');
+    expect(hub.improvementProject.deletedAt).toBeNull();
+    expect(hub.improvementProject.metadata.title).toBe('Fresh');
   });
 });
 
@@ -76,10 +76,24 @@ describe('activateHubProject + landFreshEntryOnProcess', () => {
     activateHubProject(hub, USER.email);
     const scope = { hubId: hub.id, userId: USER.email };
     // getActiveIP returns ActiveIPState { ipId, setAt } | null
-    expect(useActiveIPStore.getState().getActiveIP(scope)?.ipId).toBe(hub.improvementProject!.id);
+    expect(useActiveIPStore.getState().getActiveIP(scope)?.ipId).toBe(hub.improvementProject.id);
     expect(useImprovementProjectStore.getState().getProjectForHub(hub.id)?.id).toBe(
-      hub.improvementProject!.id
+      hub.improvementProject.id
     );
+  });
+
+  it('activateHubProject with a soft-deleted IP is a silent no-op — neither store written', () => {
+    const hub = ensureHubProject(null, 'To be deleted', USER, NOW);
+    const hubWithDeletedIP = {
+      ...hub,
+      improvementProject: { ...hub.improvementProject, deletedAt: 999 },
+    } as unknown as ProcessHub;
+    activateHubProject(hubWithDeletedIP, USER.email);
+    const scope = { hubId: hubWithDeletedIP.id, userId: USER.email };
+    expect(useActiveIPStore.getState().getActiveIP(scope)).toBeNull();
+    expect(
+      useImprovementProjectStore.getState().getProjectForHub(hubWithDeletedIP.id)
+    ).toBeUndefined();
   });
 
   it('landFreshEntryOnProcess registers a NEW hub, sets processHubId, routes to frame', () => {
