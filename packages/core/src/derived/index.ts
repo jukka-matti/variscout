@@ -35,3 +35,10 @@ export { detectTimeColumns, type DetectTimeColumnsResult } from './detectTimeCol
 
 // G1: Inflection-detected bin column engine
 export { computeBinnedFactorColumn } from './bins';
+
+// FSJ-5: b0 candidate framing for analysis-mode detections
+export {
+  deriveB0ModeCandidates,
+  type B0ModeCandidates,
+  type DeriveB0ModeCandidatesInput,
+} from './deriveB0ModeCandidates';

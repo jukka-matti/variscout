@@ -260,7 +260,7 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     expect(result.current.flow.quietTimeExtraction).toBeNull();
   });
 
-  it('keeps the wizard path for a wide-shaped paste (negative control) + provisions the Untitled project (FSJ-2 §3)', async () => {
+  it('lands a wide-shaped fresh paste at b0 with the performance proposal intact', async () => {
     // Precondition: wide-format detected.
     const parsed = await parseText(tsvOf(wideRows));
     expect(detectWideFormat(parsed).isWideFormat).toBe(true);
@@ -275,15 +275,13 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
       await result.current.handlePasteAnalyze(tsvOf(wideRows));
     });
 
-    expect(result.current.isMapping).toBe(true);
+    expect(result.current.isMapping).toBe(false);
     expect(result.current.wideFormatDetection).not.toBeNull();
-    // Wizard path: the Untitled-project guarantee holds via onFreshPasteAnalyzed,
-    // NOT the measurement landing callback (mutually exclusive — spec §3).
-    expect(onFreshPasteAnalyzed).toHaveBeenCalledTimes(1);
-    expect(onFreshPasteLanded).not.toHaveBeenCalled();
+    expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
+    expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
   });
 
-  it('keeps the wizard path for a defect-shaped paste (negative control) + provisions the Untitled project (FSJ-2 §3)', async () => {
+  it('lands a defect-shaped fresh paste at b0 with the defect proposal intact', async () => {
     // Precondition: defect format at high|medium confidence.
     const parsed = await parseText(tsvOf(defectRows));
     const defect = detectDefectFormat(parsed, detectColumns(parsed).columnAnalysis);
@@ -300,10 +298,10 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
       await result.current.handlePasteAnalyze(tsvOf(defectRows));
     });
 
-    expect(result.current.isMapping).toBe(true);
+    expect(result.current.isMapping).toBe(false);
     expect(result.current.defectDetection).not.toBeNull();
-    expect(onFreshPasteAnalyzed).toHaveBeenCalledTimes(1);
-    expect(onFreshPasteLanded).not.toHaveBeenCalled();
+    expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
+    expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
   });
 
   it('auto-surfaces the mapping for a low-confidence paste (spec §4.1 — never a silent empty landing) + provisions the Untitled project (FSJ-2 §3)', async () => {
@@ -362,12 +360,12 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
   });
 
   it('does not wipe pasted data on first-time mapping cancel (spec §4.1 guarded regression)', async () => {
-    // Paste wide-shaped data (enters the wizard), then cancel: no setter resets data.
+    // Paste low-confidence data (still enters the wizard), then cancel: no setter resets data.
     const setRawData = vi.fn();
     const { result } = renderHook(() => usePasteImportFlow(makeOptions({ setRawData })));
 
     await act(async () => {
-      await result.current.handlePasteAnalyze(tsvOf(wideRows));
+      await result.current.handlePasteAnalyze(tsvOf(allCategoricalRows));
     });
     expect(result.current.isMapping).toBe(true);
 

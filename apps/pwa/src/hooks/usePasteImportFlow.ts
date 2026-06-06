@@ -351,20 +351,22 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         (defectResult.confidence === 'high' || defectResult.confidence === 'medium');
       const wideFormat = detectWideFormat(data);
 
-      // FSJ-2 (first-session spec §4.1/§4.2a): measurement-shaped fresh pastes
-      // skip the ColumnMapping vestibule and land at b0 pre-filled (Y/X were
-      // written above). Kept on today's wizard path: defect/wide shapes (until
-      // the P2 re-framing banners), low inference confidence (= no Y inferable,
-      // detection.ts:189-205 — the mapping surface auto-surfaces rather than
-      // landing on an empty picker), and match-summary re-dispatch (re-ingestion
-      // is not first-session, spec §7).
+      // FSJ-5 (first-session spec §4.2a): unit-of-analysis detections re-frame
+      // b0; they do not bypass it with a modal or stay on the mapping path.
+      // Kept on today's mapping path: low inference confidence (= no Y inferable,
+      // detection.ts:189-205) and match-summary re-dispatch (re-ingestion is not
+      // first-session, spec §7).
       const landsAtB0 =
         !opts?.reingest &&
-        !defectFired &&
-        !wideFormat.isWideFormat &&
-        detected.confidence !== 'low';
+        (detected.confidence !== 'low' || defectFired || wideFormat.isWideFormat);
 
       if (landsAtB0) {
+        if (defectFired) {
+          dispatch({ type: 'DEFECT_DETECTED', detection: defectResult });
+        }
+        if (wideFormat.isWideFormat) {
+          dispatch({ type: 'WIDE_FORMAT_DETECTED', detection: wideFormat });
+        }
         if (detected.timeColumn) {
           applyTimeExtraction(detected.timeColumn, timeExtractionConfig);
           setQuietTimeExtraction({

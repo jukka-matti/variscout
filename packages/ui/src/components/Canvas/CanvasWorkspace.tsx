@@ -17,15 +17,17 @@ import {
   computeTimeDecompositionColumns,
   computeTotalWorkTimeColumn,
   computeWaitTimeColumn,
+  deriveB0ModeCandidates,
   detectColumns,
   detectScopeFromMap,
   detectStepTimestampPairs,
   normalizeProcessHubId,
   parseTimeValue,
-  rankYCandidates,
+  type AnalysisMode,
   type CausalLink,
   type ColumnAnalysis,
   type DataRow,
+  type DefectMapping,
   type Finding,
   type FormulaBinding,
   type TimeDecompositionBinding,
@@ -93,6 +95,9 @@ export interface CanvasWorkspaceProps {
   rawData: readonly DataRow[];
   outcome: string | null;
   factors: readonly string[];
+  analysisMode?: AnalysisMode;
+  defectMapping?: DefectMapping | null;
+  measureColumns?: readonly string[];
   measureSpecs: Record<string, SpecLimits>;
   processContext: ProcessContext | null;
   setOutcome: (outcome: string | null) => void;
@@ -180,7 +185,13 @@ export interface CanvasWorkspaceProps {
    * belowY maps to FrameViewB0's belowYSlot prop.
    * Optional: Azure does not pass them until FSJ-3.
    */
-  b0Slots?: { topBar?: React.ReactNode; belowY?: React.ReactNode; noYBanner?: React.ReactNode };
+  b0Slots?: {
+    topBar?: React.ReactNode;
+    belowY?: React.ReactNode;
+    noYBanner?: React.ReactNode;
+    selectionDisabled?: React.ReactNode;
+    emptyY?: React.ReactNode;
+  };
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -284,6 +295,9 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   rawData,
   outcome,
   factors,
+  analysisMode,
+  defectMapping,
+  measureColumns,
   measureSpecs,
   processContext,
   setOutcome,
@@ -527,29 +541,32 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   );
   const runOrderColumn = detected?.timeColumn ?? null;
   const columnAnalysis = React.useMemo(() => detected?.columnAnalysis ?? [], [detected]);
+  const b0ModeCandidates = React.useMemo(
+    () =>
+      deriveB0ModeCandidates({
+        rows: rawData,
+        analysisMode,
+        defectMapping,
+        measureColumns,
+        selectedOutcome: outcome,
+      }),
+    [analysisMode, defectMapping, measureColumns, outcome, rawData]
+  );
   const stepTimestampPairs = React.useMemo(
     () => detectStepTimestampPairs(columnAnalysis),
     [columnAnalysis]
   );
 
   const yCandidates: FrameViewB0YCandidate[] = React.useMemo(() => {
-    const ranked = rankYCandidates(columnAnalysis);
-    return ranked.map(({ column }) => ({
+    return b0ModeCandidates.yColumns.map(column => ({
       column,
-      numericValues: numericValuesFor(column.name, rawData),
+      numericValues: numericValuesFor(column.name, b0ModeCandidates.rows),
     }));
-  }, [columnAnalysis, rawData]);
+  }, [b0ModeCandidates]);
 
   const xCandidates: XCandidate[] = React.useMemo(() => {
-    return columnAnalysis
-      .filter(
-        col =>
-          col.name !== outcome &&
-          col.name !== runOrderColumn &&
-          (col.type === 'numeric' || col.type === 'categorical')
-      )
-      .map(col => toXCandidate(col, rawData));
-  }, [columnAnalysis, outcome, runOrderColumn, rawData]);
+    return b0ModeCandidates.xColumns.map(col => toXCandidate(col, b0ModeCandidates.rows));
+  }, [b0ModeCandidates]);
 
   const chips = React.useMemo(
     () =>
@@ -1409,6 +1426,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           topBar={b0TopBar}
           belowYSlot={b0Slots?.belowY}
           noYBanner={b0Slots?.noYBanner}
+          selectionDisabledSlot={b0Slots?.selectionDisabled}
+          emptyYSlot={b0Slots?.emptyY}
           onProcessStepsOpen={handleB0ProcessStepsOpen}
         >
           {canvasNode}

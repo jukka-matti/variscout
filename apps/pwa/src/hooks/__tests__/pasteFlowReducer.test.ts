@@ -5,12 +5,18 @@ import {
   type PasteFlowState,
   type PasteFlowAction,
 } from '../usePasteImportFlow';
-import type { WideFormatDetection } from '@variscout/core';
+import type { DefectDetection, WideFormatDetection } from '@variscout/core';
 
 const reduce = (action: PasteFlowAction, state: PasteFlowState = initialPasteFlowState) =>
   pasteFlowReducer(state, action);
 
 const mockWideFormat = { isWideFormat: true, channels: [] } as unknown as WideFormatDetection;
+const mockDefectDetection = {
+  isDefectFormat: true,
+  confidence: 'high',
+  dataShape: 'event-log',
+  suggestedMapping: { aggregationUnit: 'Date', defectTypeColumn: 'Defect_Type' },
+} satisfies DefectDetection;
 
 describe('pasteFlowReducer', () => {
   describe('initial state', () => {
@@ -125,6 +131,22 @@ describe('pasteFlowReducer', () => {
       expect(state.isPasteMode).toBe(false);
       expect(state.isMapping).toBe(false);
       expect(state.isMappingReEdit).toBe(false);
+    });
+
+    it('keeps detection proposals available for b0 banners', () => {
+      const state = pasteFlowReducer(
+        {
+          ...initialPasteFlowState,
+          isPasteMode: true,
+          wideFormatDetection: mockWideFormat,
+          defectDetection: mockDefectDetection,
+        },
+        { type: 'PASTE_LANDED' }
+      );
+
+      expect(state.isMapping).toBe(false);
+      expect(state.wideFormatDetection).toBe(mockWideFormat);
+      expect(state.defectDetection).toBe(mockDefectDetection);
     });
   });
 
