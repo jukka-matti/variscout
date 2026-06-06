@@ -256,6 +256,17 @@ vi.mock('@variscout/ui', async () => {
             )
           : null
       ),
+    OutcomeNoMatchBanner: (props: {
+      onRename: (oldName: string, newName: string) => void;
+      onExpectedChange: (expected: string) => void;
+      onSkip: () => void;
+    }) =>
+      React.createElement(
+        'div',
+        { 'data-testid': 'outcome-no-match-banner', role: 'alert' },
+        React.createElement('span', null, 'No clear outcome match'),
+        React.createElement('button', { type: 'button', onClick: props.onSkip }, 'Skip outcome')
+      ),
     CanvasWorkspace: (props: {
       canvasViewportHubId?: string | null;
       onSeeData: () => void;

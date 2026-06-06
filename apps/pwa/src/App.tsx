@@ -1434,7 +1434,11 @@ function AppMain() {
                     surface="Process"
                   />
                 ) : null}
-                <FrameView reingestPendingMatches={pendingMatches} />
+                <FrameView
+                  reingestPendingMatches={pendingMatches}
+                  onFixData={importFlow.openFactorManager}
+                  onRenameColumn={importFlow.handleColumnRename}
+                />
               </div>
             ) : panels.activeView === 'charter' ? (
               <ImprovementProjectPanel

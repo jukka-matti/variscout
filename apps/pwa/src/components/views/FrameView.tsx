@@ -9,6 +9,7 @@ import {
   CanvasWorkspace,
   InboxDigest,
   NoActiveProjectGuidance,
+  OutcomeNoMatchBanner,
   navigateToExploreForChip,
   type ChipNavigationTarget,
   type InboxDigestPrompt,
@@ -81,9 +82,26 @@ interface FrameViewProps {
    * apply surface ("hints navigate, chips apply"). Optional/empty → no breadcrumbs.
    */
   reingestPendingMatches?: ReingestPendingMatch[];
+  /**
+   * FSJ-2 — opens the demoted ColumnMapping wizard in re-edit mode. Used by both
+   * the "Fix data…" hatch (top-bar) and the "+ track another outcome" link (belowY
+   * slot) — both are deliberate parity: the same re-edit surface from two entry
+   * points (spec §7, settled decision). Optional → buttons hidden when not wired.
+   */
+  onFixData?: () => void;
+  /**
+   * FSJ-2 — column rename handler forwarded from importFlow. Passed to
+   * OutcomeNoMatchBanner's onRename prop (type contract; actual rename happens
+   * via the "Fix data…" hatch per plan decision 11).
+   */
+  onRenameColumn?: (oldName: string, alias: string) => void;
 }
 
-const FrameView: React.FC<FrameViewProps> = ({ reingestPendingMatches = [] }) => {
+const FrameView: React.FC<FrameViewProps> = ({
+  reingestPendingMatches = [],
+  onFixData,
+  onRenameColumn,
+}) => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
@@ -93,6 +111,8 @@ const FrameView: React.FC<FrameViewProps> = ({ reingestPendingMatches = [] }) =>
   const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
   const processContext = useProjectStore(s => s.processContext);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
+  // FSJ-2 b0 landing: provenance metadata.
+  const dataFilename = useProjectStore(s => s.dataFilename);
   const findings = useAnalyzeStore(s => s.findings);
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
@@ -421,6 +441,56 @@ const FrameView: React.FC<FrameViewProps> = ({ reingestPendingMatches = [] }) =>
     [activeHubId, controlHandoffs, controlRecords, hypotheses, handleOpenInvestigationFocus]
   );
 
+  // FSJ-2 b0 landing slots (spec §4.1; wireframe b0-landing).
+  // Hardcoded English per the OutcomeNoMatchBanner precedent — the 32-catalog
+  // i18n sweep is a logged follow-up, not this PR.
+  //
+  // DataQualityReport carries totalRows/validRows/columnIssues but no pre-computed
+  // missing-% by column, so omitting the missingSegment avoids an O(n*m) pass here.
+  // The provenance bar shows filename · rows · columns which matches the wireframe.
+  const b0Slots = React.useMemo(() => {
+    const columnCount = rawData.length > 0 ? Object.keys(rawData[0]).length : 0;
+    return {
+      topBar: (
+        <div className="flex items-center justify-between gap-3 text-xs text-content-muted">
+          <span data-testid="b0-provenance">
+            {`${dataFilename ?? 'Data'} · ${rawData.length} rows · ${columnCount} columns`}
+          </span>
+          {onFixData && (
+            <button
+              type="button"
+              data-testid="b0-fix-data"
+              onClick={onFixData}
+              className="text-blue-500 hover:text-blue-700 underline-offset-2 hover:underline"
+            >
+              Fix data…
+            </button>
+          )}
+        </div>
+      ),
+      belowY: onFixData ? (
+        <button
+          type="button"
+          data-testid="b0-track-another-outcome"
+          onClick={onFixData}
+          className="text-xs text-content-muted hover:text-content underline-offset-2 hover:underline"
+        >
+          ＋ track another outcome
+        </button>
+      ) : undefined,
+      noYBanner: (
+        <OutcomeNoMatchBanner
+          onRename={(oldName, newName) => onRenameColumn?.(oldName, newName)}
+          onExpectedChange={() => {
+            // Parity with the wizard mount: the note has no store home yet
+            // (ProcessHub field pending — known gap, logged in investigations.md).
+          }}
+          onSkip={handleSeeData}
+        />
+      ),
+    };
+  }, [rawData, dataFilename, onFixData, onRenameColumn, handleSeeData]);
+
   // E1 T6: Process tab is project-scoped. When no active project is selected,
   // route the user back to Home instead of rendering Canvas chrome. PWA has no
   // AD identity in the free tier; `useActiveIPContext` returns `null` whenever
@@ -474,6 +544,7 @@ const FrameView: React.FC<FrameViewProps> = ({ reingestPendingMatches = [] }) =>
         outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
         onExploreExit={handleExploreExit}
         onChipExploreJump={handleChipExploreJump}
+        b0Slots={b0Slots}
       />
     </div>
   );
