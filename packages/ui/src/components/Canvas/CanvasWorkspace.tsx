@@ -19,6 +19,7 @@ import {
   computeWaitTimeColumn,
   detectColumns,
   detectScopeFromMap,
+  detectStepTimestampPairs,
   normalizeProcessHubId,
   parseTimeValue,
   rankYCandidates,
@@ -526,6 +527,10 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   );
   const runOrderColumn = detected?.timeColumn ?? null;
   const columnAnalysis = React.useMemo(() => detected?.columnAnalysis ?? [], [detected]);
+  const stepTimestampPairs = React.useMemo(
+    () => detectStepTimestampPairs(columnAnalysis),
+    [columnAnalysis]
+  );
 
   const yCandidates: FrameViewB0YCandidate[] = React.useMemo(() => {
     const ranked = rankYCandidates(columnAnalysis);
@@ -595,6 +600,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const [timeFactorsModalOpen, setTimeFactorsModalOpen] = React.useState<{
     sourceColumn?: string;
   } | null>(null);
+  const [dismissedStepTimestampBanner, setDismissedStepTimestampBanner] = React.useState(false);
 
   // H1 Task 1: dismissed system hints — persisted only for the current session
   // (component lifetime). Hints reappear on remount; user can re-dismiss.
@@ -1323,6 +1329,61 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     fitViewportToContent(hubId, 'l2');
   }, [fitViewportToContent, hubId]);
 
+  const handleB0StepTimestampAccept = React.useCallback(() => {
+    if (stepTimestampPairs.length === 0) return;
+    handleStepsReplace(
+      stepTimestampPairs.map(pair => pair.stepName),
+      'step-timestamp-pairs'
+    );
+    fitViewportToContent(hubId, 'l2');
+    setStepTimingsModalOpen(true);
+    setDismissedStepTimestampBanner(true);
+  }, [fitViewportToContent, handleStepsReplace, hubId, stepTimestampPairs]);
+
+  const b0StepTimestampBanner =
+    stepTimestampPairs.length > 0 && !dismissedStepTimestampBanner ? (
+      <section
+        data-testid="b0-step-timestamps-banner"
+        className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950 shadow-sm"
+        aria-label="Step timestamp detection"
+      >
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-semibold">
+              {stepTimestampPairs.length} step timestamp pairs detected
+            </p>
+            <p className="text-xs text-amber-900">
+              Build the process model and review timing fields before continuing.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+              onClick={handleB0StepTimestampAccept}
+            >
+              Build process model
+            </button>
+            <button
+              type="button"
+              className="rounded-md border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-950 hover:bg-amber-100"
+              onClick={() => setDismissedStepTimestampBanner(true)}
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      </section>
+    ) : null;
+
+  const b0TopBar =
+    b0StepTimestampBanner || b0Slots?.topBar ? (
+      <div className="flex flex-col gap-2">
+        {b0StepTimestampBanner}
+        {b0Slots?.topBar}
+      </div>
+    ) : undefined;
+
   if (scope === 'b0') {
     return (
       <div className="flex-1 overflow-auto" data-testid="frame-view">
@@ -1345,7 +1406,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           defaultCpkTarget={DEFAULT_CPK_TARGET}
           onConfirmYSpec={handleConfirmYSpec}
           onSeeData={onSeeData}
-          topBar={b0Slots?.topBar}
+          topBar={b0TopBar}
           belowYSlot={b0Slots?.belowY}
           noYBanner={b0Slots?.noYBanner}
           onProcessStepsOpen={handleB0ProcessStepsOpen}
