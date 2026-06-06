@@ -88,20 +88,48 @@ export function analyzeColumn(data: DataRow[], colName: string): ColumnAnalysis 
     /^\d{1,2}\/\d{1,2}\/\d{2,4}/, // US/EU date
     /^\d{1,2}-\d{1,2}-\d{2,4}/, // Dash date
   ];
-  const isDate =
-    !isNumeric &&
+  // Date PATTERNS take precedence over numeric: parseFloat eats date prefixes
+  // ('2026-05-01' → 2026), which made the three patterns above unreachable and
+  // classified every ISO/US/dash date column as numeric (FSJ-2 chrome-walk find:
+  // a column named 'Timestamp' then matched the 'time' OUTCOME keyword → wrong Y).
+  // The loose Date.parse fallback stays gated on !isNumeric — it would otherwise
+  // swallow plain numbers ('42' parses as a date in some engines).
+  const matchesDatePattern =
     nonNullValues.length > 0 &&
     nonNullValues.slice(0, 10).some(v => {
       const str = String(v);
-      return datePatterns.some(p => p.test(str)) || !isNaN(Date.parse(str));
+      return datePatterns.some(p => p.test(str));
     });
 
-  // Determine type
+  // Date.parse fallback: V8's Date.parse is notoriously lenient — 'Step 1' and
+  // 'Shift 3' both parse as valid dates (FSJ-2 chrome-walk find), so the most
+  // common SPC factor labels classified as type 'date', vanishing from the X
+  // picker and occasionally being elected as timeColumn/run-order.
+  //
+  // Two gates tighten the fallback:
+  //   1. Column NAME must contain a TIME_KEYWORD (e.g. timestamp, date, recorded,
+  //      when, …). Free-text date columns ('Mon DD YYYY' style) still work when
+  //      the column is plausibly named; oddly-named text-date columns degrade to
+  //      categorical — recoverable via the Fix-data hatch, unlike silently
+  //      corrupting factor columns, which is not recoverable.
+  //   2. EVERY sampled non-null value must parse (not just one). A single
+  //      date-looking value must not flip a whole column.
+  const colNameLower = colName.toLowerCase();
+  const nameIsTimeIsh = TIME_KEYWORDS.some(kw => colNameLower.includes(kw));
+  const isDate =
+    matchesDatePattern ||
+    (!isNumeric &&
+      nameIsTimeIsh &&
+      nonNullValues.length > 0 &&
+      nonNullValues.slice(0, 10).every(v => !isNaN(Date.parse(String(v)))));
+
+  // Determine type — isDate wins the ladder over isNumeric (date patterns are
+  // more specific than parseFloat's lenient prefix match).
   let type: 'numeric' | 'categorical' | 'date' | 'text';
-  if (isNumeric) {
-    type = 'numeric';
-  } else if (isDate) {
+  if (isDate) {
     type = 'date';
+  } else if (isNumeric) {
+    type = 'numeric';
   } else if (uniqueCount <= 50) {
     // Reasonable number of unique values for categorical
     type = 'categorical';

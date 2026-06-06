@@ -34,6 +34,10 @@ const setMeasureSpecMock = vi.fn();
 const setProcessContextMock = vi.fn();
 const showExploreMock = vi.fn();
 
+// FSJ-2 T5 mocks — import-flow handlers passed as props by App.
+const onFixDataMock = vi.fn();
+const onRenameColumnMock = vi.fn();
+
 // 30-row synthetic feather-style dataset — already-parsed numerics so the
 // column-type detector classifies cleanly (parser detection runs at parse
 // time; FrameView reads pre-parsed `DataRow[]` from the store).
@@ -50,6 +54,14 @@ const FEATHER_ROWS = Array.from({ length: 30 }, (_, i) => ({
   Input_Quantity_kg: 80 + i * 2.3,
 }));
 
+// 30-row all-categorical dataset — no numeric columns → rankYCandidates returns
+// empty → FrameViewB0 renders the noYBanner (OutcomeNoMatchBanner) instead of chips.
+const CATEGORICAL_ROWS = Array.from({ length: 30 }, (_, i) => ({
+  Line: ['Line A', 'Line B', 'Line C'][i % 3],
+  Shift: ['Day', 'Night'][i % 2],
+  Category: ['Cat 1', 'Cat 2', 'Cat 3', 'Cat 4'][i % 4],
+}));
+
 const baseStoreState = {
   rawData: FEATHER_ROWS,
   outcome: null as string | null,
@@ -60,6 +72,8 @@ const baseStoreState = {
   setMeasureSpec: setMeasureSpecMock,
   processContext: null as unknown,
   setProcessContext: setProcessContextMock,
+  dataFilename: 'Pasted Data' as string | null,
+  dataQualityReport: null as unknown,
 };
 
 const storeStateRef: { current: typeof baseStoreState } = { current: { ...baseStoreState } };
@@ -141,10 +155,15 @@ vi.mock('@variscout/charts', async importOriginal => {
 import FrameView from '../FrameView';
 import { SessionProvider } from '../../../store/sessionStore';
 
-function renderFrameView() {
+interface RenderFrameViewOptions {
+  onFixData?: () => void;
+  onRenameColumn?: (oldName: string, alias: string) => void;
+}
+
+function renderFrameView({ onFixData, onRenameColumn }: RenderFrameViewOptions = {}) {
   return render(
     <SessionProvider>
-      <FrameView />
+      <FrameView onFixData={onFixData} onRenameColumn={onRenameColumn} />
     </SessionProvider>
   );
 }
@@ -157,6 +176,8 @@ describe('FrameView b0 — happy-path integration', () => {
     setMeasureSpecMock.mockClear();
     setProcessContextMock.mockClear();
     showExploreMock.mockClear();
+    onFixDataMock.mockClear();
+    onRenameColumnMock.mockClear();
     storeStateRef.current = { ...baseStoreState };
   });
 
@@ -230,5 +251,75 @@ describe('FrameView b0 — happy-path integration', () => {
     expect(cta.getAttribute('data-disabled')).toBe('false');
     fireEvent.click(cta);
     expect(showExploreMock).toHaveBeenCalledTimes(1);
+  });
+
+  // ── FSJ-2 T5: b0 landing chrome (provenance / Fix-data hatch / track-another / no-Y) ──
+
+  it('shows the provenance line with source, rows and columns (b0-landing wireframe top bar)', () => {
+    // Fixture: baseStoreState has dataFilename='Pasted Data', 30 FEATHER_ROWS × 4 columns.
+    renderFrameView({ onFixData: onFixDataMock });
+    const prov = screen.getByTestId('b0-provenance');
+    expect(prov).toHaveTextContent('Pasted Data · 30 rows · 4 columns');
+  });
+
+  it('"Fix data…" opens the demoted wizard (fires onFixData)', () => {
+    renderFrameView({ onFixData: onFixDataMock });
+    fireEvent.click(screen.getByTestId('b0-fix-data'));
+    expect(onFixDataMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('"+ track another outcome" reaches the multi-outcome surface (fires onFixData — wizard parity, spec §7)', () => {
+    renderFrameView({ onFixData: onFixDataMock });
+    fireEvent.click(screen.getByTestId('b0-track-another-outcome'));
+    expect(onFixDataMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('all-categorical data shows the OutcomeNoMatchBanner; skip proceeds to Explore (spec §4.1 no-Y floor)', () => {
+    // Override rawData with all-categorical rows — rankYCandidates returns empty.
+    // Cast via unknown: CATEGORICAL_ROWS has a different literal shape than FEATHER_ROWS,
+    // but the store mock accepts any `(s: unknown) => unknown` selector — the type match
+    // is only relevant at the selector call site inside CanvasWorkspace where rawData
+    // is typed as DataRow[] (compatible interface).
+    storeStateRef.current = {
+      ...baseStoreState,
+      rawData: CATEGORICAL_ROWS as unknown as typeof baseStoreState.rawData,
+    };
+    renderFrameView({ onFixData: onFixDataMock });
+    expect(screen.getByRole('alert')).toHaveTextContent(/No clear outcome match/);
+    fireEvent.click(screen.getByText(/Skip outcome/));
+    // handleSeeData calls usePanelsStore.getState().showExplore() — never a dead-end CTA.
+    expect(showExploreMock).toHaveBeenCalled();
+  });
+
+  it('numeric data shows no banner (negative control)', () => {
+    // baseStoreState has numeric columns → yCandidates non-empty → no alert rendered.
+    renderFrameView({ onFixData: onFixDataMock });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  // ── FSJ-2 walk Fix 2: an out-of-candidates store outcome must NOT enable the CTA ──
+  // (b0 contract, spec §4.1: a wrong pick is one glance + one click to fix — an
+  // outcome that no visible chip represents renders as no-selection rather than an
+  // invisible claim, so the CTA stays gated on picking a visible candidate.)
+
+  it('out-of-candidates store outcome renders no selected Y chip (spec §4.1 one-glance contract)', () => {
+    // outcome='Lot_Start_DateTime' is the date column — it is NOT among the ranked
+    // numeric Y candidates (Down_Content_%, Input_Quantity_kg). Before the fix this
+    // showed no highlighted chip yet enabled the CTA (silent wrong Y).
+    storeStateRef.current = { ...baseStoreState, outcome: 'Lot_Start_DateTime' };
+    renderFrameView();
+
+    const yRow = screen.getByTestId('y-picker-candidate-row');
+    const selectedChips = yRow.querySelectorAll(
+      '[data-testid="column-candidate-chip"][aria-pressed="true"]'
+    );
+    expect(selectedChips.length).toBe(0);
+  });
+
+  it('out-of-candidates store outcome leaves the See-the-data CTA disabled (spec §4.1)', () => {
+    storeStateRef.current = { ...baseStoreState, outcome: 'Lot_Start_DateTime' };
+    renderFrameView();
+    const cta = screen.getByTestId('see-the-data-cta');
+    expect(cta.getAttribute('data-disabled')).toBe('true');
   });
 });

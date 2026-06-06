@@ -88,8 +88,12 @@ test.describe('Critical Workflow', () => {
     expect(samplesText).toContain('30');
   });
 
-  test('paste happy-path: home → paste → map your data → analysis renders', async ({ page }) => {
+  test('paste happy-path: home → paste → b0 landing → framing toolbar visible', async ({
+    page,
+  }) => {
     // Deterministic seeded CSV — 10 rows, 3 columns. Weight is the numeric outcome.
+    // measurement-shaped (numeric Y inferable, high confidence) → FSJ-2: skips goal
+    // form + ColumnMapping wizard, lands directly at the b0 picker on Process tab.
     const seededCsv = [
       'Sample,Weight,Line',
       '1,10.2,A',
@@ -119,21 +123,13 @@ test.describe('Critical Workflow', () => {
     await textarea.fill(seededCsv);
     await page.getByTestId('paste-start-analysis').click();
 
-    // 4. Map Your Data screen — heading + column cards must appear
-    await expect(page.getByTestId('map-your-data-heading')).toBeVisible({
-      timeout: 10000,
-    });
+    // 4. FSJ-2: b0 picker surfaces (no interstitial goal form or wizard).
+    //    This proves both the lazy-load succeeded AND the paste pipeline resolved.
+    await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 10000 });
 
-    // The three pasted columns should each render a column card. Asserting on
-    // testid count proves the lazy mapping screen mounted; a content check on
-    // card text proves the data-paste pipeline preserved column names (this is
-    // testing data flow, not a UI label, so it's appropriate per testing.md).
-    const cards = page.locator('[data-testid="mapping-column-card"]');
-    await expect(cards).toHaveCount(3);
-    const cardsText = (await cards.allTextContents()).join(' ');
-    expect(cardsText).toContain('Sample');
-    expect(cardsText).toContain('Weight');
-    expect(cardsText).toContain('Line');
+    // 5. Provenance bar confirms data flowed through: shows rows + columns.
+    await expect(page.getByTestId('b0-provenance')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('b0-provenance')).toContainText('10 rows');
   });
 });
 

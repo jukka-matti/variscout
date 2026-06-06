@@ -173,6 +173,13 @@ export interface CanvasWorkspaceProps {
    * panelsStore.showExplore())`). PWA leaves this undefined; Azure wires it.
    */
   onChipExploreJump?: (target: ChipNavigationTarget) => void;
+  /**
+   * FSJ-2 b0 landing slots (spec §4.1) — content owned by the app shell
+   * (provenance, "Fix data…" hatch, "+ track another outcome", no-Y banner).
+   * belowY maps to FrameViewB0's belowYSlot prop.
+   * Optional: Azure does not pass them until FSJ-3.
+   */
+  b0Slots?: { topBar?: React.ReactNode; belowY?: React.ReactNode; noYBanner?: React.ReactNode };
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -304,6 +311,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   outcomeSpecs = [],
   onExploreExit,
   onChipExploreJump,
+  b0Slots,
 }) => {
   const { t } = useTranslation();
   const fallbackMap = React.useMemo(() => createEmptyMap(), []);
@@ -1316,7 +1324,13 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       <div className="flex-1 overflow-auto" data-testid="frame-view">
         <FrameViewB0
           yCandidates={yCandidates}
-          selectedY={outcome}
+          // The b0 contract is "a wrong pick is one glance + one click to fix"
+          // (spec §4.1). When the store outcome is NOT among the ranked candidates
+          // (engine misinference like a date column named 'Timestamp', or a name
+          // rankYCandidates filters out), degrade to no-selection rather than make
+          // an invisible claim: no chip highlights AND the CTA stays gated on
+          // picking a visible candidate. FSJ-2 chrome-walk fix.
+          selectedY={yCandidates.some(c => c.column.name === outcome) ? outcome : null}
           onSelectY={setOutcome}
           xCandidates={xCandidates}
           selectedXs={factors}
@@ -1327,6 +1341,9 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           defaultCpkTarget={DEFAULT_CPK_TARGET}
           onConfirmYSpec={handleConfirmYSpec}
           onSeeData={onSeeData}
+          topBar={b0Slots?.topBar}
+          belowYSlot={b0Slots?.belowY}
+          noYBanner={b0Slots?.noYBanner}
         >
           {canvasNode}
         </FrameViewB0>
