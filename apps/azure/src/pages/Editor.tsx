@@ -83,7 +83,7 @@ import type {
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { createProjectActionItem, type BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
-import { createNewIP } from '@variscout/core/improvementProject';
+import { createNewIP, type ImprovementProject } from '@variscout/core/improvementProject';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
@@ -116,6 +116,8 @@ import { ControlEntryRow } from './Editor.control';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 import { HubCreationFlow } from '../features/hubCreation';
+import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
+import { activateHubProject, bindProcessHubId, landFreshEntryOnProcess } from '../lib/landing';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { AnalyzeWorkspace } from '../components/editor/AnalyzeWorkspace';
 import FrameView from '../components/editor/FrameView';
@@ -358,7 +360,15 @@ export const Editor: React.FC<EditorProps> = ({
   // Mobile tab bar state (phone only)
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('explore');
   const [isMobileSurveyOpen, setIsMobileSurveyOpen] = useState(false);
-  const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
+  const [catalogHubs, setCatalogHubs] = useState<ProcessHub[]>([]); // backing storage only — read via processHubs
+  const unsavedHubs = useUnsavedHubsStore(s => s.hubs);
+  // Word-style durability (FSJ-3a, spec §3): in-memory hubs join the storage
+  // catalog for resolution (activeHub, document snapshots, hub pickers). An id
+  // collision prefers the unsaved copy — it carries the session's edits.
+  const processHubs = useMemo(() => {
+    const unsavedIds = new Set(unsavedHubs.map(h => h.id));
+    return [...catalogHubs.filter(h => !unsavedIds.has(h.id)), ...unsavedHubs];
+  }, [catalogHubs, unsavedHubs]);
   // Create-Project modal (Home CTA — PR-CCJ-E1 T4). Wedge V1 lightweight
   // flow replaces the legacy `showCharter()` ceremony; modal owns Title +
   // optional Issue Statement, Editor owns IP creation + navigation.
@@ -370,8 +380,8 @@ export const Editor: React.FC<EditorProps> = ({
 
   useEffect(() => {
     listProcessHubs()
-      .then(setProcessHubs)
-      .catch(() => setProcessHubs([]));
+      .then(setCatalogHubs)
+      .catch(() => setCatalogHubs([]));
   }, [listProcessHubs]);
 
   useEffect(() => {
@@ -972,16 +982,63 @@ export const Editor: React.FC<EditorProps> = ({
   const stageFive = useStageFiveOpener();
 
   /**
-   * Called by HubCreationFlow once Stage 1 creates a hub. Adds the new hub to
-   * the local list and sets it as the active hub in processContext so the
-   * ColumnMapping confirm (Stage 3) can persist outcomes to it.
+   * Called by HubCreationFlow once Stage 1 creates a hub.
+   *
+   * FSJ-3a: the reworked useNewHubProvision registers the hub in
+   * unsavedHubsStore (it reaches processHubs via the merge); here we bind the
+   * session to it and activate the pair under the scope key production reads
+   * (currentUser.email — see the useActiveIPContext call above).
    */
   const handleHubCreated = useCallback(
     (hub: ProcessHub) => {
-      setProcessHubs(prev => [...prev, hub]);
-      setProcessContext({ ...(processContext ?? {}), processHubId: hub.id });
+      bindProcessHubId(hub.id);
+      if (currentUser?.email) activateHubProject(hub, currentUser.email);
     },
-    [processContext, setProcessContext]
+    [currentUser?.email]
+  );
+
+  // FSJ-3a: shared landing deps — the paste path joins as the third caller in FSJ-3b.
+  const makeLandingDeps = useCallback(
+    () => ({
+      activeHub: activeHub ?? null,
+      registerHub: useUnsavedHubsStore.getState().upsertHub,
+      setProcessHubId: bindProcessHubId,
+      showFrame: usePanelsStore.getState().showFrame,
+    }),
+    [activeHub]
+  );
+
+  // FSJ-3a landing (spec §1/§3): fresh sample entry lands on the Process tab
+  // with an ensured + activated Untitled pair, named for the sample. The canvas
+  // self-routes b0 (no map) vs L2 (seeded map — The Bottleneck) downstream.
+  const handleLoadSampleWithLanding = useCallback(
+    async (sample: SampleDataset) => {
+      if (!dataFlow.handleLoadSample(sample)) return;
+      const user = currentUser ?? (await getCurrentUser().catch(() => null));
+      if (!user) return; // pre-auth edge: keep today's no-project behavior
+      landFreshEntryOnProcess(sample.name, { ...makeLandingDeps(), user });
+    },
+    [dataFlow, currentUser, makeLandingDeps]
+  );
+
+  // Stable ref so the one-shot initialSample effect can call the latest version
+  // without becoming a dependency (mirrors the dataFlowRef pattern above).
+  const handleLoadSampleWithLandingRef = useRef(handleLoadSampleWithLanding);
+  handleLoadSampleWithLandingRef.current = handleLoadSampleWithLanding;
+
+  // FSJ-3a landing (spec §1/§3): manual data entry lands on the Process tab.
+  // Skipped on append (re-ingestion, not first-session — spec §7).
+  const handleManualAnalyzeWithLanding = useCallback(
+    (...args: Parameters<typeof handleManualDataAnalyze>) => {
+      handleManualDataAnalyze(...args);
+      if (dataFlow.appendMode) return; // append = re-ingestion, not first-session
+      void (async () => {
+        const user = currentUser ?? (await getCurrentUser().catch(() => null));
+        if (!user) return;
+        landFreshEntryOnProcess('Untitled project', { ...makeLandingDeps(), user });
+      })();
+    },
+    [handleManualDataAnalyze, dataFlow.appendMode, currentUser, makeLandingDeps]
   );
 
   // Share handlers
@@ -1190,7 +1247,7 @@ export const Editor: React.FC<EditorProps> = ({
   useEffect(() => {
     if (initialSample && !initialSampleConsumedRef.current) {
       initialSampleConsumedRef.current = true;
-      dataFlowRef.current.handleLoadSample(initialSample);
+      void handleLoadSampleWithLandingRef.current(initialSample);
       // Inject hypotheses for showcase/demo datasets (not in DataContext)
       const hubs = initialSample.config.investigation?.hypotheses;
       if (hubs && hubs.length > 0) {
@@ -1490,9 +1547,29 @@ export const Editor: React.FC<EditorProps> = ({
     }
   }, [isCoScoutOpen, aiOrch.coscout]);
 
+  /**
+   * Word-style hub writes (FSJ-3a, spec §3): an unsaved hub's mutations stay
+   * in-memory (the first explicit save flushes them); a persisted hub keeps
+   * today's immediate saveProcessHub, with catalogHubs updated in step so
+   * FrameView outcomeSpecs never go stale; unsaved hubs stay fresh through
+   * the processHubs merge memo instead.
+   */
+  const commitHubChange = useCallback(
+    async (hub: ProcessHub) => {
+      const unsaved = useUnsavedHubsStore.getState();
+      if (unsaved.isUnsaved(hub.id)) {
+        unsaved.upsertHub(hub);
+        return;
+      }
+      setCatalogHubs(prev => prev.map(h => (h.id === hub.id ? hub : h)));
+      await saveProcessHub(hub);
+    },
+    [saveProcessHub]
+  );
+
   // Handle ColumnMapping confirm — adopts new Hub-shaped payload (slice-2 contract).
   // Wire categories, brief, and investigation state; persist outcomes + primaryScopeDimensions
-  // to the active Hub via saveProcessHub (Task H will surface this on ProcessHubView — for
+  // to the active Hub via commitHubChange (Task H will surface this on ProcessHubView — for
   // Task A we wire the data path so it's available from this point forward).
   const handleMappingConfirmWithCategories = useCallback(
     (payload: ColumnMappingConfirmPayload) => {
@@ -1538,7 +1615,7 @@ export const Editor: React.FC<EditorProps> = ({
       ) {
         const currentHub = processHubs.find(h => h.id === processContext.processHubId);
         if (currentHub) {
-          saveProcessHub({
+          void commitHubChange({
             ...currentHub,
             outcomes,
             primaryScopeDimensions,
@@ -1562,7 +1639,7 @@ export const Editor: React.FC<EditorProps> = ({
       processContext,
       setProcessContext,
       processHubs,
-      saveProcessHub,
+      commitHubChange,
       stageFive,
     ]
   );
@@ -1599,6 +1676,17 @@ export const Editor: React.FC<EditorProps> = ({
         const savedName = useProjectStore.getState().projectName || targetName;
         setSavedDocumentName(savedName);
         setSavedFingerprint(computeCurrentFingerprint());
+        // FSJ-3a (spec §3): the first explicit save flushes the in-memory hub to
+        // the catalog so activeHub survives reload (the document snapshot already
+        // carried it — buildDocumentSnapshot reads the activeHub closure). The hub
+        // catalog write is NOT under withDocumentSaveLock/ETag by design (it is a
+        // separate, fire-and-forget-cloud surface — azure CLAUDE.md); do not wrap.
+        const unsaved = useUnsavedHubsStore.getState();
+        if (activeHub && unsaved.isUnsaved(activeHub.id)) {
+          await saveProcessHub(activeHub);
+          unsaved.removeHub(activeHub.id);
+          setCatalogHubs(prev => [...prev.filter(h => h.id !== activeHub.id), activeHub]);
+        }
         setSaveStatus('saved');
         setTimeout(() => setSaveStatus('idle'), 2000);
       } catch {
@@ -1606,7 +1694,7 @@ export const Editor: React.FC<EditorProps> = ({
         setTimeout(() => setSaveStatus('idle'), 3000);
       }
     },
-    [computeCurrentFingerprint, saveProject]
+    [activeHub, computeCurrentFingerprint, saveProcessHub, saveProject]
   );
 
   const handleSave = useCallback(async () => {
@@ -1725,7 +1813,7 @@ export const Editor: React.FC<EditorProps> = ({
   if (dataFlow.isManualEntry) {
     return (
       <ManualEntry
-        onAnalyze={handleManualDataAnalyze}
+        onAnalyze={handleManualAnalyzeWithLanding}
         onCancel={dataFlow.handleManualEntryCancel}
         appendMode={dataFlow.appendMode}
         existingConfig={dataFlow.appendMode ? dataFlow.existingConfig : undefined}
@@ -1923,6 +2011,7 @@ export const Editor: React.FC<EditorProps> = ({
             dataFlow={dataFlow}
             loadError={loadError}
             onSharePointFileImport={handleSharePointFileImport}
+            onLoadSample={handleLoadSampleWithLanding}
           />
         ) : outcome ? (
           <>
@@ -2364,23 +2453,55 @@ export const Editor: React.FC<EditorProps> = ({
       />
 
       {/* Create-Project modal — lightweight Home CTA path (PR-CCJ-E1 T4).
-          Wedge V1 single-SKU: on Save, mint a fresh IP via the core factory,
-          set it active, and route to the Process tab (`showFrame`). The
-          legacy `showCharter()` ceremony (5-entry-point variant) is deferred
-          to Task #44 cross-tab presentation. Modal guards on activeHub +
-          currentUser?.email — neither is meaningful otherwise. */}
+          Wedge V1 single-SKU: on Save, names/frames the Untitled pair if one already
+          exists (IM-0a 1:1), or mints a fresh IP via the core factory — then sets
+          it active and routes to the Process tab (`showFrame`). The legacy
+          `showCharter()` ceremony (5-entry-point variant) is deferred to Task #44
+          cross-tab presentation. Modal guards on activeHub + currentUser?.email —
+          neither is meaningful otherwise. */}
       {isCreateProjectModalOpen && activeHub && currentUser?.email ? (
         <CreateProjectModal
           onSave={({ title, issueStatement }) => {
-            const newIP = createNewIP({
-              hubId: activeHub.id,
-              title,
-              issueStatement,
-              currentUserId: currentUser.email,
-              currentUserDisplayName: currentUser.name,
-            });
-            upsertProject(newIP);
-            activeIPContext.setActiveIP(newIP.id);
+            const existing = activeHub.improvementProject;
+            if (existing && existing.deletedAt === null) {
+              // IM-0a 1:1 guard (FSJ-3a): the Untitled pair already exists — this
+              // ceremony names/frames it; it never mints a second project per hub.
+              const updated: ImprovementProject = {
+                ...existing,
+                metadata: { ...existing.metadata, title },
+                ...(issueStatement ? { issueStatement } : {}),
+                updatedAt: Date.now(),
+              };
+              upsertProject(updated);
+              void commitHubChange({
+                ...activeHub,
+                improvementProject: updated,
+                updatedAt: Date.now(),
+              }).catch(() => {
+                // Non-blocking — storage failure is logged by the storage service
+              });
+              activeIPContext.setActiveIP(updated.id);
+            } else {
+              const newIP = createNewIP({
+                hubId: activeHub.id,
+                title,
+                issueStatement,
+                currentUserId: currentUser.email,
+                currentUserDisplayName: currentUser.name,
+              });
+              upsertProject(newIP);
+              // FSJ-3a: embed on the hub row — useActiveIPContext derives activeIP
+              // from hub.improvementProject (liveProjects), so a store-only upsert
+              // leaves the Process tab gated (pre-existing gap, fixed here).
+              void commitHubChange({
+                ...activeHub,
+                improvementProject: newIP,
+                updatedAt: Date.now(),
+              }).catch(() => {
+                // Non-blocking — storage failure is logged by the storage service
+              });
+              activeIPContext.setActiveIP(newIP.id);
+            }
             setIsCreateProjectModalOpen(false);
             usePanelsStore.getState().showFrame();
           }}

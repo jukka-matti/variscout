@@ -2,14 +2,20 @@
  * HubCreationFlow — Mode B routing tests.
  *
  * Verifies: Stage 1 gate, skip path, re-edit bypass, onHubCreated callback.
+ * Word-style durability (FSJ-3a): hub creation is in-memory; no saveProcessHub.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 // vi.mock BEFORE component/hook imports (anti-hang rule)
-vi.mock('../../../services/storage', () => ({
-  useStorage: vi.fn(),
+vi.mock('../../../auth/getCurrentUser', () => ({
+  getCurrentUser: vi.fn(),
 }));
+
+// NOTE: useStorage is intentionally NOT mocked here — neither HubCreationFlow nor
+// useNewHubProvision imports useStorage (eager-persist retired, spec §3).
+// Eager-persist regression is guarded by Dashboard.processHub.test.tsx's
+// load-bearing control (the page-level mock resolves the real storage seam).
 
 vi.mock('@variscout/ui', () => ({
   HubGoalForm: ({
@@ -59,15 +65,16 @@ vi.mock('@variscout/ui', () => ({
 }));
 
 import { HubCreationFlow } from '../HubCreationFlow';
-import { useStorage } from '../../../services/storage';
+import { getCurrentUser } from '../../../auth/getCurrentUser';
 import type { HubCreationFlowProps } from '../HubCreationFlow';
-
-const mockSaveProcessHub = vi.fn().mockResolvedValue(undefined);
+import { useUnsavedHubsStore } from '../../hubs/unsavedHubsStore';
 
 beforeEach(() => {
   vi.clearAllMocks();
-  (useStorage as ReturnType<typeof vi.fn>).mockReturnValue({
-    saveProcessHub: mockSaveProcessHub,
+  useUnsavedHubsStore.setState(useUnsavedHubsStore.getInitialState(), true);
+  (getCurrentUser as ReturnType<typeof vi.fn>).mockResolvedValue({
+    name: 'Local Developer',
+    email: 'dev@localhost',
   });
 });
 
@@ -130,21 +137,21 @@ describe('HubCreationFlow', () => {
     expect(screen.getByTestId('column-mapping')).not.toHaveAttribute('data-goal-context');
   });
 
-  it('creates a hub via saveProcessHub on goal confirm', async () => {
+  it('creates an in-memory hub on goal confirm (Word-style: hub lands in unsaved store)', async () => {
     render(<HubCreationFlow {...baseProps} />);
     fireEvent.click(screen.getByText('Confirm goal'));
-    await waitFor(() => expect(mockSaveProcessHub).toHaveBeenCalledOnce());
-    const savedHub = mockSaveProcessHub.mock.calls[0][0];
-    expect(savedHub.processGoal).toBe('We mold barrels for medical customers.');
+    await waitFor(() => expect(useUnsavedHubsStore.getState().hubs).toHaveLength(1));
+    const hub = useUnsavedHubsStore.getState().hubs[0];
+    expect(hub.processGoal).toBe('We mold barrels for medical customers.');
   });
 
-  it('creates a hub via saveProcessHub on skip (empty goal)', async () => {
+  it('creates an in-memory hub on skip (Word-style: bare Untitled hub lands in unsaved store)', async () => {
     render(<HubCreationFlow {...baseProps} />);
     fireEvent.click(screen.getByText('Skip'));
-    await waitFor(() => expect(mockSaveProcessHub).toHaveBeenCalledOnce());
-    const savedHub = mockSaveProcessHub.mock.calls[0][0];
-    expect(savedHub.processGoal).toBeUndefined();
-    expect(savedHub.name).toBe('Untitled hub');
+    await waitFor(() => expect(useUnsavedHubsStore.getState().hubs).toHaveLength(1));
+    const hub = useUnsavedHubsStore.getState().hubs[0];
+    expect(hub.processGoal).toBeUndefined();
+    expect(hub.name).toBe('Untitled hub');
   });
 
   it('fires onHubCreated callback after Stage 1', async () => {

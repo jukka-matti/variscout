@@ -263,7 +263,7 @@ export interface UseEditorDataFlowReturn {
   // Flow handlers
   handlePasteAnalyze: (text: string) => Promise<void>;
   handlePasteCancel: () => void;
-  handleLoadSample: (sample: SampleDataset) => void;
+  handleLoadSample: (sample: SampleDataset) => boolean;
   handleMappingConfirm: (
     newOutcome: string,
     newFactors: string[],
@@ -839,10 +839,11 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   const handlePasteCancel = useCallback(() => dispatch({ type: 'CANCEL_PASTE' }), []);
 
   // Handle sample load (with replace confirmation)
+  // Returns true when the sample was loaded, false when the user declined the confirm.
   const handleLoadSample = useCallback(
-    (sample: SampleDataset) => {
+    (sample: SampleDataset): boolean => {
       if (rawData.length > 0 && outcome) {
-        if (!window.confirm('Replace current data? This will start a new analysis.')) return;
+        if (!window.confirm('Replace current data? This will start a new analysis.')) return false;
       }
       loadSample(sample);
       // Pre-configured samples already have outcome/factors — skip ColumnMapping
@@ -851,6 +852,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       if (!hasPreconfigured) {
         dispatch({ type: 'OPEN_MAPPING' });
       }
+      return true;
     },
     [rawData.length, outcome, loadSample]
   );
