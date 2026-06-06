@@ -288,7 +288,11 @@ export {
 } from './components/DashboardBase';
 
 // Findings callback types (shared by PWA and Azure dashboards)
-export type { FindingsCallbacks, AzureFindingsCallbacks } from './types/findingsCallbacks';
+export type {
+  ChartObservationCaptureOptions,
+  FindingsCallbacks,
+  AzureFindingsCallbacks,
+} from './types/findingsCallbacks';
 
 // Settings Panel
 export {

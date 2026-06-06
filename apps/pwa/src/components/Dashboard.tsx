@@ -16,6 +16,7 @@ import {
   VerificationCard,
   SegmentedControl,
   SelectionPanel,
+  CaptureCard,
   CreateFactorModal,
   DashboardLayoutBase,
   DashboardChartCard,
@@ -41,6 +42,10 @@ import {
   useDefectTransform,
   useDefectSummary,
   useTranslation,
+  buildBrushCaptureDraft,
+  buildBrushDerivedColumn,
+  applyDerivedFactorToFilters,
+  type CaptureDraft,
 } from '@variscout/hooks';
 import { useProjectStore, useViewStore } from '@variscout/stores';
 import {
@@ -155,12 +160,13 @@ const Dashboard = ({
   const clearSelection = useViewStore(s => s.clearTransientSelections);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
-  const { filteredData } = useFilteredData();
+  const { filteredData, filteredIndexMap } = useFilteredData();
   const lensedSampleCount = useLensedSampleCount();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { t } = useTranslation();
   const [analysisLensTab, setAnalysisLensTab] = useState<AnalysisLensTab>('probability');
+  const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveModeUtil(analysisMode) === 'defect';
@@ -386,6 +392,77 @@ const Dashboard = ({
       setParetoFactor(name);
     },
   });
+
+  useEffect(() => {
+    if (!effectiveOutcome || selectedPoints.size === 0) {
+      setCaptureDraft(null);
+      return;
+    }
+
+    setCaptureDraft(
+      buildBrushCaptureDraft({
+        rows: effectiveData,
+        outcome: effectiveOutcome,
+        selectedIndices: selectedPoints,
+        activeFilters: filters,
+        specs,
+      })
+    );
+  }, [effectiveData, effectiveOutcome, filters, selectedPoints, specs]);
+
+  const saveCaptureDraft = useCallback(
+    (captureMode: 'capture' | 'factor-only') => {
+      if (!captureDraft || !captureDraft.proposedFactorName) return;
+      const factorName = captureDraft.proposedFactorName.trim();
+      if (!factorName) return;
+
+      const rawSelectedIndices = new Set<number>();
+      selectedPoints.forEach(index => {
+        const rawIndex = filteredIndexMap.get(index);
+        if (rawIndex !== undefined) rawSelectedIndices.add(rawIndex);
+      });
+      if (rawSelectedIndices.size === 0) return;
+
+      const updatedData = buildBrushDerivedColumn(rawData, rawSelectedIndices, factorName);
+      setRawData(updatedData);
+      if (!factors.includes(factorName)) {
+        useProjectStore.getState().setFactors([...factors, factorName]);
+      }
+      setBoxplotFactor(factorName);
+      setParetoFactor(factorName);
+
+      const activeFilters = applyDerivedFactorToFilters(captureDraft.activeFilters, factorName);
+      if (captureMode === 'capture' && captureDraft.source.chart === 'ichart') {
+        onAddChartObservation?.(
+          'ichart',
+          undefined,
+          captureDraft.note,
+          captureDraft.source.anchorX,
+          captureDraft.source.anchorY,
+          {
+            brushedRange: captureDraft.source.brushedRange,
+            captureMode,
+            activeFilters,
+          }
+        );
+      }
+
+      clearSelection();
+      setCaptureDraft(null);
+    },
+    [
+      captureDraft,
+      clearSelection,
+      factors,
+      filteredIndexMap,
+      onAddChartObservation,
+      rawData,
+      selectedPoints,
+      setBoxplotFactor,
+      setParetoFactor,
+      setRawData,
+    ]
+  );
 
   // Helper to update chart titles (must be before early returns — rules-of-hooks)
   const handleChartTitleChange = useCallback(
@@ -650,7 +727,7 @@ const Dashboard = ({
         />
 
         {/* Selection Panel - Shows when points are brushed in IChart */}
-        {selectedPoints.size > 0 && (
+        {selectedPoints.size > 0 && !captureDraft && (
           <SelectionPanel
             selectedIndices={selectedPoints}
             data={effectiveData}
@@ -660,6 +737,20 @@ const Dashboard = ({
             timeColumn={timeColumn}
             onClearSelection={clearSelection}
             onCreateFactor={handleOpenCreateFactorModal}
+          />
+        )}
+        {captureDraft && (
+          <CaptureCard
+            draft={captureDraft}
+            onDraftChange={patch =>
+              setCaptureDraft(current => (current ? { ...current, ...patch } : current))
+            }
+            onCapture={() => saveCaptureDraft('capture')}
+            onFactorOnly={() => saveCaptureDraft('factor-only')}
+            onCancel={() => {
+              clearSelection();
+              setCaptureDraft(null);
+            }}
           />
         )}
       </div>

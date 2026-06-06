@@ -1,5 +1,11 @@
 import type { Finding, FindingAssignee } from '@variscout/core';
 
+export interface ChartObservationCaptureOptions {
+  brushedRange?: { startIdx: number; endIdx: number };
+  activeFilters?: Record<string, (string | number)[]>;
+  captureMode?: 'capture' | 'factor-only';
+}
+
 /**
  * Core finding callbacks shared by PWA and Azure dashboards.
  * Bundles chart-level finding operations (observation, edit, delete)
@@ -14,7 +20,8 @@ export interface FindingsCallbacks {
     categoryKey?: string,
     noteText?: string,
     anchorX?: number,
-    anchorY?: number
+    anchorY?: number,
+    captureOptions?: ChartObservationCaptureOptions
   ) => Finding | void;
   onEditFinding?: (id: string, text: string) => void;
   onDeleteFinding?: (id: string) => void;
