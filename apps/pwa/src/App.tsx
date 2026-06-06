@@ -30,6 +30,7 @@ import {
   deriveActiveIPScopeLabels,
   PendingInvitesBanner,
   type ColumnShape,
+  type ChartObservationCaptureOptions,
 } from '@variscout/ui';
 import { useStageFiveOpener } from './hooks/useStageFiveOpener';
 import { VrsExportButton } from './components/VrsExportButton';
@@ -632,23 +633,34 @@ function AppMain() {
     (
       chartType: 'boxplot' | 'pareto' | 'ichart',
       categoryKey?: string,
-      _noteText?: string,
+      noteText?: string,
       anchorX?: number,
-      anchorY?: number
+      anchorY?: number,
+      captureOptions?: ChartObservationCaptureOptions
     ) => {
       const source = buildFindingSource(chartType, categoryKey, anchorX, anchorY);
+      if (source.chart === 'ichart' && captureOptions?.brushedRange) {
+        source.brushedRange = captureOptions.brushedRange;
+      }
       const existing = findDuplicateBySource(findings, source);
       if (existing) {
         panels.setIsFindingsPanelOpen(true);
         setHighlightedFindingId(existing.id);
         return;
       }
-      const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
-      const newFinding = useAnalyzeStore.getState().addFinding('', context, source);
+      const context = buildFindingContext(
+        captureOptions?.activeFilters ?? filters,
+        filteredData,
+        outcome!,
+        specs,
+        drillPath
+      );
+      const newFinding = useAnalyzeStore.getState().addFinding(noteText ?? '', context, source);
       panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(newFinding.id);
       // IM-1 (ADR-085): the post-observation question-link prompt is retired
       // (Question entity gone); analysts promote findings to hubs on the Wall.
+      return newFinding;
     },
     [filters, drillPath, filteredData, outcome, specs, findings, panels]
   );

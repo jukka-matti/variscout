@@ -15,8 +15,7 @@ import {
   ProcessHealthBar,
   VerificationCard,
   SegmentedControl,
-  SelectionPanel,
-  CreateFactorModal,
+  CaptureCard,
   DashboardLayoutBase,
   DashboardChartCard,
   FocusedViewOverlay,
@@ -33,7 +32,6 @@ import {
   useKeyboardNavigation,
   useAnnotations,
   useFilterHandlers,
-  useCreateFactorModal,
   useDashboardInsights,
   useProcessProjection,
   useJourneyPhase,
@@ -41,8 +39,13 @@ import {
   useDefectTransform,
   useDefectSummary,
   useTranslation,
+  buildBrushCaptureDraft,
+  buildBrushDerivedColumn,
+  applyDerivedFactorToFilters,
+  resolveDerivedFactorName,
+  type CaptureDraft,
 } from '@variscout/hooks';
-import { useProjectStore, useViewStore } from '@variscout/stores';
+import { usePreferencesStore, useProjectStore, useViewStore } from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
@@ -52,7 +55,13 @@ import {
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity } from 'lucide-react';
-import { getColumnNames, getEtaSquared, type SpecLimits, type Finding } from '@variscout/core';
+import {
+  getColumnNames,
+  getEtaSquared,
+  timeLensIndices,
+  type SpecLimits,
+  type Finding,
+} from '@variscout/core';
 import { resolveMode as resolveModeUtil } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { subgroupAxisColumns } from '@variscout/core/frame';
@@ -135,7 +144,6 @@ const Dashboard = ({
   const measureSpecs = useProjectStore(s => s.measureSpecs);
   const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
   const filters = useProjectStore(s => s.filters);
-  const setFilters = useProjectStore(s => s.setFilters);
   const columnAliases = useProjectStore(s => s.columnAliases);
   const stageColumn = useProjectStore(s => s.stageColumn);
   const setStageColumn = useProjectStore(s => s.setStageColumn);
@@ -151,16 +159,18 @@ const Dashboard = ({
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const setSubgroupConfig = useProjectStore(s => s.setSubgroupConfig);
   const cpkTarget = useProjectStore(s => s.cpkTarget);
+  const timeLens = usePreferencesStore(s => s.timeLens);
   const selectedPoints = useViewStore(s => s.selectedPoints);
   const clearSelection = useViewStore(s => s.clearTransientSelections);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
-  const { filteredData } = useFilteredData();
+  const { filteredData, filteredIndexMap } = useFilteredData();
   const lensedSampleCount = useLensedSampleCount();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { t } = useTranslation();
   const [analysisLensTab, setAnalysisLensTab] = useState<AnalysisLensTab>('probability');
+  const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveModeUtil(analysisMode) === 'defect';
@@ -170,6 +180,14 @@ const Dashboard = ({
   const effectiveData = isDefectMode && defectResult ? defectResult.data : filteredData;
   const effectiveOutcome = isDefectMode && defectResult ? defectResult.outcomeColumn : outcome;
   const effectiveFactors = isDefectMode && defectResult ? defectResult.factors : factors;
+  const effectiveLensWindow = useMemo(
+    () => timeLensIndices(effectiveData.length, timeLens),
+    [effectiveData.length, timeLens]
+  );
+  const lensedEffectiveData = useMemo(
+    () => effectiveData.slice(effectiveLensWindow.start, effectiveLensWindow.end),
+    [effectiveData, effectiveLensWindow]
+  );
 
   // In defect mode + value aggregation, use cost/duration column for Pareto Σ mode
   const defectParetoOutcome = (() => {
@@ -368,24 +386,91 @@ const Dashboard = ({
     }
   );
 
-  // Create Factor modal state and handlers
-  const {
-    showCreateFactorModal,
-    handleOpenCreateFactorModal,
-    handleCloseCreateFactorModal,
-    handleCreateFactor,
-  } = useCreateFactorModal({
+  useEffect(() => {
+    const canMapBrushToFilteredRows = !stageColumn && !isDefectMode;
+    if (!effectiveOutcome || selectedPoints.size === 0 || !canMapBrushToFilteredRows) {
+      setCaptureDraft(null);
+      return;
+    }
+
+    setCaptureDraft(
+      buildBrushCaptureDraft({
+        rows: lensedEffectiveData,
+        outcome: effectiveOutcome,
+        selectedIndices: selectedPoints,
+        activeFilters: filters,
+        specs,
+        existingColumnNames: getColumnNames(rawData),
+      })
+    );
+  }, [
+    effectiveOutcome,
+    filters,
+    lensedEffectiveData,
     rawData,
     selectedPoints,
-    filters,
-    setRawData,
-    setFilters,
-    clearSelection,
-    onFactorCreated: name => {
-      setBoxplotFactor(name);
-      setParetoFactor(name);
+    specs,
+    stageColumn,
+    isDefectMode,
+  ]);
+
+  const saveCaptureDraft = useCallback(
+    (captureMode: 'capture' | 'factor-only') => {
+      if (!captureDraft || !captureDraft.proposedFactorName) return;
+      const factorName = resolveDerivedFactorName(
+        captureDraft.proposedFactorName,
+        getColumnNames(rawData)
+      );
+      if (!factorName) return;
+
+      const rawSelectedIndices = new Set<number>();
+      selectedPoints.forEach(index => {
+        const rawIndex = filteredIndexMap.get(effectiveLensWindow.start + index);
+        if (rawIndex !== undefined) rawSelectedIndices.add(rawIndex);
+      });
+      if (rawSelectedIndices.size === 0) return;
+
+      const updatedData = buildBrushDerivedColumn(rawData, rawSelectedIndices, factorName);
+      setRawData(updatedData);
+      if (!factors.includes(factorName)) {
+        useProjectStore.getState().setFactors([...factors, factorName]);
+      }
+      setBoxplotFactor(factorName);
+      setParetoFactor(factorName);
+
+      const activeFilters = applyDerivedFactorToFilters(captureDraft.activeFilters, factorName);
+      if (captureMode === 'capture' && captureDraft.source.chart === 'ichart') {
+        onAddChartObservation?.(
+          'ichart',
+          undefined,
+          captureDraft.note,
+          captureDraft.source.anchorX,
+          captureDraft.source.anchorY,
+          {
+            brushedRange: captureDraft.source.brushedRange,
+            captureMode,
+            activeFilters,
+          }
+        );
+      }
+
+      clearSelection();
+      setCaptureDraft(null);
     },
-  });
+    [
+      captureDraft,
+      clearSelection,
+      effectiveLensWindow.start,
+      factors,
+      filteredIndexMap,
+      onAddChartObservation,
+      rawData,
+      selectedPoints,
+      setBoxplotFactor,
+      setParetoFactor,
+      setRawData,
+    ]
+  );
 
   // Helper to update chart titles (must be before early returns — rules-of-hooks)
   const handleChartTitleChange = useCallback(
@@ -649,29 +734,21 @@ const Dashboard = ({
           capabilityStats={capabilityStats}
         />
 
-        {/* Selection Panel - Shows when points are brushed in IChart */}
-        {selectedPoints.size > 0 && (
-          <SelectionPanel
-            selectedIndices={selectedPoints}
-            data={effectiveData}
-            outcome={effectiveOutcome}
-            columnAliases={columnAliases}
-            factors={effectiveFactors}
-            timeColumn={timeColumn}
-            onClearSelection={clearSelection}
-            onCreateFactor={handleOpenCreateFactorModal}
+        {captureDraft && (
+          <CaptureCard
+            draft={captureDraft}
+            onDraftChange={patch =>
+              setCaptureDraft(current => (current ? { ...current, ...patch } : current))
+            }
+            onCapture={() => saveCaptureDraft('capture')}
+            onFactorOnly={() => saveCaptureDraft('factor-only')}
+            onCancel={() => {
+              clearSelection();
+              setCaptureDraft(null);
+            }}
           />
         )}
       </div>
-
-      {/* Create Factor Modal */}
-      <CreateFactorModal
-        isOpen={showCreateFactorModal}
-        onClose={handleCloseCreateFactorModal}
-        selectedCount={selectedPoints.size}
-        existingFactors={getColumnNames(rawData)}
-        onCreateFactor={handleCreateFactor}
-      />
 
       {/* DEFERRED(lv1-pwa-mount): Mount <ScopeChrome> when PWA gains a Process tab
           with a process-steps source. Until then, partial mount (Y/factor/categorical,

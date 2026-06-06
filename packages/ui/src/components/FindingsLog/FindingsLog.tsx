@@ -154,8 +154,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
         </div>
         <p className="text-sm text-content-secondary mb-1">No findings yet</p>
         <p className="text-xs text-content-muted leading-relaxed max-w-[240px]">
-          Pin interesting filter combinations as you explore. Click the pin button in the breadcrumb
-          bar to save your current view.
+          Brush a range, pin your filters, or capture a detected signal.
         </p>
       </div>
     );

@@ -36,6 +36,17 @@ export type {
 // Chart Scale
 export { useChartScale } from './useChartScale';
 
+// Capture draft grammar
+export {
+  applyDerivedFactorToFilters,
+  buildBrushCaptureDraft,
+  buildBrushDerivedColumn,
+  resolveDerivedFactorName,
+  type BrushCaptureDraftInput,
+  type CaptureDraft,
+  type CaptureEntryKind,
+} from './captureDraft';
+
 // Canvas Chip Drag and Drop
 export {
   useChipDragAndDrop,

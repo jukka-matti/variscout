@@ -12,6 +12,7 @@ import DashboardGrid from './DashboardGrid';
 import type { HighlightColor } from '../ChartAnnotationLayer/types';
 import type { UseChartInsightsReturn, ChartTitles } from '@variscout/hooks';
 import type { FilterChipData } from '../filterTypes';
+import type { ChartObservationCaptureOptions } from '../../types/findingsCallbacks';
 import type { GlossaryTerm } from '@variscout/core';
 
 // ---------- Annotations shape ----------
@@ -122,7 +123,11 @@ export interface DashboardLayoutBaseProps {
   /** Called when user adds an observation from the context menu (chartType + categoryKey) */
   onAddChartObservation?: (
     chartType: 'boxplot' | 'pareto' | 'ichart',
-    categoryKey?: string
+    categoryKey?: string,
+    noteText?: string,
+    anchorX?: number,
+    anchorY?: number,
+    captureOptions?: ChartObservationCaptureOptions
   ) => void;
 
   // ---- Chart export ----

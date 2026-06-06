@@ -23,6 +23,7 @@ export {
 } from './components/ColumnMapping';
 export { StageFiveModal, type StageFiveModalProps } from './components/StageFiveModal';
 export { SelectionPanel, type SelectionPanelProps } from './components/SelectionPanel';
+export { CaptureCard, type CaptureCardProps } from './components/CaptureCard';
 export { CreateFactorModal, type CreateFactorModalProps } from './components/CreateFactorModal';
 export { AnovaResults, type AnovaResultsProps } from './components/AnovaResults';
 export {
@@ -287,7 +288,11 @@ export {
 } from './components/DashboardBase';
 
 // Findings callback types (shared by PWA and Azure dashboards)
-export type { FindingsCallbacks, AzureFindingsCallbacks } from './types/findingsCallbacks';
+export type {
+  ChartObservationCaptureOptions,
+  FindingsCallbacks,
+  AzureFindingsCallbacks,
+} from './types/findingsCallbacks';
 
 // Settings Panel
 export {
