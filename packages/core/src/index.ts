@@ -927,8 +927,8 @@ export type { HubRepository, EntityKind, CascadeRule, CascadeRuleset } from './p
 export { cascadeRules, transitiveCascade } from './persistence';
 
 // Step timing derivation (CCJ D-series — Lead_time / Total_work_time / Wait_time)
-export { detectPairedTimingColumns } from './derived';
-export type { PairedTimingColumns } from './derived';
+export { detectPairedTimingColumns, detectStepTimestampPairs } from './derived';
+export type { PairedTimingColumns, StepTimestampPair } from './derived';
 export type { StepTimingBinding, StepTimingsByStepId } from './derived';
 export {
   computeLeadTimeColumn,
