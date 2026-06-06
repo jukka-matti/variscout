@@ -1,3 +1,4 @@
+import type { DataRow } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import type { ProcessHub } from '@variscout/core/processHub';
 import {
@@ -14,11 +15,11 @@ import { ensureSessionProject } from './ensureSessionProject';
 // unify them.
 
 /**
- * Shared deps for all landing paths (sample + .vrs).
+ * Shared deps for the ensure + activate + route core (sample + .vrs + manual).
+ * ISP note: sessionHub is intentionally absent here — the core takes hubBase as
+ * an explicit arg. Only the sample path extends this with sessionHub.
  */
 export interface LandHubOnProcessDeps {
-  /** Current session hub (may be null on first use, used by sample path) */
-  sessionHub: ProcessHub | null;
   /** Update the session hub in app state */
   setSessionHub: (hub: ProcessHub) => void;
   /** Route to the Process tab (panels.showFrame) */
@@ -75,9 +76,12 @@ export function landHubOnProcess(
 
 /**
  * Deps for the fresh-sample landing path. Extends LandHubOnProcessDeps with
- * the data-loading step.
+ * the session hub (needed to pass as hubBase to the core) and the data-loading
+ * step.
  */
 export interface LandOnProcessDeps extends LandHubOnProcessDeps {
+  /** Current session hub — passed as hubBase to the shared core */
+  sessionHub: ProcessHub | null;
   /** Load data into the project store (ingestion.loadSample) */
   loadSample: (sample: SampleDataset) => void;
 }
@@ -134,7 +138,62 @@ export function landVrsOnProcess(
 
   // 4. Ensure + activate + route (shared core). Pass reconstructed as hubBase
   //    so its live IP is preserved unchanged (ensureSessionProject is a no-op
-  //    when improvementProject is already live). deps.sessionHub is the ambient
-  //    session context but the reconstruction is the authoritative source here.
+  //    when improvementProject is already live). The ambient sessionHub is not
+  //    part of LandHubOnProcessDeps — the reconstructed hub IS the authoritative
+  //    source here.
   landHubOnProcess(reconstructed, title, deps);
+}
+
+/**
+ * Manual-entry analyze callback signature — mirrors usePasteImportFlow's
+ * handleManualDataAnalyze exactly so the wrapper in App.tsx can spread params
+ * through without an intermediate type.
+ */
+export type ManualAnalyzeFn = (
+  data: DataRow[],
+  config: {
+    outcome: string;
+    factors: string[];
+    specs?: { usl?: number; lsl?: number };
+  }
+) => void;
+
+/**
+ * Deps for the manual-entry landing path. Extends LandHubOnProcessDeps with
+ * the injected manualAnalyze function and the current session hub.
+ */
+export interface LandManualOnProcessDeps extends LandHubOnProcessDeps {
+  /** Current session hub — passed as hubBase to the shared core */
+  sessionHub: ProcessHub | null;
+  /**
+   * The usePasteImportFlow manualAnalyze callback. Injected so the pure
+   * function can be tested without the hook's internal state.
+   */
+  manualAnalyze: ManualAnalyzeFn;
+}
+
+/**
+ * Manual-entry landing handler (spec §1, §3): invokes the injected
+ * manualAnalyze (which writes data/outcome/factors/specs into the project
+ * store), then lands on the Process tab with an auto-activated 'Untitled
+ * project'. Manual entries have no name source, so the title is always the
+ * spec-correct literal.
+ *
+ * Embed-mode consistency: manual entry is unreachable inside iframes, but the
+ * embed guard in the shared core fires anyway — no special case needed here.
+ */
+export function landManualOnProcess(
+  data: DataRow[],
+  config: { outcome: string; factors: string[]; specs?: { usl?: number; lsl?: number } },
+  deps: LandManualOnProcessDeps
+): void {
+  const { manualAnalyze, sessionHub, ...coreDeps } = deps;
+
+  // 1. Write data/outcome/factors/specs into the project store (same as the
+  //    raw handleManualDataAnalyze path — logic lives in the injected fn).
+  manualAnalyze(data, config);
+
+  // 2. Ensure + activate + route (shared core). sessionHub null → new hub+IP
+  //    created; non-null with live IP → same reference (spec §3).
+  landHubOnProcess(sessionHub, 'Untitled project', coreDeps);
 }

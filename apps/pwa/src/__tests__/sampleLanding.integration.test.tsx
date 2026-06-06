@@ -27,7 +27,7 @@ import type { DocumentSnapshot, DocumentSnapshotVrsFile } from '@variscout/store
 import { useActiveIPStore, getActiveIPInitialState, resetDocumentStores } from '@variscout/stores';
 import { DEFAULT_ACTIVE_IP_USER_ID } from '@variscout/hooks';
 import { usePanelsStore, initialPanelsState } from '../features/panels/panelsStore';
-import { landOnProcess, landVrsOnProcess } from '../lib/landOnProcess';
+import { landOnProcess, landVrsOnProcess, landManualOnProcess } from '../lib/landing';
 import { PWA_USER_ID } from '../lib/pwaUser';
 
 // ── Shared fixtures ───────────────────────────────────────────────────────────
@@ -230,7 +230,6 @@ describe('landVrsOnProcess — .vrs reconstruct-not-create (spec §1)', () => {
     });
 
     landVrsOnProcess(vrsFile, {
-      sessionHub: null,
       setSessionHub,
       showFrame: usePanelsStore.getState().showFrame,
       isEmbedMode: false,
@@ -268,7 +267,6 @@ describe('landVrsOnProcess — .vrs reconstruct-not-create (spec §1)', () => {
     });
 
     landVrsOnProcess(vrsFile, {
-      sessionHub: null,
       setSessionHub,
       showFrame: usePanelsStore.getState().showFrame,
       isEmbedMode: false,
@@ -291,6 +289,50 @@ describe('landVrsOnProcess — .vrs reconstruct-not-create (spec §1)', () => {
 
     // The IP is active under the PRODUCTION scope key
     const productionScope = { hubId: HUB_ID, userId: DEFAULT_ACTIVE_IP_USER_ID };
+    const activeState = useActiveIPStore.getState().getActiveIP(productionScope);
+    expect(activeState).not.toBeNull();
+    expect(activeState!.ipId).toBe(hub.improvementProject!.id);
+  });
+});
+
+describe('landManualOnProcess — manual entry lands on Process tab (spec §1, §3)', () => {
+  it('invokes manualAnalyze, routes to Process tab, creates Untitled project, activates it under DEFAULT_ACTIVE_IP_USER_ID', () => {
+    const manualAnalyzeMock = vi.fn();
+    let capturedHub: ProcessHub | null = null;
+    const setSessionHub = vi.fn((hub: ProcessHub) => {
+      capturedHub = hub;
+    });
+
+    const DATA = [{ weight: 5.1 }];
+    const CONFIG = { outcome: 'weight', factors: ['batch'], specs: { usl: 6.0 } };
+
+    landManualOnProcess(DATA, CONFIG, {
+      manualAnalyze: manualAnalyzeMock,
+      sessionHub: null,
+      setSessionHub,
+      showFrame: usePanelsStore.getState().showFrame,
+      isEmbedMode: false,
+    });
+
+    // manualAnalyze was called with the raw args (data write delegated to injected fn)
+    expect(manualAnalyzeMock).toHaveBeenCalledOnce();
+    expect(manualAnalyzeMock).toHaveBeenCalledWith(DATA, CONFIG);
+
+    // Routed to Process tab
+    expect(usePanelsStore.getState().activeView).toBe('frame');
+
+    // Hub created and set
+    expect(setSessionHub).toHaveBeenCalledOnce();
+    expect(capturedHub).not.toBeNull();
+    const hub = capturedHub!;
+
+    // Project titled 'Untitled project' (manual entries have no name source)
+    expect(hub.improvementProject).not.toBeNull();
+    expect(hub.improvementProject!.deletedAt).toBeNull();
+    expect(hub.improvementProject!.metadata.title).toBe('Untitled project');
+
+    // IP activated under the PRODUCTION scope key (what useActiveIPContext reads)
+    const productionScope = { hubId: hub.id, userId: DEFAULT_ACTIVE_IP_USER_ID };
     const activeState = useActiveIPStore.getState().getActiveIP(productionScope);
     expect(activeState).not.toBeNull();
     expect(activeState!.ipId).toBe(hub.improvementProject!.id);

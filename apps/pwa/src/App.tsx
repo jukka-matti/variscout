@@ -1,7 +1,7 @@
 import React, { Suspense, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { downloadCSV } from './lib/export';
 import { lazyWithRetry } from './lib/chunkReload';
-import { landOnProcess, landVrsOnProcess } from './lib/landOnProcess';
+import { landOnProcess, landVrsOnProcess, landManualOnProcess } from './lib/landing';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
@@ -746,16 +746,33 @@ function AppMain() {
   // only (wedge no-back-compat). Embed mode: IP activation runs but navigation
   // is skipped (spec §1 applicability).
   // Thin wrapper — business logic lives in landVrsOnProcess for testability.
+  // ISP: LandHubOnProcessDeps no longer includes sessionHub; the reconstructed
+  // hub from the snapshot is the authoritative source (sessionHub unused there).
   const handleImportVrs = useCallback(
     (imported: DocumentSnapshotVrsFile) => {
       landVrsOnProcess(imported, {
+        setSessionHub,
+        showFrame: panels.showFrame,
+        isEmbedMode,
+      });
+    },
+    [setSessionHub, panels.showFrame, isEmbedMode]
+  );
+
+  // Manual-entry landing: write data into the project store then land on the
+  // Process tab with an auto-activated 'Untitled project'.
+  // Thin wrapper — business logic lives in landManualOnProcess for testability.
+  const handleManualAnalyze = useCallback(
+    (...args: Parameters<typeof importFlow.handleManualDataAnalyze>) => {
+      landManualOnProcess(args[0], args[1], {
+        manualAnalyze: importFlow.handleManualDataAnalyze,
         sessionHub,
         setSessionHub,
         showFrame: panels.showFrame,
         isEmbedMode,
       });
     },
-    [sessionHub, setSessionHub, panels.showFrame, isEmbedMode]
+    [importFlow.handleManualDataAnalyze, sessionHub, setSessionHub, panels.showFrame, isEmbedMode]
   );
 
   // Phase tab navigation handler (used by AppHeader inline tabs).
@@ -1306,7 +1323,7 @@ function AppMain() {
               />
             ) : importFlow.isManualEntry ? (
               <ManualEntry
-                onAnalyze={importFlow.handleManualDataAnalyze}
+                onAnalyze={handleManualAnalyze}
                 onCancel={importFlow.handleManualEntryCancel}
               />
             ) : rawData.length === 0 ? (
