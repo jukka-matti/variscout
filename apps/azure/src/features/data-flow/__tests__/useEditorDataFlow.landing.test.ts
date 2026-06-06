@@ -150,8 +150,11 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
     const onFreshPasteLanded = vi.fn();
     const onFreshPasteAnalyzed = vi.fn();
     const setOutcome = vi.fn();
+    const applyTimeExtraction = vi.fn();
     const { result } = renderHook(() =>
-      useEditorDataFlow(makeOptions({ onFreshPasteLanded, onFreshPasteAnalyzed, setOutcome }))
+      useEditorDataFlow(
+        makeOptions({ onFreshPasteLanded, onFreshPasteAnalyzed, setOutcome, applyTimeExtraction })
+      )
     );
 
     await act(async () => {
@@ -163,9 +166,21 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
     expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
     expect(result.current.isMapping).toBe(false);
     expect(setOutcome).toHaveBeenCalledWith('Cycle_Time_sec');
+    expect(applyTimeExtraction).toHaveBeenCalledWith('Timestamp', {
+      extractYear: false,
+      extractMonth: true,
+      extractWeek: false,
+      extractDayOfWeek: true,
+      extractHour: false,
+    });
+    expect(result.current.quietTimeExtraction).toEqual({
+      timeColumn: 'Timestamp',
+      newColumns: ['Timestamp_Month', 'Timestamp_DayOfWeek'],
+      dismissed: false,
+    });
   });
 
-  it('keeps the wizard path for a wide-shaped paste (negative control) + provisions the Untitled project (FSJ-3b §3)', async () => {
+  it('lands a wide-shaped fresh paste at b0 with a performance proposal, without auto-applying performance mode', async () => {
     // Precondition: wide-format detected (a CHANNEL_PATTERNS drift must fail loudly).
     const parsed = await parseText(tsvOf(wideRows));
     expect(detectWideFormat(parsed).isWideFormat).toBe(true);
@@ -176,24 +191,43 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
 
     const onFreshPasteLanded = vi.fn();
     const onFreshPasteAnalyzed = vi.fn();
+    const setMeasureColumns = vi.fn();
+    const setMeasureLabel = vi.fn();
+    const setAnalysisMode = vi.fn();
     const { result } = renderHook(() =>
-      useEditorDataFlow(makeOptions({ onFreshPasteLanded, onFreshPasteAnalyzed }))
+      useEditorDataFlow(
+        makeOptions({
+          onFreshPasteLanded,
+          onFreshPasteAnalyzed,
+          setMeasureColumns,
+          setMeasureLabel,
+          setAnalysisMode,
+        })
+      )
     );
 
     await act(async () => {
       await result.current.handlePasteAnalyze(tsvOf(wideRows));
     });
 
-    expect(result.current.isMapping).toBe(true);
-    // Wizard path: the Untitled-project guarantee holds via onFreshPasteAnalyzed,
-    // NOT the measurement landing callback (mutually exclusive — spec §3).
-    expect(onFreshPasteAnalyzed).toHaveBeenCalledTimes(1);
-    expect(onFreshPasteLanded).not.toHaveBeenCalled();
+    expect(result.current.isMapping).toBe(false);
+    expect(result.current.wideFormatDetection?.isWideFormat).toBe(true);
+    expect(result.current.wideFormatDetection?.channels.map(c => c.id)).toEqual([
+      'V1',
+      'V2',
+      'V3',
+      'V4',
+    ]);
+    expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
+    expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
+    expect(setMeasureColumns).not.toHaveBeenCalled();
+    expect(setMeasureLabel).not.toHaveBeenCalled();
+    expect(setAnalysisMode).not.toHaveBeenCalledWith('performance');
   });
 
-  it('keeps the wizard path for a defect-shaped paste (negative control, ANY confidence — Azure gate) + provisions the Untitled project (FSJ-3b §3)', async () => {
-    // Precondition: defect format detected. Azure's gate excludes ANY isDefectFormat
-    // (no high|medium filter — decision 2), so we assert the boolean alone.
+  it('lands a defect-shaped fresh paste at b0 with a defect proposal', async () => {
+    // Precondition: defect format detected. FSJ-6 routes ANY isDefectFormat to b0
+    // for the inline confirm sequence (no high|medium filter in Azure).
     const parsed = await parseText(tsvOf(defectRows));
     const defect = detectDefectFormat(parsed, detectColumns(parsed).columnAnalysis);
     expect(defect.isDefectFormat).toBe(true);
@@ -208,10 +242,10 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
       await result.current.handlePasteAnalyze(tsvOf(defectRows));
     });
 
-    expect(result.current.isMapping).toBe(true);
+    expect(result.current.isMapping).toBe(false);
     expect(result.current.defectDetection).not.toBeNull();
-    expect(onFreshPasteAnalyzed).toHaveBeenCalledTimes(1);
-    expect(onFreshPasteLanded).not.toHaveBeenCalled();
+    expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
+    expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
   });
 
   it('auto-surfaces the mapping for a low-confidence paste (spec §4.1 — never a silent empty landing) + provisions the Untitled project (FSJ-3b §3)', async () => {
@@ -270,13 +304,13 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
   });
 
   it('does not wipe pasted data on first-time mapping cancel (spec §4.1 guarded regression)', async () => {
-    // Paste wide-shaped data (enters the wizard), then cancel: no setter resets data.
+    // Paste all-categorical data (enters the wizard), then cancel: no setter resets data.
     const setRawData = vi.fn();
     const setOutcome = vi.fn();
     const { result } = renderHook(() => useEditorDataFlow(makeOptions({ setRawData, setOutcome })));
 
     await act(async () => {
-      await result.current.handlePasteAnalyze(tsvOf(wideRows));
+      await result.current.handlePasteAnalyze(tsvOf(allCategoricalRows));
     });
     expect(result.current.isMapping).toBe(true);
 
