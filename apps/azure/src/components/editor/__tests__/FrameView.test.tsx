@@ -45,6 +45,9 @@ const storeStateRef: { current: Record<string, unknown> } = {
     rawData: [],
     outcome: null,
     factors: [],
+    analysisMode: 'standard',
+    defectMapping: null,
+    measureColumns: [],
     setOutcome: setOutcomeMock,
     setFactors: setFactorsMock,
     measureSpecs: {},
@@ -231,7 +234,12 @@ vi.mock('@variscout/ui', async () => {
         topBar?: React.ReactNode;
         belowY?: React.ReactNode;
         noYBanner?: React.ReactNode;
+        selectionDisabled?: React.ReactNode;
+        emptyY?: React.ReactNode;
       };
+      analysisMode?: string;
+      defectMapping?: unknown;
+      measureColumns?: readonly string[];
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -288,7 +296,9 @@ vi.mock('@variscout/ui', async () => {
         // "Fix data…", "+ track another outcome", and noYBanner affordances.
         props.b0Slots?.topBar ?? null,
         props.b0Slots?.belowY ?? null,
-        props.b0Slots?.noYBanner ?? null
+        props.b0Slots?.noYBanner ?? null,
+        props.b0Slots?.selectionDisabled ?? null,
+        props.b0Slots?.emptyY ?? null
       );
     },
     // LV1-D: navigateToExploreForChip — test-double that delegates to the
@@ -407,6 +417,9 @@ describe('FrameView (Azure shell)', () => {
       rawData: [{ Fill_Weight: 12 }],
       outcome: 'Fill_Weight',
       factors: ['Machine'],
+      analysisMode: 'standard',
+      defectMapping: null,
+      measureColumns: [],
       setOutcome: setOutcomeMock,
       setFactors: setFactorsMock,
       measureSpecs: { Fill_Weight: { target: 12 } },
@@ -434,6 +447,9 @@ describe('FrameView (Azure shell)', () => {
         rawData: [{ Fill_Weight: 12 }],
         outcome: 'Fill_Weight',
         factors: ['Machine'],
+        analysisMode: 'standard',
+        defectMapping: null,
+        measureColumns: [],
         measureSpecs: { Fill_Weight: { target: 12 } },
         processContext: { currentUnderstanding: 'fill line', processHubId: 'hub-1' },
         setOutcome: setOutcomeMock,
@@ -1042,6 +1058,176 @@ describe('FrameView (Azure shell)', () => {
       expect(lastProps?.b0Slots).toBeDefined();
       expect(lastProps?.b0Slots?.topBar).toBeDefined();
       expect(lastProps?.b0Slots?.noYBanner).toBeDefined();
+    });
+
+    it('renders a defect proposal banner with an inline confirm sequence', () => {
+      const onAcceptDefect = vi.fn();
+      const onDismissDefect = vi.fn();
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [
+          {
+            Date: '2026-05-01',
+            Defect_Type: 'Scratch',
+            Batch: 'B1',
+            Units_Produced: 100,
+          },
+        ],
+      };
+
+      render(
+        <FrameView
+          activeIP={DEFAULT_TEST_IP}
+          onFixData={onFixDataMock}
+          defectDetection={{
+            isDefectFormat: true,
+            confidence: 'high',
+            dataShape: 'event-log',
+            suggestedMapping: {
+              defectTypeColumn: 'Defect_Type',
+              aggregationUnit: 'Batch',
+              unitsProducedColumn: 'Units_Produced',
+            },
+          }}
+          onAcceptDefectDetection={onAcceptDefect}
+          onDismissDefectDetection={onDismissDefect}
+        />
+      );
+
+      expect(screen.getByTestId('b0-defect-banner')).toBeInTheDocument();
+      expect(screen.getByText(/Choose an option in the banner above/i)).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('b0-defect-expand'));
+      expect(screen.getByTestId('b0-defect-confirm-panel')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('b0-defect-accept'));
+      expect(onAcceptDefect).toHaveBeenCalledWith({
+        dataShape: 'event-log',
+        aggregationUnit: 'Batch',
+        defectTypeColumn: 'Defect_Type',
+        countColumn: undefined,
+        resultColumn: undefined,
+        unitsProducedColumn: 'Units_Produced',
+      });
+
+      fireEvent.click(screen.getByTestId('b0-defect-dismiss'));
+      expect(onDismissDefect).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders a performance proposal banner with accept, stack, and dismiss actions', () => {
+      const onAcceptWide = vi.fn();
+      const onDismissWide = vi.fn();
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [{ Batch: 'B1', V1: 10, V2: 11, V3: 12 }],
+      };
+
+      render(
+        <FrameView
+          activeIP={DEFAULT_TEST_IP}
+          onFixData={onFixDataMock}
+          wideFormatDetection={{
+            isWideFormat: true,
+            confidence: 'high',
+            reason: 'matched channel pattern',
+            metadataColumns: ['Batch'],
+            channels: [
+              {
+                id: 'V1',
+                label: 'V1',
+                n: 1,
+                preview: { min: 10, max: 10, mean: 10 },
+                matchedPattern: true,
+              },
+              {
+                id: 'V2',
+                label: 'V2',
+                n: 1,
+                preview: { min: 11, max: 11, mean: 11 },
+                matchedPattern: true,
+              },
+              {
+                id: 'V3',
+                label: 'V3',
+                n: 1,
+                preview: { min: 12, max: 12, mean: 12 },
+                matchedPattern: true,
+              },
+            ],
+          }}
+          onAcceptWideFormatDetection={onAcceptWide}
+          onDismissWideFormatDetection={onDismissWide}
+        />
+      );
+
+      expect(screen.getByTestId('b0-performance-banner')).toBeInTheDocument();
+      fireEvent.click(screen.getByTestId('b0-performance-accept'));
+      expect(onAcceptWide).toHaveBeenCalledWith(['V1', 'V2', 'V3'], 'Channel');
+
+      fireEvent.click(screen.getByTestId('b0-performance-stack'));
+      expect(onFixDataMock).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(screen.getByTestId('b0-performance-dismiss'));
+      expect(onDismissWide).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders quiet time chip actions', () => {
+      const onDismissQuiet = vi.fn();
+      const onUndoQuiet = vi.fn();
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [{ Timestamp: '2026-05-01T10:00:00', Weight: 10 }],
+      };
+
+      render(
+        <FrameView
+          activeIP={DEFAULT_TEST_IP}
+          onFixData={onFixDataMock}
+          quietTimeExtraction={{
+            timeColumn: 'Timestamp',
+            newColumns: ['Timestamp_Month', 'Timestamp_DayOfWeek'],
+            dismissed: false,
+          }}
+          onDismissQuietTimeExtraction={onDismissQuiet}
+          onUndoQuietTimeExtraction={onUndoQuiet}
+        />
+      );
+
+      expect(screen.getByTestId('b0-time-chip')).toHaveTextContent('Dates detected in Timestamp');
+      expect(screen.getByTestId('b0-time-chip')).toHaveTextContent('added Month + Day of Week');
+
+      fireEvent.click(screen.getByTestId('b0-time-chip-adjust'));
+      expect(onFixDataMock).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(screen.getByTestId('b0-time-chip-undo'));
+      expect(onUndoQuiet).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(screen.getByTestId('b0-time-chip-dismiss'));
+      expect(onDismissQuiet).toHaveBeenCalledTimes(1);
+    });
+
+    it('forwards mode framing props into CanvasWorkspace', () => {
+      const defectMapping = {
+        dataShape: 'event-log' as const,
+        aggregationUnit: 'Batch',
+        defectTypeColumn: 'Defect_Type',
+      };
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        analysisMode: 'defect',
+        defectMapping,
+        measureColumns: ['V1', 'V2', 'V3'],
+      };
+
+      render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+      expect(hoisted.canvasWorkspaceMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analysisMode: 'defect',
+          defectMapping,
+          measureColumns: ['V1', 'V2', 'V3'],
+        })
+      );
     });
   });
 });
