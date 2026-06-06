@@ -360,7 +360,7 @@ export const Editor: React.FC<EditorProps> = ({
   // Mobile tab bar state (phone only)
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('explore');
   const [isMobileSurveyOpen, setIsMobileSurveyOpen] = useState(false);
-  const [catalogHubs, setCatalogHubs] = useState<ProcessHub[]>([]);
+  const [catalogHubs, setCatalogHubs] = useState<ProcessHub[]>([]); // backing storage only — read via processHubs
   const unsavedHubs = useUnsavedHubsStore(s => s.hubs);
   // Word-style durability (FSJ-3a, spec §3): in-memory hubs join the storage
   // catalog for resolution (activeHub, document snapshots, hub pickers). An id
@@ -1506,8 +1506,9 @@ export const Editor: React.FC<EditorProps> = ({
   /**
    * Word-style hub writes (FSJ-3a, spec §3): an unsaved hub's mutations stay
    * in-memory (the first explicit save flushes them); a persisted hub keeps
-   * today's immediate saveProcessHub — and the catalog state is updated so
-   * downstream readers (FrameView outcomeSpecs) never go stale.
+   * today's immediate saveProcessHub, with catalogHubs updated in step so
+   * FrameView outcomeSpecs never go stale; unsaved hubs stay fresh through
+   * the processHubs merge memo instead.
    */
   const commitHubChange = useCallback(
     async (hub: ProcessHub) => {
