@@ -478,6 +478,10 @@ const FrameView: React.FC<FrameViewProps> = ({
           ＋ track another outcome
         </button>
       ) : undefined,
+      // Deliberately constructed unconditionally (unlike belowY): FrameViewB0 owns
+      // the no-Y gate (yCandidates is derived inside CanvasWorkspace, not here —
+      // duplicating that detection heuristic in this file would couple two layers).
+      // An unrendered React element is an inert descriptor; no hooks run unmounted.
       noYBanner: (
         <OutcomeNoMatchBanner
           onRename={(oldName, newName) => onRenameColumn?.(oldName, newName)}
