@@ -1,6 +1,7 @@
 import React, { Suspense, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { downloadCSV } from './lib/export';
 import { lazyWithRetry } from './lib/chunkReload';
+import { landOnProcess } from './lib/landOnProcess';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
@@ -494,7 +495,16 @@ function AppMain() {
     if (sampleKey && rawData.length === 0) {
       const sample = SAMPLES.find(s => s.urlKey === sampleKey);
       if (sample) {
-        ingestion.loadSample(sample);
+        // Use handleLoadSample so ?sample= deep-links also land on Process tab
+        // and get an auto-activated Untitled project (spec §1). The embed guard
+        // inside landOnProcess keeps ?embed=true&sample=… on the chart surface.
+        landOnProcess(sample, {
+          loadSample: ingestion.loadSample,
+          sessionHub,
+          setSessionHub,
+          showFrame: panels.showFrame,
+          isEmbedMode,
+        });
       }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -713,6 +723,22 @@ function AppMain() {
       stageFive.openModeB();
     },
     [importFlow, goalNarrative, sessionHub, setSessionHub, stageFive]
+  );
+
+  // First-session landing (spec §1, §3): fresh sample entry lands on the
+  // Process tab with an auto-activated Untitled project.
+  // Thin wrapper — business logic lives in landOnProcess for testability.
+  const handleLoadSample = useCallback(
+    (sample: Parameters<typeof landOnProcess>[0]) => {
+      landOnProcess(sample, {
+        loadSample: ingestion.loadSample,
+        sessionHub,
+        setSessionHub,
+        showFrame: panels.showFrame,
+        isEmbedMode,
+      });
+    },
+    [ingestion.loadSample, sessionHub, setSessionHub, panels.showFrame, isEmbedMode]
   );
 
   // .vrs import: hydrate the document snapshot and rebuild the session hub.
@@ -1279,7 +1305,7 @@ function AppMain() {
               />
             ) : rawData.length === 0 ? (
               <HomeScreen
-                onLoadSample={ingestion.loadSample}
+                onLoadSample={handleLoadSample}
                 onOpenPaste={importFlow.handleOpenPaste}
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
                 onImportVrs={handleImportVrs}
