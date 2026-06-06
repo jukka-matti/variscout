@@ -22,6 +22,7 @@ const loadSampleMock = vi.fn();
 import type { SampleDataset } from '@variscout/data';
 import type { ProcessHub } from '@variscout/core/processHub';
 import { useActiveIPStore, getActiveIPInitialState } from '@variscout/stores';
+import { DEFAULT_ACTIVE_IP_USER_ID } from '@variscout/hooks';
 import { usePanelsStore, initialPanelsState } from '../features/panels/panelsStore';
 import { landOnProcess } from '../lib/landOnProcess';
 import { PWA_USER_ID } from '../lib/pwaUser';
@@ -95,12 +96,20 @@ describe('landOnProcess — sample landing (spec §1, §3)', () => {
     expect(hub.improvementProject!.deletedAt).toBeNull();
     expect(hub.improvementProject!.metadata.title).toBe(SAMPLE_DATASET.name);
 
-    // The IP is active in the annotation store — the E1 T6 gate would pass
-    // (FrameView renders Canvas chrome instead of NoActiveProjectGuidance)
-    const scope = { hubId: hub.id, userId: PWA_USER_ID };
-    const activeState = useActiveIPStore.getState().getActiveIP(scope);
+    // The IP is active under the PRODUCTION scope key (what useActiveIPContext reads
+    // with its default userId). This is the E1 T6 gate — FrameView renders Canvas
+    // chrome instead of NoActiveProjectGuidance when this passes.
+    const productionScope = { hubId: hub.id, userId: DEFAULT_ACTIVE_IP_USER_ID };
+    const activeState = useActiveIPStore.getState().getActiveIP(productionScope);
     expect(activeState).not.toBeNull();
     expect(activeState!.ipId).toBe(hub.improvementProject!.id);
+
+    // Negative control: the OLD wrong key (PWA_USER_ID = 'analyst@local') must
+    // NOT have an active IP. If this passes it proves the seam is correct —
+    // a write to the wrong key would break this assertion.
+    const wrongScope = { hubId: hub.id, userId: PWA_USER_ID };
+    const wrongActiveState = useActiveIPStore.getState().getActiveIP(wrongScope);
+    expect(wrongActiveState).toBeNull();
   });
 
   it('does NOT route to Process tab in embed mode (negative control for §1 exemption)', () => {

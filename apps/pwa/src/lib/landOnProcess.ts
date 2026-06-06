@@ -1,8 +1,12 @@
 import type { SampleDataset } from '@variscout/data';
 import type { ProcessHub } from '@variscout/core/processHub';
 import { useActiveIPStore } from '@variscout/stores';
+import { DEFAULT_ACTIVE_IP_USER_ID } from '@variscout/hooks';
 import { ensureSessionProject } from './ensureSessionProject';
-import { PWA_USER_ID } from './pwaUser';
+// NOTE: PWA_USER_ID ('analyst@local') is the Lead member identity used inside
+// ensureSessionProject. DEFAULT_ACTIVE_IP_USER_ID ('local') is the annotation
+// scope key that useActiveIPContext reads. These are different concerns — do NOT
+// unify them.
 
 /**
  * First-session landing handler (spec §1, §3): fresh sample entry lands on
@@ -49,7 +53,7 @@ export function landOnProcess(sample: SampleDataset, deps: LandOnProcessDeps): v
 
   // 3. Activate the IP in the annotation store using the NEW hub's scope so the
   //    call is not stale even when a new hub was just created (see ordering note).
-  const scope = { hubId: hub.id, userId: PWA_USER_ID };
+  const scope = { hubId: hub.id, userId: DEFAULT_ACTIVE_IP_USER_ID };
   useActiveIPStore.getState().setActiveIP(scope, hub.improvementProject!.id);
 
   // 4. Route to Process tab — exempt in embed mode (spec §1 applicability).

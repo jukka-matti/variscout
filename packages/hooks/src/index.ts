@@ -621,6 +621,7 @@ export {
 } from './useProjectActions';
 export {
   useActiveIPContext,
+  DEFAULT_ACTIVE_IP_USER_ID,
   type ActiveIPContext,
   type UseActiveIPContextOptions,
 } from './useActiveIPContext';
