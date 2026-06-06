@@ -110,6 +110,12 @@ vi.mock('@variscout/core', async importOriginal => {
     parseText: vi.fn(async () => [{ Weight: 10, Machine: 'A' }]),
     detectColumns: vi.fn(() => ({ outcome: 'Weight', factors: ['Machine'], columnAnalysis: [] })),
     detectWideFormat: vi.fn(() => ({ isWideFormat: false, channels: [] })),
+    detectDefectFormat: vi.fn(() => ({
+      isDefectFormat: false,
+      confidence: 'low',
+      dataShape: 'event-log',
+      suggestedMapping: {},
+    })),
     validateData: vi.fn(() => ({ isValid: true, errors: [], warnings: [] })),
     downloadCSV: vi.fn(),
     getNelsonRule2ViolationPoints: vi.fn(() => []),
