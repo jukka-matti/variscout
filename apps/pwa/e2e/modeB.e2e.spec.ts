@@ -272,6 +272,52 @@ test.describe('Framing layer Mode B (PWA) — cryptic column names (all-categori
     const startBtn = page.locator('button:has-text("Start Analysis")').first();
     await expect(startBtn).toBeDisabled({ timeout: 3000 });
   });
+
+  // ---------------------------------------------------------------------------
+  // spec §4.1 no-Y floor journey: cancel wizard → navigate to Process tab
+  //
+  // Architecture note (T6 review fix): After all-categorical paste + wizard cancel,
+  // rawData is set but NO active IP was created (landPasteOnProcess / showFrame are
+  // never called for low-confidence pastes — the wizard path skips onFreshPasteLanded).
+  // FrameView (apps/pwa/src/components/views/FrameView.tsx:504) guards with
+  // `if (activeIP == null) return NoActiveProjectGuidance`. So Process tab shows
+  // "No active project" (NoActiveProjectGuidance, role=alert), NOT frame-view-b0.
+  //
+  // The b0 no-Y floor (OutcomeNoMatchBanner at frame-view-b0) IS implemented
+  // (FrameViewB0.tsx:176, noYBanner slot) and unit-tested in FrameView.b0.integration.test,
+  // but is not reachable via a standard E2E paste flow because:
+  //   - high-confidence paste → b0 WITH a detected numeric Y (yCandidates > 0 → no banner)
+  //   - low-confidence paste → wizard (not b0)
+  // The no-Y floor is a defensive guard for edge cases (e.g. data re-mapping leaving
+  // Y empty), not a standard first-session path. Chrome walk (T7) verifies the b0
+  // surface live, including the noYBanner via FrameView.b0.integration.test coverage.
+  // ---------------------------------------------------------------------------
+  test('cancel wizard → Process tab → NoActiveProjectGuidance (no active project, spec §4.1 boundary)', async ({
+    page,
+  }) => {
+    await openPasteScreen(page);
+
+    await page.getByTestId('paste-textarea').fill(ALL_TEXT_CSV);
+    await page.getByTestId('paste-start-analysis').click();
+
+    // Wizard auto-surfaces
+    await expect(page.getByTestId('map-your-data-heading')).toBeVisible({ timeout: 8000 });
+
+    // Cancel the wizard (data survives — proven by prior test)
+    await page.getByRole('button', { name: /back/i }).click();
+
+    // Navigate to Process tab (workflow-tab-process pattern per active-ip-cascade.spec)
+    await page.getByTestId('workflow-tab-process').click();
+
+    // No active IP was created (low-confidence paste skips onFreshPasteLanded).
+    // FrameView renders NoActiveProjectGuidance — not frame-view-b0.
+    // role=alert is used by NoActiveProjectGuidance (NoActiveProjectGuidance.tsx:34).
+    await expect(page.getByRole('alert')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('alert')).toContainText('No active project');
+
+    // frame-view-b0 is NOT shown (no active project means no canvas rendering).
+    await expect(page.getByTestId('frame-view-b0')).toHaveCount(0);
+  });
 });
 
 // ---------------------------------------------------------------------------
