@@ -20,7 +20,7 @@ describe('ensureHubProject (Untitled-pair guarantee, spec §3)', () => {
     expect(hub.improvementProject.metadata.title).toBe('Case: The Bottleneck');
     expect(hub.improvementProject.hubId).toBe(hub.id);
     expect(hub.improvementProject.deletedAt).toBeNull();
-    expect(hub.improvementProject.metadata.members[0]).toMatchObject({
+    expect(hub.improvementProject.metadata.members?.[0]).toMatchObject({
       role: 'lead',
       userId: 'analyst@contoso.com',
     });
