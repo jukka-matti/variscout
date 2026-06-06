@@ -27,7 +27,13 @@ import type { DocumentSnapshot, DocumentSnapshotVrsFile } from '@variscout/store
 import { useActiveIPStore, getActiveIPInitialState, resetDocumentStores } from '@variscout/stores';
 import { DEFAULT_ACTIVE_IP_USER_ID } from '@variscout/hooks';
 import { usePanelsStore, initialPanelsState } from '../features/panels/panelsStore';
-import { landOnProcess, landVrsOnProcess, landManualOnProcess } from '../lib/landing';
+import {
+  landOnProcess,
+  landVrsOnProcess,
+  landManualOnProcess,
+  landPasteOnProcess,
+} from '../lib/landing';
+import { ensureSessionProject } from '../lib/ensureSessionProject';
 import { PWA_USER_ID } from '../lib/pwaUser';
 
 // ── Shared fixtures ───────────────────────────────────────────────────────────
@@ -336,5 +342,64 @@ describe('landManualOnProcess — manual entry lands on Process tab (spec §1, �
     const activeState = useActiveIPStore.getState().getActiveIP(productionScope);
     expect(activeState).not.toBeNull();
     expect(activeState!.ipId).toBe(hub.improvementProject!.id);
+  });
+});
+
+describe('landPasteOnProcess (FSJ-2, spec §1/§3)', () => {
+  it('creates + activates an Untitled project and routes to the Process tab', () => {
+    const showFrame = vi.fn();
+    let hub: ProcessHub | null = null;
+    landPasteOnProcess({
+      sessionHub: null,
+      setSessionHub: h => {
+        hub = h;
+      },
+      showFrame,
+      isEmbedMode: false,
+    });
+    expect(hub!.improvementProject!.metadata.title).toBe('Untitled project');
+    expect(showFrame).toHaveBeenCalledTimes(1);
+    const scope = { hubId: hub!.id, userId: DEFAULT_ACTIVE_IP_USER_ID };
+    const activeState = useActiveIPStore.getState().getActiveIP(scope);
+    expect(activeState).not.toBeNull();
+    expect(activeState!.ipId).toBe(hub!.improvementProject!.id);
+  });
+
+  it('embed mode activates state but never routes (negative control, spec §1)', () => {
+    const showFrame = vi.fn();
+    landPasteOnProcess({
+      sessionHub: null,
+      setSessionHub: vi.fn(),
+      showFrame,
+      isEmbedMode: true,
+    });
+    expect(showFrame).not.toHaveBeenCalled();
+  });
+
+  it('reuses a live session hub + IP (referential no-op, spec §3)', () => {
+    // Build a hub with an existing live IP via the shared helper
+    const existingHub = ensureSessionProject(null, 'Existing');
+
+    let receivedHub: ProcessHub | null = null;
+    const setSessionHub = vi.fn((h: ProcessHub) => {
+      receivedHub = h;
+    });
+
+    landPasteOnProcess({
+      sessionHub: existingHub,
+      setSessionHub,
+      showFrame: vi.fn(),
+      isEmbedMode: false,
+    });
+
+    // setSessionHub was called exactly once
+    expect(setSessionHub).toHaveBeenCalledOnce();
+
+    // Referential identity: ensureSessionProject must return the SAME object —
+    // not a copy — when a live IP already exists (spec §3 reconstruct-not-create).
+    expect(receivedHub).toBe(existingHub);
+
+    // Title preserved — no re-wrap with 'Untitled project'
+    expect(receivedHub!.improvementProject!.metadata.title).toBe('Existing');
   });
 });

@@ -1,7 +1,12 @@
 import React, { Suspense, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { downloadCSV } from './lib/export';
 import { lazyWithRetry } from './lib/chunkReload';
-import { landOnProcess, landVrsOnProcess, landManualOnProcess } from './lib/landing';
+import {
+  landOnProcess,
+  landVrsOnProcess,
+  landManualOnProcess,
+  landPasteOnProcess,
+} from './lib/landing';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
@@ -341,6 +346,12 @@ function AppMain() {
     getFactors: () => factors,
   });
 
+  // FSJ-2: showFrame is declared on `panels` which is created below (after importFlow,
+  // because panels depends on importFlow). A ref lets onFreshPasteLanded read the
+  // stable, always-current showFrame without forward-referencing a const across a
+  // temporal dead zone. Pattern mirrors importFlowRef above.
+  const showFrameRef = React.useRef<(() => void) | null>(null);
+
   const importFlow = usePasteImportFlow({
     rawData,
     outcome,
@@ -358,6 +369,18 @@ function AppMain() {
     setColumnAliases,
     clearSelection,
     applyTimeExtraction: ingestion.applyTimeExtraction,
+    // FSJ-2: measurement-shaped paste landed without the mapping vestibule — ensure
+    // the Untitled project + activate + route (spec §1/§3). Inline arrow so
+    // the closure re-captures sessionHub each render (FSJ-1 stale-closure lesson).
+    // showFrame is read via showFrameRef because panels is declared below (panels
+    // depends on importFlow — see useAppPanels call).
+    onFreshPasteLanded: () =>
+      landPasteOnProcess({
+        sessionHub,
+        setSessionHub,
+        showFrame: () => showFrameRef.current?.(),
+        isEmbedMode,
+      }),
   });
 
   // Ref to allow ingestion callbacks to reach importFlow setters
@@ -370,6 +393,9 @@ function AppMain() {
     wideFormatDetection: importFlow.wideFormatDetection,
     dismissWideFormat: importFlow.handleDismissWideFormat,
   });
+  // FSJ-2: keep showFrameRef in sync so onFreshPasteLanded always reaches the
+  // current showFrame even though panels is declared after importFlow.
+  showFrameRef.current = panels.showFrame;
 
   // PO-6 §4.4: useAnalyzeStore.findings is the single findings source (the bare
   // useFindings() React-state mirror retired — quick-analysis pins now round-trip .vrs).

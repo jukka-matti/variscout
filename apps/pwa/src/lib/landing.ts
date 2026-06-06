@@ -145,6 +145,26 @@ export function landVrsOnProcess(
 }
 
 /**
+ * Deps for the fresh-paste landing path (FSJ-2). Pastes have no name source,
+ * so the title is always the spec-correct 'Untitled project' literal (§3).
+ */
+export interface LandPasteOnProcessDeps extends LandHubOnProcessDeps {
+  /** Current session hub — passed as hubBase to the shared core */
+  sessionHub: ProcessHub | null;
+}
+
+/**
+ * Fresh-paste landing handler (spec §1, §3): invoked by usePasteImportFlow's
+ * onFreshPasteLanded AFTER the pipeline has written rawData/outcome/factors —
+ * data loading is not this function's concern (unlike landOnProcess). Ensure +
+ * activate + route only.
+ */
+export function landPasteOnProcess(deps: LandPasteOnProcessDeps): void {
+  const { sessionHub, ...coreDeps } = deps;
+  landHubOnProcess(sessionHub, 'Untitled project', coreDeps);
+}
+
+/**
  * Manual-entry analyze callback signature — mirrors usePasteImportFlow's
  * handleManualDataAnalyze exactly so the wrapper in App.tsx can spread params
  * through without an intermediate type.
