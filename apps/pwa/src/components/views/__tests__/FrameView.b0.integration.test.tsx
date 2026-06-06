@@ -66,7 +66,7 @@ const baseStoreState = {
   rawData: FEATHER_ROWS,
   outcome: null as string | null,
   factors: [] as readonly string[],
-  analysisMode: 'standard' as const,
+  analysisMode: 'standard' as AnalysisMode,
   defectMapping: null as DefectMapping | null,
   measureColumns: [] as readonly string[],
   setOutcome: setOutcomeMock,
@@ -158,7 +158,12 @@ vi.mock('@variscout/charts', async importOriginal => {
 import FrameView from '../FrameView';
 import { SessionProvider } from '../../../store/sessionStore';
 import type { QuietTimeExtractionChip } from '../../../hooks/usePasteImportFlow';
-import type { DefectDetection, DefectMapping, WideFormatDetection } from '@variscout/core';
+import type {
+  AnalysisMode,
+  DefectDetection,
+  DefectMapping,
+  WideFormatDetection,
+} from '@variscout/core';
 
 const DEFECT_ROWS = Array.from({ length: 12 }, (_, i) => ({
   Date: `2026-05-${String((i % 4) + 1).padStart(2, '0')}`,
