@@ -7,13 +7,13 @@ vi.mock('../../../auth/getCurrentUser', () => ({
   getCurrentUser: vi.fn(),
 }));
 
-vi.mock('../../../services/storage', () => ({
-  useStorage: vi.fn(),
-}));
+// NOTE: useStorage is intentionally NOT mocked here — useNewHubProvision has no
+// storage import (eager-persist retired, spec §3 Word-style durability).
+// The eager-persist regression is guarded by Dashboard.processHub.test.tsx's
+// load-bearing control (the page-level mock still resolves the real storage seam).
 
 import { useNewHubProvision } from '../useNewHubProvision';
 import { getCurrentUser } from '../../../auth/getCurrentUser';
-import { useStorage } from '../../../services/storage';
 import { useUnsavedHubsStore } from '../../hubs/unsavedHubsStore';
 
 // ProcessHub extended with the optional improvementProject that ensureHubProject attaches
@@ -22,8 +22,6 @@ type HubWithOptionalIP = ProcessHub & {
     metadata: { title: string; members: Array<{ role: string; userId: string }> };
   };
 };
-
-const mockSaveProcessHub = vi.fn().mockResolvedValue(undefined);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -34,14 +32,10 @@ beforeEach(() => {
     name: 'Local Developer',
     email: 'analyst@contoso.com',
   });
-  // Storage mock still present so the negative control can verify it is never called
-  (useStorage as ReturnType<typeof vi.fn>).mockReturnValue({
-    saveProcessHub: mockSaveProcessHub,
-  });
 });
 
 describe('useNewHubProvision — in-memory Untitled pair (FSJ-3a spec §3)', () => {
-  it('creates the hub + Untitled project pair in-memory — saveProcessHub is NEVER called', async () => {
+  it('creates the hub + Untitled project pair in-memory (Word-style: no eager persist)', async () => {
     const onCreated = vi.fn();
     const { result } = renderHook(() => useNewHubProvision({ onCreated }));
 
@@ -49,9 +43,6 @@ describe('useNewHubProvision — in-memory Untitled pair (FSJ-3a spec §3)', () 
     await act(async () => {
       hub = (await result.current.createHubFromGoal('')) as HubWithOptionalIP;
     });
-
-    // Negative control: eager persist retired
-    expect(mockSaveProcessHub).not.toHaveBeenCalled();
 
     // Hub shape
     expect(hub).toBeDefined();

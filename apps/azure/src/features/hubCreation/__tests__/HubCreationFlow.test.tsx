@@ -12,9 +12,10 @@ vi.mock('../../../auth/getCurrentUser', () => ({
   getCurrentUser: vi.fn(),
 }));
 
-vi.mock('../../../services/storage', () => ({
-  useStorage: vi.fn(),
-}));
+// NOTE: useStorage is intentionally NOT mocked here — neither HubCreationFlow nor
+// useNewHubProvision imports useStorage (eager-persist retired, spec §3).
+// Eager-persist regression is guarded by Dashboard.processHub.test.tsx's
+// load-bearing control (the page-level mock resolves the real storage seam).
 
 vi.mock('@variscout/ui', () => ({
   HubGoalForm: ({
@@ -64,12 +65,9 @@ vi.mock('@variscout/ui', () => ({
 }));
 
 import { HubCreationFlow } from '../HubCreationFlow';
-import { useStorage } from '../../../services/storage';
 import { getCurrentUser } from '../../../auth/getCurrentUser';
 import type { HubCreationFlowProps } from '../HubCreationFlow';
 import { useUnsavedHubsStore } from '../../hubs/unsavedHubsStore';
-
-const mockSaveProcessHub = vi.fn().mockResolvedValue(undefined);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -77,9 +75,6 @@ beforeEach(() => {
   (getCurrentUser as ReturnType<typeof vi.fn>).mockResolvedValue({
     name: 'Local Developer',
     email: 'dev@localhost',
-  });
-  (useStorage as ReturnType<typeof vi.fn>).mockReturnValue({
-    saveProcessHub: mockSaveProcessHub,
   });
 });
 
@@ -142,20 +137,18 @@ describe('HubCreationFlow', () => {
     expect(screen.getByTestId('column-mapping')).not.toHaveAttribute('data-goal-context');
   });
 
-  it('creates an in-memory hub on goal confirm — saveProcessHub is NOT called', async () => {
+  it('creates an in-memory hub on goal confirm (Word-style: hub lands in unsaved store)', async () => {
     render(<HubCreationFlow {...baseProps} />);
     fireEvent.click(screen.getByText('Confirm goal'));
     await waitFor(() => expect(useUnsavedHubsStore.getState().hubs).toHaveLength(1));
-    expect(mockSaveProcessHub).not.toHaveBeenCalled();
     const hub = useUnsavedHubsStore.getState().hubs[0];
     expect(hub.processGoal).toBe('We mold barrels for medical customers.');
   });
 
-  it('creates an in-memory hub on skip — saveProcessHub is NOT called', async () => {
+  it('creates an in-memory hub on skip (Word-style: bare Untitled hub lands in unsaved store)', async () => {
     render(<HubCreationFlow {...baseProps} />);
     fireEvent.click(screen.getByText('Skip'));
     await waitFor(() => expect(useUnsavedHubsStore.getState().hubs).toHaveLength(1));
-    expect(mockSaveProcessHub).not.toHaveBeenCalled();
     const hub = useUnsavedHubsStore.getState().hubs[0];
     expect(hub.processGoal).toBeUndefined();
     expect(hub.name).toBe('Untitled hub');
