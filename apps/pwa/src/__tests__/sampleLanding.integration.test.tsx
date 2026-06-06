@@ -32,6 +32,7 @@ import {
   landVrsOnProcess,
   landManualOnProcess,
   landPasteOnProcess,
+  provisionPasteProject,
 } from '../lib/landing';
 import { ensureSessionProject } from '../lib/ensureSessionProject';
 import { PWA_USER_ID } from '../lib/pwaUser';
@@ -400,6 +401,52 @@ describe('landPasteOnProcess (FSJ-2, spec §1/§3)', () => {
     expect(receivedHub).toBe(existingHub);
 
     // Title preserved — no re-wrap with 'Untitled project'
+    expect(receivedHub!.improvementProject!.metadata.title).toBe('Existing');
+  });
+});
+
+describe('provisionPasteProject (FSJ-2 addendum T6b, spec §3) — wizard-path Untitled guarantee', () => {
+  it('creates + activates an Untitled project WITHOUT routing (no showFrame)', () => {
+    let hub: ProcessHub | null = null;
+
+    provisionPasteProject({
+      sessionHub: null,
+      setSessionHub: h => {
+        hub = h;
+      },
+    });
+
+    // The Untitled project was created + activated.
+    expect(hub).not.toBeNull();
+    expect(hub!.improvementProject).not.toBeNull();
+    expect(hub!.improvementProject!.metadata.title).toBe('Untitled project');
+
+    // IP active under the PRODUCTION scope key (what useActiveIPContext reads).
+    const scope = { hubId: hub!.id, userId: DEFAULT_ACTIVE_IP_USER_ID };
+    const activeState = useActiveIPStore.getState().getActiveIP(scope);
+    expect(activeState).not.toBeNull();
+    expect(activeState!.ipId).toBe(hub!.improvementProject!.id);
+
+    // Crucially: NO routing. The wizard path keeps today's landing until P2 —
+    // provisionPasteProject does not call showFrame, so activeView is unchanged
+    // (still the fresh-store default 'explore').
+    expect(usePanelsStore.getState().activeView).toBe(initialPanelsState.activeView);
+    expect(usePanelsStore.getState().activeView).not.toBe('frame');
+  });
+
+  it('reuses a live session hub + IP (referential no-op, spec §3)', () => {
+    const existingHub = ensureSessionProject(null, 'Existing');
+
+    let receivedHub: ProcessHub | null = null;
+    const setSessionHub = vi.fn((h: ProcessHub) => {
+      receivedHub = h;
+    });
+
+    provisionPasteProject({ sessionHub: existingHub, setSessionHub });
+
+    expect(setSessionHub).toHaveBeenCalledOnce();
+    // Same object reference — no re-wrap when a live IP already exists (spec §3).
+    expect(receivedHub).toBe(existingHub);
     expect(receivedHub!.improvementProject!.metadata.title).toBe('Existing');
   });
 });

@@ -29,8 +29,10 @@ export interface LandHubOnProcessDeps {
 }
 
 /**
- * Core ensure + activate + route logic shared by all landing paths (spec §1,
- * §3). Called after any data loading / reconstruction is already done.
+ * Ensure + activate core (spec §3): the routing-free heart shared by every
+ * landing path AND by the wizard-path paste provisioning (FSJ-2 addendum). Steps
+ * 1-2 of landHubOnProcess, verbatim — extracted so the Untitled-project guarantee
+ * can hold for entries that must NOT route (the wizard keeps today's landing).
  *
  * Ordering note: `setActiveIP` from `useActiveIPContext` is scoped to the
  * current (OLD) sessionHub.id at closure time. When `ensureSessionProject`
@@ -38,6 +40,34 @@ export interface LandHubOnProcessDeps {
  * setter is a no-op. We bypass this by calling `useActiveIPStore.getState()`
  * directly with the NEW hub's explicit scope — the store is always available
  * outside React render, and the call is idempotent if the IP is already active.
+ *
+ * @param hubBase - Hub to ensure (null = create new, non-null = existing). If it
+ *   already carries a live IP, ensureSessionProject is a referential no-op (spec
+ *   §3, reconstruct-not-create).
+ * @param title - Fallback project title when the hub has no live IP.
+ * @param setSessionHub - Update the session hub in app state.
+ */
+export function ensureAndActivateProject(
+  hubBase: ProcessHub | null,
+  title: string,
+  setSessionHub: (hub: ProcessHub) => void
+): void {
+  // 1. Ensure the hub carries a live ImprovementProject.
+  //    Pure + referential no-op when one already exists (spec §3, reconstruct-
+  //    not-create for .vrs imports whose hub already has an IP).
+  const hub = ensureSessionProject(hubBase, title);
+  setSessionHub(hub);
+
+  // 2. Activate the IP in the annotation store using the hub's explicit scope
+  //    so the call is not stale even when a new hub was just created.
+  const scope = { hubId: hub.id, userId: DEFAULT_ACTIVE_IP_USER_ID };
+  useActiveIPStore.getState().setActiveIP(scope, hub.improvementProject.id);
+}
+
+/**
+ * Core ensure + activate + route logic shared by all landing paths (spec §1,
+ * §3). Called after any data loading / reconstruction is already done.
+ * Composes ensureAndActivateProject (steps 1-2) + the embed-guarded showFrame.
  *
  * Embed mode (spec §1 applicability): course-page iframes want the chart
  * surface, never the journey spine. When isEmbedMode is true the Project
@@ -57,16 +87,8 @@ export function landHubOnProcess(
 ): void {
   const { setSessionHub, showFrame, isEmbedMode } = deps;
 
-  // 1. Ensure the hub carries a live ImprovementProject.
-  //    Pure + referential no-op when one already exists (spec §3, reconstruct-
-  //    not-create for .vrs imports whose hub already has an IP).
-  const hub = ensureSessionProject(hubBase, title);
-  setSessionHub(hub);
-
-  // 2. Activate the IP in the annotation store using the hub's explicit scope
-  //    so the call is not stale even when a new hub was just created.
-  const scope = { hubId: hub.id, userId: DEFAULT_ACTIVE_IP_USER_ID };
-  useActiveIPStore.getState().setActiveIP(scope, hub.improvementProject.id);
+  // 1-2. Ensure the hub carries a live IP + activate it (shared core).
+  ensureAndActivateProject(hubBase, title, setSessionHub);
 
   // 3. Route to Process tab — exempt in embed mode (spec §1 applicability).
   if (!isEmbedMode) {
@@ -162,6 +184,39 @@ export interface LandPasteOnProcessDeps extends LandHubOnProcessDeps {
 export function landPasteOnProcess(deps: LandPasteOnProcessDeps): void {
   const { sessionHub, ...coreDeps } = deps;
   landHubOnProcess(sessionHub, 'Untitled project', coreDeps);
+}
+
+/**
+ * Deps for the wizard-path paste provisioning (FSJ-2 addendum). A subset of
+ * LandPasteOnProcessDeps — no showFrame/isEmbedMode, because this path does NOT
+ * route. The wizard (defect/wide-shaped or low-confidence paste) keeps today's
+ * landing until P2; we only need to provision the Untitled project so its no-Y
+ * floor (and the rest of the Process tab) is reachable once the user navigates.
+ */
+export interface ProvisionPasteProjectDeps {
+  /** Current session hub — passed as hubBase to the shared ensure+activate core */
+  sessionHub: ProcessHub | null;
+  /** Update the session hub in app state */
+  setSessionHub: (hub: ProcessHub) => void;
+}
+
+/**
+ * Wizard-path paste provisioning (FSJ-2 spec §3): the Untitled-project guarantee
+ * must hold for EVERY fresh data entry — including pastes routed to the mapping
+ * wizard. Invoked by usePasteImportFlow's onFreshPasteAnalyzed AFTER the pipeline
+ * has written rawData/outcome/factors and dispatched into the wizard.
+ *
+ * Ensure + activate ONLY. Crucially it does NOT route (no showFrame) — the wizard
+ * path keeps today's in-vestibule landing until the P2 re-framing banners ship.
+ * Without this, cancelling out of the auto-surfaced wizard for all-categorical
+ * data left activeIP == null, so the PWA Process tab fell back to
+ * NoActiveProjectGuidance and the b0 no-Y OutcomeNoMatchBanner floor (spec §4.1)
+ * was unreachable on its primary live trigger.
+ *
+ * Referential no-op when sessionHub already carries a live IP (spec §3).
+ */
+export function provisionPasteProject(deps: ProvisionPasteProjectDeps): void {
+  ensureAndActivateProject(deps.sessionHub, 'Untitled project', deps.setSessionHub);
 }
 
 /**

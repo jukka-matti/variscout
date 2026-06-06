@@ -140,6 +140,14 @@ export interface UsePasteImportFlowOptions {
    * landPasteOnProcess (ensure project + activate IP + route to Process tab).
    */
   onFreshPasteLanded?: () => void;
+  /**
+   * FSJ-2 (spec §3): fired when a fresh paste enters the mapping/wizard path
+   * (defect/wide-shaped or low inference confidence). The Untitled-project
+   * guarantee holds for EVERY fresh entry — App wires this to provision the
+   * project WITHOUT routing (the wizard path keeps today's landing until P2).
+   * Mutually exclusive with onFreshPasteLanded; neither fires on re-ingestion.
+   */
+  onFreshPasteAnalyzed?: () => void;
 }
 
 export interface MatchSummaryPending {
@@ -236,6 +244,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     clearSelection,
     applyTimeExtraction,
     onFreshPasteLanded,
+    onFreshPasteAnalyzed,
   } = options;
 
   // Flow state machine
@@ -360,6 +369,15 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           ),
         });
       }
+
+      // FSJ-2 (spec §3): the Untitled-project guarantee holds on the wizard path
+      // too. Fire ONLY for fresh entries — re-ingestion has its own hub and must
+      // never provision (the no-Y floor's primary live trigger is cancelling out
+      // of this auto-surfaced wizard, which needs a live IP to be reachable).
+      // Provisions WITHOUT routing (App wires this to provisionPasteProject).
+      if (!opts?.reingest) {
+        onFreshPasteAnalyzed?.();
+      }
     },
     [
       setRawData,
@@ -370,6 +388,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       applyTimeExtraction,
       timeExtractionConfig,
       onFreshPasteLanded,
+      onFreshPasteAnalyzed,
     ]
   );
 

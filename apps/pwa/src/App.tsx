@@ -6,6 +6,7 @@ import {
   landVrsOnProcess,
   landManualOnProcess,
   landPasteOnProcess,
+  provisionPasteProject,
 } from './lib/landing';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
@@ -384,6 +385,11 @@ function AppMain() {
         showFrame: () => showFrameRef.current?.(),
         isEmbedMode,
       }),
+    // FSJ-2 (spec §3): wizard-path paste (defect/wide/low-confidence) still gets
+    // an Untitled project so the no-Y floor is reachable — provision WITHOUT
+    // routing (the wizard keeps today's landing until P2). Inline arrow so the
+    // closure re-captures sessionHub each render (FSJ-1 stale-closure lesson).
+    onFreshPasteAnalyzed: () => provisionPasteProject({ sessionHub, setSessionHub }),
   });
 
   // Ref to allow ingestion callbacks to reach importFlow setters

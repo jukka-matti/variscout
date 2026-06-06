@@ -274,25 +274,21 @@ test.describe('Framing layer Mode B (PWA) — cryptic column names (all-categori
   });
 
   // ---------------------------------------------------------------------------
-  // spec §4.1 no-Y floor journey: cancel wizard → navigate to Process tab
+  // spec §4.1 no-Y floor journey: cancel wizard → Process tab → b0 no-Y floor
   //
-  // Architecture note (T6 review fix): After all-categorical paste + wizard cancel,
-  // rawData is set but NO active IP was created (landPasteOnProcess / showFrame are
-  // never called for low-confidence pastes — the wizard path skips onFreshPasteLanded).
-  // FrameView (apps/pwa/src/components/views/FrameView.tsx:504) guards with
-  // `if (activeIP == null) return NoActiveProjectGuidance`. So Process tab shows
-  // "No active project" (NoActiveProjectGuidance, role=alert), NOT frame-view-b0.
+  // FSJ-2 addendum (T6b): the Untitled-project guarantee holds on the wizard path
+  // too (spec §3). After all-categorical paste + wizard cancel, an active IP WAS
+  // provisioned (usePasteImportFlow → onFreshPasteAnalyzed → provisionPasteProject,
+  // which ensures + activates without routing). So navigating to the Process tab
+  // renders frame-view-b0 — and because no numeric Y is inferable (yCandidates
+  // empty), the b0 no-Y floor (OutcomeNoMatchBanner, role=alert "No clear outcome
+  // match") surfaces. This is the no-Y floor's primary LIVE trigger (previously
+  // unreachable — FrameView fell back to NoActiveProjectGuidance for null activeIP).
   //
-  // The b0 no-Y floor (OutcomeNoMatchBanner at frame-view-b0) IS implemented
-  // (FrameViewB0.tsx:176, noYBanner slot) and unit-tested in FrameView.b0.integration.test,
-  // but is not reachable via a standard E2E paste flow because:
-  //   - high-confidence paste → b0 WITH a detected numeric Y (yCandidates > 0 → no banner)
-  //   - low-confidence paste → wizard (not b0)
-  // The no-Y floor is a defensive guard for edge cases (e.g. data re-mapping leaving
-  // Y empty), not a standard first-session path. Chrome walk (T7) verifies the b0
-  // surface live, including the noYBanner via FrameView.b0.integration.test coverage.
+  // "Skip outcome" routes to Explore (handleSeeData → showExplore) where the
+  // framing-toolbar (Explore/dashboard surface) renders.
   // ---------------------------------------------------------------------------
-  test('cancel wizard → Process tab → NoActiveProjectGuidance (no active project, spec §4.1 boundary)', async ({
+  test('cancel wizard → Process tab → b0 no-Y floor → Skip outcome → Explore (spec §4.1)', async ({
     page,
   }) => {
     await openPasteScreen(page);
@@ -309,14 +305,24 @@ test.describe('Framing layer Mode B (PWA) — cryptic column names (all-categori
     // Navigate to Process tab (workflow-tab-process pattern per active-ip-cascade.spec)
     await page.getByTestId('workflow-tab-process').click();
 
-    // No active IP was created (low-confidence paste skips onFreshPasteLanded).
-    // FrameView renders NoActiveProjectGuidance — not frame-view-b0.
-    // role=alert is used by NoActiveProjectGuidance (NoActiveProjectGuidance.tsx:34).
-    await expect(page.getByRole('alert')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByRole('alert')).toContainText('No active project');
+    // FSJ-2 §3: the wizard-path paste provisioned an Untitled project, so the
+    // Process tab renders the b0 picker (NOT NoActiveProjectGuidance).
+    await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 10000 });
 
-    // frame-view-b0 is NOT shown (no active project means no canvas rendering).
-    await expect(page.getByTestId('frame-view-b0')).toHaveCount(0);
+    // No numeric Y was inferable (all-categorical) → the b0 no-Y floor surfaces:
+    // OutcomeNoMatchBanner (role=alert, "No clear outcome match") inside b0.
+    await expect(page.getByTestId('frame-view-b0').getByRole('alert')).toBeVisible({
+      timeout: 5000,
+    });
+    await expect(page.getByTestId('frame-view-b0').getByRole('alert')).toContainText(
+      'No clear outcome match'
+    );
+
+    // "Skip outcome — paint canvas with all columns unclassified" routes to Explore.
+    await page.getByRole('button', { name: /Skip outcome/i }).click();
+
+    // The Explore/dashboard surface renders (framing-toolbar visible once we leave b0).
+    await expect(page.getByTestId('framing-toolbar')).toBeVisible({ timeout: 10000 });
   });
 });
 

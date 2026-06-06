@@ -95,6 +95,7 @@ function makeOptions(
     clearSelection: vi.fn(),
     applyTimeExtraction: vi.fn(),
     onFreshPasteLanded: vi.fn(),
+    onFreshPasteAnalyzed: vi.fn(),
     ...overrides,
   };
 }
@@ -138,9 +139,10 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     ).toBe(false);
 
     const onFreshPasteLanded = vi.fn();
+    const onFreshPasteAnalyzed = vi.fn();
     const setOutcome = vi.fn();
     const { result } = renderHook(() =>
-      usePasteImportFlow(makeOptions({ onFreshPasteLanded, setOutcome }))
+      usePasteImportFlow(makeOptions({ onFreshPasteLanded, onFreshPasteAnalyzed, setOutcome }))
     );
 
     await act(async () => {
@@ -148,6 +150,8 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     });
 
     expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
+    // Mutually exclusive: the measurement landing branch never fires the wizard-path callback.
+    expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
     expect(result.current.isMapping).toBe(false);
     expect(setOutcome).toHaveBeenCalledWith('Cycle_Time_sec');
   });
@@ -172,13 +176,16 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     expect(result.current.timeExtractionPrompt).toBeNull();
   });
 
-  it('keeps the wizard path for a wide-shaped paste (negative control)', async () => {
+  it('keeps the wizard path for a wide-shaped paste (negative control) + provisions the Untitled project (FSJ-2 §3)', async () => {
     // Precondition: wide-format detected.
     const parsed = await parseText(tsvOf(wideRows));
     expect(detectWideFormat(parsed).isWideFormat).toBe(true);
 
     const onFreshPasteLanded = vi.fn();
-    const { result } = renderHook(() => usePasteImportFlow(makeOptions({ onFreshPasteLanded })));
+    const onFreshPasteAnalyzed = vi.fn();
+    const { result } = renderHook(() =>
+      usePasteImportFlow(makeOptions({ onFreshPasteLanded, onFreshPasteAnalyzed }))
+    );
 
     await act(async () => {
       await result.current.handlePasteAnalyze(tsvOf(wideRows));
@@ -186,10 +193,13 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
 
     expect(result.current.isMapping).toBe(true);
     expect(result.current.wideFormatDetection).not.toBeNull();
+    // Wizard path: the Untitled-project guarantee holds via onFreshPasteAnalyzed,
+    // NOT the measurement landing callback (mutually exclusive — spec §3).
+    expect(onFreshPasteAnalyzed).toHaveBeenCalledTimes(1);
     expect(onFreshPasteLanded).not.toHaveBeenCalled();
   });
 
-  it('keeps the wizard path for a defect-shaped paste (negative control)', async () => {
+  it('keeps the wizard path for a defect-shaped paste (negative control) + provisions the Untitled project (FSJ-2 §3)', async () => {
     // Precondition: defect format at high|medium confidence.
     const parsed = await parseText(tsvOf(defectRows));
     const defect = detectDefectFormat(parsed, detectColumns(parsed).columnAnalysis);
@@ -197,7 +207,10 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     expect(['high', 'medium']).toContain(defect.confidence);
 
     const onFreshPasteLanded = vi.fn();
-    const { result } = renderHook(() => usePasteImportFlow(makeOptions({ onFreshPasteLanded })));
+    const onFreshPasteAnalyzed = vi.fn();
+    const { result } = renderHook(() =>
+      usePasteImportFlow(makeOptions({ onFreshPasteLanded, onFreshPasteAnalyzed }))
+    );
 
     await act(async () => {
       await result.current.handlePasteAnalyze(tsvOf(defectRows));
@@ -205,31 +218,43 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
 
     expect(result.current.isMapping).toBe(true);
     expect(result.current.defectDetection).not.toBeNull();
+    expect(onFreshPasteAnalyzed).toHaveBeenCalledTimes(1);
     expect(onFreshPasteLanded).not.toHaveBeenCalled();
   });
 
-  it('auto-surfaces the mapping for a low-confidence paste (spec §4.1 — never a silent empty landing)', async () => {
+  it('auto-surfaces the mapping for a low-confidence paste (spec §4.1 — never a silent empty landing) + provisions the Untitled project (FSJ-2 §3)', async () => {
     // Precondition: no outcome inferable → confidence 'low'.
     const parsed = await parseText(tsvOf(allCategoricalRows));
     expect(detectColumns(parsed).confidence).toBe('low');
 
     const onFreshPasteLanded = vi.fn();
-    const { result } = renderHook(() => usePasteImportFlow(makeOptions({ onFreshPasteLanded })));
+    const onFreshPasteAnalyzed = vi.fn();
+    const { result } = renderHook(() =>
+      usePasteImportFlow(makeOptions({ onFreshPasteLanded, onFreshPasteAnalyzed }))
+    );
 
     await act(async () => {
       await result.current.handlePasteAnalyze(tsvOf(allCategoricalRows));
     });
 
     expect(result.current.isMapping).toBe(true);
+    // The no-Y floor's primary live trigger: even though no Y is inferable, the
+    // Untitled project IS provisioned so the b0 no-Y banner is reachable (spec §3/§4.1).
+    expect(onFreshPasteAnalyzed).toHaveBeenCalledTimes(1);
     expect(onFreshPasteLanded).not.toHaveBeenCalled();
   });
 
-  it('keeps the pipeline for a match-summary re-dispatch (re-ingestion is not first-session, spec §7)', async () => {
+  it('keeps the pipeline for a match-summary re-dispatch (re-ingestion is not first-session, spec §7) — provisions NEITHER project callback', async () => {
     // A complete active hub routes the paste through the match-summary classifier;
     // accepting a choice re-dispatches via the reingest flag → wizard path, never landing.
+    // Re-ingestion has its own hub — the Untitled-project guarantee does NOT fire here:
+    // neither onFreshPasteLanded NOR onFreshPasteAnalyzed (spec §3/§7).
     const onFreshPasteLanded = vi.fn();
+    const onFreshPasteAnalyzed = vi.fn();
     const { result } = renderHook(() =>
-      usePasteImportFlow(makeOptions({ activeHub: COMPLETE_HUB, onFreshPasteLanded }))
+      usePasteImportFlow(
+        makeOptions({ activeHub: COMPLETE_HUB, onFreshPasteLanded, onFreshPasteAnalyzed })
+      )
     );
 
     await act(async () => {
@@ -239,12 +264,16 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     // The match-summary card is pending (paste was intercepted, not landed).
     expect(result.current.matchSummary).toBeDefined();
     expect(onFreshPasteLanded).not.toHaveBeenCalled();
+    expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
 
     await act(async () => {
       result.current.acceptMatchSummary({ kind: 'append' });
     });
 
+    // Re-dispatch routed through the reingest flag → wizard path, but neither
+    // provisioning callback fires (re-ingestion is not a fresh first-session entry).
     expect(onFreshPasteLanded).not.toHaveBeenCalled();
+    expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
     expect(result.current.isMapping).toBe(true);
   });
 
