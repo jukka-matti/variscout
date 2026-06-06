@@ -4,13 +4,17 @@ import { useState } from 'react';
 export interface GoalBannerProps {
   goal?: string;
   onChange?: (next: string) => void;
+  /**
+   * FSJ-2 (first-session spec §3): opt-in ceremony entry. When set and no goal
+   * exists, renders a quiet start affordance instead of returning null —
+   * the goal narrative's post-paste-gate home. Azure callers omit it (unchanged).
+   */
+  startPrompt?: string;
 }
 
-export function GoalBanner({ goal = '', onChange }: GoalBannerProps) {
+export function GoalBanner({ goal = '', onChange, startPrompt }: GoalBannerProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(goal);
-
-  if (!goal && !editing) return null;
 
   const enterEdit = () => {
     if (!onChange) return;
@@ -28,6 +32,17 @@ export function GoalBanner({ goal = '', onChange }: GoalBannerProps) {
     setDraft(goal);
     setEditing(false);
   };
+
+  if (!goal && !editing) {
+    if (!startPrompt || !onChange) return null;
+    return (
+      <div className="goal-banner" data-testid="goal-banner">
+        <button type="button" onClick={enterEdit} data-testid="goal-banner-start">
+          ＋ {startPrompt}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div

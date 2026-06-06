@@ -23,7 +23,6 @@ import {
   BREAKPOINTS,
   JournalTabView,
   GoalBanner,
-  HubGoalForm,
   OutcomePin,
   StageFiveModal,
   MatchSummaryCard,
@@ -181,7 +180,7 @@ function AppMain() {
   // ── Session (current Hub) ───────────────────────────────────────────────
   // PWA durability is export-only: startup never hydrates an IndexedDB
   // documentSnapshot. Analysts restore work explicitly from .vrs on Home.
-  const { hub: sessionHub, setHub: setSessionHub, goalNarrative, setGoalNarrative } = useSession();
+  const { hub: sessionHub, setHub: setSessionHub } = useSession();
   const activeIPContext = useActiveIPContext(sessionHub);
   const clearScope = useAnalysisScopeStore(s => s.clearScope);
   useClearScopeOnIPSwitch(activeIPContext.activeIP?.id ?? null, clearScope);
@@ -450,8 +449,6 @@ function AppMain() {
     if (rawData.length === 0) {
       setMobileActiveTab('explore');
       panels.showExplore();
-      // Mode B: reset Stage 1 narrative gate so the next paste flow re-asks.
-      setGoalNarrative(null);
     }
   }, [rawData.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -699,11 +696,11 @@ function AppMain() {
     popupRef.current = openFindingsPopout(findings, columnAliases, drillPath);
   }, [findings, columnAliases, drillPath]);
 
-  // Mode B: when ColumnMapping confirms, fold the Stage 1 narrative + Stage 3
-  // Hub-shaped payload (outcomes, primaryScopeDimensions) into the session Hub
-  // so the GoalBanner picks it up immediately. Preserve any pre-existing
-  // sessionHub fields (Mode A.1 restore path) by spreading first.
-  const handleMappingConfirmWithGoal = useCallback(
+  // Mode B: when ColumnMapping confirms, fold the Stage 3 Hub-shaped payload
+  // (outcomes, primaryScopeDimensions) into the session Hub. Goal narrative is
+  // now opt-in via GoalBanner (FSJ-2, spec §3) — the Stage 1 gate is gone.
+  // Preserve any pre-existing sessionHub fields (Mode A.1 restore path).
+  const handleMappingConfirmToHub = useCallback(
     (payload: ColumnMappingConfirmPayload) => {
       // Delegate legacy investigation flow (importFlow still takes the 3-arg form).
       // Derive single-outcome and factors from the Hub-shaped payload.
@@ -730,16 +727,8 @@ function AppMain() {
         deletedAt: null as null,
       };
 
-      const goalNarrativeForHub = goalNarrative && goalNarrative.trim() ? goalNarrative : undefined;
-
       setSessionHub({
         ...base,
-        ...(goalNarrativeForHub
-          ? {
-              name: extractHubName(goalNarrativeForHub) || base.name || 'Untitled hub',
-              processGoal: goalNarrativeForHub,
-            }
-          : {}),
         // Wire outcomes + primaryScopeDimensions into the Hub (resolves slice-1 TODO).
         outcomes: payload.outcomes,
         primaryScopeDimensions: payload.primaryScopeDimensions,
@@ -750,7 +739,7 @@ function AppMain() {
       // the canvas paints so the analyst can capture issue / questions upfront.
       stageFive.openModeB();
     },
-    [importFlow, goalNarrative, sessionHub, setSessionHub, stageFive]
+    [importFlow, sessionHub, setSessionHub, stageFive]
   );
 
   // First-session landing (spec §1, §3): fresh sample entry lands on the
@@ -1258,15 +1247,19 @@ function AppMain() {
         </div>
       )}
 
-      {/* Goal banner — surfaces the Hub processGoal when restored from
-          opt-in persistence (Mode A.1) or set via the framing layer flow.
-          onChange lets the analyst edit the goal inline; updates sessionHub. */}
-      {sessionHub?.processGoal ? (
+      {/* Goal ceremony home (FSJ-2, spec §3): opt-in on the Process tab —
+          relocated off the paste path. Populated banner renders everywhere
+          (unchanged); the empty start-prompt only on the framing surface. */}
+      {sessionHub && (sessionHub.processGoal || panels.activeView === 'frame') ? (
         <GoalBanner
-          goal={sessionHub.processGoal}
+          goal={sessionHub.processGoal ?? ''}
+          startPrompt="Set a process goal…"
           onChange={next => {
             setSessionHub({
               ...sessionHub,
+              // Name-derivation parity with the retired wizard fold: a narrative-
+              // derived name wins over a default; explicit naming is P3 ceremony.
+              name: extractHubName(next) || sessionHub.name || 'Untitled hub',
               processGoal: next,
               updatedAt: Date.now(),
             });
@@ -1395,17 +1388,6 @@ function AppMain() {
                   onStartNewIP={panels.showCharter}
                 />
               </div>
-            ) : importFlow.isMapping && goalNarrative === null ? (
-              // Mode B Stage 1: ask for the process goal narrative before
-              // showing ColumnMapping. The sentinel pattern (null = unasked,
-              // '' = skipped, string = provided) lets us gate exactly once
-              // per import. ColumnMapping internals are unchanged in slice 1.
-              <div className="max-w-2xl mx-auto p-6 w-full">
-                <HubGoalForm
-                  onConfirm={narrative => setGoalNarrative(narrative)}
-                  onSkip={() => setGoalNarrative('')}
-                />
-              </div>
             ) : importFlow.isMapping ? (
               <ColumnMapping
                 columnAnalysis={importFlow.mappingColumnAnalysis}
@@ -1425,7 +1407,7 @@ function AppMain() {
                     : undefined
                 }
                 datasetName={dataFilename || undefined}
-                onConfirm={handleMappingConfirmWithGoal}
+                onConfirm={handleMappingConfirmToHub}
                 onCancel={importFlow.handleMappingCancel}
                 dataQualityReport={dataQualityReport}
                 onViewExcludedRows={panels.openDataTableExcluded}
