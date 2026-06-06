@@ -112,8 +112,9 @@ interface FrameViewProps {
   onFixData?: () => void;
   /**
    * FSJ-3b — column rename handler forwarded from dataFlow. Passed to
-   * OutcomeNoMatchBanner's onRename prop (type contract; actual rename happens
-   * via the "Fix data…" hatch per plan decision 11).
+   * OutcomeNoMatchBanner's onRename prop (type contract). Column rename forwarded
+   * to OutcomeNoMatchBanner; the confirmation UI lives inside the ColumnMapping
+   * re-edit wizard (plan decision 11).
    */
   onRenameColumn?: (oldName: string, alias: string) => void;
 }
@@ -467,6 +468,7 @@ const FrameView: React.FC<FrameViewProps> = ({
   // DataQualityReport carries totalRows/validRows/columnIssues but no pre-computed
   // missing-% by column, so omitting the missingSegment avoids an O(n*m) pass here.
   // The provenance bar shows filename · rows · columns which matches the wireframe.
+  // Azure-specific fallback: 'Pasted Data' (always arrives via paste); PWA uses 'Data' — deliberate divergence.
   const b0Slots = React.useMemo(() => {
     const columnCount = rawData.length > 0 ? Object.keys(rawData[0]).length : 0;
     return {

@@ -923,6 +923,9 @@ describe('FrameView (Azure shell)', () => {
   // directly through the CanvasWorkspace prop capture + the rendered slot DOM.
   // FrameViewB0's actual b0 gate (rawData empty = no b0, rawData non-empty = b0)
   // lives inside CanvasWorkspace (shared-ui, FSJ-2 tested) — not duplicated here.
+  // NOTE: the stub renders noYBanner unconditionally (the real yCandidates.length===0
+  // gate lives in FrameViewB0, FSJ-2 shared-ui tests) — these tests assert
+  // construction + wiring, not the display condition.
   describe('FSJ-3b: b0 landing chrome', () => {
     it('passes b0Slots with provenance line showing source + rows + columns', () => {
       storeStateRef.current = {
@@ -1003,7 +1006,7 @@ describe('FrameView (Azure shell)', () => {
       // renders it unconditionally so we can assert it's wired.
       storeStateRef.current = {
         ...storeStateRef.current,
-        rawData: [{ Category: 'A' }], // all-categorical: no numeric outcome
+        rawData: [{ Category: 'A' }], // data shape irrelevant here — the stub always renders noYBanner
         dataFilename: null,
       };
 
