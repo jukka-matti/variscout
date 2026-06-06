@@ -60,6 +60,7 @@ describe('GoalBanner', () => {
     await userEvent.type(screen.getByRole('textbox'), 'Reduce cycle time');
     await userEvent.click(screen.getByText('Save'));
     expect(onChange).toHaveBeenCalledWith('Reduce cycle time');
+    expect(onChange).toHaveBeenCalledTimes(1);
   });
 
   it('still renders nothing when empty without startPrompt (Azure parity — negative control)', () => {
