@@ -3,6 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { useCanvasHypothesisDrawing } from '../useCanvasHypothesisDrawing';
 import { useHypothesisDrawTool } from '../useHypothesisDrawTool';
 import type { CanvasToolId } from '../useHypothesisDrawTool';
+import { useState } from 'react';
 import type { KeyboardEvent, PointerEvent, RefObject } from 'react';
 import type { ArrowEndpoint } from '../useHypothesisDrawTool';
 
@@ -276,11 +277,15 @@ describe('useCanvasHypothesisDrawing', () => {
 describe('useHypothesisDrawTool + useCanvasHypothesisDrawing composition (Canvas wiring)', () => {
   function useComposedProbe(activeCanvasTool: CanvasToolId) {
     const drawTool = useHypothesisDrawTool({ active: activeCanvasTool === 'draw-hypothesis' });
+    // Stable ref identity, matching production (Canvas uses React.useRef) —
+    // an inline makeSurfaceRef() here would churn handler identities per
+    // render, which the loop fix doesn't depend on but the probe shouldn't add.
+    const [cardSurfaceRef] = useState(() => makeSurfaceRef());
     useCanvasHypothesisDrawing({
       activeCanvasTool,
       disabled: false,
       drawTool,
-      cardSurfaceRef: makeSurfaceRef(),
+      cardSurfaceRef,
       onCanvasToolChange: vi.fn(),
       stepMetricColumns: {},
     });
