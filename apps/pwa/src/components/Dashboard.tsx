@@ -41,7 +41,9 @@ import {
   useTranslation,
   buildBrushCaptureDraft,
   buildBrushDerivedColumn,
+  buildChangepointDerivedColumn,
   buildCategoryPointCaptureDraft,
+  buildEngineSignalCaptureDraft,
   buildProbabilityBandCaptureDraft,
   buildValueBandDerivedColumn,
   applyDerivedFactorToFilters,
@@ -61,6 +63,8 @@ import { Activity } from 'lucide-react';
 import {
   getColumnNames,
   getEtaSquared,
+  getNelsonRule2Sequences,
+  getNelsonRule3Sequences,
   timeLensIndices,
   type SpecLimits,
   type Finding,
@@ -446,6 +450,12 @@ const Dashboard = ({
           captureDraft.source.anchorYMax ?? captureDraft.source.anchorY,
           factorName
         );
+      } else if (captureDraft.entryKind === 'engine-signal') {
+        if (captureDraft.source.chart !== 'ichart') return;
+        const rawChangepointIndex =
+          filteredIndexMap.get(effectiveLensWindow.start + captureDraft.source.anchorX) ??
+          captureDraft.source.anchorX;
+        updatedData = buildChangepointDerivedColumn(rawData, rawChangepointIndex, factorName);
       } else {
         return;
       }
@@ -575,6 +585,40 @@ const Dashboard = ({
     },
     [effectiveOutcome, filters, lensedEffectiveData, rawData, setSelectedPoints, specs]
   );
+
+  const openEngineSignalCaptureDraft = useCallback(() => {
+    if (isDefectMode) return;
+    if (!effectiveOutcome || !stats) return;
+    const values = lensedEffectiveData
+      .map(row => Number(row[effectiveOutcome]))
+      .filter(value => Number.isFinite(value));
+    const rule2Sequences = getNelsonRule2Sequences(values, stats.mean);
+    const rule3Sequences = getNelsonRule3Sequences(values);
+    const signal = rule2Sequences[0]
+      ? {
+          index: rule2Sequences[0].startIndex,
+          label: 'Process shift detected',
+        }
+      : rule3Sequences[0]
+        ? {
+            index: rule3Sequences[0].startIndex,
+            label: 'Trend detected',
+          }
+        : null;
+    if (!signal) return;
+
+    setCaptureDraft(
+      buildEngineSignalCaptureDraft({
+        rows: lensedEffectiveData,
+        outcome: effectiveOutcome,
+        signalLabel: signal.label,
+        changepointIndex: signal.index,
+        activeFilters: filters,
+        specs,
+        existingColumnNames: getColumnNames(rawData),
+      })
+    );
+  }, [effectiveOutcome, filters, isDefectMode, lensedEffectiveData, rawData, specs, stats]);
 
   // Helper to update chart titles (must be before early returns — rules-of-hooks)
   const handleChartTitleChange = useCallback(
@@ -772,6 +816,11 @@ const Dashboard = ({
           defectResult={defectResult}
           defectMapping={defectMapping}
           isDefectMode={isDefectMode}
+          onPinFinding={onPinFinding}
+          onAddChartObservation={onAddChartObservation}
+          findings={_allFindings}
+          onEditFinding={onEditFinding}
+          onDeleteFinding={onDeleteFinding}
         />
       </div>
     );
@@ -932,6 +981,7 @@ const Dashboard = ({
             setParetoFactor(factor);
           }
         }}
+        onInsightCapture={!isDefectMode ? () => openEngineSignalCaptureDraft() : undefined}
         // Embed mode highlight/click
         ichartHighlightClass={getHighlightClass('ichart')}
         onIChartCardClick={() => handleChartWrapperClick('ichart')}

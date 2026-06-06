@@ -26,6 +26,16 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 ## Active investigations
 
+### FSJ capture-card copy needs i18n catalog sweep [LOGGED 2026-06-06]
+
+**Surfaced by:** FSJ-7 capture-card PR 7c.
+
+**Summary:** FSJ-7 intentionally ships the new capture grammar with hardcoded English UI strings for the shared capture card, mobile capture sheet path, and engine-signal chip save flow. That keeps the three-PR feature split focused on behavior, but leaves catalog coverage behind the existing app-wide localization standard.
+
+**Promotion path:** a focused i18n sweep after FSJ-7 lands: add catalog keys for capture-card labels/actions, signal-chip capture copy, and mobile capture affordance copy; then replace the hardcoded literals without changing capture semantics.
+
+**Severity:** low — behavior is correct, but non-English locales will see English in the new capture surfaces until swept.
+
 ### CapabilitySuggestionModal pops over the b0 landing [LOGGED 2026-06-06]
 
 **Surfaced by:** the FSJ-1 chrome walk (PR #307): loading a map-less sample with seeded specs (`?sample=coffee`) lands on the b0 picker — correct — with the "Specification limits detected" modal blocking it.

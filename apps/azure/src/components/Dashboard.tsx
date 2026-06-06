@@ -17,6 +17,11 @@ import {
   useStagedAnalysis,
   useDefectTransform,
   useDefectSummary,
+  buildChangepointDerivedColumn,
+  buildEngineSignalCaptureDraft,
+  applyDerivedFactorToFilters,
+  resolveDerivedFactorName,
+  type CaptureDraft,
 } from '@variscout/hooks';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -27,6 +32,7 @@ import type { UseFilterNavigationReturn } from '../hooks';
 import {
   ErrorBoundary,
   ProcessHealthBar,
+  CaptureCard,
   VerificationCard,
   SegmentedControl,
   NarrativeBar,
@@ -47,7 +53,12 @@ import {
   BREAKPOINTS,
   type ActiveIPScopeLabels,
 } from '@variscout/ui';
-import { getColumnNames, getEtaSquared } from '@variscout/core';
+import {
+  getColumnNames,
+  getEtaSquared,
+  getNelsonRule2Sequences,
+  getNelsonRule3Sequences,
+} from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
@@ -219,6 +230,7 @@ const Dashboard = ({
   const setOutcome = useProjectStore(s => s.setOutcome);
   const rawData = useProjectStore(s => s.rawData);
   const setRawData = useProjectStore(s => s.setRawData);
+  const setFactors = useProjectStore(s => s.setFactors);
   const specs = useProjectStore(s => s.specs);
   const setSpecs = useProjectStore(s => s.setSpecs);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
@@ -243,7 +255,7 @@ const Dashboard = ({
   const selectedPoints = useViewStore(s => s.selectedPoints);
   const clearSelection = useViewStore(s => s.clearTransientSelections);
   const defectMapping = useProjectStore(s => s.defectMapping);
-  const { filteredData } = useFilteredData();
+  const { filteredData, filteredIndexMap } = useFilteredData();
   const lensedSampleCount = useLensedSampleCount();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
@@ -253,6 +265,7 @@ const Dashboard = ({
 
   type AzureAnalysisLensTab = 'probability' | 'distribution';
   const [analysisLensTab, setAnalysisLensTab] = useState<AzureAnalysisLensTab>('probability');
+  const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveMode(analysisMode) === 'defect';
@@ -687,6 +700,85 @@ const Dashboard = ({
     }
   );
 
+  const saveEngineSignalCaptureDraft = useCallback(
+    (captureMode: 'capture' | 'factor-only') => {
+      if (
+        !captureDraft ||
+        captureDraft.entryKind !== 'engine-signal' ||
+        !captureDraft.proposedFactorName ||
+        captureDraft.source.chart !== 'ichart'
+      ) {
+        return;
+      }
+      const factorName = resolveDerivedFactorName(
+        captureDraft.proposedFactorName,
+        getColumnNames(rawData)
+      );
+      const rawChangepointIndex =
+        filteredIndexMap.get(captureDraft.source.anchorX) ?? captureDraft.source.anchorX;
+      setRawData(buildChangepointDerivedColumn(rawData, rawChangepointIndex, factorName));
+      if (!factors.includes(factorName)) {
+        setFactors([...factors, factorName]);
+      }
+      setBoxplotFactor(factorName);
+      setParetoFactor(factorName);
+
+      if (captureMode === 'capture') {
+        onAddChartObservation?.(
+          'ichart',
+          undefined,
+          captureDraft.note,
+          captureDraft.source.anchorX,
+          captureDraft.source.anchorY,
+          {
+            captureMode,
+            activeFilters: applyDerivedFactorToFilters(captureDraft.activeFilters, factorName),
+          }
+        );
+      }
+      setCaptureDraft(null);
+    },
+    [
+      captureDraft,
+      factors,
+      filteredIndexMap,
+      onAddChartObservation,
+      rawData,
+      setBoxplotFactor,
+      setFactors,
+      setParetoFactor,
+      setRawData,
+    ]
+  );
+
+  const openEngineSignalCaptureDraft = useCallback(() => {
+    if (isDefectMode) return;
+    if (!effectiveOutcome || !stats) return;
+    const values = filteredData
+      .map(row => Number(row[effectiveOutcome]))
+      .filter(value => Number.isFinite(value));
+    const rule2Sequences = getNelsonRule2Sequences(values, stats.mean);
+    const rule3Sequences = getNelsonRule3Sequences(values);
+    const signal = rule2Sequences[0]
+      ? { index: rule2Sequences[0].startIndex, label: 'Process shift detected' }
+      : rule3Sequences[0]
+        ? { index: rule3Sequences[0].startIndex, label: 'Trend detected' }
+        : null;
+    if (!signal) return;
+
+    setCaptureDraft(
+      buildEngineSignalCaptureDraft({
+        rows: filteredData,
+        outcome: effectiveOutcome,
+        signalLabel: signal.label,
+        changepointIndex: signal.index,
+        activeFilters: filters,
+        specs,
+        existingColumnNames: getColumnNames(rawData),
+      })
+    );
+  }, [effectiveOutcome, filteredData, filters, isDefectMode, rawData, specs, stats]);
+
   // Create Factor modal state and handlers
   const {
     showCreateFactorModal,
@@ -829,6 +921,18 @@ const Dashboard = ({
             timeColumn={timeColumn}
             onClearSelection={clearSelection}
             onCreateFactor={handleOpenCreateFactorModal}
+          />
+        )}
+
+        {captureDraft && (
+          <CaptureCard
+            draft={captureDraft}
+            onDraftChange={patch =>
+              setCaptureDraft(current => (current ? { ...current, ...patch } : current))
+            }
+            onCapture={() => saveEngineSignalCaptureDraft('capture')}
+            onFactorOnly={() => saveEngineSignalCaptureDraft('factor-only')}
+            onCancel={() => setCaptureDraft(null)}
           />
         )}
 
@@ -1053,6 +1157,7 @@ const Dashboard = ({
                     setParetoFactor(factor);
                   }
                 }}
+                onInsightCapture={!isDefectMode ? () => openEngineSignalCaptureDraft() : undefined}
                 // Azure-specific: Manage Factors button in I-Chart header
                 ichartHeaderExtra={
                   <div className="flex items-center gap-2">

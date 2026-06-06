@@ -75,11 +75,12 @@ export interface UseFindingsOrchestrationReturn {
   handleRestoreFinding: (id: string) => void;
   /** Create a chart observation (Finding with source metadata) */
   handleAddChartObservation: (
-    chartType: 'boxplot' | 'pareto' | 'ichart',
+    chartType: 'boxplot' | 'pareto' | 'ichart' | 'probability',
     categoryKey?: string,
     noteText?: string,
     anchorX?: number,
-    anchorY?: number
+    anchorY?: number,
+    captureOptions?: ChartObservationCaptureOptions
   ) => Finding | void;
   /** Pre-built findings callbacks for Dashboard */
   findingsCallbacks: AzureFindingsCallbacks;
