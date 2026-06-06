@@ -566,6 +566,10 @@ describe('PR-CCJ-G1 Task 8 — Inflection-binning Dashboard integration', () => 
     act(() => {
       fireEvent.click(screen.getByTestId('create-bin-column-button'));
     });
+    expect(screen.getByTestId('capture-card-shell')).toBeInTheDocument();
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Factor only' }));
+    });
 
     // State B: the committed layout shows the bin column name.
     await waitFor(() => {

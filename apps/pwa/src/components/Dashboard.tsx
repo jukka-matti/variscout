@@ -41,6 +41,9 @@ import {
   useTranslation,
   buildBrushCaptureDraft,
   buildBrushDerivedColumn,
+  buildCategoryPointCaptureDraft,
+  buildProbabilityBandCaptureDraft,
+  buildValueBandDerivedColumn,
   applyDerivedFactorToFilters,
   resolveDerivedFactorName,
   type CaptureDraft,
@@ -61,6 +64,7 @@ import {
   timeLensIndices,
   type SpecLimits,
   type Finding,
+  type IChartDataPoint,
 } from '@variscout/core';
 import { resolveMode as resolveModeUtil } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -131,7 +135,7 @@ const Dashboard = ({
   requestedFactor,
   activeIPScope,
 }: DashboardProps) => {
-  const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
+  const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding, onOpenFinding } =
     findingsCallbacks ?? {};
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
@@ -161,6 +165,7 @@ const Dashboard = ({
   const cpkTarget = useProjectStore(s => s.cpkTarget);
   const timeLens = usePreferencesStore(s => s.timeLens);
   const selectedPoints = useViewStore(s => s.selectedPoints);
+  const setSelectedPoints = useViewStore(s => s.setSelectedPoints);
   const clearSelection = useViewStore(s => s.clearTransientSelections);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
@@ -389,7 +394,7 @@ const Dashboard = ({
   useEffect(() => {
     const canMapBrushToFilteredRows = !stageColumn && !isDefectMode;
     if (!effectiveOutcome || selectedPoints.size === 0 || !canMapBrushToFilteredRows) {
-      setCaptureDraft(null);
+      setCaptureDraft(current => (current?.entryKind === 'brush' ? null : current));
       return;
     }
 
@@ -416,21 +421,34 @@ const Dashboard = ({
 
   const saveCaptureDraft = useCallback(
     (captureMode: 'capture' | 'factor-only') => {
-      if (!captureDraft || !captureDraft.proposedFactorName) return;
+      if (!captureDraft || !captureDraft.proposedFactorName || !effectiveOutcome) return;
       const factorName = resolveDerivedFactorName(
         captureDraft.proposedFactorName,
         getColumnNames(rawData)
       );
       if (!factorName) return;
 
-      const rawSelectedIndices = new Set<number>();
-      selectedPoints.forEach(index => {
-        const rawIndex = filteredIndexMap.get(effectiveLensWindow.start + index);
-        if (rawIndex !== undefined) rawSelectedIndices.add(rawIndex);
-      });
-      if (rawSelectedIndices.size === 0) return;
-
-      const updatedData = buildBrushDerivedColumn(rawData, rawSelectedIndices, factorName);
+      let updatedData = rawData;
+      if (captureDraft.entryKind === 'brush') {
+        const rawSelectedIndices = new Set<number>();
+        selectedPoints.forEach(index => {
+          const rawIndex = filteredIndexMap.get(effectiveLensWindow.start + index);
+          if (rawIndex !== undefined) rawSelectedIndices.add(rawIndex);
+        });
+        if (rawSelectedIndices.size === 0) return;
+        updatedData = buildBrushDerivedColumn(rawData, rawSelectedIndices, factorName);
+      } else if (captureDraft.entryKind === 'probability-band') {
+        if (captureDraft.source.chart !== 'probability') return;
+        updatedData = buildValueBandDerivedColumn(
+          rawData,
+          effectiveOutcome,
+          captureDraft.source.anchorY,
+          captureDraft.source.anchorYMax ?? captureDraft.source.anchorY,
+          factorName
+        );
+      } else {
+        return;
+      }
       setRawData(updatedData);
       if (!factors.includes(factorName)) {
         useProjectStore.getState().setFactors([...factors, factorName]);
@@ -452,6 +470,19 @@ const Dashboard = ({
             activeFilters,
           }
         );
+      } else if (captureMode === 'capture' && captureDraft.source.chart === 'probability') {
+        onAddChartObservation?.(
+          'probability',
+          undefined,
+          captureDraft.note,
+          captureDraft.source.anchorX,
+          captureDraft.source.anchorY,
+          {
+            anchorYMax: captureDraft.source.anchorYMax,
+            captureMode,
+            activeFilters,
+          }
+        );
       }
 
       clearSelection();
@@ -460,6 +491,7 @@ const Dashboard = ({
     [
       captureDraft,
       clearSelection,
+      effectiveOutcome,
       effectiveLensWindow.start,
       factors,
       filteredIndexMap,
@@ -470,6 +502,78 @@ const Dashboard = ({
       setParetoFactor,
       setRawData,
     ]
+  );
+
+  const saveCategoryCaptureDraft = useCallback(() => {
+    if (!captureDraft || captureDraft.entryKind !== 'point') return;
+    if (captureDraft.source.chart !== 'boxplot' && captureDraft.source.chart !== 'pareto') return;
+    onAddChartObservation?.(
+      captureDraft.source.chart,
+      captureDraft.source.category,
+      captureDraft.note,
+      undefined,
+      undefined,
+      {
+        captureMode: 'capture',
+        activeFilters: captureDraft.activeFilters,
+      }
+    );
+    setCaptureDraft(null);
+  }, [captureDraft, onAddChartObservation]);
+
+  const openCategoryCaptureDraft = useCallback(
+    (chart: 'boxplot' | 'pareto', factor: string, categoryKey: string) => {
+      if (!effectiveOutcome) return;
+      setCaptureDraft(
+        buildCategoryPointCaptureDraft({
+          chart,
+          factor,
+          categoryKey,
+          outcome: effectiveOutcome,
+          rows: filteredData,
+          activeFilters: filters,
+        })
+      );
+    },
+    [effectiveOutcome, filteredData, filters]
+  );
+
+  const openProbabilityCaptureDraft = useCallback(
+    (point: { value: number; anchorX: number; anchorY: number; anchorYMax: number }) => {
+      if (!effectiveOutcome) return;
+      setCaptureDraft(
+        buildProbabilityBandCaptureDraft({
+          outcome: effectiveOutcome,
+          minValue: point.anchorY,
+          maxValue: point.anchorYMax,
+          rows: filteredData,
+          activeFilters: filters,
+          anchorX: point.anchorX,
+          specs,
+          existingColumnNames: getColumnNames(rawData),
+        })
+      );
+    },
+    [effectiveOutcome, filteredData, filters, rawData, specs]
+  );
+
+  const openIChartPointCaptureDraft = useCallback(
+    (index: number, _point: IChartDataPoint) => {
+      if (!effectiveOutcome) return;
+      const selected = new Set([index]);
+      setSelectedPoints(selected);
+      setCaptureDraft(
+        buildBrushCaptureDraft({
+          rows: lensedEffectiveData,
+          outcome: effectiveOutcome,
+          selectedIndices: selected,
+          activeFilters: filters,
+          specs,
+          existingColumnNames: getColumnNames(rawData),
+        })
+      );
+    },
+    [effectiveOutcome, filters, lensedEffectiveData, rawData, setSelectedPoints, specs]
   );
 
   // Helper to update chart titles (must be before early returns — rules-of-hooks)
@@ -528,7 +632,9 @@ const Dashboard = ({
     {
       id: 'probability',
       label: t('verify.tab.probability'),
-      content: <ProbabilityPlot series={probabilitySeries} />,
+      content: (
+        <ProbabilityPlot series={probabilitySeries} onPointCapture={openProbabilityCaptureDraft} />
+      ),
     },
     {
       id: 'distribution',
@@ -740,8 +846,16 @@ const Dashboard = ({
             onDraftChange={patch =>
               setCaptureDraft(current => (current ? { ...current, ...patch } : current))
             }
-            onCapture={() => saveCaptureDraft('capture')}
-            onFactorOnly={() => saveCaptureDraft('factor-only')}
+            onCapture={() =>
+              captureDraft.entryKind === 'point'
+                ? saveCategoryCaptureDraft()
+                : saveCaptureDraft('capture')
+            }
+            onFactorOnly={
+              captureDraft.proposedFactorName !== undefined
+                ? () => saveCaptureDraft('factor-only')
+                : undefined
+            }
             onCancel={() => {
               clearSelection();
               setCaptureDraft(null);
@@ -878,9 +992,11 @@ const Dashboard = ({
           <ErrorBoundary componentName="I-Chart">
             <IChart
               onPointClick={onPointClick}
+              onPointCapture={openIChartPointCaptureDraft}
               onSpecClick={() => setShowSpecEditor(true)}
               showBranding={false}
               ichartFindings={chartFindings?.ichart}
+              onBrushFindingClick={finding => onOpenFinding?.(finding.id)}
               onCreateObservation={
                 onAddChartObservation
                   ? (ax: number, ay: number) =>
@@ -903,6 +1019,9 @@ const Dashboard = ({
                 showBranding={false}
                 highlightedCategories={boxplotHighlights}
                 onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
+                onCaptureCategory={(factor, key) =>
+                  openCategoryCaptureDraft('boxplot', factor, key)
+                }
                 findings={chartFindings?.boxplot}
                 onEditFinding={onEditFinding}
                 onDeleteFinding={onDeleteFinding}
@@ -933,6 +1052,7 @@ const Dashboard = ({
                 showBranding={false}
                 highlightedCategories={paretoHighlights}
                 onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+                onCaptureCategory={(factor, key) => openCategoryCaptureDraft('pareto', factor, key)}
                 findings={chartFindings?.pareto}
                 onEditFinding={onEditFinding}
                 onDeleteFinding={onDeleteFinding}
@@ -992,7 +1112,10 @@ const Dashboard = ({
                 {focusedChart === 'histogram' && histogramData.length > 0 && stats ? (
                   <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
                 ) : focusedChart === 'probability-plot' && histogramData.length > 0 && stats ? (
-                  <ProbabilityPlot series={probabilitySeries} />
+                  <ProbabilityPlot
+                    series={probabilitySeries}
+                    onPointCapture={openProbabilityCaptureDraft}
+                  />
                 ) : null}
               </DashboardChartCard>
             </FocusedViewOverlay>

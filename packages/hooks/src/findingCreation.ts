@@ -43,7 +43,7 @@ export function buildFindingContext(
  * user changes the lens before revisiting this finding.
  */
 export function buildFindingSource(
-  chartType: 'boxplot' | 'pareto' | 'ichart',
+  chartType: 'boxplot' | 'pareto' | 'ichart' | 'probability',
   categoryKey?: string,
   anchorX?: number,
   anchorY?: number
@@ -51,6 +51,9 @@ export function buildFindingSource(
   const timeLens = usePreferencesStore.getState().timeLens;
   if (chartType === 'ichart') {
     return { chart: 'ichart', anchorX: anchorX ?? 0, anchorY: anchorY ?? 0, timeLens };
+  }
+  if (chartType === 'probability') {
+    return { chart: 'probability', anchorX: anchorX ?? 0, anchorY: anchorY ?? 0, timeLens };
   }
   return { chart: chartType, category: categoryKey ?? '', timeLens };
 }

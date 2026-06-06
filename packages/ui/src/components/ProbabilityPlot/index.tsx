@@ -16,6 +16,13 @@ export interface ProbabilityPlotProps {
   selectedPoints?: Set<number>;
   onSelectionChange?: (indices: Set<number>) => void;
   onChartContextMenu?: (anchorX: number, anchorY: number, seriesKey?: string) => void;
+  onPointCapture?: (point: {
+    value: number;
+    anchorX: number;
+    anchorY: number;
+    anchorYMax: number;
+    seriesKey?: string;
+  }) => void;
   onSeriesHover?: (
     series: ProbabilityPlotSeries | null,
     position: { x: number; y: number }
@@ -41,6 +48,7 @@ export const ProbabilityPlot = ({
   selectedPoints,
   onSelectionChange,
   onChartContextMenu,
+  onPointCapture,
   onSeriesHover,
   showBranding: showBrandingProp,
   brandingText: brandingTextProp,
@@ -64,6 +72,7 @@ export const ProbabilityPlot = ({
       selectedPoints={selectedPoints}
       onSelectionChange={onSelectionChange}
       onChartContextMenu={onChartContextMenu}
+      onPointCapture={onPointCapture}
       onSeriesHover={onSeriesHover}
       overlay={overlay}
     />

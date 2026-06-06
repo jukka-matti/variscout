@@ -49,6 +49,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
   showBranding = true,
   brandingText,
   onBoxClick,
+  onBoxCapture,
   sampleSize,
   onYAxisClick,
   onXAxisClick,
@@ -246,7 +247,9 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                 }
                 onMouseOver={() => showTooltipAtCoords(x + barWidth, yScale(d.median), d)}
                 onMouseLeave={hideTooltip}
-                className={onBoxClick || onBoxContextMenu ? interactionStyles.clickable : ''}
+                className={
+                  onBoxClick || onBoxContextMenu || onBoxCapture ? interactionStyles.clickable : ''
+                }
                 opacity={getOpacity(d.key)}
                 {...getBoxplotA11yProps(
                   d.key,
@@ -257,6 +260,30 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               >
                 {/* Transparent capture rect for better clickability */}
                 <rect x={x - 5} y={0} width={barWidth + 10} height={height} fill="transparent" />
+                {onBoxCapture && (
+                  <g
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Capture ${d.key}`}
+                    data-testid={`boxplot-capture-${d.key}`}
+                    transform={`translate(${x + barWidth - 6}, ${Math.max(8, yScale(d.q3) - 14)})`}
+                    onClick={(event: React.MouseEvent) => {
+                      event.stopPropagation();
+                      onBoxCapture(d.key);
+                    }}
+                    onKeyDown={(event: React.KeyboardEvent) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        onBoxCapture(d.key);
+                      }
+                    }}
+                    className={interactionStyles.clickable}
+                  >
+                    <circle r={6} fill={colors.selected} stroke={chrome.pointStroke} />
+                    <path d="M-2 0h4M0-2v4" stroke={chrome.pointStroke} strokeWidth={1.5} />
+                  </g>
+                )}
 
                 {d.values.length < MIN_BOXPLOT_VALUES ? (
                   <>

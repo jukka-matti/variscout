@@ -55,6 +55,8 @@ interface DataPointsProps {
   t: (key: keyof import('@variscout/core').MessageCatalog) => string;
   /** Click handler for a data point */
   onPointClick?: (index: number, originalIndex?: number) => void;
+  /** Visible capture affordance callback for a data point */
+  onPointCapture?: (index: number, point: IChartDataPoint) => void;
   /** Whether brush selection is enabled */
   enableBrushSelection: boolean;
   /** Index of highlighted point (e.g., from finding navigation) */
@@ -104,6 +106,7 @@ const DataPoints: React.FC<DataPointsProps> = ({
   chrome,
   t,
   onPointClick,
+  onPointCapture,
   enableBrushSelection,
   highlightedPointIndex,
   onSelectionChange,
@@ -303,7 +306,11 @@ const DataPoints: React.FC<DataPointsProps> = ({
                     : chrome.pointStroke
               }
               strokeWidth={strokeWidth}
-              className={onPointClick || enableBrushSelection ? interactionStyles.clickable : ''}
+              className={
+                onPointClick || enableBrushSelection || onPointCapture
+                  ? interactionStyles.clickable
+                  : ''
+              }
               onClick={e => {
                 if (enableBrushSelection && onSelectionChange) {
                   handleBrushPointClick(i, e);
@@ -328,6 +335,33 @@ const DataPoints: React.FC<DataPointsProps> = ({
                 onPointClick ? () => onPointClick(i, d.originalIndex) : undefined
               )}
             />
+            {onPointCapture && (
+              <g
+                role="button"
+                tabIndex={0}
+                aria-label={`Capture observation ${i + 1}`}
+                data-testid={`ichart-capture-point-${i}`}
+                transform={`translate(${xScale(d.x) + 8}, ${yScale(d.y) - 8})`}
+                className={interactionStyles.clickable}
+                onClick={(event: React.MouseEvent) => {
+                  event.stopPropagation();
+                  onPointCapture(d.originalIndex ?? i, d);
+                }}
+                onMouseDown={(event: React.MouseEvent) => {
+                  event.stopPropagation();
+                }}
+                onKeyDown={(event: React.KeyboardEvent) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onPointCapture(d.originalIndex ?? i, d);
+                  }
+                }}
+              >
+                <circle r={5} fill={chartColors.selected} stroke={chrome.pointStroke} />
+                <path d="M-2 0h4M0-2v4" stroke={chrome.pointStroke} strokeWidth={1.25} />
+              </g>
+            )}
           </g>
         );
       })}

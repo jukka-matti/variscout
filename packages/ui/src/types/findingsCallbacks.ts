@@ -2,6 +2,7 @@ import type { Finding, FindingAssignee } from '@variscout/core';
 
 export interface ChartObservationCaptureOptions {
   brushedRange?: { startIdx: number; endIdx: number };
+  anchorYMax?: number;
   activeFilters?: Record<string, (string | number)[]>;
   captureMode?: 'capture' | 'factor-only';
 }
@@ -16,7 +17,7 @@ export interface ChartObservationCaptureOptions {
  */
 export interface FindingsCallbacks {
   onAddChartObservation?: (
-    chartType: 'boxplot' | 'pareto' | 'ichart',
+    chartType: 'boxplot' | 'pareto' | 'ichart' | 'probability',
     categoryKey?: string,
     noteText?: string,
     anchorX?: number,
@@ -25,6 +26,7 @@ export interface FindingsCallbacks {
   ) => Finding | void;
   onEditFinding?: (id: string, text: string) => void;
   onDeleteFinding?: (id: string) => void;
+  onOpenFinding?: (id: string) => void;
   chartFindings?: { boxplot: Finding[]; pareto: Finding[]; ichart: Finding[] };
 }
 

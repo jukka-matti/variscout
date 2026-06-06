@@ -102,7 +102,7 @@ describe('InflectionSidePanel', () => {
       expect(createButton).not.toBeDisabled();
     });
 
-    it('clicking Create commits the binding and transitions to committed layout', async () => {
+    it('routes Create through the capture card factor-only commit', async () => {
       const user = userEvent.setup();
       const patchBindings = vi.fn();
       const { values, sortedValues } = bimodalFixture();
@@ -117,6 +117,8 @@ describe('InflectionSidePanel', () => {
       );
       await user.click(screen.getByTestId('detect-inflections-button'));
       await user.click(screen.getByTestId('create-bin-column-button'));
+      expect(screen.getByTestId('capture-card-shell')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Factor only' }));
       expect(patchBindings).toHaveBeenCalledTimes(1);
       expect(screen.getByText('X_bin')).toBeInTheDocument();
       expect(screen.getByTestId('remove-binning-button')).toBeInTheDocument();
@@ -548,6 +550,8 @@ describe('InflectionSidePanelView (controller-based API)', () => {
     );
     await user.click(screen.getByTestId('detect-inflections-button'));
     await user.click(screen.getByTestId('create-bin-column-button'));
+    expect(screen.getByTestId('capture-card-shell')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Factor only' }));
     expect(patchBindings).toHaveBeenCalledTimes(1);
     expect(screen.getByText('X_bin')).toBeInTheDocument();
   });

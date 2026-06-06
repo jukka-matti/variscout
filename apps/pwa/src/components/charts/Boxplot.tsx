@@ -16,6 +16,7 @@ interface BoxplotProps {
   parentWidth: number;
   parentHeight: number;
   onDrillDown?: (factor: string, value: string) => void;
+  onCaptureCategory?: (factor: string, value: string) => void;
   showBranding?: boolean;
   highlightedCategories?: Record<string, HighlightColor>;
   onContextMenu?: (key: string, event: React.MouseEvent) => void;

@@ -631,7 +631,7 @@ function AppMain() {
   // Chart observation: create a Finding with source metadata
   const handleAddChartObservation = useCallback(
     (
-      chartType: 'boxplot' | 'pareto' | 'ichart',
+      chartType: 'boxplot' | 'pareto' | 'ichart' | 'probability',
       categoryKey?: string,
       noteText?: string,
       anchorX?: number,
@@ -641,6 +641,9 @@ function AppMain() {
       const source = buildFindingSource(chartType, categoryKey, anchorX, anchorY);
       if (source.chart === 'ichart' && captureOptions?.brushedRange) {
         source.brushedRange = captureOptions.brushedRange;
+      }
+      if (source.chart === 'probability' && captureOptions?.anchorYMax !== undefined) {
+        source.anchorYMax = captureOptions.anchorYMax;
       }
       const existing = findDuplicateBySource(findings, source);
       if (existing) {
@@ -663,6 +666,14 @@ function AppMain() {
       return newFinding;
     },
     [filters, drillPath, filteredData, outcome, specs, findings, panels]
+  );
+
+  const handleOpenFinding = useCallback(
+    (id: string) => {
+      panels.setIsFindingsPanelOpen(true);
+      setHighlightedFindingId(id);
+    },
+    [panels]
   );
 
   // Chart findings grouped by chart type for inline annotation display
@@ -1610,6 +1621,7 @@ function AppMain() {
                   chartFindings,
                   onEditFinding: useAnalyzeStore.getState().editFinding,
                   onDeleteFinding: useAnalyzeStore.getState().deleteFinding,
+                  onOpenFinding: handleOpenFinding,
                 }}
                 findings={findings}
               />

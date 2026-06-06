@@ -122,7 +122,7 @@ export interface DashboardLayoutBaseProps {
   chartFindings?: DashboardChartFindings;
   /** Called when user adds an observation from the context menu (chartType + categoryKey) */
   onAddChartObservation?: (
-    chartType: 'boxplot' | 'pareto' | 'ichart',
+    chartType: 'boxplot' | 'pareto' | 'ichart' | 'probability',
     categoryKey?: string,
     noteText?: string,
     anchorX?: number,

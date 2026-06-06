@@ -407,6 +407,8 @@ export type FindingSource =
       chart: 'probability';
       anchorX: number;
       anchorY: number;
+      /** Upper value anchor for probability value bands. */
+      anchorYMax?: number;
       seriesKey?: string;
       timeLens: TimeLens;
     }

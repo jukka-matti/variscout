@@ -11,17 +11,19 @@ import {
 } from '@variscout/hooks';
 import { useChartScale } from '../../hooks/useChartScale';
 import { IChartWrapperBase } from '@variscout/ui';
-import type { Finding, DataRow } from '@variscout/core';
+import type { Finding, DataRow, IChartDataPoint } from '@variscout/core';
 import { resolveCpkTarget } from '@variscout/core/capability';
 
 interface IChartProps {
   parentWidth: number;
   parentHeight: number;
   onPointClick?: (index: number) => void;
+  onPointCapture?: (index: number, point: IChartDataPoint) => void;
   onSpecClick?: (spec: 'usl' | 'lsl' | 'target') => void;
   showBranding?: boolean;
   ichartFindings?: Finding[];
   onCreateObservation?: (anchorX: number, anchorY: number) => void;
+  onBrushFindingClick?: (finding: Finding) => void;
   onEditFinding?: (id: string, text: string) => void;
   onDeleteFinding?: (id: string) => void;
   /** Override filtered data (e.g. defect-transformed rows) */

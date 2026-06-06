@@ -41,10 +41,15 @@ export {
   applyDerivedFactorToFilters,
   buildBrushCaptureDraft,
   buildBrushDerivedColumn,
+  buildCategoryPointCaptureDraft,
+  buildProbabilityBandCaptureDraft,
+  buildValueBandDerivedColumn,
   resolveDerivedFactorName,
   type BrushCaptureDraftInput,
+  type CategoryPointCaptureDraftInput,
   type CaptureDraft,
   type CaptureEntryKind,
+  type ProbabilityBandCaptureDraftInput,
 } from './captureDraft';
 
 // Canvas Chip Drag and Drop

@@ -3,6 +3,9 @@ import {
   applyDerivedFactorToFilters,
   buildBrushCaptureDraft,
   buildBrushDerivedColumn,
+  buildCategoryPointCaptureDraft,
+  buildProbabilityBandCaptureDraft,
+  buildValueBandDerivedColumn,
   resolveDerivedFactorName,
 } from '../captureDraft';
 
@@ -53,5 +56,69 @@ describe('captureDraft', () => {
   it('creates in/out values for selected rows only', () => {
     const nextRows = buildBrushDerivedColumn(rows, new Set([1, 2]), 'obs 2-3');
     expect(nextRows.map(row => row['obs 2-3'])).toEqual(['out', 'in', 'in', 'out']);
+  });
+
+  it('builds a category point draft with the category as an ordinary active filter', () => {
+    const draft = buildCategoryPointCaptureDraft({
+      chart: 'boxplot',
+      factor: 'Step',
+      categoryKey: 'Fill',
+      outcome: 'Cycle_Time',
+      rows,
+      activeFilters: {},
+    });
+
+    expect(draft.entryKind).toBe('point');
+    expect(draft.source).toMatchObject({ chart: 'boxplot', category: 'Fill' });
+    expect(draft.activeFilters).toEqual({ Step: ['Fill'] });
+    expect(draft.conditionLabel).toBe('Step = Fill');
+    expect(draft.evidenceLabel).toBe('mean 45 vs 45 · n=2');
+  });
+
+  it('preserves raw numeric values when chart category keys are strings', () => {
+    const draft = buildCategoryPointCaptureDraft({
+      chart: 'pareto',
+      factor: 'Station',
+      categoryKey: '2',
+      outcome: 'Cycle_Time',
+      rows: [
+        { Cycle_Time: 20, Station: 1 },
+        { Cycle_Time: 40, Station: 2 },
+        { Cycle_Time: 60, Station: 2 },
+      ],
+      activeFilters: {},
+    });
+
+    expect(draft.activeFilters).toEqual({ Station: [2] });
+    expect(draft.conditionLabel).toBe('Station = 2');
+    expect(draft.evidenceLabel).toBe('mean 50 vs 20 · n=2');
+  });
+
+  it('builds a probability band draft and preserves anchorYMax for between derivation', () => {
+    const draft = buildProbabilityBandCaptureDraft({
+      outcome: 'Cycle_Time',
+      minValue: 35,
+      maxValue: 55,
+      activeFilters: { Step: ['Fill'] },
+      rows,
+      anchorX: 0.5,
+    });
+
+    expect(draft.entryKind).toBe('probability-band');
+    expect(draft.source).toMatchObject({
+      chart: 'probability',
+      anchorX: 0.5,
+      anchorY: 35,
+      anchorYMax: 55,
+    });
+    expect(draft.proposedFactorName).toBe('Cycle_Time 35-55');
+    expect(draft.activeFilters).toEqual({ Step: ['Fill'] });
+    expect(draft.conditionLabel).toBe('Step = Fill x Cycle_Time 35-55');
+    expect(draft.evidenceLabel).toBe('mean 45 vs 45 · n=2');
+  });
+
+  it('creates in/out values for probability value bands', () => {
+    const nextRows = buildValueBandDerivedColumn(rows, 'Cycle_Time', 35, 55, 'Cycle_Time 35-55');
+    expect(nextRows.map(row => row['Cycle_Time 35-55'])).toEqual(['out', 'in', 'in', 'out']);
   });
 });

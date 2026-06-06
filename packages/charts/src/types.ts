@@ -18,6 +18,7 @@ import type {
   IChartDataPoint,
   ParetoDataPoint,
   ProbabilityPlotSeries,
+  Finding,
 } from '@variscout/core';
 import type { NodeCapabilityResult } from '@variscout/core/stats';
 import type { HighlightColor } from '@variscout/core/ui-types';
@@ -83,6 +84,12 @@ export interface IChartProps extends BaseChartProps {
   yDomainOverride?: YAxisDomain;
   /** Callback when a point is clicked */
   onPointClick?: (index: number, originalIndex?: number) => void;
+  /** Callback when the visible capture affordance for an I-Chart point is clicked. */
+  onPointCapture?: (index: number, point: IChartDataPoint) => void;
+  /** Saved brush Findings rendered as subtle band tap targets. */
+  brushedFindings?: Finding[];
+  /** Callback when a saved brush band is clicked. */
+  onBrushFindingClick?: (finding: Finding) => void;
   /** Enable brush selection (Minitab-style multi-point selection) */
   enableBrushSelection?: boolean;
   /** Currently selected point indices (for cross-chart sync) */
@@ -133,6 +140,8 @@ export interface BoxplotProps extends BaseChartProps {
   selectedGroups?: string[];
   /** Callback when a box is clicked */
   onBoxClick?: (key: string) => void;
+  /** Callback when the visible capture affordance for a box category is clicked. */
+  onBoxCapture?: (key: string) => void;
   /** Sample size for branding bar */
   sampleSize?: number;
   /** Callback when Y-axis label area is clicked (for editing) */
@@ -196,6 +205,8 @@ export interface ParetoChartProps extends BaseChartProps {
    * that only need the bar key.
    */
   onBarClick?: (key: string, ctx?: BarClickContext) => void;
+  /** Callback when the visible capture affordance for a Pareto bar is clicked. */
+  onBarCapture?: (key: string) => void;
   /** Callback when Y-axis label area is clicked (for editing) */
   onYAxisClick?: () => void;
   /** Callback when X-axis label area is clicked (for editing) */
@@ -244,6 +255,14 @@ export interface ProbabilityPlotProps extends BaseChartProps {
   onSelectionChange?: (indices: Set<number>) => void;
   /** Right-click context menu callback (anchorX 0-1, anchorY 0-1, optional series key) */
   onChartContextMenu?: (anchorX: number, anchorY: number, seriesKey?: string) => void;
+  /** Callback when the visible capture affordance for a probability point is clicked. */
+  onPointCapture?: (point: {
+    value: number;
+    anchorX: number;
+    anchorY: number;
+    anchorYMax: number;
+    seriesKey?: string;
+  }) => void;
   /** Series hover callback for tooltip */
   onSeriesHover?: (
     series: ProbabilityPlotSeries | null,

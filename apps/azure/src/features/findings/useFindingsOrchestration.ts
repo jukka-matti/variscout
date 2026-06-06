@@ -19,7 +19,7 @@ import { useFindingsStore, groupFindingsByChart } from './findingsStore';
 import { usePanelsStore } from '../panels/panelsStore';
 import { usePopoutSync } from './usePopoutSync';
 import type { UseFilterNavigationReturn } from '../../hooks/useFilterNavigation';
-import type { AzureFindingsCallbacks } from '@variscout/ui';
+import type { AzureFindingsCallbacks, ChartObservationCaptureOptions } from '@variscout/ui';
 import type { Finding, FindingSource, SpecLimits, DataRow, ProcessContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 
@@ -180,20 +180,33 @@ export function useFindingsOrchestration({
   // Chart observation: Finding with source metadata
   const handleAddChartObservation = useCallback(
     (
-      chartType: 'boxplot' | 'pareto' | 'ichart',
+      chartType: 'boxplot' | 'pareto' | 'ichart' | 'probability',
       categoryKey?: string,
       noteText?: string,
       anchorX?: number,
-      anchorY?: number
+      anchorY?: number,
+      captureOptions?: ChartObservationCaptureOptions
     ) => {
       const source = buildFindingSource(chartType, categoryKey, anchorX, anchorY);
+      if (source.chart === 'ichart' && captureOptions?.brushedRange) {
+        source.brushedRange = captureOptions.brushedRange;
+      }
+      if (source.chart === 'probability' && captureOptions?.anchorYMax !== undefined) {
+        source.anchorYMax = captureOptions.anchorYMax;
+      }
       const existing = findingsState.findDuplicateSource(source);
       if (existing) {
         usePanelsStore.getState().setFindingsOpen(true);
         useFindingsStore.getState().setHighlightedFindingId(existing.id);
         return;
       }
-      const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
+      const context = buildFindingContext(
+        captureOptions?.activeFilters ?? filters,
+        filteredData,
+        outcome!,
+        specs,
+        drillPath
+      );
       const newFinding = findingsState.addFinding(noteText ?? '', context, source);
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);

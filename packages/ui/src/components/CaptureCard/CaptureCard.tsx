@@ -10,6 +10,7 @@ export interface CaptureCardProps {
   onCapture: () => void;
   onFactorOnly?: () => void;
   onCancel: () => void;
+  showCapture?: boolean;
 }
 
 export function CaptureCard({
@@ -19,9 +20,10 @@ export function CaptureCard({
   onCapture,
   onFactorOnly,
   onCancel,
+  showCapture = true,
 }: CaptureCardProps): React.JSX.Element {
   const cardRef = useRef<HTMLDivElement>(null);
-  const canSaveFactor = draft.proposedFactorName !== undefined && onFactorOnly !== undefined;
+  const canSaveFactor = onFactorOnly !== undefined;
 
   useEffect(() => {
     cardRef.current?.focus();
@@ -113,13 +115,15 @@ export function CaptureCard({
               Factor only
             </button>
           ) : null}
-          <button
-            type="button"
-            onClick={onCapture}
-            className="rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white"
-          >
-            Capture
-          </button>
+          {showCapture ? (
+            <button
+              type="button"
+              onClick={onCapture}
+              className="rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white"
+            >
+              Capture
+            </button>
+          ) : null}
         </div>
       </div>
     </div>
