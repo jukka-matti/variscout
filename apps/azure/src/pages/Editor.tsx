@@ -2424,6 +2424,7 @@ export const Editor: React.FC<EditorProps> = ({
                 ...existing,
                 metadata: { ...existing.metadata, title },
                 ...(issueStatement ? { issueStatement } : {}),
+                updatedAt: Date.now(),
               };
               upsertProject(updated);
               void commitHubChange({
