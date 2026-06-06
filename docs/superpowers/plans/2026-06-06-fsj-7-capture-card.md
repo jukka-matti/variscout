@@ -1,3 +1,15 @@
+---
+tier: ephemeral
+purpose: build
+title: 'FSJ-7 Capture Card Implementation Plan'
+status: active
+date: 2026-06-06
+layer: spec
+related:
+  - docs/superpowers/specs/2026-06-06-first-session-journey-design.md
+  - docs/superpowers/plans/2026-06-06-first-session-journey-master-plan.md
+---
+
 # FSJ-7 Capture Card Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
