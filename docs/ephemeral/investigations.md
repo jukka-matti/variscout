@@ -1541,3 +1541,19 @@ Pre-existing: the wizard's confirm adapter drops `expectedOutcomeNote` (ColumnMa
 ## FSJ-2 b0 microcopy is hardcoded English pending the i18n catalog sweep [LOGGED 2026-06-06]
 
 Provenance line, "Fix data…", "＋ track another outcome", "＋ Set a process goal…" follow the OutcomeNoMatchBanner precedent (MessageCatalog is a closed 32-catalog interface). Sweep them together when the catalogs next open.
+
+## HubCreationFlow: Confirm-with-empty-goal skips Untitled-pair provisioning (Skip provisions) [LOGGED 2026-06-06]
+
+Pre-existing asymmetry surfaced by the FSJ-3a quality review + walk: `handleGoalConfirm` calls `createHubFromGoal` only when `narrative.trim()` is non-empty, while `handleGoalSkip` calls `createHubFromGoal('')` unconditionally — so submitting Stage 1 with an empty textarea reaches ColumnMapping with NO hub, no pair, and the Stage-3 outcomes fold silently skips (gated on `processHubId`). Post-FSJ-3a this is a §3 Untitled-guarantee gap on one wizard path (the PWA closed the equivalent with `onFreshPasteAnalyzed`/`provisionPasteProject` in FSJ-2). **Route to FSJ-3b** — the wizard demotion reworks this flow anyway; until then the Skip button and any non-empty goal provision correctly.
+
+## Azure portfolio auto-redirect race + `?project=` deep-link guard block portfolio reachability [LOGGED 2026-06-06]
+
+FSJ-3a walk finding, pre-existing (3a touched no App routing): the auto-redirect (`App.tsx` "Auto-redirect to portfolio if saved projects exist") runs `listProjects()` once on App mount and stayed on the editor in local dev even with a saved project in Dexie (race or cloud-list path; "1 items pending sync" suggests the dev cloud mock degrades it). Separately, the `?project=` deep-link effect guards on `currentView === 'dashboard'`, so a cold-load deep link can no-op when the initial view is the editor. Net effect: the portfolio Dashboard (and the existing-project open path) can be unreachable in a fresh dev session. Live walk coverage of FSJ-3a's Dashboard New-Hub + existing-project-open steps therefore fell back to unit coverage (`Dashboard.processHub.test.tsx`) + the fenced-branch code verification. Investigate with the Home/collaboration session.
+
+## server.integration.test.ts parallel-isolation flake (405-before-401) [LOGGED 2026-06-06]
+
+FSJ-3a final branch review: one full-suite run failed `POST /api/hub-comments/append returns 401 without auth header` (got 405); passes in isolation on main and the branch, and the suite passed clean on re-run. Mechanism guess: adding test files perturbs parallel scheduling enough to hit a shared-Express/port race (a route hit before its auth middleware registers). Not FSJ-3a's defect. Bisect-on-recurrence per `feedback_pr_ready_check_vitest_hang`.
+
+## `.vrs` import is dead in the Azure UI [LOGGED 2026-06-06]
+
+FSJ-3 grounding: `importFromFile` exists (`apps/azure/src/lib/persistence.ts`) and the portfolio Dashboard has a gated `FileBrowseButton`, but `App.tsx` never passes `onLoadProjectFile`, so the button never renders — there is no live `.vrs` import entry point in Azure. The spec §1 `.vrs`-routes-by-altitude rule therefore has nothing to hook into on Azure; FSJ-3a/3b skip it by design. Revive (wire the prop + land by the altitude rule + R6d unsaved/forkable semantics) when `.vrs` import matters for the Azure SKU.
