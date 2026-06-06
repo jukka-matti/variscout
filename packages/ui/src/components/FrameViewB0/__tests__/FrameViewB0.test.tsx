@@ -192,4 +192,45 @@ describe('FrameViewB0', () => {
     // "not set" message when the user has a target. We check for absence.
     expect(status).not.toBe('spec: not set');
   });
+
+  // ---- FSJ-2 landing slot tests (spec §4.1) --------------------------------
+
+  const numericCandidate = yCandidate('Down_Content_%', [22.4, 21.9, 23.1, 22.7]);
+
+  it('renders the topBar slot above the Y picker', () => {
+    renderB0({ topBar: <div data-testid="prov-bar">Pasted · 30 rows</div> });
+    expect(screen.getByTestId('prov-bar')).toBeInTheDocument();
+    // DOM-order assertion: topBar wrapper must precede the Y picker section
+    const topBarEl = screen.getByTestId('frame-view-b0-top-bar');
+    const yPickerEl = screen.getByTestId('y-picker-section');
+    // Node.DOCUMENT_POSITION_FOLLOWING (4) means yPickerEl follows topBarEl
+    expect(
+      topBarEl.compareDocumentPosition(yPickerEl) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  it('renders the belowYSlot between the Y and X sections', () => {
+    renderB0({
+      belowYSlot: <button data-testid="track-another">＋ track another outcome</button>,
+    });
+    expect(screen.getByTestId('track-another')).toBeInTheDocument();
+  });
+
+  it('renders noYBanner ONLY when there are no Y candidates (spec §4.1 no-numeric-Y guard)', () => {
+    renderB0({ yCandidates: [], noYBanner: <div data-testid="no-y-banner" /> });
+    expect(screen.getByTestId('no-y-banner')).toBeInTheDocument();
+  });
+
+  it('suppresses noYBanner when candidates exist (negative control)', () => {
+    renderB0({ yCandidates: [numericCandidate], noYBanner: <div data-testid="no-y-banner" /> });
+    expect(screen.queryByTestId('no-y-banner')).not.toBeInTheDocument();
+  });
+
+  it('renders identically with no slots (Azure parity — negative control)', () => {
+    renderB0({});
+    expect(screen.getByTestId('frame-view-b0')).toBeInTheDocument();
+    expect(screen.queryByTestId('frame-view-b0-top-bar')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('frame-view-b0-below-y')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('frame-view-b0-no-y-banner')).not.toBeInTheDocument();
+  });
 });

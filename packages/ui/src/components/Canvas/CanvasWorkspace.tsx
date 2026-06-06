@@ -173,6 +173,12 @@ export interface CanvasWorkspaceProps {
    * panelsStore.showExplore())`). PWA leaves this undefined; Azure wires it.
    */
   onChipExploreJump?: (target: ChipNavigationTarget) => void;
+  /**
+   * FSJ-2 b0 landing slots (spec §4.1) — content owned by the app shell
+   * (provenance, "Fix data…" hatch, "+ track another outcome", no-Y banner).
+   * Optional: Azure does not pass them until FSJ-3.
+   */
+  b0Slots?: { topBar?: React.ReactNode; belowY?: React.ReactNode; noYBanner?: React.ReactNode };
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -304,6 +310,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   outcomeSpecs = [],
   onExploreExit,
   onChipExploreJump,
+  b0Slots,
 }) => {
   const { t } = useTranslation();
   const fallbackMap = React.useMemo(() => createEmptyMap(), []);
@@ -1327,6 +1334,9 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           defaultCpkTarget={DEFAULT_CPK_TARGET}
           onConfirmYSpec={handleConfirmYSpec}
           onSeeData={onSeeData}
+          topBar={b0Slots?.topBar}
+          belowYSlot={b0Slots?.belowY}
+          noYBanner={b0Slots?.noYBanner}
         >
           {canvasNode}
         </FrameViewB0>
