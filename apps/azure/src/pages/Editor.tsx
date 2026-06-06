@@ -2416,15 +2416,45 @@ export const Editor: React.FC<EditorProps> = ({
       {isCreateProjectModalOpen && activeHub && currentUser?.email ? (
         <CreateProjectModal
           onSave={({ title, issueStatement }) => {
-            const newIP = createNewIP({
-              hubId: activeHub.id,
-              title,
-              issueStatement,
-              currentUserId: currentUser.email,
-              currentUserDisplayName: currentUser.name,
-            });
-            upsertProject(newIP);
-            activeIPContext.setActiveIP(newIP.id);
+            const existing = activeHub.improvementProject;
+            if (existing && existing.deletedAt === null) {
+              // IM-0a 1:1 guard (FSJ-3a): the Untitled pair already exists — this
+              // ceremony names/frames it; it never mints a second project per hub.
+              const updated: typeof existing = {
+                ...existing,
+                metadata: { ...existing.metadata, title },
+                ...(issueStatement ? { issueStatement } : {}),
+              };
+              upsertProject(updated);
+              void commitHubChange({
+                ...activeHub,
+                improvementProject: updated,
+                updatedAt: Date.now(),
+              }).catch(() => {
+                // Non-blocking — storage failure is logged by the storage service
+              });
+              activeIPContext.setActiveIP(updated.id);
+            } else {
+              const newIP = createNewIP({
+                hubId: activeHub.id,
+                title,
+                issueStatement,
+                currentUserId: currentUser.email,
+                currentUserDisplayName: currentUser.name,
+              });
+              upsertProject(newIP);
+              // FSJ-3a: embed on the hub row — useActiveIPContext derives activeIP
+              // from hub.improvementProject (liveProjects), so a store-only upsert
+              // leaves the Process tab gated (pre-existing gap, fixed here).
+              void commitHubChange({
+                ...activeHub,
+                improvementProject: newIP,
+                updatedAt: Date.now(),
+              }).catch(() => {
+                // Non-blocking — storage failure is logged by the storage service
+              });
+              activeIPContext.setActiveIP(newIP.id);
+            }
             setIsCreateProjectModalOpen(false);
             usePanelsStore.getState().showFrame();
           }}
