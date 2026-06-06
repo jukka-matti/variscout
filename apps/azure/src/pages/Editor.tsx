@@ -117,7 +117,7 @@ import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 import { HubCreationFlow } from '../features/hubCreation';
 import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
-import { activateHubProject } from '../lib/landing';
+import { activateHubProject, landFreshEntryOnProcess } from '../lib/landing';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { AnalyzeWorkspace } from '../components/editor/AnalyzeWorkspace';
 import FrameView from '../components/editor/FrameView';
@@ -997,6 +997,60 @@ export const Editor: React.FC<EditorProps> = ({
     [processContext, setProcessContext, currentUser?.email]
   );
 
+  // FSJ-3a landing (spec §1/§3): fresh sample entry lands on the Process tab
+  // with an ensured + activated Untitled pair, named for the sample. The canvas
+  // self-routes b0 (no map) vs L2 (seeded map — The Bottleneck) downstream.
+  const handleLoadSampleWithLanding = useCallback(
+    async (sample: SampleDataset) => {
+      if (!dataFlow.handleLoadSample(sample)) return;
+      const user = currentUser ?? (await getCurrentUser().catch(() => null));
+      if (!user) return; // pre-auth edge: keep today's no-project behavior
+      landFreshEntryOnProcess(sample.name, {
+        activeHub: activeHub ?? null,
+        registerHub: useUnsavedHubsStore.getState().upsertHub,
+        setProcessHubId: hubId =>
+          setProcessContext({ ...(processContext ?? {}), processHubId: hubId }),
+        showFrame: usePanelsStore.getState().showFrame,
+        user,
+      });
+    },
+    [dataFlow, currentUser, activeHub, processContext, setProcessContext]
+  );
+
+  // Stable ref so the one-shot initialSample effect can call the latest version
+  // without becoming a dependency (mirrors the dataFlowRef pattern above).
+  const handleLoadSampleWithLandingRef = useRef(handleLoadSampleWithLanding);
+  handleLoadSampleWithLandingRef.current = handleLoadSampleWithLanding;
+
+  // FSJ-3a landing (spec §1/§3): manual data entry lands on the Process tab.
+  // Skipped on append (re-ingestion, not first-session — spec §7).
+  const handleManualAnalyzeWithLanding = useCallback(
+    (...args: Parameters<typeof handleManualDataAnalyze>) => {
+      handleManualDataAnalyze(...args);
+      if (dataFlow.appendMode) return; // append = re-ingestion, not first-session
+      void (async () => {
+        const user = currentUser ?? (await getCurrentUser().catch(() => null));
+        if (!user) return;
+        landFreshEntryOnProcess('Untitled project', {
+          activeHub: activeHub ?? null,
+          registerHub: useUnsavedHubsStore.getState().upsertHub,
+          setProcessHubId: hubId =>
+            setProcessContext({ ...(processContext ?? {}), processHubId: hubId }),
+          showFrame: usePanelsStore.getState().showFrame,
+          user,
+        });
+      })();
+    },
+    [
+      handleManualDataAnalyze,
+      dataFlow.appendMode,
+      currentUser,
+      activeHub,
+      processContext,
+      setProcessContext,
+    ]
+  );
+
   // Share handlers
   const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
 
@@ -1203,7 +1257,7 @@ export const Editor: React.FC<EditorProps> = ({
   useEffect(() => {
     if (initialSample && !initialSampleConsumedRef.current) {
       initialSampleConsumedRef.current = true;
-      dataFlowRef.current.handleLoadSample(initialSample);
+      void handleLoadSampleWithLandingRef.current(initialSample);
       // Inject hypotheses for showcase/demo datasets (not in DataContext)
       const hubs = initialSample.config.investigation?.hypotheses;
       if (hubs && hubs.length > 0) {
@@ -1769,7 +1823,7 @@ export const Editor: React.FC<EditorProps> = ({
   if (dataFlow.isManualEntry) {
     return (
       <ManualEntry
-        onAnalyze={handleManualDataAnalyze}
+        onAnalyze={handleManualAnalyzeWithLanding}
         onCancel={dataFlow.handleManualEntryCancel}
         appendMode={dataFlow.appendMode}
         existingConfig={dataFlow.appendMode ? dataFlow.existingConfig : undefined}
@@ -1967,6 +2021,7 @@ export const Editor: React.FC<EditorProps> = ({
             dataFlow={dataFlow}
             loadError={loadError}
             onSharePointFileImport={handleSharePointFileImport}
+            onLoadSample={handleLoadSampleWithLanding}
           />
         ) : outcome ? (
           <>

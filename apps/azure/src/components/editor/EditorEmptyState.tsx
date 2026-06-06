@@ -2,6 +2,7 @@
 import React from 'react';
 import { FileText, PenLine, ClipboardPaste, Database, RefreshCw } from 'lucide-react';
 import { SAMPLES } from '@variscout/data';
+import type { SampleDataset } from '@variscout/data';
 import { FileBrowseButton, type FilePickerResult } from '../FileBrowseButton';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { LoadError } from '../../hooks/useProjectLoader';
@@ -10,12 +11,19 @@ interface EditorEmptyStateProps {
   dataFlow: UseEditorDataFlowReturn;
   loadError: LoadError | null;
   onSharePointFileImport: (items: FilePickerResult[]) => void;
+  /**
+   * FSJ-3a: when provided, sample tile clicks call this instead of
+   * dataFlow.handleLoadSample directly — lets the Editor wrapper run the
+   * landing side-effect (ensure + activate Untitled pair, route to Process tab).
+   */
+  onLoadSample?: (sample: SampleDataset) => void;
 }
 
 export const EditorEmptyState: React.FC<EditorEmptyStateProps> = ({
   dataFlow,
   loadError,
   onSharePointFileImport,
+  onLoadSample,
 }) => {
   return (
     <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-y-auto relative">
@@ -104,7 +112,9 @@ export const EditorEmptyState: React.FC<EditorEmptyStateProps> = ({
                 <button
                   key={sample.urlKey}
                   data-testid={`sample-${sample.urlKey}`}
-                  onClick={() => dataFlow.handleLoadSample(sample)}
+                  onClick={() =>
+                    onLoadSample ? onLoadSample(sample) : dataFlow.handleLoadSample(sample)
+                  }
                   className="text-left p-3 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500/50 rounded-lg transition-all group"
                 >
                   <span className="text-sm font-medium text-content group-hover:text-blue-300 block truncate">
