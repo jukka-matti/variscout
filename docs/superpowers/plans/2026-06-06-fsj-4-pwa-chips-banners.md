@@ -44,12 +44,12 @@ related:
 - Test: `packages/ui/src/components/FrameViewB0/__tests__/FrameViewB0.test.tsx`
 - Test: `packages/ui/src/components/Canvas/__tests__/CanvasWorkspace.test.tsx`
 
-- [ ] Write failing `FrameViewB0` test: controlled `ProcessStepsExpander` callback fires with `true` when the user opens "Add process steps".
-- [ ] Write failing `CanvasWorkspace` regression: seed b0 with viewport `{ currentLevel: 'l1', zoom: 0.2 }`, open the expander, assert L2 authoring content renders instead of L1 system content.
-- [ ] Implement optional `onProcessStepsOpen?: () => void` on `FrameViewB0`, invoked only on open.
-- [ ] In `CanvasWorkspace`, pass a handler that sets/fits the viewport to `l2` for the b0 expander hub before children render.
-- [ ] Run `pnpm --filter @variscout/ui test -- --run FrameViewB0 CanvasWorkspace`.
-- [ ] Commit: `fix(ui): pin b0 process-step expander to L2 authoring`
+- [x] Write failing `FrameViewB0` test: controlled `ProcessStepsExpander` callback fires with `true` when the user opens "Add process steps".
+- [x] Write failing `CanvasWorkspace` regression: seed b0 with viewport `{ currentLevel: 'l1', zoom: 0.2 }`, open the expander, assert L2 authoring content renders instead of L1 system content.
+- [x] Implement optional `onProcessStepsOpen?: () => void` on `FrameViewB0`, invoked only on open.
+- [x] In `CanvasWorkspace`, pass a handler that sets/fits the viewport to `l2` for the b0 expander hub before children render.
+- [x] Run `pnpm --filter @variscout/ui test -- --run FrameViewB0 CanvasWorkspace`.
+- [x] Commit: `fix(ui): pin b0 process-step expander to L2 authoring`
 
 ### Task 1: core step-timestamp pair detection
 
@@ -60,12 +60,12 @@ related:
 - Modify: `packages/core/src/index.ts`
 - Test: `packages/core/src/derived/__tests__/detectStepTimestampPairs.test.ts`
 
-- [ ] Write failing tests for 3 complete date-kind pairs, `_st/_e` suffixes, incomplete pairs ignored, non-date channel columns ignored, deterministic prefix order.
-- [ ] Implement `detectStepTimestampPairs(columnAnalysis)` returning `{ stepName, startColumn, endColumn }[]`.
-- [ ] Share suffix handling with `detectPairedTimingColumns` where practical without changing its public return type.
-- [ ] Export from `@variscout/core` and `@variscout/core/derived`.
-- [ ] Run `pnpm --filter @variscout/core test -- --run detectStepTimestampPairs`.
-- [ ] Commit: `feat(core): detect step timestamp pairs before process steps exist`
+- [x] Write failing tests for 3 complete date-kind pairs, `_st/_e` suffixes, incomplete pairs ignored, non-date channel columns ignored, deterministic prefix order.
+- [x] Implement `detectStepTimestampPairs(columnAnalysis)` returning `{ stepName, startColumn, endColumn }[]`.
+- [x] Share suffix handling with `detectPairedTimingColumns` where practical without changing its public return type.
+- [x] Export from `@variscout/core` and `@variscout/core/derived`.
+- [x] Run `pnpm --filter @variscout/core test -- --run detectStepTimestampPairs`.
+- [x] Commit: `feat(core): detect step timestamp pairs before process steps exist`
 
 ### Task 2: b0 step-timestamp loud banner routes to StepTimingsModal and L2
 
@@ -74,12 +74,12 @@ related:
 - Modify: `packages/ui/src/components/Canvas/CanvasWorkspace.tsx`
 - Test: `packages/ui/src/components/Canvas/__tests__/CanvasWorkspace.test.tsx`
 
-- [ ] Write failing `CanvasWorkspace` test: b0 with paired timestamp columns renders a banner matching the wireframe, and accepting creates steps, opens `StepTimingsModal`, saves detected bindings, and lands at L2 with derived timing chips.
-- [ ] Implement b0 banner when `scope === 'b0'` and `detectStepTimestampPairs(columnAnalysis)` returns at least one pair.
-- [ ] Accept path: create steps from pair names through the existing canonical map authoring path, pin viewport to `l2`, open shipped `StepTimingsModal`; let the modal's own prefill/save path persist timings.
-- [ ] Ensure no false positive for numeric channel columns or one timestamp plus channel siblings.
-- [ ] Run `pnpm --filter @variscout/ui test -- --run CanvasWorkspace`.
-- [ ] Commit: `feat(ui): route b0 step timestamps into step timings flow`
+- [x] Write failing `CanvasWorkspace` test: b0 with paired timestamp columns renders a banner matching the wireframe, and accepting creates steps, opens `StepTimingsModal`, saves detected bindings, and lands at L2 with derived timing chips.
+- [x] Implement b0 banner when `scope === 'b0'` and `detectStepTimestampPairs(columnAnalysis)` returns at least one pair.
+- [x] Accept path: create steps from pair names through the existing canonical map authoring path, pin viewport to `l2`, open shipped `StepTimingsModal`; let the modal's own prefill/save path persist timings.
+- [x] Ensure no false positive for numeric channel columns or one timestamp plus channel siblings.
+- [x] Run `pnpm --filter @variscout/ui test -- --run CanvasWorkspace`.
+- [x] Commit: `feat(ui): route b0 step timestamps into step timings flow`
 
 ### Task 3: PWA quiet time chip + undo, no default Year
 
@@ -90,13 +90,13 @@ related:
 - Test: `apps/pwa/src/hooks/__tests__/usePasteImportFlow.landing.test.ts`
 - Test: `apps/pwa/src/components/views/__tests__/FrameView.b0.integration.test.tsx`
 
-- [ ] Write failing hook test that measurement-shaped paste with `Timestamp` auto-applies Month + DayOfWeek but not Year, and exposes quiet-chip metadata.
-- [ ] Write failing component test that the b0 chip renders, dismiss hides it, and Undo removes derived time columns/factors while leaving raw source data.
-- [ ] Change quiet auto-apply default to `extractYear: false`.
-- [ ] Track derived time columns from auto-apply in `usePasteImportFlow`; expose chip metadata, dismiss, and undo handlers to PWA `FrameView`.
-- [ ] Render the chip in the existing b0 top bar; `Adjust` opens `onFixData`, `Undo` removes auto-derived columns and factors.
-- [ ] Run `pnpm --filter @variscout/pwa test -- --run usePasteImportFlow.landing FrameView.b0.integration`.
-- [ ] Commit: `feat(pwa): show undoable quiet time chip on b0 landing`
+- [x] Write failing hook test that measurement-shaped paste with `Timestamp` auto-applies Month + DayOfWeek but not Year, and exposes quiet-chip metadata.
+- [x] Write failing component test that the b0 chip renders, dismiss hides it, and Undo removes derived time columns/factors while leaving raw source data.
+- [x] Change quiet auto-apply default to `extractYear: false`.
+- [x] Track derived time columns from auto-apply in `usePasteImportFlow`; expose chip metadata, dismiss, and undo handlers to PWA `FrameView`.
+- [x] Render the chip in the existing b0 top bar; `Adjust` opens `onFixData`, `Undo` removes auto-derived columns and factors.
+- [x] Run `pnpm --filter @variscout/pwa test -- --run usePasteImportFlow.landing FrameView.b0.integration`.
+- [x] Commit: `feat(pwa): show undoable quiet time chip on b0 landing`
 
 ### Task 4: suppress capability modal over PWA b0
 
@@ -105,11 +105,11 @@ related:
 - Modify: `apps/pwa/src/App.tsx`
 - Test: `apps/pwa/src/__tests__/App.test.tsx`
 
-- [ ] Write failing App test: with raw data + specs on Process b0, `CapabilitySuggestionModal` is not rendered.
-- [ ] Write negative-control test: once the user leaves b0/Process landing, capability suggestion can still render under the existing criteria.
-- [ ] Add a b0 landing guard to the capability suggestion effect/render; do not alter wide/defect modal behavior.
-- [ ] Run `pnpm --filter @variscout/pwa test -- --run App`.
-- [ ] Commit: `fix(pwa): keep capability suggestion modal off b0 landing`
+- [x] Write failing App test: with raw data + specs on Process b0, `CapabilitySuggestionModal` is not rendered.
+- [x] Write negative-control test: once the user leaves b0/Process landing, capability suggestion can still render under the existing criteria.
+- [x] Add a b0 landing guard to the capability suggestion effect/render; do not alter wide/defect modal behavior.
+- [x] Run `pnpm --filter @variscout/pwa test -- --run App`.
+- [x] Commit: `fix(pwa): keep capability suggestion modal off b0 landing`
 
 ### Task 5: self-review and final verification
 
@@ -117,17 +117,18 @@ related:
 
 - Modify: this plan file, only task checkboxes / self-review notes if useful
 
-- [ ] Review diff for `apps/azure` absence.
-- [ ] Run targeted suites:
+- [x] Review diff for `apps/azure` absence.
+- [x] Run targeted suites:
   - `pnpm --filter @variscout/core test -- --run detectStepTimestampPairs`
   - `pnpm --filter @variscout/ui test -- --run CanvasWorkspace FrameViewB0`
   - `pnpm --filter @variscout/pwa test -- --run usePasteImportFlow FrameView App`
 - [ ] Run final gate: `bash scripts/pr-ready-check.sh`.
-- [ ] PR body must include grounding corrections, task list, test counts, OWNER-CALL-PENDING items, and live-browser checklist against `docs/02-journeys/wireframes/step-timings.md`.
+- [x] PR body must include grounding corrections, task list, test counts, OWNER-CALL-PENDING items, and live-browser checklist against `docs/02-journeys/wireframes/step-timings.md`.
 
 ## Self-Review Notes
 
-- FSJ-4 is PWA-only; `apps/azure` is forbidden.
-- Defect/wide modal retirement is FSJ-5; do not broaden modal work.
-- No OWNER-CALL-PENDING items at plan time.
+- FSJ-4 is PWA-only; `git diff --name-only origin/main...HEAD` contains no `apps/azure` paths.
+- Defect/wide modal retirement remains FSJ-5; FSJ-4 only guards `CapabilitySuggestionModal` while Process is at b0.
+- No OWNER-CALL-PENDING items.
+- Verification completed before final gate: core `detectStepTimestampPairs` (5 tests), UI `CanvasWorkspace FrameViewB0` (83 tests), PWA `usePasteImportFlow FrameView App` (166 tests).
 - Live verification checklist for PR: paste a timestamp-pair dataset, confirm banner, accept, verify StepTimingsModal prefill, save, verify L2 flow/timing badges/derived chips; paste ordinary timestamp data, verify quiet chip/dismiss/undo; verify no capability modal over b0.

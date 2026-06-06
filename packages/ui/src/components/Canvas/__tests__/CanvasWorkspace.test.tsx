@@ -1463,7 +1463,7 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
 
     expect(screen.queryByTestId('step-timings-backdrop')).toBeNull();
     expect(screen.getByTestId('palette-group-derived-timings')).toHaveTextContent('Lead_time');
-    expect(useCanvasViewportStore.getState().getViewport('default').currentLevel).toBe('l2');
+    expect(useCanvasViewportStore.getState().getViewport(h('default')).currentLevel).toBe('l2');
   });
 
   it('does not render the b0 step-timestamp banner for non-date channel pairs', () => {
