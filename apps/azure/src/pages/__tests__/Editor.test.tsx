@@ -738,6 +738,94 @@ describe('Editor', () => {
     expect(await screen.findByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });
 
+  // ── GoalBanner opt-in on the Process tab (FSJ-3b, spec §3) ──
+
+  describe('GoalBanner opt-in on the Process tab (FSJ-3b, spec §3)', () => {
+    it('(a) goal start-prompt renders on the Process tab when an activeHub exists after a paste lands', async () => {
+      // Measurement-shaped paste → onFreshPasteLanded → landFreshEntryOnProcess →
+      // registers hub + sets processHubId + showFrame. GoalBanner mounts with
+      // startPrompt because activeHub exists and processGoal is empty.
+      renderEditor();
+
+      fireEvent.click(screen.getByText('Paste Data'));
+      expect(screen.getByTestId('paste-screen')).toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Analyze'));
+      });
+
+      // Wait for frame routing + async user resolution
+      await waitFor(() => {
+        expect(usePanelsStore.getState().activeView).toBe('frame');
+      });
+
+      // GoalBanner start-prompt must be visible (empty goal + startPrompt prop set)
+      await waitFor(() => {
+        expect(screen.getByTestId('goal-banner-start')).toBeInTheDocument();
+      });
+    });
+
+    it('(b) entering a goal commits processGoal + derived name onto the unsaved hub (Word-style)', async () => {
+      // Setup: navigate to frame with an unsaved hub already registered
+      renderEditor();
+
+      fireEvent.click(screen.getByText('Paste Data'));
+      await act(async () => {
+        fireEvent.click(screen.getByText('Analyze'));
+      });
+      await waitFor(() => {
+        expect(usePanelsStore.getState().activeView).toBe('frame');
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId('goal-banner-start')).toBeInTheDocument();
+      });
+
+      // Open the goal edit form
+      fireEvent.click(screen.getByTestId('goal-banner-start'));
+
+      // GoalBanner enters edit mode — find the textarea inside the goal-banner
+      const goalBanner = screen.getByTestId('goal-banner');
+      const textarea = goalBanner.querySelector('textarea')!;
+      expect(textarea).not.toBeNull();
+      fireEvent.change(textarea, {
+        target: { value: 'We injection-mold polypropylene barrels' },
+      });
+      // Click the Save button within the goal-banner container
+      const saveBtn = Array.from(goalBanner.querySelectorAll('button')).find(b =>
+        /save/i.test(b.textContent ?? '')
+      )!;
+      expect(saveBtn).toBeDefined();
+      fireEvent.click(saveBtn);
+
+      // commitHubChange writes the unsaved hub in-memory (no IDB/cloud write)
+      await waitFor(() => {
+        const hubs = useUnsavedHubsStore.getState().hubs;
+        const hub = hubs[0];
+        expect(hub?.processGoal).toBe('We injection-mold polypropylene barrels');
+        // extractHubName derives the name from the narrative
+        expect(hub?.name).toBe('We injection-mold polypropylene barrels');
+      });
+    });
+
+    it('(c) NEGATIVE: no goal banner when activeView is explore (frame-only surface)', async () => {
+      // Data loaded, explore tab active — GoalBanner must not render there.
+      // The populated GoalBanner on ProcessHubView is a different surface; the
+      // opt-in start-prompt is frame-tab only per spec §3.
+      usePanelsStore.setState({ activeView: 'explore' });
+      renderEditor({
+        rawData: [{ Weight: 10, Machine: 'A' }],
+        outcome: 'Weight',
+        factors: ['Machine'],
+      });
+
+      // Click Explore tab to confirm we are on explore
+      fireEvent.click(screen.getByTestId('workflow-tab-explore'));
+
+      expect(screen.queryByTestId('goal-banner')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('goal-banner-start')).not.toBeInTheDocument();
+    });
+  });
+
   // ── Stage-5 hypothesisDraft → proposed Hypothesis hub (PO-6) ──
 
   describe('Stage-5 hypothesisDraft → proposed Hypothesis hub (PO-6)', () => {

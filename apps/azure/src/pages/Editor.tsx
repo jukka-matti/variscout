@@ -45,6 +45,7 @@ import {
   ImproveTabRoot,
   PendingInvitesBanner,
   CreateProjectModal,
+  GoalBanner,
   deriveActiveIPCanvasFocus,
   deriveActiveIPScopeLabels,
   type ColumnShape,
@@ -63,6 +64,7 @@ import {
   downloadCSV,
   computeBestSubsets,
   evaluateSurvey,
+  extractHubName,
   getColumnNames,
   isControlEligible,
   normalizeProcessHubId,
@@ -2101,6 +2103,24 @@ export const Editor: React.FC<EditorProps> = ({
                     title={activeIPScope.title}
                     labels={activeIPScope.labels}
                     surface="Process"
+                  />
+                ) : null}
+                {/* FSJ-3b (spec §3): goal ceremony opt-in — relocated off the retired
+                    Stage-1 HubGoalForm; the empty start-prompt is the framing surface's
+                    entry point. Populated banner renders when a goal already exists.
+                    Word-style commit: unsaved hubs stay in-memory until an explicit Save. */}
+                {activeHub ? (
+                  <GoalBanner
+                    goal={activeHub.processGoal ?? ''}
+                    startPrompt="Set a process goal…"
+                    onChange={next => {
+                      void commitHubChange({
+                        ...activeHub,
+                        name: extractHubName(next) || activeHub.name || 'Untitled hub',
+                        processGoal: next,
+                        updatedAt: Date.now(),
+                      });
+                    }}
                   />
                 ) : null}
                 <FrameView
