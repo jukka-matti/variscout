@@ -24,7 +24,12 @@ import {
   Send,
   Check,
 } from 'lucide-react';
-import { useEvidenceMapData, buildFactorList } from '@variscout/hooks';
+import {
+  useEvidenceMapData,
+  buildFactorList,
+  buildCategoryPointCaptureDraft,
+  type CaptureDraft,
+} from '@variscout/hooks';
 import { EvidenceMap } from '@variscout/charts';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
@@ -33,6 +38,7 @@ import SpecEditor from './settings/SpecEditor';
 import { AssigneeInput } from './AssigneeInput';
 import {
   AnovaResults,
+  CaptureCard,
   FactorSelector,
   ErrorBoundary,
   FilterBreadcrumb,
@@ -311,6 +317,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   const [categorySheet, setCategorySheet] = useState<MobileCategorySheetData | null>(null);
   const [sheetFactor, setSheetFactor] = useState<string>('');
   const [sheetChartType, setSheetChartType] = useState<'boxplot' | 'pareto'>('boxplot');
+  const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
 
   // Post-pin "Assign & Share" state
   const [pinnedFinding, setPinnedFinding] = useState<Finding | null>(null);
@@ -398,6 +405,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
     setIsSharing(false);
     setShareSuccess(false);
     setShareError(false);
+    setCaptureDraft(null);
   }, []);
 
   // Sheet drill-down: performs the actual drill-down
@@ -421,23 +429,57 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   // If canMentionInChannel, transition to confirm phase instead of closing sheet
   const handleSheetPinFinding = useCallback(
     (noteText: string) => {
-      let finding: Finding | undefined;
-      if (onAddChartObservation && categorySheet) {
-        const result = onAddChartObservation(sheetChartType, categorySheet.categoryKey, noteText);
-        if (result) finding = result;
+      if (onAddChartObservation && categorySheet && outcome) {
+        const draft = buildCategoryPointCaptureDraft({
+          chart: sheetChartType,
+          factor: sheetFactor,
+          categoryKey: categorySheet.categoryKey,
+          outcome,
+          rows: filteredData,
+          activeFilters: filters,
+        });
+        setCaptureDraft({ ...draft, note: noteText });
       } else {
         onPinFinding?.(noteText);
       }
-
-      // Transition to confirm phase if we got a Finding back and can @mention
-      if (finding && canMentionInChannel) {
-        setPinnedFinding(finding);
-        setSheetPhase('confirm');
-        // Don't close the sheet — it transitions to confirm UI
-      }
     },
-    [onPinFinding, onAddChartObservation, categorySheet, sheetChartType, canMentionInChannel]
+    [
+      categorySheet,
+      filteredData,
+      filters,
+      onAddChartObservation,
+      onPinFinding,
+      outcome,
+      sheetChartType,
+      sheetFactor,
+    ]
   );
+
+  const handleCaptureCardSave = useCallback(() => {
+    if (!captureDraft || captureDraft.entryKind !== 'point') return;
+    if (captureDraft.source.chart !== 'boxplot' && captureDraft.source.chart !== 'pareto') return;
+    const result = onAddChartObservation?.(
+      captureDraft.source.chart,
+      captureDraft.source.category,
+      captureDraft.note,
+      undefined,
+      undefined,
+      {
+        captureMode: 'capture',
+        activeFilters: captureDraft.activeFilters,
+      }
+    );
+    const finding = result || undefined;
+    setCaptureDraft(null);
+
+    if (finding && canMentionInChannel) {
+      setPinnedFinding(finding);
+      setSheetPhase('confirm');
+      return;
+    }
+
+    handleSheetClose();
+  }, [canMentionInChannel, captureDraft, handleSheetClose, onAddChartObservation]);
 
   // Assign & Share handler
   const handleAssignAndShare = useCallback(async () => {
@@ -746,11 +788,23 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
         currentHighlight={currentSheetHighlight}
         onDrillDown={handleSheetDrillDown}
         onSetHighlight={handleSheetHighlight}
-        onPinFinding={onPinFinding ? handleSheetPinFinding : undefined}
+        onPinFinding={onAddChartObservation || onPinFinding ? handleSheetPinFinding : undefined}
         onClose={handleSheetClose}
         renderExtra={canMentionInChannel ? renderPostPinFlow : undefined}
         onAskCoScout={onAskCoScout}
       />
+
+      {captureDraft && (
+        <CaptureCard
+          draft={captureDraft}
+          variant="bottom-sheet"
+          onDraftChange={patch =>
+            setCaptureDraft(current => (current ? { ...current, ...patch } : current))
+          }
+          onCapture={handleCaptureCardSave}
+          onCancel={() => setCaptureDraft(null)}
+        />
+      )}
 
       {/* Evidence Map Node Sheet */}
       {nodeSheet && (

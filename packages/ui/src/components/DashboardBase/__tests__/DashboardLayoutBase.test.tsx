@@ -163,6 +163,41 @@ describe('DashboardLayoutBase', () => {
     expect(screen.getByText('3 consecutive points above mean')).toBeDefined();
   });
 
+  it('only makes I-Chart Nelson signal chips capture actions', () => {
+    const onInsightCapture = vi.fn();
+    const warningInsight = {
+      ...mockInsight,
+      chipText: '2 of 50 points outside control limits (4%)',
+      chipType: 'warning' as const,
+    };
+    const { rerender } = render(
+      <DashboardLayoutBase
+        {...baseProps}
+        ichartInsight={warningInsight}
+        onInsightCapture={onInsightCapture}
+      />
+    );
+
+    expect(screen.getByText('2 of 50 points outside control limits (4%)')).not.toHaveAttribute(
+      'role',
+      'button'
+    );
+
+    rerender(
+      <DashboardLayoutBase
+        {...baseProps}
+        ichartInsight={{
+          ...warningInsight,
+          chipText: 'Process shift: 9 points above mean from obs. 4',
+        }}
+        onInsightCapture={onInsightCapture}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Process shift: 9 points above mean from obs. 4'));
+    expect(onInsightCapture).toHaveBeenCalledWith('ichart');
+  });
+
   it('does not duplicate control stats inside the I-Chart header', () => {
     render(<DashboardLayoutBase {...baseProps} />);
     expect(screen.queryByText(/UCL:/)).toBeNull();

@@ -143,6 +143,8 @@ export interface DashboardLayoutBaseProps {
   statsInsight: UseChartInsightsReturn;
   /** Called when user clicks an actionable insight chip (e.g., drill suggestion) */
   onInsightAction?: (factor: string, value?: string) => void;
+  /** Called when user captures an I-Chart deterministic signal chip */
+  onInsightCapture?: (chartType: 'ichart') => void;
 
   // ---- Render slots (app-specific chart content) ----
   renderIChartContent: React.ReactNode;
@@ -251,6 +253,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   paretoInsight: _paretoInsight,
   statsInsight,
   onInsightAction,
+  onInsightCapture,
   renderIChartContent,
   renderBoxplotContent,
   renderParetoContent,
@@ -466,7 +469,9 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
         onAction={
           insight.action && onInsightAction
             ? () => onInsightAction(insight.action!.factor, insight.action!.value)
-            : undefined
+            : onInsightCapture && chartType === 'ichart' && isIChartSignalInsight(insight.chipText)
+              ? () => onInsightCapture(chartType)
+              : undefined
         }
       />
     ) : undefined;
@@ -644,5 +649,9 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
     </div>
   );
 };
+
+function isIChartSignalInsight(chipText: string): boolean {
+  return chipText.startsWith('Process shift:') || chipText.startsWith('Trend detected:');
+}
 
 export default DashboardLayoutBase;

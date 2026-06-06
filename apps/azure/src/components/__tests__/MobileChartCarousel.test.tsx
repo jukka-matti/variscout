@@ -63,6 +63,32 @@ vi.mock('../AssigneeInput', () => ({
 // Mock @variscout/ui components
 vi.mock('@variscout/ui', () => ({
   StatsTabContent: () => <div data-testid="stats-mock">Stats Tab Content</div>,
+  CaptureCard: ({
+    draft,
+    onDraftChange,
+    onCapture,
+    onCancel,
+  }: {
+    draft: { conditionLabel: string; note: string };
+    onDraftChange: (patch: { note?: string }) => void;
+    onCapture: () => void;
+    onCancel: () => void;
+  }) => (
+    <div data-testid="capture-card-mock">
+      <span data-testid="capture-card-condition">{draft.conditionLabel}</span>
+      <textarea
+        data-testid="capture-card-note"
+        value={draft.note}
+        onChange={e => onDraftChange({ note: e.target.value })}
+      />
+      <button data-testid="capture-card-capture" onClick={onCapture}>
+        Capture
+      </button>
+      <button data-testid="capture-card-cancel" onClick={onCancel}>
+        Cancel
+      </button>
+    </div>
+  ),
   ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   FilterBreadcrumb: () => <div data-testid="filter-breadcrumb-mock">Breadcrumb</div>,
   AnovaResults: () => <div data-testid="anova-mock">ANOVA</div>,
@@ -508,7 +534,7 @@ describe('MobileChartCarousel', () => {
     expect(onPinFinding).toHaveBeenCalledWith('test note');
   });
 
-  it('passes noteText through to onAddChartObservation (bug fix)', () => {
+  it('opens the shared capture card before saving a mobile chart observation', () => {
     const onAddChartObservation = vi.fn();
     const onPinFinding = vi.fn();
     render(
@@ -523,13 +549,59 @@ describe('MobileChartCarousel', () => {
     fireEvent.click(screen.getByLabelText('Next chart'));
     fireEvent.click(screen.getByTestId('boxplot-tap'));
 
-    // Pin finding via sheet (mock sends 'test note')
+    // Pin opens the shared capture card instead of saving directly.
     fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+    expect(onAddChartObservation).not.toHaveBeenCalled();
+    expect(screen.getByTestId('capture-card-mock')).toBeInTheDocument();
+    expect(screen.getByTestId('capture-card-condition')).toHaveTextContent('Machine = A');
 
-    // Should call onAddChartObservation WITH the note text
-    expect(onAddChartObservation).toHaveBeenCalledWith('boxplot', 'A', 'test note');
+    fireEvent.change(screen.getByTestId('capture-card-note'), {
+      target: { value: 'shared card note' },
+    });
+    fireEvent.click(screen.getByTestId('capture-card-capture'));
+
+    expect(onAddChartObservation).toHaveBeenCalledWith(
+      'boxplot',
+      'A',
+      'shared card note',
+      undefined,
+      undefined,
+      {
+        captureMode: 'capture',
+        activeFilters: { Machine: ['A'] },
+      }
+    );
     // Should NOT fall through to onPinFinding
     expect(onPinFinding).not.toHaveBeenCalled();
+  });
+
+  it('offers mobile chart capture when only chart observation callbacks are provided', () => {
+    const onAddChartObservation = vi.fn();
+    render(
+      <MobileChartCarousel
+        {...defaultProps}
+        onPinFinding={undefined}
+        findingsCallbacks={{ onAddChartObservation }}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+    fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+
+    expect(screen.getByTestId('capture-card-mock')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('capture-card-capture'));
+    expect(onAddChartObservation).toHaveBeenCalledWith(
+      'boxplot',
+      'A',
+      'test note',
+      undefined,
+      undefined,
+      {
+        captureMode: 'capture',
+        activeFilters: { Machine: ['A'] },
+      }
+    );
   });
 
   it('shows highlights on boxplot categories', () => {
@@ -580,6 +652,7 @@ describe('MobileChartCarousel', () => {
     fireEvent.click(screen.getByLabelText('Next chart'));
     fireEvent.click(screen.getByTestId('boxplot-tap'));
     fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+    fireEvent.click(screen.getByTestId('capture-card-capture'));
 
     // Should show confirm phase (post-pin flow)
     expect(screen.getByTestId('post-pin-flow')).toBeInTheDocument();
@@ -617,6 +690,7 @@ describe('MobileChartCarousel', () => {
     fireEvent.click(screen.getByLabelText('Next chart'));
     fireEvent.click(screen.getByTestId('boxplot-tap'));
     fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+    fireEvent.click(screen.getByTestId('capture-card-capture'));
 
     // Select a person via mock AssigneeInput
     fireEvent.click(screen.getByTestId('assignee-input-mock'));
@@ -657,6 +731,7 @@ describe('MobileChartCarousel', () => {
     fireEvent.click(screen.getByLabelText('Next chart'));
     fireEvent.click(screen.getByTestId('boxplot-tap'));
     fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+    fireEvent.click(screen.getByTestId('capture-card-capture'));
     fireEvent.click(screen.getByTestId('share-to-channel'));
 
     await vi.waitFor(() => {
@@ -689,6 +764,7 @@ describe('MobileChartCarousel', () => {
     fireEvent.click(screen.getByLabelText('Next chart'));
     fireEvent.click(screen.getByTestId('boxplot-tap'));
     fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+    fireEvent.click(screen.getByTestId('capture-card-capture'));
     fireEvent.click(screen.getByTestId('share-to-channel'));
 
     await vi.waitFor(() => {
@@ -720,6 +796,7 @@ describe('MobileChartCarousel', () => {
     fireEvent.click(screen.getByLabelText('Next chart'));
     fireEvent.click(screen.getByTestId('boxplot-tap'));
     fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+    fireEvent.click(screen.getByTestId('capture-card-capture'));
 
     // Confirm phase shown
     expect(screen.getByTestId('post-pin-flow')).toBeInTheDocument();

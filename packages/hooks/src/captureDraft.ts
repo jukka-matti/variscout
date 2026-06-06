@@ -48,6 +48,16 @@ export interface ProbabilityBandCaptureDraftInput {
   existingColumnNames?: string[];
 }
 
+export interface EngineSignalCaptureDraftInput {
+  rows: DataRow[];
+  outcome: string;
+  signalLabel: string;
+  changepointIndex: number;
+  activeFilters: Record<string, (string | number)[]>;
+  specs?: SpecLimits;
+  existingColumnNames?: string[];
+}
+
 function selectedBounds(selectedIndices: Set<number>): { startIdx: number; endIdx: number } {
   const sorted = Array.from(selectedIndices).sort((a, b) => a - b);
   return { startIdx: sorted[0] ?? 0, endIdx: sorted[sorted.length - 1] ?? 0 };
@@ -174,6 +184,17 @@ export function buildValueBandDerivedColumn(
   });
 }
 
+export function buildChangepointDerivedColumn(
+  rows: DataRow[],
+  changepointIndex: number,
+  factorName: string
+): DataRow[] {
+  return rows.map((row, index) => ({
+    ...row,
+    [factorName]: index >= changepointIndex ? 'after' : 'before',
+  }));
+}
+
 export function buildBrushCaptureDraft({
   rows,
   outcome,
@@ -208,6 +229,45 @@ export function buildBrushCaptureDraft({
     proposedFactorName,
     conditionLabel,
     evidenceLabel: evidenceContrastLabel(rows, outcome, selectedIndices, specs),
+    note: '',
+  };
+}
+
+export function buildEngineSignalCaptureDraft({
+  rows,
+  outcome,
+  signalLabel,
+  changepointIndex,
+  activeFilters,
+  specs,
+  existingColumnNames,
+}: EngineSignalCaptureDraftInput): CaptureDraft {
+  const clampedIndex = Math.max(0, Math.min(rows.length - 1, changepointIndex));
+  const selectedIndices = selectedIndicesWhere(rows, (_row, index) => index >= clampedIndex);
+  const proposedFactorName = resolveDerivedFactorName(
+    `signal after obs ${clampedIndex + 1}`,
+    existingColumnNames ?? []
+  );
+  const filterLabel = formatActiveFilters(activeFilters);
+  const anchorY = Number(rows[clampedIndex]?.[outcome]);
+
+  return {
+    entryKind: 'engine-signal',
+    source: {
+      chart: 'ichart',
+      anchorX: clampedIndex,
+      anchorY: Number.isFinite(anchorY) ? anchorY : 0,
+      timeLens: usePreferencesStore.getState().timeLens,
+    },
+    activeFilters,
+    proposedFactorName,
+    conditionLabel: [filterLabel, proposedFactorName].filter(Boolean).join(' x '),
+    evidenceLabel: `${signalLabel} · ${evidenceContrastLabel(
+      rows,
+      outcome,
+      selectedIndices,
+      specs
+    )}`,
     note: '',
   };
 }

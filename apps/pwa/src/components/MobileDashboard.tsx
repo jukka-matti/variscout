@@ -8,7 +8,13 @@ import {
   TrendingUp,
   GitBranch,
 } from 'lucide-react';
-import { useTranslation, useEvidenceMapData, useDefectEvidenceMap } from '@variscout/hooks';
+import {
+  useTranslation,
+  useEvidenceMapData,
+  useDefectEvidenceMap,
+  buildCategoryPointCaptureDraft,
+  type CaptureDraft,
+} from '@variscout/hooks';
 import type { DefectMapView } from '@variscout/hooks';
 import { EvidenceMap } from '@variscout/charts';
 import IChart from './charts/IChart';
@@ -17,6 +23,7 @@ import ParetoChart from './charts/ParetoChart';
 import ProcessIntelligencePanel from './ProcessIntelligencePanel';
 import {
   AnovaResults,
+  CaptureCard,
   ErrorBoundary,
   FactorSelector,
   FilterBreadcrumb,
@@ -35,6 +42,7 @@ import {
 import type { StatsResult, AnovaResult, DataRow, Finding } from '@variscout/core';
 import type { DefectTransformResult, DefectMapping } from '@variscout/core';
 import type { FilterChipData } from '@variscout/ui';
+import type { ChartObservationCaptureOptions } from '@variscout/ui';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'map';
 
@@ -66,6 +74,14 @@ interface MobileDashboardProps {
   onToggleParetoAggregation?: () => void;
   // Findings integration
   onPinFinding?: (text: string, chartType?: string, category?: string) => void;
+  onAddChartObservation?: (
+    chartType: 'boxplot' | 'pareto' | 'ichart' | 'probability',
+    categoryKey?: string,
+    noteText?: string,
+    anchorX?: number,
+    anchorY?: number,
+    captureOptions?: ChartObservationCaptureOptions
+  ) => void;
   findings?: Finding[];
   onEditFinding?: (id: string, text: string) => void;
   onDeleteFinding?: (id: string) => void;
@@ -99,6 +115,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   paretoAggregation = 'count',
   onToggleParetoAggregation,
   onPinFinding,
+  onAddChartObservation,
   findings,
   onEditFinding,
   onDeleteFinding,
@@ -245,6 +262,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
     etaSquaredPct?: number;
   } | null>(null);
   const [sheetFactor, setSheetFactor] = useState('');
+  const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
 
   const handleBoxplotDrillIntercept = useCallback((factor: string, value: string) => {
     setSheetFactor(factor);
@@ -271,17 +289,40 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
 
   const handleSheetPinFinding = useCallback(
     (noteText: string) => {
-      if (onPinFinding && sheetData) {
-        onPinFinding(
-          noteText || `${sheetData.categoryKey} (${sheetData.chartType})`,
-          sheetData.chartType,
-          sheetData.categoryKey
-        );
+      if (onAddChartObservation && sheetData && outcome) {
+        const draft = buildCategoryPointCaptureDraft({
+          chart: sheetData.chartType,
+          factor: sheetFactor,
+          categoryKey: sheetData.categoryKey,
+          outcome,
+          rows: filteredData,
+          activeFilters: filters,
+        });
+        setCaptureDraft({ ...draft, note: noteText });
+      } else if (onPinFinding && sheetData) {
+        onPinFinding(noteText || `${sheetData.categoryKey} (${sheetData.chartType})`);
       }
       setSheetData(null);
     },
-    [onPinFinding, sheetData]
+    [filteredData, filters, onAddChartObservation, onPinFinding, outcome, sheetData, sheetFactor]
   );
+
+  const saveCaptureDraft = useCallback(() => {
+    if (!captureDraft || captureDraft.entryKind !== 'point') return;
+    if (captureDraft.source.chart !== 'boxplot' && captureDraft.source.chart !== 'pareto') return;
+    onAddChartObservation?.(
+      captureDraft.source.chart,
+      captureDraft.source.category,
+      captureDraft.note,
+      undefined,
+      undefined,
+      {
+        captureMode: 'capture',
+        activeFilters: captureDraft.activeFilters,
+      }
+    );
+    setCaptureDraft(null);
+  }, [captureDraft, onAddChartObservation]);
 
   const views: { key: ChartView; label: string; icon: React.ReactNode }[] = useMemo(() => {
     const base: { key: ChartView; label: string; icon: React.ReactNode }[] = [
@@ -536,9 +577,21 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
         factor={sheetFactor}
         onDrillDown={handleSheetDrillDown}
         onSetHighlight={() => {}} // PWA: highlights not persisted
-        onPinFinding={handleSheetPinFinding}
+        onPinFinding={onAddChartObservation || onPinFinding ? handleSheetPinFinding : undefined}
         onClose={() => setSheetData(null)}
       />
+
+      {captureDraft && (
+        <CaptureCard
+          draft={captureDraft}
+          variant="bottom-sheet"
+          onDraftChange={patch =>
+            setCaptureDraft(current => (current ? { ...current, ...patch } : current))
+          }
+          onCapture={saveCaptureDraft}
+          onCancel={() => setCaptureDraft(null)}
+        />
+      )}
 
       {/* Evidence Map Node Sheet */}
       {nodeSheet && (

@@ -3,7 +3,9 @@ import {
   applyDerivedFactorToFilters,
   buildBrushCaptureDraft,
   buildBrushDerivedColumn,
+  buildChangepointDerivedColumn,
   buildCategoryPointCaptureDraft,
+  buildEngineSignalCaptureDraft,
   buildProbabilityBandCaptureDraft,
   buildValueBandDerivedColumn,
   resolveDerivedFactorName,
@@ -120,5 +122,36 @@ describe('captureDraft', () => {
   it('creates in/out values for probability value bands', () => {
     const nextRows = buildValueBandDerivedColumn(rows, 'Cycle_Time', 35, 55, 'Cycle_Time 35-55');
     expect(nextRows.map(row => row['Cycle_Time 35-55'])).toEqual(['out', 'in', 'in', 'out']);
+  });
+
+  it('builds an engine signal draft with a changepoint factor', () => {
+    const draft = buildEngineSignalCaptureDraft({
+      rows,
+      outcome: 'Cycle_Time',
+      signalLabel: 'Process shift detected',
+      changepointIndex: 2,
+      activeFilters: { Step: ['Fill'] },
+      existingColumnNames: ['Cycle_Time', 'Step'],
+    });
+
+    expect(draft.entryKind).toBe('engine-signal');
+    expect(draft.source).toMatchObject({
+      chart: 'ichart',
+      anchorX: 2,
+      anchorY: 50,
+    });
+    expect(draft.proposedFactorName).toBe('signal after obs 3');
+    expect(draft.conditionLabel).toBe('Step = Fill x signal after obs 3');
+    expect(draft.evidenceLabel).toBe('Process shift detected · mean 55 vs 35 · n=2');
+  });
+
+  it('creates before/after values for changepoint signals', () => {
+    const nextRows = buildChangepointDerivedColumn(rows, 2, 'signal after obs 3');
+    expect(nextRows.map(row => row['signal after obs 3'])).toEqual([
+      'before',
+      'before',
+      'after',
+      'after',
+    ]);
   });
 });

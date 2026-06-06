@@ -41,7 +41,9 @@ export {
   applyDerivedFactorToFilters,
   buildBrushCaptureDraft,
   buildBrushDerivedColumn,
+  buildChangepointDerivedColumn,
   buildCategoryPointCaptureDraft,
+  buildEngineSignalCaptureDraft,
   buildProbabilityBandCaptureDraft,
   buildValueBandDerivedColumn,
   resolveDerivedFactorName,
@@ -49,6 +51,7 @@ export {
   type CategoryPointCaptureDraftInput,
   type CaptureDraft,
   type CaptureEntryKind,
+  type EngineSignalCaptureDraftInput,
   type ProbabilityBandCaptureDraftInput,
 } from './captureDraft';
 
