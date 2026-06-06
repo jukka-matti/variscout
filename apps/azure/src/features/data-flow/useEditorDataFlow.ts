@@ -80,6 +80,7 @@ export type EditorFlowAction =
   | { type: 'START_APPEND_PASTE' }
   | { type: 'PASTE_ERROR'; error: string }
   | { type: 'PASTE_ANALYZED' }
+  | { type: 'PASTE_LANDED' }
   | { type: 'CANCEL_PASTE' }
   | { type: 'START_MANUAL_ENTRY' }
   | { type: 'START_APPEND_MANUAL' }
@@ -130,6 +131,10 @@ export function editorFlowReducer(
       return { ...state, pasteError: action.error };
     case 'PASTE_ANALYZED':
       return { ...state, isPasteMode: false, isMapping: true };
+    // FSJ-3b (spec §4.1): a measurement-shaped fresh paste lands directly at b0 —
+    // the ColumnMapping vestibule never opens (Y/X were written before dispatch).
+    case 'PASTE_LANDED':
+      return { ...state, isPasteMode: false, isMapping: false, isMappingReEdit: false };
     case 'CANCEL_PASTE':
       return { ...state, isPasteMode: false, appendMode: false, pasteError: null };
     case 'START_MANUAL_ENTRY':
@@ -230,6 +235,15 @@ export interface UseEditorDataFlowOptions {
   processFile: (file: File) => Promise<boolean>;
   loadSample: (sample: SampleDataset) => void;
   applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
+  /** FSJ-3b (spec §4.1): fired when a fresh measurement-shaped paste lands
+   *  without the mapping vestibule. Editor wires it to the Process-tab landing. */
+  onFreshPasteLanded?: () => void;
+  /** FSJ-3b (spec §3): fired when a fresh paste enters the WIZARD path
+   *  (detection-shaped / low confidence). Editor wires it to provision-only
+   *  (ensure + activate, no route) — the Untitled guarantee for every fresh
+   *  paste, retiring Stage-1's provisioning role. Mutually exclusive with
+   *  onFreshPasteLanded; neither fires on re-ingest. */
+  onFreshPasteAnalyzed?: () => void;
 }
 
 export interface UseEditorDataFlowReturn {
@@ -341,6 +355,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     processFile: processFileFromPicker,
     loadSample,
     applyTimeExtraction,
+    onFreshPasteLanded,
+    onFreshPasteAnalyzed,
   } = options;
 
   const [flowState, dispatch] = useReducer(editorFlowReducer, initialFlowState);
@@ -439,7 +455,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
    * (re-dispatch after user confirms match-summary choice).
    */
   const _proceedWithParsedData = useCallback(
-    (data: DataRow[]) => {
+    (data: DataRow[], opts?: { reingest?: boolean }) => {
       setRawData(data);
       setDataFilename('Pasted Data');
 
@@ -450,12 +466,39 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       const report = validateData(data, detected.outcome ? [detected.outcome] : []);
       setDataQualityReport(report);
 
-      // Check for defect format before falling back to wide/standard
       const defectResult = detectDefectFormat(data, detected.columnAnalysis);
+      const wideFormat = detectWideFormat(data);
+
+      // FSJ-3b (spec §4.1/§4.2a): measurement-shaped fresh pastes skip the
+      // ColumnMapping vestibule and land at b0 pre-filled (Y/X written above).
+      // Kept on today's wizard path: ANY defect detection (Azure's modal has no
+      // confidence filter — preserving today's routing exactly; PWA gates on
+      // high|medium), wide shape (the ≥3-channel silent performance auto-apply
+      // stays untouched), low confidence (= no Y inferable — the mapping surface
+      // auto-surfaces), and re-ingest (not first-session, spec §7).
+      const landsAtB0 =
+        !opts?.reingest &&
+        !defectResult.isDefectFormat &&
+        !wideFormat.isWideFormat &&
+        detected.confidence !== 'low';
+
+      if (landsAtB0) {
+        // Quiet-tier interim (spec §4.2): auto-apply time extraction with the
+        // current defaults; the adjust/undo chip arrives with FSJ-6.
+        if (detected.timeColumn) {
+          // FSJ-6 note: config is read at paste time; the adjust/undo chip must call applyTimeExtraction directly, not re-run this pipeline.
+          applyTimeExtraction(detected.timeColumn, timeExtractionConfig);
+        }
+        setTimeExtractionPrompt(null);
+        dispatch({ type: 'PASTE_LANDED' });
+        onFreshPasteLanded?.();
+        return;
+      }
+
+      // Check for defect format before falling back to wide/standard
       if (defectResult.isDefectFormat) {
         setDefectDetection(defectResult);
       } else {
-        const wideFormat = detectWideFormat(data);
         if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
           setMeasureColumns(wideFormat.channels.map(c => c.id));
           setMeasureLabel('Channel');
@@ -479,6 +522,12 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       }
 
       dispatch({ type: 'PASTE_ANALYZED' });
+
+      // FSJ-3b (spec §3): the Untitled-project guarantee holds on the wizard path
+      // too. Fire ONLY for fresh entries — re-ingestion has its own hub and must
+      // never provision. Provisions WITHOUT routing (Editor wires this to
+      // ensure + activate; the wizard owns the screen).
+      if (!opts?.reingest) onFreshPasteAnalyzed?.();
     },
     [
       setRawData,
@@ -489,6 +538,10 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       setMeasureColumns,
       setMeasureLabel,
       setAnalysisMode,
+      applyTimeExtraction,
+      timeExtractionConfig,
+      onFreshPasteLanded,
+      onFreshPasteAnalyzed,
     ]
   );
 
@@ -633,7 +686,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           });
 
           dispatch({ type: 'START_PASTE' });
-          _proceedWithParsedData(ms.newRows);
+          // FSJ-3b: re-ingestion through the match-summary cascade is not a fresh
+          // first-session entry — keep the wizard path; never land, never provision.
+          _proceedWithParsedData(ms.newRows, { reingest: true });
           return;
         }
 
@@ -709,7 +764,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
             }
 
             dispatch({ type: 'START_PASTE' });
-            _proceedWithParsedData(merged);
+            // FSJ-3b: re-ingestion (overlap-replace) — wizard path, no land/provision.
+            _proceedWithParsedData(merged, { reingest: true });
           } else {
             // overlapRange absent when classifyPaste could not determine the overlap window
             // (no time column, or no prior snapshots) — fall back to replacing the full
@@ -750,7 +806,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
             }
 
             dispatch({ type: 'START_PASTE' });
-            _proceedWithParsedData(ms.newRows);
+            // FSJ-3b: re-ingestion (overlap-replace fallback) — wizard path, no land/provision.
+            _proceedWithParsedData(ms.newRows, { reingest: true });
           }
           return;
         }
@@ -762,7 +819,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         case 'overlap-keep-both':
           // Re-enter paste mode momentarily so the pipeline dispatch lands cleanly.
           dispatch({ type: 'START_PASTE' });
-          _proceedWithParsedData(ms.newRows);
+          // FSJ-3b: re-ingestion (passthrough choices) — wizard path, no land/provision.
+          _proceedWithParsedData(ms.newRows, { reingest: true });
           return;
       }
     },
@@ -905,25 +963,12 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
   // Handle column mapping cancel
   const handleMappingCancel = useCallback(() => {
-    if (flowState.isMappingReEdit) {
-      dispatch({ type: 'CANCEL_MAPPING' });
-      return;
-    }
-    // First-time cancel: wipe data
-    setRawData([]);
-    setOutcome(null);
-    setFactors([]);
-    setDataFilename(null);
-    setDataQualityReport(null);
+    // FSJ-3b (spec §4.1 guarded regression): cancelling the mapping NEVER wipes —
+    // engine-detected Y/X are already in the store (written before the modal opened),
+    // so closing the mapping leaves a working session. Explicit clearing is owned by
+    // the reset affordances, not by cancel. Applies to first-time AND re-edit cancels.
     dispatch({ type: 'CANCEL_MAPPING' });
-  }, [
-    flowState.isMappingReEdit,
-    setRawData,
-    setOutcome,
-    setFactors,
-    setDataFilename,
-    setDataQualityReport,
-  ]);
+  }, []);
 
   const handleManualEntryCancel = useCallback(() => dispatch({ type: 'CANCEL_MANUAL_ENTRY' }), []);
 

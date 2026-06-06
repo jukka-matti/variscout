@@ -9,6 +9,7 @@ import { Editor } from '../Editor';
 import * as StorageModule from '../../services/storage';
 import { azurePersistenceAdapter } from '../../lib/persistenceAdapter';
 import { usePanelsStore } from '../../features/panels/panelsStore';
+import { useUnsavedHubsStore } from '../../features/hubs/unsavedHubsStore';
 import {
   useProjectStore,
   useAnalyzeStore,
@@ -64,41 +65,10 @@ vi.mock('../../components/ProjectDashboard', () => ({
   default: () => <div data-testid="project-dashboard-mock">ProjectDashboard</div>,
 }));
 
-/**
- * HubCreationFlow is the Mode B router. In Editor integration tests we care
- * that the mapping UI surfaces — not about Stage 1 internals. Mock it to
- * expose the same data-testid as ColumnMapping so existing routing tests pass.
- */
-vi.mock('../../features/hubCreation', () => ({
-  HubCreationFlow: ({
-    onConfirm,
-    onCancel,
-  }: {
-    onConfirm: (payload: {
-      outcomes: Array<{ columnName: string; characteristicType: string }>;
-      primaryScopeDimensions: string[];
-      outcome: string;
-      factors: string[];
-    }) => void;
-    onCancel: () => void;
-  }) => (
-    <div data-testid="column-mapping">
-      <button
-        onClick={() =>
-          onConfirm({
-            outcomes: [{ columnName: 'Weight', characteristicType: 'nominalIsBest' }],
-            primaryScopeDimensions: ['Machine'],
-            outcome: 'Weight',
-            factors: ['Machine'],
-          })
-        }
-      >
-        Confirm
-      </button>
-      <button onClick={onCancel}>Cancel</button>
-    </div>
-  ),
-}));
+// FSJ-3b: HubCreationFlow deleted — the wizard demoted to ColumnMapping-only.
+// Editor now renders @variscout/ui's ColumnMapping directly (mocked below), so
+// the old '../../features/hubCreation' router mock retired. The mapping path is
+// exercised via the ColumnMapping mock's data-testid="column-mapping".
 
 // ── Mock @variscout/core ──
 
@@ -109,6 +79,12 @@ vi.mock('@variscout/core', async importOriginal => {
     parseText: vi.fn(async () => [{ Weight: 10, Machine: 'A' }]),
     detectColumns: vi.fn(() => ({ outcome: 'Weight', factors: ['Machine'], columnAnalysis: [] })),
     detectWideFormat: vi.fn(() => ({ isWideFormat: false, channels: [] })),
+    detectDefectFormat: vi.fn(() => ({
+      isDefectFormat: false,
+      confidence: 'low',
+      dataShape: 'event-log',
+      suggestedMapping: {},
+    })),
     validateData: vi.fn(() => ({ isValid: true, errors: [], warnings: [] })),
     downloadCSV: vi.fn(),
     getNelsonRule2ViolationPoints: vi.fn(() => []),
@@ -436,6 +412,7 @@ describe('Editor', () => {
     seedStores();
     useProjectMembershipStore.setState(getProjectMembershipInitialState());
     localStorage.removeItem(projectMembershipStorageKey('test@test.com'));
+    useUnsavedHubsStore.setState(useUnsavedHubsStore.getInitialState(), true);
   });
 
   it('renders empty state when rawData is empty', () => {
@@ -485,13 +462,18 @@ describe('Editor', () => {
     expect(screen.queryByRole('button', { name: /save/i })).not.toBeInTheDocument();
   });
 
-  it('shows ColumnMapping when data is loaded but no outcome selected', () => {
+  it('shows ColumnMapping (no goal-form vestibule) when data is loaded but no outcome selected (FSJ-3b spec §2/§3)', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       outcome: null,
     });
 
+    // Wizard demoted to ColumnMapping-only.
     expect(screen.getByTestId('column-mapping')).toBeInTheDocument();
+    // Negative control: the Stage-1 HubGoalForm vestibule is retired and never
+    // renders on the mapping path (provisioning moved to paste-analyzed time).
+    expect(screen.queryByTestId('hub-creation-stage1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hub-goal-form')).not.toBeInTheDocument();
   });
 
   it('shows project dashboard overview when data is loaded with projectId', () => {
@@ -541,7 +523,13 @@ describe('Editor', () => {
     expect(screen.getByText('Production bottleneck analysis')).toBeInTheDocument();
   });
 
-  it('shows ColumnMapping after paste analyze', async () => {
+  it('skips ColumnMapping for a measurement-shaped paste — lands at b0 (FSJ-3b spec §4.1)', async () => {
+    // FSJ-3b: the mocked paste is measurement-shaped (detectColumns returns an outcome,
+    // detectDefectFormat returns isDefectFormat:false, detectWideFormat returns
+    // isWideFormat:false). The pipeline fires onFreshPasteLanded → Editor's
+    // handleFreshPasteLanded → landFreshEntryOnProcess → showFrame.
+    // Full landed contract: no mapping vestibule + panelsStore.activeView='frame' +
+    // an unsaved hub registered (Untitled pair provisioned).
     renderEditor();
 
     fireEvent.click(screen.getByText('Paste Data'));
@@ -553,7 +541,19 @@ describe('Editor', () => {
       fireEvent.click(screen.getByText('Analyze'));
     });
 
-    expect(screen.getByTestId('column-mapping')).toBeInTheDocument();
+    // Mapping vestibule skipped
+    expect(screen.queryByTestId('column-mapping')).not.toBeInTheDocument();
+
+    // Process-tab routing: getCurrentUser() resolves async → waitFor the effect
+    await waitFor(() => {
+      expect(usePanelsStore.getState().activeView).toBe('frame');
+    });
+
+    // Untitled pair registered in Word-style in-memory store
+    expect(useUnsavedHubsStore.getState().hubs.length).toBeGreaterThan(0);
+    const hub = useUnsavedHubsStore.getState().hubs[0];
+    expect(hub.improvementProject).toBeDefined();
+    expect(hub.improvementProject!.deletedAt).toBeNull();
   });
 
   it('skips ColumnMapping for pre-configured samples', () => {
@@ -736,6 +736,94 @@ describe('Editor', () => {
     useProjectMembershipStore.setState({ invitesByUser: { [membershipKey]: [inviteA] } });
     renderEditor();
     expect(await screen.findByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
+  });
+
+  // ── GoalBanner opt-in on the Process tab (FSJ-3b, spec §3) ──
+
+  describe('GoalBanner opt-in on the Process tab (FSJ-3b, spec §3)', () => {
+    it('(a) goal start-prompt renders on the Process tab when an activeHub exists after a paste lands', async () => {
+      // Measurement-shaped paste → onFreshPasteLanded → landFreshEntryOnProcess →
+      // registers hub + sets processHubId + showFrame. GoalBanner mounts with
+      // startPrompt because activeHub exists and processGoal is empty.
+      renderEditor();
+
+      fireEvent.click(screen.getByText('Paste Data'));
+      expect(screen.getByTestId('paste-screen')).toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Analyze'));
+      });
+
+      // Wait for frame routing + async user resolution
+      await waitFor(() => {
+        expect(usePanelsStore.getState().activeView).toBe('frame');
+      });
+
+      // GoalBanner start-prompt must be visible (empty goal + startPrompt prop set)
+      await waitFor(() => {
+        expect(screen.getByTestId('goal-banner-start')).toBeInTheDocument();
+      });
+    });
+
+    it('(b) entering a goal commits processGoal + derived name onto the unsaved hub (Word-style)', async () => {
+      // Setup: navigate to frame with an unsaved hub already registered
+      renderEditor();
+
+      fireEvent.click(screen.getByText('Paste Data'));
+      await act(async () => {
+        fireEvent.click(screen.getByText('Analyze'));
+      });
+      await waitFor(() => {
+        expect(usePanelsStore.getState().activeView).toBe('frame');
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId('goal-banner-start')).toBeInTheDocument();
+      });
+
+      // Open the goal edit form
+      fireEvent.click(screen.getByTestId('goal-banner-start'));
+
+      // GoalBanner enters edit mode — find the textarea inside the goal-banner
+      const goalBanner = screen.getByTestId('goal-banner');
+      const textarea = goalBanner.querySelector('textarea')!;
+      expect(textarea).not.toBeNull();
+      fireEvent.change(textarea, {
+        target: { value: 'We injection-mold polypropylene barrels' },
+      });
+      // Click the Save button within the goal-banner container
+      const saveBtn = Array.from(goalBanner.querySelectorAll('button')).find(b =>
+        /save/i.test(b.textContent ?? '')
+      )!;
+      expect(saveBtn).toBeDefined();
+      fireEvent.click(saveBtn);
+
+      // commitHubChange writes the unsaved hub in-memory (no IDB/cloud write)
+      await waitFor(() => {
+        const hubs = useUnsavedHubsStore.getState().hubs;
+        const hub = hubs[0];
+        expect(hub?.processGoal).toBe('We injection-mold polypropylene barrels');
+        // extractHubName derives the name from the narrative
+        expect(hub?.name).toBe('We injection-mold polypropylene barrels');
+      });
+    });
+
+    it('(c) NEGATIVE: no goal banner when activeView is explore (frame-only surface)', async () => {
+      // Data loaded, explore tab active — GoalBanner must not render there.
+      // The populated GoalBanner on ProcessHubView is a different surface; the
+      // opt-in start-prompt is frame-tab only per spec §3.
+      usePanelsStore.setState({ activeView: 'explore' });
+      renderEditor({
+        rawData: [{ Weight: 10, Machine: 'A' }],
+        outcome: 'Weight',
+        factors: ['Machine'],
+      });
+
+      // Click Explore tab to confirm we are on explore
+      fireEvent.click(screen.getByTestId('workflow-tab-explore'));
+
+      expect(screen.queryByTestId('goal-banner')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('goal-banner-start')).not.toBeInTheDocument();
+    });
   });
 
   // ── Stage-5 hypothesisDraft → proposed Hypothesis hub (PO-6) ──

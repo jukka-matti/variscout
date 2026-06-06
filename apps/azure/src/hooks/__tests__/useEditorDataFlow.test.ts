@@ -182,17 +182,23 @@ describe('useEditorDataFlow', () => {
   });
 
   describe('paste flow (handlePasteAnalyze)', () => {
-    it('parses text, detects columns, and transitions to mapping', async () => {
+    it('parses text, detects columns, and lands a measurement-shaped paste at b0 (FSJ-3b)', async () => {
+      // FSJ-3b (spec §4.1): a measurement-shaped fresh paste (outcome inferable, not
+      // low/wide/defect) now skips the ColumnMapping vestibule and lands at b0
+      // pre-filled — the data is still committed; the mapping never opens.
       const parsedData = [{ Weight: 10, Operator: 'A' }];
       mockParseText.mockResolvedValue(parsedData);
       mockDetectColumns.mockReturnValue({
         outcome: 'Weight',
         factors: ['Operator'],
         timeColumn: null,
+        confidence: 'high',
         columnAnalysis: [],
       });
 
-      const options = createMockOptions();
+      const onFreshPasteLanded = vi.fn();
+      const onFreshPasteAnalyzed = vi.fn();
+      const options = createMockOptions({ onFreshPasteLanded, onFreshPasteAnalyzed });
       const { result } = renderHook(() => useEditorDataFlow(options));
 
       await act(async () => {
@@ -207,7 +213,10 @@ describe('useEditorDataFlow', () => {
       expect(mockValidateData).toHaveBeenCalledWith(parsedData, ['Weight']);
       expect(options.setDataQualityReport).toHaveBeenCalled();
       expect(result.current.isPasteMode).toBe(false);
-      expect(result.current.isMapping).toBe(true);
+      // Landed, not mapped (the FSJ-3b behavior change).
+      expect(result.current.isMapping).toBe(false);
+      expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
+      expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
     });
 
     it('sets pasteError when parsing fails', async () => {
@@ -304,12 +313,19 @@ describe('useEditorDataFlow', () => {
       confirmSpy.mockRestore();
     });
 
-    it('sets time extraction prompt when time column is detected', async () => {
-      mockParseText.mockResolvedValue([{ Date: '2024-01-01T10:00', Weight: 10 }]);
+    it('sets time extraction prompt when time column is detected on the wizard path', async () => {
+      // FSJ-3b: the time-extraction PROMPT is a wizard-path affordance. A measurement
+      // landing suppresses it (the landing branch nulls the prompt and auto-applies
+      // extraction instead — covered by useEditorDataFlow.landing.test.ts). Here we
+      // keep the wizard path by making the paste defect-shaped (ANY isDefectFormat
+      // keeps the wizard — Azure's gate, decision 2), so the prompt wiring stays tested.
+      mockParseText.mockResolvedValue([{ Date: '2024-01-01T10:00', Defect_Type: 'Scratch' }]);
+      mockDetectDefectFormat.mockReturnValue({ isDefectFormat: true, confidence: 'high' });
       mockDetectColumns.mockReturnValue({
-        outcome: 'Weight',
+        outcome: null,
         factors: [],
         timeColumn: 'Date',
+        confidence: 'low',
         columnAnalysis: [
           {
             name: 'Date',
@@ -323,9 +339,10 @@ describe('useEditorDataFlow', () => {
       const { result } = renderHook(() => useEditorDataFlow(options));
 
       await act(async () => {
-        await result.current.handlePasteAnalyze('Date\tWeight\n2024-01-01T10:00\t10');
+        await result.current.handlePasteAnalyze('Date\tDefect_Type\n2024-01-01T10:00\tScratch');
       });
 
+      expect(result.current.isMapping).toBe(true);
       expect(result.current.timeExtractionPrompt).toEqual({
         timeColumn: 'Date',
         hasTimeComponent: true,
@@ -422,6 +439,7 @@ describe('useEditorDataFlow', () => {
         outcome: 'Weight',
         factors: [],
         timeColumn: 'Date',
+        confidence: 'low',
         columnAnalysis: [{ name: 'Date', type: 'date', sampleValues: ['2024-01-01'] }],
       });
 
@@ -465,7 +483,11 @@ describe('useEditorDataFlow', () => {
   });
 
   describe('handleMappingCancel', () => {
-    it('wipes data on first-time cancel (not re-edit)', () => {
+    it('does not wipe data on first-time cancel (FSJ-3b spec §4.1 guarded regression)', () => {
+      // FSJ-3b: cancelling the mapping NEVER wipes — engine-detected Y/X are already
+      // in the store (written before the modal), so closing it leaves a working
+      // session. The old first-time wipe block (setRawData([]) / setOutcome(null) / …)
+      // was removed; explicit clearing is owned by the reset affordances.
       const options = createMockOptions();
       const { result } = renderHook(() => useEditorDataFlow(options));
 
@@ -478,11 +500,11 @@ describe('useEditorDataFlow', () => {
         result.current.handleMappingCancel();
       });
 
-      expect(options.setRawData).toHaveBeenCalledWith([]);
-      expect(options.setOutcome).toHaveBeenCalledWith(null);
-      expect(options.setFactors).toHaveBeenCalledWith([]);
-      expect(options.setDataFilename).toHaveBeenCalledWith(null);
-      expect(options.setDataQualityReport).toHaveBeenCalledWith(null);
+      expect(options.setRawData).not.toHaveBeenCalledWith([]);
+      expect(options.setOutcome).not.toHaveBeenCalledWith(null);
+      expect(options.setFactors).not.toHaveBeenCalledWith([]);
+      expect(options.setDataFilename).not.toHaveBeenCalledWith(null);
+      expect(options.setDataQualityReport).not.toHaveBeenCalledWith(null);
       expect(result.current.isMapping).toBe(false);
     });
 

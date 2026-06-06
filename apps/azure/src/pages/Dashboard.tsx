@@ -271,10 +271,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   /**
    * "Edit framing" / "Add framing" CTA: re-open the Editor on the hub's
-   * analyze to surface HubCreationFlow. For incomplete Hubs this
-   * opens a new Editor entry (Mode B); for complete Hubs it could be used
-   * to re-enter Stage 3.  We navigate via onOpenProject with the hub id so
-   * the Editor picks up the existing Hub context.
+   * analyze to surface the ColumnMapping wizard (FSJ-3b: Stage-1 goal vestibule
+   * retired — the wizard is ColumnMapping-only). For incomplete Hubs this opens
+   * a new Editor entry; for complete Hubs it re-enters mapping. We navigate via
+   * onOpenProject with the hub id so the Editor picks up the existing Hub context.
    */
   const handleEditFraming = useCallback(
     (hubId: string): void => {

@@ -1,3 +1,4 @@
+import type React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -17,6 +18,9 @@ const setFocusedWallEntityMock = vi.fn();
 const addCausalLinkMock = vi.fn();
 const removeCausalLinkMock = vi.fn();
 const addFindingMock = vi.fn();
+// FSJ-3b: b0 slot callbacks
+const onFixDataMock = vi.fn();
+const onRenameColumnMock = vi.fn();
 
 // LV1-D: minimal analysisScopeStore mock — tracks setY mutations so the
 // FrameView integration test can assert the correct yColumn is applied.
@@ -47,6 +51,7 @@ const storeStateRef: { current: Record<string, unknown> } = {
     setMeasureSpec: setMeasureSpecMock,
     processContext: null,
     setProcessContext: setProcessContextMock,
+    dataFilename: null,
   },
 };
 
@@ -182,6 +187,22 @@ vi.mock('@variscout/ui', async () => {
             )
           : null
       ),
+    // FSJ-3b: OutcomeNoMatchBanner stub — renders the Skip button so tests
+    // can assert the no-Y floor wiring without importing the real component.
+    OutcomeNoMatchBanner: (props: {
+      onRename?: (oldName: string, newName: string) => void;
+      onExpectedChange?: () => void;
+      onSkip?: () => void;
+    }) =>
+      React.createElement(
+        'div',
+        { 'data-testid': 'outcome-no-match-banner' },
+        React.createElement(
+          'button',
+          { type: 'button', 'data-testid': 'banner-skip', onClick: props.onSkip },
+          'Skip'
+        )
+      ),
     CanvasWorkspace: (props: {
       onSeeData: () => void;
       onLogQuickAction?: (
@@ -205,6 +226,12 @@ vi.mock('@variscout/ui', async () => {
       onCaptureFindingFromStep?: (card: unknown) => void;
       // LV1-D: chip → Explore jump callback
       onChipExploreJump?: (target: { kind: string; columnName?: string; stepId?: string }) => void;
+      // FSJ-3b: b0 landing slots
+      b0Slots?: {
+        topBar?: React.ReactNode;
+        belowY?: React.ReactNode;
+        noYBanner?: React.ReactNode;
+      };
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -256,7 +283,12 @@ vi.mock('@variscout/ui', async () => {
             onClick: () => props.onChipExploreJump?.({ kind: 'outcome', columnName: 'Diameter' }),
           },
           'Chip explore jump'
-        )
+        ),
+        // FSJ-3b: render b0Slots content so tests can interact with provenance,
+        // "Fix data…", "+ track another outcome", and noYBanner affordances.
+        props.b0Slots?.topBar ?? null,
+        props.b0Slots?.belowY ?? null,
+        props.b0Slots?.noYBanner ?? null
       );
     },
     // LV1-D: navigateToExploreForChip — test-double that delegates to the
@@ -354,6 +386,8 @@ describe('FrameView (Azure shell)', () => {
     removeCausalLinkMock.mockReset();
     addFindingMock.mockClear();
     addCausalLinkMock.mockReturnValue({ id: 'link-created' });
+    onFixDataMock.mockClear();
+    onRenameColumnMock.mockClear();
     hoisted.listByHubMock.mockReset();
     hoisted.listByHubMock.mockResolvedValue([]);
     hoisted.actionItemsListByHubMock.mockReset();
@@ -379,6 +413,7 @@ describe('FrameView (Azure shell)', () => {
       setMeasureSpec: setMeasureSpecMock,
       processContext: { currentUnderstanding: 'fill line', processHubId: 'hub-1' },
       setProcessContext: setProcessContextMock,
+      dataFilename: null,
     };
     investigationStateRef.current = {
       findings: [{ id: 'f-1' }],
@@ -881,5 +916,132 @@ describe('FrameView (Azure shell)', () => {
     // panelsStore.showExplore should have been called (no intent for chip path).
     expect(showExploreMock).toHaveBeenCalledTimes(1);
     expect(showExploreMock).toHaveBeenCalledWith();
+  });
+
+  // FSJ-3b Task 4: b0 landing chrome — provenance, Fix-data hatch, no-Y floor.
+  // Coverage note: these tests exercise the b0Slots construction + wiring
+  // directly through the CanvasWorkspace prop capture + the rendered slot DOM.
+  // FrameViewB0's actual b0 gate (rawData empty = no b0, rawData non-empty = b0)
+  // lives inside CanvasWorkspace (shared-ui, FSJ-2 tested) — not duplicated here.
+  // NOTE: the stub renders noYBanner unconditionally (the real yCandidates.length===0
+  // gate lives in FrameViewB0, FSJ-2 shared-ui tests) — these tests assert
+  // construction + wiring, not the display condition.
+  describe('FSJ-3b: b0 landing chrome', () => {
+    it('passes b0Slots with provenance line showing source + rows + columns', () => {
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [
+          { Fill_Weight: 12, Machine: 'A' },
+          { Fill_Weight: 11, Machine: 'B' },
+        ],
+        dataFilename: 'fill_weights.csv',
+      };
+
+      render(<FrameView activeIP={DEFAULT_TEST_IP} onFixData={onFixDataMock} />);
+
+      // b0Slots.topBar renders inside the CanvasWorkspace stub.
+      const provenance = screen.getByTestId('b0-provenance');
+      expect(provenance).toHaveTextContent('fill_weights.csv');
+      expect(provenance).toHaveTextContent('2 rows');
+      expect(provenance).toHaveTextContent('2 columns');
+    });
+
+    it('falls back to "Pasted Data" when dataFilename is null', () => {
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [{ Fill_Weight: 12 }],
+        dataFilename: null,
+      };
+
+      render(<FrameView activeIP={DEFAULT_TEST_IP} onFixData={onFixDataMock} />);
+
+      expect(screen.getByTestId('b0-provenance')).toHaveTextContent('Pasted Data');
+    });
+
+    it('"Fix data…" button fires onFixData', () => {
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [{ Fill_Weight: 12 }],
+        dataFilename: 'test.csv',
+      };
+
+      render(<FrameView activeIP={DEFAULT_TEST_IP} onFixData={onFixDataMock} />);
+
+      fireEvent.click(screen.getByTestId('b0-fix-data'));
+
+      expect(onFixDataMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('"+ track another outcome" fires onFixData', () => {
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [{ Fill_Weight: 12 }],
+        dataFilename: 'test.csv',
+      };
+
+      render(<FrameView activeIP={DEFAULT_TEST_IP} onFixData={onFixDataMock} />);
+
+      fireEvent.click(screen.getByTestId('b0-track-another-outcome'));
+
+      expect(onFixDataMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('"Fix data…" and "+ track another outcome" are hidden when onFixData is not wired', () => {
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [{ Fill_Weight: 12 }],
+        dataFilename: 'test.csv',
+      };
+
+      // No onFixData prop — negative control.
+      render(<FrameView activeIP={DEFAULT_TEST_IP} />);
+
+      expect(screen.queryByTestId('b0-fix-data')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('b0-track-another-outcome')).not.toBeInTheDocument();
+    });
+
+    it('noYBanner (OutcomeNoMatchBanner) is passed unconditionally — FrameViewB0 owns the gate', () => {
+      // The b0Slots.noYBanner is always constructed and passed; CanvasWorkspace/FrameViewB0
+      // decides whether to render it based on yCandidates. The CanvasWorkspace stub
+      // renders it unconditionally so we can assert it's wired.
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [{ Category: 'A' }], // data shape irrelevant here — the stub always renders noYBanner
+        dataFilename: null,
+      };
+
+      render(<FrameView activeIP={DEFAULT_TEST_IP} onFixData={onFixDataMock} />);
+
+      expect(screen.getByTestId('outcome-no-match-banner')).toBeInTheDocument();
+    });
+
+    it('noYBanner Skip fires the showExplore handler (no-Y floor → Explore, never a dead end)', () => {
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [{ Category: 'A' }],
+        dataFilename: null,
+      };
+
+      render(<FrameView activeIP={DEFAULT_TEST_IP} onFixData={onFixDataMock} />);
+
+      fireEvent.click(screen.getByTestId('banner-skip'));
+
+      expect(showExploreMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes b0Slots to CanvasWorkspace (contract: prop is present and has topBar/noYBanner)', () => {
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [{ Fill_Weight: 12 }],
+        dataFilename: 'fill.csv',
+      };
+
+      render(<FrameView activeIP={DEFAULT_TEST_IP} onFixData={onFixDataMock} />);
+
+      const lastProps = hoisted.canvasWorkspaceMock.mock.lastCall?.[0];
+      expect(lastProps?.b0Slots).toBeDefined();
+      expect(lastProps?.b0Slots?.topBar).toBeDefined();
+      expect(lastProps?.b0Slots?.noYBanner).toBeDefined();
+    });
   });
 });

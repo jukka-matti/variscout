@@ -52,6 +52,13 @@ describe('editorFlowReducer', () => {
       expect(state.isMapping).toBe(true);
     });
 
+    it('PASTE_LANDED exits paste mode without opening mapping (FSJ-3b)', () => {
+      const state = applyActions([{ type: 'START_PASTE' }, { type: 'PASTE_LANDED' }]);
+      expect(state.isPasteMode).toBe(false);
+      expect(state.isMapping).toBe(false);
+      expect(state.isMappingReEdit).toBe(false);
+    });
+
     it('PASTE_ERROR sets error message', () => {
       const state = applyActions([
         { type: 'START_PASTE' },

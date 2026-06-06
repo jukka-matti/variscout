@@ -36,6 +36,7 @@ import {
   VerificationPrompt,
   BrainstormModal,
   SurveyNotebookBase,
+  ColumnMapping,
   type ColumnMappingConfirmPayload,
   StageFiveModal,
   MatchSummaryCard,
@@ -44,6 +45,7 @@ import {
   ImproveTabRoot,
   PendingInvitesBanner,
   CreateProjectModal,
+  GoalBanner,
   deriveActiveIPCanvasFocus,
   deriveActiveIPScopeLabels,
   type ColumnShape,
@@ -62,6 +64,7 @@ import {
   downloadCSV,
   computeBestSubsets,
   evaluateSurvey,
+  extractHubName,
   getColumnNames,
   isControlEligible,
   normalizeProcessHubId,
@@ -115,9 +118,13 @@ import { useToast } from '../context/ToastContext';
 import { ControlEntryRow } from './Editor.control';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
-import { HubCreationFlow } from '../features/hubCreation';
 import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
-import { activateHubProject, bindProcessHubId, landFreshEntryOnProcess } from '../lib/landing';
+import {
+  activateHubProject,
+  bindProcessHubId,
+  ensureHubProject,
+  landFreshEntryOnProcess,
+} from '../lib/landing';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { AnalyzeWorkspace } from '../components/editor/AnalyzeWorkspace';
 import FrameView from '../components/editor/FrameView';
@@ -785,6 +792,45 @@ export const Editor: React.FC<EditorProps> = ({
     />
   ) : null;
 
+  // FSJ-3a: shared landing deps — the paste path joins as the third caller in FSJ-3b.
+  const makeLandingDeps = useCallback(
+    () => ({
+      activeHub: activeHub ?? null,
+      registerHub: useUnsavedHubsStore.getState().upsertHub,
+      setProcessHubId: bindProcessHubId,
+      showFrame: usePanelsStore.getState().showFrame,
+    }),
+    [activeHub]
+  );
+
+  // FSJ-3b: paste callbacks. Inline arrows re-capture state per render; the
+  // async user resolution mirrors handleLoadSampleWithLanding. landFreshEntry
+  // routes (spec §1); provisionFreshPaste ensures WITHOUT routing — the §3
+  // guarantee for wizard-path pastes (retires Stage-1's provisioning role and
+  // the empty-goal-Confirm asymmetry, investigations 2026-06-06).
+  const handleFreshPasteLanded = useCallback(() => {
+    void (async () => {
+      const user = currentUser ?? (await getCurrentUser().catch(() => null));
+      if (!user) return;
+      landFreshEntryOnProcess('Untitled project', { ...makeLandingDeps(), user });
+    })();
+  }, [currentUser, makeLandingDeps]);
+
+  const handleFreshPasteAnalyzed = useCallback(() => {
+    void (async () => {
+      const user = currentUser ?? (await getCurrentUser().catch(() => null));
+      if (!user) return;
+      const deps = makeLandingDeps();
+      const hub = ensureHubProject(deps.activeHub, 'Untitled project', user);
+      if (hub !== deps.activeHub) {
+        deps.registerHub(hub);
+        deps.setProcessHubId(hub.id);
+      }
+      activateHubProject(hub, user.email);
+      // no route — the wizard owns the screen (spec §3 provision-only)
+    })();
+  }, [currentUser, makeLandingDeps]);
+
   const dataFlow = useEditorDataFlow({
     rawData,
     outcome,
@@ -811,6 +857,8 @@ export const Editor: React.FC<EditorProps> = ({
     processFile: ingestion.processFile,
     loadSample: ingestion.loadSample,
     applyTimeExtraction: ingestion.applyTimeExtraction,
+    onFreshPasteLanded: handleFreshPasteLanded,
+    onFreshPasteAnalyzed: handleFreshPasteAnalyzed,
   });
 
   // Start paste mode immediately when opened via "Add framing" CTA so the
@@ -981,32 +1029,10 @@ export const Editor: React.FC<EditorProps> = ({
   // Stage 5 modal — opens after Mode B Stage 3 confirm and via on-demand button.
   const stageFive = useStageFiveOpener();
 
-  /**
-   * Called by HubCreationFlow once Stage 1 creates a hub.
-   *
-   * FSJ-3a: the reworked useNewHubProvision registers the hub in
-   * unsavedHubsStore (it reaches processHubs via the merge); here we bind the
-   * session to it and activate the pair under the scope key production reads
-   * (currentUser.email — see the useActiveIPContext call above).
-   */
-  const handleHubCreated = useCallback(
-    (hub: ProcessHub) => {
-      bindProcessHubId(hub.id);
-      if (currentUser?.email) activateHubProject(hub, currentUser.email);
-    },
-    [currentUser?.email]
-  );
-
-  // FSJ-3a: shared landing deps — the paste path joins as the third caller in FSJ-3b.
-  const makeLandingDeps = useCallback(
-    () => ({
-      activeHub: activeHub ?? null,
-      registerHub: useUnsavedHubsStore.getState().upsertHub,
-      setProcessHubId: bindProcessHubId,
-      showFrame: usePanelsStore.getState().showFrame,
-    }),
-    [activeHub]
-  );
+  // FSJ-3b: handleHubCreated retired. Stage-1 provisioning is gone; fresh-paste
+  // provisioning now fires at paste-analyzed time (onFreshPasteAnalyzed, Task 2),
+  // before the demoted ColumnMapping renders. bindProcessHubId/activateHubProject
+  // remain wired via makeLandingDeps for the landing path.
 
   // FSJ-3a landing (spec §1/§3): fresh sample entry lands on the Process tab
   // with an ensured + activated Untitled pair, named for the sample. The canvas
@@ -1824,13 +1850,16 @@ export const Editor: React.FC<EditorProps> = ({
 
   if (dataFlow.isMapping) {
     /*
-     * Mode B (new investigation, not a re-edit): gate ColumnMapping behind
-     * Stage 1 (HubGoalForm) via HubCreationFlow. On re-edit or when a hub
-     * already exists the HubCreationFlow skips Stage 1 and renders
-     * ColumnMapping directly — same net behaviour as before.
+     * FSJ-3b (spec §2/§3): the wizard demotes to ColumnMapping-only. The Stage-1
+     * HubGoalForm vestibule retired — provisioning now fires at paste-analyzed
+     * time (onFreshPasteAnalyzed), so the hub exists before this renders. The
+     * goal ceremony is opt-in via the Process-tab GoalBanner. showBrief stays off
+     * (ColumnMapping default): the brief keeps its Analyze BriefHeader + Stage-5
+     * homes. goalContext dropped — the bias source was the retired Stage-1
+     * narrative; GoalBanner-set goals re-thread in FSJ-6.
      */
     return (
-      <HubCreationFlow
+      <ColumnMapping
         columnAnalysis={dataFlow.mappingColumnAnalysis}
         availableColumns={Object.keys(rawData[0] || {})}
         previewRows={rawData.slice(0, 5)}
@@ -1839,14 +1868,16 @@ export const Editor: React.FC<EditorProps> = ({
         onColumnRename={dataFlow.handleColumnRename}
         initialOutcome={outcome}
         initialFactors={factors}
-        initialOutcomes={activeHub?.outcomes}
-        initialPrimaryScopeDimensions={activeHub?.primaryScopeDimensions}
+        initialOutcomes={dataFlow.isMappingReEdit ? activeHub?.outcomes : undefined}
+        initialPrimaryScopeDimensions={
+          dataFlow.isMappingReEdit ? activeHub?.primaryScopeDimensions : undefined
+        }
         datasetName={dataFilename || 'Pasted Data'}
         onConfirm={handleMappingConfirmWithCategories}
         onCancel={dataFlow.handleMappingCancel}
         dataQualityReport={dataQualityReport}
         maxFactors={6}
-        isMappingReEdit={dataFlow.isMappingReEdit}
+        mode={dataFlow.isMappingReEdit ? 'edit' : 'setup'}
         initialCategories={categories}
         timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
         hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
@@ -1856,8 +1887,6 @@ export const Editor: React.FC<EditorProps> = ({
         suggestedStack={dataFlow.suggestedStack}
         onStackConfigChange={dataFlow.handleStackConfigChange}
         rowLimit={250000}
-        processHubId={processContext?.processHubId}
-        onHubCreated={handleHubCreated}
       />
     );
   }
@@ -2076,11 +2105,31 @@ export const Editor: React.FC<EditorProps> = ({
                     surface="Process"
                   />
                 ) : null}
+                {/* FSJ-3b (spec §3): goal ceremony opt-in — relocated off the retired
+                    Stage-1 HubGoalForm; the empty start-prompt is the framing surface's
+                    entry point. Populated banner renders when a goal already exists.
+                    Word-style commit: unsaved hubs stay in-memory until an explicit Save. */}
+                {activeHub ? (
+                  <GoalBanner
+                    goal={activeHub.processGoal ?? ''}
+                    startPrompt="Set a process goal…"
+                    onChange={next => {
+                      void commitHubChange({
+                        ...activeHub,
+                        name: extractHubName(next) || activeHub.name || 'Untitled hub',
+                        processGoal: next,
+                        updatedAt: Date.now(),
+                      });
+                    }}
+                  />
+                ) : null}
                 <FrameView
                   canEditCanvas={canEditCanvas}
                   activeIP={activeIPContext.activeIP}
                   outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
                   reingestPendingMatches={pendingMatches}
+                  onFixData={dataFlow.openFactorManager}
+                  onRenameColumn={dataFlow.handleColumnRename}
                 />
               </div>
             ) : activeView === 'charter' ? (
@@ -2259,8 +2308,10 @@ export const Editor: React.FC<EditorProps> = ({
             )}
           </>
         ) : (
-          /* rawData present but no outcome yet — treat same as isMapping (Mode B gate) */
-          <HubCreationFlow
+          /* rawData present but no outcome yet — treat same as isMapping (FSJ-3b:
+             ColumnMapping-only setup; Stage-1 retired, mode='setup' always). */
+          /* onStackConfigChange deliberately absent: the no-outcome fallback predates stack suggestions; revisit if this path survives FSJ-10 */
+          <ColumnMapping
             columnAnalysis={dataFlow.mappingColumnAnalysis}
             availableColumns={Object.keys(rawData[0] || {})}
             previewRows={rawData.slice(0, 5)}
@@ -2269,12 +2320,12 @@ export const Editor: React.FC<EditorProps> = ({
             onColumnRename={dataFlow.handleColumnRename}
             initialOutcome={outcome}
             initialFactors={factors}
-            datasetName={dataFilename || 'Data'}
+            datasetName={dataFilename || 'Pasted Data'}
             onConfirm={handleMappingConfirmWithCategories}
             onCancel={dataFlow.handleMappingCancel}
             dataQualityReport={dataQualityReport}
             maxFactors={6}
-            isMappingReEdit={false}
+            mode="setup"
             initialCategories={categories}
             timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
             hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
@@ -2283,12 +2334,6 @@ export const Editor: React.FC<EditorProps> = ({
             }
             suggestedStack={dataFlow.suggestedStack}
             rowLimit={250000}
-            processHubId={processContext?.processHubId}
-            onHubCreated={handleHubCreated}
-            initialOutcomes={processHubs.find(h => h.id === processContext?.processHubId)?.outcomes}
-            initialPrimaryScopeDimensions={
-              processHubs.find(h => h.id === processContext?.processHubId)?.primaryScopeDimensions
-            }
           />
         )}
       </div>
