@@ -80,7 +80,7 @@ export async function loadPerformanceSample(page: Page) {
 /**
  * Measurement-shaped CSV: clear numeric outcome (weight_g) + two categoricals.
  * FSJ-3b: measurement-shaped pastes skip the mapping vestibule and land at b0
- * (frame-view-b0) on the Process tab. Use DETECTION_CSV to keep the wizard path.
+ * (frame-view-b0) on the Process tab.
  */
 export const MODE_B_CSV = [
   'weight_g,product,shift,batch_id',
@@ -98,11 +98,8 @@ export const MODE_B_CSV = [
 
 /**
  * Detection-shaped CSV: defect event-log format (defect column, no continuous
- * numeric outcome). Triggers the defect modal → keeps the ColumnMapping wizard
- * path (not the b0 landing). Use for tests that explicitly exercise wizard surfaces.
- *
- * FSJ-3b decision 12: specs that test wizard surfaces switch to this fixture so
- * their intent (wizard works) is preserved after Stage-1 retirement.
+ * numeric outcome). FSJ-6 lands this at b0 with the defect re-framing banner
+ * rather than opening the retired defect modal or ColumnMapping path.
  */
 export const DETECTION_CSV = [
   'date,line,defect,operator',

@@ -84,7 +84,7 @@ async function dismissAutoFireModals(page: import('@playwright/test').Page) {
 }
 
 // ---------------------------------------------------------------------------
-// Test group 1: Paste flows — b0 landing (measurement) + wizard (detection)
+// Test group 1: Paste flows — b0 landing for measurement and detection-shaped data
 // ---------------------------------------------------------------------------
 
 test.describe('Azure Mode B framing — Editor paste flow', () => {
@@ -106,32 +106,26 @@ test.describe('Azure Mode B framing — Editor paste flow', () => {
     await expect(page.getByTestId('frame-view-b0')).toBeVisible();
   });
 
-  // FSJ-3b decision 12: detection-shaped pastes (defect event-log) keep the
-  // wizard path. This test preserves the original intent: "wizard surfaces work".
-  // Stage-1 (hub-creation-stage1) no longer renders anywhere — the flow goes
-  // directly to ColumnMapping.
-  test('Detection paste (defect event-log) → ColumnMapping wizard (no Stage-1)', async ({
-    page,
-  }) => {
+  // FSJ-6 (spec §4.2a): detection-shaped defect event-log pastes land at b0
+  // with an inline re-framing banner. They no longer open the defect modal or
+  // bypass b0 into ColumnMapping.
+  test('Detection paste (defect event-log) → b0 defect re-framing banner', async ({ page }) => {
     // 1. Open PasteScreen from Editor empty state
     await openPasteScreen(page);
 
-    // 2. Paste defect event-log CSV → defect modal fires → wizard path kept
+    // 2. Paste defect event-log CSV → lands at b0 with the loud re-framing banner
     await pasteDataAndAnalyze(page, DETECTION_CSV);
 
-    // 3. Stage 1 (hub-creation-stage1) must NOT appear — wizard is ColumnMapping-only
+    // 3. Stage 1 and ColumnMapping must NOT appear — FSJ-6 keeps the analyst on b0.
     const stage1 = page.getByTestId('hub-creation-stage1');
     const stage1Visible = await stage1.isVisible({ timeout: 2000 }).catch(() => false);
     expect(stage1Visible).toBe(false);
+    await expect(page.getByTestId('map-your-data-heading')).toHaveCount(0);
 
-    // 4. The defect modal should appear (Azure fires DefectDetectedModal for any
-    //    defect-format paste — title is "Defect Data Detected"). This confirms the
-    //    detection path is active (wizard path, not the b0 landing).
-    const wizardSurface = page
-      .locator('text=Defect Data Detected')
-      .or(page.locator('text=Map Your Data'));
-    const wizardVisible = await wizardSurface.isVisible({ timeout: 8000 }).catch(() => false);
-    expect(wizardVisible).toBe(true);
+    // 4. b0 landing and inline defect proposal are the confirmation surface.
+    await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('b0-defect-banner')).toBeVisible();
+    await expect(page.locator('text=Defect Data Detected')).toHaveCount(0);
   });
 });
 
