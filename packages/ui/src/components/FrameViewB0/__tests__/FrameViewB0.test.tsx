@@ -136,6 +136,15 @@ describe('FrameViewB0', () => {
     expect(screen.getByTestId('canvas-stub')).toBeInTheDocument();
   });
 
+  it('notifies the parent before opening process-step authoring', () => {
+    const onProcessStepsOpen = vi.fn();
+    renderB0({ onProcessStepsOpen });
+
+    fireEvent.click(screen.getByTestId('process-steps-expander-header'));
+
+    expect(onProcessStepsOpen).toHaveBeenCalledTimes(1);
+  });
+
   it('SeeTheDataCta is disabled when no Y is selected and enabled after Y is selected', () => {
     const { rerender } = renderB0({ selectedY: null });
     const cta = screen.getByTestId('see-the-data-cta');

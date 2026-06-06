@@ -1319,6 +1319,10 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   // node renders without the palette / outcome / factor / process zones.
   const showEditChrome = canEditCanvas !== false;
 
+  const handleB0ProcessStepsOpen = React.useCallback(() => {
+    fitViewportToContent(hubId, 'l2');
+  }, [fitViewportToContent, hubId]);
+
   if (scope === 'b0') {
     return (
       <div className="flex-1 overflow-auto" data-testid="frame-view">
@@ -1344,6 +1348,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           topBar={b0Slots?.topBar}
           belowYSlot={b0Slots?.belowY}
           noYBanner={b0Slots?.noYBanner}
+          onProcessStepsOpen={handleB0ProcessStepsOpen}
         >
           {canvasNode}
         </FrameViewB0>

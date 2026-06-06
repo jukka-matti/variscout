@@ -684,6 +684,34 @@ describe('CanvasWorkspace', () => {
     expect(screen.queryByTestId('layered-process-view')).toBeNull();
   });
 
+  it('pins stale b0 process-step expander viewports back to L2 authoring', () => {
+    const hubId = h('hub-b0-expander-stale-l1');
+    useCanvasViewportStore.setState(s => ({
+      viewports: {
+        ...s.viewports,
+        [hubId]: {
+          zoom: 0.2,
+          pan: { x: 0, y: 0 },
+          currentLevel: 'l1',
+          nodePositions: {},
+          groupByTributary: false,
+        },
+      },
+    }));
+
+    renderWorkspace({
+      canvasViewportHubId: hubId,
+      processContext: { processMap: emptyMap() },
+      canEditCanvas: false,
+    });
+
+    fireEvent.click(screen.getByTestId('process-steps-expander-header'));
+
+    expect(useCanvasViewportStore.getState().getViewport(hubId).currentLevel).toBe('l2');
+    expect(screen.getByTestId('layered-process-view')).toBeInTheDocument();
+    expect(screen.queryByTestId('outcome-distribution')).not.toBeInTheDocument();
+  });
+
   // This test asserts `canvas-authoring-map`, the L2 chip-rail authoring
   // surface inside the inner Canvas. With the inlined edit chrome owning the
   // ProcessStructureZone column→process drop journey, the inner Canvas's
