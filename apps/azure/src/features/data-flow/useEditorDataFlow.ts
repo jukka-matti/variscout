@@ -488,6 +488,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
    */
   const _proceedWithParsedData = useCallback(
     (data: DataRow[], opts?: { reingest?: boolean }) => {
+      setDefectDetection(null);
+      setWideFormatDetection(null);
       setRawData(data);
       setDataFilename('Pasted Data');
 
@@ -518,6 +520,15 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         }
         if (detected.timeColumn) {
           applyTimeExtraction(detected.timeColumn, timeExtractionConfig);
+          const hasTime = detected.columnAnalysis.some(
+            c =>
+              c.name === detected.timeColumn &&
+              c.sampleValues.some(v => v.includes('T') || v.includes(':'))
+          );
+          setTimeExtractionPrompt({
+            timeColumn: detected.timeColumn,
+            hasTimeComponent: hasTime,
+          });
           setQuietTimeExtraction({
             timeColumn: detected.timeColumn,
             newColumns: timeExtractionColumnsFor(detected.timeColumn, timeExtractionConfig),
@@ -525,8 +536,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           });
         } else {
           setQuietTimeExtraction(null);
+          setTimeExtractionPrompt(null);
         }
-        setTimeExtractionPrompt(null);
         dispatch({ type: 'PASTE_LANDED' });
         onFreshPasteLanded?.();
         return;
@@ -1011,6 +1022,14 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
       if (timeExtractionPrompt?.timeColumn) {
         applyTimeExtraction(timeExtractionPrompt.timeColumn, timeExtractionConfig);
+        setQuietTimeExtraction({
+          timeColumn: timeExtractionPrompt.timeColumn,
+          newColumns: timeExtractionColumnsFor(
+            timeExtractionPrompt.timeColumn,
+            timeExtractionConfig
+          ),
+          dismissed: false,
+        });
       }
       setTimeExtractionPrompt(null);
     },

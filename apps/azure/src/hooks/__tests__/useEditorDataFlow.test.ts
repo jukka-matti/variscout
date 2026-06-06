@@ -87,6 +87,7 @@ describe('useEditorDataFlow', () => {
       outcome: null,
       factors: [],
       timeColumn: null,
+      confidence: 'low',
       columnAnalysis: [],
     });
     mockValidateData.mockReturnValue({ issues: [], warnings: [] });
@@ -303,6 +304,47 @@ describe('useEditorDataFlow', () => {
       expect(options.setAnalysisMode).not.toHaveBeenCalled();
     });
 
+    it('clears stale b0 mode proposals when a later paste has no detection', async () => {
+      mockParseText
+        .mockResolvedValueOnce([{ Ch1: 10, Ch2: 11, Ch3: 12 }])
+        .mockResolvedValueOnce([{ Weight: 10, Operator: 'A' }]);
+      mockDetectColumns
+        .mockReturnValueOnce({
+          outcome: 'Ch1',
+          factors: [],
+          timeColumn: null,
+          confidence: 'high',
+          columnAnalysis: [],
+        })
+        .mockReturnValueOnce({
+          outcome: 'Weight',
+          factors: ['Operator'],
+          timeColumn: null,
+          confidence: 'high',
+          columnAnalysis: [],
+        });
+      mockDetectWideFormat
+        .mockReturnValueOnce({
+          isWideFormat: true,
+          channels: [{ id: 'Ch1' }, { id: 'Ch2' }, { id: 'Ch3' }],
+        })
+        .mockReturnValueOnce({ isWideFormat: false, channels: [] });
+
+      const { result } = renderHook(() => useEditorDataFlow(createMockOptions()));
+
+      await act(async () => {
+        await result.current.handlePasteAnalyze('Ch1\tCh2\tCh3\n10\t11\t12');
+      });
+      expect(result.current.wideFormatDetection?.isWideFormat).toBe(true);
+
+      await act(async () => {
+        await result.current.handlePasteAnalyze('Weight\tOperator\n10\tA');
+      });
+
+      expect(result.current.wideFormatDetection).toBeNull();
+      expect(result.current.defectDetection).toBeNull();
+    });
+
     it('exposes an undoable quiet time chip for b0 time extraction', async () => {
       const parsedData = [
         {
@@ -359,6 +401,68 @@ describe('useEditorDataFlow', () => {
       ]);
       expect(options.setFactors).toHaveBeenLastCalledWith(['Line']);
       expect(result.current.quietTimeExtraction).toBeNull();
+    });
+
+    it('refreshes quiet time chip columns after Adjust confirms extraction changes', async () => {
+      const parsedData = [
+        {
+          Weight: 10,
+          Timestamp: '2026-05-01T10:00:00',
+          Timestamp_Month: 'May',
+          Timestamp_Week: 18,
+          Timestamp_DayOfWeek: 'Friday',
+        },
+      ];
+      mockParseText.mockResolvedValue(parsedData);
+      mockDetectColumns.mockReturnValue({
+        outcome: 'Weight',
+        factors: ['Timestamp_Month', 'Timestamp_DayOfWeek'],
+        timeColumn: 'Timestamp',
+        confidence: 'high',
+        columnAnalysis: [
+          {
+            name: 'Timestamp',
+            type: 'date',
+            sampleValues: ['2026-05-01T10:00:00'],
+          },
+        ],
+      });
+
+      const options = createMockOptions({
+        rawData: parsedData,
+        factors: ['Timestamp_Month', 'Timestamp_Week', 'Timestamp_DayOfWeek', 'Line'],
+      });
+      const { result } = renderHook(() => useEditorDataFlow(options));
+
+      await act(async () => {
+        await result.current.handlePasteAnalyze('Weight\tTimestamp\n10\t2026-05-01T10:00:00');
+      });
+      act(() => {
+        result.current.setTimeExtractionConfig(prev => ({ ...prev, extractWeek: true }));
+      });
+      act(() => {
+        result.current.handleMappingConfirm('Weight', [
+          'Timestamp_Month',
+          'Timestamp_Week',
+          'Timestamp_DayOfWeek',
+          'Line',
+        ]);
+      });
+
+      expect(result.current.quietTimeExtraction).toEqual({
+        timeColumn: 'Timestamp',
+        newColumns: ['Timestamp_Month', 'Timestamp_Week', 'Timestamp_DayOfWeek'],
+        dismissed: false,
+      });
+
+      act(() => {
+        result.current.undoQuietTimeExtraction();
+      });
+
+      expect(options.setRawData).toHaveBeenLastCalledWith([
+        { Weight: 10, Timestamp: '2026-05-01T10:00:00' },
+      ]);
+      expect(options.setFactors).toHaveBeenLastCalledWith(['Line']);
     });
 
     it('prompts confirm when replacing existing data', async () => {

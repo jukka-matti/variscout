@@ -409,7 +409,7 @@ const FrameView: React.FC<FrameViewProps> = ({
   const factors = useProjectStore(s => s.factors);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const defectMapping = useProjectStore(s => s.defectMapping);
-  const measureColumns = useProjectStore(s => s.measureColumns);
+  const measureColumns = useProjectStore(s => s.measureColumns ?? []);
   const setOutcome = useProjectStore(s => s.setOutcome);
   const setFactors = useProjectStore(s => s.setFactors);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
@@ -776,12 +776,20 @@ const FrameView: React.FC<FrameViewProps> = ({
               Tracking {acceptedPerformanceColumns.length} channel measurements
             </span>
             <span className="text-content-secondary">{acceptedPerformanceColumns.join(', ')}</span>
+            <button
+              type="button"
+              data-testid="b0-performance-accepted-see-data"
+              onClick={handleSeeData}
+              className="ml-auto rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700"
+            >
+              See data
+            </button>
             {onFixData ? (
               <button
                 type="button"
                 data-testid="b0-performance-accepted-stack"
                 onClick={onFixData}
-                className="ml-auto rounded border border-blue-400/40 px-2 py-1 text-xs font-medium text-content hover:bg-blue-500/10"
+                className="rounded border border-blue-400/40 px-2 py-1 text-xs font-medium text-content hover:bg-blue-500/10"
               >
                 Combine into one measure
               </button>

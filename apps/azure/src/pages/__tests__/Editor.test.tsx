@@ -460,6 +460,8 @@ describe('Editor', () => {
       outcome: 'Weight',
       factors: ['Machine'],
       columnAnalysis: [],
+      timeColumn: null,
+      confidence: 'high',
     });
     vi.mocked(detectWideFormat).mockReturnValue({
       isWideFormat: false,
@@ -674,6 +676,7 @@ describe('Editor', () => {
       factors: [],
       confidence: 'low',
       columnAnalysis: [],
+      timeColumn: null,
     });
     vi.mocked(computeDefectRates).mockReturnValue({
       data: [{ Batch: 'B1', DefectRate: 0.1, DefectCount: 1 }],
@@ -748,6 +751,7 @@ describe('Editor', () => {
       factors: [],
       confidence: 'low',
       columnAnalysis: [],
+      timeColumn: null,
     });
 
     renderEditor();

@@ -1171,6 +1171,23 @@ describe('FrameView (Azure shell)', () => {
       expect(onDismissWide).toHaveBeenCalledTimes(1);
     });
 
+    it('lets accepted all-channel performance framing proceed to Explore', () => {
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [{ Batch: 'B1', V1: 10, V2: 11, V3: 12 }],
+        outcome: null,
+        factors: [],
+        analysisMode: 'performance',
+        measureColumns: ['V1', 'V2', 'V3'],
+      };
+
+      render(<FrameView activeIP={DEFAULT_TEST_IP} onFixData={onFixDataMock} />);
+
+      expect(screen.getByTestId('b0-performance-accepted')).toBeInTheDocument();
+      fireEvent.click(screen.getByTestId('b0-performance-accepted-see-data'));
+      expect(showExploreMock).toHaveBeenCalledTimes(1);
+    });
+
     it('renders quiet time chip actions', () => {
       const onDismissQuiet = vi.fn();
       const onUndoQuiet = vi.fn();
