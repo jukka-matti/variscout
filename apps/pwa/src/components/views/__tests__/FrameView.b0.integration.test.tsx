@@ -296,4 +296,30 @@ describe('FrameView b0 — happy-path integration', () => {
     renderFrameView({ onFixData: onFixDataMock });
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
+
+  // ── FSJ-2 walk Fix 2: an out-of-candidates store outcome must NOT enable the CTA ──
+  // (b0 contract, spec §4.1: a wrong pick is one glance + one click to fix — an
+  // outcome that no visible chip represents renders as no-selection rather than an
+  // invisible claim, so the CTA stays gated on picking a visible candidate.)
+
+  it('out-of-candidates store outcome renders no selected Y chip (spec §4.1 one-glance contract)', () => {
+    // outcome='Lot_Start_DateTime' is the date column — it is NOT among the ranked
+    // numeric Y candidates (Down_Content_%, Input_Quantity_kg). Before the fix this
+    // showed no highlighted chip yet enabled the CTA (silent wrong Y).
+    storeStateRef.current = { ...baseStoreState, outcome: 'Lot_Start_DateTime' };
+    renderFrameView();
+
+    const yRow = screen.getByTestId('y-picker-candidate-row');
+    const selectedChips = yRow.querySelectorAll(
+      '[data-testid="column-candidate-chip"][aria-pressed="true"]'
+    );
+    expect(selectedChips.length).toBe(0);
+  });
+
+  it('out-of-candidates store outcome leaves the See-the-data CTA disabled (spec §4.1)', () => {
+    storeStateRef.current = { ...baseStoreState, outcome: 'Lot_Start_DateTime' };
+    renderFrameView();
+    const cta = screen.getByTestId('see-the-data-cta');
+    expect(cta.getAttribute('data-disabled')).toBe('true');
+  });
 });
