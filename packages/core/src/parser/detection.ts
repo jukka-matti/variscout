@@ -100,11 +100,28 @@ export function analyzeColumn(data: DataRow[], colName: string): ColumnAnalysis 
       const str = String(v);
       return datePatterns.some(p => p.test(str));
     });
+
+  // Date.parse fallback: V8's Date.parse is notoriously lenient — 'Step 1' and
+  // 'Shift 3' both parse as valid dates (FSJ-2 chrome-walk find), so the most
+  // common SPC factor labels classified as type 'date', vanishing from the X
+  // picker and occasionally being elected as timeColumn/run-order.
+  //
+  // Two gates tighten the fallback:
+  //   1. Column NAME must contain a TIME_KEYWORD (e.g. timestamp, date, recorded,
+  //      when, …). Free-text date columns ('Mon DD YYYY' style) still work when
+  //      the column is plausibly named; oddly-named text-date columns degrade to
+  //      categorical — recoverable via the Fix-data hatch, unlike silently
+  //      corrupting factor columns, which is not recoverable.
+  //   2. EVERY sampled non-null value must parse (not just one). A single
+  //      date-looking value must not flip a whole column.
+  const colNameLower = colName.toLowerCase();
+  const nameIsTimeIsh = TIME_KEYWORDS.some(kw => colNameLower.includes(kw));
   const isDate =
     matchesDatePattern ||
     (!isNumeric &&
+      nameIsTimeIsh &&
       nonNullValues.length > 0 &&
-      nonNullValues.slice(0, 10).some(v => !isNaN(Date.parse(String(v)))));
+      nonNullValues.slice(0, 10).every(v => !isNaN(Date.parse(String(v)))));
 
   // Determine type — isDate wins the ladder over isNumeric (date patterns are
   // more specific than parseFloat's lenient prefix match).

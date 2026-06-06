@@ -34,9 +34,16 @@ describe('analyzeColumn date detection (FSJ-2 chrome-walk: dates must win over p
     expect(analyzeColumn(data, 'd').type).toBe('date');
   });
 
-  it('keeps a Mon DD YYYY text-date column as date via the Date.parse fallback', () => {
-    const data = [{ d: 'May 01 2026' }, { d: 'May 02 2026' }, { d: 'May 03 2026' }];
-    expect(analyzeColumn(data, 'd').type).toBe('date');
+  it('keeps a Mon DD YYYY text-date column as date when the column is named time-ishly', () => {
+    // The Date.parse fallback is now gated on the column name containing a TIME_KEYWORD
+    // (FSJ-2 T7b fix). Column 'd' has no time-ish name so it no longer classifies as date;
+    // use 'Recorded' (a TIME_KEYWORD) to exercise the preserved fallback path.
+    const data = [
+      { Recorded: 'May 01 2026' },
+      { Recorded: 'May 02 2026' },
+      { Recorded: 'May 03 2026' },
+    ];
+    expect(analyzeColumn(data, 'Recorded').type).toBe('date');
   });
 
   it('keeps a pure-numeric (decimal) column numeric', () => {
@@ -72,6 +79,79 @@ describe('detectColumns with a measurement-shaped paste (Timestamp + numeric + c
     const result = detectColumns(data);
     expect(result.outcome).not.toBe('Timestamp');
     expect(result.outcome).toBe('Cycle_Time_sec');
+  });
+});
+
+describe('analyzeColumn Date.parse fallback gates (FSJ-2 T7b: name-gate + every-sample)', () => {
+  // V8's Date.parse parses 'Step 1' → 978303600000 and 'Shift 3' → 983401200000.
+  // Before the fix these factor labels classified as 'date', excluding them from
+  // the X picker and sometimes electing them as timeColumn/run-order.
+
+  it('Step column with Step 1/Step 2/Step 3 → categorical, not date', () => {
+    const data = [{ Step: 'Step 1' }, { Step: 'Step 2' }, { Step: 'Step 3' }];
+    expect(analyzeColumn(data, 'Step').type).toBe('categorical');
+  });
+
+  it('Shift column with Shift 1/Shift 2/Shift 3 → categorical, not date', () => {
+    const data = [{ Shift: 'Shift 1' }, { Shift: 'Shift 2' }, { Shift: 'Shift 3' }];
+    expect(analyzeColumn(data, 'Shift').type).toBe('categorical');
+  });
+
+  it('Mon DD YYYY values in a time-named column (Recorded) → still date (fallback preserved)', () => {
+    // The name gate allows the Date.parse fallback when the column is named time-ishly.
+    const data = [
+      { Recorded: 'May 01 2026' },
+      { Recorded: 'May 02 2026' },
+      { Recorded: 'May 03 2026' },
+    ];
+    expect(analyzeColumn(data, 'Recorded').type).toBe('date');
+  });
+
+  it('Mon DD YYYY values in a non-time-named column (Notes) → NOT date (name gate is real)', () => {
+    // Column name 'Notes' contains no TIME_KEYWORD, so the fallback does not fire.
+    // Values degrade to categorical (low cardinality text).
+    const data = [{ Notes: 'May 01 2026' }, { Notes: 'May 02 2026' }, { Notes: 'May 03 2026' }];
+    const result = analyzeColumn(data, 'Notes');
+    expect(result.type).not.toBe('date');
+    // 3 unique values ≤ 50 → categorical (pinning the degradation type)
+    expect(result.type).toBe('categorical');
+  });
+
+  it('mixed column where only 1 of 10 samples parses → NOT date (.every() gate)', () => {
+    // The fallback requires ALL sampled values to parse. One date-looking value
+    // must not flip the whole column.
+    const data = [
+      { Timestamp: 'May 01 2026' }, // parses
+      { Timestamp: 'abc' }, // does not parse
+      { Timestamp: 'def' },
+      { Timestamp: 'ghi' },
+      { Timestamp: 'jkl' },
+      { Timestamp: 'mno' },
+      { Timestamp: 'pqr' },
+      { Timestamp: 'stu' },
+      { Timestamp: 'vwx' },
+      { Timestamp: 'yz1' },
+    ];
+    expect(analyzeColumn(data, 'Timestamp').type).not.toBe('date');
+  });
+
+  it('detectColumns walk fixture (ISO Timestamp + Cycle_Time_sec + Step): Step in factors, type categorical', () => {
+    // Re-run of the measurement-shaped paste fixture with Step values that V8's
+    // Date.parse used to swallow. Before the fix, Step was missing from factors
+    // and its type was 'date'.
+    const data = [
+      { Timestamp: '2026-05-01', Cycle_Time_sec: 42.5, Step: 'Step 1' },
+      { Timestamp: '2026-05-02', Cycle_Time_sec: 43.1, Step: 'Step 2' },
+      { Timestamp: '2026-05-03', Cycle_Time_sec: 44.9, Step: 'Step 3' },
+    ];
+    const result = detectColumns(data);
+    // Step must now be included as a factor
+    expect(result.factors).toContain('Step');
+    // columnAnalysis entry for Step must be categorical
+    const stepAnalysis = result.columnAnalysis.find(c => c.name === 'Step');
+    expect(stepAnalysis?.type).toBe('categorical');
+    // Timestamp remains the time column (ISO pattern gate, unaffected)
+    expect(result.timeColumn).toBe('Timestamp');
   });
 });
 
