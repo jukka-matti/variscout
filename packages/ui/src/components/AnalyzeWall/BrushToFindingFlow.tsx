@@ -10,19 +10,19 @@
  * FINDING_ADD here.
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { Hypothesis } from '@variscout/core';
 import type { ChartSelection } from '@variscout/core/findings';
 import type { FindingSource, FindingContext } from '@variscout/core/findings';
-import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { useAnalyzeStore, usePreferencesStore } from '@variscout/stores';
-import { useWallLocale } from './hooks/useWallLocale';
+import type { CaptureDraft } from '@variscout/hooks';
+import { CaptureCard } from '../CaptureCard';
 
 // ── Chart slot position constants (mirrors HypothesisCard slot) ────────────
 export const CHART_SLOT_X = 16;
 export const CHART_SLOT_Y = 64;
-export const CHART_SLOT_W = 248;
-export const CHART_SLOT_H = 80;
+export const CHART_SLOT_W = 360;
+export const CHART_SLOT_H = 260;
 
 // ── Component types ──────────────────────────────────────────────────────────
 
@@ -55,6 +55,63 @@ function buildPersistedText(selection: ChartSelection, factor: string | undefine
   return factor ? `Selected category ${selection.category} on ${factor}` : 'Selected category';
 }
 
+function buildRangeSource(
+  selection: Extract<ChartSelection, { kind: 'range' }>,
+  factor: string | undefined,
+  outcomeColumn: string | null,
+  rows: ReadonlyArray<Record<string, unknown>>
+): FindingSource {
+  const timeLens = usePreferencesStore.getState().timeLens;
+  const midIdx = Math.round((selection.startIdx + selection.endIdx) / 2);
+  const anchorRow = rows[midIdx];
+  const rawX = factor && anchorRow ? Number(anchorRow[factor]) : midIdx;
+  const rawY = outcomeColumn && anchorRow ? Number(anchorRow[outcomeColumn]) : 0;
+
+  return {
+    chart: 'ichart',
+    anchorX: Number.isFinite(rawX) ? rawX : midIdx,
+    anchorY: Number.isFinite(rawY) ? rawY : 0,
+    timeLens,
+    brushedRange: {
+      startIdx: selection.startIdx,
+      endIdx: selection.endIdx,
+    },
+  };
+}
+
+function buildCaptureDraft(
+  selection: ChartSelection,
+  factor: string | undefined,
+  outcomeColumn: string | null,
+  rows: ReadonlyArray<Record<string, unknown>>
+): CaptureDraft {
+  if (selection.kind === 'range') {
+    const proposedFactorName = `obs ${selection.startIdx + 1}-${selection.endIdx + 1}`;
+    return {
+      entryKind: 'brush',
+      source: buildRangeSource(selection, factor, outcomeColumn, rows),
+      activeFilters: {},
+      proposedFactorName,
+      conditionLabel: [factor, proposedFactorName].filter(Boolean).join(' x '),
+      evidenceLabel: `indices ${selection.startIdx}-${selection.endIdx}`,
+      note: '',
+    };
+  }
+
+  return {
+    entryKind: 'point',
+    source: {
+      chart: 'boxplot',
+      category: selection.category,
+      timeLens: usePreferencesStore.getState().timeLens,
+    },
+    activeFilters: factor ? { [factor]: [selection.category] } : {},
+    conditionLabel: factor ? `${factor} = ${selection.category}` : `category ${selection.category}`,
+    evidenceLabel: `category ${selection.category}`,
+    note: '',
+  };
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function BrushToFindingFlow({
@@ -64,132 +121,69 @@ export function BrushToFindingFlow({
   rows,
   children,
 }: BrushToFindingFlowProps): React.ReactElement {
-  const locale = useWallLocale();
   const [pendingSelection, setPendingSelection] = useState<ChartSelection | null>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const [draft, setDraft] = useState<CaptureDraft | null>(null);
 
-  useEffect(() => {
-    if (pendingSelection) {
-      dialogRef.current?.focus();
-    }
-  }, [pendingSelection]);
+  const onBrushEnd = useCallback(
+    (range: { startIdx: number; endIdx: number }) => {
+      const nextSelection: ChartSelection = {
+        kind: 'range',
+        chartType: 'ichart',
+        startIdx: range.startIdx,
+        endIdx: range.endIdx,
+      };
+      setPendingSelection(nextSelection);
+      setDraft(buildCaptureDraft(nextSelection, factor, outcomeColumn, rows));
+    },
+    [factor, outcomeColumn, rows]
+  );
 
-  const onBrushEnd = useCallback((range: { startIdx: number; endIdx: number }) => {
-    setPendingSelection({
-      kind: 'range',
-      chartType: 'ichart',
-      startIdx: range.startIdx,
-      endIdx: range.endIdx,
-    });
-  }, []);
-
-  const onCategorySelect = useCallback((category: string) => {
-    setPendingSelection({ kind: 'category', chartType: 'boxplot', category });
-  }, []);
+  const onCategorySelect = useCallback(
+    (category: string) => {
+      const nextSelection: ChartSelection = { kind: 'category', chartType: 'boxplot', category };
+      setPendingSelection(nextSelection);
+      setDraft(buildCaptureDraft(nextSelection, factor, outcomeColumn, rows));
+    },
+    [factor, outcomeColumn, rows]
+  );
 
   const handleCancel = useCallback(() => {
     setPendingSelection(null);
+    setDraft(null);
   }, []);
 
   const handleConfirm = useCallback(() => {
-    if (!pendingSelection) return;
-
-    const timeLens = usePreferencesStore.getState().timeLens;
+    if (!pendingSelection || !draft) return;
     const store = useAnalyzeStore.getState();
 
     const text = buildPersistedText(pendingSelection, factor);
-    const context: FindingContext = { activeFilters: {}, cumulativeScope: null };
-
-    let source: FindingSource;
-    if (pendingSelection.kind === 'range') {
-      const midIdx = Math.round((pendingSelection.startIdx + pendingSelection.endIdx) / 2);
-      const anchorRow = rows[midIdx];
-      const rawX = factor && anchorRow ? Number(anchorRow[factor]) : midIdx;
-      const rawY = outcomeColumn && anchorRow ? Number(anchorRow[outcomeColumn]) : 0;
-      source = {
-        chart: 'ichart',
-        anchorX: Number.isFinite(rawX) ? rawX : midIdx,
-        anchorY: Number.isFinite(rawY) ? rawY : 0,
-        timeLens,
-        brushedRange: {
-          startIdx: pendingSelection.startIdx,
-          endIdx: pendingSelection.endIdx,
-        },
-      };
-    } else {
-      source = {
-        chart: 'boxplot',
-        category: pendingSelection.category,
-        timeLens,
-      };
-    }
+    const activeFilters =
+      draft.proposedFactorName !== undefined
+        ? { ...draft.activeFilters, [draft.proposedFactorName]: ['in'] }
+        : draft.activeFilters;
+    const context: FindingContext = { activeFilters, cumulativeScope: null };
 
     // F5 will subscribe addFinding to HubAction persistence; we don't dispatch FINDING_ADD here.
-    const finding = store.addFinding(text, context, source);
+    const finding = store.addFinding(text, context, draft.source);
     store.connectFindingToHub(hub.id, finding.id);
     setPendingSelection(null);
-  }, [pendingSelection, factor, outcomeColumn, rows, hub.id]);
-
-  // ── Localised dialog summary ─────────────────────────────────────────────
-
-  let dialogSummary = '';
-  if (pendingSelection) {
-    if (pendingSelection.kind === 'range') {
-      dialogSummary = factor
-        ? formatMessage(locale, 'wall.brush.confirmIChart', {
-            start: pendingSelection.startIdx,
-            end: pendingSelection.endIdx,
-            factor,
-          })
-        : getMessage(locale, 'wall.brush.confirmIChartNoFactor');
-    } else {
-      dialogSummary = factor
-        ? formatMessage(locale, 'wall.brush.confirmBoxplot', {
-            category: pendingSelection.category,
-            factor,
-          })
-        : formatMessage(locale, 'wall.brush.confirmBoxplotNoFactor', {
-            category: pendingSelection.category,
-          });
-    }
-  }
-
-  const pinLabel = getMessage(locale, 'wall.brush.pin');
-  const cancelLabel = getMessage(locale, 'wall.brush.cancel');
-  const dialogAriaLabel = getMessage(locale, 'wall.brush.dialogAriaLabel');
+    setDraft(null);
+  }, [pendingSelection, draft, factor, hub.id]);
 
   return (
     <>
       {children({ onBrushEnd, onCategorySelect })}
-      {pendingSelection && (
+      {draft && (
         <foreignObject x={CHART_SLOT_X} y={CHART_SLOT_Y} width={CHART_SLOT_W} height={CHART_SLOT_H}>
-          <div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            tabIndex={-1}
-            aria-label={dialogAriaLabel}
-            className="flex h-full w-full flex-col items-center justify-center gap-1 rounded bg-surface-secondary px-3 py-1 shadow-sm ring-1 ring-edge text-xs"
-            onKeyDown={(e: React.KeyboardEvent) => {
-              if (e.key === 'Escape') handleCancel();
-            }}
-          >
-            <p className="text-center text-content leading-tight">{dialogSummary}</p>
-            <div className="flex gap-2">
-              <button
-                className="rounded bg-brand px-2 py-0.5 font-medium text-white hover:bg-brand-hover"
-                onClick={handleConfirm}
-              >
-                {pinLabel}
-              </button>
-              <button
-                className="rounded bg-surface px-2 py-0.5 text-content-muted ring-1 ring-edge hover:bg-surface-hover"
-                onClick={handleCancel}
-              >
-                {cancelLabel}
-              </button>
-            </div>
-          </div>
+          <CaptureCard
+            draft={draft}
+            onDraftChange={patch =>
+              setDraft(current => (current ? { ...current, ...patch } : current))
+            }
+            onCapture={handleConfirm}
+            onFactorOnly={handleCancel}
+            onCancel={handleCancel}
+          />
         </foreignObject>
       )}
     </>

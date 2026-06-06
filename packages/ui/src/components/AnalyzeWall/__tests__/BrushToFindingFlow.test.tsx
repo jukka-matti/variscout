@@ -92,12 +92,10 @@ describe('BrushToFindingFlow', () => {
     // Fire brush
     fireEvent.click(screen.getByText('Brush'));
 
-    // Dialog appears after brush
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    // Contains iChart-specific wording (indices + factor)
-    expect(screen.getByRole('dialog').textContent).toMatch(/TEMP/);
-    expect(screen.getByRole('dialog').textContent).toMatch(/12/);
-    expect(screen.getByRole('dialog').textContent).toMatch(/28/);
+    expect(screen.getByRole('dialog', { name: 'New Finding' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Factor name')).toHaveValue('obs 13-29');
+    expect(screen.getByRole('button', { name: 'Capture' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Factor only' })).toBeInTheDocument();
   });
 
   it('confirm button calls addFinding + connectFindingToHub and closes dialog', () => {
@@ -124,11 +122,12 @@ describe('BrushToFindingFlow', () => {
     fireEvent.click(screen.getByText('Brush'));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Pin'));
+    fireEvent.click(screen.getByRole('button', { name: 'Capture' }));
 
     // addFinding called once
     expect(mockAddFinding).toHaveBeenCalledTimes(1);
-    const [, , source] = mockAddFinding.mock.calls[0];
+    const [, context, source] = mockAddFinding.mock.calls[0];
+    expect(context.activeFilters).toEqual({ 'obs 13-29': ['in'] });
     expect(source.chart).toBe('ichart');
     expect(source.brushedRange).toEqual({ startIdx: 12, endIdx: 28 });
 
@@ -164,7 +163,7 @@ describe('BrushToFindingFlow', () => {
     fireEvent.click(screen.getByText('Brush'));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Cancel'));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(mockAddFinding).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).toBeNull();
@@ -229,7 +228,7 @@ describe('BrushToFindingFlow', () => {
     // Boxplot dialog mentions category B and factor
     expect(screen.getByRole('dialog').textContent).toMatch(/B/);
 
-    fireEvent.click(screen.getByText('Pin'));
+    fireEvent.click(screen.getByRole('button', { name: 'Capture' }));
 
     expect(mockAddFinding).toHaveBeenCalledTimes(1);
     const [, , source] = mockAddFinding.mock.calls[0];
@@ -264,9 +263,7 @@ describe('BrushToFindingFlow', () => {
     fireEvent.click(screen.getByText('Brush'));
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
-    // Should show no-factor copy without a {factor} placeholder leak
     expect(dialog.textContent).not.toMatch(/\{factor\}/);
-    // Should show the no-factor fallback text
-    expect(dialog.textContent).toMatch(/Pin range as finding/i);
+    expect(screen.getByLabelText('Factor name')).toHaveValue('obs 1-3');
   });
 });
