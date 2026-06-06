@@ -1,3 +1,15 @@
+---
+tier: ephemeral
+purpose: build
+title: 'FSJ-6 — Azure mode re-framing'
+status: active
+layer: spec
+audience: human
+related:
+  - docs/superpowers/plans/2026-06-06-first-session-journey-master-plan.md
+  - docs/superpowers/specs/2026-06-06-first-session-journey-design.md
+---
+
 # FSJ-6: Azure Mode Re-Framing Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
