@@ -7,10 +7,11 @@
  * flushes the hub to the catalog. Pre-auth edge: no identity → bare hub only
  * (the next authenticated entry's ensureHubProject completes the pair).
  *
- * Called by HubCreationFlow after Stage 1 (HubGoalForm) to materialise the
- * Hub row before Stage 3 (ColumnMapping) runs. The created hub id is written
- * to `processContext.processHubId` so subsequent saves (e.g. from
- * handleMappingConfirmWithCategories) land on the correct hub.
+ * Caller (FSJ-3b): Dashboard's "New Hub" entry. The HubCreationFlow Stage-1
+ * vestibule that previously called this is retired — fresh-paste provisioning
+ * now fires at paste-analyzed time (Editor's onFreshPasteAnalyzed). The created
+ * hub id is written to `processContext.processHubId` so subsequent saves (e.g.
+ * from handleMappingConfirmWithCategories) land on the correct hub.
  */
 import { useCallback } from 'react';
 import { extractHubName } from '@variscout/core';
@@ -67,7 +68,7 @@ export function useNewHubProvision({
   return {
     createHubFromGoal,
     // isPending is not tracked at this scope — callers gate the CTA button
-    // while the promise is in-flight using local state in HubCreationFlow.
+    // while the promise is in-flight using their own local state.
     isPending: false,
   };
 }

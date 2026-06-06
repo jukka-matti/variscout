@@ -65,41 +65,10 @@ vi.mock('../../components/ProjectDashboard', () => ({
   default: () => <div data-testid="project-dashboard-mock">ProjectDashboard</div>,
 }));
 
-/**
- * HubCreationFlow is the Mode B router. In Editor integration tests we care
- * that the mapping UI surfaces — not about Stage 1 internals. Mock it to
- * expose the same data-testid as ColumnMapping so existing routing tests pass.
- */
-vi.mock('../../features/hubCreation', () => ({
-  HubCreationFlow: ({
-    onConfirm,
-    onCancel,
-  }: {
-    onConfirm: (payload: {
-      outcomes: Array<{ columnName: string; characteristicType: string }>;
-      primaryScopeDimensions: string[];
-      outcome: string;
-      factors: string[];
-    }) => void;
-    onCancel: () => void;
-  }) => (
-    <div data-testid="column-mapping">
-      <button
-        onClick={() =>
-          onConfirm({
-            outcomes: [{ columnName: 'Weight', characteristicType: 'nominalIsBest' }],
-            primaryScopeDimensions: ['Machine'],
-            outcome: 'Weight',
-            factors: ['Machine'],
-          })
-        }
-      >
-        Confirm
-      </button>
-      <button onClick={onCancel}>Cancel</button>
-    </div>
-  ),
-}));
+// FSJ-3b: HubCreationFlow deleted — the wizard demoted to ColumnMapping-only.
+// Editor now renders @variscout/ui's ColumnMapping directly (mocked below), so
+// the old '../../features/hubCreation' router mock retired. The mapping path is
+// exercised via the ColumnMapping mock's data-testid="column-mapping".
 
 // ── Mock @variscout/core ──
 
@@ -493,13 +462,18 @@ describe('Editor', () => {
     expect(screen.queryByRole('button', { name: /save/i })).not.toBeInTheDocument();
   });
 
-  it('shows ColumnMapping when data is loaded but no outcome selected', () => {
+  it('shows ColumnMapping (no goal-form vestibule) when data is loaded but no outcome selected (FSJ-3b spec §2/§3)', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       outcome: null,
     });
 
+    // Wizard demoted to ColumnMapping-only.
     expect(screen.getByTestId('column-mapping')).toBeInTheDocument();
+    // Negative control: the Stage-1 HubGoalForm vestibule is retired and never
+    // renders on the mapping path (provisioning moved to paste-analyzed time).
+    expect(screen.queryByTestId('hub-creation-stage1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hub-goal-form')).not.toBeInTheDocument();
   });
 
   it('shows project dashboard overview when data is loaded with projectId', () => {
