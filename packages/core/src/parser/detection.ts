@@ -88,20 +88,31 @@ export function analyzeColumn(data: DataRow[], colName: string): ColumnAnalysis 
     /^\d{1,2}\/\d{1,2}\/\d{2,4}/, // US/EU date
     /^\d{1,2}-\d{1,2}-\d{2,4}/, // Dash date
   ];
-  const isDate =
-    !isNumeric &&
+  // Date PATTERNS take precedence over numeric: parseFloat eats date prefixes
+  // ('2026-05-01' → 2026), which made the three patterns above unreachable and
+  // classified every ISO/US/dash date column as numeric (FSJ-2 chrome-walk find:
+  // a column named 'Timestamp' then matched the 'time' OUTCOME keyword → wrong Y).
+  // The loose Date.parse fallback stays gated on !isNumeric — it would otherwise
+  // swallow plain numbers ('42' parses as a date in some engines).
+  const matchesDatePattern =
     nonNullValues.length > 0 &&
     nonNullValues.slice(0, 10).some(v => {
       const str = String(v);
-      return datePatterns.some(p => p.test(str)) || !isNaN(Date.parse(str));
+      return datePatterns.some(p => p.test(str));
     });
+  const isDate =
+    matchesDatePattern ||
+    (!isNumeric &&
+      nonNullValues.length > 0 &&
+      nonNullValues.slice(0, 10).some(v => !isNaN(Date.parse(String(v)))));
 
-  // Determine type
+  // Determine type — isDate wins the ladder over isNumeric (date patterns are
+  // more specific than parseFloat's lenient prefix match).
   let type: 'numeric' | 'categorical' | 'date' | 'text';
-  if (isNumeric) {
-    type = 'numeric';
-  } else if (isDate) {
+  if (isDate) {
     type = 'date';
+  } else if (isNumeric) {
+    type = 'numeric';
   } else if (uniqueCount <= 50) {
     // Reasonable number of unique values for categorical
     type = 'categorical';
