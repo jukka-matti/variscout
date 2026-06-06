@@ -41,6 +41,7 @@ export {
   applyDerivedFactorToFilters,
   buildBrushCaptureDraft,
   buildBrushDerivedColumn,
+  resolveDerivedFactorName,
   type BrushCaptureDraftInput,
   type CaptureDraft,
   type CaptureEntryKind,

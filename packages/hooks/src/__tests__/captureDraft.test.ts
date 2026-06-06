@@ -3,6 +3,7 @@ import {
   applyDerivedFactorToFilters,
   buildBrushCaptureDraft,
   buildBrushDerivedColumn,
+  resolveDerivedFactorName,
 } from '../captureDraft';
 
 describe('captureDraft', () => {
@@ -27,6 +28,19 @@ describe('captureDraft', () => {
     expect(draft.proposedFactorName).toBe('obs 2-3');
     expect(draft.conditionLabel).toBe('Step = Fill x obs 2-3');
     expect(draft.evidenceLabel).toBe('mean 45 vs 45 · n=2');
+  });
+
+  it('suffixes proposed factor names that collide with existing columns', () => {
+    const draft = buildBrushCaptureDraft({
+      rows,
+      outcome: 'Cycle_Time',
+      selectedIndices: new Set([1, 2]),
+      activeFilters: { Step: ['Fill'] },
+      existingColumnNames: ['Step', 'Cycle_Time', 'obs 2-3', 'obs 2-3 2'],
+    });
+
+    expect(draft.proposedFactorName).toBe('obs 2-3 3');
+    expect(resolveDerivedFactorName('Machine', ['Machine', 'Machine 2'])).toBe('Machine 3');
   });
 
   it('applies a derived brush factor as an ordinary activeFilters key', () => {

@@ -24,14 +24,25 @@ export function CaptureCard({
   const canSaveFactor = draft.proposedFactorName !== undefined && onFactorOnly !== undefined;
 
   useEffect(() => {
+    cardRef.current?.focus();
+
     const handlePointerDown = (event: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
         onCancel();
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onCancel();
+      }
+    };
 
     document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [onCancel]);
 
   const shellClassName =
@@ -47,11 +58,6 @@ export function CaptureCard({
         aria-modal="false"
         aria-labelledby="capture-card-title"
         tabIndex={-1}
-        onKeyDown={event => {
-          if (event.key === 'Escape') {
-            onCancel();
-          }
-        }}
         className="rounded-lg border border-slate-200 bg-white p-4 shadow-lg"
       >
         <h2 id="capture-card-title" className="text-base font-semibold text-slate-950">

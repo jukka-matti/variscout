@@ -4,7 +4,12 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
 import { calculateAnova } from '@variscout/core';
 import * as UseFilterNavigationModule from '../../hooks/useFilterNavigation';
-import { useProjectStore, useViewStore, getProjectInitialState } from '@variscout/stores';
+import {
+  usePreferencesStore,
+  useProjectStore,
+  useViewStore,
+  getProjectInitialState,
+} from '@variscout/stores';
 
 // Mock components
 vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
@@ -131,6 +136,7 @@ describe('Dashboard', () => {
       displayOptions: { showFilterContext: true },
     });
     useViewStore.getState().clearTransientSelections();
+    usePreferencesStore.setState({ timeLens: { mode: 'cumulative' } });
 
     vi.spyOn(UseFilterNavigationModule, 'useFilterNavigation').mockReturnValue(
       mockFilterNavigationReturn as unknown as ReturnType<
@@ -196,5 +202,40 @@ describe('Dashboard', () => {
       })
     );
     expect(useViewStore.getState().selectedPoints.size).toBe(0);
+  });
+
+  it('suffixes edited brush factor names instead of overwriting existing raw columns', () => {
+    useViewStore.getState().setSelectedPoints(new Set([0, 1]));
+
+    render(
+      <Dashboard findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }} />
+    );
+
+    fireEvent.change(screen.getByLabelText('Factor name'), { target: { value: 'Machine' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Factor only' }));
+
+    const state = useProjectStore.getState();
+    expect(state.factors).toContain('Machine 2');
+    expect(state.rawData.map(row => row.Machine)).toEqual(['A', 'A', 'B', 'B']);
+    expect(state.rawData.map(row => row['Machine 2'])).toEqual(['in', 'in', 'out', 'out']);
+  });
+
+  it('maps rolling-lens brush indices onto the visible raw rows', () => {
+    usePreferencesStore.setState({ timeLens: { mode: 'rolling', windowSize: 2 } });
+    useViewStore.getState().setSelectedPoints(new Set([0, 1]));
+
+    render(
+      <Dashboard findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }} />
+    );
+
+    fireEvent.change(screen.getByLabelText('Factor name'), { target: { value: 'Recent window' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Factor only' }));
+
+    expect(useProjectStore.getState().rawData.map(row => row['Recent window'])).toEqual([
+      'out',
+      'out',
+      'in',
+      'in',
+    ]);
   });
 });

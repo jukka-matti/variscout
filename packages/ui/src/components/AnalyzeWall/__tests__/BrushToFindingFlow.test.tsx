@@ -93,9 +93,9 @@ describe('BrushToFindingFlow', () => {
     fireEvent.click(screen.getByText('Brush'));
 
     expect(screen.getByRole('dialog', { name: 'New Finding' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Factor name')).toHaveValue('obs 13-29');
     expect(screen.getByRole('button', { name: 'Capture' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Factor only' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Factor only' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Factor name')).not.toBeInTheDocument();
   });
 
   it('confirm button calls addFinding + connectFindingToHub and closes dialog', () => {
@@ -127,7 +127,7 @@ describe('BrushToFindingFlow', () => {
     // addFinding called once
     expect(mockAddFinding).toHaveBeenCalledTimes(1);
     const [, context, source] = mockAddFinding.mock.calls[0];
-    expect(context.activeFilters).toEqual({ 'obs 13-29': ['in'] });
+    expect(context.activeFilters).toEqual({});
     expect(source.chart).toBe('ichart');
     expect(source.brushedRange).toEqual({ startIdx: 12, endIdx: 28 });
 
@@ -264,6 +264,6 @@ describe('BrushToFindingFlow', () => {
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
     expect(dialog.textContent).not.toMatch(/\{factor\}/);
-    expect(screen.getByLabelText('Factor name')).toHaveValue('obs 1-3');
+    expect(screen.queryByLabelText('Factor name')).not.toBeInTheDocument();
   });
 });

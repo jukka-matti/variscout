@@ -91,8 +91,7 @@ function buildCaptureDraft(
       entryKind: 'brush',
       source: buildRangeSource(selection, factor, outcomeColumn, rows),
       activeFilters: {},
-      proposedFactorName,
-      conditionLabel: [factor, proposedFactorName].filter(Boolean).join(' x '),
+      conditionLabel: factor ? `${factor} x ${proposedFactorName}` : proposedFactorName,
       evidenceLabel: `indices ${selection.startIdx}-${selection.endIdx}`,
       note: '',
     };
@@ -157,11 +156,7 @@ export function BrushToFindingFlow({
     const store = useAnalyzeStore.getState();
 
     const text = buildPersistedText(pendingSelection, factor);
-    const activeFilters =
-      draft.proposedFactorName !== undefined
-        ? { ...draft.activeFilters, [draft.proposedFactorName]: ['in'] }
-        : draft.activeFilters;
-    const context: FindingContext = { activeFilters, cumulativeScope: null };
+    const context: FindingContext = { activeFilters: draft.activeFilters, cumulativeScope: null };
 
     // F5 will subscribe addFinding to HubAction persistence; we don't dispatch FINDING_ADD here.
     const finding = store.addFinding(text, context, draft.source);
@@ -181,7 +176,6 @@ export function BrushToFindingFlow({
               setDraft(current => (current ? { ...current, ...patch } : current))
             }
             onCapture={handleConfirm}
-            onFactorOnly={handleCancel}
             onCancel={handleCancel}
           />
         </foreignObject>

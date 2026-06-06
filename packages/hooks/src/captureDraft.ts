@@ -25,6 +25,7 @@ export interface BrushCaptureDraftInput {
   selectedIndices: Set<number>;
   activeFilters: Record<string, (string | number)[]>;
   specs?: SpecLimits;
+  existingColumnNames?: string[];
 }
 
 function selectedBounds(selectedIndices: Set<number>): { startIdx: number; endIdx: number } {
@@ -95,6 +96,24 @@ export function applyDerivedFactorToFilters(
   return { ...activeFilters, [factorName]: ['in'] };
 }
 
+export function resolveDerivedFactorName(
+  proposedName: string,
+  existingColumnNames: string[]
+): string {
+  const trimmed = proposedName.trim();
+  const baseName = trimmed.length > 0 ? trimmed : 'captured range';
+  const existing = new Set(existingColumnNames);
+  if (!existing.has(baseName)) return baseName;
+
+  let suffix = 2;
+  let candidate = `${baseName} ${suffix}`;
+  while (existing.has(candidate)) {
+    suffix += 1;
+    candidate = `${baseName} ${suffix}`;
+  }
+  return candidate;
+}
+
 export function buildBrushDerivedColumn(
   rows: DataRow[],
   selectedIndices: Set<number>,
@@ -112,9 +131,13 @@ export function buildBrushCaptureDraft({
   selectedIndices,
   activeFilters,
   specs,
+  existingColumnNames,
 }: BrushCaptureDraftInput): CaptureDraft {
   const { startIdx, endIdx } = selectedBounds(selectedIndices);
-  const proposedFactorName = `obs ${startIdx + 1}-${endIdx + 1}`;
+  const proposedFactorName = resolveDerivedFactorName(
+    `obs ${startIdx + 1}-${endIdx + 1}`,
+    existingColumnNames ?? []
+  );
   const filterLabel = formatActiveFilters(activeFilters);
   const conditionLabel = [filterLabel, proposedFactorName].filter(Boolean).join(' x ');
   const anchorIndex = Math.round((startIdx + endIdx) / 2);
