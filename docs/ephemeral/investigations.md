@@ -1542,9 +1542,17 @@ Pre-existing: the wizard's confirm adapter drops `expectedOutcomeNote` (ColumnMa
 
 Provenance line, "Fix data…", "＋ track another outcome", "＋ Set a process goal…" follow the OutcomeNoMatchBanner precedent (MessageCatalog is a closed 32-catalog interface). Sweep them together when the catalogs next open.
 
-## HubCreationFlow: Confirm-with-empty-goal skips Untitled-pair provisioning (Skip provisions) [LOGGED 2026-06-06]
+## HubCreationFlow: Confirm-with-empty-goal skips Untitled-pair provisioning (Skip provisions) [RESOLVED 2026-06-06]
 
-Pre-existing asymmetry surfaced by the FSJ-3a quality review + walk: `handleGoalConfirm` calls `createHubFromGoal` only when `narrative.trim()` is non-empty, while `handleGoalSkip` calls `createHubFromGoal('')` unconditionally — so submitting Stage 1 with an empty textarea reaches ColumnMapping with NO hub, no pair, and the Stage-3 outcomes fold silently skips (gated on `processHubId`). Post-FSJ-3a this is a §3 Untitled-guarantee gap on one wizard path (the PWA closed the equivalent with `onFreshPasteAnalyzed`/`provisionPasteProject` in FSJ-2). **Route to FSJ-3b** — the wizard demotion reworks this flow anyway; until then the Skip button and any non-empty goal provision correctly.
+Pre-existing asymmetry surfaced by the FSJ-3a quality review + walk: `handleGoalConfirm` called `createHubFromGoal` only when `narrative.trim()` was non-empty, while `handleGoalSkip` called it unconditionally — submitting Stage 1 with an empty textarea reached ColumnMapping with NO pair. **RESOLVED by FSJ-3b (PR #314): dissolved by construction** — the §3 guarantee moved to paste-time (`onFreshPasteAnalyzed` provisions every fresh wizard-path paste BEFORE the wizard renders) and Stage 1 itself was retired (`HubCreationFlow` deleted; the wizard is ColumnMapping-only). Chrome-verified: defect-shaped paste → pair provisioned, wizard up, no Stage-1.
+
+## Azure DefectDetectedModal render order vs the mapping takeover [LOGGED 2026-06-06]
+
+FSJ-3b walk observation, pre-existing (EditorModals untouched by the branch; the detection tail is byte-identical to main): for a defect-shaped paste, the full-screen ColumnMapping takeover renders via the Editor's early-return chain, and the `DefectDetectedModal` (mounted in `EditorModals` near the end of the component) was not visible over it during the walk. Whether the modal ever surfaced BEFORE the takeover on main, or only after confirm, was not pinned — the unit tests verify `setDefectDetection` fires (any-confidence gate preserved), and FSJ-5/6's §4.2a re-framing banners retire this modal anyway. Pin the ordering only if a defect-data demo needs it before FSJ-6.
+
+## OutcomeNoMatchBanner onExpectedChange has no store home (both apps' b0 mounts) [LOGGED 2026-06-06]
+
+Making the code comments honest (the FSJ-3b final review found both apps' FrameView comments claiming an investigations entry that didn't exist): the b0 no-Y banner's `onExpectedChange` is a commented no-op in BOTH the PWA (FSJ-2) and Azure (FSJ-3b) FrameView mounts — `expectedOutcomeNote` has no ProcessHub field (same root note as the wizard-mount entry above from FSJ-2). When ProcessHub gains the field, wire all three mounts (wizard + 2× b0).
 
 ## Azure portfolio auto-redirect race + `?project=` deep-link guard block portfolio reachability [LOGGED 2026-06-06]
 
