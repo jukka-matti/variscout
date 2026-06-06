@@ -1,7 +1,7 @@
 import { createNewIP } from '@variscout/core/improvementProject';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessHub } from '@variscout/core/processHub';
-import { useActiveIPStore, useImprovementProjectStore } from '@variscout/stores';
+import { useActiveIPStore, useImprovementProjectStore, useProjectStore } from '@variscout/stores';
 
 /** EasyAuth identity (getCurrentUser) — Azure's single user-id convention. */
 export interface AzureUserIdentity {
@@ -64,6 +64,17 @@ export function activateHubProject(hub: ProcessHub, userId: string): void {
   if (!ip || ip.deletedAt !== null) return;
   useImprovementProjectStore.getState().upsertProject(ip);
   useActiveIPStore.getState().setActiveIP({ hubId: hub.id, userId }, ip.id);
+}
+
+/**
+ * Merge the landing's processHubId into the LIVE processContext, read at call
+ * time. A render-closure spread here clobbered the processMap that loadSample
+ * had just seeded into the store within the same invocation — The Bottleneck
+ * landed at b0 instead of L2 (chrome walk 2026-06-06).
+ */
+export function bindProcessHubId(hubId: string): void {
+  const store = useProjectStore.getState();
+  store.setProcessContext({ ...(store.processContext ?? {}), processHubId: hubId });
 }
 
 /** Deps are injected so this lib stays free of feature-store imports (FSD). */

@@ -1,10 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ensureHubProject, activateHubProject, landFreshEntryOnProcess } from '../landing';
+import {
+  ensureHubProject,
+  activateHubProject,
+  bindProcessHubId,
+  landFreshEntryOnProcess,
+} from '../landing';
 import {
   useActiveIPStore,
   useImprovementProjectStore,
+  useProjectStore,
   getActiveIPInitialState,
   getImprovementProjectInitialState,
+  getProjectInitialState,
 } from '@variscout/stores';
 import type { ProcessHub } from '@variscout/core/processHub';
 
@@ -69,6 +76,7 @@ describe('activateHubProject + landFreshEntryOnProcess', () => {
     // functions exported from @variscout/stores.
     useActiveIPStore.setState(getActiveIPInitialState());
     useImprovementProjectStore.setState(getImprovementProjectInitialState());
+    useProjectStore.setState(getProjectInitialState());
   });
 
   it('activates under the caller-supplied (email) scope key — the key Editor reads', () => {
@@ -128,5 +136,38 @@ describe('activateHubProject + landFreshEntryOnProcess', () => {
     expect(registerHub).not.toHaveBeenCalled();
     expect(setProcessHubId).not.toHaveBeenCalled();
     expect(showFrame).toHaveBeenCalledTimes(1); // still routes
+  });
+});
+
+describe('bindProcessHubId', () => {
+  beforeEach(() => {
+    useProjectStore.setState(getProjectInitialState());
+  });
+
+  it('preserves the live processContext written within the same invocation (the seeded-map clobber)', () => {
+    // Simulate loadSample seeding a processMap into the store BEFORE setProcessHubId fires.
+    // Under the old stale-closure spread this write would be clobbered.
+    useProjectStore.getState().setProcessContext({
+      processMap: {
+        version: 1,
+        nodes: [{ id: 'n1', name: 'Step 1', order: 0 }],
+        tributaries: [],
+        subgroupAxes: [],
+        hunches: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+    bindProcessHubId('hub-9');
+    const ctx = useProjectStore.getState().processContext;
+    expect(ctx?.processHubId).toBe('hub-9');
+    expect(ctx?.processMap?.nodes).toHaveLength(1); // would FAIL under the stale-closure spread
+  });
+
+  it('creates the context when none exists', () => {
+    // Confirm initial state starts with null processContext
+    expect(useProjectStore.getState().processContext).toBeNull();
+    bindProcessHubId('hub-1');
+    expect(useProjectStore.getState().processContext?.processHubId).toBe('hub-1');
   });
 });

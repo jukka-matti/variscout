@@ -117,7 +117,7 @@ import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 import { HubCreationFlow } from '../features/hubCreation';
 import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
-import { activateHubProject, landFreshEntryOnProcess } from '../lib/landing';
+import { activateHubProject, bindProcessHubId, landFreshEntryOnProcess } from '../lib/landing';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { AnalyzeWorkspace } from '../components/editor/AnalyzeWorkspace';
 import FrameView from '../components/editor/FrameView';
@@ -991,10 +991,10 @@ export const Editor: React.FC<EditorProps> = ({
    */
   const handleHubCreated = useCallback(
     (hub: ProcessHub) => {
-      setProcessContext({ ...(processContext ?? {}), processHubId: hub.id });
+      bindProcessHubId(hub.id);
       if (currentUser?.email) activateHubProject(hub, currentUser.email);
     },
-    [processContext, setProcessContext, currentUser?.email]
+    [currentUser?.email]
   );
 
   // FSJ-3a: shared landing deps — the paste path joins as the third caller in FSJ-3b.
@@ -1002,11 +1002,10 @@ export const Editor: React.FC<EditorProps> = ({
     () => ({
       activeHub: activeHub ?? null,
       registerHub: useUnsavedHubsStore.getState().upsertHub,
-      setProcessHubId: (hubId: string) =>
-        setProcessContext({ ...(processContext ?? {}), processHubId: hubId }),
+      setProcessHubId: bindProcessHubId,
       showFrame: usePanelsStore.getState().showFrame,
     }),
-    [activeHub, processContext, setProcessContext]
+    [activeHub]
   );
 
   // FSJ-3a landing (spec §1/§3): fresh sample entry lands on the Process tab
