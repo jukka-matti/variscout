@@ -83,7 +83,7 @@ import type {
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { createProjectActionItem, type BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
-import { createNewIP } from '@variscout/core/improvementProject';
+import { createNewIP, type ImprovementProject } from '@variscout/core/improvementProject';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
@@ -2408,11 +2408,12 @@ export const Editor: React.FC<EditorProps> = ({
       />
 
       {/* Create-Project modal — lightweight Home CTA path (PR-CCJ-E1 T4).
-          Wedge V1 single-SKU: on Save, mint a fresh IP via the core factory,
-          set it active, and route to the Process tab (`showFrame`). The
-          legacy `showCharter()` ceremony (5-entry-point variant) is deferred
-          to Task #44 cross-tab presentation. Modal guards on activeHub +
-          currentUser?.email — neither is meaningful otherwise. */}
+          Wedge V1 single-SKU: on Save, names/frames the Untitled pair if one already
+          exists (IM-0a 1:1), or mints a fresh IP via the core factory — then sets
+          it active and routes to the Process tab (`showFrame`). The legacy
+          `showCharter()` ceremony (5-entry-point variant) is deferred to Task #44
+          cross-tab presentation. Modal guards on activeHub + currentUser?.email —
+          neither is meaningful otherwise. */}
       {isCreateProjectModalOpen && activeHub && currentUser?.email ? (
         <CreateProjectModal
           onSave={({ title, issueStatement }) => {
@@ -2420,7 +2421,7 @@ export const Editor: React.FC<EditorProps> = ({
             if (existing && existing.deletedAt === null) {
               // IM-0a 1:1 guard (FSJ-3a): the Untitled pair already exists — this
               // ceremony names/frames it; it never mints a second project per hub.
-              const updated: typeof existing = {
+              const updated: ImprovementProject = {
                 ...existing,
                 metadata: { ...existing.metadata, title },
                 ...(issueStatement ? { issueStatement } : {}),
