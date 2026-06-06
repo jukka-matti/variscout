@@ -2108,6 +2108,8 @@ export const Editor: React.FC<EditorProps> = ({
                   activeIP={activeIPContext.activeIP}
                   outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
                   reingestPendingMatches={pendingMatches}
+                  onFixData={dataFlow.openFactorManager}
+                  onRenameColumn={dataFlow.handleColumnRename}
                 />
               </div>
             ) : activeView === 'charter' ? (
