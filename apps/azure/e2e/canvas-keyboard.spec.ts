@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { completeStage1, confirmColumnMapping, pasteDataAndAnalyze } from './helpers';
+import { pasteToB0 } from './helpers';
 
 const CANVAS_CSV = [
   'weight_g,bake_time,machine,timestamp',
@@ -22,11 +22,13 @@ async function openPasteScreen(page: import('@playwright/test').Page) {
   await expect(page.getByTestId('paste-textarea')).toBeVisible({ timeout: 8000 });
 }
 
+// FSJ-3b (spec §4.1): measurement pastes skip the mapping vestibule and land at
+// frame-view-b0. The ProcessStepsExpander (with chip-rail) is part of the b0
+// view — no need to navigate away from the Process tab.
 async function completeModeBToCanvas(page: import('@playwright/test').Page) {
   await openPasteScreen(page);
-  await pasteDataAndAnalyze(page, CANVAS_CSV);
-  await completeStage1(page, 'Reduce weight variation.');
-  await confirmColumnMapping(page, 'weight_g');
+  // pasteToB0 fills + submits CANVAS_CSV and asserts frame-view-b0 is visible.
+  await pasteToB0(page, CANVAS_CSV);
 
   await expect(page.getByTestId('process-steps-expander-header')).toBeVisible({ timeout: 15000 });
   await page.getByTestId('process-steps-expander-header').click();

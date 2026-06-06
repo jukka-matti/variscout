@@ -13,11 +13,17 @@
 //   4. Portfolio ProcessHubView "Add framing" CTA — seeds an incomplete hub, navigates
 //      to portfolio, selects the hub from the hub selector, verifies hub-framing-prompt and CTA routing.
 import { test, expect } from '@playwright/test';
-import { confirmColumnMapping, pasteDataAndAnalyze, completeStage1, MODE_B_CSV } from './helpers';
+import {
+  confirmColumnMapping,
+  pasteDataAndAnalyze,
+  pasteToB0,
+  DETECTION_CSV,
+  MODE_B_CSV,
+} from './helpers';
 import { seedPortfolioHub, seedIncompleteHub } from './fixtures/portfolio-state';
 
-const GOAL_NARRATIVE =
-  'We mold syringe barrels for medical customers. Weight in grams matters most.';
+// GOAL_NARRATIVE removed — HubGoalForm (Stage-1) retired in FSJ-3b; goal
+// ceremony moved to GoalBanner on the Process tab (spec §3).
 const EDITED_GOAL = 'We produce precision medical components. Weight accuracy is critical.';
 
 // ---------------------------------------------------------------------------
@@ -78,28 +84,54 @@ async function dismissAutoFireModals(page: import('@playwright/test').Page) {
 }
 
 // ---------------------------------------------------------------------------
-// Test group 1: Full Mode B framing via Editor paste
+// Test group 1: Paste flows — b0 landing (measurement) + wizard (detection)
 // ---------------------------------------------------------------------------
 
 test.describe('Azure Mode B framing — Editor paste flow', () => {
-  test('Paste Data → HubGoalForm (Stage 1) → ColumnMapping (Stage 3) → I-chart visible', async ({
+  // FSJ-3b (spec §4.1): measurement-shaped pastes skip the mapping vestibule
+  // and land at the Process tab (frame-view-b0) with Y/X pre-filled.
+  // Stage-1 HubGoalForm no longer exists in the flow (wizard demoted to
+  // ColumnMapping-only; Stage-1 retired in FSJ-3b).
+  test('Measurement paste → b0 landing on Process tab (no wizard, no Stage-1)', async ({
     page,
   }) => {
     // 1. Open PasteScreen from Editor empty state
     await openPasteScreen(page);
 
-    // 2. Paste CSV and start analysis → Stage 1 (HubGoalForm) appears
-    await pasteDataAndAnalyze(page, MODE_B_CSV);
+    // 2. Paste measurement CSV → lands at frame-view-b0 (wizard skipped entirely)
+    await pasteToB0(page, MODE_B_CSV);
 
-    // 3. Stage 1: HubCreationFlow wraps HubGoalForm in hub-creation-stage1
-    await completeStage1(page, GOAL_NARRATIVE);
+    // 3. Provenance bar and Process-tab b0 chrome should be present
+    //    (frame-view-b0 asserted inside pasteToB0)
+    await expect(page.getByTestId('frame-view-b0')).toBeVisible();
+  });
 
-    // 4. Stage 3: ColumnMapping — select weight_g and confirm
-    await confirmColumnMapping(page, 'weight_g');
+  // FSJ-3b decision 12: detection-shaped pastes (defect event-log) keep the
+  // wizard path. This test preserves the original intent: "wizard surfaces work".
+  // Stage-1 (hub-creation-stage1) no longer renders anywhere — the flow goes
+  // directly to ColumnMapping.
+  test('Detection paste (defect event-log) → ColumnMapping wizard (no Stage-1)', async ({
+    page,
+  }) => {
+    // 1. Open PasteScreen from Editor empty state
+    await openPasteScreen(page);
 
-    // 5. Analysis canvas: I-chart should appear (confirms outcome was set)
-    await dismissAutoFireModals(page);
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+    // 2. Paste defect event-log CSV → defect modal fires → wizard path kept
+    await pasteDataAndAnalyze(page, DETECTION_CSV);
+
+    // 3. Stage 1 (hub-creation-stage1) must NOT appear — wizard is ColumnMapping-only
+    const stage1 = page.getByTestId('hub-creation-stage1');
+    const stage1Visible = await stage1.isVisible({ timeout: 2000 }).catch(() => false);
+    expect(stage1Visible).toBe(false);
+
+    // 4. The defect modal should appear (Azure fires DefectDetectedModal for any
+    //    defect-format paste — title is "Defect Data Detected"). This confirms the
+    //    detection path is active (wizard path, not the b0 landing).
+    const wizardSurface = page
+      .locator('text=Defect Data Detected')
+      .or(page.locator('text=Map Your Data'));
+    const wizardVisible = await wizardSurface.isVisible({ timeout: 8000 }).catch(() => false);
+    expect(wizardVisible).toBe(true);
   });
 });
 
@@ -148,12 +180,11 @@ test.describe('Azure Mode B framing — GoalBanner edit roundtrip (portfolio)', 
 // ---------------------------------------------------------------------------
 
 test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point', () => {
-  test('"New Hub" quick-action opens Paste Data → Mode B framing flow → I-chart', async ({
-    page,
-  }) => {
+  // FSJ-3b: Stage-1 (HubGoalForm) retired — wizard is ColumnMapping-only.
+  // The "New Hub" entry point triggers a paste → b0 landing for measurement data.
+  test('"New Hub" quick-action opens Paste Data → b0 landing on Process tab', async ({ page }) => {
     // 1. Load a sample to unlock the ProjectDashboard sidebar (needs hasData=true).
-    //    The sample triggers HubCreationFlow Stage 1; skip it by clicking
-    //    "Skip framing (advanced)" since we only need hasData=true for the Overview tab.
+    //    Samples still go through ColumnMapping (different code path from paste).
     await waitForApp(page);
     const sampleButton = page.locator('[data-testid^="sample-"]').first();
     const hasSample = await sampleButton.isVisible({ timeout: 5000 }).catch(() => false);
@@ -171,17 +202,16 @@ test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point',
       .isVisible({ timeout: 4000 })
       .catch(() => false);
     if (mappingVisible) {
-      // HubCreationFlow Stage 1 may appear before ColumnMapping.
-      const skipFramingButton = page.locator('button:has-text("Skip framing")');
-      const stage1Visible = await skipFramingButton.isVisible({ timeout: 2000 }).catch(() => false);
-      if (stage1Visible) {
-        await skipFramingButton.click();
-      }
       await confirmColumnMapping(page);
     }
 
     await dismissAutoFireModals(page);
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+    // FSJ-3b: samples that are measurement-shaped now land at frame-view-b0.
+    // Samples that auto-route to the analysis view show chart-ichart.
+    // Accept either: both indicate a live session with data loaded.
+    await expect(
+      page.locator('[data-testid="chart-ichart"]').or(page.getByTestId('frame-view-b0'))
+    ).toBeVisible({ timeout: 15000 });
 
     // 2. Navigate to Home tab to show ProjectDashboard with "New Hub" button
     const homeTab = page.getByTestId('workflow-tab-home');
@@ -200,28 +230,20 @@ test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point',
     // 4. PasteScreen appears (handleNewHub calls showAnalysis() + startPaste())
     await expect(page.getByTestId('paste-textarea')).toBeVisible({ timeout: 8000 });
 
-    // 5. Complete Mode B framing flow: paste → Stage 1 HubGoalForm → ColumnMapping
+    // 5. Complete paste flow: measurement paste → b0 landing (Stage-1 retired,
+    //    wizard demoted to ColumnMapping-only in FSJ-3b).
     //
     //    handlePasteAnalyze calls confirmReplaceIfNeeded() → window.confirm() when
     //    rawData.length > 0 && outcome is already set (from the loaded sample).
     //    Accept the dialog so the paste proceeds rather than aborting.
     page.once('dialog', dialog => dialog.accept());
-    await pasteDataAndAnalyze(page, MODE_B_CSV);
+    // FSJ-3b: measurement paste skips the wizard (hub-creation-stage1 + ColumnMapping)
+    // and lands at frame-view-b0. Stage-1 never renders on this path.
+    await pasteToB0(page, MODE_B_CSV);
 
-    // After fresh paste with new data, Stage 1 (HubGoalForm) always appears for
-    // a new Analyze entry. Use waitFor (polling) so we don't race the React render.
-    const stage1AfterNewHub = page.getByTestId('hub-creation-stage1');
-    try {
-      await stage1AfterNewHub.waitFor({ state: 'visible', timeout: 6000 });
-      await completeStage1(page, GOAL_NARRATIVE);
-    } catch {
-      // Stage 1 not shown — processHubId already set; proceed to ColumnMapping.
-    }
-    await confirmColumnMapping(page, 'weight_g');
-
-    // 6. Analysis canvas: I-chart visible with weight_g as outcome
-    await dismissAutoFireModals(page);
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+    // 6. b0 landing confirmed (frame-view-b0 asserted inside pasteToB0 above).
+    //    The full spine (click "See the data" → I-chart) is FSJ-10's e2e scope.
+    await expect(page.getByTestId('frame-view-b0')).toBeVisible();
   });
 });
 

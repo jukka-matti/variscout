@@ -77,7 +77,11 @@ export async function loadPerformanceSample(page: Page) {
 
 // ── Mode B helpers ────────────────────────────────────────────────────────────
 
-/** CSV data with a clear numeric outcome (weight_g) + two categoricals */
+/**
+ * Measurement-shaped CSV: clear numeric outcome (weight_g) + two categoricals.
+ * FSJ-3b: measurement-shaped pastes skip the mapping vestibule and land at b0
+ * (frame-view-b0) on the Process tab. Use DETECTION_CSV to keep the wizard path.
+ */
 export const MODE_B_CSV = [
   'weight_g,product,shift,batch_id',
   '4.5,A,morning,B1',
@@ -93,6 +97,28 @@ export const MODE_B_CSV = [
 ].join('\n');
 
 /**
+ * Detection-shaped CSV: defect event-log format (defect column, no continuous
+ * numeric outcome). Triggers the defect modal → keeps the ColumnMapping wizard
+ * path (not the b0 landing). Use for tests that explicitly exercise wizard surfaces.
+ *
+ * FSJ-3b decision 12: specs that test wizard surfaces switch to this fixture so
+ * their intent (wizard works) is preserved after Stage-1 retirement.
+ */
+export const DETECTION_CSV = [
+  'date,line,defect,operator',
+  '2026-01-01,A,scratch,Alice',
+  '2026-01-01,A,dent,Bob',
+  '2026-01-02,B,scratch,Charlie',
+  '2026-01-02,A,contamination,Alice',
+  '2026-01-03,B,scratch,Bob',
+  '2026-01-03,A,dent,Charlie',
+  '2026-01-04,B,scratch,Alice',
+  '2026-01-04,A,contamination,Bob',
+  '2026-01-05,B,dent,Charlie',
+  '2026-01-05,A,scratch,Alice',
+].join('\n');
+
+/**
  * Paste CSV data into the PasteScreen (data-testid="paste-textarea") and
  * click Start Analysis.
  */
@@ -103,14 +129,26 @@ export async function pasteDataAndAnalyze(page: Page, csv: string = MODE_B_CSV):
 }
 
 /**
- * Complete Stage 1 (HubGoalForm) in HubCreationFlow.
- * Waits for the hub-creation-stage1 container, fills the goal narrative,
- * and clicks Continue.
+ * Paste measurement-shaped CSV and wait for the b0 landing on the Process tab.
+ *
+ * FSJ-3b (spec §4.1): measurement-shaped pastes skip ColumnMapping entirely
+ * and land at frame-view-b0 with Y/X pre-filled by inference. Use this helper
+ * when the test goal is "user sees the Process tab with data loaded" rather
+ * than "user goes through the mapping wizard".
+ *
+ * The PasteScreen must already be open before calling this helper — call
+ * `page.getByRole('button', { name: 'Paste Data' }).click()` first.
+ *
+ * @param tsv - Tab-separated or comma-separated measurement data. Defaults to
+ *   MODE_B_CSV (weight_g outcome + two categoricals).
  */
-export async function completeStage1(page: Page, narrative: string): Promise<void> {
-  await expect(page.getByTestId('hub-creation-stage1')).toBeVisible({ timeout: 8000 });
-  await page.getByRole('textbox', { name: /process goal/i }).fill(narrative);
-  await page.getByRole('button', { name: /Continue/i }).click();
+export async function pasteToB0(page: Page, tsv: string = MODE_B_CSV): Promise<void> {
+  await expect(page.getByTestId('paste-textarea')).toBeVisible({ timeout: 8000 });
+  await page.getByTestId('paste-textarea').fill(tsv);
+  await page.getByTestId('paste-start-analysis').click();
+  // FSJ-3b: measurement paste skips the wizard and lands at frame-view-b0.
+  // hub-creation-stage1 and "Map Your Data" must NOT appear.
+  await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 15000 });
 }
 
 /**
