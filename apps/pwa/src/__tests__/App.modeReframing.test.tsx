@@ -252,6 +252,7 @@ describe('PWA mode detections re-frame b0', () => {
 
     const state = useProjectStore.getState();
     expect(state.analysisMode).toBe('defect');
+    expect(state.outcome).toBe('DefectRate');
     expect(state.defectMapping).toEqual({
       dataShape: 'event-log',
       aggregationUnit: 'Date',

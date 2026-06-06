@@ -400,6 +400,11 @@ describe('FrameView b0 — happy-path integration', () => {
 
     const banner = screen.getByTestId('b0-defect-banner');
     expect(banner).toHaveTextContent('These rows look like defect events');
+    expect(screen.getByTestId('frame-view-b0-selection-disabled')).toHaveTextContent(
+      'Choose an option in the banner above to continue.'
+    );
+    expect(screen.queryByTestId('y-picker-section')).toBeNull();
+    expect(screen.queryByTestId('x-picker-section')).toBeNull();
 
     fireEvent.click(screen.getByTestId('b0-defect-expand'));
     expect(screen.getByTestId('b0-defect-confirm-panel')).toHaveTextContent('DATA TYPE');
@@ -436,6 +441,10 @@ describe('FrameView b0 — happy-path integration', () => {
     const banner = screen.getByTestId('b0-performance-banner');
     expect(banner).toHaveTextContent('These look like parallel channel measurements');
     expect(banner).toHaveTextContent('V1, V2, V3, V4');
+    expect(screen.getByTestId('frame-view-b0-selection-disabled')).toHaveTextContent(
+      'Choose an option in the banner above to continue.'
+    );
+    expect(screen.queryByTestId('y-picker-section')).toBeNull();
 
     fireEvent.click(screen.getByTestId('b0-performance-accept'));
     expect(onAcceptWideFormatDetection).toHaveBeenCalledWith(['V1', 'V2', 'V3', 'V4'], 'Channel');
@@ -452,6 +461,7 @@ describe('FrameView b0 — happy-path integration', () => {
       ...baseStoreState,
       rawData: DEFECT_ROWS as unknown as typeof baseStoreState.rawData,
       analysisMode: 'defect',
+      outcome: 'DefectRate',
       defectMapping: {
         dataShape: 'event-log',
         aggregationUnit: 'Date',
@@ -469,6 +479,8 @@ describe('FrameView b0 — happy-path integration', () => {
 
     expect(yLabels[0]).toMatch(/^DefectRate/);
     expect(yLabels[1]).toMatch(/^DefectCount/);
+    expect(screen.getByTestId('y-picker-selected-row')).toHaveTextContent('DefectRate');
+    expect(screen.getByTestId('x-picker-section')).toBeInTheDocument();
   });
 
   it('performance mode keeps accepted channel siblings out of the b0 Y picker', () => {
@@ -481,7 +493,11 @@ describe('FrameView b0 — happy-path integration', () => {
 
     renderFrameView();
 
-    expect(screen.getByTestId('y-picker-empty')).toBeInTheDocument();
+    expect(screen.getByTestId('b0-performance-accepted')).toHaveTextContent(
+      'Tracking 4 channel measurements'
+    );
+    expect(screen.getByTestId('b0-performance-accepted')).toHaveTextContent('V1, V2, V3, V4');
+    expect(screen.queryByTestId('y-picker-empty')).toBeNull();
     expect(screen.queryByTestId('y-picker-candidate-row')).toBeNull();
   });
 

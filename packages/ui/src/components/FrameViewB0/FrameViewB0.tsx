@@ -79,6 +79,10 @@ export interface FrameViewB0Props {
   belowYSlot?: ReactNode;
   /** No-Y floor banner — rendered beneath the Y picker ONLY when yCandidates is empty (spec §4.1 no-numeric-Y guard). */
   noYBanner?: ReactNode;
+  /** Pending proposal state: render the top bar, then this slot instead of ordinary Y/X picking. */
+  selectionDisabledSlot?: ReactNode;
+  /** Alternate empty-Y disposition for accepted modes that intentionally remove ordinary Y candidates. */
+  emptyYSlot?: ReactNode;
 
   /** Fired when the process-steps expander opens so the parent can prepare L2 authoring. */
   onProcessStepsOpen?: () => void;
@@ -116,6 +120,8 @@ export function FrameViewB0({
   topBar,
   belowYSlot,
   noYBanner,
+  selectionDisabledSlot,
+  emptyYSlot,
   onProcessStepsOpen,
   onSeeData,
   className,
@@ -147,6 +153,7 @@ export function FrameViewB0({
 
   const ctaDisabled = selectedY === null;
   const ctaDisabledHint = ctaDisabled ? t('frame.b0.seeData.pickYHint') : undefined;
+  const useEmptyYDisposition = yCandidates.length === 0 && emptyYSlot != null;
 
   // Inline spec editor — rendered as a floating popover anchored to the
   // +add spec trigger inside the Y picker's selected row. YPickerSection
@@ -168,34 +175,42 @@ export function FrameViewB0({
     <div className={containerClass} data-testid="frame-view-b0">
       {topBar && <div data-testid="frame-view-b0-top-bar">{topBar}</div>}
 
-      <YPickerSection
-        candidates={yCandidates}
-        selectedY={selectedY}
-        onSelectY={onSelectY}
-        onAddSpec={handleAddSpec}
-        hasSpecForSelected={hasAnySpec(currentYSpec)}
-        inlineSpecEditor={specEditor}
-      />
+      {selectionDisabledSlot ? (
+        <div data-testid="frame-view-b0-selection-disabled">{selectionDisabledSlot}</div>
+      ) : useEmptyYDisposition ? (
+        <div data-testid="frame-view-b0-no-y-banner">{emptyYSlot}</div>
+      ) : (
+        <>
+          <YPickerSection
+            candidates={yCandidates}
+            selectedY={selectedY}
+            onSelectY={onSelectY}
+            onAddSpec={handleAddSpec}
+            hasSpecForSelected={hasAnySpec(currentYSpec)}
+            inlineSpecEditor={specEditor}
+          />
 
-      {yCandidates.length === 0 && noYBanner && (
-        <div data-testid="frame-view-b0-no-y-banner">{noYBanner}</div>
-      )}
-      {/* belowY is gated on candidates existing: the no-Y floor (banner above) is an
-          exclusive state — "track another outcome" presumes a Y exists to track. */}
-      {yCandidates.length > 0 && belowYSlot && (
-        <div data-testid="frame-view-b0-below-y">{belowYSlot}</div>
-      )}
+          {yCandidates.length === 0 && noYBanner && (
+            <div data-testid="frame-view-b0-no-y-banner">{noYBanner}</div>
+          )}
+          {/* belowY is gated on candidates existing: the no-Y floor (banner above) is an
+              exclusive state — "track another outcome" presumes a Y exists to track. */}
+          {yCandidates.length > 0 && belowYSlot && (
+            <div data-testid="frame-view-b0-below-y">{belowYSlot}</div>
+          )}
 
-      {/* X picker only appears after Y is selected — frames the picker as
-          "what might be affecting [the Y you just chose]". Surfacing X
-          candidates before Y is meaningless and overwhelming. */}
-      {selectedY && (
-        <XPickerSection
-          candidates={xCandidates}
-          selectedXs={selectedXs}
-          onToggleX={onToggleX}
-          runOrderColumn={runOrderColumn}
-        />
+          {/* X picker only appears after Y is selected — frames the picker as
+              "what might be affecting [the Y you just chose]". Surfacing X
+              candidates before Y is meaningless and overwhelming. */}
+          {selectedY && (
+            <XPickerSection
+              candidates={xCandidates}
+              selectedXs={selectedXs}
+              onToggleX={onToggleX}
+              runOrderColumn={runOrderColumn}
+            />
+          )}
+        </>
       )}
 
       <ProcessStepsExpander

@@ -185,7 +185,13 @@ export interface CanvasWorkspaceProps {
    * belowY maps to FrameViewB0's belowYSlot prop.
    * Optional: Azure does not pass them until FSJ-3.
    */
-  b0Slots?: { topBar?: React.ReactNode; belowY?: React.ReactNode; noYBanner?: React.ReactNode };
+  b0Slots?: {
+    topBar?: React.ReactNode;
+    belowY?: React.ReactNode;
+    noYBanner?: React.ReactNode;
+    selectionDisabled?: React.ReactNode;
+    emptyY?: React.ReactNode;
+  };
 }
 
 function formatTimelineWindow(w: TimelineWindow): string {
@@ -1420,6 +1426,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           topBar={b0TopBar}
           belowYSlot={b0Slots?.belowY}
           noYBanner={b0Slots?.noYBanner}
+          selectionDisabledSlot={b0Slots?.selectionDisabled}
+          emptyYSlot={b0Slots?.emptyY}
           onProcessStepsOpen={handleB0ProcessStepsOpen}
         >
           {canvasNode}

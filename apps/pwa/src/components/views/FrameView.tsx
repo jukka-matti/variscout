@@ -730,10 +730,43 @@ const FrameView: React.FC<FrameViewProps> = ({
   const b0Slots = React.useMemo(() => {
     const columnCount = rawData.length > 0 ? Object.keys(rawData[0]).length : 0;
     const columnNames = rawData.length > 0 ? Object.keys(rawData[0]) : [];
+    const acceptedPerformanceColumns = measureColumns.filter(column =>
+      columnNames.includes(column)
+    );
     const showQuietTimeChip =
       quietTimeExtraction != null &&
       !quietTimeExtraction.dismissed &&
       quietTimeExtraction.newColumns.length > 0;
+    const selectionDisabled =
+      defectDetection != null || wideFormatDetection != null ? (
+        <div className="rounded-md border border-edge bg-surface-secondary px-3 py-2 text-sm text-content-secondary">
+          Choose an option in the banner above to continue.
+        </div>
+      ) : undefined;
+    const performanceAccepted =
+      analysisMode === 'performance' && acceptedPerformanceColumns.length > 0 ? (
+        <div
+          data-testid="b0-performance-accepted"
+          className="rounded-md border border-blue-400/40 bg-blue-500/10 px-3 py-2 text-sm text-content"
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold">
+              Tracking {acceptedPerformanceColumns.length} channel measurements
+            </span>
+            <span className="text-content-secondary">{acceptedPerformanceColumns.join(', ')}</span>
+            {onFixData ? (
+              <button
+                type="button"
+                data-testid="b0-performance-accepted-stack"
+                onClick={onFixData}
+                className="ml-auto rounded border border-blue-400/40 px-2 py-1 text-xs font-medium text-content hover:bg-blue-500/10"
+              >
+                Combine into one measure
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : undefined;
     return {
       topBar: (
         <div className="flex flex-col gap-2">
@@ -836,10 +869,14 @@ const FrameView: React.FC<FrameViewProps> = ({
           onSkip={handleSeeData}
         />
       ),
+      selectionDisabled,
+      emptyY: performanceAccepted,
     };
   }, [
     rawData,
     dataFilename,
+    analysisMode,
+    measureColumns,
     onFixData,
     onRenameColumn,
     handleSeeData,
