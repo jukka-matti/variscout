@@ -381,6 +381,9 @@ const FrameView: React.FC<FrameViewProps> = ({
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
+  const analysisMode = useProjectStore(s => s.analysisMode);
+  const defectMapping = useProjectStore(s => s.defectMapping);
+  const measureColumns = useProjectStore(s => s.measureColumns);
   const setOutcome = useProjectStore(s => s.setOutcome);
   const setFactors = useProjectStore(s => s.setFactors);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
@@ -876,6 +879,9 @@ const FrameView: React.FC<FrameViewProps> = ({
         rawData={rawData}
         outcome={outcome}
         factors={factors}
+        analysisMode={analysisMode}
+        defectMapping={defectMapping}
+        measureColumns={measureColumns}
         setOutcome={setOutcome}
         setFactors={setFactors}
         measureSpecs={measureSpecs}

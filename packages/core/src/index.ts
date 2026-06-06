@@ -670,6 +670,10 @@ export type { StackConfig, StackResult } from './parser';
 export { rankYCandidates } from './parser';
 export type { RankedColumn } from './parser';
 
+// b0 mode framing candidates — keeps detections on the b0 picker surface
+export { deriveB0ModeCandidates } from './derived';
+export type { B0ModeCandidates, DeriveB0ModeCandidatesInput } from './derived';
+
 // Findings (scouting report)
 export type {
   Finding,

@@ -66,6 +66,9 @@ const baseStoreState = {
   rawData: FEATHER_ROWS,
   outcome: null as string | null,
   factors: [] as readonly string[],
+  analysisMode: 'standard' as const,
+  defectMapping: null as DefectMapping | null,
+  measureColumns: [] as readonly string[],
   setOutcome: setOutcomeMock,
   setFactors: setFactorsMock,
   measureSpecs: {} as Record<string, unknown>,
@@ -437,6 +440,44 @@ describe('FrameView b0 — happy-path integration', () => {
 
     fireEvent.click(screen.getByTestId('b0-performance-dismiss'));
     expect(onDismissWideFormatDetection).toHaveBeenCalledTimes(1);
+  });
+
+  it('defect mode feeds derived Count and Rate candidates into the b0 Y picker', () => {
+    storeStateRef.current = {
+      ...baseStoreState,
+      rawData: DEFECT_ROWS as unknown as typeof baseStoreState.rawData,
+      analysisMode: 'defect',
+      defectMapping: {
+        dataShape: 'event-log',
+        aggregationUnit: 'Date',
+        defectTypeColumn: 'Defect_Type',
+        unitsProducedColumn: 'Units_Produced',
+      },
+    };
+
+    renderFrameView();
+
+    const yRow = screen.getByTestId('y-picker-candidate-row');
+    const yLabels = Array.from(
+      yRow.querySelectorAll<HTMLButtonElement>('[data-testid="column-candidate-chip"]')
+    ).map(chip => chip.getAttribute('aria-label') ?? '');
+
+    expect(yLabels[0]).toMatch(/^DefectRate/);
+    expect(yLabels[1]).toMatch(/^DefectCount/);
+  });
+
+  it('performance mode keeps accepted channel siblings out of the b0 Y picker', () => {
+    storeStateRef.current = {
+      ...baseStoreState,
+      rawData: WIDE_ROWS as unknown as typeof baseStoreState.rawData,
+      analysisMode: 'performance',
+      measureColumns: ['V1', 'V2', 'V3', 'V4'],
+    };
+
+    renderFrameView();
+
+    expect(screen.getByTestId('y-picker-empty')).toBeInTheDocument();
+    expect(screen.queryByTestId('y-picker-candidate-row')).toBeNull();
   });
 
   it('all-categorical data shows the OutcomeNoMatchBanner; skip proceeds to Explore (spec §4.1 no-Y floor)', () => {
