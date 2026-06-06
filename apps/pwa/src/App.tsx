@@ -1,7 +1,7 @@
 import React, { Suspense, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { downloadCSV } from './lib/export';
 import { lazyWithRetry } from './lib/chunkReload';
-import { landOnProcess } from './lib/landOnProcess';
+import { landOnProcess, landVrsOnProcess } from './lib/landOnProcess';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
@@ -61,8 +61,6 @@ import {
   useProjectMembershipStore,
   useAnalysisScopeStore,
   useImprovementProjectStore,
-  hydrateDocumentSnapshot,
-  reconstructProcessHubFromDocumentSnapshot,
   type DocumentSnapshotVrsFile,
 } from '@variscout/stores';
 import { createProjectActionItem } from '@variscout/core/findings';
@@ -742,15 +740,22 @@ function AppMain() {
     [ingestion.loadSample, sessionHub, setSessionHub, panels.showFrame, isEmbedMode]
   );
 
-  // .vrs import: hydrate the document snapshot and rebuild the session hub.
-  // Wired to HomeScreen's onImportVrs prop so trainers / returning analysts can
-  // reload a packaged scenario without re-pasting data.
+  // .vrs import: reconstruct the envelope's own project and land on Process
+  // (spec §1 applicability). reconstruct-not-create: the envelope's project is
+  // the wrapper — only a project-less hub gets an Untitled wrap. v1 envelope
+  // only (wedge no-back-compat). Embed mode: IP activation runs but navigation
+  // is skipped (spec §1 applicability).
+  // Thin wrapper — business logic lives in landVrsOnProcess for testability.
   const handleImportVrs = useCallback(
     (imported: DocumentSnapshotVrsFile) => {
-      hydrateDocumentSnapshot(imported.documentSnapshot);
-      setSessionHub(reconstructProcessHubFromDocumentSnapshot(imported.documentSnapshot));
+      landVrsOnProcess(imported, {
+        sessionHub,
+        setSessionHub,
+        showFrame: panels.showFrame,
+        isEmbedMode,
+      });
     },
-    [setSessionHub]
+    [sessionHub, setSessionHub, panels.showFrame, isEmbedMode]
   );
 
   // Phase tab navigation handler (used by AppHeader inline tabs).
