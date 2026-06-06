@@ -1,4 +1,5 @@
 import { createNewIP } from '@variscout/core/improvementProject';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessHub } from '@variscout/core/processHub';
 import { PWA_USER_ID } from './pwaUser';
 
@@ -14,9 +15,10 @@ export function ensureSessionProject(
   hub: ProcessHub | null,
   title: string,
   now: () => number = Date.now
-): ProcessHub {
-  if (hub?.improvementProject && hub.improvementProject.deletedAt === null) {
-    return hub;
+): ProcessHub & { improvementProject: ImprovementProject } {
+  const existingIP = hub?.improvementProject;
+  if (existingIP && existingIP.deletedAt === null) {
+    return hub as ProcessHub & { improvementProject: ImprovementProject };
   }
   const base: Pick<ProcessHub, 'id' | 'name' | 'createdAt' | 'deletedAt'> = hub ?? {
     id: crypto.randomUUID(),

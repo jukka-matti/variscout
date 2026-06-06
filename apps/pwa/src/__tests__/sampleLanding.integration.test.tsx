@@ -13,7 +13,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ── Mocks (must precede component/lib imports) ────────────────────────────────
+// ── Test doubles ──────────────────────────────────────────────────────────────
 
 const loadSampleMock = vi.fn();
 

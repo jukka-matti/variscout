@@ -54,7 +54,7 @@ export function landOnProcess(sample: SampleDataset, deps: LandOnProcessDeps): v
   // 3. Activate the IP in the annotation store using the NEW hub's scope so the
   //    call is not stale even when a new hub was just created (see ordering note).
   const scope = { hubId: hub.id, userId: DEFAULT_ACTIVE_IP_USER_ID };
-  useActiveIPStore.getState().setActiveIP(scope, hub.improvementProject!.id);
+  useActiveIPStore.getState().setActiveIP(scope, hub.improvementProject.id);
 
   // 4. Route to Process tab — exempt in embed mode (spec §1 applicability).
   if (!isEmbedMode) {

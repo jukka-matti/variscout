@@ -71,7 +71,7 @@ import AppHeader, { type PhaseId } from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
-import { SAMPLES } from '@variscout/data';
+import { SAMPLES, type SampleDataset } from '@variscout/data';
 import {
   DEFAULT_PROCESS_HUB_ID,
   normalizeProcessHubId,
@@ -503,7 +503,8 @@ function AppMain() {
           sessionHub,
           setSessionHub,
           showFrame: panels.showFrame,
-          isEmbedMode,
+          // read the URL param, not the state — setState above hasn't re-rendered this closure
+          isEmbedMode: embedParam === 'true',
         });
       }
     }
@@ -729,7 +730,7 @@ function AppMain() {
   // Process tab with an auto-activated Untitled project.
   // Thin wrapper — business logic lives in landOnProcess for testability.
   const handleLoadSample = useCallback(
-    (sample: Parameters<typeof landOnProcess>[0]) => {
+    (sample: SampleDataset) => {
       landOnProcess(sample, {
         loadSample: ingestion.loadSample,
         sessionHub,
