@@ -133,7 +133,9 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     expect(detected.outcome).toBe('Cycle_Time_sec');
     expect(detectWideFormat(parsed).isWideFormat).toBe(false);
     const defect = detectDefectFormat(parsed, detected.columnAnalysis);
-    expect(['high', 'medium']).not.toContain(defect.isDefectFormat ? defect.confidence : 'none');
+    expect(
+      defect.isDefectFormat && (defect.confidence === 'high' || defect.confidence === 'medium')
+    ).toBe(false);
 
     const onFreshPasteLanded = vi.fn();
     const setOutcome = vi.fn();

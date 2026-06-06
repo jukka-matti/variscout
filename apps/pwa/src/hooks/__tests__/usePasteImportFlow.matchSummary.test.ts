@@ -102,6 +102,7 @@ beforeEach(() => {
     outcome: 'weight_g',
     factors: [],
     timeColumn: 'ts',
+    confidence: 'medium', // explicit: the landing guard reads confidence !== 'low'
     columnAnalysis: [
       { name: 'ts', sampleValues: ['2026-05-01', '2026-05-02'], type: 'date' },
       { name: 'weight_g', sampleValues: ['100', '101'], type: 'numeric' },
