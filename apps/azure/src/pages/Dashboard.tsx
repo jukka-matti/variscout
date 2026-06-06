@@ -187,6 +187,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Word-style hub writes (FSJ-3a, spec §3) — mirrors Editor.tsx commitHubChange:
   // unsaved hubs mutate in-memory; persisted hubs keep the optimistic-update +
   // immediate saveProcessHub.
+  // Intentional divergence: sync + explicit error log here vs Editor's async — both fire-and-forget at call sites.
   const commitHubChange = useCallback(
     (updated: ProcessHub) => {
       const unsaved = useUnsavedHubsStore.getState();
