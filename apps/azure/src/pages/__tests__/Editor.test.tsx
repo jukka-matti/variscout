@@ -541,7 +541,11 @@ describe('Editor', () => {
     expect(screen.getByText('Production bottleneck analysis')).toBeInTheDocument();
   });
 
-  it('shows ColumnMapping after paste analyze', async () => {
+  it('skips ColumnMapping for a measurement-shaped paste — lands at b0 (FSJ-3b spec §4.1)', async () => {
+    // FSJ-3b: the mocked paste is measurement-shaped (detectColumns returns an outcome,
+    // not wide/defect/low), so it now lands at b0 rather than opening the mapping
+    // vestibule. (The Process-tab routing is wired in Task 2; here we assert the
+    // vestibule is skipped.)
     renderEditor();
 
     fireEvent.click(screen.getByText('Paste Data'));
@@ -553,7 +557,7 @@ describe('Editor', () => {
       fireEvent.click(screen.getByText('Analyze'));
     });
 
-    expect(screen.getByTestId('column-mapping')).toBeInTheDocument();
+    expect(screen.queryByTestId('column-mapping')).not.toBeInTheDocument();
   });
 
   it('skips ColumnMapping for pre-configured samples', () => {
