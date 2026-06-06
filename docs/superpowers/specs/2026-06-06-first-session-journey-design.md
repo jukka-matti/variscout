@@ -125,7 +125,7 @@ The shipped `FrameViewB0` composition (question-led: _"What do you want to inves
 
 Rationale (panel): in a stats tool a wrong unit of analysis silently produces a _confident, meaningless chart_ — interpretive failure, invisible. "Never modal" holds; "never interrupt" does not, for unit-of-analysis. The existing detection modals (`PerformanceDetectedModal`, `DefectDetectedModal`, `CapabilitySuggestionModal`) retire into this grammar.
 
-### §4.2a · Mode detections re-frame b0 — they never bypass it (persona-panel amendment 2026-06-06)
+### §4.2a · Mode detections re-frame b0 — they never bypass it (persona-panel amendment 2026-06-06) — wireframe: [`defect-confirm`](../../02-journeys/wireframes/defect-confirm.md)
 
 b0 as shipped is a _measurement-data_ surface; event logs and wide channel data break it (the QE panel verdict was **breaks**: empty Y picker + disabled CTA under a blocking defect modal; the process-engineer panel: "pick one of 8 indistinguishable channels" with siblings polluting the X list, and the wide banner not wired into the b0 path at all). The fix is one principle: **a unit-of-analysis detection renders its banner _above_ the picker, pre-empting any wrong pick, and accepting it re-frames what b0 frames:**
 

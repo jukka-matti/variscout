@@ -29,6 +29,7 @@ One doc per **named view** — the canonical visual identity of each user-facing
 | ------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | [`altitude-model`](altitude-model.md) | The product-wide altitude axis L1→L2→L3→Explore→condition + the way back up | First-session journey spec §1                                                |
 | [`b0-landing`](b0-landing.md)         | Paste/sample landing: pre-filled FrameViewB0 + provenance + detection chips | First-session journey spec §4.1                                              |
+| [`defect-confirm`](defect-confirm.md) | Defect event-log banner + short confirm sequence before defect b0 framing   | First-session journey spec §4.2a                                             |
 | [`step-timings`](step-timings.md)     | Step-timestamps banner → StepTimingsModal → L2 flow with timing badges      | CCJ spec §4.3.1 (shipped) + first-session journey spec §4.3 (the front door) |
 | [`capture-card`](capture-card.md)     | The one Finding draft card + its four entry gestures                        | First-session journey spec §5                                                |
 | [`wall-arrival`](wall-arrival.md)     | Findings-forward Wall empty state + the status ladder                       | First-session journey spec §6                                                |
