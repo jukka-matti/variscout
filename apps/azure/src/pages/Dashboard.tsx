@@ -8,6 +8,7 @@ import type {
 import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { useNewHubProvision } from '../features/hubCreation/useNewHubProvision';
+import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
 import { getEasyAuthUser } from '../auth/easyAuth';
 import { RefreshCw, Cloud, CloudOff, FolderOpen, Search, FlaskConical } from 'lucide-react';
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
@@ -34,15 +35,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const [userId, setUserId] = useState('local');
   const [projects, setProjects] = useState<CloudProject[]>([]);
-  const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
+  const [catalogHubs, setCatalogHubs] = useState<ProcessHub[]>([]);
   const [selectedHubId, setSelectedHubId] = useState<string | null>(null);
 
   const { createHubFromGoal } = useNewHubProvision({
     onCreated: hub => {
-      setProcessHubs(prev => [...prev, hub]);
+      // DROP append here — the hook already registers in unsavedHubsStore;
+      // the merge memo below surfaces it automatically.
       setSelectedHubId(hub.id);
     },
   });
+
+  const unsavedHubs = useUnsavedHubsStore(s => s.hubs);
+  // Word-style durability (FSJ-3a, spec §3) — mirrors Editor.tsx's merge: in-memory
+  // hubs join the catalog; an id collision prefers the unsaved copy.
+  const processHubs = useMemo(() => {
+    const unsavedIds = new Set(unsavedHubs.map(h => h.id));
+    return [...catalogHubs.filter(h => !unsavedIds.has(h.id)), ...unsavedHubs];
+  }, [catalogHubs, unsavedHubs]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,7 +88,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     try {
       const [projectList, hubList] = await Promise.all([listProjects(), listProcessHubs()]);
       setProjects(projectList);
-      setProcessHubs(hubList);
+      setCatalogHubs(hubList);
     } catch (error) {
       console.error('Failed to load projects:', error);
     } finally {
@@ -174,6 +184,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [projects, loadProject, saveProject, loadProjects]
   );
 
+  // Word-style hub writes (FSJ-3a, spec §3) — mirrors Editor.tsx commitHubChange:
+  // unsaved hubs mutate in-memory; persisted hubs keep the optimistic-update +
+  // immediate saveProcessHub.
+  const commitHubChange = useCallback(
+    (updated: ProcessHub) => {
+      const unsaved = useUnsavedHubsStore.getState();
+      if (unsaved.isUnsaved(updated.id)) {
+        unsaved.upsertHub(updated);
+        return;
+      }
+      setCatalogHubs(prev => prev.map(h => (h.id === updated.id ? updated : h)));
+      void saveProcessHub(updated).catch(err => {
+        console.error('[Dashboard] hub commit failed:', err);
+      });
+    },
+    [saveProcessHub]
+  );
+
   /**
    * Persist a hub-level Cpk target default. Writes to
    * `processHub.reviewSignal.capability.cpkTarget` — the "hub" level of the
@@ -217,12 +245,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         reviewSignal: nextSignal,
         updatedAt: Date.now(),
       };
-      setProcessHubs(prev => prev.map(h => (h.id === hubId ? updated : h)));
-      void saveProcessHub(updated).catch(err => {
-        console.error('[Dashboard] handleHubCpkTargetCommit failed:', err);
-      });
+      commitHubChange(updated);
     },
-    [processHubs, saveProcessHub]
+    [processHubs, commitHubChange]
   );
 
   /**
@@ -238,12 +263,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         processGoal: nextGoal,
         updatedAt: Date.now(),
       };
-      setProcessHubs(prev => prev.map(h => (h.id === hubId ? updated : h)));
-      void saveProcessHub(updated).catch(err => {
-        console.error('[Dashboard] handleHubGoalChange failed:', err);
-      });
+      commitHubChange(updated);
     },
-    [processHubs, saveProcessHub]
+    [processHubs, commitHubChange]
   );
 
   /**

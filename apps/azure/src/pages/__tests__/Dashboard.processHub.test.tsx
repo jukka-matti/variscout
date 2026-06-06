@@ -1,9 +1,17 @@
+// vi.mock calls must be at the module top level, before any imports.
+// useNewHubProvision calls getCurrentUser internally; without this mock the
+// easyAuth module bindings fail in the jsdom test environment.
+vi.mock('../../auth/getCurrentUser', () => ({
+  getCurrentUser: vi.fn(() => Promise.resolve({ name: 'Analyst', email: 'analyst@contoso.com' })),
+}));
+
 import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Dashboard } from '../Dashboard';
 import type { CloudProject } from '../../services/storage';
 import type { EvidenceSource } from '@variscout/core';
+import { useUnsavedHubsStore } from '../../features/hubs/unsavedHubsStore';
 
 const mockListProjects = vi.fn();
 const mockListProcessHubs = vi.fn();
@@ -33,6 +41,9 @@ beforeEach(() => {
   mockListEvidenceSnapshots.mockResolvedValue([]);
   mockListControlRecords.mockResolvedValue([]);
   mockListControlHandoffs.mockResolvedValue([]);
+  // Reset Word-style in-memory hub store between tests so unsaved hubs from
+  // one test don't leak into the merged processHubs list of the next.
+  useUnsavedHubsStore.setState(useUnsavedHubsStore.getInitialState(), true);
 });
 
 vi.mock('../../auth/easyAuth', () => ({
@@ -239,14 +250,27 @@ describe('Dashboard Process Hub home', () => {
 
     fireEvent.click(screen.getByText('New Hub'));
 
-    await waitFor(() => expect(mockSaveProcessHub).toHaveBeenCalledTimes(1));
-    const savedHub = mockSaveProcessHub.mock.calls[0][0];
-    // useNewHubProvision uses extractHubName('') → '' → fallback 'Untitled hub'
-    expect(savedHub.name).toBe('Untitled hub');
-    // Incomplete — no processGoal, no outcomes
-    expect(savedHub.processGoal).toBeUndefined();
-    expect(promptSpy).not.toHaveBeenCalled();
+    // Word-style durability (FSJ-3a, spec §3): eager persist is retired.
+    // Negative control: saveProcessHub must NOT be called on New Hub click.
+    await waitFor(() => expect(useUnsavedHubsStore.getState().hubs).toHaveLength(1));
+    expect(mockSaveProcessHub).not.toHaveBeenCalled();
 
+    // The created hub is registered in-memory with the expected shape.
+    const createdHub = useUnsavedHubsStore.getState().hubs[0];
+    // useNewHubProvision uses extractHubName('') → '' → fallback 'Untitled hub'
+    expect(createdHub.name).toBe('Untitled hub');
+    // Incomplete — no processGoal
+    expect(createdHub.processGoal).toBeUndefined();
+    // ensureHubProject runs when getCurrentUser resolves → improvementProject present
+    expect(createdHub.improvementProject).toBeTruthy();
+    expect(createdHub.improvementProject?.metadata.title).toBe('Untitled project');
+
+    // The hub surfaces in the rendered select via the catalog∪unsaved merge.
+    await waitFor(() =>
+      expect(screen.getByRole('option', { name: 'Untitled hub' })).toBeInTheDocument()
+    );
+
+    expect(promptSpy).not.toHaveBeenCalled();
     promptSpy.mockRestore();
   });
 
