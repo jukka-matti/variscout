@@ -2288,6 +2288,7 @@ export const Editor: React.FC<EditorProps> = ({
         ) : (
           /* rawData present but no outcome yet — treat same as isMapping (FSJ-3b:
              ColumnMapping-only setup; Stage-1 retired, mode='setup' always). */
+          /* onStackConfigChange deliberately absent: the no-outcome fallback predates stack suggestions; revisit if this path survives FSJ-10 */
           <ColumnMapping
             columnAnalysis={dataFlow.mappingColumnAnalysis}
             availableColumns={Object.keys(rawData[0] || {})}
@@ -2297,7 +2298,7 @@ export const Editor: React.FC<EditorProps> = ({
             onColumnRename={dataFlow.handleColumnRename}
             initialOutcome={outcome}
             initialFactors={factors}
-            datasetName={dataFilename || 'Data'}
+            datasetName={dataFilename || 'Pasted Data'}
             onConfirm={handleMappingConfirmWithCategories}
             onCancel={dataFlow.handleMappingCancel}
             dataQualityReport={dataQualityReport}
