@@ -116,6 +116,8 @@ import { ControlEntryRow } from './Editor.control';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 import { HubCreationFlow } from '../features/hubCreation';
+import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
+import { activateHubProject } from '../lib/landing';
 // WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
 import { AnalyzeWorkspace } from '../components/editor/AnalyzeWorkspace';
 import FrameView from '../components/editor/FrameView';
@@ -358,7 +360,15 @@ export const Editor: React.FC<EditorProps> = ({
   // Mobile tab bar state (phone only)
   const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('explore');
   const [isMobileSurveyOpen, setIsMobileSurveyOpen] = useState(false);
-  const [processHubs, setProcessHubs] = useState<ProcessHub[]>([]);
+  const [catalogHubs, setCatalogHubs] = useState<ProcessHub[]>([]);
+  const unsavedHubs = useUnsavedHubsStore(s => s.hubs);
+  // Word-style durability (FSJ-3a, spec §3): in-memory hubs join the storage
+  // catalog for resolution (activeHub, document snapshots, hub pickers). An id
+  // collision prefers the unsaved copy — it carries the session's edits.
+  const processHubs = useMemo(() => {
+    const unsavedIds = new Set(unsavedHubs.map(h => h.id));
+    return [...catalogHubs.filter(h => !unsavedIds.has(h.id)), ...unsavedHubs];
+  }, [catalogHubs, unsavedHubs]);
   // Create-Project modal (Home CTA — PR-CCJ-E1 T4). Wedge V1 lightweight
   // flow replaces the legacy `showCharter()` ceremony; modal owns Title +
   // optional Issue Statement, Editor owns IP creation + navigation.
@@ -370,8 +380,8 @@ export const Editor: React.FC<EditorProps> = ({
 
   useEffect(() => {
     listProcessHubs()
-      .then(setProcessHubs)
-      .catch(() => setProcessHubs([]));
+      .then(setCatalogHubs)
+      .catch(() => setCatalogHubs([]));
   }, [listProcessHubs]);
 
   useEffect(() => {
@@ -972,16 +982,19 @@ export const Editor: React.FC<EditorProps> = ({
   const stageFive = useStageFiveOpener();
 
   /**
-   * Called by HubCreationFlow once Stage 1 creates a hub. Adds the new hub to
-   * the local list and sets it as the active hub in processContext so the
-   * ColumnMapping confirm (Stage 3) can persist outcomes to it.
+   * Called by HubCreationFlow once Stage 1 creates a hub.
+   *
+   * FSJ-3a: the reworked useNewHubProvision registers the hub in
+   * unsavedHubsStore (it reaches processHubs via the merge); here we bind the
+   * session to it and activate the pair under the scope key production reads
+   * (currentUser.email — see the useActiveIPContext call above).
    */
   const handleHubCreated = useCallback(
     (hub: ProcessHub) => {
-      setProcessHubs(prev => [...prev, hub]);
       setProcessContext({ ...(processContext ?? {}), processHubId: hub.id });
+      if (currentUser?.email) activateHubProject(hub, currentUser.email);
     },
-    [processContext, setProcessContext]
+    [processContext, setProcessContext, currentUser?.email]
   );
 
   // Share handlers
@@ -1490,9 +1503,28 @@ export const Editor: React.FC<EditorProps> = ({
     }
   }, [isCoScoutOpen, aiOrch.coscout]);
 
+  /**
+   * Word-style hub writes (FSJ-3a, spec §3): an unsaved hub's mutations stay
+   * in-memory (the first explicit save flushes them); a persisted hub keeps
+   * today's immediate saveProcessHub — and the catalog state is updated so
+   * downstream readers (FrameView outcomeSpecs) never go stale.
+   */
+  const commitHubChange = useCallback(
+    async (hub: ProcessHub) => {
+      const unsaved = useUnsavedHubsStore.getState();
+      if (unsaved.isUnsaved(hub.id)) {
+        unsaved.upsertHub(hub);
+        return;
+      }
+      setCatalogHubs(prev => prev.map(h => (h.id === hub.id ? hub : h)));
+      await saveProcessHub(hub);
+    },
+    [saveProcessHub]
+  );
+
   // Handle ColumnMapping confirm — adopts new Hub-shaped payload (slice-2 contract).
   // Wire categories, brief, and investigation state; persist outcomes + primaryScopeDimensions
-  // to the active Hub via saveProcessHub (Task H will surface this on ProcessHubView — for
+  // to the active Hub via commitHubChange (Task H will surface this on ProcessHubView — for
   // Task A we wire the data path so it's available from this point forward).
   const handleMappingConfirmWithCategories = useCallback(
     (payload: ColumnMappingConfirmPayload) => {
@@ -1538,7 +1570,7 @@ export const Editor: React.FC<EditorProps> = ({
       ) {
         const currentHub = processHubs.find(h => h.id === processContext.processHubId);
         if (currentHub) {
-          saveProcessHub({
+          void commitHubChange({
             ...currentHub,
             outcomes,
             primaryScopeDimensions,
@@ -1562,7 +1594,7 @@ export const Editor: React.FC<EditorProps> = ({
       processContext,
       setProcessContext,
       processHubs,
-      saveProcessHub,
+      commitHubChange,
       stageFive,
     ]
   );
@@ -1599,6 +1631,17 @@ export const Editor: React.FC<EditorProps> = ({
         const savedName = useProjectStore.getState().projectName || targetName;
         setSavedDocumentName(savedName);
         setSavedFingerprint(computeCurrentFingerprint());
+        // FSJ-3a (spec §3): the first explicit save flushes the in-memory hub to
+        // the catalog so activeHub survives reload (the document snapshot already
+        // carried it — buildDocumentSnapshot reads the activeHub closure). The hub
+        // catalog write is NOT under withDocumentSaveLock/ETag by design (it is a
+        // separate, fire-and-forget-cloud surface — azure CLAUDE.md); do not wrap.
+        const unsaved = useUnsavedHubsStore.getState();
+        if (activeHub && unsaved.isUnsaved(activeHub.id)) {
+          await saveProcessHub(activeHub);
+          unsaved.removeHub(activeHub.id);
+          setCatalogHubs(prev => [...prev.filter(h => h.id !== activeHub.id), activeHub]);
+        }
         setSaveStatus('saved');
         setTimeout(() => setSaveStatus('idle'), 2000);
       } catch {
@@ -1606,7 +1649,7 @@ export const Editor: React.FC<EditorProps> = ({
         setTimeout(() => setSaveStatus('idle'), 3000);
       }
     },
-    [computeCurrentFingerprint, saveProject]
+    [activeHub, computeCurrentFingerprint, saveProcessHub, saveProject]
   );
 
   const handleSave = useCallback(async () => {
