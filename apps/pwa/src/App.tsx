@@ -341,9 +341,16 @@ function AppMain() {
         importFlowRef.current?.setTimeExtractionConfig(prev => ({ ...prev, extractHour: true }));
       }
     },
-    getRawData: () => rawData,
-    getOutcome: () => outcome,
-    getFactors: () => factors,
+    // FSJ-2 walk: read LIVE store state, not render-scope values. The landing
+    // branch calls applyTimeExtraction synchronously right after setRawData(...),
+    // within the same event tick — render-scope `rawData` is still the pre-paste
+    // array there, so applyTimeExtraction's `rawData.length === 0` guard would
+    // early-return and the quiet-tier auto-extraction would silently no-op.
+    // getState() returns the just-written rows. (The wizard path fired on a later
+    // tick, so its behavior is unchanged — this is strictly more correct there too.)
+    getRawData: () => useProjectStore.getState().rawData,
+    getOutcome: () => useProjectStore.getState().outcome,
+    getFactors: () => useProjectStore.getState().factors,
   });
 
   // FSJ-2: showFrame is declared on `panels` which is created below (after importFlow,

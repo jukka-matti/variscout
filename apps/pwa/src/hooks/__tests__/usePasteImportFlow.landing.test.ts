@@ -34,12 +34,13 @@ import { pwaHubRepository } from '../../persistence';
 import { usePasteImportFlow, type UsePasteImportFlowOptions } from '../usePasteImportFlow';
 
 // ─── Fixtures (row objects) ──────────────────────────────────────────────────
-// "Mon DD YYYY" date strings classify as `date` type (parseFloat fails, Date.parse
-// succeeds) so Timestamp becomes the time column rather than a numeric outcome.
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+// Realistic ISO timestamps. Post FSJ-2-walk Fix 1, date PATTERNS win over the
+// parseFloat-prefix numeric check, so an ISO 'Timestamp' column classifies as
+// `date` (the time column) rather than becoming the inferred numeric outcome.
+// (Before Fix 1 this fixture had to use 'Mon DD YYYY' strings to dodge the bug.)
 const measurementRows = Array.from({ length: 30 }, (_, i) => ({
   Cycle_Time_sec: 40 + ((i * 7) % 23) + (i % 3) * 0.5,
-  Timestamp: `${MONTHS[i % 6]} ${String((i % 27) + 1)} 2026`,
+  Timestamp: `2026-05-${String((i % 27) + 1).padStart(2, '0')}T${String(i % 24).padStart(2, '0')}:00:00`,
   Workstation: i % 2 === 0 ? 'Alpha' : 'Bravo',
 }));
 
@@ -161,6 +162,13 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     const parsed = await parseText(tsvOf(measurementRows));
     expect(detectColumns(parsed).timeColumn).toBe('Timestamp');
 
+    // NOTE: this asserts the CALL, not the EFFECT. A spy can pass while the real
+    // extraction no-ops (FSJ-2 walk Fix 3: App.tsx's getters closed over stale
+    // render-scope values → applyTimeExtraction early-returned on an empty array).
+    // The load-bearing effect coverage lives in
+    // apps/pwa/src/__tests__/timeExtraction.integration.test.ts (live-store getter
+    // applies extraction; stale-closure negative control no-ops). The e2e/chrome
+    // walk also exercises the wired App path end-to-end.
     const applyTimeExtraction = vi.fn();
     const { result } = renderHook(() => usePasteImportFlow(makeOptions({ applyTimeExtraction })));
 
