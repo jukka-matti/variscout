@@ -211,9 +211,18 @@ describe('FrameViewB0', () => {
 
   it('renders the belowYSlot between the Y and X sections', () => {
     renderB0({
+      selectedY: 'Down_Content_%',
       belowYSlot: <button data-testid="track-another">＋ track another outcome</button>,
     });
-    expect(screen.getByTestId('track-another')).toBeInTheDocument();
+    const belowYEl = screen.getByTestId('frame-view-b0-below-y');
+    const yPickerEl = screen.getByTestId('y-picker-section');
+    const xPickerEl = screen.getByTestId('x-picker-section');
+    expect(
+      yPickerEl.compareDocumentPosition(belowYEl) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      belowYEl.compareDocumentPosition(xPickerEl) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
   });
 
   it('renders noYBanner ONLY when there are no Y candidates (spec §4.1 no-numeric-Y guard)', () => {
@@ -224,6 +233,16 @@ describe('FrameViewB0', () => {
   it('suppresses noYBanner when candidates exist (negative control)', () => {
     renderB0({ yCandidates: [numericCandidate], noYBanner: <div data-testid="no-y-banner" /> });
     expect(screen.queryByTestId('no-y-banner')).not.toBeInTheDocument();
+  });
+
+  it('suppresses belowYSlot in the no-Y state — banner is the exclusive floor (negative control)', () => {
+    renderB0({
+      yCandidates: [],
+      noYBanner: <div data-testid="no-y-banner" />,
+      belowYSlot: <button data-testid="track-another">＋ track another outcome</button>,
+    });
+    expect(screen.getByTestId('no-y-banner')).toBeInTheDocument();
+    expect(screen.queryByTestId('frame-view-b0-below-y')).not.toBeInTheDocument();
   });
 
   it('renders identically with no slots (Azure parity — negative control)', () => {

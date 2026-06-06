@@ -176,6 +176,7 @@ export interface CanvasWorkspaceProps {
   /**
    * FSJ-2 b0 landing slots (spec §4.1) — content owned by the app shell
    * (provenance, "Fix data…" hatch, "+ track another outcome", no-Y banner).
+   * belowY maps to FrameViewB0's belowYSlot prop.
    * Optional: Azure does not pass them until FSJ-3.
    */
   b0Slots?: { topBar?: React.ReactNode; belowY?: React.ReactNode; noYBanner?: React.ReactNode };

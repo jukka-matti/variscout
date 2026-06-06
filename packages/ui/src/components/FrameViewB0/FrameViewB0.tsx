@@ -75,7 +75,7 @@ export interface FrameViewB0Props {
 
   /** Optional top bar (provenance + the "Fix data…" hatch) rendered above the Y picker. FSJ-2, spec §4.1. */
   topBar?: ReactNode;
-  /** Optional quiet slot between the Y and X sections ("+ track another outcome"). FSJ-2, spec §4.1. */
+  /** Optional quiet slot between the Y and X sections ("+ track another outcome"). FSJ-2, spec §4.1. Suppressed in the no-Y state (yCandidates empty). */
   belowYSlot?: ReactNode;
   /** No-Y floor banner — rendered beneath the Y picker ONLY when yCandidates is empty (spec §4.1 no-numeric-Y guard). */
   noYBanner?: ReactNode;
@@ -176,7 +176,11 @@ export function FrameViewB0({
       {yCandidates.length === 0 && noYBanner && (
         <div data-testid="frame-view-b0-no-y-banner">{noYBanner}</div>
       )}
-      {belowYSlot && <div data-testid="frame-view-b0-below-y">{belowYSlot}</div>}
+      {/* belowY is gated on candidates existing: the no-Y floor (banner above) is an
+          exclusive state — "track another outcome" presumes a Y exists to track. */}
+      {yCandidates.length > 0 && belowYSlot && (
+        <div data-testid="frame-view-b0-below-y">{belowYSlot}</div>
+      )}
 
       {/* X picker only appears after Y is selected — frames the picker as
           "what might be affecting [the Y you just chose]". Surfacing X
