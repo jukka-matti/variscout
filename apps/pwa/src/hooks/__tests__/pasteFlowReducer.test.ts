@@ -116,6 +116,18 @@ describe('pasteFlowReducer', () => {
     });
   });
 
+  describe('PASTE_LANDED', () => {
+    it('exits paste mode without entering mapping (the b0 landing terminal)', () => {
+      const state = pasteFlowReducer(
+        { ...initialPasteFlowState, isPasteMode: true },
+        { type: 'PASTE_LANDED' }
+      );
+      expect(state.isPasteMode).toBe(false);
+      expect(state.isMapping).toBe(false);
+      expect(state.isMappingReEdit).toBe(false);
+    });
+  });
+
   describe('wide format detection', () => {
     it('WIDE_FORMAT_DETECTED sets detection', () => {
       const next = reduce({ type: 'WIDE_FORMAT_DETECTED', detection: mockWideFormat });

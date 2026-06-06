@@ -45,6 +45,7 @@ export type PasteFlowAction =
   | { type: 'PASTE_ERROR'; error: string }
   | { type: 'PASTE_ANALYZED' }
   | { type: 'PASTE_ANALYZED_WIDE'; detection: WideFormatDetection }
+  | { type: 'PASTE_LANDED' }
   | { type: 'CANCEL_PASTE' }
   | { type: 'START_MANUAL_ENTRY' }
   | { type: 'CANCEL_MANUAL_ENTRY' }
@@ -83,6 +84,9 @@ export function pasteFlowReducer(state: PasteFlowState, action: PasteFlowAction)
         isMapping: true,
         wideFormatDetection: action.detection,
       };
+    case 'PASTE_LANDED':
+      // FSJ-2: measurement-shaped fresh paste — no vestibule, lands at b0.
+      return { ...state, isPasteMode: false, isMapping: false, isMappingReEdit: false };
     case 'CANCEL_PASTE':
       return { ...state, isPasteMode: false, pasteError: null };
     case 'START_MANUAL_ENTRY':
@@ -128,9 +132,14 @@ export interface UsePasteImportFlowOptions {
   setDataFilename: (filename: string | null) => void;
   setDataQualityReport: (report: DataQualityReport | null) => void;
   setColumnAliases: (aliases: Record<string, string>) => void;
-  clearData: () => void;
   clearSelection: () => void;
   applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
+  /**
+   * FSJ-2 (first-session spec §4.1): fired when a fresh measurement-shaped
+   * paste lands without the mapping vestibule. App wires this to
+   * landPasteOnProcess (ensure project + activate IP + route to Process tab).
+   */
+  onFreshPasteLanded?: () => void;
 }
 
 export interface MatchSummaryPending {
@@ -224,9 +233,9 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     setDataFilename,
     setDataQualityReport,
     setColumnAliases,
-    clearData,
     clearSelection,
     applyTimeExtraction,
+    onFreshPasteLanded,
   } = options;
 
   // Flow state machine
@@ -286,7 +295,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
    * (re-dispatch after user confirms match-summary choice).
    */
   const _proceedWithParsedData = useCallback(
-    (data: DataRow[]) => {
+    (data: DataRow[], opts?: { reingest?: boolean }) => {
       setRawData(data);
       setDataFilename('Pasted Data');
 
@@ -301,16 +310,40 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       const report = validateData(data, detected.outcome ? [detected.outcome] : []);
       setDataQualityReport(report);
 
-      // Check for defect format
       const defectResult = detectDefectFormat(data, detected.columnAnalysis);
-      if (
+      const defectFired =
         defectResult.isDefectFormat &&
-        (defectResult.confidence === 'high' || defectResult.confidence === 'medium')
-      ) {
-        dispatch({ type: 'DEFECT_DETECTED', detection: defectResult });
+        (defectResult.confidence === 'high' || defectResult.confidence === 'medium');
+      const wideFormat = detectWideFormat(data);
+
+      // FSJ-2 (first-session spec §4.1/§4.2a): measurement-shaped fresh pastes
+      // skip the ColumnMapping vestibule and land at b0 pre-filled (Y/X were
+      // written above). Kept on today's wizard path: defect/wide shapes (until
+      // the P2 re-framing banners), low inference confidence (= no Y inferable,
+      // detection.ts:189-205 — the mapping surface auto-surfaces rather than
+      // landing on an empty picker), and match-summary re-dispatch (re-ingestion
+      // is not first-session, spec §7).
+      const landsAtB0 =
+        !opts?.reingest &&
+        !defectFired &&
+        !wideFormat.isWideFormat &&
+        detected.confidence !== 'low';
+
+      if (landsAtB0) {
+        // Quiet-tier interim (spec §4.2): auto-apply time extraction with the
+        // current defaults; the adjust/undo chip arrives with FSJ-4.
+        if (detected.timeColumn) {
+          applyTimeExtraction(detected.timeColumn, timeExtractionConfig);
+        }
+        setTimeExtractionPrompt(null);
+        dispatch({ type: 'PASTE_LANDED' });
+        onFreshPasteLanded?.();
+        return;
       }
 
-      const wideFormat = detectWideFormat(data);
+      if (defectFired) {
+        dispatch({ type: 'DEFECT_DETECTED', detection: defectResult });
+      }
       if (wideFormat.isWideFormat) {
         dispatch({ type: 'PASTE_ANALYZED_WIDE', detection: wideFormat });
       } else {
@@ -328,7 +361,16 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         });
       }
     },
-    [setRawData, setDataFilename, setOutcome, setFactors, setDataQualityReport]
+    [
+      setRawData,
+      setDataFilename,
+      setOutcome,
+      setFactors,
+      setDataQualityReport,
+      applyTimeExtraction,
+      timeExtractionConfig,
+      onFreshPasteLanded,
+    ]
   );
 
   const handlePasteAnalyze = useCallback(
@@ -472,7 +514,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           });
 
           dispatch({ type: 'START_PASTE' });
-          _proceedWithParsedData(ms.newRows);
+          _proceedWithParsedData(ms.newRows, { reingest: true });
           return;
         }
 
@@ -488,7 +530,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
 
           if (!activeHub) {
             dispatch({ type: 'START_PASTE' });
-            _proceedWithParsedData(ms.newRows);
+            _proceedWithParsedData(ms.newRows, { reingest: true });
             return;
           }
 
@@ -551,7 +593,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
             });
 
             dispatch({ type: 'START_PASTE' });
-            _proceedWithParsedData(merged);
+            _proceedWithParsedData(merged, { reingest: true });
           } else {
             // overlapRange absent when classifyPaste could not determine the overlap window
             // (no time column, or no prior snapshots) — fall back to replacing the full
@@ -590,7 +632,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
             });
 
             dispatch({ type: 'START_PASTE' });
-            _proceedWithParsedData(ms.newRows);
+            _proceedWithParsedData(ms.newRows, { reingest: true });
           }
           return;
         }
@@ -603,7 +645,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
           // Re-enter paste mode momentarily so the pipeline dispatch lands cleanly,
           // then proceed through the column-mapping flow.
           dispatch({ type: 'START_PASTE' });
-          _proceedWithParsedData(ms.newRows);
+          _proceedWithParsedData(ms.newRows, { reingest: true });
           return;
       }
     },
@@ -702,15 +744,12 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
   );
 
   const handleMappingCancel = useCallback(() => {
-    if (flowState.isMappingReEdit) {
-      // Re-edit cancel: just close, don't wipe data
-      dispatch({ type: 'CANCEL_MAPPING' });
-      return;
-    }
-    // First-time cancel: wipe data
-    clearData();
+    // FSJ-2 (spec §4.1 guarded regression): cancel never wipes pasted data.
+    // The engine-detected Y/X are already in the store (written before the
+    // modal rendered), so closing the mapping leaves a working session.
+    // Explicit data clearing is owned by the reset affordances, not cancel.
     dispatch({ type: 'CANCEL_MAPPING' });
-  }, [flowState.isMappingReEdit, clearData]);
+  }, []);
 
   const handleDismissWideFormat = useCallback(() => {
     dispatch({ type: 'DISMISS_WIDE_FORMAT' });

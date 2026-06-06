@@ -78,7 +78,6 @@ function makeOptions(
     setDataFilename: vi.fn(),
     setDataQualityReport: vi.fn(),
     setColumnAliases: vi.fn(),
-    clearData: vi.fn(),
     clearSelection: vi.fn(),
     applyTimeExtraction: vi.fn(),
     ...overrides,
@@ -145,10 +144,14 @@ describe('usePasteImportFlow — match-summary wedge (P2.3)', () => {
     expect(result.current.isMapping).toBe(false);
   });
 
-  it('skips matchSummary when no active hub (Mode B — new paste flow)', async () => {
+  it('lands without matchSummary when no active hub (FSJ-2 — measurement-shaped fresh paste)', async () => {
+    // CSV_TEXT (weight_g + timestamp, no categoricals) detects as measurement-shaped,
+    // so with no active hub the fresh-paste branch lands at b0 rather than opening the
+    // mapping vestibule (spec §4.1).
     const setRawData = vi.fn();
+    const onFreshPasteLanded = vi.fn();
     const { result } = renderHook(() =>
-      usePasteImportFlow(makeOptions({ activeHub: undefined, setRawData }))
+      usePasteImportFlow(makeOptions({ activeHub: undefined, setRawData, onFreshPasteLanded }))
     );
 
     await act(async () => {
@@ -156,12 +159,13 @@ describe('usePasteImportFlow — match-summary wedge (P2.3)', () => {
     });
 
     expect(result.current.matchSummary).toBeUndefined();
-    // Proceeds to ColumnMapping
-    expect(result.current.isMapping).toBe(true);
+    // Lands at b0 — no mapping vestibule.
+    expect(result.current.isMapping).toBe(false);
+    expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
     expect(setRawData).toHaveBeenCalledWith(PARSED_ROWS);
   });
 
-  it('skips matchSummary when hub is incomplete (no processGoal)', async () => {
+  it('lands without matchSummary when hub is incomplete (FSJ-2 — incomplete hub routes to fresh pipeline)', async () => {
     const incompleteHub: ProcessHub = {
       id: 'hub-2',
       name: 'Incomplete',
@@ -180,8 +184,9 @@ describe('usePasteImportFlow — match-summary wedge (P2.3)', () => {
       // no processGoal → isProcessHubComplete returns false
     };
     const setRawData = vi.fn();
+    const onFreshPasteLanded = vi.fn();
     const { result } = renderHook(() =>
-      usePasteImportFlow(makeOptions({ activeHub: incompleteHub, setRawData }))
+      usePasteImportFlow(makeOptions({ activeHub: incompleteHub, setRawData, onFreshPasteLanded }))
     );
 
     await act(async () => {
@@ -189,7 +194,9 @@ describe('usePasteImportFlow — match-summary wedge (P2.3)', () => {
     });
 
     expect(result.current.matchSummary).toBeUndefined();
-    expect(result.current.isMapping).toBe(true);
+    // An incomplete hub routes to the fresh pipeline, which now lands at b0.
+    expect(result.current.isMapping).toBe(false);
+    expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
     expect(setRawData).toHaveBeenCalledWith(PARSED_ROWS);
   });
 

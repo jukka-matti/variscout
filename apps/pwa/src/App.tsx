@@ -356,7 +356,6 @@ function AppMain() {
     setDataFilename,
     setDataQualityReport,
     setColumnAliases,
-    clearData: ingestion.clearData,
     clearSelection,
     applyTimeExtraction: ingestion.applyTimeExtraction,
   });

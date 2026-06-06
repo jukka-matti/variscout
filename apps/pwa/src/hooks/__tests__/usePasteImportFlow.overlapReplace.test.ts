@@ -115,7 +115,6 @@ function makeOptions(
     setDataFilename: vi.fn(),
     setDataQualityReport: vi.fn(),
     setColumnAliases: vi.fn(),
-    clearData: vi.fn(),
     clearSelection: vi.fn(),
     applyTimeExtraction: vi.fn(),
     ...overrides,
