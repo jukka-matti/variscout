@@ -1453,6 +1453,9 @@ function AppMain() {
                   reingestPendingMatches={pendingMatches}
                   onFixData={importFlow.openFactorManager}
                   onRenameColumn={importFlow.handleColumnRename}
+                  quietTimeExtraction={importFlow.quietTimeExtraction}
+                  onDismissQuietTimeExtraction={importFlow.dismissQuietTimeExtraction}
+                  onUndoQuietTimeExtraction={importFlow.undoQuietTimeExtraction}
                 />
               </div>
             ) : panels.activeView === 'charter' ? (

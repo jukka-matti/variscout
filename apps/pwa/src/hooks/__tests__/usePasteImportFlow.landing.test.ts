@@ -9,6 +9,7 @@
  * fails loudly rather than silently passing.
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import React from 'react';
 
 // Mock ONLY the persistence singleton (the hook's async repo call) so it resolves
 // cleanly. Detection stays REAL — the landing branch IS a detection-driven decision.
@@ -28,7 +29,10 @@ import {
   detectColumns,
   detectWideFormat,
   detectDefectFormat,
+  augmentWithTimeColumns,
   type ProcessHub,
+  type DataRow,
+  type TimeExtractionConfig,
 } from '@variscout/core';
 import { pwaHubRepository } from '../../persistence';
 import { usePasteImportFlow, type UsePasteImportFlowOptions } from '../usePasteImportFlow';
@@ -157,7 +161,7 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     expect(setOutcome).toHaveBeenCalledWith('Cycle_Time_sec');
   });
 
-  it('auto-applies time extraction with defaults when a time column is present', async () => {
+  it('auto-applies quiet time extraction without Year and exposes the undoable chip', async () => {
     // Precondition: a date-type time column is detected.
     const parsed = await parseText(tsvOf(measurementRows));
     expect(detectColumns(parsed).timeColumn).toBe('Timestamp');
@@ -178,10 +182,82 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
 
     expect(applyTimeExtraction).toHaveBeenCalledWith(
       'Timestamp',
-      expect.objectContaining({ extractDayOfWeek: true })
+      expect.objectContaining({ extractMonth: true, extractDayOfWeek: true, extractYear: false })
     );
-    // Quiet-tier interim: the prompt is suppressed (the landing branch nulls it).
     expect(result.current.timeExtractionPrompt).toBeNull();
+    expect(result.current.quietTimeExtraction).toEqual({
+      timeColumn: 'Timestamp',
+      newColumns: ['Timestamp_Month', 'Timestamp_DayOfWeek'],
+      dismissed: false,
+    });
+
+    act(() => {
+      result.current.dismissQuietTimeExtraction();
+    });
+    expect(result.current.quietTimeExtraction).toEqual({
+      timeColumn: 'Timestamp',
+      newColumns: ['Timestamp_Month', 'Timestamp_DayOfWeek'],
+      dismissed: true,
+    });
+  });
+
+  it('undoes quiet time extraction by removing derived date columns and factors', async () => {
+    function useStatefulFlow() {
+      const [data, setData] = React.useState<DataRow[]>([]);
+      const [outcome, setOutcome] = React.useState<string | null>(null);
+      const [factors, setFactors] = React.useState<string[]>([]);
+      const dataRef = React.useRef<DataRow[]>(data);
+      const factorsRef = React.useRef<string[]>(factors);
+      dataRef.current = data;
+      factorsRef.current = factors;
+
+      const setRawData = React.useCallback((next: DataRow[]) => {
+        dataRef.current = next;
+        setData(next);
+      }, []);
+
+      const applyTimeExtraction = React.useCallback((col: string, config: TimeExtractionConfig) => {
+        const { newColumns } = augmentWithTimeColumns(dataRef.current, col, config);
+        setFactors([...factorsRef.current, ...newColumns]);
+      }, []);
+
+      const flow = usePasteImportFlow(
+        makeOptions({
+          rawData: data,
+          outcome,
+          factors,
+          setRawData,
+          setOutcome,
+          setFactors,
+          applyTimeExtraction,
+        })
+      );
+
+      return { flow, data, factors };
+    }
+
+    const { result } = renderHook(() => useStatefulFlow());
+
+    await act(async () => {
+      await result.current.flow.handlePasteAnalyze(tsvOf(measurementRows));
+    });
+
+    expect(Object.keys(result.current.data[0])).toContain('Timestamp_Month');
+    expect(Object.keys(result.current.data[0])).toContain('Timestamp_DayOfWeek');
+    expect(Object.keys(result.current.data[0])).not.toContain('Timestamp_Year');
+    expect(result.current.factors).toEqual(
+      expect.arrayContaining(['Timestamp_Month', 'Timestamp_DayOfWeek'])
+    );
+
+    act(() => {
+      result.current.flow.undoQuietTimeExtraction();
+    });
+
+    expect(Object.keys(result.current.data[0])).not.toContain('Timestamp_Month');
+    expect(Object.keys(result.current.data[0])).not.toContain('Timestamp_DayOfWeek');
+    expect(result.current.factors).not.toContain('Timestamp_Month');
+    expect(result.current.factors).not.toContain('Timestamp_DayOfWeek');
+    expect(result.current.flow.quietTimeExtraction).toBeNull();
   });
 
   it('keeps the wizard path for a wide-shaped paste (negative control) + provisions the Untitled project (FSJ-2 §3)', async () => {

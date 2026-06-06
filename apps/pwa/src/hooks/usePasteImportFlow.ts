@@ -160,6 +160,12 @@ export interface MatchSummaryPending {
   priorSnapshotId?: EvidenceSnapshot['id'];
 }
 
+export interface QuietTimeExtractionChip {
+  timeColumn: string;
+  newColumns: string[];
+  dismissed: boolean;
+}
+
 export interface UsePasteImportFlowReturn {
   isPasteMode: boolean;
   pasteError: string | null;
@@ -170,6 +176,9 @@ export interface UsePasteImportFlowReturn {
   setTimeExtractionPrompt: (v: { timeColumn: string; hasTimeComponent: boolean } | null) => void;
   timeExtractionConfig: TimeExtractionConfig;
   setTimeExtractionConfig: React.Dispatch<React.SetStateAction<TimeExtractionConfig>>;
+  quietTimeExtraction: QuietTimeExtractionChip | null;
+  dismissQuietTimeExtraction: () => void;
+  undoQuietTimeExtraction: () => void;
   mappingColumnAnalysis: ReturnType<typeof detectColumns>['columnAnalysis'] | undefined;
   suggestedStack: ReturnType<typeof detectColumns>['suggestedStack'];
   handleStackConfigChange: (config: StackConfig | null) => void;
@@ -206,6 +215,18 @@ export interface UsePasteImportFlowReturn {
   cancelMatchSummary: () => void;
 }
 
+function timeExtractionColumnsFor(timeColumn: string, config: TimeExtractionConfig): string[] {
+  const columns: string[] = [];
+  if (config.extractYear) columns.push(`${timeColumn}_Year`);
+  if (config.extractMonth) columns.push(`${timeColumn}_Month`);
+  if (config.extractWeek) columns.push(`${timeColumn}_Week`);
+  if (config.extractDayOfWeek) columns.push(`${timeColumn}_DayOfWeek`);
+  if (config.extractHour) columns.push(`${timeColumn}_Hour`);
+  if (config.extractMinuteInterval)
+    columns.push(`${timeColumn}_${config.extractMinuteInterval}min`);
+  return columns;
+}
+
 /**
  * Derives a stable source identifier from the distinguishing columns of the
  * new dataset (those NOT present in the existing hub columns).
@@ -232,6 +253,8 @@ function deriveSourceId(hubColumns: readonly string[], newColumns: readonly stri
 export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePasteImportFlowReturn {
   const {
     rawData,
+    outcome,
+    factors,
     columnAliases,
     activeHub,
     setRawData,
@@ -257,12 +280,15 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     hasTimeComponent: boolean;
   } | null>(null);
   const [timeExtractionConfig, setTimeExtractionConfig] = useState<TimeExtractionConfig>({
-    extractYear: true,
+    extractYear: false,
     extractMonth: true,
     extractWeek: false,
     extractDayOfWeek: true,
     extractHour: false,
   });
+  const [quietTimeExtraction, setQuietTimeExtraction] = useState<QuietTimeExtractionChip | null>(
+    null
+  );
 
   // Mode A.2 match-summary state — set when paste detects an existing complete Hub.
   const [matchSummary, setMatchSummary] = useState<MatchSummaryPending | undefined>(undefined);
@@ -339,10 +365,15 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         detected.confidence !== 'low';
 
       if (landsAtB0) {
-        // Quiet-tier interim (spec §4.2): auto-apply time extraction with the
-        // current defaults; the adjust/undo chip arrives with FSJ-4.
         if (detected.timeColumn) {
           applyTimeExtraction(detected.timeColumn, timeExtractionConfig);
+          setQuietTimeExtraction({
+            timeColumn: detected.timeColumn,
+            newColumns: timeExtractionColumnsFor(detected.timeColumn, timeExtractionConfig),
+            dismissed: false,
+          });
+        } else {
+          setQuietTimeExtraction(null);
         }
         setTimeExtractionPrompt(null);
         dispatch({ type: 'PASTE_LANDED' });
@@ -368,6 +399,8 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
               c.sampleValues.some(v => v.includes('T') || v.includes(':'))
           ),
         });
+      } else {
+        setQuietTimeExtraction(null);
       }
 
       // FSJ-2 (spec §3): the Untitled-project guarantee holds on the wizard path
@@ -782,6 +815,37 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     dispatch({ type: 'DISMISS_DEFECT' });
   }, []);
 
+  const dismissQuietTimeExtraction = useCallback(() => {
+    setQuietTimeExtraction(current => (current == null ? null : { ...current, dismissed: true }));
+  }, []);
+
+  const undoQuietTimeExtraction = useCallback(() => {
+    if (quietTimeExtraction == null) return;
+    const removeColumns = new Set(quietTimeExtraction.newColumns);
+    const nextRawData = rawData.map(row => {
+      const nextRow: DataRow = { ...row };
+      for (const column of removeColumns) {
+        delete nextRow[column];
+      }
+      return nextRow;
+    });
+    const nextFactors = factors.filter(factor => !removeColumns.has(factor));
+
+    setRawData(nextRawData);
+    setFactors(nextFactors);
+    const report = validateData(nextRawData, outcome ? [outcome] : []);
+    setDataQualityReport(report);
+    setQuietTimeExtraction(null);
+  }, [
+    factors,
+    outcome,
+    quietTimeExtraction,
+    rawData,
+    setDataQualityReport,
+    setFactors,
+    setRawData,
+  ]);
+
   return {
     isPasteMode: flowState.isPasteMode,
     pasteError: flowState.pasteError,
@@ -792,6 +856,9 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     setTimeExtractionPrompt,
     timeExtractionConfig,
     setTimeExtractionConfig,
+    quietTimeExtraction,
+    dismissQuietTimeExtraction,
+    undoQuietTimeExtraction,
     mappingColumnAnalysis,
     suggestedStack,
     handleStackConfigChange: setPendingStackConfig,
