@@ -37,7 +37,9 @@ describe('FindingsLog', () => {
   it('renders empty state when no findings', () => {
     render(<FindingsLog {...defaultProps} />);
     expect(screen.getByText('No findings yet')).toBeDefined();
-    expect(screen.getByText(/Pin interesting filter/)).toBeDefined();
+    expect(
+      screen.getByText('Brush a range, pin your filters, or capture a detected signal.')
+    ).toBeDefined();
   });
 
   it('renders finding cards when findings exist', () => {
