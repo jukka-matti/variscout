@@ -105,8 +105,11 @@ export function landOnProcess(sample: SampleDataset, deps: LandOnProcessDeps): v
  * reconstructs the envelope's own project (reconstruct-not-create), then lands
  * on Process by the altitude rule.
  *
- * Title fallback mirrors documentSnapshot's own chain (line ~215):
- *   hub.name ?? project.projectName ?? 'Untitled project'
+ * Title fallback for project-less snapshots (spec §3 Untitled-project guarantee).
+ * Fallback order follows documentSnapshot.ts (hub.name → project.projectName),
+ * but the terminal literal here is 'Untitled project' (spec-correct lowercase) vs
+ * 'Untitled Project' in the snapshot module — intentional divergence, do not unify.
+ *
  * When the reconstructed hub already carries a live IP, ensureSessionProject
  * is a no-op — the envelope's project is never re-wrapped.
  *

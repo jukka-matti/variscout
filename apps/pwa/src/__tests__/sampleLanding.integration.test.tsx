@@ -74,7 +74,8 @@ function makeTestIP(id: string, hubId: string): ImprovementProject {
 function makeMinimalSnapshot(
   hubId: string,
   hubName: string,
-  improvementProject: ImprovementProject | null
+  improvementProject: ImprovementProject | null,
+  projectName?: string
 ): DocumentSnapshot {
   return {
     schemaVersion: 1,
@@ -87,7 +88,7 @@ function makeMinimalSnapshot(
     },
     project: {
       projectId: 'proj-1',
-      projectName: hubName,
+      projectName: projectName ?? hubName,
       rawData: [],
       outcome: '',
       factors: [],
@@ -258,8 +259,8 @@ describe('landVrsOnProcess — .vrs reconstruct-not-create (spec §1)', () => {
   it('(b) project-less snapshot: Untitled project created with envelope-name fallback, activated, activeView frame', () => {
     const HUB_ID = 'hub-fixture-2';
     const HUB_NAME = 'Training Scenario';
-    // No improvementProject in snapshot
-    const vrsFile = makeVrsFile(makeMinimalSnapshot(HUB_ID, HUB_NAME, null));
+    // No improvementProject in snapshot; set projectName differently to prove fallback order
+    const vrsFile = makeVrsFile(makeMinimalSnapshot(HUB_ID, HUB_NAME, null, 'Other Name'));
 
     let capturedHub: ProcessHub | null = null;
     const setSessionHub = vi.fn((hub: ProcessHub) => {
