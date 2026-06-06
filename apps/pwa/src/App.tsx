@@ -1284,6 +1284,8 @@ function AppMain() {
           analysis canvas (not in a framing modal). Shows OutcomePin, .vrs
           export, and Edit-framing re-entry. */}
       {rawData.length > 0 &&
+        // First-session spec §1: embeds are exempt from the journey spine chrome.
+        !isEmbedMode &&
         !importFlow.isPasteMode &&
         !importFlow.isManualEntry &&
         !importFlow.isMapping &&

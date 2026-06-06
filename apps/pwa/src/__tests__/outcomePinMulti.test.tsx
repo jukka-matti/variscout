@@ -65,7 +65,7 @@ vi.mock('../workers/useStatsWorker', () => ({
 }));
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import App from '../App';
 import { LocaleProvider } from '../context/LocaleContext';
 import { db } from '../db/schema';
@@ -125,6 +125,15 @@ function renderApp() {
   );
 }
 
+function renderSampleDeepLink({ embed }: { embed: boolean }) {
+  window.history.pushState(
+    {},
+    '',
+    `/?sample=cookie-weight${embed ? '&embed=true&chart=ichart' : ''}`
+  );
+  return renderApp();
+}
+
 async function importVrsThroughHome(hub: ProcessHub, rawData: DataRow[]) {
   useProjectStore.setState({
     ...getProjectInitialState(),
@@ -155,6 +164,7 @@ async function importVrsThroughHome(hub: ProcessHub, rawData: DataRow[]) {
 
 describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
   beforeEach(async () => {
+    window.history.pushState({}, '', '/');
     if (!db.isOpen()) await db.open();
     await Promise.all([
       db.meta.clear(),
@@ -169,6 +179,23 @@ describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
       factors: [],
     });
     useCanvasStore.setState(getCanvasInitialState());
+  });
+
+  afterEach(() => {
+    window.history.pushState({}, '', '/');
+  });
+
+  it('renders the framing toolbar for a non-embed sample deep-link with data and session hub', async () => {
+    renderSampleDeepLink({ embed: false });
+
+    expect(await screen.findByTestId('framing-toolbar')).toBeInTheDocument();
+  });
+
+  it('does not render the framing toolbar in embed mode after sample data creates a session hub', async () => {
+    renderSampleDeepLink({ embed: true });
+
+    expect(await screen.findByTestId('dashboard-stub')).toBeInTheDocument();
+    expect(screen.queryByTestId('framing-toolbar')).not.toBeInTheDocument();
   });
 
   it('renders one OutcomePin for a single-outcome hub with data', async () => {
