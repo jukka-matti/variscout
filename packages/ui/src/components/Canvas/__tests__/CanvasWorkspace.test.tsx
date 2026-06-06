@@ -684,6 +684,34 @@ describe('CanvasWorkspace', () => {
     expect(screen.queryByTestId('layered-process-view')).toBeNull();
   });
 
+  it('pins stale b0 process-step expander viewports back to L2 authoring', () => {
+    const hubId = h('hub-b0-expander-stale-l1');
+    useCanvasViewportStore.setState(s => ({
+      viewports: {
+        ...s.viewports,
+        [hubId]: {
+          zoom: 0.2,
+          pan: { x: 0, y: 0 },
+          currentLevel: 'l1',
+          nodePositions: {},
+          groupByTributary: false,
+        },
+      },
+    }));
+
+    renderWorkspace({
+      canvasViewportHubId: hubId,
+      processContext: { processMap: emptyMap() },
+      canEditCanvas: false,
+    });
+
+    fireEvent.click(screen.getByTestId('process-steps-expander-header'));
+
+    expect(useCanvasViewportStore.getState().getViewport(hubId).currentLevel).toBe('l2');
+    expect(screen.getByTestId('layered-process-view')).toBeInTheDocument();
+    expect(screen.queryByTestId('outcome-distribution')).not.toBeInTheDocument();
+  });
+
   // This test asserts `canvas-authoring-map`, the L2 chip-rail authoring
   // surface inside the inner Canvas. With the inlined edit chrome owning the
   // ProcessStructureZone column→process drop journey, the inner Canvas's
@@ -1223,6 +1251,36 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
     },
   ];
 
+  const b0StepTimestampRows = [
+    {
+      Cycle_Time: 10,
+      Prep_start: '2026-01-01',
+      Prep_end: '2026-01-02',
+      Assembly_st: '2026-01-03',
+      Assembly_e: '2026-01-05',
+      QC_start: '2026-01-06',
+      QC_end: '2026-01-08',
+    },
+    {
+      Cycle_Time: 12,
+      Prep_start: '2026-02-01',
+      Prep_end: '2026-02-02',
+      Assembly_st: '2026-02-03',
+      Assembly_e: '2026-02-05',
+      QC_start: '2026-02-06',
+      QC_end: '2026-02-08',
+    },
+    {
+      Cycle_Time: 11,
+      Prep_start: '2026-03-01',
+      Prep_end: '2026-03-02',
+      Assembly_st: '2026-03-03',
+      Assembly_e: '2026-03-05',
+      QC_start: '2026-03-06',
+      QC_end: '2026-03-08',
+    },
+  ];
+
   // Process map: one step is enough to make `detectScopeFromMap` return b2/b1
   // (anything other than b0), so CanvasWorkspace renders the b1/b2 branch with
   // the inlined edit chrome instead of the b0 FrameViewB0 picker.
@@ -1274,6 +1332,32 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
         over: { id: 'process-zone:singleton' },
       });
     });
+  }
+
+  function renderB0StepTimestampWorkspace(
+    rows: ReadonlyArray<Record<string, unknown>> = b0StepTimestampRows
+  ): void {
+    function StatefulB0Workspace(): React.ReactElement {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: emptyMap() });
+      return (
+        <CanvasWorkspace
+          rawData={rows as ReadonlyArray<import('@variscout/core').DataRow>}
+          outcome={null}
+          factors={[]}
+          measureSpecs={{}}
+          processContext={processContext}
+          setOutcome={vi.fn()}
+          setFactors={vi.fn()}
+          setMeasureSpec={vi.fn()}
+          setProcessContext={next => setProcessContext(next ?? { processMap: emptyMap() })}
+          onSeeData={vi.fn()}
+          canEditCanvas={true}
+        />
+      );
+    }
+    render(<StatefulB0Workspace />);
   }
 
   // IM-0b: resolve the canvas-scheme node id of an emergent step by its display
@@ -1355,6 +1439,41 @@ describe('CanvasWorkspace — D1 step timings end-to-end', () => {
     expect(prepBox.textContent).toMatch(/⏱/);
     expect(mixBox.textContent).toMatch(/⏱/);
     expect(packBox.textContent).toMatch(/⏱/);
+  });
+
+  it('routes b0 step-timestamp pairs into canonical steps and the shipped timing modal', () => {
+    renderB0StepTimestampWorkspace();
+
+    const banner = screen.getByTestId('b0-step-timestamps-banner');
+    expect(banner).toHaveTextContent('3 step timestamp pairs detected');
+
+    fireEvent.click(screen.getByRole('button', { name: /Build process model/i }));
+
+    expect(screen.getByTestId('edit-mode-shell')).toBeInTheDocument();
+    expect(screen.getByTestId('step-timings-backdrop')).toBeInTheDocument();
+
+    const assemblyStart = screen.getByLabelText(/Start column for Assembly/i) as HTMLSelectElement;
+    expect(assemblyStart.value).toBe('Assembly_st');
+    const qcEnd = screen.getByLabelText(/End column for QC/i) as HTMLSelectElement;
+    expect(qcEnd.value).toBe('QC_end');
+
+    const saveButton = screen.getByTestId('step-timings-save');
+    expect(saveButton).toHaveTextContent('3 steps timed');
+    fireEvent.click(saveButton);
+
+    expect(screen.queryByTestId('step-timings-backdrop')).toBeNull();
+    expect(screen.getByTestId('palette-group-derived-timings')).toHaveTextContent('Lead_time');
+    expect(useCanvasViewportStore.getState().getViewport(h('default')).currentLevel).toBe('l2');
+  });
+
+  it('does not render the b0 step-timestamp banner for non-date channel pairs', () => {
+    renderB0StepTimestampWorkspace([
+      { Cycle_Time: 10, Head_1_start: 1, Head_1_end: 2, Timestamp: '2026-01-01' },
+      { Cycle_Time: 12, Head_1_start: 2, Head_1_end: 3, Timestamp: '2026-01-02' },
+      { Cycle_Time: 11, Head_1_start: 3, Head_1_end: 4, Timestamp: '2026-01-03' },
+    ]);
+
+    expect(screen.queryByTestId('b0-step-timestamps-banner')).toBeNull();
   });
 
   it('all-duration case excludes Lead_time but keeps Total_work_time', () => {

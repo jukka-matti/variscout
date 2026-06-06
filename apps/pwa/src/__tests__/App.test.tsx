@@ -22,6 +22,7 @@ vi.mock('@variscout/ui', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/ui')>();
   return {
     ...actual,
+    CapabilitySuggestionModal: () => <div data-testid="capability-suggestion-modal" />,
     StageFiveModal: (props: { onOpenInvestigation: (brief: AnalysisBrief) => void }) => {
       stageFiveCapture.onOpenInvestigation = props.onOpenInvestigation;
       return null;
@@ -241,6 +242,75 @@ describe('PWA export-only startup persistence', () => {
     expect(screen.queryByTestId('save-to-browser-saved')).not.toBeInTheDocument();
 
     unmount();
+  });
+});
+
+const capabilityRows = Array.from({ length: 12 }, (_, index) => ({
+  Cycle_Time: 40 + index,
+  Machine: index % 2 === 0 ? 'A' : 'B',
+}));
+
+function setCapabilitySuggestionFixture(processMapNodes: Array<{ id: string; name: string }>) {
+  useProjectStore.setState({
+    rawData: capabilityRows,
+    outcome: 'Cycle_Time',
+    factors: ['Machine'],
+    specs: { usl: 60 },
+    processContext: {
+      processMap: {
+        version: 1,
+        nodes: processMapNodes.map((node, order) => ({ ...node, order })),
+        tributaries: [],
+        createdAt: '2026-06-06T00:00:00.000Z',
+        updatedAt: '2026-06-06T00:00:00.000Z',
+      },
+    },
+  });
+  usePanelsStore.setState({ ...initialPanelsState, activeView: 'frame' });
+}
+
+describe('CapabilitySuggestionModal — FSJ-4 b0 suppression', () => {
+  beforeEach(() => {
+    useProjectStore.setState({
+      rawData: [],
+      outcome: null,
+      factors: [],
+      specs: {},
+      processContext: null,
+    });
+    usePanelsStore.setState(initialPanelsState);
+  });
+
+  afterEach(() => {
+    useProjectStore.setState({
+      rawData: [],
+      outcome: null,
+      factors: [],
+      specs: {},
+      processContext: null,
+    });
+    usePanelsStore.setState(initialPanelsState);
+  });
+
+  it('does not render over the Process b0 landing surface', async () => {
+    setCapabilitySuggestionFixture([]);
+
+    await act(async () => {
+      renderApp();
+    });
+
+    expect(screen.getByTestId('frame-view-stub')).toBeInTheDocument();
+    expect(screen.queryByTestId('capability-suggestion-modal')).toBeNull();
+  });
+
+  it('still renders after the Process surface has an authored step', async () => {
+    setCapabilitySuggestionFixture([{ id: 'step-1', name: 'Bake' }]);
+
+    await act(async () => {
+      renderApp();
+    });
+
+    expect(await screen.findByTestId('capability-suggestion-modal')).toBeInTheDocument();
   });
 });
 

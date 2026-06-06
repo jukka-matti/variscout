@@ -45,6 +45,7 @@ import { pwaHubRepository } from '../../persistence';
 import { useSession } from '../../store/sessionStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useAnalyzeFeatureStore } from '../../features/analyze/analyzeStore';
+import type { QuietTimeExtractionChip } from '../../hooks/usePasteImportFlow';
 
 const EMPTY_PRIOR_STEP_STATS: ReadonlyMap<string, StepCapabilityStamp> = new Map();
 const EMPTY_ACTION_ITEMS: ActionItem[] = [];
@@ -95,12 +96,18 @@ interface FrameViewProps {
    * via the "Fix data…" hatch per plan decision 11).
    */
   onRenameColumn?: (oldName: string, alias: string) => void;
+  quietTimeExtraction?: QuietTimeExtractionChip | null;
+  onDismissQuietTimeExtraction?: () => void;
+  onUndoQuietTimeExtraction?: () => void;
 }
 
 const FrameView: React.FC<FrameViewProps> = ({
   reingestPendingMatches = [],
   onFixData,
   onRenameColumn,
+  quietTimeExtraction = null,
+  onDismissQuietTimeExtraction,
+  onUndoQuietTimeExtraction,
 }) => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
@@ -450,22 +457,70 @@ const FrameView: React.FC<FrameViewProps> = ({
   // The provenance bar shows filename · rows · columns which matches the wireframe.
   const b0Slots = React.useMemo(() => {
     const columnCount = rawData.length > 0 ? Object.keys(rawData[0]).length : 0;
+    const showQuietTimeChip =
+      quietTimeExtraction != null &&
+      !quietTimeExtraction.dismissed &&
+      quietTimeExtraction.newColumns.length > 0;
     return {
       topBar: (
-        <div className="flex items-center justify-between gap-3 text-xs text-content-muted">
-          <span data-testid="b0-provenance">
-            {`${dataFilename ?? 'Data'} · ${rawData.length} rows · ${columnCount} columns`}
-          </span>
-          {onFixData && (
-            <button
-              type="button"
-              data-testid="b0-fix-data"
-              onClick={onFixData}
-              className="text-blue-500 hover:text-blue-700 underline-offset-2 hover:underline"
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-3 text-xs text-content-muted">
+            <span data-testid="b0-provenance">
+              {`${dataFilename ?? 'Data'} · ${rawData.length} rows · ${columnCount} columns`}
+            </span>
+            {onFixData && (
+              <button
+                type="button"
+                data-testid="b0-fix-data"
+                onClick={onFixData}
+                className="text-blue-500 hover:text-blue-700 underline-offset-2 hover:underline"
+              >
+                Fix data…
+              </button>
+            )}
+          </div>
+          {showQuietTimeChip ? (
+            <div
+              data-testid="b0-time-chip"
+              className="flex flex-wrap items-center gap-2 rounded-md border border-edge bg-surface-secondary px-3 py-2 text-xs text-content-secondary"
             >
-              Fix data…
-            </button>
-          )}
+              <span className="font-medium text-content">
+                Dates detected in {quietTimeExtraction.timeColumn}
+              </span>
+              <span>added Month + Day of Week.</span>
+              {onFixData ? (
+                <button
+                  type="button"
+                  data-testid="b0-time-chip-adjust"
+                  onClick={onFixData}
+                  className="text-blue-500 hover:text-blue-700 underline-offset-2 hover:underline"
+                >
+                  Adjust
+                </button>
+              ) : null}
+              {onUndoQuietTimeExtraction ? (
+                <button
+                  type="button"
+                  data-testid="b0-time-chip-undo"
+                  onClick={onUndoQuietTimeExtraction}
+                  className="text-content hover:text-content-secondary underline-offset-2 hover:underline"
+                >
+                  Undo
+                </button>
+              ) : null}
+              {onDismissQuietTimeExtraction ? (
+                <button
+                  type="button"
+                  data-testid="b0-time-chip-dismiss"
+                  aria-label="Dismiss date chip"
+                  onClick={onDismissQuietTimeExtraction}
+                  className="ml-auto text-content-muted hover:text-content"
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       ),
       belowY: onFixData ? (
@@ -493,7 +548,16 @@ const FrameView: React.FC<FrameViewProps> = ({
         />
       ),
     };
-  }, [rawData, dataFilename, onFixData, onRenameColumn, handleSeeData]);
+  }, [
+    rawData,
+    dataFilename,
+    onFixData,
+    onRenameColumn,
+    handleSeeData,
+    onDismissQuietTimeExtraction,
+    onUndoQuietTimeExtraction,
+    quietTimeExtraction,
+  ]);
 
   // E1 T6: Process tab is project-scoped. When no active project is selected,
   // route the user back to Home instead of rendering Canvas chrome. PWA has no

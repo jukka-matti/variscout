@@ -80,6 +80,9 @@ export interface FrameViewB0Props {
   /** No-Y floor banner — rendered beneath the Y picker ONLY when yCandidates is empty (spec §4.1 no-numeric-Y guard). */
   noYBanner?: ReactNode;
 
+  /** Fired when the process-steps expander opens so the parent can prepare L2 authoring. */
+  onProcessStepsOpen?: () => void;
+
   /** Fired when user clicks "See the data →". */
   onSeeData: () => void;
 
@@ -113,6 +116,7 @@ export function FrameViewB0({
   topBar,
   belowYSlot,
   noYBanner,
+  onProcessStepsOpen,
   onSeeData,
   className,
 }: FrameViewB0Props) {
@@ -194,7 +198,13 @@ export function FrameViewB0({
         />
       )}
 
-      <ProcessStepsExpander>{children}</ProcessStepsExpander>
+      <ProcessStepsExpander
+        onOpenChange={open => {
+          if (open) onProcessStepsOpen?.();
+        }}
+      >
+        {children}
+      </ProcessStepsExpander>
 
       <div className="flex justify-end">
         <SeeTheDataCta onClick={onSeeData} disabled={ctaDisabled} disabledHint={ctaDisabledHint} />

@@ -1,4 +1,5 @@
 import type { ColumnParsingProfile } from '../parser/types';
+import { parseStepTimestampColumnName } from './detectStepTimestampPairs';
 
 export interface PairedTimingColumns {
   prefix: string;
@@ -23,23 +24,18 @@ export function detectPairedTimingColumns(
   // 1. Filter to date-kind columns only.
   const dateProfiles = profiles.filter(p => p.primary?.kind === 'date');
 
-  // 2. Group by normalised base name (lowercase), stripping _start / _end suffix.
+  // 2. Group by normalised base name (lowercase), stripping start/end suffixes.
   //    Keys are lowercase base names; values track the original column name per role.
   const startByBase = new Map<string, string>(); // lowercase prefix → original column name
   const endByBase = new Map<string, string>();
 
   for (const profile of dateProfiles) {
-    const lower = profile.columnName.toLowerCase();
-    if (lower.endsWith('_start')) {
-      const base = lower.slice(0, -'_start'.length);
-      if (base.length > 0) {
-        startByBase.set(base, profile.columnName);
-      }
-    } else if (lower.endsWith('_end')) {
-      const base = lower.slice(0, -'_end'.length);
-      if (base.length > 0) {
-        endByBase.set(base, profile.columnName);
-      }
+    const parsed = parseStepTimestampColumnName(profile.columnName);
+    if (parsed === null) continue;
+    if (parsed.role === 'start') {
+      startByBase.set(parsed.baseKey, profile.columnName);
+    } else {
+      endByBase.set(parsed.baseKey, profile.columnName);
     }
   }
 
@@ -56,8 +52,7 @@ export function detectPairedTimingColumns(
     const endColumn = endByBase.get(lowerBase);
     if (endColumn === undefined) continue;
 
-    // Reconstruct display prefix from the start column (strips _start suffix, preserves original casing).
-    const prefix = startColumn.slice(0, startColumn.length - '_start'.length);
+    const prefix = parseStepTimestampColumnName(startColumn)?.stepName ?? startColumn;
 
     const matchedStepId = stepByLowerName.get(lowerBase) ?? null;
 

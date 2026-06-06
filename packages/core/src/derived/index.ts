@@ -1,5 +1,12 @@
 // Task 1: Paired timing column detection
 export { detectPairedTimingColumns } from './detectPairedTimingColumns';
+export {
+  detectStepTimestampPairs,
+  parseStepTimestampColumnName,
+  type ParsedStepTimestampColumn,
+  type StepTimestampPair,
+  type StepTimestampRole,
+} from './detectStepTimestampPairs';
 
 // Formula derivation (CCJ D2 — ratio engine + calculated columns)
 export * from './formula';

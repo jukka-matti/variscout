@@ -154,16 +154,32 @@ vi.mock('@variscout/charts', async importOriginal => {
 
 import FrameView from '../FrameView';
 import { SessionProvider } from '../../../store/sessionStore';
+import type { QuietTimeExtractionChip } from '../../../hooks/usePasteImportFlow';
 
 interface RenderFrameViewOptions {
   onFixData?: () => void;
   onRenameColumn?: (oldName: string, alias: string) => void;
+  quietTimeExtraction?: QuietTimeExtractionChip | null;
+  onDismissQuietTimeExtraction?: () => void;
+  onUndoQuietTimeExtraction?: () => void;
 }
 
-function renderFrameView({ onFixData, onRenameColumn }: RenderFrameViewOptions = {}) {
+function renderFrameView({
+  onFixData,
+  onRenameColumn,
+  quietTimeExtraction,
+  onDismissQuietTimeExtraction,
+  onUndoQuietTimeExtraction,
+}: RenderFrameViewOptions = {}) {
   return render(
     <SessionProvider>
-      <FrameView onFixData={onFixData} onRenameColumn={onRenameColumn} />
+      <FrameView
+        onFixData={onFixData}
+        onRenameColumn={onRenameColumn}
+        quietTimeExtraction={quietTimeExtraction}
+        onDismissQuietTimeExtraction={onDismissQuietTimeExtraction}
+        onUndoQuietTimeExtraction={onUndoQuietTimeExtraction}
+      />
     </SessionProvider>
   );
 }
@@ -266,6 +282,34 @@ describe('FrameView b0 — happy-path integration', () => {
     renderFrameView({ onFixData: onFixDataMock });
     fireEvent.click(screen.getByTestId('b0-fix-data'));
     expect(onFixDataMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows an undoable quiet time chip in the b0 top bar', () => {
+    const onDismissQuietTimeExtraction = vi.fn();
+    const onUndoQuietTimeExtraction = vi.fn();
+    renderFrameView({
+      onFixData: onFixDataMock,
+      quietTimeExtraction: {
+        timeColumn: 'Lot_Start_DateTime',
+        newColumns: ['Lot_Start_DateTime_Month', 'Lot_Start_DateTime_DayOfWeek'],
+        dismissed: false,
+      },
+      onDismissQuietTimeExtraction,
+      onUndoQuietTimeExtraction,
+    });
+
+    const chip = screen.getByTestId('b0-time-chip');
+    expect(chip).toHaveTextContent('Dates detected in Lot_Start_DateTime');
+    expect(chip).toHaveTextContent('added Month + Day of Week');
+
+    fireEvent.click(screen.getByTestId('b0-time-chip-adjust'));
+    expect(onFixDataMock).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByTestId('b0-time-chip-undo'));
+    expect(onUndoQuietTimeExtraction).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByTestId('b0-time-chip-dismiss'));
+    expect(onDismissQuietTimeExtraction).toHaveBeenCalledTimes(1);
   });
 
   it('"+ track another outcome" reaches the multi-outcome surface (fires onFixData — wizard parity, spec §7)', () => {
