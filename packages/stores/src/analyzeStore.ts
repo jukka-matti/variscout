@@ -16,6 +16,7 @@ import { useCanvasViewportStore } from './canvasViewportStore';
 import type {
   Finding,
   FindingContext,
+  FindingEvidenceType,
   FindingSource,
   FindingStatus,
   FindingTag,
@@ -83,7 +84,8 @@ export interface AnalyzeActions {
     context: FindingContext,
     source?: FindingSource,
     scopeId?: ProblemStatementScope['id'],
-    originStepId?: string
+    originStepId?: string,
+    evidenceType?: FindingEvidenceType
   ) => Finding;
   editFinding: (id: string, text: string) => void;
   deleteFinding: (id: string) => void;
@@ -388,7 +390,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   // Finding actions
   // ========================================================================
 
-  addFinding: (text, context, source?, scopeId?, originStepId?) => {
+  addFinding: (text, context, source?, scopeId?, originStepId?, evidenceType?) => {
     const base = createFinding(
       text,
       context.activeFilters,
@@ -404,6 +406,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
       ...base,
       ...(scopeId ? { scopeId } : {}),
       ...(originStepId ? { originStepId } : {}),
+      ...(evidenceType ? { evidenceType } : {}),
     };
     set(state => ({ findings: [finding, ...state.findings] }));
     return finding;
