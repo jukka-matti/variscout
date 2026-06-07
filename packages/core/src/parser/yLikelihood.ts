@@ -25,8 +25,10 @@ export interface RankedColumn {
 // Plausibility-filter regexes: case-insensitive name patterns that strongly
 // indicate "this is NOT a Y" (time / id columns are excluded outright,
 // regardless of inferred type, since name signals win when the pattern is strong).
+// Do not exclude every name ending in "time" / "date": duration outcomes such
+// as CycleTime and LeadTime are valid process-improvement Y candidates.
 const TIME_LIKE_NAME =
-  /^(time|timestamp|date|datetime|.*_at|.*_dt|.*time$|.*date$|year|month|day|hour|minute|second)$/i;
+  /^(time|timestamp|date|datetime|.*_at|.*_dt|year|month|day|hour|minute|second)$/i;
 const ID_LIKE_NAME = /^(id|.*_id|.*_uuid|index|row.?num|seq.?num|serial)$/i;
 
 // Score-boost name patterns. Each matched substring (case-insensitive) adds

@@ -1005,6 +1005,65 @@ describe('CanvasWorkspace', () => {
     expect(onSeeData).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps a wizard-applied CycleTime outcome authoritative in b0', () => {
+    const walkRows = Array.from({ length: 32 }, (_, i) => {
+      const line = i % 2 === 0 ? 'A' : 'B';
+      return {
+        Date: `2026-06-${String((i % 16) + 1).padStart(2, '0')}`,
+        Line: line,
+        Shift: i % 4 < 2 ? 'Day' : 'Night',
+        CycleTime: line === 'A' ? 42 + (i % 5) * 0.2 : 52 + (i % 5) * 0.2,
+      };
+    });
+    const onSeeData = vi.fn();
+
+    function Harness() {
+      const [outcome, setOutcome] = React.useState<string | null>(null);
+      return (
+        <>
+          <button
+            type="button"
+            data-testid="apply-cycle-time"
+            onClick={() => setOutcome('CycleTime')}
+          >
+            apply CycleTime
+          </button>
+          <CanvasWorkspace
+            rawData={walkRows}
+            outcome={outcome}
+            factors={[]}
+            measureSpecs={{}}
+            processContext={{ processMap: emptyMap() }}
+            setOutcome={setOutcome}
+            setFactors={vi.fn()}
+            setMeasureSpec={vi.fn()}
+            setProcessContext={vi.fn()}
+            onSeeData={onSeeData}
+            canEditCanvas={false}
+          />
+        </>
+      );
+    }
+
+    render(<Harness />);
+
+    expect(
+      within(screen.getByTestId('y-picker-candidate-row')).getAllByTestId(
+        'column-candidate-chip'
+      )[0]
+    ).toHaveTextContent('CycleTime');
+    expect(screen.getByTestId('see-the-data-cta')).toHaveAttribute('data-disabled', 'true');
+
+    fireEvent.click(screen.getByTestId('apply-cycle-time'));
+
+    expect(screen.getByTestId('y-picker-selected-row')).toHaveTextContent('CycleTime');
+    expect(screen.getByTestId('see-the-data-cta')).toHaveAttribute('data-disabled', 'false');
+
+    fireEvent.click(screen.getByTestId('see-the-data-cta'));
+
+    expect(onSeeData).toHaveBeenCalledTimes(1);
+  });
+
   it('renders and clears session canvas filter chips', () => {
     canvasFiltersStateRef.current = {
       ...canvasFiltersStateRef.current,

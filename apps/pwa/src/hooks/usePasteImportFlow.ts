@@ -3,6 +3,7 @@ import {
   validateData,
   parseText,
   detectColumns,
+  rankYCandidates,
   detectWideFormat,
   detectDefectFormat,
   stackColumns,
@@ -335,14 +336,19 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       setDataFilename('Pasted Data');
 
       const detected = detectColumns(data);
-      if (detected.outcome) {
-        setOutcome(detected.outcome);
+      const rankedYNames = new Set(
+        rankYCandidates(detected.columnAnalysis).map(({ column }) => column.name)
+      );
+      const seededOutcome =
+        detected.outcome && rankedYNames.has(detected.outcome) ? detected.outcome : null;
+      if (seededOutcome) {
+        setOutcome(seededOutcome);
       }
       if (detected.factors.length > 0) {
         setFactors(detected.factors);
       }
 
-      const report = validateData(data, detected.outcome ? [detected.outcome] : []);
+      const report = validateData(data, seededOutcome ? [seededOutcome] : []);
       setDataQualityReport(report);
 
       const defectResult = detectDefectFormat(data, detected.columnAnalysis);

@@ -43,6 +43,8 @@ export type FrameViewB0YCandidate = YPickerSectionCandidate;
 export interface FrameViewB0Props {
   /** Pre-ranked Y candidates (caller runs rankYCandidates upstream). */
   yCandidates: ReadonlyArray<FrameViewB0YCandidate>;
+  /** Source data contains numeric columns, even when no column auto-ranked as a Y candidate. */
+  hasNumericColumns?: boolean;
   /** Currently selected Y column name, or null. */
   selectedY: string | null;
   /** Fired when user clicks a Y chip. */
@@ -106,6 +108,7 @@ function hasAnySpec(spec: SpecValues | undefined): boolean {
 
 export function FrameViewB0({
   yCandidates,
+  hasNumericColumns = false,
   selectedY,
   onSelectY,
   xCandidates,
@@ -184,6 +187,7 @@ export function FrameViewB0({
           <YPickerSection
             candidates={yCandidates}
             selectedY={selectedY}
+            hasNumericColumns={hasNumericColumns}
             onSelectY={onSelectY}
             onAddSpec={handleAddSpec}
             hasSpecForSelected={hasAnySpec(currentYSpec)}

@@ -25,12 +25,15 @@ describe('rankYCandidates', () => {
     expect(rankYCandidates([])).toEqual([]);
   });
 
-  it('excludes datetime / date columns by name', () => {
-    const dateNames = ['Lot_Start_DateTime', 'created_at', 'event_dt', 'EventTime', 'EndDate'];
+  it('keeps duration-named numeric columns as Y candidates while excluding timestamp names', () => {
+    const durationNames = ['CycleTime', 'LeadTime', 'Cycle_Time', 'downtime'];
+    const rankedDurations = rankYCandidates(durationNames.map(name => col({ name })));
+    expect(rankedDurations.map(r => r.column.name)).toEqual(durationNames);
+
+    const timestampNames = ['Time', 'Date', 'Timestamp', 'created_at', 'event_dt'];
     // Even if mistakenly typed as numeric, the time-like name pattern excludes them.
-    const cols = dateNames.map(name => col({ name, type: 'numeric' }));
-    const ranked = rankYCandidates(cols);
-    expect(ranked).toEqual([]);
+    const rankedTimestamps = rankYCandidates(timestampNames.map(name => col({ name })));
+    expect(rankedTimestamps).toEqual([]);
   });
 
   it('excludes ID-like columns', () => {
@@ -47,6 +50,19 @@ describe('rankYCandidates', () => {
       col({ name: 'Timestamp', type: 'date' }),
     ];
     const ranked = rankYCandidates(cols);
+    expect(ranked).toEqual([]);
+  });
+
+  it('excludes real date-typed columns even when their name looks like a duration outcome', () => {
+    const ranked = rankYCandidates([
+      col({
+        name: 'ProcessTime',
+        type: 'date',
+        uniqueCount: 50,
+        hasVariation: true,
+        sampleValues: ['2026-06-01', '2026-06-02', '2026-06-03'],
+      }),
+    ]);
     expect(ranked).toEqual([]);
   });
 

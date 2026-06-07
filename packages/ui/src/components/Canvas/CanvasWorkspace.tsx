@@ -563,6 +563,10 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       numericValues: numericValuesFor(column.name, b0ModeCandidates.rows),
     }));
   }, [b0ModeCandidates]);
+  const hasNumericColumns = React.useMemo(
+    () => b0ModeCandidates.columnAnalysis.some(column => column.type === 'numeric'),
+    [b0ModeCandidates.columnAnalysis]
+  );
   const yCandidateNames = React.useMemo(
     () => new Set(yCandidates.map(candidate => candidate.column.name)),
     [yCandidates]
@@ -1428,6 +1432,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       <div className="flex-1 overflow-auto" data-testid="frame-view">
         <FrameViewB0
           yCandidates={yCandidates}
+          hasNumericColumns={hasNumericColumns}
           // The b0 contract is "a wrong pick is one glance + one click to fix"
           // (spec §4.1). If the stored outcome is absent/invalid but the mode-aware
           // candidate source has a visible default, show that default as b0's

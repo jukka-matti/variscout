@@ -402,6 +402,9 @@ export const vi: MessageCatalog = {
   'data.typeCategorical': 'Phân loại',
   'data.typeDate': 'Ngày',
   'data.typeText': 'Văn bản',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'danh mục',
   'home.heading': 'Khám phá phân tích biến thiên',
   'home.description':
@@ -988,6 +991,8 @@ export const vi: MessageCatalog = {
   'frame.b0.seeData.pickYHint': 'Pick a Y first to see the analysis.',
   'frame.b0.step.addCtq': '+ add measurement at this step (optional)',
   'frame.b0.q1.empty': 'No numeric columns detected — add or import data to begin.', // TODO(i18n): translate
+  'frame.b0.q1.emptyRanked':
+    "Couldn't auto-rank an outcome. Type the numeric column name in the manual outcome field.",
   'frame.b0.q2.empty': 'No X candidates — once you pick a Y, factor candidates appear here.', // TODO(i18n): translate
   'frame.b0.aria.yCandidates': 'Y candidate chips', // TODO(i18n): translate
   'frame.b0.aria.selectedXs': 'Selected X chips', // TODO(i18n): translate

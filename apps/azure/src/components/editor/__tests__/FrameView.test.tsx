@@ -193,19 +193,37 @@ vi.mock('@variscout/ui', async () => {
     // FSJ-3b: OutcomeNoMatchBanner stub — renders the Skip button so tests
     // can assert the no-Y floor wiring without importing the real component.
     OutcomeNoMatchBanner: (props: {
+      columns?: ReadonlyArray<{ name: string; type: string }>;
       onRename?: (oldName: string, newName: string) => void;
       onExpectedChange?: () => void;
+      onApplyExpectedOutcome?: (columnName: string) => void;
       onSkip?: () => void;
-    }) =>
-      React.createElement(
+    }) => {
+      const firstNumeric = props.columns?.find(column => column.type === 'numeric')?.name;
+      return React.createElement(
         'div',
-        { 'data-testid': 'outcome-no-match-banner' },
+        {
+          'data-testid': 'outcome-no-match-banner',
+          'data-columns': props.columns?.map(column => column.name).join(',') ?? '',
+        },
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            'data-testid': 'banner-apply-first-numeric',
+            onClick: () => {
+              if (firstNumeric) props.onApplyExpectedOutcome?.(firstNumeric);
+            },
+          },
+          'Apply first numeric'
+        ),
         React.createElement(
           'button',
           { type: 'button', 'data-testid': 'banner-skip', onClick: props.onSkip },
           'Skip'
         )
-      ),
+      );
+    },
     CanvasWorkspace: (props: {
       onSeeData: () => void;
       onLogQuickAction?: (
@@ -1043,6 +1061,28 @@ describe('FrameView (Azure shell)', () => {
       fireEvent.click(screen.getByTestId('banner-skip'));
 
       expect(showExploreMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('noYBanner receives column metadata and applies a manual numeric outcome', () => {
+      storeStateRef.current = {
+        ...storeStateRef.current,
+        rawData: [
+          { batch_id: 1001, Line: 'A' },
+          { batch_id: 1002, Line: 'B' },
+        ],
+        dataFilename: null,
+      };
+
+      render(<FrameView activeIP={DEFAULT_TEST_IP} onFixData={onFixDataMock} />);
+
+      expect(screen.getByTestId('outcome-no-match-banner')).toHaveAttribute(
+        'data-columns',
+        'batch_id,Line'
+      );
+
+      fireEvent.click(screen.getByTestId('banner-apply-first-numeric'));
+
+      expect(setOutcomeMock).toHaveBeenCalledWith('batch_id');
     });
 
     it('passes b0Slots to CanvasWorkspace (contract: prop is present and has topBar/noYBanner)', () => {

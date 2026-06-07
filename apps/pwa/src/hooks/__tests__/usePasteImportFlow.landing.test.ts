@@ -27,6 +27,7 @@ import { renderHook, act } from '@testing-library/react';
 import {
   parseText,
   detectColumns,
+  rankYCandidates,
   detectWideFormat,
   detectDefectFormat,
   augmentWithTimeColumns,
@@ -69,6 +70,13 @@ const defectRows = [
 const allCategoricalRows = Array.from({ length: 20 }, (_, i) => ({
   Region: i % 2 === 0 ? 'North' : 'South',
   Product: i % 2 === 0 ? 'A' : 'B',
+}));
+
+const idLikeNumericRows = Array.from({ length: 12 }, (_, i) => ({
+  Date: `2026-06-${String(i + 1).padStart(2, '0')}`,
+  Line: i % 2 === 0 ? 'A' : 'B',
+  Shift: i % 2 === 0 ? 'Day' : 'Night',
+  batch_id: 1000 + i,
 }));
 
 // ─── TSV serializer ──────────────────────────────────────────────────────────
@@ -159,6 +167,29 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
     expect(result.current.isMapping).toBe(false);
     expect(setOutcome).toHaveBeenCalledWith('Cycle_Time_sec');
+  });
+
+  it('does not pre-fill an ID-like detected outcome on fresh paste', async () => {
+    const parsed = await parseText(tsvOf(idLikeNumericRows));
+    const detected = detectColumns(parsed);
+    expect(detected.outcome).toBe('batch_id');
+    expect(rankYCandidates(detected.columnAnalysis).map(({ column }) => column.name)).not.toContain(
+      'batch_id'
+    );
+
+    const setOutcome = vi.fn();
+    const onFreshPasteLanded = vi.fn();
+    const { result } = renderHook(() =>
+      usePasteImportFlow(makeOptions({ setOutcome, onFreshPasteLanded }))
+    );
+
+    await act(async () => {
+      await result.current.handlePasteAnalyze(tsvOf(idLikeNumericRows));
+    });
+
+    expect(result.current.isMapping).toBe(false);
+    expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
+    expect(setOutcome).not.toHaveBeenCalledWith('batch_id');
   });
 
   it('auto-applies quiet time extraction without Year and exposes the undoable chip', async () => {

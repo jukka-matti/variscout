@@ -74,11 +74,24 @@ function deriveOrdinaryCandidates(input: DeriveB0ModeCandidatesInput): B0ModeCan
     column => !excludedMeasureColumns.has(column.name)
   );
   const ranked = rankYCandidates(candidateAnalysis);
-  const yColumns = ranked.map(({ column }) => column);
-  const yColumnNames = new Set(yColumns.map(column => column.name));
+  const rankedYColumns = ranked.map(({ column }) => column);
+  const numericColumnsByName = new Map(
+    candidateAnalysis
+      .filter(column => column.type === 'numeric')
+      .map(column => [column.name, column])
+  );
   const selectedOutcome =
-    input.selectedOutcome && yColumnNames.has(input.selectedOutcome) ? input.selectedOutcome : null;
-  const defaultOutcomeColumn = selectedOutcome ?? detected.outcome ?? yColumns[0]?.name ?? null;
+    input.selectedOutcome && numericColumnsByName.has(input.selectedOutcome)
+      ? input.selectedOutcome
+      : null;
+  const selectedOutcomeColumn = selectedOutcome ? numericColumnsByName.get(selectedOutcome) : null;
+  const yColumns =
+    selectedOutcomeColumn && !rankedYColumns.some(column => column.name === selectedOutcome)
+      ? [selectedOutcomeColumn, ...rankedYColumns]
+      : rankedYColumns;
+  const detectedOutcome =
+    detected.outcome && numericColumnsByName.has(detected.outcome) ? detected.outcome : null;
+  const defaultOutcomeColumn = selectedOutcome ?? detectedOutcome ?? yColumns[0]?.name ?? null;
 
   return {
     rows: input.rows,

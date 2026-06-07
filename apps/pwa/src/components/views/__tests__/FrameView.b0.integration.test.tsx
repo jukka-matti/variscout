@@ -62,6 +62,12 @@ const CATEGORICAL_ROWS = Array.from({ length: 30 }, (_, i) => ({
   Category: ['Cat 1', 'Cat 2', 'Cat 3', 'Cat 4'][i % 4],
 }));
 
+const FILTERED_NUMERIC_ROWS = Array.from({ length: 30 }, (_, i) => ({
+  batch_id: 1000 + i,
+  Line: ['Line A', 'Line B'][i % 2],
+  Shift: ['Day', 'Night'][i % 2],
+}));
+
 const baseStoreState = {
   rawData: FEATHER_ROWS,
   outcome: null as string | null,
@@ -516,6 +522,25 @@ describe('FrameView b0 — happy-path integration', () => {
     fireEvent.click(screen.getByText(/Skip outcome/));
     // handleSeeData calls usePanelsStore.getState().showExplore() — never a dead-end CTA.
     expect(showExploreMock).toHaveBeenCalled();
+  });
+
+  it('no-Y banner manual entry selects an exact numeric column and shows typo feedback', () => {
+    storeStateRef.current = {
+      ...baseStoreState,
+      rawData: FILTERED_NUMERIC_ROWS as unknown as typeof baseStoreState.rawData,
+    };
+    renderFrameView({ onFixData: onFixDataMock });
+
+    const input = screen.getByLabelText(/i expected the outcome to be/i);
+    fireEvent.change(input, { target: { value: 'batch_typo' } });
+
+    expect(screen.getByRole('status')).toHaveTextContent('No column called "batch_typo"');
+    expect(screen.getByRole('status')).toHaveTextContent('batch_id');
+
+    fireEvent.change(input, { target: { value: 'batch_id' } });
+
+    expect(setOutcomeMock).toHaveBeenCalledWith('batch_id');
+    expect(screen.queryByRole('status')).toBeNull();
   });
 
   it('numeric data shows no banner (negative control)', () => {

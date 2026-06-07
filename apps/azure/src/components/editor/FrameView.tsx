@@ -37,6 +37,7 @@ import type {
   ControlRecord,
   WideFormatDetection,
 } from '@variscout/core';
+import { detectColumns } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import {
   createStepQuickActionItem,
@@ -749,6 +750,10 @@ const FrameView: React.FC<FrameViewProps> = ({
   // missing-% by column, so omitting the missingSegment avoids an O(n*m) pass here.
   // The provenance bar shows filename · rows · columns which matches the wireframe.
   // Azure-specific fallback: 'Pasted Data' (always arrives via paste); PWA uses 'Data' — deliberate divergence.
+  const b0ColumnAnalysis = React.useMemo(
+    () => (rawData.length > 0 ? detectColumns([...rawData]).columnAnalysis : []),
+    [rawData]
+  );
   const b0Slots = React.useMemo(() => {
     const columnCount = rawData.length > 0 ? Object.keys(rawData[0]).length : 0;
     const columnNames = rawData.length > 0 ? Object.keys(rawData[0]) : [];
@@ -891,11 +896,13 @@ const FrameView: React.FC<FrameViewProps> = ({
       // An unrendered React element is an inert descriptor; no hooks run unmounted.
       noYBanner: (
         <OutcomeNoMatchBanner
+          columns={b0ColumnAnalysis}
           onRename={(oldName, newName) => onRenameColumn?.(oldName, newName)}
           onExpectedChange={() => {
             // Parity with the wizard mount: the note has no store home yet
             // (ProcessHub field pending — known gap, logged in investigations.md).
           }}
+          onApplyExpectedOutcome={setOutcome}
           onSkip={handleSeeData}
         />
       ),
@@ -906,9 +913,11 @@ const FrameView: React.FC<FrameViewProps> = ({
     rawData,
     dataFilename,
     analysisMode,
+    b0ColumnAnalysis,
     measureColumns,
     onFixData,
     onRenameColumn,
+    setOutcome,
     handleSeeData,
     onDismissQuietTimeExtraction,
     onUndoQuietTimeExtraction,

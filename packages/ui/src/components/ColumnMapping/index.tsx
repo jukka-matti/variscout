@@ -386,6 +386,23 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     });
   }, []);
 
+  const handleApplyExpectedOutcome = useCallback(
+    (columnName: string) => {
+      const candidate = outcomeCandidates.find(option => option.columnName === columnName);
+      if (!candidate) return;
+
+      setSelectedOutcomeSpecs(prev => ({
+        ...prev,
+        [columnName]: {
+          ...prev[columnName],
+          columnName,
+          characteristicType: prev[columnName]?.characteristicType ?? candidate.characteristicType,
+        },
+      }));
+    },
+    [outcomeCandidates]
+  );
+
   const handleSpecsChange = useCallback((columnName: string, specs: Partial<OutcomeSpec>) => {
     setSelectedOutcomeSpecs(prev => ({
       ...prev,
@@ -771,6 +788,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             {/* OutcomeNoMatchBanner — surfaces when all candidates score below threshold */}
             {allCandidatesBelowThreshold && (
               <OutcomeNoMatchBanner
+                columns={columns}
                 onRename={(oldName, newName) => {
                   // Delegate to the parent's column rename callback (sets a display alias)
                   onColumnRename?.(oldName, newName);
@@ -779,6 +797,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                   // Store the analyst's free-text note; included in confirm payload
                   setExpectedOutcomeNote(note);
                 }}
+                onApplyExpectedOutcome={handleApplyExpectedOutcome}
                 onSkip={() => {
                   // Clear all selected outcomes — canvas falls back to all-unclassified
                   setSelectedOutcomeSpecs({});

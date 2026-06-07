@@ -30,6 +30,8 @@ export interface YPickerSectionProps {
   candidates: ReadonlyArray<YPickerSectionCandidate>;
   /** Currently selected Y column name (or null/undefined for none). */
   selectedY: string | null | undefined;
+  /** Whether the source data contains numeric columns, even if none auto-ranked as Y candidates. */
+  hasNumericColumns?: boolean;
   /** Fired when a chip is clicked. */
   onSelectY: (columnName: string) => void;
   /** Optional: open the inline spec editor for the selected Y. Wired in W3-5. */
@@ -63,6 +65,7 @@ function findSelectedCandidate(
 export function YPickerSection({
   candidates,
   selectedY,
+  hasNumericColumns = false,
   onSelectY,
   onAddSpec,
   hasSpecForSelected,
@@ -105,7 +108,7 @@ export function YPickerSection({
       {/* Empty-state path: no plausible Y candidates */}
       {candidates.length === 0 ? (
         <p className="text-sm text-content-muted italic" data-testid="y-picker-empty">
-          {t('frame.b0.q1.empty')}
+          {t(hasNumericColumns ? 'frame.b0.q1.emptyRanked' : 'frame.b0.q1.empty')}
         </p>
       ) : (
         <>
