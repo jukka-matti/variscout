@@ -23,7 +23,7 @@ export interface FindingChipProps {
   onSelect?: (id: string) => void;
   onDetach?: (id: string) => void;
   /**
-   * IM-4c — "propose suspected mechanism from this finding". When provided, the
+   * IM-4c — "propose suspected cause from this finding". When provided, the
    * chip renders a small propose-hypothesis button. Firing it calls back with the
    * findingId; the app spawns a hypothesis card on the Wall (createHubFromFinding
    * through the rendered-hubs path). Omit to hide the affordance (the default for

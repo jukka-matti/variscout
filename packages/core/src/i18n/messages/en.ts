@@ -856,28 +856,27 @@ export const en: MessageCatalog = {
   'canvas.wall.shortcutLabel': 'Open Wall',
 
   // Analyze Wall
-  'wall.status.proposed': 'Proposed',
-  'wall.status.evidenced': 'Evidenced',
+  'wall.status.proposed': 'Suspected',
+  'wall.status.evidenced': 'Suspected',
   // Catalog key is kept as `wall.status.confirmed` for stability; the status
   // CODE is now `'evidence-survived-test'` (CS-10). Falsification logic never
-  // *confirms* a hypothesis — it can only fail to break it — so the user-facing
-  // word is "Supported". (Other locales still carry the literal English
-  // 'Confirmed' placeholder; their retranslation is a tracked follow-up.)
-  'wall.status.confirmed': 'Supported',
-  'wall.status.refuted': 'Refuted',
-  'wall.status.needsDisconfirmation': 'Needs disconfirmation',
+  // *confirms* a hypothesis — it can only fail to break it. The L-2 display
+  // vocabulary maps that stored value to "Verified".
+  'wall.status.confirmed': 'Verified',
+  'wall.status.refuted': 'Ruled out',
+  'wall.status.needsDisconfirmation': 'Suspected',
   // CS-10 — analyst-owned status. The suggestion chip is advisory only; the
-  // analyst decides. "mark Supported?" never auto-applies.
-  'wall.status.suggestSupported': '2 evidence types + a survived test — mark Supported?',
+  // analyst decides. "mark Verified?" never auto-applies.
+  'wall.status.suggestSupported': '2 evidence types + a survived test — mark Verified?',
   'wall.status.setLabel': 'Set status',
-  'wall.card.hypothesisLabel': 'Mechanism Branch',
+  'wall.card.hypothesisLabel': 'Suspected cause',
   'wall.card.findings': '{count} findings',
   'wall.card.evidenceGap': 'Evidence gap',
   'wall.card.missingColumn': '⚠ Condition references missing column',
   'wall.card.missingColumnAria': 'Condition references missing column',
-  'wall.card.ariaLabel': 'Mechanism Branch {name}, {status}, {count} supporting clues',
+  'wall.card.ariaLabel': 'Suspected cause {name}, {status}, {count} supporting clues',
   'wall.card.oneStepAway':
-    '1 step away — running a disconfirmation test would let you mark this Supported',
+    '1 step away — running a disconfirmation test would let you mark this Verified',
   'wall.problem.title': 'Problem condition',
   'wall.problem.eventsPerWeek': '{count} events',
   'wall.problem.ariaLabel': 'Problem condition: {column}, Cpk {cpk}, {count} events',
@@ -908,7 +907,7 @@ export const en: MessageCatalog = {
   'wall.disconfirm.verdictSurvivedToast': 'Survived — the cause withstood the attempt.',
   'wall.disconfirm.verdictRefutedToast': 'Refuted — the predicted relationship was absent.',
   // FE-2b — the §4.1 soft caveat for an unbacked survived attempt
-  'wall.caveat.unbackedSurvived': 'Supported — disconfirmation has no attached evidence',
+  'wall.caveat.unbackedSurvived': 'Verified — disconfirmation has no attached evidence',
   'wall.caveat.backWithTest': 'back it with a test →',
   // FE-2b — refute → respawn-sharper (spec §4.2)
   'wall.respawn.sharpenCta': 'Sharpen → propose a new hypothesis',
@@ -956,10 +955,10 @@ export const en: MessageCatalog = {
   'wall.gate.noTotals': '—/0',
   'wall.gate.ariaLabel': 'Gate {kind} {holds}',
   'wall.tributary.ariaLabel': 'Tributaries from Process Map',
-  'wall.empty.ariaLabel': 'Mechanism Branch empty state',
-  'wall.empty.title': 'Start a Mechanism Branch',
-  'wall.empty.subtitle': 'Start from a suspected mechanism, question, or Factor Intelligence.',
-  'wall.empty.writeHypothesis': 'Write a suspected mechanism',
+  'wall.empty.ariaLabel': 'Suspected cause empty state',
+  'wall.empty.title': 'Start a suspected cause',
+  'wall.empty.subtitle': 'Start from a suspected cause, question, or Factor Intelligence.',
+  'wall.empty.writeHypothesis': 'Add a suspected cause',
   'wall.empty.seedFromFactorIntel': 'Seed 3 from Factor Intelligence',
   'wall.rail.title': 'CoScout',
   'wall.rail.openAria': 'Open narrator rail',
@@ -969,12 +968,12 @@ export const en: MessageCatalog = {
   'wall.rail.empty': 'No suggestions yet.',
   'wall.missing.ariaLabel': 'Missing evidence digest',
   'wall.missing.title': 'Missing evidence',
-  'wall.missing.tagline': 'Missing evidence · the detective move nobody ships ({count})',
+  'wall.missing.tagline': "Evidence you haven't checked yet ({count})",
   'wall.missing.processMap': 'Process Map grouping is available after FRAME mapping.',
   'wall.missing.collapsed': 'Show details',
   'wall.missing.expanded': 'Hide details',
-  'wall.canvas.ariaLabel': 'Mechanism Branch workspace',
-  'wall.cta.proposeHypothesis': 'Propose suspected mechanism from this finding',
+  'wall.canvas.ariaLabel': 'Suspected cause workspace',
+  'wall.cta.proposeHypothesis': 'Propose suspected cause from this finding',
   // Model-builder band (Factors & Evaluation Increment 1)
   'wall.model.bandAriaLabel': 'Vital-few model builder',
   'wall.model.title': 'What accounts for the spread in this data',

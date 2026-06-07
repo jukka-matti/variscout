@@ -24,13 +24,12 @@ import type {
   ImprovementIdea,
   IdeaImpact,
   HypothesisStatus,
-  MessageCatalog,
 } from '@variscout/core';
 import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { canAccess } from '@variscout/core/projectMembership';
-import { evidenceTypesForHypothesis } from '@variscout/core/findings';
+import { displayHypothesisStatus, evidenceTypesForHypothesis } from '@variscout/core/findings';
 import { getMessage } from '@variscout/core/i18n';
 import type { MeasurementPlanStatus } from '@variscout/core/measurementPlan';
 import { HypothesisCard, type HypothesisCardProps } from './HypothesisCard';
@@ -91,7 +90,7 @@ const RESPAWN_FORM_H = 132;
 const SUPERSEDED_H = 24;
 /** Height of the per-hypothesis What-If block (px). */
 const WHATIF_H = 56;
-/** FSJ-8 — height of the analyst-set status ladder + override row. */
+/** L-2 — height of the analyst-set status display summary + override row. */
 const STATUS_CONTROL_H = 168;
 /** CS-10 — extra height for the advisory suggestion chip when shown. */
 const STATUS_CHIP_H = 36;
@@ -113,19 +112,6 @@ const STATUS_OPTIONS: ReadonlyArray<HypothesisStatus> = [
   'evidence-survived-test',
   'refuted',
 ];
-
-/**
- * CS-10 — status → i18n label key. `evidence-survived-test` maps to the
- * `wall.status.confirmed` catalog key (value "Supported") — the key name is kept
- * for stability; the status CODE changed in CS-10.
- */
-const STATUS_LABEL_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
-  proposed: 'wall.status.proposed',
-  evidenced: 'wall.status.evidenced',
-  'evidence-survived-test': 'wall.status.confirmed',
-  refuted: 'wall.status.refuted',
-  'needs-disconfirmation': 'wall.status.needsDisconfirmation',
-};
 
 export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
   /** All measurement plans for this hypothesis (non-deleted). */
@@ -220,7 +206,7 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    * CS-10 — Analyst-owned status setter. When wired AND the user has edit rights,
    * the card renders (a) the analyst-set status control offering all 5 states as
    * a free choice (no validation, no contradiction warning — owner decision), and
-   * (b) the advisory "mark Supported?" suggestion chip when the derivation
+   * (b) the advisory "mark Verified?" suggestion chip when the derivation
    * (`suggestedStatus`) says evidence-survived-test but the analyst has not yet
    * promoted the hub. Picking a state / clicking the chip calls back with the
    * chosen status. Omit to hide both.
@@ -305,7 +291,7 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
   whatIf?: { cpk: number | null; coveragePct: number | null };
   /**
    * FE-2b — the §4.1 soft caveat read-model. When this hub's derived status is
-   * "Supported" (`evidence-survived-test`) but its sole survived disconfirmation attempt has an
+   * Verified (`evidence-survived-test`) but its sole survived disconfirmation attempt has an
    * EMPTY `linkedFindingIds` (an unbacked survived — a manual gemba/expert claim or
    * legacy self-grade), the card renders an ambient muted caveat + a "back it with
    * a test →" link. Read-model only — status stays engine-derived. Pass `false`
@@ -486,7 +472,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
     if (!showStatusControl) return null;
     if (cardProps.hub.status !== 'refuted' && refutingCount > 0) {
       return {
-        label: `${refutingCount} refuting finding${refutingCount === 1 ? '' : 's'} - mark Refuted?`,
+        label: `${refutingCount} refuting finding${refutingCount === 1 ? '' : 's'} - mark Ruled out?`,
         status: 'refuted' as HypothesisStatus,
       };
     }
@@ -496,7 +482,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
       survivedAttemptCount > 0
     ) {
       return {
-        label: `${survivedAttemptCount} survived break attempt${survivedAttemptCount === 1 ? '' : 's'} - mark Supported?`,
+        label: `${survivedAttemptCount} survived break attempt${survivedAttemptCount === 1 ? '' : 's'} - mark Verified?`,
         status: 'evidence-survived-test' as HypothesisStatus,
       };
     }
@@ -506,13 +492,13 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
       survivedAttemptCount === 0
     ) {
       return {
-        label: 'Evidence logged - mark Needs disconfirmation?',
+        label: 'Evidence logged - keep marked Suspected',
         status: 'needs-disconfirmation' as HypothesisStatus,
       };
     }
     if (cardProps.hub.status === 'proposed' && supportCount > 0) {
       return {
-        label: `${supportCount} supporting finding${supportCount === 1 ? '' : 's'} - mark Evidenced?`,
+        label: `${supportCount} supporting finding${supportCount === 1 ? '' : 's'} - mark Suspected?`,
         status: 'evidenced' as HypothesisStatus,
       };
     }
@@ -690,31 +676,18 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
           data-testid="plans-section"
         >
           <div className="bg-white border border-gray-200 rounded-b shadow-sm overflow-visible">
-            {/* FSJ-8 — analyst-owned status. The ladder teaches the progression;
-                proposal chips call onSetStatus but never write derived status. */}
+            {/* L-2 — analyst-owned status. The select preserves the stored enum;
+                the display summary teaches only the 3-state presentation model. */}
             {showStatusControl && (
               <div
                 data-testid="analyst-set-status-section"
                 className="border-b border-gray-100 px-3 py-2 space-y-2"
               >
-                <div data-testid="status-ladder" className="rounded border border-gray-200 p-2">
-                  <div className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-gray-700">
-                    <span>Proposed</span>
-                    <span aria-hidden="true">-&gt;</span>
-                    <span>Evidenced</span>
-                    <span aria-hidden="true">-&gt;</span>
-                    <span>Needs disconfirmation</span>
-                    <span aria-hidden="true">-&gt;</span>
-                    <span>Supported</span>
-                    <span aria-hidden="true">/</span>
-                    <span>↘ Refuted</span>
-                  </div>
-                  <div className="mt-1 space-y-0.5 text-[11px] leading-tight text-gray-600">
-                    <div>Proposed - named mechanism to check</div>
-                    <div>Evidenced - at least one finding points at it</div>
-                    <div>Needs disconfirmation - evidence logged, now try to break it</div>
-                    <div>Supported - survived an attempt to break it</div>
-                    <div>Refuted - counter evidence overturns it</div>
+                <div data-testid="status-summary" className="rounded border border-gray-200 p-2">
+                  <div className="text-[11px] font-semibold text-gray-700">Displayed state</div>
+                  <div className="mt-1 text-[11px] leading-tight text-gray-600">
+                    Suspected causes stay suspected until they survive a deliberate break attempt or
+                    are ruled out.
                   </div>
                 </div>
                 {statusProposal && (
@@ -740,7 +713,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                   >
                     {STATUS_OPTIONS.map(s => (
                       <option key={s} value={s}>
-                        {getMessage(locale, STATUS_LABEL_KEY[s])}
+                        {displayHypothesisStatus(s).label}
                       </option>
                     ))}
                   </select>

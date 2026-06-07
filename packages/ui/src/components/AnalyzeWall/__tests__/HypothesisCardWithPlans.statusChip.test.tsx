@@ -16,7 +16,7 @@ vi.mock('@variscout/stores', () => ({
 
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { HypothesisCardWithPlans } from '../HypothesisCardWithPlans';
 import type { Hypothesis, Finding } from '@variscout/core';
 import type { ProjectMember } from '@variscout/core/projectMembership';
@@ -74,17 +74,17 @@ const baseProps = {
   onEditPlan: vi.fn(),
 };
 
-describe('FSJ-8 — status ladder presentation', () => {
-  it('renders the epistemic ladder labels and teaching microcopy', () => {
+describe('L-2 — display status presentation', () => {
+  it('removes the five-rung teaching ladder and shows plain display-state copy', () => {
     renderInSvg(<HypothesisCardWithPlans {...baseProps} onSetStatus={vi.fn()} />);
 
-    const ladder = within(screen.getByTestId('status-ladder'));
-    expect(ladder.getByText('Proposed')).toBeInTheDocument();
-    expect(ladder.getByText('Evidenced')).toBeInTheDocument();
-    expect(ladder.getByText('Needs disconfirmation')).toBeInTheDocument();
-    expect(ladder.getByText('Supported')).toBeInTheDocument();
-    expect(ladder.getAllByText(/Refuted/).length).toBeGreaterThanOrEqual(1);
-    expect(ladder.getByText('Supported - survived an attempt to break it')).toBeInTheDocument();
+    expect(screen.queryByTestId('status-ladder')).not.toBeInTheDocument();
+    expect(screen.getByTestId('status-summary')).toHaveTextContent('Displayed state');
+    expect(screen.getByTestId('status-summary')).toHaveTextContent(
+      'Suspected causes stay suspected'
+    );
+    expect(screen.queryByText('Old first-rung copy')).not.toBeInTheDocument();
+    expect(screen.queryByText('Old verified-rung copy')).not.toBeInTheDocument();
   });
 
   it('keeps the override select with all five stored statuses', () => {
@@ -116,17 +116,17 @@ describe('FSJ-8 — status ladder presentation', () => {
 });
 
 describe('FSJ-8 — status proposal chips', () => {
-  it('proposes Evidenced when a proposed hub has one supporting finding', () => {
+  it('proposes a suspected stored state when a proposed hub has one supporting finding', () => {
     const onSetStatus = vi.fn();
     renderInSvg(<HypothesisCardWithPlans {...baseProps} onSetStatus={onSetStatus} />);
 
     const chip = screen.getByTestId('status-proposal-chip');
-    expect(chip).toHaveTextContent('1 supporting finding - mark Evidenced?');
+    expect(chip).toHaveTextContent('1 supporting finding - mark Suspected?');
     fireEvent.click(chip);
     expect(onSetStatus).toHaveBeenCalledWith('h1', 'evidenced');
   });
 
-  it('does not propose Needs disconfirmation from only one evidence type', () => {
+  it('does not propose the triangulated suspected stored state from only one evidence type', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
@@ -139,7 +139,7 @@ describe('FSJ-8 — status proposal chips', () => {
     expect(screen.queryByTestId('status-proposal-chip')).not.toBeInTheDocument();
   });
 
-  it('proposes Needs disconfirmation once evidenced hubs have two evidence types', () => {
+  it('proposes the triangulated suspected stored state once evidenced hubs have two evidence types', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
@@ -151,11 +151,11 @@ describe('FSJ-8 — status proposal chips', () => {
     );
 
     expect(screen.getByTestId('status-proposal-chip')).toHaveTextContent(
-      'Evidence logged - mark Needs disconfirmation?'
+      'Evidence logged - keep marked Suspected'
     );
   });
 
-  it('does not propose Supported from only one evidence type', () => {
+  it('does not propose verified from only one evidence type', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
@@ -167,7 +167,7 @@ describe('FSJ-8 — status proposal chips', () => {
               id: 'd1',
               attemptedAt: '2026-06-07T00:00:00Z',
               attemptedBy: { userId: 'u1', displayName: 'Analyst' },
-              description: 'Checked the suspected mechanism against Shift B',
+              description: 'Checked the suspected cause against Shift B',
               verdict: 'survived',
               linkedFindingIds: ['f-support'],
             },
@@ -181,7 +181,7 @@ describe('FSJ-8 — status proposal chips', () => {
     expect(screen.queryByTestId('status-proposal-chip')).not.toBeInTheDocument();
   });
 
-  it('proposes Supported once a two-evidence hub has one survived break attempt', () => {
+  it('proposes verified once a two-evidence hub has one survived break attempt', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
@@ -194,7 +194,7 @@ describe('FSJ-8 — status proposal chips', () => {
               id: 'd1',
               attemptedAt: '2026-06-07T00:00:00Z',
               attemptedBy: { userId: 'u1', displayName: 'Analyst' },
-              description: 'Checked the suspected mechanism against Shift B',
+              description: 'Checked the suspected cause against Shift B',
               verdict: 'survived',
               linkedFindingIds: ['f-support'],
             },
@@ -207,11 +207,11 @@ describe('FSJ-8 — status proposal chips', () => {
     );
 
     expect(screen.getByTestId('status-proposal-chip')).toHaveTextContent(
-      '1 survived break attempt - mark Supported?'
+      '1 survived break attempt - mark Verified?'
     );
   });
 
-  it('prioritizes Refuted when counter evidence is present', () => {
+  it('prioritizes ruled out when counter evidence is present', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
@@ -225,7 +225,7 @@ describe('FSJ-8 — status proposal chips', () => {
               id: 'd1',
               attemptedAt: '2026-06-07T00:00:00Z',
               attemptedBy: { userId: 'u1', displayName: 'Analyst' },
-              description: 'Checked the suspected mechanism against Shift B',
+              description: 'Checked the suspected cause against Shift B',
               verdict: 'survived',
               linkedFindingIds: ['f-support'],
             },
@@ -238,7 +238,7 @@ describe('FSJ-8 — status proposal chips', () => {
     );
 
     expect(screen.getByTestId('status-proposal-chip')).toHaveTextContent(
-      '1 refuting finding - mark Refuted?'
+      '1 refuting finding - mark Ruled out?'
     );
   });
 

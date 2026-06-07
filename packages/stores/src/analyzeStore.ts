@@ -842,7 +842,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     const finding = get().findings.find(f => f.id === findingId);
     if (!finding) return null;
     const excerpt = finding.text.trim().slice(0, 80);
-    const name = excerpt.length > 0 ? `Suspected mechanism: ${excerpt}` : 'New mechanism branch';
+    const name = excerpt.length > 0 ? `Suspected cause: ${excerpt}` : 'New suspected cause';
     const hub = createHypothesis(name, '', [findingId]);
     set(state => ({ hypotheses: [...state.hypotheses, hub] }));
     return hub;

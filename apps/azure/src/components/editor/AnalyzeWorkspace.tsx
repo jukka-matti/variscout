@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AnalyzePhaseBadge,
   AnalyzeConclusion,
   FindingsLog,
   WallCanvas,
@@ -64,7 +63,6 @@ import { canAccess } from '@variscout/core/projectMembership';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { detectColumns } from '@variscout/core/parser';
 import { deriveProcessSteps } from '@variscout/core/frame';
-import { detectInvestigationPhase } from '@variscout/core/ai';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { wouldCreateCycle } from '@variscout/core/stats';
@@ -597,11 +595,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   });
 
   // Investigation phase (deterministic, from findings state)
-  const analyzePhase = useMemo(
-    () => detectInvestigationPhase(findingsState.findings),
-    [findingsState.findings]
-  );
-
   // Defect mode transform
   const defectResult = useDefectTransform(filteredData, defectMapping, analysisMode ?? 'standard');
 
@@ -943,11 +936,11 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // passed them). Create directly + let the analyst rename on the card — the
   // same convention as handleProposeHypothesis.
   const handleWriteHypothesis = useCallback(() => {
-    hypothesesState.createHub('New mechanism branch', '');
+    hypothesesState.createHub('New suspected cause', '');
   }, [hypothesesState]);
   const handleSeedFromFactorIntel = useCallback(() => {
     for (const factor of factors.slice(0, 3)) {
-      hypothesesState.createHub(`Suspected mechanism: ${factor}`, '');
+      hypothesesState.createHub(`Suspected cause: ${factor}`, '');
     }
   }, [hypothesesState, factors]);
 
@@ -1087,19 +1080,12 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         />
       ) : null}
       <div className="flex flex-1 min-h-0 relative">
-        {/* Left panel: phase + issue statement + hub conclusions (IM-1: the
-            question checklist is retired; suspected causes live as hubs). */}
+        {/* Left panel: issue statement + hub conclusions (IM-1: the question
+            checklist is retired; suspected causes live as hubs). */}
         <div
           className="relative flex flex-col border-r border-edge overflow-hidden bg-surface flex-shrink-0"
           style={{ width: leftPanel.width }}
         >
-          {/* Phase badge */}
-          {analyzePhase && (
-            <div className="px-3 pt-3 pb-1 flex-shrink-0">
-              <AnalyzePhaseBadge phase={analyzePhase} />
-            </div>
-          )}
-
           {/* Issue statement */}
           <div className="flex-1 overflow-y-auto px-3 py-2">
             <label className="block text-xs font-medium text-content-secondary mb-1">

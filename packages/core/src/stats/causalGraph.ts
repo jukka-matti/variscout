@@ -97,8 +97,8 @@ export function classifyRelationship(
  * edge would close a cycle.
  *
  * @param links - Existing causal links in the graph
- * @param fromFactor - Proposed source factor
- * @param toFactor - Proposed target factor
+ * @param fromFactor - Candidate source factor
+ * @param toFactor - Candidate target factor
  * @returns True if adding the edge would create a cycle
  */
 export function wouldCreateCycle(

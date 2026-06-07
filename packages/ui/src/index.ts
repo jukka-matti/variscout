@@ -565,9 +565,6 @@ export { CoScoutInline, type CoScoutInlineProps } from './components/CoScoutInli
 // CoScout Visual Grounding
 export { RefLink, type RefLinkProps } from './components/CoScoutPanel/RefLink';
 
-// Investigation Phase Badge
-export { AnalyzePhaseBadge, type AnalyzePhaseBadgeProps } from './components/AnalyzePhaseBadge';
-
 // Preview Badge
 export { PreviewBadge } from './components/PreviewBadge';
 

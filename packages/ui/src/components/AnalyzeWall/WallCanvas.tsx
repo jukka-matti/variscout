@@ -1,7 +1,7 @@
 /**
  * WallCanvas — Top-level composition component for the Investigation Wall.
  *
- * Assembles ProblemConditionCard (top), Mechanism Branch cards (middle row),
+ * Assembles ProblemConditionCard (top), suspected-cause cards (middle row),
  * TributaryFooter (bottom), and MissingEvidencePanel (rule-driven HTML panel
  * below the SVG canvas).
  *
@@ -492,7 +492,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   }, [filteredHubs, findings, rows, outcomeColumn, planningProps, activeScopeSpecs]);
 
   // FE-2b — per-hub disconfirmation read-models:
-  //   · unbackedSurvived (§4.1): the hub is "Supported" (`confirmed`) but its
+  //   · unbackedSurvived (§4.1): the hub is Verified (`confirmed`) but its
   //     survived attempt has an EMPTY linkedFindingIds (a manual gemba/expert
   //     claim or legacy self-grade) → the ambient soft caveat. Status stays
   //     engine-derived; this is read-model only.

@@ -2,20 +2,20 @@
  * MobileCardList — Vertical stack of hub cards for narrow viewports.
  *
  * Replaces the 2000×1400 SVG WallCanvas below 768px, where the full canvas
- * is unreadable. Each hub renders as a structured Mechanism Branch card with
- * suspected mechanism, clue/check counts, readiness, next move, and a subtle
+ * is unreadable. Each hub renders as a structured suspected-cause card with
+ * suspected cause, clue/check counts, readiness, next move, and a subtle
  * status-colored left border.
  */
 
 import React from 'react';
 import {
   projectMechanismBranch,
-  type MessageCatalog,
   type ProcessMap,
   type Hypothesis,
   type HypothesisStatus,
   type Finding,
 } from '@variscout/core';
+import { displayHypothesisStatus } from '@variscout/core/findings';
 import { deriveHypothesisStatus } from '@variscout/core/survey';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
@@ -32,14 +32,6 @@ export interface MobileCardListProps {
   onSeedFromFactorIntel?: () => void;
   onProposeHypothesis?: (findingId: string) => void;
 }
-
-const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
-  proposed: 'wall.status.proposed',
-  evidenced: 'wall.status.evidenced',
-  'evidence-survived-test': 'wall.status.confirmed', // catalog key unchanged — value already 'Supported'
-  refuted: 'wall.status.refuted',
-  'needs-disconfirmation': 'wall.status.needsDisconfirmation',
-};
 
 /**
  * Status-specific left-border colors. Matches the stroke palette used by
@@ -97,18 +89,18 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
         // derivation stays an advisory signal only; it never becomes the
         // displayed status here.
         const status = hub.status;
-        // Advisory: when the evidence would derive "Supported" but the analyst
+        // Advisory: when the evidence would derive the Verified state but the analyst
         // has not yet promoted the hub, surface a passive read-only hint. Mobile
         // has no status control (no edit affordances), so this is non-interactive
         // — the interactive suggestion chip + control live on the rich card.
         const suggestedStatus = deriveHypothesisStatus(hub, findings);
-        const showSupportedHint =
+        const showVerifiedHint =
           suggestedStatus === 'evidence-survived-test' && status !== 'evidence-survived-test';
         const branch = projectMechanismBranch(hub, {
           findings,
           processContext: processMap ? { processMap } : undefined,
         });
-        const statusLabel = getMessage(locale, STATUS_KEY[status]);
+        const statusLabel = displayHypothesisStatus(status).label;
         const findingsLabel = formatMessage(locale, 'wall.card.findings', {
           count: hub.findingIds.length,
         });
@@ -146,7 +138,7 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
               {branch.suspectedMechanism}
             </div>
             <div className="text-[11px] text-content-muted mt-1">
-              Suspected mechanism · {branch.readiness.label}
+              Suspected cause · {branch.readiness.label}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 mt-2 text-xs text-content-secondary">
               <span>{supportingLabel}</span>
@@ -156,9 +148,9 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
             {branch.nextMove && (
               <div className="text-xs text-content-secondary mt-2">Next: {branch.nextMove}</div>
             )}
-            {showSupportedHint && (
+            {showVerifiedHint && (
               <div
-                data-testid={`wall-mobile-hub-${hub.id}-supported-hint`}
+                data-testid={`wall-mobile-hub-${hub.id}-verified-hint`}
                 className="mt-2 rounded border border-edge bg-surface px-2 py-1 text-[11px] text-content-muted"
               >
                 {getMessage(locale, 'wall.status.suggestSupported')}

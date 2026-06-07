@@ -85,7 +85,8 @@ describe('MobileCardList', () => {
     const card = screen.getByTestId('wall-mobile-hub-h-stored');
     // Displayed status = stored value (analyst-owned); the derivation is advisory only.
     expect(card).toHaveAttribute('data-status', 'evidenced');
-    expect(card.textContent).toMatch(/Evidenced/);
+    expect(card.textContent).toMatch(/Suspected/);
+    expect(card.textContent).not.toMatch(new RegExp('Evid' + 'enced'));
   });
 
   it('renders the stored needs-disconfirmation status', () => {
@@ -97,7 +98,8 @@ describe('MobileCardList', () => {
     render(<MobileCardList hubs={[hub]} findings={[dataFinding, gembaFinding]} />);
     const card = screen.getByTestId('wall-mobile-hub-h-needs-disconfirmation');
     expect(card).toHaveAttribute('data-status', 'needs-disconfirmation');
-    expect(card.textContent).toMatch(/Needs disconfirmation/);
+    expect(card.textContent).toMatch(/Suspected/);
+    expect(card.textContent).not.toMatch(/Needs break-test/);
   });
 
   it('renders the stored evidenced status', () => {
@@ -194,7 +196,7 @@ describe('MobileCardList', () => {
 
     render(<MobileCardList hubs={[branchHub]} findings={findings} />);
 
-    expect(screen.getByText(/Mechanism Branch/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Suspected cause/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/1 supporting clue/i)).toBeInTheDocument();
     expect(screen.getByText(/1 counter-clue/i)).toBeInTheDocument();
     expect(screen.getByText(/Next: Run a late-shift temperature check/i)).toBeInTheDocument();
@@ -217,7 +219,7 @@ describe('MobileCardList', () => {
     render(<MobileCardList hubs={[]} findings={[]} />);
     expect(screen.queryByTestId('wall-mobile-card-list')).toBeNull();
     // EmptyState heading comes from the shared component
-    expect(screen.getByText(/Start a Mechanism Branch/i)).toBeInTheDocument();
+    expect(screen.getByText(/Start a suspected cause/i)).toBeInTheDocument();
   });
 
   it('shows findings-forward Wall arrival when findings exist but hubs is empty', () => {

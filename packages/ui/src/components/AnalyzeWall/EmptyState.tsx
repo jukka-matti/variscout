@@ -2,8 +2,8 @@
  * EmptyState — shown on the Investigation Wall when no hubs exist yet.
  *
  * Presents two entry points for starting an investigation:
- *   1. Write a suspected mechanism directly.
- *   2. Seed mechanism branches from Factor Intelligence.
+ *   1. Add a suspected cause directly.
+ *   2. Seed suspected causes from Factor Intelligence.
  */
 
 import React from 'react';

@@ -17,6 +17,11 @@ import type {
   HypothesisStatus,
   MessageCatalog,
 } from '@variscout/core';
+import {
+  displayHypothesisStatus,
+  getHypothesisDisplayStatus,
+  type HypothesisDisplayStatus,
+} from '@variscout/core/findings';
 
 // ============================================================================
 // Types
@@ -39,20 +44,10 @@ export interface ReportImprovementSummaryProps {
 // Hypothesis status badge styling
 // ============================================================================
 
-const STATUS_BADGE_LABELS: Record<HypothesisStatus, string> = {
-  proposed: 'Proposed',
-  evidenced: 'Evidenced',
-  'evidence-survived-test': 'Supported',
-  refuted: 'Refuted',
-  'needs-disconfirmation': 'Needs disconfirmation',
-};
-
-const STATUS_BADGE_COLORS: Record<HypothesisStatus, string> = {
-  proposed: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-  evidenced: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-  'evidence-survived-test': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
-  refuted: 'bg-slate-100 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300',
-  'needs-disconfirmation': 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+const STATUS_BADGE_COLORS: Record<HypothesisDisplayStatus, string> = {
+  suspected: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  verified: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  'ruled-out': 'bg-slate-100 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300',
 };
 
 // ============================================================================
@@ -259,9 +254,9 @@ export const ReportImprovementSummary: React.FC<ReportImprovementSummaryProps> =
               </span>
               {h.status && (
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[0.625rem] font-medium ${STATUS_BADGE_COLORS[h.status]}`}
+                  className={`px-1.5 py-0.5 rounded text-[0.625rem] font-medium ${STATUS_BADGE_COLORS[getHypothesisDisplayStatus(h.status)]}`}
                 >
-                  {STATUS_BADGE_LABELS[h.status]}
+                  {displayHypothesisStatus(h.status).label}
                 </span>
               )}
             </div>

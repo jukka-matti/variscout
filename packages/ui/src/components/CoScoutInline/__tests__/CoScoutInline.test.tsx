@@ -245,16 +245,11 @@ describe('CoScoutInline', () => {
     });
   });
 
-  describe('phase badge', () => {
-    it('renders investigation phase badge when phase provided', () => {
+  describe('phase chrome retirement', () => {
+    it('does not render investigation phase badge when phase provided', () => {
       render(<CoScoutInline {...defaultProps} phase="diverging" />);
-      expect(screen.getByTestId('analyze-phase-badge')).toBeDefined();
-      expect(screen.getByText('Diverging')).toBeDefined();
-    });
-
-    it('does not render phase badge when no phase', () => {
-      render(<CoScoutInline {...defaultProps} />);
       expect(screen.queryByTestId('analyze-phase-badge')).toBeNull();
+      expect(screen.queryByText('Diver' + 'ging')).toBeNull();
     });
   });
 });

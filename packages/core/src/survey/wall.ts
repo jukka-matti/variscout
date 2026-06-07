@@ -31,7 +31,7 @@ export function deriveHypothesisStatus(h: Hypothesis, findings: Finding[]): Hypo
   // 1. Refuted: any refuting finding short-circuits the decision tree
   if (linkedFindings.some(f => f.refutes)) return 'refuted';
 
-  // 2. Proposed: no linked findings
+  // 2. Suspected with no linked findings
   if (h.findingIds.length === 0) return 'proposed';
 
   // 3. Count distinct evidence types (FindingEvidenceType is already constrained
@@ -87,8 +87,7 @@ export const surveyWallRules: SurveyRule = ctx => {
         kind: 'triangulation-readiness',
         surface: 'wall',
         targetEntityId: h.id,
-        message:
-          '1 step away — running a disconfirmation test would promote this from evidenced to supported',
+        message: '1 step away — running a disconfirmation test would let you mark this Verified',
         severity: 'info',
         action: { label: 'Try disconfirmation' },
       });

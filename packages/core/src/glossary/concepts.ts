@@ -149,7 +149,7 @@ export const concepts: readonly Concept[] = [
   },
   {
     id: 'phaseDiverging',
-    label: 'Diverging Phase',
+    label: 'Broad Exploration Phase',
     definition:
       'Exploring broadly — generating questions across multiple factor categories. Cast a wide net before narrowing.',
     conceptCategory: 'phase',
@@ -162,7 +162,7 @@ export const concepts: readonly Concept[] = [
     id: 'phaseValidating',
     label: 'Validating Phase',
     definition:
-      'Testing questions against data, Gemba observations, or expert input. Supported, contradicted, or partial.',
+      'Testing questions against data, Gemba observations, or expert input. Verified, contradicted, or partial.',
     conceptCategory: 'phase',
     relations: [
       { targetId: 'etaSquared', type: 'uses' },

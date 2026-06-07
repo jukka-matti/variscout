@@ -87,7 +87,7 @@ describe('Signal Cards', () => {
     ]);
   });
 
-  it('warns when a Mechanism Branch relies on weak or missing signal evidence', () => {
+  it('warns when a suspected cause relies on weak or missing signal evidence', () => {
     const view = projectMechanismBranch(branch({ signalCardIds: ['sig-machine', 'missing'] }), {
       findings: [finding()],
       signalCards: [

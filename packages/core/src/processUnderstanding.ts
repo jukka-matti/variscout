@@ -180,7 +180,7 @@ export function buildCurrentUnderstanding({
     lines.push(`Approved problem statement: ${approvedProblemStatementText}`);
   }
   if (mechanisms) {
-    lines.push(`Active suspected mechanisms: ${mechanisms.map(formatMechanism).join('; ')}`);
+    lines.push(`Active suspected causes: ${mechanisms.map(formatMechanism).join('; ')}`);
   }
 
   if (lines.length === 0) return undefined;

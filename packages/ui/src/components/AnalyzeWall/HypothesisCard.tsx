@@ -1,7 +1,7 @@
 /**
- * HypothesisCard — status-bordered Mechanism Branch card for a Hypothesis hub.
+ * HypothesisCard — status-bordered suspected-cause card for a Hypothesis hub.
  *
- * Displays the suspected mechanism, branch status, clue/check counts, and an
+ * Displays the suspected cause, branch status, clue/check counts, and an
  * optional evidence-gap warning badge. Positioned by its center-top point (x, y).
  *
  * Accessibility: role="button", tabIndex={0}, aria-label for screen readers.
@@ -10,13 +10,8 @@
  */
 
 import React from 'react';
-import type {
-  MechanismBranchViewModel,
-  MessageCatalog,
-  Hypothesis,
-  HypothesisStatus,
-} from '@variscout/core';
-import type { ColumnTypeMap } from '@variscout/core/findings';
+import type { MechanismBranchViewModel, Hypothesis, HypothesisStatus } from '@variscout/core';
+import { displayHypothesisStatus, type ColumnTypeMap } from '@variscout/core/findings';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
 import { useMiniChartData } from '@variscout/hooks';
@@ -106,14 +101,6 @@ const DEFAULT_CLUE_COUNT_Y = DEFAULT_READINESS_Y + 18; // 174
  * CARD_H - 60 = 288 - 60 = 228.
  */
 const ONE_STEP_AWAY_Y = CARD_H - 60; // 228
-
-const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
-  proposed: 'wall.status.proposed',
-  evidenced: 'wall.status.evidenced',
-  'evidence-survived-test': 'wall.status.confirmed', // catalog key unchanged — value already 'Supported'
-  refuted: 'wall.status.refuted',
-  'needs-disconfirmation': 'wall.status.needsDisconfirmation',
-};
 
 /** Status-specific border colors sourced from chartColors — no hardcoded hex. */
 const STATUS_STROKE: Record<HypothesisStatus, string> = {
@@ -216,7 +203,7 @@ export const HypothesisCard: React.FC<HypothesisCardProps> = ({
   exploreAriaLabel,
 }) => {
   const locale = useWallLocale();
-  const statusLabel = getMessage(locale, STATUS_KEY[displayStatus]);
+  const statusLabel = displayHypothesisStatus(displayStatus).label;
   const branchLabel = getMessage(locale, 'wall.card.hypothesisLabel');
   const supportingCount = branch?.supportingClues.length ?? hub.findingIds.length;
   const counterCount = branch?.counterClues.length ?? 0;

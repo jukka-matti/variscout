@@ -111,7 +111,7 @@ describe('buildSuggestedQuestions', () => {
         investigation: {
           phase: 'converging',
           allQuestions: [
-            { id: 'h-1', text: 'Supported', status: 'answered' },
+            { id: 'h-1', text: 'Verified', status: 'answered' },
             { id: 'h-2', text: 'Contradicted', status: 'ruled-out' },
           ],
         },

@@ -11,14 +11,12 @@ describe('EmptyState', () => {
     // Without handler: hidden
     const { rerender } = render(<EmptyState />);
     expect(
-      screen.queryByRole('button', { name: /write a suspected mechanism/i })
+      screen.queryByRole('button', { name: /add a suspected cause/i })
     ).not.toBeInTheDocument();
 
     // With handler: visible
     rerender(<EmptyState onWriteHypothesis={vi.fn()} />);
-    expect(
-      screen.getByRole('button', { name: /write a suspected mechanism/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add a suspected cause/i })).toBeInTheDocument();
   });
 
   it('renders "Seed…" button ONLY when onSeedFromFactorIntel is provided', () => {
@@ -41,7 +39,7 @@ describe('EmptyState', () => {
   it('fires onWriteHypothesis when the button is clicked', () => {
     const fn = vi.fn();
     render(<EmptyState onWriteHypothesis={fn} />);
-    fireEvent.click(screen.getByRole('button', { name: /write a suspected mechanism/i }));
+    fireEvent.click(screen.getByRole('button', { name: /add a suspected cause/i }));
     expect(fn).toHaveBeenCalled();
   });
 

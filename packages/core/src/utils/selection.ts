@@ -52,7 +52,7 @@ export function createFactorFromSelection(
 /**
  * Check if a factor name is valid (not already a column name)
  *
- * @param factorName - Proposed factor name
+ * @param factorName - Candidate factor name
  * @param existingColumns - Array of existing column names
  * @returns true if the name is valid (unique)
  */

@@ -156,6 +156,25 @@ describe('new catalog keys', () => {
 });
 
 describe('Investigation Wall keys', () => {
+  const l2WallValues = {
+    'wall.status.proposed': 'Suspected',
+    'wall.status.evidenced': 'Suspected',
+    'wall.status.confirmed': 'Verified',
+    'wall.status.refuted': 'Ruled out',
+    'wall.status.needsDisconfirmation': 'Suspected',
+    'wall.status.suggestSupported': '2 evidence types + a survived test — mark Verified?',
+    'wall.card.hypothesisLabel': 'Suspected cause',
+    'wall.card.ariaLabel': 'Suspected cause {name}, {status}, {count} supporting clues',
+    'wall.empty.ariaLabel': 'Suspected cause empty state',
+    'wall.empty.title': 'Start a suspected cause',
+    'wall.empty.subtitle': 'Start from a suspected cause, question, or Factor Intelligence.',
+    'wall.empty.writeHypothesis': 'Add a suspected cause',
+    'wall.canvas.ariaLabel': 'Suspected cause workspace',
+    'wall.missing.tagline': "Evidence you haven't checked yet ({count})",
+    'wall.cta.proposeHypothesis': 'Propose suspected cause from this finding',
+    'wall.caveat.unbackedSurvived': 'Verified — disconfirmation has no attached evidence',
+  } as const satisfies Partial<MessageCatalog>;
+
   const wallKeys = [
     'wall.status.proposed',
     'wall.status.evidenced',
@@ -212,18 +231,26 @@ describe('Investigation Wall keys', () => {
   ] as const;
 
   it('has English values for all wall keys', () => {
-    expect(getMessage('en', 'wall.status.proposed')).toBe('Proposed');
+    expect(getMessage('en', 'wall.status.proposed')).toBe('Suspected');
     expect(getMessage('en', 'wall.problem.title')).toBe('Problem condition');
-    expect(getMessage('en', 'wall.empty.title')).toBe('Start a Mechanism Branch');
+    expect(getMessage('en', 'wall.empty.title')).toBe('Start a suspected cause');
     expect(getMessage('en', 'wall.rail.title')).toBe('CoScout');
     expect(getMessage('en', 'wall.cta.proposeHypothesis')).toBe(
-      'Propose suspected mechanism from this finding'
+      'Propose suspected cause from this finding'
     );
     expect(getMessage('en', 'wall.toolbar.groupByTributary')).toBe('Group by tributary');
     expect(getMessage('en', 'wall.palette.placeholder')).toBe('Search hubs, questions, findings…');
     expect(getMessage('en', 'wall.minimap.ariaLabel')).toBe('Investigation Wall minimap');
     expect(getMessage('en', 'canvas.wall.shortcutLabel')).toBe('Open Wall');
     expect(getMessage('en', 'wall.exploreJump.aria')).toBe('Open {factor} in Explore');
+  });
+
+  it('uses L-2 English placeholder values for display-state vocabulary in every locale', () => {
+    for (const locale of LOCALES) {
+      for (const [key, value] of Object.entries(l2WallValues)) {
+        expect(getMessage(locale, key as keyof MessageCatalog)).toBe(value);
+      }
+    }
   });
 
   it('every locale defines every wall.* key with a non-empty value', () => {
@@ -243,7 +270,7 @@ describe('Investigation Wall keys', () => {
         status: 'Confirmed',
         count: 4,
       })
-    ).toBe('Mechanism Branch Nozzle hot, Confirmed, 4 supporting clues');
+    ).toBe('Suspected cause Nozzle hot, Confirmed, 4 supporting clues');
   });
 
   it('interpolates gate.holds and problem.ariaLabel', () => {

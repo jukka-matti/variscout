@@ -199,7 +199,7 @@ export function InflectionSidePanelView({
           {`${state.segments.length} segments derived from ${sourceColumn}. Each row shows segment range, n, percent share, mean, and Anderson-Darling p-value.`}
         </p>
         <header className="flex flex-col gap-0.5">
-          <h3 className="text-sm font-semibold text-content">Proposed bins from {sourceColumn}</h3>
+          <h3 className="text-sm font-semibold text-content">Suggested bins from {sourceColumn}</h3>
           <p className="text-xs text-content-secondary">
             {state.cuts.length} cut{state.cuts.length === 1 ? '' : 's'} · {state.segments.length}{' '}
             level{state.segments.length === 1 ? '' : 's'}
