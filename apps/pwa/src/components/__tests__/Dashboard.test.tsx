@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
-import { calculateAnova } from '@variscout/core';
+import { calculateAnova, type Finding } from '@variscout/core';
 import * as UseFilterNavigationModule from '../../hooks/useFilterNavigation';
 import {
   usePreferencesStore,
@@ -170,7 +170,18 @@ describe('Dashboard', () => {
   it('opens the shared capture card for an I-Chart brush and saves a factor-backed Finding', () => {
     useProjectStore.setState({ filters: { Machine: ['A'] } });
     useViewStore.getState().setSelectedPoints(new Set([0, 1]));
-    const onAddChartObservation = vi.fn(() => ({ id: 'f-captured' }));
+    const capturedFinding: Finding = {
+      id: 'f-captured',
+      text: 'Captured observation',
+      context: { activeFilters: {}, cumulativeScope: null },
+      evidenceType: 'data',
+      status: 'observed',
+      createdAt: Date.parse('2026-06-07T00:00:00Z'),
+      deletedAt: null,
+      comments: [],
+      statusChangedAt: Date.parse('2026-06-07T00:00:00Z'),
+    };
+    const onAddChartObservation = vi.fn(() => capturedFinding);
     const onOpenWall = vi.fn();
 
     render(
