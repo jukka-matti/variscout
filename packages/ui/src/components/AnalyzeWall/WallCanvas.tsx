@@ -49,7 +49,12 @@ import { deriveProcessSteps } from '@variscout/core/frame';
 import { getMessage, formatMessage } from '@variscout/core/i18n';
 import { surveyWallRules, deriveHypothesisStatus } from '@variscout/core/survey';
 import { chartColors } from '@variscout/charts';
-import { computeWallLayout, buildWallLayoutArgs } from './wallLayout';
+import {
+  computeWallLayout,
+  buildWallLayoutArgs,
+  computeWallContentBBox,
+  formatWallViewBox,
+} from './wallLayout';
 import { wallDegreeOfInterest, domainWeightedOpacity } from './wallFocus';
 import { FactorGlyph } from './FactorGlyph';
 import { ProblemConditionCard } from './ProblemConditionCard';
@@ -762,6 +767,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     return `${vbX} ${vbY} ${vbW} ${vbH}`;
   }, [wallLayout.factorPositions]);
 
+  const populatedViewBox = useMemo(
+    () => formatWallViewBox(computeWallContentBBox(wallLayout)),
+    [wallLayout]
+  );
+
   const handleFocusNode = useCallback(
     (nodeId: string) => setFocusedWallEntity(nodeId),
     [setFocusedWallEntity]
@@ -1305,7 +1315,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     <div className="w-full h-full flex flex-col">
       <svg
         ref={svgRef}
-        viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
+        viewBox={mode === 'overlay' ? `0 0 ${CANVAS_W} ${CANVAS_H}` : populatedViewBox}
         preserveAspectRatio="xMidYMid meet"
         className="bg-background text-content flex-1"
         role="img"

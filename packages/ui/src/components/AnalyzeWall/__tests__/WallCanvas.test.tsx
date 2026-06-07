@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
-import type { Hypothesis, ProcessMap, Finding } from '@variscout/core';
+import {
+  createFinding,
+  createHypothesis,
+  type Hypothesis,
+  type ProcessMap,
+  type Finding,
+} from '@variscout/core';
 import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
@@ -656,6 +662,70 @@ describe('WallCanvas', () => {
     const transformGroup = container.querySelector('[data-wall-viewport]');
     expect(transformGroup?.getAttribute('transform')).toContain('translate(100, 50)');
     expect(transformGroup?.getAttribute('transform')).toContain('scale(0.5)');
+  });
+
+  describe('fit-to-content viewBox', () => {
+    it('uses a content-fitted viewBox for populated destination Walls', () => {
+      const finding = { ...createFinding('obs 32-58 elevated', {}, null), id: 'f-viewbox-1' };
+      const fittedHub = {
+        ...createHypothesis('Nozzle runs hot', '', [finding.id]),
+        id: 'h-viewbox-1',
+      };
+
+      const { container } = render(
+        <WallCanvas
+          hubs={[fittedHub]}
+          findings={[finding]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          modelBuilderProps={{
+            candidateFactors: ['Shift'],
+            scopeLabel: 'All data',
+            scopeRows: [{ Shift: 'Night', CycleTime: 12 }],
+          }}
+          outcomeColumn="CycleTime"
+          rows={[{ Shift: 'Night', CycleTime: 12 }]}
+        />
+      );
+
+      expect(container.querySelector('svg')?.getAttribute('viewBox')).not.toBe('0 0 2000 1400');
+    });
+
+    it('keeps overlay mode on the static full-canvas viewBox', () => {
+      const { container } = render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          mode="overlay"
+        />
+      );
+
+      expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 2000 1400');
+    });
+
+    it('keeps mobile destination rendering on MobileCardList instead of SVG fitting', () => {
+      const restoreMatchMedia = installMobileMatchMedia();
+      try {
+        const { container } = render(
+          <WallCanvas
+            hubs={[hub]}
+            findings={[]}
+            processMap={processMap}
+            problemCpk={0.78}
+            eventsPerWeek={42}
+          />
+        );
+
+        expect(screen.getByTestId('wall-mobile-card-list')).toBeInTheDocument();
+        expect(container.querySelector('svg')).toBeNull();
+      } finally {
+        restoreMatchMedia();
+      }
+    });
   });
 
   it('binds d3 zoom input to the destination SVG when hubId is provided', () => {
