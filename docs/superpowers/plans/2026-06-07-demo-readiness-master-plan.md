@@ -45,11 +45,22 @@ related:
 
 ## Codex-app dispatch protocol (per phase)
 
-1. Claude authors/refreshes the grounded sub-plan → commits to main.
-2. Owner opens the Codex app on a fresh branch `feat/<phase>` (own worktree if local).
-3. The prompt: point Codex at AGENTS.md + the sub-plan path + the stop-line (PR opened, never merge). First prompt template: see L-1 sub-plan §Codex-prompt.
-4. PR opened → Claude: subagent code review + chrome walk against the phase gate → merge `--merge --delete-branch`.
-5. Retro line item per phase: review-fix count (the trial metric).
+Two variants; the sub-plan is the contract either way.
+
+**Variant A — pre-authored contract** (phases 0–1: the b0 fix plan + the L-1 sub-plan already exist):
+
+1. Owner opens the Codex app on a fresh branch `feat/<phase>` (own worktree if local).
+2. The prompt points Codex at AGENTS.md + the sub-plan path + the stop-line (**PR opened, never merge**).
+3. PR opened → Claude: subagent code review + chrome walk against the phase gate → merge `--merge --delete-branch`.
+
+**Variant B — Codex authors the contract** (phases L-2…L-5 and beyond):
+
+1. The prompt points Codex at the spec section + the master-plan row + [the L-1 sub-plan](2026-06-07-l1-evidence-angle-picker.md) as the format exemplar. **Task 0: ground (read the cited anchors in code), author the sub-plan to `docs/superpowers/plans/`, commit it, STOP.**
+2. Claude reviews the sub-plan against the spec (the plan-review stop — keeps the contract independent of its implementer). Owner relays fixes or "proceed".
+3. Codex implements the approved sub-plan task-by-task → PR opened = second stop-line.
+4. Claude: code review + chrome walk → merge.
+
+Retro line item per phase either way: review-fix count + (Variant B) plan-review-fix count — the trial metrics.
 
 ## Done means
 
