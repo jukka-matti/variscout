@@ -155,7 +155,7 @@ describe('FSJ-8 — status proposal chips', () => {
     );
   });
 
-  it('proposes Supported when a needs-disconfirmation hub has one survived break attempt', () => {
+  it('does not propose Supported from only one evidence type', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
@@ -174,6 +174,34 @@ describe('FSJ-8 — status proposal chips', () => {
           ],
         }}
         displayStatus="needs-disconfirmation"
+        onSetStatus={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByTestId('status-proposal-chip')).not.toBeInTheDocument();
+  });
+
+  it('proposes Supported once a two-evidence hub has one survived break attempt', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans
+        {...baseProps}
+        hub={{
+          ...hub,
+          findingIds: ['f-support', 'f-gemba-support'],
+          status: 'needs-disconfirmation',
+          disconfirmationAttempts: [
+            {
+              id: 'd1',
+              attemptedAt: '2026-06-07T00:00:00Z',
+              attemptedBy: { userId: 'u1', displayName: 'Analyst' },
+              description: 'Checked the suspected mechanism against Shift B',
+              verdict: 'survived',
+              linkedFindingIds: ['f-support'],
+            },
+          ],
+        }}
+        displayStatus="needs-disconfirmation"
+        findings={[supportFinding, gembaSupportFinding]}
         onSetStatus={vi.fn()}
       />
     );

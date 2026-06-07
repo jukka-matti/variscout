@@ -490,7 +490,11 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
         status: 'refuted' as HypothesisStatus,
       };
     }
-    if (cardProps.hub.status === 'needs-disconfirmation' && survivedAttemptCount > 0) {
+    if (
+      cardProps.hub.status === 'needs-disconfirmation' &&
+      distinctEvidenceTypes >= 2 &&
+      survivedAttemptCount > 0
+    ) {
       return {
         label: `${survivedAttemptCount} survived break attempt${survivedAttemptCount === 1 ? '' : 's'} - mark Supported?`,
         status: 'evidence-survived-test' as HypothesisStatus,
