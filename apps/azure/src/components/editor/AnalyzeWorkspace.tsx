@@ -588,9 +588,18 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // to MobileCardList; the Minimap and CommandPalette are sibling controls,
   // so we gate their mount on the same breakpoint.
   const wallIsMobile = useWallIsMobile();
+  const fitWallToContent = useCallback(() => {
+    useCanvasViewportStore.getState().fitToContent(wallHubId, 'l2', {
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    });
+  }, [wallHubId]);
   useWallKeyboard({
     onSearch: () => {
       if (wallViewMode === 'wall' && !wallIsMobile) setWallPaletteOpen(true);
+    },
+    onFit: () => {
+      if (wallViewMode === 'wall' && !wallIsMobile) fitWallToContent();
     },
   });
 
@@ -1286,6 +1295,15 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   sibling controls would overlap the mobile list. */}
                 {!wallIsMobile && (
                   <>
+                    <button
+                      type="button"
+                      onClick={fitWallToContent}
+                      aria-label="Fit Wall to content"
+                      title="Fit Wall to content"
+                      className="border-edge bg-surface-secondary text-content hover:bg-surface-tertiary focus:ring-ring absolute bottom-4 right-40 rounded border px-2.5 py-1 text-xs font-medium shadow-sm focus:outline-none focus:ring-2"
+                    >
+                      ⌖ Fit
+                    </button>
                     <div className="absolute bottom-4 right-4 pointer-events-auto">
                       <Minimap
                         hubs={hubs}
