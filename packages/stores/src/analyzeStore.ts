@@ -16,7 +16,6 @@ import { useCanvasViewportStore } from './canvasViewportStore';
 import type {
   Finding,
   FindingContext,
-  FindingEvidenceType,
   FindingSource,
   FindingStatus,
   FindingTag,
@@ -40,6 +39,7 @@ import type {
   CategoricalFilterInput,
   DisconfirmationAttempt,
 } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 import {
   createFinding,
   createFindingComment,
