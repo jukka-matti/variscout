@@ -870,6 +870,9 @@ export const Editor: React.FC<EditorProps> = ({
 
   const hasB0ModeProposal =
     dataFlow.defectDetection != null || dataFlow.wideFormatDetection != null;
+  const hasAcceptedB0ModeFraming =
+    (analysisMode === 'defect' && defectMapping != null) ||
+    (analysisMode === 'performance' && (measureColumns?.length ?? 0) > 0);
 
   const handleAcceptDefectDetection = useCallback(
     (mapping: DefectMapping) => {
@@ -2078,7 +2081,7 @@ export const Editor: React.FC<EditorProps> = ({
             onSharePointFileImport={handleSharePointFileImport}
             onLoadSample={handleLoadSampleWithLanding}
           />
-        ) : outcome || hasB0ModeProposal ? (
+        ) : outcome || hasB0ModeProposal || hasAcceptedB0ModeFraming ? (
           <>
             {/* Canvas framing toolbar — '+New investigation' on-demand entry
                 (Mode A.1 reopen path, spec §5.5). Visible whenever data + outcome are

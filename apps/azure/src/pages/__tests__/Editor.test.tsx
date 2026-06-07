@@ -711,6 +711,7 @@ describe('Editor', () => {
     });
     expect(state.outcome).toBeNull();
     expect(screen.queryByRole('button', { name: 'Accept defect mode' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('column-mapping')).not.toBeInTheDocument();
   });
 
   it('accepts a wide b0 proposal inline without paste-time performance mutation', async () => {
