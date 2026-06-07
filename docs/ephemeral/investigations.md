@@ -1629,3 +1629,11 @@ Owner-in-the-loop chrome walk of the full PWA first-session journey (2026-06-07,
 - **Hypothesis legibility: "MECHANISM BRANCH · PROPOSED" rang no bell for the owner** (→ next design session) Internal model vocabulary on user-facing cards. Card should say "Hypothesis" + an introduced status. Companion ask: **a tidy all-hypotheses overview** (status, evidence count, next check) — possibly the Analyze sidebar's actual job.
 - **Wall ergonomics benchmark = Miro/FigJam** (navigation primitives only; Model C stays rejected) — fit-to-content on entry, cursor-centered zoom, minimap with viewport rect, content centered (sidebar shouldn't reserve dead width).
 - **PWA durability is the top first-session risk** — see the dedicated entry above; design sessions should treat draft-persistence/restore as a candidate launch blocker, not polish.
+
+## No user-reachable affordance links an EXISTING finding to a hypothesis [LOGGED 2026-06-07]
+
+L-1 gate verification: once a finding exists, the only hypothesis-linking paths are "What might cause this?" (mints a NEW hypothesis) and the per-plan LinkFindingPicker (plan-scoped). A user who captures a gemba finding cannot attach it to the suspected cause they already have — which is exactly the triangulation move the evidence-angle work exists for. Candidate fixes: a "link to existing cause" option on the finding card/capture confirmation, or drag-chip-onto-hub (river spec's drop-to-compose). Route with L-3 (activity layer) or L-5 (matrix row click-to-link).
+
+## Capture-card Note field drops input after the first keystroke [LOGGED 2026-06-07]
+
+Reproduced live during the L-1 gate walk: typing into the New-Finding Note textarea lands only the first character ("W" of a 79-char note); the rest is lost (focus/state reset per keystroke — likely the draft object recreated on each onDraftChange, remounting the card). This is the root mechanism behind the earlier "E—" note-truncation entry — same family, now with a live repro. The morning entry's "truncation on display" framing is superseded: the note is truncated at INPUT time.
