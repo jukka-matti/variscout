@@ -975,6 +975,36 @@ describe('CanvasWorkspace', () => {
     expect(onSeeData).toHaveBeenCalledTimes(1);
   });
 
+  it('commits the mode-aware b0 default through b0 before See Data', () => {
+    const setOutcome = vi.fn();
+    const onSeeData = vi.fn();
+    renderWorkspace({
+      rawData: [
+        { Date: '2026-05-01', Defect_Type: 'Scratch', Shift: 'Day', Units_Produced: 100 },
+        { Date: '2026-05-01', Defect_Type: 'Dent', Shift: 'Day', Units_Produced: 100 },
+        { Date: '2026-05-02', Defect_Type: 'Scratch', Shift: 'Night', Units_Produced: 200 },
+      ],
+      outcome: null,
+      analysisMode: 'defect',
+      defectMapping: {
+        dataShape: 'event-log',
+        aggregationUnit: 'Date',
+        defectTypeColumn: 'Defect_Type',
+        unitsProducedColumn: 'Units_Produced',
+      },
+      processContext: { processMap: emptyMap() },
+      setOutcome,
+      onSeeData,
+    });
+
+    expect(screen.getByTestId('y-picker-selected-row')).toHaveTextContent('DefectRate');
+
+    fireEvent.click(screen.getByTestId('see-the-data-cta'));
+
+    expect(setOutcome).toHaveBeenCalledWith('DefectRate');
+    expect(onSeeData).toHaveBeenCalledTimes(1);
+  });
+
   it('renders and clears session canvas filter chips', () => {
     canvasFiltersStateRef.current = {
       ...canvasFiltersStateRef.current,

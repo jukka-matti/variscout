@@ -86,7 +86,6 @@ import {
   parseMentions,
   findDuplicateFinding,
   findDuplicateBySource,
-  computeDefectRates,
 } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -1485,9 +1484,7 @@ function AppMain() {
                   onUndoQuietTimeExtraction={importFlow.undoQuietTimeExtraction}
                   defectDetection={importFlow.defectDetection}
                   onAcceptDefectDetection={mapping => {
-                    const nextDefectResult = computeDefectRates(rawData, mapping);
                     setDefectMapping(mapping);
-                    setOutcome(nextDefectResult.outcomeColumn);
                     setAnalysisMode('defect');
                     importFlow.handleDismissDefect();
                   }}
