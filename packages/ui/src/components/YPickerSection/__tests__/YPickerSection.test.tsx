@@ -148,6 +148,20 @@ describe('YPickerSection', () => {
     expect(screen.queryByTestId('y-picker-selected-row')).toBeNull();
   });
 
+  it('renders manual-pick guidance when numeric columns exist but none auto-rank', () => {
+    render(
+      <YPickerSection
+        candidates={[]}
+        hasNumericColumns={true}
+        selectedY={null}
+        onSelectY={vi.fn()}
+      />
+    );
+    const empty = screen.getByTestId('y-picker-empty');
+    expect(empty.textContent).toContain("Couldn't auto-rank an outcome");
+    expect(empty.textContent).not.toContain('No numeric columns detected');
+  });
+
   it('headline matches the English message catalog (i18n resolved, not hardcoded)', () => {
     // Direct round-trip via the bundled English catalog — guards against
     // accidental hardcoding of headline text in the JSX.

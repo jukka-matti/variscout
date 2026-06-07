@@ -1042,6 +1042,8 @@ export const fi: MessageCatalog = {
   'frame.b0.seeData.pickYHint': 'Valitse ensin Y nähdäksesi analyysin.',
   'frame.b0.step.addCtq': '+ lisää mittaus tähän vaiheeseen (valinnainen)',
   'frame.b0.q1.empty': 'Numeerisia sarakkeita ei löytynyt — lisää tai tuo dataa aloittaaksesi.',
+  'frame.b0.q1.emptyRanked':
+    "Couldn't auto-rank an outcome. Type the numeric column name in the manual outcome field.",
   'frame.b0.q2.empty': 'Ei X-ehdokkaita — kun valitset Y:n, tekijät ilmestyvät tähän.',
   'frame.b0.aria.yCandidates': 'Y-ehdokassirut',
   'frame.b0.aria.selectedXs': 'Valitut X-sirut',

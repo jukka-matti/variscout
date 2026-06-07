@@ -1127,6 +1127,7 @@ export interface MessageCatalog {
   'frame.b0.seeData.pickYHint': string;
   'frame.b0.step.addCtq': string;
   'frame.b0.q1.empty': string;
+  'frame.b0.q1.emptyRanked': string;
   'frame.b0.q2.empty': string;
   'frame.b0.aria.yCandidates': string;
   'frame.b0.aria.selectedXs': string;
