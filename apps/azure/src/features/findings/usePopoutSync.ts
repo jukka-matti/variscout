@@ -90,6 +90,10 @@ export function usePopoutSync({
       case 'set-tag':
         findingsState.setFindingTag(action.id, action.tag ?? null);
         break;
+      case 'set-evidence-type':
+        if (action.evidenceType)
+          findingsState.editFindingEvidenceType(action.id, action.evidenceType);
+        break;
       case 'add-comment':
         if (action.text !== undefined) findingsState.addFindingComment(action.id, action.text);
         break;

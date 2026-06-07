@@ -777,6 +777,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 viewMode={viewMode}
                 onSetFindingStatus={handleSetFindingStatus}
                 onSetFindingTag={useAnalyzeStore.getState().setFindingTag}
+                onSetFindingEvidenceType={useAnalyzeStore.getState().editFindingEvidenceType}
                 onAddComment={(id: string, text: string) => {
                   // wrapper: the attachment param (Azure-only) is intentionally dropped in PWA
                   useAnalyzeStore.getState().addFindingComment(id, text);

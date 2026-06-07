@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 import {
   FINDING_STATUSES,
   FINDING_STATUS_LABELS,
@@ -19,6 +20,7 @@ export interface FindingBoardViewProps {
   onRestoreFinding: (id: string) => void;
   onSetFindingStatus: (id: string, status: FindingStatus) => void;
   onSetFindingTag?: (id: string, tag: FindingTag | null) => void;
+  onSetFindingEvidenceType?: (id: string, evidenceType: FindingEvidenceType) => void;
   onAddComment: (id: string, text: string) => void;
   onEditComment: (findingId: string, commentId: string, text: string) => void;
   onDeleteComment: (findingId: string, commentId: string) => void;
@@ -70,6 +72,7 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   onRestoreFinding,
   onSetFindingStatus,
   onSetFindingTag,
+  onSetFindingEvidenceType,
   onAddComment,
   onEditComment,
   onDeleteComment,
@@ -161,6 +164,7 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     onRestore={onRestoreFinding}
                     onSetStatus={onSetFindingStatus}
                     onSetTag={onSetFindingTag}
+                    onSetEvidenceType={onSetFindingEvidenceType}
                     onAddComment={onAddComment}
                     onEditComment={onEditComment}
                     onDeleteComment={onDeleteComment}

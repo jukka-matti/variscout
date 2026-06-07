@@ -9,6 +9,7 @@ import React from 'react';
 import { X, ArrowLeft, ExternalLink } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 import FindingCard from '../FindingsLog/FindingCard';
 
 export interface FindingDetailPanelProps {
@@ -27,6 +28,7 @@ export interface FindingDetailPanelProps {
   onRestoreFinding: (id: string) => void;
   onSetFindingStatus?: (id: string, status: FindingStatus) => void;
   onSetFindingTag?: (id: string, tag: FindingTag | null) => void;
+  onSetFindingEvidenceType?: (id: string, evidenceType: FindingEvidenceType) => void;
   onAddComment?: (id: string, text: string, attachment?: File) => void;
   onEditComment?: (findingId: string, commentId: string, text: string) => void;
   onDeleteComment?: (findingId: string, commentId: string) => void;
@@ -64,6 +66,7 @@ const FindingDetailPanel: React.FC<FindingDetailPanelProps> = ({
   onRestoreFinding,
   onSetFindingStatus,
   onSetFindingTag,
+  onSetFindingEvidenceType,
   onAddComment,
   onEditComment,
   onDeleteComment,
@@ -135,6 +138,7 @@ const FindingDetailPanel: React.FC<FindingDetailPanelProps> = ({
           onRestore={onRestoreFinding}
           onSetStatus={onSetFindingStatus}
           onSetTag={onSetFindingTag}
+          onSetEvidenceType={onSetFindingEvidenceType}
           onAddComment={onAddComment}
           onEditComment={onEditComment}
           onDeleteComment={onDeleteComment}

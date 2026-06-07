@@ -18,6 +18,7 @@ import type {
   CoScoutError,
   AnalyzePhase,
 } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 import type { DrillStep } from '@variscout/hooks';
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
@@ -42,6 +43,7 @@ export interface FindingsPanelBaseProps {
   onRestoreFinding: (id: string) => void;
   onSetFindingStatus: (id: string, status: FindingStatus) => void;
   onSetFindingTag?: (id: string, tag: FindingTag | null) => void;
+  onSetFindingEvidenceType?: (id: string, evidenceType: FindingEvidenceType) => void;
   onAddComment: (id: string, text: string, attachment?: File) => void;
   onEditComment: (findingId: string, commentId: string, text: string) => void;
   onDeleteComment: (findingId: string, commentId: string) => void;
@@ -130,6 +132,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onRestoreFinding,
   onSetFindingStatus,
   onSetFindingTag,
+  onSetFindingEvidenceType,
   onAddComment,
   onEditComment,
   onDeleteComment,
@@ -335,6 +338,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onRestoreFinding={onRestoreFinding}
           onSetFindingStatus={onSetFindingStatus}
           onSetFindingTag={onSetFindingTag}
+          onSetFindingEvidenceType={onSetFindingEvidenceType}
           onAddComment={onAddComment}
           onEditComment={onEditComment}
           onDeleteComment={onDeleteComment}

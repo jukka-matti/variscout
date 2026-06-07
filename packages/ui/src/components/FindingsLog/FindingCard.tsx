@@ -19,6 +19,7 @@ import type {
   FindingTag,
   TimelineWindow,
 } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 import {
   getFindingStatus,
   isFixedWindow,
@@ -34,7 +35,14 @@ import FindingComments from './FindingComments';
 import ActionItemsSection from './FindingCardActions';
 import ProjectionSection from './FindingCardProjection';
 import { OutcomeSection } from './FindingCardExpanded';
+import { EvidenceAnglePicker } from '../EvidenceAnglePicker';
 import type { VoiceInputConfig } from '../VoiceInput';
+
+const EVIDENCE_ANGLE_GLYPH: Record<FindingEvidenceType, string> = {
+  data: '📊',
+  gemba: '👁',
+  expert: '💬',
+};
 
 export interface FindingCardProps {
   finding: Finding;
@@ -48,6 +56,8 @@ export interface FindingCardProps {
   onSetStatus?: (id: string, status: FindingStatus) => void;
   /** Callback to set a finding's classification tag */
   onSetTag?: (id: string, tag: FindingTag | null) => void;
+  /** Callback to reclassify a finding's evidence angle */
+  onSetEvidenceType?: (id: string, evidenceType: FindingEvidenceType) => void;
   /** Callback to add a comment, with optional file attachment */
   onAddComment?: (id: string, text: string, attachment?: File) => void;
   /** Callback to edit a comment */
@@ -155,6 +165,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   isActive = false,
   onSetStatus,
   onSetTag,
+  onSetEvidenceType,
   onAddComment,
   onEditComment,
   onDeleteComment,
@@ -236,6 +247,14 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 </span>
               </button>
             )}
+            <span
+              data-testid="finding-evidence-angle"
+              className="inline-flex items-center px-1.5 py-0.5 bg-surface-tertiary/50 text-[0.625rem] text-content-secondary rounded"
+              title={`Evidence angle: ${finding.evidenceType}`}
+              aria-label={`Evidence angle: ${finding.evidenceType}`}
+            >
+              {EVIDENCE_ANGLE_GLYPH[finding.evidenceType]}
+            </span>
             {originStepName && (
               <span
                 className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-surface-tertiary/50 text-[0.625rem] text-content-muted rounded"
@@ -302,12 +321,20 @@ const FindingCard: React.FC<FindingCardProps> = ({
       {/* Note + actions */}
       <div className="px-3 pb-2.5">
         {isEditing ? (
-          <FindingEditor
-            initialText={finding.text}
-            onSave={handleSave}
-            onCancel={() => setIsEditing(false)}
-            voiceInput={voiceInput}
-          />
+          <div className="space-y-2">
+            <FindingEditor
+              initialText={finding.text}
+              onSave={handleSave}
+              onCancel={() => setIsEditing(false)}
+              voiceInput={voiceInput}
+            />
+            {onSetEvidenceType && (
+              <EvidenceAnglePicker
+                value={finding.evidenceType}
+                onChange={evidenceType => onSetEvidenceType(finding.id, evidenceType)}
+              />
+            )}
+          </div>
         ) : (
           <div className="flex items-start gap-1">
             {finding.text ? (

@@ -22,6 +22,7 @@ import type {
   ProcessContext,
   AnalyzePhase,
 } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 import FindingsLog from '../FindingsLog/FindingsLog';
 import FindingBoardColumns from '../FindingsLog/FindingBoardColumns';
 import { copyFindingsToClipboard } from '../FindingsLog/export';
@@ -163,6 +164,20 @@ const FindingsWindow: React.FC = () => {
         return {
           ...prev,
           findings: prev.findings.map(f => (f.id === id ? { ...f, tag: tag ?? undefined } : f)),
+        };
+      });
+    },
+    [sendAction]
+  );
+
+  const handleSetEvidenceType = useCallback(
+    (id: string, evidenceType: FindingEvidenceType) => {
+      sendAction({ action: 'set-evidence-type', id, evidenceType });
+      setSyncData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          findings: prev.findings.map(f => (f.id === id ? { ...f, evidenceType } : f)),
         };
       });
     },
@@ -410,6 +425,7 @@ const FindingsWindow: React.FC = () => {
               onRestoreFinding={handleFindingClick}
               onSetFindingStatus={handleSetStatus}
               onSetFindingTag={handleSetTag}
+              onSetFindingEvidenceType={handleSetEvidenceType}
               onAddComment={handleAddComment}
               onEditComment={handleEditComment}
               onDeleteComment={handleDeleteComment}
@@ -424,6 +440,7 @@ const FindingsWindow: React.FC = () => {
               onRestoreFinding={handleFindingClick}
               onSetFindingStatus={handleSetStatus}
               onSetFindingTag={handleSetTag}
+              onSetFindingEvidenceType={handleSetEvidenceType}
               onAddComment={handleAddComment}
               onEditComment={handleEditComment}
               onDeleteComment={handleDeleteComment}
@@ -447,6 +464,7 @@ const FindingsWindow: React.FC = () => {
               onRestoreFinding={handleRestoreFinding}
               onSetFindingStatus={handleSetStatus}
               onSetFindingTag={handleSetTag}
+              onSetFindingEvidenceType={handleSetEvidenceType}
               onAddComment={handleAddComment}
               onEditComment={handleEditComment}
               onDeleteComment={handleDeleteComment}

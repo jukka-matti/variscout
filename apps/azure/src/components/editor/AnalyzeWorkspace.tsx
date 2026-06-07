@@ -1355,6 +1355,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 viewMode={viewMode}
                 onSetFindingStatus={handleSetFindingStatus}
                 onSetFindingTag={findingsState.setFindingTag}
+                onSetFindingEvidenceType={findingsState.editFindingEvidenceType}
                 onAddComment={(id: string, text: string) => handleAddCommentWithAuthor(id, text)}
                 columnAliases={columnAliases}
                 activeFindingId={highlightedFindingId}

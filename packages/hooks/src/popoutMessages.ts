@@ -18,6 +18,7 @@ import type {
   IdeaCostCategory,
   ImprovementIdea,
 } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 import type { DrillStep } from './useDrillPath';
 import type {
   FactorNodeData,
@@ -75,6 +76,7 @@ export interface FindingsAction {
     | 'delete'
     | 'set-status'
     | 'set-tag'
+    | 'set-evidence-type'
     | 'add-comment'
     | 'edit-comment'
     | 'delete-comment';
@@ -82,6 +84,7 @@ export interface FindingsAction {
   text?: string;
   status?: FindingStatus;
   tag?: FindingTag | null;
+  evidenceType?: FindingEvidenceType;
   commentId?: string;
 }
 

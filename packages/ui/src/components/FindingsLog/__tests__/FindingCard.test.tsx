@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import FindingCard from '../FindingCard';
 import type { Finding } from '@variscout/core';
+import { createFinding } from '@variscout/core/findings';
 
 function makeFinding(overrides: Partial<Finding> = {}): Finding {
   return {
@@ -151,5 +152,26 @@ describe('FindingCard — PR-CS-6 Edge 4 origin-step breadcrumb', () => {
     render(<FindingCard finding={makeFinding({ originStepId: 'step-gone' })} {...noopHandlers} />);
 
     expect(screen.queryByTestId('finding-origin-step')).toBeNull();
+  });
+});
+
+describe('FindingCard — evidence angle', () => {
+  it('renders the evidence angle glyph and reclassifies from edit mode', () => {
+    const onSetEvidenceType = vi.fn();
+    const finding = {
+      ...createFinding('Operator observed the jig sticking', {}, null),
+      evidenceType: 'gemba' as const,
+    };
+
+    render(
+      <FindingCard finding={finding} {...noopHandlers} onSetEvidenceType={onSetEvidenceType} />
+    );
+
+    expect(screen.getByTestId('finding-evidence-angle')).toHaveTextContent('👁');
+
+    fireEvent.click(screen.getByRole('button', { name: /edit finding note/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /expert/i }));
+
+    expect(onSetEvidenceType).toHaveBeenCalledWith(finding.id, 'expert');
   });
 });
