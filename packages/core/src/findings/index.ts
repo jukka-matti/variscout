@@ -9,6 +9,12 @@
 export * from './types';
 export * from './factories';
 export * from './helpers';
+export {
+  displayHypothesisStatus,
+  getHypothesisDisplayStatus,
+  type HypothesisDisplayStatus,
+  type HypothesisStatusDisplay,
+} from './hypothesisStatusDisplay';
 export { buildProblemStatement } from './problemStatement';
 export type { ProblemStatementInput } from './problemStatement';
 export { assignCauseColors } from './causeColors';
