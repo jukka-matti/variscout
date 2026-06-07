@@ -39,6 +39,25 @@ describe('HubCard', () => {
     render(<HubCard {...defaultProps()} />);
 
     expect(screen.getByText('Nozzle wear on night shift')).toBeInTheDocument();
+    expect(screen.getByText('Suspected')).toBeInTheDocument();
+    expect(screen.queryByText('Proposed')).not.toBeInTheDocument();
+  });
+
+  it('maps stored statuses to the three displayed states', () => {
+    const { rerender } = render(
+      <HubCard {...defaultProps()} hub={makeHub({ status: 'evidenced' })} />
+    );
+
+    expect(screen.getByText('Suspected')).toBeInTheDocument();
+
+    rerender(<HubCard {...defaultProps()} hub={makeHub({ status: 'needs-disconfirmation' })} />);
+    expect(screen.getByText('Suspected')).toBeInTheDocument();
+
+    rerender(<HubCard {...defaultProps()} hub={makeHub({ status: 'evidence-survived-test' })} />);
+    expect(screen.getByText('Verified')).toBeInTheDocument();
+
+    rerender(<HubCard {...defaultProps()} hub={makeHub({ status: 'refuted' })} />);
+    expect(screen.getByText('Ruled out')).toBeInTheDocument();
   });
 
   it('shows evidence badge when evidence provided', () => {

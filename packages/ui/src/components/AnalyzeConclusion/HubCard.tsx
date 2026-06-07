@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Pencil, Lightbulb, CheckSquare } from 'lucide-react';
 import type { Hypothesis, HypothesisEvidence } from '@variscout/core';
-import type { HubProjection } from '@variscout/core/findings';
+import {
+  displayHypothesisStatus,
+  getHypothesisDisplayStatus,
+  type HubProjection,
+  type HypothesisDisplayStatus,
+} from '@variscout/core/findings';
 
 export interface HubCardProps {
   hub: Hypothesis;
@@ -13,14 +18,10 @@ export interface HubCardProps {
   onBrainstorm: () => void;
 }
 
-const STATUS_STYLES: Record<Hypothesis['status'], { dot: string; label: string }> = {
-  proposed: { dot: 'bg-slate-400', label: 'Proposed' },
-  evidenced: { dot: 'bg-amber-500', label: 'Evidenced' },
-  // Falsification can only fail to break a hypothesis, never *confirm* it, so
-  // both the status code and the user-facing word say "supported", not "confirmed".
-  'evidence-survived-test': { dot: 'bg-green-500', label: 'Supported' },
-  refuted: { dot: 'bg-content-muted/40', label: 'Refuted' },
-  'needs-disconfirmation': { dot: 'bg-orange-500', label: 'Needs disconfirmation' },
+const STATUS_DOT: Record<HypothesisDisplayStatus, string> = {
+  suspected: 'bg-amber-500',
+  verified: 'bg-green-500',
+  'ruled-out': 'bg-content-muted/40',
 };
 
 const HubCard: React.FC<HubCardProps> = ({
@@ -33,7 +34,8 @@ const HubCard: React.FC<HubCardProps> = ({
   onBrainstorm,
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const statusStyle = STATUS_STYLES[hub.status];
+  const displayStatus = displayHypothesisStatus(hub.status);
+  const statusDot = STATUS_DOT[getHypothesisDisplayStatus(hub.status)];
 
   const evidenceBadge = evidence
     ? `${evidence.contribution.label} ${Math.round(evidence.contribution.value * 100)}%`
@@ -62,9 +64,12 @@ const HubCard: React.FC<HubCardProps> = ({
         ) : (
           <ChevronRight size={10} className="text-content-muted shrink-0" />
         )}
-        <span className={`w-2 h-2 rounded-full shrink-0 ${statusStyle.dot}`} />
+        <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot}`} />
         <span className="flex-1 text-[0.6875rem] font-semibold text-content truncate">
           {hub.name}
+        </span>
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-secondary text-content-muted font-medium shrink-0">
+          {displayStatus.label}
         </span>
         {evidenceBadge && (
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 font-medium shrink-0">

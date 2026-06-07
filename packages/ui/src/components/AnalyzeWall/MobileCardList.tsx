@@ -10,12 +10,12 @@
 import React from 'react';
 import {
   projectMechanismBranch,
-  type MessageCatalog,
   type ProcessMap,
   type Hypothesis,
   type HypothesisStatus,
   type Finding,
 } from '@variscout/core';
+import { displayHypothesisStatus } from '@variscout/core/findings';
 import { deriveHypothesisStatus } from '@variscout/core/survey';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
@@ -32,14 +32,6 @@ export interface MobileCardListProps {
   onSeedFromFactorIntel?: () => void;
   onProposeHypothesis?: (findingId: string) => void;
 }
-
-const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
-  proposed: 'wall.status.proposed',
-  evidenced: 'wall.status.evidenced',
-  'evidence-survived-test': 'wall.status.confirmed', // catalog key unchanged — value already 'Supported'
-  refuted: 'wall.status.refuted',
-  'needs-disconfirmation': 'wall.status.needsDisconfirmation',
-};
 
 /**
  * Status-specific left-border colors. Matches the stroke palette used by
@@ -108,7 +100,7 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
           findings,
           processContext: processMap ? { processMap } : undefined,
         });
-        const statusLabel = getMessage(locale, STATUS_KEY[status]);
+        const statusLabel = displayHypothesisStatus(status).label;
         const findingsLabel = formatMessage(locale, 'wall.card.findings', {
           count: hub.findingIds.length,
         });

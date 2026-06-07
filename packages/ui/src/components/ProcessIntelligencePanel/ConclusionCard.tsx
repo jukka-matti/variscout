@@ -5,6 +5,7 @@ import type {
   HypothesisEvidence,
   HubProjection,
 } from '@variscout/core';
+import { displayHypothesisStatus, getHypothesisDisplayStatus } from '@variscout/core/findings';
 
 export interface Hypothesis {
   factor: string;
@@ -24,12 +25,10 @@ export interface ConclusionCardProps {
   onNavigateToInvestigation?: () => void;
 }
 
-const HUB_STATUS_DOT: Record<HypothesisHub['status'], string> = {
-  proposed: 'bg-slate-400',
-  evidenced: 'bg-amber-500',
-  'evidence-survived-test': 'bg-green-500',
-  refuted: 'bg-content-muted/40',
-  'needs-disconfirmation': 'bg-orange-500',
+const HUB_STATUS_DOT: Record<ReturnType<typeof getHypothesisDisplayStatus>, string> = {
+  suspected: 'bg-amber-500',
+  verified: 'bg-green-500',
+  'ruled-out': 'bg-content-muted/40',
 };
 
 /**
@@ -80,6 +79,7 @@ const ConclusionCard: React.FC<ConclusionCardProps> = ({
               ? `${evidence.contribution.label} ${Math.round(evidence.contribution.value * 100)}%`
               : null;
             const projection = hubProjections?.get(hub.id);
+            const displayStatus = displayHypothesisStatus(hub.status);
 
             return (
               <div
@@ -89,7 +89,8 @@ const ConclusionCard: React.FC<ConclusionCardProps> = ({
               >
                 <div className="flex items-center gap-1.5">
                   <span
-                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${HUB_STATUS_DOT[hub.status]}`}
+                    aria-label={displayStatus.label}
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${HUB_STATUS_DOT[displayStatus.status]}`}
                   />
                   <span className="text-[0.6875rem] text-purple-200 font-medium flex-1 truncate">
                     {hub.name}

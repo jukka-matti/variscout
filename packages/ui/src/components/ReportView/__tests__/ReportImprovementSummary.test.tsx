@@ -70,6 +70,38 @@ describe('ReportImprovementSummary', () => {
     expect(screen.getByTestId('report-improvement-summary')).toBeDefined();
   });
 
+  it('maps stored hypothesis statuses to three displayed badges', () => {
+    render(
+      <ReportImprovementSummary
+        questions={[
+          { id: 'h-proposed', text: 'Proposed cause', status: 'proposed', ideas: [makeIdea()] },
+          { id: 'h-evidenced', text: 'Evidenced cause', status: 'evidenced', ideas: [makeIdea()] },
+          {
+            id: 'h-needs',
+            text: 'Needs check cause',
+            status: 'needs-disconfirmation',
+            ideas: [makeIdea()],
+          },
+          {
+            id: 'h-verified',
+            text: 'Verified cause',
+            status: 'evidence-survived-test',
+            ideas: [makeIdea()],
+          },
+          { id: 'h-refuted', text: 'Ruled out cause', status: 'refuted', ideas: [makeIdea()] },
+        ]}
+      />
+    );
+
+    expect(screen.getAllByText('Suspected')).toHaveLength(3);
+    expect(screen.getByText('Verified')).toBeDefined();
+    expect(screen.getByText('Ruled out')).toBeDefined();
+    expect(screen.queryByText('Proposed')).toBeNull();
+    expect(screen.queryByText('Evidenced')).toBeNull();
+    expect(screen.queryByText('Needs disconfirmation')).toBeNull();
+    expect(screen.queryByText('Supported')).toBeNull();
+  });
+
   it('renders timeframe and cost metadata', () => {
     const props = makeProps({
       questions: [

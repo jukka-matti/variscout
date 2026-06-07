@@ -60,6 +60,25 @@ describe('ConclusionCard', () => {
     expect(screen.getByText('R²adj 38%')).toBeInTheDocument();
   });
 
+  it('maps hub stored statuses to three displayed dot labels', () => {
+    render(
+      <ConclusionCard
+        hypotheses={[]}
+        hubs={[
+          makeHub('h-proposed', 'Proposed cause', 'proposed'),
+          makeHub('h-evidenced', 'Evidenced cause', 'evidenced'),
+          makeHub('h-needs', 'Needs check cause', 'needs-disconfirmation'),
+          makeHub('h-verified', 'Verified cause', 'evidence-survived-test'),
+          makeHub('h-refuted', 'Ruled out cause', 'refuted'),
+        ]}
+      />
+    );
+
+    expect(screen.getAllByLabelText('Suspected')).toHaveLength(3);
+    expect(screen.getByLabelText('Verified')).toBeInTheDocument();
+    expect(screen.getByLabelText('Ruled out')).toBeInTheDocument();
+  });
+
   it('renders hub projection when provided', () => {
     const hubs = [makeHub('h1', 'Night shift effect')];
     const projections = new Map([['h1', makeProjection(-1.8, 0.38)]]);

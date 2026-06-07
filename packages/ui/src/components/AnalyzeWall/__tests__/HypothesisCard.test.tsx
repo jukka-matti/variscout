@@ -37,8 +37,8 @@ describe('HypothesisCard', () => {
       </svg>
     );
     expect(screen.getByText(/Nozzle runs hot on night shift/)).toBeInTheDocument();
-    // displayStatus 'evidence-survived-test' renders the user-facing label "Supported".
-    expect(screen.getAllByText(/supported/i).length).toBeGreaterThan(0);
+    // displayStatus 'evidence-survived-test' renders the user-facing label "Verified".
+    expect(screen.getAllByText(/verified/i).length).toBeGreaterThan(0);
   });
 
   it('shows supporting clue count from legacy linked findings', () => {
@@ -81,7 +81,7 @@ describe('HypothesisCard', () => {
 
     const tagRow = container.querySelector('foreignObject');
     const readinessText = Array.from(container.querySelectorAll('text')).find(
-      text => text.textContent === 'Supported' && text.getAttribute('y') !== '24'
+      text => text.textContent === 'Verified' && text.getAttribute('y') !== '24'
     );
     const clueText = screen.getByText(/3 supporting clues/);
 
@@ -145,7 +145,7 @@ describe('HypothesisCard', () => {
         <HypothesisCard hub={hub} displayStatus="evidenced" x={0} y={0} onSelect={onSelect} />
       </svg>
     );
-    fireEvent.click(screen.getByRole('button', { name: /mechanism branch/i }));
+    fireEvent.click(screen.getByRole('button', { name: /suspected cause/i }));
     expect(onSelect).toHaveBeenCalledWith('h1');
   });
 
@@ -224,7 +224,8 @@ describe('HypothesisCard', () => {
       </svg>
     );
 
-    expect(screen.getByText(/Mechanism Branch/i)).toBeInTheDocument();
+    expect(screen.getByText(/Suspected cause/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Mechanism Branch/i)).not.toBeInTheDocument();
     expect(screen.getByText(/2 supporting clues/i)).toBeInTheDocument();
     expect(screen.getByText(/1 counter-clue/i)).toBeInTheDocument();
     expect(screen.getByText(/1 open check/i)).toBeInTheDocument();

@@ -93,14 +93,14 @@ const SynthesisLayer: React.FC<SynthesisLayerProps> = ({
                 </text>
                 <text x={0} y={zoneRadius + 30} textAnchor="middle" fill={statusColor} fontSize={7}>
                   {point.hubStatus === 'evidence-survived-test'
-                    ? 'SUPPORTED'
+                    ? 'VERIFIED'
                     : point.hubStatus === 'refuted'
-                      ? 'REFUTED'
+                      ? 'RULED OUT'
                       : point.hubStatus === 'needs-disconfirmation'
-                        ? 'NEEDS DISCONFIRMATION'
+                        ? 'SUSPECTED'
                         : point.hubStatus === 'evidenced'
-                          ? 'EVIDENCED HYPOTHESIS'
-                          : 'PROPOSED HYPOTHESIS'}
+                          ? 'SUSPECTED'
+                          : 'SUSPECTED'}
                 </text>
               </>
             )}
