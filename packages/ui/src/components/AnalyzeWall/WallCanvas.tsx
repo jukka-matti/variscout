@@ -68,6 +68,7 @@ import { TributaryFooter } from './TributaryFooter';
 import { ModelBuilderBand } from './ModelBuilderBand';
 import type { CapturedModelSnapshot } from './ModelBuilderBand';
 import { EmptyState } from './EmptyState';
+import { WallArrival } from './WallArrival';
 import { MissingEvidencePanel } from './MissingEvidencePanel';
 import { MobileCardList } from './MobileCardList';
 import { useWallLocale } from './hooks/useWallLocale';
@@ -931,6 +932,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onSelectHub={onSelectHub}
           onWriteHypothesis={onWriteHypothesis}
           onSeedFromFactorIntel={onSeedFromFactorIntel}
+          onProposeHypothesis={onProposeHypothesis}
         />
         {mode === 'destination' ? (
           <MissingEvidencePanel
@@ -940,6 +942,17 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           />
         ) : null}
       </div>
+    );
+  }
+
+  if (mode === 'destination' && filteredHubs.length === 0 && findings.length > 0) {
+    return (
+      <WallArrival
+        findings={findings}
+        onProposeHypothesis={onProposeHypothesis}
+        onWriteHypothesis={onWriteHypothesis}
+        onSeedFromFactorIntel={onSeedFromFactorIntel}
+      />
     );
   }
 

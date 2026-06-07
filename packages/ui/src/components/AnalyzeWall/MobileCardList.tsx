@@ -20,6 +20,7 @@ import { deriveHypothesisStatus } from '@variscout/core/survey';
 import { formatMessage, getMessage } from '@variscout/core/i18n';
 import { chartColors } from '@variscout/charts';
 import { EmptyState } from './EmptyState';
+import { WallArrival } from './WallArrival';
 import { useWallLocale } from './hooks/useWallLocale';
 
 export interface MobileCardListProps {
@@ -29,6 +30,7 @@ export interface MobileCardListProps {
   onSelectHub?: (hubId: string) => void;
   onWriteHypothesis?: () => void;
   onSeedFromFactorIntel?: () => void;
+  onProposeHypothesis?: (findingId: string) => void;
 }
 
 const STATUS_KEY: Record<HypothesisStatus, keyof MessageCatalog> = {
@@ -59,10 +61,21 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
   onSelectHub,
   onWriteHypothesis,
   onSeedFromFactorIntel,
+  onProposeHypothesis,
 }) => {
   const locale = useWallLocale();
 
   if (hubs.length === 0) {
+    if (findings.length > 0) {
+      return (
+        <WallArrival
+          findings={findings}
+          onProposeHypothesis={onProposeHypothesis}
+          onWriteHypothesis={onWriteHypothesis}
+          onSeedFromFactorIntel={onSeedFromFactorIntel}
+        />
+      );
+    }
     return (
       <EmptyState
         onWriteHypothesis={onWriteHypothesis}

@@ -106,6 +106,18 @@ const evidencedFindings: Finding[] = [
   } as unknown as Finding,
 ];
 
+const orphanFinding: Finding = {
+  id: 'f-orphan',
+  text: 'obs 32-58 elevated',
+  evidenceType: 'data',
+  createdAt: 1,
+  deletedAt: null,
+  context: { activeFilters: { 'obs 32-58': ['in'] }, cumulativeScope: null },
+  status: 'observed',
+  comments: [],
+  statusChangedAt: 1,
+} as unknown as Finding;
+
 describe('WallCanvas', () => {
   beforeEach(() => {
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
@@ -122,6 +134,27 @@ describe('WallCanvas', () => {
       />
     );
     expect(screen.getByText(/Start a Mechanism Branch/i)).toBeInTheDocument();
+  });
+
+  it('renders findings-forward Wall arrival when findings exist but no hubs', () => {
+    render(
+      <WallCanvas
+        hubs={[]}
+        findings={[orphanFinding]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+        onWriteHypothesis={vi.fn()}
+        onSeedFromFactorIntel={vi.fn()}
+        onProposeHypothesis={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText(/You've observed:/i)).toBeInTheDocument();
+    expect(screen.getByText(/obs 32-58 elevated/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /What might cause this\?/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Write hypothesis/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Seed from factor intel/i })).toBeInTheDocument();
   });
 
   it('renders Problem card + hub cards when hubs present', () => {
