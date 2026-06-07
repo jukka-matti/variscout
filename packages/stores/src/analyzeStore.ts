@@ -88,6 +88,7 @@ export interface AnalyzeActions {
     evidenceType?: FindingEvidenceType
   ) => Finding;
   editFinding: (id: string, text: string) => void;
+  editFindingEvidenceType: (id: string, evidenceType: FindingEvidenceType) => void;
   deleteFinding: (id: string) => void;
   setFindingStatus: (id: string, status: FindingStatus) => void;
   setFindingTag: (id: string, tag: FindingTag | null) => void;
@@ -415,6 +416,12 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   editFinding: (id, text) => {
     set(state => ({
       findings: state.findings.map(f => (f.id === id ? { ...f, text } : f)),
+    }));
+  },
+
+  editFindingEvidenceType: (id, evidenceType) => {
+    set(state => ({
+      findings: state.findings.map(f => (f.id === id ? { ...f, evidenceType } : f)),
     }));
   },
 

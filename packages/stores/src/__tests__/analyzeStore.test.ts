@@ -126,6 +126,19 @@ describe('analyzeStore — findings', () => {
     expect(useAnalyzeStore.getState().findings[0].text).toBe('updated');
   });
 
+  it('editFindingEvidenceType reclassifies an existing finding', () => {
+    const store = useAnalyzeStore.getState();
+    const f = store.addFinding('Buyer note on batch 7', {
+      activeFilters: {},
+      cumulativeScope: null,
+    });
+    useAnalyzeStore.getState().editFindingEvidenceType(f.id, 'expert');
+
+    expect(useAnalyzeStore.getState().findings.find(x => x.id === f.id)?.evidenceType).toBe(
+      'expert'
+    );
+  });
+
   it('deletes a finding', () => {
     const ctx = makeContext();
     const f = useAnalyzeStore.getState().addFinding('to delete', ctx);
