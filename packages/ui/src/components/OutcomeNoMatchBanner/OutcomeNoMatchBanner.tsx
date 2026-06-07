@@ -81,7 +81,7 @@ export function OutcomeNoMatchBanner({
         />
       </label>
       {feedback && (
-        <p role="status" className="text-sm text-amber-300">
+        <p role="status" className="text-sm text-warning">
           {feedback.message}
         </p>
       )}

@@ -113,4 +113,17 @@ describe('deriveB0ModeCandidates', () => {
     expect(result.yColumns.map(column => column.name)).toEqual([]);
     expect(result.xColumns.map(column => column.name)).toEqual(['Batch']);
   });
+
+  it('does not re-add accepted performance channels through an explicit selected outcome', () => {
+    const result = deriveB0ModeCandidates({
+      rows: WIDE_ROWS,
+      analysisMode: 'performance',
+      measureColumns: ['V1', 'V2', 'V3', 'V4'],
+      selectedOutcome: 'V1',
+    });
+
+    expect(result.defaultOutcomeColumn).toBeNull();
+    expect(result.yColumns.map(column => column.name)).toEqual([]);
+    expect(result.xColumns.map(column => column.name)).toEqual(['Batch']);
+  });
 });
