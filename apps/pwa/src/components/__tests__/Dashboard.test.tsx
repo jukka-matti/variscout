@@ -170,10 +170,12 @@ describe('Dashboard', () => {
   it('opens the shared capture card for an I-Chart brush and saves a factor-backed Finding', () => {
     useProjectStore.setState({ filters: { Machine: ['A'] } });
     useViewStore.getState().setSelectedPoints(new Set([0, 1]));
-    const onAddChartObservation = vi.fn();
+    const onAddChartObservation = vi.fn(() => ({ id: 'f-captured' }));
+    const onOpenWall = vi.fn();
 
     render(
       <Dashboard
+        onOpenWall={onOpenWall}
         findingsCallbacks={{
           onAddChartObservation,
           chartFindings: { boxplot: [], pareto: [], ichart: [] },
@@ -202,6 +204,10 @@ describe('Dashboard', () => {
       })
     );
     expect(useViewStore.getState().selectedPoints.size).toBe(0);
+    expect(screen.getByRole('button', { name: /Take it to Analyze ->/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Take it to Analyze ->/i }));
+    expect(onOpenWall).toHaveBeenCalledTimes(1);
   });
 
   it('suffixes edited brush factor names instead of overwriting existing raw columns', () => {
@@ -218,6 +224,9 @@ describe('Dashboard', () => {
     expect(state.factors).toContain('Machine 2');
     expect(state.rawData.map(row => row.Machine)).toEqual(['A', 'A', 'B', 'B']);
     expect(state.rawData.map(row => row['Machine 2'])).toEqual(['in', 'in', 'out', 'out']);
+    expect(
+      screen.queryByRole('button', { name: /Take it to Analyze ->/i })
+    ).not.toBeInTheDocument();
   });
 
   it('maps rolling-lens brush indices onto the visible raw rows', () => {

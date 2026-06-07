@@ -535,11 +535,13 @@ describe('MobileChartCarousel', () => {
   });
 
   it('opens the shared capture card before saving a mobile chart observation', () => {
-    const onAddChartObservation = vi.fn();
+    const onAddChartObservation = vi.fn(() => ({ id: 'f-mobile' }));
     const onPinFinding = vi.fn();
+    const onOpenWall = vi.fn();
     render(
       <MobileChartCarousel
         {...defaultProps}
+        onOpenWall={onOpenWall}
         onPinFinding={onPinFinding}
         findingsCallbacks={{ onAddChartObservation }}
       />
@@ -573,6 +575,10 @@ describe('MobileChartCarousel', () => {
     );
     // Should NOT fall through to onPinFinding
     expect(onPinFinding).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /Take it to Analyze ->/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Take it to Analyze ->/i }));
+    expect(onOpenWall).toHaveBeenCalledTimes(1);
   });
 
   it('offers mobile chart capture when only chart observation callbacks are provided', () => {

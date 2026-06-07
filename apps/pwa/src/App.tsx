@@ -1616,6 +1616,10 @@ function AppMain() {
                 onPinFinding={handlePinFinding}
                 requestedFactor={activeIPAnalyzeFactorRequest}
                 activeIPScope={activeIPScope}
+                onOpenWall={() => {
+                  useCanvasViewportStore.getState().setViewMode('wall');
+                  panels.showAnalyze();
+                }}
                 findingsCallbacks={{
                   onAddChartObservation: handleAddChartObservation,
                   chartFindings,

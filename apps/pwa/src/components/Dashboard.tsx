@@ -116,6 +116,7 @@ interface DashboardProps {
     title: string;
     labels: ActiveIPScopeLabels;
   } | null;
+  onOpenWall?: () => void;
 }
 
 const Dashboard = ({
@@ -138,6 +139,7 @@ const Dashboard = ({
   onExportImage: _onExportImage,
   requestedFactor,
   activeIPScope,
+  onOpenWall,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding, onOpenFinding } =
     findingsCallbacks ?? {};
@@ -180,6 +182,7 @@ const Dashboard = ({
   const { t } = useTranslation();
   const [analysisLensTab, setAnalysisLensTab] = useState<AnalysisLensTab>('probability');
   const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
+  const [showCaptureAfterglow, setShowCaptureAfterglow] = useState(false);
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveModeUtil(analysisMode) === 'defect';
@@ -468,7 +471,7 @@ const Dashboard = ({
 
       const activeFilters = applyDerivedFactorToFilters(captureDraft.activeFilters, factorName);
       if (captureMode === 'capture' && captureDraft.source.chart === 'ichart') {
-        onAddChartObservation?.(
+        const finding = onAddChartObservation?.(
           'ichart',
           undefined,
           captureDraft.note,
@@ -480,8 +483,9 @@ const Dashboard = ({
             activeFilters,
           }
         );
+        if (finding) setShowCaptureAfterglow(true);
       } else if (captureMode === 'capture' && captureDraft.source.chart === 'probability') {
-        onAddChartObservation?.(
+        const finding = onAddChartObservation?.(
           'probability',
           undefined,
           captureDraft.note,
@@ -493,6 +497,7 @@ const Dashboard = ({
             activeFilters,
           }
         );
+        if (finding) setShowCaptureAfterglow(true);
       }
 
       clearSelection();
@@ -517,7 +522,7 @@ const Dashboard = ({
   const saveCategoryCaptureDraft = useCallback(() => {
     if (!captureDraft || captureDraft.entryKind !== 'point') return;
     if (captureDraft.source.chart !== 'boxplot' && captureDraft.source.chart !== 'pareto') return;
-    onAddChartObservation?.(
+    const finding = onAddChartObservation?.(
       captureDraft.source.chart,
       captureDraft.source.category,
       captureDraft.note,
@@ -528,6 +533,7 @@ const Dashboard = ({
         activeFilters: captureDraft.activeFilters,
       }
     );
+    if (finding) setShowCaptureAfterglow(true);
     setCaptureDraft(null);
   }, [captureDraft, onAddChartObservation]);
 
@@ -911,6 +917,31 @@ const Dashboard = ({
             }}
           />
         )}
+        {showCaptureAfterglow && onOpenWall ? (
+          <div
+            role="status"
+            className="mx-4 mb-3 rounded border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-950"
+          >
+            <button
+              type="button"
+              className="font-semibold underline"
+              onClick={() => {
+                setShowCaptureAfterglow(false);
+                onOpenWall();
+              }}
+            >
+              Take it to Analyze -&gt;
+            </button>
+            <button
+              type="button"
+              aria-label="Dismiss Analyze afterglow"
+              className="ml-3 text-blue-700"
+              onClick={() => setShowCaptureAfterglow(false)}
+            >
+              Dismiss
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {/* DEFERRED(lv1-pwa-mount): Mount <ScopeChrome> when PWA gains a Process tab

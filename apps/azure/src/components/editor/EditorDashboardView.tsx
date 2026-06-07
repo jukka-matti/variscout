@@ -86,6 +86,7 @@ interface EditorDashboardViewProps {
   binnedFactorBindings?: BinnedFactorBinding[];
   /** G1 Task 7: synchronous patch handler for `binnedFactorBindings`. */
   onBindingsChange?: (next: BinnedFactorBinding[]) => void;
+  onOpenWall?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -116,6 +117,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   categoricalValuesByColumn,
   binnedFactorBindings,
   onBindingsChange,
+  onOpenWall,
 }) => {
   // ── Store selectors ──────────────────────────────────────────────────────
   const factors = useProjectStore(s => s.factors);
@@ -201,6 +203,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           onPinFinding={handlePinFinding}
           onShareChart={handleShareChart}
           onInvestigateFactor={handleInvestigateFactor}
+          onOpenWall={onOpenWall}
           projectedCpkMap={projectedCpkMap}
           activeIPScope={activeIPScope}
           aiAvailable={aiAvailable}

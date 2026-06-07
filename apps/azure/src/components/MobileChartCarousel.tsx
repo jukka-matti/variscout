@@ -142,6 +142,7 @@ interface MobileChartCarouselProps {
   }) => void;
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
   onInvestigateFactor?: (effect: import('@variscout/core/stats').FactorMainEffect) => void;
+  onOpenWall?: () => void;
   /**
    * G1 Task 4: derived categorical columns from the active ImprovementProject.
    * Passed through to the Boxplot render for derived factor data augmentation.
@@ -179,6 +180,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   findingsCallbacks,
   onAskCoScout,
   onInvestigateFactor,
+  onOpenWall,
   categoricalValuesByColumn,
 }) => {
   const {
@@ -318,6 +320,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   const [sheetFactor, setSheetFactor] = useState<string>('');
   const [sheetChartType, setSheetChartType] = useState<'boxplot' | 'pareto'>('boxplot');
   const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
+  const [showCaptureAfterglow, setShowCaptureAfterglow] = useState(false);
 
   // Post-pin "Assign & Share" state
   const [pinnedFinding, setPinnedFinding] = useState<Finding | null>(null);
@@ -471,6 +474,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
     );
     const finding = result || undefined;
     setCaptureDraft(null);
+    if (finding) setShowCaptureAfterglow(true);
 
     if (finding && canMentionInChannel) {
       setPinnedFinding(finding);
@@ -805,6 +809,31 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
           onCancel={() => setCaptureDraft(null)}
         />
       )}
+      {showCaptureAfterglow && onOpenWall ? (
+        <div
+          role="status"
+          className="mx-3 mb-3 rounded border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-950"
+        >
+          <button
+            type="button"
+            className="font-semibold underline"
+            onClick={() => {
+              setShowCaptureAfterglow(false);
+              onOpenWall();
+            }}
+          >
+            Take it to Analyze -&gt;
+          </button>
+          <button
+            type="button"
+            aria-label="Dismiss Analyze afterglow"
+            className="ml-3 text-blue-700"
+            onClick={() => setShowCaptureAfterglow(false)}
+          >
+            Dismiss
+          </button>
+        </div>
+      ) : null}
 
       {/* Evidence Map Node Sheet */}
       {nodeSheet && (
