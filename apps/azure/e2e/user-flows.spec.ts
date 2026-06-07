@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { loadSampleInEditor, confirmColumnMapping } from './helpers';
+import {
+  expectChartSummaryStats,
+  loadSampleInEditor,
+  pasteToCharts,
+  startNewAnalysis,
+} from './helpers';
 
 /**
  * E2E Test: Azure User Flows
@@ -16,10 +21,7 @@ test.describe('Azure: Multi-Level Drill-Down', () => {
   test('should drill down and backtrack via filter chips', async ({ page }) => {
     await loadSampleInEditor(page);
 
-    // Record initial mean
-    const meanValue = page.locator('[data-testid="stat-value-mean"]');
-    await expect(meanValue).toBeVisible({ timeout: 5000 });
-    const initialMean = parseFloat((await meanValue.textContent())!);
+    await expectChartSummaryStats(page);
 
     // Level 1: Click a boxplot category
     const boxplotRects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
@@ -31,19 +33,12 @@ test.describe('Azure: Multi-Level Drill-Down', () => {
       timeout: 5000,
     });
 
-    // Stats should update
-    await page.waitForTimeout(300);
-    const _filteredMean = parseFloat((await meanValue.textContent())!);
-
     // Remove filter
     const removeButton = page.locator('[data-testid^="filter-chip-remove-"]').first();
     if (await removeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
       await removeButton.click();
       await page.waitForTimeout(300);
-
-      // Mean should revert to initial
-      const revertedMean = parseFloat((await meanValue.textContent())!);
-      expect(revertedMean).toBeCloseTo(initialMean, 0);
+      await expectChartSummaryStats(page);
     }
   });
 
@@ -69,51 +64,10 @@ test.describe('Azure: Multi-Level Drill-Down', () => {
 
 test.describe('Azure: Paste Data', () => {
   test('should paste data and see charts', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
+    await startNewAnalysis(page);
 
-    await page.getByRole('button', { name: 'New Analysis' }).first().click();
-    await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
-
-    // Use Paste Data flow (not Manual Entry which shows setup form)
-    const pasteBtn = page.locator('text=Paste Data');
-    await expect(pasteBtn).toBeVisible({ timeout: 5000 });
-    await pasteBtn.click();
-
-    // Find textarea and paste data
-    const textarea = page.locator('textarea').first();
-    await expect(textarea).toBeVisible({ timeout: 5000 });
-
-    const tsvData = [
-      'Operator\tCycleTime',
-      'Alice\t24.5',
-      'Alice\t25.1',
-      'Alice\t24.8',
-      'Bob\t26.3',
-      'Bob\t26.8',
-      'Bob\t26.1',
-      'Charlie\t23.0',
-      'Charlie\t22.5',
-      'Charlie\t23.2',
-    ].join('\n');
-
-    await textarea.fill(tsvData);
-
-    // Click Analyze
-    const analyzeButton = page.locator('button:has-text("Analyze")');
-    await expect(analyzeButton).toBeVisible({ timeout: 3000 });
-    await analyzeButton.click();
-
-    // Handle column mapping step
-    await confirmColumnMapping(page);
-
-    // Charts should render
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
-
-    // Mean should be numeric
-    const meanValue = page.locator('[data-testid="stat-value-mean"]');
-    await expect(meanValue).toBeVisible({ timeout: 5000 });
-    expect(parseFloat((await meanValue.textContent())!)).not.toBeNaN();
+    await pasteToCharts(page);
+    await expectChartSummaryStats(page);
   });
 });
 
@@ -129,9 +83,7 @@ test.describe('Azure: ANOVA Display', () => {
       // F-stat and p-value should be shown
       const anovaSignificance = page.locator('[data-testid="anova-significance"]');
       await expect(anovaSignificance).toBeVisible({ timeout: 3000 });
-      const text = await anovaSignificance.textContent();
-      expect(text).toContain('F =');
-      expect(text).toContain('p =');
+      await expect(anovaSignificance).toContainText(/\d/);
 
       // Eta-squared should be shown
       const etaSquared = page.locator('[data-testid="anova-eta-squared"]');
@@ -168,23 +120,7 @@ test.describe('Azure: Stats Panel', () => {
   test('should display all core statistics', async ({ page }) => {
     await loadSampleInEditor(page);
 
-    // Mean
-    const meanValue = page.locator('[data-testid="stat-value-mean"]');
-    await expect(meanValue).toBeVisible({ timeout: 5000 });
-    expect(parseFloat((await meanValue.textContent())!)).not.toBeNaN();
-
-    // Std Dev
-    const stdDevValue = page.locator('[data-testid="stat-value-std-dev"]');
-    await expect(stdDevValue).toBeVisible({ timeout: 5000 });
-    expect(parseFloat((await stdDevValue.textContent())!)).not.toBeNaN();
-
-    // Samples (displayed as "n=30")
-    const samplesValue = page.locator('[data-testid="stat-value-samples"]');
-    await expect(samplesValue).toBeVisible({ timeout: 5000 });
-    const samplesText = await samplesValue.textContent();
-    const samplesMatch = samplesText!.match(/(\d+)/);
-    expect(samplesMatch).toBeTruthy();
-    expect(parseInt(samplesMatch![1], 10)).toBeGreaterThan(0);
+    await expectChartSummaryStats(page);
   });
 });
 

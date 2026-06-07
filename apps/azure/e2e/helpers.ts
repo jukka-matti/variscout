@@ -7,17 +7,11 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
- * Complete the ColumnMapping step after loading data.
+ * Complete the permanent Fix data / multi-outcome wizard hatch.
  *
- * After a sample is loaded (or data pasted/uploaded), the app shows
- * the "Map Your Data" ColumnMapping screen (Stage 3). The refactored
- * ColumnMapping uses OutcomeCandidateRow for multi-select. Sample
- * datasets auto-detect the outcome column, so the initialOutcome
- * prop pre-selects a row — the "Start Analysis" button becomes enabled
- * when at least one candidate row is selected.
- *
- * @param outcomeName - Optional column name to explicitly select as the
- *   outcome. If omitted, relies on the pre-selected initialOutcome.
+ * First-session E2E should not use this helper as its default spine. Normal
+ * journeys go paste/sample -> b0 -> See the data; this helper remains only for
+ * explicit ColumnMapping hatch coverage.
  */
 export async function confirmColumnMapping(page: Page, outcomeName?: string) {
   await expect(page.locator('text=Map Your Data')).toBeVisible({ timeout: 5000 });
@@ -44,35 +38,135 @@ export async function confirmColumnMapping(page: Page, outcomeName?: string) {
     .click();
 }
 
+export async function startNewAnalysis(page: Page) {
+  await page.goto('/');
+  await expect(
+    page
+      .locator('text=Start Your Analysis')
+      .or(page.getByRole('button', { name: 'New Analysis' }).first())
+  ).toBeVisible({ timeout: 10000 });
+
+  if (
+    await page
+      .locator('text=Start Your Analysis')
+      .isVisible({ timeout: 1000 })
+      .catch(() => false)
+  ) {
+    return;
+  }
+
+  await page.getByRole('button', { name: 'New Analysis' }).first().click();
+  await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
+}
+
+export async function resetToFreshAnalysis(page: Page) {
+  await page.goto('/');
+  await page.evaluate(async () => {
+    window.localStorage?.clear();
+    window.sessionStorage?.clear();
+
+    if (indexedDB.databases) {
+      const databases = await indexedDB.databases();
+      await Promise.all(
+        databases.map(
+          database =>
+            database.name &&
+            new Promise<void>(resolve => {
+              const request = indexedDB.deleteDatabase(database.name);
+              request.onsuccess = request.onerror = request.onblocked = () => resolve();
+            })
+        )
+      );
+    }
+  });
+  await page.goto('/');
+  await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 10000 });
+}
+
+export async function openPasteData(page: Page) {
+  const textarea = page.getByTestId('paste-textarea');
+  if (await textarea.isVisible({ timeout: 1000 }).catch(() => false)) {
+    return;
+  }
+
+  await page.getByRole('button', { name: 'Paste Data' }).first().click();
+  await expect(textarea).toBeVisible({ timeout: 8000 });
+}
+
+export async function seeB0Data(page: Page) {
+  const chart = page.locator('[data-testid="chart-ichart"]');
+  if (await chart.isVisible({ timeout: 1000 }).catch(() => false)) {
+    return;
+  }
+
+  await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 15000 });
+  const acceptedPerformanceSeeData = page.getByTestId('b0-performance-accepted-see-data');
+  if (await acceptedPerformanceSeeData.isVisible({ timeout: 500 }).catch(() => false)) {
+    await acceptedPerformanceSeeData.click();
+  } else {
+    await page.getByTestId('see-the-data-cta').click();
+  }
+  await expect(chart).toBeVisible({ timeout: 15000 });
+}
+
+export async function expectChartSummaryStats(page: Page) {
+  await expect(page.locator('text=/x̄\\d/').first()).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('text=/σ\\d/').first()).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('text=/n\\d/').first()).toBeVisible({ timeout: 5000 });
+}
+
+export async function pasteToCharts(page: Page, csv: string = MODE_B_CSV): Promise<void> {
+  await pasteToB0(page, csv);
+  await seeB0Data(page);
+}
+
+export async function loadSampleToB0(page: Page, sampleTestId?: string): Promise<void> {
+  const sampleButton = sampleTestId
+    ? page.getByTestId(sampleTestId)
+    : page.locator('[data-testid^="sample-"]').first();
+  await expect(sampleButton).toBeVisible({ timeout: 5000 });
+  await sampleButton.click();
+  await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId('map-your-data-heading')).toHaveCount(0);
+}
+
+export async function loadSampleToCharts(page: Page, sampleTestId?: string): Promise<void> {
+  await loadSampleToB0(page, sampleTestId);
+  await seeB0Data(page);
+}
+
+export async function selectB0Outcome(page: Page, outcomeName: string): Promise<void> {
+  const candidate = page
+    .getByTestId('frame-view-b0')
+    .getByText(outcomeName, { exact: true })
+    .first();
+  await expect(candidate).toBeVisible({ timeout: 5000 });
+  await candidate.click();
+  await expect(page.getByTestId('y-picker-selected-row')).toContainText(outcomeName, {
+    timeout: 5000,
+  });
+}
+
+export async function openFixDataWizard(page: Page): Promise<void> {
+  await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 15000 });
+  await page.getByTestId('b0-fix-data').click();
+  await expect(page.locator('text=Map Your Data')).toBeVisible({ timeout: 5000 });
+}
+
 /**
  * Navigate to editor, load the first sample, confirm mapping, and wait for charts.
  */
 export async function loadSampleInEditor(page: Page) {
-  await page.goto('/');
-  await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-  await page.getByRole('button', { name: 'New Analysis' }).first().click();
-  await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
-
-  const sampleButton = page.locator('[data-testid^="sample-"]').first();
-  await sampleButton.click();
-
-  await confirmColumnMapping(page);
-  await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+  await startNewAnalysis(page);
+  await loadSampleToCharts(page);
 }
 
 /**
  * Load the large-scale performance-mode sample and confirm mapping.
  */
 export async function loadPerformanceSample(page: Page) {
-  await page.goto('/');
-  await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-  await page.getByRole('button', { name: 'New Analysis' }).first().click();
-  await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
-
-  await page.locator('[data-testid="sample-large-scale"]').click();
-
-  await confirmColumnMapping(page);
-  await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+  await startNewAnalysis(page);
+  await loadSampleToCharts(page, 'sample-large-scale');
 }
 
 // ── Mode B helpers ────────────────────────────────────────────────────────────
@@ -140,10 +234,10 @@ export async function pasteDataAndAnalyze(page: Page, csv: string = MODE_B_CSV):
  *   MODE_B_CSV (weight_g outcome + two categoricals).
  */
 export async function pasteToB0(page: Page, tsv: string = MODE_B_CSV): Promise<void> {
-  await expect(page.getByTestId('paste-textarea')).toBeVisible({ timeout: 8000 });
+  await openPasteData(page);
   await page.getByTestId('paste-textarea').fill(tsv);
   await page.getByTestId('paste-start-analysis').click();
-  // FSJ-3b: measurement paste skips the wizard and lands at frame-view-b0.
+  // FSJ-10: fresh paste skips the wizard and lands at frame-view-b0.
   // hub-creation-stage1 and "Map Your Data" must NOT appear.
   await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 15000 });
 }
