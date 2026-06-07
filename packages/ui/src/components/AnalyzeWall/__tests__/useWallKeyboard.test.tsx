@@ -17,6 +17,13 @@ describe('useWallKeyboard', () => {
     expect(onRunAndCheck).toHaveBeenCalled();
   });
 
+  it('calls onFit for F', () => {
+    const onFit = vi.fn();
+    renderHook(() => useWallKeyboard({ onFit }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'f' }));
+    expect(onFit).toHaveBeenCalledTimes(1);
+  });
+
   it('calls onToggleRail for cmd+/', () => {
     const onToggleRail = vi.fn();
     renderHook(() => useWallKeyboard({ onToggleRail }));
@@ -33,6 +40,17 @@ describe('useWallKeyboard', () => {
     // Dispatch on the input so target is the input element
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'n', bubbles: true }));
     expect(onNewHypothesis).not.toHaveBeenCalled();
+    input.remove();
+  });
+
+  it('does not call onFit while typing in an input', () => {
+    const onFit = vi.fn();
+    renderHook(() => useWallKeyboard({ onFit }));
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true }));
+    expect(onFit).not.toHaveBeenCalled();
     input.remove();
   });
 
