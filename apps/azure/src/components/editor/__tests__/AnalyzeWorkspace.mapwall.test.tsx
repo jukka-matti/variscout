@@ -492,13 +492,12 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     });
   });
 
-  // IM-4c — propose-hypothesis-from-finding app wiring (the createHubFromFinding
-  // TRAP). The Azure Wall renders `hypothesesState.hubs` (the useHypotheses
-  // hook), so the app MUST route propose through createHub + connectFinding on
-  // THAT hook — not analyzeStore.createHubFromFinding (a different collection
-  // that would NOT re-render the Wall). This asserts the wired path; the
-  // render-through is proven by WallCanvas.proposeHypothesis.seam.test.tsx.
-  describe('propose-hypothesis app wiring (createHubFromFinding trap)', () => {
+  // FSJ-8 — propose-hypothesis app wiring. The Azure Wall renders
+  // `hypothesesState.hubs` (the useHypotheses hook), so the app MUST route the
+  // named promotion through createHub + connectFinding on that hook. This
+  // asserts the wired path; the render-through is proven by
+  // WallCanvas.proposeHypothesis.seam.test.tsx.
+  describe('propose-hypothesis app wiring', () => {
     beforeEach(() => {
       capturedWallCanvasProps.current = null;
       useCanvasViewportStore.getState().setViewMode('wall');
@@ -561,15 +560,14 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
       render(<AnalyzeWorkspace {...props} />);
 
       const onProposeHypothesis = capturedWallCanvasProps.current!.onProposeHypothesis as (
-        findingId: string
+        findingId: string,
+        name: string
       ) => void;
-      onProposeHypothesis('f-orphan');
+      onProposeHypothesis('f-orphan', 'Coolant recirculation lag');
 
       // Routes through the useHypotheses hook (the Wall's source of truth).
       expect(createHub).toHaveBeenCalledTimes(1);
-      expect((createHub.mock.calls[0] as unknown[])[0]).toMatch(
-        /Suspected mechanism: Coolant temp/
-      );
+      expect((createHub.mock.calls[0] as unknown[])[0]).toBe('Coolant recirculation lag');
       expect(connectFinding).toHaveBeenCalledWith('hub-new', 'f-orphan');
     });
   });

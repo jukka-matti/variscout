@@ -285,12 +285,13 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     }
   }, [returnNavigation]);
 
-  // IM-4c — "propose suspected mechanism from this finding". The PWA Wall reads
-  // hubs from useAnalyzeStore.hypotheses REACTIVELY (line above), so
-  // createHubFromFinding (which appends to that exact collection) re-renders the
-  // Wall with the new hypothesis card. No follow-through sync needed.
-  const handleProposeHypothesis = useCallback((findingId: string) => {
-    useAnalyzeStore.getState().createHubFromFinding(findingId);
+  // FSJ-8 — finding promotion requires a plain-language hypothesis name before
+  // creating the hub. The PWA Wall reads useAnalyzeStore.hypotheses reactively,
+  // so create + connect through that same collection.
+  const handleProposeHypothesis = useCallback((findingId: string, name: string) => {
+    const store = useAnalyzeStore.getState();
+    const hub = store.createHub(name, '');
+    store.connectFindingToHub(hub.id, findingId);
   }, []);
 
   // CS-13 — the crossing-back (spec §4.0a). PWA parity note: the scope lands in

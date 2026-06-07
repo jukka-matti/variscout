@@ -157,6 +157,31 @@ describe('WallCanvas', () => {
     expect(screen.getByRole('button', { name: /Seed from factor intel/i })).toBeInTheDocument();
   });
 
+  it('prompts for a plain-language hypothesis name before promoting a finding', () => {
+    const onProposeHypothesis = vi.fn();
+    render(
+      <WallCanvas
+        hubs={[]}
+        findings={[orphanFinding]}
+        processMap={processMap}
+        problemCpk={0.78}
+        eventsPerWeek={42}
+        onProposeHypothesis={onProposeHypothesis}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /What might cause this\?/i }));
+
+    const input = screen.getByLabelText(/What might cause this\?/i);
+    expect(input).toHaveValue('');
+    expect(screen.getByRole('button', { name: /Create hypothesis/i })).toBeDisabled();
+
+    fireEvent.change(input, { target: { value: 'Worn fill nozzle' } });
+    fireEvent.click(screen.getByRole('button', { name: /Create hypothesis/i }));
+
+    expect(onProposeHypothesis).toHaveBeenCalledWith('f-orphan', 'Worn fill nozzle');
+  });
+
   it('renders Problem card + hub cards when hubs present', () => {
     render(
       <WallCanvas
