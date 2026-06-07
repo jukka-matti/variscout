@@ -1577,3 +1577,55 @@ FSJ-3a final branch review: one full-suite run failed `POST /api/hub-comments/ap
 ## `.vrs` import is dead in the Azure UI [LOGGED 2026-06-06]
 
 FSJ-3 grounding: `importFromFile` exists (`apps/azure/src/lib/persistence.ts`) and the portfolio Dashboard has a gated `FileBrowseButton`, but `App.tsx` never passes `onLoadProjectFile`, so the button never renders — there is no live `.vrs` import entry point in Azure. The spec §1 `.vrs`-routes-by-altitude rule therefore has nothing to hook into on Azure; FSJ-3a/3b skip it by design. Revive (wire the prop + land by the altitude rule + R6d unsaved/forkable semantics) when `.vrs` import matters for the Azure SKU.
+
+## FSJ-10 gate walk: `TIME_LIKE_NAME` regex rejects `CycleTime` as a Y candidate — the whole b0 paste path dead-ends [LOGGED 2026-06-07]
+
+Collaborative chrome walk (PWA, post-#324–#326): pasting a `Date/Line/Shift/CycleTime` dataset lands at b0 ✅ but the Y picker says "_No numeric columns detected_" and "See the data" never enables. Root cause grounded in code: `packages/core/src/parser/yLikelihood.ts:28` `TIME_LIKE_NAME = /…|.*time$|.*date$|…/i` hard-excludes any column **ending in "time"** from Y candidacy — so CycleTime / LeadTime / Downtime / TaktTime, the most common Y vocabulary in process improvement, are filtered out by name. Three compounding symptoms, one root: (1) `yColumns` empty → the misleading "No numeric columns detected" copy (it means "no plausible Y candidates"; the data plainly has numerics); (2) the manual outcome pick is validated against the same empty ranked set (`deriveB0ModeCandidates.ts:79-80`) so typing the exact column name **silently no-ops** — no feedback at all; (3) after the Fix-data wizard successfully applies Y (header updates to `CycleTime 47.45 ± 4.66 · n=32`), b0 re-derives through the same filter and **still shows the dead state**. Fix shape: content-based time exclusion (exclude on parsed date/datetime type; keep name-exclusion only for exact tokens like `time`/`date`/`timestamp`), accept an explicit user pick from any numeric column (not just the ranked set) with visible feedback on rejection, and differentiate the empty-state copy ("no numeric columns" vs "couldn't auto-rank — pick one"). Not an FSJ-10 regression per se — the regex predates it — but FSJ-10 made b0 the only interactive writer, so the dead-end is now total. → Codex fix plan [2026-06-07-b0-y-candidate-fix](../superpowers/plans/2026-06-07-b0-y-candidate-fix.md).
+
+## Map-Your-Data wizard is a dark-theme relic — ghosted text, black-box sparklines, 4/3 factor count [LOGGED 2026-06-07]
+
+The FSJ-3b "Fix data…" hatch opens the wizard with its dark-navy container styling intact while card internals render light-theme tokens: column names/types are near-invisible (dark-on-dark), sparklines/histograms render as solid black rectangles, and the outcome carousel is effectively unreadable. Owner call on the walk: the dark theme was deleted at some point; this modal never got migrated. Also "SELECT FACTORS — 4/3 selected" (over its own cap). Since the wizard is now a demoted escape hatch, decide restyle-vs-retire as part of the b0 fix: if the Y-candidate fix lands, the hatch's remaining job shrinks.
+
+## Finding note text truncates to one character + em-dash on capture cards [LOGGED 2026-06-07]
+
+A note typed as "Early observations run higher — check if this segment maps to Line B." renders as **"E—"** on the Findings-panel card and the Wall finding card. Suspect a summary/truncation helper splitting on the em-dash or a first-grapheme + dash format. Verify with a dash-free note to isolate.
+
+## Finding card shows dataset n, not condition n [LOGGED 2026-06-07]
+
+Brush-captured finding over obs 3–8 (evidence "mean 48.9 vs 47.1 · n=6") displays **n=32** (dataset size) on the Findings-panel card. The condition's own n is the meaningful number for a finding-as-condition.
+
+## Wall cold-start viewport: content microscopic + off-center; no fit-to-content [LOGGED 2026-06-07]
+
+First Wall arrival renders the finding/hypothesis cluster at a tiny zoom in the top-left; the minimap navigates but doesn't re-zoom; scroll-zoom recovers eventually. Same family as the Evidence-Map cold-start cropped viewBox fixed in PR #296 — the Wall needs its own fit-to-content on entry + after card adds, plus a zoom-to-fit control. Owner direction from the walk: **Miro/FigJam are the benchmark for the canvas-ergonomics layer** (fit-on-entry, cursor-centered zoom, minimap with viewport rect) — navigation primitives only, not freeform-everything (Model C stays rejected). Also the Analyze left sidebar reserves dead width (lone "Diverging" chip) which squeezes the Wall off-center.
+
+## "THE DETECTIVE MOVE NOBODY SHIPS" — internal codename leaks into the missing-evidence band [LOGGED 2026-06-07]
+
+The Wall's missing-evidence band reads "⚠ MISSING EVIDENCE · THE DETECTIVE MOVE NOBODY SHIPS (1)". Detective-pack internal vocabulary in user-facing copy; needs plain language ("Evidence you haven't checked yet" or similar).
+
+## Problem-condition card shows "Cpk 0.00" with no specs set [LOGGED 2026-06-07]
+
+The auto-created Problem-condition Wall card displays "CTS · Cpk 0.00 · 0 events" for a session where no specs were ever entered. Cpk without specs is undefined, not zero — should render "no specs set" (numeric-safety boundary B3 spirit: `formatStatistic` on `undefined`, never a fabricated 0).
+
+## Hypothesis Evaluate binds to the finding's brushed pseudo-factor, not the hypothesized factor [LOGGED 2026-06-07]
+
+"HOW DO I TEST THIS?" on a "Line B runs slower than Line A" hypothesis proposed **obs 3-8 · Boxplot + 2-sample** (the brush-segment pseudo-factor of the linked finding) instead of **Line**. Following the tool's own suggestion returns "inconclusive (p = 0.40)" for a hypothesis the data strongly supports (Line ΔR² 0.54). The disconfirmation-recording UX itself worked honestly. Suggestion should derive from factors named/implied by the hypothesis (cf. CS-12 derived-edge rule: `factor:`-namespaced candidates) or ask the user to pick the factor at Evaluate time.
+
+## PWA "Finding saved" is misleading — nothing persists; reload loses the whole first session [LOGGED 2026-06-07]
+
+Walk-verified: after capture + hypothesis + evaluate, **every store in `variscout-pwa-normalized` IDB is at 0 rows**; a fresh tab shows a clean landing. The only durability is the beforeunload guard + the "Export this investigation" nag, yet the banner's first words are "**Finding saved.**" Known deferral (reload-durability → CS-0b; PWA-scope follow-up), but the walk makes it the single biggest first-session risk: 30 minutes of investigation lost on tab close unless the user noticed a yellow banner. Minimum demo-safe fix: reword the banner ("Captured — export to keep it"). Real fix: draft persistence to IDB + restore-on-return. Priority input for the design sessions.
+
+## Light-theme contrast/ghosting cluster: logo wordmark, paste header, I-Chart card title, .vrs label seam [LOGGED 2026-06-07]
+
+Walk-collected polish cluster, likely one token family: (a) the header logo icon overlaps/occludes the "VariScout" wordmark; (b) the Paste-Data view title ghosts behind its icon badge; (c) the I-Chart card title ("I-Chart: CycleTime / VARISCOUT") renders white-on-light, near-invisible; (d) the landing's import row renders as "Import .vrsChoose .vrs file" (label/button run-on); (e) Variation-Sources y-axis tick labels overlap into an unreadable smear. One styling-pass PR.
+
+## FSJ-10 collaborative walk — design-session input list (owner-flagged) [LOGGED 2026-06-07]
+
+Owner-in-the-loop chrome walk of the full PWA first-session journey (2026-06-07, post-FSJ-10). Verification verdict: the FSJ spine works end-to-end once Y is set (paste→b0→Explore→brush-capture→Wall arrival→hypothesis→honest evaluate→unsaved-guard); best-subsets correctly top-ranked the planted Line effect. These are the **design questions** the walk surfaced, flagged live by the owner — route each to its named session:
+
+- **Exit IP — does it still mean anything?** (→ Project-tab session) "Working in IP: Untitled project · Exit IP" predates the IM-0a Project⟷Hub 1:1 collapse + the Untitled-pair model. With paste auto-creating the pair, what state is the user in after "exiting"? Candidate retirement. Verify what the control actually does today before the session.
+- **Capture-context modal vocabulary + opening states** (→ first-session/Home session) The post-mapping modal speaks "Open investigation →" with Issue + optional Hypothesis, while the settled model is Finding-centric (Investigate = response path, not entity; hypotheses emerge from evidence). The three openings — data-first (skip), issue-first, hypothesis-first — deserve deliberate design as first-class opening states rather than a modal inherited from the pre-pivot framing.
+- **"Take it to Analyze" is the most important next step and the most ephemeral element** (→ connective-surface/Home) The Explore→Analyze handoff appears as a dismissible transient banner; owner call: it belongs with the persistent actions (the + New analyze / Export .vrs / Edit framing band), not as a toast.
+- **"Diverging" loop-state chip** (→ next design session) The investigation-loop model (divergent Explore ⟷ convergent Analyze) is canon, but the chip sits unexplained + non-interactive in an otherwise-empty sidebar. Decide: is loop state user-facing vocabulary at all? If yes, where does it live and what does it afford?
+- **Hypothesis legibility: "MECHANISM BRANCH · PROPOSED" rang no bell for the owner** (→ next design session) Internal model vocabulary on user-facing cards. Card should say "Hypothesis" + an introduced status. Companion ask: **a tidy all-hypotheses overview** (status, evidence count, next check) — possibly the Analyze sidebar's actual job.
+- **Wall ergonomics benchmark = Miro/FigJam** (navigation primitives only; Model C stays rejected) — fit-to-content on entry, cursor-centered zoom, minimap with viewport rect, content centered (sidebar shouldn't reserve dead width).
+- **PWA durability is the top first-session risk** — see the dedicated entry above; design sessions should treat draft-persistence/restore as a candidate launch blocker, not polish.
