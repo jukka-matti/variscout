@@ -39,6 +39,7 @@ import type {
   CategoricalFilterInput,
   DisconfirmationAttempt,
 } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 import {
   createFinding,
   createFindingComment,
@@ -83,9 +84,11 @@ export interface AnalyzeActions {
     context: FindingContext,
     source?: FindingSource,
     scopeId?: ProblemStatementScope['id'],
-    originStepId?: string
+    originStepId?: string,
+    evidenceType?: FindingEvidenceType
   ) => Finding;
   editFinding: (id: string, text: string) => void;
+  editFindingEvidenceType: (id: string, evidenceType: FindingEvidenceType) => void;
   deleteFinding: (id: string) => void;
   setFindingStatus: (id: string, status: FindingStatus) => void;
   setFindingTag: (id: string, tag: FindingTag | null) => void;
@@ -388,7 +391,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   // Finding actions
   // ========================================================================
 
-  addFinding: (text, context, source?, scopeId?, originStepId?) => {
+  addFinding: (text, context, source?, scopeId?, originStepId?, evidenceType?) => {
     const base = createFinding(
       text,
       context.activeFilters,
@@ -404,6 +407,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
       ...base,
       ...(scopeId ? { scopeId } : {}),
       ...(originStepId ? { originStepId } : {}),
+      ...(evidenceType ? { evidenceType } : {}),
     };
     set(state => ({ findings: [finding, ...state.findings] }));
     return finding;
@@ -412,6 +416,12 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   editFinding: (id, text) => {
     set(state => ({
       findings: state.findings.map(f => (f.id === id ? { ...f, text } : f)),
+    }));
+  },
+
+  editFindingEvidenceType: (id, evidenceType) => {
+    set(state => ({
+      findings: state.findings.map(f => (f.id === id ? { ...f, evidenceType } : f)),
     }));
   },
 

@@ -678,7 +678,16 @@ function AppMain() {
         specs,
         drillPath
       );
-      const newFinding = useAnalyzeStore.getState().addFinding(noteText ?? '', context, source);
+      const newFinding = useAnalyzeStore
+        .getState()
+        .addFinding(
+          noteText ?? '',
+          context,
+          source,
+          undefined,
+          undefined,
+          captureOptions?.evidenceType
+        );
       markOwnFindingCaptured();
       panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(newFinding.id);
@@ -892,6 +901,10 @@ function AppMain() {
         break;
       case 'set-tag':
         useAnalyzeStore.getState().setFindingTag(action.id, action.tag ?? null);
+        break;
+      case 'set-evidence-type':
+        if (action.evidenceType)
+          useAnalyzeStore.getState().editFindingEvidenceType(action.id, action.evidenceType);
         break;
       case 'add-comment':
         if (action.text !== undefined)
@@ -1686,6 +1699,7 @@ function AppMain() {
                 onRestoreFinding={handleRestoreFinding}
                 onSetFindingStatus={investigation.handleSetFindingStatus}
                 onSetFindingTag={useAnalyzeStore.getState().setFindingTag}
+                onSetFindingEvidenceType={useAnalyzeStore.getState().editFindingEvidenceType}
                 onAddComment={(id, text) => {
                   // wrapper: the attachment param (Azure-only) is intentionally dropped in PWA
                   useAnalyzeStore.getState().addFindingComment(id, text);

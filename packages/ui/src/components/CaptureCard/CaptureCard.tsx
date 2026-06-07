@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import type { CaptureDraft } from '@variscout/hooks';
+import { EvidenceAnglePicker } from '../EvidenceAnglePicker';
 
-type EditableDraftFields = Pick<CaptureDraft, 'note' | 'proposedFactorName'>;
+type EditableDraftFields = Pick<CaptureDraft, 'note' | 'proposedFactorName' | 'evidenceType'>;
 
 export interface CaptureCardProps {
   draft: CaptureDraft;
@@ -97,6 +98,16 @@ export function CaptureCard({
             className="mt-1 w-full resize-none rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm"
           />
         </label>
+
+        <div className="mt-4">
+          <span className="block text-sm font-medium text-slate-700">Evidence angle</span>
+          <div className="mt-1">
+            <EvidenceAnglePicker
+              value={draft.evidenceType}
+              onChange={evidenceType => onDraftChange({ evidenceType })}
+            />
+          </div>
+        </div>
 
         <div className="mt-4 flex items-center justify-end gap-2">
           <button

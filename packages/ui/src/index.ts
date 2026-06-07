@@ -24,6 +24,10 @@ export {
 export { StageFiveModal, type StageFiveModalProps } from './components/StageFiveModal';
 export { SelectionPanel, type SelectionPanelProps } from './components/SelectionPanel';
 export { CaptureCard, type CaptureCardProps } from './components/CaptureCard';
+export {
+  EvidenceAnglePicker,
+  type EvidenceAnglePickerProps,
+} from './components/EvidenceAnglePicker';
 export { DurabilityNudge, type DurabilityNudgeProps } from './components/DurabilityNudge';
 export { CreateFactorModal, type CreateFactorModalProps } from './components/CreateFactorModal';
 export { AnovaResults, type AnovaResultsProps } from './components/AnovaResults';

@@ -587,6 +587,7 @@ describe('MobileChartCarousel', () => {
       {
         captureMode: 'capture',
         activeFilters: { Machine: ['A'] },
+        evidenceType: 'data',
       }
     );
     // Should NOT fall through to onPinFinding
@@ -622,6 +623,7 @@ describe('MobileChartCarousel', () => {
       {
         captureMode: 'capture',
         activeFilters: { Machine: ['A'] },
+        evidenceType: 'data',
       }
     );
   });

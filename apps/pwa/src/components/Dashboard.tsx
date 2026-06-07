@@ -481,6 +481,7 @@ const Dashboard = ({
             brushedRange: captureDraft.source.brushedRange,
             captureMode,
             activeFilters,
+            evidenceType: captureDraft.evidenceType,
           }
         );
         if (finding) setShowCaptureAfterglow(true);
@@ -495,6 +496,7 @@ const Dashboard = ({
             anchorYMax: captureDraft.source.anchorYMax,
             captureMode,
             activeFilters,
+            evidenceType: captureDraft.evidenceType,
           }
         );
         if (finding) setShowCaptureAfterglow(true);
@@ -531,6 +533,7 @@ const Dashboard = ({
       {
         captureMode: 'capture',
         activeFilters: captureDraft.activeFilters,
+        evidenceType: captureDraft.evidenceType,
       }
     );
     if (finding) setShowCaptureAfterglow(true);

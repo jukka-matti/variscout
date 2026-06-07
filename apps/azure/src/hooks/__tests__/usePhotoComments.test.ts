@@ -56,6 +56,7 @@ function createMockFindingsState(): UseFindingsReturn {
     findings: [],
     addFinding: vi.fn(),
     editFinding: vi.fn(),
+    editFindingEvidenceType: vi.fn(),
     deleteFinding: vi.fn(),
     getFindingContext: vi.fn(),
     findDuplicate: vi.fn(),

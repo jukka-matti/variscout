@@ -552,6 +552,7 @@ vi.mock('@variscout/hooks', () => ({
     conditionLabel: 'Process shift detected',
     evidenceLabel: 'I-Chart signal',
     proposedFactorName: 'Result shift',
+    evidenceType: 'data',
     note: '',
     activeFilters: {},
     source: { chart: 'ichart', anchorX: 0, anchorY: 10 },

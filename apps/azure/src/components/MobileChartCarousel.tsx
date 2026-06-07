@@ -470,6 +470,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
       {
         captureMode: 'capture',
         activeFilters: captureDraft.activeFilters,
+        evidenceType: captureDraft.evidenceType,
       }
     );
     const finding = result || undefined;

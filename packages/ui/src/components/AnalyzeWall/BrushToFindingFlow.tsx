@@ -93,6 +93,7 @@ function buildCaptureDraft(
       activeFilters: {},
       conditionLabel: factor ? `${factor} x ${proposedFactorName}` : proposedFactorName,
       evidenceLabel: `indices ${selection.startIdx}-${selection.endIdx}`,
+      evidenceType: 'data',
       note: '',
     };
   }
@@ -107,6 +108,7 @@ function buildCaptureDraft(
     activeFilters: factor ? { [factor]: [selection.category] } : {},
     conditionLabel: factor ? `${factor} = ${selection.category}` : `category ${selection.category}`,
     evidenceLabel: `category ${selection.category}`,
+    evidenceType: 'data',
     note: '',
   };
 }
@@ -159,7 +161,14 @@ export function BrushToFindingFlow({
     const context: FindingContext = { activeFilters: draft.activeFilters, cumulativeScope: null };
 
     // F5 will subscribe addFinding to HubAction persistence; we don't dispatch FINDING_ADD here.
-    const finding = store.addFinding(text, context, draft.source);
+    const finding = store.addFinding(
+      text,
+      context,
+      draft.source,
+      undefined,
+      undefined,
+      draft.evidenceType
+    );
     store.connectFindingToHub(hub.id, finding.id);
     setPendingSelection(null);
     setDraft(null);

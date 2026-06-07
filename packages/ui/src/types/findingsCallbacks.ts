@@ -1,10 +1,12 @@
 import type { Finding, FindingAssignee } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 
 export interface ChartObservationCaptureOptions {
   brushedRange?: { startIdx: number; endIdx: number };
   anchorYMax?: number;
   activeFilters?: Record<string, (string | number)[]>;
   captureMode?: 'capture' | 'factor-only';
+  evidenceType?: FindingEvidenceType;
 }
 
 /**

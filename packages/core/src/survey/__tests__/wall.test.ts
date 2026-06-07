@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { deriveHypothesisStatus, surveyWallRules } from '../wall';
 import type { Hypothesis, Finding } from '../../findings/types';
+import { createFinding, createHypothesis } from '../../findings';
 
 const baseH = (overrides: Partial<Hypothesis>): Hypothesis =>
   ({
@@ -93,6 +94,36 @@ describe('deriveHypothesisStatus', () => {
       ],
     });
     expect(deriveHypothesisStatus(h, findings)).toBe('evidence-survived-test');
+  });
+
+  it('two angles plus a survived attempt reaches evidence-survived-test; one angle does not', () => {
+    const dataFinding = { ...createFinding('high on B', {}, null), evidenceType: 'data' as const };
+    const gembaFinding = {
+      ...createFinding('jig sticks during changeover', {}, null),
+      evidenceType: 'gemba' as const,
+    };
+    const hypothesis = {
+      ...createHypothesis('Line B equipment difference', ''),
+      findingIds: [dataFinding.id, gembaFinding.id],
+      disconfirmationAttempts: [
+        {
+          id: 'a1',
+          description: 'swap jig',
+          verdict: 'survived' as const,
+          attemptedAt: '',
+          attemptedBy: { displayName: '' },
+          linkedFindingIds: [],
+        },
+      ],
+    };
+
+    expect(deriveHypothesisStatus(hypothesis, [dataFinding, gembaFinding])).toBe(
+      'evidence-survived-test'
+    );
+
+    const oneAngle = { ...hypothesis, findingIds: [dataFinding.id] };
+    expect(deriveHypothesisStatus(oneAngle, [dataFinding])).toBe('evidenced');
+    expect(deriveHypothesisStatus(oneAngle, [dataFinding])).not.toBe('evidence-survived-test');
   });
 });
 

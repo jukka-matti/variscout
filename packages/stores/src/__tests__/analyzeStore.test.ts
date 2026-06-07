@@ -91,6 +91,25 @@ describe('analyzeStore — findings', () => {
     expect(finding.originStepId).toBe('step-9');
   });
 
+  it('stores the evidence angle when provided and defaults to data when omitted', () => {
+    const store = useAnalyzeStore.getState();
+    const gemba = store.addFinding(
+      'Operator shows the jig sticking on changeover',
+      { activeFilters: {}, cumulativeScope: null },
+      undefined,
+      undefined,
+      undefined,
+      'gemba'
+    );
+    expect(gemba.evidenceType).toBe('gemba');
+
+    const plain = store.addFinding('Line B runs high', {
+      activeFilters: {},
+      cumulativeScope: null,
+    });
+    expect(plain.evidenceType).toBe('data');
+  });
+
   it('prepends new findings (newest first)', () => {
     const ctx = makeContext();
     useAnalyzeStore.getState().addFinding('first', ctx);
@@ -105,6 +124,19 @@ describe('analyzeStore — findings', () => {
     const f = useAnalyzeStore.getState().addFinding('original', ctx);
     useAnalyzeStore.getState().editFinding(f.id, 'updated');
     expect(useAnalyzeStore.getState().findings[0].text).toBe('updated');
+  });
+
+  it('editFindingEvidenceType reclassifies an existing finding', () => {
+    const store = useAnalyzeStore.getState();
+    const f = store.addFinding('Buyer note on batch 7', {
+      activeFilters: {},
+      cumulativeScope: null,
+    });
+    useAnalyzeStore.getState().editFindingEvidenceType(f.id, 'expert');
+
+    expect(useAnalyzeStore.getState().findings.find(x => x.id === f.id)?.evidenceType).toBe(
+      'expert'
+    );
   });
 
   it('deletes a finding', () => {

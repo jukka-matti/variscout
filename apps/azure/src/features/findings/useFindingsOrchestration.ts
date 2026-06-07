@@ -212,7 +212,14 @@ export function useFindingsOrchestration({
         specs,
         drillPath
       );
-      const newFinding = findingsState.addFinding(noteText ?? '', context, source);
+      const newFinding = findingsState.addFinding(
+        noteText ?? '',
+        context,
+        source,
+        undefined,
+        undefined,
+        captureOptions?.evidenceType
+      );
       onOwnFindingCaptured?.(newFinding);
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);

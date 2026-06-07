@@ -319,6 +319,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       {
         captureMode: 'capture',
         activeFilters: captureDraft.activeFilters,
+        evidenceType: captureDraft.evidenceType,
       }
     );
     setCaptureDraft(null);
