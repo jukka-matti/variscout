@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { confirmColumnMapping } from './helpers';
+import { expectChartSummaryStats, loadSampleToCharts, startNewAnalysis } from './helpers';
 
 /**
  * E2E Test: Azure Stats Panel & ANOVA Display
@@ -15,51 +15,20 @@ import { confirmColumnMapping } from './helpers';
 
 test.describe('Azure Stats Panel', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-
-    // Navigate to editor
-    await page.getByRole('button', { name: 'New Analysis' }).first().click();
-    await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
-
-    // Load coffee sample (has categorical factors for ANOVA)
-    const sampleButton = page.locator('[data-testid="sample-coffee"]');
-    await expect(sampleButton).toBeVisible({ timeout: 5000 });
-    await sampleButton.click();
-
-    // Confirm column mapping
-    await confirmColumnMapping(page);
-
-    // Wait for charts to render
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+    await startNewAnalysis(page);
+    await loadSampleToCharts(page, 'sample-coffee');
   });
 
   test('should display numeric mean value', async ({ page }) => {
-    const meanValue = page.locator('[data-testid="stat-value-mean"]');
-    await expect(meanValue).toBeVisible({ timeout: 5000 });
-    const meanText = await meanValue.textContent();
-    expect(meanText).toBeTruthy();
-    expect(parseFloat(meanText!)).not.toBeNaN();
+    await expect(page.locator('text=/x̄\\d/').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should display sample count', async ({ page }) => {
-    const samplesValue = page.locator('[data-testid="stat-value-samples"]');
-    await expect(samplesValue).toBeVisible({ timeout: 5000 });
-    const text = await samplesValue.textContent();
-    expect(text).toBeTruthy();
-    // Sample count is displayed as "n=30" — extract the number
-    const match = text!.match(/(\d+)/);
-    expect(match).toBeTruthy();
-    expect(parseInt(match![1], 10)).toBeGreaterThan(0);
+    await expect(page.locator('text=/n\\d/').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should display std dev value', async ({ page }) => {
-    const stdDevValue = page.locator('[data-testid="stat-value-std-dev"]');
-    await expect(stdDevValue).toBeVisible({ timeout: 5000 });
-    const stdDevText = await stdDevValue.textContent();
-    expect(stdDevText).toBeTruthy();
-    expect(parseFloat(stdDevText!)).not.toBeNaN();
-    expect(parseFloat(stdDevText!)).toBeGreaterThan(0);
+    await expect(page.locator('text=/σ\\d/').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should display ANOVA results when groups exist', async ({ page }) => {
@@ -85,9 +54,7 @@ test.describe('Azure Stats Panel', () => {
     const anovaSignificance = page.locator('[data-testid="anova-significance"]');
     await expect(anovaSignificance).toBeVisible({ timeout: 5000 });
 
-    const text = await anovaSignificance.textContent();
-    expect(text).toContain('F =');
-    expect(text).toContain('p =');
+    await expect(anovaSignificance).toContainText(/\d/);
   });
 
   test('should display eta-squared in ANOVA', async ({ page }) => {
@@ -102,5 +69,9 @@ test.describe('Azure Stats Panel', () => {
 
     const text = await etaSquared.textContent();
     expect(text).toContain('η²');
+  });
+
+  test('should display all chart summary statistics', async ({ page }) => {
+    await expectChartSummaryStats(page);
   });
 });

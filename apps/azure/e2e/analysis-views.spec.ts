@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { confirmColumnMapping } from './helpers';
+import { loadSampleToCharts, startNewAnalysis } from './helpers';
 
 /**
  * E2E Test: Azure Analysis View Switching
@@ -9,23 +9,8 @@ import { confirmColumnMapping } from './helpers';
 
 test.describe('Azure Analysis View Switching', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-
-    // Navigate to editor with new analysis
-    await page.getByRole('button', { name: 'New Analysis' }).first().click();
-    await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
-
-    // Load first sample dataset
-    const sampleButton = page.locator('[data-testid^="sample-"]').first();
-    await expect(sampleButton).toBeVisible({ timeout: 5000 });
-    await sampleButton.click();
-
-    // Confirm column mapping
-    await confirmColumnMapping(page);
-
-    // Wait for dashboard to fully load
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+    await startNewAnalysis(page);
+    await loadSampleToCharts(page);
   });
 
   test('should render analysis tab by default', async ({ page }) => {

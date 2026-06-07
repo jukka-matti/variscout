@@ -1,10 +1,10 @@
 // apps/azure/e2e/modeB-framing.spec.ts
 //
-// Azure Mode B framing: Paste Data → HubCreationFlow (Stage 1 + Stage 3) → analysis canvas.
+// Azure Mode B framing: Paste Data → b0 → analysis canvas.
 //
 // Test groups:
-//   1. Full Mode B via Editor paste — from "Paste Data" button through HubGoalForm and
-//      ColumnMapping to the analysis canvas (I-chart visible confirms outcome is set).
+//   1. Full Mode B via Editor paste — from "Paste Data" through b0's selected
+//      Y/X handoff to the analysis canvas.
 //   2. GoalBanner edit roundtrip via ProcessHubView — seeds a framed hub, navigates
 //      to portfolio, selects the hub from the hub selector, edits GoalBanner inline, saves.
 //   3. "New Hub" from ProjectDashboard sidebar — loads a sample, navigates to Overview
@@ -14,9 +14,12 @@
 //      to portfolio, selects the hub from the hub selector, verifies hub-framing-prompt and CTA routing.
 import { test, expect } from '@playwright/test';
 import {
-  confirmColumnMapping,
   pasteDataAndAnalyze,
   pasteToB0,
+  seeB0Data,
+  selectB0Outcome,
+  openFixDataWizard,
+  loadSampleToCharts,
   DETECTION_CSV,
   MODE_B_CSV,
 } from './helpers';
@@ -25,6 +28,19 @@ import { seedPortfolioHub, seedIncompleteHub } from './fixtures/portfolio-state'
 // GOAL_NARRATIVE removed — HubGoalForm (Stage-1) retired in FSJ-3b; goal
 // ceremony moved to GoalBanner on the Process tab (spec §3).
 const EDITED_GOAL = 'We produce precision medical components. Weight accuracy is critical.';
+const TWO_Y_CSV = [
+  'weight_g,cycle_time_sec,product,shift',
+  '4.5,24.5,A,morning',
+  '4.4,25.1,A,morning',
+  '4.6,24.8,B,evening',
+  '4.5,26.3,B,evening',
+  '4.4,26.8,A,morning',
+  '4.5,26.1,A,morning',
+  '4.6,23.0,B,evening',
+  '4.3,22.5,A,morning',
+  '4.7,23.2,B,evening',
+  '4.5,24.0,A,morning',
+].join('\n');
 
 // ---------------------------------------------------------------------------
 // Helper: wait for the Azure app to finish loading.
@@ -92,18 +108,29 @@ test.describe('Azure Mode B framing — Editor paste flow', () => {
   // and land at the Process tab (frame-view-b0) with Y/X pre-filled.
   // Stage-1 HubGoalForm no longer exists in the flow (wizard demoted to
   // ColumnMapping-only; Stage-1 retired in FSJ-3b).
-  test('Measurement paste → b0 landing on Process tab (no wizard, no Stage-1)', async ({
-    page,
-  }) => {
+  test('Measurement paste → b0 → charts in two interactions (no wizard)', async ({ page }) => {
     // 1. Open PasteScreen from Editor empty state
     await openPasteScreen(page);
 
     // 2. Paste measurement CSV → lands at frame-view-b0 (wizard skipped entirely)
     await pasteToB0(page, MODE_B_CSV);
 
-    // 3. Provenance bar and Process-tab b0 chrome should be present
-    //    (frame-view-b0 asserted inside pasteToB0)
+    // 3. b0 is the handoff; "See the data" is the second interaction.
     await expect(page.getByTestId('frame-view-b0')).toBeVisible();
+    await expect(page.getByTestId('map-your-data-heading')).toHaveCount(0);
+    await seeB0Data(page);
+    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('Post-landing Y changes only through b0 before charts render', async ({ page }) => {
+    await openPasteScreen(page);
+    await pasteToB0(page, TWO_Y_CSV);
+
+    await selectB0Outcome(page, 'cycle_time_sec');
+    await expect(page.getByTestId('map-your-data-heading')).toHaveCount(0);
+    await seeB0Data(page);
+
+    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
   });
 
   // FSJ-6 (spec §4.2a): detection-shaped defect event-log pastes land at b0
@@ -126,6 +153,36 @@ test.describe('Azure Mode B framing — Editor paste flow', () => {
     await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId('b0-defect-banner')).toBeVisible();
     await expect(page.locator('text=Defect Data Detected')).toHaveCount(0);
+  });
+
+  test('Defect paste → derived metric picker → b0 pinned Y → charts', async ({ page }) => {
+    await openPasteScreen(page);
+    await pasteDataAndAnalyze(page, DETECTION_CSV);
+
+    await page.getByTestId('b0-defect-expand').click();
+    await expect(page.getByTestId('b0-defect-confirm-panel')).toBeVisible({ timeout: 5000 });
+    await page.getByTestId('b0-defect-accept').click();
+
+    await expect(page.getByTestId('y-picker-selected-row')).toContainText('DefectCount', {
+      timeout: 5000,
+    });
+    await seeB0Data(page);
+    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+  });
+
+  test('Fix data and track-another-outcome hatches open ColumnMapping from b0', async ({
+    page,
+  }) => {
+    await openPasteScreen(page);
+    await pasteToB0(page, MODE_B_CSV);
+
+    await openFixDataWizard(page);
+    await page.getByRole('button', { name: 'Back' }).click();
+    await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('b0-provenance')).toContainText('10 rows');
+
+    await page.getByTestId('b0-track-another-outcome').click();
+    await expect(page.locator('text=Map Your Data')).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -177,8 +234,8 @@ test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point',
   // FSJ-3b: Stage-1 (HubGoalForm) retired — wizard is ColumnMapping-only.
   // The "New Hub" entry point triggers a paste → b0 landing for measurement data.
   test('"New Hub" quick-action opens Paste Data → b0 landing on Process tab', async ({ page }) => {
-    // 1. Load a sample to unlock the ProjectDashboard sidebar (needs hasData=true).
-    //    Samples still go through ColumnMapping (different code path from paste).
+    // 1. Load a sample through the landing-era sample -> b0 -> charts spine to
+    // unlock the ProjectDashboard sidebar (needs hasData=true).
     await waitForApp(page);
     const sampleButton = page.locator('[data-testid^="sample-"]').first();
     const hasSample = await sampleButton.isVisible({ timeout: 5000 }).catch(() => false);
@@ -186,26 +243,10 @@ test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point',
       test.skip();
       return;
     }
-    await sampleButton.click();
-
-    // Pre-configured samples (e.g. The 100-Channel Test) have outcome + factors already
-    // set and skip ColumnMapping entirely — the analysis starts immediately.
-    // Non-pre-configured samples show ColumnMapping first; handle both cases.
-    const mappingHeadingLocator = page.getByTestId('map-your-data-heading');
-    const mappingVisible = await mappingHeadingLocator
-      .isVisible({ timeout: 4000 })
-      .catch(() => false);
-    if (mappingVisible) {
-      await confirmColumnMapping(page);
-    }
+    await loadSampleToCharts(page);
 
     await dismissAutoFireModals(page);
-    // FSJ-3b: samples that are measurement-shaped now land at frame-view-b0.
-    // Samples that auto-route to the analysis view show chart-ichart.
-    // Accept either: both indicate a live session with data loaded.
-    await expect(
-      page.locator('[data-testid="chart-ichart"]').or(page.getByTestId('frame-view-b0'))
-    ).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
     // 2. Navigate to Home tab to show ProjectDashboard with "New Hub" button
     const homeTab = page.getByTestId('workflow-tab-home');
@@ -235,9 +276,8 @@ test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point',
     // and lands at frame-view-b0. Stage-1 never renders on this path.
     await pasteToB0(page, MODE_B_CSV);
 
-    // 6. b0 landing confirmed (frame-view-b0 asserted inside pasteToB0 above).
-    //    The full spine (click "See the data" → I-chart) is FSJ-10's e2e scope.
     await expect(page.getByTestId('frame-view-b0')).toBeVisible();
+    await seeB0Data(page);
   });
 });
 
