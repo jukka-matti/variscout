@@ -1,0 +1,72 @@
+<h2>Status answers "what do we believe" — the activity line answers "are we working on it"</h2>
+<p class="subtitle">Same card, now with the operational dimension. And the matrix gets an In-flight column.</p>
+
+<style>
+  .hypo { background:#fff; border:1.5px solid #cbd5e1; border-radius:10px; padding:14px 16px; max-width:330px; font-size:14px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .hypo .kicker { font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#64748b; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;}
+  .hypo .title { font-weight:600; color:#0f172a; line-height:1.35; margin-bottom:10px; font-size:13.5px;}
+  .chip { display:inline-block; border-radius:999px; padding:2px 10px; font-size:11.5px; font-weight:600; }
+  .chip.susp { background:#f1f5f9; color:#475569; }
+  .ev { display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:#334155; margin-bottom:10px;}
+  .ev .have { color:#0f172a; } .ev .miss { color:#94a3b8; }
+  .act { border-top:1px solid #e2e8f0; padding-top:8px; font-size:12px; }
+  .act .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#64748b; margin-bottom:3px;}
+  .act .row { color:#0f172a; display:flex; gap:5px; align-items:center; margin-bottom:2px;}
+  .act .who { color:#2563eb; font-weight:600; }
+  .stall { background:#fff7ed; border:1px solid #fdba74; border-radius:8px; padding:7px 10px; font-size:12px; color:#9a3412; font-weight:600;}
+  .stall .acts { font-weight:400; margin-top:3px; display:flex; gap:6px;}
+  .stall .acts button { font-size:11px; border:1px solid #fdba74; background:#fff; border-radius:6px; padding:2px 8px; color:#9a3412;}
+  table.mtx { width:100%; border-collapse:collapse; background:#fff; font-size:11.5px; margin-top:6px;}
+  table.mtx th { text-align:left; font-size:9.5px; text-transform:uppercase; color:#64748b; border-bottom:1px solid #e2e8f0; padding:4px 6px;}
+  table.mtx td { padding:4px 6px; border-bottom:1px solid #f1f5f9; color:#0f172a; vertical-align:top;}
+  .st { border-radius:6px; padding:0 6px; font-size:10px; font-weight:700;}
+  .st.s { background:#f1f5f9; color:#475569; } .st.v { background:#dcfce7; color:#15803d; } .st.r { background:#fee2e2; color:#b91c1c;}
+  .flight { color:#2563eb; } .stalled { color:#c2410c; font-weight:700; }
+  .colhead { font-size:12px; font-weight:700; color:#334155; margin-bottom:8px; }
+</style>
+
+<div class="split" style="display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start;">
+  <div>
+    <div class="colhead">Card — work in flight</div>
+    <div class="hypo">
+      <div class="kicker"><span>Suspected cause</span> <span class="chip susp">Suspected</span></div>
+      <div class="title">Night shift staffing gap drives the late starts.</div>
+      <div class="ev">
+        <span class="have">📊 Data: shift boxplot (1 finding)</span>
+        <span class="miss">👁 Gemba · 💬 Expert: none yet</span>
+      </div>
+      <div class="act">
+        <div class="lbl">In flight</div>
+        <div class="row">👁 Gemba walk, night start — <span class="who">Matti</span> · started Tue</div>
+        <div class="row">📊 2-sample vs Day — planned</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="colhead">Card — stalled (the one that matters)</div>
+    <div class="hypo" style="border-color:#fdba74;">
+      <div class="kicker"><span>Suspected cause</span> <span class="chip susp">Suspected</span></div>
+      <div class="title">Material batch variation.</div>
+      <div class="ev">
+        <span class="have">💬 Expert: buyer's note (1)</span>
+        <span class="miss">📊 Data · 👁 Gemba: none yet</span>
+      </div>
+      <div class="stall">⚠ Nothing in flight for 5 days
+        <div class="acts"><button>Plan a check</button><button>Go look</button><button>Rule it out</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex-basis:100%;">
+    <div class="colhead">Matrix — the In-flight column makes the Lead's scan one glance</div>
+    <table class="mtx">
+      <tr><th>Suspected cause</th><th>📊 Data</th><th>👁 Gemba</th><th>💬 Expert</th><th>Break attempts</th><th>In flight</th><th>Verdict</th></tr>
+      <tr><td>Equipment diff A→B</td><td>2-sample ✓</td><td>jig sticks</td><td>operator acct</td><td>1 survived</td><td>—</td><td><span class="st v">Verified</span></td></tr>
+      <tr><td>Night shift staffing</td><td>boxplot (1)</td><td>—</td><td>—</td><td>none</td><td class="flight">gemba walk · Matti · Tue</td><td><span class="st s">Suspected</span></td></tr>
+      <tr><td>Material batch</td><td>—</td><td>—</td><td>buyer note</td><td>none</td><td class="stalled">⚠ stalled 5d</td><td><span class="st s">Suspected</span></td></tr>
+      <tr><td>Maintenance schedule</td><td>—</td><td>—</td><td>—</td><td>1 failed</td><td>—</td><td><span class="st r">Ruled out</span></td></tr>
+    </table>
+    <p style="font-size:12px;color:#64748b;margin-top:6px;">Sponsor digest falls out for free: <b>4 causes · 1 verified · 1 in flight · 1 stalled · 1 ruled out</b></p>
+  </div>
+</div>

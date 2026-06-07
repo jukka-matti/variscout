@@ -1,0 +1,74 @@
+<h2>In flight = evidence being collected — run-now checks are just buttons</h2>
+<p class="subtitle">The Measure⇄Analyze loop on the card: plan collection → data lands via paste → finding auto-links → angle lights up.</p>
+
+<style>
+  .hypo { background:#fff; border:1.5px solid #cbd5e1; border-radius:10px; padding:14px 16px; max-width:340px; font-size:14px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .hypo .kicker { font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#64748b; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;}
+  .hypo .title { font-weight:600; color:#0f172a; line-height:1.35; margin-bottom:10px; font-size:13.5px;}
+  .chip { display:inline-block; border-radius:999px; padding:2px 10px; font-size:11.5px; font-weight:600; }
+  .chip.susp { background:#f1f5f9; color:#475569; }
+  .ev { display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:#334155; margin-bottom:10px;}
+  .ev .have { color:#0f172a; } .ev .miss { color:#94a3b8; } .ev .new { color:#15803d; font-weight:600; }
+  .now { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:7px 10px; font-size:12px; color:#1e40af; margin-bottom:8px;}
+  .now button { font-size:11.5px; border:1px solid #3b82f6; background:#fff; border-radius:6px; padding:2px 9px; color:#1d4ed8; font-weight:600; margin-left:4px;}
+  .act { border-top:1px solid #e2e8f0; padding-top:8px; font-size:12px; }
+  .act .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#64748b; margin-bottom:3px;}
+  .act .row { color:#0f172a; display:flex; gap:5px; align-items:baseline; margin-bottom:3px; flex-wrap:wrap;}
+  .act .who { color:#2563eb; font-weight:600; }
+  .act .prog { color:#64748b; font-size:11px; }
+  .landed { background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:7px 10px; font-size:12px; color:#166534; margin-top:8px;}
+  .colhead { font-size:12px; font-weight:700; color:#334155; margin-bottom:8px; }
+</style>
+
+<div class="split" style="display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start;">
+  <div>
+    <div class="colhead">1 · Run-now check = a button, never a plan</div>
+    <div class="hypo">
+      <div class="kicker"><span>Suspected cause</span> <span class="chip susp">Suspected</span></div>
+      <div class="title">Night shift staffing gap drives the late starts.</div>
+      <div class="ev">
+        <span class="have">📊 Data: shift boxplot (1 finding)</span>
+        <span class="miss">👁 Gemba · 💬 Expert: none yet</span>
+      </div>
+      <div class="now">Answerable now: Shift × CycleTime <button>Check it</button></div>
+      <div class="act">
+        <div class="lbl">In flight — evidence being collected</div>
+        <div class="row">👁 Gemba walk, night start — <span class="who">Matti</span></div>
+        <div class="row">📋 Staffing roster vs starts — <span class="who">you</span> · ask HR</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="colhead">2 · Waiting on data — the plan names what's owed</div>
+    <div class="hypo">
+      <div class="kicker"><span>Suspected cause</span> <span class="chip susp">Suspected</span></div>
+      <div class="title">Line B equipment difference (post-retrofit).</div>
+      <div class="ev">
+        <span class="have">👁 Gemba: jig sticks (logged)</span>
+        <span class="miss">📊 Data: none for post-retrofit period</span>
+      </div>
+      <div class="act">
+        <div class="lbl">In flight — evidence being collected</div>
+        <div class="row">📋 30 cycle times, Line B after jig swap — <span class="who">Pekka</span>, by Fri <span class="prog">12/30 collected</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="colhead">3 · Data lands via paste → loop closes itself</div>
+    <div class="hypo">
+      <div class="kicker"><span>Suspected cause</span> <span class="chip susp">Suspected</span></div>
+      <div class="title">Line B equipment difference (post-retrofit).</div>
+      <div class="ev">
+        <span class="have">👁 Gemba: jig sticks (logged)</span>
+        <span class="new">📊 Data: post-retrofit sample — NEW, just landed</span>
+      </div>
+      <div class="landed">✓ Pasted data matched Pekka's plan (Line B, 30 rows) — plan complete, finding linked. 2 angles now — <b>ready for a break attempt.</b></div>
+    </div>
+  </div>
+</div>
+
+<p style="font-size:12.5px;color:#475569;max-width:700px;margin-top:14px;">
+<b>Stalled</b> sharpens to: unsettled + run-now checks exhausted + no open collection plan + N days quiet → "plan a collection, go look, or rule it out."
+The matrix In-flight column becomes the collection logbook: who owes which evidence by when.</p>

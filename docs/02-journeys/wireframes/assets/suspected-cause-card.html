@@ -1,0 +1,73 @@
+<h2>Simple states × triangulated evidence</h2>
+<p class="subtitle">States stay LSS-simple (Suspected → Verified / Ruled out). The qualitative+quantitative richness lives in typed evidence facts. Three moments of the same card.</p>
+
+<style>
+  .hypo { background:#fff; border:1.5px solid #cbd5e1; border-radius:10px; padding:14px 16px; max-width:330px; font-size:14px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .hypo .kicker { font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#64748b; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;}
+  .hypo .title { font-weight:600; color:#0f172a; line-height:1.35; margin-bottom:10px; font-size:13.5px;}
+  .chip { display:inline-block; border-radius:999px; padding:2px 10px; font-size:11.5px; font-weight:600; }
+  .chip.susp { background:#f1f5f9; color:#475569; }
+  .chip.ver { background:#dcfce7; color:#15803d; }
+  .ev { display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:#334155; margin-bottom:10px;}
+  .ev .have { color:#0f172a; }
+  .ev .miss { color:#94a3b8; }
+  .ev .gap { color:#b45309; font-weight:600; }
+  .next { background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; padding:7px 10px; font-size:12px; color:#334155;}
+  .next b { color:#0f172a; }
+  .settle { margin-top:8px; display:flex; gap:6px; }
+  .settle button { font-size:11.5px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; padding:4px 10px; color:#334155;}
+  .settle button.ready { border-color:#15803d; color:#15803d; font-weight:600;}
+  .grounds { font-size:11.5px; color:#475569; background:#f0fdf4; border-radius:6px; padding:6px 8px; margin-top:8px;}
+  .colhead { font-size:12px; font-weight:700; color:#334155; margin-bottom:8px; }
+</style>
+
+<div class="split" style="display:flex; gap:16px; flex-wrap:wrap;">
+  <div>
+    <div class="colhead">1 · Fresh — one angle only</div>
+    <div class="hypo">
+      <div class="kicker"><span>Suspected cause</span> <span class="chip susp">Suspected</span></div>
+      <div class="title">Line B runs slower than Line A — equipment difference.</div>
+      <div class="ev">
+        <span class="have">📊 Data: Line boxplot, ΔR² 0.54 (1 finding)</span>
+        <span class="miss">👁 Gemba: none yet</span>
+        <span class="miss">💬 Expert/operator: none yet</span>
+        <span class="gap">⚠ One angle only — and never tested</span>
+      </div>
+      <div class="next"><b>Go look</b> — what does Line B actually do differently? Or <b>try to break it</b>.</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="colhead">2 · Triangulated — ready to settle</div>
+    <div class="hypo">
+      <div class="kicker"><span>Suspected cause</span> <span class="chip susp">Suspected</span></div>
+      <div class="title">Line B runs slower than Line A — equipment difference.</div>
+      <div class="ev">
+        <span class="have">📊 Data: Line boxplot + 2-sample, survived</span>
+        <span class="have">👁 Gemba: changeover jig sticks on B (logged)</span>
+        <span class="have">💬 Operator: "B always ran heavy since the retrofit"</span>
+      </div>
+      <div class="next">3 angles agree + survived a break attempt. Your call:</div>
+      <div class="settle"><button class="ready">Verified</button><button>Ruled out</button></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="colhead">3 · Settled — grounds recorded</div>
+    <div class="hypo">
+      <div class="kicker"><span>Suspected cause</span> <span class="chip ver">Verified</span></div>
+      <div class="title">Line B runs slower than Line A — equipment difference.</div>
+      <div class="grounds">Verified on: data (2-sample, survived) + gemba (jig) + operator account · 2026-06-07 · by JT</div>
+      <div class="next" style="margin-top:8px;">→ <b>Charter the fix</b> or keep investigating other causes.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:18px;">
+  <h3>The model in one line</h3>
+  <p style="font-size:13.5px; color:#334155; max-width:680px;">
+    <b>Suspected → Verified / Ruled out</b> (one analyst call, LSS-native vocabulary) ×
+    <b>three evidence angles</b> (data / gemba / expert) shown as facts. The ⚠ gap nags about missing <i>angles</i>
+    and missing <i>break attempts</i> — never auto-resolves. Settling records the grounds (the cause-verification-matrix row).
+  </p>
+</div>
