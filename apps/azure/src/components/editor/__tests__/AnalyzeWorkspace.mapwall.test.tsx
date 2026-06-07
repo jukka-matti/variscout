@@ -104,7 +104,7 @@ vi.mock('@variscout/ui', async importOriginal => {
         <div data-testid="wall-canvas-empty" data-has-process-map={String('processMap' in props)}>
           {props.onWriteHypothesis && (
             <button data-testid="empty-write-hypothesis" onClick={props.onWriteHypothesis}>
-              Write a suspected mechanism
+              Add a suspected cause
             </button>
           )}
           {props.onSeedFromFactorIntel && (
@@ -1033,7 +1033,7 @@ describe('AnalyzeWorkspace — Wall empty-state CTA wiring (Bug 2)', () => {
     capturedWallCanvasProps.current = null;
   });
 
-  it('(a) zero hubs — clicking "Write a suspected mechanism" creates one hub named "New mechanism branch"', () => {
+  it('(a) zero hubs — clicking "Add a suspected cause" creates one hub named "New suspected cause"', () => {
     const createHub = vi.fn(() => ({ id: 'hub-write' }) as never);
     const props = makeMinimalProps();
     props.hypothesesState = { ...props.hypothesesState, createHub, hubs: [] } as never;
@@ -1044,7 +1044,7 @@ describe('AnalyzeWorkspace — Wall empty-state CTA wiring (Bug 2)', () => {
     fireEvent.click(screen.getByTestId('empty-write-hypothesis'));
 
     expect(createHub).toHaveBeenCalledTimes(1);
-    expect((createHub.mock.calls[0] as unknown[])[0]).toBe('New mechanism branch');
+    expect((createHub.mock.calls[0] as unknown[])[0]).toBe('New suspected cause');
   });
 
   it('(b) zero hubs + factors — clicking "Seed 3 from Factor Intelligence" creates min(3, factors) hubs', () => {
@@ -1059,8 +1059,8 @@ describe('AnalyzeWorkspace — Wall empty-state CTA wiring (Bug 2)', () => {
     fireEvent.click(screen.getByTestId('empty-seed-factors'));
 
     expect(createHub).toHaveBeenCalledTimes(2);
-    expect((createHub.mock.calls[0] as unknown[])[0]).toBe('Suspected mechanism: Shift');
-    expect((createHub.mock.calls[1] as unknown[])[0]).toBe('Suspected mechanism: Machine');
+    expect((createHub.mock.calls[0] as unknown[])[0]).toBe('Suspected cause: Shift');
+    expect((createHub.mock.calls[1] as unknown[])[0]).toBe('Suspected cause: Machine');
   });
 
   it('(c) NEGATIVE CONTROL — zero candidate factors → Seed button NOT in document', () => {

@@ -67,7 +67,7 @@ export function WallArrival({
               className="rounded border border-edge bg-surface-secondary px-3 py-1.5 text-content hover:bg-surface"
               onClick={onWriteHypothesis}
             >
-              Write hypothesis
+              Add a suspected cause
             </button>
           ) : null}
           {onSeedFromFactorIntel ? (

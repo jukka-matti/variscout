@@ -943,11 +943,11 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // passed them). Create directly + let the analyst rename on the card — the
   // same convention as handleProposeHypothesis.
   const handleWriteHypothesis = useCallback(() => {
-    hypothesesState.createHub('New mechanism branch', '');
+    hypothesesState.createHub('New suspected cause', '');
   }, [hypothesesState]);
   const handleSeedFromFactorIntel = useCallback(() => {
     for (const factor of factors.slice(0, 3)) {
-      hypothesesState.createHub(`Suspected mechanism: ${factor}`, '');
+      hypothesesState.createHub(`Suspected cause: ${factor}`, '');
     }
   }, [hypothesesState, factors]);
 

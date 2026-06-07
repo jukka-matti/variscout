@@ -320,12 +320,12 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // passed them). Create directly + let the analyst rename on the card — the
   // same convention as handleProposeHypothesis.
   const handleWriteHypothesis = useCallback(() => {
-    useAnalyzeStore.getState().createHub('New mechanism branch', '');
+    useAnalyzeStore.getState().createHub('New suspected cause', '');
   }, []);
   const handleSeedFromFactorIntel = useCallback(() => {
     const store = useAnalyzeStore.getState();
     for (const factor of factors.slice(0, 3)) {
-      store.createHub(`Suspected mechanism: ${factor}`, '');
+      store.createHub(`Suspected cause: ${factor}`, '');
     }
   }, [factors]);
 

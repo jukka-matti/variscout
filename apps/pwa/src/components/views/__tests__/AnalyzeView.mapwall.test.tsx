@@ -62,7 +62,7 @@ vi.mock('@variscout/ui', async importOriginal => {
         <div data-testid="wall-canvas-empty">
           {props.onWriteHypothesis && (
             <button data-testid="empty-write-hypothesis" onClick={props.onWriteHypothesis}>
-              Write a suspected mechanism
+              Add a suspected cause
             </button>
           )}
           {props.onSeedFromFactorIntel && (
@@ -562,7 +562,7 @@ describe('PWA AnalyzeView — Wall empty-state CTA wiring (Bug 2)', () => {
     capturedWallCanvasProps.current = null;
   });
 
-  it('(a) zero hubs — clicking "Write a suspected mechanism" creates one hub named "New mechanism branch"', () => {
+  it('(a) zero hubs — clicking "Add a suspected cause" creates one hub named "New suspected cause"', () => {
     render(<AnalyzeView {...makeMinimalProps({ factors: [] })} />);
 
     // The empty-state renders because hubs.length === 0
@@ -570,7 +570,7 @@ describe('PWA AnalyzeView — Wall empty-state CTA wiring (Bug 2)', () => {
 
     const hubs = useAnalyzeStore.getState().hypotheses;
     expect(hubs).toHaveLength(1);
-    expect(hubs[0].name).toBe('New mechanism branch');
+    expect(hubs[0].name).toBe('New suspected cause');
   });
 
   it('(c) NEGATIVE CONTROL — zero candidate factors → Seed button NOT in document', () => {
