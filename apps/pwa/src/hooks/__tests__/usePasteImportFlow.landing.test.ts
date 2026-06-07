@@ -304,7 +304,7 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
   });
 
-  it('auto-surfaces the mapping for a low-confidence paste (spec §4.1 — never a silent empty landing) + provisions the Untitled project (FSJ-2 §3)', async () => {
+  it('lands a low-confidence fresh paste at b0 so the no-Y floor owns recovery', async () => {
     // Precondition: no outcome inferable → confidence 'low'.
     const parsed = await parseText(tsvOf(allCategoricalRows));
     expect(detectColumns(parsed).confidence).toBe('low');
@@ -319,11 +319,9 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
       await result.current.handlePasteAnalyze(tsvOf(allCategoricalRows));
     });
 
-    expect(result.current.isMapping).toBe(true);
-    // The no-Y floor's primary live trigger: even though no Y is inferable, the
-    // Untitled project IS provisioned so the b0 no-Y banner is reachable (spec §3/§4.1).
-    expect(onFreshPasteAnalyzed).toHaveBeenCalledTimes(1);
-    expect(onFreshPasteLanded).not.toHaveBeenCalled();
+    expect(result.current.isMapping).toBe(false);
+    expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
+    expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
   });
 
   it('keeps the pipeline for a match-summary re-dispatch (re-ingestion is not first-session, spec §7) — provisions NEITHER project callback', async () => {
@@ -360,12 +358,18 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
   });
 
   it('does not wipe pasted data on first-time mapping cancel (spec §4.1 guarded regression)', async () => {
-    // Paste low-confidence data (still enters the wizard), then cancel: no setter resets data.
+    // Paste low-confidence data lands at b0; the permanent "Fix data..." hatch
+    // opens the wizard, and cancel still cannot reset data.
     const setRawData = vi.fn();
     const { result } = renderHook(() => usePasteImportFlow(makeOptions({ setRawData })));
 
     await act(async () => {
       await result.current.handlePasteAnalyze(tsvOf(allCategoricalRows));
+    });
+    expect(result.current.isMapping).toBe(false);
+
+    act(() => {
+      result.current.openFactorManager();
     });
     expect(result.current.isMapping).toBe(true);
 
@@ -377,5 +381,28 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     // The old wipe routed through the injected clearData; with it removed, no setter
     // should reset the data array.
     expect(setRawData).not.toHaveBeenCalledWith([]);
+  });
+
+  it('mapping confirm no longer interactively rewrites active Y/X', () => {
+    const setOutcome = vi.fn();
+    const setFactors = vi.fn();
+    const setSpecs = vi.fn();
+    const { result } = renderHook(() =>
+      usePasteImportFlow(makeOptions({ setOutcome, setFactors, setSpecs }))
+    );
+
+    act(() => {
+      result.current.openFactorManager();
+    });
+    expect(result.current.isMapping).toBe(true);
+
+    act(() => {
+      result.current.handleMappingConfirm('Wrong_Y', ['Wrong_X'], { target: 12 });
+    });
+
+    expect(result.current.isMapping).toBe(false);
+    expect(setOutcome).not.toHaveBeenCalled();
+    expect(setFactors).not.toHaveBeenCalled();
+    expect(setSpecs).toHaveBeenCalledWith({ target: 12 });
   });
 });

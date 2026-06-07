@@ -563,6 +563,28 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       numericValues: numericValuesFor(column.name, b0ModeCandidates.rows),
     }));
   }, [b0ModeCandidates]);
+  const yCandidateNames = React.useMemo(
+    () => new Set(yCandidates.map(candidate => candidate.column.name)),
+    [yCandidates]
+  );
+  const effectiveB0Outcome = React.useMemo(() => {
+    if (outcome && yCandidateNames.has(outcome)) return outcome;
+    const defaultOutcome = b0ModeCandidates.defaultOutcomeColumn;
+    return b0ModeCandidates.defectResult && defaultOutcome && yCandidateNames.has(defaultOutcome)
+      ? defaultOutcome
+      : null;
+  }, [
+    b0ModeCandidates.defaultOutcomeColumn,
+    b0ModeCandidates.defectResult,
+    outcome,
+    yCandidateNames,
+  ]);
+  const handleB0SeeData = React.useCallback(() => {
+    if (effectiveB0Outcome && effectiveB0Outcome !== outcome) {
+      setOutcome(effectiveB0Outcome);
+    }
+    onSeeData();
+  }, [effectiveB0Outcome, onSeeData, outcome, setOutcome]);
 
   const xCandidates: XCandidate[] = React.useMemo(() => {
     return b0ModeCandidates.xColumns.map(col => toXCandidate(col, b0ModeCandidates.rows));
@@ -1407,22 +1429,20 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
         <FrameViewB0
           yCandidates={yCandidates}
           // The b0 contract is "a wrong pick is one glance + one click to fix"
-          // (spec §4.1). When the store outcome is NOT among the ranked candidates
-          // (engine misinference like a date column named 'Timestamp', or a name
-          // rankYCandidates filters out), degrade to no-selection rather than make
-          // an invisible claim: no chip highlights AND the CTA stays gated on
-          // picking a visible candidate. FSJ-2 chrome-walk fix.
-          selectedY={yCandidates.some(c => c.column.name === outcome) ? outcome : null}
+          // (spec §4.1). If the stored outcome is absent/invalid but the mode-aware
+          // candidate source has a visible default, show that default as b0's
+          // pending choice and commit it only from b0 interaction.
+          selectedY={effectiveB0Outcome}
           onSelectY={setOutcome}
           xCandidates={xCandidates}
           selectedXs={factors}
           onToggleX={name => setFactors(toggleArray(factors, name))}
           runOrderColumn={runOrderColumn}
-          currentYSpec={outcome ? measureSpecs[outcome] : undefined}
+          currentYSpec={effectiveB0Outcome ? measureSpecs[effectiveB0Outcome] : undefined}
           yspecSuggestion={undefined}
           defaultCpkTarget={DEFAULT_CPK_TARGET}
           onConfirmYSpec={handleConfirmYSpec}
-          onSeeData={onSeeData}
+          onSeeData={handleB0SeeData}
           topBar={b0TopBar}
           belowYSlot={b0Slots?.belowY}
           noYBanner={b0Slots?.noYBanner}

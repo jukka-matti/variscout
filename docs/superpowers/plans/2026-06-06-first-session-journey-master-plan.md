@@ -43,9 +43,9 @@ related:
 
 ## P4 — collapse + retirement (spec §8/§9)
 
-| PR         | Scope                                                                                                                                                                                                                          | Gates                                 |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
-| **FSJ-10** | Writer collapse (one interactive writer + seed writers; defect-mode seam plumbed); wizard retires from the primary path (hatch remains); **E2E spine rewrite** (~25 `confirmColumnMapping` call sites — budgeted first-class). | All prior PRs merged + chrome-walked. |
+| PR         | Scope                                                                                                                                                                                                                                                                                                                    | Gates                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
+| **FSJ-10** | Writer collapse (one interactive writer + seed writers; defect-mode seam plumbed); wizard retires from the primary path (hatch remains); **E2E spine rewrite** (~25 `confirmColumnMapping` call sites — budgeted first-class). Sub-plan: [`2026-06-07-fsj-10-writer-collapse.md`](2026-06-07-fsj-10-writer-collapse.md). | All prior PRs merged + chrome-walked. |
 
 ## Delivery closeout (Apply phase — spec §11, per-initiative)
 

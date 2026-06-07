@@ -227,7 +227,7 @@ describe('PWA mode detections re-frame b0', () => {
     expect(handleDismissWideFormat).toHaveBeenCalledTimes(1);
   });
 
-  it('accepting the defect banner writes mode and mapping', async () => {
+  it('accepting the defect banner writes mode and mapping without writing active Y', async () => {
     const handleDismissDefect = vi.fn();
     importFlowMock.current = baseImportFlow({
       defectDetection: {
@@ -252,7 +252,7 @@ describe('PWA mode detections re-frame b0', () => {
 
     const state = useProjectStore.getState();
     expect(state.analysisMode).toBe('defect');
-    expect(state.outcome).toBe('DefectRate');
+    expect(state.outcome).toBeNull();
     expect(state.defectMapping).toEqual({
       dataShape: 'event-log',
       aggregationUnit: 'Date',

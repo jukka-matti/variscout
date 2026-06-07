@@ -62,6 +62,7 @@ describe('deriveB0ModeCandidates', () => {
       selectedOutcome: null,
     });
 
+    expect(Object.keys(DEFECT_ROWS_WITH_UNITS[0])).not.toContain(result.defaultOutcomeColumn);
     expect(result.defaultOutcomeColumn).toBe('DefectRate');
     expect(result.rows[0]).toHaveProperty('DefectRate');
     expect(result.rows[0]).toHaveProperty('DefectCount');

@@ -351,14 +351,11 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         (defectResult.confidence === 'high' || defectResult.confidence === 'medium');
       const wideFormat = detectWideFormat(data);
 
-      // FSJ-5 (first-session spec §4.2a): unit-of-analysis detections re-frame
-      // b0; they do not bypass it with a modal or stay on the mapping path.
-      // Kept on today's mapping path: low inference confidence (= no Y inferable,
-      // detection.ts:189-205) and match-summary re-dispatch (re-ingestion is not
-      // first-session, spec §7).
-      const landsAtB0 =
-        !opts?.reingest &&
-        (detected.confidence !== 'low' || defectFired || wideFormat.isWideFormat);
+      // FSJ-10 (spec §8/§9 P4): fresh paste is a seed writer only, then b0 owns
+      // every interactive Y/X change. Low-confidence fresh pastes also land at
+      // b0 so the no-Y floor owns recovery. Match-summary re-dispatch remains
+      // re-ingestion, not a first-session primary path.
+      const landsAtB0 = !opts?.reingest;
 
       if (landsAtB0) {
         if (defectFired) {
@@ -761,8 +758,8 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
 
   const handleMappingConfirm = useCallback(
     (
-      newOutcome: string,
-      newFactors: string[],
+      _newOutcome: string,
+      _newFactors: string[],
       newSpecs?: { target?: number; lsl?: number; usl?: number }
     ) => {
       // Apply stack transform if configured
@@ -771,8 +768,6 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         setRawData(result.data);
       }
 
-      setOutcome(newOutcome);
-      setFactors(newFactors);
       if (newSpecs) {
         setSpecs(newSpecs);
       }
@@ -785,8 +780,6 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       setTimeExtractionPrompt(null);
     },
     [
-      setOutcome,
-      setFactors,
       setSpecs,
       setRawData,
       rawData,
