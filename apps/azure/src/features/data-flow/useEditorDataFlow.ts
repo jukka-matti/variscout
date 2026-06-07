@@ -503,13 +503,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       const defectResult = detectDefectFormat(data, detected.columnAnalysis);
       const wideFormat = detectWideFormat(data);
 
-      // FSJ-6 (spec §4.2a): unit-of-analysis detections re-frame b0. They land
-      // as loud proposals and are applied only after the analyst accepts.
-      // Kept on the wizard path: low-confidence pastes with no detection, and
-      // re-ingest (not first-session, spec §7).
-      const landsAtB0 =
-        !opts?.reingest &&
-        (detected.confidence !== 'low' || defectResult.isDefectFormat || wideFormat.isWideFormat);
+      // FSJ-10: fresh paste analysis is seed-only and always routes to b0. The
+      // wizard remains only for the explicit hatch and re-ingest/match-summary.
+      const landsAtB0 = !opts?.reingest;
 
       if (landsAtB0) {
         if (defectResult.isDefectFormat) {
@@ -1015,8 +1011,6 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         setRawData(result.data);
       }
 
-      setOutcome(newOutcome);
-      setFactors(newFactors);
       if (newSpecs) setSpecs(newSpecs);
       dispatch({ type: 'CONFIRM_MAPPING' });
 
@@ -1034,8 +1028,6 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       setTimeExtractionPrompt(null);
     },
     [
-      setOutcome,
-      setFactors,
       setSpecs,
       setRawData,
       rawData,

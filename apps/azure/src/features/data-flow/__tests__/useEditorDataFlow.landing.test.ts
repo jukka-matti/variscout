@@ -248,7 +248,7 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
     expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
   });
 
-  it('auto-surfaces the mapping for a low-confidence paste (spec §4.1 — never a silent empty landing) + provisions the Untitled project (FSJ-3b §3)', async () => {
+  it('lands a low-confidence paste at b0 so the no-Y floor owns recovery (FSJ-10)', async () => {
     // Precondition: no outcome inferable → confidence 'low'.
     const parsed = await parseText(tsvOf(allCategoricalRows));
     expect(detectColumns(parsed).confidence).toBe('low');
@@ -263,11 +263,11 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
       await result.current.handlePasteAnalyze(tsvOf(allCategoricalRows));
     });
 
-    expect(result.current.isMapping).toBe(true);
+    expect(result.current.isMapping).toBe(false);
     // The no-Y floor's primary live trigger: even though no Y is inferable, the
     // Untitled project IS provisioned so the b0 no-Y banner is reachable (spec §3/§4.1).
-    expect(onFreshPasteAnalyzed).toHaveBeenCalledTimes(1);
-    expect(onFreshPasteLanded).not.toHaveBeenCalled();
+    expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
+    expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
   });
 
   it('keeps the pipeline for a match-summary re-dispatch (re-ingestion is not first-session, spec §7) — provisions NEITHER project callback', async () => {
@@ -304,7 +304,8 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
   });
 
   it('does not wipe pasted data on first-time mapping cancel (spec §4.1 guarded regression)', async () => {
-    // Paste all-categorical data (enters the wizard), then cancel: no setter resets data.
+    // Fresh low-confidence paste lands at b0 in FSJ-10; cancel coverage now belongs
+    // to the permanent Fix data hatch.
     const setRawData = vi.fn();
     const setOutcome = vi.fn();
     const { result } = renderHook(() => useEditorDataFlow(makeOptions({ setRawData, setOutcome })));
@@ -312,9 +313,14 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
     await act(async () => {
       await result.current.handlePasteAnalyze(tsvOf(allCategoricalRows));
     });
+    expect(result.current.isMapping).toBe(false);
+
+    act(() => {
+      result.current.openFactorManager();
+    });
     expect(result.current.isMapping).toBe(true);
 
-    // Cancel from the first-time (non-re-edit) mapping. The old wipe block called
+    // Cancel from the hatch mapping. The old wipe block called
     // setRawData([]) / setOutcome(null) — with it removed, no reset fires.
     act(() => {
       result.current.handleMappingCancel();

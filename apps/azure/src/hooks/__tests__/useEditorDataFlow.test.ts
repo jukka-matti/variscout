@@ -483,11 +483,9 @@ describe('useEditorDataFlow', () => {
       confirmSpy.mockRestore();
     });
 
-    it('sets time extraction prompt when time column is detected on the wizard path', async () => {
-      // FSJ-6: the time-extraction PROMPT is a wizard-path affordance. A measurement
-      // landing suppresses it (the landing branch nulls the prompt and auto-applies
-      // extraction instead — covered by useEditorDataFlow.landing.test.ts). Here we
-      // keep the wizard path with low confidence and no unit-of-analysis detection.
+    it('auto-applies time extraction on the fresh b0 landing path', async () => {
+      // FSJ-10: fresh paste no longer opens the wizard, even when confidence is low.
+      // Time extraction becomes a quiet b0 chip instead of a mapping prompt.
       mockParseText.mockResolvedValue([{ Date: '2024-01-01T10:00', Label: 'Scratch' }]);
       mockDetectDefectFormat.mockReturnValue({ isDefectFormat: false });
       mockDetectColumns.mockReturnValue({
@@ -511,10 +509,18 @@ describe('useEditorDataFlow', () => {
         await result.current.handlePasteAnalyze('Date\tLabel\n2024-01-01T10:00\tScratch');
       });
 
-      expect(result.current.isMapping).toBe(true);
-      expect(result.current.timeExtractionPrompt).toEqual({
+      expect(result.current.isMapping).toBe(false);
+      expect(options.applyTimeExtraction).toHaveBeenCalledWith('Date', {
+        extractYear: false,
+        extractMonth: true,
+        extractWeek: false,
+        extractDayOfWeek: true,
+        extractHour: false,
+      });
+      expect(result.current.quietTimeExtraction).toEqual({
         timeColumn: 'Date',
-        hasTimeComponent: true,
+        newColumns: ['Date_Month', 'Date_DayOfWeek'],
+        dismissed: false,
       });
     });
   });
@@ -572,7 +578,7 @@ describe('useEditorDataFlow', () => {
   });
 
   describe('handleMappingConfirm', () => {
-    it('sets outcome, factors, specs and exits mapping', () => {
+    it('does not rewrite active Y/X from mapping confirm, but applies specs and exits mapping', () => {
       const options = createMockOptions();
       const { result } = renderHook(() => useEditorDataFlow(options));
 
@@ -585,8 +591,8 @@ describe('useEditorDataFlow', () => {
         result.current.handleMappingConfirm('Weight', ['Operator'], { usl: 15, lsl: 5 });
       });
 
-      expect(options.setOutcome).toHaveBeenCalledWith('Weight');
-      expect(options.setFactors).toHaveBeenCalledWith(['Operator']);
+      expect(options.setOutcome).not.toHaveBeenCalled();
+      expect(options.setFactors).not.toHaveBeenCalled();
       expect(options.setSpecs).toHaveBeenCalledWith({ usl: 15, lsl: 5 });
       expect(result.current.isMapping).toBe(false);
     });

@@ -657,7 +657,7 @@ describe('Editor', () => {
     expect(hub.improvementProject!.deletedAt).toBeNull();
   });
 
-  it('accepts a defect-shaped b0 proposal inline and pins derived defect metrics', async () => {
+  it('accepts a defect-shaped b0 proposal inline without writing active Y', async () => {
     vi.mocked(parseText).mockResolvedValue([
       { Batch: 'B1', Defect_Type: 'Scratch', Units_Produced: 10 },
     ]);
@@ -701,15 +701,7 @@ describe('Editor', () => {
     });
 
     const state = useProjectStore.getState();
-    expect(computeDefectRates).toHaveBeenCalledWith(
-      [{ Batch: 'B1', Defect_Type: 'Scratch', Units_Produced: 10 }],
-      {
-        dataShape: 'event-log',
-        aggregationUnit: 'Batch',
-        defectTypeColumn: 'Defect_Type',
-        unitsProducedColumn: 'Units_Produced',
-      }
-    );
+    expect(computeDefectRates).not.toHaveBeenCalled();
     expect(state.analysisMode).toBe('defect');
     expect(state.defectMapping).toEqual({
       dataShape: 'event-log',
@@ -717,8 +709,9 @@ describe('Editor', () => {
       defectTypeColumn: 'Defect_Type',
       unitsProducedColumn: 'Units_Produced',
     });
-    expect(state.outcome).toBe('DefectRate');
+    expect(state.outcome).toBeNull();
     expect(screen.queryByRole('button', { name: 'Accept defect mode' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('column-mapping')).not.toBeInTheDocument();
   });
 
   it('accepts a wide b0 proposal inline without paste-time performance mutation', async () => {
