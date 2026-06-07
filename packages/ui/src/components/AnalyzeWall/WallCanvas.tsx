@@ -49,7 +49,12 @@ import { deriveProcessSteps } from '@variscout/core/frame';
 import { getMessage, formatMessage } from '@variscout/core/i18n';
 import { surveyWallRules, deriveHypothesisStatus } from '@variscout/core/survey';
 import { chartColors } from '@variscout/charts';
-import { computeWallLayout, buildWallLayoutArgs } from './wallLayout';
+import {
+  computeWallLayout,
+  buildWallLayoutArgs,
+  computeWallContentBBox,
+  formatWallViewBox,
+} from './wallLayout';
 import { wallDegreeOfInterest, domainWeightedOpacity } from './wallFocus';
 import { FactorGlyph } from './FactorGlyph';
 import { ProblemConditionCard } from './ProblemConditionCard';
@@ -368,6 +373,7 @@ export interface WallCanvasModelBuilderProps {
  */
 export const CANVAS_W = 2000;
 export const CANVAS_H = 1400;
+const LEGACY_WALL_FIT_ZOOM_MAX = 0.25;
 
 const WALL_PAN_IGNORED_TARGET =
   'button,a,input,select,textarea,[role="button"],[data-no-overlay-pan],[data-no-wall-pan]';
@@ -761,6 +767,12 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     const vbH = contentBottom - vbY + PADDING;
     return `${vbX} ${vbY} ${vbW} ${vbH}`;
   }, [wallLayout.factorPositions]);
+
+  const populatedViewBox = useMemo(
+    () => formatWallViewBox(computeWallContentBBox(wallLayout)),
+    [wallLayout]
+  );
+  const renderedZoom = mode !== 'overlay' && zoom <= LEGACY_WALL_FIT_ZOOM_MAX ? 1 : zoom;
 
   const handleFocusNode = useCallback(
     (nodeId: string) => setFocusedWallEntity(nodeId),
@@ -1182,7 +1194,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       y: hubY,
       hasGap: hubsWithGap.has(hub.id),
       missingColumn: columnSet ? conditionHasMissingColumn(hub.condition, columnSet) : false,
-      zoomScale: zoom !== 1 ? zoom : undefined,
+      zoomScale: renderedZoom !== 1 ? renderedZoom : undefined,
       onSelect: onSelectHub,
       // FE-2b — the OneStepAwayBadge becomes a clickable affordance that focuses
       // the hub (opening its test plan with "Try to break it" reachable). Reuses
@@ -1305,13 +1317,13 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     <div className="w-full h-full flex flex-col">
       <svg
         ref={svgRef}
-        viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
+        viewBox={mode === 'overlay' ? `0 0 ${CANVAS_W} ${CANVAS_H}` : populatedViewBox}
         preserveAspectRatio="xMidYMid meet"
         className="bg-background text-content flex-1"
         role="img"
         aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
       >
-        <g data-wall-viewport transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+        <g data-wall-viewport transform={`translate(${pan.x}, ${pan.y}) scale(${renderedZoom})`}>
           {/* Focus-lens background: a click on empty canvas clears focus. Sits
               behind every node, so node clicks hit the node (not this rect). */}
           <rect

@@ -56,6 +56,13 @@ export interface WallLayout {
   orphanFindingIds: string[];
 }
 
+export interface WallContentBBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface WallLayoutHubInput {
   id: string;
   findingIds: string[];
@@ -175,6 +182,17 @@ const FACTOR_GAP = 220; // horizontal spacing between factor entries
 const FACTOR_X0 = 120; // first factor x
 const ORPHAN_X = 80; // left-gutter orphan lane column
 const ORPHAN_TOP = 296;
+const HUB_CARD_W = 280;
+const HUB_CARD_H = 288;
+const FINDING_CHIP_W = 220;
+const FINDING_CHIP_H = 70; // includes orphan propose affordance clearance
+const FACTOR_GLYPH_W = 180; // includes focused explore button clearance
+const FACTOR_GLYPH_H = 64;
+const SCOPE_CARD_W = 320;
+const SCOPE_CARD_H = 160;
+const CONTENT_PADDING = 80;
+const DEFAULT_CANVAS_W = 2000;
+const DEFAULT_CANVAS_H = 1400;
 
 /**
  * Compute every node position + tether on the Wall, deterministically.
@@ -288,4 +306,62 @@ export function computeWallLayout(args: WallLayoutArgs): WallLayout {
     edges,
     orphanFindingIds,
   };
+}
+
+export function computeWallContentBBox(layout: WallLayout): WallContentBBox {
+  const hasWallContent =
+    layout.hubPositions.size > 0 ||
+    layout.findingPositions.size > 0 ||
+    layout.factorPositions.size > 0;
+
+  if (!hasWallContent) {
+    return { x: 0, y: 0, width: DEFAULT_CANVAS_W, height: DEFAULT_CANVAS_H };
+  }
+
+  const boxes: Array<{ left: number; top: number; right: number; bottom: number }> = [
+    {
+      left: layout.scopeAnchor.x - SCOPE_CARD_W / 2,
+      top: layout.scopeAnchor.y,
+      right: layout.scopeAnchor.x + SCOPE_CARD_W / 2,
+      bottom: layout.scopeAnchor.y + SCOPE_CARD_H,
+    },
+  ];
+
+  for (const pos of layout.hubPositions.values()) {
+    boxes.push({
+      left: pos.x - HUB_CARD_W / 2,
+      top: pos.y,
+      right: pos.x + HUB_CARD_W / 2,
+      bottom: pos.y + HUB_CARD_H,
+    });
+  }
+
+  for (const pos of layout.findingPositions.values()) {
+    boxes.push({
+      left: pos.x - FINDING_CHIP_W / 2,
+      top: pos.y,
+      right: pos.x + FINDING_CHIP_W / 2,
+      bottom: pos.y + FINDING_CHIP_H,
+    });
+  }
+
+  for (const pos of layout.factorPositions.values()) {
+    boxes.push({
+      left: pos.x - FACTOR_GLYPH_W / 2,
+      top: pos.y - FACTOR_GLYPH_H / 2,
+      right: pos.x + FACTOR_GLYPH_W / 2,
+      bottom: pos.y + FACTOR_GLYPH_H / 2,
+    });
+  }
+
+  const left = Math.min(...boxes.map(b => b.left)) - CONTENT_PADDING;
+  const top = Math.min(...boxes.map(b => b.top)) - CONTENT_PADDING;
+  const right = Math.max(...boxes.map(b => b.right)) + CONTENT_PADDING;
+  const bottom = Math.max(...boxes.map(b => b.bottom)) + CONTENT_PADDING;
+
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+export function formatWallViewBox(bbox: WallContentBBox): string {
+  return `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`;
 }

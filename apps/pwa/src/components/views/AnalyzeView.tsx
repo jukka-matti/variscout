@@ -238,9 +238,18 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // takes over below 768px and overlay controls would collide with it.
   const wallIsMobile = useWallIsMobile();
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const fitWallToContent = useCallback(() => {
+    useCanvasViewportStore.getState().fitToContent(wallHubId, 'l2', {
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    });
+  }, [wallHubId]);
   useWallKeyboard({
     onSearch: () => {
       if (wallViewMode === 'wall' && !wallIsMobile) setPaletteOpen(true);
+    },
+    onFit: () => {
+      if (wallViewMode === 'wall' && !wallIsMobile) fitWallToContent();
     },
   });
 
@@ -721,6 +730,15 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 self-gates to MobileCardList below 768px. */}
               {!wallIsMobile && (
                 <>
+                  <button
+                    type="button"
+                    onClick={fitWallToContent}
+                    aria-label="Fit Wall to content"
+                    title="Fit Wall to content"
+                    className="border-edge bg-surface-secondary text-content hover:bg-surface-tertiary focus:ring-ring absolute bottom-4 right-40 rounded border px-2.5 py-1 text-xs font-medium shadow-sm focus:outline-none focus:ring-2"
+                  >
+                    ⌖ Fit
+                  </button>
                   <div className="absolute bottom-4 right-4 pointer-events-auto">
                     <Minimap
                       hubs={hubs}
