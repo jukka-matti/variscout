@@ -352,6 +352,63 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
   });
 
+  it('routes direct Analyze entry to Wall arrival when findings exist and no hubs exist', () => {
+    const props = makeMinimalProps();
+    props.findingsState = {
+      ...props.findingsState,
+      findings: [
+        {
+          id: 'f-arrival',
+          text: 'obs 32-58 elevated',
+          evidenceType: 'data',
+          createdAt: 1,
+          deletedAt: null,
+          context: { activeFilters: {}, cumulativeScope: null },
+          status: 'observed',
+          comments: [],
+          statusChangedAt: 1,
+        },
+      ],
+    } as never;
+    props.hypothesesState = { ...props.hypothesesState, hubs: [] } as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
+    expect(screen.getByRole('button', { name: /^wall$/i }).getAttribute('aria-pressed')).toBe(
+      'true'
+    );
+  });
+
+  it('does not force Wall again after the analyst manually toggles back to Map', () => {
+    const props = makeMinimalProps();
+    props.findingsState = {
+      ...props.findingsState,
+      findings: [
+        {
+          id: 'f-arrival',
+          text: 'obs 32-58 elevated',
+          evidenceType: 'data',
+          createdAt: 1,
+          deletedAt: null,
+          context: { activeFilters: {}, cumulativeScope: null },
+          status: 'observed',
+          comments: [],
+          statusChangedAt: 1,
+        },
+      ],
+    } as never;
+    props.hypothesesState = { ...props.hypothesesState, hubs: [] } as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+    fireEvent.click(screen.getByRole('button', { name: /^map$/i }));
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(screen.getByRole('button', { name: /^map$/i }).getAttribute('aria-pressed')).toBe(
+      'true'
+    );
+  });
+
   it('Wall button shows aria-pressed="true" after click', () => {
     // Pre-set the store to 'wall' to simulate a persisted state
     useCanvasViewportStore.getState().setViewMode('wall');
@@ -492,13 +549,12 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     });
   });
 
-  // IM-4c — propose-hypothesis-from-finding app wiring (the createHubFromFinding
-  // TRAP). The Azure Wall renders `hypothesesState.hubs` (the useHypotheses
-  // hook), so the app MUST route propose through createHub + connectFinding on
-  // THAT hook — not analyzeStore.createHubFromFinding (a different collection
-  // that would NOT re-render the Wall). This asserts the wired path; the
-  // render-through is proven by WallCanvas.proposeHypothesis.seam.test.tsx.
-  describe('propose-hypothesis app wiring (createHubFromFinding trap)', () => {
+  // FSJ-8 — propose-hypothesis app wiring. The Azure Wall renders
+  // `hypothesesState.hubs` (the useHypotheses hook), so the app MUST route the
+  // named promotion through createHub + connectFinding on that hook. This
+  // asserts the wired path; the render-through is proven by
+  // WallCanvas.proposeHypothesis.seam.test.tsx.
+  describe('propose-hypothesis app wiring', () => {
     beforeEach(() => {
       capturedWallCanvasProps.current = null;
       useCanvasViewportStore.getState().setViewMode('wall');
@@ -561,15 +617,14 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
       render(<AnalyzeWorkspace {...props} />);
 
       const onProposeHypothesis = capturedWallCanvasProps.current!.onProposeHypothesis as (
-        findingId: string
+        findingId: string,
+        name: string
       ) => void;
-      onProposeHypothesis('f-orphan');
+      onProposeHypothesis('f-orphan', 'Coolant recirculation lag');
 
       // Routes through the useHypotheses hook (the Wall's source of truth).
       expect(createHub).toHaveBeenCalledTimes(1);
-      expect((createHub.mock.calls[0] as unknown[])[0]).toMatch(
-        /Suspected mechanism: Coolant temp/
-      );
+      expect((createHub.mock.calls[0] as unknown[])[0]).toBe('Coolant recirculation lag');
       expect(connectFinding).toHaveBeenCalledWith('hub-new', 'f-orphan');
     });
   });

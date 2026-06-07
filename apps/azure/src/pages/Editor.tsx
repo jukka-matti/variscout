@@ -2311,6 +2311,10 @@ export const Editor: React.FC<EditorProps> = ({
                 categoricalValuesByColumn={filteredCategoricalValuesByColumn}
                 binnedFactorBindings={activeIP?.binnedFactorBindings ?? undefined}
                 onBindingsChange={activeIP ? handleBinningBindingsChange : undefined}
+                onOpenWall={() => {
+                  useCanvasViewportStore.getState().setViewMode('wall');
+                  usePanelsStore.getState().showAnalyze();
+                }}
               />
             )}
           </>

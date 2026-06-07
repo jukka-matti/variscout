@@ -51,6 +51,7 @@ export interface DashboardSectionProps {
   onShareChart?: (chartType: string) => void;
   /** Handler for clicking "Investigate" on a Factor Intelligence factor */
   onInvestigateFactor?: (effect: FactorMainEffect) => void;
+  onOpenWall?: () => void;
   /** Projected Cpk map from improvement workspace */
   projectedCpkMap?: Record<string, number>;
   /** Whether AI is available and enabled */
@@ -86,6 +87,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   onPinFinding,
   onShareChart,
   onInvestigateFactor,
+  onOpenWall,
   projectedCpkMap,
   aiAvailable = false,
   activeIPScope,
@@ -114,6 +116,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
       findingsCallbacks={findingsCallbacks}
       findings={findingsState.findings}
       onInvestigateFactor={onInvestigateFactor}
+      onOpenWall={onOpenWall}
       categoricalValuesByColumn={categoricalValuesByColumn}
       binnedFactorBindings={binnedFactorBindings}
       onBindingsChange={onBindingsChange}

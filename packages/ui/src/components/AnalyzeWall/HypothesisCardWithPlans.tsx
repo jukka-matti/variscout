@@ -30,6 +30,7 @@ import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { canAccess } from '@variscout/core/projectMembership';
+import { evidenceTypesForHypothesis } from '@variscout/core/findings';
 import { getMessage } from '@variscout/core/i18n';
 import type { MeasurementPlanStatus } from '@variscout/core/measurementPlan';
 import { HypothesisCard, type HypothesisCardProps } from './HypothesisCard';
@@ -90,8 +91,8 @@ const RESPAWN_FORM_H = 132;
 const SUPERSEDED_H = 24;
 /** Height of the per-hypothesis What-If block (px). */
 const WHATIF_H = 56;
-/** CS-10 — height of the analyst-set status control row (label + select). */
-const STATUS_CONTROL_H = 56;
+/** FSJ-8 — height of the analyst-set status ladder + override row. */
+const STATUS_CONTROL_H = 168;
 /** CS-10 — extra height for the advisory suggestion chip when shown. */
 const STATUS_CHIP_H = 36;
 /** Horizontal offset of the foreignObject from the card's center-top anchor. */
@@ -465,14 +466,58 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // CS-10 — the analyst-set status control. Same ACL gate as the disconfirmation
   // gesture: shown when the parent wires onSetStatus AND the user can edit.
   const showStatusControl = canEdit && Boolean(onSetStatus);
-  // The advisory "mark Supported?" suggestion chip. Renders ONLY when the control
-  // is available, the derivation (advisory) says evidence-survived-test, and the
-  // analyst has NOT yet promoted the hub (no nagging once promoted). The stored
-  // hub.status is the authority — never the suggestion.
-  const showSuggestionChip =
-    showStatusControl &&
-    cardProps.suggestedStatus === 'evidence-survived-test' &&
-    cardProps.hub.status !== 'evidence-survived-test';
+  const counterFindingIds = new Set(cardProps.hub.counterFindingIds ?? []);
+  const linkedFindings = findings.filter(f => cardProps.hub.findingIds.includes(f.id));
+  const supportCount = linkedFindings.filter(
+    f =>
+      !counterFindingIds.has(f.id) &&
+      !f.refutes &&
+      f.validationStatus !== 'contradicts' &&
+      f.validationStatus !== 'inconclusive'
+  ).length;
+  const refutingCount = linkedFindings.filter(
+    f => counterFindingIds.has(f.id) || f.refutes || f.validationStatus === 'contradicts'
+  ).length;
+  const survivedAttemptCount = (cardProps.hub.disconfirmationAttempts ?? []).filter(
+    attempt => attempt.verdict === 'survived'
+  ).length;
+  const distinctEvidenceTypes = evidenceTypesForHypothesis(cardProps.hub, findings).size;
+  const statusProposal = (() => {
+    if (!showStatusControl) return null;
+    if (cardProps.hub.status !== 'refuted' && refutingCount > 0) {
+      return {
+        label: `${refutingCount} refuting finding${refutingCount === 1 ? '' : 's'} - mark Refuted?`,
+        status: 'refuted' as HypothesisStatus,
+      };
+    }
+    if (
+      cardProps.hub.status === 'needs-disconfirmation' &&
+      distinctEvidenceTypes >= 2 &&
+      survivedAttemptCount > 0
+    ) {
+      return {
+        label: `${survivedAttemptCount} survived break attempt${survivedAttemptCount === 1 ? '' : 's'} - mark Supported?`,
+        status: 'evidence-survived-test' as HypothesisStatus,
+      };
+    }
+    if (
+      cardProps.hub.status === 'evidenced' &&
+      distinctEvidenceTypes >= 2 &&
+      survivedAttemptCount === 0
+    ) {
+      return {
+        label: 'Evidence logged - mark Needs disconfirmation?',
+        status: 'needs-disconfirmation' as HypothesisStatus,
+      };
+    }
+    if (cardProps.hub.status === 'proposed' && supportCount > 0) {
+      return {
+        label: `${supportCount} supporting finding${supportCount === 1 ? '' : 's'} - mark Evidenced?`,
+        status: 'evidenced' as HypothesisStatus,
+      };
+    }
+    return null;
+  })();
 
   // ImprovementIdeasSection mounts when the parent wires the impacts map AND the
   // hub carries at least one idea (Task 6 IM-4b). Hoisted so the comments
@@ -522,9 +567,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // read-only lineage marker, visible to everyone).
   const showSuperseded = cardProps.displayStatus === 'refuted' && Boolean(supersededByName);
   const supersededH = showSuperseded ? SUPERSEDED_H : 0;
-  // CS-10 — the analyst-set status control + the optional advisory suggestion chip.
+  // FSJ-8 — the analyst-set status ladder + optional advisory proposal chip.
   const statusControlH = showStatusControl
-    ? STATUS_CONTROL_H + (showSuggestionChip ? STATUS_CHIP_H : 0)
+    ? STATUS_CONTROL_H + (statusProposal ? STATUS_CHIP_H : 0)
     : 0;
   const plansSectionH =
     statusControlH +
@@ -645,25 +690,41 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
           data-testid="plans-section"
         >
           <div className="bg-white border border-gray-200 rounded-b shadow-sm overflow-visible">
-            {/* CS-10 — analyst-owned status. The status is the analyst's call:
-                the control offers ALL 5 states as a free choice (no validation,
-                no contradiction warning — owner decision). The advisory
-                "mark Supported?" suggestion chip appears only when the derivation
-                says evidence-survived-test and the analyst has not yet promoted
-                the hub; it never auto-applies. */}
+            {/* FSJ-8 — analyst-owned status. The ladder teaches the progression;
+                proposal chips call onSetStatus but never write derived status. */}
             {showStatusControl && (
               <div
                 data-testid="analyst-set-status-section"
-                className="border-b border-gray-100 px-3 py-2"
+                className="border-b border-gray-100 px-3 py-2 space-y-2"
               >
-                {showSuggestionChip && (
+                <div data-testid="status-ladder" className="rounded border border-gray-200 p-2">
+                  <div className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-gray-700">
+                    <span>Proposed</span>
+                    <span aria-hidden="true">-&gt;</span>
+                    <span>Evidenced</span>
+                    <span aria-hidden="true">-&gt;</span>
+                    <span>Needs disconfirmation</span>
+                    <span aria-hidden="true">-&gt;</span>
+                    <span>Supported</span>
+                    <span aria-hidden="true">/</span>
+                    <span>↘ Refuted</span>
+                  </div>
+                  <div className="mt-1 space-y-0.5 text-[11px] leading-tight text-gray-600">
+                    <div>Proposed - named mechanism to check</div>
+                    <div>Evidenced - at least one finding points at it</div>
+                    <div>Needs disconfirmation - evidence logged, now try to break it</div>
+                    <div>Supported - survived an attempt to break it</div>
+                    <div>Refuted - counter evidence overturns it</div>
+                  </div>
+                </div>
+                {statusProposal && (
                   <button
                     type="button"
-                    data-testid="status-suggestion-chip"
-                    className="mb-1.5 inline-flex items-center rounded-full border border-green-600 bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-800 hover:bg-green-100"
-                    onClick={() => onSetStatus?.(cardProps.hub.id, 'evidence-survived-test')}
+                    data-testid="status-proposal-chip"
+                    className="inline-flex items-center rounded-full border border-blue-600 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-800 hover:bg-blue-100"
+                    onClick={() => onSetStatus?.(cardProps.hub.id, statusProposal.status)}
                   >
-                    {getMessage(locale, 'wall.status.suggestSupported')}
+                    {statusProposal.label}
                   </button>
                 )}
                 <label className="block text-xs font-medium text-gray-700">

@@ -158,6 +158,14 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   }, [rawData]);
   const hubs = useAnalyzeStore(s => s.hypotheses);
   const wallFindings = useAnalyzeStore(s => s.findings);
+  const hasAppliedFindingsArrivalRef = useRef(false);
+  useEffect(() => {
+    if (hasAppliedFindingsArrivalRef.current) return;
+    if (hubs.length === 0 && wallFindings.length > 0) {
+      setWallViewMode('wall');
+      hasAppliedFindingsArrivalRef.current = true;
+    }
+  }, [hubs.length, setWallViewMode, wallFindings.length]);
   // PO-5: active-IP scope shows the whole document — the Wall renders every hub
   // and finding (the lineage-membership filter is retired; empty-set-means-
   // unfiltered is the permanent semantics).
@@ -285,12 +293,13 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     }
   }, [returnNavigation]);
 
-  // IM-4c — "propose suspected mechanism from this finding". The PWA Wall reads
-  // hubs from useAnalyzeStore.hypotheses REACTIVELY (line above), so
-  // createHubFromFinding (which appends to that exact collection) re-renders the
-  // Wall with the new hypothesis card. No follow-through sync needed.
-  const handleProposeHypothesis = useCallback((findingId: string) => {
-    useAnalyzeStore.getState().createHubFromFinding(findingId);
+  // FSJ-8 — finding promotion requires a plain-language hypothesis name before
+  // creating the hub. The PWA Wall reads useAnalyzeStore.hypotheses reactively,
+  // so create + connect through that same collection.
+  const handleProposeHypothesis = useCallback((findingId: string, name: string) => {
+    const store = useAnalyzeStore.getState();
+    const hub = store.createHub(name, '');
+    store.connectFindingToHub(hub.id, findingId);
   }, []);
 
   // CS-13 — the crossing-back (spec §4.0a). PWA parity note: the scope lands in

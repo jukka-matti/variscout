@@ -1,13 +1,11 @@
 /**
- * WallCanvas propose-hypothesis SEAM test (IM-4c Task 4).
+ * WallCanvas propose-hypothesis SEAM test (FSJ-8).
  *
- * Proves the finding→hypothesis-on-Wall (createHubFromFinding) seam through the
- * PRODUCTION path: an orphan finding (linked to no hub) renders in the orphan
- * lane with a "Propose hypothesis" affordance; firing it calls
- * onProposeHypothesis(findingId), and — via a render-through harness that mimics
- * the apps' rendered-hubs source of truth — a NEW hypothesis card appears on the
- * Wall. A dead wiring (store call that doesn't re-render the rendered-hubs
- * collection) FAILS the render-through assertion.
+ * Proves the finding→hypothesis-on-Wall seam through the production path:
+ * findings-forward arrival renders a promotion CTA, WallCanvas prompts for a
+ * plain-language name, and the app callback receives (findingId, name). The
+ * render-through harness mimics the apps' rendered-hubs source of truth so a
+ * dead wiring still fails visibly.
  */
 import React, { useState } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -33,9 +31,9 @@ beforeEach(() => {
   useCanvasViewportStore.setState(getCanvasViewportInitialState());
 });
 
-describe('WallCanvas — orphan-finding lane + propose-hypothesis affordance', () => {
-  it('renders an orphan finding in the orphan lane with a Propose-hypothesis affordance', () => {
-    const { container } = render(
+describe('WallCanvas — findings-forward promotion affordance', () => {
+  it('renders a findings-forward arrival card with a promotion affordance', () => {
+    render(
       <WallCanvas
         hubs={[]}
         findings={[orphanFinding]}
@@ -44,22 +42,19 @@ describe('WallCanvas — orphan-finding lane + propose-hypothesis affordance', (
         onProposeHypothesis={vi.fn()}
       />
     );
-    // The orphan lane mounts the chip…
-    const lane = container.querySelector('[data-wall-orphan-lane]');
-    expect(lane).toBeTruthy();
-    expect(container.querySelector('[data-wall-node-id="f-orphan"]')).toBeTruthy();
-    // …and the propose-hypothesis affordance is present.
-    expect(screen.getByRole('button', { name: /propose suspected mechanism/i })).toBeTruthy();
+    expect(screen.getByTestId('wall-arrival')).toBeTruthy();
+    expect(screen.getByText(/You've observed:/i)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /what might cause this\?/i })).toBeTruthy();
   });
 
   it('does NOT render the affordance when onProposeHypothesis is omitted', () => {
     render(
       <WallCanvas hubs={[]} findings={[orphanFinding]} problemCpk={0.78} eventsPerWeek={42} />
     );
-    expect(screen.queryByRole('button', { name: /propose suspected mechanism/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /what might cause this\?/i })).toBeNull();
   });
 
-  it('firing the affordance calls onProposeHypothesis with the findingId', () => {
+  it('prompts for a name before calling onProposeHypothesis', () => {
     const onProposeHypothesis = vi.fn();
     render(
       <WallCanvas
@@ -70,15 +65,20 @@ describe('WallCanvas — orphan-finding lane + propose-hypothesis affordance', (
         onProposeHypothesis={onProposeHypothesis}
       />
     );
-    fireEvent.click(screen.getByRole('button', { name: /propose suspected mechanism/i }));
-    expect(onProposeHypothesis).toHaveBeenCalledWith('f-orphan');
+    fireEvent.click(screen.getByRole('button', { name: /what might cause this\?/i }));
+    const input = screen.getByLabelText(/what might cause this\?/i);
+    expect(input).toHaveValue('');
+
+    const submit = screen.getByRole('button', { name: /create hypothesis/i });
+    expect(submit).toBeDisabled();
+    fireEvent.change(input, { target: { value: 'Coolant recirculation lag' } });
+    expect(submit).not.toBeDisabled();
+    fireEvent.click(submit);
+
+    expect(onProposeHypothesis).toHaveBeenCalledWith('f-orphan', 'Coolant recirculation lag');
   });
 
-  it('render-through: proposing spawns a NEW hypothesis card on the Wall', () => {
-    // Harness mirrors the apps: `onProposeHypothesis` mutates the SAME hubs
-    // collection the Wall renders (create-hub + connect-finding), so the new
-    // card must re-render. A dead store call (different collection) would leave
-    // the Wall hub-less and FAIL this.
+  it('render-through: named promotion spawns a NEW hypothesis card on the Wall', () => {
     function Harness() {
       const [hubs, setHubs] = useState<Hypothesis[]>([]);
       const [findings, setFindings] = useState<Finding[]>([orphanFinding]);
@@ -88,12 +88,9 @@ describe('WallCanvas — orphan-finding lane + propose-hypothesis affordance', (
           findings={findings}
           problemCpk={0.78}
           eventsPerWeek={42}
-          onProposeHypothesis={fid => {
-            const f = findings.find(x => x.id === fid);
-            const excerpt = (f?.text ?? '').trim().slice(0, 80);
-            const hub = createHypothesis(`Suspected mechanism: ${excerpt}`, '', [fid]);
+          onProposeHypothesis={(fid, name) => {
+            const hub = createHypothesis(name, '', [fid]);
             setHubs(prev => [...prev, hub]);
-            // The finding is now linked → it leaves the orphan lane.
             setFindings(prev => prev);
           }}
         />
@@ -101,12 +98,14 @@ describe('WallCanvas — orphan-finding lane + propose-hypothesis affordance', (
     }
     render(<Harness />);
 
-    // Before: Wall is hub-less (EmptyState CTA visible), no mechanism card.
-    expect(screen.queryByText(/Suspected mechanism:/i)).toBeNull();
+    expect(screen.queryByText(/Coolant recirculation lag/i)).toBeNull();
 
-    fireEvent.click(screen.getByRole('button', { name: /propose suspected mechanism/i }));
+    fireEvent.click(screen.getByRole('button', { name: /what might cause this\?/i }));
+    fireEvent.change(screen.getByLabelText(/what might cause this\?/i), {
+      target: { value: 'Coolant recirculation lag' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create hypothesis/i }));
 
-    // After: a NEW hypothesis card carrying the finding excerpt renders.
-    expect(screen.getByText(/Suspected mechanism: Coolant temp creeps over a shift/i)).toBeTruthy();
+    expect(screen.getByText(/Coolant recirculation lag/i)).toBeTruthy();
   });
 });

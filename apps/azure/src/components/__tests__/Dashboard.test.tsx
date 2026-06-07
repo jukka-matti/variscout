@@ -1,14 +1,29 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
 import {
   useProjectStore,
   useAnalysisScopeStore,
   getAnalysisScopeInitialState,
 } from '@variscout/stores';
-import { calculateAnova } from '@variscout/core';
+import { calculateAnova, type Finding } from '@variscout/core';
 import { usePanelsStore } from '../../features/panels/panelsStore';
+
+function makeCapturedFinding(id: string): Finding {
+  const timestamp = Date.parse('2026-06-07T00:00:00Z');
+  return {
+    id,
+    text: 'Captured observation',
+    context: { activeFilters: {}, cumulativeScope: null },
+    evidenceType: 'data',
+    status: 'observed',
+    createdAt: timestamp,
+    deletedAt: null,
+    comments: [],
+    statusChangedAt: timestamp,
+  };
+}
 
 // Mock components
 vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
@@ -111,6 +126,18 @@ vi.mock('@variscout/ui', () => ({
     <span data-testid="editable-title">{defaultTitle}</span>
   ),
   SelectionPanel: () => <div data-testid="selection-panel">Selection Panel</div>,
+  CaptureCard: ({
+    onCapture,
+    onFactorOnly,
+  }: {
+    onCapture: () => void;
+    onFactorOnly?: () => void;
+  }) => (
+    <div data-testid="capture-card">
+      <button onClick={onCapture}>Capture</button>
+      {onFactorOnly ? <button onClick={onFactorOnly}>Factor only</button> : null}
+    </div>
+  ),
   CreateFactorModal: () => <div data-testid="create-factor-modal">Create Factor</div>,
   FilterContextBar: () => null,
   BoxplotDisplayToggle: () => <div data-testid="boxplot-display-toggle">Display Toggle</div>,
@@ -234,6 +261,7 @@ vi.mock('@variscout/ui', () => ({
       onDownloadSvg,
       setFocusedChart,
       showParetoPanel,
+      onInsightCapture,
     } = props;
     return (
       <div data-testid="dashboard-layout-base">
@@ -298,6 +326,11 @@ vi.mock('@variscout/ui', () => ({
               >
                 Maximize
               </button>
+              {onInsightCapture ? (
+                <button onClick={onInsightCapture} data-testid="insight-capture">
+                  Capture insight
+                </button>
+              ) : null}
               {renderIChartContent}
             </div>
             <div data-testid="chart-boxplot">
@@ -514,6 +547,22 @@ vi.mock('@variscout/hooks', () => ({
     activeProjection: null,
   }),
   useProbabilityPlotData: () => [],
+  buildEngineSignalCaptureDraft: () => ({
+    entryKind: 'engine-signal',
+    conditionLabel: 'Process shift detected',
+    evidenceLabel: 'I-Chart signal',
+    proposedFactorName: 'Result shift',
+    note: '',
+    activeFilters: {},
+    source: { chart: 'ichart', anchorX: 0, anchorY: 10 },
+  }),
+  resolveDerivedFactorName: (name: string) => name,
+  buildChangepointDerivedColumn: (rows: Record<string, unknown>[], _index: number, name: string) =>
+    rows.map((row, idx) => ({ ...row, [name]: idx === 0 ? 'in' : 'out' })),
+  applyDerivedFactorToFilters: (
+    activeFilters: Record<string, (string | number)[]>,
+    factorName: string
+  ) => ({ ...activeFilters, [factorName]: ['in'] }),
   useDefectTransform: () => null,
   useDefectSummary: () => null,
   useLensedSampleCount: () => null,
@@ -531,6 +580,8 @@ vi.mock('@variscout/core', async () => {
   return {
     ...actual,
     calculateAnova: vi.fn(),
+    getNelsonRule2Sequences: vi.fn(() => [{ startIndex: 0, endIndex: 1 }]),
+    getNelsonRule3Sequences: vi.fn(() => []),
   };
 });
 
@@ -638,6 +689,31 @@ describe('Dashboard', () => {
 
     const titles = screen.getAllByTestId('editable-title');
     expect(titles.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('shows one-time Analyze afterglow after an engine-signal Finding capture', () => {
+    const onAddChartObservation = vi.fn(() => makeCapturedFinding('f-dashboard'));
+    const onOpenWall = vi.fn();
+
+    render(
+      <Dashboard
+        onOpenWall={onOpenWall}
+        findingsCallbacks={{
+          onAddChartObservation,
+          chartFindings: { ichart: [], boxplot: [], pareto: [] },
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('insight-capture'));
+    fireEvent.click(screen.getByRole('button', { name: 'Capture' }));
+
+    expect(screen.getByRole('button', { name: /Take it to Analyze ->/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Take it to Analyze ->/i }));
+    expect(onOpenWall).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole('button', { name: /Take it to Analyze ->/i })
+    ).not.toBeInTheDocument();
   });
 
   // ────────────────────────────────────────────────────────────────────────

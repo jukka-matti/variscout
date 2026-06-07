@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AnalyzePhaseBadge,
   AnalyzeConclusion,
@@ -729,6 +729,14 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // and finding (the lineage-membership filter is retired; empty-set-means-
   // unfiltered is the permanent semantics).
   const hubs = hypothesesState.hubs;
+  const hasAppliedFindingsArrivalRef = useRef(false);
+  useEffect(() => {
+    if (hasAppliedFindingsArrivalRef.current) return;
+    if (hubs.length === 0 && findingsState.findings.length > 0) {
+      setWallViewMode('wall');
+      hasAppliedFindingsArrivalRef.current = true;
+    }
+  }, [findingsState.findings.length, hubs.length, setWallViewMode]);
 
   // PR-CS-6 Edge 4: resolve each finding's `originStepId` to its ProcessMap step
   // name (FindingCard stays pure). Suppressed silently for findings whose step no
@@ -918,21 +926,16 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     [hypothesesState]
   );
 
-  // IM-4c — "propose suspected mechanism from this finding". The Wall renders
-  // `hypothesesState.hubs` (the useHypotheses hook is the source of truth), so we
-  // create + connect through THAT hook — NOT analyzeStore.createHubFromFinding,
-  // which appends to a different collection that does NOT re-render this Wall.
-  // Mirrors handleCreateHub's create→connect path; name matches the store
-  // factory's "Suspected mechanism: {excerpt}" convention.
+  // FSJ-8 — promotion comes from WallCanvas after the analyst enters a
+  // plain-language name. The Wall renders `hypothesesState.hubs` (the
+  // useHypotheses hook is the source of truth), so create + connect through that
+  // hook rather than the app-local analyze store.
   const handleProposeHypothesis = useCallback(
-    (findingId: string) => {
-      const finding = findingsState.findings.find(f => f.id === findingId);
-      const excerpt = (finding?.text ?? '').trim().slice(0, 80);
-      const name = excerpt.length > 0 ? `Suspected mechanism: ${excerpt}` : 'New mechanism branch';
+    (findingId: string, name: string) => {
       const hub = hypothesesState.createHub(name, '');
       hypothesesState.connectFinding(hub.id, findingId);
     },
-    [findingsState.findings, hypothesesState]
+    [hypothesesState]
   );
 
   // Wall empty-state entry points (investigations.md 2026-06-04 — the CTAs were

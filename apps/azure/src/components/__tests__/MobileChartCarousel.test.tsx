@@ -1,7 +1,23 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import type { Finding } from '@variscout/core';
 import MobileChartCarousel from '../MobileChartCarousel';
+
+function makeCapturedFinding(id: string): Finding {
+  const timestamp = Date.parse('2026-06-07T00:00:00Z');
+  return {
+    id,
+    text: 'Captured observation',
+    context: { activeFilters: {}, cumulativeScope: null },
+    evidenceType: 'data',
+    status: 'observed',
+    createdAt: timestamp,
+    deletedAt: null,
+    comments: [],
+    statusChangedAt: timestamp,
+  };
+}
 
 // Mock chart components (they depend on DataContext)
 vi.mock('../charts/IChart', () => ({
@@ -535,11 +551,13 @@ describe('MobileChartCarousel', () => {
   });
 
   it('opens the shared capture card before saving a mobile chart observation', () => {
-    const onAddChartObservation = vi.fn();
+    const onAddChartObservation = vi.fn(() => makeCapturedFinding('f-mobile'));
     const onPinFinding = vi.fn();
+    const onOpenWall = vi.fn();
     render(
       <MobileChartCarousel
         {...defaultProps}
+        onOpenWall={onOpenWall}
         onPinFinding={onPinFinding}
         findingsCallbacks={{ onAddChartObservation }}
       />
@@ -573,6 +591,10 @@ describe('MobileChartCarousel', () => {
     );
     // Should NOT fall through to onPinFinding
     expect(onPinFinding).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /Take it to Analyze ->/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Take it to Analyze ->/i }));
+    expect(onOpenWall).toHaveBeenCalledTimes(1);
   });
 
   it('offers mobile chart capture when only chart observation callbacks are provided', () => {

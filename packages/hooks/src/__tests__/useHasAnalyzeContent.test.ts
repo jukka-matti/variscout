@@ -31,9 +31,9 @@ describe('useHasAnalyzeContent', () => {
     expect(result.current).toBe(true);
   });
 
-  it('returns false when only findings count is > 0 because overlay has no standalone finding visual', () => {
+  it('returns true when only findings count is > 0 so mobile can open Wall arrival', () => {
     const { result } = renderHook(() => useHasAnalyzeContent({ findingsCount: 3 }));
-    expect(result.current).toBe(false);
+    expect(result.current).toBe(true);
   });
 
   it('returns true when both hub and findings exist', () => {

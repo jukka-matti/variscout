@@ -11,12 +11,11 @@ export interface UseHasAnalyzeContentArgs {
  *
  * Findings live in app-level feature stores. Callers pass findingsCount from
  * their app's findings selector so this hook stays downward-dependent only.
- * V1 findings render as hub evidence, not standalone Wall nodes, so a
- * findings-only graph should not advertise the Wall shortcut yet.
+ * FSJ-8 gives findings-only graphs a Wall arrival state, so findings alone are
+ * Wall-renderable content.
  */
 export function useHasAnalyzeContent(args: UseHasAnalyzeContentArgs): boolean {
   const hubsCount = useAnalyzeStore(state => state.hypotheses.length);
-  const hasHubBackedFindings = hubsCount > 0 && args.findingsCount > 0;
 
-  return hubsCount > 0 || hasHubBackedFindings;
+  return hubsCount > 0 || args.findingsCount > 0;
 }

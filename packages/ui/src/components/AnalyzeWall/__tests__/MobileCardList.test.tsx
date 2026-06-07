@@ -219,4 +219,26 @@ describe('MobileCardList', () => {
     // EmptyState heading comes from the shared component
     expect(screen.getByText(/Start a Mechanism Branch/i)).toBeInTheDocument();
   });
+
+  it('shows findings-forward Wall arrival when findings exist but hubs is empty', () => {
+    const finding = makeFinding({
+      id: 'f-orphan',
+      text: 'Step=2 wider',
+      context: { activeFilters: { Step: [2] }, cumulativeScope: null },
+    });
+    render(
+      <MobileCardList
+        hubs={[]}
+        findings={[finding]}
+        onWriteHypothesis={vi.fn()}
+        onSeedFromFactorIntel={vi.fn()}
+        onProposeHypothesis={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByTestId('wall-mobile-card-list')).toBeNull();
+    expect(screen.getByText(/You've observed:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Step=2 wider/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /What might cause this\?/i })).toBeInTheDocument();
+  });
 });

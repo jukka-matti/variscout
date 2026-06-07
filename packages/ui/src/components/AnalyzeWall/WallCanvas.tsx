@@ -68,6 +68,7 @@ import { TributaryFooter } from './TributaryFooter';
 import { ModelBuilderBand } from './ModelBuilderBand';
 import type { CapturedModelSnapshot } from './ModelBuilderBand';
 import { EmptyState } from './EmptyState';
+import { WallArrival } from './WallArrival';
 import { MissingEvidencePanel } from './MissingEvidencePanel';
 import { MobileCardList } from './MobileCardList';
 import { useWallLocale } from './hooks/useWallLocale';
@@ -250,14 +251,10 @@ export interface WallCanvasProps {
   onSeedFromFactorIntel?: () => void;
   onFocusHubFromGap?: (id: string) => void;
   /**
-   * IM-4c — "propose suspected mechanism from this finding". When provided, each
-   * orphan FindingChip (a finding linked to no hub) renders a propose-hypothesis
-   * affordance. Firing it calls back with the findingId; the APP wires this
-   * through whatever path actually re-renders the Wall's hubs collection (Azure:
-   * useHypotheses.createHub + connectFinding; PWA: analyzeStore.createHubFromFinding,
-   * which the PWA Wall reads reactively). Omit to hide the affordance.
+   * FSJ-8 seam: app-owned promotion of a finding into a hypothesis hub after
+   * WallCanvas prompts for the analyst's plain-language hypothesis name.
    */
-  onProposeHypothesis?: (findingId: string) => void;
+  onProposeHypothesis?: (findingId: string, name: string) => void;
   /**
    * CS-13 — the crossing-back (spec §4.0a). When provided, the focused factor
    * glyph and each hypothesis card header render a → jump button. Fired with
@@ -897,6 +894,62 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   const dndEnabled = mode === 'destination' && Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
   const isMobile = useWallIsMobile();
+  const [promotionFindingId, setPromotionFindingId] = useState<string | null>(null);
+  const [promotionName, setPromotionName] = useState('');
+  const handleStartPromotion = useCallback((findingId: string) => {
+    setPromotionFindingId(findingId);
+    setPromotionName('');
+  }, []);
+  const handleCancelPromotion = useCallback(() => {
+    setPromotionFindingId(null);
+    setPromotionName('');
+  }, []);
+  const handleSubmitPromotion = useCallback(() => {
+    if (!promotionFindingId || !onProposeHypothesis) return;
+    const name = promotionName.trim();
+    if (name.length === 0) return;
+    onProposeHypothesis(promotionFindingId, name);
+    setPromotionFindingId(null);
+    setPromotionName('');
+  }, [onProposeHypothesis, promotionFindingId, promotionName]);
+  const promotionPrompt = promotionFindingId ? (
+    <div
+      role="dialog"
+      aria-modal="false"
+      aria-label="Hypothesis promotion prompt"
+      className="absolute inset-x-4 top-4 z-50 mx-auto max-w-sm rounded border border-edge bg-surface p-4 shadow-lg"
+      data-testid="wall-promotion-prompt"
+    >
+      <h2 id="wall-promotion-title" className="text-base font-semibold text-content">
+        What might cause this?
+      </h2>
+      <label className="mt-3 block text-sm font-medium text-content">
+        What might cause this?
+        <input
+          className="mt-1 w-full rounded border border-edge bg-background px-3 py-2 text-sm text-content"
+          value={promotionName}
+          onChange={event => setPromotionName(event.target.value)}
+        />
+      </label>
+      <div className="mt-4 flex justify-end gap-2">
+        <button
+          type="button"
+          className="rounded border border-edge bg-surface-secondary px-3 py-1.5 text-sm text-content"
+          onClick={handleCancelPromotion}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="rounded bg-content px-3 py-1.5 text-sm font-semibold text-background disabled:opacity-40"
+          disabled={promotionName.trim().length === 0}
+          onClick={handleSubmitPromotion}
+        >
+          Create hypothesis
+        </button>
+      </div>
+    </div>
+  ) : null;
   useCanvasViewportInput({
     hubId: hubId ?? null,
     ref: svgRef,
@@ -931,7 +984,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onSelectHub={onSelectHub}
           onWriteHypothesis={onWriteHypothesis}
           onSeedFromFactorIntel={onSeedFromFactorIntel}
+          onProposeHypothesis={onProposeHypothesis ? handleStartPromotion : undefined}
         />
+        {promotionPrompt}
         {mode === 'destination' ? (
           <MissingEvidencePanel
             hints={surveyHints}
@@ -940,6 +995,20 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           />
         ) : null}
       </div>
+    );
+  }
+
+  if (mode === 'destination' && filteredHubs.length === 0 && findings.length > 0) {
+    return (
+      <>
+        <WallArrival
+          findings={findings}
+          onProposeHypothesis={onProposeHypothesis ? handleStartPromotion : undefined}
+          onWriteHypothesis={onWriteHypothesis}
+          onSeedFromFactorIntel={onSeedFromFactorIntel}
+        />
+        {promotionPrompt}
+      </>
     );
   }
 
@@ -1353,7 +1422,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
                       x={pos.x}
                       y={pos.y}
                       onSelect={onSelectHub}
-                      onProposeHypothesis={onProposeHypothesis}
+                      onProposeHypothesis={onProposeHypothesis ? handleStartPromotion : undefined}
                     />
                   </g>
                 );

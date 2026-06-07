@@ -155,6 +155,7 @@ interface DashboardProps {
     title: string;
     labels: ActiveIPScopeLabels;
   } | null;
+  onOpenWall?: () => void;
   /**
    * G1 Task 4: derived categorical columns from the active ImprovementProject.
    * Keys: derived column names (e.g. `Order_Date.day-of-week`, `Reactor_temp_bin`).
@@ -204,6 +205,7 @@ const Dashboard = ({
   ai = {},
   projectedCpkMap: externalProjectedCpkMap,
   activeIPScope,
+  onOpenWall,
   categoricalValuesByColumn,
   activeIPProcessSteps = [],
   binnedFactorBindings,
@@ -266,6 +268,7 @@ const Dashboard = ({
   type AzureAnalysisLensTab = 'probability' | 'distribution';
   const [analysisLensTab, setAnalysisLensTab] = useState<AzureAnalysisLensTab>('probability');
   const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
+  const [showCaptureAfterglow, setShowCaptureAfterglow] = useState(false);
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveMode(analysisMode) === 'defect';
@@ -724,7 +727,7 @@ const Dashboard = ({
       setParetoFactor(factorName);
 
       if (captureMode === 'capture') {
-        onAddChartObservation?.(
+        const finding = onAddChartObservation?.(
           'ichart',
           undefined,
           captureDraft.note,
@@ -735,6 +738,7 @@ const Dashboard = ({
             activeFilters: applyDerivedFactorToFilters(captureDraft.activeFilters, factorName),
           }
         );
+        if (finding) setShowCaptureAfterglow(true);
       }
       setCaptureDraft(null);
     },
@@ -935,6 +939,31 @@ const Dashboard = ({
             onCancel={() => setCaptureDraft(null)}
           />
         )}
+        {showCaptureAfterglow && onOpenWall ? (
+          <div
+            role="status"
+            className="mx-4 mb-3 rounded border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-950"
+          >
+            <button
+              type="button"
+              className="font-semibold underline"
+              onClick={() => {
+                setShowCaptureAfterglow(false);
+                onOpenWall();
+              }}
+            >
+              Take it to Analyze -&gt;
+            </button>
+            <button
+              type="button"
+              aria-label="Dismiss Analyze afterglow"
+              className="ml-3 text-blue-700"
+              onClick={() => setShowCaptureAfterglow(false)}
+            >
+              Dismiss
+            </button>
+          </div>
+        ) : null}
 
         {/* Tab Navigation */}
         <div
@@ -1075,6 +1104,7 @@ const Dashboard = ({
               onPinFinding={onPinFinding}
               boxplotData={boxplotData}
               findingsCallbacks={findingsCallbacks}
+              onOpenWall={onOpenWall}
               onAskCoScout={onAskCoScoutFromCategory}
               onInvestigateFactor={onInvestigateFactor}
               categoricalValuesByColumn={categoricalValuesByColumn}

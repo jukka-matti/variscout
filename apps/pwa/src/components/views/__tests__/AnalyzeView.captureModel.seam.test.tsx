@@ -10,7 +10,7 @@
  *
  *   - Live wire: tapping Capture lands a Finding in `useAnalyzeStore.findings`
  *     carrying the model snapshot (projection.modelContext), and the unlinked
- *     Finding renders on the Wall's orphan lane (render-through, not a spy).
+ *     Finding renders on the Wall's findings-forward arrival (render-through, not a spy).
  *   - Regression guard (the FE-1 bug): if the handler wrote to `useFindings`
  *     instead, `useAnalyzeStore.findings` would stay empty and the Wall node
  *     would be absent → this fails.
@@ -121,10 +121,10 @@ describe('PWA Wall capture-as-Finding seam (FE-1 fix)', () => {
     expect(typeof findings[0].projection?.modelContext?.rSquaredAdj).toBe('number');
   });
 
-  it('the captured-model Finding renders on the PWA Wall (orphan lane) — regression guard', () => {
+  it('the captured-model Finding renders on the PWA Wall arrival — regression guard', () => {
     function Harness() {
-      // Re-read findings from the store on each render so the new orphan node
-      // appears after capture (mirrors AnalyzeView's reactive subscription).
+      // Re-read findings from the store on each render so the arrival card appears
+      // after capture (mirrors AnalyzeView's reactive subscription).
       const findings = useAnalyzeStore(s => s.findings);
       return (
         <WallCanvas
@@ -135,18 +135,20 @@ describe('PWA Wall capture-as-Finding seam (FE-1 fix)', () => {
           rows={scopeRows()}
           outcomeColumn="Y"
           modelBuilderProps={modelBuilderProps()}
+          onProposeHypothesis={vi.fn()}
         />
       );
     }
     const { container } = render(<Harness />);
-    // No orphan node before capture.
+    // No finding-driven arrival before capture.
     expect(container.querySelector('[data-wall-orphan-lane]')).toBeNull();
+    expect(screen.queryByText(/You've observed:/i)).toBeNull();
 
     fireEvent.click(screen.getByTestId('model-capture'));
 
-    const findingId = useAnalyzeStore.getState().findings[0].id;
-    const lane = container.querySelector('[data-wall-orphan-lane]');
-    expect(lane).not.toBeNull();
-    expect(container.querySelector(`[data-wall-node-id="${findingId}"]`)).not.toBeNull();
+    const finding = useAnalyzeStore.getState().findings[0];
+    expect(screen.getByText(/You've observed:/i)).toBeTruthy();
+    expect(screen.getAllByText(finding.text).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /What might cause this\?/i })).toBeTruthy();
   });
 });
