@@ -73,11 +73,8 @@ After Tasks 1+3 the walk's exact failure may already heal (wizard writes `select
 - [ ] RED first, integration-level: simulate the walk — paste-shaped rows with `CycleTime`, no selected outcome → wizard-style apply sets the outcome → assert the b0 candidate state shows the outcome set and "See the data" gating passes. Place the test where the existing FSJ-10 b0 composition tests live (`CanvasWorkspace.test.tsx` / `usePasteImportFlow.landing.test.ts` — follow the existing patterns).
 - [ ] If still broken after 1+3: trace which store the wizard writes vs which input `deriveB0ModeCandidates` receives; fix the wiring at the seam, NOT by adding a second writer (FSJ-10 invariant: b0 is the only interactive writer; the wizard hatch may update metadata but the candidate derivation must read the same source of truth).
 
-## Verification (controller-level, after PR opens)
+## Self-merge gates (amended 2026-06-07 — the Codex app owns the full loop per the [demo-readiness master plan](2026-06-07-demo-readiness-master-plan.md) §dispatch-protocol)
 
-- Full turbo test + build via `bash scripts/pr-ready-check.sh` (controller, not implementer).
-- Chrome walk replay: paste the walk dataset (`Date/Line/Shift/CycleTime`, tab-separated) → b0 must list CycleTime as the top Y candidate immediately; typing `CycleTime` in the manual pick must select it; "See the data" enables.
-
-## Stop-line
-
-PR opened against main = stop. Claude reviews, walks, merges (hybrid mode per feedback_codex_implements_claude_orchestrates).
+- `bash scripts/pr-ready-check.sh` green before merge (run at the END — the <90s rule applies mid-task only).
+- **Browser verification**: paste the walk dataset (`Date/Line/Shift/CycleTime`, tab-separated, ~32 rows) into the PWA dev app → b0 must list CycleTime as the top Y candidate immediately; typing `CycleTime` in the manual pick must select it; a typo must produce visible feedback; "See the data" enables. Capture evidence (screenshot/trace) in the PR body.
+- Merge with `gh pr merge --merge --delete-branch` (never `--squash`). Claude reviews post-merge, async.

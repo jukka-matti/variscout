@@ -21,7 +21,7 @@ related:
 
 **Tech Stack:** TypeScript, Zustand (`@variscout/stores`), React + Tailwind semantic classes (`@variscout/ui`), Vitest + RTL.
 
-**Worktree/branch:** `feat/l1-evidence-angle-picker`. Stop-line: PR opened against main. Never merge.
+**Worktree/branch:** `feat/l1-evidence-angle-picker`. The Codex app owns the full loop incl. merge — see §Self-merge gates.
 
 ---
 
@@ -274,17 +274,13 @@ it('two angles + a survived attempt → evidence-survived-test; one angle only �
 - [ ] **Step 2: Run — likely PASS already** (the rule pre-exists). If it passes untouched, keep it as the pinning test and note "pin, not change" in the commit message.
 - [ ] **Step 3: Commit** — `test(core): pin the evidence-breadth rule L-1 makes reachable`
 
-### Task 7: Open the PR
+### Task 7: Gates + merge
 
-- [ ] `git push -u origin feat/l1-evidence-angle-picker`
-- [ ] `gh pr create --title "feat(l1): evidence-angle picker — revive the FindingEvidenceType breadth rule" --body "<summary + the call-site list from Task 4 + 'Part of the demo-readiness master plan, L-1'>"`
-- [ ] **STOP.** Do not merge. Reviewer (Claude) takes it from here.
+- [ ] `bash scripts/pr-ready-check.sh` — must be green (run at the END; the <90s rule applies mid-task only)
+- [ ] **Browser verification** (the phase gate): in the PWA dev app, brush-capture a finding → set its angle to gemba on the capture card → capture a second data finding → link both to one suspected cause → record a survived break attempt → **the Verified suggestion chip appears**. Reclassify an angle on the findings panel → the chip retracts. Capture evidence in the PR body.
+- [ ] `git push -u origin feat/l1-evidence-angle-picker` + `gh pr create --title "feat(l1): evidence-angle picker — revive the FindingEvidenceType breadth rule"` (body: summary + the Task-4 call-site list + the browser evidence + "Demo-readiness master plan, L-1")
+- [ ] `gh pr merge --merge --delete-branch` (never `--squash`)
 
-## Controller verification (Claude, after PR opens)
+## Post-merge (Claude, async)
 
-- `bash scripts/pr-ready-check.sh` green.
-- Chrome walk: brush-capture a finding → switch its angle to gemba on the capture card → capture a second data finding → link both to one suspected cause → record a survived break attempt → **the Verified suggestion chip appears** (the dead rule, alive). Then reclassify an angle on the findings panel and watch the chip retract.
-
-## §Codex-prompt
-
-The canonical first prompt for the Codex app is maintained in the master plan dispatch protocol; the live copy for L-1 is delivered in-session by the orchestrator.
+Subagent review of the merged diff + a chrome spot-walk; findings → drive-by fixes on main or investigations.md. Per the master plan §dispatch-protocol.

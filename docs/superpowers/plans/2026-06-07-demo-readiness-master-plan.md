@@ -45,22 +45,19 @@ related:
 
 ## Codex-app dispatch protocol (per phase)
 
-Two variants; the sub-plan is the contract either way.
+Two variants; the sub-plan is the contract either way. **Owner call 2026-06-07: the Codex app owns the full loop — implement, verify (incl. browser where the gate is user-facing), and MERGE.** Claude's review moves post-merge (async, non-blocking; drive-by fixes to main).
 
-**Variant A — pre-authored contract** (phases 0–1: the b0 fix plan + the L-1 sub-plan already exist):
+**Self-merge gates (every phase, no exceptions):**
 
-1. Owner opens the Codex app on a fresh branch `feat/<phase>` (own worktree if local).
-2. The prompt points Codex at AGENTS.md + the sub-plan path + the stop-line (**PR opened, never merge**).
-3. PR opened → Claude: subagent code review + chrome walk against the phase gate → merge `--merge --delete-branch`.
+1. `bash scripts/pr-ready-check.sh` green (full turbo test + build — Codex runs this itself before merging; the <90s implementer-loop rule applies only mid-task).
+2. **Browser verification of the phase gate** where the gate is user-facing (the Gate column in §Sequence): drive the dev app (`pnpm dev`, or the Azure app where the phase touches it) with the repo's Playwright infra (`apps/azure/e2e/helpers.ts` patterns) or a scripted check, and capture the evidence (screenshot/trace) in the PR body. Engine-only phases (e.g. parts of phase 0) may gate on the integration tests instead — say so in the PR.
+3. Merge with `gh pr merge --merge --delete-branch` (never `--squash` — per-commit history is load-bearing).
 
-**Variant B — Codex authors the contract** (phases L-2…L-5 and beyond):
+**Variant A — pre-authored contract** (phases 0–1: the b0 fix plan + the L-1 sub-plan already exist): prompt points Codex at AGENTS.md + the sub-plan path + the self-merge gates.
 
-1. The prompt points Codex at the spec section + the master-plan row + [the L-1 sub-plan](2026-06-07-l1-evidence-angle-picker.md) as the format exemplar. **Task 0: ground (read the cited anchors in code), author the sub-plan to `docs/superpowers/plans/`, commit it, STOP.**
-2. Claude reviews the sub-plan against the spec (the plan-review stop — keeps the contract independent of its implementer). Owner relays fixes or "proceed".
-3. Codex implements the approved sub-plan task-by-task → PR opened = second stop-line.
-4. Claude: code review + chrome walk → merge.
+**Variant B — Codex authors the contract** (phases L-2…L-5 and beyond): **Task 0: ground (read the cited anchors in code), author the sub-plan to `docs/superpowers/plans/`, commit it, STOP for the owner/Claude plan-review** — the contract stays independent of its implementation even when the same agent later builds it. Then implement → self-merge gates → merge. Format exemplar: [the L-1 sub-plan](2026-06-07-l1-evidence-angle-picker.md).
 
-Retro line item per phase either way: review-fix count + (Variant B) plan-review-fix count — the trial metrics.
+**Post-merge (Claude, async):** subagent code review of the merged diff + a chrome spot-walk; findings land as drive-by fixes on main or investigations.md entries. Retro line item per phase: post-merge-fix count + (Variant B) plan-review-fix count — the trial metrics.
 
 ## Done means
 
