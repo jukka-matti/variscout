@@ -1,5 +1,10 @@
 import type { Finding, Hypothesis } from '../findings/types';
 import { groupHypothesesByStatus } from '../findings/helpers';
+import {
+  humanizeAutoMintedReportLabel,
+  humanizeReportFindingLabel,
+  isAutoMintedReportLabel,
+} from './reportHumanizer';
 import { deriveIPReportMiniChartType, type IPReportMiniChartType } from '../findings/miniChart';
 import type { ImprovementProject } from '../improvementProject';
 import type { ProcessHub } from '../processHub';
@@ -155,6 +160,14 @@ function verificationLabel(record?: ControlRecord): string {
   return `${verdict} · ${record.consecutiveOnTargetTicks ?? 0} ticks`;
 }
 
+function reportCauseTitle(hypothesis: Hypothesis, findings: readonly Finding[]): string {
+  if (!isAutoMintedReportLabel(hypothesis.name)) return hypothesis.name;
+  const linked = findings.find(finding => hypothesis.findingIds.includes(finding.id));
+  return linked
+    ? humanizeReportFindingLabel(linked)
+    : humanizeAutoMintedReportLabel(hypothesis.name);
+}
+
 export function deriveIPCauseRows(input: {
   ip: ImprovementProject;
   hypotheses: readonly Hypothesis[];
@@ -173,7 +186,7 @@ export function deriveIPCauseRows(input: {
     const actions = actionsForCause(input.findings, hypothesis.findingIds);
     return {
       hypothesisId: hypothesis.id,
-      title: hypothesis.name,
+      title: reportCauseTitle(hypothesis, causeFindings),
       synthesis: hypothesis.synthesis,
       selectedIdea: selectedIdeaText(hypothesis),
       actionProgressLabel: actionProgressLabel(actions),

@@ -33,6 +33,8 @@ interface ProjectsTabViewProps {
   onStartNewProject?: () => void;
   /** Current user's identifier (EasyAuth email/UPN). Threads into IPDetailPage for wedge ACL guards. */
   currentUserId?: string;
+  /** When set, invite affordances remain visible but disabled with this explanation. */
+  inviteDisabledReason?: string;
   /**
    * App-provided Control region (PR-PO-2). Forwarded into IPDetailPage's Control
    * stage. Editor builds it from the single active project + its scoped control
@@ -111,6 +113,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onNudgeSignoff,
   onStartNewProject,
   currentUserId,
+  inviteDisabledReason,
   controlRegionSlot,
 }) => {
   const [now] = React.useState(() => Date.now());
@@ -178,6 +181,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         actions={approachInputs?.actions}
         now={now}
         currentUserId={currentUserId}
+        inviteDisabledReason={inviteDisabledReason}
         onMembersChange={(members: ProjectMember[]) => {
           const prevCount = selected.metadata.members?.length ?? 0;
           // Set the durable collaboration marker ONCE, when the roster first

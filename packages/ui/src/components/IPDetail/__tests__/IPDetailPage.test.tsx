@@ -256,6 +256,33 @@ describe('IPDetailPage', () => {
       expect(newMembers[0].role).toBe('member');
     });
 
+    it('keeps invite visible but disabled with save-and-rename explanation', () => {
+      const onInviteClick = vi.fn();
+      render(
+        <IPDetailPage
+          ip={{ ...charterIP, metadata: { ...charterIP.metadata, title: 'Untitled project' } }}
+          onBackToList={() => {}}
+          currentUserId="lead@org"
+          onInviteClick={onInviteClick}
+          onMembersChange={() => {}}
+          inviteDisabledReason="Save and rename this project before inviting others."
+        />
+      );
+
+      const headerInvite = screen.getByTestId('ip-detail-invite');
+      expect(headerInvite).toBeDisabled();
+      expect(
+        screen.getAllByText('Save and rename this project before inviting others.')
+      ).toHaveLength(2);
+
+      const charterInvite = screen.getByRole('button', { name: /invite team/i });
+      expect(charterInvite).toBeDisabled();
+      fireEvent.click(headerInvite);
+      fireEvent.click(charterInvite);
+      expect(onInviteClick).not.toHaveBeenCalled();
+      expect(screen.queryByRole('dialog', { name: /invite teammate/i })).not.toBeInTheDocument();
+    });
+
     it('renders existing members[] in Charter and calls onMembersChange on remove', () => {
       const onMembersChange = vi.fn();
       const withMembers: ImprovementProject = {

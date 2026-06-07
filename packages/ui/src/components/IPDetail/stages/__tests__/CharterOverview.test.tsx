@@ -87,6 +87,29 @@ describe('CharterOverview', () => {
       expect(screen.getByRole('dialog', { name: /invite teammate/i })).toBeInTheDocument();
     });
 
+    it('keeps Invite team visible but disabled when save and rename are required', () => {
+      const onInvite = vi.fn();
+      render(
+        <CharterOverview
+          ip={baseIP}
+          onOpenInvestigation={() => {}}
+          onOpenAnalyze={() => {}}
+          currentUserId="lead@org"
+          onInvite={onInvite}
+          inviteDisabledReason="Save and rename this project before inviting others."
+        />
+      );
+
+      const invite = screen.getByRole('button', { name: /invite team/i });
+      expect(invite).toBeDisabled();
+      expect(
+        screen.getByText('Save and rename this project before inviting others.')
+      ).toBeInTheDocument();
+      fireEvent.click(invite);
+      expect(onInvite).not.toHaveBeenCalled();
+      expect(screen.queryByRole('dialog', { name: /invite teammate/i })).not.toBeInTheDocument();
+    });
+
     it('renders existing members via MemberList when members are supplied', () => {
       const ip: ImprovementProject = {
         ...baseIP,

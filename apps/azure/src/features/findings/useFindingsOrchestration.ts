@@ -64,6 +64,8 @@ export interface UseFindingsOrchestrationOptions {
   addNotification?: (message: string, type: 'success' | 'error') => void;
   /** Current project name for deep link construction */
   projectName?: string;
+  /** Called only when a live user action creates a new Finding. */
+  onOwnFindingCaptured?: (finding: Finding) => void;
 }
 
 export interface UseFindingsOrchestrationReturn {
@@ -115,6 +117,7 @@ export function useFindingsOrchestration({
   aiAvailable,
   addNotification: _addNotification,
   projectName: _projectName,
+  onOwnFindingCaptured,
 }: UseFindingsOrchestrationOptions): UseFindingsOrchestrationReturn {
   // Core findings state (CRUD engine from @variscout/hooks)
   const findingsState = useFindings({
@@ -155,10 +158,11 @@ export function useFindingsOrchestration({
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(text, context);
+      onOwnFindingCaptured?.(newFinding);
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
     },
-    [filters, drillPath, filteredData, outcome, specs, findingsState]
+    [filters, drillPath, filteredData, outcome, specs, findingsState, onOwnFindingCaptured]
   );
 
   // Restore a finding's filters and time lens
@@ -209,11 +213,12 @@ export function useFindingsOrchestration({
         drillPath
       );
       const newFinding = findingsState.addFinding(noteText ?? '', context, source);
+      onOwnFindingCaptured?.(newFinding);
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
       return newFinding;
     },
-    [filters, drillPath, filteredData, outcome, specs, findingsState]
+    [filters, drillPath, filteredData, outcome, specs, findingsState, onOwnFindingCaptured]
   );
 
   // Navigate to chart from finding source

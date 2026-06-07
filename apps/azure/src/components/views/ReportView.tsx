@@ -63,6 +63,7 @@ import {
   deriveIPCauseRows,
   deriveIPReportNarrative,
   selectIPReportScope,
+  humanizeReportFindingLabel,
 } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
@@ -962,7 +963,7 @@ const ReportView: React.FC<ReportViewProps> = ({
                         className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3"
                       >
                         <p className="text-sm text-slate-700 dark:text-slate-300">
-                          {finding.text || 'Observation'}
+                          {humanizeReportFindingLabel(finding, columnAliases)}
                         </p>
                       </div>
                     ))

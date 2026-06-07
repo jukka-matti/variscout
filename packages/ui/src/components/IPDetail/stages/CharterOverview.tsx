@@ -15,6 +15,8 @@ interface CharterOverviewProps {
   currentUserId?: string;
   /** Called when the InviteModal is submitted. Caller builds the ProjectMember + dispatches IP UPDATE. */
   onInvite?: (data: { email: string; role: ProjectRole }) => void;
+  /** When set, keep Invite visible but disabled with this explanation. */
+  inviteDisabledReason?: string;
   /** Called when a lead removes a member. Caller dispatches IP UPDATE. */
   onMemberRemove?: (memberId: string) => void;
 }
@@ -33,6 +35,7 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
   onSetGoal,
   currentUserId,
   onInvite,
+  inviteDisabledReason,
   onMemberRemove,
 }) => {
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -140,13 +143,20 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
             {canManageMembership && (
               <button
                 type="button"
-                onClick={() => setInviteOpen(true)}
-                className="rounded-md border border-edge px-2 py-1 text-xs text-content-secondary hover:text-content"
+                onClick={() => {
+                  if (!inviteDisabledReason) setInviteOpen(true);
+                }}
+                disabled={inviteDisabledReason !== undefined}
+                title={inviteDisabledReason}
+                className="rounded-md border border-edge px-2 py-1 text-xs text-content-secondary hover:text-content disabled:cursor-not-allowed disabled:text-content-tertiary"
               >
                 Invite team
               </button>
             )}
           </div>
+          {inviteDisabledReason ? (
+            <p className="mt-2 text-xs text-content-secondary">{inviteDisabledReason}</p>
+          ) : null}
           {members.length > 0 && currentUserId !== undefined ? (
             <div className="mt-2">
               <MemberList

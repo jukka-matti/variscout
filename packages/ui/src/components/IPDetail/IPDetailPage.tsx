@@ -30,6 +30,8 @@ export interface IPDetailPageProps {
   stageStateInputs?: StageStateInputs;
   /** Optional invite handler (Plan 3 wires this). */
   onInviteClick?: () => void;
+  /** When set, invite affordances remain visible but disabled with this explanation. */
+  inviteDisabledReason?: string;
   /** Current user's id — used by Charter team section for remove-button gating. */
   currentUserId?: string;
   /** Emits the updated wedge members[] roster after add/remove. Caller dispatches IMPROVEMENT_PROJECT_UPDATE. */
@@ -85,6 +87,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   onBackToList,
   stageStateInputs,
   onInviteClick,
+  inviteDisabledReason,
   currentUserId,
   onMembersChange,
   activeHub,
@@ -189,6 +192,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
           ip={ip}
           onBackToList={onBackToList}
           onInviteClick={handleInviteClick}
+          inviteDisabledReason={inviteDisabledReason}
           onOpenTeamWorkspace={() => setMobileTeamOpen(true)}
           dayCounter={dayCounter}
         />
@@ -214,6 +218,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
         ip={ip}
         onBackToList={onBackToList}
         onInviteClick={handleInviteClick}
+        inviteDisabledReason={inviteDisabledReason}
         onOpenTeamWorkspace={() => setMobileTeamOpen(true)}
         dayCounter={dayCounter}
       />
@@ -232,6 +237,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               currentUserId={currentUserId}
               onInvite={onMembersChange ? handleMemberInvite : undefined}
+              inviteDisabledReason={inviteDisabledReason}
               onMemberRemove={onMembersChange ? handleMemberRemove : undefined}
             />
           )}
