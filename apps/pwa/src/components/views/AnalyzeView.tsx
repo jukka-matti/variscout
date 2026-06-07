@@ -2,7 +2,7 @@
  * AnalyzeView - Hypothesis-driven investigation workspace for PWA
  *
  * Simplified version of Azure's AnalyzeWorkspace:
- * - Left panel: AnalyzePhaseBadge + AnalyzeConclusion (hub composer)
+ * - Left panel: AnalyzeConclusion (hub composer)
  * - Center: Map/Wall toggle → FindingsLog (list/board) | WallCanvas (hubs+findings)
  * - No CoScout (PWA has no AI)
  * - No Teams integration (no photos, no assignees)
@@ -13,7 +13,6 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AnalyzePhaseBadge,
   AnalyzeConclusion,
   FindingsLog,
   WallCanvas,
@@ -54,7 +53,6 @@ import {
   isDisconfirmationResult,
 } from '@variscout/core/findings';
 import type { EvaluateFactorOptions } from '@variscout/ui';
-import { detectInvestigationPhase } from '@variscout/core/ai';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { detectColumns } from '@variscout/core/parser';
 import { deriveProcessSteps } from '@variscout/core/frame';
@@ -184,8 +182,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   }, [processMap, wallFindings]);
 
   // Investigation phase detection (deterministic, from findings)
-  const analyzePhase = useMemo(() => detectInvestigationPhase(wallFindings), [wallFindings]);
-
   // Left panel resizable
   const leftPanel = useResizablePanel('variscout-pwa-analyze-left-width', 220, 400, 280, 'left');
 
@@ -541,18 +537,11 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
         />
       ) : null}
       <div className="flex flex-1 min-h-0 relative">
-        {/* Left panel: Question checklist + phase + conclusions */}
+        {/* Left panel: conclusions */}
         <div
           className="relative hidden md:flex flex-col border-r border-edge overflow-hidden bg-surface flex-shrink-0"
           style={{ width: leftPanel.width }}
         >
-          {/* Phase badge */}
-          {analyzePhase && (
-            <div className="px-3 pt-3 pb-1 flex-shrink-0">
-              <AnalyzePhaseBadge phase={analyzePhase} />
-            </div>
-          )}
-
           {/* Investigation conclusion (IM-1: hub-driven, question checklist retired) */}
           {hubs.length > 0 && (
             <div className="flex-1 overflow-y-auto border-t border-edge px-3 py-2">

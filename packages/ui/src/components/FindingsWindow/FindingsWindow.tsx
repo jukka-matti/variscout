@@ -28,7 +28,6 @@ import FindingBoardColumns from '../FindingsLog/FindingBoardColumns';
 import { copyFindingsToClipboard } from '../FindingsLog/export';
 import BriefHeader from '../FindingsPanel/BriefHeader';
 import FindingDetailPanel from '../FindingsPanel/FindingDetailPanel';
-import { AnalyzePhaseBadge } from '../AnalyzePhaseBadge';
 import { AnalyzeSidebar } from './AnalyzeSidebar';
 
 /**
@@ -339,7 +338,6 @@ const FindingsWindow: React.FC = () => {
                 </span>
               )}
             </h1>
-            {analyzePhase && <AnalyzePhaseBadge phase={analyzePhase} />}
           </div>
 
           <div className="flex items-center gap-1">

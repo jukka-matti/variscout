@@ -34,7 +34,7 @@ Shared UI components for VariScout applications (PWA, Azure).
 
 ### Investigation & Findings
 
-`FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `AnalyzePrompt`, `AnalyzeSidebar`, `AnalyzePhaseBadge`
+`FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `AnalyzePrompt`, `AnalyzeSidebar`
 
 ### AI Components
 

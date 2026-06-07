@@ -4,7 +4,6 @@ import type { AnalyzePhase } from '@variscout/core';
 import { formatForMobile } from '@variscout/core/ai';
 import { useTranslation } from '@variscout/hooks';
 import { useIsMobile } from '../../hooks';
-import { AnalyzePhaseBadge } from '../AnalyzePhaseBadge';
 
 export interface AnalyzeSidebarProps {
   phase?: AnalyzePhase;
@@ -108,7 +107,6 @@ const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
               <span className="text-[0.625rem] uppercase tracking-wider text-content-muted font-medium">
                 Phase
               </span>
-              <AnalyzePhaseBadge phase={phase} />
             </div>
             <p className="text-[0.6875rem] text-content-secondary leading-relaxed">
               {t(phaseDescriptionKeys[phase])}

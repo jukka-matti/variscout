@@ -83,7 +83,6 @@ vi.mock('@variscout/ui', async importOriginal => {
   return {
     ...actual,
     QuestionChecklist: () => <div data-testid="question-checklist" />,
-    AnalyzePhaseBadge: () => null,
     AnalyzeConclusion: () => null,
     FindingsLog: (props: Record<string, unknown>) => {
       capturedFindingsLogProps.current = props;
