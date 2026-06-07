@@ -7,6 +7,7 @@ interface IPDetailHeaderProps {
   ip: ImprovementProject;
   onBackToList: () => void;
   onInviteClick?: () => void;
+  inviteDisabledReason?: string;
   onOpenTeamWorkspace?: () => void;
   /** Day counter — computed by caller (typically Math.floor((now - createdAt) / DAY_MS)). */
   dayCounter?: number;
@@ -22,6 +23,7 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
   ip,
   onBackToList,
   onInviteClick,
+  inviteDisabledReason,
   onOpenTeamWorkspace,
   dayCounter,
 }) => {
@@ -90,7 +92,9 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
           <button
             type="button"
             onClick={onInviteClick}
-            className="text-xs text-[var(--vs-accent)] hover:text-[var(--vs-accent-hover)]"
+            disabled={inviteDisabledReason !== undefined}
+            title={inviteDisabledReason}
+            className="text-xs text-[var(--vs-accent)] hover:text-[var(--vs-accent-hover)] disabled:cursor-not-allowed disabled:text-content-tertiary"
             data-testid="ip-detail-invite"
           >
             + Invite
@@ -105,6 +109,9 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
           </button>
         </div>
       </div>
+      {inviteDisabledReason ? (
+        <p className="mt-2 text-xs text-content-secondary">{inviteDisabledReason}</p>
+      ) : null}
     </div>
   );
 };

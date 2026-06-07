@@ -4,9 +4,10 @@ import { buildDocumentSnapshotVrs } from '@variscout/stores';
 
 export interface VrsExportButtonProps {
   currentHub: ProcessHub;
+  onExported?: () => void;
 }
 
-export function VrsExportButton({ currentHub }: VrsExportButtonProps) {
+export function VrsExportButton({ currentHub, onExported }: VrsExportButtonProps) {
   const onClick = () => {
     const json = buildDocumentSnapshotVrs({
       activeHub: currentHub,
@@ -23,6 +24,7 @@ export function VrsExportButton({ currentHub }: VrsExportButtonProps) {
     a.download = `${safeName}.vrs`;
     a.click();
     URL.revokeObjectURL(url);
+    onExported?.();
   };
 
   return (

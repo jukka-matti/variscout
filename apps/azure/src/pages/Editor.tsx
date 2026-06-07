@@ -46,6 +46,7 @@ import {
   PendingInvitesBanner,
   CreateProjectModal,
   GoalBanner,
+  DurabilityNudge,
   deriveActiveIPCanvasFocus,
   deriveActiveIPScopeLabels,
   type ColumnShape,
@@ -157,6 +158,18 @@ function cleanProjectName(filename: string | null): string {
 
 function defaultSaveName(filename: string | null): string {
   return cleanProjectName(filename) || cleanProjectName(null);
+}
+
+const DEFAULT_INVITE_BLOCKING_TITLES = new Set([
+  'untitled project',
+  'untitled hub',
+  'untitled',
+  'new analysis',
+]);
+
+function isDefaultInviteTitle(title: string | null | undefined): boolean {
+  const normalized = (title ?? '').trim().toLowerCase();
+  return normalized.length === 0 || DEFAULT_INVITE_BLOCKING_TITLES.has(normalized);
 }
 
 interface EditorProps {
@@ -1088,6 +1101,11 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Share handlers
   const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
+  const [showDurabilityNudge, setShowDurabilityNudge] = useState(false);
+  const [durabilityNudgeDismissed, setDurabilityNudgeDismissed] = useState(false);
+  const handleOwnFindingCaptured = useCallback(() => {
+    setShowDurabilityNudge(current => current || !durabilityNudgeDismissed);
+  }, [durabilityNudgeDismissed]);
 
   // Compute projected metric value from selected improvement ideas (IM-1: ideas
   // live on hypothesis hubs).
@@ -1143,6 +1161,7 @@ export const Editor: React.FC<EditorProps> = ({
     projectedValue: projectedFromIdeas,
     factorRoles: processContext?.factorRoles,
     aiAvailable: aiEnabled && isAIAvailable(),
+    onOwnFindingCaptured: handleOwnFindingCaptured,
   });
 
   // IM-1 (ADR-085): the Question entity is retired, so the post-observation
@@ -1789,6 +1808,26 @@ export const Editor: React.FC<EditorProps> = ({
   const isDocumentDirty =
     hasDocumentContent &&
     (!hasActiveSavedAzureDocument || !savedFingerprint || currentFingerprint !== savedFingerprint);
+  const activeHubIsUnsaved = activeHub ? unsavedHubs.some(hub => hub.id === activeHub.id) : false;
+  const activeIPTitleForInvite =
+    activeIP?.metadata.title ?? activeHub?.improvementProject?.metadata.title ?? null;
+  const inviteDisabledReason =
+    activeIP &&
+    (!hasActiveSavedAzureDocument ||
+      activeHubIsUnsaved ||
+      isDefaultInviteTitle(activeIPTitleForInvite))
+      ? 'Save and rename this project before inviting others.'
+      : undefined;
+
+  useEffect(() => {
+    if (!isDocumentDirty && !activeHubIsUnsaved) return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [activeHubIsUnsaved, isDocumentDirty]);
 
   /*
    * Autosave follows R6d document truth: a canonical DocumentSnapshot fingerprint
@@ -1967,6 +2006,16 @@ export const Editor: React.FC<EditorProps> = ({
           if (activeView === 'projects') usePanelsStore.getState().showProjects();
         }}
       />
+
+      {showDurabilityNudge ? (
+        <DurabilityNudge
+          verb="Save"
+          onDismiss={() => {
+            setShowDurabilityNudge(false);
+            setDurabilityNudgeDismissed(true);
+          }}
+        />
+      ) : null}
 
       {/* Hidden file input for append-mode file upload */}
       <input
@@ -2242,6 +2291,7 @@ export const Editor: React.FC<EditorProps> = ({
                 }}
                 onStartNewProject={() => usePanelsStore.getState().showCharter()}
                 currentUserId={currentUser?.email ?? undefined}
+                inviteDisabledReason={inviteDisabledReason}
               />
             ) : activeView === 'improvement' ? (
               <ImproveTabRoot

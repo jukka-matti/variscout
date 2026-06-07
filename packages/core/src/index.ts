@@ -833,6 +833,8 @@ export {
   deriveIPCauseRows,
   deriveIPReportNarrative,
   selectIPReportScope,
+  humanizeReportFindingLabel,
+  isAutoMintedReportLabel,
 } from './report';
 export type {
   HubCapabilitySummary,

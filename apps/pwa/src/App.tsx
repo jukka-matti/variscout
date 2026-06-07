@@ -29,6 +29,7 @@ import {
   deriveActiveIPCanvasFocus,
   deriveActiveIPScopeLabels,
   PendingInvitesBanner,
+  DurabilityNudge,
   type ColumnShape,
   type ChartObservationCaptureOptions,
 } from '@variscout/ui';
@@ -607,6 +608,25 @@ function AppMain() {
     downloadCSV(filteredData, outcome, specs, { filename });
   }, [filteredData, outcome, specs]);
 
+  const [hasOwnCaptureSinceExport, setHasOwnCaptureSinceExport] = useState(false);
+  const [showDurabilityNudge, setShowDurabilityNudge] = useState(false);
+  const [durabilityNudgeDismissed, setDurabilityNudgeDismissed] = useState(false);
+
+  const markOwnFindingCaptured = useCallback(() => {
+    setHasOwnCaptureSinceExport(true);
+    setShowDurabilityNudge(current => current || !durabilityNudgeDismissed);
+  }, [durabilityNudgeDismissed]);
+
+  useEffect(() => {
+    if (!hasOwnCaptureSinceExport) return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasOwnCaptureSinceExport]);
+
   // Auto-clear highlight after 3 seconds
   useEffect(() => {
     if (!highlightedFindingId) return;
@@ -624,9 +644,10 @@ function AppMain() {
     }
     const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
     const newFinding = useAnalyzeStore.getState().addFinding('', context);
+    markOwnFindingCaptured();
     panels.setIsFindingsPanelOpen(true);
     setHighlightedFindingId(newFinding.id);
-  }, [filters, drillPath, filteredData, outcome, specs, findings, panels]);
+  }, [filters, drillPath, filteredData, outcome, specs, findings, panels, markOwnFindingCaptured]);
 
   // Chart observation: create a Finding with source metadata
   const handleAddChartObservation = useCallback(
@@ -659,13 +680,14 @@ function AppMain() {
         drillPath
       );
       const newFinding = useAnalyzeStore.getState().addFinding(noteText ?? '', context, source);
+      markOwnFindingCaptured();
       panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(newFinding.id);
       // IM-1 (ADR-085): the post-observation question-link prompt is retired
       // (Question entity gone); analysts promote findings to hubs on the Wall.
       return newFinding;
     },
-    [filters, drillPath, filteredData, outcome, specs, findings, panels]
+    [filters, drillPath, filteredData, outcome, specs, findings, panels, markOwnFindingCaptured]
   );
 
   const handleOpenFinding = useCallback(
@@ -1311,7 +1333,10 @@ function AppMain() {
             >
               + New analyze
             </button>
-            <VrsExportButton currentHub={sessionHub} />
+            <VrsExportButton
+              currentHub={sessionHub}
+              onExported={() => setHasOwnCaptureSinceExport(false)}
+            />
             <button
               type="button"
               className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
@@ -1324,6 +1349,16 @@ function AppMain() {
         )}
 
       {/* Main Content */}
+      {showDurabilityNudge ? (
+        <DurabilityNudge
+          verb="Export"
+          onDismiss={() => {
+            setShowDurabilityNudge(false);
+            setDurabilityNudgeDismissed(true);
+          }}
+        />
+      ) : null}
+
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
         {/* Stats Sidebar (left) */}
         {panels.isPISidebarOpen && rawData.length > 0 && outcome && (

@@ -13,3 +13,4 @@ export {
   type IPReportScope,
   type IPReportScopeInput,
 } from './ipReport';
+export { humanizeReportFindingLabel, isAutoMintedReportLabel } from './reportHumanizer';

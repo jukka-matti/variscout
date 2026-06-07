@@ -268,6 +268,49 @@ describe('deriveIPCauseRows', () => {
       }),
     ]);
   });
+
+  it('humanizes linked brush finding labels for Sponsor-facing cause rows when the hypothesis name is auto-derived', () => {
+    const rows = deriveIPCauseRows({
+      ip: project(),
+      hypotheses: [
+        hypothesis({
+          name: 'obs 32-58 in/out',
+          synthesis: '',
+          findingIds: ['find-brush'],
+        }),
+      ],
+      findings: [
+        finding({
+          id: 'find-brush',
+          text: 'Brushed indices 32-58 on Day_of_Week',
+          context: { activeFilters: { 'obs 32-58': ['in'] }, cumulativeScope: null },
+        }),
+      ],
+      controlRecord: sustainment(),
+    });
+
+    expect(rows[0].title).toBe('Day-of-Week, observations 32-58');
+    expect(rows[0].title).not.toContain('Brushed indices');
+    expect(rows[0].title).not.toContain('obs 32-58 in/out');
+  });
+
+  it('humanizes auto-derived hypothesis names even when no linked finding is available', () => {
+    const rows = deriveIPCauseRows({
+      ip: project(),
+      hypotheses: [
+        hypothesis({
+          name: 'obs 32-58 in/out',
+          synthesis: '',
+          findingIds: [],
+        }),
+      ],
+      findings: [],
+      controlRecord: sustainment(),
+    });
+
+    expect(rows[0].title).toBe('observations 32-58');
+    expect(rows[0].title).not.toContain('obs 32-58 in/out');
+  });
 });
 
 describe('Report composes from analyst-owned status (PO-5)', () => {
