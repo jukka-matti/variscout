@@ -53,6 +53,9 @@ vi.mock('@variscout/hooks', () => {
     'data.typeCategorical': 'Categorical',
     'data.typeDate': 'Date',
     'data.typeText': 'Text',
+    'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+    'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+    'outcomeNoMatch.noNumericColumns': 'no numeric columns',
     'data.categories': 'categories',
   };
   return {
@@ -458,6 +461,33 @@ describe('ColumnMapping', () => {
 
       const payload: ColumnMappingConfirmPayload = onConfirm.mock.calls[0][0];
       expect(payload.expectedOutcomeNote).toBe('reject_rate');
+    });
+
+    it('manual expected outcome entry selects an exact numeric column', () => {
+      const lowScoreAnalysis: ColumnAnalysis[] = [
+        col('CycleTime', 'numeric', { uniqueCount: 5 }),
+        col('Line', 'categorical', { uniqueCount: 2 }),
+      ];
+      const onConfirm = vi.fn();
+      render(
+        <ColumnMapping
+          columnAnalysis={lowScoreAnalysis}
+          initialOutcome={null}
+          initialFactors={[]}
+          onConfirm={onConfirm}
+          onCancel={vi.fn()}
+          noMatchThreshold={0.9}
+        />
+      );
+
+      fireEvent.change(screen.getByLabelText(/i expected the outcome to be/i), {
+        target: { value: 'CycleTime' },
+      });
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      const payload: ColumnMappingConfirmPayload = onConfirm.mock.calls[0][0];
+      expect(payload.outcomes.map(outcome => outcome.columnName)).toEqual(['CycleTime']);
+      expect(payload.expectedOutcomeNote).toBe('CycleTime');
     });
   });
 

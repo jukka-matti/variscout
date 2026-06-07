@@ -402,6 +402,9 @@ export const vi: MessageCatalog = {
   'data.typeCategorical': 'Phân loại',
   'data.typeDate': 'Ngày',
   'data.typeText': 'Văn bản',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'danh mục',
   'home.heading': 'Khám phá phân tích biến thiên',
   'home.description':

@@ -390,6 +390,9 @@ export const zhHant: MessageCatalog = {
   'data.typeCategorical': '分類',
   'data.typeDate': '日期',
   'data.typeText': '文字',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': '類別',
 
   // PWA HomeScreen

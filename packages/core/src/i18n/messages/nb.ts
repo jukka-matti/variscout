@@ -367,6 +367,9 @@ export const nb: MessageCatalog = {
   'data.typeCategorical': 'Kategorisk',
   'data.typeDate': 'Dato',
   'data.typeText': 'Tekst',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'kategorier',
   'home.heading': 'Utforsk variasjonsanalyse',
   'home.description':

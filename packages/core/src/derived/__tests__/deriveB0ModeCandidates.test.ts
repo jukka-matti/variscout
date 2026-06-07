@@ -54,6 +54,24 @@ describe('deriveB0ModeCandidates', () => {
     expect(result.xColumns.map(column => column.name)).toContain('Machine');
   });
 
+  it('honors an explicit numeric selected outcome even when the heuristic filtered it', () => {
+    const rows: DataRow[] = Array.from({ length: 30 }, (_, i) => ({
+      Quality_Score: 40 + (i % 12),
+      batch_id: 1000 + i,
+      Machine: i % 2 === 0 ? 'A' : 'B',
+    }));
+
+    const result = deriveB0ModeCandidates({
+      rows,
+      analysisMode: 'standard',
+      selectedOutcome: 'batch_id',
+    });
+
+    expect(result.defaultOutcomeColumn).toBe('batch_id');
+    expect(result.yColumns.map(column => column.name)[0]).toBe('batch_id');
+    expect(result.xColumns.map(column => column.name)).not.toContain('batch_id');
+  });
+
   it('derives defect Count and Rate candidates when units are mapped', () => {
     const result = deriveB0ModeCandidates({
       rows: DEFECT_ROWS_WITH_UNITS,

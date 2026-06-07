@@ -367,6 +367,9 @@ export const hu: MessageCatalog = {
   'data.typeCategorical': 'Kategoriális',
   'data.typeDate': 'Dátum',
   'data.typeText': 'Szöveg',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'kategóriák',
   'home.heading': 'Fedezze fel a variációelemzést',
   'home.description':

@@ -391,6 +391,9 @@ export const ko: MessageCatalog = {
   'data.typeCategorical': '범주형',
   'data.typeDate': '날짜',
   'data.typeText': '텍스트',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': '범주',
 
   // PWA HomeScreen

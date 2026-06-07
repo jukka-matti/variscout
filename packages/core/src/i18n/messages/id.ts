@@ -403,6 +403,9 @@ export const id: MessageCatalog = {
   'data.typeCategorical': 'Kategorikal',
   'data.typeDate': 'Tanggal',
   'data.typeText': 'Teks',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'kategori',
   'home.heading': 'Jelajahi Analisis Variasi',
   'home.description':

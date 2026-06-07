@@ -425,6 +425,9 @@ export const ar: MessageCatalog = {
   'data.typeCategorical': 'فئوي',
   'data.typeDate': 'تاريخ',
   'data.typeText': 'نص',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'فئات',
 
   // PWA HomeScreen

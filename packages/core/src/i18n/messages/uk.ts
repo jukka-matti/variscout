@@ -404,6 +404,9 @@ export const uk: MessageCatalog = {
   'data.typeCategorical': 'Категоріальний',
   'data.typeDate': 'Дата',
   'data.typeText': 'Текст',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'категорії',
   'home.heading': 'Дослідіть аналіз варіації',
   'home.description':

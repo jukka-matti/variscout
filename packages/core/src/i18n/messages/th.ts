@@ -400,6 +400,9 @@ export const th: MessageCatalog = {
   'data.typeCategorical': 'หมวดหมู่',
   'data.typeDate': 'วันที่',
   'data.typeText': 'ข้อความ',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'หมวดหมู่',
   'home.heading': 'สำรวจการวิเคราะห์ความแปรปรวน',
   'home.description':

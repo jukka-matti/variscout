@@ -429,6 +429,9 @@ export const fi: MessageCatalog = {
   'data.typeCategorical': 'Luokiteltu',
   'data.typeDate': 'Päivämäärä',
   'data.typeText': 'Teksti',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'kategoriat',
 
   // PWA HomeScreen

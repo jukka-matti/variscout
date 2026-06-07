@@ -540,6 +540,9 @@ export interface MessageCatalog {
   'data.typeCategorical': string;
   'data.typeDate': string;
   'data.typeText': string;
+  'outcomeNoMatch.noColumn': string;
+  'outcomeNoMatch.nonNumeric': string;
+  'outcomeNoMatch.noNumericColumns': string;
   'data.categories': string;
 
   // PWA HomeScreen

@@ -426,6 +426,9 @@ export const hi: MessageCatalog = {
   'data.typeCategorical': 'श्रेणीबद्ध',
   'data.typeDate': 'दिनांक',
   'data.typeText': 'पाठ',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'श्रेणियाँ',
 
   // PWA HomeScreen

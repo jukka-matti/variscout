@@ -432,6 +432,9 @@ export const fr: MessageCatalog = {
   'data.typeCategorical': 'Catégoriel',
   'data.typeDate': 'Date',
   'data.typeText': 'Texte',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'catégories',
 
   // PWA HomeScreen

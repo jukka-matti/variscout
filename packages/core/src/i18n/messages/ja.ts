@@ -392,6 +392,9 @@ export const ja: MessageCatalog = {
   'data.typeCategorical': 'カテゴリ',
   'data.typeDate': '日付',
   'data.typeText': 'テキスト',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'カテゴリ',
 
   // PWA HomeScreen

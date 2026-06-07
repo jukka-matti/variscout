@@ -391,6 +391,9 @@ export const sv: MessageCatalog = {
   'data.typeCategorical': 'Kategorisk',
   'data.typeDate': 'Datum',
   'data.typeText': 'Text',
+  'outcomeNoMatch.noColumn': 'No column called "{name}". Available numeric columns: {columns}.',
+  'outcomeNoMatch.nonNumeric': '"{name}" is not numeric, so it cannot be a Y.',
+  'outcomeNoMatch.noNumericColumns': 'no numeric columns',
   'data.categories': 'kategorier',
 
   // PWA HomeScreen
