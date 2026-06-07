@@ -17,6 +17,7 @@ const draft: CaptureDraft = {
   proposedFactorName: 'obs 2-3',
   conditionLabel: 'Step = Fill x obs 2-3',
   evidenceLabel: 'mean 45 vs 45 · n=2',
+  evidenceType: 'data',
   note: '',
 };
 
@@ -65,6 +66,24 @@ describe('CaptureCard', () => {
     expect(onDraftChange).toHaveBeenCalledWith({ note: 'Fill step lifted' });
     expect(onFactorOnly).toHaveBeenCalledTimes(1);
     expect(onCapture).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports evidence angle edits', () => {
+    const onDraftChange = vi.fn();
+
+    render(
+      <CaptureCard
+        draft={draft}
+        onDraftChange={onDraftChange}
+        onCapture={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('radiogroup', { name: /evidence angle/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: /gemba/i }));
+
+    expect(onDraftChange).toHaveBeenCalledWith({ evidenceType: 'gemba' });
   });
 
   it('cancels on Escape, Cancel, and click-away', () => {

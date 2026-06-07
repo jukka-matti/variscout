@@ -678,7 +678,16 @@ function AppMain() {
         specs,
         drillPath
       );
-      const newFinding = useAnalyzeStore.getState().addFinding(noteText ?? '', context, source);
+      const newFinding = useAnalyzeStore
+        .getState()
+        .addFinding(
+          noteText ?? '',
+          context,
+          source,
+          undefined,
+          undefined,
+          captureOptions?.evidenceType
+        );
       markOwnFindingCaptured();
       panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(newFinding.id);

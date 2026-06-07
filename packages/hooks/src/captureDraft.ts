@@ -1,4 +1,5 @@
 import { calculateStats, type DataRow, type FindingSource, type SpecLimits } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 import { usePreferencesStore } from '@variscout/stores';
 
 export type CaptureEntryKind =
@@ -16,6 +17,7 @@ export interface CaptureDraft {
   proposedFactorName?: string;
   conditionLabel: string;
   evidenceLabel: string;
+  evidenceType: FindingEvidenceType;
   note: string;
 }
 
@@ -229,6 +231,7 @@ export function buildBrushCaptureDraft({
     proposedFactorName,
     conditionLabel,
     evidenceLabel: evidenceContrastLabel(rows, outcome, selectedIndices, specs),
+    evidenceType: 'data',
     note: '',
   };
 }
@@ -268,6 +271,7 @@ export function buildEngineSignalCaptureDraft({
       selectedIndices,
       specs
     )}`,
+    evidenceType: 'data',
     note: '',
   };
 }
@@ -304,6 +308,7 @@ export function buildCategoryPointCaptureDraft({
     activeFilters: nextFilters,
     conditionLabel: formatActiveFilters(nextFilters),
     evidenceLabel: evidenceContrastLabel(rows, outcome, selectedIndices),
+    evidenceType: 'data',
     note: '',
   };
 }
@@ -343,6 +348,7 @@ export function buildProbabilityBandCaptureDraft({
     proposedFactorName,
     conditionLabel: [filterLabel, proposedFactorName].filter(Boolean).join(' x '),
     evidenceLabel: evidenceContrastLabel(rows, outcome, selectedIndices, specs),
+    evidenceType: 'data',
     note: '',
   };
 }

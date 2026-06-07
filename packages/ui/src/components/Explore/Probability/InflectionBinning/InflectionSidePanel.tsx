@@ -184,6 +184,7 @@ export function InflectionSidePanelView({
       activeFilters: {},
       conditionLabel: `${sourceColumn}_bin`,
       evidenceLabel: `${state.cuts.length} cut${state.cuts.length === 1 ? '' : 's'} · ${state.segments.length} level${state.segments.length === 1 ? '' : 's'}`,
+      evidenceType: 'data',
       note: '',
     };
 

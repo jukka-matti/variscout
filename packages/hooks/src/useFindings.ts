@@ -21,6 +21,7 @@ import {
   type BenchmarkStats,
   type ProblemStatementScope,
 } from '@variscout/core';
+import type { FindingEvidenceType } from '@variscout/core/findings';
 
 export interface UseFindingsOptions {
   /** Initial findings (for restoring persisted state) */
@@ -40,10 +41,13 @@ export interface UseFindingsReturn {
     context: FindingContext,
     source?: FindingSource,
     scopeId?: ProblemStatementScope['id'],
-    originStepId?: string
+    originStepId?: string,
+    evidenceType?: FindingEvidenceType
   ) => Finding;
   /** Update an existing finding's note text */
   editFinding: (id: string, text: string) => void;
+  /** Reclassify a finding's evidence angle */
+  editFindingEvidenceType: (id: string, evidenceType: FindingEvidenceType) => void;
   /** Delete a finding */
   deleteFinding: (id: string) => void;
   /** Get a finding's context (for filter restoration) */
@@ -161,7 +165,8 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
       context: FindingContext,
       source?: FindingSource,
       scopeId?: ProblemStatementScope['id'],
-      originStepId?: string
+      originStepId?: string,
+      evidenceType?: FindingEvidenceType
     ): Finding => {
       const base = createFinding(
         text,
@@ -177,6 +182,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
         ...base,
         ...(scopeId ? { scopeId } : {}),
         ...(originStepId ? { originStepId } : {}),
+        ...(evidenceType ? { evidenceType } : {}),
       };
       setFindings(prev => {
         const next = [finding, ...prev];
@@ -192,6 +198,17 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     (id: string, text: string) => {
       setFindings(prev => {
         const next = prev.map(f => (f.id === id ? { ...f, text } : f));
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const editFindingEvidenceType = useCallback(
+    (id: string, evidenceType: FindingEvidenceType) => {
+      setFindings(prev => {
+        const next = prev.map(f => (f.id === id ? { ...f, evidenceType } : f));
         onFindingsChange?.(next);
         return next;
       });
@@ -675,6 +692,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     findings,
     addFinding,
     editFinding,
+    editFindingEvidenceType,
     deleteFinding,
     getFindingContext,
     findDuplicate,

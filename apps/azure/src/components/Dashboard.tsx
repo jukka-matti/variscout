@@ -736,6 +736,7 @@ const Dashboard = ({
           {
             captureMode,
             activeFilters: applyDerivedFactorToFilters(captureDraft.activeFilters, factorName),
+            evidenceType: captureDraft.evidenceType,
           }
         );
         if (finding) setShowCaptureAfterglow(true);
