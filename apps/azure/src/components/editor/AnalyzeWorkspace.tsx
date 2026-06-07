@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AnalyzePhaseBadge,
   AnalyzeConclusion,
@@ -729,6 +729,14 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // and finding (the lineage-membership filter is retired; empty-set-means-
   // unfiltered is the permanent semantics).
   const hubs = hypothesesState.hubs;
+  const hasAppliedFindingsArrivalRef = useRef(false);
+  useEffect(() => {
+    if (hasAppliedFindingsArrivalRef.current) return;
+    if (hubs.length === 0 && findingsState.findings.length > 0) {
+      setWallViewMode('wall');
+      hasAppliedFindingsArrivalRef.current = true;
+    }
+  }, [findingsState.findings.length, hubs.length, setWallViewMode]);
 
   // PR-CS-6 Edge 4: resolve each finding's `originStepId` to its ProcessMap step
   // name (FindingCard stays pure). Suppressed silently for findings whose step no

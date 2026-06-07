@@ -158,6 +158,14 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   }, [rawData]);
   const hubs = useAnalyzeStore(s => s.hypotheses);
   const wallFindings = useAnalyzeStore(s => s.findings);
+  const hasAppliedFindingsArrivalRef = useRef(false);
+  useEffect(() => {
+    if (hasAppliedFindingsArrivalRef.current) return;
+    if (hubs.length === 0 && wallFindings.length > 0) {
+      setWallViewMode('wall');
+      hasAppliedFindingsArrivalRef.current = true;
+    }
+  }, [hubs.length, setWallViewMode, wallFindings.length]);
   // PO-5: active-IP scope shows the whole document — the Wall renders every hub
   // and finding (the lineage-membership filter is retired; empty-set-means-
   // unfiltered is the permanent semantics).

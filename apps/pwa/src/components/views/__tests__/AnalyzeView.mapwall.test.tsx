@@ -181,6 +181,59 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
   });
 
+  it('routes direct Analyze entry to Wall arrival when findings exist and no hubs exist', () => {
+    useAnalyzeStore.setState({
+      findings: [
+        {
+          id: 'f-arrival',
+          text: 'obs 32-58 elevated',
+          evidenceType: 'data',
+          createdAt: 1,
+          deletedAt: null,
+          context: { activeFilters: {}, cumulativeScope: null },
+          status: 'observed',
+          comments: [],
+          statusChangedAt: 1,
+        } as never,
+      ],
+      hypotheses: [],
+    });
+
+    render(<AnalyzeView {...makeMinimalProps()} />);
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
+    expect(screen.getByRole('button', { name: /^wall$/i }).getAttribute('aria-pressed')).toBe(
+      'true'
+    );
+  });
+
+  it('does not force Wall again after the analyst manually toggles back to Map', () => {
+    useAnalyzeStore.setState({
+      findings: [
+        {
+          id: 'f-arrival',
+          text: 'obs 32-58 elevated',
+          evidenceType: 'data',
+          createdAt: 1,
+          deletedAt: null,
+          context: { activeFilters: {}, cumulativeScope: null },
+          status: 'observed',
+          comments: [],
+          statusChangedAt: 1,
+        } as never,
+      ],
+      hypotheses: [],
+    });
+
+    render(<AnalyzeView {...makeMinimalProps()} />);
+    fireEvent.click(screen.getByRole('button', { name: /^map$/i }));
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(screen.getByRole('button', { name: /^map$/i }).getAttribute('aria-pressed')).toBe(
+      'true'
+    );
+  });
+
   it('writes Wall viewport state under the provided canvas viewport hub id', () => {
     useCanvasViewportStore.getState().setViewMode('wall');
     useProjectStore.setState({

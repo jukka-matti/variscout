@@ -352,6 +352,63 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
   });
 
+  it('routes direct Analyze entry to Wall arrival when findings exist and no hubs exist', () => {
+    const props = makeMinimalProps();
+    props.findingsState = {
+      ...props.findingsState,
+      findings: [
+        {
+          id: 'f-arrival',
+          text: 'obs 32-58 elevated',
+          evidenceType: 'data',
+          createdAt: 1,
+          deletedAt: null,
+          context: { activeFilters: {}, cumulativeScope: null },
+          status: 'observed',
+          comments: [],
+          statusChangedAt: 1,
+        },
+      ],
+    } as never;
+    props.hypothesesState = { ...props.hypothesesState, hubs: [] } as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
+    expect(screen.getByRole('button', { name: /^wall$/i }).getAttribute('aria-pressed')).toBe(
+      'true'
+    );
+  });
+
+  it('does not force Wall again after the analyst manually toggles back to Map', () => {
+    const props = makeMinimalProps();
+    props.findingsState = {
+      ...props.findingsState,
+      findings: [
+        {
+          id: 'f-arrival',
+          text: 'obs 32-58 elevated',
+          evidenceType: 'data',
+          createdAt: 1,
+          deletedAt: null,
+          context: { activeFilters: {}, cumulativeScope: null },
+          status: 'observed',
+          comments: [],
+          statusChangedAt: 1,
+        },
+      ],
+    } as never;
+    props.hypothesesState = { ...props.hypothesesState, hubs: [] } as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+    fireEvent.click(screen.getByRole('button', { name: /^map$/i }));
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(screen.getByRole('button', { name: /^map$/i }).getAttribute('aria-pressed')).toBe(
+      'true'
+    );
+  });
+
   it('Wall button shows aria-pressed="true" after click', () => {
     // Pre-set the store to 'wall' to simulate a persisted state
     useCanvasViewportStore.getState().setViewMode('wall');
