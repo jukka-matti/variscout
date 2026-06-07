@@ -7,8 +7,23 @@ import {
   useAnalysisScopeStore,
   getAnalysisScopeInitialState,
 } from '@variscout/stores';
-import { calculateAnova } from '@variscout/core';
+import { calculateAnova, type Finding } from '@variscout/core';
 import { usePanelsStore } from '../../features/panels/panelsStore';
+
+function makeCapturedFinding(id: string): Finding {
+  const timestamp = Date.parse('2026-06-07T00:00:00Z');
+  return {
+    id,
+    text: 'Captured observation',
+    context: { activeFilters: {}, cumulativeScope: null },
+    evidenceType: 'data',
+    status: 'observed',
+    createdAt: timestamp,
+    deletedAt: null,
+    comments: [],
+    statusChangedAt: timestamp,
+  };
+}
 
 // Mock components
 vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
@@ -677,7 +692,7 @@ describe('Dashboard', () => {
   });
 
   it('shows one-time Analyze afterglow after an engine-signal Finding capture', () => {
-    const onAddChartObservation = vi.fn(() => ({ id: 'f-dashboard' }));
+    const onAddChartObservation = vi.fn(() => makeCapturedFinding('f-dashboard'));
     const onOpenWall = vi.fn();
 
     render(
