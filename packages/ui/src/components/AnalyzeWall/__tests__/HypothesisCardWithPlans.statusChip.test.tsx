@@ -144,7 +144,7 @@ describe('FSJ-8 — status proposal chips', () => {
             {
               id: 'd1',
               attemptedAt: '2026-06-07T00:00:00Z',
-              attemptedBy: { kind: 'user', userId: 'u1' },
+              attemptedBy: { userId: 'u1', displayName: 'Analyst' },
               description: 'Checked the suspected mechanism against Shift B',
               verdict: 'survived',
               linkedFindingIds: ['f-support'],
@@ -174,7 +174,7 @@ describe('FSJ-8 — status proposal chips', () => {
             {
               id: 'd1',
               attemptedAt: '2026-06-07T00:00:00Z',
-              attemptedBy: { kind: 'user', userId: 'u1' },
+              attemptedBy: { userId: 'u1', displayName: 'Analyst' },
               description: 'Checked the suspected mechanism against Shift B',
               verdict: 'survived',
               linkedFindingIds: ['f-support'],
