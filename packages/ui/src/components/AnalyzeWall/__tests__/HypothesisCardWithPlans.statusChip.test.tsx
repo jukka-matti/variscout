@@ -29,6 +29,14 @@ const supportFinding: Finding = {
   refutes: false,
 } as Finding;
 
+const gembaSupportFinding: Finding = {
+  id: 'f-gemba-support',
+  text: 'Operators see extra heat on Shift A',
+  evidenceType: 'gemba',
+  validationStatus: 'supports',
+  refutes: false,
+} as Finding;
+
 const refutingFinding: Finding = {
   id: 'f-refute',
   text: 'Shift B also runs hot',
@@ -118,12 +126,26 @@ describe('FSJ-8 — status proposal chips', () => {
     expect(onSetStatus).toHaveBeenCalledWith('h1', 'evidenced');
   });
 
-  it('proposes Needs disconfirmation for evidenced hubs with no survived attempt', () => {
+  it('does not propose Needs disconfirmation from only one evidence type', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
         hub={{ ...hub, status: 'evidenced' }}
         displayStatus="evidenced"
+        onSetStatus={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByTestId('status-proposal-chip')).not.toBeInTheDocument();
+  });
+
+  it('proposes Needs disconfirmation once evidenced hubs have two evidence types', () => {
+    renderInSvg(
+      <HypothesisCardWithPlans
+        {...baseProps}
+        hub={{ ...hub, findingIds: ['f-support', 'f-gemba-support'], status: 'evidenced' }}
+        displayStatus="evidenced"
+        findings={[supportFinding, gembaSupportFinding]}
         onSetStatus={vi.fn()}
       />
     );

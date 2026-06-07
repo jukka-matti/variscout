@@ -30,6 +30,7 @@ import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { canAccess } from '@variscout/core/projectMembership';
+import { evidenceTypesForHypothesis } from '@variscout/core/findings';
 import { getMessage } from '@variscout/core/i18n';
 import type { MeasurementPlanStatus } from '@variscout/core/measurementPlan';
 import { HypothesisCard, type HypothesisCardProps } from './HypothesisCard';
@@ -480,6 +481,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   const survivedAttemptCount = (cardProps.hub.disconfirmationAttempts ?? []).filter(
     attempt => attempt.verdict === 'survived'
   ).length;
+  const distinctEvidenceTypes = evidenceTypesForHypothesis(cardProps.hub, findings).size;
   const statusProposal = (() => {
     if (!showStatusControl) return null;
     if (cardProps.hub.status !== 'refuted' && refutingCount > 0) {
@@ -494,7 +496,11 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
         status: 'evidence-survived-test' as HypothesisStatus,
       };
     }
-    if (cardProps.hub.status === 'evidenced' && survivedAttemptCount === 0) {
+    if (
+      cardProps.hub.status === 'evidenced' &&
+      distinctEvidenceTypes >= 2 &&
+      survivedAttemptCount === 0
+    ) {
       return {
         label: 'Evidence logged - mark Needs disconfirmation?',
         status: 'needs-disconfirmation' as HypothesisStatus,
