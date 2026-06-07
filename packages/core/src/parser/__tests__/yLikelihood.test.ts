@@ -53,6 +53,19 @@ describe('rankYCandidates', () => {
     expect(ranked).toEqual([]);
   });
 
+  it('excludes real date-typed columns even when their name looks like a duration outcome', () => {
+    const ranked = rankYCandidates([
+      col({
+        name: 'ProcessTime',
+        type: 'date',
+        uniqueCount: 50,
+        hasVariation: true,
+        sampleValues: ['2026-06-01', '2026-06-02', '2026-06-03'],
+      }),
+    ]);
+    expect(ranked).toEqual([]);
+  });
+
   it('excludes numeric columns with no variation', () => {
     const cols: ColumnAnalysis[] = [
       col({ name: 'Constant_Value', type: 'numeric', hasVariation: false }),
