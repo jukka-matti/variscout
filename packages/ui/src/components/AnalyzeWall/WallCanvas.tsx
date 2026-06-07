@@ -373,6 +373,7 @@ export interface WallCanvasModelBuilderProps {
  */
 export const CANVAS_W = 2000;
 export const CANVAS_H = 1400;
+const LEGACY_WALL_FIT_ZOOM_MAX = 0.25;
 
 const WALL_PAN_IGNORED_TARGET =
   'button,a,input,select,textarea,[role="button"],[data-no-overlay-pan],[data-no-wall-pan]';
@@ -771,6 +772,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     () => formatWallViewBox(computeWallContentBBox(wallLayout)),
     [wallLayout]
   );
+  const renderedZoom = mode !== 'overlay' && zoom <= LEGACY_WALL_FIT_ZOOM_MAX ? 1 : zoom;
 
   const handleFocusNode = useCallback(
     (nodeId: string) => setFocusedWallEntity(nodeId),
@@ -1192,7 +1194,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       y: hubY,
       hasGap: hubsWithGap.has(hub.id),
       missingColumn: columnSet ? conditionHasMissingColumn(hub.condition, columnSet) : false,
-      zoomScale: zoom !== 1 ? zoom : undefined,
+      zoomScale: renderedZoom !== 1 ? renderedZoom : undefined,
       onSelect: onSelectHub,
       // FE-2b — the OneStepAwayBadge becomes a clickable affordance that focuses
       // the hub (opening its test plan with "Try to break it" reachable). Reuses
@@ -1321,7 +1323,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         role="img"
         aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
       >
-        <g data-wall-viewport transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+        <g data-wall-viewport transform={`translate(${pan.x}, ${pan.y}) scale(${renderedZoom})`}>
           {/* Focus-lens background: a click on empty canvas clears focus. Sits
               behind every node, so node clicks hit the node (not this rect). */}
           <rect

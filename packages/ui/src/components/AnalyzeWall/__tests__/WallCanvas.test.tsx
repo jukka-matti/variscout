@@ -692,6 +692,30 @@ describe('WallCanvas', () => {
       expect(container.querySelector('svg')?.getAttribute('viewBox')).not.toBe('0 0 2000 1400');
     });
 
+    it('ignores stale zoom-out state below fitted scale for populated destination Walls', () => {
+      const finding = { ...createFinding('obs 32-58 elevated', {}, null), id: 'f-stale-zoom' };
+      const fittedHub = {
+        ...createHypothesis('Nozzle runs hot', '', [finding.id]),
+        id: 'h-stale-zoom',
+      };
+
+      const { container } = render(
+        <WallCanvas
+          hubs={[fittedHub]}
+          findings={[finding]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          zoom={0.2}
+          pan={{ x: 0, y: 0 }}
+        />
+      );
+
+      expect(container.querySelector('[data-wall-viewport]')?.getAttribute('transform')).toContain(
+        'scale(1)'
+      );
+    });
+
     it('keeps overlay mode on the static full-canvas viewBox', () => {
       const { container } = render(
         <WallCanvas
