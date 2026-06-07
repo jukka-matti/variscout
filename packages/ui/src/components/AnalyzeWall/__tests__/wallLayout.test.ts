@@ -10,7 +10,12 @@
  * Task-2 refactor preserves every existing WallCanvas pixel test.
  */
 import { describe, it, expect } from 'vitest';
-import { computeWallLayout, type WallLayoutArgs } from '../wallLayout';
+import {
+  computeWallContentBBox,
+  computeWallLayout,
+  formatWallViewBox,
+  type WallLayoutArgs,
+} from '../wallLayout';
 import { CANVAS_W, CANVAS_H } from '../WallCanvas';
 
 const HUB_Y = 400;
@@ -52,6 +57,53 @@ describe('computeWallLayout — hub positions (linear)', () => {
     );
     expect(layout.scopeAnchor.x).toBeCloseTo(CANVAS_W / 2);
     expect(layout.scopeAnchor.y).toBeCloseTo(40);
+  });
+});
+
+describe('computeWallContentBBox', () => {
+  it('covers hub cards, finding chips, factor glyphs, and the scope anchor with padding', () => {
+    const layout = computeWallLayout(
+      baseArgs({
+        hubs: [{ id: 'h1', findingIds: ['f1'], counterFindingIds: [] }],
+        findings: [{ id: 'f1' }, { id: 'orphan-1' }],
+        factors: [{ key: 'Shift', contribution: 0.8 }],
+      })
+    );
+
+    const bbox = computeWallContentBBox(layout);
+
+    expect(bbox.x).toBeLessThanOrEqual(-110);
+    expect(bbox.y).toBeLessThanOrEqual(-40);
+    expect(bbox.width).toBeGreaterThan(0);
+    expect(bbox.height).toBeGreaterThan(0);
+
+    const hub = layout.hubPositions.get('h1')!;
+    expect(bbox.x).toBeLessThanOrEqual(hub.x - 140 - 80);
+    expect(bbox.y + bbox.height).toBeGreaterThanOrEqual(hub.y + 288 + 80);
+
+    const linkedFinding = layout.findingPositions.get('f1')!;
+    expect(bbox.x).toBeLessThanOrEqual(linkedFinding.x - 110 - 80);
+
+    const orphanFinding = layout.findingPositions.get('orphan-1')!;
+    expect(bbox.x).toBeLessThanOrEqual(orphanFinding.x - 110 - 80);
+
+    const factor = layout.factorPositions.get('Shift')!;
+    expect(bbox.y + bbox.height).toBeGreaterThanOrEqual(factor.y + 32 + 80);
+
+    expect(formatWallViewBox(bbox)).toBe(`${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+  });
+
+  it('falls back to the full canvas when no content boxes exist', () => {
+    const bbox = computeWallContentBBox({
+      hubPositions: new Map(),
+      findingPositions: new Map(),
+      factorPositions: new Map(),
+      scopeAnchor: { x: 0, y: 0 },
+      edges: [],
+      orphanFindingIds: [],
+    });
+
+    expect(bbox).toEqual({ x: 0, y: 0, width: CANVAS_W, height: CANVAS_H });
   });
 });
 
