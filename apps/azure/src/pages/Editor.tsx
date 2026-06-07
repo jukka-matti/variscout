@@ -70,7 +70,6 @@ import {
   normalizeProcessHubId,
   computeTimeDecompositionColumns,
   computeBinnedFactorColumn,
-  computeDefectRates,
 } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
@@ -814,11 +813,8 @@ export const Editor: React.FC<EditorProps> = ({
     [activeHub]
   );
 
-  // FSJ-3b: paste callbacks. Inline arrows re-capture state per render; the
-  // async user resolution mirrors handleLoadSampleWithLanding. landFreshEntry
-  // routes (spec §1); provisionFreshPaste ensures WITHOUT routing — the §3
-  // guarantee for wizard-path pastes (retires Stage-1's provisioning role and
-  // the empty-goal-Confirm asymmetry, investigations 2026-06-06).
+  // FSJ-10: fresh paste now always provisions and routes to b0. The analyzed
+  // callback remains for non-primary hatch/re-ingest compatibility only.
   const handleFreshPasteLanded = useCallback(() => {
     void (async () => {
       const user = currentUser ?? (await getCurrentUser().catch(() => null));
@@ -877,13 +873,11 @@ export const Editor: React.FC<EditorProps> = ({
 
   const handleAcceptDefectDetection = useCallback(
     (mapping: DefectMapping) => {
-      const nextDefectResult = computeDefectRates(rawData, mapping);
       setDefectMapping(mapping);
-      setOutcome(nextDefectResult.outcomeColumn);
       setAnalysisMode('defect');
       dataFlow.dismissDefectDetection();
     },
-    [dataFlow, rawData, setAnalysisMode, setDefectMapping, setOutcome]
+    [dataFlow, setAnalysisMode, setDefectMapping]
   );
 
   const handleAcceptWideFormatDetection = useCallback(
@@ -1061,10 +1055,9 @@ export const Editor: React.FC<EditorProps> = ({
   // Stage 5 modal — opens after Mode B Stage 3 confirm and via on-demand button.
   const stageFive = useStageFiveOpener();
 
-  // FSJ-3b: handleHubCreated retired. Stage-1 provisioning is gone; fresh-paste
-  // provisioning now fires at paste-analyzed time (onFreshPasteAnalyzed, Task 2),
-  // before the demoted ColumnMapping renders. bindProcessHubId/activateHubProject
-  // remain wired via makeLandingDeps for the landing path.
+  // FSJ-10: handleHubCreated retired. Fresh-paste provisioning now routes through
+  // the landing path; bindProcessHubId/activateHubProject remain wired via
+  // makeLandingDeps so callbacks read the live hub state.
 
   // FSJ-3a landing (spec §1/§3): fresh sample entry lands on the Process tab
   // with an ensured + activated Untitled pair, named for the sample. The canvas
@@ -1887,13 +1880,9 @@ export const Editor: React.FC<EditorProps> = ({
 
   if (dataFlow.isMapping) {
     /*
-     * FSJ-3b (spec §2/§3): the wizard demotes to ColumnMapping-only. The Stage-1
-     * HubGoalForm vestibule retired — provisioning now fires at paste-analyzed
-     * time (onFreshPasteAnalyzed), so the hub exists before this renders. The
-     * goal ceremony is opt-in via the Process-tab GoalBanner. showBrief stays off
-     * (ColumnMapping default): the brief keeps its Analyze BriefHeader + Stage-5
-     * homes. goalContext dropped — the bias source was the retired Stage-1
-     * narrative; GoalBanner-set goals re-thread in FSJ-6.
+     * FSJ-10: ColumnMapping is the permanent Fix data / multi-outcome hatch, not
+     * the primary paste path. Fresh-paste provisioning has already routed to b0;
+     * hatch confirms may persist hub metadata but never rewrite active Y/X.
      */
     return (
       <ColumnMapping
