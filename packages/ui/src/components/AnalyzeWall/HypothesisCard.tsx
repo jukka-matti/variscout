@@ -1,7 +1,7 @@
 /**
- * HypothesisCard — status-bordered Mechanism Branch card for a Hypothesis hub.
+ * HypothesisCard — status-bordered suspected-cause card for a Hypothesis hub.
  *
- * Displays the suspected mechanism, branch status, clue/check counts, and an
+ * Displays the suspected cause, branch status, clue/check counts, and an
  * optional evidence-gap warning badge. Positioned by its center-top point (x, y).
  *
  * Accessibility: role="button", tabIndex={0}, aria-label for screen readers.

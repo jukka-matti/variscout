@@ -167,9 +167,12 @@ describe('Investigation Wall keys', () => {
     'wall.card.ariaLabel': 'Suspected cause {name}, {status}, {count} supporting clues',
     'wall.empty.ariaLabel': 'Suspected cause empty state',
     'wall.empty.title': 'Start a suspected cause',
+    'wall.empty.subtitle': 'Start from a suspected cause, question, or Factor Intelligence.',
     'wall.empty.writeHypothesis': 'Add a suspected cause',
     'wall.canvas.ariaLabel': 'Suspected cause workspace',
     'wall.missing.tagline': "Evidence you haven't checked yet ({count})",
+    'wall.cta.proposeHypothesis': 'Propose suspected cause from this finding',
+    'wall.caveat.unbackedSurvived': 'Verified — disconfirmation has no attached evidence',
   } as const satisfies Partial<MessageCatalog>;
 
   const wallKeys = [
@@ -233,7 +236,7 @@ describe('Investigation Wall keys', () => {
     expect(getMessage('en', 'wall.empty.title')).toBe('Start a suspected cause');
     expect(getMessage('en', 'wall.rail.title')).toBe('CoScout');
     expect(getMessage('en', 'wall.cta.proposeHypothesis')).toBe(
-      'Propose suspected mechanism from this finding'
+      'Propose suspected cause from this finding'
     );
     expect(getMessage('en', 'wall.toolbar.groupByTributary')).toBe('Group by tributary');
     expect(getMessage('en', 'wall.palette.placeholder')).toBe('Search hubs, questions, findings…');

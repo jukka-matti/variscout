@@ -85,7 +85,7 @@ const hub: Hypothesis = {
  * A hub with status='evidenced' (1 finding, evidenceType='data') triggers
  * the data-collection survey rule, causing MissingEvidencePanel to render.
  */
-const hubWithEvidenced: Hypothesis = {
+const hubWithEvidence: Hypothesis = {
   ...hub,
   id: 'h-evidenced',
   status: 'evidenced',
@@ -133,7 +133,7 @@ describe('WallCanvas', () => {
         eventsPerWeek={42}
       />
     );
-    expect(screen.getByText(/Start a Mechanism Branch/i)).toBeInTheDocument();
+    expect(screen.getByText(/Start a suspected cause/i)).toBeInTheDocument();
   });
 
   it('renders findings-forward Wall arrival when findings exist but no hubs', () => {
@@ -153,7 +153,7 @@ describe('WallCanvas', () => {
     expect(screen.getByText(/You've observed:/i)).toBeInTheDocument();
     expect(screen.getByText(/obs 32-58 elevated/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /What might cause this\?/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Write hypothesis/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Add a suspected cause/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Seed from factor intel/i })).toBeInTheDocument();
   });
 
@@ -319,7 +319,7 @@ describe('WallCanvas', () => {
       />
     );
 
-    expect(screen.getByText(/Needs disconfirmation/i)).toBeInTheDocument();
+    expect(screen.getByText(/Suspected/i)).toBeInTheDocument();
     expect(container.querySelector('[data-status="needs-disconfirmation"]')).toBeTruthy();
   });
 
@@ -396,7 +396,7 @@ describe('WallCanvas', () => {
     );
     expect(screen.getByText(/Problem condition/i)).toBeInTheDocument();
     expect(screen.getByText(/Nozzle runs hot/i)).toBeInTheDocument();
-    expect(screen.getByText(/Mechanism Branch/i)).toBeInTheDocument();
+    expect(screen.getByText(/suspected cause/i)).toBeInTheDocument();
     expect(screen.getByText(/Next: Check nozzle temperature/i)).toBeInTheDocument();
   });
 
@@ -518,7 +518,7 @@ describe('WallCanvas', () => {
     it('default mode is destination — renders MissingEvidencePanel', () => {
       render(
         <WallCanvas
-          hubs={[hubWithEvidenced]}
+          hubs={[hubWithEvidence]}
           findings={evidencedFindings}
           processMap={processMap}
           problemCpk={0}
@@ -531,7 +531,7 @@ describe('WallCanvas', () => {
     it('mode=overlay omits MissingEvidencePanel', () => {
       render(
         <WallCanvas
-          hubs={[hubWithEvidenced]}
+          hubs={[hubWithEvidence]}
           findings={evidencedFindings}
           processMap={processMap}
           problemCpk={0}
@@ -609,7 +609,7 @@ describe('WallCanvas', () => {
     const group = container.querySelector('[data-tributary-group="t1"]');
     expect(group).toBeTruthy();
     // Both hubs live inside the group frame.
-    expect(group?.querySelectorAll('[aria-label*="Mechanism Branch"]').length).toBe(2);
+    expect(group?.querySelectorAll('[aria-label*="Suspected cause"]').length).toBe(2);
   });
 
   it('does not render tributary-group frame when groupByTributary is off', () => {
@@ -813,7 +813,7 @@ describe('WallCanvas', () => {
       restoreMatchMedia = installMobileMatchMedia();
       render(
         <WallCanvas
-          hubs={[hubWithEvidenced]}
+          hubs={[hubWithEvidence]}
           findings={evidencedFindings}
           processMap={processMap}
           problemCpk={0.78}

@@ -331,7 +331,7 @@ function buildPowerItems(
             : 'ask-for-next',
       currentPowerState:
         branches.length === 0
-          ? 'No Mechanism Branches exist yet.'
+          ? 'No suspected causes exist yet.'
           : `${openBranchChecks} open branch check${openBranchChecks === 1 ? '' : 's'} found.`,
       blindSpot: 'A branch with only supporting clues can be overfit to the current data.',
       nextLever: 'Add a counter-check that could weaken the branch before acting.',

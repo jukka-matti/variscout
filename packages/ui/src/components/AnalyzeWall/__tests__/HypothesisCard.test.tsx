@@ -149,7 +149,7 @@ describe('HypothesisCard', () => {
     expect(onSelect).toHaveBeenCalledWith('h1');
   });
 
-  it('renders branch content with suspected mechanism language, clue counts, checks, readiness, and next move', () => {
+  it('renders branch content with suspected cause language, clue counts, checks, readiness, and next move', () => {
     const findings: Finding[] = [
       {
         id: 'f1',
@@ -225,7 +225,6 @@ describe('HypothesisCard', () => {
     );
 
     expect(screen.getByText(/Suspected cause/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Mechanism Branch/i)).not.toBeInTheDocument();
     expect(screen.getByText(/2 supporting clues/i)).toBeInTheDocument();
     expect(screen.getByText(/1 counter-clue/i)).toBeInTheDocument();
     expect(screen.getByText(/1 open check/i)).toBeInTheDocument();

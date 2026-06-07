@@ -846,7 +846,7 @@ export const zhHant: MessageCatalog = {
   'wall.disconfirm.verdictSurvivedToast': 'Survived — the cause withstood the attempt.',
   'wall.disconfirm.verdictRefutedToast': 'Refuted — the predicted relationship was absent.',
   // FE-2b — the §4.1 soft caveat for an unbacked survived attempt
-  'wall.caveat.unbackedSurvived': 'Supported — disconfirmation has no attached evidence',
+  'wall.caveat.unbackedSurvived': 'Verified — disconfirmation has no attached evidence',
   'wall.caveat.backWithTest': 'back it with a test →',
   // FE-2b — refute → respawn-sharper (spec §4.2)
   'wall.respawn.sharpenCta': 'Sharpen → propose a new hypothesis',
@@ -896,7 +896,7 @@ export const zhHant: MessageCatalog = {
   'wall.tributary.ariaLabel': 'Tributaries from Process Map',
   'wall.empty.ariaLabel': 'Suspected cause empty state',
   'wall.empty.title': 'Start a suspected cause',
-  'wall.empty.subtitle': 'Start from a suspected mechanism, question, or Factor Intelligence.',
+  'wall.empty.subtitle': 'Start from a suspected cause, question, or Factor Intelligence.',
   'wall.empty.writeHypothesis': 'Add a suspected cause',
   'wall.empty.seedFromFactorIntel': 'Seed 3 from Factor Intelligence',
   'wall.rail.title': 'CoScout',
@@ -912,7 +912,7 @@ export const zhHant: MessageCatalog = {
   'wall.missing.collapsed': 'Show details',
   'wall.missing.expanded': 'Hide details',
   'wall.canvas.ariaLabel': 'Suspected cause workspace',
-  'wall.cta.proposeHypothesis': 'Propose suspected mechanism from this finding',
+  'wall.cta.proposeHypothesis': 'Propose suspected cause from this finding',
   // Model-builder band (Factors & Evaluation Increment 1)
   'wall.model.bandAriaLabel': 'Vital-few model builder',
   'wall.model.title': 'What accounts for the spread in this data',

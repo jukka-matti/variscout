@@ -601,9 +601,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     id: 'hypothesis',
     label: 'Hypothesis',
     definition:
-      'A named mechanism that connects several findings into one coherent story about which factor contributes to the variation. Evidenced through data, Gemba observation, or expert input.',
+      'A suspected cause that connects several findings into one coherent story about which factor contributes to the variation. Checked through data, Gemba observation, or expert input.',
     description:
-      'Hypotheses are the synthesis output of Analyze in VariScout. Each hypothesis proposes how a particular factor contributes to variation and gathers the findings that support or refute it. Evidence can be automatic (η² thresholds: ≥15% strong, <5% weak, 5-15% moderate), via Gemba inspection, or by expert assessment. A hypothesis moves through statuses — proposed, evidenced, needs-disconfirmation, confirmed, refuted — as evidence accumulates.',
+      'Hypotheses are the synthesis output of Analyze in VariScout. Each hypothesis names a suspected cause and gathers the findings that support or refute it. Evidence can be automatic (η² thresholds: ≥15% strong, <5% weak, 5-15% moderate), via Gemba inspection, or by expert assessment. The interface presents those stored states as Suspected, Verified, or Ruled out.',
     category: 'analyze',
     learnMorePath: '/learn/analyze',
     relatedTerms: ['finding', 'etaSquared'],

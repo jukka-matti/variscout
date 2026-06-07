@@ -42,7 +42,7 @@ export interface ProblemCondition {
   summary: string;
 }
 
-/** Active suspected mechanism contributing to the current understanding */
+/** Active suspected cause contributing to the current understanding */
 export interface CurrentUnderstandingMechanism {
   /** Stable identifier when available */
   id?: string;
@@ -68,7 +68,7 @@ export interface CurrentUnderstanding {
   liveProblemStatementDraft?: string;
   /** Analyst-approved final problem statement */
   approvedProblemStatement?: string;
-  /** Active suspected mechanisms/hubs under consideration */
+  /** Active suspected causes/hubs under consideration */
   activeSuspectedMechanisms?: CurrentUnderstandingMechanism[];
 }
 
@@ -293,7 +293,7 @@ export interface AIContext {
     transitionReason?: string;
     /** Investigation categories for completeness prompting */
     categories?: Array<{ name: string; factorNames: string[] }>;
-    /** Suspected mechanisms ranked by evidence (supports multiple), grouped by `status` */
+    /** Suspected causes ranked by evidence (supports multiple), grouped by `status` */
     hypotheses?: Array<{
       id: string;
       text: string;

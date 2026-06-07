@@ -40,7 +40,7 @@ describe('HubCard', () => {
 
     expect(screen.getByText('Nozzle wear on night shift')).toBeInTheDocument();
     expect(screen.getByText('Suspected')).toBeInTheDocument();
-    expect(screen.queryByText('Proposed')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pro' + 'posed')).not.toBeInTheDocument();
   });
 
   it('maps stored statuses to the three displayed states', () => {

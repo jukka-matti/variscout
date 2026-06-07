@@ -128,7 +128,7 @@ describe('Process Moments', () => {
     ]);
   });
 
-  it('can project a weak moment into a finding clue for a Mechanism Branch', () => {
+  it('can project a weak moment into a finding clue for a suspected cause', () => {
     const [weakMoment] = computeProcessMoments(rows, definitions);
     const clue = buildProcessMomentFindingClue(weakMoment, 'hub-1');
 

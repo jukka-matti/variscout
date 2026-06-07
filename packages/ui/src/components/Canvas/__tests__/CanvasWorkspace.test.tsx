@@ -308,7 +308,7 @@ vi.mock('@variscout/hooks', () => ({
       id: 'hypothesis-hubs',
       label: 'Hypothesis hubs',
       enabled: true,
-      description: 'Promoted mechanism branches rendered as step markers.',
+      description: 'Promoted suspected causes rendered as step markers.',
     },
     findings: {
       id: 'findings',
@@ -347,7 +347,7 @@ vi.mock('@variscout/hooks', () => ({
       id: 'hypothesis-hubs',
       label: 'Hypothesis hubs',
       enabled: true,
-      description: 'Promoted mechanism branches rendered as step markers.',
+      description: 'Promoted suspected causes rendered as step markers.',
     },
     {
       id: 'findings',

@@ -343,9 +343,7 @@ describe('FindingChip — propose-hypothesis affordance (IM-4c, wired)', () => {
         <FindingChip finding={finding} x={0} y={0} onProposeHypothesis={vi.fn()} />
       </svg>
     );
-    expect(
-      screen.getByRole('button', { name: /propose suspected mechanism/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /propose suspected cause/i })).toBeInTheDocument();
   });
 
   it('does NOT render the affordance when onProposeHypothesis is omitted', () => {
@@ -354,7 +352,7 @@ describe('FindingChip — propose-hypothesis affordance (IM-4c, wired)', () => {
         <FindingChip finding={finding} x={0} y={0} />
       </svg>
     );
-    expect(screen.queryByRole('button', { name: /propose suspected mechanism/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /propose suspected cause/i })).toBeNull();
   });
 
   it('fires onProposeHypothesis with the findingId when the affordance is clicked', () => {
@@ -364,7 +362,7 @@ describe('FindingChip — propose-hypothesis affordance (IM-4c, wired)', () => {
         <FindingChip finding={finding} x={0} y={0} onProposeHypothesis={onProposeHypothesis} />
       </svg>
     );
-    fireEvent.click(screen.getByRole('button', { name: /propose suspected mechanism/i }));
+    fireEvent.click(screen.getByRole('button', { name: /propose suspected cause/i }));
     expect(onProposeHypothesis).toHaveBeenCalledWith('f1');
   });
 

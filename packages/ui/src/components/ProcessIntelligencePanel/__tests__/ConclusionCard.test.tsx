@@ -65,8 +65,8 @@ describe('ConclusionCard', () => {
       <ConclusionCard
         hypotheses={[]}
         hubs={[
-          makeHub('h-proposed', 'Proposed cause', 'proposed'),
-          makeHub('h-evidenced', 'Evidenced cause', 'evidenced'),
+          makeHub('h-proposed', 'Initial suspected cause', 'proposed'),
+          makeHub('h-evidenced', 'Evidence-backed cause', 'evidenced'),
           makeHub('h-needs', 'Needs check cause', 'needs-disconfirmation'),
           makeHub('h-verified', 'Verified cause', 'evidence-survived-test'),
           makeHub('h-refuted', 'Ruled out cause', 'refuted'),

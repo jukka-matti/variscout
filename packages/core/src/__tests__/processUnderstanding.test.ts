@@ -80,7 +80,7 @@ describe('processUnderstanding', () => {
         'Approved problem statement: Mean fill weight is 3g above target'
       );
       expect(understanding?.summary).toContain(
-        'Active suspected mechanisms: Changeover setup (R2adj 34%) - The first hour after changeover shows the highest mean shift.; Operator - Operator effect is still being checked.'
+        'Active suspected causes: Changeover setup (R2adj 34%) - The first hour after changeover shows the highest mean shift.; Operator - Operator effect is still being checked.'
       );
     });
 

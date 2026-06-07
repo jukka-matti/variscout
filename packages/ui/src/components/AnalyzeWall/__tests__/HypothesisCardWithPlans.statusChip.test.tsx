@@ -83,10 +83,8 @@ describe('L-2 — display status presentation', () => {
     expect(screen.getByTestId('status-summary')).toHaveTextContent(
       'Suspected causes stay suspected'
     );
-    expect(screen.queryByText('Proposed - named mechanism to check')).not.toBeInTheDocument();
-    expect(
-      screen.queryByText('Supported - survived an attempt to break it')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Old first-rung copy')).not.toBeInTheDocument();
+    expect(screen.queryByText('Old verified-rung copy')).not.toBeInTheDocument();
   });
 
   it('keeps the override select with all five stored statuses', () => {
@@ -169,7 +167,7 @@ describe('FSJ-8 — status proposal chips', () => {
               id: 'd1',
               attemptedAt: '2026-06-07T00:00:00Z',
               attemptedBy: { userId: 'u1', displayName: 'Analyst' },
-              description: 'Checked the suspected mechanism against Shift B',
+              description: 'Checked the suspected cause against Shift B',
               verdict: 'survived',
               linkedFindingIds: ['f-support'],
             },
@@ -196,7 +194,7 @@ describe('FSJ-8 — status proposal chips', () => {
               id: 'd1',
               attemptedAt: '2026-06-07T00:00:00Z',
               attemptedBy: { userId: 'u1', displayName: 'Analyst' },
-              description: 'Checked the suspected mechanism against Shift B',
+              description: 'Checked the suspected cause against Shift B',
               verdict: 'survived',
               linkedFindingIds: ['f-support'],
             },
@@ -227,7 +225,7 @@ describe('FSJ-8 — status proposal chips', () => {
               id: 'd1',
               attemptedAt: '2026-06-07T00:00:00Z',
               attemptedBy: { userId: 'u1', displayName: 'Analyst' },
-              description: 'Checked the suspected mechanism against Shift B',
+              description: 'Checked the suspected cause against Shift B',
               verdict: 'survived',
               linkedFindingIds: ['f-support'],
             },

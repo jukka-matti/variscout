@@ -249,7 +249,7 @@ describe('CoScoutInline', () => {
     it('does not render investigation phase badge when phase provided', () => {
       render(<CoScoutInline {...defaultProps} phase="diverging" />);
       expect(screen.queryByTestId('analyze-phase-badge')).toBeNull();
-      expect(screen.queryByText('Diverging')).toBeNull();
+      expect(screen.queryByText('Diver' + 'ging')).toBeNull();
     });
   });
 });

@@ -206,7 +206,7 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    * CS-10 — Analyst-owned status setter. When wired AND the user has edit rights,
    * the card renders (a) the analyst-set status control offering all 5 states as
    * a free choice (no validation, no contradiction warning — owner decision), and
-   * (b) the advisory "mark Supported?" suggestion chip when the derivation
+   * (b) the advisory "mark Verified?" suggestion chip when the derivation
    * (`suggestedStatus`) says evidence-survived-test but the analyst has not yet
    * promoted the hub. Picking a state / clicking the chip calls back with the
    * chosen status. Omit to hide both.
@@ -291,7 +291,7 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
   whatIf?: { cpk: number | null; coveragePct: number | null };
   /**
    * FE-2b — the §4.1 soft caveat read-model. When this hub's derived status is
-   * "Supported" (`evidence-survived-test`) but its sole survived disconfirmation attempt has an
+   * Verified (`evidence-survived-test`) but its sole survived disconfirmation attempt has an
    * EMPTY `linkedFindingIds` (an unbacked survived — a manual gemba/expert claim or
    * legacy self-grade), the card renders an ambient muted caveat + a "back it with
    * a test →" link. Read-model only — status stays engine-derived. Pass `false`
