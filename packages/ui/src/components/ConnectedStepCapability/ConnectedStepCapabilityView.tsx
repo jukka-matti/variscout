@@ -212,21 +212,23 @@ export function ConnectedStepCapabilityView({
 }: ConnectedStepCapabilityViewProps): React.JSX.Element | null {
   const [mode, setMode] = React.useState<ConnectedStepCapabilityMode>('capability');
   const [activeStepId, setActiveStepId] = React.useState<string | null>(null);
+  const timeModel = React.useMemo(
+    () => deriveConnectedStepTime({ map, rows, stepTimings }),
+    [map, rows, stepTimings]
+  );
+  const selectedMode: ConnectedStepCapabilityMode =
+    mode === 'time' && !timeModel.hasTimeData ? 'capability' : mode;
   const model = React.useMemo(
     () =>
       deriveConnectedStepCapability({
         map,
-        mode,
+        mode: selectedMode,
         stepCards,
         capabilityNodes,
         errorSteps,
         valueRolesByStepId,
       }),
-    [capabilityNodes, errorSteps, map, mode, stepCards, valueRolesByStepId]
-  );
-  const timeModel = React.useMemo(
-    () => deriveConnectedStepTime({ map, rows, stepTimings }),
-    [map, rows, stepTimings]
+    [capabilityNodes, errorSteps, map, selectedMode, stepCards, valueRolesByStepId]
   );
   const timeStepsById = React.useMemo(
     () => new Map(timeModel.steps.map(step => [step.stepId, step])),
@@ -236,12 +238,6 @@ export function ConnectedStepCapabilityView({
     () => (timeModel.hasTimeData ? ['values', 'capability', 'time'] : ['values', 'capability']),
     [timeModel.hasTimeData]
   );
-
-  React.useEffect(() => {
-    if (mode === 'time' && !timeModel.hasTimeData) {
-      setMode('capability');
-    }
-  }, [mode, timeModel.hasTimeData]);
 
   if (model.steps.length === 0) return null;
 
@@ -268,11 +264,11 @@ export function ConnectedStepCapabilityView({
             <button
               key={nextMode}
               type="button"
-              aria-pressed={mode === nextMode}
+              aria-pressed={selectedMode === nextMode}
               onClick={() => setMode(nextMode)}
               className={[
                 'rounded px-2.5 py-1 text-xs font-semibold transition-colors',
-                mode === nextMode
+                selectedMode === nextMode
                   ? 'bg-surface-primary text-content shadow-sm'
                   : 'text-content-secondary hover:text-content',
               ].join(' ')}
@@ -299,7 +295,7 @@ export function ConnectedStepCapabilityView({
                   data-step-id={step.stepId}
                   data-active={active ? 'true' : 'false'}
                   data-constraint={
-                    mode === 'time' && timeStepsById.get(step.stepId)?.isConstraint
+                    selectedMode === 'time' && timeStepsById.get(step.stepId)?.isConstraint
                       ? 'true'
                       : 'false'
                   }
@@ -309,7 +305,7 @@ export function ConnectedStepCapabilityView({
                   onBlur={() => setActiveStepId(null)}
                   className={[
                     'min-w-32 flex-1 rounded-md border px-3 py-2 text-left transition-colors',
-                    mode === 'time' && timeStepsById.get(step.stepId)?.isConstraint
+                    selectedMode === 'time' && timeStepsById.get(step.stepId)?.isConstraint
                       ? 'border-status-warning bg-status-warning-soft/40'
                       : active
                         ? 'border-focus-ring bg-surface-secondary'
@@ -324,7 +320,7 @@ export function ConnectedStepCapabilityView({
                   >
                     {flagLabel(step.flag)}
                   </span>
-                  {mode === 'time' && timeStepsById.get(step.stepId)?.isConstraint ? (
+                  {selectedMode === 'time' && timeStepsById.get(step.stepId)?.isConstraint ? (
                     <span className="ml-1 mt-1 inline-block rounded-full border border-status-warning/30 bg-status-warning-soft px-1.5 py-0.5 text-[10px] font-semibold text-status-warning">
                       Constraint
                     </span>
@@ -335,14 +331,16 @@ export function ConnectedStepCapabilityView({
           </div>
           <div
             className="flex gap-2 overflow-x-auto pb-1"
-            data-testid={mode === 'time' ? 'connected-step-time-axis' : 'connected-step-box-strip'}
+            data-testid={
+              selectedMode === 'time' ? 'connected-step-time-axis' : 'connected-step-box-strip'
+            }
           >
             {model.steps.map(step => (
               <StepBox
                 key={step.stepId}
                 step={step}
                 timeStep={timeStepsById.get(step.stepId)}
-                mode={mode}
+                mode={selectedMode}
                 active={activeStepId === step.stepId}
               />
             ))}
