@@ -56,8 +56,9 @@ export function ensureAndActivateProject(
   // 1. Ensure the hub carries a live ImprovementProject.
   //    Pure + referential no-op when one already exists (spec §3, reconstruct-
   //    not-create for .vrs imports whose hub already has an IP).
+  const hasLiveProject = hubBase?.improvementProject?.deletedAt === null;
   let hub = ensureSessionProject(hubBase, title);
-  if (!hubBase?.improvementProject && initialStepTimings?.length) {
+  if (!hasLiveProject && initialStepTimings?.length) {
     hub = {
       ...hub,
       improvementProject: {

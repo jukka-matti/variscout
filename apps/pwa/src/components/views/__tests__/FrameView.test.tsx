@@ -292,6 +292,12 @@ vi.mock('@variscout/ui', async () => {
         columnName?: string;
         stepId?: string;
       }) => void;
+      activeIP?: unknown;
+      onPersistCanvasState?: unknown;
+      canEditCanvas?: boolean;
+      rawData?: unknown[];
+      processContext?: unknown;
+      measureSpecs?: unknown;
     }) => {
       hoisted.canvasWorkspaceMock(props);
       return React.createElement(
@@ -487,6 +493,75 @@ describe('FrameView (PWA shell)', () => {
         causalLinks: [{ id: 'link-1' }],
       })
     );
+  });
+
+  it('CS-P5: passes active IP step timings into the shared Canvas workspace for PWA per-step parity', async () => {
+    const { createTestIP } =
+      await import('../../../../../../packages/ui/src/test-utils/improvementProject');
+    const { createTestStepTiming } =
+      await import('../../../../../../packages/ui/src/test-utils/stepTiming');
+    const stepTimings = [
+      createTestStepTiming({
+        stepId: 'step-2',
+        startColumn: 'Step_2_Start',
+        endColumn: 'Step_2_End',
+      }),
+    ];
+    const activeIP = createTestIP({
+      id: 'ip-timed-process',
+      hubId: 'hub-1',
+      title: 'Timed process',
+      stepTimings,
+    });
+    const upsertProject = vi.fn();
+    activeIPContextRef.current = { activeIP };
+    improvementProjectStateRef.current = {
+      ...improvementProjectStateRef.current,
+      upsertProject,
+    };
+    storeStateRef.current = {
+      ...storeStateRef.current,
+      rawData: [
+        {
+          Cycle_Time_sec: 42,
+          Step_2_Start: '2026-06-08T08:00:00.000Z',
+          Step_2_End: '2026-06-08T08:20:00.000Z',
+        },
+      ],
+      processContext: {
+        processHubId: 'hub-1',
+        processMap: {
+          version: 1,
+          nodes: [{ id: 'step-2', name: 'Step 2', order: 0, ctqColumn: 'Cycle_Time_sec' }],
+          tributaries: [],
+          createdAt: '2026-06-08T00:00:00.000Z',
+          updatedAt: '2026-06-08T00:00:00.000Z',
+        },
+      },
+      measureSpecs: { Cycle_Time_sec: { target: 40 } },
+    };
+
+    render(<FrameView />);
+
+    expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
+    expect(hoisted.canvasWorkspaceMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        activeIP,
+        onPersistCanvasState: upsertProject,
+        canEditCanvas: true,
+        canvasViewportHubId: 'hub-1',
+        rawData: storeStateRef.current.rawData,
+        processContext: storeStateRef.current.processContext,
+        measureSpecs: storeStateRef.current.measureSpecs,
+      })
+    );
+    expect(
+      (
+        hoisted.canvasWorkspaceMock.mock.lastCall?.[0] as {
+          activeIP?: { stepTimings?: unknown[] };
+        }
+      ).activeIP?.stepTimings
+    ).toEqual(stepTimings);
   });
 
   it('passes the active session hub id to CanvasWorkspace when process context has no hub id', () => {

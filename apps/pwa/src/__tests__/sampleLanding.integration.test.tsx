@@ -13,6 +13,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createTestIP } from '../../../../packages/ui/src/test-utils/improvementProject';
+import { createTestStepTiming } from '../../../../packages/ui/src/test-utils/stepTiming';
 
 // ── Test doubles ──────────────────────────────────────────────────────────────
 
@@ -51,6 +53,21 @@ const SAMPLE_DATASET: SampleDataset = {
     outcome: 'weight',
     factors: [],
     specs: {},
+  },
+};
+
+const TIMED_SAMPLE_DATASET: SampleDataset = {
+  ...SAMPLE_DATASET,
+  name: 'Timed bottleneck sample',
+  config: {
+    ...SAMPLE_DATASET.config,
+    stepTimings: [
+      createTestStepTiming({
+        stepId: 'step-2',
+        startColumn: 'Step_2_Start',
+        endColumn: 'Step_2_End',
+      }),
+    ],
   },
 };
 
@@ -164,7 +181,7 @@ describe('landOnProcess — sample landing (spec §1, §3)', () => {
   });
 
   it('creates an Untitled project named after the sample + activates it (E1 T6 gate passes)', () => {
-    let capturedHub: ProcessHub | null = null;
+    let capturedHub: ProcessHub | undefined;
     const setSessionHub = vi.fn((hub: ProcessHub) => {
       capturedHub = hub;
     });
@@ -221,6 +238,40 @@ describe('landOnProcess — sample landing (spec §1, §3)', () => {
     // Data loading + hub creation still happen (state is consistent)
     expect(loadSampleMock).toHaveBeenCalledOnce();
     expect(setSessionHub).toHaveBeenCalledOnce();
+  });
+
+  it('CS-P5: preserves timed sample bindings when replacing a deleted session project', () => {
+    const deletedIP = {
+      ...createTestIP({
+        id: 'ip-deleted',
+        hubId: 'hub-with-deleted-ip',
+        title: 'Deleted project',
+      }),
+      deletedAt: NOW,
+    };
+    const sessionHub: ProcessHub = {
+      id: 'hub-with-deleted-ip',
+      name: 'Existing training hub',
+      createdAt: NOW,
+      deletedAt: null,
+      improvementProject: deletedIP,
+    };
+    let capturedHub: ProcessHub | null = null;
+
+    landOnProcess(TIMED_SAMPLE_DATASET, {
+      loadSample: loadSampleMock,
+      sessionHub,
+      setSessionHub: hub => {
+        capturedHub = hub;
+      },
+      showFrame: usePanelsStore.getState().showFrame,
+      isEmbedMode: false,
+    });
+
+    expect(capturedHub).toBeDefined();
+    const hub = capturedHub!;
+    expect(hub.improvementProject?.id).not.toBe(deletedIP.id);
+    expect(hub.improvementProject?.stepTimings).toEqual(TIMED_SAMPLE_DATASET.config.stepTimings);
   });
 });
 
