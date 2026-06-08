@@ -23,16 +23,17 @@ function mapWithSteps(): ProcessMap {
 function stepCard(
   overrides: Partial<CanvasStepCardModel> & { stepId: string }
 ): CanvasStepCardModel {
+  const { stepId, ...rest } = overrides;
   return {
-    stepId: overrides.stepId,
-    stepName: overrides.stepId,
+    stepId,
+    stepName: stepId,
     assignedColumns: [],
     metricColumn: 'Measure',
     metricKind: 'numeric',
     values: [],
     distribution: [],
     capability: { state: 'no-specs', n: 0, canAddSpecs: true },
-    ...overrides,
+    ...rest,
   };
 }
 

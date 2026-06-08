@@ -51,7 +51,7 @@ export function buildEditorCapabilitySource({
 
   const member: ProcessStepCapabilityMember = {
     id: activeIP.id,
-    name: activeIP.title,
+    name: activeIP.metadata.title,
     metadata: {
       processHubId: hubId,
       nodeMappings,

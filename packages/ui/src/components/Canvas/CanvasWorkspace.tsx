@@ -503,7 +503,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     () =>
       buildEditorCapabilitySource({
         hubId,
-        hubName: activeIP?.title ?? 'Process',
+        hubName: activeIP?.metadata.title ?? 'Process',
         processMap: map,
         activeIP,
         rows: rawData,

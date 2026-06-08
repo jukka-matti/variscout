@@ -36,7 +36,6 @@ function makeActiveIP(overrides: Partial<ImprovementProject> = {}): ImprovementP
   return {
     id: 'ip-1',
     hubId: 'hub-1',
-    title: 'Line 4 overfill',
     status: 'active',
     createdAt: 1_717_800_000_000,
     updatedAt: 1_717_800_000_000,
@@ -49,7 +48,7 @@ function makeActiveIP(overrides: Partial<ImprovementProject> = {}): ImprovementP
     team: { lead: null, members: [], sponsor: null },
     charter: {},
     sections: {},
-    metadata: { members: [] },
+    metadata: { title: 'Line 4 overfill', members: [] },
     ...overrides,
   } as ImprovementProject;
 }
