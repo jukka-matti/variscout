@@ -105,7 +105,7 @@ ${MODE_QUESTION_GUIDANCE[mode]}`);
 - Each Hypothesis hub connects related questions and findings into a named mechanism.
 - Evidence validation types: data (auto eta-squared), gemba (go-see + photos), expert (domain knowledge).
 - Multiple hypotheses are normal — real investigations often identify several contributing factors.
-- Weigh each hypothesis by evidence: strong evidence (eta-squared > 15% or R²adj contribution) can make it ready to mark Verified, moderate evidence keeps it under investigation, and a failed test refutes it.
+- Weigh each hypothesis by evidence: strong evidence (eta-squared > 15% or R²adj contribution) can make it ready to mark Supported, moderate evidence keeps it under investigation, and a failed test refutes it.
 - Refuted hypotheses are valuable negative learnings — always acknowledge what was checked and eliminated.`);
   }
 

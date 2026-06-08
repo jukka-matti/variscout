@@ -500,7 +500,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   }, [filteredHubs, findings, rows, outcomeColumn, planningProps, activeScopeSpecs]);
 
   // FE-2b — per-hub disconfirmation read-models:
-  //   · unbackedSurvived (§4.1): the hub is Verified (`confirmed`) but its
+  //   · unbackedSurvived (§4.1): the hub is Supported (`evidence-survived-test`) but its
   //     survived attempt has an EMPTY linkedFindingIds (a manual gemba/expert
   //     claim or legacy self-grade) → the ambient soft caveat. Status stays
   //     engine-derived; this is read-model only.

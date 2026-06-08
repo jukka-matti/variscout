@@ -37,8 +37,8 @@ describe('HypothesisCard', () => {
       </svg>
     );
     expect(screen.getByText(/Nozzle runs hot on night shift/)).toBeInTheDocument();
-    // displayStatus 'evidence-survived-test' renders the user-facing label "Verified".
-    expect(screen.getAllByText(/verified/i).length).toBeGreaterThan(0);
+    // displayStatus 'evidence-survived-test' renders the user-facing label "Supported".
+    expect(screen.getAllByText(/supported/i).length).toBeGreaterThan(0);
   });
 
   it('shows supporting clue count from legacy linked findings', () => {
@@ -81,7 +81,7 @@ describe('HypothesisCard', () => {
 
     const tagRow = container.querySelector('foreignObject');
     const readinessText = Array.from(container.querySelectorAll('text')).find(
-      text => text.textContent === 'Verified' && text.getAttribute('y') !== '24'
+      text => text.textContent === 'Supported' && text.getAttribute('y') !== '24'
     );
     const clueText = screen.getByText(/3 supporting clues/);
 

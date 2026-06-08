@@ -159,10 +159,10 @@ describe('Investigation Wall keys', () => {
   const l2WallValues = {
     'wall.status.proposed': 'Suspected',
     'wall.status.evidenced': 'Suspected',
-    'wall.status.confirmed': 'Verified',
+    'wall.status.confirmed': 'Supported',
     'wall.status.refuted': 'Ruled out',
     'wall.status.needsDisconfirmation': 'Suspected',
-    'wall.status.suggestSupported': '2 evidence types + a survived test — mark Verified?',
+    'wall.status.suggestSupported': '2 evidence types + a survived test — mark Supported?',
     'wall.card.hypothesisLabel': 'Suspected cause',
     'wall.card.ariaLabel': 'Suspected cause {name}, {status}, {count} supporting clues',
     'wall.empty.ariaLabel': 'Suspected cause empty state',
@@ -172,7 +172,7 @@ describe('Investigation Wall keys', () => {
     'wall.canvas.ariaLabel': 'Suspected cause workspace',
     'wall.missing.tagline': "Evidence you haven't checked yet ({count})",
     'wall.cta.proposeHypothesis': 'Propose suspected cause from this finding',
-    'wall.caveat.unbackedSurvived': 'Verified — disconfirmation has no attached evidence',
+    'wall.caveat.unbackedSurvived': 'Supported — disconfirmation has no attached evidence',
   } as const satisfies Partial<MessageCatalog>;
 
   const wallKeys = [

@@ -84,7 +84,7 @@ describe('L-2 — display status presentation', () => {
       'Suspected causes stay suspected'
     );
     expect(screen.queryByText('Old first-rung copy')).not.toBeInTheDocument();
-    expect(screen.queryByText('Old verified-rung copy')).not.toBeInTheDocument();
+    expect(screen.queryByText('Old supported-rung copy')).not.toBeInTheDocument();
   });
 
   it('keeps the override select with all five stored statuses', () => {
@@ -155,7 +155,7 @@ describe('FSJ-8 — status proposal chips', () => {
     );
   });
 
-  it('does not propose verified from only one evidence type', () => {
+  it('does not propose supported from only one evidence type', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
@@ -181,7 +181,7 @@ describe('FSJ-8 — status proposal chips', () => {
     expect(screen.queryByTestId('status-proposal-chip')).not.toBeInTheDocument();
   });
 
-  it('proposes verified once a two-evidence hub has one survived break attempt', () => {
+  it('proposes supported once a two-evidence hub has one survived break attempt', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         {...baseProps}
@@ -207,7 +207,7 @@ describe('FSJ-8 — status proposal chips', () => {
     );
 
     expect(screen.getByTestId('status-proposal-chip')).toHaveTextContent(
-      '1 survived break attempt - mark Verified?'
+      '1 survived break attempt - mark Supported?'
     );
   });
 

@@ -27,7 +27,7 @@ const EVIDENCE_ANGLES: Array<{ key: EvidenceAngle; label: string }> = [
 
 const VERDICT_CLASS: Record<HypothesisDisplayStatus, string> = {
   suspected: 'bg-amber-50 text-amber-700 border-amber-200',
-  verified: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  supported: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   'ruled-out': 'bg-slate-100 text-slate-700 border-slate-200',
 };
 
@@ -67,7 +67,7 @@ export function CausesMatrix({
 
   const digest = rows.reduce(
     (acc, row) => {
-      if (row.displayStatus === 'verified') acc.verified += 1;
+      if (row.displayStatus === 'supported') acc.supported += 1;
       if (row.displayStatus === 'ruled-out') acc.ruledOut += 1;
       if (row.activity.inFlightPlans.length > 0 || row.activity.pendingAttempts.length > 0) {
         acc.inFlight += 1;
@@ -75,10 +75,10 @@ export function CausesMatrix({
       if (row.activity.stalled.isStalled) acc.stalled += 1;
       return acc;
     },
-    { verified: 0, inFlight: 0, stalled: 0, ruledOut: 0 }
+    { supported: 0, inFlight: 0, stalled: 0, ruledOut: 0 }
   );
 
-  const digestText = `${rows.length} causes · ${digest.verified} verified · ${digest.inFlight} in flight · ${digest.stalled} stalled · ${digest.ruledOut} ruled out`;
+  const digestText = `${rows.length} causes · ${digest.supported} supported · ${digest.inFlight} in flight · ${digest.stalled} stalled · ${digest.ruledOut} ruled out`;
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface">

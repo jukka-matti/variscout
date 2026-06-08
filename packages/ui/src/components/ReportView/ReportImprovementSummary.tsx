@@ -46,7 +46,7 @@ export interface ReportImprovementSummaryProps {
 
 const STATUS_BADGE_COLORS: Record<HypothesisDisplayStatus, string> = {
   suspected: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-  verified: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  supported: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
   'ruled-out': 'bg-slate-100 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300',
 };
 

@@ -23,7 +23,7 @@ const triangulationHint: SurveyHint = {
   kind: 'triangulation-readiness',
   surface: 'wall',
   targetEntityId: 'h2',
-  message: '1 step away — running a disconfirmation test would let you mark this Verified',
+  message: '1 step away — running a disconfirmation test would let you mark this Supported',
   severity: 'info',
   action: { label: 'Try disconfirmation' },
 };

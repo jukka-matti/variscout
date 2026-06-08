@@ -196,7 +196,7 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     fireEvent.click(screen.getByRole('button', { name: /^causes$/i }));
 
     expect(useCanvasViewportStore.getState().viewMode).toBe('causes');
-    expect(screen.getByText('1 causes · 0 verified · 0 in flight · 0 stalled · 0 ruled out'));
+    expect(screen.getByText('1 causes · 0 supported · 0 in flight · 0 stalled · 0 ruled out'));
     expect(screen.getByRole('row', { name: /Night shift staffing/i })).toBeTruthy();
 
     fireEvent.click(screen.getByRole('row', { name: /Night shift staffing/i }));

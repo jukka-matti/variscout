@@ -27,7 +27,7 @@ export interface ConclusionCardProps {
 
 const HUB_STATUS_DOT: Record<ReturnType<typeof getHypothesisDisplayStatus>, string> = {
   suspected: 'bg-amber-500',
-  verified: 'bg-green-500',
+  supported: 'bg-green-500',
   'ruled-out': 'bg-content-muted/40',
 };
 

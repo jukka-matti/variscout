@@ -603,7 +603,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'A suspected cause that connects several findings into one coherent story about which factor contributes to the variation. Checked through data, Gemba observation, or expert input.',
     description:
-      'Hypotheses are the synthesis output of Analyze in VariScout. Each hypothesis names a suspected cause and gathers the findings that support or refute it. Evidence can be automatic (η² thresholds: ≥15% strong, <5% weak, 5-15% moderate), via Gemba inspection, or by expert assessment. The interface presents those stored states as Suspected, Verified, or Ruled out.',
+      'Hypotheses are the synthesis output of Analyze in VariScout. Each hypothesis names a suspected cause and gathers the findings that support or refute it. Evidence can be automatic (η² thresholds: ≥15% strong, <5% weak, 5-15% moderate), via Gemba inspection, or by expert assessment. The interface presents those stored states as Suspected, Supported, or Ruled out.',
     category: 'analyze',
     learnMorePath: '/learn/analyze',
     relatedTerms: ['finding', 'etaSquared'],

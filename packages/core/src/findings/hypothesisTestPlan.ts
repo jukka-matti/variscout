@@ -21,11 +21,11 @@
  *   not significant                                      → 'inconclusive'
  *
  * The honesty rule (mirrors the IM-3 auto-link fix): a NON-significant result is
- * 'inconclusive' (routes to NOT-tested), NEVER 'supports' — so the Verified gate
+ * 'inconclusive' (routes to NOT-tested), NEVER 'supports' — so the Supported gate
  * stays honest. This module invents no new evidence model; it only computes the
  * `validationStatus` the Wall already reads (`mechanismBranch.ts:148-153`).
  *
- * The Verified/`needs-disconfirmation` gate enforces this end-to-end:
+ * The Supported/`needs-disconfirmation` gate enforces this end-to-end:
  * `evidenceTypesForHypothesis` (hypothesisEvidence.ts) EXCLUDES `'inconclusive'`
  * findings from the distinct-evidence-type set, so a null evaluate genuinely does
  * not count as evidence — a single inconclusive `data` finding plus one `gemba`
