@@ -8,6 +8,7 @@ date: 2026-06-08
 layer: spec
 topic: [analyze, wall, scope-lineage, coscout, collaboration, miro, problem-statement, wedge-v1]
 related:
+  - docs/superpowers/plans/2026-06-08-analyze-wall-redesign-master-plan.md
   - docs/superpowers/specs/2026-06-07-analyze-wall-legibility-design.md
   - docs/07-decisions/adr-085-drop-question-problem-statement-scope.md
   - docs/07-decisions/adr-086-unified-investigation-canvas.md
