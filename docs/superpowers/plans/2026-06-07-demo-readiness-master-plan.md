@@ -43,6 +43,8 @@ related:
 
 **Ordering rationale:** L-1 first (unblocks L-3/L-5 and is the smallest; proves the Codex-app loop on a well-bounded contract). L-2 and L-4 are independent of everything — they can interleave if a second lane opens, but default is one phase in flight. Phase 2P starts when the L-series demo gate passes (or earlier if the owner wants parallel lanes — the streams share no files except i18n catalogs, which merge cleanly).
 
+**STATUS 2026-06-08:** Phase 0 (b0, PR #327) + the entire **L-series delivered** — L-1 #328, L-2 #329, L-4 #330, L-3 #331, L-5 #332. **Owner call: move straight to Phase 2P; defer the full demo-readiness gate walk to the END of the master plan** (one comprehensive first-session→matrix walk after CS-P5, instead of per-phase walks now). Per-phase browser gates still ran inside each PR. Batched post-merge review of b0+L-series + the deferred walk = end-of-plan, alongside the FSJ retro (T1).
+
 ## Codex-app dispatch protocol (per phase)
 
 Two variants; the sub-plan is the contract either way. **Owner call 2026-06-07: the Codex app owns the full loop — implement, verify (incl. browser where the gate is user-facing), and MERGE.** Claude's review moves post-merge (async, non-blocking; drive-by fixes to main).
