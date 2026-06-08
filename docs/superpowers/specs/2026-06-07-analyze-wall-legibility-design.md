@@ -55,10 +55,12 @@ The internal 5 rungs stop being _taught_ and become _facts_: "has evidence" is t
 
 ## §3 Status semantics (what each displayed state claims)
 
+> **Vocabulary amended 2026-06-08 (owner, PR #333):** the confirmed-state displayed label is **"Supported"**, not "Verified" — the established Investigation-Wall brand term. The displayed ladder is **Suspected / Supported / Ruled out**. "Verified" elsewhere in this spec (D1/§2/§6/§8/§10) reads as "Supported". The rename is a single shared display helper (`packages/core/src/findings/hypothesisStatusDisplay.ts`); the stored enum is still untouched (D1 holds).
+
 | Displayed     | Stored values                                    | Claim                                                              |
 | ------------- | ------------------------------------------------ | ------------------------------------------------------------------ |
 | **Suspected** | `proposed`, `evidenced`, `needs-disconfirmation` | Named; possibly evidenced; **not yet survived a break attempt**    |
-| **Verified**  | `evidence-survived-test`                         | ≥2 evidence angles + survived a deliberate disconfirmation attempt |
+| **Supported** | `evidence-survived-test`                         | ≥2 evidence angles + survived a deliberate disconfirmation attempt |
 | **Ruled out** | `refuted`                                        | Counter-evidence overturned it — a first-class good outcome        |
 
 LSS alignment: this is the practitioner-standard _suspected → verified / eliminated_ model (cause-verification matrix), with VariScout's two additions on top: **triangulated angles** (qualitative evidence is first-class grounds, not garnish) and **severity** (Verified requires surviving an attack, not accumulating support).
