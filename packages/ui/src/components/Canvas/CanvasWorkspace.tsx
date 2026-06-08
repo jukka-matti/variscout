@@ -1,6 +1,7 @@
 import React from 'react';
 import { DndContext } from '@dnd-kit/core';
 import {
+  buildEditorCapabilitySource,
   useCanvasStepCards,
   useCanvasAnalyzeOverlays,
   useProductionLineGlanceData,
@@ -33,7 +34,6 @@ import {
   type TimeDecompositionBinding,
   type ProcessContext,
   type ProcessHubId,
-  type ProcessStepCapabilityMember,
   type SpecLimits,
   type StepCapabilityStamp,
   type StepTimingBinding,
@@ -499,23 +499,22 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     />
   );
 
-  const previewSource = React.useMemo(() => {
-    const previewHub = {
-      id: 'frame-preview',
-      canonicalProcessMap: map,
-      contextColumns: [],
-    };
-    return {
-      hub: previewHub,
-      members: [] as ProcessStepCapabilityMember[],
-      rowsByAnalyze: new Map<string, ReadonlyArray<DataRow>>(),
-    };
-  }, [map]);
+  const capabilitySource = React.useMemo(
+    () =>
+      buildEditorCapabilitySource({
+        hubId,
+        hubName: activeIP?.title ?? 'Process',
+        processMap: map,
+        activeIP,
+        rows: rawData,
+      }),
+    [activeIP, hubId, map, rawData]
+  );
 
   const data = useProductionLineGlanceData({
-    hub: previewSource.hub,
-    members: previewSource.members,
-    rowsByAnalyze: previewSource.rowsByAnalyze,
+    hub: capabilitySource.hub,
+    members: capabilitySource.members,
+    rowsByAnalyze: capabilitySource.rowsByAnalyze,
     contextFilter: filter.value,
   });
 

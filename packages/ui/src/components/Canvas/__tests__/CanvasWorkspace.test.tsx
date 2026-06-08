@@ -9,7 +9,11 @@ import type {
   CanvasOverlayId,
   CanvasStepCardModel,
 } from '@variscout/hooks';
-import { useCanvasAnalyzeOverlays, useCanvasStepCards } from '@variscout/hooks';
+import {
+  useCanvasAnalyzeOverlays,
+  useCanvasStepCards,
+  useProductionLineGlanceData,
+} from '@variscout/hooks';
 import {
   getAnalysisScopeInitialState,
   getCanvasViewportInitialState,
@@ -258,320 +262,332 @@ const mockInvestigationOverlays: CanvasAnalyzeOverlayModel = {
   unresolved: { findings: [], hypotheses: [], causalLinks: [] },
 };
 
-vi.mock('@variscout/hooks', () => ({
-  CANVAS_LENS_REGISTRY: {
-    default: {
-      id: 'default',
-      label: 'Default',
-      enabled: true,
-      description: 'Step metrics, specs, and current card state.',
+vi.mock('@variscout/hooks', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/hooks')>();
+  return {
+    buildEditorCapabilitySource: actual.buildEditorCapabilitySource,
+    CANVAS_LENS_REGISTRY: {
+      default: {
+        id: 'default',
+        label: 'Default',
+        enabled: true,
+        description: 'Step metrics, specs, and current card state.',
+      },
+      capability: {
+        id: 'capability',
+        label: 'Capability',
+        enabled: true,
+        description: 'Capability, Cpk trust, and step health.',
+      },
+      defect: {
+        id: 'defect',
+        label: 'Defect',
+        enabled: true,
+        description: 'Defect counts projected onto process steps.',
+      },
+      'process-flow': {
+        id: 'process-flow',
+        label: 'Process flow',
+        enabled: true,
+        description: 'Plain process structure without per-card analytics.',
+      },
+      performance: {
+        id: 'performance',
+        label: 'Performance',
+        enabled: false,
+        description: 'Future within-step channel lens.',
+      },
     },
-    capability: {
-      id: 'capability',
-      label: 'Capability',
-      enabled: true,
-      description: 'Capability, Cpk trust, and step health.',
+    CANVAS_OVERLAY_REGISTRY: {
+      investigations: {
+        id: 'investigations',
+        label: 'Investigations',
+        enabled: true,
+        description: 'Question and investigation activity projected onto process steps.',
+      },
+      hypotheses: {
+        id: 'hypotheses',
+        label: 'Hypotheses',
+        enabled: true,
+        description: 'Draft causal links rendered as faint step-to-step arrows.',
+      },
+      'hypothesis-hubs': {
+        id: 'hypothesis-hubs',
+        label: 'Hypothesis hubs',
+        enabled: true,
+        description: 'Promoted suspected causes rendered as step markers.',
+      },
+      findings: {
+        id: 'findings',
+        label: 'Findings',
+        enabled: true,
+        description: 'Recent finding pins anchored to process steps.',
+      },
+      wall: {
+        id: 'wall',
+        label: 'Wall',
+        enabled: true,
+        description: 'Investigation Wall overlay.',
+      },
     },
-    defect: {
-      id: 'defect',
-      label: 'Defect',
-      enabled: true,
-      description: 'Defect counts projected onto process steps.',
-    },
-    'process-flow': {
-      id: 'process-flow',
-      label: 'Process flow',
-      enabled: true,
-      description: 'Plain process structure without per-card analytics.',
-    },
-    performance: {
-      id: 'performance',
-      label: 'Performance',
-      enabled: false,
-      description: 'Future within-step channel lens.',
-    },
-  },
-  CANVAS_OVERLAY_REGISTRY: {
-    investigations: {
-      id: 'investigations',
-      label: 'Investigations',
-      enabled: true,
-      description: 'Question and investigation activity projected onto process steps.',
-    },
-    hypotheses: {
-      id: 'hypotheses',
-      label: 'Hypotheses',
-      enabled: true,
-      description: 'Draft causal links rendered as faint step-to-step arrows.',
-    },
-    'hypothesis-hubs': {
-      id: 'hypothesis-hubs',
-      label: 'Hypothesis hubs',
-      enabled: true,
-      description: 'Promoted suspected causes rendered as step markers.',
-    },
-    findings: {
-      id: 'findings',
-      label: 'Findings',
-      enabled: true,
-      description: 'Recent finding pins anchored to process steps.',
-    },
-    wall: {
-      id: 'wall',
-      label: 'Wall',
-      enabled: true,
-      description: 'Investigation Wall overlay.',
-    },
-  },
-  coerceCanvasOverlays: vi.fn((values: unknown[]) =>
-    values.filter(value =>
-      ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings', 'wall'].includes(
-        String(value)
+    coerceCanvasOverlays: vi.fn((values: unknown[]) =>
+      values.filter(value =>
+        ['investigations', 'hypotheses', 'hypothesis-hubs', 'findings', 'wall'].includes(
+          String(value)
+        )
       )
-    )
-  ),
-  enabledCanvasOverlays: vi.fn(() => [
-    {
-      id: 'investigations',
-      label: 'Investigations',
-      enabled: true,
-      description: 'Question and investigation activity projected onto process steps.',
-    },
-    {
-      id: 'hypotheses',
-      label: 'Hypotheses',
-      enabled: true,
-      description: 'Draft causal links rendered as faint step-to-step arrows.',
-    },
-    {
-      id: 'hypothesis-hubs',
-      label: 'Hypothesis hubs',
-      enabled: true,
-      description: 'Promoted suspected causes rendered as step markers.',
-    },
-    {
-      id: 'findings',
-      label: 'Findings',
-      enabled: true,
-      description: 'Recent finding pins anchored to process steps.',
-    },
-    {
-      id: 'wall',
-      label: 'Wall',
-      enabled: true,
-      description: 'Investigation Wall overlay.',
-    },
-  ]),
-  CANVAS_EMPTY_DROP_ID: 'canvas:empty',
-  coerceCanvasLens: vi.fn((value: unknown) =>
-    value === 'capability' || value === 'defect' || value === 'process-flow' ? value : 'default'
-  ),
-  isCanvasLensValidAtLevel: vi.fn(
-    (lens: string, level: string) =>
-      !(lens === 'process-flow' && (level === 'l1' || level === 'l3'))
-  ),
-  suggestCanvasLevelForLens: vi.fn((lens: string, level: string) =>
-    lens === 'process-flow' && (level === 'l1' || level === 'l3') ? 'l2' : level
-  ),
-  encodeChipDragId: (chipId: string) => `chip:${chipId}`,
-  encodeStepDropId: (stepId: string) => `step:${stepId}`,
-  useChipDragAndDrop: ({
-    onPlace,
-    onCreateStep,
-  }: {
-    onPlace: (chipId: string, stepId: string) => void;
-    onCreateStep: (chipId: string) => void;
-  }) => ({
-    handleDragEnd: (event: { active: { id: string }; over: { id: string } | null }) => {
-      const chipId = String(event.active.id).replace(/^chip:/, '');
-      const overId = event.over?.id;
-      if (!overId) return;
-      if (overId === 'canvas:empty') {
-        onCreateStep(chipId);
-        return;
-      }
-      onPlace(chipId, String(overId).replace(/^step:/, ''));
-    },
-  }),
-  useHypothesisDrawTool: vi.fn(({ active }: { active: boolean }) => {
-    const [state, setState] = React.useState<{ phase: string; [key: string]: unknown }>({
-      phase: 'idle',
-    });
-    const reset = React.useCallback(() => setState({ phase: 'idle' }), []);
-    return {
-      state,
-      onPointerDown: vi.fn((endpoint: unknown, at: unknown) => {
-        if (!active) return;
-        setState({ phase: 'drawing', source: endpoint, anchorAt: at, cursorAt: at, hover: null });
-      }),
-      onPointerMove: vi.fn((at: unknown, hover: unknown) => {
-        if (!active) return;
-        setState(current =>
-          current.phase === 'drawing' ? { ...current, cursorAt: at, hover } : current
-        );
-      }),
-      onPointerUp: vi.fn((endpoint: unknown, at: unknown) => {
-        if (!active) return;
-        setState(current =>
-          current.phase === 'drawing' && endpoint
-            ? {
-                phase: 'awaitingForm',
-                source: current.source,
-                target: endpoint,
-                releaseAt: at,
-              }
-            : current
-        );
-      }),
-      onPointerCancel: reset,
-      cancel: reset,
-      reset,
-    };
-  }),
-  resolveEndpointToFactor: vi.fn(
-    (
-      endpoint: { kind: 'step'; id: string } | { kind: 'column'; name: string },
-      stepMetricColumns: Record<string, string | undefined>
-    ) => (endpoint.kind === 'column' ? endpoint.name : stepMetricColumns[endpoint.id])
-  ),
-  useCanvasKeyboard: ({ onUndo, onRedo }: { onUndo: () => void; onRedo: () => void }) => {
-    React.useEffect(() => {
-      const handleKeyDown = (event: KeyboardEvent) => {
-        const key = event.key.toLowerCase();
-        if ((event.metaKey || event.ctrlKey) && key === 'z') {
-          if (event.shiftKey) onRedo();
-          else onUndo();
-        } else if (event.ctrlKey && key === 'y') {
-          onRedo();
-        }
-      };
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [onUndo, onRedo]);
-  },
-  useCanvasViewportShortcuts: vi.fn(),
-  useTranslation: () => ({
-    t: (key: string) => key,
-    tf: (key: string, values?: Record<string, unknown>) =>
-      values ? `${key} ${Object.values(values).join(' ')}` : key,
-  }),
-  useProductionLineGlanceFilter: vi.fn(() => ({
-    value: {},
-    onChange: vi.fn(),
-  })),
-  useProductionLineGlanceOpsToggle: vi.fn(() => ({
-    mode: opsToggleStateRef.current.mode,
-    setMode: opsToggleStateRef.current.setMode,
-    toggle: opsToggleStateRef.current.toggle,
-  })),
-  useProductionLineGlanceData: vi.fn(() => ({
-    cpkTrend: { data: [], stats: null, specs: {} },
-    cpkGapTrend: { series: [], stats: null },
-    capabilityNodes: [],
-    errorSteps: [],
-    availableContext: { hubColumns: [], tributaryGroups: [] },
-    contextValueOptions: {},
-  })),
-  useCanvasStepCards: vi.fn(() => ({ cards: mockStepCards })),
-  useCanvasAnalyzeOverlays: vi.fn(() => ({ overlays: mockInvestigationOverlays })),
-  useHasAnalyzeContent: vi.fn(({ findingsCount }: { findingsCount: number }) => findingsCount > 0),
-  useSessionCanvasFilters: vi.fn(() => canvasFiltersStateRef.current),
-  useCanvasViewportInput: vi.fn(),
-  useCanvasHypothesisDrawing: vi.fn(
-    ({
-      activeCanvasTool,
-      disabled,
-      drawTool,
-      onCanvasToolChange,
-      stepMetricColumns,
+    ),
+    enabledCanvasOverlays: vi.fn(() => [
+      {
+        id: 'investigations',
+        label: 'Investigations',
+        enabled: true,
+        description: 'Question and investigation activity projected onto process steps.',
+      },
+      {
+        id: 'hypotheses',
+        label: 'Hypotheses',
+        enabled: true,
+        description: 'Draft causal links rendered as faint step-to-step arrows.',
+      },
+      {
+        id: 'hypothesis-hubs',
+        label: 'Hypothesis hubs',
+        enabled: true,
+        description: 'Promoted suspected causes rendered as step markers.',
+      },
+      {
+        id: 'findings',
+        label: 'Findings',
+        enabled: true,
+        description: 'Recent finding pins anchored to process steps.',
+      },
+      {
+        id: 'wall',
+        label: 'Wall',
+        enabled: true,
+        description: 'Investigation Wall overlay.',
+      },
+    ]),
+    CANVAS_EMPTY_DROP_ID: 'canvas:empty',
+    coerceCanvasLens: vi.fn((value: unknown) =>
+      value === 'capability' || value === 'defect' || value === 'process-flow' ? value : 'default'
+    ),
+    isCanvasLensValidAtLevel: vi.fn(
+      (lens: string, level: string) =>
+        !(lens === 'process-flow' && (level === 'l1' || level === 'l3'))
+    ),
+    suggestCanvasLevelForLens: vi.fn((lens: string, level: string) =>
+      lens === 'process-flow' && (level === 'l1' || level === 'l3') ? 'l2' : level
+    ),
+    encodeChipDragId: (chipId: string) => `chip:${chipId}`,
+    encodeStepDropId: (stepId: string) => `step:${stepId}`,
+    useChipDragAndDrop: ({
+      onPlace,
+      onCreateStep,
     }: {
-      activeCanvasTool: string;
-      disabled?: boolean;
-      drawTool: {
-        state: { phase: string; [k: string]: unknown };
-        onPointerDown: (endpoint: unknown, at: unknown) => void;
-        onPointerMove: (at: unknown, hover: unknown) => void;
-        onPointerUp: (endpoint: unknown, at: unknown) => void;
-        cancel: () => void;
-      };
-      cardSurfaceRef: { current: HTMLElement | null };
-      onCanvasToolChange?: (next: string) => void;
-      stepMetricColumns: Record<string, string | undefined>;
+      onPlace: (chipId: string, stepId: string) => void;
+      onCreateStep: (chipId: string) => void;
     }) => ({
-      handlers: {
-        onPointerDown: (event: React.PointerEvent<HTMLElement>) => {
-          if (activeCanvasTool !== 'draw-hypothesis' || disabled) return;
-          const el =
-            event.target instanceof Element ? event.target.closest('[data-arrow-endpoint]') : null;
-          if (!el) return;
-          const attr = el.getAttribute('data-arrow-endpoint') ?? '';
-          const sep = attr.indexOf(':');
-          if (sep < 0) return;
-          const kind = attr.slice(0, sep);
-          const id = attr.slice(sep + 1);
-          const endpoint =
-            kind === 'step' ? { kind: 'step', id } : { kind: 'column', name: id, hostStepId: id };
-          event.preventDefault();
-          drawTool.onPointerDown(endpoint, { x: event.clientX, y: event.clientY });
-        },
-        onPointerMove: (event: React.PointerEvent<HTMLElement>) => {
-          if (drawTool.state.phase !== 'drawing') return;
-          const el =
-            event.target instanceof Element ? event.target.closest('[data-arrow-endpoint]') : null;
-          let hover = null;
-          if (el) {
+      handleDragEnd: (event: { active: { id: string }; over: { id: string } | null }) => {
+        const chipId = String(event.active.id).replace(/^chip:/, '');
+        const overId = event.over?.id;
+        if (!overId) return;
+        if (overId === 'canvas:empty') {
+          onCreateStep(chipId);
+          return;
+        }
+        onPlace(chipId, String(overId).replace(/^step:/, ''));
+      },
+    }),
+    useHypothesisDrawTool: vi.fn(({ active }: { active: boolean }) => {
+      const [state, setState] = React.useState<{ phase: string; [key: string]: unknown }>({
+        phase: 'idle',
+      });
+      const reset = React.useCallback(() => setState({ phase: 'idle' }), []);
+      return {
+        state,
+        onPointerDown: vi.fn((endpoint: unknown, at: unknown) => {
+          if (!active) return;
+          setState({ phase: 'drawing', source: endpoint, anchorAt: at, cursorAt: at, hover: null });
+        }),
+        onPointerMove: vi.fn((at: unknown, hover: unknown) => {
+          if (!active) return;
+          setState(current =>
+            current.phase === 'drawing' ? { ...current, cursorAt: at, hover } : current
+          );
+        }),
+        onPointerUp: vi.fn((endpoint: unknown, at: unknown) => {
+          if (!active) return;
+          setState(current =>
+            current.phase === 'drawing' && endpoint
+              ? {
+                  phase: 'awaitingForm',
+                  source: current.source,
+                  target: endpoint,
+                  releaseAt: at,
+                }
+              : current
+          );
+        }),
+        onPointerCancel: reset,
+        cancel: reset,
+        reset,
+      };
+    }),
+    resolveEndpointToFactor: vi.fn(
+      (
+        endpoint: { kind: 'step'; id: string } | { kind: 'column'; name: string },
+        stepMetricColumns: Record<string, string | undefined>
+      ) => (endpoint.kind === 'column' ? endpoint.name : stepMetricColumns[endpoint.id])
+    ),
+    useCanvasKeyboard: ({ onUndo, onRedo }: { onUndo: () => void; onRedo: () => void }) => {
+      React.useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+          const key = event.key.toLowerCase();
+          if ((event.metaKey || event.ctrlKey) && key === 'z') {
+            if (event.shiftKey) onRedo();
+            else onUndo();
+          } else if (event.ctrlKey && key === 'y') {
+            onRedo();
+          }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [onUndo, onRedo]);
+    },
+    useCanvasViewportShortcuts: vi.fn(),
+    useTranslation: () => ({
+      t: (key: string) => key,
+      tf: (key: string, values?: Record<string, unknown>) =>
+        values ? `${key} ${Object.values(values).join(' ')}` : key,
+    }),
+    useProductionLineGlanceFilter: vi.fn(() => ({
+      value: {},
+      onChange: vi.fn(),
+    })),
+    useProductionLineGlanceOpsToggle: vi.fn(() => ({
+      mode: opsToggleStateRef.current.mode,
+      setMode: opsToggleStateRef.current.setMode,
+      toggle: opsToggleStateRef.current.toggle,
+    })),
+    useProductionLineGlanceData: vi.fn(() => ({
+      cpkTrend: { data: [], stats: null, specs: {} },
+      cpkGapTrend: { series: [], stats: null },
+      capabilityNodes: [],
+      errorSteps: [],
+      availableContext: { hubColumns: [], tributaryGroups: [] },
+      contextValueOptions: {},
+    })),
+    useCanvasStepCards: vi.fn(() => ({ cards: mockStepCards })),
+    useCanvasAnalyzeOverlays: vi.fn(() => ({ overlays: mockInvestigationOverlays })),
+    useHasAnalyzeContent: vi.fn(
+      ({ findingsCount }: { findingsCount: number }) => findingsCount > 0
+    ),
+    useSessionCanvasFilters: vi.fn(() => canvasFiltersStateRef.current),
+    useCanvasViewportInput: vi.fn(),
+    useCanvasHypothesisDrawing: vi.fn(
+      ({
+        activeCanvasTool,
+        disabled,
+        drawTool,
+        onCanvasToolChange,
+        stepMetricColumns,
+      }: {
+        activeCanvasTool: string;
+        disabled?: boolean;
+        drawTool: {
+          state: { phase: string; [k: string]: unknown };
+          onPointerDown: (endpoint: unknown, at: unknown) => void;
+          onPointerMove: (at: unknown, hover: unknown) => void;
+          onPointerUp: (endpoint: unknown, at: unknown) => void;
+          cancel: () => void;
+        };
+        cardSurfaceRef: { current: HTMLElement | null };
+        onCanvasToolChange?: (next: string) => void;
+        stepMetricColumns: Record<string, string | undefined>;
+      }) => ({
+        handlers: {
+          onPointerDown: (event: React.PointerEvent<HTMLElement>) => {
+            if (activeCanvasTool !== 'draw-hypothesis' || disabled) return;
+            const el =
+              event.target instanceof Element
+                ? event.target.closest('[data-arrow-endpoint]')
+                : null;
+            if (!el) return;
             const attr = el.getAttribute('data-arrow-endpoint') ?? '';
             const sep = attr.indexOf(':');
-            if (sep >= 0) {
-              const kind = attr.slice(0, sep);
-              const id = attr.slice(sep + 1);
-              hover =
-                kind === 'step'
-                  ? { kind: 'step', id }
-                  : { kind: 'column', name: id, hostStepId: id };
+            if (sep < 0) return;
+            const kind = attr.slice(0, sep);
+            const id = attr.slice(sep + 1);
+            const endpoint =
+              kind === 'step' ? { kind: 'step', id } : { kind: 'column', name: id, hostStepId: id };
+            event.preventDefault();
+            drawTool.onPointerDown(endpoint, { x: event.clientX, y: event.clientY });
+          },
+          onPointerMove: (event: React.PointerEvent<HTMLElement>) => {
+            if (drawTool.state.phase !== 'drawing') return;
+            const el =
+              event.target instanceof Element
+                ? event.target.closest('[data-arrow-endpoint]')
+                : null;
+            let hover = null;
+            if (el) {
+              const attr = el.getAttribute('data-arrow-endpoint') ?? '';
+              const sep = attr.indexOf(':');
+              if (sep >= 0) {
+                const kind = attr.slice(0, sep);
+                const id = attr.slice(sep + 1);
+                hover =
+                  kind === 'step'
+                    ? { kind: 'step', id }
+                    : { kind: 'column', name: id, hostStepId: id };
+              }
             }
-          }
-          drawTool.onPointerMove({ x: event.clientX, y: event.clientY }, hover);
-        },
-        onPointerUp: (event: React.PointerEvent<HTMLElement>) => {
-          if (drawTool.state.phase !== 'drawing') return;
-          const el =
-            event.target instanceof Element ? event.target.closest('[data-arrow-endpoint]') : null;
-          let endpoint = null;
-          if (el) {
-            const attr = el.getAttribute('data-arrow-endpoint') ?? '';
-            const sep = attr.indexOf(':');
-            if (sep >= 0) {
-              const kind = attr.slice(0, sep);
-              const id = attr.slice(sep + 1);
-              endpoint =
-                kind === 'step'
-                  ? { kind: 'step', id }
-                  : { kind: 'column', name: id, hostStepId: id };
+            drawTool.onPointerMove({ x: event.clientX, y: event.clientY }, hover);
+          },
+          onPointerUp: (event: React.PointerEvent<HTMLElement>) => {
+            if (drawTool.state.phase !== 'drawing') return;
+            const el =
+              event.target instanceof Element
+                ? event.target.closest('[data-arrow-endpoint]')
+                : null;
+            let endpoint = null;
+            if (el) {
+              const attr = el.getAttribute('data-arrow-endpoint') ?? '';
+              const sep = attr.indexOf(':');
+              if (sep >= 0) {
+                const kind = attr.slice(0, sep);
+                const id = attr.slice(sep + 1);
+                endpoint =
+                  kind === 'step'
+                    ? { kind: 'step', id }
+                    : { kind: 'column', name: id, hostStepId: id };
+              }
             }
-          }
-          drawTool.onPointerUp(endpoint, { x: event.clientX, y: event.clientY });
+            drawTool.onPointerUp(endpoint, { x: event.clientX, y: event.clientY });
+          },
+          onKeyDown: (event: React.KeyboardEvent<HTMLElement>) => {
+            if (activeCanvasTool !== 'draw-hypothesis' || disabled) return;
+            if (event.key === 'Escape') {
+              drawTool.cancel();
+              onCanvasToolChange?.('select');
+            }
+          },
         },
-        onKeyDown: (event: React.KeyboardEvent<HTMLElement>) => {
-          if (activeCanvasTool !== 'draw-hypothesis' || disabled) return;
-          if (event.key === 'Escape') {
-            drawTool.cancel();
-            onCanvasToolChange?.('select');
-          }
+        endpointLabel: (endpoint: { kind: string; id?: string; name?: string }) => {
+          if (endpoint.kind === 'column') return endpoint.name ?? '';
+          return (endpoint.id ? stepMetricColumns[endpoint.id] : undefined) ?? endpoint.id ?? '';
         },
-      },
-      endpointLabel: (endpoint: { kind: string; id?: string; name?: string }) => {
-        if (endpoint.kind === 'column') return endpoint.name ?? '';
-        return (endpoint.id ? stepMetricColumns[endpoint.id] : undefined) ?? endpoint.id ?? '';
-      },
-      parseEndpointElement: () => null,
-    })
-  ),
-  useCanvasHypothesisArrows: vi.fn(() => ({
-    arrowSegments: [],
-    registerCardElement: vi.fn(),
-  })),
-}));
+        parseEndpointElement: () => null,
+      })
+    ),
+    useCanvasHypothesisArrows: vi.fn(() => ({
+      arrowSegments: [],
+      registerCardElement: vi.fn(),
+    })),
+  };
+});
 
 import { CanvasWorkspace } from '../CanvasWorkspace';
 
@@ -2578,6 +2594,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
   function renderWithActiveIP(opts: {
     activeIP: React.ComponentProps<typeof CanvasWorkspace>['activeIP'];
     onPersistCanvasState?: PersistMock;
+    canvasViewportHubId?: ProcessHubId;
     rows?: ReadonlyArray<Record<string, unknown>>;
     /** IM-0b: steps are seeded via the canonical map, not IP.processSteps. */
     processMap?: ProcessMap;
@@ -2598,6 +2615,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
         setMeasureSpec={vi.fn()}
         setProcessContext={setProcessContext}
         onSeeData={vi.fn()}
+        canvasViewportHubId={opts.canvasViewportHubId}
         canEditCanvas={true}
         activeIP={opts.activeIP}
         onPersistCanvasState={onPersist}
@@ -2770,6 +2788,47 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     const derivedGroup = screen.getByTestId('palette-group-derived-timings');
     expect(derivedGroup).toBeInTheDocument();
     expect(derivedGroup).toHaveTextContent('Lead_time');
+  });
+
+  it('feeds active project rows and ctq node mappings into production-line glance data', async () => {
+    const { createTestIP } = await import('../../../test-utils/improvementProject');
+    const activeIP = createTestIP({
+      id: 'ip-capability',
+      title: 'Line 4 overfill',
+    });
+    const capabilityRows = [
+      { Mix_Temp: 64, Fill_Weight: 501 },
+      { Mix_Temp: 66, Fill_Weight: 505 },
+    ];
+    const capabilityMap: ProcessMap = {
+      version: 1,
+      nodes: [
+        { id: 'step-mix', name: 'Mix', order: 0, ctqColumn: 'Mix_Temp' },
+        { id: 'step-fill', name: 'Fill', order: 1, ctqColumn: 'Fill_Weight' },
+        { id: 'step-pack', name: 'Pack', order: 2 },
+      ],
+      tributaries: [],
+      createdAt: '2026-06-08T00:00:00.000Z',
+      updatedAt: '2026-06-08T00:00:00.000Z',
+    };
+
+    vi.mocked(useProductionLineGlanceData).mockClear();
+    renderWithActiveIP({
+      activeIP,
+      canvasViewportHubId: h('hub-capability'),
+      rows: capabilityRows,
+      processMap: capabilityMap,
+    });
+
+    const input = vi.mocked(useProductionLineGlanceData).mock.calls.at(-1)?.[0];
+    expect(input?.hub.id).toBe('hub-capability');
+    expect(input?.members).toHaveLength(1);
+    expect(input?.members[0]?.id).toBe('ip-capability');
+    expect(input?.members[0]?.metadata?.nodeMappings).toEqual([
+      { nodeId: 'step-mix', measurementColumn: 'Mix_Temp' },
+      { nodeId: 'step-fill', measurementColumn: 'Fill_Weight' },
+    ]);
+    expect(input?.rowsByAnalyze.get('ip-capability')).toBe(capabilityRows);
   });
 
   // G1 Task 3 — bin chip surfaced in palette from activeIP.binnedFactorBindings
