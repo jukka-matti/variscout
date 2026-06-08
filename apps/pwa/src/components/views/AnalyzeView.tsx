@@ -16,6 +16,7 @@ import {
   AnalyzeConclusion,
   FindingsLog,
   WallCanvas,
+  ObjectDetailDrawer,
   CausesMatrix,
   navigateToExploreForChip,
   CommandPalette,
@@ -33,7 +34,7 @@ import {
 import type { ActiveIPScopeLabels } from '@variscout/ui';
 import { useResizablePanel, useReturnNavigation } from '@variscout/hooks';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
-import type { CapturedModelSnapshot } from '@variscout/ui';
+import type { CapturedModelSnapshot, ObjectDetailSelection } from '@variscout/ui';
 import {
   type FindingStatus,
   type FindingProjection,
@@ -210,6 +211,21 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   const scopedFindings = useMemo(
     () => selectFindingsForScope(wallFindings, activeScope?.id),
     [wallFindings, activeScope?.id]
+  );
+  const [selectedWallObject, setSelectedWallObject] = useState<ObjectDetailSelection | null>(null);
+  const [objectDetailOpen, setObjectDetailOpen] = useState(false);
+  const handleSelectWallObject = useCallback(
+    (id: string) => {
+      const kind: ObjectDetailSelection['kind'] | null = hubs.some(hub => hub.id === id)
+        ? 'cause'
+        : scopedFindings.some(finding => finding.id === id)
+          ? 'finding'
+          : null;
+      if (!kind) return;
+      setSelectedWallObject({ kind, id });
+      setObjectDetailOpen(true);
+    },
+    [hubs, scopedFindings]
   );
   const hasAppliedFindingsArrivalRef = useRef(false);
   useEffect(() => {
@@ -798,7 +814,27 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 onSeedFromFactorIntel={factors.length > 0 ? handleSeedFromFactorIntel : undefined}
                 onProposeHypothesis={handleProposeHypothesis}
                 onExploreFactor={handleExploreFactor}
+                onSelectHub={handleSelectWallObject}
               />
+              {!wallIsMobile ? (
+                <ObjectDetailDrawer
+                  selectedObject={selectedWallObject}
+                  isOpen={objectDetailOpen}
+                  onOpenChange={setObjectDetailOpen}
+                  hubs={hubs}
+                  findings={scopedFindings}
+                  members={[]}
+                  currentUserId={null}
+                  onAddHubComment={enrichedPlanningProps?.onAddHubComment}
+                  onEditHubComment={enrichedPlanningProps?.onEditHubComment}
+                  onDeleteHubComment={enrichedPlanningProps?.onDeleteHubComment}
+                  onAddFindingComment={(id, text) =>
+                    useAnalyzeStore.getState().addFindingComment(id, text)
+                  }
+                  onEditFindingComment={useAnalyzeStore.getState().editFindingComment}
+                  onDeleteFindingComment={useAnalyzeStore.getState().deleteFindingComment}
+                />
+              ) : null}
               {/* Minimap + CommandPalette are desktop-only. WallCanvas
                 self-gates to MobileCardList below 768px. */}
               {!wallIsMobile && (
