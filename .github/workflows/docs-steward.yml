@@ -43,7 +43,18 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const body = fs.readFileSync('/tmp/steward-report.md', 'utf8');
+            // GitHub caps issue bodies at 65536 chars. The steward report has
+            // grown past that as the corpus expanded, so every scheduled run since
+            // ~2026-05-18 failed with a 422 "body is too long". Truncate to fit;
+            // the full report is reproducible locally via `pnpm docs:steward`.
+            const MAX = 65000;
+            let body = fs.readFileSync('/tmp/steward-report.md', 'utf8');
+            if (body.length > MAX) {
+              const notice =
+                '\n\n---\n> ⚠️ Report truncated to fit GitHub’s 65,536-char issue limit. ' +
+                'Run `pnpm docs:steward` locally for the full report.\n';
+              body = body.slice(0, MAX - notice.length) + notice;
+            }
             const today = new Date().toISOString().slice(0, 10);
             await github.rest.issues.create({
               owner: context.repo.owner,
