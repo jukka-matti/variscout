@@ -449,6 +449,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     lastHydratedMapSignature.current = mapHydrationSignature;
   }, [currentCanonicalMapSignature, hydrateCanvasDocument, map, mapHydrationSignature]);
 
+  const capabilityMap =
+    currentCanonicalMap.nodes.length > 0 && lastHydratedMapSignature.current !== null
+      ? currentCanonicalMap
+      : map;
+
   const gaps = React.useMemo(
     () =>
       detectGaps({
@@ -520,11 +525,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       buildEditorCapabilitySource({
         hubId,
         hubName: activeIP?.metadata.title ?? 'Process',
-        processMap: map,
+        processMap: capabilityMap,
         activeIP,
         rows: rawData,
       }),
-    [activeIP, hubId, map, rawData]
+    [activeIP, capabilityMap, hubId, rawData]
   );
 
   const data = useProductionLineGlanceData({
@@ -1541,7 +1546,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                 />
 
                 <ConnectedStepCapabilityView
-                  map={map}
+                  map={capabilityMap}
                   stepCards={stepCards}
                   capabilityNodes={data.capabilityNodes}
                   errorSteps={data.errorSteps}
