@@ -2788,6 +2788,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     const derivedGroup = screen.getByTestId('palette-group-derived-timings');
     expect(derivedGroup).toBeInTheDocument();
     expect(derivedGroup).toHaveTextContent('Lead_time');
+    expect(screen.getAllByRole('button', { name: 'Time' }).length).toBeGreaterThan(0);
   });
 
   it('feeds active project rows and ctq node mappings into production-line glance data', async () => {

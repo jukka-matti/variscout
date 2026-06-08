@@ -44,6 +44,7 @@ import type {
 } from '@variscout/hooks';
 import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
+import { createTestStepTiming } from '../../../test-utils/stepTiming';
 
 const wallIsMobileRef = vi.hoisted(() => ({ current: false }));
 const localMechanismPropsRef = vi.hoisted(() => ({
@@ -467,6 +468,26 @@ describe('Canvas', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Values' }));
 
     expect(screen.getByTestId('connected-step-box-step-1')).toHaveTextContent('zero baseline');
+  });
+
+  it('passes step timings and rows into the connected capability band for the Time axis', () => {
+    renderCanvas({
+      rows: [
+        {
+          Mix_start: '2026-06-08T08:00:00.000Z',
+          Mix_end: '2026-06-08T08:10:00.000Z',
+        },
+      ],
+      stepTimings: [
+        createTestStepTiming({
+          stepId: 'step-1',
+          startColumn: 'Mix_start',
+          endColumn: 'Mix_end',
+        }),
+      ],
+    });
+
+    expect(screen.getByRole('button', { name: 'Time' })).toBeInTheDocument();
   });
 
   it('renders the mobile Wall shortcut button only when on mobile, investigation content exists, and onOpenWall is wired', () => {

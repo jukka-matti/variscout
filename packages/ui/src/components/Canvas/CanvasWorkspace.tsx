@@ -1281,6 +1281,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       canvasFilterChips={canvasFilterChipsNode}
       stepCards={stepCards}
       valueRolesByStepId={valueRolesByStepId}
+      stepTimings={stepTimings}
       activeLens={activeCanvasLens}
       onLensChange={setActiveCanvasLens}
       activeOverlays={activeCanvasOverlays}
@@ -1533,6 +1534,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                   capabilityNodes={data.capabilityNodes}
                   errorSteps={data.errorSteps}
                   valueRolesByStepId={valueRolesByStepId}
+                  rows={rawData}
+                  stepTimings={stepTimings}
                 />
 
                 <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 md:grid-cols-[14rem_18rem_minmax(0,1fr)]">
