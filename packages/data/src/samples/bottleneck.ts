@@ -8,9 +8,12 @@ const generateBottleneckData = () => {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
   const shifts = ['Morning', 'Afternoon'];
   const data: Record<string, unknown>[] = [];
+  const baseTime = Date.UTC(2026, 5, 8, 6, 0, 0);
+  const stepSequence: Record<number, number> = {};
   let id = 1;
 
   for (let step = 1; step <= 5; step++) {
+    stepSequence[step] = 0;
     for (const shift of shifts) {
       for (const day of days) {
         for (let rep = 0; rep < 3; rep++) {
@@ -18,12 +21,19 @@ const generateBottleneckData = () => {
           const mean = step === 2 ? 40 : step === 3 ? 45 : step === 1 ? 32 : step === 4 ? 34 : 30;
           const std = step === 2 ? 10 : 2;
           const cycleTime = Math.round(normal(mean, std));
+          const clippedCycleTime = clamp(cycleTime, 15, 60);
+          const sequence = stepSequence[step]++;
+          const completionIntervalMinutes = step === 2 ? 20 : step === 3 ? 9 : 8;
+          const end = new Date(baseTime + sequence * completionIntervalMinutes * 60_000);
+          const start = new Date(end.getTime() - clippedCycleTime * 1_000);
           data.push({
             Observation: id++,
             Step: `Step ${step}`,
-            Cycle_Time_sec: clamp(cycleTime, 15, 60),
+            Cycle_Time_sec: clippedCycleTime,
             Shift: shift,
             Day: day,
+            [`Step_${step}_Start`]: start.toISOString(),
+            [`Step_${step}_End`]: end.toISOString(),
           });
         }
       }
@@ -50,7 +60,15 @@ export const bottleneck: SampleDataset = {
       nodes: [
         { id: 'step-1', name: 'Step 1', order: 0, ctqColumn: 'Cycle_Time_sec' },
         { id: 'step-2', name: 'Step 2', order: 1, ctqColumn: 'Cycle_Time_sec' },
-        { id: 'step-3', name: 'Step 3', order: 2, ctqColumn: 'Cycle_Time_sec' },
+        {
+          id: 'step-3',
+          name: 'Step 3',
+          order: 2,
+          ctqColumn: 'Cycle_Time_sec',
+          capabilityScope: {
+            specRules: [{ specs: { lsl: 42, usl: 46, cpkTarget: 1.33 } }],
+          },
+        },
         { id: 'step-4', name: 'Step 4', order: 3, ctqColumn: 'Cycle_Time_sec' },
         { id: 'step-5', name: 'Step 5', order: 4, ctqColumn: 'Cycle_Time_sec' },
       ],
@@ -66,5 +84,12 @@ export const bottleneck: SampleDataset = {
       createdAt: '2026-06-06T00:00:00.000Z',
       updatedAt: '2026-06-06T00:00:00.000Z',
     },
+    stepTimings: [
+      { kind: 'paired', stepId: 'step-1', startColumn: 'Step_1_Start', endColumn: 'Step_1_End' },
+      { kind: 'paired', stepId: 'step-2', startColumn: 'Step_2_Start', endColumn: 'Step_2_End' },
+      { kind: 'paired', stepId: 'step-3', startColumn: 'Step_3_Start', endColumn: 'Step_3_End' },
+      { kind: 'paired', stepId: 'step-4', startColumn: 'Step_4_Start', endColumn: 'Step_4_End' },
+      { kind: 'paired', stepId: 'step-5', startColumn: 'Step_5_Start', endColumn: 'Step_5_End' },
+    ],
   },
 };

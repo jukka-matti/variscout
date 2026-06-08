@@ -1,4 +1,4 @@
-import type { DataRow } from '@variscout/core';
+import type { DataRow, StepTimingBinding } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import type { ProcessHub } from '@variscout/core/processHub';
 import {
@@ -50,12 +50,22 @@ export interface LandHubOnProcessDeps {
 export function ensureAndActivateProject(
   hubBase: ProcessHub | null,
   title: string,
-  setSessionHub: (hub: ProcessHub) => void
+  setSessionHub: (hub: ProcessHub) => void,
+  initialStepTimings?: StepTimingBinding[]
 ): void {
   // 1. Ensure the hub carries a live ImprovementProject.
   //    Pure + referential no-op when one already exists (spec §3, reconstruct-
   //    not-create for .vrs imports whose hub already has an IP).
-  const hub = ensureSessionProject(hubBase, title);
+  let hub = ensureSessionProject(hubBase, title);
+  if (!hubBase?.improvementProject && initialStepTimings?.length) {
+    hub = {
+      ...hub,
+      improvementProject: {
+        ...hub.improvementProject,
+        stepTimings: initialStepTimings,
+      },
+    };
+  }
   setSessionHub(hub);
 
   // 2. Activate the IP in the annotation store using the hub's explicit scope
@@ -83,12 +93,13 @@ export function ensureAndActivateProject(
 export function landHubOnProcess(
   hubBase: ProcessHub | null,
   title: string,
-  deps: LandHubOnProcessDeps
+  deps: LandHubOnProcessDeps,
+  initialStepTimings?: StepTimingBinding[]
 ): void {
   const { setSessionHub, showFrame, isEmbedMode } = deps;
 
   // 1-2. Ensure the hub carries a live IP + activate it (shared core).
-  ensureAndActivateProject(hubBase, title, setSessionHub);
+  ensureAndActivateProject(hubBase, title, setSessionHub, initialStepTimings);
 
   // 3. Route to Process tab — exempt in embed mode (spec §1 applicability).
   if (!isEmbedMode) {
@@ -123,7 +134,7 @@ export function landOnProcess(sample: SampleDataset, deps: LandOnProcessDeps): v
 
   // 2. Ensure + activate + route (shared core). sessionHub null → new hub+IP
   //    created; non-null with live IP → same reference (spec §3).
-  landHubOnProcess(coreDeps.sessionHub, sample.name, coreDeps);
+  landHubOnProcess(coreDeps.sessionHub, sample.name, coreDeps, sample.config.stepTimings);
 }
 
 /**

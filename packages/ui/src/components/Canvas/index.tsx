@@ -32,6 +32,7 @@ import {
   type Finding,
   type Hypothesis,
   type SpecLimits,
+  type StepTimingBinding,
 } from '@variscout/core';
 import type { ActionItem, ColumnTypeMap } from '@variscout/core/findings';
 import type { CanvasLevel } from '@variscout/core/canvas';
@@ -212,6 +213,7 @@ export interface CanvasProps {
   onStepClick?: (nodeId: string) => void;
   stepCards?: CanvasStepCardModel[];
   valueRolesByStepId?: Readonly<Record<string, ConnectedStepValueRole>>;
+  stepTimings?: readonly StepTimingBinding[];
   activeLens?: CanvasLensId;
   onLensChange?: (next: CanvasLensId) => void;
   activeOverlays?: CanvasOverlayId[];
@@ -305,6 +307,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onOpenWall,
   onOpenColumnDetail,
   rows,
+  stepTimings = [],
 }) => {
   const locale = useWallLocale();
   const viewport = useCanvasViewportStore(s =>
@@ -585,6 +588,8 @@ export const Canvas: React.FC<CanvasProps> = ({
         capabilityNodes={data.capabilityNodes}
         errorSteps={data.errorSteps}
         valueRolesByStepId={valueRolesByStepId}
+        rows={rows}
+        stepTimings={stepTimings}
       />
 
       <section

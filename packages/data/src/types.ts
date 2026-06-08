@@ -68,6 +68,8 @@ export interface SampleConfig {
    * investigation story — no rebuild required. ADR-070.
    */
   processMap?: SampleProcessMap;
+  /** Pre-seeded Canvas step timing bindings for samples with timestamped process rows. */
+  stepTimings?: import('@variscout/core').StepTimingBinding[];
   /** Rational subgrouping config (rolling n, or group-by-column). Seeds projectStore.subgroupConfig. */
   subgroupConfig?: import('@variscout/core').SubgroupConfig;
   /** Default display options on load (e.g. standardIChartMetric). Merged into projectStore.displayOptions. */

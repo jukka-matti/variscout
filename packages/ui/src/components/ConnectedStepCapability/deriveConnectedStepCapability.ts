@@ -3,7 +3,7 @@ import type { CanvasStepCardModel } from '@variscout/hooks';
 import { calculateBoxplotStats, type BoxplotGroupData } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
-export type ConnectedStepCapabilityMode = 'capability' | 'values';
+export type ConnectedStepCapabilityMode = 'capability' | 'values' | 'time';
 export type ConnectedStepFlag = 'none' | 'no-data' | 'no-specs' | 'review' | 'capable' | 'watch';
 export type ConnectedValueBaselineKind = 'spec-window' | 'zero';
 export type ConnectedStepValueRole = 'measure' | 'time';

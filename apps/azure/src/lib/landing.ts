@@ -1,6 +1,7 @@
 import { createNewIP } from '@variscout/core/improvementProject';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessHub } from '@variscout/core/processHub';
+import type { StepTimingBinding } from '@variscout/core';
 import { useActiveIPStore, useImprovementProjectStore, useProjectStore } from '@variscout/stores';
 
 /** EasyAuth identity (getCurrentUser) — Azure's single user-id convention. */
@@ -93,6 +94,7 @@ export interface LandFreshEntryDeps {
    * (Azure divergence 2026-06-06.)
    */
   showFrame: () => void;
+  initialStepTimings?: StepTimingBinding[];
   user: AzureUserIdentity;
 }
 
@@ -107,7 +109,16 @@ export interface LandFreshEntryDeps {
  * fresh data entry lands on Process regardless of current nav state.
  */
 export function landFreshEntryOnProcess(title: string, deps: LandFreshEntryDeps): ProcessHub {
-  const hub = ensureHubProject(deps.activeHub, title, deps.user);
+  let hub = ensureHubProject(deps.activeHub, title, deps.user);
+  if (hub !== deps.activeHub && deps.initialStepTimings?.length) {
+    hub = {
+      ...hub,
+      improvementProject: {
+        ...hub.improvementProject,
+        stepTimings: deps.initialStepTimings,
+      },
+    };
+  }
   if (hub !== deps.activeHub) {
     deps.registerHub(hub);
     deps.setProcessHubId(hub.id);
