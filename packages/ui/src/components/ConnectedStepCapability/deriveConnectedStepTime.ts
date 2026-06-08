@@ -4,11 +4,11 @@ import {
   computeOutputRate,
   parseTimeValue,
   type DataRow,
+  type BoxplotGroupData,
   type OutputRateResult,
   type StepTimingBinding,
 } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
-import type { BoxplotGroupData } from '@variscout/core/stats';
 
 const STEP_COLUMN = '__variscoutStepId';
 const TIME_COLUMN = '__variscoutStepCompletedAt';
@@ -82,7 +82,6 @@ export function deriveConnectedStepTime({
   stepTimings,
 }: DeriveConnectedStepTimeInput): ConnectedStepTimeModel {
   const timingsByStep = new Map(stepTimings.map(binding => [binding.stepId, binding]));
-  const completionRowsByStep = new Map<string, DataRow[]>();
 
   const steps = [...map.nodes]
     .sort((a, b) => a.order - b.order)
@@ -90,7 +89,6 @@ export function deriveConnectedStepTime({
       const binding = timingsByStep.get(step.id);
       const durationsMs = binding ? durationValues(binding, rows) : [];
       const completions = binding ? completionRows(binding, rows) : [];
-      if (completions.length > 0) completionRowsByStep.set(step.id, completions);
 
       return {
         stepId: step.id,
