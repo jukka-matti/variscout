@@ -82,3 +82,5 @@ export { ScopeRail } from './ScopeRail';
 export type { ScopeRailProps } from './ScopeRail';
 export { CausesMatrix } from './CausesMatrix';
 export type { CausesMatrixProps } from './CausesMatrix';
+export { OverallProblemHeader } from './OverallProblemHeader';
+export type { OverallProblemHeaderProps } from './OverallProblemHeader';
