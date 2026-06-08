@@ -323,6 +323,28 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     ).toBeTruthy();
   });
 
+  it('renders the canvas-first Wall shell with the overall problem header', () => {
+    useCanvasViewportStore.getState().setViewMode('wall');
+    useAnalyzeStore.setState({
+      findings: [],
+      hypotheses: [createHypothesis('Nozzle heat drift', '', [])],
+    });
+
+    render(
+      <AnalyzeView
+        {...makeMinimalProps({
+          outcome: 'Fill Weight',
+          factors: ['Shift'],
+        })}
+      />
+    );
+
+    expect(screen.getByTestId('overall-problem-header')).toBeInTheDocument();
+    expect(screen.getByTestId('analyze-wall-canvas-shell')).toBeInTheDocument();
+    expect(screen.getByTestId('analyze-wall-floating-controls')).toBeInTheDocument();
+    expect(screen.queryByTestId('analyze-left-conclusion-rail')).not.toBeInTheDocument();
+  });
+
   it('list/board sub-toggle is visible in Map mode', () => {
     // IM-1: the `tree` sub-toggle was removed — AnalyzeView now only renders
     // list + board sub-toggles in Map mode (question-tree view retired with Question entity).

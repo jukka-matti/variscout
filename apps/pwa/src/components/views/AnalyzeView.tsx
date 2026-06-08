@@ -25,6 +25,7 @@ import {
   computeWallLayout,
   buildWallLayoutArgs,
   ActiveIPScopeRibbon,
+  OverallProblemHeader,
   useWallKeyboard,
   useWallIsMobile,
 } from '@variscout/ui';
@@ -239,6 +240,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // takes over below 768px and overlay controls would collide with it.
   const wallIsMobile = useWallIsMobile();
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [conclusionsOpen, setConclusionsOpen] = useState(false);
   const fitWallToContent = useCallback(() => {
     useCanvasViewportStore.getState().fitToContent(wallHubId, 'l2', {
       zoom: 1,
@@ -554,165 +556,238 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
           surface="Analyze"
         />
       ) : null}
+      <OverallProblemHeader
+        issueStatement={activeIPScope?.title}
+        outcomeLabel={outcome}
+        targetLabel={null}
+        scopeBranchCount={0}
+      />
       <div className="flex flex-1 min-h-0 relative">
         {/* Left panel: conclusions */}
-        <div
-          className="relative hidden md:flex flex-col border-r border-edge overflow-hidden bg-surface flex-shrink-0"
-          style={{ width: leftPanel.width }}
-        >
-          {/* Investigation conclusion (IM-1: hub-driven, question checklist retired) */}
-          {hubs.length > 0 && (
-            <div className="flex-1 overflow-y-auto border-t border-edge px-3 py-2">
-              <AnalyzeConclusion
-                hubs={hubs}
-                findings={wallFindings}
-                hasConclusions={hubs.length > 0}
+        {wallViewMode !== 'wall' ? (
+          <div
+            data-testid="analyze-left-conclusion-rail"
+            className="relative hidden md:flex flex-col border-r border-edge overflow-hidden bg-surface flex-shrink-0"
+            style={{ width: leftPanel.width }}
+          >
+            {/* Investigation conclusion (IM-1: hub-driven, question checklist retired) */}
+            {hubs.length > 0 && (
+              <div className="flex-1 overflow-y-auto border-t border-edge px-3 py-2">
+                <AnalyzeConclusion
+                  hubs={hubs}
+                  findings={wallFindings}
+                  hasConclusions={hubs.length > 0}
+                />
+              </div>
+            )}
+
+            {/* Resize handle */}
+            <div
+              className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/30 transition-colors z-10"
+              onMouseDown={leftPanel.handleMouseDown}
+            >
+              <GripVertical
+                size={12}
+                className="absolute top-1/2 -translate-y-1/2 -right-1.5 text-content-tertiary"
               />
             </div>
-          )}
-
-          {/* Resize handle */}
-          <div
-            className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/30 transition-colors z-10"
-            onMouseDown={leftPanel.handleMouseDown}
-          >
-            <GripVertical
-              size={12}
-              className="absolute top-1/2 -translate-y-1/2 -right-1.5 text-content-tertiary"
-            />
           </div>
-        </div>
+        ) : null}
 
         {/* Center: Map/Wall toggle + content */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
           {/* Header toolbar */}
-          <div className="flex items-center gap-1 px-3 py-2 border-b border-edge bg-surface flex-shrink-0">
-            {/* Map/Wall primary toggle */}
-            <div
-              role="group"
-              aria-label="Analyze view mode"
-              className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
-            >
-              {(['map', 'wall', 'causes'] as const).map(mode => (
-                <button
-                  key={mode}
-                  type="button"
-                  aria-pressed={wallViewMode === mode}
-                  onClick={() => setWallViewMode(mode)}
-                  className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                    wallViewMode === mode
-                      ? 'bg-surface-secondary text-content'
-                      : 'text-content-secondary hover:text-content'
-                  }`}
-                >
-                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            {/* Map-view content switch: Findings list vs Evidence Map (Layer 1).
-                PR-CS-7 parity — the findings list stays reachable; the Evidence
-                Map button is disabled until best-subsets has a meaningful model. */}
-            {wallViewMode === 'map' && (
-              <>
-                <div className="w-px h-4 bg-edge mx-1" />
-                <div
-                  role="group"
-                  aria-label="Map content"
-                  className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
-                >
+          {wallViewMode !== 'wall' ? (
+            <div className="flex items-center gap-1 px-3 py-2 border-b border-edge bg-surface flex-shrink-0">
+              {/* Map/Wall primary toggle */}
+              <div
+                role="group"
+                aria-label="Analyze view mode"
+                className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
+              >
+                {(['map', 'wall', 'causes'] as const).map(mode => (
                   <button
+                    key={mode}
                     type="button"
-                    aria-pressed={mapContentResolved === 'findings'}
-                    onClick={() => setMapContent('findings')}
+                    aria-pressed={wallViewMode === mode}
+                    onClick={() => setWallViewMode(mode)}
                     className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                      mapContentResolved === 'findings'
+                      wallViewMode === mode
                         ? 'bg-surface-secondary text-content'
                         : 'text-content-secondary hover:text-content'
                     }`}
                   >
-                    Findings
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={mapContentResolved === 'evidence-map'}
-                    disabled={!showEvidenceMap}
-                    onClick={() => setMapContent('evidence-map')}
-                    className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                      mapContentResolved === 'evidence-map'
-                        ? 'bg-surface-secondary text-content'
-                        : 'text-content-secondary hover:text-content disabled:opacity-40 disabled:hover:text-content-secondary'
-                    }`}
-                    title={
-                      showEvidenceMap
-                        ? undefined
-                        : 'Select 2+ factors with a meaningful model to see the Evidence Map'
-                    }
-                  >
-                    Evidence Map
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* List/board sub-toggle (only in the Map/Findings list pane) */}
-            {wallViewMode === 'map' && mapContentResolved === 'findings' && (
-              <>
-                <div className="w-px h-4 bg-edge mx-1" />
-                {(['list', 'board'] as const).map(mode => (
-                  <button
-                    key={mode}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      viewMode === mode
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
-                        : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
-                    }`}
-                    onClick={() => setViewMode(mode)}
-                  >
                     {mode.charAt(0).toUpperCase() + mode.slice(1)}
                   </button>
                 ))}
-              </>
-            )}
+              </div>
 
-            {/* Wall-only: group-by-tributary toggle */}
-            {wallViewMode === 'wall' && processMap && (
-              <>
-                <div className="w-px h-4 bg-edge mx-1" />
+              {/* Map-view content switch: Findings list vs Evidence Map (Layer 1).
+                PR-CS-7 parity — the findings list stays reachable; the Evidence
+                Map button is disabled until best-subsets has a meaningful model. */}
+              {wallViewMode === 'map' && (
+                <>
+                  <div className="w-px h-4 bg-edge mx-1" />
+                  <div
+                    role="group"
+                    aria-label="Map content"
+                    className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
+                  >
+                    <button
+                      type="button"
+                      aria-pressed={mapContentResolved === 'findings'}
+                      onClick={() => setMapContent('findings')}
+                      className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                        mapContentResolved === 'findings'
+                          ? 'bg-surface-secondary text-content'
+                          : 'text-content-secondary hover:text-content'
+                      }`}
+                    >
+                      Findings
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={mapContentResolved === 'evidence-map'}
+                      disabled={!showEvidenceMap}
+                      onClick={() => setMapContent('evidence-map')}
+                      className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                        mapContentResolved === 'evidence-map'
+                          ? 'bg-surface-secondary text-content'
+                          : 'text-content-secondary hover:text-content disabled:opacity-40 disabled:hover:text-content-secondary'
+                      }`}
+                      title={
+                        showEvidenceMap
+                          ? undefined
+                          : 'Select 2+ factors with a meaningful model to see the Evidence Map'
+                      }
+                    >
+                      Evidence Map
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* List/board sub-toggle (only in the Map/Findings list pane) */}
+              {wallViewMode === 'map' && mapContentResolved === 'findings' && (
+                <>
+                  <div className="w-px h-4 bg-edge mx-1" />
+                  {(['list', 'board'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                        viewMode === mode
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                          : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
+                      }`}
+                      onClick={() => setViewMode(mode)}
+                    >
+                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {/* Wall-only: group-by-tributary toggle */}
+              {wallViewMode === 'wall' && processMap && (
+                <>
+                  <div className="w-px h-4 bg-edge mx-1" />
+                  <button
+                    type="button"
+                    aria-pressed={wallGroupByTributary}
+                    onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
+                    className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                      wallGroupByTributary
+                        ? 'bg-surface-secondary text-content'
+                        : 'text-content-secondary hover:text-content'
+                    }`}
+                  >
+                    Group by tributary
+                  </button>
+                </>
+              )}
+
+              {canReturnToImprovementProject && (
                 <button
                   type="button"
-                  aria-pressed={wallGroupByTributary}
-                  onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
-                  className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                    wallGroupByTributary
-                      ? 'bg-surface-secondary text-content'
-                      : 'text-content-secondary hover:text-content'
-                  }`}
+                  onClick={handleReturnToImprovementProject}
+                  className="ml-1 rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  Group by tributary
+                  Back to Project
                 </button>
-              </>
-            )}
+              )}
 
-            {canReturnToImprovementProject && (
-              <button
-                type="button"
-                onClick={handleReturnToImprovementProject}
-                className="ml-1 rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                Back to Project
-              </button>
-            )}
-
-            <span className="ml-auto text-xs text-content-tertiary">
-              {wallFindings.length} finding
-              {wallFindings.length !== 1 ? 's' : ''}
-            </span>
-          </div>
+              <span className="ml-auto text-xs text-content-tertiary">
+                {wallFindings.length} finding
+                {wallFindings.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          ) : null}
 
           {/* Content */}
           {wallViewMode === 'wall' ? (
-            <div className="relative flex-1 flex flex-col min-h-0">
+            <div
+              data-testid="analyze-wall-canvas-shell"
+              className="relative flex-1 flex flex-col min-h-0"
+            >
+              {!wallIsMobile && (
+                <div
+                  data-testid="analyze-wall-floating-controls"
+                  className="absolute left-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1 rounded border border-edge bg-surface/95 p-1 shadow-sm"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setConclusionsOpen(open => !open)}
+                    className="rounded px-2 py-0.5 text-xs font-medium text-content-secondary hover:bg-surface-secondary hover:text-content"
+                    aria-expanded={conclusionsOpen}
+                  >
+                    Investigation conclusions
+                  </button>
+                  <div
+                    role="group"
+                    aria-label="Analyze view mode"
+                    className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
+                  >
+                    {(['map', 'wall', 'causes'] as const).map(mode => (
+                      <button
+                        key={mode}
+                        type="button"
+                        aria-pressed={wallViewMode === mode}
+                        onClick={() => setWallViewMode(mode)}
+                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                          wallViewMode === mode
+                            ? 'bg-surface-secondary text-content'
+                            : 'text-content-secondary hover:text-content'
+                        }`}
+                      >
+                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                  {processMap ? (
+                    <button
+                      type="button"
+                      aria-pressed={wallGroupByTributary}
+                      onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
+                      className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                        wallGroupByTributary
+                          ? 'bg-surface-secondary text-content'
+                          : 'text-content-secondary hover:text-content'
+                      }`}
+                    >
+                      Group by tributary
+                    </button>
+                  ) : null}
+                </div>
+              )}
+              {conclusionsOpen && !wallIsMobile ? (
+                <div className="absolute left-3 top-14 z-20 max-h-[70%] w-[min(360px,calc(100%-1.5rem))] overflow-y-auto rounded border border-edge bg-surface p-3 shadow-lg">
+                  <AnalyzeConclusion
+                    hubs={hubs}
+                    findings={wallFindings}
+                    hasConclusions={hubs.length > 0}
+                  />
+                </div>
+              ) : null}
               <WallCanvas
                 hubId={wallHubId}
                 hubs={hubs}
