@@ -68,6 +68,7 @@ import {
   useAnalysisScopeStore,
   useCanvasViewportStore,
   useViewStore,
+  selectFindingsForScope,
 } from '@variscout/stores';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
 import type { CapturedModelSnapshot } from '@variscout/ui';
@@ -687,6 +688,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // and finding (the lineage-membership filter is retired; empty-set-means-
   // unfiltered is the permanent semantics).
   const hubs = hypothesesState.hubs;
+  const scopedFindings = useMemo(
+    () => selectFindingsForScope(findingsState.findings, activeScope?.id),
+    [findingsState.findings, activeScope?.id]
+  );
   const hasAppliedFindingsArrivalRef = useRef(false);
   useEffect(() => {
     if (hasAppliedFindingsArrivalRef.current) return;
@@ -702,12 +707,12 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const originStepNameByFindingId = useMemo(() => {
     const stepNameById = new Map(deriveProcessSteps(processMap).map(s => [s.id, s.name]));
     const out = new Map<string, string>();
-    for (const f of findingsState.findings) {
+    for (const f of scopedFindings) {
       const name = f.originStepId ? stepNameById.get(f.originStepId) : undefined;
       if (name) out.set(f.id, name);
     }
     return out;
-  }, [processMap, findingsState.findings]);
+  }, [processMap, scopedFindings]);
 
   // Phase 13 — pan-to-node: center the viewport on a hub by id. IM-4c: consumes
   // the SHARED computeWallLayout authority with the SAME inputs WallCanvas + the
@@ -763,12 +768,12 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     }
   }, [returnNavigation]);
 
-  const { hubEvidences, hubProjections } = useHubComputations(bestSubsets, findingsState.findings);
+  const { hubEvidences, hubProjections } = useHubComputations(bestSubsets, scopedFindings);
 
   // Detect evidence clusters for synthesis prompts
   const evidenceClusters = useMemo(
-    () => detectEvidenceClusters(findingsState.findings, hubs),
-    [findingsState.findings, hubs]
+    () => detectEvidenceClusters(scopedFindings, hubs),
+    [scopedFindings, hubs]
   );
 
   // Left panel resizable
@@ -1017,7 +1022,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   onToggleHubSelect={handleToggleHubSelect}
                   onBrainstormHub={handleBrainstormHub}
                   evidenceClusters={evidenceClusters}
-                  findings={findingsState.findings}
+                  findings={scopedFindings}
                 />
               </div>
             )}
@@ -1108,8 +1113,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
               )}
 
               <span className="ml-auto text-xs text-content-tertiary">
-                {findingsState.findings.length} finding
-                {findingsState.findings.length !== 1 ? 's' : ''}
+                {scopedFindings.length} finding
+                {scopedFindings.length !== 1 ? 's' : ''}
               </span>
             </div>
           ) : null}
@@ -1118,7 +1123,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           {analyzeViewMode === 'findings' ? (
             <div className="flex-1 overflow-y-auto px-3 py-2">
               <FindingsLog
-                findings={findingsState.findings}
+                findings={scopedFindings}
                 onEditFinding={findingsState.editFinding}
                 onDeleteFinding={findingsState.deleteFinding}
                 onRestoreFinding={handleRestoreFinding}
@@ -1153,7 +1158,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           ) : wallViewMode === 'causes' ? (
             <CausesMatrix
               hubs={hubs}
-              findings={findingsState.findings}
+              findings={scopedFindings}
               plans={enrichedPlanningProps?.plans ?? []}
               now={Date.now()}
               onFocusHub={handleFocusCauseFromMatrix}
@@ -1278,14 +1283,14 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                     onToggleHubSelect={handleToggleHubSelect}
                     onBrainstormHub={handleBrainstormHub}
                     evidenceClusters={evidenceClusters}
-                    findings={findingsState.findings}
+                    findings={scopedFindings}
                   />
                 </div>
               ) : null}
               <WallCanvas
                 hubId={wallHubId}
                 hubs={hubs}
-                findings={findingsState.findings}
+                findings={scopedFindings}
                 processMap={processMap}
                 problemCpk={problemCpk}
                 eventsPerWeek={problemEvents}
@@ -1334,7 +1339,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                     onClose={() => setWallPaletteOpen(false)}
                     onPanTo={handleWallPanToNode}
                     hubs={hubs}
-                    findings={findingsState.findings}
+                    findings={scopedFindings}
                   />
                 </>
               )}
