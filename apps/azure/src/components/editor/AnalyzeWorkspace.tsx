@@ -24,10 +24,7 @@ import {
   useProblemStatement,
   useCurrentUnderstanding,
   useHubComputations,
-  useDefectTransform,
-  useDefectEvidenceMap,
   useReturnNavigation,
-  type DefectMapView,
   type UseFindingsReturn,
 } from '@variscout/hooks';
 import type {
@@ -40,8 +37,6 @@ import type {
 import {
   normalizeProcessHubId,
   inferCharacteristicType,
-  computeMainEffects,
-  computeInteractionEffects,
   categoricalFiltersToActiveFilters,
   buildConditionFromCategoricalFilters,
   formatConditionLeaves,
@@ -65,22 +60,18 @@ import { canAccess } from '@variscout/core/projectMembership';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { detectColumns } from '@variscout/core/parser';
 import { deriveProcessSteps } from '@variscout/core/frame';
-import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
-import { wouldCreateCycle } from '@variscout/core/stats';
 import { GripVertical } from 'lucide-react';
 import {
   useProjectStore,
   useAnalyzeStore,
   useAnalysisScopeStore,
-  usePreferencesStore,
   useCanvasViewportStore,
   useViewStore,
 } from '@variscout/stores';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
 import type { CapturedModelSnapshot } from '@variscout/ui';
 import type { FindingProjection } from '@variscout/core';
-import { AnalyzeMapView } from './AnalyzeMapView';
 import { CoScoutSection } from './CoScoutSection';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
@@ -201,8 +192,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const specs = useProjectStore(s => s.specs);
   const processContext = useProjectStore(s => s.processContext);
   const setProcessContext = useProjectStore(s => s.setProcessContext);
-  const analysisMode = useProjectStore(s => s.analysisMode);
-  const defectMapping = useProjectStore(s => s.defectMapping);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
   const { value: cpkTarget } = resolveCpkTarget(outcome ?? '', {
@@ -215,7 +204,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 
   const analyzeViewMode = usePanelsStore(s => s.analyzeViewMode);
   // IM-1: highlightedFactor read removed here; its only consumer was the retired
-  // Question-driven evidence header. AnalyzeMapView reads the store field directly.
+  // question-driven evidence header.
   const setAnalyzeViewMode = usePanelsStore(s => s.setAnalyzeViewMode);
 
   // Map/Wall sub-toggle (within the Evidence Map view)
@@ -251,7 +240,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     return map;
   }, [rawData]);
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
-  const causalLinks = useAnalyzeStore(s => s.causalLinks);
 
   // ── Drill → scope spine (IM-4a) ──────────────────────────────────────────
   // The active drill chips ARE the active scope (design §2). Materialize them
@@ -606,15 +594,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     },
   });
 
-  // Investigation phase (deterministic, from findings state)
-  // Defect mode transform
-  const defectResult = useDefectTransform(filteredData, defectMapping, analysisMode ?? 'standard');
-
-  const resolved = resolveMode(analysisMode ?? 'standard');
-  // IM-1: strategy (getStrategy) derivation removed; its only consumer was the
-  // retired Question-strategy evidence label. resolved still drives defect mode.
-
-  // Best-subsets regression — drives hub evidence/projection + Evidence Map
+  // Best-subsets regression — drives hub evidence/projection.
   // (IM-1: was sourced from the retired useQuestionGeneration; now computed
   // directly from the filtered dataset).
   const bestSubsets = useMemo(() => {
@@ -670,33 +650,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 
     useAIStore.getState().syncFactorMetadata(metadata);
   }, [bestSubsets]);
-
-  // Main effects and interactions for Evidence Map (Layer 1 statistical enrichment)
-  const mainEffects = useMemo(() => {
-    if (!bestSubsets || !filteredData?.length || !outcome) return null;
-    return computeMainEffects(filteredData, outcome, factors);
-  }, [bestSubsets, filteredData, outcome, factors]);
-
-  const interactions = useMemo(() => {
-    if (!bestSubsets || !filteredData?.length || !outcome || factors.length < 2) return null;
-    return computeInteractionEffects(filteredData, outcome, factors);
-  }, [bestSubsets, filteredData, outcome, factors]);
-
-  // ── Defect Evidence Map integration ──────────────────────────────────────
-  const [defectMapView, setDefectMapView] = useState<DefectMapView>('all');
-  const isDefectMode = resolved === 'defect';
-
-  const defectEvidenceMap = useDefectEvidenceMap(
-    isDefectMode ? defectResult : null,
-    isDefectMode ? defectMapping : null,
-    isDefectMode ? bestSubsets : null,
-    isDefectMode ? defectMapView : 'all',
-    factors
-  );
-
-  // Override bestSubsets for Evidence Map when viewing per-type defect analysis
-  const mapBestSubsets =
-    isDefectMode && defectMapView !== 'all' ? defectEvidenceMap.bestSubsets : bestSubsets;
 
   // Characteristic type derived from spec configuration (for Watson Q2)
   const characteristicType = useMemo(() => inferCharacteristicType(specs), [specs]);
@@ -986,40 +939,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     usePanelsStore.getState().showImprovement();
   }, []);
 
-  // ── Evidence Map context menu callbacks ──────────────────────────────────
-  // IM-1: "ask question" routes to CoScout (no Question entity to create).
-  const handleMapAskQuestion = useCallback(
-    (factor: string) => {
-      aiOrch.handleAskCoScoutFromCategory({ category: { name: factor } });
-    },
-    [aiOrch]
-  );
-
-  const handleMapCreateFinding = useCallback(
-    (factor: string) => {
-      // IM-4a: snapshot the DRILL condition (the active scope chips), not the
-      // legacy row-level projectStore.filters map — the captured Finding should
-      // reflect the WHERE the analyst is investigating.
-      const activeFilters = categoricalFiltersToActiveFilters(
-        useAnalysisScopeStore.getState().categoricalFilters
-      );
-      findingsState.addFinding(
-        `Observation about ${factor}`,
-        { activeFilters, cumulativeScope: null },
-        { chart: 'boxplot', category: factor, timeLens: usePreferencesStore.getState().timeLens },
-        activeScope?.id
-      );
-    },
-    [findingsState, activeScope]
-  );
-
-  const handleMapAskCoScout = useCallback(
-    (factor: string) => {
-      aiOrch.handleAskCoScoutFromCategory({ category: { name: factor } });
-    },
-    [aiOrch]
-  );
-
   // CS-13 — the crossing-back (spec §4.0a): from a Wall hypothesis/factor,
   // land in Explore scoped to its local y=f(x). Same primitive as the
   // Process-tab chips (FrameView.handleChipExploreJump).
@@ -1031,63 +950,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       );
     },
     [outcome]
-  );
-
-  const handleMapDrillDown = useCallback(
-    (factor: string) => {
-      usePanelsStore.getState().setHighlightedFactor(factor);
-      // CS-13 — route the Evidence-Map drill through the SAME scoped path as the
-      // Wall affordances (the drill previously switched tabs WITHOUT writing the
-      // scope the Explore charts read). Composing handleExploreFactor keeps the
-      // two Analyze→Explore gestures structurally unable to diverge.
-      handleExploreFactor(factor);
-    },
-    [handleExploreFactor]
-  );
-
-  const handleConfirmCausalLink = useCallback(
-    (
-      from: string,
-      to: string,
-      params: {
-        whyStatement: string;
-        direction: 'drives' | 'modulates' | 'confounds';
-        evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
-      }
-    ) => {
-      useAnalyzeStore.getState().addCausalLink(from, to, params.whyStatement, {
-        direction: params.direction,
-        evidenceType: params.evidenceType,
-      });
-    },
-    []
-  );
-
-  const handleRemoveCausalLink = useCallback((id: string) => {
-    useAnalyzeStore.getState().removeCausalLink(id);
-  }, []);
-
-  const handleUpdateCausalLink = useCallback(
-    (
-      id: string,
-      params: {
-        whyStatement: string;
-        direction: 'drives' | 'modulates' | 'confounds';
-        evidenceType: 'data' | 'gemba' | 'expert' | 'unvalidated';
-      }
-    ) => {
-      useAnalyzeStore.getState().updateCausalLink(id, {
-        whyStatement: params.whyStatement,
-        direction: params.direction,
-        evidenceType: params.evidenceType,
-      });
-    },
-    []
-  );
-
-  const checkWouldCreateCycle = useCallback(
-    (from: string, to: string) => wouldCreateCycle(causalLinks, from, to),
-    [causalLinks]
   );
 
   return (
@@ -1176,50 +1038,44 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         {/* Center: Evidence Map or Findings (list/board/tree) */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
           {/* View mode toggle */}
-          {wallViewMode !== 'wall' ? (
+          {wallViewMode !== 'wall' || analyzeViewMode === 'findings' ? (
             <div className="flex items-center gap-1 px-3 py-2 border-b border-edge bg-surface flex-shrink-0">
-              {/* Primary toggle: Map vs Findings */}
-              {(['map', 'findings'] as const).map(mode => (
+              <div
+                role="group"
+                aria-label="Analyze view mode"
+                className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
+              >
                 <button
-                  key={mode}
-                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                    analyzeViewMode === mode
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
-                      : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
+                  type="button"
+                  aria-pressed={analyzeViewMode === 'findings'}
+                  onClick={() => setAnalyzeViewMode('findings')}
+                  className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                    analyzeViewMode === 'findings'
+                      ? 'bg-surface-secondary text-content'
+                      : 'text-content-secondary hover:text-content'
                   }`}
-                  onClick={() => setAnalyzeViewMode(mode)}
                 >
-                  {mode === 'map' ? 'Evidence Map' : 'Findings'}
+                  Findings
                 </button>
-              ))}
-
-              {/* Sub-toggle: Map/Wall (only when Evidence Map is active) */}
-              {analyzeViewMode === 'map' && (
-                <>
-                  <div className="w-px h-4 bg-edge mx-1" />
-                  <div
-                    role="group"
-                    aria-label="Analyze view mode"
-                    className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
+                {(['wall', 'causes'] as const).map(mode => (
+                  <button
+                    key={mode}
+                    type="button"
+                    aria-pressed={analyzeViewMode === 'map' && wallViewMode === mode}
+                    onClick={() => {
+                      setAnalyzeViewMode('map');
+                      setWallViewMode(mode);
+                    }}
+                    className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                      analyzeViewMode === 'map' && wallViewMode === mode
+                        ? 'bg-surface-secondary text-content'
+                        : 'text-content-secondary hover:text-content'
+                    }`}
                   >
-                    {(['map', 'wall', 'causes'] as const).map(mode => (
-                      <button
-                        key={mode}
-                        type="button"
-                        aria-pressed={wallViewMode === mode}
-                        onClick={() => setWallViewMode(mode)}
-                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                          wallViewMode === mode
-                            ? 'bg-surface-secondary text-content'
-                            : 'text-content-secondary hover:text-content'
-                        }`}
-                      >
-                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </button>
+                ))}
+              </div>
 
               {canReturnToImprovementProject && (
                 <button
@@ -1259,205 +1115,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           ) : null}
 
           {/* Content */}
-          {analyzeViewMode === 'map' ? (
-            wallViewMode === 'wall' ? (
-              <div
-                data-testid="analyze-wall-canvas-shell"
-                className="relative flex-1 flex flex-col min-h-0"
-              >
-                {/* IM-4b Task 5 — multi-scope rail above the canvas. Selecting a
-                    chip re-anchors the Problem card (rewrites the drill filters
-                    → IM-4a's producer re-selects the scope). Hidden when no scopes
-                    have been captured yet. */}
-                {!wallIsMobile && railScopes.length > 0 && (
-                  <div className="border-edge bg-surface-secondary/40 border-b px-3 py-2">
-                    <ScopeRail
-                      scopes={railScopes}
-                      activeScopeId={activeScope?.id}
-                      onScopeSelect={handleScopeSelect}
-                      onScopeArchive={handleScopeArchive}
-                    />
-                  </div>
-                )}
-                {!wallIsMobile && (
-                  <div
-                    data-testid="analyze-wall-floating-controls"
-                    className="absolute left-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1 rounded border border-edge bg-surface/95 p-1 shadow-sm"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setConclusionsOpen(open => !open)}
-                      className="rounded px-2 py-0.5 text-xs font-medium text-content-secondary hover:bg-surface-secondary hover:text-content"
-                      aria-expanded={conclusionsOpen}
-                    >
-                      Investigation conclusions
-                    </button>
-                    <div
-                      role="group"
-                      aria-label="Analyze view mode"
-                      className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
-                    >
-                      {(['map', 'wall', 'causes'] as const).map(mode => (
-                        <button
-                          key={mode}
-                          type="button"
-                          aria-pressed={wallViewMode === mode}
-                          onClick={() => setWallViewMode(mode)}
-                          className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                            wallViewMode === mode
-                              ? 'bg-surface-secondary text-content'
-                              : 'text-content-secondary hover:text-content'
-                          }`}
-                        >
-                          {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                    {processMap ? (
-                      <button
-                        type="button"
-                        aria-pressed={wallGroupByTributary}
-                        onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
-                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                          wallGroupByTributary
-                            ? 'bg-surface-secondary text-content'
-                            : 'text-content-secondary hover:text-content'
-                        }`}
-                      >
-                        Group by tributary
-                      </button>
-                    ) : null}
-                  </div>
-                )}
-                {conclusionsOpen && !wallIsMobile ? (
-                  <div className="absolute left-3 top-14 z-20 max-h-[70%] w-[min(380px,calc(100%-1.5rem))] overflow-y-auto rounded border border-edge bg-surface p-3 shadow-lg">
-                    <label className="block text-xs font-medium text-content-secondary mb-1">
-                      Issue statement
-                    </label>
-                    <textarea
-                      className="mb-3 w-full rounded border border-edge bg-surface-secondary px-2 py-1.5 text-sm text-content resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-                      rows={3}
-                      value={processContext?.issueStatement ?? ''}
-                      onChange={e => handleIssueStatementChange(e.target.value)}
-                      placeholder="Describe the issue under investigation..."
-                    />
-                    {currentUnderstandingState.currentUnderstanding ? (
-                      <p className="mb-3 text-xs text-content-secondary">
-                        {currentUnderstandingState.currentUnderstanding.summary}
-                      </p>
-                    ) : null}
-                    <AnalyzeConclusion
-                      problemStatement={processContext?.problemStatement}
-                      hasConclusions={hubs.length > 0}
-                      problemStatementDraft={problemStatement.draft}
-                      isProblemStatementReady={problemStatement.isReady}
-                      onGenerateProblemStatement={problemStatement.generate}
-                      onAcceptProblemStatement={problemStatement.accept}
-                      onDismissProblemStatement={problemStatement.dismiss}
-                      hubs={hubs}
-                      hubEvidences={hubEvidences}
-                      hubProjections={hubProjections}
-                      onCreateHub={handleCreateHub}
-                      onUpdateHub={handleUpdateHub}
-                      onDeleteHub={handleDeleteHub}
-                      onToggleHubSelect={handleToggleHubSelect}
-                      onBrainstormHub={handleBrainstormHub}
-                      evidenceClusters={evidenceClusters}
-                      findings={findingsState.findings}
-                    />
-                  </div>
-                ) : null}
-                <WallCanvas
-                  hubId={wallHubId}
-                  hubs={hubs}
-                  findings={findingsState.findings}
-                  processMap={processMap}
-                  problemCpk={problemCpk}
-                  eventsPerWeek={problemEvents}
-                  activeScope={activeScope}
-                  activeScopeSpecs={activeScopeSpecs}
-                  activeColumns={wallActiveColumns}
-                  rows={rawData}
-                  columnTypes={columnTypes}
-                  outcomeColumn={outcome}
-                  zoom={wallZoom}
-                  pan={wallPan}
-                  groupByTributary={Boolean(processMap && wallGroupByTributary)}
-                  planningProps={enrichedPlanningProps}
-                  modelBuilderProps={modelBuilderProps}
-                  onWriteHypothesis={handleWriteHypothesis}
-                  onSeedFromFactorIntel={factors.length > 0 ? handleSeedFromFactorIntel : undefined}
-                  onProposeHypothesis={handleProposeHypothesis}
-                  onExploreFactor={handleExploreFactor}
-                />
-                {/* Minimap + CommandPalette are desktop-only. WallCanvas
-                  self-gates to MobileCardList below 768px, so these
-                  sibling controls would overlap the mobile list. */}
-                {!wallIsMobile && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={fitWallToContent}
-                      aria-label="Fit Wall to content"
-                      title="Fit Wall to content"
-                      className="border-edge bg-surface-secondary text-content hover:bg-surface-tertiary focus:ring-ring absolute bottom-4 right-40 rounded border px-2.5 py-1 text-xs font-medium shadow-sm focus:outline-none focus:ring-2"
-                    >
-                      ⌖ Fit
-                    </button>
-                    <div className="absolute bottom-4 right-4 pointer-events-auto">
-                      <Minimap
-                        hubs={hubs}
-                        zoom={wallZoom}
-                        pan={wallPan}
-                        onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
-                        processMap={processMap}
-                        groupByTributary={Boolean(processMap && wallGroupByTributary)}
-                      />
-                    </div>
-                    <CommandPalette
-                      open={wallPaletteOpen}
-                      onClose={() => setWallPaletteOpen(false)}
-                      onPanTo={handleWallPanToNode}
-                      hubs={hubs}
-                      findings={findingsState.findings}
-                    />
-                  </>
-                )}
-              </div>
-            ) : wallViewMode === 'causes' ? (
-              <CausesMatrix
-                hubs={hubs}
-                findings={findingsState.findings}
-                plans={enrichedPlanningProps?.plans ?? []}
-                now={Date.now()}
-                onFocusHub={handleFocusCauseFromMatrix}
-              />
-            ) : (
-              <AnalyzeMapView
-                mapOptions={{
-                  bestSubsets: mapBestSubsets,
-                  mainEffects,
-                  interactions,
-                  mode: resolved,
-                  causalLinks,
-                  findings: findingsState.findings,
-                  hypotheses: hubs,
-                }}
-                onAskQuestion={handleMapAskQuestion}
-                onCreateFinding={handleMapCreateFinding}
-                onAskCoScout={handleMapAskCoScout}
-                onDrillDown={handleMapDrillDown}
-                onConfirmCausalLink={handleConfirmCausalLink}
-                onRemoveCausalLink={handleRemoveCausalLink}
-                onUpdateCausalLink={handleUpdateCausalLink}
-                wouldCreateCycle={checkWouldCreateCycle}
-                filteredData={filteredData ?? undefined}
-                defectMapView={isDefectMode ? defectMapView : undefined}
-                onDefectMapViewChange={isDefectMode ? setDefectMapView : undefined}
-                defectEvidenceMap={isDefectMode ? defectEvidenceMap : undefined}
-              />
-            )
-          ) : (
+          {analyzeViewMode === 'findings' ? (
             <div className="flex-1 overflow-y-auto px-3 py-2">
               <FindingsLog
                 findings={findingsState.findings}
@@ -1491,6 +1149,195 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 showAuthors
                 voiceInput={voiceInput}
               />
+            </div>
+          ) : wallViewMode === 'causes' ? (
+            <CausesMatrix
+              hubs={hubs}
+              findings={findingsState.findings}
+              plans={enrichedPlanningProps?.plans ?? []}
+              now={Date.now()}
+              onFocusHub={handleFocusCauseFromMatrix}
+            />
+          ) : (
+            <div
+              data-testid="analyze-wall-canvas-shell"
+              className="relative flex-1 flex flex-col min-h-0"
+            >
+              {/* IM-4b Task 5 — multi-scope rail above the canvas. Selecting a
+                    chip re-anchors the Problem card (rewrites the drill filters
+                    → IM-4a's producer re-selects the scope). Hidden when no scopes
+                    have been captured yet. */}
+              {!wallIsMobile && railScopes.length > 0 && (
+                <div className="border-edge bg-surface-secondary/40 border-b px-3 py-2">
+                  <ScopeRail
+                    scopes={railScopes}
+                    activeScopeId={activeScope?.id}
+                    onScopeSelect={handleScopeSelect}
+                    onScopeArchive={handleScopeArchive}
+                  />
+                </div>
+              )}
+              {!wallIsMobile && (
+                <div
+                  data-testid="analyze-wall-floating-controls"
+                  className="absolute left-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1 rounded border border-edge bg-surface/95 p-1 shadow-sm"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setConclusionsOpen(open => !open)}
+                    className="rounded px-2 py-0.5 text-xs font-medium text-content-secondary hover:bg-surface-secondary hover:text-content"
+                    aria-expanded={conclusionsOpen}
+                  >
+                    Investigation conclusions
+                  </button>
+                  <div
+                    role="group"
+                    aria-label="Analyze view mode"
+                    className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
+                  >
+                    <button
+                      type="button"
+                      aria-pressed={false}
+                      onClick={() => setAnalyzeViewMode('findings')}
+                      className="px-2 py-0.5 text-xs font-medium rounded transition-colors text-content-secondary hover:text-content"
+                    >
+                      Findings
+                    </button>
+                    {(['wall', 'causes'] as const).map(mode => (
+                      <button
+                        key={mode}
+                        type="button"
+                        aria-pressed={wallViewMode === mode}
+                        onClick={() => setWallViewMode(mode)}
+                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                          wallViewMode === mode
+                            ? 'bg-surface-secondary text-content'
+                            : 'text-content-secondary hover:text-content'
+                        }`}
+                      >
+                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                  {canReturnToImprovementProject && (
+                    <button
+                      type="button"
+                      onClick={handleReturnToImprovementProject}
+                      className="rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      Back to Project
+                    </button>
+                  )}
+                  {processMap ? (
+                    <button
+                      type="button"
+                      aria-pressed={wallGroupByTributary}
+                      onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
+                      className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                        wallGroupByTributary
+                          ? 'bg-surface-secondary text-content'
+                          : 'text-content-secondary hover:text-content'
+                      }`}
+                    >
+                      Group by tributary
+                    </button>
+                  ) : null}
+                </div>
+              )}
+              {conclusionsOpen && !wallIsMobile ? (
+                <div className="absolute left-3 top-14 z-20 max-h-[70%] w-[min(380px,calc(100%-1.5rem))] overflow-y-auto rounded border border-edge bg-surface p-3 shadow-lg">
+                  <label className="block text-xs font-medium text-content-secondary mb-1">
+                    Issue statement
+                  </label>
+                  <textarea
+                    className="mb-3 w-full rounded border border-edge bg-surface-secondary px-2 py-1.5 text-sm text-content resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                    rows={3}
+                    value={processContext?.issueStatement ?? ''}
+                    onChange={e => handleIssueStatementChange(e.target.value)}
+                    placeholder="Describe the issue under investigation..."
+                  />
+                  {currentUnderstandingState.currentUnderstanding ? (
+                    <p className="mb-3 text-xs text-content-secondary">
+                      {currentUnderstandingState.currentUnderstanding.summary}
+                    </p>
+                  ) : null}
+                  <AnalyzeConclusion
+                    problemStatement={processContext?.problemStatement}
+                    hasConclusions={hubs.length > 0}
+                    problemStatementDraft={problemStatement.draft}
+                    isProblemStatementReady={problemStatement.isReady}
+                    onGenerateProblemStatement={problemStatement.generate}
+                    onAcceptProblemStatement={problemStatement.accept}
+                    onDismissProblemStatement={problemStatement.dismiss}
+                    hubs={hubs}
+                    hubEvidences={hubEvidences}
+                    hubProjections={hubProjections}
+                    onCreateHub={handleCreateHub}
+                    onUpdateHub={handleUpdateHub}
+                    onDeleteHub={handleDeleteHub}
+                    onToggleHubSelect={handleToggleHubSelect}
+                    onBrainstormHub={handleBrainstormHub}
+                    evidenceClusters={evidenceClusters}
+                    findings={findingsState.findings}
+                  />
+                </div>
+              ) : null}
+              <WallCanvas
+                hubId={wallHubId}
+                hubs={hubs}
+                findings={findingsState.findings}
+                processMap={processMap}
+                problemCpk={problemCpk}
+                eventsPerWeek={problemEvents}
+                activeScope={activeScope}
+                activeScopeSpecs={activeScopeSpecs}
+                activeColumns={wallActiveColumns}
+                rows={rawData}
+                columnTypes={columnTypes}
+                outcomeColumn={outcome}
+                zoom={wallZoom}
+                pan={wallPan}
+                groupByTributary={Boolean(processMap && wallGroupByTributary)}
+                planningProps={enrichedPlanningProps}
+                modelBuilderProps={modelBuilderProps}
+                onWriteHypothesis={handleWriteHypothesis}
+                onSeedFromFactorIntel={factors.length > 0 ? handleSeedFromFactorIntel : undefined}
+                onProposeHypothesis={handleProposeHypothesis}
+                onExploreFactor={handleExploreFactor}
+              />
+              {/* Minimap + CommandPalette are desktop-only. WallCanvas
+                  self-gates to MobileCardList below 768px, so these
+                  sibling controls would overlap the mobile list. */}
+              {!wallIsMobile && (
+                <>
+                  <button
+                    type="button"
+                    onClick={fitWallToContent}
+                    aria-label="Fit Wall to content"
+                    title="Fit Wall to content"
+                    className="border-edge bg-surface-secondary text-content hover:bg-surface-tertiary focus:ring-ring absolute bottom-4 right-40 rounded border px-2.5 py-1 text-xs font-medium shadow-sm focus:outline-none focus:ring-2"
+                  >
+                    ⌖ Fit
+                  </button>
+                  <div className="absolute bottom-4 right-4 pointer-events-auto">
+                    <Minimap
+                      hubs={hubs}
+                      zoom={wallZoom}
+                      pan={wallPan}
+                      onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
+                      processMap={processMap}
+                      groupByTributary={Boolean(processMap && wallGroupByTributary)}
+                    />
+                  </div>
+                  <CommandPalette
+                    open={wallPaletteOpen}
+                    onClose={() => setWallPaletteOpen(false)}
+                    onPanTo={handleWallPanToNode}
+                    hubs={hubs}
+                    findings={findingsState.findings}
+                  />
+                </>
+              )}
             </div>
           )}
         </div>
