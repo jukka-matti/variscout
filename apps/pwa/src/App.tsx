@@ -184,6 +184,7 @@ function AppMain() {
   const activeIPContext = useActiveIPContext(sessionHub);
   const clearScope = useAnalysisScopeStore(s => s.clearScope);
   useClearScopeOnIPSwitch(activeIPContext.activeIP?.id ?? null, clearScope);
+  const wallViewMode = useCanvasViewportStore(s => s.viewMode);
 
   // ── Zustand store selectors (replaces useDataStateCtx) ──────────────────
   const rawData = useProjectStore(s => s.rawData);
@@ -1184,6 +1185,7 @@ function AppMain() {
         cadenceOwner: projectsControlRecord?.owner?.displayName,
       }
     : undefined;
+  const isAnalyzeWallCanvasFirst = panels.activeView === 'analyze' && wallViewMode === 'wall';
 
   // Full-page What-If Simulator
   if (panels.isWhatIfPageOpen) {
@@ -1316,6 +1318,7 @@ function AppMain() {
       {rawData.length > 0 &&
         // First-session spec §1: embeds are exempt from the journey spine chrome.
         !isEmbedMode &&
+        !isAnalyzeWallCanvasFirst &&
         !importFlow.isPasteMode &&
         !importFlow.isManualEntry &&
         !importFlow.isMapping &&
@@ -1740,7 +1743,7 @@ function AppMain() {
       </Suspense>
 
       {/* Hide footer in embed mode */}
-      {!isEmbedMode && (
+      {!isEmbedMode && !isAnalyzeWallCanvasFirst && (
         <AppFooter filteredCount={filteredData.length} totalCount={rawData.length} />
       )}
 

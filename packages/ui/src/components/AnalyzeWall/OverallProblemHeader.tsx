@@ -37,10 +37,10 @@ export function OverallProblemHeader({
   return (
     <section
       aria-label="Overall problem"
-      className="border-b border-edge bg-surface px-3 py-2"
+      className="border-b border-edge bg-surface px-3 py-1"
       data-testid="overall-problem-header"
     >
-      <div className="grid gap-2 text-xs text-content-secondary md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto]">
+      <div className="grid gap-1 text-xs text-content-secondary md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto]">
         <div className="min-w-0">
           <div className="font-medium uppercase tracking-normal text-content-tertiary">Issue</div>
           <div className="truncate text-content">{issue}</div>

@@ -549,7 +549,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">
-      {activeIPScope ? (
+      {activeIPScope && wallViewMode !== 'wall' ? (
         <ActiveIPScopeRibbon
           title={activeIPScope.title}
           labels={activeIPScope.labels}
