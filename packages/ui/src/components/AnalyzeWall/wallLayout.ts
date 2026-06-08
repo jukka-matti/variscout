@@ -369,7 +369,14 @@ export function computeReadableWallContentBBox(layout: WallLayout): WallContentB
     return { x: 0, y: 0, width: DEFAULT_CANVAS_W, height: DEFAULT_CANVAS_H };
   }
 
-  const boxes: Array<{ left: number; top: number; right: number; bottom: number }> = [];
+  const boxes: Array<{ left: number; top: number; right: number; bottom: number }> = [
+    {
+      left: layout.scopeAnchor.x - SCOPE_CARD_W / 2,
+      top: layout.scopeAnchor.y,
+      right: layout.scopeAnchor.x + SCOPE_CARD_W / 2,
+      bottom: layout.scopeAnchor.y + SCOPE_CARD_H,
+    },
+  ];
 
   for (const pos of layout.hubPositions.values()) {
     boxes.push({

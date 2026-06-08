@@ -120,7 +120,8 @@ describe('computeWallContentBBox', () => {
     const readableBBox = computeReadableWallContentBBox(layout);
 
     expect(fullBBox.height).toBeGreaterThan(1000);
-    expect(readableBBox.height).toBeLessThan(700);
+    expect(readableBBox.height).toBeLessThan(900);
+    expect(readableBBox.y).toBeLessThanOrEqual(-40);
     expect(readableBBox.y + readableBBox.height).toBeLessThan(
       layout.factorPositions.get('Shift')!.y
     );
@@ -144,7 +145,8 @@ describe('computeWallContentBBox', () => {
     const bbox = computeReadableWallContentBBox(layout);
 
     expect(bbox).not.toEqual({ x: 0, y: 0, width: CANVAS_W, height: CANVAS_H });
-    expect(bbox.height).toBeLessThan(300);
+    expect(bbox.height).toBeLessThan(500);
+    expect(bbox.y).toBeLessThanOrEqual(-40);
     expect(bbox.x).toBeLessThanOrEqual(0);
   });
 });

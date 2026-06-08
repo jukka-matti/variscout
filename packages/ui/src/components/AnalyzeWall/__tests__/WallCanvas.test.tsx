@@ -733,9 +733,10 @@ describe('WallCanvas', () => {
       const client = { width: 1000, height: 700 };
       const effectiveScale = Math.min(client.width / viewBox.width, client.height / viewBox.height);
 
-      expect(contentBBox.height).toBeLessThan(700);
-      expect(viewBox.height).toBeLessThan(700);
-      expect(effectiveScale).toBeGreaterThanOrEqual(1);
+      expect(contentBBox.y).toBeLessThanOrEqual(-40);
+      expect(contentBBox.height).toBeLessThan(900);
+      expect(viewBox.height).toBeLessThan(900);
+      expect(effectiveScale).toBeGreaterThanOrEqual(0.75);
     });
 
     it('ignores stale zoom-out state below fitted scale for populated destination Walls', () => {
