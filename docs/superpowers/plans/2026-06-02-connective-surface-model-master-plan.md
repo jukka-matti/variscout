@@ -206,6 +206,7 @@ layer: spec
 - **Acceptance:** Process tab shows the canvas + per-step capability, no cadence rollup, no empty slots, single coherent surface; gate green.
 - **Spec ref:** §2A.1, §2A.5.
 - **Sub-plan:** [`2026-06-03-cs-p1-process-orient-foundation.md`](2026-06-03-cs-p1-process-orient-foundation.md). **Scope refined by grounding → foundation-only:** the cadence rollup / two-tab / per-step capability live in the portfolio Dashboard's `ProcessHubView`, not the editor canvas Process tab (which already has the L1/L2/L3 spine + L1 "are we capable?"); and per-step capability needs CS-P3 authoring to be non-empty. So CS-P1 sheds the cadence rollup (lifting Control out) + collapses the two-tab + gates the empty temporal row; the per-step-capability **lift onto the editor canvas moves to CS-P2** (which retires the Dashboard 2×2). See `decision-log.md` §3 + spec §2A grounding-correction.
+- **DELIVERED via PR #289.** ⚠️ **CS-P1's "hide-not-extract / preserve the V1 keeps" stance is SUPERSEDED by PO-3 (#300, 2026-06-05):** PO-3 was the §9 follow-up CS-P1 pointed at — it fully **retired `ProcessHubReviewPanel` + the state-item UI and deleted the cadence engines from core** (`ProcessHubView` is now a thin ~138-line host). So when authoring CS-P2+, **ground against current main** (review surface + cadence engines already gone), NOT against CS-P1's preserved-keeps assumption. No replay/reconcile needed — convergence, not conflict. Drift flagged 2026-06-08.
 
 ### PR-CS-P2 · Connected per-step boxplot + own-values harmonized spec-aware scaling + Values⇄Capability
 
