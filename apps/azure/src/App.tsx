@@ -20,7 +20,7 @@ import { AppHeader } from './components/AppHeader';
 import { Activity } from 'lucide-react';
 import { parseDeepLink, validateDeepLink, type DeepLinkParams } from './services/deepLinks';
 import { trackException } from './lib/appInsights';
-import type { SampleDataset } from '@variscout/data';
+import { SAMPLES, type SampleDataset } from '@variscout/data';
 
 type View = 'dashboard' | 'editor' | 'admin';
 
@@ -185,7 +185,11 @@ function AppContent({
   const [currentView, setCurrentView] = useState<View>('editor');
   const [currentProject, setCurrentProject] = useState<string | null>(null);
   const [pendingProcessHubId, setPendingProcessHubId] = useState<string | null>(null);
-  const [pendingSample, setPendingSample] = useState<SampleDataset | null>(null);
+  const initialSample = useMemo<SampleDataset | null>(() => {
+    const sampleKey = new URLSearchParams(window.location.search).get('sample');
+    return sampleKey ? (SAMPLES.find(sample => sample.urlKey === sampleKey) ?? null) : null;
+  }, []);
+  const [pendingSample, setPendingSample] = useState<SampleDataset | null>(initialSample);
   // When true, Editor mounts directly into PasteScreen (used by "Add framing" CTA).
   // Reset to false once consumed so subsequent navigations don't re-trigger paste.
   const [pendingStartPaste, setPendingStartPaste] = useState(false);
