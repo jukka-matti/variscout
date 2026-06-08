@@ -12,6 +12,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   computeWallContentBBox,
+  computeReadableWallContentBBox,
   computeWallLayout,
   formatWallViewBox,
   type WallLayoutArgs,
@@ -104,6 +105,47 @@ describe('computeWallContentBBox', () => {
     });
 
     expect(bbox).toEqual({ x: 0, y: 0, width: CANVAS_W, height: CANVAS_H });
+  });
+
+  it('computes a readable populated bbox from occupied hub and finding rows', () => {
+    const layout = computeWallLayout(
+      baseArgs({
+        hubs: [{ id: 'h1', findingIds: ['f1'], counterFindingIds: [] }],
+        findings: [{ id: 'f1' }],
+        factors: [{ key: 'Shift', contribution: 0.8 }],
+      })
+    );
+
+    const fullBBox = computeWallContentBBox(layout);
+    const readableBBox = computeReadableWallContentBBox(layout);
+
+    expect(fullBBox.height).toBeGreaterThan(1000);
+    expect(readableBBox.height).toBeLessThan(700);
+    expect(readableBBox.y + readableBBox.height).toBeLessThan(
+      layout.factorPositions.get('Shift')!.y
+    );
+
+    const hub = layout.hubPositions.get('h1')!;
+    expect(readableBBox.x).toBeLessThanOrEqual(hub.x - 140 - 80);
+    expect(readableBBox.y + readableBBox.height).toBeGreaterThanOrEqual(hub.y + 288 + 80);
+
+    const linkedFinding = layout.findingPositions.get('f1')!;
+    expect(readableBBox.x).toBeLessThanOrEqual(linkedFinding.x - 110 - 80);
+  });
+
+  it('uses orphan findings as occupied content for readable arrival bboxes', () => {
+    const layout = computeWallLayout(
+      baseArgs({
+        hubs: [],
+        findings: [{ id: 'orphan-1' }],
+      })
+    );
+
+    const bbox = computeReadableWallContentBBox(layout);
+
+    expect(bbox).not.toEqual({ x: 0, y: 0, width: CANVAS_W, height: CANVAS_H });
+    expect(bbox.height).toBeLessThan(300);
+    expect(bbox.x).toBeLessThanOrEqual(0);
   });
 });
 
