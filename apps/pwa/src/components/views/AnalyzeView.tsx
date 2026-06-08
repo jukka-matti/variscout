@@ -3,7 +3,7 @@
  *
  * Simplified version of Azure's AnalyzeWorkspace:
  * - Left panel: AnalyzeConclusion (hub composer)
- * - Center: Map/Wall toggle → FindingsLog (list/board) | WallCanvas (hubs+findings)
+ * - Center: Wall / Findings / Causes lenses
  * - No CoScout (PWA has no AI)
  * - No Teams integration (no photos, no assignees)
  * - 3-status findings (not 5)
@@ -29,13 +29,6 @@ import {
   useWallKeyboard,
   useWallIsMobile,
 } from '@variscout/ui';
-import { EvidenceMap } from '@variscout/charts';
-import { useEvidenceMapData } from '@variscout/hooks';
-import {
-  computeBestSubsets,
-  computeMainEffects,
-  computeInteractionEffects,
-} from '@variscout/core/stats';
 import type { ActiveIPScopeLabels } from '@variscout/ui';
 import { useResizablePanel, useReturnNavigation } from '@variscout/hooks';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
@@ -116,7 +109,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
 }) => {
   const highlightedFindingId = useFindingsStore(s => s.highlightedFindingId);
 
-  // Map/Wall sub-toggle (mirrors Azure AnalyzeWorkspace)
+  // Wall/Causes/Findings lens state. Persisted 'map' is treated as Findings.
   const wallViewMode = useCanvasViewportStore(s => s.viewMode);
   const setWallViewMode = useCanvasViewportStore(s => s.setViewMode);
   // Phase 13 scale features — thread store values into WallCanvas so zoom,
@@ -189,51 +182,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
 
   // View mode (list/board) for the findings list.
   const [viewMode, setViewMode] = useState<'list' | 'board'>('board');
-
-  // PR-CS-7 (parity): the Map view hosts two content panes — the findings list
-  // and the Evidence Map (Layer 1 statistical constellation). The findings list
-  // stays reachable; this switch only governs the Map-view body.
-  const [mapContent, setMapContent] = useState<'findings' | 'evidence-map'>('findings');
-
-  // ── PR-CS-7: Evidence Map (Layer 1) inputs computed locally ──────────────
-  // Mirrors MobileDashboard: best-subsets / main-effects / interactions over the
-  // scoped data. Layer 1 always renders (gated on a meaningful model). Layers 2/3
-  // SELF-SUPPRESS because we never pass causalLinks / hypotheses to the hook, so
-  // `causalEdges` / `convergencePoints` come back empty — the data-presence gate
-  // (charts/CLAUDE.md), not a tier flag.
-  const hasFactorIntelligence = factors.length >= 2 && !!outcome && filteredData.length > 0;
-  const mapRows = filteredData as unknown as DataRow[];
-  const bestSubsets = useMemo(
-    () => (hasFactorIntelligence ? computeBestSubsets(mapRows, outcome!, factors) : null),
-    [hasFactorIntelligence, mapRows, outcome, factors]
-  );
-  const mainEffects = useMemo(
-    () => (hasFactorIntelligence ? computeMainEffects(mapRows, outcome!, factors) : null),
-    [hasFactorIntelligence, mapRows, outcome, factors]
-  );
-  const interactionEffects = useMemo(
-    () => (hasFactorIntelligence ? computeInteractionEffects(mapRows, outcome!, factors) : null),
-    [hasFactorIntelligence, mapRows, outcome, factors]
-  );
-  const bestModel = bestSubsets?.subsets[0];
-  const showEvidenceMap = !!bestModel && bestModel.rSquaredAdj > 0.05;
-  const evidenceMapData = useEvidenceMapData({
-    bestSubsets: showEvidenceMap ? bestSubsets : null,
-    mainEffects: showEvidenceMap ? mainEffects : null,
-    interactions: showEvidenceMap ? interactionEffects : null,
-    // Layout positions are computed at a reference size; the responsive wrapper +
-    // zoom transform in EvidenceMap handle actual viewport fitting (mirrors
-    // MobileDashboard). NO causalLinks / hypotheses → Layers 2/3 self-suppress.
-    containerSize: { width: 600, height: 400 },
-    mode: 'standard',
-  });
-  // When the Evidence Map has nothing to show (no model), fall back to the
-  // findings list so the Map view never renders an empty graph pane.
-  const mapContentResolved =
-    mapContent === 'evidence-map' && showEvidenceMap ? 'evidence-map' : 'findings';
-  const isDark = useRef(
-    typeof window !== 'undefined' && window.localStorage.getItem('variscout_theme') === 'dark'
-  ).current;
 
   // Phase 13 — ⌘K command palette trigger. Only active when Wall is visible.
   // Phase 14.1 — Minimap + palette gate on desktop only; MobileCardList
@@ -594,81 +542,39 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
           </div>
         ) : null}
 
-        {/* Center: Map/Wall toggle + content */}
+        {/* Center: Wall / Findings / Causes lenses */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
           {/* Header toolbar */}
           {wallViewMode !== 'wall' ? (
             <div className="flex items-center gap-1 px-3 py-2 border-b border-edge bg-surface flex-shrink-0">
-              {/* Map/Wall primary toggle */}
               <div
                 role="group"
                 aria-label="Analyze view mode"
                 className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
               >
-                {(['map', 'wall', 'causes'] as const).map(mode => (
-                  <button
-                    key={mode}
-                    type="button"
-                    aria-pressed={wallViewMode === mode}
-                    onClick={() => setWallViewMode(mode)}
-                    className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                      wallViewMode === mode
-                        ? 'bg-surface-secondary text-content'
-                        : 'text-content-secondary hover:text-content'
-                    }`}
-                  >
-                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                  </button>
-                ))}
-              </div>
-
-              {/* Map-view content switch: Findings list vs Evidence Map (Layer 1).
-                PR-CS-7 parity — the findings list stays reachable; the Evidence
-                Map button is disabled until best-subsets has a meaningful model. */}
-              {wallViewMode === 'map' && (
-                <>
-                  <div className="w-px h-4 bg-edge mx-1" />
-                  <div
-                    role="group"
-                    aria-label="Map content"
-                    className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
-                  >
+                {(['map', 'wall', 'causes'] as const).map(mode => {
+                  const label =
+                    mode === 'map' ? 'Findings' : mode.charAt(0).toUpperCase() + mode.slice(1);
+                  return (
                     <button
+                      key={mode}
                       type="button"
-                      aria-pressed={mapContentResolved === 'findings'}
-                      onClick={() => setMapContent('findings')}
+                      aria-pressed={wallViewMode === mode}
+                      onClick={() => setWallViewMode(mode)}
                       className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                        mapContentResolved === 'findings'
+                        wallViewMode === mode
                           ? 'bg-surface-secondary text-content'
                           : 'text-content-secondary hover:text-content'
                       }`}
                     >
-                      Findings
+                      {label}
                     </button>
-                    <button
-                      type="button"
-                      aria-pressed={mapContentResolved === 'evidence-map'}
-                      disabled={!showEvidenceMap}
-                      onClick={() => setMapContent('evidence-map')}
-                      className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                        mapContentResolved === 'evidence-map'
-                          ? 'bg-surface-secondary text-content'
-                          : 'text-content-secondary hover:text-content disabled:opacity-40 disabled:hover:text-content-secondary'
-                      }`}
-                      title={
-                        showEvidenceMap
-                          ? undefined
-                          : 'Select 2+ factors with a meaningful model to see the Evidence Map'
-                      }
-                    >
-                      Evidence Map
-                    </button>
-                  </div>
-                </>
-              )}
+                  );
+                })}
+              </div>
 
-              {/* List/board sub-toggle (only in the Map/Findings list pane) */}
-              {wallViewMode === 'map' && mapContentResolved === 'findings' && (
+              {/* List/board sub-toggle (only in Findings) */}
+              {wallViewMode === 'map' && (
                 <>
                   <div className="w-px h-4 bg-edge mx-1" />
                   {(['list', 'board'] as const).map(mode => (
@@ -728,22 +634,35 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                     aria-label="Analyze view mode"
                     className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
                   >
-                    {(['map', 'wall', 'causes'] as const).map(mode => (
-                      <button
-                        key={mode}
-                        type="button"
-                        aria-pressed={wallViewMode === mode}
-                        onClick={() => setWallViewMode(mode)}
-                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                          wallViewMode === mode
-                            ? 'bg-surface-secondary text-content'
-                            : 'text-content-secondary hover:text-content'
-                        }`}
-                      >
-                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                      </button>
-                    ))}
+                    {(['map', 'wall', 'causes'] as const).map(mode => {
+                      const label =
+                        mode === 'map' ? 'Findings' : mode.charAt(0).toUpperCase() + mode.slice(1);
+                      return (
+                        <button
+                          key={mode}
+                          type="button"
+                          aria-pressed={wallViewMode === mode}
+                          onClick={() => setWallViewMode(mode)}
+                          className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                            wallViewMode === mode
+                              ? 'bg-surface-secondary text-content'
+                              : 'text-content-secondary hover:text-content'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {canReturnToImprovementProject && (
+                    <button
+                      type="button"
+                      onClick={handleReturnToImprovementProject}
+                      className="rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      Back to Project
+                    </button>
+                  )}
                   {processMap ? (
                     <button
                       type="button"
@@ -832,21 +751,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
               now={Date.now()}
               onFocusHub={handleFocusCauseFromMatrix}
             />
-          ) : mapContentResolved === 'evidence-map' ? (
-            // PR-CS-7 (parity): the Evidence Map graph (Layer 1 statistical
-            // constellation). The responsive `EvidenceMap` wrapper auto-sizes via
-            // withParentSize; the host fills the pane. Layers 2/3 self-suppress
-            // (no causal/convergence data passed to the hook).
-            <div className="flex-1 min-h-0" data-testid="analyze-evidence-map">
-              <EvidenceMap
-                outcomeNode={evidenceMapData.outcomeNode}
-                factorNodes={evidenceMapData.factorNodes}
-                relationshipEdges={evidenceMapData.relationshipEdges}
-                equation={evidenceMapData.equation}
-                enableZoom={true}
-                isDark={isDark}
-              />
-            </div>
           ) : (
             <div className="flex-1 overflow-y-auto px-3 py-2">
               <FindingsLog
