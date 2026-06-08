@@ -3,6 +3,7 @@ import {
   AnalyzeConclusion,
   FindingsLog,
   WallCanvas,
+  CausesMatrix,
   ScopeRail,
   CommandPalette,
   Minimap,
@@ -786,11 +787,19 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // the Minimap + command palette use, so the target always lands on the rendered
   // card. Gated on `wallViewMode === 'wall'` so we don't pan an invisible Wall.
   const focusedWallEntityId = useViewStore(s => s.focusedWallEntityId);
+  const setFocusedWallEntity = useViewStore(s => s.setFocusedWallEntity);
   useEffect(() => {
     if (wallViewMode !== 'wall') return;
     if (!focusedWallEntityId) return;
     handleWallPanToNode(focusedWallEntityId);
   }, [focusedWallEntityId, wallViewMode, handleWallPanToNode]);
+  const handleFocusCauseFromMatrix = useCallback(
+    (hubId: string) => {
+      setFocusedWallEntity(hubId);
+      setWallViewMode('wall');
+    },
+    [setFocusedWallEntity, setWallViewMode]
+  );
 
   const handleReturnToImprovementProject = useCallback(() => {
     const target = returnNavigation.consumeReturnTarget();
@@ -1179,7 +1188,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   aria-label="Analyze view mode"
                   className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
                 >
-                  {(['map', 'wall'] as const).map(mode => (
+                  {(['map', 'wall', 'causes'] as const).map(mode => (
                     <button
                       key={mode}
                       type="button"
@@ -1324,6 +1333,14 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   </>
                 )}
               </div>
+            ) : wallViewMode === 'causes' ? (
+              <CausesMatrix
+                hubs={hubs}
+                findings={findingsState.findings}
+                plans={enrichedPlanningProps?.plans ?? []}
+                now={Date.now()}
+                onFocusHub={handleFocusCauseFromMatrix}
+              />
             ) : (
               <AnalyzeMapView
                 mapOptions={{
