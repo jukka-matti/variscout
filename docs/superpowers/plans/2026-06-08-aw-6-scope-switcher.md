@@ -1,3 +1,20 @@
+---
+tier: ephemeral
+purpose: build
+title: 'AW-6 Scope Switcher implementation sub-plan'
+audience: human
+status: active
+date: 2026-06-08
+layer: spec
+topic: [analyze, wall, scope, switcher, wedge-v1]
+related:
+  - docs/superpowers/plans/2026-06-08-analyze-wall-redesign-master-plan.md
+  - docs/superpowers/specs/2026-06-08-analyze-wall-redesign-design.md
+  - docs/superpowers/plans/2026-06-08-aw-5-scope-findings.md
+implements:
+  - docs/03-features/workflows/analyze-wall.md
+---
+
 # AW-6 Scope Switcher Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -41,6 +58,7 @@
 ## Task 1: Reframe the Shared Scope UI
 
 **Files:**
+
 - Modify: `packages/ui/src/components/AnalyzeWall/ScopeRail.tsx`
 - Modify: `packages/ui/src/components/AnalyzeWall/__tests__/ScopeRail.test.tsx`
 
@@ -57,7 +75,9 @@ it('shows the active scope as the current scope anchor', () => {
 });
 
 it('labels flat siblings without lineage wording', () => {
-  render(<ScopeRail {...makeProps({ scopes: [scopeA, scopeB, scopeC], activeScopeId: scopeA.id })} />);
+  render(
+    <ScopeRail {...makeProps({ scopes: [scopeA, scopeB, scopeC], activeScopeId: scopeA.id })} />
+  );
   expect(screen.getByTestId('scope-switcher')).toHaveTextContent('3 scopes');
   expect(screen.queryByText(/lineage/i)).toBeNull();
   expect(screen.queryByText(/breadcrumb/i)).toBeNull();
@@ -86,6 +106,7 @@ const scopeCountLabel = `${scopes.length} scope${scopes.length === 1 ? '' : 's'}
 ```
 
 Render a compact container with:
+
 - `data-testid="scope-current-anchor"` for the active condition.
 - `data-testid="scope-switcher"` wrapping the sibling scope buttons.
 - Existing `scope-chip-${scope.id}` buttons for switching.
@@ -132,6 +153,7 @@ git commit -m "feat(ui): reframe scope rail as current scope switcher"
 ## Task 2: Wire Azure to the Reframed Switcher
 
 **Files:**
+
 - Modify: `apps/azure/src/components/editor/AnalyzeWorkspace.tsx`
 - Modify: `apps/azure/src/components/editor/__tests__/AnalyzeWorkspace.mapwall.test.tsx`
 
@@ -192,6 +214,7 @@ git commit -m "feat(azure): show current scope switcher on analyze wall"
 ## Task 3: Add PWA Scope Switcher Parity
 
 **Files:**
+
 - Modify: `apps/pwa/src/components/views/AnalyzeView.tsx`
 - Modify: `apps/pwa/src/components/views/__tests__/AnalyzeView.mapwall.test.tsx`
 
@@ -247,10 +270,7 @@ In `AnalyzeView.tsx`, add a `railScopes` memo analogous to Azure:
 const railScopes = useMemo(
   () =>
     scopes.filter(
-      scope =>
-        !scope.deletedAt &&
-        scope.projectId === scopeProjectId &&
-        scope.outcome === outcome
+      scope => !scope.deletedAt && scope.projectId === scopeProjectId && scope.outcome === outcome
     ),
   [outcome, scopes, scopeProjectId]
 );
@@ -298,16 +318,18 @@ scopeBranchCount={railScopes.length}
 Inside the `wallViewMode === 'wall'` canvas shell, before floating controls:
 
 ```tsx
-{!wallIsMobile && railScopes.length > 0 && (
-  <div className="border-edge bg-surface-secondary/40 border-b px-3 py-2">
-    <ScopeRail
-      scopes={railScopes}
-      activeScopeId={activeScope?.id}
-      onScopeSelect={handleScopeSelect}
-      onScopeArchive={handleScopeArchive}
-    />
-  </div>
-)}
+{
+  !wallIsMobile && railScopes.length > 0 && (
+    <div className="border-edge bg-surface-secondary/40 border-b px-3 py-2">
+      <ScopeRail
+        scopes={railScopes}
+        activeScopeId={activeScope?.id}
+        onScopeSelect={handleScopeSelect}
+        onScopeArchive={handleScopeArchive}
+      />
+    </div>
+  );
+}
 ```
 
 - [ ] **Step 5: Run PWA focused test**
@@ -339,6 +361,7 @@ git commit -m "feat(pwa): add analyze wall scope switcher"
 ## Task 4: Documentation and Verification Evidence
 
 **Files:**
+
 - Modify: `docs/superpowers/plans/2026-06-08-analyze-wall-redesign-master-plan.md`
 - Create optional screenshots after browser verification:
   - `docs/superpowers/plans/2026-06-08-aw-6-pwa-scope-switcher.png`
@@ -370,6 +393,7 @@ pnpm --filter @variscout/azure-app dev --host 127.0.0.1 --port 5174
 ```
 
 Use browser verification against:
+
 - `http://127.0.0.1:5173/?sample=analyze-showcase`
 - `http://127.0.0.1:5174/?sample=analyze-showcase`
 
@@ -414,6 +438,7 @@ git push -u origin feat/aw-6-scope-switcher
 - [ ] **Step 2: Create PR**
 
 Create a ready PR summarizing:
+
 - shared `ScopeRail` reframed as current-scope switcher
 - Azure switcher seam preserved
 - PWA parity added
