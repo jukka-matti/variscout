@@ -91,14 +91,26 @@ vi.mock('@variscout/ui', async importOriginal => {
     QuestionLinkPrompt: () => null,
     useWallIsMobile: () => false,
     WallCanvas: (props: {
-      hubs: unknown[];
+      hubs: Array<{ id: string; name?: string }>;
       planningProps?: Record<string, unknown>;
       onWriteHypothesis?: () => void;
       onSeedFromFactorIntel?: () => void;
+      onSelectHub?: (id: string) => void;
     }) => {
       capturedWallCanvasProps.current = props as Record<string, unknown>;
       return props.hubs.length > 0 ? (
-        <div data-testid="wall-canvas" data-has-process-map={String('processMap' in props)} />
+        <div data-testid="wall-canvas" data-has-process-map={String('processMap' in props)}>
+          {props.hubs.map(hub => (
+            <button
+              key={hub.id}
+              type="button"
+              data-testid={`mock-wall-select-${hub.id}`}
+              onClick={() => props.onSelectHub?.(hub.id)}
+            >
+              {hub.name ?? hub.id}
+            </button>
+          ))}
+        </div>
       ) : (
         <div data-testid="wall-canvas-empty" data-has-process-map={String('processMap' in props)}>
           {props.onWriteHypothesis && (
@@ -500,6 +512,33 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
     expect(screen.getByTestId('analyze-wall-canvas-shell')).toBeInTheDocument();
     expect(screen.getByTestId('analyze-wall-floating-controls')).toBeInTheDocument();
     expect(screen.queryByTestId('analyze-left-conclusion-rail')).not.toBeInTheDocument();
+  });
+
+  it('opens the object detail drawer when a Wall cause is selected', () => {
+    const finding = createFinding('Temperature spike on night shift', {}, null);
+    const hub = {
+      ...createHypothesis('Nozzle runs hot', 'Heat aligns with the defect window.', [finding.id]),
+      id: 'h-hot',
+      comments: [],
+    };
+    const props = makeMinimalProps();
+    props.findingsState = { ...props.findingsState, findings: [finding] } as never;
+    props.hypothesesState = {
+      ...props.hypothesesState,
+      hubs: [hub],
+      addComment: vi.fn(),
+      editComment: vi.fn(),
+      deleteComment: vi.fn(),
+    } as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+    fireEvent.click(screen.getByTestId('mock-wall-select-h-hot'));
+
+    expect(screen.getByTestId('object-detail-drawer')).toHaveTextContent('Suspected cause');
+    expect(screen.getByTestId('object-detail-title')).toHaveTextContent('Nozzle runs hot');
+    expect(screen.getByRole('tab', { name: 'Evidence' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Comments' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Activity' })).toBeInTheDocument();
   });
 
   it('filters Wall findings to the active scope while leaving other scope findings out', () => {

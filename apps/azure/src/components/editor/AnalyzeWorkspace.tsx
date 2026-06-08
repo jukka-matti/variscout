@@ -5,6 +5,7 @@ import {
   WallCanvas,
   CausesMatrix,
   ScopeRail,
+  ObjectDetailDrawer,
   CommandPalette,
   Minimap,
   CANVAS_W,
@@ -71,7 +72,7 @@ import {
   selectFindingsForScope,
 } from '@variscout/stores';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
-import type { CapturedModelSnapshot } from '@variscout/ui';
+import type { CapturedModelSnapshot, ObjectDetailSelection } from '@variscout/ui';
 import type { FindingProjection } from '@variscout/core';
 import { CoScoutSection } from './CoScoutSection';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
@@ -580,6 +581,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // so we gate their mount on the same breakpoint.
   const wallIsMobile = useWallIsMobile();
   const [conclusionsOpen, setConclusionsOpen] = useState(false);
+  const [selectedWallObject, setSelectedWallObject] = useState<ObjectDetailSelection | null>(null);
+  const [objectDetailOpen, setObjectDetailOpen] = useState(false);
   const fitWallToContent = useCallback(() => {
     useCanvasViewportStore.getState().fitToContent(wallHubId, 'l2', {
       zoom: 1,
@@ -691,6 +694,19 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const scopedFindings = useMemo(
     () => selectFindingsForScope(findingsState.findings, activeScope?.id),
     [findingsState.findings, activeScope?.id]
+  );
+  const handleSelectWallObject = useCallback(
+    (id: string) => {
+      const kind: ObjectDetailSelection['kind'] | null = hubs.some(hub => hub.id === id)
+        ? 'cause'
+        : scopedFindings.some(finding => finding.id === id)
+          ? 'finding'
+          : null;
+      if (!kind) return;
+      setSelectedWallObject({ kind, id });
+      setObjectDetailOpen(true);
+    },
+    [hubs, scopedFindings]
   );
   const hasAppliedFindingsArrivalRef = useRef(false);
   useEffect(() => {
@@ -1309,7 +1325,29 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onSeedFromFactorIntel={factors.length > 0 ? handleSeedFromFactorIntel : undefined}
                 onProposeHypothesis={handleProposeHypothesis}
                 onExploreFactor={handleExploreFactor}
+                onSelectHub={handleSelectWallObject}
               />
+              {!wallIsMobile ? (
+                <ObjectDetailDrawer
+                  selectedObject={selectedWallObject}
+                  isOpen={objectDetailOpen}
+                  onOpenChange={setObjectDetailOpen}
+                  hubs={hubs}
+                  findings={scopedFindings}
+                  members={members}
+                  currentUserId={userId}
+                  onAddHubComment={enrichedPlanningProps?.onAddHubComment}
+                  onEditHubComment={enrichedPlanningProps?.onEditHubComment}
+                  onDeleteHubComment={enrichedPlanningProps?.onDeleteHubComment}
+                  onAddFindingComment={(id, text, attachment) =>
+                    handleAddCommentWithAuthor(id, text, attachment)
+                  }
+                  onEditFindingComment={findingsState.editFindingComment}
+                  onDeleteFindingComment={findingsState.deleteFindingComment}
+                  onAddFindingPhoto={handleAddPhoto}
+                  showAuthors={members.length > 0}
+                />
+              ) : null}
               {/* Minimap + CommandPalette are desktop-only. WallCanvas
                   self-gates to MobileCardList below 768px, so these
                   sibling controls would overlap the mobile list. */}
