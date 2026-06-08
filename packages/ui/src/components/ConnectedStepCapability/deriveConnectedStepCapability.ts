@@ -1,5 +1,6 @@
 import type { CapabilityBoxplotNode, StepErrorParetoStep } from '@variscout/charts';
 import type { CanvasStepCardModel } from '@variscout/hooks';
+import { calculateBoxplotStats, type BoxplotGroupData } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
 export type ConnectedStepCapabilityMode = 'capability' | 'values';
@@ -20,6 +21,7 @@ export interface ConnectedStepCapabilityValueModel {
 
 export interface ConnectedStepCapabilityCpkModel {
   values: number[];
+  boxplot: BoxplotGroupData | null;
   target?: number;
 }
 
@@ -59,6 +61,11 @@ function finiteNumbers(values: ReadonlyArray<unknown>): number[] {
 
 function capabilityValues(node: CapabilityBoxplotNode | undefined): number[] {
   return finiteNumbers((node?.result.perContextResults ?? []).map(result => result.cpk));
+}
+
+function capabilityBoxplot(label: string, values: readonly number[]): BoxplotGroupData | null {
+  if (values.length === 0) return null;
+  return calculateBoxplotStats({ group: label, values: [...values] });
 }
 
 function roundScaled(value: number): number {
@@ -162,6 +169,7 @@ export function deriveConnectedStepCapability({
         flag: flagFor({ card, node, values: cpkValues }),
         capability: {
           values: cpkValues,
+          boxplot: capabilityBoxplot(step.name, cpkValues),
           target: node?.targetCpk ?? card?.capability.target,
         },
         values: valueModel(card, valueRolesByStepId[step.id] ?? 'measure'),

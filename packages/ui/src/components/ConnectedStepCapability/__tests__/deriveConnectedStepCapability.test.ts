@@ -92,6 +92,26 @@ describe('deriveConnectedStepCapability', () => {
     expect(model.steps[0]?.flag).toBe('watch');
   });
 
+  it('derives five-number boxplot statistics from each step Cpk distribution', () => {
+    const model = deriveConnectedStepCapability({
+      map: mapWithSteps(),
+      mode: 'capability',
+      stepCards: [],
+      capabilityNodes: [
+        capabilityNode({ nodeId: 'mix', label: 'Mix', cpks: [0.8, 1.0, 1.2, 1.4, 1.6] }),
+      ],
+      errorSteps: [],
+    });
+
+    expect(model.steps[0]?.capability.boxplot).toMatchObject({
+      min: 0.8,
+      q1: 1,
+      median: 1.2,
+      q3: 1.4,
+      max: 1.6,
+    });
+  });
+
   it('keeps raw values while using two-sided specs as the harmonized spec window', () => {
     const model = deriveConnectedStepCapability({
       map: mapWithSteps(),

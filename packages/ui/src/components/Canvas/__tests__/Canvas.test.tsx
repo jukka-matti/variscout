@@ -452,6 +452,23 @@ describe('Canvas', () => {
     expect(screen.getByTestId('mock-step-pareto')).toBeInTheDocument();
   });
 
+  it('passes time value roles into the connected capability band for zero-baseline Values scaling', () => {
+    renderCanvas({
+      valueRolesByStepId: { 'step-1': 'time' },
+      stepCards: [
+        {
+          ...baseStepCards[0],
+          values: [10, 20, 30],
+          specs: { lsl: 12, usl: 28, target: 20 },
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Values' }));
+
+    expect(screen.getByTestId('connected-step-box-step-1')).toHaveTextContent('zero baseline');
+  });
+
   it('renders the mobile Wall shortcut button only when on mobile, investigation content exists, and onOpenWall is wired', () => {
     wallIsMobileRef.current = true;
     hasInvestigationContentRef.current = false;

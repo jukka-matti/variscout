@@ -2796,9 +2796,10 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
       id: 'ip-capability',
       title: 'Line 4 overfill',
     });
+    canvasFiltersStateRef.current.timelineWindow = { kind: 'rolling', windowDays: 30 };
     const capabilityRows = [
-      { Mix_Temp: 64, Fill_Weight: 501 },
-      { Mix_Temp: 66, Fill_Weight: 505 },
+      { Timestamp: '2026-06-01T00:00:00.000Z', Mix_Temp: 64, Fill_Weight: 501 },
+      { Timestamp: '2026-06-02T00:00:00.000Z', Mix_Temp: 66, Fill_Weight: 505 },
     ];
     const capabilityMap: ProcessMap = {
       version: 1,
@@ -2829,6 +2830,8 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
       { nodeId: 'step-fill', measurementColumn: 'Fill_Weight' },
     ]);
     expect(input?.rowsByAnalyze.get('ip-capability')).toBe(capabilityRows);
+    expect(input?.window).toEqual({ kind: 'rolling', windowDays: 30 });
+    expect(input?.timeColumnByInvestigation?.get('ip-capability')).toBe('Timestamp');
   });
 
   // G1 Task 3 — bin chip surfaced in palette from activeIP.binnedFactorBindings

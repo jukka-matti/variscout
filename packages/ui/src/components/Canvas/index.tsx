@@ -68,7 +68,10 @@ import { sortedProcessSteps } from './internal/NoFocalStepPrompt';
 import { useWallIsMobile } from '../AnalyzeWall';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 import type { LogActionPayload } from '../QuickAction';
-import { ConnectedStepCapabilityView } from '../ConnectedStepCapability';
+import {
+  ConnectedStepCapabilityView,
+  type ConnectedStepValueRole,
+} from '../ConnectedStepCapability';
 
 /**
  * Canonical FRAME canvas surface.
@@ -208,6 +211,7 @@ export interface CanvasProps {
   onOpsModeChange?: (next: ProductionLineGlanceOpsMode) => void;
   onStepClick?: (nodeId: string) => void;
   stepCards?: CanvasStepCardModel[];
+  valueRolesByStepId?: Readonly<Record<string, ConnectedStepValueRole>>;
   activeLens?: CanvasLensId;
   onLensChange?: (next: CanvasLensId) => void;
   activeOverlays?: CanvasOverlayId[];
@@ -277,6 +281,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onPlaceChip,
   onCreateStepFromChip,
   stepCards = EMPTY_STEP_CARDS,
+  valueRolesByStepId,
   activeLens = 'default',
   onLensChange,
   activeOverlays = EMPTY_OVERLAYS,
@@ -579,6 +584,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         stepCards={stepCards}
         capabilityNodes={data.capabilityNodes}
         errorSteps={data.errorSteps}
+        valueRolesByStepId={valueRolesByStepId}
       />
 
       <section

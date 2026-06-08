@@ -499,6 +499,17 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     />
   );
 
+  const detected = React.useMemo(
+    () => (rawData.length > 0 ? detectColumns([...rawData]) : null),
+    [rawData]
+  );
+  const runOrderColumn = detected?.timeColumn ?? null;
+  const columnAnalysis = React.useMemo(() => detected?.columnAnalysis ?? [], [detected]);
+  const timeColumnByAnalyze = React.useMemo(() => {
+    if (!activeIP || !runOrderColumn) return undefined;
+    return new Map([[activeIP.id, runOrderColumn]]);
+  }, [activeIP, runOrderColumn]);
+
   const capabilitySource = React.useMemo(
     () =>
       buildEditorCapabilitySource({
@@ -516,6 +527,8 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     members: capabilitySource.members,
     rowsByAnalyze: capabilitySource.rowsByAnalyze,
     contextFilter: filter.value,
+    window: timelineWindow,
+    timeColumnByInvestigation: timeColumnByAnalyze,
   });
 
   const { cards: stepCards } = useCanvasStepCards({
@@ -534,12 +547,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     causalLinks,
   });
 
-  const detected = React.useMemo(
-    () => (rawData.length > 0 ? detectColumns([...rawData]) : null),
-    [rawData]
-  );
-  const runOrderColumn = detected?.timeColumn ?? null;
-  const columnAnalysis = React.useMemo(() => detected?.columnAnalysis ?? [], [detected]);
   const b0ModeCandidates = React.useMemo(
     () =>
       deriveB0ModeCandidates({
@@ -636,6 +643,25 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   // requires an active IP to be open). Defaults to [] when absent so the
   // derived-column memos stay stable.
   const binnedFactorBindings = activeIP?.binnedFactorBindings ?? [];
+
+  const valueRolesByStepId = React.useMemo(() => {
+    const roles: Record<string, 'time'> = {};
+    for (const binding of stepTimings) {
+      roles[binding.stepId] = 'time';
+    }
+    for (const card of stepCards) {
+      const metric = card.metricColumn?.toLowerCase() ?? '';
+      if (
+        metric.includes('time') ||
+        metric.includes('duration') ||
+        metric.includes('cycle') ||
+        metric.includes('wait')
+      ) {
+        roles[card.stepId] = 'time';
+      }
+    }
+    return roles;
+  }, [stepCards, stepTimings]);
 
   const [stepTimingsModalOpen, setStepTimingsModalOpen] = React.useState(false);
   const [calcModalOpen, setCalcModalOpen] = React.useState<{ sourceColumn?: string } | null>(null);
@@ -1253,6 +1279,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       showGaps={scope !== 'b0'}
       canvasFilterChips={canvasFilterChipsNode}
       stepCards={stepCards}
+      valueRolesByStepId={valueRolesByStepId}
       activeLens={activeCanvasLens}
       onLensChange={setActiveCanvasLens}
       activeOverlays={activeCanvasOverlays}
