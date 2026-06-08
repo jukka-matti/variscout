@@ -914,16 +914,16 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
   });
 });
 
-// ── IM-4b Task 5 — ScopeRail SEAM (production mount in AnalyzeWorkspace) ────────
+// ── AW-6 — current scope switcher seam (production mount in AnalyzeWorkspace) ───
 //
 // NOT an injected-prop ScopeRail unit test — renders the real AnalyzeWorkspace
 // (ScopeRail is preserved via `...actual` in the @variscout/ui mock; WallCanvas
-// is stubbed) and asserts the rail RENDERS from useAnalyzeStore.scopes and that
-// selecting a chip RE-ANCHORS by rewriting analysisScopeStore.categoricalFilters
+// is stubbed) and asserts the switcher RENDERS from useAnalyzeStore.scopes and
+// that selecting a chip RE-ANCHORS by rewriting analysisScopeStore.categoricalFilters
 // (which IM-4a's producer consumes to re-select the active scope / Problem card),
 // and archiving soft-deletes via analyzeStore.archiveScope.
 
-describe('AnalyzeWorkspace ScopeRail seam (IM-4b Task 5)', () => {
+describe('AnalyzeWorkspace current scope switcher seam (AW-6)', () => {
   const SCOPE_INV = 'general-unassigned'; // matches AnalyzeWorkspace.scopeProjectId
 
   const scopeA: ProblemStatementScope = {
@@ -962,7 +962,20 @@ describe('AnalyzeWorkspace ScopeRail seam (IM-4b Task 5)', () => {
     expect(screen.getByTestId('scope-chip-scope-a')).toHaveTextContent('Machine = B');
   });
 
-  it('does NOT render the rail when no scopes are captured', () => {
+  it('renders the active scope as the current scope switcher anchor', () => {
+    useProjectStore.setState({ outcome: 'Fill Weight' });
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'Machine', values: ['B'] }],
+    });
+
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+
+    expect(screen.getByTestId('scope-current-anchor')).toHaveTextContent('Current scope');
+    expect(screen.getByTestId('scope-current-anchor')).toHaveTextContent('Machine = B');
+    expect(screen.getByTestId('scope-switcher')).toHaveTextContent('2 scopes');
+  });
+
+  it('does NOT render the switcher when no scopes are captured', () => {
     useAnalyzeStore.setState({ scopes: [] });
     render(<AnalyzeWorkspace {...makeMinimalProps()} />);
     expect(screen.queryByTestId(/scope-chip-/)).toBeNull();

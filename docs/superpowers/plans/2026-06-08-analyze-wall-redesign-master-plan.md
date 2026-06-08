@@ -50,7 +50,7 @@ implements:
 |                                 | **AW-3**   | Legible gates (HOLDS, labeled)                                           | ✅            | — (fits AW-2)    |
 | **2 · Lens simplification**     | **AW-4**   | Demote the Evidence Map → land on Wall; Wall + Causes lenses             | ✅            | AW-2             |
 | **3 · Evidence layer + scope**  | **AW-5**   | Wire `Finding.scopeId` reader → findings-per-scope                       |               | —                |
-|                                 | **AW-6**   | Current scope + switcher (reframe ScopeRail; lineage trail dropped)      |               | AW-5, AW-2       |
+|                                 | **AW-6**   | [Current scope + switcher](2026-06-08-aw-6-scope-switcher.md) (reframe ScopeRail; lineage trail dropped) |               | AW-5, AW-2       |
 | **4 · Drawers**                 | **AW-7**   | Left object-detail drawer (Evidence/Comments/Activity, no-AI)            |               | AW-2             |
 |                                 | **AW-8**   | CoScout right-drawer slot (shell + tabs + `[REF]` hook; content = CS-14) |               | AW-2, AW-7       |
 | **5 · Explore handoff**         | **AW-9**   | Extend Analyze→Explore WHERE handoff (categorical, additive)             |               | **CS-15 merged** |
