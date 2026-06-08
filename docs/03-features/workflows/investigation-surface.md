@@ -5,8 +5,8 @@ title: 'Investigation Surface — the Analyze-tab spine'
 audience: both
 status: active
 date: 2026-06-02
-last-verified: 2026-06-02
-verified-against-commit: 1fcf1708
+last-verified: 2026-06-08
+verified-against-commit: 027927efe
 layer: L3
 kind: workflow
 topic: [investigation, analyze, scope, hypotheses, contribution, wedge-v1]
@@ -25,7 +25,9 @@ related:
 
 # Investigation Surface — the Analyze-tab spine
 
-The Analyze tab is one graph — `y = f(x)`: an **outcome (Y)** sharpened by a **scope (the WHERE)** and explained by **hypotheses (the WHY)**. There is no "Question" entity (retired, [ADR-085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md)); the spine is **scope-first drill → evidence → mechanisms**. The Wall and the Evidence Map are two projections of this one graph — see [analyze-wall.md](analyze-wall.md) for the surface.
+> Delivered update 2026-06-08 — the Analyze tab now defaults to the canvas-first Wall + Causes surface. Evidence Map remains an advanced/report graph projection; ADR-066 is amended accordingly.
+
+The Analyze tab is one graph — `y = f(x)`: an **outcome (Y)** sharpened by a **scope (the WHERE)** and explained by **hypotheses (the WHY)**. There is no "Question" entity (retired, [ADR-085](../../07-decisions/adr-085-drop-question-problem-statement-scope.md)); the spine is **scope-first drill → evidence → mechanisms**. The Wall is the default operational projection of this graph; the Evidence Map remains an advanced/report projection. See [analyze-wall.md](analyze-wall.md) for the shipped surface.
 
 ## Spine
 
@@ -66,7 +68,7 @@ The scope's `predicates` are the analyst-drilled **WHERE**. A hypothesis's `cond
 
 ## Contribution is level-native
 
-Contribution is reported in each level's **native share** routed by process level (Outcome `Y` / Flow `X` / Local `x`): η² for a factor's variance, Cpk-per-group, Pareto count-%, regression slope, VA%, bottleneck-seconds. There is **no bespoke cross-level "SS-share" number** and **no multiplied-η² chain** ([ADR-088](../../07-decisions/adr-088-level-native-contribution.md)). The one cross-level number is the **What-If "if-fixed" projection** (`computeScopeWhatIfProjection`) — a _simulation_ of impact, not a variance decomposition. Never "root cause" or "driver" — say **contribution**, "accounts for the spread" (P5).
+Contribution is reported in each level's **native share** routed by process level (Outcome `Y` / Flow `X` / Local `x`): η² for a factor's variance, Cpk-per-group, Pareto count-%, regression slope, VA%, bottleneck-seconds. There is **no bespoke cross-level "SS-share" number** and **no multiplied-η² chain** ([ADR-088](../../07-decisions/adr-088-level-native-contribution.md)). The one cross-level number is the **What-If "if-fixed" projection** (`computeScopeWhatIfProjection`) — a _simulation_ of impact, not a variance decomposition. Never imply causal certainty or say "driver" — say **contribution**, "accounts for the spread" (P5).
 
 ## Evaluate — the test-plan triad
 
@@ -95,11 +97,11 @@ Outstanding evidence is captured as a **Measurement Plan** (a Data Collection Pl
 
 ## Terminology
 
-**Supported / Counts-against** (status), **contributing factors**, **contribution** (not "root cause"/"driver"), **scope** (the WHERE), **hypothesis / suspected cause** (the WHY; a _role_, not a grouping entity), **survived / refuted / pending** (disconfirmation verdicts), **vital-few** (model-builder screening). The four CHANGE/FLOW/FAILURE/VALUE "lenses" are pedagogy — there is no mode or lens picker ([ADR-089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md)); the four charts are always-on. Values⇄Capability is the one specs-gated view (Cp/Cpk only).
+**Supported / Counts-against** (status), **contributing factors**, **contribution** (not causal certainty / not "driver"), **scope** (the WHERE), **hypothesis / suspected cause** (the WHY; a _role_, not a grouping entity), **survived / refuted / pending** (disconfirmation verdicts), **vital-few** (model-builder screening). The four CHANGE/FLOW/FAILURE/VALUE "lenses" are pedagogy — there is no mode or lens picker ([ADR-089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md)); the four charts are always-on. Values⇄Capability is the one specs-gated view (Cp/Cpk only).
 
 ## Not yet built (do not document as live)
 
-Child-scope recursion (V1 scopes are flat), the auto-link re-load cascade (re-ingest → auto-mint Findings → re-evaluate; post-IM-4), live presence/cursors, factor-family LOD + edge bundling. The ACH (argument/counter-argument) matrix was **dropped**, not deferred (one rival at a time by design).
+Child-scope recursion (V1 scopes are flat), the auto-link re-load cascade (re-ingest → auto-mint Findings → re-evaluate; post-IM-4), live presence/cursors, factor-family LOD + edge bundling, and numeric range handoff into chart filters. The ACH (argument/counter-argument) matrix was **dropped**, not deferred (one rival at a time by design).
 
 ## See also
 

@@ -3,7 +3,7 @@ tier: living
 purpose: build
 title: 'Analyze Wall redesign — master plan (canvas-first investigation wall)'
 audience: human
-status: active
+status: delivered
 date: 2026-06-08
 layer: spec
 topic: [analyze, wall, canvas-first, coscout, scope, miro, wedge-v1]
@@ -26,6 +26,8 @@ implements:
 **Tech Stack:** React + TypeScript, SVG canvas (`WallCanvas`), Zustand stores, Vitest + RTL (happy-dom), Tailwind v4, pnpm/turbo monorepo.
 
 **Canonical spec:** [`2026-06-08-analyze-wall-redesign-design.md`](../specs/2026-06-08-analyze-wall-redesign-design.md) §7 (chosen direction). Read it before any sub-plan.
+
+**Delivered:** PRs #338 through #348 landed AW-1 through AW-9; AW-DOC closed the ADR/documentation propagation on 2026-06-08.
 
 ---
 
@@ -54,7 +56,7 @@ implements:
 | **4 · Drawers**                 | **AW-7**   | [Left object-detail drawer](2026-06-08-aw-7-object-detail-drawer.md) (Evidence/Comments/Activity, no-AI)            |               | AW-2             |
 |                                 | **AW-8**   | [CoScout right-drawer slot](2026-06-08-aw-8-coscout-right-drawer.md) (shell + tabs + `[REF]` hook; content = CS-14) |               | AW-2, AW-7       |
 | **5 · Explore handoff**         | **AW-9**   | [Extend Analyze→Explore WHERE handoff](2026-06-08-aw-9-explore-where-handoff.md) (categorical, additive)            |               | **CS-15 merged** |
-| **Apply**                       | **AW-DOC** | Doc propagation + ADR-066 supersession + decision-log                                                               |               | the above land   |
+| **Apply**                       | **AW-DOC** | [Doc propagation + ADR-066 supersession + decision-log](2026-06-08-aw-doc-propagation.md)                           |               | the above land   |
 
 **Demo-minimum = Phase 1 + AW-4** (canvas-first, readable, legible gates, lands on the Wall). Phases 3–5 are depth and can follow the demo.
 

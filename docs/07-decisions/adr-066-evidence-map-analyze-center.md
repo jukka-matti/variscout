@@ -7,6 +7,8 @@ layer: L5
 
 # ADR-066: Evidence Map as Investigation Workspace Center
 
+> Accepted 2026-04-05 | Amended 2026-06-08 (see Amendments at bottom).
+
 ## Status
 
 Accepted — 2026-04-05
@@ -98,3 +100,19 @@ The 4-chart Watson EDA dashboard (I-Chart, Boxplot, Pareto, Stats) is unchanged.
 - `packages/core/src/ai/buildAIContext.ts` — evidenceMapTopology passthrough
 - `packages/ui/src/components/` — FactorPreviewOverlay, NodeContextMenu, CausalLinkCreator, ReportEvidenceMap
 - Design spec: `docs/archive/specs/2026-04-05-evidence-map-spine-design.md`
+
+## Amendment — 2026-06-08
+
+ADR-066 remains historical context for why the Evidence Map became a durable graph projection, but its "Evidence Map owns the Investigation workspace center" default is superseded for the Analyze tab by the delivered Analyze Wall redesign.
+
+Current state after AW-1 through AW-9:
+
+- Analyze lands on the canvas-first Investigation Wall.
+- The Analyze central lenses are Wall and Causes; Findings remains available as the finding list/board.
+- Evidence Map is demoted out of the everyday Analyze toggle and retained as an advanced/read-only graph projection, especially for Report narrative/timeline use.
+- `CausalLink` remains a valid persisted graph edge, but analyst-authored CausalLink work is not the default Analyze path.
+- The Wall owns operational hypothesis work: current scope, suspected causes, HOLDS gates, scoped findings, object detail, and Analyze-to-Explore categorical WHERE handoff.
+
+Rationale: the Wall now better serves the operational Analyze job: making the current scope visible, testing suspected causes, keeping counter-evidence close, and handing the analyst back to Explore without losing categorical WHERE context. The Evidence Map still contributes as a graph/narrative projection, but it no longer owns the center/default surface.
+
+Related delivery: PRs #338 through #348 and [`docs/superpowers/plans/2026-06-08-analyze-wall-redesign-master-plan.md`](../superpowers/plans/2026-06-08-analyze-wall-redesign-master-plan.md).

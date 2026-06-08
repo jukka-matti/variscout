@@ -28,6 +28,18 @@ When in doubt: capture, don't invent. Record the decision; link to its source ar
 
 Decisions we keep relitigating. Each entry: short statement, rationale, closing artifact, date pinned.
 
+- **2026-06-08 — Analyze Wall canvas-first delivery: Wall default, Causes lens, drawers, and Explore WHERE handoff.** The Analyze Wall redesign shipped as a sequence of merge-commit PRs (#338 through #348). The delivered Analyze tab now defaults to a canvas-first Investigation Wall rather than the Evidence Map. The central Analyze lenses are Wall and Causes; Findings remains available as the finding list/board; Evidence Map is demoted to an advanced/read-only graph projection, especially for Report narrative and timeline use.
+
+ADR-066 is amended rather than rewritten. Its original Evidence Map center/default decision remains preserved as historical context, but the current product truth is the AW-delivered Wall + Causes model. `CausalLink` remains a valid persisted graph edge, but analyst-authored CausalLink work is not the default Analyze path.
+
+The Wall composition is now operationally scope-first: a thin Overall Problem Header, readable default scale, legible HOLDS gates, a current-scope + flat sibling switcher instead of a broad-to-narrow lineage trail, scoped findings, a left deterministic object-detail drawer, and an Azure-only right CoScout drawer shell with `[REF]` hook. The acceptance metric for the redesign is the share of the Analyze viewport owned by the canvas, targeting roughly 85%+.
+
+The Analyze-to-Explore handoff is additive to the shared chip-navigation handler. Wall factor jumps carry categorical `ConditionLeaf[]` WHERE predicates into Explore as both the visible scope chip and `projectStore.filters` chart filters. Numeric range predicates remain valid scope predicates but are deferred for chart filtering because the current chart filter model is membership-based.
+
+CS-15 coordination is closed for this initiative: the shared Process chip handler remains additive, and Process gestures are not redefined by the Wall handoff. The lineage-trail display from the earlier prototype is demoted; flat scopes and no recursion remain canonical. Full CoScout drawer content remains a separate follow-up beyond the AW shell.
+
+_Pinned 2026-06-08._
+
 - **2026-06-06 — First-session journey designed: the altitude model, the b0 landing, the capture grammar + wireframes-in-spec process rule.** Owner-led brainstorm (live `--chrome` walk + visual-companion wireframes; 9 grounding subagents + a 3-lens adversarial panel). Ran standalone per the 2026-06-05 overlap analysis — no forcing design object shared with the Home / #12 / CoScout / Project-tab queued sessions; Home sequenced after with a scope fence (this spec owns the empty landing end-to-end; Home inherits it locked).
 
 **The altitude model becomes the product's organizing frame.** One axis (L1 System → L2 Process → L3 Step → Explore → the condition), one grammar (engine proposes via chips/banners, analyst decides — never modal for what the system can answer), one unit (the Finding — a condition always expressed in factors, filing back to its step via `processLocation`), one wrapper (the Untitled project). Landing rule: land at the highest altitude the data has established. The five framing-concept generations (LayeredProcessView bands · 8f L1–L3 · CCJ drag-zones · FrameViewB0 picker · ColumnMapping wizard) are integrated by the spec §2 concept registry — click assigns a role, drag assigns a place, same chips throughout; only the wizard retires (demoted to the "Fix data…" hatch).
