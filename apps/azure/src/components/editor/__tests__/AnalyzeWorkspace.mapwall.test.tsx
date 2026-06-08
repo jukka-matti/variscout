@@ -1,5 +1,5 @@
 /**
- * Tests for Map/Wall toggle wired into AnalyzeWorkspace.
+ * Tests for the Wall/Causes/Findings Analyze lenses wired into AnalyzeWorkspace.
  *
  * Strategy:
  * - Heavy dependencies (charts, hooks, feature stores) are mocked so we can
@@ -7,8 +7,8 @@
  *   orchestration props tree.
  * - useCanvasViewportStore is NOT mocked — we use the real store and reset it in
  *   beforeEach per the Zustand testing pattern in .claude/rules/testing.md.
- * - panelsStore is NOT mocked — we toggle analyzeViewMode to 'map' in
- *   beforeEach so the Evidence Map tab is the active view.
+ * - panelsStore is NOT mocked — analyzeViewMode='map' remains the internal
+ *   Wall/Causes bucket, while Evidence Map is not part of the primary flow.
  *
  * IMPORTANT: vi.mock() calls must appear before any component imports.
  */
@@ -323,9 +323,9 @@ function makeMinimalProps(): React.ComponentProps<typeof AnalyzeWorkspace> {
 
 // ── 4. Tests ───────────────────────────────────────────────────────────────
 
-describe('AnalyzeWorkspace Map/Wall toggle', () => {
+describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
   beforeEach(() => {
-    // Reset canvasViewportStore to initial state (viewMode = 'map')
+    // Reset canvasViewportStore to initial state (viewMode = 'wall')
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
     // PR-CS-5: clear the focus lens so pan-on-focus tests don't leak across cases.
     useViewStore.setState(
@@ -335,19 +335,21 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     showCharterMock.mockClear();
   });
 
-  it('defaults to Map view — Map button has aria-pressed="true"', () => {
+  it('lands on Wall by default and omits Evidence Map from the primary controls', () => {
     render(<AnalyzeWorkspace {...makeMinimalProps()} />);
-
-    const mapBtn = screen.getByRole('button', { name: /^map$/i });
-    expect(mapBtn.getAttribute('aria-pressed')).toBe('true');
 
     const wallBtn = screen.getByRole('button', { name: /^wall$/i });
-    expect(wallBtn.getAttribute('aria-pressed')).toBe('false');
+    expect(wallBtn.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: /^causes$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^findings$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^map$/i })).toBeNull();
+    expect(screen.queryByText('Evidence Map')).toBeNull();
   });
 
-  it('renders AnalyzeMapView by default', () => {
+  it('does not mount AnalyzeMapView in the primary Analyze flow', () => {
     render(<AnalyzeWorkspace {...makeMinimalProps()} />);
-    expect(screen.getByTestId('analyze-map-view')).toBeTruthy();
+    expect(screen.queryByTestId('analyze-map-view')).toBeNull();
+    expect(capturedMapViewProps.current).toBeNull();
   });
 
   it('switches to Wall on click and persists state in the store', () => {
@@ -410,7 +412,7 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     );
   });
 
-  it('does not force Wall again after the analyst manually toggles back to Map', () => {
+  it('treats a persisted map mode as Wall arrival in primary Analyze', () => {
     const props = makeMinimalProps();
     props.findingsState = {
       ...props.findingsState,
@@ -429,14 +431,13 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
       ],
     } as never;
     props.hypothesesState = { ...props.hypothesesState, hubs: [] } as never;
+    useCanvasViewportStore.getState().setViewMode('map');
 
     render(<AnalyzeWorkspace {...props} />);
-    fireEvent.click(screen.getByRole('button', { name: /^map$/i }));
 
-    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
-    expect(screen.getByRole('button', { name: /^map$/i }).getAttribute('aria-pressed')).toBe(
-      'true'
-    );
+    expect(screen.getByTestId('analyze-wall-canvas-shell')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^map$/i })).toBeNull();
+    expect(screen.queryByTestId('analyze-map-view')).toBeNull();
   });
 
   it('Wall button shows aria-pressed="true" after click', () => {
@@ -521,8 +522,8 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     expect(pan).not.toEqual({ x: 0, y: 0 });
   });
 
-  it('PR-CS-5: does NOT pan when the Wall is not the active view (focus set in Map mode)', () => {
-    // viewMode stays 'map' (default). Focus is set but the Wall is invisible.
+  it('PR-CS-5: does NOT pan when the Wall is not the active view (focus set in Causes mode)', () => {
+    useCanvasViewportStore.getState().setViewMode('causes');
     useViewStore.getState().setFocusedWallEntity('hub-1');
     const props = makeMinimalProps();
     props.hypothesesState.hubs = [
@@ -771,153 +772,26 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     });
   });
 
-  describe('capture-as-finding: addFinding called with drill-snapshot activeFilters', () => {
-    /**
-     * IM-4a adversarial review — Capture-as-Finding app assertion.
-     *
-     * `handleMapCreateFinding` in AnalyzeWorkspace must snapshot the DRILL
-     * condition (analysisScopeStore.categoricalFilters) at capture time, NOT
-     * the legacy projectStore.filters map. This test seeds a drill chip, then
-     * triggers `onCreateFinding` via the AnalyzeMapView prop, and asserts that
-     * `findingsState.addFinding` was called with `context.activeFilters`
-     * matching the drill snapshot.
-     */
+  describe('Evidence Map demotion (AW-4)', () => {
     beforeEach(() => {
       capturedMapViewProps.current = null;
-      // Ensure we're on Map view (default) so AnalyzeMapView renders.
-      // Reset wallViewMode to 'map' (not 'wall') so the map branch renders.
       useCanvasViewportStore.setState(getCanvasViewportInitialState());
-      // Reset panelsStore analyzeViewMode to 'map' — canAccess photo gate tests
-      // set it to 'findings' and the mock variable persists across describe blocks.
       usePanelsStore.getState().setAnalyzeViewMode('map');
-      // Reset analysisScopeStore to empty state
       useAnalysisScopeStore.setState({ categoricalFilters: [] });
-      // Task-7 isolation: clear any scopes / outcome leaked from prior describe blocks.
       useAnalyzeStore.setState({ scopes: [] });
       useProjectStore.setState({ outcome: null });
     });
 
-    it('seeds activeFilters from analysisScopeStore.categoricalFilters at capture time', () => {
-      const addFinding = vi.fn(() => ({ id: 'f-new' }) as never);
-      const props = makeMinimalProps();
-      props.findingsState = { ...props.findingsState, addFinding } as never;
-
-      // Seed a drill chip: column 'Machine', value 'A'
-      useAnalysisScopeStore.getState().addCategoricalValue('Machine', 'A');
-
-      render(<AnalyzeWorkspace {...props} />);
-
-      // AnalyzeMapView should have received onCreateFinding
-      expect(capturedMapViewProps.current?.onCreateFinding).toBeDefined();
-
-      // Fire the callback as if Evidence Map triggered it for factor 'Machine'
-      const onCreateFinding = capturedMapViewProps.current!.onCreateFinding as (
-        factor: string
-      ) => void;
-      onCreateFinding('Machine');
-
-      expect(addFinding).toHaveBeenCalledTimes(1);
-      const callArgs = addFinding.mock.calls[0] as unknown as [
-        unknown,
-        { activeFilters: Record<string, string[]> },
-        unknown,
-      ];
-      // The captured activeFilters must reflect the drill chip (Machine=A),
-      // not the legacy projectStore.filters map (which is empty in this test).
-      expect(callArgs[1].activeFilters).toEqual({ Machine: ['A'] });
-    });
-
-    it('passes empty activeFilters when no drill chips are set', () => {
+    it('does not expose Evidence Map capture callbacks from primary Analyze', () => {
       const addFinding = vi.fn(() => ({ id: 'f-new' }) as never);
       const props = makeMinimalProps();
       props.findingsState = { ...props.findingsState, addFinding } as never;
 
       render(<AnalyzeWorkspace {...props} />);
 
-      const onCreateFinding = capturedMapViewProps.current!.onCreateFinding as (
-        factor: string
-      ) => void;
-      onCreateFinding('Temperature');
-
-      expect(addFinding).toHaveBeenCalledTimes(1);
-      const callArgs = addFinding.mock.calls[0] as unknown as [
-        unknown,
-        { activeFilters: Record<string, string[]> },
-        unknown,
-      ];
-      expect(callArgs[1].activeFilters).toEqual({});
-    });
-
-    // PR-CS-0 Task 7 — durable finding→scope edge. When a drill materializes a
-    // ProblemStatementScope in useAnalyzeStore.scopes whose WHERE matches the
-    // active drill chips, the captured Finding must carry that scope's id as the
-    // 4th addFinding arg (the durable scopeId FK), not just the display filters.
-    it('passes the active scope id as scopeId when the drill matches a materialized scope', () => {
-      const addFinding = vi.fn(() => ({ id: 'f-scoped' }) as never);
-      const props = makeMinimalProps();
-      props.findingsState = { ...props.findingsState, addFinding } as never;
-
-      // Outcome must be set for the activeScope memo to engage.
-      useProjectStore.setState({ outcome: 'Fill Weight' });
-      // Seed a drill chip (Machine=A) — same predicate shape the activeScope memo
-      // re-derives via buildConditionFromCategoricalFilters + predicateSetKey.
-      useAnalysisScopeStore.getState().addCategoricalValue('Machine', 'A');
-      // Materialize the matching scope in the analyze store (projectId
-      // 'general-unassigned' === AnalyzeWorkspace.scopeProjectId).
-      useAnalyzeStore.setState({
-        scopes: [
-          {
-            id: 'scope-machine-a',
-            projectId: 'general-unassigned',
-            outcome: 'Fill Weight',
-            predicates: [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }],
-            hypothesisIds: [],
-            createdAt: 1,
-            updatedAt: 1,
-            deletedAt: null,
-          },
-        ],
-      });
-
-      render(<AnalyzeWorkspace {...props} />);
-
-      const onCreateFinding = capturedMapViewProps.current!.onCreateFinding as (
-        factor: string
-      ) => void;
-      onCreateFinding('Machine');
-
-      expect(addFinding).toHaveBeenCalledTimes(1);
-      const callArgs = addFinding.mock.calls[0] as unknown as [
-        unknown,
-        unknown,
-        unknown,
-        string | undefined,
-      ];
-      // 4th positional arg is the durable scopeId FK.
-      expect(callArgs[3]).toBe('scope-machine-a');
-    });
-
-    it('passes scopeId=undefined when the drill matches no materialized scope', () => {
-      const addFinding = vi.fn(() => ({ id: 'f-unscoped' }) as never);
-      const props = makeMinimalProps();
-      props.findingsState = { ...props.findingsState, addFinding } as never;
-
-      // No scopes materialized → activeScope memo resolves undefined.
-      render(<AnalyzeWorkspace {...props} />);
-
-      const onCreateFinding = capturedMapViewProps.current!.onCreateFinding as (
-        factor: string
-      ) => void;
-      onCreateFinding('Temperature');
-
-      expect(addFinding).toHaveBeenCalledTimes(1);
-      const callArgs = addFinding.mock.calls[0] as unknown as [
-        unknown,
-        unknown,
-        unknown,
-        string | undefined,
-      ];
-      expect(callArgs[3]).toBeUndefined();
+      expect(screen.queryByTestId('analyze-map-view')).toBeNull();
+      expect(capturedMapViewProps.current).toBeNull();
+      expect(addFinding).not.toHaveBeenCalled();
     });
   });
 });
@@ -1130,13 +1004,7 @@ describe('AnalyzeWorkspace — Wall empty-state CTA wiring (Bug 2)', () => {
   });
 });
 
-// CS-13 Evidence-Map drill retrofit (spec §4.0a).
-// handleMapDrillDown previously switched tabs WITHOUT writing the scope the
-// Explore charts read. The retrofit routes it through navigateToExploreForChip,
-// which writes BOTH yColumn and boxplotFactor to useAnalysisScopeStore.
-// The mocked panelsStore's showExplore is a throwaway vi.fn — we assert the
-// REAL store write (the part the retrofit adds); tab-switch is seam-covered.
-describe('AnalyzeWorkspace — Evidence-Map drill writes analysis scope (CS-13 retrofit)', () => {
+describe('AnalyzeWorkspace — Wall factor exploration seam (CS-13)', () => {
   beforeEach(() => {
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
     capturedMapViewProps.current = null;
@@ -1146,12 +1014,10 @@ describe('AnalyzeWorkspace — Evidence-Map drill writes analysis scope (CS-13 r
     useProjectStore.setState({ outcome: null });
   });
 
-  it('map drill-down writes the analysis scope before switching to Explore (CS-13 retrofit)', () => {
+  it('keeps Evidence Map drill authoring parked outside primary Analyze', () => {
     render(<AnalyzeWorkspace {...makeMinimalProps()} />);
-    const onDrillDown = capturedMapViewProps.current?.onDrillDown as (f: string) => void;
-    expect(onDrillDown).toBeDefined();
-    onDrillDown('SHIFT');
-    expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('SHIFT');
+    expect(screen.queryByTestId('analyze-map-view')).toBeNull();
+    expect(capturedMapViewProps.current).toBeNull();
   });
 
   it('mounts WallCanvas with the onExploreFactor wire (CS-13)', () => {

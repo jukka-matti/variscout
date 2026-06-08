@@ -134,11 +134,11 @@ function withViewport(
 }
 
 export function normalizeCanvasViewMode(value: unknown): CanvasViewMode {
-  return value === 'wall' || value === 'causes' ? value : 'map';
+  return value === 'map' || value === 'wall' || value === 'causes' ? value : 'wall';
 }
 
 export const getCanvasViewportInitialState = (): CanvasViewportState => ({
-  viewMode: 'map',
+  viewMode: 'wall',
   viewports: {},
   selection: new Set<NodeId>(),
   openChartClusters: {},

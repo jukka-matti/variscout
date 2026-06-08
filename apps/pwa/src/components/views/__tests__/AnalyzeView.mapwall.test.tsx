@@ -1,5 +1,5 @@
 /**
- * Tests for Map/Wall toggle wired into PWA AnalyzeView.
+ * Tests for the Wall/Causes/Findings Analyze lenses wired into PWA AnalyzeView.
  *
  * Strategy:
  * - Heavy dependencies (charts, hooks, feature stores) are mocked so we can
@@ -13,7 +13,7 @@
  * IMPORTANT: vi.mock() calls must appear before any component imports.
  */
 import React from 'react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 
 // ── 1. Mocks BEFORE component imports ──────────────────────────────────────
@@ -147,9 +147,9 @@ function makeMinimalProps(
 
 // ── 4. Tests ───────────────────────────────────────────────────────────────
 
-describe('PWA AnalyzeView Map/Wall toggle', () => {
+describe('PWA AnalyzeView Wall/Causes/Findings lenses', () => {
   beforeEach(() => {
-    // Reset canvasViewportStore to initial state (viewMode = 'map')
+    // Reset canvasViewportStore to initial state (viewMode = 'wall')
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
     // Reset project store (no processMap by default)
     useProjectStore.setState(getProjectInitialState());
@@ -160,19 +160,20 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     showCharterMock.mockClear();
   });
 
-  it('defaults to Map view — Map button has aria-pressed="true"', () => {
+  it('lands on Wall by default and omits Evidence Map from the primary controls', () => {
     render(<AnalyzeView {...makeMinimalProps()} />);
-
-    const mapBtn = screen.getByRole('button', { name: /^map$/i });
-    expect(mapBtn.getAttribute('aria-pressed')).toBe('true');
 
     const wallBtn = screen.getByRole('button', { name: /^wall$/i });
-    expect(wallBtn.getAttribute('aria-pressed')).toBe('false');
+    expect(wallBtn.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: /^causes$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^findings$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^map$/i })).toBeNull();
+    expect(screen.queryByText('Evidence Map')).toBeNull();
   });
 
-  it('renders FindingsLog by default (Map mode)', () => {
+  it('renders WallCanvas by default', () => {
     render(<AnalyzeView {...makeMinimalProps()} />);
-    expect(screen.getByTestId('findings-log')).toBeTruthy();
+    expect(screen.getByTestId('analyze-wall-canvas-shell')).toBeInTheDocument();
   });
 
   it('switches to Wall on click and persists state in the store', () => {
@@ -231,31 +232,17 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     );
   });
 
-  it('does not force Wall again after the analyst manually toggles back to Map', () => {
-    useAnalyzeStore.setState({
-      findings: [
-        {
-          id: 'f-arrival',
-          text: 'obs 32-58 elevated',
-          evidenceType: 'data',
-          createdAt: 1,
-          deletedAt: null,
-          context: { activeFilters: {}, cumulativeScope: null },
-          status: 'observed',
-          comments: [],
-          statusChangedAt: 1,
-        } as never,
-      ],
-      hypotheses: [],
-    });
+  it('treats a persisted map mode as Findings arrival in primary Analyze', () => {
+    useCanvasViewportStore.getState().setViewMode('map');
 
     render(<AnalyzeView {...makeMinimalProps()} />);
-    fireEvent.click(screen.getByRole('button', { name: /^map$/i }));
 
     expect(useCanvasViewportStore.getState().viewMode).toBe('map');
-    expect(screen.getByRole('button', { name: /^map$/i }).getAttribute('aria-pressed')).toBe(
+    expect(screen.getByTestId('findings-log')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^findings$/i }).getAttribute('aria-pressed')).toBe(
       'true'
     );
+    expect(screen.queryByRole('button', { name: /^map$/i })).toBeNull();
   });
 
   it('writes Wall viewport state under the provided canvas viewport hub id', () => {
@@ -345,9 +332,10 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     expect(screen.queryByTestId('analyze-left-conclusion-rail')).not.toBeInTheDocument();
   });
 
-  it('list/board sub-toggle is visible in Map mode', () => {
+  it('list/board sub-toggle is visible in Findings mode', () => {
     // IM-1: the `tree` sub-toggle was removed — AnalyzeView now only renders
-    // list + board sub-toggles in Map mode (question-tree view retired with Question entity).
+    // list + board sub-toggles in Findings mode (question-tree view retired with Question entity).
+    useCanvasViewportStore.getState().setViewMode('map');
     render(<AnalyzeView {...makeMinimalProps()} />);
     expect(screen.getByRole('button', { name: /^list$/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /^board$/i })).toBeTruthy();
@@ -364,88 +352,13 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     expect(screen.queryByRole('button', { name: /^tree$/i })).toBeNull();
   });
 
-  // ── PR-CS-7: Evidence Map (Layer 1) parity in PWA Analyze ──────────────────
-  // A factor that cleanly separates the outcome (eta² high) yields a meaningful
-  // best-subsets model so the Evidence Map content switch enables; selecting it
-  // mounts the Layer-1 graph host. Layers 2/3 self-suppress (no causal/convergence
-  // data passed to useEvidenceMapData). FindingsLog stays reachable via Findings.
-  describe('Evidence Map content switch (PR-CS-7)', () => {
-    // The responsive EvidenceMap wrapper (visx withParentSize) calls
-    // `new ResizeObserver(...)` on mount. jsdom/happy-dom has none — provide a
-    // no-op stub so the host mounts cleanly (the inner SVG only paints once a
-    // non-zero size is observed, which the real browser supplies).
-    const originalResizeObserver = globalThis.ResizeObserver;
-    beforeEach(() => {
-      class ResizeObserverStub {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      }
-      globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
-    });
-    afterEach(() => {
-      globalThis.ResizeObserver = originalResizeObserver;
-    });
+  describe('Evidence Map demotion (AW-4)', () => {
+    it('does not expose the Evidence Map content switch in primary Analyze', () => {
+      useCanvasViewportStore.getState().setViewMode('map');
+      render(<AnalyzeView {...makeMinimalProps()} />);
 
-    // Two factors; `Machine` strongly drives Y so best-subsets rSquaredAdj > 0.05.
-    const evidenceData = [
-      { Machine: 'A', Shift: 'Day', Y: 10 },
-      { Machine: 'A', Shift: 'Night', Y: 11 },
-      { Machine: 'A', Shift: 'Day', Y: 10 },
-      { Machine: 'A', Shift: 'Night', Y: 12 },
-      { Machine: 'B', Shift: 'Day', Y: 30 },
-      { Machine: 'B', Shift: 'Night', Y: 31 },
-      { Machine: 'B', Shift: 'Day', Y: 29 },
-      { Machine: 'B', Shift: 'Night', Y: 32 },
-    ];
-
-    // AnalyzeView reads `outcome` from useProjectStore (not the prop), so the
-    // Layer-1 stat gate keys off the store outcome. Seed it for these cases.
-    function evidenceProps() {
-      useProjectStore.setState({ outcome: 'Y' });
-      return makeMinimalProps({
-        outcome: 'Y',
-        factors: ['Machine', 'Shift'],
-        filteredData: evidenceData,
-      });
-    }
-
-    it('exposes a Findings / Evidence Map content switch in Map mode', () => {
-      render(<AnalyzeView {...evidenceProps()} />);
-      expect(screen.getByRole('button', { name: /^findings$/i })).toBeTruthy();
-      expect(screen.getByRole('button', { name: /^evidence map$/i })).toBeTruthy();
-    });
-
-    it('enables the Evidence Map button when a meaningful model exists', () => {
-      render(<AnalyzeView {...evidenceProps()} />);
-      const mapBtn = screen.getByRole('button', { name: /^evidence map$/i });
-      expect(mapBtn.hasAttribute('disabled')).toBe(false);
-    });
-
-    it('disables the Evidence Map button with no factors (no model)', () => {
-      useProjectStore.setState({ outcome: 'Y' });
-      render(
-        <AnalyzeView {...makeMinimalProps({ outcome: 'Y', factors: [], filteredData: [] })} />
-      );
-      const mapBtn = screen.getByRole('button', { name: /^evidence map$/i });
-      expect(mapBtn.hasAttribute('disabled')).toBe(true);
-    });
-
-    it('mounts the Evidence Map host (Layer 1) when selected; findings stays reachable', () => {
-      render(<AnalyzeView {...evidenceProps()} />);
-
-      // Default content is the findings list.
-      expect(screen.getByTestId('findings-log')).toBeTruthy();
-      expect(screen.queryByTestId('analyze-evidence-map')).toBeNull();
-
-      // Switch to the Evidence Map graph.
-      fireEvent.click(screen.getByRole('button', { name: /^evidence map$/i }));
-      expect(screen.getByTestId('analyze-evidence-map')).toBeTruthy();
-      expect(screen.queryByTestId('findings-log')).toBeNull();
-
-      // Findings list is still reachable.
-      fireEvent.click(screen.getByRole('button', { name: /^findings$/i }));
-      expect(screen.getByTestId('findings-log')).toBeTruthy();
+      expect(screen.getByTestId('findings-log')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^evidence map$/i })).toBeNull();
       expect(screen.queryByTestId('analyze-evidence-map')).toBeNull();
     });
   });

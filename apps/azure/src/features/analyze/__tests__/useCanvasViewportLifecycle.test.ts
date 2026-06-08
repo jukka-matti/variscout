@@ -94,7 +94,7 @@ describe('useCanvasViewportLifecycle (Azure)', () => {
       vi.advanceTimersByTime(500);
     });
 
-    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
     expect(useCanvasViewportStore.getState().railOpen).toBe(true);
     expect(useCanvasViewportStore.getState().getViewport(h('hub-A')).zoom).toBe(1);
     expect(mockPersist).not.toHaveBeenCalled();

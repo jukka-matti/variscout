@@ -257,7 +257,7 @@ describe('useCanvasViewportLifecycle — Blob sync (Azure)', () => {
 
     // Change viewMode — no viewport entry for this hub in store.
     act(() => {
-      useCanvasViewportStore.getState().setViewMode('wall');
+      useCanvasViewportStore.getState().setViewMode('causes');
     });
 
     await act(async () => {
