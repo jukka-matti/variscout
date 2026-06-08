@@ -1,11 +1,11 @@
 ---
 tier: living
-purpose: plan
+purpose: build
 title: 'Analyze Wall redesign — master plan (canvas-first investigation wall)'
 audience: human
 status: active
 date: 2026-06-08
-layer: plan
+layer: spec
 topic: [analyze, wall, canvas-first, coscout, scope, miro, wedge-v1]
 related:
   - docs/superpowers/specs/2026-06-08-analyze-wall-redesign-design.md
