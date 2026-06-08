@@ -43,7 +43,9 @@ related:
 
 **Ordering rationale:** L-1 first (unblocks L-3/L-5 and is the smallest; proves the Codex-app loop on a well-bounded contract). L-2 and L-4 are independent of everything — they can interleave if a second lane opens, but default is one phase in flight. Phase 2P starts when the L-series demo gate passes (or earlier if the owner wants parallel lanes — the streams share no files except i18n catalogs, which merge cleanly).
 
-**STATUS 2026-06-08:** Phase 0 (b0, PR #327) + the entire **L-series delivered** — L-1 #328, L-2 #329, L-4 #330, L-3 #331, L-5 #332. **Owner call: move straight to Phase 2P; defer the full demo-readiness gate walk to the END of the master plan** (one comprehensive first-session→matrix walk after CS-P5, instead of per-phase walks now). Per-phase browser gates still ran inside each PR. Batched post-merge review of b0+L-series + the deferred walk = end-of-plan, alongside the FSJ retro (T1).
+**STATUS 2026-06-08:** Phase 0 (b0, PR #327) + the entire **L-series delivered** — L-1 #328, L-2 #329, L-4 #330, L-3 #331, L-5 #332. **Owner call: move straight to Phase 2P; defer the full demo-readiness gate walk to the END of the master plan** (one comprehensive first-session→matrix walk after Phase 2P, instead of per-phase walks now). Per-phase browser gates still ran inside each PR. Batched post-merge review of b0+L-series + the deferred walk = end-of-plan, alongside the FSJ retro (T1).
+
+**Phase 2P progress (2026-06-08):** CS-P1 #289 (runway) + **CS-P2 #334** (per-step boxplot, the first bar item) delivered. **CS-P3 is BLOCKED on CS-15** (framing refinement — a Phase 3 item, unshipped; CS-P3's `setCapabilityScope` authoring actions don't exist yet). **CS-P4 + CS-P5 depend only on CS-P2 → unblocked.** Reordered: **CS-P4 (cycle-time viz, Azure) → CS-P5 (PWA parity — ports the whole per-step view: capability + time, one pass) → [CS-15 ships in Phase 3] → CS-P3.** Owner-status-rename PR #333 (Verified→Supported) folded into the L-series vocabulary; spec amended.
 
 ## Codex-app dispatch protocol (per phase)
 
