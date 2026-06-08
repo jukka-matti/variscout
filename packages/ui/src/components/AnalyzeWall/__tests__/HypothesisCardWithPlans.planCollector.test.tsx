@@ -239,8 +239,6 @@ describe('HypothesisCardWithPlans — status label in data-collection task secti
   it.each([
     ['planned', plannedPlan],
     ['in-progress', inProgressPlan],
-    ['complete', completePlan],
-    ['skipped', skippedPlan],
   ] as const)('shows status "%s" in the data-collection task section', (status, plan) => {
     renderInSvg(<HypothesisCardWithPlans {...baseProps([plan])} />);
     const section = document.querySelector('[data-testid="data-collection-task"]');
@@ -260,6 +258,15 @@ describe('HypothesisCardWithPlans — status label in data-collection task secti
     expect(withStatus).not.toBeNull();
     const statusValue = (withStatus as HTMLElement).getAttribute('data-status');
     expect(statusValue).toBe('in-progress');
+  });
+
+  it.each([
+    ['complete', completePlan],
+    ['skipped', skippedPlan],
+  ] as const)('does not render status "%s" as active data-collection activity', (_status, plan) => {
+    renderInSvg(<HypothesisCardWithPlans {...baseProps([plan])} />);
+    expect(document.querySelector('[data-testid="data-collection-task"]')).toBeNull();
+    expect(document.querySelector('[data-testid="activity-in-flight"]')).toBeNull();
   });
 });
 

@@ -135,6 +135,8 @@ export interface WallCanvasPlanningProps {
   ) => void;
   /** CS-10 — Analyst-owned status setter; passed through to HypothesisCardWithPlans. */
   onSetStatus?: (hubId: string, status: HypothesisStatus) => void;
+  /** L-3 — stalled activity escape action; passed through to HypothesisCardWithPlans. */
+  onGoLook?: (hypothesisId: string) => void;
   /**
    * PR-CS-11 (Task 6) — analyst-owned plan-status setter, threaded to each
    * MeasurementPlanChip via HypothesisCardWithPlans. The app dispatches the
@@ -1256,6 +1258,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           onEditPlan: planningProps.onEditPlan,
           onRecordDisconfirmation: planningProps.onRecordDisconfirmation,
           onSetStatus: planningProps.onSetStatus,
+          onGoLook: planningProps.onGoLook,
           // PR-CS-11 Task 6 — re-ingest confirm prompt: plan-status setter,
           // pending-match map (scoped to this hub's plans), dismiss handler.
           onSetPlanStatus: planningProps.onSetPlanStatus,

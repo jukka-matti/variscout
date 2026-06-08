@@ -121,7 +121,7 @@ function renderInSvg(ui: React.ReactElement) {
 // ── tests ─────────────────────────────────────────────────────────────────────
 
 describe('HypothesisCardWithPlans — plan rows', () => {
-  it('renders a MeasurementPlanChip row per plan in plans prop', () => {
+  it('renders open MeasurementPlanChip rows and omits completed plans from activity', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         hub={hub}
@@ -138,7 +138,7 @@ describe('HypothesisCardWithPlans — plan rows', () => {
       />
     );
     expect(screen.getByText('Temperature')).toBeInTheDocument();
-    expect(screen.getByText('Manual settings')).toBeInTheDocument();
+    expect(screen.queryByText('Manual settings')).not.toBeInTheDocument();
   });
 
   it('shows owner display name resolved from members', () => {

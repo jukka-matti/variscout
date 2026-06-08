@@ -889,6 +889,13 @@ export const sv: MessageCatalog = {
   'wall.collect.status.complete': 'complete',
   'wall.collect.status.skipped': 'skipped',
   'wall.collect.due': 'Due: {date}',
+  // L-3 suspected-cause activity layer
+  'wall.activity.inFlightHeading': 'In flight - evidence being collected',
+  'wall.activity.pendingAttempt': 'Break attempt pending:',
+  'wall.activity.stalledHeading': 'Nothing in flight for {days} working days',
+  'wall.activity.planCheck': 'Plan a check',
+  'wall.activity.goLook': 'Go look',
+  'wall.activity.ruleOut': 'Rule it out',
   // PR-CS-11 — analyst-owned plan-status select + re-ingest pending-match prompt (Task 5)
   'wall.collect.setStatusLabel': 'Set plan status',
   'wall.collect.pending.prompt': 'Factor “{column}” arrived — needed by this plan',

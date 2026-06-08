@@ -1018,6 +1018,13 @@ export interface MessageCatalog {
   'wall.collect.status.complete': string;
   'wall.collect.status.skipped': string;
   'wall.collect.due': string;
+  // L-3 suspected-cause activity layer
+  'wall.activity.inFlightHeading': string;
+  'wall.activity.pendingAttempt': string;
+  'wall.activity.stalledHeading': string;
+  'wall.activity.planCheck': string;
+  'wall.activity.goLook': string;
+  'wall.activity.ruleOut': string;
   // PR-CS-11 — analyst-owned plan-status select + re-ingest pending-match prompt (Task 5)
   'wall.collect.setStatusLabel': string;
   'wall.collect.pending.prompt': string;
