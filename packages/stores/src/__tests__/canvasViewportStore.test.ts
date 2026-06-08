@@ -22,8 +22,8 @@ describe('canvasViewportStore', () => {
     useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
   });
 
-  it('defaults viewMode to map (preserves ADR-066 default)', () => {
-    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+  it('defaults viewMode to wall', () => {
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
   });
 
   it('toggles viewMode to wall and back', () => {
@@ -335,7 +335,7 @@ describe('canvasViewportStore persistence', () => {
     await persistCanvasViewport(HUB_A);
 
     useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
-    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
     expect(useCanvasViewportStore.getState().railOpen).toBe(true);
 
     await rehydrateCanvasViewport(HUB_A);
@@ -361,7 +361,7 @@ describe('canvasViewportStore persistence', () => {
     expect(useCanvasViewportStore.getState().viewMode).toBe('causes');
   });
 
-  it('normalizes an unknown persisted viewMode to map on rehydrate', async () => {
+  it('normalizes an unknown persisted viewMode to wall on rehydrate', async () => {
     const unsafeDb = new Dexie(CANVAS_VIEWPORT_DB_NAME);
     unsafeDb.version(2).stores({ snapshots: 'hubId,updatedAt' });
     await unsafeDb.table('snapshots').put({
@@ -375,9 +375,19 @@ describe('canvasViewportStore persistence', () => {
     useCanvasViewportStore.getState().setViewMode('wall');
     await rehydrateCanvasViewport(HUB_A);
 
-    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
     expect(useCanvasViewportStore.getState().railOpen).toBe(false);
     unsafeDb.close();
+  });
+
+  it('preserves an explicit persisted map viewMode for backward compatibility', async () => {
+    useCanvasViewportStore.getState().setViewMode('map');
+    await persistCanvasViewport(HUB_A);
+
+    useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
+    await rehydrateCanvasViewport(HUB_A);
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
   });
 
   it('does not apply rehydrate snapshot when guard returns false', async () => {
@@ -389,7 +399,7 @@ describe('canvasViewportStore persistence', () => {
     useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
     await rehydrateCanvasViewport(HUB_A, () => false);
 
-    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
     expect(useCanvasViewportStore.getState().railOpen).toBe(true);
     expect(useCanvasViewportStore.getState().getViewport(HUB_A).zoom).toBe(1);
   });
@@ -419,7 +429,7 @@ describe('canvasViewportStore persistence', () => {
   it('rehydrate with unknown hub leaves defaults', async () => {
     const unknownHub = 'unknown-hub' as ProcessHubId;
     await rehydrateCanvasViewport(unknownHub);
-    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
     expect(useCanvasViewportStore.getState().getViewport(unknownHub)).toEqual({
       zoom: 1,
       pan: { x: 0, y: 0 },
