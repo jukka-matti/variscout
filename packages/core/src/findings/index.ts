@@ -80,6 +80,16 @@ export type {
   DisconfirmationVerdict,
   DisconfirmationEvaluation,
 } from './hypothesisTestPlan';
+export {
+  STALLED_WORKING_DAY_THRESHOLD,
+  deriveHypothesisActivity,
+  workingDaysBetween,
+} from './hypothesisActivity';
+export type {
+  DeriveHypothesisActivityArgs,
+  HypothesisActivity,
+  HypothesisActivityStalledState,
+} from './hypothesisActivity';
 // Note: DataRow is the canonical foundational type from `../types` — not re-exported
 // from this sub-path to avoid a duplicate identifier at the root barrel. The evaluator
 // accepts `Record<string, unknown>`-compatible rows; consumers get the canonical DataRow
