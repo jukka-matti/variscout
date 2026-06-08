@@ -126,6 +126,40 @@ export function buildConditionFromCategoricalFilters(
 }
 
 /**
+ * Bridge a saved flat scope predicate set back to categorical filter chips.
+ *
+ * `analysisScopeStore` and `projectStore.filters` can represent equality and
+ * membership filters. Numeric ranges/comparisons remain valid scope predicates
+ * but cannot be expressed as categorical chips, so they are dropped here.
+ */
+export function conditionLeavesToCategoricalFilters(
+  predicates: ReadonlyArray<ConditionLeaf>
+): CategoricalFilterInput[] {
+  const byColumn = new Map<string, (string | number)[]>();
+
+  const addValues = (column: string, values: ReadonlyArray<string | number>): void => {
+    const existing = byColumn.get(column) ?? [];
+    for (const value of values) {
+      if (!existing.includes(value)) existing.push(value);
+    }
+    byColumn.set(column, existing);
+  };
+
+  for (const leaf of predicates) {
+    if (leaf.op === 'eq' && (typeof leaf.value === 'string' || typeof leaf.value === 'number')) {
+      addValues(leaf.column, [leaf.value]);
+    } else if (leaf.op === 'in' && Array.isArray(leaf.value)) {
+      const values = leaf.value.filter(
+        (value): value is string | number => typeof value === 'string' || typeof value === 'number'
+      );
+      addValues(leaf.column, values);
+    }
+  }
+
+  return [...byColumn.entries()].map(([column, values]) => ({ column, values }));
+}
+
+/**
  * Bridge a `FindingContext.activeFilters` map (`Record<column, values[]>`) →
  * a flat `ConditionLeaf[]`. Same equality-membership semantics as
  * `buildConditionFromCategoricalFilters`; used to re-derive a scope's WHERE from

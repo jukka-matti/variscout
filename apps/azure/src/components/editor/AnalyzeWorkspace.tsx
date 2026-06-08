@@ -979,11 +979,17 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const handleExploreFactor = useCallback(
     (factor: string) => {
       navigateToExploreForChip(
-        { kind: 'factor', columnName: factor, outcomeColumn: outcome ?? undefined },
+        {
+          kind: 'factor',
+          columnName: factor,
+          outcomeColumn: outcome ?? undefined,
+          predicates: activeScope?.predicates,
+          hypothesisId: selectedWallObject?.kind === 'cause' ? selectedWallObject.id : undefined,
+        },
         () => usePanelsStore.getState().showExplore()
       );
     },
-    [outcome]
+    [activeScope, outcome, selectedWallObject]
   );
 
   return (

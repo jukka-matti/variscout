@@ -4,6 +4,7 @@ import type { ProcessMap } from '../../frame/types';
 import {
   categoricalFiltersToActiveFilters,
   collectReferencedColumns,
+  conditionLeavesToCategoricalFilters,
   conditionHasMissingColumn,
   conditionReferencesStep,
   deriveConditionFromFindingSource,
@@ -462,6 +463,40 @@ describe('categoricalFiltersToActiveFilters', () => {
     ];
     const map = categoricalFiltersToActiveFilters(chips);
     expect(Object.keys(map)).toEqual(['Machine', 'Line']);
+  });
+});
+
+describe('conditionLeavesToCategoricalFilters', () => {
+  it('maps eq and in leaves to categorical filter chips grouped by column', () => {
+    const result = conditionLeavesToCategoricalFilters([
+      { kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' },
+      { kind: 'leaf', column: 'Line', op: 'in', value: ['L1', 'L2'] },
+      { kind: 'leaf', column: 'Shift', op: 'eq', value: 'Weekend' },
+    ]);
+
+    expect(result).toEqual([
+      { column: 'Shift', values: ['Night', 'Weekend'] },
+      { column: 'Line', values: ['L1', 'L2'] },
+    ]);
+  });
+
+  it('drops range and inequality predicates because project filters are categorical membership only', () => {
+    const result = conditionLeavesToCategoricalFilters([
+      { kind: 'leaf', column: 'Y', op: 'between', value: [10, 20] },
+      { kind: 'leaf', column: 'Temp', op: 'gt', value: 80 },
+      { kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' },
+    ]);
+
+    expect(result).toEqual([{ column: 'Shift', values: ['Night'] }]);
+  });
+
+  it('deduplicates repeated categorical values per column', () => {
+    const result = conditionLeavesToCategoricalFilters([
+      { kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' },
+      { kind: 'leaf', column: 'Shift', op: 'in', value: ['Night', 'Day'] },
+    ]);
+
+    expect(result).toEqual([{ column: 'Shift', values: ['Night', 'Day'] }]);
   });
 });
 

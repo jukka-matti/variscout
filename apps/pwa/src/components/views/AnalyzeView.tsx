@@ -342,17 +342,23 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     store.connectFindingToHub(hub.id, findingId);
   }, []);
 
-  // CS-13 — the crossing-back (spec §4.0a). PWA parity note: the scope lands in
-  // analysisScopeStore + the chrome chip; the PWA Explore chart mirror is the
-  // deferred lv1-pwa-mount follow-up (matches the existing chip path).
+  // AW-9 — carry active categorical WHERE into analysisScopeStore +
+  // projectStore.filters so Explore charts and chrome align. Numeric ranges
+  // remain deferred.
   const handleExploreFactor = useCallback(
     (factor: string) => {
       navigateToExploreForChip(
-        { kind: 'factor', columnName: factor, outcomeColumn: outcome ?? undefined },
+        {
+          kind: 'factor',
+          columnName: factor,
+          outcomeColumn: outcome ?? undefined,
+          predicates: activeScope?.predicates,
+          hypothesisId: selectedWallObject?.kind === 'cause' ? selectedWallObject.id : undefined,
+        },
         () => usePanelsStore.getState().showExplore()
       );
     },
-    [outcome]
+    [activeScope, outcome, selectedWallObject]
   );
 
   // Wall empty-state entry points (investigations.md 2026-06-04 — the CTAs were
