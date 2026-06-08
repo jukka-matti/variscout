@@ -34,13 +34,13 @@ import {
   type TimeDecompositionBinding,
   type ProcessContext,
   type ProcessHubId,
-  type SpecRule,
   type SpecLimits,
   type StepCapabilityStamp,
   type StepTimingBinding,
   type Hypothesis,
   type TimelineWindow,
 } from '@variscout/core';
+import type { SpecRule } from '@variscout/core/types';
 import { isValidLevel, type CanvasLevel } from '@variscout/core/canvas';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import type { ChipNavigationTarget } from './EditMode/handlers/navigateToExploreForChip';

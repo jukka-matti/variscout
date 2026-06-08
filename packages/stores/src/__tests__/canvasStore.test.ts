@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useCanvasStore } from '../canvasStore';
 import type { CanvasAction } from '@variscout/core/actions';
-import type { SpecRule } from '@variscout/core';
+import type { SpecRule } from '@variscout/core/types';
 
 function resetCanvasStore() {
   useCanvasStore.setState(useCanvasStore.getInitialState());

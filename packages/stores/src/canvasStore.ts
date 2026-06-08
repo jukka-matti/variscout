@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { assertNever, type ProcessHub, type SpecRule } from '@variscout/core';
+import { assertNever, type ProcessHub } from '@variscout/core';
+import type { SpecRule } from '@variscout/core/types';
 import type { CanvasAction } from '@variscout/core/actions';
 import { createEmptyMap, type ProcessMap, type ProcessMapNode } from '@variscout/core/frame';
 

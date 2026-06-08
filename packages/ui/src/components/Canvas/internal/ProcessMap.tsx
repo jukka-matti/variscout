@@ -25,7 +25,8 @@ import type {
   ProcessMapTributary,
   ProcessMapHunch,
 } from '@variscout/core/frame';
-import type { SpecLimits, SpecRule } from '@variscout/core';
+import type { SpecLimits } from '@variscout/core';
+import type { SpecRule } from '@variscout/core/types';
 import { StepArrow } from './StepArrow';
 
 // ────────────────────────────────────────────────────────────────────────────

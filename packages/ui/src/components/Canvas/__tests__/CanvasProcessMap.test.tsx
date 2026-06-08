@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProcessMap } from '../internal/ProcessMap';
 import type { ProcessMap as CoreProcessMap, Gap } from '@variscout/core/frame';
-import type { SpecRule } from '@variscout/core';
+import type { SpecRule } from '@variscout/core/types';
 import { CANVAS_EMPTY_DROP_ID, encodeStepDropId } from '@variscout/hooks';
 
 const isoNow = () => new Date('2026-04-18T12:00:00.000Z').toISOString();

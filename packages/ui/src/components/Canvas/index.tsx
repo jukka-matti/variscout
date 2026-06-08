@@ -31,10 +31,10 @@ import {
   type DataRow,
   type Finding,
   type Hypothesis,
-  type SpecRule,
   type SpecLimits,
   type StepTimingBinding,
 } from '@variscout/core';
+import type { SpecRule } from '@variscout/core/types';
 import type { ActionItem, ColumnTypeMap } from '@variscout/core/findings';
 import type { CanvasLevel } from '@variscout/core/canvas';
 import {
