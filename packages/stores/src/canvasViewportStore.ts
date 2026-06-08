@@ -22,6 +22,7 @@ export type NodeId = string;
 export type TributaryId = string;
 export type GateNodePath = string;
 export type CanvasViewportFit = { zoom: number; pan: { x: number; y: number } };
+export type CanvasViewMode = 'map' | 'wall' | 'causes';
 
 export interface CanvasViewportSnapshot {
   zoom: number;
@@ -55,7 +56,7 @@ export interface PendingComment {
 }
 
 export interface CanvasViewportState {
-  viewMode: 'map' | 'wall';
+  viewMode: CanvasViewMode;
   viewports: Record<ProcessHubId, CanvasViewportSnapshot>;
   selection: Set<NodeId>;
   openChartClusters: Record<TributaryId, ChartClusterState>;
@@ -73,7 +74,7 @@ export interface UndoEntry {
 
 export interface CanvasViewportActions {
   getViewport: (hubId: ProcessHubId) => CanvasViewportSnapshot;
-  setViewMode: (mode: 'map' | 'wall') => void;
+  setViewMode: (mode: CanvasViewMode) => void;
   setNodePosition: (hubId: ProcessHubId, nodeId: NodeId, pos: { x: number; y: number }) => void;
   setSelection: (ids: NodeId[]) => void;
   addToSelection: (id: NodeId) => void;
@@ -130,6 +131,10 @@ function withViewport(
 ): Record<ProcessHubId, CanvasViewportSnapshot> {
   const current = viewports[hubId] ?? getDefaultViewport();
   return { ...viewports, [hubId]: updater(current) };
+}
+
+export function normalizeCanvasViewMode(value: unknown): CanvasViewMode {
+  return value === 'wall' || value === 'causes' ? value : 'map';
 }
 
 export const getCanvasViewportInitialState = (): CanvasViewportState => ({
@@ -290,7 +295,7 @@ export const useCanvasViewportStore = create<CanvasViewportState & CanvasViewpor
 
 interface CanvasViewportSnapshotRow {
   hubId: ProcessHubId;
-  viewMode: 'map' | 'wall';
+  viewMode: CanvasViewMode;
   viewport: CanvasViewportSnapshot;
   railOpen: boolean;
   updatedAt: number;
@@ -329,7 +334,7 @@ export async function rehydrateCanvasViewport(
   if (!shouldApply()) return;
 
   useCanvasViewportStore.setState(s => ({
-    viewMode: snapshot.viewMode,
+    viewMode: normalizeCanvasViewMode(snapshot.viewMode),
     viewports: { ...s.viewports, [hubId]: snapshot.viewport },
     railOpen: snapshot.railOpen,
   }));
