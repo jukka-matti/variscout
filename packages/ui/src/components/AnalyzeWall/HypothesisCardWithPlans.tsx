@@ -29,7 +29,11 @@ import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { canAccess } from '@variscout/core/projectMembership';
-import { displayHypothesisStatus, evidenceTypesForHypothesis } from '@variscout/core/findings';
+import {
+  deriveHypothesisActivity,
+  displayHypothesisStatus,
+  evidenceTypesForHypothesis,
+} from '@variscout/core/findings';
 import { getMessage } from '@variscout/core/i18n';
 import type { MeasurementPlanStatus } from '@variscout/core/measurementPlan';
 import { HypothesisCard, type HypothesisCardProps } from './HypothesisCard';
@@ -51,6 +55,12 @@ const CARD_H = 288;
  * row (32px) + padding/gap (~8px) = 68px.
  */
 const DATA_COLLECT_ROW_H = 68;
+/** Height of the activity header above in-flight rows. */
+const ACTIVITY_HEADER_H = 30;
+/** Height of one pending break-attempt row. */
+const PENDING_ATTEMPT_ROW_H = 44;
+/** Height of the stalled activity band. */
+const STALLED_ACTIVITY_H = 84;
 /** Height of one ActionItem task row in the foreignObject (px). */
 const ACTION_ROW_H = 32;
 /** Height of the inline add-task form (px). */
@@ -212,6 +222,10 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    * chosen status. Omit to hide both.
    */
   onSetStatus?: (hubId: string, status: HypothesisStatus) => void;
+  /** L-3 — render-time activity clock for deterministic tests. Defaults to Date.now(). */
+  activityNow?: number;
+  /** L-3 — escape action for stalled causes: take the analyst to go-look capture. */
+  onGoLook?: (hypothesisId: string) => void;
   /**
    * Task 6 (IM-4b) — IdeaImpact map keyed by ideaId.
    * Passed through to ImprovementIdeasSection for rendering impact badges.
@@ -390,6 +404,8 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   onCompleteHypothesisAction,
   onRecordDisconfirmation,
   onSetStatus,
+  activityNow,
+  onGoLook,
   ideaImpacts,
   onProjectIdea,
   onAddIdea,
@@ -515,11 +531,23 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // optional add-plan button + optional add-plan form +
   // optional disconfirmation gesture.
   const actions = cardProps.hub.actions ?? [];
+  const activity = deriveHypothesisActivity({
+    hub: cardProps.hub,
+    plans,
+    testPlanFactors,
+    now: activityNow ?? Date.now(),
+  });
+  const inFlightPlanRows = activity.inFlightPlans;
+  const pendingAttemptRows = activity.pendingAttempts;
+  const showInFlightActivity = inFlightPlanRows.length > 0 || pendingAttemptRows.length > 0;
   const actionRowsTotalH = actions.length * ACTION_ROW_H;
   const addTaskBtnH = canEdit && onAddHypothesisAction && !addTaskFormOpen ? ADD_BTN_H : 0;
   const addTaskFormH = canEdit && addTaskFormOpen ? ADD_TASK_FORM_H : 0;
   // Each data-collection-task section now embeds the chip — no separate chipsTotalH.
-  const dataCollectTotalH = plans.length * DATA_COLLECT_ROW_H;
+  const dataCollectTotalH = inFlightPlanRows.length * DATA_COLLECT_ROW_H;
+  const activityHeaderH = showInFlightActivity ? ACTIVITY_HEADER_H : 0;
+  const pendingAttemptRowsH = pendingAttemptRows.length * PENDING_ATTEMPT_ROW_H;
+  const stalledH = activity.stalled.isStalled ? STALLED_ACTIVITY_H : 0;
   const btnH = canEdit && !addPlanFormOpen ? ADD_BTN_H : 0;
   const formH = canEdit && addPlanFormOpen ? FORM_H : 0;
   const disconfirmH = showDisconfirmGesture
@@ -567,7 +595,10 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
     caveatH +
     respawnH +
     supersededH +
+    activityHeaderH +
     dataCollectTotalH +
+    pendingAttemptRowsH +
+    stalledH +
     btnH +
     formH +
     disconfirmH;
@@ -1160,58 +1191,113 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
               </div>
             )}
 
-            {/* Data-collection task sections (Task 4 IM-4b) — one per plan, read-display (no ACL gate).
-                Each section embeds the MeasurementPlanChip so its text (including primaryFactor)
-                appears in section.textContent without adding an independent matching element
-                alongside the chip for Testing Library's getAllByText queries. */}
-            {plans.map(plan => {
-              const ownerName = resolveOwner(plan.owner);
-              const statusLabel = resolveStatusLabel(plan.status);
-              return (
-                <div
-                  key={`dc-${plan.id}`}
-                  data-testid="data-collection-task"
-                  className="flex flex-col border-b border-gray-100"
-                >
-                  {/* Header: "Assigned: collect {primaryFactor}" label + status badge + due date.
-                      Owner name is intentionally omitted here — it already appears
-                      in the embedded MeasurementPlanChip row below, so
-                      section.textContent contains it without duplicating the DOM node
-                      (avoids getByText('Alice Lead') ambiguity in existing tests). */}
-                  <div className="flex items-center gap-2 px-3 pt-2 pb-1 text-sm">
-                    <span className="font-medium text-gray-800 truncate flex-1">
-                      {getMessage(locale, 'wall.collect.assigned').replace(
-                        '{primaryFactor}',
-                        plan.primaryFactor
-                      )}
-                    </span>
-                    <span
-                      data-status={plan.status}
-                      className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 flex-shrink-0"
-                    >
-                      {statusLabel}
-                    </span>
-                    {plan.dueDate && (
-                      <span className="text-xs text-gray-500 flex-shrink-0">
-                        {getMessage(locale, 'wall.collect.due').replace('{date}', plan.dueDate)}
-                      </span>
-                    )}
-                  </div>
-                  {/* Chip row embedded inside the section — its text (primaryFactor etc.)
-                      contributes to section.textContent without duplicating getAllByText results */}
-                  <MeasurementPlanChip
-                    plan={plan}
-                    ownerName={ownerName}
-                    canEdit={canEdit}
-                    onEdit={onEditPlan}
-                    onLinkFinding={id => setLinkFindingForPlanId(id)}
-                    pendingMatch={pendingMatchByPlanId?.[plan.id] ?? null}
-                    onSetPlanStatus={onSetPlanStatus}
-                    onDismissPendingMatch={onDismissPendingMatch}
-                  />
+            {showInFlightActivity && (
+              <div data-testid="activity-in-flight" className="border-b border-gray-100">
+                <div className="px-3 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500">
+                  In flight - evidence being collected
                 </div>
-              );
-            })}
+
+                {/* Data-collection task sections (Task 4 IM-4b) — active plans only, read-display (no ACL gate).
+                    Each section embeds the MeasurementPlanChip so its text (including primaryFactor)
+                    appears in section.textContent without adding an independent matching element
+                    alongside the chip for Testing Library's getAllByText queries. */}
+                {inFlightPlanRows.map(plan => {
+                  const ownerName = resolveOwner(plan.owner);
+                  const statusLabel = resolveStatusLabel(plan.status);
+                  return (
+                    <div
+                      key={`dc-${plan.id}`}
+                      data-testid="data-collection-task"
+                      className="flex flex-col border-b border-gray-100"
+                    >
+                      {/* Header: "Assigned: collect {primaryFactor}" label + status badge + due date.
+                          Owner name is intentionally omitted here — it already appears
+                          in the embedded MeasurementPlanChip row below, so
+                          section.textContent contains it without duplicating the DOM node
+                          (avoids getByText('Alice Lead') ambiguity in existing tests). */}
+                      <div className="flex items-center gap-2 px-3 pt-2 pb-1 text-sm">
+                        <span className="font-medium text-gray-800 truncate flex-1">
+                          {getMessage(locale, 'wall.collect.assigned').replace(
+                            '{primaryFactor}',
+                            plan.primaryFactor
+                          )}
+                        </span>
+                        <span
+                          data-status={plan.status}
+                          className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 flex-shrink-0"
+                        >
+                          {statusLabel}
+                        </span>
+                        {plan.dueDate && (
+                          <span className="text-xs text-gray-500 flex-shrink-0">
+                            {getMessage(locale, 'wall.collect.due').replace('{date}', plan.dueDate)}
+                          </span>
+                        )}
+                      </div>
+                      {/* Chip row embedded inside the section — its text (primaryFactor etc.)
+                          contributes to section.textContent without duplicating getAllByText results */}
+                      <MeasurementPlanChip
+                        plan={plan}
+                        ownerName={ownerName}
+                        canEdit={canEdit}
+                        onEdit={onEditPlan}
+                        onLinkFinding={id => setLinkFindingForPlanId(id)}
+                        pendingMatch={pendingMatchByPlanId?.[plan.id] ?? null}
+                        onSetPlanStatus={onSetPlanStatus}
+                        onDismissPendingMatch={onDismissPendingMatch}
+                      />
+                    </div>
+                  );
+                })}
+
+                {pendingAttemptRows.map(attempt => (
+                  <div
+                    key={`pending-attempt-${attempt.id}`}
+                    data-testid="activity-pending-attempt"
+                    className="px-3 py-1.5 text-xs text-amber-800 border-t border-amber-100 bg-amber-50"
+                  >
+                    <span className="font-medium">Break attempt pending:</span>
+                    <span className="ml-1">{attempt.description}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activity.stalled.isStalled && (
+              <div
+                data-testid="activity-stalled"
+                className="border-b border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+              >
+                <div className="font-semibold">
+                  Nothing in flight for {activity.stalled.quietWorkingDays} working days
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    className="rounded border border-amber-300 bg-white px-2 py-0.5 text-amber-800 hover:bg-amber-100"
+                    onClick={() => setAddPlanFormOpen(true)}
+                  >
+                    Plan a check
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded border border-amber-300 bg-white px-2 py-0.5 text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                    disabled={!onGoLook}
+                    onClick={() => onGoLook?.(cardProps.hub.id)}
+                  >
+                    Go look
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded border border-amber-300 bg-white px-2 py-0.5 text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                    disabled={!onSetStatus}
+                    onClick={() => onSetStatus?.(cardProps.hub.id, 'refuted')}
+                  >
+                    Rule it out
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* + Add Plan button */}
             {canEdit && !addPlanFormOpen && (
