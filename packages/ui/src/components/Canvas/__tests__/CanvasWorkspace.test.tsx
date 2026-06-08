@@ -1328,6 +1328,47 @@ describe('CanvasWorkspace', () => {
     });
   });
 
+  it('CS-P3: edit mode exposes the canvasStore-backed per-step spec authoring controls', () => {
+    const setMeasureSpec = vi.fn();
+
+    function Harness(): React.ReactElement {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: mapWithStep() });
+
+      return (
+        <CanvasWorkspace
+          rawData={rawData}
+          outcome="Fill_Weight"
+          factors={[]}
+          measureSpecs={{}}
+          processContext={processContext}
+          canEditCanvas={true}
+          setOutcome={vi.fn()}
+          setFactors={vi.fn()}
+          setMeasureSpec={setMeasureSpec}
+          setProcessContext={next => setProcessContext(next ?? { processMap: mapWithStep() })}
+          onSeeData={vi.fn()}
+        />
+      );
+    }
+
+    render(<Harness />);
+
+    expect(screen.getByTestId('edit-mode-shell')).toBeInTheDocument();
+    expect(screen.getByTestId('canvas-authoring-map')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByTestId('process-map-step-specs-step-1-usl'), {
+      target: { value: '72' },
+    });
+
+    const storeStep = useCanvasStore
+      .getState()
+      .canonicalMap.nodes.find(node => node.id === 'step-1');
+    expect(storeStep?.capabilityScope?.specRules).toEqual([{ specs: { usl: 72 } }]);
+    expect(setMeasureSpec).not.toHaveBeenCalled();
+  });
+
   it('CS-15 seam 1: adding the first process step flips b0 to the b1 framing surface', () => {
     function Harness(): React.ReactElement {
       const [processContext, setProcessContext] = React.useState<

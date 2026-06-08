@@ -60,6 +60,7 @@ import { profileColumns, type ColumnParsingProfile } from '@variscout/core/parse
 import { useCanvasStore } from '@variscout/stores';
 import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
 import { Canvas, type CanvasL3Archetype } from './index';
+import { ProcessMap as ProcessMapView } from './internal/ProcessMap';
 import { Palette } from './EditMode/Palette';
 import type { SystemHint } from './EditMode/Palette';
 import { OutcomeZone } from './EditMode/OutcomeZone';
@@ -1604,6 +1605,40 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                     />
                   </section>
                 </div>
+
+                <section
+                  className="border-t border-edge px-4 py-3"
+                  data-testid="canvas-authoring-map"
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-content">Map structure</h3>
+                    <span className="text-xs text-content-muted">Authoring model</span>
+                  </div>
+                  <ProcessMapView
+                    map={map}
+                    availableColumns={availableColumns}
+                    onChange={handleChange}
+                    gaps={gaps}
+                    target={ctsSpecs?.target}
+                    usl={ctsSpecs?.usl}
+                    lsl={ctsSpecs?.lsl}
+                    cpkTarget={ctsSpecs?.cpkTarget}
+                    onSpecsChange={handleSpecsChange}
+                    stepSpecs={measureSpecs}
+                    capabilityContext={{
+                      availableContext: data.availableContext,
+                      contextValueOptions: data.contextValueOptions,
+                    }}
+                    onCapabilityScopeChange={handleCapabilityScopeChange}
+                    showGaps
+                    onSetStepCtq={handleSetStepCtq}
+                    onAddTributary={handleAddTributary}
+                    onRemoveTributary={handleRemoveTributary}
+                    onToggleSubgroupAxis={handleToggleSubgroupAxis}
+                    onAddHunch={handleAddHunch}
+                    onRemoveHunch={handleRemoveHunch}
+                  />
+                </section>
               </section>
             </DndContext>
             {stepTimingsModalOpen && (
