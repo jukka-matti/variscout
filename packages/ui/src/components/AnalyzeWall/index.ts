@@ -80,5 +80,7 @@ export { HypothesisComments } from './HypothesisComments';
 export type { HypothesisCommentsProps } from './HypothesisComments';
 export { ScopeRail } from './ScopeRail';
 export type { ScopeRailProps } from './ScopeRail';
+export { OverallProblemHeader } from './OverallProblemHeader';
+export type { OverallProblemHeaderProps } from './OverallProblemHeader';
 export { CausesMatrix } from './CausesMatrix';
 export type { CausesMatrixProps } from './CausesMatrix';

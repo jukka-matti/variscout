@@ -786,6 +786,7 @@ export {
   conditionReferencesStep,
   // Drill-chip → ConditionLeaf[] bridges (ADR-085 scope capture)
   buildConditionFromCategoricalFilters,
+  conditionLeavesToCategoricalFilters,
   activeFiltersToCondition,
   categoricalFiltersToActiveFilters,
   // Compound-condition display (scope-anchor card, IM-4a)
@@ -805,6 +806,7 @@ export type {
   GatePath,
   IPReportMiniChartType,
   ProblemStatementScope,
+  ProblemStatementScopeCreatedFrom,
   ConditionLeaf,
   CategoricalFilterInput,
 } from './findings';

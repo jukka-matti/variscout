@@ -22,7 +22,7 @@
 
 import React from 'react';
 import type { ProblemStatementScope } from '@variscout/core';
-import { formatConditionLeaves } from '@variscout/core';
+import { formatConditionLeaves, predicateSetKey } from '@variscout/core';
 import { getMessage } from '@variscout/core/i18n';
 import { useWallLocale } from './hooks/useWallLocale';
 
@@ -35,6 +35,73 @@ export interface ScopeRailProps {
   onScopeSelect: (scopeId: string) => void;
   /** Called when the user archives a scope (SCOPE_ARCHIVE). */
   onScopeArchive: (scopeId: string) => void;
+}
+
+function leafKey(scopePredicate: ProblemStatementScope['predicates'][number]): string {
+  return predicateSetKey([scopePredicate]);
+}
+
+function isStrictPredicateSubset(
+  maybeParent: ProblemStatementScope,
+  child: ProblemStatementScope
+): boolean {
+  if (
+    maybeParent.predicates.length === 0 ||
+    maybeParent.predicates.length >= child.predicates.length
+  ) {
+    return false;
+  }
+  const childKeys = new Set(child.predicates.map(leafKey));
+  return maybeParent.predicates.every(predicate => childKeys.has(leafKey(predicate)));
+}
+
+function resolveLineageParent(
+  scope: ProblemStatementScope,
+  scopes: ReadonlyArray<ProblemStatementScope>
+): ProblemStatementScope | undefined {
+  if (scope.parentScopeId) {
+    const explicit = scopes.find(candidate => candidate.id === scope.parentScopeId);
+    if (explicit) return explicit;
+  }
+
+  return scopes
+    .filter(
+      candidate =>
+        candidate.id !== scope.id &&
+        candidate.deletedAt === null &&
+        candidate.projectId === scope.projectId &&
+        candidate.outcome === scope.outcome &&
+        isStrictPredicateSubset(candidate, scope)
+    )
+    .sort((a, b) => b.predicates.length - a.predicates.length)[0];
+}
+
+function formatDeltaSegment(parent: ProblemStatementScope, child: ProblemStatementScope): string {
+  const parentKeys = new Set(parent.predicates.map(leafKey));
+  const delta = child.predicates.filter(predicate => !parentKeys.has(leafKey(predicate)));
+  return formatConditionLeaves(delta.length > 0 ? delta : child.predicates);
+}
+
+function buildLineageSegments(
+  scope: ProblemStatementScope,
+  scopes: ReadonlyArray<ProblemStatementScope>,
+  visited = new Set<string>()
+): string[] {
+  if (visited.has(scope.id)) return [formatConditionLeaves(scope.predicates)];
+  visited.add(scope.id);
+
+  const parent = resolveLineageParent(scope, scopes);
+  if (!parent || visited.has(parent.id)) return [formatConditionLeaves(scope.predicates)];
+
+  return [...buildLineageSegments(parent, scopes, visited), formatDeltaSegment(parent, scope)];
+}
+
+function formatScopeLineage(
+  scope: ProblemStatementScope,
+  scopes: ReadonlyArray<ProblemStatementScope>
+): string | undefined {
+  if (!resolveLineageParent(scope, scopes)) return undefined;
+  return buildLineageSegments(scope, scopes).join(' → ');
 }
 
 /**
@@ -53,6 +120,7 @@ export function ScopeRail({
       {scopes.map(scope => {
         const isActive = scope.id === activeScopeId;
         const conditionText = formatConditionLeaves(scope.predicates);
+        const lineageText = formatScopeLineage(scope, scopes);
         return (
           <div key={scope.id} className="relative inline-flex">
             <button
@@ -61,14 +129,24 @@ export function ScopeRail({
               aria-current={isActive ? 'true' : undefined}
               onClick={() => onScopeSelect(scope.id)}
               className={[
-                'inline-flex items-center gap-1 rounded-full border py-1 pl-3 pr-7 text-sm',
+                'inline-flex max-w-sm flex-col items-start gap-0.5 rounded-full border py-1 pl-3 pr-7 text-sm',
                 isActive
                   ? 'border-blue-500 bg-blue-50 font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'
                   : 'border-edge bg-surface text-content-secondary hover:bg-surface-secondary',
               ].join(' ')}
               type="button"
             >
-              <span className="max-w-xs truncate">{conditionText}</span>
+              <span
+                className="max-w-xs truncate"
+                data-testid={lineageText ? `scope-lineage-${scope.id}` : undefined}
+              >
+                {lineageText ?? conditionText}
+              </span>
+              {lineageText && (
+                <span className="max-w-xs truncate text-[10px] font-normal opacity-70">
+                  {conditionText}
+                </span>
+              )}
             </button>
             <button
               type="button"

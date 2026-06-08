@@ -809,6 +809,13 @@ export type GateNode =
 // Problem-Statement Scope (ADR-085 — the WHERE, first-class)
 // ============================================================================
 
+/** How a `ProblemStatementScope` entered the Analyze wall. */
+export type ProblemStatementScopeCreatedFrom =
+  | 'explore-drill'
+  | 'finding-refine'
+  | 'manual'
+  | 'coscout-proposal';
+
 /**
  * The first-class WHERE of an investigation (ADR-085): an outcome (Y) sharpened
  * by a flat AND of `{factor=level}` drill predicates, with the many suspected
@@ -826,6 +833,15 @@ export interface ProblemStatementScope extends EntityBase {
   outcome: string;
   /** The `{factor=level}` WHERE — a flat AND of drill-chip leaves. */
   predicates: ConditionLeaf[];
+  /**
+   * Optional display lineage edge to a broader scope. The child scope remains
+   * complete on its own; consumers must not inherit predicates from this field.
+   */
+  parentScopeId?: ProblemStatementScope['id'];
+  /** Finding that prompted this refinement, when the scope was created from evidence. */
+  sourceFindingId?: Finding['id'];
+  /** Entry path used for lineage and audit display. */
+  createdFrom?: ProblemStatementScopeCreatedFrom;
   /** The MANY suspected causes nested within this scope (the WHY). */
   hypothesisIds: Hypothesis['id'][];
   /**

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   createProblemStatementScope,
   buildConditionFromCategoricalFilters,
+  conditionLeavesToCategoricalFilters,
   activeFiltersToCondition,
   type ConditionLeaf,
 } from '../../index';
@@ -26,6 +27,23 @@ describe('createProblemStatementScope', () => {
     const scope = createProblemStatementScope('inv-1', 'Yield', predicates, ['hyp-1', 'hyp-2']);
     expect(scope.predicates).toEqual(predicates);
     expect(scope.hypothesisIds).toEqual(['hyp-1', 'hyp-2']);
+  });
+
+  it('accepts lineage metadata while keeping the scope predicate set complete', () => {
+    const predicates: ConditionLeaf[] = [
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+      { kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' },
+    ];
+    const scope = createProblemStatementScope('inv-1', 'Yield', predicates, [], {
+      parentScopeId: 'scope-machine-a',
+      sourceFindingId: 'finding-shift-night',
+      createdFrom: 'finding-refine',
+    });
+
+    expect(scope.predicates).toEqual(predicates);
+    expect(scope.parentScopeId).toBe('scope-machine-a');
+    expect(scope.sourceFindingId).toBe('finding-shift-night');
+    expect(scope.createdFrom).toBe('finding-refine');
   });
 
   it('mints distinct ids per call', () => {
@@ -72,6 +90,29 @@ describe('buildConditionFromCategoricalFilters', () => {
     expect(leaves).toHaveLength(2);
     expect(leaves[0]).toEqual({ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' });
     expect(leaves[1]).toEqual({ kind: 'leaf', column: 'Line', op: 'in', value: ['A', 'C'] });
+  });
+});
+
+describe('conditionLeavesToCategoricalFilters', () => {
+  it('reconstructs categorical filters from eq and in leaves', () => {
+    const filters = conditionLeavesToCategoricalFilters([
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+      { kind: 'leaf', column: 'Shift', op: 'in', value: ['Night', 'Late'] },
+    ]);
+
+    expect(filters).toEqual([
+      { column: 'Machine', values: ['A'] },
+      { column: 'Shift', values: ['Night', 'Late'] },
+    ]);
+  });
+
+  it('drops comparison leaves that cannot be represented as categorical filter chips', () => {
+    const filters = conditionLeavesToCategoricalFilters([
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+      { kind: 'leaf', column: 'Temperature', op: 'gt', value: 72 },
+    ]);
+
+    expect(filters).toEqual([{ column: 'Machine', values: ['A'] }]);
   });
 });
 

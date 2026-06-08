@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useAnalysisScopeStore, getAnalysisScopeInitialState } from '@variscout/stores';
+import {
+  useAnalysisScopeStore,
+  getAnalysisScopeInitialState,
+  useProjectStore,
+  getProjectInitialState,
+} from '@variscout/stores';
 import { navigateToExploreForChip } from '../navigateToExploreForChip';
 
 describe('navigateToExploreForChip', () => {
   beforeEach(() => {
     useAnalysisScopeStore.setState(getAnalysisScopeInitialState());
+    useProjectStore.setState(getProjectInitialState());
   });
 
   it('outcome target sets yColumn and invokes the navigation callback', () => {
@@ -86,5 +92,42 @@ describe('navigateToExploreForChip', () => {
     );
     expect(useAnalysisScopeStore.getState().yColumn).toBe('Existing');
     expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('Vessel');
+  });
+
+  it('factor target with scopePredicates applies the complete categorical WHERE to Explore charts', () => {
+    useAnalysisScopeStore.setState({
+      yColumn: 'Old Y',
+      boxplotFactor: 'Old Factor',
+      categoricalFilters: [{ column: 'Legacy', values: ['stale'] }],
+    });
+    useProjectStore.setState({
+      filters: { Legacy: ['stale'] },
+    });
+
+    const onNavigate = vi.fn();
+    navigateToExploreForChip(
+      {
+        kind: 'factor',
+        columnName: 'Temperature',
+        outcomeColumn: 'Yield',
+        scopePredicates: [
+          { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+          { kind: 'leaf', column: 'Shift', op: 'in', value: ['Night', 'Late'] },
+        ],
+      },
+      onNavigate
+    );
+
+    expect(useAnalysisScopeStore.getState().yColumn).toBe('Yield');
+    expect(useAnalysisScopeStore.getState().boxplotFactor).toBe('Temperature');
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'Machine', values: ['A'] },
+      { column: 'Shift', values: ['Night', 'Late'] },
+    ]);
+    expect(useProjectStore.getState().filters).toEqual({
+      Machine: ['A'],
+      Shift: ['Night', 'Late'],
+    });
+    expect(onNavigate).toHaveBeenCalledTimes(1);
   });
 });

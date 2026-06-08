@@ -1,4 +1,9 @@
-import { useAnalysisScopeStore } from '@variscout/stores';
+import {
+  categoricalFiltersToActiveFilters,
+  conditionLeavesToCategoricalFilters,
+  type ConditionLeaf,
+} from '@variscout/core/findings';
+import { useAnalysisScopeStore, useProjectStore } from '@variscout/stores';
 
 export type ChipNavigationTarget =
   | { kind: 'outcome'; columnName: string; stepId?: string }
@@ -13,6 +18,11 @@ export type ChipNavigationTarget =
        * Explore-last-had. Optional: omitting preserves chip-path behavior.
        */
       outcomeColumn?: string;
+      /**
+       * Full active WHERE from Analyze. Each predicate set is complete; parent
+       * lineage is display-only and must not be inherited during navigation.
+       */
+      scopePredicates?: ReadonlyArray<ConditionLeaf>;
     }
   | { kind: 'step'; stepId: string };
 
@@ -21,6 +31,15 @@ export function navigateToExploreForChip(
   onNavigateToExplore: () => void
 ): void {
   const scope = useAnalysisScopeStore.getState();
+
+  if (target.kind === 'factor' && target.scopePredicates !== undefined) {
+    const categoricalFilters = conditionLeavesToCategoricalFilters(target.scopePredicates);
+    scope.clearScope();
+    for (const filter of categoricalFilters) {
+      scope.setCategoricalValues(filter.column, filter.values);
+    }
+    useProjectStore.getState().setFilters(categoricalFiltersToActiveFilters(categoricalFilters));
+  }
 
   switch (target.kind) {
     case 'outcome':

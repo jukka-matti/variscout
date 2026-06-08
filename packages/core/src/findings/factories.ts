@@ -317,10 +317,15 @@ export function createProblemStatementScope(
   projectId: string,
   outcome: string,
   predicates: ConditionLeaf[] = [],
-  hypothesisIds: string[] = []
+  hypothesisIds: string[] = [],
+  options: {
+    parentScopeId?: ProblemStatementScope['id'];
+    sourceFindingId?: Finding['id'];
+    createdFrom?: ProblemStatementScope['createdFrom'];
+  } = {}
 ): ProblemStatementScope {
   const now = Date.now();
-  return {
+  const scope: ProblemStatementScope = {
     id: generateDeterministicId(),
     projectId,
     outcome,
@@ -330,6 +335,10 @@ export function createProblemStatementScope(
     updatedAt: now,
     deletedAt: null,
   };
+  if (options.parentScopeId !== undefined) scope.parentScopeId = options.parentScopeId;
+  if (options.sourceFindingId !== undefined) scope.sourceFindingId = options.sourceFindingId;
+  if (options.createdFrom !== undefined) scope.createdFrom = options.createdFrom;
+  return scope;
 }
 
 /**

@@ -480,6 +480,25 @@ describe('analyzeStore — syncScopeFromDrill (IM-4a)', () => {
       { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
       { kind: 'leaf', column: 'Product', op: 'eq', value: 'X' },
     ]);
+    expect(state.scopes[0].createdFrom).toBe('explore-drill');
+  });
+
+  it('stamps lineage from the nearest existing containing scope without inheriting filters', () => {
+    const broad = useAnalyzeStore
+      .getState()
+      .syncScopeFromDrill('inv-1', 'lead_time', [{ column: 'Machine', values: ['B'] }]);
+    const refined = useAnalyzeStore.getState().syncScopeFromDrill('inv-1', 'lead_time', [
+      { column: 'Machine', values: ['B'] },
+      { column: 'Shift', values: ['Night'] },
+    ]);
+
+    expect(broad?.parentScopeId).toBeUndefined();
+    expect(refined?.parentScopeId).toBe(broad?.id);
+    expect(refined?.createdFrom).toBe('explore-drill');
+    expect(refined?.predicates).toEqual([
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
+      { kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' },
+    ]);
   });
 
   it('does NOT duplicate when re-fired on the same compound condition', () => {

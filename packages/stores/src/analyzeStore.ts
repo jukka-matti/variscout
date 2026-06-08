@@ -64,6 +64,32 @@ type HypothesisUpdate = Partial<
   >
 >;
 
+function isPredicateSubset(
+  maybeParent: ReadonlyArray<ConditionLeaf>,
+  child: ReadonlyArray<ConditionLeaf>
+): boolean {
+  if (maybeParent.length === 0 || maybeParent.length >= child.length) return false;
+  const childKeys = new Set(child.map(leaf => predicateSetKey([leaf])));
+  return maybeParent.every(leaf => childKeys.has(predicateSetKey([leaf])));
+}
+
+function findNearestContainingScope(
+  scopes: ReadonlyArray<ProblemStatementScope>,
+  projectId: string,
+  outcome: string,
+  predicates: ReadonlyArray<ConditionLeaf>
+): ProblemStatementScope | undefined {
+  return scopes
+    .filter(
+      scope =>
+        scope.deletedAt === null &&
+        scope.projectId === projectId &&
+        scope.outcome === outcome &&
+        isPredicateSubset(scope.predicates, predicates)
+    )
+    .sort((a, b) => b.predicates.length - a.predicates.length)[0];
+}
+
 // ============================================================================
 // State + Actions
 // ============================================================================
@@ -156,7 +182,12 @@ export interface AnalyzeActions {
     projectId: string,
     outcome: string,
     predicates?: ConditionLeaf[],
-    hypothesisIds?: string[]
+    hypothesisIds?: string[],
+    options?: {
+      parentScopeId?: ProblemStatementScope['id'];
+      sourceFindingId?: Finding['id'];
+      createdFrom?: ProblemStatementScope['createdFrom'];
+    }
   ) => ProblemStatementScope;
   /**
    * IM-4a Task 1 — Drill → scope producer. Materialize the active compound
@@ -738,8 +769,14 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   // Scope actions (ADR-085 — first-class WHERE)
   // ========================================================================
 
-  addScope: (projectId, outcome, predicates?, hypothesisIds?) => {
-    const scope = createProblemStatementScope(projectId, outcome, predicates, hypothesisIds);
+  addScope: (projectId, outcome, predicates?, hypothesisIds?, options?) => {
+    const scope = createProblemStatementScope(
+      projectId,
+      outcome,
+      predicates,
+      hypothesisIds,
+      options
+    );
     set(state => ({ scopes: [...state.scopes, scope] }));
     return scope;
   },
@@ -764,7 +801,11 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     );
     if (existing) return existing;
 
-    return get().addScope(projectId, outcome, predicates);
+    const parentScope = findNearestContainingScope(get().scopes, projectId, outcome, predicates);
+    return get().addScope(projectId, outcome, predicates, [], {
+      createdFrom: 'explore-drill',
+      parentScopeId: parentScope?.id,
+    });
   },
 
   updateScope: (scopeId, patch) => {

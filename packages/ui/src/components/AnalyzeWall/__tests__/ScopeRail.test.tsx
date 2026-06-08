@@ -115,6 +115,24 @@ describe('ScopeRail — scope listing', () => {
     expect(screen.getByTestId('scope-chip-scope-b')).toBeInTheDocument();
     expect(screen.getByTestId('scope-chip-scope-c')).toBeInTheDocument();
   });
+
+  it('renders a broad-to-narrow lineage trail when a scope refines another scope', () => {
+    render(
+      <ScopeRail {...makeProps({ scopes: [scopeA, { ...scopeB, parentScopeId: scopeA.id }] })} />
+    );
+
+    expect(screen.getByTestId('scope-lineage-scope-b')).toHaveTextContent(
+      'Machine = B → Product = X'
+    );
+  });
+
+  it('infers a lineage trail from predicate containment when lineage metadata is absent', () => {
+    render(<ScopeRail {...makeProps({ scopes: [scopeA, scopeB] })} />);
+
+    expect(screen.getByTestId('scope-lineage-scope-b')).toHaveTextContent(
+      'Machine = B → Product = X'
+    );
+  });
 });
 
 describe('ScopeRail — active scope highlighting', () => {

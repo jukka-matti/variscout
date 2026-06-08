@@ -5,6 +5,7 @@ import {
   WallCanvas,
   CausesMatrix,
   ScopeRail,
+  OverallProblemHeader,
   CommandPalette,
   Minimap,
   CANVAS_W,
@@ -43,6 +44,7 @@ import {
   computeInteractionEffects,
   categoricalFiltersToActiveFilters,
   buildConditionFromCategoricalFilters,
+  conditionLeavesToCategoricalFilters,
   formatConditionLeaves,
   predicateSetKey,
   parseMentions,
@@ -449,22 +451,16 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // Re-anchor: selecting a scope chip rewrites the drill filters to that scope's
   // compound WHERE (IM-4a's predicateSetKey-matched producer then re-selects the
   // scope, re-anchoring the Problem card). Reconstruct categoricalFilters from the
-  // scope's eq-predicates, grouped by column.
+  // scope's categorical predicates, grouped by column.
   const handleScopeSelect = useCallback(
     (scopeId: string) => {
       const scope = scopes.find(s => s.id === scopeId);
       if (!scope) return;
-      const byColumn = new Map<string, (string | number)[]>();
-      for (const leaf of scope.predicates) {
-        if (leaf.op !== 'eq') continue;
-        const vals = byColumn.get(leaf.column) ?? [];
-        vals.push(leaf.value as string | number);
-        byColumn.set(leaf.column, vals);
-      }
+      const filters = conditionLeavesToCategoricalFilters(scope.predicates);
       const scopeStore = useAnalysisScopeStore.getState();
       scopeStore.clearScope();
-      for (const [column, values] of byColumn) {
-        scopeStore.setCategoricalValues(column, values);
+      for (const filter of filters) {
+        scopeStore.setCategoricalValues(filter.column, filter.values);
       }
     },
     [scopes]
@@ -853,6 +849,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     existingStatement: processContext?.problemStatement,
     onStatementChange: handleProblemStatementChange,
   });
+  const targetLabel = useMemo(
+    () => (cpkTarget !== undefined ? `Cpk >= ${cpkTarget}` : undefined),
+    [cpkTarget]
+  );
 
   const handleCurrentUnderstandingChange = useCallback(
     (
@@ -1024,11 +1024,16 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const handleExploreFactor = useCallback(
     (factor: string) => {
       navigateToExploreForChip(
-        { kind: 'factor', columnName: factor, outcomeColumn: outcome ?? undefined },
+        {
+          kind: 'factor',
+          columnName: factor,
+          outcomeColumn: outcome ?? undefined,
+          scopePredicates: activeScope?.predicates,
+        },
         () => usePanelsStore.getState().showExplore()
       );
     },
-    [outcome]
+    [activeScope, outcome]
   );
 
   const handleMapDrillDown = useCallback(
@@ -1262,6 +1267,14 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           {analyzeViewMode === 'map' ? (
             wallViewMode === 'wall' ? (
               <div className="relative flex-1 flex flex-col min-h-0">
+                <OverallProblemHeader
+                  issueStatement={processContext?.issueStatement}
+                  outcomeLabel={outcome}
+                  targetLabel={targetLabel}
+                  problemStatement={processContext?.problemStatement}
+                  problemStatementDraft={problemStatement.draft}
+                  scopeBranchCount={railScopes.length}
+                />
                 {/* IM-4b Task 5 — multi-scope rail above the canvas. Selecting a
                     chip re-anchors the Problem card (rewrites the drill filters
                     → IM-4a's producer re-selects the scope). Hidden when no scopes
