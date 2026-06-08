@@ -80,6 +80,29 @@ import { useWallLocale } from './hooks/useWallLocale';
 import { useWallDragDrop } from './hooks/useWallDragDrop';
 import { useWallIsMobile } from './hooks/useWallBreakpoint';
 
+type RenderableGateKind = Extract<GateNode['kind'], 'and' | 'or' | 'not'>;
+
+const gateKindForBadge = (node: GateNode): RenderableGateKind =>
+  node.kind === 'hub' ? 'and' : node.kind;
+
+const formatGateExpression = (node: GateNode, hubIndexById: Map<string, number>): string => {
+  if (node.kind === 'hub') {
+    const index = hubIndexById.get(node.hubId);
+    return index === undefined ? 'H?' : `H${index + 1}`;
+  }
+  if (node.kind === 'not') {
+    const child = formatGateExpression(node.child, hubIndexById);
+    return node.child.kind === 'hub' ? `¬${child}` : `¬(${child})`;
+  }
+  const separator = node.kind === 'and' ? ' ∧ ' : ' ∨ ';
+  return node.children
+    .map(child => {
+      const label = formatGateExpression(child, hubIndexById);
+      return child.kind === 'hub' ? label : `(${label})`;
+    })
+    .join(separator);
+};
+
 /**
  * Measurement-plan affordances threaded into WallCanvas as a single bag.
  * Using a bag rather than individual props keeps WallCanvasProps under
@@ -879,6 +902,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       activeScope.gateNode && dataRows.length > 0
         ? runAndCheck(activeScope.gateNode, hubs, dataRows)
         : undefined;
+    const hubIndexById = new Map(hubs.map((candidate, index) => [candidate.id, index]));
     // What-If projected Cpk (if-fixed) — null when unprojectable (no specs /
     // insufficient data); the card omits the row. The IM-5 helpers type rows as
     // the core `DataRow` (constrained cell values); the Wall's `rows` prop is
@@ -897,6 +921,10 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       conditionText: formatConditionLeaves(activeScope.predicates),
       holds: holdsResult?.holds,
       total: holdsResult?.total,
+      gateKind: activeScope.gateNode ? gateKindForBadge(activeScope.gateNode) : undefined,
+      gateExpression: activeScope.gateNode
+        ? formatGateExpression(activeScope.gateNode, hubIndexById)
+        : undefined,
       whatIfCpk,
       coveragePct,
     };
@@ -1383,6 +1411,21 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             x={CANVAS_W / 2}
             y={40}
           />
+          {scopeAnchor?.gateKind &&
+          scopeAnchor.holds !== undefined &&
+          scopeAnchor.total !== undefined ? (
+            <g data-testid="wall-scope-gate-badge">
+              <GateBadge
+                kind={scopeAnchor.gateKind}
+                gatePath="scope"
+                holds={scopeAnchor.holds}
+                total={scopeAnchor.total}
+                expression={scopeAnchor.gateExpression}
+                x={CANVAS_W / 2}
+                y={212}
+              />
+            </g>
+          ) : null}
 
           <line
             x1={80}

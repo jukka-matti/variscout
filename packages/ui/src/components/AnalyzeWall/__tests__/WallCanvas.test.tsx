@@ -1311,6 +1311,49 @@ describe('WallCanvas', () => {
       expect(screen.getByTestId('problem-scope-holds')).toHaveTextContent('4/10');
     });
 
+    it('renders a readable scope gate badge for compound contribution trees', () => {
+      const gatedScope = {
+        ...scope,
+        gateNode: {
+          kind: 'and' as const,
+          children: [
+            { kind: 'hub' as const, hubId: 'h-machine-b' },
+            { kind: 'hub' as const, hubId: 'h-lead-50' },
+          ],
+        },
+      };
+      const machineHub: Hypothesis = {
+        ...hub,
+        id: 'h-machine-b',
+        name: 'Machine B shift',
+        condition: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
+      };
+      const leadHub: Hypothesis = {
+        ...hub,
+        id: 'h-lead-50',
+        name: 'Lead time at 50',
+        condition: { kind: 'leaf', column: 'lead_time', op: 'eq', value: 50 },
+      };
+      render(
+        <WallCanvas
+          hubs={[machineHub, leadHub]}
+          findings={[]}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          rows={scopeRows}
+          activeScope={gatedScope}
+        />
+      );
+
+      const badge = screen.getByTestId('wall-scope-gate-badge');
+      expect(badge).toHaveTextContent('HOLDS 1/10');
+      expect(badge).toHaveTextContent('H1 ∧ H2');
+      expect(badge.querySelector('[data-wall-gate-badge="scope"]')).toHaveAttribute(
+        'data-wall-gate-readable',
+        'true'
+      );
+    });
+
     it('renders the What-If projected Cpk when specs are provided', () => {
       render(
         <WallCanvas
@@ -1376,7 +1419,11 @@ describe('WallCanvas', () => {
       );
       // condition SHIFT=night → 2 of 4 rows.
       const badge = screen.getByTestId(`hub-holds-${condHub.id}`);
-      expect(badge).toHaveTextContent('2/4');
+      expect(badge).toHaveTextContent('HOLDS 2/4');
+      expect(badge.querySelector(`[data-wall-gate-badge="hub:${condHub.id}"]`)).toHaveAttribute(
+        'data-wall-gate-readable',
+        'true'
+      );
     });
 
     it('renders FindingChips tethered to their parent hypothesis', () => {
