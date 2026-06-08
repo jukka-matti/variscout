@@ -411,6 +411,11 @@ export {
   useCapabilityBoxplotData,
   type UseCapabilityBoxplotDataOptions,
 } from './useCapabilityBoxplotData';
+export {
+  buildEditorCapabilitySource,
+  type BuildEditorCapabilitySourceInput,
+  type EditorCapabilitySource,
+} from './buildEditorCapabilitySource';
 
 // Dashboard Insights (shared chart insight computation)
 export {

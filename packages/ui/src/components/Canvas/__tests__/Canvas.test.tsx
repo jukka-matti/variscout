@@ -439,6 +439,36 @@ describe('Canvas', () => {
     expect(screen.getByTestId('canvas-step-card-step-2')).toBeInTheDocument();
   });
 
+  it('renders the connected per-step capability band at the process level', () => {
+    renderCanvas({
+      data: {
+        ...baseData,
+        errorSteps: [{ nodeId: 'step-2', label: 'Fill', errorCount: 7 }],
+      },
+    });
+    expect(screen.getByTestId('connected-step-capability-view')).toBeInTheDocument();
+    expect(screen.getByTestId('connected-step-node-step-1')).toBeInTheDocument();
+    expect(screen.getByTestId('connected-step-box-step-1')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-step-pareto')).toBeInTheDocument();
+  });
+
+  it('passes time value roles into the connected capability band for zero-baseline Values scaling', () => {
+    renderCanvas({
+      valueRolesByStepId: { 'step-1': 'time' },
+      stepCards: [
+        {
+          ...baseStepCards[0],
+          values: [10, 20, 30],
+          specs: { lsl: 12, usl: 28, target: 20 },
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Values' }));
+
+    expect(screen.getByTestId('connected-step-box-step-1')).toHaveTextContent('zero baseline');
+  });
+
   it('renders the mobile Wall shortcut button only when on mobile, investigation content exists, and onOpenWall is wired', () => {
     wallIsMobileRef.current = true;
     hasInvestigationContentRef.current = false;

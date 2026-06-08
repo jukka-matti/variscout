@@ -153,7 +153,7 @@ export function useProductionLineGlanceData(
           hubContextColumns: hub.contextColumns,
         });
         const defaultRule = node.capabilityScope.specRules.find(r => !r.when);
-        const targetCpk = defaultRule?.specs.target;
+        const targetCpk = defaultRule?.specs.cpkTarget;
         results.push({ nodeId: node.id, label: node.name, targetCpk, result });
         break; // first matching member wins per node
       }

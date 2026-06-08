@@ -1025,8 +1025,7 @@ describe('Editor', () => {
 
     it('(c) NEGATIVE: no goal banner when activeView is explore (frame-only surface)', async () => {
       // Data loaded, explore tab active — GoalBanner must not render there.
-      // The populated GoalBanner on ProcessHubView is a different surface; the
-      // opt-in start-prompt is frame-tab only per spec §3.
+      // The opt-in start-prompt is frame-tab only per spec §3.
       usePanelsStore.setState({ activeView: 'explore' });
       renderEditor({
         rawData: [{ Weight: 10, Machine: 'A' }],

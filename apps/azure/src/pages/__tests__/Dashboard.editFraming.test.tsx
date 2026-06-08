@@ -1,13 +1,7 @@
 /**
- * P4.5 — Verify that the "Add framing" CTA in ProcessHubView navigates
- * the user to the Editor paste flow by calling onOpenProject(undefined, hubId, true).
- * The third argument (startPaste=true) ensures Editor opens directly into PasteScreen.
- *
- * Test-shape note: We test via the full pages/Dashboard render path (same as
- * Dashboard.processHub.test.tsx) rather than mocking ProcessHubView, because
- * the real navigation chain is: CTA click → onEditFraming(hubId) → onOpenProject.
- * Testing at the component mock boundary would only verify prop presence, not
- * the actual handler wiring.
+ * CS-P2 — Dashboard no longer owns the retired portfolio framing prompt.
+ * Framing edits live on the shared editor Process tab; the portfolio Dashboard
+ * keeps the hub selector and evidence panel only.
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -37,16 +31,6 @@ vi.mock('../../services/storage', () => ({
   }),
 }));
 
-// CS-P1: the Status/Capability two-tab collapsed, so ProcessHubView now mounts
-// ProcessHubCapabilityTab unconditionally. Its visx charts need ResizeObserver,
-// which this integration suite doesn't polyfill — and the capability content is
-// out of scope here (framing-prompt wiring). Mock it (mirrors the mocks in
-// Dashboard.processHub.test.tsx + ProcessHubView.test.tsx).
-vi.mock('../../components/ProcessHubCapabilityTab', () => ({
-  ProcessHubCapabilityTab: () => <div data-testid="mock-process-hub-capability-tab" />,
-  default: () => <div data-testid="mock-process-hub-capability-tab" />,
-}));
-
 vi.mock('../../auth/easyAuth', () => ({
   getEasyAuthUser: vi.fn(() => Promise.resolve({ userId: 'local' })),
 }));
@@ -67,29 +51,26 @@ beforeEach(() => {
   mockSaveProcessHub.mockResolvedValue(undefined);
 });
 
-describe('Dashboard — onEditFraming wiring (P4.5)', () => {
-  it('passes onEditFraming to ProcessHubView — framing prompt is visible for incomplete hub', async () => {
+describe('Dashboard — retired framing prompt', () => {
+  it('does not render the retired Dashboard Add framing prompt for an incomplete hub', async () => {
     render(<Dashboard onOpenProject={vi.fn()} />);
 
     await screen.findByLabelText('Select process hub');
     fireEvent.change(screen.getByLabelText('Select process hub'), { target: { value: 'line-4' } });
 
-    // Hub has no processGoal → framing prompt should be visible
-    await screen.findByTestId('hub-framing-prompt');
-    expect(screen.getByTestId('hub-framing-prompt-cta')).toBeInTheDocument();
+    await waitFor(() => expect(mockListEvidenceSources).toHaveBeenCalledWith('line-4'));
+    expect(screen.queryByTestId('hub-framing-prompt')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hub-framing-prompt-cta')).not.toBeInTheDocument();
   });
 
-  it('clicking Add framing CTA calls onOpenProject(undefined, hubId, true)', async () => {
+  it('selecting an incomplete hub does not navigate through the retired CTA path', async () => {
     const onOpenProject = vi.fn();
     render(<Dashboard onOpenProject={onOpenProject} />);
 
     await screen.findByLabelText('Select process hub');
     fireEvent.change(screen.getByLabelText('Select process hub'), { target: { value: 'line-4' } });
 
-    const cta = await screen.findByTestId('hub-framing-prompt-cta');
-    fireEvent.click(cta);
-
-    // startPaste=true so Editor opens directly into PasteScreen rather than EmptyState
-    await waitFor(() => expect(onOpenProject).toHaveBeenCalledWith(undefined, 'line-4', true));
+    await waitFor(() => expect(mockListEvidenceSources).toHaveBeenCalledWith('line-4'));
+    expect(onOpenProject).not.toHaveBeenCalled();
   });
 });

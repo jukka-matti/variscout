@@ -1,6 +1,7 @@
 import React from 'react';
 import { DndContext } from '@dnd-kit/core';
 import {
+  buildEditorCapabilitySource,
   useCanvasStepCards,
   useCanvasAnalyzeOverlays,
   useProductionLineGlanceData,
@@ -33,7 +34,6 @@ import {
   type TimeDecompositionBinding,
   type ProcessContext,
   type ProcessHubId,
-  type ProcessStepCapabilityMember,
   type SpecLimits,
   type StepCapabilityStamp,
   type StepTimingBinding,
@@ -79,6 +79,7 @@ import type { XCandidate } from '../XPickerSection';
 import type { ChipRailEntry } from '../ChipRail';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 import type { LogActionPayload } from '../QuickAction';
+import { ConnectedStepCapabilityView } from '../ConnectedStepCapability';
 
 const DEFAULT_CPK_TARGET = 1.33;
 const DEFAULT_WORKSPACE_VIEWPORT: CanvasViewportSnapshot = {
@@ -499,24 +500,36 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     />
   );
 
-  const previewSource = React.useMemo(() => {
-    const previewHub = {
-      id: 'frame-preview',
-      canonicalProcessMap: map,
-      contextColumns: [],
-    };
-    return {
-      hub: previewHub,
-      members: [] as ProcessStepCapabilityMember[],
-      rowsByAnalyze: new Map<string, ReadonlyArray<DataRow>>(),
-    };
-  }, [map]);
+  const detected = React.useMemo(
+    () => (rawData.length > 0 ? detectColumns([...rawData]) : null),
+    [rawData]
+  );
+  const runOrderColumn = detected?.timeColumn ?? null;
+  const columnAnalysis = React.useMemo(() => detected?.columnAnalysis ?? [], [detected]);
+  const timeColumnByAnalyze = React.useMemo(() => {
+    if (!activeIP || !runOrderColumn) return undefined;
+    return new Map([[activeIP.id, runOrderColumn]]);
+  }, [activeIP, runOrderColumn]);
+
+  const capabilitySource = React.useMemo(
+    () =>
+      buildEditorCapabilitySource({
+        hubId,
+        hubName: activeIP?.metadata.title ?? 'Process',
+        processMap: map,
+        activeIP,
+        rows: rawData,
+      }),
+    [activeIP, hubId, map, rawData]
+  );
 
   const data = useProductionLineGlanceData({
-    hub: previewSource.hub,
-    members: previewSource.members,
-    rowsByAnalyze: previewSource.rowsByAnalyze,
+    hub: capabilitySource.hub,
+    members: capabilitySource.members,
+    rowsByAnalyze: capabilitySource.rowsByAnalyze,
     contextFilter: filter.value,
+    window: timelineWindow,
+    timeColumnByInvestigation: timeColumnByAnalyze,
   });
 
   const { cards: stepCards } = useCanvasStepCards({
@@ -535,12 +548,6 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     causalLinks,
   });
 
-  const detected = React.useMemo(
-    () => (rawData.length > 0 ? detectColumns([...rawData]) : null),
-    [rawData]
-  );
-  const runOrderColumn = detected?.timeColumn ?? null;
-  const columnAnalysis = React.useMemo(() => detected?.columnAnalysis ?? [], [detected]);
   const b0ModeCandidates = React.useMemo(
     () =>
       deriveB0ModeCandidates({
@@ -637,6 +644,25 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   // requires an active IP to be open). Defaults to [] when absent so the
   // derived-column memos stay stable.
   const binnedFactorBindings = activeIP?.binnedFactorBindings ?? [];
+
+  const valueRolesByStepId = React.useMemo(() => {
+    const roles: Record<string, 'time'> = {};
+    for (const binding of stepTimings) {
+      roles[binding.stepId] = 'time';
+    }
+    for (const card of stepCards) {
+      const metric = card.metricColumn?.toLowerCase() ?? '';
+      if (
+        metric.includes('time') ||
+        metric.includes('duration') ||
+        metric.includes('cycle') ||
+        metric.includes('wait')
+      ) {
+        roles[card.stepId] = 'time';
+      }
+    }
+    return roles;
+  }, [stepCards, stepTimings]);
 
   const [stepTimingsModalOpen, setStepTimingsModalOpen] = React.useState(false);
   const [calcModalOpen, setCalcModalOpen] = React.useState<{ sourceColumn?: string } | null>(null);
@@ -1254,6 +1280,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       showGaps={scope !== 'b0'}
       canvasFilterChips={canvasFilterChipsNode}
       stepCards={stepCards}
+      valueRolesByStepId={valueRolesByStepId}
       activeLens={activeCanvasLens}
       onLensChange={setActiveCanvasLens}
       activeOverlays={activeCanvasOverlays}
@@ -1498,6 +1525,14 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                   processSteps={processSteps}
                   categoricalValuesByColumn={categoricalValuesByColumn}
                   onExploreExit={handleExploreExit}
+                />
+
+                <ConnectedStepCapabilityView
+                  map={map}
+                  stepCards={stepCards}
+                  capabilityNodes={data.capabilityNodes}
+                  errorSteps={data.errorSteps}
+                  valueRolesByStepId={valueRolesByStepId}
                 />
 
                 <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 md:grid-cols-[14rem_18rem_minmax(0,1fr)]">

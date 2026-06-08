@@ -54,16 +54,6 @@ vi.mock('../../components/SampleDataPicker', () => ({
   default: () => null,
 }));
 
-// CS-P1: ProcessHubView now renders ProcessHubCapabilityTab unconditionally (no
-// longer behind the retired Capability tab). Its visx charts need ResizeObserver,
-// which this integration suite (Dashboard ↔ ProcessHubView ↔ ReviewPanel) doesn't
-// provide. The per-step capability charts are out of scope here — covered by
-// ProcessHubCapabilityTab.test.tsx — so stub the tab to a marker.
-vi.mock('../../components/ProcessHubCapabilityTab', () => ({
-  ProcessHubCapabilityTab: () => <div data-testid="mock-process-hub-capability-tab" />,
-  default: () => <div data-testid="mock-process-hub-capability-tab" />,
-}));
-
 function makeProject(): CloudProject {
   return {
     id: 'line-4-a',
@@ -151,11 +141,9 @@ describe('Dashboard Process Hub home', () => {
     expect(screen.queryByRole('button', { name: /Start analyze in/ })).not.toBeInTheDocument();
   });
 
-  // PO-3: the ProcessHubReviewPanel review surface (CurrentStatePanel + Inbox +
-  // state-item UI) is retired. ProcessHubView is now a thin host — only the
-  // Capability orient content survives. Negative control: the retired
-  // 'Current Process State' aria region must NOT come back.
-  it('renders the thin hub host without the retired current-state review surface', async () => {
+  // CS-P2: the Dashboard-side 2x2 capability host is retired. The selector and
+  // evidence panel remain; per-step capability lives on the shared editor Canvas.
+  it('does not mount the retired Dashboard process hub capability surface', async () => {
     const onOpenProject = vi.fn();
     mockListProjects.mockResolvedValue([
       makeProject(),
@@ -171,13 +159,14 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByLabelText('Select process hub');
     await selectHub('line-4');
 
-    await screen.findByTestId('process-hub-surface'); // survivor present
+    await waitFor(() => expect(mockListEvidenceSources).toHaveBeenCalledWith('line-4'));
+    expect(screen.queryByTestId('process-hub-surface')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('region', { name: /Current Process State/i })
     ).not.toBeInTheDocument(); // the retired surface must NOT come back
   });
 
-  it('keeps the hub host visible when search filters the investigation list', async () => {
+  it('keeps the hub selector visible when search filters the investigation list', async () => {
     mockListProjects.mockResolvedValue([makeProject()]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
@@ -187,18 +176,18 @@ describe('Dashboard Process Hub home', () => {
 
     await screen.findByLabelText('Select process hub');
     await selectHub('line-4');
-    await screen.findByTestId('process-hub-surface');
+    await waitFor(() => expect(mockListEvidenceSources).toHaveBeenCalledWith('line-4'));
 
     fireEvent.change(screen.getByPlaceholderText('Search analyzes...'), {
       target: { value: 'zzzz no matching project' },
     });
 
     expect(screen.getByLabelText('Select process hub')).toBeInTheDocument();
-    expect(screen.getByTestId('process-hub-surface')).toBeInTheDocument();
+    expect(screen.queryByTestId('process-hub-surface')).not.toBeInTheDocument();
     expect(screen.queryByTestId('project-card')).not.toBeInTheDocument();
   });
 
-  it('mounts the thin hub host for a selected hub without investigations', async () => {
+  it('does not mount the retired capability host for a selected hub without investigations', async () => {
     mockListProjects.mockResolvedValue([]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
@@ -209,9 +198,8 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByLabelText('Select process hub');
     await selectHub('line-4');
 
-    // The thin host mounts for an empty hub without crashing; the process-hub
-    // surface (Capability orient content) is the surviving keep.
-    expect(await screen.findByTestId('process-hub-surface')).toBeInTheDocument();
+    await waitFor(() => expect(mockListEvidenceSources).toHaveBeenCalledWith('line-4'));
+    expect(screen.queryByTestId('process-hub-surface')).not.toBeInTheDocument();
   });
 
   it('mounts the EvidencePanel only once a hub is selected', async () => {
@@ -274,7 +262,7 @@ describe('Dashboard Process Hub home', () => {
     promptSpy.mockRestore();
   });
 
-  it('onHubGoalChange wires to saveProcessHub — framing prompt visible for incomplete hub', async () => {
+  it('does not render the retired Dashboard framing prompt for an incomplete hub', async () => {
     mockListProjects.mockResolvedValue([makeProject()]);
     mockListProcessHubs.mockResolvedValue([
       { id: 'line-4', name: 'Line 4', createdAt: 1745539200000, deletedAt: null },
@@ -287,13 +275,8 @@ describe('Dashboard Process Hub home', () => {
     await screen.findByLabelText('Select process hub');
     await selectHub('line-4');
 
-    // Wait for ProcessHubView to render.
-    await screen.findByTestId('process-hub-surface');
-
-    // Hub has no processGoal and no outcomes → framing prompt is visible (onEditFraming wired).
-    // This confirms that ProcessHubView receives onEditFraming from Dashboard.
-    expect(screen.getByTestId('hub-framing-prompt')).toBeInTheDocument();
-    // Clicking Add framing triggers onEditFraming which calls onOpenProject.
-    // (Full GoalBanner inline-edit saveProcessHub path tested by ProcessHubView.test.tsx)
+    await waitFor(() => expect(mockListEvidenceSources).toHaveBeenCalledWith('line-4'));
+    expect(screen.queryByTestId('process-hub-surface')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hub-framing-prompt')).not.toBeInTheDocument();
   });
 });

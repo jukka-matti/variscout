@@ -82,6 +82,44 @@ describe('useProductionLineGlanceData', () => {
     expect(result.current.errorSteps.map(s => s.nodeId).sort()).toEqual(['n1', 'n2']);
   });
 
+  it('uses spec cpkTarget for capability target ticks, not the nominal measurement target', () => {
+    const targetMap = {
+      ...map,
+      nodes: [
+        {
+          ...map.nodes[0],
+          capabilityScope: {
+            specRules: [{ specs: { lsl: 498, usl: 502, target: 500, cpkTarget: 1.67 } }],
+          },
+        },
+      ],
+    };
+    const targetHub: ProcessHub = {
+      ...hub,
+      canonicalProcessMap: targetMap,
+    };
+    const rows = Array.from({ length: 30 }, (_, i) => ({
+      mixCpk: 500 + (i % 5) * 0.1,
+      product: 'A',
+    }));
+    const m = makeMember({
+      id: 'i1',
+      nodeMappings: [{ nodeId: 'n1', measurementColumn: 'mixCpk' }],
+      rows,
+    });
+
+    const { result } = renderHook(() =>
+      useProductionLineGlanceData({
+        hub: targetHub,
+        members: [m],
+        rowsByAnalyze: new Map([['i1', rows]]),
+        contextFilter: {},
+      })
+    );
+
+    expect(result.current.capabilityNodes.find(node => node.nodeId === 'n1')?.targetCpk).toBe(1.67);
+  });
+
   it('exposes hub-level context columns in availableContext.hubColumns', () => {
     const m = makeMember({ id: 'i1', nodeMappings: [], rows: [] });
     const { result } = renderHook(() =>

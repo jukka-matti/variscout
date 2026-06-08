@@ -1613,8 +1613,8 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Handle ColumnMapping confirm — adopts new Hub-shaped payload (slice-2 contract).
   // Wire categories, brief, and investigation state; persist outcomes + primaryScopeDimensions
-  // to the active Hub via commitHubChange (Task H will surface this on ProcessHubView — for
-  // Task A we wire the data path so it's available from this point forward).
+  // to the active Hub via commitHubChange so the Process tab can read the
+  // framed Hub state from this point forward.
   const handleMappingConfirmWithCategories = useCallback(
     (payload: ColumnMappingConfirmPayload) => {
       const { categories: newCategories, brief, outcomes, primaryScopeDimensions } = payload;
@@ -1652,7 +1652,7 @@ export const Editor: React.FC<EditorProps> = ({
 
       // Persist outcomes + primaryScopeDimensions to the active Hub.
       // The Hub is identified by processContext.processHubId; save is async
-      // (fire-and-forget here — ProcessHubView Task H surfaces the persisted state).
+      // (fire-and-forget here; the Process tab reads the persisted state).
       if (
         (outcomes.length > 0 || primaryScopeDimensions.length > 0) &&
         processContext?.processHubId
