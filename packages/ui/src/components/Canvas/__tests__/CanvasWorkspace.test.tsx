@@ -2832,6 +2832,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     expect(input?.rowsByAnalyze.get('ip-capability')).toBe(capabilityRows);
     expect(input?.window).toEqual({ kind: 'rolling', windowDays: 30 });
     expect(input?.timeColumnByInvestigation?.get('ip-capability')).toBe('Timestamp');
+    expect(screen.getByTestId('connected-step-capability-view')).toBeInTheDocument();
   });
 
   // G1 Task 3 — bin chip surfaced in palette from activeIP.binnedFactorBindings

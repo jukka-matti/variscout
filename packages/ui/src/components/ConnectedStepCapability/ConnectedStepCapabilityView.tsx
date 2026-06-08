@@ -67,10 +67,19 @@ function StepBox({
   const cpkTarget = step.capability.target ?? 1.33;
   const cpkDomainMax = Math.max(cpkStats?.max ?? 0, cpkTarget, 2);
   const cpkPosition = (value: number) => Math.max(0, Math.min(100, (value / cpkDomainMax) * 100));
-  const valueMin = step.values.scaled.length > 0 ? Math.min(...step.values.scaled) : 0;
-  const valueMax = step.values.scaled.length > 0 ? Math.max(...step.values.scaled) : 0;
-  const valueLeft = Math.max(0, Math.min(100, valueMin * 100));
-  const valueWidth = Math.max(3, Math.min(100 - valueLeft, (valueMax - valueMin) * 100));
+  const valueStats = step.values.boxplot;
+  const valuePosition = (value: number) => {
+    const span = Math.max(step.values.upper - step.values.lower, 1);
+    return Math.max(0, Math.min(100, ((value - step.values.lower) / span) * 100));
+  };
+  const activeStats = mode === 'capability' ? cpkStats : valueStats;
+  const position = mode === 'capability' ? cpkPosition : valuePosition;
+  const targetPosition =
+    mode === 'capability'
+      ? cpkPosition(cpkTarget)
+      : step.values.target !== undefined
+        ? valuePosition(step.values.target)
+        : undefined;
 
   return (
     <div
@@ -94,13 +103,13 @@ function StepBox({
         className="relative h-8 rounded bg-surface-secondary"
         data-testid={`connected-step-boxplot-${step.stepId}`}
       >
-        {mode === 'capability' && cpkStats ? (
+        {activeStats ? (
           <>
             <div
               className="absolute top-1/2 h-px -translate-y-1/2 bg-content-secondary"
               style={{
-                left: `${cpkPosition(cpkStats.min)}%`,
-                width: `${Math.max(2, cpkPosition(cpkStats.max) - cpkPosition(cpkStats.min))}%`,
+                left: `${position(activeStats.min)}%`,
+                width: `${Math.max(2, position(activeStats.max) - position(activeStats.min))}%`,
               }}
               data-testid={`connected-step-whisker-${step.stepId}`}
               aria-hidden="true"
@@ -108,36 +117,31 @@ function StepBox({
             <div
               className="absolute top-1/2 h-4 -translate-y-1/2 rounded-sm border border-content bg-surface-primary"
               style={{
-                left: `${cpkPosition(cpkStats.q1)}%`,
-                width: `${Math.max(3, cpkPosition(cpkStats.q3) - cpkPosition(cpkStats.q1))}%`,
+                left: `${position(activeStats.q1)}%`,
+                width: `${Math.max(3, position(activeStats.q3) - position(activeStats.q1))}%`,
               }}
               data-testid={`connected-step-iqr-${step.stepId}`}
               aria-hidden="true"
             />
             <div
               className="absolute top-1/2 h-5 w-0.5 -translate-y-1/2 bg-content"
-              style={{ left: `${cpkPosition(cpkStats.median)}%` }}
+              style={{ left: `${position(activeStats.median)}%` }}
               data-testid={`connected-step-median-${step.stepId}`}
               aria-hidden="true"
             />
-            <div
-              className="absolute inset-y-1 w-0.5 bg-status-info"
-              style={{ left: `${cpkPosition(cpkTarget)}%` }}
-              data-testid={`connected-step-target-${step.stepId}`}
-              aria-hidden="true"
-            />
+            {targetPosition !== undefined ? (
+              <div
+                className="absolute inset-y-1 w-0.5 bg-status-info"
+                style={{ left: `${targetPosition}%` }}
+                data-testid={`connected-step-target-${step.stepId}`}
+                aria-hidden="true"
+              />
+            ) : null}
           </>
         ) : null}
         {mode === 'values' && step.values.baselineKind === 'spec-window' ? (
           <div
             className="absolute inset-y-1 left-0 right-0 rounded border border-dashed border-status-info/50 bg-status-info-soft/40"
-            aria-hidden="true"
-          />
-        ) : null}
-        {mode === 'values' ? (
-          <div
-            className="absolute top-1/2 h-2 -translate-y-1/2 rounded bg-content"
-            style={{ left: `${valueLeft}%`, width: `${valueWidth}%` }}
             aria-hidden="true"
           />
         ) : null}

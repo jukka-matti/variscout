@@ -11,6 +11,7 @@ export type ConnectedStepValueRole = 'measure' | 'time';
 export interface ConnectedStepCapabilityValueModel {
   raw: number[];
   scaled: number[];
+  boxplot: BoxplotGroupData | null;
   baselineKind: ConnectedValueBaselineKind;
   lower: number;
   upper: number;
@@ -88,6 +89,7 @@ function valueModel(
     return {
       raw,
       scaled: raw.map(value => roundScaled((value - lower) / span)),
+      boxplot: capabilityBoxplot(card?.stepName ?? card?.metricColumn ?? 'Values', raw),
       baselineKind: 'spec-window',
       lower,
       upper,
@@ -105,6 +107,7 @@ function valueModel(
   return {
     raw,
     scaled: raw.map(value => roundScaled(value / upper)),
+    boxplot: capabilityBoxplot(card?.stepName ?? card?.metricColumn ?? 'Values', raw),
     baselineKind: 'zero',
     lower: 0,
     upper,

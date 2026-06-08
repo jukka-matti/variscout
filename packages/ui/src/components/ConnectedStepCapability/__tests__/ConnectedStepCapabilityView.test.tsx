@@ -126,6 +126,15 @@ describe('ConnectedStepCapabilityView', () => {
     expect(screen.getByTestId('connected-step-target-fill')).toBeInTheDocument();
   });
 
+  it('renders Values mode as a raw-value boxplot on the normalized scale', () => {
+    renderView();
+    fireEvent.click(screen.getByRole('button', { name: 'Values' }));
+    expect(screen.getByTestId('connected-step-whisker-fill')).toBeInTheDocument();
+    expect(screen.getByTestId('connected-step-iqr-fill')).toBeInTheDocument();
+    expect(screen.getByTestId('connected-step-median-fill')).toBeInTheDocument();
+    expect(screen.getByTestId('connected-step-box-fill')).toHaveTextContent('spec window');
+  });
+
   it('marks branching maps as linked views and keeps the step error Pareto', () => {
     renderView();
     expect(screen.getByTestId('connected-step-branching-note')).toBeInTheDocument();

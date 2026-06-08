@@ -79,6 +79,7 @@ import type { XCandidate } from '../XPickerSection';
 import type { ChipRailEntry } from '../ChipRail';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 import type { LogActionPayload } from '../QuickAction';
+import { ConnectedStepCapabilityView } from '../ConnectedStepCapability';
 
 const DEFAULT_CPK_TARGET = 1.33;
 const DEFAULT_WORKSPACE_VIEWPORT: CanvasViewportSnapshot = {
@@ -1524,6 +1525,14 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                   processSteps={processSteps}
                   categoricalValuesByColumn={categoricalValuesByColumn}
                   onExploreExit={handleExploreExit}
+                />
+
+                <ConnectedStepCapabilityView
+                  map={map}
+                  stepCards={stepCards}
+                  capabilityNodes={data.capabilityNodes}
+                  errorSteps={data.errorSteps}
+                  valueRolesByStepId={valueRolesByStepId}
                 />
 
                 <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 md:grid-cols-[14rem_18rem_minmax(0,1fr)]">
