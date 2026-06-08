@@ -283,3 +283,20 @@ describe('WallCanvas seam — data-collection task header renders the primaryFac
     expect(section!.textContent).toMatch(/Nozzle Temp/);
   });
 });
+
+describe('WallCanvas seam — stalled activity escape actions', () => {
+  it('forwards onGoLook from planningProps to the suspected-cause card', () => {
+    const onGoLook = vi.fn();
+    renderWall(
+      {
+        ...baseHub,
+        status: 'needs-disconfirmation',
+        updatedAt: Date.UTC(2026, 5, 1, 12, 0, 0),
+      },
+      makePlanningProps({ onGoLook } as Partial<WallCanvasPlanningProps>)
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Go look/i }));
+    expect(onGoLook).toHaveBeenCalledWith(baseHub.id);
+  });
+});

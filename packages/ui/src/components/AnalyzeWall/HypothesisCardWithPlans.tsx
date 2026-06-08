@@ -531,11 +531,12 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // optional add-plan button + optional add-plan form +
   // optional disconfirmation gesture.
   const actions = cardProps.hub.actions ?? [];
+  const [mountedActivityNow] = useState(() => Date.now());
   const activity = deriveHypothesisActivity({
     hub: cardProps.hub,
     plans,
     testPlanFactors,
-    now: activityNow ?? Date.now(),
+    now: activityNow ?? mountedActivityNow,
   });
   const inFlightPlanRows = activity.inFlightPlans;
   const pendingAttemptRows = activity.pendingAttempts;
@@ -1194,7 +1195,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
             {showInFlightActivity && (
               <div data-testid="activity-in-flight" className="border-b border-gray-100">
                 <div className="px-3 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500">
-                  In flight - evidence being collected
+                  {getMessage(locale, 'wall.activity.inFlightHeading')}
                 </div>
 
                 {/* Data-collection task sections (Task 4 IM-4b) — active plans only, read-display (no ACL gate).
@@ -1256,7 +1257,9 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     data-testid="activity-pending-attempt"
                     className="px-3 py-1.5 text-xs text-amber-800 border-t border-amber-100 bg-amber-50"
                   >
-                    <span className="font-medium">Break attempt pending:</span>
+                    <span className="font-medium">
+                      {getMessage(locale, 'wall.activity.pendingAttempt')}
+                    </span>
                     <span className="ml-1">{attempt.description}</span>
                   </div>
                 ))}
@@ -1269,7 +1272,10 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                 className="border-b border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"
               >
                 <div className="font-semibold">
-                  Nothing in flight for {activity.stalled.quietWorkingDays} working days
+                  {getMessage(locale, 'wall.activity.stalledHeading').replace(
+                    '{days}',
+                    String(activity.stalled.quietWorkingDays)
+                  )}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   <button
@@ -1277,7 +1283,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     className="rounded border border-amber-300 bg-white px-2 py-0.5 text-amber-800 hover:bg-amber-100"
                     onClick={() => setAddPlanFormOpen(true)}
                   >
-                    Plan a check
+                    {getMessage(locale, 'wall.activity.planCheck')}
                   </button>
                   <button
                     type="button"
@@ -1285,7 +1291,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     disabled={!onGoLook}
                     onClick={() => onGoLook?.(cardProps.hub.id)}
                   >
-                    Go look
+                    {getMessage(locale, 'wall.activity.goLook')}
                   </button>
                   <button
                     type="button"
@@ -1293,7 +1299,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     disabled={!onSetStatus}
                     onClick={() => onSetStatus?.(cardProps.hub.id, 'refuted')}
                   >
-                    Rule it out
+                    {getMessage(locale, 'wall.activity.ruleOut')}
                   </button>
                 </div>
               </div>

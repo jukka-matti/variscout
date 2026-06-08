@@ -1059,6 +1059,10 @@ function AppMain() {
       },
       onSetStatus: (id: string, status: HypothesisStatus) =>
         useAnalyzeStore.getState().setHubStatus(id, status),
+      onGoLook: (hypothesisId: string) => {
+        useCanvasViewportStore.getState().setViewMode('wall');
+        useViewStore.getState().setFocusedWallEntity(hypothesisId);
+      },
       // PR-CS-11 — the re-ingest confirm prompt's APPLY surface (Wall chip). Plans
       // persist via pwaHubRepository.dispatch (the established plan-write path);
       // status display reads from wallMeasurementPlans, so we update it optimistically.
