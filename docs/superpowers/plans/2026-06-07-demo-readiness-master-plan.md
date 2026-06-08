@@ -57,9 +57,9 @@ Two variants; the sub-plan is the contract either way. **Owner call 2026-06-07: 
 
 **Variant A — pre-authored contract** (phases 0–1: the b0 fix plan + the L-1 sub-plan already exist): prompt points Codex at AGENTS.md + the sub-plan path + the self-merge gates.
 
-**Variant B — Codex authors the contract** (phases L-2…L-5 and beyond): **Task 0: ground (read the cited anchors in code), author the sub-plan to `docs/superpowers/plans/`, commit it, STOP for the owner/Claude plan-review** — the contract stays independent of its implementation even when the same agent later builds it. Then implement → self-merge gates → merge. Format exemplar: [the L-1 sub-plan](2026-06-07-l1-evidence-angle-picker.md).
+**Variant B — Codex authors the contract AND runs it** (phases L-2…L-5, CS-series, beyond): **Task 0: ground (read the cited anchors in code — the plan stack drifts, so verify against current main, not older plan prose), author the sub-plan to `docs/superpowers/plans/`, commit it** — then **proceed straight to implementation** (no owner/Claude plan-review stop). Full autonomy: ground → plan → build → self-merge gates → merge. The plan-review STOP was retired 2026-06-08 (owner call) — it had been a no-op since the FSJ trial; the contract's independence is preserved by Task-0 grounding + post-merge review, not by a blocking gate. Format exemplar: [the L-1 sub-plan](2026-06-07-l1-evidence-angle-picker.md).
 
-**Post-merge (Claude, async):** subagent code review of the merged diff + a chrome spot-walk; findings land as drive-by fixes on main or investigations.md entries. Retro line item per phase: post-merge-fix count + (Variant B) plan-review-fix count — the trial metrics.
+**Post-merge (Claude, async):** subagent code review of the merged diff + a chrome spot-walk; findings land as drive-by fixes on main or investigations.md entries. Retro line item per phase: post-merge-fix count — the trial metric. Higher-stakes phases (design-heavy / demo-bar, e.g. CS-P2) lean harder on the self-authored-plan quality + the owner browser gate; the post-merge review for those should read the self-authored sub-plan against the spec to catch any misread.
 
 ## Done means
 
