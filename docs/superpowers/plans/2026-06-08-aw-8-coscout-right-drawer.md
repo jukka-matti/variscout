@@ -5,7 +5,7 @@ title: 'AW-8 CoScout right drawer slot'
 audience: human
 status: active
 date: 2026-06-08
-layer: plan
+layer: spec
 topic: [analyze, wall, coscout, drawer, azure]
 related:
   - docs/superpowers/specs/2026-06-08-analyze-wall-redesign-design.md
