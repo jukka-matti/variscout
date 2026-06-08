@@ -103,6 +103,10 @@ function renderWall() {
   );
 }
 
+function openModelBuilder() {
+  fireEvent.click(screen.getByTestId('wall-model-builder-toggle'));
+}
+
 beforeEach(() => {
   useAnalyzeStore.setState(getAnalyzeInitialState());
   useCanvasViewportStore.setState(getCanvasViewportInitialState());
@@ -111,6 +115,7 @@ beforeEach(() => {
 describe('PWA Wall capture-as-Finding seam (FE-1 fix)', () => {
   it('tapping Capture lands the model Finding in useAnalyzeStore (the Wall’s store)', () => {
     renderWall();
+    openModelBuilder();
     fireEvent.click(screen.getByTestId('model-capture'));
 
     const findings = useAnalyzeStore.getState().findings;
@@ -144,6 +149,7 @@ describe('PWA Wall capture-as-Finding seam (FE-1 fix)', () => {
     expect(container.querySelector('[data-wall-orphan-lane]')).toBeNull();
     expect(screen.queryByText(/You've observed:/i)).toBeNull();
 
+    openModelBuilder();
     fireEvent.click(screen.getByTestId('model-capture'));
 
     const finding = useAnalyzeStore.getState().findings[0];

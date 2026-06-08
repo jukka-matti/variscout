@@ -1218,21 +1218,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                       </button>
                     ))}
                   </div>
-                  {/* Wall-only toolbar: group by tributary */}
-                  {wallViewMode === 'wall' && processMap && (
-                    <button
-                      type="button"
-                      aria-pressed={wallGroupByTributary}
-                      onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
-                      className={`ml-1 px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                        wallGroupByTributary
-                          ? 'bg-surface-secondary text-content'
-                          : 'text-content-secondary hover:text-content'
-                      }`}
-                    >
-                      Group by tributary
-                    </button>
-                  )}
                 </>
               )}
 
