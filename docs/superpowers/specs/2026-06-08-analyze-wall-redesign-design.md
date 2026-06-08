@@ -93,6 +93,44 @@ Benchmark = **Miro for process evidence** (navigation primitives + frames, not a
 
 The canvas's role is the founding **"Investigation on the River"** wall (the process-detective board, `process_thinking.pptx`): **problem condition above · suspected causes converge upward from tributary-roots below · findings pinned · gates check the data (HOLDS N/M) · status graduates · the tool surfaces what's missing.** It is rendered with **Miro's _feel_** (the canvas owns the screen; calm; direct-manipulation) but is explicitly **not a Miro board** — nodes are typed, connections are semantic and checkable, CoScout suggests never authors. ("Feel like Miro" and the deck's "Not a Miro board" are the same target: Miro's _feel_, VariScout's _rigor_.)
 
+### §7.0 The two states (wireframe)
+
+Built/iterated in a visual-companion session (mockups in `.superpowers/brainstorm/`, ephemeral); the durable form follows.
+
+**State A — CoScout closed · canvas-first (the canvas owns the screen):**
+
+```
+┌ thin bar: Issue: Fill weight · Line 2 · Cpk≥1.33 · Scope: Line 2 ▾     [Wall|Causes] ┐
+│▎D                        ┌──────────────────┐                                    ▎ │
+│▎E                        │ Problem condition │  ← above the waterline             ▎C│
+│▎T                        └─────────┬────────┘                                     ▎O│
+│▎A                          ◇ HOLDS 38/42 (H1∧H2)   ← legible gate                 ▎S│
+│▎I  ┌ Nozzle hot ──┐  ┌ Supplier B ─┐  ┌ New operators ┐  ← causes converge UP    ▎ │
+│▎L  │ Suspected    │  │ Suspected   │  │ ⚠ no evidence  │                          ▎(handle)
+│ (handle) 📊2 👁1   │  │ 📊1 💬1     │  │ [Check it]     │                          ▎ │
+│   📊┘ 👁┘ 2sup·1ctr   2sup                                                          │
+│   [orphan: 📊 Machine C tightest → propose / drill]                    [⌖ fit] [mini] │
+│   ●NOZZLE→H1  ●SHIFT→H1  ●LOT.VISC→H2  ●SUPPLIER→H2  ●OPERATOR→H3  ○TRAINING(unused) │
+└──────────────── tributary-roots · live from Process Map ─────────────────────────────┘
+   supports = left (green tethers) · counts-against = right (loud) · full pool in left drawer
+```
+
+**State B — a cause selected → left detail drawer + right CoScout open (canvas stays central):**
+
+```
+┌ DETAIL (left, no-AI) ─┐        canvas (narrowed)        ┌ CoScout (right, Azure) ─┐
+│ Suspected cause:      │     ┌ Problem condition ┐       │ [Coach|Evidence|Actions]│
+│ Nozzle runs hot       │      ◇ HOLDS 38/42      │       │ "1 step away — try a    │
+│ [Evidence|Comments|   │   ┌ Nozzle hot ◀selected┐│      │  day-shift comparison"  │
+│  Activity]            │   │ 📊2 👁1 · 2sup 1ctr ││      │  [REF → H1] ··········▶ │
+│ 📊 spike (supports)   │   └─────────────────────┘│      │ suggests · you decide · │
+│ 👁 dripping (supports)│  📊 spike      👁 jig fine(ctr)  │ never sets status (CS-10)│
+│ 👁 jig fine (counter) │  ●SHIFT→H1   ●NOZZLE→H1          │ content = CS-14          │
+│ ⚠ no expert · 0 breaks│                                 └─────────────────────────┘
+│ Status ▾ Suspected    │   both drawers collapse to slim handles → canvas-first
+└───────────────────────┘
+```
+
 ### §7.1 The job-to-be-done
 
 Top job: **turn suspected causes into disconfirmable claims, triangulate evidence for/against each, settle which are Supported, and hand a confirmed cause + its What-If gain to Improve.** The loop: Issue → **Explore** (diverge: scan/drill → capture a Finding) ⟷ **Analyze** (converge: scope → cause → test/triangulate/try-to-break → settle status) → **Improve**; with **crossing-back** (jump to Explore carrying the scope). The surface you're on _is_ the phase; no wizard.
