@@ -1,11 +1,11 @@
 /**
- * Task 5 — ScopeRail: Multi-scope rail (RED tests).
+ * ScopeRail — current scope + flat sibling switcher.
  *
  * Encodes the acceptance oracle:
- *   - The persisted ProblemStatementScopes for the investigation are listed in
- *     a rail/breadcrumb; switching re-anchors the Wall Problem card to that scope
- *     (via IM-4a active-scope selection via onScopeSelect); SCOPE_ARCHIVE prunes
- *     a scope (onScopeArchive); deterministic (no wall-clock / RNG).
+ *   - The current ProblemStatementScope is prominent; flat sibling scopes are
+ *     available through a compact switcher; switching re-anchors the Wall
+ *     Problem card to that scope (via app-owned active-scope selection);
+ *     SCOPE_ARCHIVE prunes a scope (onScopeArchive); deterministic (no wall-clock / RNG).
  *
  * Reuse: ProblemStatementScope from @variscout/core + formatConditionLeaves to
  * render the WHERE label. analyzeStore.archiveScope is the store-level owner of
@@ -20,11 +20,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { ProblemStatementScope } from '@variscout/core';
 
-// ── The component under test — does NOT exist yet (RED) ───────────────────────
-// ScopeRail: a horizontal breadcrumb/tab rail that lists persisted
-// ProblemStatementScopes. Clicking a chip calls onScopeSelect(scope.id).
-// An archive button on each chip calls onScopeArchive(scope.id).
-// The active scope (activeScopeId) receives an aria-current="true" marker.
 import { ScopeRail } from '../ScopeRail';
 
 // ── Fixtures — deterministic (no Date.now(), no Math.random()) ───────────────
@@ -114,6 +109,28 @@ describe('ScopeRail — scope listing', () => {
     expect(screen.getByTestId('scope-chip-scope-a')).toBeInTheDocument();
     expect(screen.getByTestId('scope-chip-scope-b')).toBeInTheDocument();
     expect(screen.getByTestId('scope-chip-scope-c')).toBeInTheDocument();
+  });
+});
+
+describe('ScopeRail — current scope switcher', () => {
+  it('shows the active scope as the current scope anchor', () => {
+    render(<ScopeRail {...makeProps({ activeScopeId: scopeB.id })} />);
+
+    expect(screen.getByTestId('scope-current-anchor')).toHaveTextContent('Current scope');
+    expect(screen.getByTestId('scope-current-anchor')).toHaveTextContent('Machine = B');
+    expect(screen.getByTestId('scope-current-anchor')).toHaveTextContent('Product = X');
+  });
+
+  it('labels flat siblings without lineage wording', () => {
+    render(
+      <ScopeRail {...makeProps({ scopes: [scopeA, scopeB, scopeC], activeScopeId: scopeA.id })} />
+    );
+
+    expect(screen.getByTestId('scope-switcher')).toHaveTextContent('3 scopes');
+    expect(screen.queryByText(/lineage/i)).toBeNull();
+    expect(screen.queryByText(/breadcrumb/i)).toBeNull();
+    expect(screen.queryByText(/parent/i)).toBeNull();
+    expect(screen.queryByText(/child/i)).toBeNull();
   });
 });
 
