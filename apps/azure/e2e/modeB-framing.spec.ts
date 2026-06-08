@@ -5,13 +5,9 @@
 // Test groups:
 //   1. Full Mode B via Editor paste — from "Paste Data" through b0's selected
 //      Y/X handoff to the analysis canvas.
-//   2. GoalBanner edit roundtrip via ProcessHubView — seeds a framed hub, navigates
-//      to portfolio, selects the hub from the hub selector, edits GoalBanner inline, saves.
-//   3. "New Hub" from ProjectDashboard sidebar — loads a sample, navigates to Overview
+//   2. "New Hub" from ProjectDashboard sidebar — loads a sample, navigates to Overview
 //      tab, clicks action-new-hub, runs Mode B paste flow again.
 //      Skips gracefully when sample picker is unavailable.
-//   4. Portfolio ProcessHubView "Add framing" CTA — seeds an incomplete hub, navigates
-//      to portfolio, selects the hub from the hub selector, verifies hub-framing-prompt and CTA routing.
 import { test, expect } from '@playwright/test';
 import {
   pasteDataAndAnalyze,
@@ -23,11 +19,7 @@ import {
   DETECTION_CSV,
   MODE_B_CSV,
 } from './helpers';
-import { seedPortfolioHub, seedIncompleteHub } from './fixtures/portfolio-state';
 
-// GOAL_NARRATIVE removed — HubGoalForm (Stage-1) retired in FSJ-3b; goal
-// ceremony moved to GoalBanner on the Process tab (spec §3).
-const EDITED_GOAL = 'We produce precision medical components. Weight accuracy is critical.';
 const TWO_Y_CSV = [
   'weight_g,cycle_time_sec,product,shift',
   '4.5,24.5,A,morning',
@@ -187,47 +179,7 @@ test.describe('Azure Mode B framing — Editor paste flow', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Test group 2: GoalBanner edit roundtrip via portfolio ProcessHubView
-// ---------------------------------------------------------------------------
-
-test.describe('Azure Mode B framing — GoalBanner edit roundtrip (portfolio)', () => {
-  test('GoalBanner click → textarea → save → updated text (portfolio ProcessHubView)', async ({
-    page,
-  }) => {
-    // Seed a framed hub and auto-navigate to portfolio.
-    // seedPortfolioHub: goto('/') → evaluates IDB write → reloads.
-    // App.tsx sees the seeded project on reload and auto-redirects to portfolio
-    // (Dashboard view). Returns when 'text=Process Hubs' is visible.
-    await seedPortfolioHub(page);
-
-    // 1. Portfolio is already shown — select the seeded hub by name from the
-    //    hub selector (PO-4: the hub-card grid retired in favor of a <select>).
-    //    The portfolio may also show "General / Unassigned" (default hub); pick the
-    //    fixture hub specifically so we hit one with processGoal set.
-    const hubSelect = page.getByLabel('Select process hub');
-    await expect(hubSelect).toBeVisible({ timeout: 5000 });
-    await hubSelect.selectOption({ label: 'Fixture Syringe Barrel Line' });
-
-    // 2. GoalBanner is shown above the hub surface when processGoal is set
-    const goalBanner = page.getByTestId('goal-banner');
-    await expect(goalBanner).toBeVisible({ timeout: 5000 });
-
-    // 3. Click GoalBanner to enter edit mode (inline textarea)
-    await goalBanner.click();
-    const goalTextarea = goalBanner.locator('textarea');
-    await expect(goalTextarea).toBeVisible({ timeout: 3000 });
-
-    // 4. Replace goal text and save
-    await goalTextarea.fill(EDITED_GOAL);
-    await goalBanner.locator('button:has-text("Save")').click();
-
-    // 5. Banner should show the updated text
-    await expect(goalBanner).toContainText('precision medical components');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Test group 3: "New Hub" from ProjectDashboard sidebar (action-new-hub)
+// Test group 2: "New Hub" from ProjectDashboard sidebar (action-new-hub)
 // ---------------------------------------------------------------------------
 
 test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point', () => {
@@ -278,33 +230,5 @@ test.describe('Azure Mode B framing — ProjectDashboard "New Hub" entry point',
 
     await expect(page.getByTestId('frame-view-b0')).toBeVisible();
     await seeB0Data(page);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Test group 4: Portfolio ProcessHubView — incomplete-Hub "Add framing" CTA
-// ---------------------------------------------------------------------------
-
-test.describe('Azure Mode B framing — portfolio ProcessHubView (incomplete hub)', () => {
-  test('"New Hub" in portfolio creates incomplete Hub with Add framing CTA', async ({ page }) => {
-    // Seed an incomplete hub (no processGoal, no outcomes).
-    // seedIncompleteHub: goto('/') → evaluates IDB write → reloads.
-    // App.tsx auto-redirects to portfolio. Returns when 'text=Process Hubs' is visible.
-    await seedIncompleteHub(page);
-
-    // Portfolio is already shown — select the seeded incomplete hub from the
-    // hub selector (PO-4: the hub-card grid retired in favor of a <select>).
-    const hubSelect = page.getByLabel('Select process hub');
-    await expect(hubSelect).toBeVisible({ timeout: 5000 });
-    await hubSelect.selectOption({ label: 'Incomplete Hub Fixture' });
-
-    // ProcessHubView should show the incomplete-hub framing prompt with Add framing CTA.
-    await expect(page.getByTestId('hub-framing-prompt')).toBeVisible({ timeout: 8000 });
-    await expect(page.getByTestId('hub-framing-prompt-cta')).toBeVisible();
-    await expect(page.getByTestId('hub-framing-prompt-cta')).toContainText('Add framing');
-
-    // Clicking the CTA routes to the Editor paste flow (wired in P4.5).
-    await page.getByTestId('hub-framing-prompt-cta').click();
-    await expect(page.getByTestId('paste-textarea')).toBeVisible({ timeout: 8000 });
   });
 });

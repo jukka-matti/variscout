@@ -1,10 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { normalizeProcessHubId } from '@variscout/core';
-import type {
-  ProcessHub,
-  ProcessStepCapabilityMember,
-  ProcessStepCapabilitySource,
-} from '@variscout/core';
+import type { ProcessHub } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { useNewHubProvision } from '../features/hubCreation/useNewHubProvision';
@@ -14,7 +10,6 @@ import { RefreshCw, Cloud, CloudOff, FolderOpen, Search, FlaskConical } from 'lu
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
 import ProjectCard from '../components/ProjectCard';
 import ProcessHubEvidencePanel from '../components/ProcessHubEvidencePanel';
-import ProcessHubView from '../components/ProcessHubView';
 import SampleDataPicker from '../components/SampleDataPicker';
 
 interface DashboardProps {
@@ -30,8 +25,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onLoadProjectFile,
   onLoadSample,
 }) => {
-  const { listProjects, listProcessHubs, saveProcessHub, loadProject, saveProject, syncStatus } =
-    useStorage();
+  const { listProjects, listProcessHubs, syncStatus } = useStorage();
 
   const [userId, setUserId] = useState('local');
   const [projects, setProjects] = useState<CloudProject[]>([]);
@@ -115,16 +109,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [processHubs, selectedHubId]
   );
 
-  const capabilitySource = useMemo<ProcessStepCapabilitySource | undefined>(() => {
-    if (!selectedHub) return undefined;
-    return {
-      hub: selectedHub,
-      members: sortedProjects
-        .filter(p => normalizeProcessHubId(p.metadata?.processHubId) === selectedHub.id)
-        .map(p => ({ id: p.id || p.name, name: p.name, metadata: p.metadata })),
-    };
-  }, [selectedHub, sortedProjects]);
-
   const visibleProjects = useMemo(() => {
     const normalizedSearchQuery = searchQuery.trim().toLowerCase();
     return sortedProjects.filter(project => {
@@ -136,154 +120,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       return matchesHub && matchesSearch;
     });
   }, [searchQuery, selectedHubId, sortedProjects]);
-
-  /**
-   * Persist a mutated per-step capability member back to storage.
-   * The member is a lightweight projection of the underlying project;
-   * we load the full project, merge the updated metadata fields (nodeMappings,
-   * migrationDeclinedAt), then save it back. Fires-and-forgets; refreshes the
-   * project list on success.
-   */
-  const handlePersistInvestigation = useCallback(
-    (next: ProcessStepCapabilityMember): void => {
-      const projectMeta = projects.find(p => (p.id || p.name) === next.id);
-      if (!projectMeta) return;
-      void (async () => {
-        try {
-          const project = await loadProject(projectMeta.name, projectMeta.location);
-          if (!project) return;
-          const existingContext = project.project.processContext ?? {};
-          const updatedMeta = next.metadata
-            ? {
-                ...existingContext,
-                ...(next.metadata.nodeMappings !== undefined
-                  ? { nodeMappings: next.metadata.nodeMappings }
-                  : {}),
-                ...(next.metadata.migrationDeclinedAt !== undefined
-                  ? { migrationDeclinedAt: next.metadata.migrationDeclinedAt }
-                  : {}),
-              }
-            : existingContext;
-          await saveProject(
-            {
-              ...project,
-              project: {
-                ...project.project,
-                processContext: updatedMeta,
-              },
-            },
-            projectMeta.name,
-            projectMeta.location
-          );
-          await loadProjects();
-        } catch (err) {
-          console.error('[Dashboard] persistInvestigation failed:', err);
-        }
-      })();
-    },
-    [projects, loadProject, saveProject, loadProjects]
-  );
-
-  // Word-style hub writes (FSJ-3a, spec §3) — mirrors Editor.tsx commitHubChange:
-  // unsaved hubs mutate in-memory; persisted hubs keep the optimistic-update +
-  // immediate saveProcessHub.
-  // Intentional divergence: sync + explicit error log here vs Editor's async — both fire-and-forget at call sites.
-  const commitHubChange = useCallback(
-    (updated: ProcessHub) => {
-      const unsaved = useUnsavedHubsStore.getState();
-      if (unsaved.isUnsaved(updated.id)) {
-        unsaved.upsertHub(updated);
-        return;
-      }
-      setCatalogHubs(prev => prev.map(h => (h.id === updated.id ? updated : h)));
-      void saveProcessHub(updated).catch(err => {
-        console.error('[Dashboard] hub commit failed:', err);
-      });
-    },
-    [saveProcessHub]
-  );
-
-  /**
-   * Persist a hub-level Cpk target default. Writes to
-   * `processHub.reviewSignal.capability.cpkTarget` — the "hub" level of the
-   * Cpk-target cascade (see capability-target-cascade.md). Mirrors the
-   * `setMeasureSpec(column, partial)` partial-update pattern used at the
-   * column level. `undefined` clears the hub-level default.
-   */
-  const handleHubCpkTargetCommit = useCallback(
-    (hubId: string, next: number | undefined): void => {
-      const hub = processHubs.find(h => h.id === hubId);
-      if (!hub) return;
-      const prevSignal = hub.reviewSignal;
-      const prevCapability = prevSignal?.capability;
-      const nextCapability =
-        next === undefined
-          ? prevCapability
-            ? { ...prevCapability, cpkTarget: undefined }
-            : undefined
-          : {
-              ...(prevCapability ?? { outOfSpecPercentage: 0 }),
-              cpkTarget: next,
-            };
-      const nextSignal = prevSignal
-        ? { ...prevSignal, capability: nextCapability }
-        : nextCapability
-          ? {
-              rowCount: 0,
-              outcome: '',
-              computedAt: new Date().toISOString(),
-              changeSignals: {
-                total: 0,
-                outOfControlCount: 0,
-                nelsonRule2Count: 0,
-                nelsonRule3Count: 0,
-              },
-              capability: nextCapability,
-            }
-          : undefined;
-      const updated: ProcessHub = {
-        ...hub,
-        reviewSignal: nextSignal,
-        updatedAt: Date.now(),
-      };
-      commitHubChange(updated);
-    },
-    [processHubs, commitHubChange]
-  );
-
-  /**
-   * Persist an inline goal-narrative edit from GoalBanner back to the Hub.
-   * Mirrors handleHubCpkTargetCommit's optimistic-update + async-save pattern.
-   */
-  const handleHubGoalChange = useCallback(
-    (hubId: string, nextGoal: string): void => {
-      const hub = processHubs.find(h => h.id === hubId);
-      if (!hub) return;
-      const updated: ProcessHub = {
-        ...hub,
-        processGoal: nextGoal,
-        updatedAt: Date.now(),
-      };
-      commitHubChange(updated);
-    },
-    [processHubs, commitHubChange]
-  );
-
-  /**
-   * "Edit framing" / "Add framing" CTA: re-open the Editor on the hub's
-   * analyze to surface the ColumnMapping wizard (FSJ-3b: Stage-1 goal vestibule
-   * retired — the wizard is ColumnMapping-only). For incomplete Hubs this opens
-   * a new Editor entry; for complete Hubs it re-enters mapping. We navigate via
-   * onOpenProject with the hub id so the Editor picks up the existing Hub context.
-   */
-  const handleEditFraming = useCallback(
-    (hubId: string): void => {
-      // startPaste=true so the Editor opens directly into PasteScreen
-      // rather than stopping at EditorEmptyState.
-      onOpenProject(undefined, hubId, true);
-    },
-    [onOpenProject]
-  );
 
   const handleSampleSelect = (sample: SampleDataset): void => {
     if (onLoadSample) {
@@ -297,8 +133,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   /**
    * Mode B entry — create an incomplete Hub via useNewHubProvision (canonical
    * creator with extractHubName). An empty goal narrative produces 'Untitled hub'
-   * as the fallback name. onCreated updates processHubs + selectedHubId so
-   * ProcessHubView's empty-state panel picks up the new hub immediately.
+   * as the fallback name. onCreated updates processHubs + selectedHubId so the
+   * selector and evidence panel pick up the new hub immediately.
    */
   const handleCreateHub = useCallback(async (): Promise<void> => {
     // Pass empty narrative — extractHubName returns '' → useNewHubProvision falls back to 'Untitled hub'
@@ -447,18 +283,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </select>
           </section>
 
-          {selectedHub && capabilitySource && (
-            <>
-              <ProcessHubView
-                source={capabilitySource}
-                persistInvestigation={handlePersistInvestigation}
-                onHubCpkTargetCommit={handleHubCpkTargetCommit}
-                onHubGoalChange={handleHubGoalChange}
-                onEditFraming={handleEditFraming}
-              />
-              <ProcessHubEvidencePanel hubId={selectedHub.id} />
-            </>
-          )}
+          {selectedHub && <ProcessHubEvidencePanel hubId={selectedHub.id} />}
 
           <section>
             <h3 className="mb-3 text-sm font-semibold text-content">
