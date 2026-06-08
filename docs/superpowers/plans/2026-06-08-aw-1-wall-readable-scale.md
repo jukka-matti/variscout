@@ -1,3 +1,19 @@
+---
+tier: ephemeral
+purpose: build
+title: 'AW-1 Wall readable scale implementation sub-plan'
+audience: human
+status: active
+date: 2026-06-08
+layer: spec
+topic: [analyze, wall, scale, viewbox, wedge-v1]
+related:
+  - docs/superpowers/plans/2026-06-08-analyze-wall-redesign-master-plan.md
+  - docs/superpowers/specs/2026-06-08-analyze-wall-redesign-design.md
+implements:
+  - docs/03-features/workflows/analyze-wall.md
+---
+
 # AW-1 Wall Readable Scale Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Worktree: `.worktrees/feat-aw-1-wall-readable-scale` (branch `feat/aw-1-wall-readable-scale`). TDD is required: write the failing seam test, verify red, implement, verify green, then commit.
