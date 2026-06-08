@@ -28,6 +28,9 @@ const capturedFindingsLogProps = vi.hoisted(() => ({
 const capturedMapViewProps = vi.hoisted(() => ({
   current: null as Record<string, unknown> | null,
 }));
+const capturedCoScoutSectionProps = vi.hoisted(() => ({
+  current: null as Record<string, unknown> | null,
+}));
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -137,7 +140,10 @@ vi.mock('../AnalyzeMapView', () => ({
 }));
 
 vi.mock('../CoScoutSection', () => ({
-  CoScoutSection: () => <div data-testid="coscout-section" />,
+  CoScoutSection: (props: Record<string, unknown>) => {
+    capturedCoScoutSectionProps.current = props;
+    return <div data-testid="coscout-section" />;
+  },
 }));
 
 vi.mock('../../../features/panels/panelsStore', () => {
@@ -350,6 +356,7 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
     capturedWallCanvasProps.current = null;
     capturedFindingsLogProps.current = null;
     capturedMapViewProps.current = null;
+    capturedCoScoutSectionProps.current = null;
     window.sessionStorage.clear();
     showCharterMock.mockClear();
   });
@@ -539,6 +546,33 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
     expect(screen.getByRole('tab', { name: 'Evidence' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Comments' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Activity' })).toBeInTheDocument();
+  });
+
+  it('passes selected Wall object context to CoScoutSection', () => {
+    const finding = createFinding('Temperature spike on night shift', {}, null);
+    const hub = {
+      ...createHypothesis('Nozzle runs hot', 'Heat aligns with the defect window.', [finding.id]),
+      id: 'h-hot',
+      comments: [],
+    };
+    const props = makeMinimalProps();
+    props.findingsState = { ...props.findingsState, findings: [finding] } as never;
+    props.hypothesesState = {
+      ...props.hypothesesState,
+      hubs: [hub],
+      addComment: vi.fn(),
+      editComment: vi.fn(),
+      deleteComment: vi.fn(),
+    } as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+    fireEvent.click(screen.getByTestId('mock-wall-select-h-hot'));
+
+    expect(capturedCoScoutSectionProps.current?.selectedObject).toEqual({
+      kind: 'cause',
+      id: 'h-hot',
+      label: 'Nozzle runs hot',
+    });
   });
 
   it('filters Wall findings to the active scope while leaving other scope findings out', () => {
