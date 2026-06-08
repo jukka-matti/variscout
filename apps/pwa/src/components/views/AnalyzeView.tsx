@@ -687,25 +687,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 </>
               )}
 
-              {/* Wall-only: group-by-tributary toggle */}
-              {wallViewMode === 'wall' && processMap && (
-                <>
-                  <div className="w-px h-4 bg-edge mx-1" />
-                  <button
-                    type="button"
-                    aria-pressed={wallGroupByTributary}
-                    onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
-                    className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                      wallGroupByTributary
-                        ? 'bg-surface-secondary text-content'
-                        : 'text-content-secondary hover:text-content'
-                    }`}
-                  >
-                    Group by tributary
-                  </button>
-                </>
-              )}
-
               {canReturnToImprovementProject && (
                 <button
                   type="button"

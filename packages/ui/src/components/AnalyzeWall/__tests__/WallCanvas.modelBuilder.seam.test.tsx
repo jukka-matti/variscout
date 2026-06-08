@@ -59,6 +59,10 @@ function baseModelBuilderProps(
   };
 }
 
+function openModelBuilder(): void {
+  fireEvent.click(screen.getByTestId('wall-model-builder-toggle'));
+}
+
 describe('WallCanvas — model-builder band seam', () => {
   it('mounts the band through the Wall and pre-selects the vital few (real engine)', () => {
     render(
@@ -73,6 +77,8 @@ describe('WallCanvas — model-builder band seam', () => {
         modelBuilderProps={baseModelBuilderProps()}
       />
     );
+    expect(screen.queryByTestId('model-builder-band')).toBeNull();
+    openModelBuilder();
     // The band mounted via the production WallCanvas path.
     expect(screen.getByTestId('model-builder-band')).toBeTruthy();
     // Vital-few (Shift) is pre-selected above the line — engine ran on real rows.
@@ -112,6 +118,7 @@ describe('WallCanvas — model-builder band seam', () => {
         modelBuilderProps={baseModelBuilderProps()}
       />
     );
+    openModelBuilder();
     const before = parseR2(screen.getByTestId('model-r2adj').textContent);
     fireEvent.click(screen.getByTestId('model-candidate-factor-Noise'));
     // Noise is now kept (the toggle flowed through the mounted band).
@@ -137,6 +144,7 @@ describe('WallCanvas — model-builder band seam', () => {
         modelBuilderProps={baseModelBuilderProps()}
       />
     );
+    openModelBuilder();
     expect(screen.queryByTestId('model-use-suggested')).toBeNull();
     fireEvent.click(screen.getByTestId('model-candidate-factor-Noise'));
     fireEvent.click(screen.getByTestId('model-use-suggested'));
@@ -175,6 +183,7 @@ describe('WallCanvas — model-builder band seam', () => {
       );
     }
     render(<Harness />);
+    openModelBuilder();
     fireEvent.click(screen.getByTestId('model-capture'));
     expect(created).toHaveLength(1);
     expect(created[0].linkedFactor).toBe('Shift');
@@ -201,6 +210,8 @@ describe('WallCanvas — model-builder band seam', () => {
     );
     // The cold-start wrapper mounted (band + EmptyState CTA coexist).
     expect(screen.getByTestId('wall-cold-start-with-band')).toBeTruthy();
+    expect(screen.queryByTestId('model-builder-band')).toBeNull();
+    openModelBuilder();
     // The band rendered with the pre-selected vital few (real engine ran).
     expect(screen.getByTestId('model-builder-band')).toBeTruthy();
     expect(
@@ -288,6 +299,7 @@ describe('WallCanvas — model-builder band seam', () => {
         })}
       />
     );
+    openModelBuilder();
     expect(screen.getByTestId('model-constant-factor-Machine')).toBeTruthy();
     expect(screen.queryByTestId('model-candidate-factor-Machine')).toBeNull();
   });

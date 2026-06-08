@@ -142,6 +142,7 @@ describe('WallCanvas factor glyphs + Finding-mediated edges', () => {
     // Reverting focusFor to unweighted focusOpacity yields 0.25 → fails here.
     useViewStore.getState().setFocusedWallEntity('hub-1');
     const { getByTestId } = renderWall();
+    fireEvent.click(getByTestId('wall-model-builder-toggle'));
     const noise = getByTestId('factor-glyph-Noise');
     expect(Number(noise.getAttribute('opacity'))).toBeCloseTo(0.55, 2);
   });
