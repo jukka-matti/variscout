@@ -72,7 +72,11 @@ import {
   selectFindingsForScope,
 } from '@variscout/stores';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
-import type { CapturedModelSnapshot, ObjectDetailSelection } from '@variscout/ui';
+import type {
+  CapturedModelSnapshot,
+  CoScoutDrawerObject,
+  ObjectDetailSelection,
+} from '@variscout/ui';
 import type { FindingProjection } from '@variscout/core';
 import { CoScoutSection } from './CoScoutSection';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
@@ -708,6 +712,15 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     },
     [hubs, scopedFindings]
   );
+  const selectedCoScoutObject = useMemo<CoScoutDrawerObject | null>(() => {
+    if (!selectedWallObject) return null;
+    if (selectedWallObject.kind === 'cause') {
+      const hub = hubs.find(candidate => candidate.id === selectedWallObject.id);
+      return hub ? { kind: 'cause', id: hub.id, label: hub.name } : null;
+    }
+    const finding = scopedFindings.find(candidate => candidate.id === selectedWallObject.id);
+    return finding ? { kind: 'finding', id: finding.id, label: finding.text } : null;
+  }, [hubs, scopedFindings, selectedWallObject]);
   const hasAppliedFindingsArrivalRef = useRef(false);
   useEffect(() => {
     if (hasAppliedFindingsArrivalRef.current) return;
@@ -1392,6 +1405,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           actionProposalsState={actionProposalsState}
           handleSearchKnowledge={handleSearchKnowledge}
           handleAddCommentWithAuthor={handleAddCommentWithAuthor}
+          selectedObject={selectedCoScoutObject}
+          drawerMode
         />
       </div>
     </div>

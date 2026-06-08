@@ -82,6 +82,12 @@ export { ScopeRail } from './ScopeRail';
 export type { ScopeRailProps } from './ScopeRail';
 export { ObjectDetailDrawer } from './ObjectDetailDrawer';
 export type { ObjectDetailDrawerProps, ObjectDetailSelection } from './ObjectDetailDrawer';
+export { CoScoutRightDrawer } from './CoScoutRightDrawer';
+export type {
+  CoScoutDrawerObject,
+  CoScoutDrawerTab,
+  CoScoutRightDrawerProps,
+} from './CoScoutRightDrawer';
 export { CausesMatrix } from './CausesMatrix';
 export type { CausesMatrixProps } from './CausesMatrix';
 export { OverallProblemHeader } from './OverallProblemHeader';

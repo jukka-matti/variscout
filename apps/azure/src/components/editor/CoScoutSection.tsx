@@ -18,8 +18,9 @@
 
 import React, { useCallback, useState } from 'react';
 import { X } from 'lucide-react';
-import { CoScoutPanelBase, SessionClosePrompt } from '@variscout/ui';
+import { CoScoutPanelBase, CoScoutRightDrawer, SessionClosePrompt } from '@variscout/ui';
 import type { SessionClosePromptItem } from '@variscout/ui';
+import type { CoScoutDrawerObject } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { usePreferencesStore } from '@variscout/stores';
 import { useVisualGrounding } from '@variscout/hooks';
@@ -67,6 +68,10 @@ export interface CoScoutSectionProps {
     text: string,
     attachment?: File
   ) => void | Promise<void>;
+  /** Selected Analyze Wall object used by the AW-8 right drawer header. */
+  selectedObject?: CoScoutDrawerObject | null;
+  /** Render CoScout inside the Analyze Wall right drawer on desktop. */
+  drawerMode?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -79,6 +84,8 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
   actionProposalsState,
   handleSearchKnowledge,
   handleAddCommentWithAuthor,
+  selectedObject = null,
+  drawerMode = false,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
@@ -212,14 +219,38 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
   const voiceInput = isSpeechToTextAvailable() ? { isAvailable: true, transcribeAudio } : undefined;
 
   // Don't render anything if AI is not available (CoScoutPanelBase handles isOpen=false)
-  if (!aiAvailable && !isCoScoutOpen) {
+  if (!drawerMode && !aiAvailable && !isCoScoutOpen) {
     return null;
   }
+
+  const drawerRefTarget = selectedObject
+    ? {
+        targetType: selectedObject.kind === 'finding' ? 'finding' : 'question',
+        targetId: selectedObject.id,
+      }
+    : undefined;
 
   return (
     <>
       {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}
-      {isPhone && isCoScoutOpen ? (
+      {drawerMode && !isPhone ? (
+        <CoScoutRightDrawer
+          isOpen={isCoScoutOpen}
+          onOpenChange={open =>
+            open ? usePanelsStore.getState().setCoScoutOpen(true) : handleCoScoutClose()
+          }
+          selectedObject={selectedObject}
+          refTarget={drawerRefTarget}
+          onRefActivate={coScoutProps.onRefActivate}
+        >
+          <CoScoutPanelBase
+            isOpen={isCoScoutOpen}
+            onClose={handleCoScoutClose}
+            {...coScoutProps}
+            voiceInput={voiceInput}
+          />
+        </CoScoutRightDrawer>
+      ) : isPhone && isCoScoutOpen ? (
         <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">
           <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
             <h2 className="text-sm font-semibold text-content">CoScout</h2>
