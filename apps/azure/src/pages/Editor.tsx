@@ -1075,7 +1075,11 @@ export const Editor: React.FC<EditorProps> = ({
       if (!dataFlow.handleLoadSample(sample)) return;
       const user = currentUser ?? (await getCurrentUser().catch(() => null));
       if (!user) return; // pre-auth edge: keep today's no-project behavior
-      landFreshEntryOnProcess(sample.name, { ...makeLandingDeps(), user });
+      landFreshEntryOnProcess(sample.name, {
+        ...makeLandingDeps(),
+        initialStepTimings: sample.config.stepTimings,
+        user,
+      });
     },
     [dataFlow, currentUser, makeLandingDeps]
   );
