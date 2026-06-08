@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { selectHubCommentStream, selectHypothesisTributaries } from '../wallSelectors';
+import { createFinding } from '@variscout/core/findings';
+import {
+  selectFindingsForScope,
+  selectHubCommentStream,
+  selectHypothesisTributaries,
+} from '../wallSelectors';
 import type { Hypothesis, Finding, FindingComment } from '@variscout/core';
 import type { ProcessMap } from '@variscout/core/frame';
 
@@ -12,6 +17,11 @@ function fc(id: string, text: string, createdAt: number): FindingComment {
     parentId: 'hub-default',
     parentKind: 'hypothesis',
   };
+}
+
+function finding(id: string, scopeId?: string) {
+  const base = { ...createFinding(id, {}, null), id };
+  return scopeId ? { ...base, scopeId } : base;
 }
 
 describe('selectHubCommentStream', () => {
@@ -155,5 +165,47 @@ describe('wallSelectors — relocation assertions (ADR-085)', () => {
   it('selectQuestionsForHub is not exported (Questions retired in ADR-085)', async () => {
     const mod = await import('../wallSelectors');
     expect('selectQuestionsForHub' in mod).toBe(false);
+  });
+});
+
+describe('wallSelectors - scope findings', () => {
+  it('returns every finding when no active scope is selected', () => {
+    const findings = [
+      finding('scope-a', 'scope-a'),
+      finding('scope-b', 'scope-b'),
+      finding('loose'),
+    ];
+
+    expect(selectFindingsForScope(findings, undefined).map(f => f.id)).toEqual([
+      'scope-a',
+      'scope-b',
+      'loose',
+    ]);
+  });
+
+  it('returns only findings stamped with the active scope id', () => {
+    const findings = [
+      finding('scope-a-1', 'scope-a'),
+      finding('scope-a-2', 'scope-a'),
+      finding('scope-b', 'scope-b'),
+      finding('loose'),
+    ];
+
+    expect(selectFindingsForScope(findings, 'scope-a').map(f => f.id)).toEqual([
+      'scope-a-1',
+      'scope-a-2',
+    ]);
+  });
+
+  it('excludes unscoped findings while a scope is active', () => {
+    const findings = [finding('loose'), finding('scoped', 'scope-a')];
+
+    expect(selectFindingsForScope(findings, 'scope-a').map(f => f.id)).toEqual(['scoped']);
+  });
+
+  it('excludes findings from other scopes while a scope is active', () => {
+    const findings = [finding('scope-b', 'scope-b'), finding('scope-c', 'scope-c')];
+
+    expect(selectFindingsForScope(findings, 'scope-a')).toEqual([]);
   });
 });

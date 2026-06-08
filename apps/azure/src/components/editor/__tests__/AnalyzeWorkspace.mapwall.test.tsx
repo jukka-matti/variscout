@@ -331,6 +331,13 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
     useViewStore.setState(
       (useViewStore as unknown as { getInitialState: () => unknown }).getInitialState() as never
     );
+    usePanelsStore.getState().setAnalyzeViewMode('map');
+    useAnalysisScopeStore.setState({ categoricalFilters: [] });
+    useAnalyzeStore.setState({ scopes: [] });
+    useProjectStore.setState({ outcome: null, factors: [] });
+    capturedWallCanvasProps.current = null;
+    capturedFindingsLogProps.current = null;
+    capturedMapViewProps.current = null;
     window.sessionStorage.clear();
     showCharterMock.mockClear();
   });
@@ -493,6 +500,82 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
     expect(screen.getByTestId('analyze-wall-canvas-shell')).toBeInTheDocument();
     expect(screen.getByTestId('analyze-wall-floating-controls')).toBeInTheDocument();
     expect(screen.queryByTestId('analyze-left-conclusion-rail')).not.toBeInTheDocument();
+  });
+
+  it('filters Wall findings to the active scope while leaving other scope findings out', () => {
+    useProjectStore.setState({ outcome: 'Fill Weight' });
+    useAnalyzeStore.setState({
+      scopes: [
+        {
+          id: 'scope-night',
+          projectId: 'general-unassigned',
+          outcome: 'Fill Weight',
+          predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' }],
+          hypothesisIds: [],
+          createdAt: 1,
+          updatedAt: 1,
+          deletedAt: null,
+        },
+      ],
+    });
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'Shift', values: ['Night'] }],
+    });
+    const props = makeMinimalProps();
+    props.findingsState = {
+      ...props.findingsState,
+      findings: [
+        { ...createFinding('Night shift note', {}, null), id: 'f-night', scopeId: 'scope-night' },
+        { ...createFinding('Day shift note', {}, null), id: 'f-day', scopeId: 'scope-day' },
+        { ...createFinding('Loose note', {}, null), id: 'f-loose' },
+      ],
+    } as never;
+    props.hypothesesState.hubs = [
+      {
+        id: 'hub-1',
+        name: 'Existing',
+        synthesis: '',
+        findingIds: [],
+        status: 'proposed',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ] as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    expect(
+      (capturedWallCanvasProps.current?.findings as Array<{ id: string }>).map(f => f.id)
+    ).toEqual(['f-night']);
+  });
+
+  it('passes all Wall findings when no active scope is selected, including loose findings', () => {
+    const props = makeMinimalProps();
+    props.findingsState = {
+      ...props.findingsState,
+      findings: [
+        { ...createFinding('Night shift note', {}, null), id: 'f-night', scopeId: 'scope-night' },
+        { ...createFinding('Day shift note', {}, null), id: 'f-day', scopeId: 'scope-day' },
+        { ...createFinding('Loose note', {}, null), id: 'f-loose' },
+      ],
+    } as never;
+    props.hypothesesState.hubs = [
+      {
+        id: 'hub-1',
+        name: 'Existing',
+        synthesis: '',
+        findingIds: [],
+        status: 'proposed',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ] as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    expect(
+      (capturedWallCanvasProps.current?.findings as Array<{ id: string }>).map(f => f.id)
+    ).toEqual(['f-night', 'f-day', 'f-loose']);
   });
 
   it('PR-CS-5: pans the Wall viewport to center the focused hypothesis on arrival', () => {
@@ -769,6 +852,41 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
         />
       );
       expect(capturedFindingsLogProps.current?.onAddPhoto).toBeDefined();
+    });
+
+    it('passes only active-scope findings into FindingsLog', () => {
+      useProjectStore.setState({ outcome: 'Fill Weight' });
+      useAnalyzeStore.setState({
+        scopes: [
+          {
+            id: 'scope-night',
+            projectId: 'general-unassigned',
+            outcome: 'Fill Weight',
+            predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' }],
+            hypothesisIds: [],
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+          },
+        ],
+      });
+      useAnalysisScopeStore.setState({
+        categoricalFilters: [{ column: 'Shift', values: ['Night'] }],
+      });
+      const props = makeMinimalProps();
+      props.findingsState = {
+        ...props.findingsState,
+        findings: [
+          { ...createFinding('Night shift note', {}, null), id: 'f-night', scopeId: 'scope-night' },
+          { ...createFinding('Loose note', {}, null), id: 'f-loose' },
+        ],
+      } as never;
+
+      render(<AnalyzeWorkspace {...props} />);
+
+      expect(
+        (capturedFindingsLogProps.current?.findings as Array<{ id: string }>).map(f => f.id)
+      ).toEqual(['f-night']);
     });
   });
 

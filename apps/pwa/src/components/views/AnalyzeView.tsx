@@ -38,6 +38,9 @@ import {
   type FindingProjection,
   type DataRow,
   type DisconfirmationAttempt,
+  buildConditionFromCategoricalFilters,
+  formatConditionLeaves,
+  predicateSetKey,
 } from '@variscout/core';
 import { generateDeterministicId } from '@variscout/core/identity';
 import {
@@ -58,7 +61,9 @@ import {
   useCanvasViewportStore,
   useProjectStore,
   useAnalyzeStore,
+  useAnalysisScopeStore,
   useViewStore,
+  selectFindingsForScope,
 } from '@variscout/stores';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import { useFindingsStore } from '../../features/findings/findingsStore';
@@ -151,6 +156,29 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   }, [rawData]);
   const hubs = useAnalyzeStore(s => s.hypotheses);
   const wallFindings = useAnalyzeStore(s => s.findings);
+  const scopes = useAnalyzeStore(s => s.scopes);
+  const categoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const scopeProjectId = String(canvasViewportHubId);
+  useEffect(() => {
+    if (!outcome) return;
+    useAnalyzeStore.getState().syncScopeFromDrill(scopeProjectId, outcome, categoricalFilters);
+  }, [categoricalFilters, outcome, scopeProjectId]);
+  const activeScope = useMemo(() => {
+    const predicates = buildConditionFromCategoricalFilters(categoricalFilters);
+    if (!outcome || predicates.length === 0) return undefined;
+    const key = predicateSetKey(predicates);
+    return scopes.find(
+      scope =>
+        !scope.deletedAt &&
+        scope.projectId === scopeProjectId &&
+        scope.outcome === outcome &&
+        predicateSetKey(scope.predicates) === key
+    );
+  }, [categoricalFilters, outcome, scopes, scopeProjectId]);
+  const scopedFindings = useMemo(
+    () => selectFindingsForScope(wallFindings, activeScope?.id),
+    [wallFindings, activeScope?.id]
+  );
   const hasAppliedFindingsArrivalRef = useRef(false);
   useEffect(() => {
     if (hasAppliedFindingsArrivalRef.current) return;
@@ -169,12 +197,12 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   const originStepNameByFindingId = useMemo(() => {
     const stepNameById = new Map(deriveProcessSteps(processMap).map(s => [s.id, s.name]));
     const out = new Map<string, string>();
-    for (const f of wallFindings) {
+    for (const f of scopedFindings) {
       const name = f.originStepId ? stepNameById.get(f.originStepId) : undefined;
       if (name) out.set(f.id, name);
     }
     return out;
-  }, [processMap, wallFindings]);
+  }, [processMap, scopedFindings]);
 
   // Investigation phase detection (deterministic, from findings)
   // Left panel resizable
@@ -333,10 +361,15 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
         store.setFindingValidation(existing.id, result.validationStatus, result.refutes);
         findingId = existing.id;
       } else {
-        const finding = store.addFinding(result.findingText, {
-          activeFilters: {},
-          cumulativeScope: null,
-        });
+        const finding = store.addFinding(
+          result.findingText,
+          {
+            activeFilters: {},
+            cumulativeScope: null,
+          },
+          undefined,
+          activeScope?.id
+        );
         // Classify BEFORE connecting so the finding is never read as an
         // unclassified "support" clue on the Wall in the interim.
         store.setFindingValidation(finding.id, result.validationStatus, result.refutes);
@@ -370,7 +403,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
         store.recordDisconfirmation(hypothesisId, attempt);
       }
     },
-    [outcome, filteredData]
+    [outcome, filteredData, activeScope?.id]
   );
 
   // Enrich the parent's planningProps bag with the FE-2a/2b evaluate callback +
@@ -398,7 +431,9 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
         if (refuting) {
           const carried = store.addFinding(
             `Carried from the refutation of “${h1?.name ?? 'the prior hypothesis'}”: ${refuting.text}`,
-            { activeFilters: {}, cumulativeScope: null }
+            { activeFilters: {}, cumulativeScope: null },
+            undefined,
+            activeScope?.id
           );
           store.setFindingValidation(carried.id, 'supports', false);
           store.connectFindingToHub(newHub.id, carried.id);
@@ -421,7 +456,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
         store.setFindingValidation(findingId, 'contradicts', false);
       },
     };
-  }, [planningProps, handleEvaluateFactor]);
+  }, [planningProps, handleEvaluateFactor, activeScope?.id]);
 
   // ── FE-1 — scope-level vital-few model-builder band ──────────────────────
   // The PWA scope = the active-IP filtered data; factors are the candidates.
@@ -432,32 +467,41 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // source of truth for findings in both PWA and Azure (PO-6 §4.4 unification).
   // Routing it here makes the captured model render on the PWA Wall as a clue
   // (parity with FE-2a's evaluate path).
-  const handleCaptureModel = useCallback((snapshot: CapturedModelSnapshot) => {
-    const r2adjLabel = Number.isFinite(snapshot.rSquaredAdj)
-      ? snapshot.rSquaredAdj.toFixed(2)
-      : '—';
-    const store = useAnalyzeStore.getState();
-    const finding = store.addFinding(
-      `Model: ${snapshot.factors.join(', ')} accounts for the spread (R²adj ${r2adjLabel}) in ${snapshot.scopeLabel}`,
-      { activeFilters: {}, cumulativeScope: null }
-    );
-    const projection: FindingProjection = {
-      baselineMean: 0,
-      baselineSigma: 0,
-      projectedMean: 0,
-      projectedSigma: 0,
-      meanDelta: 0,
-      sigmaDelta: 0,
-      simulationParams: { meanAdjustment: 0, variationReduction: 0, presetUsed: 'model-capture' },
-      createdAt: new Date().toISOString(),
-      modelContext: {
-        linkedFactor: snapshot.topFactor ?? undefined,
-        rSquaredAdj: snapshot.rSquaredAdj,
-        scopeLabel: snapshot.scopeLabel,
-      },
-    };
-    store.setFindingProjection(finding.id, projection);
-  }, []);
+  const handleCaptureModel = useCallback(
+    (snapshot: CapturedModelSnapshot) => {
+      const r2adjLabel = Number.isFinite(snapshot.rSquaredAdj)
+        ? snapshot.rSquaredAdj.toFixed(2)
+        : '—';
+      const store = useAnalyzeStore.getState();
+      const finding = store.addFinding(
+        `Model: ${snapshot.factors.join(', ')} accounts for the spread (R²adj ${r2adjLabel}) in ${snapshot.scopeLabel}`,
+        { activeFilters: {}, cumulativeScope: null },
+        undefined,
+        activeScope?.id
+      );
+      const projection: FindingProjection = {
+        baselineMean: 0,
+        baselineSigma: 0,
+        projectedMean: 0,
+        projectedSigma: 0,
+        meanDelta: 0,
+        sigmaDelta: 0,
+        simulationParams: {
+          meanAdjustment: 0,
+          variationReduction: 0,
+          presetUsed: 'model-capture',
+        },
+        createdAt: new Date().toISOString(),
+        modelContext: {
+          linkedFactor: snapshot.topFactor ?? undefined,
+          rSquaredAdj: snapshot.rSquaredAdj,
+          scopeLabel: snapshot.scopeLabel,
+        },
+      };
+      store.setFindingProjection(finding.id, projection);
+    },
+    [activeScope?.id]
+  );
   const modelBuilderProps = useMemo<WallCanvasModelBuilderProps | undefined>(() => {
     if (!outcome || factors.length === 0) return undefined;
     // Parity with Azure's drilled-constant chipping: the PWA does not surface
@@ -482,12 +526,14 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
         : [];
     return {
       candidateFactors: factors,
-      scopeLabel: activeIPScope?.title ?? 'All data',
+      scopeLabel: activeScope
+        ? formatConditionLeaves(activeScope.predicates)
+        : (activeIPScope?.title ?? 'All data'),
       scopeRows: filteredData,
       constantFactors,
       onCaptureModel: handleCaptureModel,
     };
-  }, [outcome, factors, filteredData, activeIPScope, handleCaptureModel]);
+  }, [outcome, factors, filteredData, activeScope, activeIPScope, handleCaptureModel]);
 
   // PO-5: the conclusion-categorizer memo was gate-only ceremony — its
   // suspected/contributing/ruledOut buckets partition `hubs`, so the conclusion-
@@ -523,7 +569,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
               <div className="flex-1 overflow-y-auto border-t border-edge px-3 py-2">
                 <AnalyzeConclusion
                   hubs={hubs}
-                  findings={wallFindings}
+                  findings={scopedFindings}
                   hasConclusions={hubs.length > 0}
                 />
               </div>
@@ -604,8 +650,8 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
               )}
 
               <span className="ml-auto text-xs text-content-tertiary">
-                {wallFindings.length} finding
-                {wallFindings.length !== 1 ? 's' : ''}
+                {scopedFindings.length} finding
+                {scopedFindings.length !== 1 ? 's' : ''}
               </span>
             </div>
           ) : null}
@@ -683,7 +729,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 <div className="absolute left-3 top-14 z-20 max-h-[70%] w-[min(360px,calc(100%-1.5rem))] overflow-y-auto rounded border border-edge bg-surface p-3 shadow-lg">
                   <AnalyzeConclusion
                     hubs={hubs}
-                    findings={wallFindings}
+                    findings={scopedFindings}
                     hasConclusions={hubs.length > 0}
                   />
                 </div>
@@ -691,10 +737,11 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
               <WallCanvas
                 hubId={wallHubId}
                 hubs={hubs}
-                findings={wallFindings}
+                findings={scopedFindings}
                 processMap={processMap}
                 problemCpk={0}
                 eventsPerWeek={0}
+                activeScope={activeScope}
                 activeScopeSpecs={wallScopeSpecs}
                 activeColumns={wallActiveColumns}
                 rows={rawData}
@@ -738,7 +785,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                     onClose={() => setPaletteOpen(false)}
                     onPanTo={handlePanToNode}
                     hubs={hubs}
-                    findings={wallFindings}
+                    findings={scopedFindings}
                   />
                 </>
               )}
@@ -746,7 +793,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
           ) : wallViewMode === 'causes' ? (
             <CausesMatrix
               hubs={hubs}
-              findings={wallFindings}
+              findings={scopedFindings}
               plans={enrichedPlanningProps?.plans ?? []}
               now={Date.now()}
               onFocusHub={handleFocusCauseFromMatrix}
@@ -754,7 +801,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
           ) : (
             <div className="flex-1 overflow-y-auto px-3 py-2">
               <FindingsLog
-                findings={wallFindings}
+                findings={scopedFindings}
                 onEditFinding={useAnalyzeStore.getState().editFinding}
                 onDeleteFinding={useAnalyzeStore.getState().deleteFinding}
                 onRestoreFinding={handleRestoreFinding}

@@ -22,6 +22,9 @@ const showCharterMock = vi.hoisted(() => vi.fn());
 const capturedWallCanvasProps = vi.hoisted(() => ({
   current: null as Record<string, unknown> | null,
 }));
+const capturedFindingsLogProps = vi.hoisted(() => ({
+  current: null as Record<string, unknown> | null,
+}));
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -45,7 +48,10 @@ vi.mock('@variscout/ui', async importOriginal => {
     ...actual,
     QuestionChecklist: () => <div data-testid="question-checklist" />,
     AnalyzeConclusion: () => null,
-    FindingsLog: () => <div data-testid="findings-log" />,
+    FindingsLog: (props: Record<string, unknown>) => {
+      capturedFindingsLogProps.current = props;
+      return <div data-testid="findings-log" />;
+    },
     useWallIsMobile: () => false,
     WallCanvas: (props: {
       hubs: unknown[];
@@ -107,9 +113,11 @@ vi.mock('../../../features/panels/panelsStore', () => ({
 
 import {
   getAnalyzeInitialState,
+  getAnalysisScopeInitialState,
   getCanvasViewportInitialState,
   getProjectInitialState,
   getViewInitialState,
+  useAnalysisScopeStore,
   useAnalyzeStore,
   useCanvasViewportStore,
   useProjectStore,
@@ -155,7 +163,10 @@ describe('PWA AnalyzeView Wall/Causes/Findings lenses', () => {
     useProjectStore.setState(getProjectInitialState());
     // PO-6: findings now come from the store — reset to empty state
     useAnalyzeStore.setState(getAnalyzeInitialState());
+    useAnalysisScopeStore.setState(getAnalysisScopeInitialState());
     useViewStore.setState(getViewInitialState());
+    capturedWallCanvasProps.current = null;
+    capturedFindingsLogProps.current = null;
     window.sessionStorage.clear();
     showCharterMock.mockClear();
   });
@@ -330,6 +341,93 @@ describe('PWA AnalyzeView Wall/Causes/Findings lenses', () => {
     expect(screen.getByTestId('analyze-wall-canvas-shell')).toBeInTheDocument();
     expect(screen.getByTestId('analyze-wall-floating-controls')).toBeInTheDocument();
     expect(screen.queryByTestId('analyze-left-conclusion-rail')).not.toBeInTheDocument();
+  });
+
+  it('filters Wall findings to the active scope while leaving other scope findings out', () => {
+    useCanvasViewportStore.getState().setViewMode('wall');
+    useProjectStore.setState({ ...getProjectInitialState(), outcome: 'Fill Weight' });
+    useAnalyzeStore.setState({
+      ...getAnalyzeInitialState(),
+      scopes: [
+        {
+          id: 'scope-night',
+          projectId: 'hub-test',
+          outcome: 'Fill Weight',
+          predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' }],
+          hypothesisIds: [],
+          createdAt: 1,
+          updatedAt: 1,
+          deletedAt: null,
+        },
+      ],
+      findings: [
+        { ...createFinding('Night shift note', {}, null), id: 'f-night', scopeId: 'scope-night' },
+        { ...createFinding('Day shift note', {}, null), id: 'f-day', scopeId: 'scope-day' },
+        { ...createFinding('Loose note', {}, null), id: 'f-loose' },
+      ],
+      hypotheses: [createHypothesis('Existing', '', [])],
+    });
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'Shift', values: ['Night'] }],
+    });
+
+    render(<AnalyzeView {...makeMinimalProps()} />);
+
+    expect(
+      (capturedWallCanvasProps.current?.findings as Array<{ id: string }>).map(f => f.id)
+    ).toEqual(['f-night']);
+  });
+
+  it('passes all Wall findings when no active scope is selected, including loose findings', () => {
+    useCanvasViewportStore.getState().setViewMode('wall');
+    useAnalyzeStore.setState({
+      ...getAnalyzeInitialState(),
+      findings: [
+        { ...createFinding('Night shift note', {}, null), id: 'f-night', scopeId: 'scope-night' },
+        { ...createFinding('Day shift note', {}, null), id: 'f-day', scopeId: 'scope-day' },
+        { ...createFinding('Loose note', {}, null), id: 'f-loose' },
+      ],
+      hypotheses: [createHypothesis('Existing', '', [])],
+    });
+
+    render(<AnalyzeView {...makeMinimalProps()} />);
+
+    expect(
+      (capturedWallCanvasProps.current?.findings as Array<{ id: string }>).map(f => f.id)
+    ).toEqual(['f-night', 'f-day', 'f-loose']);
+  });
+
+  it('passes only active-scope findings into FindingsLog', () => {
+    useCanvasViewportStore.getState().setViewMode('map');
+    useProjectStore.setState({ ...getProjectInitialState(), outcome: 'Fill Weight' });
+    useAnalyzeStore.setState({
+      ...getAnalyzeInitialState(),
+      scopes: [
+        {
+          id: 'scope-night',
+          projectId: 'hub-test',
+          outcome: 'Fill Weight',
+          predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' }],
+          hypothesisIds: [],
+          createdAt: 1,
+          updatedAt: 1,
+          deletedAt: null,
+        },
+      ],
+      findings: [
+        { ...createFinding('Night shift note', {}, null), id: 'f-night', scopeId: 'scope-night' },
+        { ...createFinding('Loose note', {}, null), id: 'f-loose' },
+      ],
+    });
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'Shift', values: ['Night'] }],
+    });
+
+    render(<AnalyzeView {...makeMinimalProps()} />);
+
+    expect(
+      (capturedFindingsLogProps.current?.findings as Array<{ id: string }>).map(f => f.id)
+    ).toEqual(['f-night']);
   });
 
   it('list/board sub-toggle is visible in Findings mode', () => {
