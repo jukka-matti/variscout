@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import type { ScopeFilter, SpecLimits, StepCapabilityStamp, TimelineWindow } from '@variscout/core';
@@ -1243,7 +1243,7 @@ describe('CanvasWorkspace', () => {
 
     render(<Harness />);
 
-    // The authoring ProcessMapBase (canvas-authoring-map) renders the step CTQ
+    // The authoring ProcessMap (canvas-authoring-map) renders the step CTQ
     // dropdown. Edit it: Bake_Time -> Machine.
     const callsAfterInitialHydration = hydrateCanvasDocument.mock.calls.length;
     const select = screen.getByTestId('process-map-step-ctq-step-1') as HTMLSelectElement;
@@ -1266,6 +1266,215 @@ describe('CanvasWorkspace', () => {
     expect(
       useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === 'step-1')?.ctqColumn
     ).toBe('Machine');
+  });
+
+  it('CS-15 seam 1: adding the first process step flips b0 to the b1 framing surface', () => {
+    function Harness(): React.ReactElement {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: emptyMap() });
+
+      return (
+        <CanvasWorkspace
+          rawData={rawData}
+          outcome="Fill_Weight"
+          factors={[]}
+          measureSpecs={{}}
+          processContext={processContext}
+          setOutcome={vi.fn()}
+          setFactors={vi.fn()}
+          setMeasureSpec={vi.fn()}
+          setProcessContext={next => setProcessContext(next ?? { processMap: emptyMap() })}
+          onSeeData={vi.fn()}
+          canEditCanvas={true}
+        />
+      );
+    }
+
+    render(<Harness />);
+
+    expect(screen.getByTestId('frame-view-b0')).toBeInTheDocument();
+    expect(screen.queryByTestId('edit-mode-shell')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('process-steps-expander-header'));
+    fireEvent.click(screen.getByTestId('process-map-add-step'));
+
+    expect(screen.queryByTestId('frame-view-b0')).not.toBeInTheDocument();
+    expect(screen.getByTestId('edit-mode-shell')).toBeInTheDocument();
+  });
+
+  it('CS-15 seam 2: rich-map CTQ edits dual-write through canvasStore and controlled processContext once', () => {
+    const setProcessContextSpy = vi.fn();
+
+    function Harness(): React.ReactElement {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: mapWithStep() });
+
+      return (
+        <CanvasWorkspace
+          rawData={rawData}
+          outcome="Fill_Weight"
+          factors={[]}
+          measureSpecs={{}}
+          processContext={processContext}
+          canEditCanvas={false}
+          setOutcome={vi.fn()}
+          setFactors={vi.fn()}
+          setMeasureSpec={vi.fn()}
+          setProcessContext={next => {
+            setProcessContextSpy(next);
+            setProcessContext(next ?? { processMap: mapWithStep() });
+          }}
+          onSeeData={vi.fn()}
+        />
+      );
+    }
+
+    render(<Harness />);
+
+    const select = screen.getByTestId('process-map-step-ctq-step-1') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'Machine' } });
+
+    const storeStep = useCanvasStore
+      .getState()
+      .canonicalMap.nodes.find(node => node.id === 'step-1');
+    expect(storeStep?.ctqColumn).toBe('Machine');
+    expect(setProcessContextSpy).toHaveBeenCalledTimes(1);
+    expect(setProcessContextSpy).toHaveBeenCalledWith({
+      processMap: expect.objectContaining({
+        nodes: expect.arrayContaining([
+          expect.objectContaining({ id: 'step-1', ctqColumn: 'Machine' }),
+        ]),
+      }),
+    });
+    expect(
+      useCanvasStore.getState().canonicalMap.nodes.find(node => node.id === 'step-1')?.ctqColumn
+    ).toBe('Machine');
+  });
+
+  it('CS-15 seam 3: b0 role assignment continues to write Explore Y/X through callbacks', () => {
+    const setOutcome = vi.fn();
+    const setFactors = vi.fn();
+    renderWorkspace({
+      processContext: { processMap: emptyMap() },
+      outcome: 'Fill_Weight',
+      factors: [],
+      setOutcome,
+      setFactors,
+    });
+
+    const yCandidate = within(screen.getByTestId('y-picker-candidate-row')).getAllByTestId(
+      'column-candidate-chip'
+    )[0];
+    fireEvent.click(yCandidate);
+
+    const xCandidate = within(screen.getByTestId('x-picker-available-row')).getByText('Machine');
+    fireEvent.click(xCandidate);
+
+    expect(setOutcome).toHaveBeenCalledWith(expect.any(String));
+    expect(setFactors).toHaveBeenCalledWith(['Machine']);
+  });
+
+  it('CS-15 seam 4: edit-zone column drops stay separate from Canvas chip placement targets', () => {
+    const setProcessContextSpy = vi.fn();
+
+    function EditableHarness(): React.ReactElement {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: mapWithStep() });
+
+      return (
+        <CanvasWorkspace
+          rawData={rawData}
+          outcome="Fill_Weight"
+          factors={[]}
+          measureSpecs={{}}
+          processContext={processContext}
+          setOutcome={vi.fn()}
+          setFactors={vi.fn()}
+          setMeasureSpec={vi.fn()}
+          setProcessContext={next => {
+            setProcessContextSpy(next);
+            setProcessContext(next ?? { processMap: mapWithStep() });
+          }}
+          onSeeData={vi.fn()}
+          canEditCanvas={true}
+        />
+      );
+    }
+
+    render(<EditableHarness />);
+
+    act(() => {
+      fireDndMockDragEnd({
+        active: { id: 'column:Machine' },
+        over: { id: 'process-zone:singleton' },
+      });
+    });
+
+    expect(setProcessContextSpy).toHaveBeenCalledTimes(1);
+    expect(useCanvasStore.getState().canonicalMap.nodes.map(node => node.name)).toEqual([
+      'Bake',
+      'A',
+      'B',
+    ]);
+    expect(useCanvasStore.getState().canonicalMap.assignments).toEqual({});
+
+    cleanup();
+    dndMockHandlersRef.current = [];
+    useCanvasStore.setState(useCanvasStore.getInitialState());
+
+    renderWorkspace({
+      processContext: { processMap: mapWithStep() },
+      canEditCanvas: false,
+    });
+
+    expect(screen.getByTestId('chip-rail-item-Machine')).toBeInTheDocument();
+    expect(screen.getByTestId('process-map-step-step-1')).toHaveAttribute(
+      'data-droppable-id',
+      'step:step-1'
+    );
+  });
+
+  it('CS-15 seam 5: framed factors open in Explore while unassigned chips keep step-placement affordances', () => {
+    const onChipExploreJump = vi.fn();
+    const activeIP = {
+      id: 'ip-1',
+      metadata: { title: 'Line investigation' },
+      goal: {
+        factorControls: [{ factor: 'Machine', stepId: 'step-1', targetCondition: '' }],
+      },
+    } as React.ComponentProps<typeof CanvasWorkspace>['activeIP'];
+
+    renderWorkspace({
+      processContext: { processMap: mapWithStep() },
+      activeIP,
+      onChipExploreJump,
+      canEditCanvas: true,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Open Machine in Explore/i }));
+    expect(onChipExploreJump).toHaveBeenCalledWith({
+      kind: 'factor',
+      columnName: 'Machine',
+      stepId: 'step-1',
+    });
+
+    cleanup();
+    dndMockHandlersRef.current = [];
+    useCanvasStore.setState(useCanvasStore.getInitialState());
+
+    renderWorkspace({
+      processContext: { processMap: mapWithStep() },
+      canEditCanvas: false,
+    });
+
+    expect(screen.getByTestId('chip-rail-item-Machine')).toBeInTheDocument();
+    expect(screen.getByTestId('process-map-step-step-1')).toHaveAttribute(
+      'data-droppable-id',
+      'step:step-1'
+    );
   });
 
   it('LV1-H: renders OutcomeSummaryPill in header when scope.yColumn is set', () => {

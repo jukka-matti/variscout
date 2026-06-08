@@ -656,8 +656,8 @@ describe('canvasStore dispatch', () => {
 
 // ────────────────────────────────────────────────────────────────────────────
 // IM-0b-2 (ADR-087 §5): canvasStore becomes the SINGLE authoring authority for
-// the rich-map fields previously mutated by `ProcessMapBase` → `onChange`.
-// Each action mirrors the ProcessMapBase mutator it replaces, runs through
+// the rich-map fields previously mutated by `ProcessMap` → `onChange`.
+// Each action mirrors the ProcessMap mutator it replaces, runs through
 // `applyUndoable` (version bump + undo entry), and is method-only (NOT in the
 // `CanvasAction` union — mirrors `addStepsFromColumn`). Ids/timestamps are
 // minted deterministically by the store (no `Date.now()` / `Math.random()`).

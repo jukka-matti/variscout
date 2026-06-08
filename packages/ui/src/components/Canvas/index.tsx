@@ -24,7 +24,7 @@ import {
   type CanvasStepCardModel,
   type CanvasToolId,
 } from '@variscout/hooks';
-import type { ProcessMap, Gap } from '@variscout/core/frame';
+import type { ProcessMap as CoreProcessMap, Gap } from '@variscout/core/frame';
 import {
   DEFAULT_PROCESS_HUB_ID,
   detectColumns,
@@ -47,7 +47,7 @@ import {
   ProductionLineGlanceFilterStrip,
 } from '../ProductionLineGlanceDashboard';
 import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlanceDashboard/types';
-import { ProcessMapBase } from './internal/ProcessMapBase';
+import { ProcessMap } from './internal/ProcessMap';
 import { CanvasViewport } from './internal/CanvasViewport';
 import { MobileLevelPicker } from './internal/MobileLevelPicker';
 import { CanvasLevelRouter, type CanvasL3Archetype } from './internal/CanvasLevelRouter';
@@ -161,9 +161,9 @@ function measureCanvasFit(
  */
 export interface CanvasProps {
   hubId?: ProcessHubId;
-  map: ProcessMap;
+  map: CoreProcessMap;
   availableColumns: string[];
-  onChange: (next: ProcessMap) => void;
+  onChange: (next: CoreProcessMap) => void;
   gaps?: Gap[];
   disabled?: boolean;
   target?: number;
@@ -197,7 +197,7 @@ export interface CanvasProps {
   onGroupIntoSubStep?: (stepIds: string[], parentStepId: string) => void;
   onUngroupSubStep?: (stepId: string) => void;
   // IM-0b-2 (ADR-087 §5): rich-map authoring dispatch props, forwarded to
-  // ProcessMapBase so ctqColumn / tributary / subgroupAxis / hunch edits flow
+  // ProcessMap so ctqColumn / tributary / subgroupAxis / hunch edits flow
   // through canvasStore instead of the legacy onChange -> setProcessContext path.
   onSetStepCtq?: (stepId: string, ctqColumn: string | undefined) => void;
   onAddTributary?: (stepId: string, column: string) => void;
@@ -673,7 +673,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           <span className="text-xs text-content-muted">Authoring model</span>
         </div>
         <div>
-          <ProcessMapBase
+          <ProcessMap
             map={map}
             availableColumns={availableColumns}
             onChange={onChange}
