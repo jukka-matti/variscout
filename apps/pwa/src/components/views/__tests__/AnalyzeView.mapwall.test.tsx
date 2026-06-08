@@ -109,11 +109,13 @@ import {
   getAnalyzeInitialState,
   getCanvasViewportInitialState,
   getProjectInitialState,
+  getViewInitialState,
   useAnalyzeStore,
   useCanvasViewportStore,
   useProjectStore,
+  useViewStore,
 } from '@variscout/stores';
-import { DEFAULT_PROCESS_HUB_ID } from '@variscout/core';
+import { createFinding, createHypothesis, DEFAULT_PROCESS_HUB_ID } from '@variscout/core';
 import type { ProcessHubId } from '@variscout/core/processHub';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import AnalyzeView from '../AnalyzeView';
@@ -153,6 +155,7 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     useProjectStore.setState(getProjectInitialState());
     // PO-6: findings now come from the store — reset to empty state
     useAnalyzeStore.setState(getAnalyzeInitialState());
+    useViewStore.setState(getViewInitialState());
     window.sessionStorage.clear();
     showCharterMock.mockClear();
   });
@@ -178,6 +181,28 @@ describe('PWA AnalyzeView Map/Wall toggle', () => {
     fireEvent.click(screen.getByRole('button', { name: /^wall$/i }));
 
     expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
+  });
+
+  it('switches to Causes, renders the matrix, and row click focuses the Wall card', () => {
+    const finding = createFinding('Operator notes night-shift staffing gap', {}, null);
+    const hub = {
+      ...createHypothesis('Night shift staffing', '', [finding.id]),
+      id: 'h-night',
+    };
+    useAnalyzeStore.setState({ findings: [finding], hypotheses: [hub] });
+
+    render(<AnalyzeView {...makeMinimalProps()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^causes$/i }));
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('causes');
+    expect(screen.getByText('1 causes · 0 verified · 0 in flight · 0 stalled · 0 ruled out'));
+    expect(screen.getByRole('row', { name: /Night shift staffing/i })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('row', { name: /Night shift staffing/i }));
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
+    expect(useViewStore.getState().focusedWallEntityId).toBe('h-night');
   });
 
   it('routes direct Analyze entry to Wall arrival when findings exist and no hubs exist', () => {

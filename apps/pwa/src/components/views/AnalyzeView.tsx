@@ -16,6 +16,7 @@ import {
   AnalyzeConclusion,
   FindingsLog,
   WallCanvas,
+  CausesMatrix,
   navigateToExploreForChip,
   CommandPalette,
   Minimap,
@@ -285,11 +286,19 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // focused node on arrival, reusing the SAME computeWallLayout pan-to-node path
   // the Minimap + command palette use. Gated on `wallViewMode === 'wall'`.
   const focusedWallEntityId = useViewStore(s => s.focusedWallEntityId);
+  const setFocusedWallEntity = useViewStore(s => s.setFocusedWallEntity);
   useEffect(() => {
     if (wallViewMode !== 'wall') return;
     if (!focusedWallEntityId) return;
     handlePanToNode(focusedWallEntityId);
   }, [focusedWallEntityId, wallViewMode, handlePanToNode]);
+  const handleFocusCauseFromMatrix = useCallback(
+    (hubId: string) => {
+      setFocusedWallEntity(hubId);
+      setWallViewMode('wall');
+    },
+    [setFocusedWallEntity, setWallViewMode]
+  );
 
   const handleReturnToImprovementProject = useCallback(() => {
     const target = returnNavigation.consumeReturnTarget();
@@ -584,7 +593,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
               aria-label="Analyze view mode"
               className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
             >
-              {(['map', 'wall'] as const).map(mode => (
+              {(['map', 'wall', 'causes'] as const).map(mode => (
                 <button
                   key={mode}
                   type="button"
@@ -759,6 +768,14 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 </>
               )}
             </div>
+          ) : wallViewMode === 'causes' ? (
+            <CausesMatrix
+              hubs={hubs}
+              findings={wallFindings}
+              plans={enrichedPlanningProps?.plans ?? []}
+              now={Date.now()}
+              onFocusHub={handleFocusCauseFromMatrix}
+            />
           ) : mapContentResolved === 'evidence-map' ? (
             // PR-CS-7 (parity): the Evidence Map graph (Layer 1 statistical
             // constellation). The responsive `EvidenceMap` wrapper auto-sizes via

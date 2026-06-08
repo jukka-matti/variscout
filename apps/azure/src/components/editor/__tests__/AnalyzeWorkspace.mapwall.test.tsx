@@ -185,6 +185,8 @@ vi.mock('@variscout/core', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/core')>();
   return {
     ...actual,
+    createFinding: actual.createFinding,
+    createHypothesis: actual.createHypothesis,
     computeMainEffects: () => null,
     computeInteractionEffects: () => null,
     inferCharacteristicType: () => 'continuous',
@@ -233,9 +235,13 @@ vi.mock('@variscout/core', async importOriginal => {
   };
 });
 
-vi.mock('@variscout/core/findings', () => ({
-  detectEvidenceClusters: () => [],
-}));
+vi.mock('@variscout/core/findings', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/core/findings')>();
+  return {
+    ...actual,
+    detectEvidenceClusters: () => [],
+  };
+});
 
 vi.mock('@variscout/core/ai', () => ({
   detectInvestigationPhase: () => null,
@@ -264,6 +270,7 @@ import {
 } from '@variscout/stores';
 import type { CapturedModelSnapshot } from '@variscout/ui';
 import type { ProblemStatementScope } from '@variscout/core';
+import { createFinding, createHypothesis } from '@variscout/core/findings';
 import { DEFAULT_PROCESS_HUB_ID } from '@variscout/core/processHub';
 import { RETURN_NAVIGATION_STORAGE_KEY } from '@variscout/hooks';
 import { usePanelsStore } from '../../../features/panels/panelsStore';
@@ -349,6 +356,30 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     fireEvent.click(screen.getByRole('button', { name: /^wall$/i }));
 
     expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
+  });
+
+  it('switches to Causes, renders the matrix, and row click focuses the Wall card', () => {
+    const finding = createFinding('Operator notes night-shift staffing gap', {}, null);
+    const hub = {
+      ...createHypothesis('Night shift staffing', '', [finding.id]),
+      id: 'h-night',
+    };
+    const props = makeMinimalProps();
+    props.findingsState = { ...props.findingsState, findings: [finding] } as never;
+    props.hypothesesState = { ...props.hypothesesState, hubs: [hub] } as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^causes$/i }));
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('causes');
+    expect(screen.getByText('1 causes · 0 verified · 0 in flight · 0 stalled · 0 ruled out'));
+    expect(screen.getByRole('row', { name: /Night shift staffing/i })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('row', { name: /Night shift staffing/i }));
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
+    expect(useViewStore.getState().focusedWallEntityId).toBe('h-night');
   });
 
   it('routes direct Analyze entry to Wall arrival when findings exist and no hubs exist', () => {

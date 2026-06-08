@@ -1,9 +1,11 @@
 import 'fake-indexeddb/auto';
+import Dexie from 'dexie';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   useCanvasViewportStore,
   persistCanvasViewport,
   rehydrateCanvasViewport,
+  getDefaultViewport,
 } from '../canvasViewportStore';
 import type { ProcessHubId } from '@variscout/core/processHub';
 
@@ -13,6 +15,7 @@ const HUB_B = 'hub-B' as ProcessHubId;
 const HUB_1 = 'hub-1' as ProcessHubId;
 const HUB_2 = 'hub-2' as ProcessHubId;
 const HUB_SELECTION = 'hub-selection-boundary' as ProcessHubId;
+const CANVAS_VIEWPORT_DB_NAME = 'variscout-canvas-viewport';
 
 describe('canvasViewportStore', () => {
   beforeEach(() => {
@@ -28,6 +31,11 @@ describe('canvasViewportStore', () => {
     expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
     useCanvasViewportStore.getState().setViewMode('map');
     expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+  });
+
+  it('toggles viewMode to causes', () => {
+    useCanvasViewportStore.getState().setViewMode('causes');
+    expect(useCanvasViewportStore.getState().viewMode).toBe('causes');
   });
 
   it('returns a default viewport for an unknown hub', () => {
@@ -341,6 +349,35 @@ describe('canvasViewportStore persistence', () => {
       nodePositions: { 'node-1': { x: 10, y: 20 } },
       groupByTributary: true,
     });
+  });
+
+  it('persists and rehydrates causes viewMode', async () => {
+    useCanvasViewportStore.getState().setViewMode('causes');
+    await persistCanvasViewport(HUB_A);
+
+    useCanvasViewportStore.setState(useCanvasViewportStore.getInitialState());
+    await rehydrateCanvasViewport(HUB_A);
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('causes');
+  });
+
+  it('normalizes an unknown persisted viewMode to map on rehydrate', async () => {
+    const unsafeDb = new Dexie(CANVAS_VIEWPORT_DB_NAME);
+    unsafeDb.version(2).stores({ snapshots: 'hubId,updatedAt' });
+    await unsafeDb.table('snapshots').put({
+      hubId: HUB_A,
+      viewMode: 'ach-grid-vnext',
+      viewport: getDefaultViewport(),
+      railOpen: false,
+      updatedAt: Date.now(),
+    });
+
+    useCanvasViewportStore.getState().setViewMode('wall');
+    await rehydrateCanvasViewport(HUB_A);
+
+    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(useCanvasViewportStore.getState().railOpen).toBe(false);
+    unsafeDb.close();
   });
 
   it('does not apply rehydrate snapshot when guard returns false', async () => {
