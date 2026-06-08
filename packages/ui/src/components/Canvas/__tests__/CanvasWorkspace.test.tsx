@@ -938,22 +938,30 @@ describe('CanvasWorkspace', () => {
     expect(onRemoveCausalLink).toHaveBeenCalledWith('link-1');
   });
 
-  it('writes per-step CTQ specs through the provided spec callback', () => {
+  it('writes per-step CTQ specs to the canonical capabilityScope', () => {
     const setMeasureSpec = vi.fn();
+    const setProcessContext = vi.fn();
     renderWorkspace({
       processContext: { processMap: mapWithStep() },
-      measureSpecs: { Bake_Time: { target: 30, lsl: 28, usl: 32 } },
       setMeasureSpec,
+      setProcessContext,
     });
 
     fireEvent.change(screen.getByTestId('process-map-step-specs-step-1-usl'), {
       target: { value: '34' },
     });
 
-    expect(setMeasureSpec).toHaveBeenCalledWith(
-      'Bake_Time',
-      expect.objectContaining({ target: 30, lsl: 28, usl: 34 })
-    );
+    expect(setMeasureSpec).not.toHaveBeenCalled();
+    expect(setProcessContext).toHaveBeenCalledWith({
+      processMap: expect.objectContaining({
+        nodes: [
+          expect.objectContaining({
+            id: 'step-1',
+            capabilityScope: { specRules: [{ specs: { usl: 34 } }] },
+          }),
+        ],
+      }),
+    });
   });
 
   it('writes CTS specs through the provided spec callback', () => {
@@ -1266,6 +1274,58 @@ describe('CanvasWorkspace', () => {
     expect(
       useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === 'step-1')?.ctqColumn
     ).toBe('Machine');
+  });
+
+  it('CS-P3: a per-step spec edit persists to capabilityScope without setMeasureSpec', () => {
+    const setMeasureSpec = vi.fn();
+    const setProcessContextSpy = vi.fn();
+
+    function Harness(): React.ReactElement {
+      const [processContext, setProcessContext] = React.useState<
+        NonNullable<React.ComponentProps<typeof CanvasWorkspace>['processContext']>
+      >({ processMap: mapWithStep() });
+
+      return (
+        <CanvasWorkspace
+          rawData={rawData}
+          outcome="Fill_Weight"
+          factors={[]}
+          measureSpecs={{}}
+          processContext={processContext}
+          canEditCanvas={false}
+          setOutcome={vi.fn()}
+          setFactors={vi.fn()}
+          setMeasureSpec={setMeasureSpec}
+          setProcessContext={next => {
+            setProcessContextSpy(next);
+            setProcessContext(next ?? { processMap: mapWithStep() });
+          }}
+          onSeeData={vi.fn()}
+        />
+      );
+    }
+
+    render(<Harness />);
+
+    fireEvent.change(screen.getByTestId('process-map-step-specs-step-1-lsl'), {
+      target: { value: '28' },
+    });
+
+    const storeStep = useCanvasStore
+      .getState()
+      .canonicalMap.nodes.find(node => node.id === 'step-1');
+    expect(storeStep?.capabilityScope?.specRules).toEqual([{ specs: { lsl: 28 } }]);
+    expect(setMeasureSpec).not.toHaveBeenCalled();
+    expect(setProcessContextSpy).toHaveBeenCalledWith({
+      processMap: expect.objectContaining({
+        nodes: [
+          expect.objectContaining({
+            id: 'step-1',
+            capabilityScope: { specRules: [{ specs: { lsl: 28 } }] },
+          }),
+        ],
+      }),
+    });
   });
 
   it('CS-15 seam 1: adding the first process step flips b0 to the b1 framing surface', () => {

@@ -34,6 +34,7 @@ import {
   type TimeDecompositionBinding,
   type ProcessContext,
   type ProcessHubId,
+  type SpecRule,
   type SpecLimits,
   type StepCapabilityStamp,
   type StepTimingBinding,
@@ -357,9 +358,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const disconnectSteps = useCanvasStore(state => state.disconnectSteps);
   const groupIntoSubStep = useCanvasStore(state => state.groupIntoSubStep);
   const ungroupSubStep = useCanvasStore(state => state.ungroupSubStep);
-  // IM-0b-2 (ADR-087 §5): rich-map authoring actions — canvasStore is now the
-  // single authoring authority for ctqColumn / tributary / subgroupAxis / hunch.
+  // ADR-087 §5: rich-map authoring actions — canvasStore is the single
+  // authoring authority for ctqColumn / capabilityScope / tributary /
+  // subgroupAxis / hunch.
   const setStepCtq = useCanvasStore(state => state.setStepCtq);
+  const setCapabilityScope = useCanvasStore(state => state.setCapabilityScope);
   const addTributary = useCanvasStore(state => state.addTributary);
   const removeTributary = useCanvasStore(state => state.removeTributary);
   const toggleSubgroupAxis = useCanvasStore(state => state.toggleSubgroupAxis);
@@ -1241,6 +1244,14 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [persistCanvasStoreMap, removeHunch]
   );
 
+  const handleCapabilityScopeChange = React.useCallback(
+    (stepId: string, specRules: SpecRule[]) => {
+      setCapabilityScope(stepId, specRules);
+      persistCanvasStoreMap();
+    },
+    [persistCanvasStoreMap, setCapabilityScope]
+  );
+
   const handleUndo = React.useCallback(() => {
     undoCanvas();
     persistCanvasStoreMap();
@@ -1265,11 +1276,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       cpkTarget={ctsSpecs?.cpkTarget}
       onSpecsChange={handleSpecsChange}
       stepSpecs={measureSpecs}
-      // IM-0b-2 deferral: per-step specs route to project-wide `measureSpecs`
-      // (NOT canvasStore / `node.capabilityScope`). Per-step capability-scope
-      // authoring is deferred to the IM-5/IM-6 holistic design (ADR-038/073).
-      // See investigations.md "IM-0b-2 deferrals".
-      onStepSpecsChange={(column, next) => setMeasureSpec(column, next)}
+      capabilityContext={{
+        availableContext: data.availableContext,
+        contextValueOptions: data.contextValueOptions,
+      }}
+      onCapabilityScopeChange={handleCapabilityScopeChange}
       data={data}
       filter={{
         availableContext: data.availableContext,

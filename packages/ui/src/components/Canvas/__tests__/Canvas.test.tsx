@@ -35,6 +35,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import type { Finding, ScopeFilter, TimelineWindow } from '@variscout/core';
+import { calculateNodeCapability } from '@variscout/core/stats';
 import type { ProcessMap } from '@variscout/core/frame';
 import type {
   CanvasAnalyzeOverlayModel,
@@ -451,6 +452,43 @@ describe('Canvas', () => {
     expect(screen.getByTestId('connected-step-node-step-1')).toBeInTheDocument();
     expect(screen.getByTestId('connected-step-box-step-1')).toBeInTheDocument();
     expect(screen.getByTestId('mock-step-pareto')).toBeInTheDocument();
+  });
+
+  it('shows numeric per-step Cpk when authored capabilityScope specs feed the engine', () => {
+    const processMap: ProcessMap = {
+      ...mapWithSteps,
+      nodes: [
+        {
+          id: 'step-1',
+          name: 'Mix',
+          order: 0,
+          ctqColumn: 'Pressure',
+          capabilityScope: { specRules: [{ specs: { lsl: 8, usl: 14, cpkTarget: 1.33 } }] },
+        },
+        { id: 'step-2', name: 'Fill', order: 1 },
+      ],
+    };
+    const result = calculateNodeCapability('step-1', {
+      kind: 'column',
+      processMap,
+      investigationMeta: {
+        nodeMappings: [{ nodeId: 'step-1', measurementColumn: 'Pressure' }],
+      },
+      data: [{ Pressure: 10 }, { Pressure: 11 }, { Pressure: 12 }, { Pressure: 13 }],
+    });
+
+    renderCanvas({
+      map: processMap,
+      data: {
+        ...baseData,
+        capabilityNodes: [{ nodeId: 'step-1', label: 'Mix', targetCpk: 1.33, result }],
+      },
+    });
+
+    expect(screen.getByTestId('connected-step-box-step-1')).toHaveTextContent(/Cpk/);
+    expect(screen.getByTestId('connected-step-box-step-1')).not.toHaveTextContent(
+      'Cpk unavailable'
+    );
   });
 
   it('passes time value roles into the connected capability band for zero-baseline Values scaling', () => {
