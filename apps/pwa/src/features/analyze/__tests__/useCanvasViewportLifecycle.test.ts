@@ -96,7 +96,7 @@ describe('useCanvasViewportLifecycle (PWA)', () => {
       vi.advanceTimersByTime(500);
     });
 
-    expect(useCanvasViewportStore.getState().viewMode).toBe('map');
+    expect(useCanvasViewportStore.getState().viewMode).toBe('wall');
     expect(useCanvasViewportStore.getState().railOpen).toBe(true);
     expect(useCanvasViewportStore.getState().getViewport(h('hub-A')).zoom).toBe(1);
     expect(mockPersist).not.toHaveBeenCalled();
@@ -127,7 +127,7 @@ describe('useCanvasViewportLifecycle (PWA)', () => {
     mockPersist.mockClear();
 
     act(() => {
-      useCanvasViewportStore.getState().setViewMode('wall');
+      useCanvasViewportStore.getState().setViewMode('causes');
       vi.advanceTimersByTime(499);
     });
 
