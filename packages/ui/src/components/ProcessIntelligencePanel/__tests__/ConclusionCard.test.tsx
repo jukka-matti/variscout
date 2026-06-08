@@ -68,14 +68,14 @@ describe('ConclusionCard', () => {
           makeHub('h-proposed', 'Initial suspected cause', 'proposed'),
           makeHub('h-evidenced', 'Evidence-backed cause', 'evidenced'),
           makeHub('h-needs', 'Needs check cause', 'needs-disconfirmation'),
-          makeHub('h-verified', 'Verified cause', 'evidence-survived-test'),
+          makeHub('h-supported', 'Supported cause', 'evidence-survived-test'),
           makeHub('h-refuted', 'Ruled out cause', 'refuted'),
         ]}
       />
     );
 
     expect(screen.getAllByLabelText('Suspected')).toHaveLength(3);
-    expect(screen.getByLabelText('Verified')).toBeInTheDocument();
+    expect(screen.getByLabelText('Supported')).toBeInTheDocument();
     expect(screen.getByLabelText('Ruled out')).toBeInTheDocument();
   });
 

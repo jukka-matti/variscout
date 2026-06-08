@@ -20,7 +20,7 @@ export interface HubCardProps {
 
 const STATUS_DOT: Record<HypothesisDisplayStatus, string> = {
   suspected: 'bg-amber-500',
-  verified: 'bg-green-500',
+  supported: 'bg-green-500',
   'ruled-out': 'bg-content-muted/40',
 };
 

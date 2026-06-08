@@ -861,13 +861,13 @@ export const en: MessageCatalog = {
   // Catalog key is kept as `wall.status.confirmed` for stability; the status
   // CODE is now `'evidence-survived-test'` (CS-10). Falsification logic never
   // *confirms* a hypothesis — it can only fail to break it. The L-2 display
-  // vocabulary maps that stored value to "Verified".
-  'wall.status.confirmed': 'Verified',
+  // vocabulary maps that stored value to "Supported".
+  'wall.status.confirmed': 'Supported',
   'wall.status.refuted': 'Ruled out',
   'wall.status.needsDisconfirmation': 'Suspected',
   // CS-10 — analyst-owned status. The suggestion chip is advisory only; the
-  // analyst decides. "mark Verified?" never auto-applies.
-  'wall.status.suggestSupported': '2 evidence types + a survived test — mark Verified?',
+  // analyst decides. "mark Supported?" never auto-applies.
+  'wall.status.suggestSupported': '2 evidence types + a survived test — mark Supported?',
   'wall.status.setLabel': 'Set status',
   'wall.card.hypothesisLabel': 'Suspected cause',
   'wall.card.findings': '{count} findings',
@@ -876,7 +876,7 @@ export const en: MessageCatalog = {
   'wall.card.missingColumnAria': 'Condition references missing column',
   'wall.card.ariaLabel': 'Suspected cause {name}, {status}, {count} supporting clues',
   'wall.card.oneStepAway':
-    '1 step away — running a disconfirmation test would let you mark this Verified',
+    '1 step away — running a disconfirmation test would let you mark this Supported',
   'wall.problem.title': 'Problem condition',
   'wall.problem.eventsPerWeek': '{count} events',
   'wall.problem.ariaLabel': 'Problem condition: {column}, Cpk {cpk}, {count} events',
@@ -907,7 +907,7 @@ export const en: MessageCatalog = {
   'wall.disconfirm.verdictSurvivedToast': 'Survived — the cause withstood the attempt.',
   'wall.disconfirm.verdictRefutedToast': 'Refuted — the predicted relationship was absent.',
   // FE-2b — the §4.1 soft caveat for an unbacked survived attempt
-  'wall.caveat.unbackedSurvived': 'Verified — disconfirmation has no attached evidence',
+  'wall.caveat.unbackedSurvived': 'Supported — disconfirmation has no attached evidence',
   'wall.caveat.backWithTest': 'back it with a test →',
   // FE-2b — refute → respawn-sharper (spec §4.2)
   'wall.respawn.sharpenCta': 'Sharpen → propose a new hypothesis',

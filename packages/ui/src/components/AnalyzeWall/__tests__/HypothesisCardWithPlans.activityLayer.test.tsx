@@ -165,7 +165,7 @@ describe('HypothesisCardWithPlans stalled activity state', () => {
     expect(onSetStatus).toHaveBeenCalledWith('h1', 'refuted');
   });
 
-  it('does not render stalled when the cause is verified or ruled out', () => {
+  it('does not render stalled when the cause is supported or ruled out', () => {
     for (const status of ['evidence-survived-test', 'refuted'] as const) {
       const { unmount } = renderInSvg({
         hub: { ...hub, status },

@@ -142,7 +142,7 @@ describe('deriveHypothesisActivity', () => {
     });
   });
 
-  it('never marks verified or ruled-out causes stalled', () => {
+  it('never marks supported or ruled-out causes stalled', () => {
     for (const status of ['evidence-survived-test', 'refuted'] as const) {
       const activity = deriveHypothesisActivity({
         hub: hub({ updatedAt: MONDAY, status }),

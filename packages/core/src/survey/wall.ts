@@ -87,7 +87,7 @@ export const surveyWallRules: SurveyRule = ctx => {
         kind: 'triangulation-readiness',
         surface: 'wall',
         targetEntityId: h.id,
-        message: '1 step away — running a disconfirmation test would let you mark this Verified',
+        message: '1 step away — running a disconfirmation test would let you mark this Supported',
         severity: 'info',
         action: { label: 'Try disconfirmation' },
       });

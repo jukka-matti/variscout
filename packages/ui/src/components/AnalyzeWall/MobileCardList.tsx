@@ -89,12 +89,12 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
         // derivation stays an advisory signal only; it never becomes the
         // displayed status here.
         const status = hub.status;
-        // Advisory: when the evidence would derive the Verified state but the analyst
+        // Advisory: when the evidence would derive the Supported state but the analyst
         // has not yet promoted the hub, surface a passive read-only hint. Mobile
         // has no status control (no edit affordances), so this is non-interactive
         // — the interactive suggestion chip + control live on the rich card.
         const suggestedStatus = deriveHypothesisStatus(hub, findings);
-        const showVerifiedHint =
+        const showSupportedHint =
           suggestedStatus === 'evidence-survived-test' && status !== 'evidence-survived-test';
         const branch = projectMechanismBranch(hub, {
           findings,
@@ -148,9 +148,9 @@ export const MobileCardList: React.FC<MobileCardListProps> = ({
             {branch.nextMove && (
               <div className="text-xs text-content-secondary mt-2">Next: {branch.nextMove}</div>
             )}
-            {showVerifiedHint && (
+            {showSupportedHint && (
               <div
-                data-testid={`wall-mobile-hub-${hub.id}-verified-hint`}
+                data-testid={`wall-mobile-hub-${hub.id}-supported-hint`}
                 className="mt-2 rounded border border-edge bg-surface px-2 py-1 text-[11px] text-content-muted"
               >
                 {getMessage(locale, 'wall.status.suggestSupported')}

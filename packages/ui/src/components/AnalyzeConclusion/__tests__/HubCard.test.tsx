@@ -54,7 +54,7 @@ describe('HubCard', () => {
     expect(screen.getByText('Suspected')).toBeInTheDocument();
 
     rerender(<HubCard {...defaultProps()} hub={makeHub({ status: 'evidence-survived-test' })} />);
-    expect(screen.getByText('Verified')).toBeInTheDocument();
+    expect(screen.getByText('Supported')).toBeInTheDocument();
 
     rerender(<HubCard {...defaultProps()} hub={makeHub({ status: 'refuted' })} />);
     expect(screen.getByText('Ruled out')).toBeInTheDocument();

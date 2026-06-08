@@ -1,17 +1,17 @@
 import type { HypothesisStatus } from './types';
 
-export type HypothesisDisplayStatus = 'suspected' | 'verified' | 'ruled-out';
+export type HypothesisDisplayStatus = 'suspected' | 'supported' | 'ruled-out';
 
 export interface HypothesisStatusDisplay {
   status: HypothesisDisplayStatus;
-  label: 'Suspected' | 'Verified' | 'Ruled out';
+  label: 'Suspected' | 'Supported' | 'Ruled out';
 }
 
 const DISPLAY_STATUS_BY_STORED_STATUS: Record<HypothesisStatus, HypothesisStatusDisplay> = {
   proposed: { status: 'suspected', label: 'Suspected' },
   evidenced: { status: 'suspected', label: 'Suspected' },
   'needs-disconfirmation': { status: 'suspected', label: 'Suspected' },
-  'evidence-survived-test': { status: 'verified', label: 'Verified' },
+  'evidence-survived-test': { status: 'supported', label: 'Supported' },
   refuted: { status: 'ruled-out', label: 'Ruled out' },
 };
 

@@ -93,8 +93,8 @@ describe('ReportImprovementSummary', () => {
             ideas: [makeIdea()],
           },
           {
-            id: 'h-verified',
-            text: 'Verified cause',
+            id: 'h-supported',
+            text: 'Supported cause',
             status: 'evidence-survived-test',
             ideas: [makeIdea()],
           },
@@ -104,7 +104,7 @@ describe('ReportImprovementSummary', () => {
     );
 
     expect(screen.getAllByText('Suspected')).toHaveLength(3);
-    expect(screen.getByText('Verified')).toBeDefined();
+    expect(screen.getByText('Supported')).toBeDefined();
     expect(screen.getByText('Ruled out')).toBeDefined();
   });
 

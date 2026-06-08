@@ -65,8 +65,8 @@ describe('<CausesMatrix />', () => {
     const expert = finding('Buyer reports batch substitution', 'expert');
     const refuting = { ...finding('Maintenance schedule does not align', 'data'), refutes: true };
 
-    const verified = hub('Equipment diff A to B', [data, gemba], {
-      id: 'h-verified',
+    const supported = hub('Equipment diff A to B', [data, gemba], {
+      id: 'h-supported',
       disconfirmationAttempts: [survivedAttempt()],
     });
     const inFlight = hub('Night shift staffing', [expert], { id: 'h-in-flight' });
@@ -79,7 +79,7 @@ describe('<CausesMatrix />', () => {
 
     render(
       <CausesMatrix
-        hubs={[verified, inFlight, stalled, ruledOut]}
+        hubs={[supported, inFlight, stalled, ruledOut]}
         findings={[data, gemba, expert, refuting]}
         plans={[plan({ id: 'mp-night', hypothesisId: 'h-in-flight', primaryFactor: 'Staffing' })]}
         now={NEXT_MONDAY}
@@ -88,14 +88,14 @@ describe('<CausesMatrix />', () => {
     );
 
     expect(
-      screen.getByText('4 causes · 1 verified · 1 in flight · 1 stalled · 1 ruled out')
+      screen.getByText('4 causes · 1 supported · 1 in flight · 1 stalled · 1 ruled out')
     ).toBeInTheDocument();
 
-    const verifiedRow = screen.getByRole('row', { name: /Equipment diff A to B/i });
-    expect(within(verifiedRow).getByText('Data')).toBeInTheDocument();
-    expect(within(verifiedRow).getByText('Gemba')).toBeInTheDocument();
-    expect(within(verifiedRow).getByText('1 survived')).toBeInTheDocument();
-    expect(within(verifiedRow).getByText('Verified')).toBeInTheDocument();
+    const supportedRow = screen.getByRole('row', { name: /Equipment diff A to B/i });
+    expect(within(supportedRow).getByText('Data')).toBeInTheDocument();
+    expect(within(supportedRow).getByText('Gemba')).toBeInTheDocument();
+    expect(within(supportedRow).getByText('1 survived')).toBeInTheDocument();
+    expect(within(supportedRow).getByText('Supported')).toBeInTheDocument();
 
     const inFlightRow = screen.getByRole('row', { name: /Night shift staffing/i });
     expect(within(inFlightRow).getByText('Expert')).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe('<CausesMatrix />', () => {
   it('renders an empty read-only matrix state', () => {
     render(<CausesMatrix hubs={[]} findings={[]} plans={[]} now={NEXT_MONDAY} />);
 
-    expect(screen.getByText('0 causes · 0 verified · 0 in flight · 0 stalled · 0 ruled out'));
+    expect(screen.getByText('0 causes · 0 supported · 0 in flight · 0 stalled · 0 ruled out'));
     expect(screen.getByText(/No suspected causes yet/i)).toBeInTheDocument();
   });
 

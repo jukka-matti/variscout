@@ -823,10 +823,10 @@ export const it: MessageCatalog = {
   // Investigation Wall
   'wall.status.proposed': 'Suspected',
   'wall.status.evidenced': 'Suspected',
-  'wall.status.confirmed': 'Verified',
+  'wall.status.confirmed': 'Supported',
   'wall.status.refuted': 'Ruled out',
   'wall.status.needsDisconfirmation': 'Suspected',
-  'wall.status.suggestSupported': '2 evidence types + a survived test — mark Verified?',
+  'wall.status.suggestSupported': '2 evidence types + a survived test — mark Supported?',
   'wall.status.setLabel': 'Set status',
   'wall.card.hypothesisLabel': 'Suspected cause',
   'wall.card.findings': '{count} findings',
@@ -835,7 +835,7 @@ export const it: MessageCatalog = {
   'wall.card.missingColumnAria': 'Condition references missing column',
   'wall.card.ariaLabel': 'Suspected cause {name}, {status}, {count} supporting clues',
   'wall.card.oneStepAway':
-    '1 step away — running a disconfirmation test would let you mark this Verified',
+    '1 step away — running a disconfirmation test would let you mark this Supported',
   'wall.problem.title': 'Problem condition',
   'wall.problem.eventsPerWeek': '{count} events',
   'wall.problem.ariaLabel': 'Problem condition: {column}, Cpk {cpk}, {count} events per week',
@@ -866,7 +866,7 @@ export const it: MessageCatalog = {
   'wall.disconfirm.verdictSurvivedToast': 'Survived — the cause withstood the attempt.',
   'wall.disconfirm.verdictRefutedToast': 'Refuted — the predicted relationship was absent.',
   // FE-2b — the §4.1 soft caveat for an unbacked survived attempt
-  'wall.caveat.unbackedSurvived': 'Verified — disconfirmation has no attached evidence',
+  'wall.caveat.unbackedSurvived': 'Supported — disconfirmation has no attached evidence',
   'wall.caveat.backWithTest': 'back it with a test →',
   // FE-2b — refute → respawn-sharper (spec §4.2)
   'wall.respawn.sharpenCta': 'Sharpen → propose a new hypothesis',
