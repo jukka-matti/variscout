@@ -38,6 +38,7 @@ export {
   conditionReferencesStep,
   deriveConditionFromFindingSource,
   buildConditionFromCategoricalFilters,
+  conditionLeavesToCategoricalFilters,
   activeFiltersToCondition,
   categoricalFiltersToActiveFilters,
   formatConditionLeaves,
