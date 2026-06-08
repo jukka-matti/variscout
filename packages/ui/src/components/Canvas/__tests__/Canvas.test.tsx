@@ -439,6 +439,19 @@ describe('Canvas', () => {
     expect(screen.getByTestId('canvas-step-card-step-2')).toBeInTheDocument();
   });
 
+  it('renders the connected per-step capability band at the process level', () => {
+    renderCanvas({
+      data: {
+        ...baseData,
+        errorSteps: [{ nodeId: 'step-2', label: 'Fill', errorCount: 7 }],
+      },
+    });
+    expect(screen.getByTestId('connected-step-capability-view')).toBeInTheDocument();
+    expect(screen.getByTestId('connected-step-node-step-1')).toBeInTheDocument();
+    expect(screen.getByTestId('connected-step-box-step-1')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-step-pareto')).toBeInTheDocument();
+  });
+
   it('renders the mobile Wall shortcut button only when on mobile, investigation content exists, and onOpenWall is wired', () => {
     wallIsMobileRef.current = true;
     hasInvestigationContentRef.current = false;

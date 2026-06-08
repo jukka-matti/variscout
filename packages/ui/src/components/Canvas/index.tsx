@@ -68,6 +68,7 @@ import { sortedProcessSteps } from './internal/NoFocalStepPrompt';
 import { useWallIsMobile } from '../AnalyzeWall';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 import type { LogActionPayload } from '../QuickAction';
+import { ConnectedStepCapabilityView } from '../ConnectedStepCapability';
 
 /**
  * Canonical FRAME canvas surface.
@@ -272,6 +273,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onAddHunch,
   onRemoveHunch,
   chips = EMPTY_CHIPS,
+  data,
   onPlaceChip,
   onCreateStepFromChip,
   stepCards = EMPTY_STEP_CARDS,
@@ -571,6 +573,13 @@ export const Canvas: React.FC<CanvasProps> = ({
       <div data-testid="layered-filter-strip">
         <ProductionLineGlanceFilterStrip {...filter} />
       </div>
+
+      <ConnectedStepCapabilityView
+        map={map}
+        stepCards={stepCards}
+        capabilityNodes={data.capabilityNodes}
+        errorSteps={data.errorSteps}
+      />
 
       <section
         ref={cardSurfaceRef}
