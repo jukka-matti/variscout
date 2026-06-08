@@ -58,6 +58,8 @@ implements:
 
 **Demo-minimum = Phase 1 + AW-4** (canvas-first, readable, legible gates, lands on the Wall). Phases 3–5 are depth and can follow the demo.
 
+**Codex dispatch prompts** (paste-ready, one per PR): [`2026-06-08-aw-codex-dispatch-prompts.md`](2026-06-08-aw-codex-dispatch-prompts.md). Execution = Codex v2 full-loop, one PR in flight.
+
 ---
 
 ## PR detail
