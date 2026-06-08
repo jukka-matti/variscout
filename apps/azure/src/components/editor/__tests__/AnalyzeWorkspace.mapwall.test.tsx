@@ -470,6 +470,30 @@ describe('AnalyzeWorkspace Map/Wall toggle', () => {
     expect(screen.getByTestId('wall-canvas')).toBeInTheDocument();
   });
 
+  it('renders the canvas-first Wall shell with the overall problem header', () => {
+    useCanvasViewportStore.getState().setViewMode('wall');
+    const props = makeMinimalProps();
+    props.hypothesesState.hubs = [
+      {
+        id: 'hub-1',
+        name: 'Nozzle heat drift',
+        synthesis: '',
+        questionIds: [],
+        findingIds: [],
+        status: 'proposed',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ] as never;
+
+    render(<AnalyzeWorkspace {...props} />);
+
+    expect(screen.getByTestId('overall-problem-header')).toBeInTheDocument();
+    expect(screen.getByTestId('analyze-wall-canvas-shell')).toBeInTheDocument();
+    expect(screen.getByTestId('analyze-wall-floating-controls')).toBeInTheDocument();
+    expect(screen.queryByTestId('analyze-left-conclusion-rail')).not.toBeInTheDocument();
+  });
+
   it('PR-CS-5: pans the Wall viewport to center the focused hypothesis on arrival', () => {
     // Arrive on the Wall with a focus lens set (as a Process-tab hypothesis link does).
     useCanvasViewportStore.getState().setViewMode('wall');

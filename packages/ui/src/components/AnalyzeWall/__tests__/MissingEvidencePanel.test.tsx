@@ -58,6 +58,7 @@ describe('MissingEvidencePanel', () => {
   it('3. renders data-collection hint — tagline shows (1)', () => {
     render(<MissingEvidencePanel hints={[dataCollectionHint]} />);
     expect(screen.getByLabelText(/Missing evidence digest/i)).toBeInTheDocument();
+    expect(screen.getByTestId('missing-evidence-nudge')).toBeInTheDocument();
     // tagline has "(1)"
     expect(screen.getByText(/\(1\)/)).toBeInTheDocument();
   });

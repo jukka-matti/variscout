@@ -225,6 +225,7 @@ export const Editor: React.FC<EditorProps> = ({
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
+  const wallViewMode = useCanvasViewportStore(s => s.viewMode);
   const timeColumn = useProjectStore(s => s.timeColumn);
   const specs = useProjectStore(s => s.specs);
   const columnAliases = useProjectStore(s => s.columnAliases);
@@ -1465,6 +1466,7 @@ export const Editor: React.FC<EditorProps> = ({
       useCanvasViewportStore.getState().setLevel(hubId, focus.level, focus.focalStepId);
     }
   }, [activeHub, activeIPContext.activeIP, activeView]);
+  const isAnalyzeWallCanvasFirst = activeView === 'analyze' && wallViewMode === 'wall';
 
   // Verification prompt: show when new data is uploaded while findings are improving
   const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
@@ -2095,20 +2097,22 @@ export const Editor: React.FC<EditorProps> = ({
             {/* Canvas framing toolbar — '+New investigation' on-demand entry
                 (Mode A.1 reopen path, spec §5.5). Visible whenever data + outcome are
                 set (i.e. the analyst is on the canvas, not in a mapping modal). */}
-            <div
-              className="flex items-center gap-2 px-4 py-1.5 bg-surface-secondary border-b border-edge"
-              data-testid="framing-toolbar"
-            >
-              <div className="flex-1" />
-              <button
-                type="button"
-                onClick={stageFive.openOnDemand}
-                data-testid="canvas-new-analyze"
-                className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+            {!isAnalyzeWallCanvasFirst ? (
+              <div
+                className="flex items-center gap-2 px-4 py-1.5 bg-surface-secondary border-b border-edge"
+                data-testid="framing-toolbar"
               >
-                + New analyze
-              </button>
-            </div>
+                <div className="flex-1" />
+                <button
+                  type="button"
+                  onClick={stageFive.openOnDemand}
+                  data-testid="canvas-new-analyze"
+                  className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+                >
+                  + New analyze
+                </button>
+              </div>
+            ) : null}
 
             {/* Workspace content (ADR-055) — tabs are in AppHeader */}
             {activeView === 'dashboard' ? (

@@ -62,7 +62,8 @@ export const MissingEvidencePanel: React.FC<MissingEvidencePanelProps> = ({
   return (
     <section
       aria-label={getMessage(locale, 'wall.missing.ariaLabel')}
-      className="border-t-2 border-dashed border-warning bg-surface p-3"
+      data-testid="missing-evidence-nudge"
+      className="border-t border-warning/60 bg-surface px-3 py-1"
     >
       <button
         type="button"
