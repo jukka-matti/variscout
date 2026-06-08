@@ -26,6 +26,7 @@ import type {
   ProcessMapHunch,
 } from '@variscout/core/frame';
 import type { SpecLimits } from '@variscout/core';
+import type { SpecRule } from '@variscout/core/types';
 import { StepArrow } from './StepArrow';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -70,6 +71,14 @@ export interface ProcessMapProps {
    * step. The full `SpecLimits` shape is passed so consumers can `setMeasureSpec(column, next)`.
    */
   onStepSpecsChange?: (column: string, next: SpecLimits) => void;
+  capabilityContext?: {
+    availableContext: {
+      hubColumns: string[];
+      tributaryGroups?: Array<{ tributaryLabel: string; columns: string[] }>;
+    };
+    contextValueOptions: Record<string, string[]>;
+  };
+  onCapabilityScopeChange?: (stepId: string, specRules: SpecRule[]) => void;
   /**
    * Whether to render the GapStrip warning bar. Defaults to `true` for backward
    * compatibility with b1+ (process-map authoring) flows. The b0 FrameView passes
@@ -123,6 +132,41 @@ const gapsForStep = (gaps: Gap[] | undefined, stepId: string): Gap[] =>
 
 /** Gaps that apply to the whole map (no stepId) — rendered in the GapStrip. */
 const globalGaps = (gaps: Gap[] | undefined): Gap[] => (gaps ?? []).filter(g => !g.stepId);
+
+function isDefaultSpecRule(rule: SpecRule): boolean {
+  return !rule.when || Object.keys(rule.when).length === 0;
+}
+
+function defaultSpecRule(rules: readonly SpecRule[]): SpecRule | undefined {
+  return rules.find(isDefaultSpecRule);
+}
+
+function replaceRuleAt(rules: readonly SpecRule[], index: number, nextRule: SpecRule): SpecRule[] {
+  return rules.map((rule, candidateIndex) => (candidateIndex === index ? nextRule : rule));
+}
+
+function replaceDefaultSpecRule(rules: readonly SpecRule[], specs: SpecLimits): SpecRule[] {
+  const existingDefaultIndex = rules.findIndex(isDefaultSpecRule);
+  const nextDefault: SpecRule = { specs };
+  if (existingDefaultIndex === -1) return [nextDefault, ...rules];
+  return replaceRuleAt(rules, existingDefaultIndex, nextDefault);
+}
+
+function contextColumnsFrom(context: ProcessMapProps['capabilityContext'] | undefined): string[] {
+  if (!context) return [];
+  const columns = [
+    ...context.availableContext.hubColumns,
+    ...(context.availableContext.tributaryGroups ?? []).flatMap(group => group.columns),
+  ];
+  return Array.from(new Set(columns));
+}
+
+function valueForContextColumn(
+  context: ProcessMapProps['capabilityContext'],
+  column: string
+): string | null {
+  return context?.contextValueOptions[column]?.[0] ?? null;
+}
 
 // ────────────────────────────────────────────────────────────────────────────
 // Sub-components (co-located; not exported from the package)
@@ -236,6 +280,8 @@ interface StepCardProps {
   disabled?: boolean;
   /** Per-step CTQ specs (USL/LSL/target/cpkTarget). Only rendered when ctqColumn is set. */
   ctqSpecs?: SpecLimits;
+  specRules: SpecRule[];
+  capabilityContext?: ProcessMapProps['capabilityContext'];
   onRename: (name: string) => void;
   onCtqChange: (column: string | undefined) => void;
   onRemove: () => void;
@@ -244,6 +290,7 @@ interface StepCardProps {
   onToggleSubgroupAxis: (tributaryId: string) => void;
   /** Called with the full new SpecLimits shape when any per-step spec input changes. */
   onCtqSpecsChange?: (next: SpecLimits) => void;
+  onCapabilityScopeChange?: (next: SpecRule[]) => void;
   chipDropTargets?: boolean;
   selected?: boolean;
   keyboardChipLabel?: string | null;
@@ -260,6 +307,8 @@ const StepCard: React.FC<StepCardProps> = ({
   gaps,
   disabled,
   ctqSpecs,
+  specRules,
+  capabilityContext,
   onRename,
   onCtqChange,
   onRemove,
@@ -267,6 +316,7 @@ const StepCard: React.FC<StepCardProps> = ({
   onRemoveTributary,
   onToggleSubgroupAxis,
   onCtqSpecsChange,
+  onCapabilityScopeChange,
   chipDropTargets,
   selected = false,
   keyboardChipLabel,
@@ -278,6 +328,11 @@ const StepCard: React.FC<StepCardProps> = ({
   const availableForTrib = availableColumns.filter(
     c => !tributaries.some(t => t.column === c) && c !== step.ctqColumn
   );
+  const contextColumns = contextColumnsFrom(capabilityContext);
+  const defaultRule = defaultSpecRule(specRules);
+  const visibleCtqSpecs = defaultRule?.specs ?? ctqSpecs;
+  const canEditSpecs =
+    step.ctqColumn !== undefined && (onCapabilityScopeChange || onCtqSpecsChange);
   const droppableId = encodeStepDropId(step.id);
   const { setNodeRef, isOver } = useDroppable({
     id: droppableId,
@@ -366,20 +421,133 @@ const StepCard: React.FC<StepCardProps> = ({
         </select>
       </label>
 
-      {step.ctqColumn !== undefined && onCtqSpecsChange && (
+      {canEditSpecs && (
         <SpecsGrid
-          target={ctqSpecs?.target}
-          usl={ctqSpecs?.usl}
-          lsl={ctqSpecs?.lsl}
-          cpkTarget={ctqSpecs?.cpkTarget}
+          target={visibleCtqSpecs?.target}
+          usl={visibleCtqSpecs?.usl}
+          lsl={visibleCtqSpecs?.lsl}
+          cpkTarget={visibleCtqSpecs?.cpkTarget}
           disabled={disabled}
           idPrefix={`process-map-step-specs-${step.id}`}
           ariaPrefix={`Step ${step.name || 'unnamed'} CTQ`}
-          onChange={next =>
-            onCtqSpecsChange({ ...next, characteristicType: ctqSpecs?.characteristicType })
-          }
+          onChange={next => {
+            if (onCapabilityScopeChange) {
+              onCapabilityScopeChange(replaceDefaultSpecRule(specRules, next));
+              return;
+            }
+            onCtqSpecsChange?.({ ...next, characteristicType: ctqSpecs?.characteristicType });
+          }}
         />
       )}
+
+      {step.ctqColumn !== undefined && onCapabilityScopeChange && contextColumns.length > 0 ? (
+        <div className="flex flex-col gap-2 border-t border-edge pt-2">
+          {specRules.map((rule, index) => {
+            if (isDefaultSpecRule(rule)) return null;
+            const column = Object.keys(rule.when ?? {})[0] ?? contextColumns[0]!;
+            const value = rule.when?.[column] ?? null;
+            const valueOptions = capabilityContext?.contextValueOptions[column] ?? [];
+            return (
+              <div
+                key={`${step.id}-${index}`}
+                className="flex flex-col gap-1 rounded border border-edge bg-surface-secondary p-2"
+              >
+                <div className="flex items-center gap-1">
+                  <select
+                    value={column}
+                    onChange={event => {
+                      const nextColumn = event.target.value;
+                      const nextValue = valueForContextColumn(capabilityContext, nextColumn);
+                      onCapabilityScopeChange(
+                        replaceRuleAt(specRules, index, {
+                          when: { [nextColumn]: nextValue },
+                          specs: rule.specs,
+                        })
+                      );
+                    }}
+                    disabled={disabled}
+                    aria-label={`Context column for ${step.name || 'step'} specs`}
+                    className="min-w-0 flex-1 text-xs bg-surface-primary border border-edge rounded px-1 py-0.5"
+                    data-testid={`process-map-step-context-rule-${step.id}-${index}-column`}
+                  >
+                    {contextColumns.map(candidate => (
+                      <option key={candidate} value={candidate}>
+                        {candidate}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={value ?? '__NULL__'}
+                    onChange={event => {
+                      const nextValue =
+                        event.target.value === '__NULL__' ? null : event.target.value;
+                      onCapabilityScopeChange(
+                        replaceRuleAt(specRules, index, {
+                          when: { [column]: nextValue },
+                          specs: rule.specs,
+                        })
+                      );
+                    }}
+                    disabled={disabled}
+                    aria-label={`Context value for ${step.name || 'step'} specs`}
+                    className="min-w-0 flex-1 text-xs bg-surface-primary border border-edge rounded px-1 py-0.5"
+                    data-testid={`process-map-step-context-rule-${step.id}-${index}-value`}
+                  >
+                    {valueOptions.map(candidate => (
+                      <option key={candidate} value={candidate}>
+                        {candidate}
+                      </option>
+                    ))}
+                    <option value="__NULL__">Empty</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onCapabilityScopeChange(
+                        specRules.filter((_, candidate) => candidate !== index)
+                      )
+                    }
+                    disabled={disabled}
+                    className="text-xs px-1.5 py-0.5 bg-surface-primary hover:bg-surface-tertiary border border-edge rounded"
+                    aria-label={`Remove context-specific specs for ${step.name || 'step'}`}
+                  >
+                    remove
+                  </button>
+                </div>
+                <SpecsGrid
+                  target={rule.specs.target}
+                  usl={rule.specs.usl}
+                  lsl={rule.specs.lsl}
+                  cpkTarget={rule.specs.cpkTarget}
+                  disabled={disabled}
+                  idPrefix={`process-map-step-context-rule-${step.id}-${index}`}
+                  ariaPrefix={`Step ${step.name || 'unnamed'} context CTQ`}
+                  onChange={next =>
+                    onCapabilityScopeChange(
+                      replaceRuleAt(specRules, index, { when: rule.when, specs: next })
+                    )
+                  }
+                />
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => {
+              const column = contextColumns[0]!;
+              onCapabilityScopeChange([
+                ...specRules,
+                { when: { [column]: valueForContextColumn(capabilityContext, column) }, specs: {} },
+              ]);
+            }}
+            disabled={disabled}
+            className="self-start text-xs px-2 py-0.5 bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded"
+            data-testid={`process-map-step-add-context-rule-${step.id}`}
+          >
+            + context specs
+          </button>
+        </div>
+      ) : null}
 
       {tributaries.length > 0 && (
         <ul className="flex flex-col gap-1">
@@ -715,6 +883,8 @@ export const ProcessMap: React.FC<ProcessMapProps> = ({
   onSpecsChange,
   stepSpecs,
   onStepSpecsChange,
+  capabilityContext,
+  onCapabilityScopeChange,
   showGaps = true,
   chipDropTargets = false,
   selectedStepIds = [],
@@ -935,21 +1105,22 @@ export const ProcessMap: React.FC<ProcessMapProps> = ({
                 gaps={gapsForStep(gaps, step.id)}
                 disabled={disabled}
                 ctqSpecs={step.ctqColumn ? stepSpecs?.[step.ctqColumn] : undefined}
+                specRules={step.capabilityScope?.specRules ?? []}
+                capabilityContext={capabilityContext}
                 onRename={name => renameStep(step.id, name)}
                 onCtqChange={col => setStepCtq(step.id, col)}
                 onRemove={() => removeStep(step.id)}
                 onAddTributary={col => addTributary(step.id, col)}
                 onRemoveTributary={removeTributary}
                 onToggleSubgroupAxis={toggleSubgroupAxis}
-                // IM-0b-2 deferral: the per-step specs editor INTENTIONALLY keeps
-                // routing to `onStepSpecsChange` (→ `setMeasureSpec(column, …)` →
-                // project-wide `measureSpecs`), NOT to a canvasStore action /
-                // `node.capabilityScope`. Per-step capability-scope authoring is
-                // entangled with IM-5/IM-6 + ADR-038/073 — deferred to that
-                // holistic design. See investigations.md "IM-0b-2 deferrals".
                 onCtqSpecsChange={
                   onStepSpecsChange && step.ctqColumn
                     ? next => onStepSpecsChange(step.ctqColumn!, next)
+                    : undefined
+                }
+                onCapabilityScopeChange={
+                  onCapabilityScopeChange
+                    ? next => onCapabilityScopeChange(step.id, next)
                     : undefined
                 }
                 chipDropTargets={chipDropTargets}

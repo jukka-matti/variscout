@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { assertNever, type ProcessHub } from '@variscout/core';
+import type { SpecRule } from '@variscout/core/types';
 import type { CanvasAction } from '@variscout/core/actions';
 import { createEmptyMap, type ProcessMap, type ProcessMapNode } from '@variscout/core/frame';
 
@@ -67,6 +68,13 @@ export interface CanvasStoreActions {
    */
   /** Set (or clear, with `undefined`) the CTQ column measured at a step. */
   setStepCtq: (stepId: string, ctqColumn: string | undefined) => void;
+  /** Replace the per-step capability spec rules authored for a step. */
+  setCapabilityScope: (stepId: string, specRules: SpecRule[]) => void;
+  /** Add, replace, or remove one per-step capability spec rule. */
+  editCapabilityScope: (
+    stepId: string,
+    edit: { index: number; rule: SpecRule | undefined }
+  ) => void;
   /** Add a tributary (an x) feeding a step. Deterministic id. */
   addTributary: (stepId: string, column: string) => void;
   /** Remove a tributary; cascades its `subgroupAxes` + pinned-`hunches` refs. */
@@ -188,6 +196,10 @@ function nextStepId(nodes: ProcessMapNode[], stepName: string): string {
 
 function arrowId(fromStepId: string, toStepId: string): string {
   return `arrow-${fromStepId}-to-${toStepId}`;
+}
+
+function specRulesEqual(a: readonly SpecRule[], b: readonly SpecRule[]): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
 }
 
 // IM-0b-2: deterministic minters for tributary / hunch ids. The old
@@ -517,6 +529,48 @@ export const useCanvasStore = create<CanvasStore>()(
               delete node.ctqColumn;
             } else {
               node.ctqColumn = ctqColumn;
+            }
+            return true;
+          });
+        },
+
+        setCapabilityScope: (stepId, specRules) => {
+          applyUndoable('canvas/setCapabilityScope', draft => {
+            const node = draft.canonicalMap.nodes.find(candidate => candidate.id === stepId);
+            if (!node) return false;
+
+            const currentRules = node.capabilityScope?.specRules ?? [];
+            if (specRulesEqual(currentRules, specRules)) return false;
+
+            if (specRules.length === 0) {
+              delete node.capabilityScope;
+            } else {
+              node.capabilityScope = { specRules: cloneJson(specRules) };
+            }
+            return true;
+          });
+        },
+
+        editCapabilityScope: (stepId, edit) => {
+          applyUndoable('canvas/editCapabilityScope', draft => {
+            const node = draft.canonicalMap.nodes.find(candidate => candidate.id === stepId);
+            if (!node || edit.index < 0) return false;
+
+            const nextRules = [...(node.capabilityScope?.specRules ?? [])];
+            if (edit.rule === undefined) {
+              if (edit.index >= nextRules.length) return false;
+              nextRules.splice(edit.index, 1);
+            } else {
+              nextRules[edit.index] = cloneJson(edit.rule);
+            }
+
+            const currentRules = node.capabilityScope?.specRules ?? [];
+            if (specRulesEqual(currentRules, nextRules)) return false;
+
+            if (nextRules.length === 0) {
+              delete node.capabilityScope;
+            } else {
+              node.capabilityScope = { specRules: nextRules };
             }
             return true;
           });

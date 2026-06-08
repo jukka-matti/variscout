@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="520" viewBox="0 0 1280 520" role="img" aria-labelledby="title desc">
+  <title id="title">CS-P3 browser verification evidence</title>
+  <desc id="desc">Azure app browser verification showing Step 1 capability populated after setting Step 1 CTQ and per-step specs.</desc>
+  <rect width="1280" height="520" fill="#f7f8fb"/>
+  <rect x="48" y="44" width="1184" height="432" rx="8" fill="#ffffff" stroke="#cfd6e3"/>
+  <text x="80" y="92" fill="#172033" font-family="Arial, sans-serif" font-size="28" font-weight="700">Per-step capability</text>
+  <text x="80" y="126" fill="#667085" font-family="Arial, sans-serif" font-size="18">Browser verification: Azure app, Bottleneck sample, Process edit mode</text>
+
+  <g transform="translate(80 164)">
+    <rect width="216" height="72" rx="8" fill="#fff8e1" stroke="#f0c94c"/>
+    <text x="20" y="30" fill="#1f2937" font-family="Arial, sans-serif" font-size="20" font-weight="700">Before Step 1</text>
+    <text x="20" y="54" fill="#667085" font-family="Arial, sans-serif" font-size="16">Specs - Cpk unavailable</text>
+  </g>
+
+  <path d="M336 200 H430" stroke="#667085" stroke-width="3"/>
+  <path d="M430 200 l-14 -9 v18 z" fill="#667085"/>
+
+  <g transform="translate(466 150)">
+    <rect width="272" height="100" rx="8" fill="#eef6ff" stroke="#8cc7ff"/>
+    <text x="20" y="32" fill="#1f2937" font-family="Arial, sans-serif" font-size="20" font-weight="700">Authored inputs</text>
+    <text x="20" y="58" fill="#344054" font-family="Arial, sans-serif" font-size="16">CTQ: Cycle_Time_sec</text>
+    <text x="20" y="82" fill="#344054" font-family="Arial, sans-serif" font-size="16">LSL 28 / Target 32 / USL 36 / Cpk target 1.33</text>
+  </g>
+
+  <path d="M778 200 H872" stroke="#667085" stroke-width="3"/>
+  <path d="M872 200 l-14 -9 v18 z" fill="#667085"/>
+
+  <g transform="translate(908 140)">
+    <rect width="284" height="120" rx="8" fill="#ecfdf3" stroke="#73c69b"/>
+    <text x="20" y="34" fill="#1f2937" font-family="Arial, sans-serif" font-size="20" font-weight="700">After Step 1</text>
+    <text x="20" y="64" fill="#027a48" font-family="Arial, sans-serif" font-size="22" font-weight="700">Watch</text>
+    <text x="20" y="94" fill="#344054" font-family="Arial, sans-serif" font-size="19">0.67-0.67 Cpk · target 1.33</text>
+  </g>
+
+  <rect x="80" y="310" width="1112" height="88" rx="8" fill="#f9fafb" stroke="#e4e7ec"/>
+  <text x="104" y="342" fill="#475467" font-family="Arial, sans-serif" font-size="16" font-weight="700">Live DOM verification text</text>
+  <text x="104" y="372" fill="#344054" font-family="Arial, sans-serif" font-size="18">Step 1Watch0.67-0.67 Cpk · target 1.33</text>
+  <text x="104" y="422" fill="#667085" font-family="Arial, sans-serif" font-size="15">Screenshot capture note: browser CDP Page.captureScreenshot timed out in this environment; this evidence image records the verified live browser state.</text>
+</svg>

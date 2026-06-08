@@ -40,6 +40,7 @@ import {
   type Hypothesis,
   type TimelineWindow,
 } from '@variscout/core';
+import type { SpecRule } from '@variscout/core/types';
 import { isValidLevel, type CanvasLevel } from '@variscout/core/canvas';
 import type { ExploreLandingView } from '@variscout/core/exploreRouting';
 import type { ChipNavigationTarget } from './EditMode/handlers/navigateToExploreForChip';
@@ -59,6 +60,7 @@ import { profileColumns, type ColumnParsingProfile } from '@variscout/core/parse
 import { useCanvasStore } from '@variscout/stores';
 import { useCanvasViewportStore, type CanvasViewportSnapshot } from '@variscout/stores';
 import { Canvas, type CanvasL3Archetype } from './index';
+import { ProcessMap as ProcessMapView } from './internal/ProcessMap';
 import { Palette } from './EditMode/Palette';
 import type { SystemHint } from './EditMode/Palette';
 import { OutcomeZone } from './EditMode/OutcomeZone';
@@ -357,9 +359,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const disconnectSteps = useCanvasStore(state => state.disconnectSteps);
   const groupIntoSubStep = useCanvasStore(state => state.groupIntoSubStep);
   const ungroupSubStep = useCanvasStore(state => state.ungroupSubStep);
-  // IM-0b-2 (ADR-087 §5): rich-map authoring actions — canvasStore is now the
-  // single authoring authority for ctqColumn / tributary / subgroupAxis / hunch.
+  // ADR-087 §5: rich-map authoring actions — canvasStore is the single
+  // authoring authority for ctqColumn / capabilityScope / tributary /
+  // subgroupAxis / hunch.
   const setStepCtq = useCanvasStore(state => state.setStepCtq);
+  const setCapabilityScope = useCanvasStore(state => state.setCapabilityScope);
   const addTributary = useCanvasStore(state => state.addTributary);
   const removeTributary = useCanvasStore(state => state.removeTributary);
   const toggleSubgroupAxis = useCanvasStore(state => state.toggleSubgroupAxis);
@@ -445,6 +449,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     lastHydratedMapSignature.current = mapHydrationSignature;
   }, [currentCanonicalMapSignature, hydrateCanvasDocument, map, mapHydrationSignature]);
 
+  const capabilityMap =
+    currentCanonicalMap.nodes.length > 0 && lastHydratedMapSignature.current !== null
+      ? currentCanonicalMap
+      : map;
+
   const gaps = React.useMemo(
     () =>
       detectGaps({
@@ -516,11 +525,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       buildEditorCapabilitySource({
         hubId,
         hubName: activeIP?.metadata.title ?? 'Process',
-        processMap: map,
+        processMap: capabilityMap,
         activeIP,
         rows: rawData,
       }),
-    [activeIP, hubId, map, rawData]
+    [activeIP, capabilityMap, hubId, rawData]
   );
 
   const data = useProductionLineGlanceData({
@@ -1241,6 +1250,14 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     [persistCanvasStoreMap, removeHunch]
   );
 
+  const handleCapabilityScopeChange = React.useCallback(
+    (stepId: string, specRules: SpecRule[]) => {
+      setCapabilityScope(stepId, specRules);
+      persistCanvasStoreMap();
+    },
+    [persistCanvasStoreMap, setCapabilityScope]
+  );
+
   const handleUndo = React.useCallback(() => {
     undoCanvas();
     persistCanvasStoreMap();
@@ -1265,11 +1282,11 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       cpkTarget={ctsSpecs?.cpkTarget}
       onSpecsChange={handleSpecsChange}
       stepSpecs={measureSpecs}
-      // IM-0b-2 deferral: per-step specs route to project-wide `measureSpecs`
-      // (NOT canvasStore / `node.capabilityScope`). Per-step capability-scope
-      // authoring is deferred to the IM-5/IM-6 holistic design (ADR-038/073).
-      // See investigations.md "IM-0b-2 deferrals".
-      onStepSpecsChange={(column, next) => setMeasureSpec(column, next)}
+      capabilityContext={{
+        availableContext: data.availableContext,
+        contextValueOptions: data.contextValueOptions,
+      }}
+      onCapabilityScopeChange={handleCapabilityScopeChange}
       data={data}
       filter={{
         availableContext: data.availableContext,
@@ -1529,7 +1546,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                 />
 
                 <ConnectedStepCapabilityView
-                  map={map}
+                  map={capabilityMap}
                   stepCards={stepCards}
                   capabilityNodes={data.capabilityNodes}
                   errorSteps={data.errorSteps}
@@ -1593,6 +1610,40 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                     />
                   </section>
                 </div>
+
+                <section
+                  className="border-t border-edge px-4 py-3"
+                  data-testid="canvas-authoring-map"
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-content">Map structure</h3>
+                    <span className="text-xs text-content-muted">Authoring model</span>
+                  </div>
+                  <ProcessMapView
+                    map={map}
+                    availableColumns={availableColumns}
+                    onChange={handleChange}
+                    gaps={gaps}
+                    target={ctsSpecs?.target}
+                    usl={ctsSpecs?.usl}
+                    lsl={ctsSpecs?.lsl}
+                    cpkTarget={ctsSpecs?.cpkTarget}
+                    onSpecsChange={handleSpecsChange}
+                    stepSpecs={measureSpecs}
+                    capabilityContext={{
+                      availableContext: data.availableContext,
+                      contextValueOptions: data.contextValueOptions,
+                    }}
+                    onCapabilityScopeChange={handleCapabilityScopeChange}
+                    showGaps
+                    onSetStepCtq={handleSetStepCtq}
+                    onAddTributary={handleAddTributary}
+                    onRemoveTributary={handleRemoveTributary}
+                    onToggleSubgroupAxis={handleToggleSubgroupAxis}
+                    onAddHunch={handleAddHunch}
+                    onRemoveHunch={handleRemoveHunch}
+                  />
+                </section>
               </section>
             </DndContext>
             {stepTimingsModalOpen && (

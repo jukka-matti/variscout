@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useCanvasStore } from '../canvasStore';
 import type { CanvasAction } from '@variscout/core/actions';
+import type { SpecRule } from '@variscout/core/types';
 
 function resetCanvasStore() {
   useCanvasStore.setState(useCanvasStore.getInitialState());
@@ -712,6 +713,98 @@ describe('canvasStore setStepCtq (IM-0b-2 — per-step CTQ authoring)', () => {
     expect(useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId)?.ctqColumn).toBe(
       'Fill_Weight'
     );
+  });
+});
+
+describe('canvasStore capabilityScope authoring (CS-P3 — per-step specs)', () => {
+  const defaultRule: SpecRule = { specs: { lsl: 42, usl: 46, target: 44, cpkTarget: 1.33 } };
+  const productRule: SpecRule = {
+    when: { product: 'A' },
+    specs: { lsl: 40, usl: 45, target: 43, cpkTarget: 1.67 },
+  };
+  const shiftRule: SpecRule = {
+    when: { shift: 'Night' },
+    specs: { lsl: 41, usl: 47, target: 44, cpkTarget: 1.33 },
+  };
+
+  it('sets capabilityScope.specRules on a step as one undoable change', () => {
+    const stepId = addStepAndGetId('Fill');
+    const version = useCanvasStore.getState().canonicalMapVersion;
+
+    useCanvasStore.getState().setCapabilityScope(stepId, [defaultRule, productRule]);
+
+    const node = useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId);
+    expect(node?.capabilityScope?.specRules).toEqual([defaultRule, productRule]);
+    expect(useCanvasStore.getState().canonicalMapVersion).not.toBe(version);
+    expect(useCanvasStore.getState().historyDepth()).toBe(2);
+  });
+
+  it('clears capabilityScope when setCapabilityScope receives an empty rule list', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().setCapabilityScope(stepId, [defaultRule]);
+
+    useCanvasStore.getState().setCapabilityScope(stepId, []);
+
+    const node = useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId);
+    expect(node?.capabilityScope).toBeUndefined();
+  });
+
+  it('adds and replaces one rule through editCapabilityScope', () => {
+    const stepId = addStepAndGetId('Fill');
+
+    useCanvasStore.getState().editCapabilityScope(stepId, { index: 0, rule: defaultRule });
+    useCanvasStore.getState().editCapabilityScope(stepId, { index: 1, rule: productRule });
+    useCanvasStore.getState().editCapabilityScope(stepId, { index: 1, rule: shiftRule });
+
+    const rules = useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId)
+      ?.capabilityScope?.specRules;
+    expect(rules).toEqual([defaultRule, shiftRule]);
+  });
+
+  it('removes one rule through editCapabilityScope and deletes the scope when empty', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().setCapabilityScope(stepId, [defaultRule, productRule]);
+
+    useCanvasStore.getState().editCapabilityScope(stepId, { index: 1, rule: undefined });
+    expect(
+      useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId)?.capabilityScope
+        ?.specRules
+    ).toEqual([defaultRule]);
+
+    useCanvasStore.getState().editCapabilityScope(stepId, { index: 0, rule: undefined });
+    expect(
+      useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId)?.capabilityScope
+    ).toBeUndefined();
+  });
+
+  it('is a no-op for a missing step, unchanged rules, or removing a missing index', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().setCapabilityScope(stepId, [defaultRule]);
+    const version = useCanvasStore.getState().canonicalMapVersion;
+    const depth = useCanvasStore.getState().historyDepth();
+
+    useCanvasStore.getState().setCapabilityScope('missing-step', [productRule]);
+    useCanvasStore.getState().setCapabilityScope(stepId, [defaultRule]);
+    useCanvasStore.getState().editCapabilityScope(stepId, { index: 8, rule: undefined });
+
+    expect(useCanvasStore.getState().canonicalMapVersion).toBe(version);
+    expect(useCanvasStore.getState().historyDepth()).toBe(depth);
+  });
+
+  it('round-trips authored capabilityScope rules through undo / redo', () => {
+    const stepId = addStepAndGetId('Fill');
+    useCanvasStore.getState().setCapabilityScope(stepId, [defaultRule, productRule]);
+
+    useCanvasStore.getState().undo();
+    expect(
+      useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId)?.capabilityScope
+    ).toBeUndefined();
+
+    useCanvasStore.getState().redo();
+    expect(
+      useCanvasStore.getState().canonicalMap.nodes.find(n => n.id === stepId)?.capabilityScope
+        ?.specRules
+    ).toEqual([defaultRule, productRule]);
   });
 });
 
