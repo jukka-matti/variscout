@@ -668,6 +668,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     kept: string[];
     deltaR2: ReadonlyMap<string, number>;
   } | null>(null);
+  const [modelBuilderOpen, setModelBuilderOpen] = useState(false);
   // Normalize the band's per-factor association strength (ΔR²) to 0..1 (keyed by
   // the namespaced `factor:${key}` DOI node id). Read-only over the band's live
   // map — never mutated (ADR-086 Amendment §4: weighting reads, never recomputes).
@@ -1048,7 +1049,19 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   ) {
     if (modelBuilderBand) {
       return (
-        <div className="w-full h-full flex flex-col" data-testid="wall-cold-start-with-band">
+        <div
+          className="relative w-full h-full flex flex-col"
+          data-testid="wall-cold-start-with-band"
+        >
+          <button
+            type="button"
+            data-testid="wall-model-builder-toggle"
+            onClick={() => setModelBuilderOpen(open => !open)}
+            className="absolute right-3 top-3 z-20 rounded border border-edge bg-surface/95 px-2 py-1 text-xs font-medium text-content shadow-sm hover:bg-surface-secondary"
+            aria-expanded={modelBuilderOpen}
+          >
+            Model
+          </button>
           <svg
             viewBox={coldStartViewBox}
             preserveAspectRatio="xMidYMid meet"
@@ -1059,7 +1072,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             {/* PR-CS-12 glyphs render at cold start too (screen-first); no edge
                 layer here — zero hubs means zero factor↔hub edges. */}
             {factorGlyphLayer}
-            {modelBuilderBand}
+            {modelBuilderOpen ? modelBuilderBand : null}
           </svg>
           <EmptyState
             onWriteHypothesis={onWriteHypothesis}
@@ -1321,7 +1334,18 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   };
 
   const body = (
-    <div className="w-full h-full flex flex-col">
+    <div className="relative w-full h-full flex flex-col">
+      {modelBuilderBand ? (
+        <button
+          type="button"
+          data-testid="wall-model-builder-toggle"
+          onClick={() => setModelBuilderOpen(open => !open)}
+          className="absolute right-3 top-3 z-20 rounded border border-edge bg-surface/95 px-2 py-1 text-xs font-medium text-content shadow-sm hover:bg-surface-secondary"
+          aria-expanded={modelBuilderOpen}
+        >
+          Model
+        </button>
+      ) : null}
       <svg
         ref={svgRef}
         viewBox={mode === 'overlay' ? `0 0 ${CANVAS_W} ${CANVAS_H}` : populatedViewBox}
@@ -1458,7 +1482,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           {factorGlyphLayer}
 
           {/* FE-1 model-builder band (spec §3) — see the memoized `modelBuilderBand`. */}
-          {modelBuilderBand}
+          {modelBuilderOpen ? modelBuilderBand : null}
 
           {processMap && (
             <TributaryFooter

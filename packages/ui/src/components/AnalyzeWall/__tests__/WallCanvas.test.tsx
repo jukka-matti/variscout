@@ -739,6 +739,31 @@ describe('WallCanvas', () => {
       expect(effectiveScale).toBeGreaterThanOrEqual(0.75);
     });
 
+    it('keeps the model-builder band hidden until the canvas nudge is opened', () => {
+      render(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          modelBuilderProps={{
+            candidateFactors: ['Shift'],
+            scopeLabel: 'All data',
+            scopeRows: [{ Shift: 'Night', CycleTime: 12 }],
+          }}
+          outcomeColumn="CycleTime"
+          rows={[{ Shift: 'Night', CycleTime: 12 }]}
+        />
+      );
+
+      expect(screen.queryByTestId('model-builder-band')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('wall-model-builder-toggle'));
+
+      expect(screen.getByTestId('model-builder-band')).toBeInTheDocument();
+    });
+
     it('ignores stale zoom-out state below fitted scale for populated destination Walls', () => {
       const finding = { ...createFinding('obs 32-58 elevated', {}, null), id: 'f-stale-zoom' };
       const fittedHub = {
