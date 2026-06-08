@@ -10,6 +10,18 @@ import type { Hypothesis, Finding, FindingComment } from '@variscout/core';
 import type { ProcessMap, ProcessMapTributary } from '@variscout/core/frame';
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Scope finding pool
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function selectFindingsForScope(
+  findings: Finding[],
+  activeScopeId: string | undefined
+): Finding[] {
+  if (!activeScopeId) return findings;
+  return findings.filter(f => f.scopeId === activeScopeId);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Hub comment stream
 // ─────────────────────────────────────────────────────────────────────────────
 
