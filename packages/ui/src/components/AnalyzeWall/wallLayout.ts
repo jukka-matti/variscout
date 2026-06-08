@@ -362,6 +362,48 @@ export function computeWallContentBBox(layout: WallLayout): WallContentBBox {
   return { x: left, y: top, width: right - left, height: bottom - top };
 }
 
+export function computeReadableWallContentBBox(layout: WallLayout): WallContentBBox {
+  const hasOccupiedRows = layout.hubPositions.size > 0 || layout.findingPositions.size > 0;
+
+  if (!hasOccupiedRows) {
+    return { x: 0, y: 0, width: DEFAULT_CANVAS_W, height: DEFAULT_CANVAS_H };
+  }
+
+  const boxes: Array<{ left: number; top: number; right: number; bottom: number }> = [
+    {
+      left: layout.scopeAnchor.x - SCOPE_CARD_W / 2,
+      top: layout.scopeAnchor.y,
+      right: layout.scopeAnchor.x + SCOPE_CARD_W / 2,
+      bottom: layout.scopeAnchor.y + SCOPE_CARD_H,
+    },
+  ];
+
+  for (const pos of layout.hubPositions.values()) {
+    boxes.push({
+      left: pos.x - HUB_CARD_W / 2,
+      top: pos.y,
+      right: pos.x + HUB_CARD_W / 2,
+      bottom: pos.y + HUB_CARD_H,
+    });
+  }
+
+  for (const pos of layout.findingPositions.values()) {
+    boxes.push({
+      left: pos.x - FINDING_CHIP_W / 2,
+      top: pos.y,
+      right: pos.x + FINDING_CHIP_W / 2,
+      bottom: pos.y + FINDING_CHIP_H,
+    });
+  }
+
+  const left = Math.min(...boxes.map(b => b.left)) - CONTENT_PADDING;
+  const top = Math.min(...boxes.map(b => b.top)) - CONTENT_PADDING;
+  const right = Math.max(...boxes.map(b => b.right)) + CONTENT_PADDING;
+  const bottom = Math.max(...boxes.map(b => b.bottom)) + CONTENT_PADDING;
+
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
 export function formatWallViewBox(bbox: WallContentBBox): string {
   return `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`;
 }

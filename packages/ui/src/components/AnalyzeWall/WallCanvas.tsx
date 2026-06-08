@@ -52,7 +52,7 @@ import { chartColors } from '@variscout/charts';
 import {
   computeWallLayout,
   buildWallLayoutArgs,
-  computeWallContentBBox,
+  computeReadableWallContentBBox,
   formatWallViewBox,
 } from './wallLayout';
 import { wallDegreeOfInterest, domainWeightedOpacity } from './wallFocus';
@@ -770,9 +770,13 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     return `${vbX} ${vbY} ${vbW} ${vbH}`;
   }, [wallLayout.factorPositions]);
 
-  const populatedViewBox = useMemo(
-    () => formatWallViewBox(computeWallContentBBox(wallLayout)),
+  const populatedContentBBox = useMemo(
+    () => computeReadableWallContentBBox(wallLayout),
     [wallLayout]
+  );
+  const populatedViewBox = useMemo(
+    () => formatWallViewBox(populatedContentBBox),
+    [populatedContentBBox]
   );
   const renderedZoom = mode !== 'overlay' && zoom <= LEGACY_WALL_FIT_ZOOM_MAX ? 1 : zoom;
 
@@ -1321,6 +1325,11 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
       <svg
         ref={svgRef}
         viewBox={mode === 'overlay' ? `0 0 ${CANVAS_W} ${CANVAS_H}` : populatedViewBox}
+        data-wall-content-bbox={
+          mode === 'overlay'
+            ? undefined
+            : `${populatedContentBBox.x} ${populatedContentBBox.y} ${populatedContentBBox.width} ${populatedContentBBox.height}`
+        }
         preserveAspectRatio="xMidYMid meet"
         className="bg-background text-content flex-1"
         role="img"

@@ -67,6 +67,17 @@ function sizeSvgForD3Zoom(element: SVGSVGElement) {
     }) as DOMRect;
 }
 
+function parseViewBox(value: string | null): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} {
+  if (!value) throw new Error('missing viewBox');
+  const [x, y, width, height] = value.split(/\s+/).map(Number);
+  return { x, y, width, height };
+}
+
 const processMap: ProcessMap = {
   version: 1,
   nodes: [{ id: 'n1', name: 'Fill', order: 0 }],
@@ -690,6 +701,42 @@ describe('WallCanvas', () => {
       );
 
       expect(container.querySelector('svg')?.getAttribute('viewBox')).not.toBe('0 0 2000 1400');
+    });
+
+    it('renders populated destination Walls at a readable entry scale', () => {
+      const finding = { ...createFinding('obs 32-58 elevated', {}, null), id: 'f-readable-1' };
+      const fittedHub = {
+        ...createHypothesis('Nozzle runs hot', '', [finding.id]),
+        id: 'h-readable-1',
+      };
+
+      const { container } = render(
+        <WallCanvas
+          hubs={[fittedHub]}
+          findings={[finding]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          modelBuilderProps={{
+            candidateFactors: ['Shift'],
+            scopeLabel: 'All data',
+            scopeRows: [{ Shift: 'Night', CycleTime: 12 }],
+          }}
+          outcomeColumn="CycleTime"
+          rows={[{ Shift: 'Night', CycleTime: 12 }]}
+        />
+      );
+
+      const svg = container.querySelector('svg');
+      const viewBox = parseViewBox(svg?.getAttribute('viewBox') ?? null);
+      const contentBBox = parseViewBox(svg?.getAttribute('data-wall-content-bbox') ?? null);
+      const client = { width: 1000, height: 700 };
+      const effectiveScale = Math.min(client.width / viewBox.width, client.height / viewBox.height);
+
+      expect(contentBBox.y).toBeLessThanOrEqual(-40);
+      expect(contentBBox.height).toBeLessThan(900);
+      expect(viewBox.height).toBeLessThan(900);
+      expect(effectiveScale).toBeGreaterThanOrEqual(0.75);
     });
 
     it('ignores stale zoom-out state below fitted scale for populated destination Walls', () => {
