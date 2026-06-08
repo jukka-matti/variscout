@@ -1189,7 +1189,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   // canvasStore action then mirrors `persistCanvasStoreMap()` exactly like
   // `handleAddStep` — the edit lands on `processContext.processMap` via the
   // SAME persist path as every step-structure edit, retiring the legacy
-  // ProcessMapBase `onChange` -> setProcessContext path. `persistCanvasStoreMap`
+  // ProcessMap `onChange` -> setProcessContext path. `persistCanvasStoreMap`
   // sets `lastHydratedMapSignature.current` to the post-edit map BEFORE calling
   // `handleChange`, so the resulting `map` change does NOT re-trigger the
   // hydration effect (no re-hydrate / clobber loop).

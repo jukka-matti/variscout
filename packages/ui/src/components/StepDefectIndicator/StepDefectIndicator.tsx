@@ -34,7 +34,7 @@ const baseClasses =
  * Renders as a `<button>` when `onClick` is provided (interactive step drill-down),
  * or as a `<span>` when used in display-only contexts.
  *
- * Designed for future mounting on ProcessMapBase step-card nodes once per-node
+ * Designed for future mounting on ProcessMap step-card nodes once per-node
  * chip integration is implemented (see docs/investigations.md P2.5 deferral entry).
  */
 export const StepDefectIndicator: React.FC<StepDefectIndicatorProps> = ({

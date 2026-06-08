@@ -60,7 +60,7 @@ export interface CanvasStoreActions {
   ungroupSubStep: (stepId: string) => void;
   /**
    * IM-0b-2 (ADR-087 §5): rich-map authoring actions. These migrate the
-   * mutators that `ProcessMapBase` used to apply by building a `next: ProcessMap`
+   * mutators that `ProcessMap` used to apply by building a `next: ProcessMap`
    * and calling `onChange` — making `canvasStore` the SINGLE authoring authority
    * for the canonical map. Method-only (NOT in the `CanvasAction` union, like
    * `addStepsFromColumn`); each runs through `applyUndoable`.
@@ -191,7 +191,7 @@ function arrowId(fromStepId: string, toStepId: string): string {
 }
 
 // IM-0b-2: deterministic minters for tributary / hunch ids. The old
-// `ProcessMapBase` `uid(prefix)` used `crypto.randomUUID()`; moving authoring
+// `ProcessMap` `uid(prefix)` used `crypto.randomUUID()`; moving authoring
 // into the store means ids must be reproducible (undo snapshots + tests), so
 // they mint from monotonic sequences reset by `resetCanvasLocalState`. They
 // skip any id already present to stay collision-free after hydration.
@@ -507,7 +507,7 @@ export const useCanvasStore = create<CanvasStore>()(
           });
         },
 
-        // ─ IM-0b-2: rich-map authoring (migrated from ProcessMapBase mutators) ─
+        // ─ IM-0b-2: rich-map authoring (migrated from ProcessMap mutators) ─
 
         setStepCtq: (stepId, ctqColumn) => {
           applyUndoable('canvas/setStepCtq', draft => {
@@ -535,7 +535,7 @@ export const useCanvasStore = create<CanvasStore>()(
             const exists = draft.canonicalMap.tributaries.some(t => t.id === tributaryId);
             if (!exists) return false;
 
-            // Mirror ProcessMapBase's cascade: drop the tributary AND any
+            // Mirror ProcessMap's cascade: drop the tributary AND any
             // subgroupAxis nomination + pinned hunches that reference it.
             draft.canonicalMap.tributaries = draft.canonicalMap.tributaries.filter(
               t => t.id !== tributaryId

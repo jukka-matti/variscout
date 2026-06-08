@@ -1,5 +1,5 @@
 /**
- * ProcessMapBase — the interactive river-styled SIPOC Process Map rendered
+ * ProcessMap — the interactive river-styled SIPOC Process Map rendered
  * inside the Canvas surface.
  *
  * See ADR-070 and the design spec `docs/superpowers/specs/2026-04-18-frame-
@@ -19,7 +19,12 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { CANVAS_EMPTY_DROP_ID, encodeStepDropId } from '@variscout/hooks';
-import type { Gap, ProcessMap, ProcessMapTributary, ProcessMapHunch } from '@variscout/core/frame';
+import type {
+  Gap,
+  ProcessMap as CoreProcessMap,
+  ProcessMapTributary,
+  ProcessMapHunch,
+} from '@variscout/core/frame';
 import type { SpecLimits } from '@variscout/core';
 import { StepArrow } from './StepArrow';
 
@@ -27,13 +32,13 @@ import { StepArrow } from './StepArrow';
 // Types
 // ────────────────────────────────────────────────────────────────────────────
 
-export interface ProcessMapBaseProps {
+export interface ProcessMapProps {
   /** The current map. Parent owns state; pass a new object on every edit. */
-  map: ProcessMap;
+  map: CoreProcessMap;
   /** Column names available from the uploaded dataset. */
   availableColumns: string[];
   /** Called with the next map whenever the user edits. */
-  onChange: (next: ProcessMap) => void;
+  onChange: (next: CoreProcessMap) => void;
   /** Gaps detected by `detectGaps()` in the parent — rendered inline. */
   gaps?: Gap[];
   /** Disable all edits (read-only mode, e.g. Analysis sidebar thumbnail). */
@@ -85,7 +90,7 @@ export interface ProcessMapBaseProps {
   /**
    * IM-0b-2 (ADR-087 §5): rich-map authoring dispatch props. When provided, the
    * matching internal mutator dispatches the canvasStore-backed callback INSTEAD
-   * of building a `next: ProcessMap` and calling `onChange` directly — making
+   * of building a `next: CoreProcessMap` and calling `onChange` directly — making
    * canvasStore the single authoring authority and retiring the second
    * persistence path (handleChange -> setProcessContext). When omitted, the
    * mutator falls back to the legacy `onChange` build (back-compat; the only
@@ -107,7 +112,7 @@ export interface ProcessMapBaseProps {
 
 const uid = (prefix: string): string => `${prefix}-${crypto.randomUUID()}`;
 
-const bumpUpdated = (map: ProcessMap): ProcessMap => ({
+const bumpUpdated = (map: CoreProcessMap): CoreProcessMap => ({
   ...map,
   updatedAt: new Date().toISOString(),
 });
@@ -223,7 +228,7 @@ const SpecsGrid: React.FC<SpecsGridProps> = ({
 };
 
 interface StepCardProps {
-  step: ProcessMap['nodes'][number];
+  step: CoreProcessMap['nodes'][number];
   tributaries: ProcessMapTributary[];
   subgroupAxes: string[];
   availableColumns: string[];
@@ -535,7 +540,7 @@ const OceanCard: React.FC<OceanCardProps> = ({
 
 interface HunchListProps {
   hunches: ProcessMapHunch[];
-  steps: ProcessMap['nodes'];
+  steps: CoreProcessMap['nodes'];
   tributaries: ProcessMapTributary[];
   disabled?: boolean;
   onAdd: (text: string, pin: { stepId?: string; tributaryId?: string }) => void;
@@ -697,7 +702,7 @@ const GapStrip: React.FC<GapStripProps> = ({ gaps }) => {
 // Main component
 // ────────────────────────────────────────────────────────────────────────────
 
-export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
+export const ProcessMap: React.FC<ProcessMapProps> = ({
   map,
   availableColumns,
   onChange,
@@ -738,7 +743,7 @@ export const ProcessMapBase: React.FC<ProcessMapBaseProps> = ({
     disabled: !chipDropTargets,
   });
 
-  const update = (next: ProcessMap) => onChange(bumpUpdated(next));
+  const update = (next: CoreProcessMap) => onChange(bumpUpdated(next));
   const selectedStepSet = React.useMemo(() => new Set(selectedStepIds), [selectedStepIds]);
   const [pendingArrowFromStepId, setPendingArrowFromStepId] = React.useState<string | null>(null);
 
