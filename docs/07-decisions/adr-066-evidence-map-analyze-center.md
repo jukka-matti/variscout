@@ -115,4 +115,4 @@ Current state after AW-1 through AW-9:
 
 Rationale: the Wall now better serves the operational Analyze job: making the current scope visible, testing suspected causes, keeping counter-evidence close, and handing the analyst back to Explore without losing categorical WHERE context. The Evidence Map still contributes as a graph/narrative projection, but it no longer owns the center/default surface.
 
-Related delivery: PRs #338 through #348 and [`docs/superpowers/plans/2026-06-08-analyze-wall-redesign-master-plan.md`](../superpowers/plans/2026-06-08-analyze-wall-redesign-master-plan.md).
+Related delivery: PRs #340 through #348, sequenced after the CS-15 dependency in PR #338, and [`docs/superpowers/plans/2026-06-08-analyze-wall-redesign-master-plan.md`](../superpowers/plans/2026-06-08-analyze-wall-redesign-master-plan.md).

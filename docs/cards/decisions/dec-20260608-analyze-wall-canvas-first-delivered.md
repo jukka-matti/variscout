@@ -14,7 +14,7 @@ supersedes: []
 
 # Analyze Wall canvas-first delivery
 
-The Analyze Wall redesign shipped as a sequence of merge-commit PRs (#338 through #348). The delivered Analyze tab now defaults to a canvas-first Investigation Wall rather than the Evidence Map. The central Analyze lenses are Wall and Causes; Findings remains available as the finding list/board; Evidence Map is demoted to an advanced/read-only graph projection, especially for Report narrative and timeline use.
+The Analyze Wall redesign shipped as a sequence of merge-commit PRs (#340 through #348), sequenced after the CS-15 dependency in PR #338. The delivered Analyze tab now defaults to a canvas-first Investigation Wall rather than the Evidence Map. The central Analyze lenses are Wall and Causes; Findings remains available as the finding list/board; Evidence Map is demoted to an advanced/read-only graph projection, especially for Report narrative and timeline use.
 
 ADR-066 is amended rather than rewritten. Its original Evidence Map center/default decision remains preserved as historical context, but the current product truth is the AW-delivered Wall + Causes model. `CausalLink` remains a valid persisted graph edge, but analyst-authored CausalLink work is not the default Analyze path.
 

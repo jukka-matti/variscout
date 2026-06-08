@@ -27,7 +27,7 @@ implements:
 
 **Canonical spec:** [`2026-06-08-analyze-wall-redesign-design.md`](../specs/2026-06-08-analyze-wall-redesign-design.md) §7 (chosen direction). Read it before any sub-plan.
 
-**Delivered:** PRs #338 through #348 landed AW-1 through AW-9; AW-DOC closed the ADR/documentation propagation on 2026-06-08.
+**Delivered:** PRs #340 through #348 landed AW-1 through AW-9 after the CS-15 dependency in PR #338; AW-DOC closed the ADR/documentation propagation on 2026-06-08.
 
 ---
 
