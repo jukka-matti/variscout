@@ -1367,6 +1367,12 @@ describe('CanvasWorkspace', () => {
       .canonicalMap.nodes.find(node => node.id === 'step-1');
     expect(storeStep?.capabilityScope?.specRules).toEqual([{ specs: { usl: 72 } }]);
     expect(setMeasureSpec).not.toHaveBeenCalled();
+
+    const glanceInput = vi.mocked(useProductionLineGlanceData).mock.calls.at(-1)?.[0];
+    const glanceStep = glanceInput?.hub.canonicalProcessMap?.nodes.find(
+      node => node.id === 'step-1'
+    );
+    expect(glanceStep?.capabilityScope?.specRules).toEqual([{ specs: { usl: 72 } }]);
   });
 
   it('CS-15 seam 1: adding the first process step flips b0 to the b1 framing surface', () => {
