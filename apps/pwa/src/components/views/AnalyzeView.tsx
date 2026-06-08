@@ -26,6 +26,7 @@ import {
   buildWallLayoutArgs,
   ActiveIPScopeRibbon,
   OverallProblemHeader,
+  ScopeRail,
   useWallKeyboard,
   useWallIsMobile,
 } from '@variscout/ui';
@@ -175,6 +176,37 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
         predicateSetKey(scope.predicates) === key
     );
   }, [categoricalFilters, outcome, scopes, scopeProjectId]);
+  const railScopes = useMemo(
+    () =>
+      scopes.filter(
+        scope => !scope.deletedAt && scope.projectId === scopeProjectId && scope.outcome === outcome
+      ),
+    [outcome, scopes, scopeProjectId]
+  );
+  const handleScopeSelect = useCallback(
+    (scopeId: string) => {
+      const scope = scopes.find(s => s.id === scopeId);
+      if (!scope) return;
+      const valuesByColumn = new Map<string, Array<string | number>>();
+      for (const leaf of scope.predicates) {
+        if (leaf.kind !== 'leaf' || leaf.op !== 'eq') continue;
+        const values = valuesByColumn.get(leaf.column) ?? [];
+        if (typeof leaf.value === 'string' || typeof leaf.value === 'number') {
+          values.push(leaf.value);
+          valuesByColumn.set(leaf.column, values);
+        }
+      }
+      const scopeStore = useAnalysisScopeStore.getState();
+      scopeStore.clearScope();
+      for (const [column, values] of valuesByColumn) {
+        scopeStore.setCategoricalValues(column, values);
+      }
+    },
+    [scopes]
+  );
+  const handleScopeArchive = useCallback((scopeId: string) => {
+    useAnalyzeStore.getState().archiveScope(scopeId);
+  }, []);
   const scopedFindings = useMemo(
     () => selectFindingsForScope(wallFindings, activeScope?.id),
     [wallFindings, activeScope?.id]
@@ -554,7 +586,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
         issueStatement={activeIPScope?.title}
         outcomeLabel={outcome}
         targetLabel={null}
-        scopeBranchCount={0}
+        scopeBranchCount={railScopes.length}
       />
       <div className="flex flex-1 min-h-0 relative">
         {/* Left panel: conclusions */}
@@ -662,6 +694,16 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
               data-testid="analyze-wall-canvas-shell"
               className="relative flex-1 flex flex-col min-h-0"
             >
+              {!wallIsMobile && railScopes.length > 0 && (
+                <div className="border-edge bg-surface-secondary/40 border-b px-3 py-2">
+                  <ScopeRail
+                    scopes={railScopes}
+                    activeScopeId={activeScope?.id}
+                    onScopeSelect={handleScopeSelect}
+                    onScopeArchive={handleScopeArchive}
+                  />
+                </div>
+              )}
               {!wallIsMobile && (
                 <div
                   data-testid="analyze-wall-floating-controls"

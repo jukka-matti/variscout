@@ -343,6 +343,89 @@ describe('PWA AnalyzeView Wall/Causes/Findings lenses', () => {
     expect(screen.queryByTestId('analyze-left-conclusion-rail')).not.toBeInTheDocument();
   });
 
+  it('renders the current scope switcher from flat sibling scopes', () => {
+    useCanvasViewportStore.getState().setViewMode('wall');
+    useProjectStore.setState({ ...getProjectInitialState(), outcome: 'Fill Weight' });
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'Shift', values: ['Night'] }],
+    });
+    useAnalyzeStore.setState({
+      ...getAnalyzeInitialState(),
+      scopes: [
+        {
+          id: 'scope-night',
+          projectId: 'hub-test',
+          outcome: 'Fill Weight',
+          predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' }],
+          hypothesisIds: [],
+          createdAt: 1,
+          updatedAt: 1,
+          deletedAt: null,
+        },
+        {
+          id: 'scope-day',
+          projectId: 'hub-test',
+          outcome: 'Fill Weight',
+          predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Day' }],
+          hypothesisIds: [],
+          createdAt: 2,
+          updatedAt: 2,
+          deletedAt: null,
+        },
+      ],
+      hypotheses: [createHypothesis('Existing', '', [])],
+    });
+
+    render(<AnalyzeView {...makeMinimalProps({ outcome: 'Fill Weight' })} />);
+
+    expect(screen.getByTestId('scope-current-anchor')).toHaveTextContent('Current scope');
+    expect(screen.getByTestId('scope-current-anchor')).toHaveTextContent('Shift = Night');
+    expect(screen.getByTestId('scope-switcher')).toHaveTextContent('2 scopes');
+    expect(screen.getByTestId('overall-problem-header')).toHaveTextContent('2 open scope branches');
+  });
+
+  it('switching a scope rewrites categorical filters', () => {
+    useCanvasViewportStore.getState().setViewMode('wall');
+    useProjectStore.setState({ ...getProjectInitialState(), outcome: 'Fill Weight' });
+    useAnalysisScopeStore.setState({
+      categoricalFilters: [{ column: 'Shift', values: ['Night'] }],
+    });
+    useAnalyzeStore.setState({
+      ...getAnalyzeInitialState(),
+      scopes: [
+        {
+          id: 'scope-night',
+          projectId: 'hub-test',
+          outcome: 'Fill Weight',
+          predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' }],
+          hypothesisIds: [],
+          createdAt: 1,
+          updatedAt: 1,
+          deletedAt: null,
+        },
+        {
+          id: 'scope-day',
+          projectId: 'hub-test',
+          outcome: 'Fill Weight',
+          predicates: [{ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Day' }],
+          hypothesisIds: [],
+          createdAt: 2,
+          updatedAt: 2,
+          deletedAt: null,
+        },
+      ],
+      hypotheses: [createHypothesis('Existing', '', [])],
+    });
+
+    render(<AnalyzeView {...makeMinimalProps({ outcome: 'Fill Weight' })} />);
+
+    fireEvent.click(screen.getByTestId('scope-chip-scope-day'));
+
+    expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([
+      { column: 'Shift', values: ['Day'] },
+    ]);
+  });
+
   it('filters Wall findings to the active scope while leaving other scope findings out', () => {
     useCanvasViewportStore.getState().setViewMode('wall');
     useProjectStore.setState({ ...getProjectInitialState(), outcome: 'Fill Weight' });
