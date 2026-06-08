@@ -250,13 +250,13 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // Execution model: reactive-on-condition-change with set-keyed idempotency.
   // `syncScopeFromDrill` runs every time `categoricalFilters` or `outcome`
   // changes (not on an imperative "commit" gesture). Intermediate scopes
-  // accumulate in the store; stale ones are pruned via the IM-4b scope rail
+  // accumulate in the store; stale ones are pruned via the scope switcher
   // (SCOPE_ARCHIVE) — not here.
   const categoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
   const scopes = useAnalyzeStore(s => s.scopes);
   // PR-CS-0 Task 2: scopeProjectId arrives as a prop (active IP id, or the
   // 'general-unassigned' sentinel for the quick-analysis flow). It is now a dep
-  // of every consumer below so an IP switch re-keys materialization + the rail.
+  // of every consumer below so an IP switch re-keys materialization + switching.
   useEffect(() => {
     if (!outcome) return;
     useAnalyzeStore.getState().syncScopeFromDrill(scopeProjectId, outcome, categoricalFilters);
@@ -430,7 +430,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     [outcome, filteredData, findingsState, hypothesesState, members, userId, activeScope]
   );
 
-  // ── IM-4b Task 5 — multi-scope rail ──────────────────────────────────────
+  // ── AW-6 — current scope switcher ─────────────────────────────────────────
   // Active (non-archived) scopes for the current investigation + outcome.
   const railScopes = useMemo(
     () => scopes.filter(s => s.projectId === scopeProjectId && s.deletedAt === null),
@@ -1168,7 +1168,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
               data-testid="analyze-wall-canvas-shell"
               className="relative flex-1 flex flex-col min-h-0"
             >
-              {/* IM-4b Task 5 — multi-scope rail above the canvas. Selecting a
+              {/* AW-6 — current scope switcher above the canvas. Selecting a
                     chip re-anchors the Problem card (rewrites the drill filters
                     → IM-4a's producer re-selects the scope). Hidden when no scopes
                     have been captured yet. */}
