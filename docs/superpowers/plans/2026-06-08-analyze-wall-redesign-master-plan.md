@@ -53,7 +53,7 @@ implements:
 |                                 | **AW-6**   | [Current scope + switcher](2026-06-08-aw-6-scope-switcher.md) (reframe ScopeRail; lineage trail dropped)            |               | AW-5, AW-2       |
 | **4 · Drawers**                 | **AW-7**   | [Left object-detail drawer](2026-06-08-aw-7-object-detail-drawer.md) (Evidence/Comments/Activity, no-AI)            |               | AW-2             |
 |                                 | **AW-8**   | [CoScout right-drawer slot](2026-06-08-aw-8-coscout-right-drawer.md) (shell + tabs + `[REF]` hook; content = CS-14) |               | AW-2, AW-7       |
-| **5 · Explore handoff**         | **AW-9**   | Extend Analyze→Explore WHERE handoff (categorical, additive)                                                        |               | **CS-15 merged** |
+| **5 · Explore handoff**         | **AW-9**   | [Extend Analyze→Explore WHERE handoff](2026-06-08-aw-9-explore-where-handoff.md) (categorical, additive)            |               | **CS-15 merged** |
 | **Apply**                       | **AW-DOC** | Doc propagation + ADR-066 supersession + decision-log                                                               |               | the above land   |
 
 **Demo-minimum = Phase 1 + AW-4** (canvas-first, readable, legible gates, lands on the Wall). Phases 3–5 are depth and can follow the demo.
