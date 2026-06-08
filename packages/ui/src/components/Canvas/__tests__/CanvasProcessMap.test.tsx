@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProcessMap } from '../internal/ProcessMap';
 import type { ProcessMap as CoreProcessMap, Gap } from '@variscout/core/frame';
+import type { SpecRule } from '@variscout/core';
 import { CANVAS_EMPTY_DROP_ID, encodeStepDropId } from '@variscout/hooks';
 
 const isoNow = () => new Date('2026-04-18T12:00:00.000Z').toISOString();
@@ -582,6 +583,25 @@ describe('Canvas internal process map — disabled mode', () => {
 });
 
 describe('Canvas internal process map — per-step CTQ specs editor (Task B)', () => {
+  const mapWithCapabilityRules = (): CoreProcessMap => ({
+    ...mapWithTwoSteps(),
+    nodes: [
+      { id: 'step-1', name: 'Mix', order: 0 },
+      {
+        id: 'step-2',
+        name: 'Fill',
+        order: 1,
+        ctqColumn: 'Fill_Weight',
+        capabilityScope: {
+          specRules: [
+            { specs: { target: 500, lsl: 495, usl: 505, cpkTarget: 1.33 } },
+            { when: { product: 'A' }, specs: { target: 502, lsl: 498, usl: 506 } },
+          ],
+        },
+      },
+    ],
+  });
+
   it('renders the per-step specs editor when the step has a CTQ column and onStepSpecsChange is provided', () => {
     render(
       <ProcessMap
@@ -668,5 +688,105 @@ describe('Canvas internal process map — per-step CTQ specs editor (Task B)', (
       cpkTarget: 1.67,
       characteristicType: undefined,
     });
+  });
+
+  it('dispatches capabilityScope rules when a default per-step spec changes', () => {
+    const onChange = vi.fn();
+    const onCapabilityScopeChange = vi.fn();
+    render(
+      <ProcessMap
+        map={mapWithCapabilityRules()}
+        availableColumns={COLUMNS}
+        onChange={onChange}
+        onCapabilityScopeChange={onCapabilityScopeChange}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId('process-map-step-specs-step-2-lsl'), {
+      target: { value: '496' },
+    });
+
+    expect(onCapabilityScopeChange).toHaveBeenCalledWith('step-2', [
+      { specs: { target: 500, usl: 505, lsl: 496, cpkTarget: 1.33 } },
+      { when: { product: 'A' }, specs: { target: 502, lsl: 498, usl: 506 } },
+    ]);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('renders the default capabilityScope rule in the step specs grid', () => {
+    render(
+      <ProcessMap
+        map={mapWithCapabilityRules()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        onCapabilityScopeChange={vi.fn()}
+      />
+    );
+
+    expect(
+      (screen.getByTestId('process-map-step-specs-step-2-lsl') as HTMLInputElement).value
+    ).toBe('495');
+    expect(
+      (screen.getByTestId('process-map-step-specs-step-2-target') as HTMLInputElement).value
+    ).toBe('500');
+  });
+
+  it('adds a context-specific capabilityScope rule from available context options', () => {
+    const onCapabilityScopeChange = vi.fn();
+    render(
+      <ProcessMap
+        map={mapWithTwoSteps()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        onCapabilityScopeChange={onCapabilityScopeChange}
+        capabilityContext={{
+          availableContext: { hubColumns: ['product'] },
+          contextValueOptions: { product: ['A', 'B'] },
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('process-map-step-add-context-rule-step-2'));
+
+    expect(onCapabilityScopeChange).toHaveBeenCalledWith('step-2', [
+      { when: { product: 'A' }, specs: {} },
+    ] satisfies SpecRule[]);
+  });
+
+  it('edits and removes context-specific capabilityScope rules', () => {
+    const onCapabilityScopeChange = vi.fn();
+    render(
+      <ProcessMap
+        map={mapWithCapabilityRules()}
+        availableColumns={COLUMNS}
+        onChange={vi.fn()}
+        onCapabilityScopeChange={onCapabilityScopeChange}
+        capabilityContext={{
+          availableContext: { hubColumns: ['product', 'shift'] },
+          contextValueOptions: { product: ['A', 'B'], shift: ['Day', 'Night'] },
+        }}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId('process-map-step-context-rule-step-2-1-column'), {
+      target: { value: 'shift' },
+    });
+    expect(onCapabilityScopeChange).toHaveBeenLastCalledWith('step-2', [
+      { specs: { target: 500, lsl: 495, usl: 505, cpkTarget: 1.33 } },
+      { when: { shift: 'Day' }, specs: { target: 502, lsl: 498, usl: 506 } },
+    ]);
+
+    fireEvent.change(screen.getByTestId('process-map-step-context-rule-step-2-1-usl'), {
+      target: { value: '507' },
+    });
+    expect(onCapabilityScopeChange).toHaveBeenLastCalledWith('step-2', [
+      { specs: { target: 500, lsl: 495, usl: 505, cpkTarget: 1.33 } },
+      { when: { product: 'A' }, specs: { target: 502, lsl: 498, usl: 507 } },
+    ]);
+
+    fireEvent.click(screen.getByLabelText('Remove context-specific specs for Fill'));
+    expect(onCapabilityScopeChange).toHaveBeenLastCalledWith('step-2', [
+      { specs: { target: 500, lsl: 495, usl: 505, cpkTarget: 1.33 } },
+    ]);
   });
 });

@@ -31,6 +31,7 @@ import {
   type DataRow,
   type Finding,
   type Hypothesis,
+  type SpecRule,
   type SpecLimits,
   type StepTimingBinding,
 } from '@variscout/core';
@@ -178,6 +179,14 @@ export interface CanvasProps {
   }) => void;
   stepSpecs?: Record<string, SpecLimits>;
   onStepSpecsChange?: (column: string, next: SpecLimits) => void;
+  capabilityContext?: {
+    availableContext: {
+      hubColumns: string[];
+      tributaryGroups?: Array<{ tributaryLabel: string; columns: string[] }>;
+    };
+    contextValueOptions: Record<string, string[]>;
+  };
+  onCapabilityScopeChange?: (stepId: string, specRules: SpecRule[]) => void;
   canvasFilterChips?: React.ReactNode;
   showGaps?: boolean;
   data: Pick<
@@ -259,6 +268,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   onSpecsChange,
   stepSpecs,
   onStepSpecsChange,
+  capabilityContext,
+  onCapabilityScopeChange,
   canvasFilterChips,
   showGaps = true,
   filter,
@@ -686,6 +697,8 @@ export const Canvas: React.FC<CanvasProps> = ({
             onSpecsChange={onSpecsChange}
             stepSpecs={stepSpecs}
             onStepSpecsChange={onStepSpecsChange}
+            capabilityContext={capabilityContext}
+            onCapabilityScopeChange={onCapabilityScopeChange}
             showGaps={showGaps}
             chipDropTargets={canPlaceChips}
             selectedStepIds={selectedStepIds}
