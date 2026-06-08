@@ -16,6 +16,7 @@ const IDS = {
   F_BENCHMARK: 'f-benchmark',
   // Hub
   HUB_NOZZLE: 'hub-line2-nozzle',
+  HUB_NIGHT: 'hub-night-shift',
   // Categories
   CAT_EQUIPMENT: 'cat-equipment',
   CAT_OPERATIONS: 'cat-operations',
@@ -285,7 +286,29 @@ function buildHypotheses(): Hypothesis[] {
       },
       selectedForImprovement: true,
       status: 'proposed',
+      condition: { kind: 'leaf', column: 'Line', op: 'eq', value: 'Line 2' },
       createdAt: epoch(28),
+      updatedAt: epoch(48),
+    },
+    {
+      id: IDS.HUB_NIGHT,
+      deletedAt: null,
+      name: 'Night shift operating practice',
+      synthesis:
+        'Night shift shows a wider fill-weight spread across lines. It is a secondary suspected mechanism that may amplify Line 2 nozzle wear during lower-oversight runs.',
+      findingIds: [IDS.F_NIGHT_SPREAD, IDS.F_LINE2_NIGHT],
+      evidence: {
+        mode: 'standard',
+        contribution: {
+          value: 0.11,
+          label: 'R²adj',
+          description: 'Explains 11% of variation',
+        },
+      },
+      selectedForImprovement: false,
+      status: 'proposed',
+      condition: { kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' },
+      createdAt: epoch(36),
       updatedAt: epoch(48),
     },
   ];
