@@ -101,6 +101,8 @@ implements:
 
 ### AW-5 · Wire `Finding.scopeId` reader → findings-per-scope
 
+**Sub-plan:** [`2026-06-08-aw-5-scope-findings.md`](2026-06-08-aw-5-scope-findings.md)
+
 **Goal:** findings show within their scope (close the write-only gap, spec §7.4).
 **In scope:** read `Finding.scopeId`; filter/group the Wall's findings + the left finding list by the active scope; confirm capture stamps `scopeId` (already does via `addFinding`). Keep the hub `findingIds`/`counterFindingIds` clue-split intact (orthogonal).
 **Out:** changing the clue-split mechanism; the lineage trail.
