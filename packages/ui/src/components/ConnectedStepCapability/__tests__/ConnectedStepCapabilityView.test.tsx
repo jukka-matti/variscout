@@ -6,6 +6,8 @@ import type { CanvasStepCardModel } from '@variscout/hooks';
 import type { ProcessMap } from '@variscout/core/frame';
 import type { CapabilityBoxplotNode } from '@variscout/charts';
 import type { NodeCapabilityResult } from '@variscout/core/stats';
+import type { DataRow } from '@variscout/core';
+import { createTestStepTiming } from '../../../test-utils/stepTiming';
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -84,6 +86,55 @@ function renderView() {
   );
 }
 
+const timeRows: DataRow[] = [
+  {
+    mix_start: '2026-06-08T08:00:00Z',
+    mix_end: '2026-06-08T08:05:00Z',
+    seal_start: '2026-06-08T08:05:00Z',
+    seal_end: '2026-06-08T08:35:00Z',
+  },
+  {
+    mix_start: '2026-06-08T08:10:00Z',
+    mix_end: '2026-06-08T08:15:00Z',
+    seal_start: '2026-06-08T09:00:00Z',
+    seal_end: '2026-06-08T09:30:00Z',
+  },
+  {
+    mix_start: '2026-06-08T08:20:00Z',
+    mix_end: '2026-06-08T08:25:00Z',
+    seal_start: '2026-06-08T10:00:00Z',
+    seal_end: '2026-06-08T10:30:00Z',
+  },
+];
+
+function renderViewWithTime() {
+  return render(
+    <ConnectedStepCapabilityView
+      map={mapWithBranch()}
+      stepCards={[card('mix', [1, 2, 3]), card('fill', [4, 5, 8]), card('seal', [2, 4, 6])]}
+      capabilityNodes={[
+        capabilityNode('mix', [1.5, 1.4]),
+        capabilityNode('fill', [0.8, 0.9]),
+        capabilityNode('seal', [1.7, 1.6]),
+      ]}
+      errorSteps={[]}
+      rows={timeRows}
+      stepTimings={[
+        createTestStepTiming({
+          stepId: 'mix',
+          startColumn: 'mix_start',
+          endColumn: 'mix_end',
+        }),
+        createTestStepTiming({
+          stepId: 'seal',
+          startColumn: 'seal_start',
+          endColumn: 'seal_end',
+        }),
+      ]}
+    />
+  );
+}
+
 describe('ConnectedStepCapabilityView', () => {
   it('renders Values and Capability controls and toggles aria-pressed state', () => {
     renderView();
@@ -146,5 +197,38 @@ describe('ConnectedStepCapabilityView', () => {
     expect(screen.queryByText(/rank/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/worst/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/leaderboard/i)).not.toBeInTheDocument();
+  });
+
+  it('does not offer Time when framed step timings have no finite values', () => {
+    renderView();
+    expect(screen.queryByRole('button', { name: 'Time' })).not.toBeInTheDocument();
+  });
+
+  it('offers Time with finite timings and renders the time axis', () => {
+    renderViewWithTime();
+    fireEvent.click(screen.getByRole('button', { name: 'Time' }));
+
+    expect(screen.getByRole('button', { name: 'Time' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('connected-step-time-axis')).toBeInTheDocument();
+    expect(screen.getByTestId('connected-step-box-seal')).toHaveTextContent('30 min');
+  });
+
+  it('keeps the cycle-time constraint highlight distinct from the capability Watch flag', () => {
+    renderViewWithTime();
+    fireEvent.click(screen.getByRole('button', { name: 'Time' }));
+
+    expect(screen.getByTestId('connected-step-node-seal')).toHaveAttribute(
+      'data-constraint',
+      'true'
+    );
+    expect(screen.getByTestId('connected-step-box-seal')).toHaveAttribute(
+      'data-constraint',
+      'true'
+    );
+    expect(screen.getByTestId('connected-step-node-fill')).toHaveTextContent('Watch');
+    expect(screen.getByTestId('connected-step-node-fill')).toHaveAttribute(
+      'data-constraint',
+      'false'
+    );
   });
 });
