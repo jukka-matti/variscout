@@ -69,7 +69,6 @@ export interface AppHeaderProps {
   onSaveAs?: () => void;
   activeIPTitle?: string | null;
   onOpenActiveIP?: () => void;
-  onExitActiveIP?: () => void;
 }
 
 /** Save status dot color */
@@ -122,7 +121,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onSaveAs,
   activeIPTitle,
   onOpenActiveIP,
-  onExitActiveIP,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
@@ -294,12 +292,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <Settings size={16} />
             </button>
           )}
-          {hasData && activeIPTitle && onOpenActiveIP && onExitActiveIP && (
-            <IPContextChip
-              title={activeIPTitle}
-              onTitleClick={onOpenActiveIP}
-              onExitIP={onExitActiveIP}
-            />
+          {hasData && activeIPTitle && onOpenActiveIP && (
+            <IPContextChip title={activeIPTitle} onTitleClick={onOpenActiveIP} />
           )}
           {/* PR-CS-3a: persistent live-scope chip (self-hides when no scope). */}
           {hasData && <PersistentScopeChip onOpen={() => handleWorkflowTabChange('explore')} />}
@@ -446,13 +440,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       {/* ── Separator ── */}
       <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
 
-      {hasData && activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
+      {hasData && activeIPTitle && onOpenActiveIP ? (
         <>
-          <IPContextChip
-            title={activeIPTitle}
-            onTitleClick={onOpenActiveIP}
-            onExitIP={onExitActiveIP}
-          />
+          <IPContextChip title={activeIPTitle} onTitleClick={onOpenActiveIP} />
           <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
         </>
       ) : null}

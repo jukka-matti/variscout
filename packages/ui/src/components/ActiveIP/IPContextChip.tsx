@@ -3,7 +3,6 @@ import React from 'react';
 export interface IPContextChipProps {
   title: string;
   onTitleClick: () => void;
-  onExitIP?: () => void;
 }
 
 const chipStyle: React.CSSProperties = {

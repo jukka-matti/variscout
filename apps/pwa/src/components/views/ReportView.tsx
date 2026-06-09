@@ -66,7 +66,6 @@ interface ReportViewProps {
   activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
   activeIPTitle?: string | null;
   onOpenActiveIP?: () => void;
-  onExitActiveIP?: () => void;
 }
 
 const ReportView: React.FC<ReportViewProps> = ({
@@ -89,7 +88,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   activeIPScope,
   activeIPTitle,
   onOpenActiveIP,
-  onExitActiveIP,
 }) => {
   const resolved = resolveMode(analysisMode ?? 'standard');
   const strategy = getStrategy(resolved);
@@ -514,12 +512,8 @@ const ReportView: React.FC<ReportViewProps> = ({
         onPrintReport={handlePrintReport}
         onClose={onClose}
         activeIPContextChip={
-          activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
-            <IPContextChip
-              title={activeIPTitle}
-              onTitleClick={onOpenActiveIP}
-              onExitIP={onExitActiveIP}
-            />
+          activeIPTitle && onOpenActiveIP ? (
+            <IPContextChip title={activeIPTitle} onTitleClick={onOpenActiveIP} />
           ) : null
         }
         contentRef={contentRef}

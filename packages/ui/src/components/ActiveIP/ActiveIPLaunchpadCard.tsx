@@ -5,9 +5,6 @@ import { deriveActiveIPPresentation } from './activeIPPresentation';
 
 export interface ActiveIPLaunchpadCardProps {
   projects: ImprovementProject[];
-  activeProjectId?: ImprovementProject['id'] | null;
-  onSelectIP: (projectId: ImprovementProject['id']) => void;
-  onExitIP: () => void;
   onStartNewIP: () => void;
 }
 
@@ -23,12 +20,10 @@ function sortProjects(projects: ImprovementProject[]): ImprovementProject[] {
 
 export const ActiveIPLaunchpadCard: React.FC<ActiveIPLaunchpadCardProps> = ({
   projects,
-  activeProjectId,
   onStartNewIP,
 }) => {
   const sortedProjects = useMemo(() => sortProjects(projects), [projects]);
-  const activeProject =
-    sortedProjects.find(project => project.id === activeProjectId) ?? sortedProjects[0] ?? null;
+  const activeProject = sortedProjects[0] ?? null;
 
   if (projects.length === 0) {
     return (

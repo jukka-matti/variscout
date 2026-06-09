@@ -84,7 +84,6 @@ interface ReportViewProps {
   activeHub?: ProcessHub | null;
   activeIP?: ImprovementProject | null;
   onOpenActiveIP?: () => void;
-  onExitActiveIP?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -142,7 +141,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   activeHub,
   activeIP: providedActiveIP,
   onOpenActiveIP,
-  onExitActiveIP,
 }) => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
@@ -1286,12 +1284,8 @@ const ReportView: React.FC<ReportViewProps> = ({
           onPrintReport={handlePrint}
           onClose={onClose}
           activeIPContextChip={
-            activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
-              <IPContextChip
-                title={activeIPTitle}
-                onTitleClick={onOpenActiveIP}
-                onExitIP={onExitActiveIP}
-              />
+            activeIPTitle && onOpenActiveIP ? (
+              <IPContextChip title={activeIPTitle} onTitleClick={onOpenActiveIP} />
             ) : null
           }
         />

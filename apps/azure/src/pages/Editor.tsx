@@ -1074,11 +1074,11 @@ export const Editor: React.FC<EditorProps> = ({
   const stageFive = useStageFiveOpener();
 
   // FSJ-10: handleHubCreated retired. Fresh-paste provisioning now routes through
-  // the landing path; bindProcessHubId/activateHubProject remain wired via
+  // the landing path; bindProcessHubId/project-store mirroring remain wired via
   // makeLandingDeps so callbacks read the live hub state.
 
   // FSJ-3a landing (spec §1/§3): fresh sample entry lands on the Process tab
-  // with an ensured + activated Untitled pair, named for the sample. The canvas
+  // with an ensured + mirrored Untitled pair, named for the sample. The canvas
   // self-routes b0 (no map) vs L2 (seeded map — The Bottleneck) downstream.
   const handleLoadSampleWithLanding = useCallback(
     async (sample: SampleDataset) => {
@@ -2053,10 +2053,6 @@ export const Editor: React.FC<EditorProps> = ({
             ? () => usePanelsStore.getState().showProjects(activeIPContext.activeIP!.id)
             : undefined
         }
-        onExitActiveIP={() => {
-          activeIPContext.clearActiveIP();
-          if (activeView === 'projects') usePanelsStore.getState().showProjects();
-        }}
       />
 
       {showDurabilityNudge ? (
@@ -2175,12 +2171,6 @@ export const Editor: React.FC<EditorProps> = ({
                           ? [activeHub.improvementProject]
                           : []
                       }
-                      activeProjectId={activeIPContext.activeIP?.id ?? null}
-                      onSelectIP={projectId => {
-                        activeIPContext.setActiveIP(projectId);
-                        usePanelsStore.getState().showProjects(projectId);
-                      }}
-                      onExitIP={() => activeIPContext.clearActiveIP()}
                       onStartNewIP={() => setIsCreateProjectModalOpen(true)}
                     />
                   </div>
@@ -2293,7 +2283,6 @@ export const Editor: React.FC<EditorProps> = ({
                 selectedProjectId={selectedOrActiveProjectId}
                 onSelectProject={id => {
                   if (id === '') {
-                    activeIPContext.clearActiveIP();
                     usePanelsStore.getState().showProjects();
                     return;
                   }
@@ -2392,9 +2381,6 @@ export const Editor: React.FC<EditorProps> = ({
                               usePanelsStore.getState().showProjects(activeIPContext.activeIP!.id)
                           : undefined
                       }
-                      onExitActiveIP={() => {
-                        activeIPContext.clearActiveIP();
-                      }}
                     />
                   </Suspense>
                 </div>

@@ -2,7 +2,7 @@ import { createNewIP } from '@variscout/core/improvementProject';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ProcessHub } from '@variscout/core/processHub';
 import type { StepTimingBinding } from '@variscout/core';
-import { useActiveIPStore, useImprovementProjectStore, useProjectStore } from '@variscout/stores';
+import { useImprovementProjectStore, useProjectStore } from '@variscout/stores';
 
 /** EasyAuth identity (getCurrentUser) — Azure's single user-id convention. */
 export interface AzureUserIdentity {
@@ -20,8 +20,8 @@ export interface AzureUserIdentity {
  *
  * Azure divergence from PWA ensureSessionProject:
  * - The Lead member's userId is the EasyAuth email (not PWA_USER_ID 'analyst@local').
- * - The activation scope key used in activateHubProject is the same email
- *   (Editor.tsx ~:530 calls useActiveIPContext(activeHub, { userId: email })).
+ * - The caller still passes the EasyAuth email through the landing dependency shape,
+ *   though Active-IP activation is retired.
  */
 export function ensureHubProject(
   hub: ProcessHub | null,
@@ -52,19 +52,13 @@ export function ensureHubProject(
 }
 
 /**
- * Activate the hub's project under the caller-supplied scope key.
- *
- * Azure production reads { hubId, userId: currentUser.email } (Editor.tsx ~:530),
- * so the write MUST use the same email key (the PWA scope-key lesson, FSJ-1).
- * Writes via getState() because the hook's scope for a just-created hub is stale
- * at closure time. Also mirrors the project into useImprovementProjectStore —
- * FrameView's liveProject/canvas-persistence reads come from there.
+ * Mirror the hub's project into useImprovementProjectStore so FrameView's
+ * liveProject/canvas-persistence reads have the Workspace Project available.
  */
-export function activateHubProject(hub: ProcessHub, userId: string): void {
+export function activateHubProject(hub: ProcessHub, _userId: string): void {
   const ip = hub.improvementProject;
   if (!ip || ip.deletedAt !== null) return;
   useImprovementProjectStore.getState().upsertProject(ip);
-  useActiveIPStore.getState().setActiveIP({ hubId: hub.id, userId }, ip.id);
 }
 
 /**
@@ -99,7 +93,7 @@ export interface LandFreshEntryDeps {
 }
 
 /**
- * The fresh-entry landing (spec §1): ensure the Untitled pair, activate it,
+ * The fresh-entry landing (spec §1): ensure the Untitled pair, mirror it,
  * land on the Process tab. The canvas self-routes b0 (no map) vs L2 (seeded
  * map) via detectScopeFromMap — we route to the TAB only.
  *

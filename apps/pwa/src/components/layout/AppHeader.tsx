@@ -83,7 +83,6 @@ interface AppHeaderProps {
   onPhaseChange?: (phase: PhaseId) => void;
   activeIPTitle?: string | null;
   onOpenActiveIP?: () => void;
-  onExitActiveIP?: () => void;
 }
 
 /**
@@ -116,7 +115,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onPhaseChange,
   activeIPTitle,
   onOpenActiveIP,
-  onExitActiveIP,
 }) => {
   const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -164,12 +162,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
       <div className="flex-1" />
 
-      {hasData && activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
-        <IPContextChip
-          title={activeIPTitle}
-          onTitleClick={onOpenActiveIP}
-          onExitIP={onExitActiveIP}
-        />
+      {hasData && activeIPTitle && onOpenActiveIP ? (
+        <IPContextChip title={activeIPTitle} onTitleClick={onOpenActiveIP} />
       ) : null}
 
       {/* PR-CS-3a: always-visible live analysis-scope chip (self-hides when no scope). */}

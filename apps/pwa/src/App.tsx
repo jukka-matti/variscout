@@ -380,7 +380,7 @@ function AppMain() {
     clearSelection,
     applyTimeExtraction: ingestion.applyTimeExtraction,
     // FSJ-2: measurement-shaped paste landed without the mapping vestibule — ensure
-    // the Untitled project + activate + route (spec §1/§3). Inline arrow so
+    // the Untitled project + route (spec §1/§3). Inline arrow so
     // the closure re-captures sessionHub each render (FSJ-1 stale-closure lesson).
     // showFrame is read via showFrameRef because panels is declared below (panels
     // depends on importFlow — see useAppPanels call).
@@ -528,7 +528,7 @@ function AppMain() {
       const sample = SAMPLES.find(s => s.urlKey === sampleKey);
       if (sample) {
         // Use handleLoadSample so ?sample= deep-links also land on Process tab
-        // and get an auto-activated Untitled project (spec §1). The embed guard
+        // and get an attached Untitled project (spec §1). The embed guard
         // inside landOnProcess keeps ?embed=true&sample=… on the chart surface.
         landOnProcess(sample, {
           loadSample: ingestion.loadSample,
@@ -779,7 +779,7 @@ function AppMain() {
   );
 
   // First-session landing (spec §1, §3): fresh sample entry lands on the
-  // Process tab with an auto-activated Untitled project.
+  // Process tab with an attached Untitled project.
   // Thin wrapper — business logic lives in landOnProcess for testability.
   const handleLoadSample = useCallback(
     (sample: SampleDataset) => {
@@ -797,8 +797,8 @@ function AppMain() {
   // .vrs import: reconstruct the envelope's own project and land on Process
   // (spec §1 applicability). reconstruct-not-create: the envelope's project is
   // the wrapper — only a project-less hub gets an Untitled wrap. v1 envelope
-  // only (wedge no-back-compat). Embed mode: IP activation runs but navigation
-  // is skipped (spec §1 applicability).
+  // only (wedge no-back-compat). Embed mode ensures the Workspace Project but
+  // skips navigation (spec §1 applicability).
   // Thin wrapper — business logic lives in landVrsOnProcess for testability.
   // ISP: LandHubOnProcessDeps no longer includes sessionHub; the reconstructed
   // hub from the snapshot is the authoritative source (sessionHub unused there).
@@ -814,7 +814,7 @@ function AppMain() {
   );
 
   // Manual-entry landing: write data into the project store then land on the
-  // Process tab with an auto-activated 'Untitled project'.
+  // Process tab with an attached 'Untitled project'.
   // Thin wrapper — business logic lives in landManualOnProcess for testability.
   const handleManualAnalyze = useCallback(
     (...args: Parameters<typeof importFlow.handleManualDataAnalyze>) => {
@@ -1247,10 +1247,6 @@ function AppMain() {
               ? () => panels.showProjects(activeIPContext.activeIP!.id)
               : undefined
           }
-          onExitActiveIP={() => {
-            activeIPContext.clearActiveIP();
-            if (panels.activeView === 'projects') panels.showProjects();
-          }}
           hideFindings={panels.activeView === 'analyze'}
           activePhase={
             rawData.length > 0 &&
@@ -1440,12 +1436,6 @@ function AppMain() {
                       ? [sessionHub.improvementProject]
                       : []
                   }
-                  activeProjectId={activeIPContext.activeIP?.id ?? null}
-                  onSelectIP={projectId => {
-                    activeIPContext.setActiveIP(projectId);
-                    panels.showProjects(projectId);
-                  }}
-                  onExitIP={() => activeIPContext.clearActiveIP()}
                   onStartNewIP={panels.showCharter}
                 />
               </div>
@@ -1558,7 +1548,6 @@ function AppMain() {
                 selectedProjectId={selectedOrActiveProjectId}
                 onSelectProject={id => {
                   if (id === '') {
-                    activeIPContext.clearActiveIP();
                     panels.showProjects();
                     return;
                   }
@@ -1637,9 +1626,6 @@ function AppMain() {
                     ? () => panels.showProjects(activeIPContext.activeIP!.id)
                     : undefined
                 }
-                onExitActiveIP={() => {
-                  activeIPContext.clearActiveIP();
-                }}
                 defectSummary={
                   defectSummaryProps
                     ? {

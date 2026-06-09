@@ -167,7 +167,6 @@ describe('AppHeader', () => {
 
     it('renders Workspace Project chip and wires the title action', () => {
       const onOpenActiveIP = vi.fn();
-      const onExitActiveIP = vi.fn();
 
       render(
         <AppHeader
@@ -177,7 +176,6 @@ describe('AppHeader', () => {
           rowCount={10}
           activeIPTitle="Heads 5-8 Cpk shortfall"
           onOpenActiveIP={onOpenActiveIP}
-          onExitActiveIP={onExitActiveIP}
         />
       );
 
@@ -189,7 +187,6 @@ describe('AppHeader', () => {
       );
       expect(onOpenActiveIP).toHaveBeenCalledOnce();
       expect(screen.queryByRole('button', { name: 'Exit IP' })).not.toBeInTheDocument();
-      expect(onExitActiveIP).not.toHaveBeenCalled();
     });
   });
 });

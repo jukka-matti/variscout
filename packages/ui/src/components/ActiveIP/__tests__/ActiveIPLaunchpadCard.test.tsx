@@ -31,15 +31,7 @@ describe('ActiveIPLaunchpadCard', () => {
 
   it('renders the zero-IP start affordance', () => {
     const onStartNewIP = vi.fn();
-    render(
-      <ActiveIPLaunchpadCard
-        projects={[]}
-        activeProjectId={null}
-        onSelectIP={() => {}}
-        onExitIP={() => {}}
-        onStartNewIP={onStartNewIP}
-      />
-    );
+    render(<ActiveIPLaunchpadCard projects={[]} onStartNewIP={onStartNewIP} />);
 
     fireEvent.click(screen.getByRole('button', { name: /new workspace/i }));
     expect(onStartNewIP).toHaveBeenCalledOnce();
@@ -47,13 +39,7 @@ describe('ActiveIPLaunchpadCard', () => {
 
   it('shows the workspace identity and attached project', () => {
     render(
-      <ActiveIPLaunchpadCard
-        projects={[makeIP('ip-1', 'Reduce rework')]}
-        activeProjectId="ip-1"
-        onSelectIP={() => {}}
-        onExitIP={() => {}}
-        onStartNewIP={() => {}}
-      />
+      <ActiveIPLaunchpadCard projects={[makeIP('ip-1', 'Reduce rework')]} onStartNewIP={() => {}} />
     );
 
     expect(screen.getByText('Reduce rework')).toBeInTheDocument();
@@ -63,23 +49,16 @@ describe('ActiveIPLaunchpadCard', () => {
     expect(screen.queryByText(/Free roaming/i)).not.toBeInTheDocument();
   });
 
-  it('ignores the retired active-project id and still shows the workspace project', () => {
-    const onSelectIP = vi.fn();
+  it('shows the workspace project without a focus selector', () => {
     const onStartNewIP = vi.fn();
     render(
       <ActiveIPLaunchpadCard
         projects={[makeIP('ip-1', 'Reduce rework')]}
-        activeProjectId={null}
-        onSelectIP={onSelectIP}
-        onExitIP={() => {}}
         onStartNewIP={onStartNewIP}
       />
     );
 
     expect(screen.getByText('Reduce rework')).toBeInTheDocument();
-    expect(screen.queryByText('Free roaming')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Switch IP/ })).not.toBeInTheDocument();
-    expect(onSelectIP).not.toHaveBeenCalled();
     expect(onStartNewIP).not.toHaveBeenCalled();
   });
 
@@ -87,29 +66,21 @@ describe('ActiveIPLaunchpadCard', () => {
     render(
       <ActiveIPLaunchpadCard
         projects={[makeIP('older', 'Older IP', 10), makeIP('newer', 'Newer IP', 20)]}
-        activeProjectId="older"
-        onSelectIP={() => {}}
-        onExitIP={() => {}}
         onStartNewIP={() => {}}
       />
     );
 
     expect(screen.queryByRole('button', { name: /Switch IP/ })).not.toBeInTheDocument();
     expect(screen.queryByTestId('active-ip-switcher')).not.toBeInTheDocument();
-    expect(screen.getByText('Older IP')).toBeInTheDocument();
+    expect(screen.getByText('Newer IP')).toBeInTheDocument();
   });
 
-  it('does not expose callbacks for Switch IP, Free roaming, Exit IP, or New IP when a workspace project exists', () => {
-    const onSelectIP = vi.fn();
-    const onExitIP = vi.fn();
+  it('does not expose callbacks for retired focus controls when a workspace project exists', () => {
     const onStartNewIP = vi.fn();
 
     render(
       <ActiveIPLaunchpadCard
         projects={[makeIP('ip-1', 'Reduce rework'), makeIP('ip-2', 'Lift Cpk')]}
-        activeProjectId="ip-1"
-        onSelectIP={onSelectIP}
-        onExitIP={onExitIP}
         onStartNewIP={onStartNewIP}
       />
     );
@@ -120,8 +91,6 @@ describe('ActiveIPLaunchpadCard', () => {
     expect(
       screen.queryByRole('button', { name: /\+ New Improvement Project/ })
     ).not.toBeInTheDocument();
-    expect(onSelectIP).not.toHaveBeenCalled();
-    expect(onExitIP).not.toHaveBeenCalled();
     expect(onStartNewIP).not.toHaveBeenCalled();
   });
 });

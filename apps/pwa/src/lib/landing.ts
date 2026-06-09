@@ -4,20 +4,14 @@ import type { SampleImprovementProjectState } from '@variscout/data';
 import type { ProcessHub } from '@variscout/core/processHub';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import {
-  useActiveIPStore,
   hydrateDocumentSnapshot,
   reconstructProcessHubFromDocumentSnapshot,
   type DocumentSnapshotVrsFile,
 } from '@variscout/stores';
-import { DEFAULT_ACTIVE_IP_USER_ID } from '@variscout/hooks';
 import { ensureSessionProject } from './ensureSessionProject';
-// NOTE: PWA_USER_ID ('analyst@local') is the Lead member identity used inside
-// ensureSessionProject. DEFAULT_ACTIVE_IP_USER_ID ('local') is the annotation
-// scope key that useActiveIPContext reads. These are different concerns — do NOT
-// unify them.
 
 /**
- * Shared deps for the ensure + activate + route core (sample + .vrs + manual).
+ * Shared deps for the ensure + route core (sample + .vrs + manual).
  * ISP note: sessionHub is intentionally absent here — the core takes hubBase as
  * an explicit arg. Only the sample path extends this with sessionHub.
  */
@@ -72,17 +66,10 @@ function applySampleImprovementProjectSeed(
 }
 
 /**
- * Ensure + activate core (spec §3): the routing-free heart shared by every
+ * Ensure core (spec §3): the routing-free heart shared by every
  * landing path AND by the wizard-path paste provisioning (FSJ-2 addendum). Steps
  * 1-2 of landHubOnProcess, verbatim — extracted so the Untitled-project guarantee
  * can hold for entries that must NOT route (the wizard keeps today's landing).
- *
- * Ordering note: `setActiveIP` from `useActiveIPContext` is scoped to the
- * current (OLD) sessionHub.id at closure time. When `ensureSessionProject`
- * creates a NEW hub (no prior session hub), the hook's scope is null and its
- * setter is a no-op. We bypass this by calling `useActiveIPStore.getState()`
- * directly with the NEW hub's explicit scope — the store is always available
- * outside React render, and the call is idempotent if the IP is already active.
  *
  * @param hubBase - Hub to ensure (null = create new, non-null = existing). If it
  *   already carries a live IP, ensureSessionProject is a referential no-op (spec
@@ -121,21 +108,16 @@ export function ensureAndActivateProject(
     };
   }
   setSessionHub(hub);
-
-  // 2. Activate the IP in the annotation store using the hub's explicit scope
-  //    so the call is not stale even when a new hub was just created.
-  const scope = { hubId: hub.id, userId: DEFAULT_ACTIVE_IP_USER_ID };
-  useActiveIPStore.getState().setActiveIP(scope, hub.improvementProject.id);
 }
 
 /**
- * Core ensure + activate + route logic shared by all landing paths (spec §1,
+ * Core ensure + route logic shared by all landing paths (spec §1,
  * §3). Called after any data loading / reconstruction is already done.
  * Composes ensureAndActivateProject (steps 1-2) + the embed-guarded showFrame.
  *
  * Embed mode (spec §1 applicability): course-page iframes want the chart
  * surface, never the journey spine. When isEmbedMode is true the Project
- * auto-create + IP activation still run (so state is consistent) but we do
+ * auto-create still runs (so state is consistent) but we do
  * NOT call showFrame().
  *
  * @param hubBase - Hub to land on (null = sessionHub, non-null = reconstructed
@@ -153,7 +135,7 @@ export function landHubOnProcess(
 ): void {
   const { setSessionHub, showFrame, isEmbedMode } = deps;
 
-  // 1-2. Ensure the hub carries a live IP + activate it (shared core).
+  // 1-2. Ensure the hub carries a live Workspace Project (shared core).
   ensureAndActivateProject(
     hubBase,
     title,
@@ -182,7 +164,7 @@ export interface LandOnProcessDeps extends LandHubOnProcessDeps {
 
 /**
  * First-session landing handler (spec §1, §3): fresh sample entry lands on
- * the Process tab with an auto-activated Untitled project.
+ * the Process tab with an attached Untitled project.
  *
  * Extracted from AppMain so it can be integration-tested without full-App
  * mounting. App.tsx wires this as a thin 3-liner in handleLoadSample.
@@ -193,7 +175,7 @@ export function landOnProcess(sample: SampleDataset, deps: LandOnProcessDeps): v
   // 1. Load data into the project store first (no ordering dependency on hub).
   loadSample(sample);
 
-  // 2. Ensure + activate + route (shared core). sessionHub null → new hub+IP
+  // 2. Ensure + route (shared core). sessionHub null → new hub+IP
   //    created; non-null with live IP → same reference (spec §3).
   landHubOnProcess(
     coreDeps.sessionHub,
@@ -217,8 +199,8 @@ export function landOnProcess(sample: SampleDataset, deps: LandOnProcessDeps): v
  * When the reconstructed hub already carries a live IP, ensureSessionProject
  * is a no-op — the envelope's project is never re-wrapped.
  *
- * v1 envelope only (wedge no-back-compat). Embed mode: IP activation still
- * runs but showFrame is skipped (spec §1 applicability).
+ * v1 envelope only (wedge no-back-compat). Embed mode still ensures the
+ * Workspace Project but skips showFrame (spec §1 applicability).
  */
 export function landVrsOnProcess(
   imported: DocumentSnapshotVrsFile,
@@ -236,7 +218,7 @@ export function landVrsOnProcess(
   const snapshot = imported.documentSnapshot;
   const title = snapshot.hub?.name ?? snapshot.project.projectName ?? 'Untitled project';
 
-  // 4. Ensure + activate + route (shared core). Pass reconstructed as hubBase
+  // 4. Ensure + route (shared core). Pass reconstructed as hubBase
   //    so its live IP is preserved unchanged (ensureSessionProject is a no-op
   //    when improvementProject is already live). The ambient sessionHub is not
   //    part of LandHubOnProcessDeps — the reconstructed hub IS the authoritative
@@ -257,7 +239,7 @@ export interface LandPasteOnProcessDeps extends LandHubOnProcessDeps {
  * Fresh-paste landing handler (spec §1, §3): invoked by usePasteImportFlow's
  * onFreshPasteLanded AFTER the pipeline has written rawData/outcome/factors —
  * data loading is not this function's concern (unlike landOnProcess). Ensure +
- * activate + route only.
+ * ensure + route only.
  */
 export function landPasteOnProcess(deps: LandPasteOnProcessDeps): void {
   const { sessionHub, ...coreDeps } = deps;
@@ -272,7 +254,7 @@ export function landPasteOnProcess(deps: LandPasteOnProcessDeps): void {
  * floor (and the rest of the Process tab) is reachable once the user navigates.
  */
 export interface ProvisionPasteProjectDeps {
-  /** Current session hub — passed as hubBase to the shared ensure+activate core */
+  /** Current session hub — passed as hubBase to the shared ensure core */
   sessionHub: ProcessHub | null;
   /** Update the session hub in app state */
   setSessionHub: (hub: ProcessHub) => void;
@@ -284,7 +266,7 @@ export interface ProvisionPasteProjectDeps {
  * wizard. Invoked by usePasteImportFlow's onFreshPasteAnalyzed AFTER the pipeline
  * has written rawData/outcome/factors and dispatched into the wizard.
  *
- * Ensure + activate ONLY. Crucially it does NOT route (no showFrame) — the wizard
+ * Ensure ONLY. Crucially it does NOT route (no showFrame) — the wizard
  * path keeps today's in-vestibule landing until the P2 re-framing banners ship.
  * Without this, cancelling out of the auto-surfaced wizard for all-categorical
  * data left activeIP == null, so the PWA Process tab fell back to
@@ -328,7 +310,7 @@ export interface LandManualOnProcessDeps extends LandHubOnProcessDeps {
 /**
  * Manual-entry landing handler (spec §1, §3): invokes the injected
  * manualAnalyze (which writes data/outcome/factors/specs into the project
- * store), then lands on the Process tab with an auto-activated 'Untitled
+ * store), then lands on the Process tab with an attached 'Untitled
  * project'. Manual entries have no name source, so the title is always the
  * spec-correct literal.
  *
@@ -346,7 +328,7 @@ export function landManualOnProcess(
   //    raw handleManualDataAnalyze path — logic lives in the injected fn).
   manualAnalyze(data, config);
 
-  // 2. Ensure + activate + route (shared core). sessionHub null → new hub+IP
+  // 2. Ensure + route (shared core). sessionHub null → new hub+IP
   //    created; non-null with live IP → same reference (spec §3).
   landHubOnProcess(sessionHub, 'Untitled project', coreDeps);
 }

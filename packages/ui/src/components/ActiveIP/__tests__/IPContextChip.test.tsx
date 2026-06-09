@@ -5,9 +5,7 @@ import { normalizeColor } from '../../../test-utils/color';
 
 describe('IPContextChip', () => {
   it('renders Workspace Project text with a title control', () => {
-    render(
-      <IPContextChip title="Heads 5-8 Cpk shortfall" onTitleClick={() => {}} onExitIP={() => {}} />
-    );
+    render(<IPContextChip title="Heads 5-8 Cpk shortfall" onTitleClick={() => {}} />);
 
     expect(screen.getByTestId('ip-context-chip')).toHaveTextContent(
       '◆ Workspace Project: Heads 5-8 Cpk shortfall'
@@ -19,7 +17,7 @@ describe('IPContextChip', () => {
   });
 
   it('uses the required inline chip style', () => {
-    render(<IPContextChip title="Reduce rework" onTitleClick={() => {}} onExitIP={() => {}} />);
+    render(<IPContextChip title="Reduce rework" onTitleClick={() => {}} />);
 
     const chip = screen.getByTestId('ip-context-chip');
     expect(chip.style.padding).toBe('4px 10px');
@@ -33,15 +31,13 @@ describe('IPContextChip', () => {
 
   it('calls the title callback without nesting interactive elements', () => {
     const onTitleClick = vi.fn();
-    const onExitIP = vi.fn();
     const { container } = render(
-      <IPContextChip title="Reduce rework" onTitleClick={onTitleClick} onExitIP={onExitIP} />
+      <IPContextChip title="Reduce rework" onTitleClick={onTitleClick} />
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Open Project Reduce rework' }));
 
     expect(onTitleClick).toHaveBeenCalledOnce();
-    expect(onExitIP).not.toHaveBeenCalled();
     expect(container.querySelectorAll('button button')).toHaveLength(0);
   });
 });

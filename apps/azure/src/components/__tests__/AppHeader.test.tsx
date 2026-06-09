@@ -10,7 +10,6 @@ describe('AppHeader active IP chip', () => {
 
   it('renders Workspace Project chip and wires the title action', () => {
     const onOpenActiveIP = vi.fn();
-    const onExitActiveIP = vi.fn();
 
     render(
       <AppHeader
@@ -21,7 +20,6 @@ describe('AppHeader active IP chip', () => {
         activeView="explore"
         activeIPTitle="Heads 5-8 Cpk shortfall"
         onOpenActiveIP={onOpenActiveIP}
-        onExitActiveIP={onExitActiveIP}
       />
     );
 
@@ -31,7 +29,6 @@ describe('AppHeader active IP chip', () => {
     fireEvent.click(screen.getByRole('button', { name: /Open Project Heads 5-8 Cpk shortfall/i }));
     expect(onOpenActiveIP).toHaveBeenCalledOnce();
     expect(screen.queryByRole('button', { name: 'Exit IP' })).not.toBeInTheDocument();
-    expect(onExitActiveIP).not.toHaveBeenCalled();
   });
 
   it('renders the shared workflow tabs and routes clicks through the panel store', () => {

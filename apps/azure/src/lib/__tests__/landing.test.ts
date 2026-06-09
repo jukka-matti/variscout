@@ -6,10 +6,8 @@ import {
   landFreshEntryOnProcess,
 } from '../landing';
 import {
-  useActiveIPStore,
   useImprovementProjectStore,
   useProjectStore,
-  getActiveIPInitialState,
   getImprovementProjectInitialState,
   getProjectInitialState,
 } from '@variscout/stores';
@@ -70,35 +68,26 @@ describe('ensureHubProject (Untitled-pair guarantee, spec §3)', () => {
 
 describe('activateHubProject + landFreshEntryOnProcess', () => {
   beforeEach(() => {
-    // Canonical reset: merge (no second arg / no `true`) so store actions are
-    // preserved. activeIPStore + improvementProjectStore do not patch
-    // getInitialState onto the store instance — use the dedicated factory
-    // functions exported from @variscout/stores.
-    useActiveIPStore.setState(getActiveIPInitialState());
+    // Canonical reset: merge (no second arg / no `true`) so store actions are preserved.
     useImprovementProjectStore.setState(getImprovementProjectInitialState());
     useProjectStore.setState(getProjectInitialState());
   });
 
-  it('activates under the caller-supplied (email) scope key — the key Editor reads', () => {
+  it('mirrors the Workspace Project into the improvement project store', () => {
     const hub = ensureHubProject(null, 'Untitled project', USER, NOW);
     activateHubProject(hub, USER.email);
-    const scope = { hubId: hub.id, userId: USER.email };
-    // getActiveIP returns ActiveIPState { ipId, setAt } | null
-    expect(useActiveIPStore.getState().getActiveIP(scope)?.ipId).toBe(hub.improvementProject.id);
     expect(useImprovementProjectStore.getState().getProjectForHub(hub.id)?.id).toBe(
       hub.improvementProject.id
     );
   });
 
-  it('activateHubProject with a soft-deleted IP is a silent no-op — neither store written', () => {
+  it('activateHubProject with a soft-deleted IP is a silent no-op', () => {
     const hub = ensureHubProject(null, 'To be deleted', USER, NOW);
     const hubWithDeletedIP = {
       ...hub,
       improvementProject: { ...hub.improvementProject, deletedAt: 999 },
     } as unknown as ProcessHub;
     activateHubProject(hubWithDeletedIP, USER.email);
-    const scope = { hubId: hubWithDeletedIP.id, userId: USER.email };
-    expect(useActiveIPStore.getState().getActiveIP(scope)).toBeNull();
     expect(
       useImprovementProjectStore.getState().getProjectForHub(hubWithDeletedIP.id)
     ).toBeUndefined();
