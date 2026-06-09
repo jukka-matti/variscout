@@ -42,12 +42,8 @@ import {
   type ColumnMappingConfirmPayload,
   StageFiveModal,
   MatchSummaryCard,
-  WorkspaceProjectLaunchpadCard,
-  WorkspaceProjectScopeRibbon,
-  ImproveTabRoot,
   PendingInvitesBanner,
   CreateProjectModal,
-  GoalBanner,
   DurabilityNudge,
   deriveWorkspaceProjectCanvasFocus,
   deriveWorkspaceProjectScopeLabels,
@@ -67,7 +63,6 @@ import {
   downloadCSV,
   computeBestSubsets,
   evaluateSurvey,
-  extractHubName,
   isControlEligible,
   normalizeProcessHubId,
   computeTimeDecompositionColumns,
@@ -121,8 +116,6 @@ import type { MeasurementPlan, MeasurementPlanStatus } from '@variscout/core/mea
 import type { ReingestPendingMatch } from '@variscout/core/autoLink';
 import { useToast } from '../context/ToastContext';
 import { ControlEntryRow } from './Editor.control';
-import { EditorEmptyState } from '../components/editor/EditorEmptyState';
-import { EditorDashboardView } from '../components/editor/EditorDashboardView';
 import { CoScoutSection } from '../components/editor/CoScoutSection';
 import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
 import {
@@ -131,21 +124,14 @@ import {
   ensureHubProject,
   landFreshEntryOnProcess,
 } from '../lib/landing';
-// WorkspaceTabs merged into AppHeader (ADR-055 header redesign)
-import { AnalyzeWorkspace } from '../components/editor/AnalyzeWorkspace';
-import FrameView from '../components/editor/FrameView';
-import ImprovementProjectPanel from '../components/charter/ImprovementProjectPanel';
-import ControlPanel from '../components/control/ControlPanel';
 import { SaveConflictDialog } from '../components/SaveConflictDialog';
 import { requestPersistentStorageOnce } from '../services/storageDurability';
 import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
-import ProjectDashboard from '../components/ProjectDashboard';
-import ProjectsTabView from '../components/ProjectsTabView';
 import ProcessHubControlRegion from '../components/ProcessHubControlRegion';
 import { useAIStore } from '../features/ai/aiStore';
+import { EditorViewSwitch } from '../components/editor/EditorViewSwitch';
 
 const WhatIfPage = lazyWithRetry(() => import('../components/WhatIfPage'));
-const ReportView = lazyWithRetry(() => import('../components/views/ReportView'));
 
 /** Derive a clean project name from a data filename */
 function cleanProjectName(filename: string | null): string {
@@ -2161,334 +2147,87 @@ export const Editor: React.FC<EditorProps> = ({
         }}
         className="flex-1 flex flex-col min-h-0 bg-surface rounded-xl border border-edge overflow-hidden"
       >
-        {activeView === 'sustainment' ? (
-          <ControlPanel
-            activeHub={activeHub}
-            targetId={controlTargetId ?? undefined}
-            onBack={() => usePanelsStore.getState().showFrame()}
-          />
-        ) : rawData.length === 0 ? (
-          <EditorEmptyState
-            dataFlow={dataFlow}
-            loadError={loadError}
-            onSharePointFileImport={handleSharePointFileImport}
-            onLoadSample={handleLoadSampleWithLanding}
-          />
-        ) : outcome || hasB0ModeProposal || hasAcceptedB0ModeFraming ? (
-          <>
-            {/* Canvas framing toolbar — '+New investigation' on-demand entry
-                (Mode A.1 reopen path, spec §5.5). Visible whenever data + outcome are
-                set (i.e. the analyst is on the canvas, not in a mapping modal). */}
-            {!isAnalyzeWallCanvasFirst ? (
-              <div
-                className="flex items-center gap-2 px-4 py-1.5 bg-surface-secondary border-b border-edge"
-                data-testid="framing-toolbar"
-              >
-                <div className="flex-1" />
-                <button
-                  type="button"
-                  onClick={stageFive.openOnDemand}
-                  data-testid="canvas-new-analyze"
-                  className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-                >
-                  + New analyze
-                </button>
-              </div>
-            ) : null}
-
-            {/* Workspace content (ADR-055) — tabs are in AppHeader */}
-            {activeView === 'home' ? (
-              <div className="flex-1 overflow-y-auto space-y-4">
-                {activeHub ? (
-                  <div className="p-4 sm:p-6">
-                    <WorkspaceProjectLaunchpadCard
-                      projects={
-                        workspaceViewModel && activeHub.improvementProject?.deletedAt === null
-                          ? [activeHub.improvementProject]
-                          : []
-                      }
-                      onStartNewWorkspace={() => setIsCreateProjectModalOpen(true)}
-                    />
-                  </div>
-                ) : null}
-                <ProjectDashboard
-                  projectName={currentProjectName ?? 'Untitled'}
-                  onNavigate={handleDashboardNavigate}
-                  onAddData={handleDashboardAddData}
-                  onResumeAnalysis={handleDashboardResumeAnalysis}
-                  lastViewedAt={lastViewedAt}
-                  onUpdateLastViewed={handleUpdateLastViewed}
-                  onNewHub={handleNewHub}
-                />
-              </div>
-            ) : activeView === 'frame' ? (
-              <div className="flex min-h-0 flex-1 overflow-hidden">
-                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                  {workspaceProjectScope ? (
-                    <WorkspaceProjectScopeRibbon
-                      title={workspaceProjectScope.title}
-                      labels={workspaceProjectScope.labels}
-                      surface="Process"
-                    />
-                  ) : null}
-                  {/* FSJ-3b (spec §3): goal ceremony opt-in — relocated off the retired
-                    Stage-1 HubGoalForm; the empty start-prompt is the framing surface's
-                    entry point. Populated banner renders when a goal already exists.
-                    Word-style commit: unsaved hubs stay in-memory until an explicit Save. */}
-                  {activeHub ? (
-                    <GoalBanner
-                      goal={activeHub.processGoal ?? ''}
-                      startPrompt="Set a process goal…"
-                      onChange={next => {
-                        void commitHubChange({
-                          ...activeHub,
-                          name: extractHubName(next) || activeHub.name || 'Untitled hub',
-                          processGoal: next,
-                          updatedAt: Date.now(),
-                        });
-                      }}
-                    />
-                  ) : null}
-                  <FrameView
-                    canEditCanvas={canEditCanvas}
-                    workspaceProject={workspaceProjectContext.workspaceProject}
-                    outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
-                    reingestPendingMatches={pendingMatches}
-                    onFixData={dataFlow.openFactorManager}
-                    onRenameColumn={dataFlow.handleColumnRename}
-                    quietTimeExtraction={dataFlow.quietTimeExtraction}
-                    onDismissQuietTimeExtraction={dataFlow.dismissQuietTimeExtraction}
-                    onUndoQuietTimeExtraction={dataFlow.undoQuietTimeExtraction}
-                    defectDetection={dataFlow.defectDetection}
-                    onAcceptDefectDetection={handleAcceptDefectDetection}
-                    onDismissDefectDetection={dataFlow.dismissDefectDetection}
-                    wideFormatDetection={dataFlow.wideFormatDetection}
-                    onAcceptWideFormatDetection={handleAcceptWideFormatDetection}
-                    onDismissWideFormatDetection={dataFlow.dismissWideFormatDetection}
-                  />
-                </div>
-                {sharedCoScoutSection}
-              </div>
-            ) : activeView === 'charter' ? (
-              <ImprovementProjectPanel
-                activeHub={activeHub}
-                onBack={() => usePanelsStore.getState().showFrame()}
-                onOpenWall={() => {
-                  useCanvasViewportStore.getState().setViewMode('wall');
-                  usePanelsStore.getState().showAnalyze();
-                }}
-              />
-            ) : activeView === 'analyze' ? (
-              <div className="flex min-h-0 flex-1 overflow-hidden">
-                <AnalyzeWorkspace
-                  workspaceProjectScope={workspaceProjectScope}
-                  scopeProjectId={
-                    workspaceProjectContext.workspaceProject?.id ?? 'general-unassigned'
-                  }
-                  findingsState={findingsState}
-                  handleRestoreFinding={handleRestoreFinding}
-                  handleSetFindingStatus={handleSetFindingStatus}
-                  handleNavigateToChart={handleNavigateToChart}
-                  handleShareFinding={handleShareFinding}
-                  onPromoteFindingAction={workspaceProject ? handlePromoteFindingAction : undefined}
-                  drillPath={drillPath}
-                  handleAddCommentWithAuthor={handleAddCommentWithAuthor}
-                  handleAddPhoto={handleAddPhoto}
-                  userId={currentUser?.email ?? null}
-                  members={wallWorkspaceProjectMembers}
-                  onCoScoutObjectChange={handleAnalyzeCoScoutObjectChange}
-                  columnAliases={columnAliases}
-                  viewMode={
-                    viewState?.findingsViewMode === 'tree'
-                      ? 'board'
-                      : (viewState?.findingsViewMode as 'list' | 'board' | undefined)
-                  }
-                  onViewModeChange={(mode: 'list' | 'board') =>
-                    handleViewStateChange({ findingsViewMode: mode })
-                  }
-                  hypothesesState={hypothesesState}
-                  planningProps={wallPlanningProps}
-                  ideaImpacts={ideaImpacts}
-                  onProjectIdea={handleProjectIdea}
-                />
-                {sharedCoScoutSection}
-              </div>
-            ) : activeView === 'projects' ? (
-              <ProjectsTabView
-                activeHub={activeHub ?? undefined}
-                selectedProjectId={selectedOrActiveProjectId}
-                onSelectProject={id => {
-                  if (id === '') {
-                    usePanelsStore.getState().showProjects();
-                    return;
-                  }
-                  workspaceProjectContext.setWorkspaceProject(id);
-                  usePanelsStore.getState().showProjects(id);
-                }}
-                onJumpOut={target => {
-                  const p = usePanelsStore.getState();
-                  if (target === 'analyze') p.showAnalyze();
-                  else if (target === 'explore') p.showExplore();
-                  else if (target === 'process') p.showFrame();
-                  else if (target === 'improve-workbench') p.showImprovement();
-                  else if (target === 'report') p.showReport();
-                }}
-                approachInputs={{
-                  hypotheses,
-                  ideas: hypotheses.flatMap(h => h.ideas ?? []),
-                  actions: persistedFindings.flatMap(f => f.actions ?? []),
-                }}
-                onOpenCauseWorkbench={_cause => {
-                  // V1: jump to Improve tab (legacy PDCA workbench).
-                  // Plan 2 will add Workspace Project scoping so the workbench filters
-                  // to this cause's hypothesis automatically.
-                  usePanelsStore.getState().showImprovement();
-                }}
-                controlRecord={projectsControlRecord}
-                controlHandoff={projectsControlHandoff}
-                closureInputs={projectsClosureInputs}
-                controlRegionSlot={projectsControlRegionSlot}
-                onOpenLegacyControl={() =>
-                  usePanelsStore
-                    .getState()
-                    .showControl(projectsControlRecord?.projectId ?? undefined)
-                }
-                onNudgeProcessOwner={() => {
-                  // Plan 3 will emit EngagementEvent webhook here.
-                  console.info('[handoff] Nudge process owner — Plan 3 will wire EngagementEvent');
-                }}
-                onProjectPatch={(projectId, patch) => {
-                  void azureHubRepository
-                    .dispatch({ kind: 'IMPROVEMENT_PROJECT_UPDATE', projectId, patch })
-                    .catch(error => {
-                      console.error(
-                        '[projects] Failed to persist Improvement Project patch',
-                        error
-                      );
-                    });
-                }}
-                onNudgeSignoff={projectId => {
-                  console.info(
-                    `[projects] Nudge signoff for ${projectId} — EngagementEvent webhook boundary`
-                  );
-                }}
-                onStartNewProject={() => usePanelsStore.getState().showCharter()}
-                currentUserId={currentUser?.email ?? undefined}
-                inviteDisabledReason={inviteDisabledReason}
-              />
-            ) : activeView === 'improvement' ? (
-              <ImproveTabRoot
-                workspaceProject={workspaceProject}
-                actions={workspaceProject?.metadata.actions ?? []}
-                currentUserId={currentUser?.email}
-                onGoHome={() => usePanelsStore.getState().showHome()}
-                onActionAdd={({ text, parentImprovementProjectId }) =>
-                  applyAction({
-                    kind: 'ACTION_ITEM_ADD',
-                    hubId: workspaceProject?.hubId ?? '',
-                    actionItem: createProjectActionItem({
-                      text,
-                      parentImprovementProjectId: parentImprovementProjectId ?? null,
-                    }),
-                  })
-                }
-                onActionUpdate={(actionItemId, patch) =>
-                  applyAction({ kind: 'ACTION_ITEM_UPDATE', actionItemId, patch })
-                }
-                onActionRemove={actionItemId =>
-                  applyAction({ kind: 'ACTION_ITEM_REMOVE', actionItemId, removedAt: Date.now() })
-                }
-              />
-            ) : activeView === 'report' ? (
-              <div className="flex min-h-0 flex-1 overflow-hidden">
-                <div className="min-h-0 flex-1 overflow-hidden">
-                  <Suspense fallback={null}>
-                    <ReportView
-                      onClose={() => usePanelsStore.getState().showExplore()}
-                      aiEnabled={aiEnabled && isAIAvailable()}
-                      narrative={aiOrch.narration.narrative}
-                      workspaceProjectScope={workspaceProjectScope}
-                      workspaceProjectTitle={workspaceProjectTitle}
-                      activeHub={activeHub}
-                      workspaceProject={workspaceProjectContext.workspaceProject}
-                      onOpenWorkspaceProject={
-                        workspaceProjectContext.workspaceProject
-                          ? () =>
-                              usePanelsStore
-                                .getState()
-                                .showProjects(workspaceProjectContext.workspaceProject!.id)
-                          : undefined
-                      }
-                    />
-                  </Suspense>
-                </div>
-                {sharedCoScoutSection}
-              </div>
-            ) : activeView === 'explore' ? (
-              <div className="flex min-h-0 flex-1 overflow-hidden">
-                <EditorDashboardView
-                  dataFlow={dataFlow}
-                  filterNav={filterNav}
-                  viewState={viewState ?? undefined}
-                  onViewStateChange={handleViewStateChange}
-                  projectId={projectId ?? undefined}
-                  findingsState={findingsState}
-                  findingsCallbacks={findingsCallbacksWithPrompt}
-                  handlePinFinding={handlePinFinding}
-                  handleSetFindingStatus={handleSetFindingStatus}
-                  aiOrch={aiOrch}
-                  handleShareChart={handleShareChart}
-                  controlViolations={controlViolations}
-                  excludedRowIndices={excludedRowIndices}
-                  excludedReasons={excludedReasons}
-                  projectedCpkMap={improvementProjectedCpkMap}
-                  workspaceProjectFactorRequest={workspaceProjectAnalyzeFactorRequest}
-                  workspaceProjectScope={workspaceProjectScope}
-                  categoricalValuesByColumn={filteredCategoricalValuesByColumn}
-                  binnedFactorBindings={workspaceProject?.binnedFactorBindings ?? undefined}
-                  onBindingsChange={workspaceProject ? handleBinningBindingsChange : undefined}
-                  onOpenWall={() => {
-                    useCanvasViewportStore.getState().setViewMode('wall');
-                    usePanelsStore.getState().showAnalyze();
-                  }}
-                />
-                {sharedCoScoutSection}
-              </div>
-            ) : (
-              <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-content-secondary">
-                Unknown workspace view.
-              </div>
-            )}
-          </>
-        ) : (
-          /* rawData present but no outcome yet — treat same as isMapping (FSJ-3b:
-             ColumnMapping-only setup; Stage-1 retired, mode='setup' always). */
-          /* onStackConfigChange deliberately absent: the no-outcome fallback predates stack suggestions; revisit if this path survives FSJ-10 */
-          <ColumnMapping
-            columnAnalysis={dataFlow.mappingColumnAnalysis}
-            availableColumns={Object.keys(rawData[0] || {})}
-            previewRows={rawData.slice(0, 5)}
-            totalRows={rawData.length}
-            columnAliases={columnAliases}
-            onColumnRename={dataFlow.handleColumnRename}
-            initialOutcome={outcome}
-            initialFactors={factors}
-            datasetName={dataFilename || 'Pasted Data'}
-            onConfirm={handleMappingConfirmWithCategories}
-            onCancel={dataFlow.handleMappingCancel}
-            dataQualityReport={dataQualityReport}
-            maxFactors={6}
-            mode="setup"
-            initialCategories={categories}
-            timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
-            hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
-            onTimeExtractionChange={config =>
-              dataFlow.setTimeExtractionConfig(prev => ({ ...prev, ...config }))
-            }
-            suggestedStack={dataFlow.suggestedStack}
-            rowLimit={250000}
-          />
-        )}
+        <EditorViewSwitch
+          activeView={activeView}
+          activeHub={activeHub}
+          aiEnabled={aiEnabled}
+          aiOrch={aiOrch}
+          applyAction={applyAction}
+          canEditCanvas={canEditCanvas}
+          categories={categories}
+          columnAliases={columnAliases}
+          commitHubChange={commitHubChange}
+          controlTargetId={controlTargetId}
+          controlViolations={controlViolations}
+          currentProjectName={currentProjectName}
+          currentUser={currentUser}
+          dataFilename={dataFilename}
+          dataFlow={dataFlow}
+          dataQualityReport={dataQualityReport}
+          drillPath={drillPath}
+          excludedReasons={excludedReasons}
+          excludedRowIndices={excludedRowIndices}
+          factors={factors}
+          filteredCategoricalValuesByColumn={filteredCategoricalValuesByColumn}
+          filterNav={filterNav}
+          findingsCallbacksWithPrompt={findingsCallbacksWithPrompt}
+          findingsState={findingsState}
+          handleAcceptDefectDetection={handleAcceptDefectDetection}
+          handleAcceptWideFormatDetection={handleAcceptWideFormatDetection}
+          handleAddCommentWithAuthor={handleAddCommentWithAuthor}
+          handleAddPhoto={handleAddPhoto}
+          handleAnalyzeCoScoutObjectChange={handleAnalyzeCoScoutObjectChange}
+          handleBinningBindingsChange={handleBinningBindingsChange}
+          handleDashboardAddData={handleDashboardAddData}
+          handleDashboardNavigate={handleDashboardNavigate}
+          handleDashboardResumeAnalysis={handleDashboardResumeAnalysis}
+          handleLoadSampleWithLanding={handleLoadSampleWithLanding}
+          handleMappingConfirmWithCategories={handleMappingConfirmWithCategories}
+          handleNavigateToChart={handleNavigateToChart}
+          handleNewHub={handleNewHub}
+          handlePinFinding={handlePinFinding}
+          handleProjectIdea={handleProjectIdea}
+          handlePromoteFindingAction={handlePromoteFindingAction}
+          handleRestoreFinding={handleRestoreFinding}
+          handleSetFindingStatus={handleSetFindingStatus}
+          handleShareChart={handleShareChart}
+          handleShareFinding={handleShareFinding}
+          handleSharePointFileImport={handleSharePointFileImport}
+          handleUpdateLastViewed={handleUpdateLastViewed}
+          handleViewStateChange={handleViewStateChange}
+          hasAcceptedB0ModeFraming={hasAcceptedB0ModeFraming}
+          hasB0ModeProposal={hasB0ModeProposal}
+          hypotheses={hypotheses}
+          hypothesesState={hypothesesState}
+          ideaImpacts={ideaImpacts}
+          improvementProjectedCpkMap={improvementProjectedCpkMap}
+          inviteDisabledReason={inviteDisabledReason}
+          isAnalyzeWallCanvasFirst={isAnalyzeWallCanvasFirst}
+          lastViewedAt={lastViewedAt}
+          loadError={loadError}
+          outcome={outcome}
+          pendingMatches={pendingMatches}
+          persistedFindings={persistedFindings}
+          projectId={projectId}
+          projectsClosureInputs={projectsClosureInputs}
+          projectsControlHandoff={projectsControlHandoff}
+          projectsControlRecord={projectsControlRecord}
+          projectsControlRegionSlot={projectsControlRegionSlot}
+          rawData={rawData}
+          selectedOrActiveProjectId={selectedOrActiveProjectId}
+          setIsCreateProjectModalOpen={setIsCreateProjectModalOpen}
+          sharedCoScoutSection={sharedCoScoutSection}
+          stageFive={stageFive}
+          viewState={viewState}
+          wallPlanningProps={wallPlanningProps}
+          wallWorkspaceProjectMembers={wallWorkspaceProjectMembers}
+          workspaceProject={workspaceProject}
+          workspaceProjectAnalyzeFactorRequest={workspaceProjectAnalyzeFactorRequest}
+          workspaceProjectContext={workspaceProjectContext}
+          workspaceProjectScope={workspaceProjectScope}
+          workspaceProjectTitle={workspaceProjectTitle}
+          workspaceViewModel={workspaceViewModel}
+        />
       </div>
 
       {/* PO-8b: explicit reload-or-branch conflict resolution (replaces the silent auto-fork) */}

@@ -10,7 +10,6 @@ import {
 } from './lib/landing';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
-  ColumnMapping,
   type ColumnMappingConfirmPayload,
   FindingsWindow,
   openFindingsPopout,
@@ -24,11 +23,8 @@ import {
   OutcomePin,
   StageFiveModal,
   MatchSummaryCard,
-  WorkspaceProjectLaunchpadCard,
-  WorkspaceProjectScopeRibbon,
   deriveWorkspaceProjectCanvasFocus,
   deriveWorkspaceProjectScopeLabels,
-  PendingInvitesBanner,
   DurabilityNudge,
   type ColumnShape,
   type ChartObservationCaptureOptions,
@@ -92,21 +88,18 @@ import { computeCenteringOpportunity } from '@variscout/core/variation';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { EvidenceMapPopout } from './components/EvidenceMapPopout';
 import { useAppPanels } from './hooks/useAppPanels';
-import { usePanelsStore } from './features/panels/panelsStore';
 import { useFindingsStore, groupFindingsByChart } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
 import { useAnalyzeOrchestration } from './features/analyze/useAnalyzeOrchestration';
 import { useCanvasViewportLifecycle } from './features/analyze/useCanvasViewportLifecycle';
 import { useStatsWorker } from './workers/useStatsWorker';
 import { deriveWorkspaceViewModel, useWorkspaceProjectContext } from '@variscout/hooks';
+import { AppViewSwitch } from './components/AppViewSwitch';
 
 // Lazy-loaded heavy components for code splitting
 const dashboardImport = () => import('./components/Dashboard');
-const Dashboard = lazyWithRetry(dashboardImport);
 void dashboardImport(); // Prefetch so sample→Dashboard transition is instant
-const HomeScreen = lazyWithRetry(() => import('./components/HomeScreen'));
 const pasteScreenImport = () => import('./components/data/PasteScreen');
-const PasteScreen = lazyWithRetry(pasteScreenImport);
 const schedulePrefetch = (fn: () => void): void => {
   if (typeof window === 'undefined') return;
   const ric = (window as Window & { requestIdleCallback?: (cb: () => void) => void })
@@ -117,7 +110,6 @@ const schedulePrefetch = (fn: () => void): void => {
 schedulePrefetch(() => {
   void pasteScreenImport().catch(() => {});
 });
-const ManualEntry = lazyWithRetry(() => import('./components/data/ManualEntry'));
 const WhatIfPage = lazyWithRetry(() => import('./components/WhatIfPage'));
 const SettingsPanel = lazyWithRetry(() => import('./components/settings/SettingsPanel'));
 const DataTableModal = lazyWithRetry(() => import('./components/data/DataTableModal'));
@@ -125,13 +117,6 @@ const FindingsPanel = lazyWithRetry(() => import('./components/FindingsPanel'));
 const ProcessIntelligencePanel = lazyWithRetry(
   () => import('./components/ProcessIntelligencePanel')
 );
-const FrameView = lazyWithRetry(() => import('./components/views/FrameView'));
-const ImprovementProjectPanel = lazyWithRetry(() => import('./components/ImprovementProjectPanel'));
-const ControlPanel = lazyWithRetry(() => import('./components/ControlPanel'));
-const AnalyzeView = lazyWithRetry(() => import('./components/views/AnalyzeView'));
-const ImprovementView = lazyWithRetry(() => import('./components/views/ImprovementView'));
-const ProjectsTabView = lazyWithRetry(() => import('./components/ProjectsTabView'));
-const ReportView = lazyWithRetry(() => import('./components/views/ReportView'));
 
 const LazyFallback = () => (
   <div className="flex items-center justify-center h-dvh">
@@ -1422,285 +1407,73 @@ function AppMain() {
         {/* Main content area */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <Suspense fallback={<LazyFallback />}>
-            {importFlow.isPasteMode ? (
-              <PasteScreen
-                onAnalyze={importFlow.handlePasteAnalyze}
-                onCancel={importFlow.handlePasteCancel}
-                error={importFlow.pasteError}
-              />
-            ) : importFlow.isManualEntry ? (
-              <ManualEntry
-                onAnalyze={handleManualAnalyze}
-                onCancel={importFlow.handleManualEntryCancel}
-              />
-            ) : rawData.length === 0 ? (
-              <HomeScreen
-                onLoadSample={handleLoadSample}
-                onOpenPaste={importFlow.handleOpenPaste}
-                onOpenManualEntry={importFlow.handleOpenManualEntry}
-                onImportVrs={handleImportVrs}
-                resolveProjectName={id =>
-                  workspaceViewModel?.project.id === id && workspaceProjectTitle
-                    ? workspaceProjectTitle
-                    : undefined
-                }
-              />
-            ) : panels.activeView === 'home' ? (
-              <div className="h-full overflow-auto p-4 sm:p-6">
-                <PendingInvitesBanner
-                  invites={pendingInvites}
-                  onAccept={acceptInvite}
-                  onDecline={revokeInvite}
-                  resolveProjectName={id =>
-                    workspaceViewModel?.project.id === id && workspaceProjectTitle
-                      ? workspaceProjectTitle
-                      : undefined
-                  }
-                />
-                <WorkspaceProjectLaunchpadCard
-                  projects={
-                    sessionHub?.improvementProject &&
-                    workspaceViewModel &&
-                    sessionHub.improvementProject.deletedAt === null
-                      ? [sessionHub.improvementProject]
-                      : []
-                  }
-                  onStartNewWorkspace={panels.showCharter}
-                />
-              </div>
-            ) : importFlow.isMapping ? (
-              <ColumnMapping
-                columnAnalysis={importFlow.mappingColumnAnalysis}
-                availableColumns={Object.keys(rawData[0])}
-                previewRows={rawData.slice(0, 5)}
-                totalRows={rawData.length}
-                columnAliases={columnAliases}
-                onColumnRename={importFlow.handleColumnRename}
-                initialOutcome={outcome}
-                initialFactors={factors}
-                initialOutcomes={
-                  importFlow.isMappingReEdit ? (sessionHub?.outcomes ?? undefined) : undefined
-                }
-                initialPrimaryScopeDimensions={
-                  importFlow.isMappingReEdit
-                    ? (sessionHub?.primaryScopeDimensions ?? undefined)
-                    : undefined
-                }
-                datasetName={dataFilename || undefined}
-                onConfirm={handleMappingConfirmToHub}
-                onCancel={importFlow.handleMappingCancel}
-                dataQualityReport={dataQualityReport}
-                onViewExcludedRows={panels.openDataTableExcluded}
-                onViewAllData={panels.openDataTableAll}
-                paretoMode={paretoMode}
-                separateParetoFilename={separateParetoFilename}
-                onParetoFileUpload={ingestion.handleParetoFileUpload}
-                onClearParetoFile={ingestion.clearParetoFile}
-                timeColumn={importFlow.timeExtractionPrompt?.timeColumn}
-                hasTimeComponent={importFlow.timeExtractionPrompt?.hasTimeComponent}
-                onTimeExtractionChange={importFlow.setTimeExtractionConfig}
-                mode={importFlow.isMappingReEdit ? 'edit' : 'setup'}
-                suggestedStack={importFlow.suggestedStack}
-                onStackConfigChange={importFlow.handleStackConfigChange}
-                rowLimit={50000}
-                hideSpecs={analysisMode === 'defect'}
-              />
-            ) : panels.activeView === 'frame' ? (
-              <div className="flex min-h-0 flex-1 flex-col">
-                {workspaceProjectScope ? (
-                  <WorkspaceProjectScopeRibbon
-                    title={workspaceProjectScope.title}
-                    labels={workspaceProjectScope.labels}
-                    surface="Process"
-                  />
-                ) : null}
-                <FrameView
-                  reingestPendingMatches={pendingMatches}
-                  onFixData={importFlow.openFactorManager}
-                  onRenameColumn={importFlow.handleColumnRename}
-                  quietTimeExtraction={importFlow.quietTimeExtraction}
-                  onDismissQuietTimeExtraction={importFlow.dismissQuietTimeExtraction}
-                  onUndoQuietTimeExtraction={importFlow.undoQuietTimeExtraction}
-                  defectDetection={importFlow.defectDetection}
-                  onAcceptDefectDetection={mapping => {
-                    setDefectMapping(mapping);
-                    setAnalysisMode('defect');
-                    importFlow.handleDismissDefect();
-                  }}
-                  onDismissDefectDetection={importFlow.handleDismissDefect}
-                  wideFormatDetection={importFlow.wideFormatDetection}
-                  onAcceptWideFormatDetection={(columns, label) => {
-                    setMeasureColumns(columns);
-                    setMeasureLabel(label);
-                    setSelectedMeasure(null);
-                    setAnalysisMode('performance');
-                    importFlow.handleDismissWideFormat();
-                  }}
-                  onDismissWideFormatDetection={importFlow.handleDismissWideFormat}
-                />
-              </div>
-            ) : panels.activeView === 'charter' ? (
-              <ImprovementProjectPanel
-                activeHub={sessionHub ?? undefined}
-                onBack={panels.showFrame}
-                onOpenWall={() => {
-                  useCanvasViewportStore.getState().setViewMode('wall');
-                  panels.showAnalyze();
-                }}
-              />
-            ) : panels.activeView === 'sustainment' ? (
-              <ControlPanel
-                activeHub={sessionHub ?? undefined}
-                targetId={panels.controlTargetId ?? undefined}
-                onBack={panels.showFrame}
-              />
-            ) : panels.activeView === 'analyze' ? (
-              <AnalyzeView
-                workspaceProjectScope={workspaceProjectScope}
-                canvasViewportHubId={normalizeProcessHubId(canvasViewportHubId)}
-                filteredData={filteredData ?? []}
-                outcome={outcome}
-                factors={factors}
-                handleRestoreFinding={handleRestoreFinding}
-                handleSetFindingStatus={investigation.handleSetFindingStatus}
-                onPromoteFindingAction={
-                  workspaceProjectContext.workspaceProject ? handlePromoteFindingAction : undefined
-                }
-                drillPath={drillPath}
-                columnAliases={columnAliases}
-                resolvedMode={resolved}
-                planningProps={wallPlanningProps}
-              />
-            ) : panels.activeView === 'projects' ? (
-              <ProjectsTabView
-                activeHub={sessionHub ?? undefined}
-                selectedProjectId={selectedOrActiveProjectId}
-                onSelectProject={id => {
-                  if (id === '') {
-                    panels.showProjects();
-                    return;
-                  }
-                  workspaceProjectContext.setWorkspaceProject(id);
-                  panels.showProjects(id);
-                }}
-                onJumpOut={target => {
-                  if (target === 'analyze') panels.showAnalyze();
-                  else if (target === 'explore') panels.showExplore();
-                  else if (target === 'process') panels.showFrame();
-                  else if (target === 'improve-workbench') panels.showImprovement();
-                  else if (target === 'report') panels.showReport();
-                }}
-                approachInputs={{
-                  hypotheses,
-                  ideas: hypotheses.flatMap(h => h.ideas ?? []),
-                  actions: findings.flatMap(f => f.actions ?? []),
-                }}
-                onOpenCauseWorkbench={_cause => {
-                  // V1: jump to Improve tab (legacy PDCA workbench).
-                  // Plan 2 will add Workspace Project scoping so the workbench filters
-                  // to this cause's hypothesis automatically.
-                  panels.showImprovement();
-                }}
-                controlRecord={projectsControlRecord}
-                controlHandoff={projectsControlHandoff}
-                closureInputs={projectsClosureInputs}
-                onOpenLegacyControl={() =>
-                  usePanelsStore
-                    .getState()
-                    .showControl(projectsControlRecord?.projectId ?? undefined)
-                }
-                onNudgeProcessOwner={() => {
-                  // Plan 3 will emit EngagementEvent webhook here.
-                  console.info('[handoff] Nudge process owner — Plan 3 will wire EngagementEvent');
-                }}
-                onProjectPatch={(projectId, patch) => {
-                  void pwaHubRepository
-                    .dispatch({ kind: 'IMPROVEMENT_PROJECT_UPDATE', projectId, patch })
-                    .catch(error => {
-                      console.error(
-                        '[projects] Failed to persist Improvement Project patch',
-                        error
-                      );
-                    });
-                }}
-                onStartNewProject={panels.showCharter}
-              />
-            ) : panels.activeView === 'improvement' ? (
-              <ImprovementView
-                workspaceProjectScope={workspaceProjectScope}
-                workspaceProject={workspaceProjectContext.workspaceProject ?? null}
-                onGoHome={panels.showHome}
-              />
-            ) : panels.activeView === 'report' ? (
-              <ReportView
-                onClose={panels.showExplore}
-                stats={stats}
-                specs={specs}
-                findings={findings}
-                columnAliases={columnAliases}
-                dataFilename={dataFilename}
-                sampleCount={lensedSampleCount}
-                analysisMode={analysisMode}
-                filteredData={filteredData}
-                outcome={outcome}
-                hub={sessionHub}
-                workspaceProject={workspaceProjectContext.workspaceProject}
-                hypotheses={hypotheses}
-                controlRecords={_liveControlRecords}
-                controlHandoffs={_liveControlHandoffs}
-                workspaceProjectScope={workspaceProjectScope}
-                workspaceProjectTitle={workspaceProjectTitle}
-                onOpenWorkspaceProject={
-                  workspaceProjectContext.workspaceProject
-                    ? () => panels.showProjects(workspaceProjectContext.workspaceProject!.id)
-                    : undefined
-                }
-                defectSummary={
-                  defectSummaryProps
-                    ? {
-                        ...defectSummaryProps,
-                        sampleCount: lensedSampleCount,
-                      }
-                    : null
-                }
-              />
-            ) : panels.activeView === 'explore' ? (
-              <Dashboard
-                onPointClick={panels.openDataTableAtRow}
-                hideStatsInGrid={panels.isPISidebarOpen}
-                onExportCSV={handleExportCSV}
-                onExportImage={handleExport}
-                highlightedChart={highlightedChart}
-                highlightIntensity={highlightIntensity}
-                onChartClick={isEmbedMode ? notifyChartClicked : undefined}
-                embedFocusChart={embedFocusChart}
-                embedStatsTab={embedStatsTab}
-                onManageFactors={importFlow.openFactorManager}
-                openSpecEditorRequested={panels.openSpecEditorRequested}
-                onSpecEditorOpened={() => panels.setOpenSpecEditorRequested(false)}
-                highlightedPointIndex={panels.highlightedChartPoint}
-                filterNav={filterNav}
-                onPinFinding={handlePinFinding}
-                requestedFactor={workspaceProjectAnalyzeFactorRequest}
-                workspaceProjectScope={workspaceProjectScope}
-                onOpenWall={() => {
-                  useCanvasViewportStore.getState().setViewMode('wall');
-                  panels.showAnalyze();
-                }}
-                findingsCallbacks={{
-                  onAddChartObservation: handleAddChartObservation,
-                  chartFindings,
-                  onEditFinding: useAnalyzeStore.getState().editFinding,
-                  onDeleteFinding: useAnalyzeStore.getState().deleteFinding,
-                  onOpenFinding: handleOpenFinding,
-                }}
-                findings={findings}
-              />
-            ) : (
-              <div className="flex min-h-0 flex-1 items-center justify-center p-6 text-sm text-content-secondary">
-                Unknown workspace view.
-              </div>
-            )}
+            <AppViewSwitch
+              analysisMode={analysisMode}
+              canvasViewportHubId={canvasViewportHubId}
+              chartFindings={chartFindings}
+              columnAliases={columnAliases}
+              controlHandoff={projectsControlHandoff}
+              controlRecord={projectsControlRecord}
+              dataFilename={dataFilename}
+              dataQualityReport={dataQualityReport}
+              defectSummaryProps={defectSummaryProps}
+              drillPath={drillPath}
+              embedFocusChart={embedFocusChart}
+              embedStatsTab={embedStatsTab}
+              factors={factors}
+              filteredData={filteredData}
+              findings={findings}
+              filterNav={filterNav}
+              handleAddChartObservation={handleAddChartObservation}
+              handleExport={handleExport}
+              handleExportCSV={handleExportCSV}
+              handleImportVrs={handleImportVrs}
+              handleLoadSample={handleLoadSample}
+              handleManualAnalyze={handleManualAnalyze}
+              handleMappingConfirmToHub={handleMappingConfirmToHub}
+              handleOpenFinding={handleOpenFinding}
+              handlePinFinding={handlePinFinding}
+              handlePromoteFindingAction={handlePromoteFindingAction}
+              handleRestoreFinding={handleRestoreFinding}
+              highlightedChart={highlightedChart}
+              highlightedPointIndex={panels.highlightedChartPoint}
+              highlightIntensity={highlightIntensity}
+              hypotheses={hypotheses}
+              importFlow={importFlow}
+              ingestion={ingestion}
+              investigation={investigation}
+              isEmbedMode={isEmbedMode}
+              lensedSampleCount={lensedSampleCount}
+              notifyChartClicked={notifyChartClicked}
+              outcome={outcome}
+              panels={panels}
+              paretoMode={paretoMode}
+              pendingMatches={pendingMatches}
+              projectsClosureInputs={projectsClosureInputs}
+              rawData={rawData}
+              resolved={resolved}
+              revokeInvite={revokeInvite}
+              acceptInvite={acceptInvite}
+              pendingInvites={pendingInvites}
+              selectedOrActiveProjectId={selectedOrActiveProjectId}
+              separateParetoFilename={separateParetoFilename}
+              sessionHub={sessionHub}
+              setAnalysisMode={setAnalysisMode}
+              setDefectMapping={setDefectMapping}
+              setMeasureColumns={setMeasureColumns}
+              setMeasureLabel={setMeasureLabel}
+              setSelectedMeasure={setSelectedMeasure}
+              specs={specs}
+              stats={stats}
+              wallPlanningProps={wallPlanningProps}
+              workspaceProjectAnalyzeFactorRequest={workspaceProjectAnalyzeFactorRequest}
+              workspaceProjectContext={workspaceProjectContext}
+              workspaceProjectScope={workspaceProjectScope}
+              workspaceProjectTitle={workspaceProjectTitle}
+              workspaceViewModel={workspaceViewModel}
+              _liveControlHandoffs={_liveControlHandoffs}
+              _liveControlRecords={_liveControlRecords}
+            />
           </Suspense>
         </div>
 
