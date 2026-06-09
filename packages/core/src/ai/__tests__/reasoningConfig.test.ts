@@ -2,44 +2,32 @@ import { describe, it, expect } from 'vitest';
 import { getCoScoutReasoningEffort } from '../reasoningConfig';
 
 describe('getCoScoutReasoningEffort', () => {
-  it('returns low for frame phase', () => {
-    expect(getCoScoutReasoningEffort('frame')).toBe('low');
+  it('returns low for process surface', () => {
+    expect(getCoScoutReasoningEffort('process')).toBe('low');
   });
 
-  it('returns low for scout phase', () => {
-    expect(getCoScoutReasoningEffort('scout')).toBe('low');
+  it('returns low for explore surface', () => {
+    expect(getCoScoutReasoningEffort('explore')).toBe('low');
   });
 
-  it('returns low for investigate phase with undefined sub-phase', () => {
-    expect(getCoScoutReasoningEffort('analyze')).toBe('low');
+  it('returns medium for analyze surface without staged data', () => {
+    expect(getCoScoutReasoningEffort('analyze')).toBe('medium');
   });
 
-  it('returns low for investigate phase with initial sub-phase', () => {
-    expect(getCoScoutReasoningEffort('analyze', 'initial')).toBe('low');
+  it('returns medium for analyze surface with hasStagedData = false', () => {
+    expect(getCoScoutReasoningEffort('analyze', false)).toBe('medium');
   });
 
-  it('returns low for investigate phase with diverging sub-phase', () => {
-    expect(getCoScoutReasoningEffort('analyze', 'diverging')).toBe('low');
+  it('returns high for analyze surface with staged data', () => {
+    expect(getCoScoutReasoningEffort('analyze', true)).toBe('high');
   });
 
-  it('returns medium for investigate phase with validating sub-phase', () => {
-    expect(getCoScoutReasoningEffort('analyze', 'validating')).toBe('medium');
+  it('returns low for report surface without staged data', () => {
+    expect(getCoScoutReasoningEffort('report')).toBe('low');
   });
 
-  it('returns high for investigate phase with converging sub-phase', () => {
-    expect(getCoScoutReasoningEffort('analyze', 'converging')).toBe('high');
-  });
-
-  it('returns low for improve phase without staged data', () => {
-    expect(getCoScoutReasoningEffort('improve')).toBe('low');
-  });
-
-  it('returns low for improve phase with hasStagedData = false', () => {
-    expect(getCoScoutReasoningEffort('improve', undefined, false)).toBe('low');
-  });
-
-  it('returns high for improve phase with staged data', () => {
-    expect(getCoScoutReasoningEffort('improve', undefined, true)).toBe('high');
+  it('returns low for report surface with staged data', () => {
+    expect(getCoScoutReasoningEffort('report', true)).toBe('low');
   });
 
   it('returns low for undefined phase (default)', () => {

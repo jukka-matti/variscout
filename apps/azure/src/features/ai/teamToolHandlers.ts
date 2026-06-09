@@ -14,6 +14,7 @@ import { useAnalyzeFeatureStore } from '../analyze/analyzeStore';
 export type NavigationTarget =
   | 'dashboard'
   | 'finding'
+  | 'hypothesis'
   | 'question'
   | 'chart'
   | 'improvement_workspace'
@@ -57,6 +58,7 @@ export function buildNavTeamToolHandlers({
       const validTargets: NavigationTarget[] = [
         'dashboard',
         'finding',
+        'hypothesis',
         'question',
         'chart',
         'improvement_workspace',
@@ -77,6 +79,7 @@ export function buildNavTeamToolHandlers({
             useFindingsStore.getState().setHighlightedFindingId(targetId);
           }
           break;
+        case 'hypothesis':
         case 'question':
           panels.showAnalyze();
           if (targetId) {

@@ -21,6 +21,7 @@ export { buildChartInsightSystemPrompt, buildChartInsightPrompt } from './chartI
 // CoScout conversational prompts — new assembler API
 export type {
   BuildCoScoutToolsOptions,
+  CoScoutScope,
   CoScoutSurface,
   CoScoutPromptTiers,
   AssembleCoScoutPromptOptions,

@@ -441,7 +441,7 @@ describe('formatDataContext', () => {
       drillPath: ['Machine', 'Shift'],
       cumulativeScope: 0.65,
     });
-    expect(result).toContain('Drill scope: 65% of total variation');
+    expect(result).toContain('Scope coverage: 65% of total variation');
     expect(result).toContain('Machine > Shift');
   });
 

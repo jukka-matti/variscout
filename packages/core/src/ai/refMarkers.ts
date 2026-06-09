@@ -9,7 +9,7 @@ export type RefTargetType =
   | 'pareto'
   | 'stats'
   | 'finding'
-  | 'question'
+  | 'hypothesis'
   | 'dashboard'
   | 'improvement'
   | 'evidence-node'

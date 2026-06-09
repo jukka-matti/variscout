@@ -477,10 +477,13 @@ export type {
   BuildAIContextOptions,
   AIStatsInput,
   BuildCoScoutToolsOptions,
+  CoScoutScope,
   CoScoutSurface,
   CoScoutPromptTiers,
   AssembleCoScoutPromptOptions,
 } from './ai';
+
+export type { ProjectRole } from './projectMembership/types';
 
 export {
   DEFAULT_PROCESS_HUB,

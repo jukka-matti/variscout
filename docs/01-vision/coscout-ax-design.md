@@ -6,7 +6,7 @@ audience: [human, agent]
 topic: [ax, coscout, design]
 status: active
 related: [adr-060, adr-068, adr-069, coscout-prompts-invariant]
-last-verified: 2026-05-16
+last-verified: 2026-06-09
 layer: L1
 ---
 
@@ -51,24 +51,21 @@ Role-detection is via active `ProjectMember.role` (per ADR-082's ACL model). Def
 
 ---
 
-## Tier-Gated Behaviors
+## Availability
 
-CoScout behaviors differ between the PWA (free tier) and Azure (paid tier). The gate is `isPaidTier()` from `@variscout/core/tier`.
+CoScout is **Azure-only** in V1. The PWA has no CoScout mount and no AI tier gate. Azure owns the embedded panel, voice input, Responses API tool loop, Foundry/AI Search retrieval, and proposal-gated actions.
 
-| Behavior                           | PWA (free)               | Azure (paid)                              |
-| ---------------------------------- | ------------------------ | ----------------------------------------- |
-| CoScout panel visible              | Yes (read-only coaching) | Yes (full interaction)                    |
-| AI tool calls                      | No                       | Yes (27-tool registry, phase-gated)       |
-| Voice input                        | No                       | Yes (transcription-first, ADR-071)        |
-| Investigation retrieval (Pillar 2) | No                       | Yes (JSONL → Foundry IQ)                  |
-| External KB (Pillar 3)             | No                       | Yes (SOPs, FMEAs, specs)                  |
-| `answer_question` action tool      | No                       | Yes (INVESTIGATE+ phase)                  |
-| Hub connection proposals           | No                       | Yes (Converging phase only)               |
-| Prompt caching                     | N/A                      | Yes (10x token savings, tier 1 invariant) |
+| Behavior                           | PWA | Azure                                   |
+| ---------------------------------- | --- | --------------------------------------- |
+| CoScout panel visible              | No  | Yes                                     |
+| AI tool calls                      | No  | Yes (surface-gated executable registry) |
+| Voice input                        | No  | Yes (transcription-first, ADR-071)      |
+| Investigation retrieval (Pillar 2) | No  | Yes (JSONL → Foundry IQ)                |
+| External KB (Pillar 3)             | No  | Yes (SOPs, FMEAs, specs)                |
+| Hub connection proposals           | No  | Yes (Analyze Wall, proposal-gated)      |
+| Prompt caching                     | N/A | Yes (tier 1 invariant)                  |
 
-The tier gate is **inside each surface** (signoff, audit, alerts, action proposals) — not at surface-entry CTAs. Document authoring and structured workflow surfaces serve free-tier pedagogy; `.vrs` export is always available (per `feedback_tier_gate_inside_surface`).
-
-**Implementation reference:** `packages/core/src/tier/` + `apps/azure/CLAUDE.md`.
+**Implementation reference:** `apps/azure/src/features/ai/` + `packages/core/src/ai/prompts/coScout/`.
 
 ---
 
@@ -76,17 +73,17 @@ The tier gate is **inside each surface** (signoff, audit, alerts, action proposa
 
 Five pillars per [ADR-060](../07-decisions/adr-060-coscout-intelligence-architecture.md). Compact summary below; engineering detail in ADR-060.
 
-| Pillar                                 | What                                                                                                                                                    | Status                          |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| **1 — Hot Context Quality**            | `buildAIContext()` enriched with problem statement, top-5 findings with outcomes, overdue actions, focused question context, question answer visibility | Delivered (Phases 1–2)          |
-| **2 — Investigation Retrieval**        | Investigation artifacts serialized to Blob Storage as JSONL; Foundry IQ auto-indexes for on-demand retrieval via `search_knowledge_base` tool           | Pending (Azure infra Phase 3–5) |
-| **3 — External Document KB**           | SOPs, specs, FMEAs uploaded to Blob Storage; hybrid BM25 + vector + RRF search with semantic reranking; project-level security filtering                | Pending (Azure infra Phase 3–5) |
-| **4 — Question ↔ CoScout Interaction** | `answer_question` action tool (phase-gated INVESTIGATE+); question answer documents in knowledge index; hub-aware proposal cards                        | Delivered                       |
-| **5 — Mode-Aware Question Completion** | Yamazumi + performance question generators wired; mode-aware evidence sorting; `evidenceLabel`/`validationMethod`/`questionFocus` per mode              | Delivered                       |
+| Pillar                                 | What                                                                                                                                                      | Status                          |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| **1 — Hot Context Quality**            | `buildAIContext()` enriched with problem statement, Analysis Scope, project role, top findings with outcomes, overdue actions, hypotheses, and Wall state | Delivered                       |
+| **2 — Investigation Retrieval**        | Investigation artifacts serialized to Blob Storage as JSONL; Foundry IQ auto-indexes for on-demand retrieval via `search_knowledge_base` tool             | Pending (Azure infra Phase 3–5) |
+| **3 — External Document KB**           | SOPs, specs, FMEAs uploaded to Blob Storage; hybrid BM25 + vector + RRF search with semantic reranking; project-level security filtering                  | Pending (Azure infra Phase 3–5) |
+| **4 — Finding ↔ CoScout Interaction**  | Finding-as-unit and hypothesis-aware proposal cards on the Analyze Wall; `answer_question` is retired                                                     | Delivered                       |
+| **5 — Mode-Aware Evidence Completion** | Mode-aware evidence sorting via strategy context; mode is a property of Analyze scope, not a CoScout axis                                                 | Delivered                       |
 
 **Search backend:** Azure AI Search + Foundry IQ agentic retrieval. `KnowledgeAdapter` interface abstracts backend with fallback chain: `FoundryIQKnowledgeAdapter` → `AISearchKnowledgeAdapter` → `BlobKnowledgeAdapter`.
 
-**Mode/level orthogonality (ADR-068 amendment 2026-05-03):** Modes answer "which analytical lens?" (capability / yamazumi / defect / performance / process-flow). Levels answer "which slice of the process?" (System / Process Flow / Local Mechanism) — inferred from Canvas zoom state, not a separate picker. The two are orthogonal: any mode at any level. Level-aware overlays read Canvas zoom via `coScout/context/` pipeline; no new user gesture required.
+**Surface + loop-intent model (2026-06-09):** CoScout behavior is framed by deterministic surface (Process / Explore / Analyze Wall / Report) and soft inferred loop-intent (diverging / converging / deciding). Intent never gates tools; it only changes emphasis.
 
 ---
 
@@ -116,8 +113,8 @@ Canonical prompt engineering rules live in `.claude/invariants/coscout-prompts.m
 
 **Key constraints (brief summary):**
 
-- Entry point is `assembleCoScoutPrompt()` — the sole prompt-assembly entry point (`legacy.ts` / `buildCoScoutSystemPrompt()` deleted 2026-05-30, ADR-068 complete)
-- Every tool in `tools/registry.ts` declares `phases` + optional `tier: 'team'`; ungated tools leak across phases/tiers
+- Entry point is `assembleCoScoutPrompt({ surface, scope, context })` — the sole prompt-assembly entry point (`legacy.ts` / `buildCoScoutSystemPrompt()` deleted 2026-05-30, ADR-068 complete)
+- Every tool in `tools/registry.ts` declares deterministic `surfaces`; ungated tools leak across product surfaces
 - Tier 1 is session-invariant — content that moves between tier 1 and tier 3 breaks prompt-cache hit rate (10x token cost)
 - Never "root cause" language (ESLint-enforced across prompts and CoScout code)
 
@@ -127,11 +124,11 @@ Full rules: [`.claude/invariants/coscout-prompts.md`](../../.claude/invariants/c
 
 ## Tool-Calling
 
-**Registry:** `packages/core/src/ai/tools/registry.ts` — 27 tools (V1 target), each gated by `phases: PhaseEnum[]` + optional `tier: 'team'`.
+**Registry:** `packages/core/src/ai/prompts/coScout/tools/registry.ts` — executable tool registry gated by `surfaces: CoScoutSurface[]`.
 
-**Phase gates:** Tools declare which investigation phases they're available in (FRAME, SCOUT, INVESTIGATE, Converging, etc.). Ungated tools appear in all phases — a correctness and UX concern, not just a permission issue.
+**Surface gates:** Tools declare which product surfaces they're available on (Process, Explore, Analyze, Report). Soft loop-intent never gates tools.
 
-**Tier gate:** Tools marked `tier: 'team'` are stripped from prompts by `assembleCoScoutPrompt()` when `isPaidTier()` is false.
+**Agent API shape:** The embedded Azure panel is the first client of the transport-agnostic tool surface. A future in-tenant MCP server is named-future, not V1 scope.
 
 **Implementation detail:** `packages/core/src/ai/tools/` — see `packages/core/CLAUDE.md` for specifics.
 
@@ -145,11 +142,9 @@ Azure-only, transcription-first (ADR-071). CoScout receives a text transcript of
 
 ## Eval Discipline
 
-**Current state:** No automated CoScout eval suite exists at the time of writing (2026-05-16). The promptTierSafety regression test (`packages/core/src/ai/__tests__/promptTierSafety.test.ts`) is the only mechanized quality gate.
+**Current state:** A fixture-based behavioral eval harness exists at `packages/core/src/ai/__tests__/coScoutBehavioralEval.test.ts`.
 
-**Follow-up:** A `run-coscout-eval` skill is planned (Play 3 skills inventory). Until shipped, CoScout quality is assessed manually via representative investigation walkthroughs with a Six Sigma practitioner (Watson testing sessions — see `docs/agent-context/onboarding-quick-start.md`).
-
-**Open gap:** Log in `docs/investigations.md` — "CoScout eval suite: design and schedule automated regression tests for prompt quality, tier enforcement, phase gating, REF marker correctness."
+It gates prompt changes for refusal-to-invent numbers, orient-before-coaching, tool choice/arguments, REF grounding, surface-appropriate behavior, and proposal safety.
 
 ---
 
@@ -174,7 +169,7 @@ The five mode-specific journeys were updated for the wedge pivot (2026-05-16). E
 ## Related Artifacts
 
 - [ADR-060: CoScout Intelligence Architecture](../07-decisions/adr-060-coscout-intelligence-architecture.md) — five-pillar knowledge architecture, detail
-- [ADR-068: CoScout Cognitive Redesign](../07-decisions/adr-068-coscout-cognitive-redesign.md) — modular prompts, tier model, phase-adaptive assembly, mode/level orthogonality
+- [ADR-068: CoScout Cognitive Redesign](../07-decisions/adr-068-coscout-cognitive-redesign.md) — modular prompts, superseded phase-adaptive assembly
 - [ADR-069: Three-Boundary Numeric Safety](../07-decisions/adr-069-three-boundary-numeric-safety.md) — B1/B2/B3 safety architecture, safeMath.ts
 - [ADR-071: CoScout Voice Input](../07-decisions/adr-071-coscout-voice-input.md) — transcription-first, Azure-only, scope
 - [ADR-057: CoScout Visual Grounding](../07-decisions/adr-057-coscout-visual-grounding.md) — REF markers, customer data boundary

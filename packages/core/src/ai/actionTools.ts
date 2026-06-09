@@ -20,15 +20,10 @@ import { toNumericValue } from '../types';
 export type ActionToolName =
   | 'apply_filter'
   | 'clear_filters'
-  | 'switch_factor'
   | 'create_finding'
   | 'suggest_action'
   | 'suggest_improvement_idea'
-  | 'spark_brainstorm_ideas'
   | 'suggest_save_finding'
-  | 'share_finding'
-  | 'publish_report'
-  | 'notify_action_owners'
   | 'navigate_to' // Project dashboard navigation
   | 'suggest_hypothesis'
   | 'connect_hub_evidence'

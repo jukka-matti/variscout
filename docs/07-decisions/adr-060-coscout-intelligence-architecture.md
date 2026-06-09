@@ -131,3 +131,20 @@ CoScout's authority boundary is unchanged: the deterministic stats engine
 remains the source of truth for numbers; CoScout grounds context, asks
 targeted questions, and proposes actions. The grounding surface has grown;
 the principle has not.
+
+## Amendment — 2026-06-09: Question pillar reconciled to Finding / Hypothesis model
+
+The 2026-06-09 CoScout surface + intent redesign supersedes the delivered
+`answer_question` claim in Pillar 4. The Question entity has been retired from
+the active CoScout tool surface; CoScout now works through Findings, Analysis
+Scopes, and hypothesis hubs on the Analyze Wall.
+
+Implementation consequences:
+
+- `buildAIContext()` now carries Analysis Scope and Project role context.
+- `answer_question` is not advertised in the registry.
+- Tool gating is by deterministic product surface, not investigation phase.
+- CoScout remains Azure-only; PWA has no mounted CoScout panel.
+
+The five-pillar architecture remains useful as the knowledge architecture
+provenance, but Pillar 4 is now "Finding / Hypothesis ↔ CoScout interaction."

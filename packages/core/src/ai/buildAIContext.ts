@@ -11,7 +11,13 @@
 
 import type { AIContext, ProcessContext, TargetMetric, AnalyzePhase } from './types';
 import type { InsightChartType } from './chartInsights';
-import type { Finding, AnalyzeCategory, Hypothesis, FindingComment } from '../findings';
+import type {
+  Finding,
+  AnalyzeCategory,
+  Hypothesis,
+  FindingComment,
+  ProblemStatementScope,
+} from '../findings';
 import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { computeOptimum } from '../stats/safeMath';
@@ -21,6 +27,8 @@ import type { AnalysisMode } from '../types';
 import type { SubgroupCapabilityResult, SubgroupConfig } from '../stats/subgroupCapability';
 import type { Locale } from '../i18n/types';
 import type { BestSubsetsResult } from '../stats/bestSubsets';
+import type { ProjectRole } from '../projectMembership/types';
+import { formatConditionLeaves } from '../findings/hypothesisCondition';
 
 /** Stats input for AI context — extends StatsResult with app-level fields */
 export interface AIStatsInput {
@@ -104,6 +112,10 @@ export interface BuildAIContextOptions {
   locale?: Locale;
   /** Current analysis mode */
   analysisMode?: AnalysisMode;
+  /** Current Project role for tone and permission-aware coaching */
+  projectRole?: ProjectRole;
+  /** Active Analysis Scope, usually produced from current drill/filter state */
+  analysisScope?: ProblemStatementScope;
   /** Suspected cause hubs from investigation */
   hypotheses?: Hypothesis[];
   /** R²adj-weighted coverage percentage (0-100) */
@@ -166,6 +178,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     maxGlossaryTerms = 40,
     locale,
     analysisMode,
+    projectRole,
   } = options;
 
   // Determine relevant glossary categories based on state
@@ -190,6 +203,10 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     }),
     locale,
   };
+
+  if (projectRole) {
+    context.projectRole = projectRole;
+  }
 
   // Derive factorRoles from investigation categories
   if (categoriesOpt && categoriesOpt.length > 0) {
@@ -228,6 +245,29 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 
   if (options.drillPathEnriched && options.drillPathEnriched.length > 0) {
     context.drillPathEnriched = options.drillPathEnriched;
+  }
+
+  if (options.analysisScope || Object.keys(filters).length > 0 || process.measurement) {
+    const activeScope = options.analysisScope;
+    const scopeFilters = activeScope
+      ? [formatConditionLeaves(activeScope.predicates)].filter(Boolean)
+      : Object.entries(filters).flatMap(([factor, values]) =>
+          values.map(value => `${factor} = ${String(value)}`)
+        );
+    const firstPredicate = activeScope?.predicates.find(
+      predicate => 'column' in predicate && predicate.column
+    );
+    context.analysisScope = {
+      id: activeScope?.id,
+      projectId: activeScope?.projectId,
+      outcome: activeScope?.outcome ?? process.measurement,
+      factor:
+        firstPredicate && 'column' in firstPredicate
+          ? firstPredicate.column
+          : drillPath?.[drillPath.length - 1],
+      filters: scopeFilters,
+      hypothesisIds: activeScope?.hypothesisIds,
+    };
   }
 
   // Propagate analysis mode to AI context

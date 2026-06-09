@@ -84,6 +84,8 @@ import type {
   ProcessHub,
   DisconfirmationAttempt,
   HypothesisStatus,
+  CoScoutSurface,
+  ProjectRole,
 } from '@variscout/core';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { createProjectActionItem, type BrainstormIdea } from '@variscout/core/findings';
@@ -120,6 +122,7 @@ import { useToast } from '../context/ToastContext';
 import { ControlEntryRow } from './Editor.control';
 import { EditorEmptyState } from '../components/editor/EditorEmptyState';
 import { EditorDashboardView } from '../components/editor/EditorDashboardView';
+import { CoScoutSection } from '../components/editor/CoScoutSection';
 import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
 import {
   activateHubProject,
@@ -566,6 +569,12 @@ export const Editor: React.FC<EditorProps> = ({
     // Wedge V1: no back-compat fallback. An empty members[] has no Lead, so canAccess
     // returns false and the gate stays closed (per feedback_wedge_v1_no_migration_no_backcompat).
     return canAccess(userId, members, 'edit');
+  }, [activeIPContext.activeIP, currentUser?.email]);
+  const projectRole = useMemo<ProjectRole | undefined>(() => {
+    const userId = currentUser?.email;
+    if (!userId) return undefined;
+    return activeIPContext.activeIP?.metadata.members?.find(member => member.userId === userId)
+      ?.role;
   }, [activeIPContext.activeIP, currentUser?.email]);
   const selectedOrActiveProjectId = activeIPContext.activeIP?.id ?? selectedProjectId;
   const activeIPScopeLabels = useMemo(
@@ -1534,6 +1543,31 @@ export const Editor: React.FC<EditorProps> = ({
   );
 
   // AI orchestration
+  const coscoutSurface = useMemo<CoScoutSurface>(() => {
+    switch (activeView) {
+      case 'frame':
+        return 'process';
+      case 'explore':
+        return 'explore';
+      case 'report':
+        return 'report';
+      case 'analyze':
+      default:
+        return 'analyze';
+    }
+  }, [activeView]);
+  const activeAnalysisScope = useMemo(
+    () =>
+      scopes
+        .filter(
+          scope =>
+            scope.deletedAt === null &&
+            scope.projectId === selectedOrActiveProjectId &&
+            (!outcome || scope.outcome === outcome)
+        )
+        .sort((a, b) => b.updatedAt - a.updatedAt)[0],
+    [outcome, scopes, selectedOrActiveProjectId]
+  );
   const aiOrch = useAIOrchestration({
     enabled: aiEnabled,
     stats: stats ?? undefined,
@@ -1555,6 +1589,9 @@ export const Editor: React.FC<EditorProps> = ({
     locale,
     knowledgeSearchFolder,
     journeyPhase,
+    coscoutSurface,
+    projectRole,
+    analysisScope: activeAnalysisScope,
     entryScenario,
     capabilityData: aiCapabilityData,
     analysisMode,
@@ -1585,6 +1622,16 @@ export const Editor: React.FC<EditorProps> = ({
     stats,
     filteredDataLength: filteredData.length,
   });
+
+  const sharedCoScoutSection = (
+    <CoScoutSection
+      aiOrch={aiOrch}
+      findingsState={findingsState}
+      actionProposalsState={actionProposalsState}
+      handleSearchKnowledge={handleSearchKnowledge}
+      handleAddCommentWithAuthor={handleAddCommentWithAuthor}
+    />
+  );
 
   // Auto-send pending dashboard question to CoScout when panel opens
   useEffect(() => {
@@ -2149,49 +2196,52 @@ export const Editor: React.FC<EditorProps> = ({
                 />
               </div>
             ) : activeView === 'frame' ? (
-              <div className="flex min-h-0 flex-1 flex-col">
-                {activeIPScope ? (
-                  <ActiveIPScopeRibbon
-                    title={activeIPScope.title}
-                    labels={activeIPScope.labels}
-                    surface="Process"
-                  />
-                ) : null}
-                {/* FSJ-3b (spec §3): goal ceremony opt-in — relocated off the retired
+              <div className="flex min-h-0 flex-1 overflow-hidden">
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                  {activeIPScope ? (
+                    <ActiveIPScopeRibbon
+                      title={activeIPScope.title}
+                      labels={activeIPScope.labels}
+                      surface="Process"
+                    />
+                  ) : null}
+                  {/* FSJ-3b (spec §3): goal ceremony opt-in — relocated off the retired
                     Stage-1 HubGoalForm; the empty start-prompt is the framing surface's
                     entry point. Populated banner renders when a goal already exists.
                     Word-style commit: unsaved hubs stay in-memory until an explicit Save. */}
-                {activeHub ? (
-                  <GoalBanner
-                    goal={activeHub.processGoal ?? ''}
-                    startPrompt="Set a process goal…"
-                    onChange={next => {
-                      void commitHubChange({
-                        ...activeHub,
-                        name: extractHubName(next) || activeHub.name || 'Untitled hub',
-                        processGoal: next,
-                        updatedAt: Date.now(),
-                      });
-                    }}
+                  {activeHub ? (
+                    <GoalBanner
+                      goal={activeHub.processGoal ?? ''}
+                      startPrompt="Set a process goal…"
+                      onChange={next => {
+                        void commitHubChange({
+                          ...activeHub,
+                          name: extractHubName(next) || activeHub.name || 'Untitled hub',
+                          processGoal: next,
+                          updatedAt: Date.now(),
+                        });
+                      }}
+                    />
+                  ) : null}
+                  <FrameView
+                    canEditCanvas={canEditCanvas}
+                    activeIP={activeIPContext.activeIP}
+                    outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
+                    reingestPendingMatches={pendingMatches}
+                    onFixData={dataFlow.openFactorManager}
+                    onRenameColumn={dataFlow.handleColumnRename}
+                    quietTimeExtraction={dataFlow.quietTimeExtraction}
+                    onDismissQuietTimeExtraction={dataFlow.dismissQuietTimeExtraction}
+                    onUndoQuietTimeExtraction={dataFlow.undoQuietTimeExtraction}
+                    defectDetection={dataFlow.defectDetection}
+                    onAcceptDefectDetection={handleAcceptDefectDetection}
+                    onDismissDefectDetection={dataFlow.dismissDefectDetection}
+                    wideFormatDetection={dataFlow.wideFormatDetection}
+                    onAcceptWideFormatDetection={handleAcceptWideFormatDetection}
+                    onDismissWideFormatDetection={dataFlow.dismissWideFormatDetection}
                   />
-                ) : null}
-                <FrameView
-                  canEditCanvas={canEditCanvas}
-                  activeIP={activeIPContext.activeIP}
-                  outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
-                  reingestPendingMatches={pendingMatches}
-                  onFixData={dataFlow.openFactorManager}
-                  onRenameColumn={dataFlow.handleColumnRename}
-                  quietTimeExtraction={dataFlow.quietTimeExtraction}
-                  onDismissQuietTimeExtraction={dataFlow.dismissQuietTimeExtraction}
-                  onUndoQuietTimeExtraction={dataFlow.undoQuietTimeExtraction}
-                  defectDetection={dataFlow.defectDetection}
-                  onAcceptDefectDetection={handleAcceptDefectDetection}
-                  onDismissDefectDetection={dataFlow.dismissDefectDetection}
-                  wideFormatDetection={dataFlow.wideFormatDetection}
-                  onAcceptWideFormatDetection={handleAcceptWideFormatDetection}
-                  onDismissWideFormatDetection={dataFlow.dismissWideFormatDetection}
-                />
+                </div>
+                {sharedCoScoutSection}
               </div>
             ) : activeView === 'charter' ? (
               <ImprovementProjectPanel
@@ -2322,25 +2372,31 @@ export const Editor: React.FC<EditorProps> = ({
                 }
               />
             ) : activeView === 'report' ? (
-              <Suspense fallback={null}>
-                <ReportView
-                  onClose={() => usePanelsStore.getState().showExplore()}
-                  aiEnabled={aiEnabled && isAIAvailable()}
-                  narrative={aiOrch.narration.narrative}
-                  activeIPScope={activeIPScope}
-                  activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
-                  activeHub={activeHub}
-                  activeIP={activeIPContext.activeIP}
-                  onOpenActiveIP={
-                    activeIPContext.activeIP
-                      ? () => usePanelsStore.getState().showProjects(activeIPContext.activeIP!.id)
-                      : undefined
-                  }
-                  onExitActiveIP={() => {
-                    activeIPContext.clearActiveIP();
-                  }}
-                />
-              </Suspense>
+              <div className="flex min-h-0 flex-1 overflow-hidden">
+                <div className="min-h-0 flex-1 overflow-hidden">
+                  <Suspense fallback={null}>
+                    <ReportView
+                      onClose={() => usePanelsStore.getState().showExplore()}
+                      aiEnabled={aiEnabled && isAIAvailable()}
+                      narrative={aiOrch.narration.narrative}
+                      activeIPScope={activeIPScope}
+                      activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
+                      activeHub={activeHub}
+                      activeIP={activeIPContext.activeIP}
+                      onOpenActiveIP={
+                        activeIPContext.activeIP
+                          ? () =>
+                              usePanelsStore.getState().showProjects(activeIPContext.activeIP!.id)
+                          : undefined
+                      }
+                      onExitActiveIP={() => {
+                        activeIPContext.clearActiveIP();
+                      }}
+                    />
+                  </Suspense>
+                </div>
+                {sharedCoScoutSection}
+              </div>
             ) : (
               <EditorDashboardView
                 dataFlow={dataFlow}

@@ -1,7 +1,7 @@
 /**
  * Data context formatter for CoScout Tier 2 (semi-static context).
  *
- * Owns: active chart, drill scope, top factors by eta-squared,
+ * Owns: active chart, Analysis Scope, top factors by eta-squared,
  * best model equation (R²adj), stats summary (n, mean, sigma, Cpk).
  *
  * Investigation state (problem statement, Evidence Map topology,
@@ -21,6 +21,10 @@ import type { AIContext } from '../../../types';
 export function formatDataContext(context: AIContext): string {
   const lines: string[] = [];
 
+  if (context.projectRole) {
+    lines.push(`Project role: ${context.projectRole}`);
+  }
+
   // Active chart with factor info
   if (context.activeChart) {
     const filters = context.filters;
@@ -33,7 +37,18 @@ export function formatDataContext(context: AIContext): string {
     lines.push(chartLine);
   }
 
-  // Drill scope
+  // Analysis Scope
+  if (context.analysisScope) {
+    const parts: string[] = [];
+    parts.push(`outcome=${context.analysisScope.outcome}`);
+    if (context.analysisScope.factor) parts.push(`factor=${context.analysisScope.factor}`);
+    if (context.analysisScope.stepId) parts.push(`step=${context.analysisScope.stepId}`);
+    if (context.analysisScope.filters.length > 0) {
+      parts.push(`filters=${context.analysisScope.filters.join(' + ')}`);
+    }
+    lines.push(`Analysis Scope: ${parts.join(', ')}`);
+  }
+
   if (context.drillPath && context.drillPath.length > 0) {
     const scopePct =
       context.cumulativeScope !== undefined
@@ -41,7 +56,7 @@ export function formatDataContext(context: AIContext): string {
         : undefined;
     const pathStr = context.drillPath.join(' > ');
     if (scopePct) {
-      lines.push(`Drill scope: ${scopePct} (${pathStr})`);
+      lines.push(`Scope coverage: ${scopePct} (${pathStr})`);
     } else {
       lines.push(`Drill path: ${pathStr}`);
     }

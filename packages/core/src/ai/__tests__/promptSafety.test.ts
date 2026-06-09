@@ -15,7 +15,7 @@ import {
   TERMINOLOGY_INSTRUCTION,
 } from '../prompts';
 import { assembleCoScoutPrompt } from '../prompts/coScout';
-import { getToolsForPhase } from '../prompts/coScout/tools';
+import { getToolsForPhase, getToolsForSurface } from '../prompts/coScout/tools';
 import { buildAIContext } from '../buildAIContext';
 import type { AIContext } from '../types';
 import type { Hypothesis } from '../../findings/types';
@@ -209,44 +209,47 @@ describe('context injection resistance', () => {
 // ── Tool schema strictness ──────────────────────────────────────────────
 
 describe('tool schema strictness', () => {
-  const allPhases = ['frame', 'scout', 'analyze', 'improve'] as const;
+  const allSurfaces = ['process', 'explore', 'analyze', 'report'] as const;
 
-  for (const phase of allPhases) {
-    it(`all tools in phase "${phase}" have strict: true`, () => {
-      const tools = getToolsForPhase(phase, 'standard');
+  for (const surface of allSurfaces) {
+    it(`all tools in surface "${surface}" have strict: true`, () => {
+      const tools = getToolsForSurface(surface, 'standard');
       for (const tool of tools) {
         expect(tool.parameters.strict).toBe(true);
       }
     });
 
-    it(`all tools in phase "${phase}" have additionalProperties: false`, () => {
-      const tools = getToolsForPhase(phase, 'standard');
+    it(`all tools in surface "${surface}" have additionalProperties: false`, () => {
+      const tools = getToolsForSurface(surface, 'standard');
       for (const tool of tools) {
         expect(tool.parameters.additionalProperties).toBe(false);
       }
     });
   }
 
-  it('improve phase has expected unconditional tool count (wedge V1 single SKU)', () => {
-    // Without conditions (no analyzePhase, no existingHubs): 21 tools
-    // (2 conditional tools — suggest_hypothesis and connect_hub_evidence — excluded when conditions absent)
-    const tools = getToolsForPhase('improve', 'standard');
-    expect(tools.length).toBe(21);
+  it('analyze surface has expected unconditional tool count', () => {
+    const tools = getToolsForSurface('analyze', 'standard');
+    expect(tools.length).toBe(18);
   });
 
-  it('improve phase reaches full 23 tools with conditions met', () => {
-    // With analyzePhase: converging AND existingHubs: 2 conditional tools added → 23 total
-    const tools = getToolsForPhase('improve', 'standard', {
-      analyzePhase: 'converging',
-      // connect_hub_evidence only checks existingHubs.length > 0; a minimal
-      // partial fixture cast to Hypothesis is sufficient (matches toolRegistry.test).
+  it('analyze surface includes connect_hub_evidence when hubs exist', () => {
+    const tools = getToolsForSurface('analyze', 'standard', {
       existingHubs: [{ id: 'h1', name: 'Hub' } as unknown as Hypothesis],
     });
-    expect(tools.length).toBe(23);
+    expect(tools.length).toBe(19);
+    expect(tools.map(tool => tool.name)).toContain('connect_hub_evidence');
+  });
+
+  it('report surface stays read/communication oriented', () => {
+    const tools = getToolsForSurface('report', 'standard');
+    const toolNames = tools.map(tool => tool.name);
+    expect(toolNames).toContain('search_project');
+    expect(toolNames).not.toContain('apply_filter');
+    expect(toolNames).not.toContain('create_finding');
   });
 
   it('every tool has a name and description', () => {
-    const tools = getToolsForPhase('improve', 'standard');
+    const tools = getToolsForSurface('analyze', 'standard');
     for (const tool of tools) {
       expect(tool.name).toBeTruthy();
       expect(tool.description).toBeTruthy();
@@ -254,26 +257,29 @@ describe('tool schema strictness', () => {
   });
 
   it('every tool has type "function"', () => {
-    const tools = getToolsForPhase('improve', 'standard');
+    const tools = getToolsForSurface('analyze', 'standard');
     for (const tool of tools) {
       expect(tool.type).toBe('function');
     }
   });
 
-  it('all tool names in improve phase have no duplicates', () => {
-    // Get all unique tool names from the improve phase (has all tools)
-    const tools = getToolsForPhase('improve', 'standard');
+  it('all tool names in analyze surface have no duplicates', () => {
+    const tools = getToolsForSurface('analyze', 'standard');
     const toolNames = tools.map(t => t.name);
 
-    // Verify no duplicate tool names
     const uniqueNames = new Set(toolNames);
     expect(uniqueNames.size).toBe(toolNames.length);
   });
 
-  it('assembleCoScoutPrompt tools are consistent with getToolsForPhase', () => {
-    // The assembler uses getToolsForPhase internally — verify the wiring
-    const { tools } = assembleCoScoutPrompt({ phase: 'improve' });
-    const direct = getToolsForPhase('improve', 'standard');
+  it('legacy phase wrapper maps improve to report surface', () => {
+    const tools = getToolsForPhase('improve', 'standard');
+    const direct = getToolsForSurface('report', 'standard');
+    expect(tools.map(t => t.name).sort()).toEqual(direct.map(t => t.name).sort());
+  });
+
+  it('assembleCoScoutPrompt tools are consistent with getToolsForSurface', () => {
+    const { tools } = assembleCoScoutPrompt({ surface: 'analyze' });
+    const direct = getToolsForSurface('analyze', 'standard');
     expect(tools.length).toBe(direct.length);
     expect(tools.map(t => t.name).sort()).toEqual(direct.map(t => t.name).sort());
   });

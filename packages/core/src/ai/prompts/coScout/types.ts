@@ -6,17 +6,22 @@
  */
 
 import type { ToolDefinition } from '../../responsesApi';
-import type { AIContext, AnalyzePhase, JourneyPhase } from '../../types';
+import type { AIContext } from '../../types';
 import type { AnalysisMode } from '../../../types';
+import type { ProblemStatementScope } from '../../../findings/types';
 
-/** Surface where CoScout is rendered — affects prompt length and tone */
-export type CoScoutSurface =
-  | 'fullPanel'
-  | 'quickAsk'
-  | 'contextClick'
-  | 'chartInsight'
-  | 'inlineCoScout'
-  | 'narration';
+/** Deterministic product surface where CoScout is rendered. */
+export type CoScoutSurface = 'process' | 'explore' | 'analyze' | 'report';
+
+/** Scope facts used by the agent API; mode is an Analyze-surface property. */
+export interface CoScoutScope {
+  analysisMode?: AnalysisMode;
+  activeScope?: Pick<
+    ProblemStatementScope,
+    'id' | 'projectId' | 'outcome' | 'predicates' | 'hypothesisIds' | 'whatIfProjection'
+  >;
+  activeScopeLabel?: string;
+}
 
 /** Tiered prompt structure optimized for Azure AI Foundry prompt caching */
 export interface CoScoutPromptTiers {
@@ -32,14 +37,12 @@ export interface CoScoutPromptTiers {
 
 /** Options for the unified prompt assembler */
 export interface AssembleCoScoutPromptOptions {
-  /** Current journey phase (frame/scout/investigate/improve) */
-  phase?: JourneyPhase;
-  /** Current investigation sub-phase */
-  analyzePhase?: AnalyzePhase;
-  /** Current analysis mode */
-  mode?: AnalysisMode;
-  /** Surface where CoScout is rendered */
+  /** Deterministic product surface where CoScout is rendered */
   surface?: CoScoutSurface;
+  /** Current analysis scope and Analyze-surface mode */
+  scope?: CoScoutScope;
+  /** @deprecated Use scope.analysisMode. Accepted for transitional callers. */
+  mode?: AnalysisMode;
   /** Full AI context for dynamic content */
   context?: AIContext;
 }

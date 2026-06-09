@@ -103,3 +103,25 @@ advocate critique of the 2026-04-27 operating-model pivot). Locked as Q3
 in the 2026-05-03 vision §8 walkthrough — see
 `~/.claude/plans/lets-do-this-next-rustling-simon.md` and the matching
 entry in [`docs/decision-log.md`](../decision-log.md).
+
+## Amendment — 2026-06-09: Phase-adaptive model superseded by surface + soft intent
+
+The 2026-06-09 CoScout surface + intent redesign supersedes ADR-068's
+phase-adaptive assembly model. The durable pieces remain: modular prompt
+tiers, cacheable Tier 1, app-owned Responses API tool loop, proposal-gated
+actions, and deterministic stats as numeric authority.
+
+Superseded pieces:
+
+- `assembleCoScoutPrompt(phase, mode, surface, context)` is replaced by
+  `assembleCoScoutPrompt({ surface, scope, context })`.
+- `JourneyPhase` no longer frames CoScout behavior.
+- Tool availability is gated by deterministic product surface
+  (`process | explore | analyze | report`).
+- Loop-intent is soft and inferred from context; it never gates tools.
+- Analyze coaching is Wall-first and Finding-as-unit; Question-tree and
+  Evidence-Map-first coaching are retired.
+
+The registry is now an agent-API-first surface that can be called by the
+embedded Azure panel today and by a future in-tenant MCP server if that named
+future is funded.

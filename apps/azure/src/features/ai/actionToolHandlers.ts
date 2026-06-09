@@ -170,6 +170,10 @@ export function buildActionToolHandlers({
     suggest_save_finding: async (args: Record<string, unknown>) => {
       const insightText = args.insight_text as string;
       const category = (args.category as string | null) ?? undefined;
+      const reasoning = (args.reasoning as string | null) ?? undefined;
+      const suggestedHypothesisId =
+        (args.suggested_hypothesis_id as string | null | undefined) ??
+        (args.suggested_question_id as string | null | undefined);
 
       if (!insightText) return JSON.stringify({ error: 'Missing insight_text' });
 
@@ -179,6 +183,8 @@ export function buildActionToolHandlers({
         params: {
           insight_text: insightText,
           category: category,
+          reasoning,
+          suggested_hypothesis_id: suggestedHypothesisId ?? null,
         },
         preview: {
           contextSnapshot: {
