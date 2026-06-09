@@ -1639,3 +1639,15 @@ L-1 gate verification: once a finding exists, the only hypothesis-linking paths 
 ## Capture-card Note field drops input after the first keystroke [LOGGED 2026-06-07]
 
 Reproduced live during the L-1 gate walk: typing into the New-Finding Note textarea lands only the first character ("W" of a 79-char note); the rest is lost (focus/state reset per keystroke — likely the draft object recreated on each onDraftChange, remounting the card). This is the root mechanism behind the earlier "E—" note-truncation entry — same family, now with a live repro. The morning entry's "truncation on display" framing is superseded: the note is truncated at INPUT time.
+
+## Post-migration simplification candidates [LOGGED 2026-06-09]
+
+Forward-looking refactoring backlog surfaced while planning the Workspace migration. **Run AFTER** the Workspace migration (mega-plan W1–W7) + the future-Process-code audit land — those remove/reshape a lot, so refactoring earlier = refactoring a moving target. **Principle: delete > decompose > rewrite** (the biggest wins are subtraction). Grounded against `main` 2026-06-09.
+
+1. **⏰ TIME-SENSITIVE — collapse the Dexie migration chain to a clean `version(1)`.** Azure schema is at `version(17)`, PWA at `version(15)` (~32 `.version()` steps total). VariScout is **pre-production** (no customer has saved data), so the whole chain + its `.upgrade()` callbacks + migration tests can be deleted and reset to a single clean schema. **This window CLOSES at launch** — once a paying customer saves data on v17 you must maintain the chain forever. Highest value-per-risk on the board; do it **before launch**, independent of everything else. (`apps/azure/src/db/schema.ts`, `apps/pwa/src/db/schema.ts`.)
+
+2. **Decompose the large files that survive the migration** (the holistic-eval's #11 render-decomposition, deferred until boundaries are stable). NOT `Editor.tsx`/`App.tsx` (mega-plan W6) or the portfolio `Dashboard.tsx` (shrinks with W4) or the i18n/`learnData` data files (large but not logic — leave). The real survivors: `CanvasWorkspace.tsx` (1696), `WallCanvas.tsx` (1554), `HypothesisCardWithPlans.tsx` (1493), `ProcessMap.tsx` (1223), `AnalyzeWorkspace.tsx` (1407), `ReportView.tsx` (1303), and `analyzeStore.ts` (1291, cross-surface store — holistic-eval #3).
+
+3. **Test-suite simplification.** 884 test files / ~177k test LOC (vs ~240k non-test). Outliers to decompose/dedup: `CanvasWorkspace.test.tsx` is **3,212 lines — larger than the 1,696-line component it tests** (and is the one quarantined for the vitest hang — unfinished); `analyzeStore.test.ts` (1708), `services/storage.test.ts` (1666), `WallCanvas.test.tsx` (1474). The migration-chain tests die for free with candidate #1.
+
+Already-covered elsewhere (not re-listed here): big shells → W6; portfolio dashboards → W4; package-boundary hygiene → holistic-eval #10; ProcessHub rename → W7; speculative Process code → the future-Process-code audit.
