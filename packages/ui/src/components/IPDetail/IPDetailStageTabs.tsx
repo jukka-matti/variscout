@@ -35,7 +35,7 @@ function stageClass(state: StageState, isActive: boolean): string {
 
 const IPDetailStageTabs: React.FC<IPDetailStageTabsProps> = ({ stages, active, onStageChange }) => {
   return (
-    <div className="flex gap-0" role="tablist" aria-label="IP lifecycle stages">
+    <div className="flex gap-0" role="tablist" aria-label="Project lifecycle stages">
       {STAGE_ORDER.map(stage => {
         const state = stages[stage];
         const isActive = active === stage;

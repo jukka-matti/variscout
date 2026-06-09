@@ -38,6 +38,31 @@ describe('CharterOverview', () => {
     );
   });
 
+  it('uses Analyze Wall vocabulary and renders live project signal chips', () => {
+    render(
+      <CharterOverview
+        ip={baseIP}
+        onOpenInvestigation={() => {}}
+        onOpenAnalyze={() => {}}
+        overviewSignals={{
+          hypotheses: { total: 3, supported: 1, untested: 2 },
+          findings: { total: 5, investigating: 2, analyzed: 3 },
+          measurementPlans: { total: 2, planned: 1, complete: 1 },
+          actions: { total: 0 },
+          team: { total: 2, lead: 1, member: 1, sponsor: 0 },
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('kpi-analyze')).toHaveTextContent(/Analyze Wall/i);
+    expect(screen.queryByText(/^Investigation$/i)).not.toBeInTheDocument();
+    expect(screen.getByTestId('project-signal-hypotheses')).toHaveTextContent(/3 hypotheses/i);
+    expect(screen.getByTestId('project-signal-findings')).toHaveTextContent(/5 findings/i);
+    expect(screen.getByTestId('project-signal-measurement-plans')).toHaveTextContent(
+      /2 measurement plans/i
+    );
+  });
+
   describe('Team section', () => {
     const twoMembers: ProjectMember[] = [
       {

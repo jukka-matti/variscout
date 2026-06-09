@@ -4,6 +4,8 @@ import type { ProjectRole } from '@variscout/core/projectMembership';
 import { canAccess } from '@variscout/core/projectMembership';
 import { InviteModal } from '../../projects/InviteModal';
 import { MemberList } from '../../projects/MemberList';
+import ProjectSignalChips from '../ProjectSignalChips';
+import type { ProjectOverviewSignals } from '../projectOverviewSignals';
 
 interface CharterOverviewProps {
   ip: ImprovementProject;
@@ -11,6 +13,7 @@ interface CharterOverviewProps {
   onOpenAnalyze: () => void;
   surveyHint?: string;
   onSetGoal?: () => void;
+  overviewSignals?: ProjectOverviewSignals;
   /** Current user's id — required to show the Team section. */
   currentUserId?: string;
   /** Called when the InviteModal is submitted. Caller builds the ProjectMember + dispatches IP UPDATE. */
@@ -33,6 +36,7 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
   onOpenAnalyze,
   surveyHint,
   onSetGoal,
+  overviewSignals,
   currentUserId,
   onInvite,
   inviteDisabledReason,
@@ -60,6 +64,11 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
             'Capture the Issue, set the Goal, link the lead Hypothesis before moving to Approach.'}
         </div>
       </div>
+
+      <ProjectSignalChips
+        signals={overviewSignals}
+        groups={['hypotheses', 'findings', 'measurementPlans', 'team']}
+      />
 
       {/* KPI strip */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -99,10 +108,10 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
           )}
         </div>
 
-        {/* Investigation KPI */}
+        {/* Analyze KPI */}
         <div className="rounded-md border border-edge p-3" data-testid="kpi-analyze">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-content-tertiary">
-            Investigation
+            Analyze Wall
           </div>
           <div className="mt-1 text-xs text-content">Hypotheses + findings live on the Wall</div>
         </div>
@@ -120,7 +129,7 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
             className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-100"
             data-testid="charter-continue-analyze"
           >
-            Investigation
+            Analyze Wall
           </button>
           <button
             type="button"

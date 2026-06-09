@@ -17,7 +17,7 @@ verified-against-commit: c289d920
 
 ## Persona statement
 
-The **Lead** opens the Project, runs the methodology, and signs off each stage. They own the canvas, the Investigation Wall, the Improvement Plan, and the **Control** cadence. Real-world counterparts: Black Belt, project lead, CI engineer, quality manager driving a specific improvement. The Lead invites Members for SME content + analytical contribution, and surfaces the work to a Sponsor for accountability.
+The **Lead** opens the Project, runs the methodology, and signs off each stage. They own the canvas, the Analyze Wall, the Improvement Plan, and the **Control** cadence. Real-world counterparts: Black Belt, project lead, CI engineer, quality manager driving a specific improvement. The Lead invites Members for SME content + analytical contribution, and surfaces the work to a Sponsor for accountability.
 
 The Lead is the only role that can advance lifecycle stages (Charter → Approach → **Control**), approve hypothesis closure, and finalize the Report.
 
@@ -53,22 +53,22 @@ sequenceDiagram
     Lead->>Analyze: Group Findings into Hypotheses on the Wall
     Note over Analyze: Lead defines Measurement Plans,<br/>tags suspected contributions
     Analyze->>Analyze: Members contribute evidence
-    Lead->>Improve: Project = collaboration via invite (create from Home, invite Members; hypotheses auto-scope to the active IP)
-    Note over Improve: Active-IP cascade lights up<br/>downstream tabs (Project / Process /<br/>Explore / Analyze filtered to IP)
+    Lead->>Improve: Open Project action tracker
+    Note over Improve: Active Project context keeps<br/>Project / Process / Explore / Analyze<br/>focused on the selected Project
     Lead->>Improve: Define improvement actions, owners, dates
     Lead->>Improve: Advance to Control (cadence + drift watch)
     Lead->>Report: Compile findings, actions, Control status
     Report->>Lead: Sponsor reviews (out-of-band sign-off; Lead records)
 ```
 
-The **active-IP cascade** is Lead-owned: when the Lead selects an Improvement Project as their active working focus, downstream tabs scope to that IP until the Lead changes it. Members and Sponsors see the cascade but cannot alter the active-IP selection.
+The active Project context is Lead-owned for creation and lifecycle advancement: when the Lead selects a Project as their working focus, workflow tabs scope to that Project until the Lead changes it. Members and Sponsors can open Projects they belong to, but cannot advance lifecycle state.
 
 ## Feature touch-points
 
 - [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Charter authoring, member roster, stage advance
 - [Analysis Flow](../../03-features/workflows/analysis-flow.md) — Four Lenses, canvas-based EDA
-- [Investigation Wall](../../03-features/workflows/analyze-wall.md) — Findings + Hypotheses + Measurement Plans
-- [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — Active-IP cascade, action tracker
+- [Analyze Wall](../../03-features/workflows/analyze-wall.md) — Findings + Hypotheses + Measurement Plans
+- [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — Project action tracker
 - [**Control**](../../03-features/workflows/control.md) — Cadence, drift detection, close-out
 - [Hub Creation](../../03-features/workflows/hub-creation.md) — Process Hub setup (internal substrate)
 
@@ -86,6 +86,6 @@ A Lead has succeeded when:
 
 Failure modes the journey is designed to prevent:
 
-- Hypotheses closed without evidence (Investigation Wall enforces gate)
+- Hypotheses closed without evidence (Analyze Wall enforces gate)
 - Cpk roll-ups across heterogeneous specs (ADR-073 enforcement)
 - Improvement actions without **Control** loop (Improve → Control hand-off built in)

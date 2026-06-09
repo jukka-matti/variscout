@@ -7,3 +7,5 @@ export { deriveStageState } from './stageState';
 export type { CauseRow, CauseStatus, CauseProjectionInputs } from './stages/causeProjection';
 export { projectCauses } from './stages/causeProjection';
 export type { ControlClosureInputs } from './stages/ControlOverview';
+export type { ProjectOverviewSignals, ProjectOverviewSignalInputs } from './projectOverviewSignals';
+export { deriveProjectOverviewSignals } from './projectOverviewSignals';

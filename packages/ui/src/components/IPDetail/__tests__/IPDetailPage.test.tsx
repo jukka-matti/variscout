@@ -179,13 +179,14 @@ describe('IPDetailPage', () => {
       expect(screen.getByRole('tab', { name: /approach/i })).toBeInTheDocument();
     });
 
-    it('renders only Report panel for Sponsor (no stage tabs)', () => {
+    it('renders the read-only Project dossier for Sponsor', () => {
       render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="sponsor@org" />);
-      expect(screen.queryByRole('tab', { name: /charter/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('tab', { name: /approach/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('tab', { name: /control/i })).not.toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /approach/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /control/i })).toBeInTheDocument();
       expect(screen.queryByRole('tab', { name: /improve/i })).not.toBeInTheDocument();
-      expect(screen.getByTestId('sponsor-report-panel')).toBeInTheDocument();
+      expect(screen.queryByTestId('sponsor-report-panel')).not.toBeInTheDocument();
+      expect(screen.getByTestId('stage-body-charter')).toBeInTheDocument();
     });
 
     it('renders normal page when currentUserId is absent (no ACL data)', () => {
@@ -203,10 +204,17 @@ describe('IPDetailPage', () => {
       expect(screen.getByRole('tab', { name: /charter/i })).toBeInTheDocument();
     });
 
-    it('renders Sponsor placeholder when role === sponsor (role-based per 2-tier ACL — Member + Sponsor share permissions; identity drives view)', () => {
-      render(<IPDetailPage ip={aclIP} onBackToList={() => {}} currentUserId="sponsor@org" />);
-      expect(screen.getByTestId('sponsor-report-panel')).toBeInTheDocument();
-      expect(screen.queryByTestId('stage-tab-charter')).not.toBeInTheDocument();
+    it('keeps Sponsor write affordances hidden in the read-only Project dossier', () => {
+      render(
+        <IPDetailPage
+          ip={aclIP}
+          onBackToList={() => {}}
+          currentUserId="sponsor@org"
+          onMembersChange={() => {}}
+        />
+      );
+      expect(screen.getByTestId('stage-tab-charter')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /invite team/i })).not.toBeInTheDocument();
     });
   });
 
