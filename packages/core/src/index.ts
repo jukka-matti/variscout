@@ -468,7 +468,6 @@ export type {
   TargetMetric,
   EntryScenario,
   AnalyzePhase,
-  JourneyPhase,
   AITier,
   AIContext,
   AIErrorType,
@@ -879,7 +878,7 @@ export {
 
 // Project Metadata (Portfolio view)
 export { buildProjectMetadata } from './projectMetadata';
-export type { ProjectMetadata } from './projectMetadata';
+export type { JourneyPhase, ProjectMetadata } from './projectMetadata';
 
 // Identity + lifecycle (F1 foundation — canonical ID generator + EntityBase shape)
 export type { EntityBase } from './identity';

@@ -28,7 +28,7 @@ export type {
 } from './types';
 
 // ── Tool registry ──────────────────────────────────────────────────────
-export { TOOL_REGISTRY, getToolsForPhase, getToolsForSurface } from './tools';
+export { TOOL_REGISTRY, getToolsForSurface } from './tools';
 export type { ToolRegistryEntry, ToolName } from './tools';
 
 // ── Assembler ───────────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ export function assembleCoScoutPrompt(
   tier2Parts.push(buildSurfaceCoaching(surface, scope));
 
   // Mode-specific workflow guidance. Mode is a property of the Analyze scope.
-  tier2Parts.push(buildModeWorkflow(mode, surface === 'analyze' ? 'analyze' : 'frame'));
+  tier2Parts.push(buildModeWorkflow(mode, surface, scope));
 
   // Tier 2 discipline coaching — Wall-specific targeted guidance
   if (surface === 'analyze') {

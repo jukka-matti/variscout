@@ -15,7 +15,8 @@ import {
   TERMINOLOGY_INSTRUCTION,
 } from '../prompts';
 import { assembleCoScoutPrompt } from '../prompts/coScout';
-import { getToolsForPhase, getToolsForSurface } from '../prompts/coScout/tools';
+import { getToolsForSurface } from '../prompts/coScout/tools';
+import * as coScoutTools from '../prompts/coScout/tools';
 import { buildAIContext } from '../buildAIContext';
 import type { AIContext } from '../types';
 import type { Hypothesis } from '../../findings/types';
@@ -271,10 +272,10 @@ describe('tool schema strictness', () => {
     expect(uniqueNames.size).toBe(toolNames.length);
   });
 
-  it('legacy phase wrapper maps improve to report surface', () => {
-    const tools = getToolsForPhase('improve', 'standard');
-    const direct = getToolsForSurface('report', 'standard');
-    expect(tools.map(t => t.name).sort()).toEqual(direct.map(t => t.name).sort());
+  it('does not export legacy phase tool wrappers', () => {
+    const legacyMapperName = ['map', 'Journey', 'Phase', 'To', 'Surface'].join('');
+    expect('getToolsForPhase' in coScoutTools).toBe(false);
+    expect(legacyMapperName in coScoutTools).toBe(false);
   });
 
   it('assembleCoScoutPrompt tools are consistent with getToolsForSurface', () => {

@@ -12,7 +12,6 @@ export type {
   TargetMetric,
   EntryScenario,
   AnalyzePhase,
-  JourneyPhase,
   AIContext,
   AIErrorType,
   CoScoutMessage,

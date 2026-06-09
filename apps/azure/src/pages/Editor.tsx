@@ -55,7 +55,6 @@ import {
 import { useStageFiveOpener } from '../features/hubCreation/useStageFiveOpener';
 import {
   useControlViolations,
-  useJourneyPhase,
   detectEntryScenario,
   useCapabilityIChartData,
   useTranslation,
@@ -1502,8 +1501,6 @@ export const Editor: React.FC<EditorProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stagedStats]); // Only trigger on stagedStats change (new data upload)
 
-  // Journey phase detection
-  const journeyPhase = useJourneyPhase(!!filteredData.length, findingsState.findings);
   const entryScenario = useMemo(() => detectEntryScenario(processContext), [processContext]);
 
   // Subgroup capability data for AI context
@@ -1588,7 +1585,6 @@ export const Editor: React.FC<EditorProps> = ({
     drillPath,
     locale,
     knowledgeSearchFolder,
-    journeyPhase,
     coscoutSurface,
     projectRole,
     analysisScope: activeAnalysisScope,

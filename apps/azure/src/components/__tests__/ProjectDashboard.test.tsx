@@ -174,10 +174,11 @@ describe('ProjectStatusCard', () => {
 
   it('renders phase indicator with correct active phase', () => {
     render(<ProjectStatusCard {...defaultProps} journeyPhase="analyze" />);
-    expect(screen.getByText('ANALYZE')).toBeInTheDocument();
-    expect(screen.getByText('FRAME')).toBeInTheDocument();
-    expect(screen.getByText('SCOUT')).toBeInTheDocument();
-    expect(screen.getByText('IMPROVE')).toBeInTheDocument();
+    expect(screen.getByText('Analyze')).toBeInTheDocument();
+    expect(screen.getByText('Frame')).toBeInTheDocument();
+    expect(screen.getByText('Explore')).toBeInTheDocument();
+    expect(screen.getByText('Improve')).toBeInTheDocument();
+    expect(screen.queryByText('scout', { exact: false })).not.toBeInTheDocument();
   });
 
   it('renders finding counts by status', () => {

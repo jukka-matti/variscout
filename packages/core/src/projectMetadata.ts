@@ -7,13 +7,16 @@
  */
 
 import type { Finding, FindingStatus } from './findings';
-import type { JourneyPhase, ProcessContext } from './ai/types';
+import type { ProcessContext } from './ai/types';
 import {
   type AnalyzeNodeMapping,
   normalizeProcessHubId,
   type ProcessParticipantRef,
 } from './processHub';
 import type { ControlMetadataProjection } from './control';
+
+/** High-level dashboard journey phase (dashboard metadata only; not a CoScout axis). */
+export type JourneyPhase = 'frame' | 'scout' | 'analyze' | 'improve';
 
 export interface ProjectMetadata {
   /** High-level analysis journey phase */

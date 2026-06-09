@@ -3,7 +3,7 @@
  *
  * Each tool is defined ONCE with its schema, classification (read/action),
  * surface availability, and optional conditions. `getToolsForSurface()` filters
- * the registry to produce the tools array for a given phase/mode/tier.
+ * the registry to produce the tools array for a given surface/mode.
  *
  * ADR-029: Extended the original tool loop with action tools.
  * 2026-06-09 surface redesign: registry now advertises only executable tools
@@ -17,12 +17,10 @@ import type { Hypothesis } from '../../../../findings/types';
 
 // ── Consumer-facing options type ────────────────────────────────────────
 
-/** Options for building phase-gated CoScout tools (formerly in legacy.ts) */
+/** Options for building surface-gated CoScout tools (formerly in legacy.ts) */
 export interface BuildCoScoutToolsOptions {
   /** Current product surface — determines which tools are available */
   surface?: CoScoutSurface;
-  /** @deprecated Phase is accepted by transitional callers and mapped to surface. */
-  phase?: 'frame' | 'scout' | 'analyze' | 'improve';
   /** Existing Hypothesis hubs — enables connect_hub_evidence when non-empty */
   existingHubs?: Hypothesis[];
 }
@@ -190,7 +188,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     surfaces: ['process', 'explore', 'analyze', 'report'],
   },
 
-  // ── SCOUT+ action tools ──────────────────────────────────────────────
+  // ── Explore/Analyze action tools ─────────────────────────────────────
 
   apply_filter: {
     definition: {
@@ -548,7 +546,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
     surfaces: ['analyze'],
   },
 
-  // ── Evidence Map tools (INVESTIGATE+) ────────────────────────────────
+  // ── Evidence Map tools (Analyze surface) ─────────────────────────────
 
   suggest_causal_link: {
     definition: {
@@ -663,32 +661,4 @@ export function getToolsForSurface(
       return true;
     })
     .map(entry => entry.definition);
-}
-
-export function mapJourneyPhaseToSurface(
-  phase?: BuildCoScoutToolsOptions['phase']
-): CoScoutSurface {
-  switch (phase) {
-    case 'frame':
-      return 'process';
-    case 'scout':
-      return 'explore';
-    case 'analyze':
-      return 'analyze';
-    case 'improve':
-      return 'report';
-    default:
-      return 'analyze';
-  }
-}
-
-/** @deprecated Use getToolsForSurface. */
-export function getToolsForPhase(
-  phase: NonNullable<BuildCoScoutToolsOptions['phase']>,
-  mode: AnalysisMode,
-  options?: {
-    existingHubs?: Hypothesis[];
-  }
-): ToolDefinition[] {
-  return getToolsForSurface(mapJourneyPhaseToSurface(phase), mode, options);
 }

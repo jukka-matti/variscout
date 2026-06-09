@@ -3,145 +3,78 @@ import { buildModeWorkflow } from '../prompts/coScout/modes';
 import { buildStandardWorkflow } from '../prompts/coScout/modes/standard';
 import { buildCapabilityWorkflow } from '../prompts/coScout/modes/capability';
 import { buildPerformanceWorkflow } from '../prompts/coScout/modes/performance';
-import type { JourneyPhase } from '../types';
+import { buildDefectWorkflow } from '../prompts/coScout/modes/defect';
+import type { CoScoutSurface } from '../prompts/coScout';
 
-const ALL_PHASES: JourneyPhase[] = ['frame', 'scout', 'analyze', 'improve'];
+const NON_ANALYZE_SURFACES: CoScoutSurface[] = ['process', 'explore', 'report'];
+const RETIRED_PHASE_LABELS = /\b(FRAME|SCOUT|INVESTIGATE|IMPROVE)\s+phase\b/i;
+
+function expectAnalyzeWorkflow(result: string): void {
+  expect(result.length).toBeGreaterThan(100);
+  expect(result).not.toMatch(RETIRED_PHASE_LABELS);
+  expect(result).not.toMatch(/\d+\.\d{3,}/);
+}
 
 describe('Mode coaching modules', () => {
   describe('buildStandardWorkflow', () => {
-    it('uses SPC terminology: Cpk and control limit', () => {
-      const result = buildStandardWorkflow('frame');
+    it('uses SPC terminology only on the Analyze surface', () => {
+      const result = buildStandardWorkflow('analyze');
       const lower = result.toLowerCase();
       expect(lower).toContain('cpk');
       expect(lower).toContain('control limit');
-    });
-
-    it('uses eta-squared and R-squared-adj', () => {
-      const result = buildStandardWorkflow('scout');
-      const lower = result.toLowerCase();
       expect(lower).toContain('eta-squared');
       expect(lower).toContain('r-squared-adj');
-    });
-
-    it('produces non-empty output for each phase', () => {
-      for (const phase of ALL_PHASES) {
-        const result = buildStandardWorkflow(phase);
-        expect(result.length).toBeGreaterThan(100);
-      }
-    });
-
-    it('does not contain dynamic stats values', () => {
-      for (const phase of ALL_PHASES) {
-        const result = buildStandardWorkflow(phase);
-        // Should not contain specific numeric values from runtime data
-        expect(result).not.toMatch(/\d+\.\d{3,}/); // no high-precision floats
-      }
+      expectAnalyzeWorkflow(result);
     });
   });
 
   describe('buildCapabilityWorkflow', () => {
-    it('uses centering and spread terminology', () => {
-      const result = buildCapabilityWorkflow('frame');
+    it('uses capability diagnostics only on the Analyze surface', () => {
+      const result = buildCapabilityWorkflow('analyze');
       const lower = result.toLowerCase();
       expect(lower).toContain('centering');
       expect(lower).toContain('spread');
-    });
-
-    it('discusses Cpk vs Cp interpretation', () => {
-      const result = buildCapabilityWorkflow('frame');
-      const lower = result.toLowerCase();
       expect(lower).toContain('cpk');
-      expect(lower).toContain('cp');
-    });
-
-    it('covers subgroup stability', () => {
-      const result = buildCapabilityWorkflow('scout');
-      const lower = result.toLowerCase();
       expect(lower).toContain('subgroup');
-    });
-
-    it('advises when to investigate shifts vs consistency', () => {
-      const result = buildCapabilityWorkflow('frame');
-      const lower = result.toLowerCase();
-      expect(lower).toContain('shift');
-    });
-
-    it('produces non-empty output for each phase', () => {
-      for (const phase of ALL_PHASES) {
-        const result = buildCapabilityWorkflow(phase);
-        expect(result.length).toBeGreaterThan(100);
-      }
-    });
-
-    it('does not contain dynamic stats values', () => {
-      for (const phase of ALL_PHASES) {
-        const result = buildCapabilityWorkflow(phase);
-        expect(result).not.toMatch(/\d+\.\d{3,}/);
-      }
+      expectAnalyzeWorkflow(result);
     });
   });
 
   describe('buildPerformanceWorkflow', () => {
-    it('uses channel terminology', () => {
-      const result = buildPerformanceWorkflow('frame');
-      const lower = result.toLowerCase();
-      expect(lower).toContain('channel');
-    });
-
-    it('mentions worst-channel Cpk', () => {
-      const result = buildPerformanceWorkflow('frame');
-      const lower = result.toLowerCase();
-      expect(lower).toContain('worst-channel');
-    });
-
-    it('covers cross-channel correlation', () => {
-      const result = buildPerformanceWorkflow('scout');
-      const lower = result.toLowerCase();
-      expect(lower).toContain('cross-channel');
-    });
-
-    it('mentions equipment-specific investigation', () => {
+    it('uses channel terminology only on the Analyze surface', () => {
       const result = buildPerformanceWorkflow('analyze');
       const lower = result.toLowerCase();
-      expect(lower).toContain('equipment');
+      expect(lower).toContain('channel');
+      expect(lower).toContain('worst-channel');
+      expect(lower).toContain('cross-channel');
+      expectAnalyzeWorkflow(result);
     });
+  });
 
-    it('produces non-empty output for each phase', () => {
-      for (const phase of ALL_PHASES) {
-        const result = buildPerformanceWorkflow(phase);
-        expect(result.length).toBeGreaterThan(100);
-      }
-    });
-
-    it('does not contain dynamic stats values', () => {
-      for (const phase of ALL_PHASES) {
-        const result = buildPerformanceWorkflow(phase);
-        expect(result).not.toMatch(/\d+\.\d{3,}/);
-      }
+  describe('buildDefectWorkflow', () => {
+    it('uses defect terminology only on the Analyze surface', () => {
+      const result = buildDefectWorkflow('analyze');
+      const lower = result.toLowerCase();
+      expect(lower).toContain('defect rate');
+      expect(lower).toContain('pareto');
+      expect(lower).not.toContain('cpk');
+      expectAnalyzeWorkflow(result);
     });
   });
 
   describe('buildModeWorkflow dispatcher', () => {
-    it('dispatches standard mode correctly', () => {
-      const result = buildModeWorkflow('standard', 'frame');
-      expect(result).toContain('Standard');
-      expect(result.toLowerCase()).toContain('cpk');
-    });
-
-    it('dispatches performance mode correctly', () => {
-      const result = buildModeWorkflow('performance', 'frame');
-      expect(result).toContain('Multi-Channel');
-      expect(result.toLowerCase()).toContain('channel');
-    });
-
-    it('produces non-empty output for all mode x phase combinations', () => {
-      const modes = ['standard', 'performance'] as const;
-      for (const mode of modes) {
-        for (const phase of ALL_PHASES) {
-          const result = buildModeWorkflow(mode, phase);
-          expect(result.length).toBeGreaterThan(100);
-        }
+    it('returns no mode workflow outside the Analyze surface', () => {
+      for (const surface of NON_ANALYZE_SURFACES) {
+        expect(buildModeWorkflow('standard', surface)).toBe('');
+        expect(buildModeWorkflow('performance', surface)).toBe('');
+        expect(buildModeWorkflow('defect', surface)).toBe('');
       }
+    });
+
+    it('dispatches all Analyze-surface modes correctly', () => {
+      expect(buildModeWorkflow('standard', 'analyze')).toContain('Standard');
+      expect(buildModeWorkflow('performance', 'analyze')).toContain('Multi-Channel');
+      expect(buildModeWorkflow('defect', 'analyze')).toContain('Defect Analysis Mode');
     });
   });
 });

@@ -79,9 +79,6 @@ export type EntryScenario = 'problem' | 'exploration' | 'routine';
 /** Investigation phase for CoScout context (deterministic detection) */
 export type AnalyzePhase = 'initial' | 'diverging' | 'validating' | 'converging' | 'improving';
 
-/** High-level analysis journey phase (doc-canonical, code-detected) */
-export type JourneyPhase = 'frame' | 'scout' | 'analyze' | 'improve';
-
 /** Process context provided by the user for AI grounding */
 export interface ProcessContext {
   /** Durable process context that owns this investigation */
