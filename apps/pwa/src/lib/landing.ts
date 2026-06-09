@@ -1,6 +1,8 @@
 import type { DataRow, StepTimingBinding } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
+import type { SampleImprovementProjectState } from '@variscout/data';
 import type { ProcessHub } from '@variscout/core/processHub';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 import {
   useActiveIPStore,
   hydrateDocumentSnapshot,
@@ -28,6 +30,47 @@ export interface LandHubOnProcessDeps {
   isEmbedMode: boolean;
 }
 
+function applySampleImprovementProjectSeed(
+  project: ImprovementProject,
+  seed?: SampleImprovementProjectState
+): ImprovementProject {
+  if (!seed) return project;
+
+  return {
+    ...project,
+    issueStatement: seed.issueStatement ?? project.issueStatement,
+    metadata: {
+      ...project.metadata,
+      ...(seed.metadata ?? {}),
+      actions: seed.actions
+        ? seed.actions.map(action => ({
+            ...action,
+            parentImprovementProjectId: project.id,
+            deletedAt: action.deletedAt ?? null,
+          }))
+        : project.metadata.actions,
+    },
+    goal: {
+      ...project.goal,
+      ...(seed.goal ?? {}),
+    },
+    sections: {
+      background: {
+        ...project.sections.background,
+        ...(seed.sections?.background ?? {}),
+      },
+      approach: {
+        ...project.sections.approach,
+        ...(seed.sections?.approach ?? {}),
+      },
+      outcomeReference: {
+        ...project.sections.outcomeReference,
+        ...(seed.sections?.outcomeReference ?? {}),
+      },
+    },
+  };
+}
+
 /**
  * Ensure + activate core (spec §3): the routing-free heart shared by every
  * landing path AND by the wizard-path paste provisioning (FSJ-2 addendum). Steps
@@ -51,7 +94,8 @@ export function ensureAndActivateProject(
   hubBase: ProcessHub | null,
   title: string,
   setSessionHub: (hub: ProcessHub) => void,
-  initialStepTimings?: StepTimingBinding[]
+  initialStepTimings?: StepTimingBinding[],
+  initialImprovementProject?: SampleImprovementProjectState
 ): void {
   // 1. Ensure the hub carries a live ImprovementProject.
   //    Pure + referential no-op when one already exists (spec §3, reconstruct-
@@ -65,6 +109,15 @@ export function ensureAndActivateProject(
         ...hub.improvementProject,
         stepTimings: initialStepTimings,
       },
+    };
+  }
+  if (hub.improvementProject && initialImprovementProject) {
+    hub = {
+      ...hub,
+      improvementProject: applySampleImprovementProjectSeed(
+        hub.improvementProject,
+        initialImprovementProject
+      ),
     };
   }
   setSessionHub(hub);
@@ -95,12 +148,19 @@ export function landHubOnProcess(
   hubBase: ProcessHub | null,
   title: string,
   deps: LandHubOnProcessDeps,
-  initialStepTimings?: StepTimingBinding[]
+  initialStepTimings?: StepTimingBinding[],
+  initialImprovementProject?: SampleImprovementProjectState
 ): void {
   const { setSessionHub, showFrame, isEmbedMode } = deps;
 
   // 1-2. Ensure the hub carries a live IP + activate it (shared core).
-  ensureAndActivateProject(hubBase, title, setSessionHub, initialStepTimings);
+  ensureAndActivateProject(
+    hubBase,
+    title,
+    setSessionHub,
+    initialStepTimings,
+    initialImprovementProject
+  );
 
   // 3. Route to Process tab — exempt in embed mode (spec §1 applicability).
   if (!isEmbedMode) {
@@ -135,7 +195,13 @@ export function landOnProcess(sample: SampleDataset, deps: LandOnProcessDeps): v
 
   // 2. Ensure + activate + route (shared core). sessionHub null → new hub+IP
   //    created; non-null with live IP → same reference (spec §3).
-  landHubOnProcess(coreDeps.sessionHub, sample.name, coreDeps, sample.config.stepTimings);
+  landHubOnProcess(
+    coreDeps.sessionHub,
+    sample.name,
+    coreDeps,
+    sample.config.stepTimings,
+    sample.config.improvementProject
+  );
 }
 
 /**

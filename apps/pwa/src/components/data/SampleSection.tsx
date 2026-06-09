@@ -4,9 +4,11 @@ import {
   ChevronRight,
   Coffee,
   Factory,
+  FlaskConical,
   Search,
   FolderOpen,
   ArrowRight,
+  GitBranch,
 } from 'lucide-react';
 import { SAMPLES, type SampleDataset, type SampleCategory } from '@variscout/data';
 import { useTranslation } from '@variscout/hooks';
@@ -33,11 +35,30 @@ const CATEGORY_LABEL_KEYS: Record<SampleCategory, keyof MessageCatalog> = {
   standard: 'sample.industry',
 };
 
+const CURATED_DEMO_KEYS = ['syringe-barrel-weight', 'bottleneck'] as const;
+
+const CURATED_DEMO_COPY: Record<
+  (typeof CURATED_DEMO_KEYS)[number],
+  { label: string; summary: string; badges: string[] }
+> = {
+  'syringe-barrel-weight': {
+    label: 'End-to-end GB case',
+    summary: 'Capability gap, seeded findings, comments, suspected cause, Pareto, and actions.',
+    badges: ['Analyze', 'Capability', 'Improve'],
+  },
+  bottleneck: {
+    label: 'Process-flow case',
+    summary: 'Step timing, process map, bottleneck evidence, comments, and response actions.',
+    badges: ['Process', 'Explore', 'Improve'],
+  },
+};
+
 // Icon mapping for featured cards
 const FEATURED_ICONS: Record<string, React.ReactNode> = {
   coffee: <Coffee size={24} className="text-amber-400" />,
   factory: <Factory size={24} className="text-blue-400" />,
   search: <Search size={24} className="text-purple-400" />,
+  'flask-conical': <FlaskConical size={24} className="text-emerald-400" />,
 };
 
 /**
@@ -51,7 +72,12 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
   const [expandedCategories, setExpandedCategories] = useState<Set<SampleCategory>>(new Set());
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const featuredSamples = SAMPLES.filter(s => s.featured);
+  const curatedSamples = CURATED_DEMO_KEYS.map(key => SAMPLES.find(s => s.urlKey === key)).filter(
+    (sample): sample is SampleDataset => Boolean(sample)
+  );
+  const featuredSamples = SAMPLES.filter(
+    s => s.featured && !CURATED_DEMO_KEYS.includes(s.urlKey as (typeof CURATED_DEMO_KEYS)[number])
+  );
   const categorizedSamples = SAMPLES.reduce(
     (acc, sample) => {
       if (!acc[sample.category]) {
@@ -84,10 +110,71 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
   if (variant === 'web') {
     return (
       <div className="space-y-6">
+        {/* Curated demo cases */}
+        <div>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
+              Guided demo cases
+            </h3>
+            <span className="text-xs text-content-muted">Best first</span>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            {curatedSamples.map(sample => {
+              const copy = CURATED_DEMO_COPY[sample.urlKey as (typeof CURATED_DEMO_KEYS)[number]];
+              return (
+                <button
+                  key={sample.urlKey}
+                  data-testid={`sample-curated-${sample.urlKey}`}
+                  onClick={() => onLoadSample(sample)}
+                  className="w-full flex items-start gap-4 p-4 bg-surface hover:bg-surface-tertiary border border-edge hover:border-blue-500/50 rounded-xl text-left transition-all group"
+                >
+                  <div className="p-2 bg-surface-secondary rounded-lg border border-edge">
+                    {sample.urlKey === 'bottleneck' ? (
+                      <GitBranch size={24} className="text-blue-400" />
+                    ) : (
+                      FEATURED_ICONS[sample.icon] || (
+                        <FolderOpen size={24} className="text-content-secondary" />
+                      )
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-semibold text-content group-hover:text-blue-400 transition-colors">
+                        {sample.name.replace('Case: ', '')}
+                      </span>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                        {copy.label}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-content-secondary">{copy.summary}</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {copy.badges.map(badge => (
+                        <span
+                          key={badge}
+                          className="text-[11px] px-2 py-0.5 rounded bg-surface-secondary text-content-muted border border-edge"
+                        >
+                          {badge}
+                        </span>
+                      ))}
+                      <span className="text-[11px] text-content-muted">
+                        {sample.data.length} rows
+                      </span>
+                    </div>
+                  </div>
+                  <ArrowRight
+                    size={16}
+                    className="mt-1 text-content-muted group-hover:text-blue-400 transition-colors"
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Featured sample cards */}
         <div>
           <h3 className="text-sm font-semibold text-content-secondary mb-3 uppercase tracking-wider">
-            {t('sample.heading')}
+            More featured samples
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {featuredSamples.map(sample => (

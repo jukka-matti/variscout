@@ -12,6 +12,7 @@ export type {
   SampleDataset,
   SampleCategory,
   SampleInvestigationState,
+  SampleImprovementProjectState,
   ComputedChartData,
 } from './types';
 

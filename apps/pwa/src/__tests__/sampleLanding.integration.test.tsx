@@ -41,6 +41,8 @@ import { PWA_USER_ID } from '../lib/pwaUser';
 
 // ── Shared fixtures ───────────────────────────────────────────────────────────
 
+const NOW = 1714000000000;
+
 const SAMPLE_DATASET: SampleDataset = {
   name: 'Cookie Weight',
   description: 'Cookie weight case study',
@@ -71,9 +73,42 @@ const TIMED_SAMPLE_DATASET: SampleDataset = {
   },
 };
 
-// ── .vrs fixture builders ─────────────────────────────────────────────────────
+const SEEDED_SAMPLE_DATASET: SampleDataset = {
+  ...SAMPLE_DATASET,
+  name: 'Seeded demo sample',
+  config: {
+    ...SAMPLE_DATASET.config,
+    improvementProject: {
+      issueStatement: 'Demo issue statement',
+      metadata: {
+        businessCase: 'Demo business case',
+      },
+      sections: {
+        background: {
+          snapshotText: 'Demo baseline snapshot',
+        },
+        approach: {
+          narrative: 'Demo response plan',
+        },
+      },
+      actions: [
+        {
+          id: 'action-seeded-1',
+          text: 'Verify demo action appears in Improve',
+          status: 'open',
+          assignedTo: { displayName: 'Demo owner' },
+          dueAt: '2026-06-12',
+          doneAt: null,
+          doneBy: null,
+          createdBy: { displayName: 'VariScout demo' },
+          createdAt: NOW,
+        },
+      ],
+    },
+  },
+};
 
-const NOW = 1714000000000;
+// ── .vrs fixture builders ─────────────────────────────────────────────────────
 
 /** Minimal ImprovementProject satisfying the type (no store interaction). */
 function makeTestIP(id: string, hubId: string): ImprovementProject {
@@ -272,6 +307,33 @@ describe('landOnProcess — sample landing (spec §1, §3)', () => {
     const hub = capturedHub!;
     expect(hub.improvementProject?.id).not.toBe(deletedIP.id);
     expect(hub.improvementProject?.stepTimings).toEqual(TIMED_SAMPLE_DATASET.config.stepTimings);
+  });
+
+  it('applies sample-seeded Improvement Project context and scopes actions to the runtime project', () => {
+    let capturedHub: ProcessHub | undefined;
+
+    landOnProcess(SEEDED_SAMPLE_DATASET, {
+      loadSample: loadSampleMock,
+      sessionHub: null,
+      setSessionHub: hub => {
+        capturedHub = hub;
+      },
+      showFrame: usePanelsStore.getState().showFrame,
+      isEmbedMode: false,
+    });
+
+    const project = capturedHub!.improvementProject!;
+    expect(project.issueStatement).toBe('Demo issue statement');
+    expect(project.metadata.businessCase).toBe('Demo business case');
+    expect(project.sections.background.snapshotText).toBe('Demo baseline snapshot');
+    expect(project.sections.approach.narrative).toBe('Demo response plan');
+    expect(project.metadata.actions).toHaveLength(1);
+    expect(project.metadata.actions![0]).toMatchObject({
+      id: 'action-seeded-1',
+      text: 'Verify demo action appears in Improve',
+      parentImprovementProjectId: project.id,
+      deletedAt: null,
+    });
   });
 });
 
