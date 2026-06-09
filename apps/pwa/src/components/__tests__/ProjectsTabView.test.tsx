@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import ProjectsTabView from '../ProjectsTabView';
 import type { ProcessHub } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import type { CauseProjectionInputs } from '@variscout/ui/ipDetail';
 import { getImprovementProjectInitialState, useImprovementProjectStore } from '@variscout/stores';
 
 const baseHub: ProcessHub = {
@@ -153,6 +154,76 @@ describe('ProjectsTabView', () => {
 
     // charter-team-section appears when onInvite is wired (requires onMembersChange to be passed)
     expect(screen.getByTestId('charter-team-section')).toBeInTheDocument();
+  });
+
+  it('threads live project signal counts into the Project dossier', () => {
+    const approachInputs: CauseProjectionInputs = {
+      hypotheses: [
+        {
+          id: 'h-1',
+          name: 'Nozzle temperature contribution',
+          synthesis: '',
+          findingIds: [],
+          status: 'evidence-survived-test',
+          updatedAt: 0,
+          createdAt: 0,
+          deletedAt: null,
+        },
+        {
+          id: 'h-2',
+          name: 'Viscosity contribution',
+          synthesis: '',
+          findingIds: [],
+          status: 'proposed',
+          updatedAt: 0,
+          createdAt: 0,
+          deletedAt: null,
+        },
+      ],
+      ideas: [],
+      actions: [
+        { id: 'a-1', text: 'Retune heads', status: 'done', createdAt: 0, deletedAt: null },
+        {
+          id: 'a-2',
+          text: 'Confirm recipe',
+          status: 'in-progress',
+          createdAt: 0,
+          deletedAt: null,
+        },
+      ],
+    };
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        metadata: {
+          title: 'PWA signal project',
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'analyst@local',
+              displayName: 'Analyst',
+              role: 'lead',
+              invitedAt: 0,
+            },
+          ],
+        },
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        approachInputs={approachInputs}
+      />
+    );
+
+    expect(screen.getByTestId('project-signal-hypotheses')).toHaveTextContent(/2 hypotheses/i);
+    expect(screen.getByTestId('project-signal-actions')).toHaveTextContent(/2 actions/i);
+    expect(screen.getByTestId('project-signal-team')).toHaveTextContent(/1 teammate/i);
   });
 
   it('onMembersChange flows through applyProjectPatch for the PWA app', () => {

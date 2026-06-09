@@ -9,7 +9,7 @@ import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { HubAction } from '@variscout/core/actions';
 import type { ProjectMember } from '@variscout/core/projectMembership';
 import { useImprovementProjectStore } from '@variscout/stores';
-import { IPDetailPage } from '@variscout/ui/ipDetail';
+import { deriveProjectOverviewSignals, IPDetailPage } from '@variscout/ui/ipDetail';
 import type { CauseProjectionInputs, CauseRow, ControlClosureInputs } from '@variscout/ui/ipDetail';
 
 interface ProjectsTabViewProps {
@@ -162,6 +162,11 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
       );
     }
     const dayCounter = Math.floor((now - selected.createdAt) / (24 * 60 * 60 * 1000));
+    const overviewSignals = deriveProjectOverviewSignals({
+      ip: selected,
+      hypotheses: approachInputs?.hypotheses,
+      actions: approachInputs?.actions,
+    });
     return (
       <IPDetailPage
         ip={selected}
@@ -169,6 +174,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         dayCounter={dayCounter}
         onJumpOut={onJumpOut}
         approachInputs={approachInputs}
+        overviewSignals={overviewSignals}
         onOpenCauseWorkbench={onOpenCauseWorkbench}
         controlRecord={controlRecord}
         controlHandoff={controlHandoff}

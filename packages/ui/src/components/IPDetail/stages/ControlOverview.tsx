@@ -1,5 +1,7 @@
 import React from 'react';
 import type { ControlRecord } from '@variscout/core';
+import ProjectSignalChips from '../ProjectSignalChips';
+import type { ProjectOverviewSignals } from '../projectOverviewSignals';
 
 /** Closure checklist inputs derived from a ControlHandoff or caller state. */
 export interface ControlClosureInputs {
@@ -54,6 +56,7 @@ interface ControlOverviewProps {
   perCauseRows?: Array<{ factor: string; inControl: boolean; observation?: string }>;
   /** Optional closure checklist inputs (folded in from former Handoff stage). */
   closureInputs?: ControlClosureInputs;
+  overviewSignals?: ProjectOverviewSignals;
   /** Called when user clicks "Nudge" on pending process-owner acknowledgment. */
   onNudgeOwner?: () => void;
   /** Called when user clicks "Report · final summary". */
@@ -71,6 +74,7 @@ const ControlOverview: React.FC<ControlOverviewProps> = ({
   onOpenAnalyze,
   perCauseRows = [],
   closureInputs,
+  overviewSignals,
   onNudgeOwner,
   onOpenReport,
   onExportPdf,
@@ -93,6 +97,11 @@ const ControlOverview: React.FC<ControlOverviewProps> = ({
           {isDrifted ? 'Drift detected · last tick failed' : `Sustained · ${ticks} ticks on target`}
         </div>
       </div>
+
+      <ProjectSignalChips
+        signals={overviewSignals}
+        groups={['actions', 'measurementPlans', 'findings', 'team']}
+      />
 
       <div>
         <div className="text-[10px] font-semibold uppercase tracking-wide text-content-tertiary">
@@ -227,7 +236,7 @@ const ControlOverview: React.FC<ControlOverviewProps> = ({
             className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
             data-testid="sustainment-start-handoff"
           >
-            → Start Handoff
+            Start closure
           </button>
         </div>
       </div>

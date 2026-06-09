@@ -45,7 +45,7 @@ describe('ControlOverview', () => {
     expect(screen.getAllByTestId(/^cadence-tick-/)).toHaveLength(4);
   });
 
-  it('enables Start Handoff CTA when consecutiveOnTargetTicks >= 4', () => {
+  it('enables Control closeout CTA when consecutiveOnTargetTicks >= 4', () => {
     render(
       <ControlOverview
         record={record}
@@ -55,9 +55,11 @@ describe('ControlOverview', () => {
       />
     );
     expect(screen.getByTestId('sustainment-start-handoff')).not.toBeDisabled();
+    expect(screen.getByTestId('sustainment-start-handoff')).toHaveTextContent(/start closure/i);
+    expect(screen.queryByText(/Start Handoff/i)).not.toBeInTheDocument();
   });
 
-  it('disables Start Handoff CTA when fewer than 4 ticks', () => {
+  it('disables Control closeout CTA when fewer than 4 ticks', () => {
     const r2: ControlRecord = { ...record, consecutiveOnTargetTicks: 2 };
     render(
       <ControlOverview

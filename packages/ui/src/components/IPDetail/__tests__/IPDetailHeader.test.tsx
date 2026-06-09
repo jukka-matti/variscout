@@ -29,4 +29,10 @@ describe('IPDetailHeader', () => {
     fireEvent.click(screen.getByTestId('ip-detail-back'));
     expect(onBack).toHaveBeenCalled();
   });
+
+  it('uses Project vocabulary for the back link', () => {
+    render(<IPDetailHeader ip={ip} onBackToList={() => {}} />);
+    expect(screen.getByTestId('ip-detail-back')).toHaveTextContent('All Projects');
+    expect(screen.queryByText(/Improvement Projects/i)).not.toBeInTheDocument();
+  });
 });

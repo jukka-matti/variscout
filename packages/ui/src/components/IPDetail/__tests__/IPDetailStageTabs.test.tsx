@@ -23,6 +23,12 @@ describe('IPDetailStageTabs', () => {
     fireEvent.click(screen.getByTestId('stage-tab-charter'));
     expect(onChange).toHaveBeenCalledWith('charter');
   });
+
+  it('names the tablist as Project lifecycle stages', () => {
+    render(<IPDetailStageTabs stages={stages} active="approach" onStageChange={() => {}} />);
+    expect(screen.getByRole('tablist', { name: /project lifecycle stages/i })).toBeInTheDocument();
+    expect(screen.queryByRole('tablist', { name: /IP lifecycle stages/i })).not.toBeInTheDocument();
+  });
 });
 
 describe('STAGE_ORDER (amendment — 3 stages)', () => {
