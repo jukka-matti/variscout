@@ -50,6 +50,7 @@ import {
   DurabilityNudge,
   deriveActiveIPCanvasFocus,
   deriveActiveIPScopeLabels,
+  type CoScoutDrawerObject,
   type ColumnShape,
 } from '@variscout/ui';
 import { useStageFiveOpener } from '../features/hubCreation/useStageFiveOpener';
@@ -83,7 +84,6 @@ import type {
   ProcessHub,
   DisconfirmationAttempt,
   HypothesisStatus,
-  CoScoutSurface,
   ProjectRole,
 } from '@variscout/core';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -97,6 +97,7 @@ import { Check, X } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
 import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
 import { useAIOrchestration, useActionProposals, useAnalyzeIndexing } from '../features/ai';
+import { getCoScoutSurfaceForView } from '../features/ai/coscoutSurface';
 import { useAnalyzeOrchestration } from '../features/analyze';
 import { useCanvasViewportLifecycle } from '../features/analyze/useCanvasViewportLifecycle';
 import { useAnalyzeFeatureStore } from '../features/analyze/analyzeStore';
@@ -1540,19 +1541,12 @@ export const Editor: React.FC<EditorProps> = ({
   );
 
   // AI orchestration
-  const coscoutSurface = useMemo<CoScoutSurface>(() => {
-    switch (activeView) {
-      case 'frame':
-        return 'process';
-      case 'explore':
-        return 'explore';
-      case 'report':
-        return 'report';
-      case 'analyze':
-      default:
-        return 'analyze';
-    }
-  }, [activeView]);
+  const coscoutSurface = useMemo(() => getCoScoutSurfaceForView(activeView), [activeView]);
+
+  useEffect(() => {
+    if (coscoutSurface !== null || !usePanelsStore.getState().isCoScoutOpen) return;
+    usePanelsStore.getState().setCoScoutOpen(false);
+  }, [coscoutSurface]);
   const activeAnalysisScope = useMemo(
     () =>
       scopes
@@ -1619,15 +1613,25 @@ export const Editor: React.FC<EditorProps> = ({
     filteredDataLength: filteredData.length,
   });
 
-  const sharedCoScoutSection = (
-    <CoScoutSection
-      aiOrch={aiOrch}
-      findingsState={findingsState}
-      actionProposalsState={actionProposalsState}
-      handleSearchKnowledge={handleSearchKnowledge}
-      handleAddCommentWithAuthor={handleAddCommentWithAuthor}
-    />
+  const [analyzeCoScoutObject, setAnalyzeCoScoutObject] = useState<CoScoutDrawerObject | null>(
+    null
   );
+  const handleAnalyzeCoScoutObjectChange = useCallback((object: CoScoutDrawerObject | null) => {
+    setAnalyzeCoScoutObject(object);
+  }, []);
+
+  const sharedCoScoutSection =
+    coscoutSurface === null ? null : (
+      <CoScoutSection
+        aiOrch={aiOrch}
+        findingsState={findingsState}
+        actionProposalsState={actionProposalsState}
+        handleSearchKnowledge={handleSearchKnowledge}
+        handleAddCommentWithAuthor={handleAddCommentWithAuthor}
+        selectedObject={coscoutSurface === 'analyze' ? analyzeCoScoutObject : null}
+        drawerMode={coscoutSurface === 'analyze'}
+      />
+    );
 
   // Auto-send pending dashboard question to CoScout when panel opens
   useEffect(() => {
@@ -2025,8 +2029,10 @@ export const Editor: React.FC<EditorProps> = ({
         selectedIdeaCount={selectedIdeaIds.size}
         isPISidebarOpen={isPISidebarOpen}
         onTogglePISidebar={() => usePanelsStore.getState().togglePISidebar()}
-        isCoScoutOpen={isCoScoutOpen}
-        onToggleCoScout={() => usePanelsStore.getState().toggleCoScout()}
+        isCoScoutOpen={coscoutSurface !== null && isCoScoutOpen}
+        onToggleCoScout={
+          coscoutSurface !== null ? () => usePanelsStore.getState().toggleCoScout() : undefined
+        }
         onAddPasteData={() => dataFlow.startAppendPaste()}
         onAddFileData={() => dataFlow.startAppendFileUpload()}
         onAddManualData={dataFlow.handleAddMoreData}
@@ -2249,37 +2255,38 @@ export const Editor: React.FC<EditorProps> = ({
                 }}
               />
             ) : activeView === 'analyze' ? (
-              <AnalyzeWorkspace
-                activeIPScope={activeIPScope}
-                scopeProjectId={activeIPContext.activeIP?.id ?? 'general-unassigned'}
-                findingsState={findingsState}
-                handleRestoreFinding={handleRestoreFinding}
-                handleSetFindingStatus={handleSetFindingStatus}
-                handleNavigateToChart={handleNavigateToChart}
-                handleShareFinding={handleShareFinding}
-                onPromoteFindingAction={activeIP ? handlePromoteFindingAction : undefined}
-                drillPath={drillPath}
-                handleAddCommentWithAuthor={handleAddCommentWithAuthor}
-                handleAddPhoto={handleAddPhoto}
-                userId={currentUser?.email ?? null}
-                members={wallActiveIPMembers}
-                aiOrch={aiOrch}
-                actionProposalsState={actionProposalsState}
-                handleSearchKnowledge={handleSearchKnowledge}
-                columnAliases={columnAliases}
-                viewMode={
-                  viewState?.findingsViewMode === 'tree'
-                    ? 'board'
-                    : (viewState?.findingsViewMode as 'list' | 'board' | undefined)
-                }
-                onViewModeChange={(mode: 'list' | 'board') =>
-                  handleViewStateChange({ findingsViewMode: mode })
-                }
-                hypothesesState={hypothesesState}
-                planningProps={wallPlanningProps}
-                ideaImpacts={ideaImpacts}
-                onProjectIdea={handleProjectIdea}
-              />
+              <div className="flex min-h-0 flex-1 overflow-hidden">
+                <AnalyzeWorkspace
+                  activeIPScope={activeIPScope}
+                  scopeProjectId={activeIPContext.activeIP?.id ?? 'general-unassigned'}
+                  findingsState={findingsState}
+                  handleRestoreFinding={handleRestoreFinding}
+                  handleSetFindingStatus={handleSetFindingStatus}
+                  handleNavigateToChart={handleNavigateToChart}
+                  handleShareFinding={handleShareFinding}
+                  onPromoteFindingAction={activeIP ? handlePromoteFindingAction : undefined}
+                  drillPath={drillPath}
+                  handleAddCommentWithAuthor={handleAddCommentWithAuthor}
+                  handleAddPhoto={handleAddPhoto}
+                  userId={currentUser?.email ?? null}
+                  members={wallActiveIPMembers}
+                  onCoScoutObjectChange={handleAnalyzeCoScoutObjectChange}
+                  columnAliases={columnAliases}
+                  viewMode={
+                    viewState?.findingsViewMode === 'tree'
+                      ? 'board'
+                      : (viewState?.findingsViewMode as 'list' | 'board' | undefined)
+                  }
+                  onViewModeChange={(mode: 'list' | 'board') =>
+                    handleViewStateChange({ findingsViewMode: mode })
+                  }
+                  hypothesesState={hypothesesState}
+                  planningProps={wallPlanningProps}
+                  ideaImpacts={ideaImpacts}
+                  onProjectIdea={handleProjectIdea}
+                />
+                {sharedCoScoutSection}
+              </div>
             ) : activeView === 'projects' ? (
               <ProjectsTabView
                 activeHub={activeHub ?? undefined}
@@ -2394,35 +2401,35 @@ export const Editor: React.FC<EditorProps> = ({
                 {sharedCoScoutSection}
               </div>
             ) : (
-              <EditorDashboardView
-                dataFlow={dataFlow}
-                filterNav={filterNav}
-                viewState={viewState ?? undefined}
-                onViewStateChange={handleViewStateChange}
-                projectId={projectId ?? undefined}
-                findingsState={findingsState}
-                findingsCallbacks={findingsCallbacksWithPrompt}
-                handlePinFinding={handlePinFinding}
-                handleSetFindingStatus={handleSetFindingStatus}
-                handleAddCommentWithAuthor={handleAddCommentWithAuthor}
-                aiOrch={aiOrch}
-                actionProposalsState={actionProposalsState}
-                handleSearchKnowledge={handleSearchKnowledge}
-                handleShareChart={handleShareChart}
-                controlViolations={controlViolations}
-                excludedRowIndices={excludedRowIndices}
-                excludedReasons={excludedReasons}
-                projectedCpkMap={improvementProjectedCpkMap}
-                activeIPFactorRequest={activeIPAnalyzeFactorRequest}
-                activeIPScope={activeIPScope}
-                categoricalValuesByColumn={filteredCategoricalValuesByColumn}
-                binnedFactorBindings={activeIP?.binnedFactorBindings ?? undefined}
-                onBindingsChange={activeIP ? handleBinningBindingsChange : undefined}
-                onOpenWall={() => {
-                  useCanvasViewportStore.getState().setViewMode('wall');
-                  usePanelsStore.getState().showAnalyze();
-                }}
-              />
+              <div className="flex min-h-0 flex-1 overflow-hidden">
+                <EditorDashboardView
+                  dataFlow={dataFlow}
+                  filterNav={filterNav}
+                  viewState={viewState ?? undefined}
+                  onViewStateChange={handleViewStateChange}
+                  projectId={projectId ?? undefined}
+                  findingsState={findingsState}
+                  findingsCallbacks={findingsCallbacksWithPrompt}
+                  handlePinFinding={handlePinFinding}
+                  handleSetFindingStatus={handleSetFindingStatus}
+                  aiOrch={aiOrch}
+                  handleShareChart={handleShareChart}
+                  controlViolations={controlViolations}
+                  excludedRowIndices={excludedRowIndices}
+                  excludedReasons={excludedReasons}
+                  projectedCpkMap={improvementProjectedCpkMap}
+                  activeIPFactorRequest={activeIPAnalyzeFactorRequest}
+                  activeIPScope={activeIPScope}
+                  categoricalValuesByColumn={filteredCategoricalValuesByColumn}
+                  binnedFactorBindings={activeIP?.binnedFactorBindings ?? undefined}
+                  onBindingsChange={activeIP ? handleBinningBindingsChange : undefined}
+                  onOpenWall={() => {
+                    useCanvasViewportStore.getState().setViewMode('wall');
+                    usePanelsStore.getState().showAnalyze();
+                  }}
+                />
+                {sharedCoScoutSection}
+              </div>
             )}
           </>
         ) : (

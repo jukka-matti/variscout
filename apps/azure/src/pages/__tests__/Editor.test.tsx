@@ -542,19 +542,34 @@ describe('Editor', () => {
       rawData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
       factors: ['Machine'],
+      viewState: { activeView: 'explore' },
     });
 
     expect(screen.getByTestId('btn-stats-sidebar')).toBeInTheDocument();
   });
 
-  it('shows CoScout toggle when data is loaded', () => {
+  it('shows CoScout toggle when data is loaded on a supported loop surface', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
       factors: ['Machine'],
     });
 
+    expect(screen.queryByTestId('btn-coscout')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('workflow-tab-explore'));
+
     expect(screen.getByTestId('btn-coscout')).toBeInTheDocument();
+  });
+
+  it('does not show CoScout toggle on Home dashboard', () => {
+    usePanelsStore.setState({ activeView: 'dashboard' });
+    renderEditor({
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      outcome: 'Weight',
+      factors: ['Machine'],
+    });
+
+    expect(screen.queryByTestId('btn-coscout')).not.toBeInTheDocument();
   });
 
   it('does not render a Save button (auto-save only)', () => {

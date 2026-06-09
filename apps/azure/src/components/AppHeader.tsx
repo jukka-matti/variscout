@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { usePanelsStore } from '../features/panels/panelsStore';
 
-type WorkspaceView =
+export type WorkspaceView =
   | 'dashboard'
   | 'frame'
   | 'explore'
