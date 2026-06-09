@@ -78,14 +78,12 @@ import type {
   ObjectDetailSelection,
 } from '@variscout/ui';
 import type { FindingProjection } from '@variscout/core';
-import { CoScoutSection } from './CoScoutSection';
 import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import { useAIStore } from '../../features/ai/aiStore';
-import type { UseAIOrchestrationReturn, UseActionProposalsReturn } from '../../features/ai';
 import type { UseAnalyzeOrchestrationReturn } from '../../features/analyze/useAnalyzeOrchestration';
 import { useWallHubCommentLifecycle } from '../../features/analyze/useWallHubCommentLifecycle';
 
@@ -127,10 +125,8 @@ interface AnalyzeWorkspaceProps {
   userId: string | null;
   /** Members of the active improvement project — used for canAccess role check. Empty = open-access (quick-analysis flow). */
   members: ProjectMember[];
-  // AI
-  aiOrch: UseAIOrchestrationReturn;
-  actionProposalsState: UseActionProposalsReturn;
-  handleSearchKnowledge: () => void;
+  /** Reports the currently selected Wall object so the Editor shell can host CoScout once. */
+  onCoScoutObjectChange?: (object: CoScoutDrawerObject | null) => void;
   // Column aliases
   columnAliases: Record<string, string>;
   // Hub model (Hypothesis CRUD from useAnalyzeOrchestration)
@@ -160,7 +156,7 @@ interface AnalyzeWorkspaceProps {
  *
  * Left: PhaseBadge + AnalyzeConclusion (hub composer)
  * Center: Evidence Map / Wall (hubs + findings) | FindingsLog (list / board)
- * Right: CoScout (optional)
+ * Right: shell-hosted CoScout drawer receives selected object via callback.
  *
  * IM-1 (ADR-085): the Question entity is retired. Suspected causes are
  * `Hypothesis` hubs; the Wall renders hubs + findings (no question column).
@@ -181,9 +177,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   handleAddPhoto,
   userId,
   members,
-  aiOrch,
-  actionProposalsState,
-  handleSearchKnowledge,
+  onCoScoutObjectChange,
   columnAliases,
   hypothesesState,
   viewMode: externalViewMode,
@@ -721,6 +715,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     const finding = scopedFindings.find(candidate => candidate.id === selectedWallObject.id);
     return finding ? { kind: 'finding', id: finding.id, label: finding.text } : null;
   }, [hubs, scopedFindings, selectedWallObject]);
+  useEffect(() => {
+    onCoScoutObjectChange?.(selectedCoScoutObject);
+    return () => onCoScoutObjectChange?.(null);
+  }, [onCoScoutObjectChange, selectedCoScoutObject]);
   const hasAppliedFindingsArrivalRef = useRef(false);
   useEffect(() => {
     if (hasAppliedFindingsArrivalRef.current) return;
@@ -1403,17 +1401,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
             </div>
           )}
         </div>
-
-        {/* Right: CoScout panel (session-close prompt, visual grounding, KB search) */}
-        <CoScoutSection
-          aiOrch={aiOrch}
-          findingsState={findingsState}
-          actionProposalsState={actionProposalsState}
-          handleSearchKnowledge={handleSearchKnowledge}
-          handleAddCommentWithAuthor={handleAddCommentWithAuthor}
-          selectedObject={selectedCoScoutObject}
-          drawerMode
-        />
       </div>
     </div>
   );

@@ -92,10 +92,6 @@ vi.mock('../AnalyzeMapView', () => ({
   AnalyzeMapView: () => <div data-testid="analyze-map-view" />,
 }));
 
-vi.mock('../CoScoutSection', () => ({
-  CoScoutSection: () => <div data-testid="coscout-section" />,
-}));
-
 vi.mock('../../../features/panels/panelsStore', () => {
   let _analyzeViewMode: 'map' | 'findings' = 'map';
   const usePanelsStore = (
@@ -260,9 +256,6 @@ function makeMinimalProps(): React.ComponentProps<typeof AnalyzeWorkspace> {
     handleAddPhoto: undefined,
     userId: 'lead@org',
     members: [],
-    aiOrch: { handleAskCoScoutFromCategory: noOp } as never,
-    actionProposalsState: {} as never,
-    handleSearchKnowledge: noOp,
     columnAliases: {},
     hypothesesState: {
       hubs: [hub1, hub2],

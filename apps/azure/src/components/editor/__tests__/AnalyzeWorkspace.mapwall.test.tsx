@@ -28,9 +28,6 @@ const capturedFindingsLogProps = vi.hoisted(() => ({
 const capturedMapViewProps = vi.hoisted(() => ({
   current: null as Record<string, unknown> | null,
 }));
-const capturedCoScoutSectionProps = vi.hoisted(() => ({
-  current: null as Record<string, unknown> | null,
-}));
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -136,13 +133,6 @@ vi.mock('../AnalyzeMapView', () => ({
   AnalyzeMapView: (props: Record<string, unknown>) => {
     capturedMapViewProps.current = props;
     return <div data-testid="analyze-map-view" />;
-  },
-}));
-
-vi.mock('../CoScoutSection', () => ({
-  CoScoutSection: (props: Record<string, unknown>) => {
-    capturedCoScoutSectionProps.current = props;
-    return <div data-testid="coscout-section" />;
   },
 }));
 
@@ -319,11 +309,6 @@ function makeMinimalProps(): React.ComponentProps<typeof AnalyzeWorkspace> {
     handleAddPhoto: undefined,
     userId: 'lead@org',
     members: [],
-    aiOrch: {
-      handleAskCoScoutFromCategory: noOp,
-    } as never,
-    actionProposalsState: {} as never,
-    handleSearchKnowledge: noOp,
     columnAliases: {},
     hypothesesState: {
       hubs: [],
@@ -356,7 +341,6 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
     capturedWallCanvasProps.current = null;
     capturedFindingsLogProps.current = null;
     capturedMapViewProps.current = null;
-    capturedCoScoutSectionProps.current = null;
     window.sessionStorage.clear();
     showCharterMock.mockClear();
   });
@@ -548,7 +532,7 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
     expect(screen.getByRole('tab', { name: 'Activity' })).toBeInTheDocument();
   });
 
-  it('passes selected Wall object context to CoScoutSection', () => {
+  it('reports selected Wall object context to the shell CoScout bridge', () => {
     const finding = createFinding('Temperature spike on night shift', {}, null);
     const hub = {
       ...createHypothesis('Nozzle runs hot', 'Heat aligns with the defect window.', [finding.id]),
@@ -564,11 +548,12 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
       editComment: vi.fn(),
       deleteComment: vi.fn(),
     } as never;
+    const onCoScoutObjectChange = vi.fn();
 
-    render(<AnalyzeWorkspace {...props} />);
+    render(<AnalyzeWorkspace {...props} onCoScoutObjectChange={onCoScoutObjectChange} />);
     fireEvent.click(screen.getByTestId('mock-wall-select-h-hot'));
 
-    expect(capturedCoScoutSectionProps.current?.selectedObject).toEqual({
+    expect(onCoScoutObjectChange).toHaveBeenLastCalledWith({
       kind: 'cause',
       id: 'h-hot',
       label: 'Nozzle runs hot',

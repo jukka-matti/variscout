@@ -4,7 +4,6 @@
  * Delegates rendering to three section components:
  * - PISection (left sidebar: stats, questions, journal, docs)
  * - DashboardSection (center: chart grid with narration)
- * - CoScoutSection (right sidebar: AI assistant panel)
  *
  * Owns only cross-section concerns:
  * - useQuestionGeneration (bestSubsets + factorRequest shared by PI + Dashboard)
@@ -29,13 +28,11 @@ import type { UseFilterNavigationReturn } from '../../hooks';
 import type { AzureFindingsCallbacks, ActiveIPScopeLabels } from '@variscout/ui';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
-import type { UseActionProposalsReturn } from '../../features/ai';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
 
 import DataTableModal from '../data/DataTableModal';
 import { PISection } from './PISection';
 import { DashboardSection } from './DashboardSection';
-import { CoScoutSection } from './CoScoutSection';
 import { FactorPreviewSection } from './FactorPreviewSection';
 
 // ---------------------------------------------------------------------------
@@ -54,17 +51,8 @@ interface EditorDashboardViewProps {
   findingsCallbacks: AzureFindingsCallbacks;
   handlePinFinding: UseFindingsOrchestrationReturn['handlePinFinding'];
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
-  // Photo comments
-  handleAddCommentWithAuthor: (
-    findingId: string,
-    text: string,
-    attachment?: File
-  ) => void | Promise<void>;
   // AI (from useAIOrchestration)
   aiOrch: UseAIOrchestrationReturn;
-  // Action proposals (from useActionProposals)
-  actionProposalsState: UseActionProposalsReturn;
-  handleSearchKnowledge: () => void;
   handleShareChart: (chartType: string) => void;
   // Data quality
   controlViolations: Map<number, string[]> | undefined;
@@ -103,10 +91,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   findingsCallbacks,
   handlePinFinding,
   handleSetFindingStatus,
-  handleAddCommentWithAuthor,
   aiOrch,
-  actionProposalsState,
-  handleSearchKnowledge,
   handleShareChart,
   controlViolations,
   excludedRowIndices,
@@ -216,15 +201,6 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
         <AIOnboardingTooltip
           isAIAvailable={aiAvailable}
           anchorSelector='[data-testid="narrative-ask-button"]'
-        />
-
-        {/* CoScout panel (right) — handles its own visibility + close prompt */}
-        <CoScoutSection
-          aiOrch={aiOrch}
-          findingsState={findingsState}
-          actionProposalsState={actionProposalsState}
-          handleSearchKnowledge={handleSearchKnowledge}
-          handleAddCommentWithAuthor={handleAddCommentWithAuthor}
         />
       </div>
 

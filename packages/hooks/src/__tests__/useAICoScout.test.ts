@@ -4,7 +4,7 @@ import { useAICoScout } from '../useAICoScout';
 import type { AIContext, ResponsesApiConfig } from '@variscout/core';
 
 // Use vi.hoisted so the mock references are available in the vi.mock factory.
-const { mockStreamFn, mockTraceAICall } = vi.hoisted(() => ({
+const { mockStreamFn, mockTraceAICall, mockAssembleCoScoutPrompt } = vi.hoisted(() => ({
   mockStreamFn: vi.fn(),
   mockTraceAICall: vi.fn(
     async (_meta: unknown, fn: () => Promise<{ result: unknown; tokens?: unknown }>) => {
@@ -12,6 +12,12 @@ const { mockStreamFn, mockTraceAICall } = vi.hoisted(() => ({
       return { result, trace: { id: 'trace-1', feature: 'coscout', tokens, success: true } };
     }
   ),
+  mockAssembleCoScoutPrompt: vi.fn(() => ({
+    tier1Static: 'test-tier1',
+    tier2SemiStatic: 'test-tier2',
+    tier3Dynamic: '',
+    tools: [],
+  })),
 }));
 
 vi.mock('@variscout/core', async importOriginal => {
@@ -19,12 +25,7 @@ vi.mock('@variscout/core', async importOriginal => {
   return {
     ...actual,
     // Stub new assembler API (prompt building is tested in @variscout/core)
-    assembleCoScoutPrompt: () => ({
-      tier1Static: 'test-tier1',
-      tier2SemiStatic: 'test-tier2',
-      tier3Dynamic: '',
-      tools: [],
-    }),
+    assembleCoScoutPrompt: mockAssembleCoScoutPrompt,
     buildCoScoutMessageInput: (_history: unknown, userMessage: string) => [
       { role: 'user', content: userMessage },
     ],
@@ -52,7 +53,7 @@ describe('useAICoScout', () => {
   });
 
   it('starts with empty messages and no loading', () => {
-    const { result } = renderHook(() => useAICoScout({ context: baseContext }));
+    const { result } = renderHook(() => useAICoScout({ context: baseContext, surface: 'analyze' }));
     expect(result.current.messages).toEqual([]);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isStreaming).toBe(false);
@@ -60,7 +61,7 @@ describe('useAICoScout', () => {
   });
 
   it('does nothing when send is called without responsesApiConfig', async () => {
-    const { result } = renderHook(() => useAICoScout({ context: baseContext }));
+    const { result } = renderHook(() => useAICoScout({ context: baseContext, surface: 'analyze' }));
     await act(async () => {
       result.current.send('Hello');
     });
@@ -80,7 +81,7 @@ describe('useAICoScout', () => {
     );
 
     const { result } = renderHook(() =>
-      useAICoScout({ context: baseContext, responsesApiConfig: mockConfig })
+      useAICoScout({ context: baseContext, surface: 'analyze', responsesApiConfig: mockConfig })
     );
 
     await act(async () => {
@@ -95,11 +96,39 @@ describe('useAICoScout', () => {
     expect(result.current.messages[1].error).toBeUndefined();
   });
 
+  it('passes the explicit current surface to prompt assembly', async () => {
+    mockStreamFn.mockImplementation(
+      async (_config: unknown, _req: unknown, _handlers: unknown, onChunk: (d: string) => void) => {
+        onChunk('Report response');
+        return {
+          id: 'resp_001',
+          output: [{ type: 'message', content: [{ type: 'text', text: 'Report response' }] }],
+        };
+      }
+    );
+
+    const { result } = renderHook(() =>
+      useAICoScout({
+        context: baseContext,
+        responsesApiConfig: mockConfig,
+        surface: 'report',
+      })
+    );
+
+    await act(async () => {
+      await result.current.send('Draft the report summary');
+    });
+
+    expect(mockAssembleCoScoutPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({ surface: 'report' })
+    );
+  });
+
   it('sets error on fetch failure', async () => {
     mockStreamFn.mockRejectedValue(new Error('network error'));
 
     const { result } = renderHook(() =>
-      useAICoScout({ context: baseContext, responsesApiConfig: mockConfig })
+      useAICoScout({ context: baseContext, surface: 'analyze', responsesApiConfig: mockConfig })
     );
 
     await act(async () => {
@@ -123,7 +152,7 @@ describe('useAICoScout', () => {
     );
 
     const { result } = renderHook(() =>
-      useAICoScout({ context: baseContext, responsesApiConfig: mockConfig })
+      useAICoScout({ context: baseContext, surface: 'analyze', responsesApiConfig: mockConfig })
     );
 
     await act(async () => {
@@ -144,6 +173,7 @@ describe('useAICoScout', () => {
     const { result } = renderHook(() =>
       useAICoScout({
         context: baseContext,
+        surface: 'analyze',
         initialNarrative: 'Process is stable with Cpk 1.5',
       })
     );
@@ -155,19 +185,23 @@ describe('useAICoScout', () => {
 
   it('does not seed narrative twice', () => {
     const { result, rerender } = renderHook(props => useAICoScout(props), {
-      initialProps: { context: baseContext, initialNarrative: 'Narrative text' },
+      initialProps: {
+        context: baseContext,
+        surface: 'analyze' as const,
+        initialNarrative: 'Narrative text',
+      },
     });
 
     expect(result.current.messages).toHaveLength(1);
 
-    rerender({ context: baseContext, initialNarrative: 'Updated narrative' });
+    rerender({ context: baseContext, surface: 'analyze', initialNarrative: 'Updated narrative' });
     expect(result.current.messages).toHaveLength(1);
     expect(result.current.messages[0].content).toBe('Narrative text');
   });
 
   it('does not send empty or whitespace-only messages', async () => {
     const { result } = renderHook(() =>
-      useAICoScout({ context: baseContext, responsesApiConfig: mockConfig })
+      useAICoScout({ context: baseContext, surface: 'analyze', responsesApiConfig: mockConfig })
     );
 
     await act(async () => {
@@ -179,7 +213,7 @@ describe('useAICoScout', () => {
 
   it('does not send when context is null', async () => {
     const { result } = renderHook(() =>
-      useAICoScout({ context: null, responsesApiConfig: mockConfig })
+      useAICoScout({ context: null, surface: 'analyze', responsesApiConfig: mockConfig })
     );
 
     await act(async () => {
@@ -212,7 +246,7 @@ describe('useAICoScout', () => {
       );
 
       const { result } = renderHook(() =>
-        useAICoScout({ context: baseContext, responsesApiConfig: mockConfig })
+        useAICoScout({ context: baseContext, surface: 'analyze', responsesApiConfig: mockConfig })
       );
 
       await act(async () => {
@@ -230,7 +264,9 @@ describe('useAICoScout', () => {
     });
 
     it('returns false when no assistant messages exist', async () => {
-      const { result } = renderHook(() => useAICoScout({ context: baseContext }));
+      const { result } = renderHook(() =>
+        useAICoScout({ context: baseContext, surface: 'analyze' })
+      );
 
       let success = true;
       await act(async () => {
@@ -265,6 +301,7 @@ describe('useAICoScout', () => {
       const { result } = renderHook(() =>
         useAICoScout({
           context: baseContext,
+          surface: 'analyze',
           responsesApiConfig: mockConfig,
           toolHandlers,
         })
@@ -301,7 +338,7 @@ describe('useAICoScout', () => {
       );
 
       const { result } = renderHook(() =>
-        useAICoScout({ context: baseContext, responsesApiConfig: mockConfig })
+        useAICoScout({ context: baseContext, surface: 'analyze', responsesApiConfig: mockConfig })
       );
 
       // First message

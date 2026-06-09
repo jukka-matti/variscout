@@ -93,7 +93,7 @@ export interface UseAIOrchestrationOptions {
   drillPath: DrillStep[];
   locale?: Locale;
   knowledgeSearchFolder?: string;
-  coscoutSurface?: CoScoutSurface;
+  coscoutSurface?: CoScoutSurface | null;
   projectRole?: ProjectRole;
   analysisScope?: ProblemStatementScope;
   entryScenario?: EntryScenario;
@@ -150,7 +150,7 @@ export function useAIOrchestration({
   drillPath,
   locale,
   knowledgeSearchFolder,
-  coscoutSurface = 'analyze',
+  coscoutSurface = null,
   projectRole,
   analysisScope,
   entryScenario,
@@ -163,6 +163,7 @@ export function useAIOrchestration({
 }: UseAIOrchestrationOptions): UseAIOrchestrationReturn {
   const { formatStat } = useTranslation();
   const aiAvailable = enabled && isAIAvailable();
+  const effectiveCoScoutSurface = coscoutSurface ?? 'analyze';
 
   // Read domain store for CoScout context (ADR-066)
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
@@ -357,21 +358,14 @@ export function useAIOrchestration({
     [analysisMode, analysisScope, aiContext.context?.analysisScope?.filters]
   );
 
-  const toolsOptions = useMemo(
-    () => ({
-      surface: coscoutSurface,
-      existingHubs: hypotheses,
-    }),
-    [coscoutSurface, hypotheses]
-  );
-
   // AI CoScout conversation (disabled when per-component toggle is off)
   const coscout = useAICoScout({
     context: aiContext.context,
+    surface: effectiveCoScoutSurface,
     initialNarrative: narration.narrative,
-    responsesApiConfig: aiAvailable && prefs.coscout ? responsesConfig : undefined,
+    responsesApiConfig:
+      aiAvailable && prefs.coscout && coscoutSurface ? responsesConfig : undefined,
     toolHandlers,
-    toolsOptions,
     scope: coscoutScope,
   });
 
