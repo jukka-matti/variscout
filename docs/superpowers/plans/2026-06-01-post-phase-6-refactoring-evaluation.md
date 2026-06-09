@@ -70,7 +70,7 @@ For each candidate, produce one row with:
 
 **Eval-B/C evidence memo 2026-06-09:** The holistic architecture evaluation lives at [2026-06-09-holistic-architecture-evaluation.md](2026-06-09-holistic-architecture-evaluation.md). It expands the focused Editor/PWA shell evaluation into product-concept, state/persistence, Azure/PWA, package-boundary, dead-residue, and CoScout operating-model lanes; it ranks Active IP architecture, CoScout autonomy/evals, state cleanup, shell view-model extraction, Wall planning lifecycle, and later render decomposition.
 
-**Eval-B/C promoted decision 2026-06-09:** The conceptual recommendation is now captured in the [Workspace architecture spec](../specs/2026-06-09-workspace-architecture-and-project-formalization-design.md) and sequenced in the [Workspace architecture roadmap](2026-06-09-workspace-architecture-roadmap.md): Workspace is the V1 product object, Project is optional formalization, Analysis Scope is the active lens, and Active IP is a staged retirement target.
+**Eval-B/C promoted decision 2026-06-09:** The conceptual recommendation is now captured in the [Workspace architecture spec](../specs/2026-06-09-workspace-architecture-and-project-formalization-design.md) and sequenced in the [Workspace architecture roadmap](2026-06-09-workspace-architecture-roadmap.md): Workspace is the V1 product object, every Workspace is backed by one active soft-formalized Project, Analysis Scope is the active lens, and Active IP is a staged retirement target.
 
 6. **Eval-D — PWA/Azure divergence matrix.** Separate intentional capability/persistence policy from accidental drift. Decision: design first for Process/Explore and Report/dashboard surfaces.
 

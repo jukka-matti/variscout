@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { ProcessHub } from '@variscout/core';
 import { getActiveIPInitialState, useActiveIPStore } from '@variscout/stores';
@@ -29,14 +29,14 @@ describe('useActiveIPContext', () => {
     useActiveIPStore.setState(getActiveIPInitialState());
   });
 
-  it('uses the local scope by default and returns a stored active IP', () => {
+  it('uses the local scope by default and returns the workspace project', () => {
     useActiveIPStore.getState().setActiveIP({ hubId: 'hub-1', userId: 'local' }, 'ip-1', 123);
 
     const { result } = renderHook(() => useActiveIPContext(baseHub));
 
     expect(result.current.scope).toEqual({ hubId: 'hub-1', userId: 'local' });
     expect(result.current.activeIP?.id).toBe('ip-1');
-    expect(result.current.activeState?.setAt).toBe(123);
+    expect(result.current.activeState?.setAt).toBe(1);
     expect(result.current.isIPScoped).toBe(true);
   });
 
@@ -58,7 +58,7 @@ describe('useActiveIPContext', () => {
     expect(result.current.scope).toEqual({ hubId: 'hub-1', userId: 'local' });
   });
 
-  it('clears active state when the stored IP is not live on the hub', () => {
+  it('ignores stale stored focus when the workspace project is not live', () => {
     const hubWithDeletedIP: ProcessHub = {
       ...baseHub,
       improvementProject: {
@@ -76,31 +76,35 @@ describe('useActiveIPContext', () => {
 
     expect(result.current.activeIP).toBeNull();
     expect(result.current.isIPScoped).toBe(false);
+  });
+
+  it('returns the workspace project without active-focus storage', () => {
+    const { result } = renderHook(() =>
+      useActiveIPContext(baseHub, { userId: 'mira@example.com' })
+    );
+
+    expect(result.current.activeIP?.id).toBe('ip-1');
+    expect(result.current.isIPScoped).toBe(true);
     expect(
       useActiveIPStore.getState().getActiveIP({ hubId: 'hub-1', userId: 'mira@example.com' })
     ).toBeNull();
   });
 
-  it('auto-activates the only live IP once per session scope', async () => {
+  it('keeps the workspace project attached when legacy clearActiveIP is called', () => {
     const { result, unmount } = renderHook(() =>
       useActiveIPContext(baseHub, { userId: 'mira@example.com' })
     );
 
-    await waitFor(() => expect(result.current.activeIP?.id).toBe('ip-1'));
-    expect(
-      useActiveIPStore.getState().getActiveIP({ hubId: 'hub-1', userId: 'mira@example.com' })?.ipId
-    ).toBe('ip-1');
-
     act(() => result.current.clearActiveIP());
-    expect(result.current.activeIP).toBeNull();
-    expect(result.current.isIPScoped).toBe(false);
+    expect(result.current.activeIP?.id).toBe('ip-1');
+    expect(result.current.isIPScoped).toBe(true);
 
     unmount();
     const { result: remounted } = renderHook(() =>
       useActiveIPContext(baseHub, { userId: 'mira@example.com' })
     );
-    await waitFor(() => expect(remounted.current.activeIP).toBeNull());
-    expect(remounted.current.isIPScoped).toBe(false);
+    expect(remounted.current.activeIP?.id).toBe('ip-1');
+    expect(remounted.current.isIPScoped).toBe(true);
   });
 
   it('sets and clears active IP through returned actions', () => {
@@ -113,7 +117,7 @@ describe('useActiveIPContext', () => {
     expect(result.current.isIPScoped).toBe(true);
 
     act(() => result.current.clearActiveIP());
-    expect(result.current.activeIP).toBeNull();
-    expect(result.current.isIPScoped).toBe(false);
+    expect(result.current.activeIP?.id).toBe('ip-1');
+    expect(result.current.isIPScoped).toBe(true);
   });
 });

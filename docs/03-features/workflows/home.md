@@ -5,11 +5,11 @@ title: 'Home — the entry surface'
 audience: both
 status: active
 date: 2026-06-02
-last-verified: 2026-06-02
+last-verified: 2026-06-09
 verified-against-commit: 5173695a
 layer: L3
 kind: workflow
-topic: [home, entry, active-ip, invitations, wedge-v1]
+topic: [home, entry, workspace, invitations, wedge-v1]
 serves:
   - docs/02-journeys/personas/lead.md
   - docs/02-journeys/ia-nav-model.md
@@ -22,7 +22,7 @@ related:
 
 # Home — the entry surface
 
-Home is where a session starts. It is **project-level entry, not the active-IP origin** — selecting the active Improvement Project happens downstream on the Dashboard/Improve surface (see below). The Home surface **diverges sharply by app**: PWA is a training funnel, Azure is a durable project portfolio.
+Home is where a session starts. It opens or creates **Workspaces**; it does not start a Hub portfolio or an active-IP focus mode. The Home surface **diverges sharply by app**: PWA is a training funnel, Azure is a durable Workspace/document portfolio.
 
 ```mermaid
 flowchart TD
@@ -33,9 +33,9 @@ flowchart TD
     W -.session-only · export-only.-> V
   end
   subgraph AZ["Azure Home / Dashboard — durable portfolio"]
-    L[Saved-project list<br/>listProjects] --> O[Open project]
+    L[Saved Workspace list<br/>listProjects] --> O[Open Workspace]
     Q[Project queue] --> O
-    IPC[ActiveIPLaunchpadCard] -->|setActiveIP| Cascade[active-IP cascade<br/>→ Process/Explore/Analyze/Improve]
+    IPC[Workspace identity header] --> Cascade[Workspace context<br/>→ Process/Explore/Analyze/Improve]
   end
 ```
 
@@ -45,11 +45,11 @@ flowchart TD
 
 ## Azure Home / Dashboard — durable portfolio
 
-The Azure Editor's `dashboard` view renders `ProjectDashboard` (the saved-project list, `listProjects` from storage) + the project queue + an **`ActiveIPLaunchpadCard`**. Documents are durable (IndexedDB + Blob); access is roster-gated ([save-and-load.md §Access](../data/save-and-load.md)).
+The Azure Editor's `dashboard` view renders `ProjectDashboard` (the saved Workspace/document list, `listProjects` from storage) + the project queue + a Workspace identity header. Documents are durable (IndexedDB + Blob); formalized Project access is roster-gated ([save-and-load.md §Access](../data/save-and-load.md)).
 
-## The active-IP cascade does **not** originate on Home
+## Workspace context
 
-Selecting the active Improvement Project happens on the **Dashboard / Improve** surface, not Home (`Editor.tsx` calls `setActiveIP` from the `ActiveIPLaunchpadCard`, the Projects tab, and new-IP creation — never from a Home control). `useActiveIPContext(hub, { userId })` wraps `useActiveIPStore` (persisted to `localStorage` key `variscout:activeIP:{hubId}:{userId}`); it **auto-selects** when exactly one IP exists in scope and the user hasn't explicitly cleared it. Home is the project-level entry; the cascade is owned downstream. Full rules: [ia-nav-model.md §Active-IP cascade](../../02-journeys/ia-nav-model.md).
+Opening data creates/opens a Workspace that is always backed by one active Project record. `useActiveIPContext(hub, { userId })` is now a compatibility wrapper that returns the Workspace's attached Project directly; it no longer represents user-selectable focus, free-roaming, or exit behavior. Full rules: [ia-nav-model.md §Workspace Context Rules](../../02-journeys/ia-nav-model.md).
 
 ## Pending invites
 
@@ -57,20 +57,20 @@ Selecting the active Improvement Project happens on the **Dashboard / Improve** 
 
 ## Azure vs PWA
 
-|                                         | Azure (€120) | PWA (free)                      |
-| --------------------------------------- | ------------ | ------------------------------- |
-| Saved-document list                     | ✓ (durable)  | — (session-only)                |
-| Sample datasets / training funnel       | —            | ✓                               |
-| `.vrs` import / export                  | ✓            | ✓ (export-only durability)      |
-| `ActiveIPLaunchpadCard` / project queue | ✓            | —                               |
-| `PendingInvitesBanner`                  | ✓            | ✓ (single-user `analyst@local`) |
+|                                           | Azure (€120) | PWA (free)                      |
+| ----------------------------------------- | ------------ | ------------------------------- |
+| Saved-document list                       | ✓ (durable)  | — (session-only)                |
+| Sample datasets / training funnel         | —            | ✓                               |
+| `.vrs` import / export                    | ✓            | ✓ (export-only durability)      |
+| Workspace identity header / project queue | ✓            | —                               |
+| `PendingInvitesBanner`                    | ✓            | ✓ (single-user `analyst@local`) |
 
 ## Not yet built (do not document as live)
 
-Home does **not** own active-IP selection; `PendingInvitesBanner` has no cross-tab real-time sync (F5 rehydrate only); Azure active-IP persists to `localStorage`, **not** cloud; the PWA has no saved-document list (R6d export-only).
+Home does **not** own a project focus selector; `PendingInvitesBanner` has no cross-tab real-time sync (F5 rehydrate only); the PWA has no saved-document list (R6d export-only).
 
 ## See also
 
-- [project-dashboard.md](project-dashboard.md) — the Azure project portfolio + active-IP launchpad.
+- [project-dashboard.md](project-dashboard.md) — the Azure Workspace/document portfolio + identity header.
 - [collaboration.md](collaboration.md) — invitations + roster. · [save-and-load.md](../data/save-and-load.md) — durability + access.
-- [ia-nav-model.md](../../02-journeys/ia-nav-model.md) — the 7-tab nav + active-IP cascade.
+- [ia-nav-model.md](../../02-journeys/ia-nav-model.md) — the 7-tab nav + Workspace context.

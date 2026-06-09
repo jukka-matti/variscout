@@ -73,6 +73,33 @@ describe('ProjectsTabView', () => {
     expect(onStartNewProject).toHaveBeenCalledTimes(1);
   });
 
+  it('stamps formalizedAt when the Workspace Project is opened', async () => {
+    const onProjectPatch = vi.fn();
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        metadata: { title: 'Auto-named sample' },
+        goal: { outcomeGoals: [] },
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+      />
+    );
+
+    expect(onProjectPatch).toHaveBeenCalledWith(
+      'ip-1',
+      expect.objectContaining({
+        metadata: expect.objectContaining({ formalizedAt: expect.any(Number) }),
+      })
+    );
+  });
+
   it('never exposes a sign-off section — PWA is a Mode-1 solo surface (IM-7 §9.2)', () => {
     const hub: ProcessHub = {
       ...baseHub,

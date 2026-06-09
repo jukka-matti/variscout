@@ -41,7 +41,7 @@ const ip: ImprovementProject = {
 const actions: ActionItem[] = [];
 
 describe('ImproveTabRoot', () => {
-  it('renders NoActiveProjectGuidance when activeIP is null', () => {
+  it('renders Workspace guidance when activeIP is null', () => {
     render(
       <ImproveTabRoot
         activeIP={null}
@@ -53,7 +53,7 @@ describe('ImproveTabRoot', () => {
         onActionRemove={() => {}}
       />
     );
-    expect(screen.getByRole('heading', { name: /no active project/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /workspace unavailable/i })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /actions/i })).not.toBeInTheDocument();
   });
 
@@ -70,7 +70,9 @@ describe('ImproveTabRoot', () => {
       />
     );
     expect(screen.getByRole('heading', { name: /actions/i })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: /no active project/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /workspace unavailable/i })
+    ).not.toBeInTheDocument();
   });
 
   it('passes onGoHome from NoActiveProjectGuidance through correctly', () => {

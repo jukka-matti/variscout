@@ -109,6 +109,17 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
     [onProjectPatch, upsertProject]
   );
 
+  const selectedProject = selectedProjectId
+    ? (projects.find(p => p.id === selectedProjectId) ?? null)
+    : null;
+
+  React.useEffect(() => {
+    if (!selectedProject || selectedProject.metadata.formalizedAt) return;
+    applyProjectPatch(selectedProject, {
+      metadata: { ...selectedProject.metadata, formalizedAt: Date.now() },
+    });
+  }, [applyProjectPatch, selectedProject]);
+
   if (!activeHub) {
     return (
       <div className="p-4 text-sm text-content-secondary">
@@ -118,7 +129,7 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   }
 
   if (selectedProjectId) {
-    const selected = projects.find(p => p.id === selectedProjectId);
+    const selected = selectedProject;
     if (!selected) {
       return (
         <div className="p-4 text-sm text-content-secondary" role="alert">

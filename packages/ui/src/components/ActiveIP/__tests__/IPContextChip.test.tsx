@@ -4,18 +4,18 @@ import { IPContextChip } from '../IPContextChip';
 import { normalizeColor } from '../../../test-utils/color';
 
 describe('IPContextChip', () => {
-  it('renders the exact working-in-IP text with separate title and exit controls', () => {
+  it('renders Workspace Project text with a title control', () => {
     render(
       <IPContextChip title="Heads 5-8 Cpk shortfall" onTitleClick={() => {}} onExitIP={() => {}} />
     );
 
     expect(screen.getByTestId('ip-context-chip')).toHaveTextContent(
-      '◆ Working in IP: Heads 5-8 Cpk shortfall · Exit IP'
+      '◆ Workspace Project: Heads 5-8 Cpk shortfall'
     );
     expect(
-      screen.getByRole('button', { name: 'Open IP Heads 5-8 Cpk shortfall' })
+      screen.getByRole('button', { name: 'Open Project Heads 5-8 Cpk shortfall' })
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Exit IP' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Exit IP' })).not.toBeInTheDocument();
   });
 
   it('uses the required inline chip style', () => {
@@ -31,18 +31,17 @@ describe('IPContextChip', () => {
     expect(normalizeColor(chip.style.color)).toBe('rgb(79, 70, 229)');
   });
 
-  it('calls title and exit callbacks without nesting interactive elements', () => {
+  it('calls the title callback without nesting interactive elements', () => {
     const onTitleClick = vi.fn();
     const onExitIP = vi.fn();
     const { container } = render(
       <IPContextChip title="Reduce rework" onTitleClick={onTitleClick} onExitIP={onExitIP} />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open IP Reduce rework' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Exit IP' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open Project Reduce rework' }));
 
     expect(onTitleClick).toHaveBeenCalledOnce();
-    expect(onExitIP).toHaveBeenCalledOnce();
+    expect(onExitIP).not.toHaveBeenCalled();
     expect(container.querySelectorAll('button button')).toHaveLength(0);
   });
 });

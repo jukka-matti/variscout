@@ -79,6 +79,33 @@ describe('ProjectsTabView', () => {
     expect(onStartNewProject).toHaveBeenCalledTimes(1);
   });
 
+  it('stamps formalizedAt when the Workspace Project is opened', () => {
+    const onProjectPatch = vi.fn();
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        metadata: { title: 'Auto-named sample' },
+        goal: { outcomeGoals: [] },
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        onProjectPatch={onProjectPatch}
+      />
+    );
+
+    expect(onProjectPatch).toHaveBeenCalledWith(
+      'ip-1',
+      expect.objectContaining({
+        metadata: expect.objectContaining({ formalizedAt: expect.any(Number) }),
+      })
+    );
+  });
+
   it('updates the project store and emits a patch from detail signoff actions', () => {
     const onProjectPatch = vi.fn();
     const hub: ProcessHub = {

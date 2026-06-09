@@ -159,8 +159,8 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 **Candidate changes:**
 
 - Introduce a canonical `buildDocumentSnapshot()` / `hydrateDocumentSnapshot()` path. **Done in R6a.**
-- Replace the stale flat type-only `DocumentSnapshot` with a namespaced runtime envelope covering Project config/data, Analyze state, Canvas document state, and zero-or-one `ImprovementProject` for the active hub. **Done in R6a.**
-- Treat snapshots as hub-scoped: quick-analysis hubs may have no Project; formalized hubs have one Project; snapshots carry at most that hub's live Project and never serialize the multi-hub `projectsById` mirror. **Done in R6a.**
+- Replace the stale flat type-only `DocumentSnapshot` with a namespaced runtime envelope covering Project config/data, Analyze state, Canvas document state, and the active hub's one live `ImprovementProject`. **Done in R6a; wording corrected by Workspace spec 2026-06-09.**
+- Treat snapshots as hub-scoped: quick-analysis Workspaces carry an informal Project; formalized Workspaces carry the same Project with deliberate formalization signals; snapshots carry that hub's one live Project and never serialize the multi-hub `projectsById` mirror. **Done in R6a; corrected by Workspace spec 2026-06-09.**
 - Wire PWA/Azure `.vrs` export/import through the settled snapshot boundary. **Done in R6b.**
 - Add round-trip tests for `.vrs` export/import once the snapshot boundary is settled. **Done in R6b.**
 - Cut over `.vrs` and Azure local/cloud project persistence to snapshot-only documents, with no old hub/rawData or loose analysis payload import branches. **Done in R6c.**
@@ -170,7 +170,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 - Harden Azure access enforcement at the same-origin server API / storage boundary so R6c's access metadata is enforced before any Azure Blob list/read/write operation. Replace broad browser container SAS guidance with server-enforced APIs backed by managed identity. **Current R6e slice.**
 - Audit persistence docs, examples, and fixtures for stale `AnalysisState`, Hub-of-one, old `.vrs`, and last-write-wins assumptions. **R6f candidate.**
 
-**R6a decision note (2026-05-31):** `ImprovementProject.status` is persisted domain state (`draft | active | closed`), not a derived label. The uncertainty is stage vocabulary/granularity, not whether Project lifecycle state belongs in a portable document. `useImprovementProjectStore.projectsById` is Document-layer state but is a multi-hub in-memory mirror; the portable snapshot boundary is one hub document with zero-or-one live Project.
+**R6a decision note (2026-05-31; corrected 2026-06-09):** `ImprovementProject.status` is persisted domain state (`draft | active | closed`), not a derived label. The uncertainty is stage vocabulary/granularity, not whether Project lifecycle state belongs in a portable document. `useImprovementProjectStore.projectsById` is Document-layer state but is a multi-hub in-memory mirror; the portable snapshot boundary is one hub document with exactly one live Project.
 
 **R6b decision note (2026-06-01, superseded by R6c):** R6b shipped additive `.vrs` snapshot support while preserving legacy `hub`/`rawData` and Azure `AnalysisState` paths. R6c intentionally removes those compatibility paths before launch, so this note is historical context rather than current guidance.
 
@@ -190,7 +190,7 @@ The roadmap is intentionally limited to product code and engineering tooling. We
 
 **Horizon candidates:**
 
-- Reconcile Project/IP naming in code and docs now that each hub carries zero-or-one formal `ImprovementProject`.
+- Reconcile Project/IP naming in code and docs now that each Workspace carries one active, soft-formalized `ImprovementProject`.
 - Revisit `useImprovementProjectStore.projectsById`: it remains a multi-hub in-memory mirror, but the public shape may deserve a clearer hub-keyed API.
 - Separate remaining store side effects from document mutations where persistence or service work still leaks into store actions.
 - Re-check Annotation/View boundaries after R6; do not add Annotation/View state to portable `.vrs` by default.

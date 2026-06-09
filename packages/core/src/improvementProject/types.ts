@@ -30,6 +30,10 @@ export interface ProcessStepEntry {
 
 export interface ImprovementProjectMetadata {
   title: string; // required
+  /** Explicit soft-formalization marker. Auto-generated titles do not set this;
+   *  deliberate actions such as opening the charter or choosing "Make this a
+   *  Project" may set it. */
+  formalizedAt?: number;
   businessCase?: string;
   financialImpact?: { amount?: number; currency: string };
   /** Wedge V1 membership roster (lead / member / sponsor) — the canonical project

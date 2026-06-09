@@ -3,13 +3,11 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { NoActiveProjectGuidance } from '../NoActiveProjectGuidance';
 
 describe('NoActiveProjectGuidance', () => {
-  it('renders the "No active project" heading + body copy', () => {
+  it('renders Workspace recovery copy by default', () => {
     render(<NoActiveProjectGuidance onGoHome={() => {}} />);
     expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /no active project/i })).toBeInTheDocument();
-    expect(
-      screen.getByText(/improvement work happens inside a chartered project/i)
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /workspace unavailable/i })).toBeInTheDocument();
+    expect(screen.getByText(/open or create a workspace/i)).toBeInTheDocument();
   });
 
   it('renders a "Go to Home" button', () => {
@@ -55,10 +53,8 @@ describe('NoActiveProjectGuidance', () => {
 
   it('renders defaults when overrides are absent', () => {
     render(<NoActiveProjectGuidance onGoHome={() => {}} />);
-    expect(screen.getByRole('heading', { name: /no active project/i })).toBeInTheDocument();
-    expect(
-      screen.getByText(/improvement work happens inside a chartered project/i)
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /workspace unavailable/i })).toBeInTheDocument();
+    expect(screen.getByText(/open or create a workspace/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /go to home/i })).toBeInTheDocument();
   });
 });

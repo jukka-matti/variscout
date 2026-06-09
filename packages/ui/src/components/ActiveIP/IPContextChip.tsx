@@ -3,7 +3,7 @@ import React from 'react';
 export interface IPContextChipProps {
   title: string;
   onTitleClick: () => void;
-  onExitIP: () => void;
+  onExitIP?: () => void;
 }
 
 const chipStyle: React.CSSProperties = {
@@ -14,29 +14,20 @@ const chipStyle: React.CSSProperties = {
   color: '#4f46e5',
 };
 
-export const IPContextChip: React.FC<IPContextChipProps> = ({ title, onTitleClick, onExitIP }) => (
+export const IPContextChip: React.FC<IPContextChipProps> = ({ title, onTitleClick }) => (
   <span
     className="inline-flex max-w-full items-center gap-1 text-xs font-medium leading-tight"
     style={chipStyle}
     data-testid="ip-context-chip"
   >
-    <span aria-hidden="true">◆</span> <span className="shrink-0">Working in IP:</span>{' '}
+    <span aria-hidden="true">◆</span> <span className="shrink-0">Workspace Project:</span>{' '}
     <button
       type="button"
       onClick={onTitleClick}
       className="min-w-0 truncate font-semibold underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-primary"
-      aria-label={`Open IP ${title}`}
+      aria-label={`Open Project ${title}`}
     >
       {title}
-    </button>{' '}
-    <span aria-hidden="true">·</span>{' '}
-    <button
-      type="button"
-      onClick={onExitIP}
-      className="shrink-0 underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-primary"
-      aria-label="Exit IP"
-    >
-      Exit IP
     </button>
   </span>
 );

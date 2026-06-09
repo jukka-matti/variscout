@@ -9,14 +9,14 @@
  * consumer's behaviour (no migration needed at `ImproveTabRoot`).
  */
 
-const DEFAULT_HEADING = 'No active project';
+const DEFAULT_HEADING = 'Workspace unavailable';
 const DEFAULT_DESCRIPTION =
-  'Improvement work happens inside a chartered project. Pick a project from Home, or create a new one to start tracking actions and ideating with the PDCA workbench.';
+  'Open or create a Workspace to continue framing, analyzing, improving, and reporting.';
 const DEFAULT_CTA_LABEL = 'Go to Home';
 
 export interface NoActiveProjectGuidanceProps {
   onGoHome: () => void;
-  /** Override the heading. Default "No active project". */
+  /** Override the heading. Default "Workspace unavailable". */
   heading?: string;
   /** Override the body paragraph. Default is Improve-scoped copy. */
   description?: string;
