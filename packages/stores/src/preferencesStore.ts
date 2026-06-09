@@ -21,7 +21,7 @@ import { idbStorage } from './persistence/idbAdapter';
 export const STORE_LAYER = 'annotation-per-user' as const;
 
 export type WorkspaceView =
-  | 'dashboard'
+  | 'home'
   | 'frame'
   | 'analysis'
   | 'investigation'
@@ -61,7 +61,7 @@ export interface PreferencesState {
 
 export interface PreferencesActions {
   // Workspace navigation (parity with legacy sessionStore actions)
-  showDashboard: () => void;
+  showHome: () => void;
   showAnalysis: () => void;
   showInvestigation: () => void;
   showImprovement: () => void;
@@ -116,7 +116,7 @@ export const usePreferencesStore = create<PreferencesStore>()(
       ...getPreferencesInitialState(),
 
       // Workspace navigation
-      showDashboard: () => set({ activeView: 'dashboard' }),
+      showHome: () => set({ activeView: 'home' }),
       showAnalysis: () => set({ activeView: 'analysis' }),
       showInvestigation: () =>
         set({

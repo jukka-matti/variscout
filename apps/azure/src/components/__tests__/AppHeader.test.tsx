@@ -58,7 +58,7 @@ describe('AppHeader active IP chip', () => {
     expect(usePanelsStore.getState().activeView).toBe('frame');
 
     fireEvent.click(screen.getByTestId('workflow-tab-home'));
-    expect(usePanelsStore.getState().activeView).toBe('dashboard');
+    expect(usePanelsStore.getState().activeView).toBe('home');
 
     fireEvent.click(screen.getByTestId('workflow-tab-analyze'));
     expect(usePanelsStore.getState().activeView).toBe('analyze');

@@ -26,7 +26,7 @@ import {
 import { usePanelsStore } from '../features/panels/panelsStore';
 
 export type WorkspaceView =
-  | 'dashboard'
+  | 'home'
   | 'frame'
   | 'explore'
   | 'analyze'
@@ -198,7 +198,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   const dotColor = statusDotColor(saveStatus, syncStatus);
   const activeWorkflowTab: WorkflowTabId =
-    activeView === 'dashboard'
+    activeView === 'home'
       ? 'home'
       : activeView === 'projects'
         ? 'project'
@@ -209,7 +209,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             : activeView;
   const handleWorkflowTabChange = (tab: WorkflowTabId) => {
     const panels = usePanelsStore.getState();
-    if (tab === 'home') panels.showDashboard();
+    if (tab === 'home') panels.showHome();
     else if (tab === 'project') panels.showProjects();
     else if (tab === 'process') panels.showFrame();
     else if (tab === 'explore') panels.showExplore();

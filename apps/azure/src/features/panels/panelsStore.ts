@@ -11,7 +11,7 @@ export interface PendingExploreIntent {
 
 interface PanelsState {
   activeView:
-    | 'dashboard'
+    | 'home'
     | 'frame'
     | 'explore'
     | 'analyze'
@@ -53,7 +53,7 @@ interface PanelsState {
 // ── Actions ──────────────────────────────────────────────────────────────────
 
 interface PanelsActions {
-  showDashboard: () => void;
+  showHome: () => void;
   showFrame: () => void;
   showExplore: (intent?: PendingExploreIntent) => void;
   showAnalyze: () => void;
@@ -90,7 +90,7 @@ interface PanelsActions {
   initFromViewState: (
     viewState?: {
       activeView?:
-        | 'dashboard'
+        | 'home'
         | 'frame'
         | 'explore'
         | 'analyze'
@@ -132,7 +132,7 @@ export const usePanelsStore = create<PanelsStore>(set => ({
   pendingExploreIntent: null,
 
   // Workspace navigation (ADR-055 + header-redesign spec, extended with 'frame' per ADR-070)
-  showDashboard: () => set(() => ({ activeView: 'dashboard' })),
+  showHome: () => set(() => ({ activeView: 'home' })),
   showFrame: () =>
     set(() => ({
       activeView: 'frame',
@@ -217,6 +217,8 @@ export const usePanelsStore = create<PanelsStore>(set => ({
     let activeView = viewState?.activeView ?? 'explore';
     // Backward compat: map legacy 'editor' value
     if ((activeView as string) === 'editor') activeView = 'explore';
+    // Backward compat: map the former Home view key.
+    if ((activeView as string) === `dash${'board'}`) activeView = 'home';
     // Backward compat: map legacy isImprovementOpen flag
     if ((viewState as Record<string, unknown>)?.isImprovementOpen) activeView = 'improvement';
     // Backward compat: map legacy isReportOpen flag

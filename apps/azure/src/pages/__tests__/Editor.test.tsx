@@ -561,8 +561,8 @@ describe('Editor', () => {
     expect(screen.getByTestId('btn-coscout')).toBeInTheDocument();
   });
 
-  it('does not show CoScout toggle on Home dashboard', () => {
-    usePanelsStore.setState({ activeView: 'dashboard' });
+  it('does not show CoScout toggle on Home', () => {
+    usePanelsStore.setState({ activeView: 'home' });
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       outcome: 'Weight',
@@ -599,7 +599,7 @@ describe('Editor', () => {
       factors: ['Machine'],
     });
 
-    // With projectId, loads into dashboard (overview) view first
+    // With projectId, loads into Home overview first.
     expect(screen.getByTestId('project-dashboard-mock')).toBeInTheDocument();
     expect(screen.getByTestId('workflow-nav')).toBeInTheDocument();
   });

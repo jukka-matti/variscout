@@ -1435,7 +1435,9 @@ function AppMain() {
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
                 onImportVrs={handleImportVrs}
                 resolveProjectName={id =>
-                  workspaceViewModel?.project.id === id ? workspaceProjectTitle : undefined
+                  workspaceViewModel?.project.id === id && workspaceProjectTitle
+                    ? workspaceProjectTitle
+                    : undefined
                 }
               />
             ) : panels.activeView === 'home' ? (
@@ -1445,7 +1447,9 @@ function AppMain() {
                   onAccept={acceptInvite}
                   onDecline={revokeInvite}
                   resolveProjectName={id =>
-                    workspaceViewModel?.project.id === id ? workspaceProjectTitle : undefined
+                    workspaceViewModel?.project.id === id && workspaceProjectTitle
+                      ? workspaceProjectTitle
+                      : undefined
                   }
                 />
                 <ActiveIPLaunchpadCard
@@ -1655,7 +1659,7 @@ function AppMain() {
                     : null
                 }
               />
-            ) : (
+            ) : panels.activeView === 'explore' ? (
               <Dashboard
                 onPointClick={panels.openDataTableAtRow}
                 hideStatsInGrid={panels.isPISidebarOpen}
@@ -1687,6 +1691,10 @@ function AppMain() {
                 }}
                 findings={findings}
               />
+            ) : (
+              <div className="flex min-h-0 flex-1 items-center justify-center p-6 text-sm text-content-secondary">
+                Unknown workspace view.
+              </div>
             )}
           </Suspense>
         </div>

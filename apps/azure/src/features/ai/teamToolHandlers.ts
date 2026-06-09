@@ -12,7 +12,7 @@ import { useFindingsStore } from '../findings/findingsStore';
 import { useAnalyzeFeatureStore } from '../analyze/analyzeStore';
 
 export type NavigationTarget =
-  | 'dashboard'
+  | 'home'
   | 'finding'
   | 'hypothesis'
   | 'question'
@@ -56,7 +56,7 @@ export function buildNavTeamToolHandlers({
       }
 
       const validTargets: NavigationTarget[] = [
-        'dashboard',
+        'home',
         'finding',
         'hypothesis',
         'question',
@@ -70,8 +70,8 @@ export function buildNavTeamToolHandlers({
 
       const panels = usePanelsStore.getState();
       switch (target) {
-        case 'dashboard':
-          panels.showDashboard();
+        case 'home':
+          panels.showHome();
           break;
         case 'finding':
           panels.showAnalyze();

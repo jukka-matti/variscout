@@ -71,7 +71,7 @@ const showExploreMock = vi.fn();
 const showAnalyzeMock = vi.fn();
 const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
-const showDashboardMock = vi.fn();
+const showHomeMock = vi.fn();
 const expandToQuestionMock = vi.fn();
 const setWallViewModeMock = vi.fn();
 const setAnalyzeViewModeMock = vi.fn();
@@ -224,7 +224,7 @@ vi.mock('../features/panels/panelsStore', () => ({
       showAnalyze: showAnalyzeMock,
       showCharter: showCharterMock,
       showControl: showSustainmentMock,
-      showDashboard: showDashboardMock,
+      showHome: showHomeMock,
       setAnalyzeViewMode: setAnalyzeViewModeMock,
       clearPendingExploreIntent: clearPendingExploreIntentMock,
     }),

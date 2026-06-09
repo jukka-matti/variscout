@@ -10,7 +10,7 @@ const showExploreMock = vi.fn();
 const showImprovementMock = vi.fn();
 const showAnalyzeMock = vi.fn();
 const showSustainmentMock = vi.fn();
-const showDashboardMock = vi.fn();
+const showHomeMock = vi.fn();
 const expandToHypothesisMock = vi.fn();
 const setWallViewModeMock = vi.fn();
 const setAnalyzeViewModeMock = vi.fn();
@@ -342,7 +342,7 @@ vi.mock('../../../features/panels/panelsStore', () => ({
       showImprovement: showImprovementMock,
       showAnalyze: showAnalyzeMock,
       showControl: showSustainmentMock,
-      showDashboard: showDashboardMock,
+      showHome: showHomeMock,
       setAnalyzeViewMode: setAnalyzeViewModeMock,
     }),
   }),
@@ -405,7 +405,7 @@ describe('FrameView (Azure shell)', () => {
     showImprovementMock.mockClear();
     showAnalyzeMock.mockClear();
     showSustainmentMock.mockClear();
-    showDashboardMock.mockClear();
+    showHomeMock.mockClear();
     expandToHypothesisMock.mockClear();
     setWallViewModeMock.mockClear();
     setAnalyzeViewModeMock.mockClear();
@@ -878,12 +878,12 @@ describe('FrameView (Azure shell)', () => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
     });
 
-    it('invokes panelsStore.showDashboard() when the "Go to Home" CTA is clicked', () => {
+    it('invokes panelsStore.showHome() when the "Go to Home" CTA is clicked', () => {
       render(<FrameView activeIP={null} />);
 
       fireEvent.click(screen.getByRole('button', { name: /go to home/i }));
 
-      expect(showDashboardMock).toHaveBeenCalledTimes(1);
+      expect(showHomeMock).toHaveBeenCalledTimes(1);
     });
 
     it('renders CanvasWorkspace (not the guidance) when activeIP is non-null', () => {

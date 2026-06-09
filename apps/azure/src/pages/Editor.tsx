@@ -1213,8 +1213,8 @@ export const Editor: React.FC<EditorProps> = ({
   // (wallActive / onProposeHypothesis). Promoting a finding to a Hypothesis hub
   // on the Wall is owned by the unified Wall re-layout in IM-4/IM-5.
 
-  // Deep link: auto-open findings panel and highlight target finding (one-shot)
-  // Also set activeView to 'dashboard' on project load unless deep-linked
+  // Deep link: auto-open findings panel and highlight target finding (one-shot).
+  // Project loads restore persisted view when available, otherwise land on Home.
   const deepLinkConsumedRef = React.useRef(false);
   useEffect(() => {
     if (deepLinkConsumedRef.current || !rawData.length || !outcome) return;
@@ -1259,6 +1259,8 @@ export const Editor: React.FC<EditorProps> = ({
       usePanelsStore.getState().showImprovement();
     } else if (initialMode === 'report') {
       usePanelsStore.getState().showReport();
+    } else if (initialMode === 'home') {
+      usePanelsStore.getState().showHome();
     }
 
     if (hasDeepLink) {
@@ -1267,13 +1269,13 @@ export const Editor: React.FC<EditorProps> = ({
       // Deep-linked: stay in analysis view (or investigation/improvement set above)
       if (!initialMode) usePanelsStore.getState().showExplore();
     } else if (projectId) {
-      // Project loaded with data, no deep link: honor persisted view or default to dashboard
+      // Project loaded with data, no deep link: honor persisted view or default to Home.
       const persistedView = viewState?.activeView;
-      if (persistedView && persistedView !== 'dashboard') {
-        // Restore persisted workspace (analysis/analyze/improvement)
+      if (persistedView) {
+        // Restore persisted workspace.
         usePanelsStore.getState().initFromViewState(viewState ?? undefined);
       } else {
-        usePanelsStore.getState().showDashboard();
+        usePanelsStore.getState().showHome();
       }
     }
     deepLinkConsumedRef.current = true;
@@ -2181,7 +2183,7 @@ export const Editor: React.FC<EditorProps> = ({
             ) : null}
 
             {/* Workspace content (ADR-055) — tabs are in AppHeader */}
-            {activeView === 'dashboard' ? (
+            {activeView === 'home' ? (
               <div className="flex-1 overflow-y-auto space-y-4">
                 {activeHub ? (
                   <div className="p-4 sm:p-6">
@@ -2365,7 +2367,7 @@ export const Editor: React.FC<EditorProps> = ({
                 activeIP={activeIP}
                 actions={activeIP?.metadata.actions ?? []}
                 currentUserId={currentUser?.email}
-                onGoHome={() => usePanelsStore.getState().showDashboard()}
+                onGoHome={() => usePanelsStore.getState().showHome()}
                 onActionAdd={({ text, parentImprovementProjectId }) =>
                   applyAction({
                     kind: 'ACTION_ITEM_ADD',
@@ -2406,7 +2408,7 @@ export const Editor: React.FC<EditorProps> = ({
                 </div>
                 {sharedCoScoutSection}
               </div>
-            ) : (
+            ) : activeView === 'explore' ? (
               <div className="flex min-h-0 flex-1 overflow-hidden">
                 <EditorDashboardView
                   dataFlow={dataFlow}
@@ -2435,6 +2437,10 @@ export const Editor: React.FC<EditorProps> = ({
                   }}
                 />
                 {sharedCoScoutSection}
+              </div>
+            ) : (
+              <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-content-secondary">
+                Unknown workspace view.
               </div>
             )}
           </>

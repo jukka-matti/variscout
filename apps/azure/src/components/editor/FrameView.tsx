@@ -938,7 +938,7 @@ const FrameView: React.FC<FrameViewProps> = ({
   if (activeIP == null) {
     return (
       <NoActiveProjectGuidance
-        onGoHome={() => usePanelsStore.getState().showDashboard()}
+        onGoHome={() => usePanelsStore.getState().showHome()}
         description="Process work happens inside a project. Pick a project from Home, or create a new one to start editing the Canvas."
       />
     );

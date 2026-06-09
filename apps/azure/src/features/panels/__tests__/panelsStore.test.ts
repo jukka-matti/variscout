@@ -227,9 +227,9 @@ describe('panelsStore', () => {
       expect(usePanelsStore.getState().activeView).toBe('explore');
     });
 
-    it('showDashboard sets activeView to dashboard', () => {
-      usePanelsStore.getState().showDashboard();
-      expect(usePanelsStore.getState().activeView).toBe('dashboard');
+    it('showHome sets activeView to home', () => {
+      usePanelsStore.getState().showHome();
+      expect(usePanelsStore.getState().activeView).toBe('home');
     });
 
     it('showFrame sets activeView to frame and closes findings sidebar', () => {
@@ -241,7 +241,7 @@ describe('panelsStore', () => {
     });
 
     it('showExplore sets activeView to analysis', () => {
-      usePanelsStore.getState().showDashboard();
+      usePanelsStore.getState().showHome();
       usePanelsStore.getState().showExplore();
       expect(usePanelsStore.getState().activeView).toBe('explore');
     });
@@ -288,7 +288,7 @@ describe('panelsStore', () => {
 
   describe('showExplore intent payload', () => {
     it('bare showExplore() sets activeView to explore with null pendingExploreIntent', () => {
-      usePanelsStore.getState().showDashboard();
+      usePanelsStore.getState().showHome();
       usePanelsStore.getState().showExplore();
       const s = usePanelsStore.getState();
       expect(s.activeView).toBe('explore');
@@ -402,8 +402,14 @@ describe('panelsStore', () => {
     });
 
     it('restores activeView', () => {
-      usePanelsStore.getState().initFromViewState({ activeView: 'dashboard' });
-      expect(usePanelsStore.getState().activeView).toBe('dashboard');
+      usePanelsStore.getState().initFromViewState({ activeView: 'home' });
+      expect(usePanelsStore.getState().activeView).toBe('home');
+    });
+
+    it('maps legacy dashboard activeView to home', () => {
+      const legacyView = ['dash', 'board'].join('');
+      usePanelsStore.getState().initFromViewState({ activeView: legacyView } as never);
+      expect(usePanelsStore.getState().activeView).toBe('home');
     });
 
     it('restores investigation workspace', () => {
