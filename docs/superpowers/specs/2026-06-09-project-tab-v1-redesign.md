@@ -4,7 +4,7 @@ purpose: design
 title: Project tab V1 redesign
 audience: human
 category: design-spec
-status: draft
+status: active
 last-reviewed: 2026-06-09
 layer: spec
 implements:
@@ -337,6 +337,8 @@ Out of scope for this slice:
 - Adding new persistence tables.
 
 ## 10. Verification plan
+
+Implementation plan: [`docs/superpowers/plans/2026-06-09-project-tab-v1-redesign.md`](../plans/2026-06-09-project-tab-v1-redesign.md).
 
 Focused tests:
 

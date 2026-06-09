@@ -11,7 +11,7 @@ verified-against-commit: 0b0d4cc0
 
 # V1 Information Architecture — Nav Model
 
-V1 ships a flat 7-tab top-level navigation (per [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md), amended 2026-05-16 to restore Improve as a top-level verb tab; vocabulary refresh 2026-05-27 renamed the EDA tab `Analyze → Explore` and the hypothesis tab `Investigation → Analyze`). Tabs sit in workflow order from entry (Home) to terminal (Report); the **active-IP cascade** scopes downstream tabs when an Improvement Project is active.
+V1 ships a flat 7-tab top-level navigation (per [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](../07-decisions/adr-082-wedge-architecture.md), amended 2026-05-16 to restore Improve as a top-level verb tab; vocabulary refresh 2026-05-27 renamed the EDA tab `Analyze → Explore` and the hypothesis tab `Investigation → Analyze`). Tabs sit in workflow order from entry (Home) to terminal (Report); selecting a Project establishes the active Project context for Project, Process, Explore, Analyze, Improve, and Report.
 
 ## Nav graph
 
@@ -22,7 +22,7 @@ flowchart LR
     Process[Process<br/>map · scope]
     Explore[Explore<br/>canvas · Four Lenses]
     Analyze[Analyze<br/>Wall · Hypotheses]
-    Improve[Improve<br/>actions · active IP]
+    Improve[Improve<br/>actions · active Project]
     Report[Report<br/>terminal · sign-off]
 
     Home --> Project
@@ -32,13 +32,15 @@ flowchart LR
     Analyze --> Improve
     Improve --> Report
 
-    Improve -. active-IP cascade .-> Project
-    Improve -. active-IP cascade .-> Process
-    Improve -. active-IP cascade .-> Explore
-    Improve -. active-IP cascade .-> Analyze
+    Home -. active Project context .-> Project
+    Home -. active Project context .-> Process
+    Home -. active Project context .-> Explore
+    Home -. active Project context .-> Analyze
+    Home -. active Project context .-> Improve
+    Home -. active Project context .-> Report
 ```
 
-The solid arrows are the workflow walk (left-to-right). The dotted arrows are the **active-IP cascade**: when the Lead selects an Improvement Project as their active working focus on the Improve tab, the four upstream-of-Improve tabs scope their content to that IP until the Lead changes it.
+The solid arrows are the workflow walk (left-to-right). The dotted arrows are the active Project context: when a user opens a Project from Home, the workflow tabs orient around that formal project file until the user changes Projects or clears the context. Code may still use legacy `IP` names internally where renaming would be too large, but the product model exposed to users is Project.
 
 ## Tabs
 
@@ -64,33 +66,34 @@ The solid arrows are the workflow walk (left-to-right). The dotted arrows are th
 
 ### Analyze
 
-**Purpose**: Investigation Wall — Hypotheses, evidence, Measurement Plans. The accumulation surface where Findings cluster into Hypotheses, evidence is triangulated, and Measurement Plans capture outstanding evidence gaps.
+**Purpose**: Analyze Wall — Hypotheses, evidence, Measurement Plans. The accumulation surface where Findings cluster into Hypotheses, evidence is triangulated, and Measurement Plans capture outstanding evidence gaps.
 **Primary action**: create / update Hypotheses; attach evidence; log Measurement Plan rows.
 
 ### Improve
 
-**Purpose**: improvement action tracker scoped to the active Improvement Project (IP). When an Improvement Project is active, Improve becomes the working surface for action items, owners, and target dates. Control lives at the end of Improve's lifecycle.
-**Primary action**: create / track improvement actions; advance to Control; close out the IP.
+**Purpose**: improvement action tracker scoped to the active Project. When a Project is active, Improve becomes the working surface for action items, owners, and target dates. Control lives at the end of the Project lifecycle.
+**Primary action**: create / track improvement actions; advance to Control; close out the Project.
 
 ### Report
 
 **Purpose**: terminal compilation surface. Findings, Hypotheses, Actions, and Control status compile into a Report the Sponsor reviews (sign-off optional/out-of-band) and the team can share. Read-mostly for everyone except the Lead during compilation.
 **Primary action**: review interim status during Control; sign off final Report (Sponsor).
 
-## Active-IP cascade rules
+## Active Project Context Rules
 
-An **active IP** is the Improvement Project the Lead has selected as their current working focus. Project = collaboration via invite; no Charter ceremony — the Lead creates the Project from Home and invites Members directly. The active IP is then selected from the Lead's portfolio. At most one IP is active at a time per user session. When an IP is active:
+An **active Project** is the Project the user has selected as their current working focus. Project = the formal collaboration file with Charter, roster, lifecycle status, linked evidence, actions, Control closure, and Report context. At most one Project is active at a time per user session. When a Project is active:
 
-- **Project tab** filters its Charter / roster view to the IP's scope. The Project-level Charter remains accessible; the IP's working Charter sits underneath.
-- **Process tab** highlights the process steps the IP touches; non-IP scope dims.
-- **Explore tab** scopes the canvas to the dataset(s) attached to the IP's source hypothesis.
-- **Analyze tab** filters the Wall to the IP's source hypothesis and its evidence cluster.
-- **Improve tab** is the IP itself — owns active-IP selection.
-- **Home / Report** are not scoped by the cascade (Home is project-level; Report aggregates).
+- **Project tab** shows the Project dossier: Charter, Approach, Control, roster, linked signals, and next formal decisions.
+- **Process tab** highlights the process steps the Project touches; non-project scope dims.
+- **Explore tab** scopes the canvas to the dataset(s) attached to the Project.
+- **Analyze tab** filters the Wall to the Project's hypotheses and evidence cluster.
+- **Improve tab** shows the Project's action tracker.
+- **Report tab** compiles Project evidence, actions, and Control status into the Sponsor-facing narrative.
+- **Home** remains the portfolio entry point.
 
-The Lead owns the active-IP selection. Members and Sponsors see the cascade (their downstream tabs reflect it) but cannot change which IP is active. Clearing the active IP reverts downstream tabs to full-Project scope.
+The Lead can create and advance Projects. Members and Sponsors can open Projects they belong to, but role gating limits what they can edit. Clearing the active Project returns the workflow tabs to their no-project guidance state.
 
-The cascade is the V1 verb-tab pattern — every verb tab follows the same `useActiveIPContext(sessionHub)` + `<NoActiveProjectGuidance>`-style empty state pattern when no IP is active (durable memory entry: `feedback_active_ip_cascade_pattern`).
+The code still uses `useActiveIPContext(sessionHub)` and `<NoActiveProjectGuidance>`-style empty states in places. Treat those as internal implementation names until a broader rename is worth the churn; user-facing copy should say Project.
 
 ## Role × tab matrix
 
@@ -99,7 +102,7 @@ Lead / Member / Sponsor are **per-project membership roles** — the V1 persona 
 | Tab     | Lead           | Member        | Sponsor         |
 | ------- | -------------- | ------------- | --------------- |
 | Home    | Edit           | Read          | Read            |
-| Project | Edit + advance | Read          | Approve         |
+| Project | Edit + advance | Read          | Read + approve  |
 | Process | Edit           | Read          | Read            |
 | Explore | Edit           | Read + Find   | Read            |
 | Analyze | Edit + close   | Edit evidence | Read            |
@@ -118,8 +121,8 @@ Mapping to the 7-tab nav:
 
 - **Frame** — Process tab (canvas configuration; structure + outcomes + factors)
 - **Explore** — Explore tab (EDA / 4-chart dashboard)
-- **Analyze** — Analyze tab (Investigation Wall / hypotheses)
-- **Improve** — Improve tab (top-level verb tab, active-IP cascade)
+- **Analyze** — Analyze tab (Wall / hypotheses)
+- **Improve** — Improve tab (top-level verb tab, active Project context)
 - **Control** — Control stage (verify + handoff closure)
 
 Authoritative definition: [State/Edit mode + IP-scoped presentation spec §3 D6](../superpowers/specs/2026-05-28-state-edit-mode-and-ip-scoped-presentation-design.md). Architecture rationale: [ADR-082 Wedge architecture](../07-decisions/adr-082-wedge-architecture.md).
