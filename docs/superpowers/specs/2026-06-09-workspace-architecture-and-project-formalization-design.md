@@ -157,7 +157,9 @@ Deterministic stats remain the authority. CoScout consumes validated Workspace +
 
 ## Sequencing
 
-This is one **holistic** initiative — no docs-now / behavior-later split. The migration is still _ordered for safety_ within the initiative: lock the product model (this spec) → introduce the Workspace view-model adapter → swap behavior off Active IP → delete the portfolio fossil → render-split the shells. The **first-session / b0 walk is the acceptance gate** at every behavior-touching step — it is the exact flow that must not regress. Detailed slice ordering lives in the [Workspace Architecture Roadmap](../plans/2026-06-09-workspace-architecture-roadmap.md); each product-code slice gets its own implementation plan and worktree.
+This is one **holistic** initiative — no docs-now / behavior-later split. The migration is still _ordered for safety_ within the initiative: lock the product model (this spec) → introduce the Workspace view-model adapter → swap behavior off Active IP → delete the portfolio fossil → render-split the shells. The **first-session / b0 walk is the acceptance gate** at every behavior-touching step — it is the exact flow that must not regress. Detailed slice ordering lives in the [Workspace Architecture Roadmap](../plans/2026-06-09-workspace-architecture-roadmap.md); the **grounded delivery state + Codex-promptable work-items** (reconciled against what PR #351 actually shipped) live in the [Workspace migration mega-plan](../plans/2026-06-09-workspace-migration-mega-plan.md). Each product-code slice gets its own implementation plan and worktree.
+
+Two surfaces the grounding (2026-06-09) added as explicit migration targets, beyond the original slices: the **Home/Project-portfolio dashboards** (Azure `pages/Dashboard.tsx`, `OtherProjectsList`, the portfolio half of `useProjectOverview`) realign to "Home = open/create Workspaces, no portfolio"; and the **internal view-naming drift** (Azure `activeView:'dashboard'` is a stale alias for Home; PWA uses `'home'`) gets reconciled. Both are scoped in the mega-plan.
 
 ## Acceptance Criteria
 
