@@ -221,6 +221,14 @@ export {
   type UseControlPanelModelOptions,
   type UseControlPanelModelReturn,
 } from './useControlPanelModel';
+
+export {
+  deriveWorkspaceViewModel,
+  type DeriveWorkspaceViewModelInput,
+  type ProjectSummary,
+  type WorkspaceCapabilities,
+  type WorkspaceViewModel,
+} from './workspaceViewModel';
 export {
   useImprovementProjectPanelModel,
   type ImprovementProjectPanelPatch,

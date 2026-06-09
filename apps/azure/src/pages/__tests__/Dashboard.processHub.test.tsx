@@ -10,7 +10,8 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Dashboard } from '../Dashboard';
 import type { CloudProject } from '../../services/storage';
-import type { EvidenceSource } from '@variscout/core';
+import type { EvidenceSource, ProcessHub } from '@variscout/core';
+import { createNewIP } from '@variscout/core/improvementProject';
 import { useUnsavedHubsStore } from '../../features/hubs/unsavedHubsStore';
 
 const mockListProjects = vi.fn();
@@ -102,6 +103,23 @@ function makeResolvedProject(): CloudProject {
   };
 }
 
+function makeHubWithWorkspaceTitle(): ProcessHub {
+  return {
+    id: 'line-4',
+    name: 'Line 4 hub',
+    createdAt: 1745539200000,
+    updatedAt: 1745539200000,
+    deletedAt: null,
+    improvementProject: createNewIP({
+      id: 'line-4-ip',
+      hubId: 'line-4',
+      title: 'Line 4 Workspace',
+      currentUserId: 'analyst@contoso.com',
+      now: () => 1745539200000,
+    }),
+  };
+}
+
 async function selectHub(hubId: string): Promise<void> {
   fireEvent.change(screen.getByLabelText('Select process hub'), { target: { value: hubId } });
 }
@@ -139,6 +157,17 @@ describe('Dashboard Process Hub home', () => {
     expect(screen.queryByTestId('process-hub-card')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Open / })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Start analyze in/ })).not.toBeInTheDocument();
+  });
+
+  it('uses the Workspace title in the hub selector when it differs from storage name', async () => {
+    mockListProjects.mockResolvedValue([]);
+    mockListProcessHubs.mockResolvedValue([makeHubWithWorkspaceTitle()]);
+
+    render(<Dashboard onOpenProject={vi.fn()} />);
+
+    await screen.findByLabelText('Select process hub');
+    expect(screen.getByRole('option', { name: 'Line 4 Workspace' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Line 4 hub' })).not.toBeInTheDocument();
   });
 
   // CS-P2: the Dashboard-side 2x2 capability host is retired. The selector and
@@ -255,7 +284,7 @@ describe('Dashboard Process Hub home', () => {
 
     // The hub surfaces in the rendered select via the catalog∪unsaved merge.
     await waitFor(() =>
-      expect(screen.getByRole('option', { name: 'Untitled hub' })).toBeInTheDocument()
+      expect(screen.getByRole('option', { name: 'Untitled project' })).toBeInTheDocument()
     );
 
     expect(promptSpy).not.toHaveBeenCalled();

@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { normalizeProcessHubId } from '@variscout/core';
 import type { ProcessHub } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
+import { deriveWorkspaceViewModel } from '@variscout/hooks';
+import { getAnalysisScopeInitialState } from '@variscout/stores';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { useNewHubProvision } from '../features/hubCreation/useNewHubProvision';
 import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
@@ -18,6 +20,11 @@ interface DashboardProps {
   onLoadProjectFile?: (file: File) => void;
   /** Load a sample dataset directly into a new analysis */
   onLoadSample?: (sample: SampleDataset) => void;
+}
+
+interface DashboardWorkspaceOption {
+  workspaceId: string;
+  title: string;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -47,6 +54,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const unsavedIds = new Set(unsavedHubs.map(h => h.id));
     return [...catalogHubs.filter(h => !unsavedIds.has(h.id)), ...unsavedHubs];
   }, [catalogHubs, unsavedHubs]);
+  const workspaceAnalysisScope = useMemo(() => getAnalysisScopeInitialState(), []);
+  const workspaces = useMemo<DashboardWorkspaceOption[]>(
+    () =>
+      processHubs.map(hub => {
+        const workspace =
+          deriveWorkspaceViewModel({
+            hub,
+            analysisScope: workspaceAnalysisScope,
+          }) ?? null;
+        return {
+          workspaceId: workspace?.workspaceId ?? hub.id,
+          title: workspace?.title ?? hub.name,
+        };
+      }),
+    [processHubs, workspaceAnalysisScope]
+  );
 
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -104,9 +127,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
   }, [projects]);
 
-  const selectedHub = useMemo(
-    () => processHubs.find(hub => hub.id === selectedHubId),
-    [processHubs, selectedHubId]
+  const selectedWorkspace = useMemo(
+    () => workspaces.find(workspace => workspace.workspaceId === selectedHubId),
+    [selectedHubId, workspaces]
   );
 
   const visibleProjects = useMemo(() => {
@@ -275,19 +298,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
               className="w-full max-w-md rounded-lg border border-edge bg-surface px-3 py-2 text-sm text-content"
             >
               <option value="">All process hubs</option>
-              {processHubs.map(hub => (
-                <option key={hub.id} value={hub.id}>
-                  {hub.name}
+              {workspaces.map(workspace => (
+                <option key={workspace.workspaceId} value={workspace.workspaceId}>
+                  {workspace.title}
                 </option>
               ))}
             </select>
           </section>
 
-          {selectedHub && <ProcessHubEvidencePanel hubId={selectedHub.id} />}
+          {selectedWorkspace && <ProcessHubEvidencePanel hubId={selectedWorkspace.workspaceId} />}
 
           <section>
             <h3 className="mb-3 text-sm font-semibold text-content">
-              {selectedHub ? `Investigations in ${selectedHub.name}` : 'Investigations'}
+              {selectedWorkspace
+                ? `Investigations in ${selectedWorkspace.title}`
+                : 'Investigations'}
             </h3>
             <div className="flex flex-col gap-3">
               {visibleProjects.map(project => (

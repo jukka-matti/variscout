@@ -73,7 +73,7 @@ describe('ProjectsTabView', () => {
     expect(onStartNewProject).toHaveBeenCalledTimes(1);
   });
 
-  it('stamps formalizedAt when the Workspace Project is opened', async () => {
+  it('does not stamp formalizedAt when an informal Workspace Project is opened', () => {
     const onProjectPatch = vi.fn();
     const hub: ProcessHub = {
       ...baseHub,
@@ -92,12 +92,7 @@ describe('ProjectsTabView', () => {
       />
     );
 
-    expect(onProjectPatch).toHaveBeenCalledWith(
-      'ip-1',
-      expect.objectContaining({
-        metadata: expect.objectContaining({ formalizedAt: expect.any(Number) }),
-      })
-    );
+    expect(onProjectPatch).not.toHaveBeenCalled();
   });
 
   it('never exposes a sign-off section — PWA is a Mode-1 solo surface (IM-7 §9.2)', () => {

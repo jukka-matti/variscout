@@ -99,7 +99,7 @@ import { useProjectionStore } from './features/projection/projectionStore';
 import { useAnalyzeOrchestration } from './features/analyze/useAnalyzeOrchestration';
 import { useCanvasViewportLifecycle } from './features/analyze/useCanvasViewportLifecycle';
 import { useStatsWorker } from './workers/useStatsWorker';
-import { useActiveIPContext } from '@variscout/hooks';
+import { deriveWorkspaceViewModel, useActiveIPContext } from '@variscout/hooks';
 
 // Lazy-loaded heavy components for code splitting
 const dashboardImport = () => import('./components/Dashboard');
@@ -183,6 +183,29 @@ function AppMain() {
   const { hub: sessionHub, setHub: setSessionHub } = useSession();
   const activeIPContext = useActiveIPContext(sessionHub);
   const clearScope = useAnalysisScopeStore(s => s.clearScope);
+  const scopeYColumn = useAnalysisScopeStore(s => s.yColumn);
+  const scopeBoxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
+  const scopeStepId = useAnalysisScopeStore(s => s.stepId);
+  const scopeCategoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const workspaceAnalysisScope = useMemo(
+    () => ({
+      yColumn: scopeYColumn,
+      boxplotFactor: scopeBoxplotFactor,
+      stepId: scopeStepId,
+      categoricalFilters: scopeCategoricalFilters,
+    }),
+    [scopeBoxplotFactor, scopeCategoricalFilters, scopeStepId, scopeYColumn]
+  );
+  const workspaceViewModel = useMemo(
+    () =>
+      deriveWorkspaceViewModel({
+        hub: sessionHub,
+        project: activeIPContext.activeIP ?? sessionHub?.improvementProject,
+        analysisScope: workspaceAnalysisScope,
+      }),
+    [activeIPContext.activeIP, sessionHub, workspaceAnalysisScope]
+  );
+  const workspaceProjectTitle = workspaceViewModel?.project.title ?? null;
   useClearScopeOnIPSwitch(activeIPContext.activeIP?.id ?? null, clearScope);
   const wallViewMode = useCanvasViewportStore(s => s.viewMode);
 
@@ -923,7 +946,7 @@ function AppMain() {
   }, [findingsPopoutMessage]);
 
   const isOnline = useOnlineStatus();
-  const selectedOrActiveProjectId = activeIPContext.activeIP?.id ?? panels.selectedProjectId;
+  const selectedOrActiveProjectId = workspaceViewModel?.project.id ?? panels.selectedProjectId;
   const activeIPScopeLabels = useMemo(
     () =>
       activeIPContext.activeIP
@@ -938,7 +961,7 @@ function AppMain() {
   const activeIPScope =
     activeIPContext.activeIP && activeIPScopeLabels
       ? {
-          title: activeIPContext.activeIP.metadata.title,
+          title: workspaceProjectTitle ?? 'Workspace',
           labels: activeIPScopeLabels,
         }
       : null;
@@ -1241,7 +1264,7 @@ function AppMain() {
           isWhatIfOpen={panels.isWhatIfPageOpen}
           isPISidebarOpen={panels.isPISidebarOpen}
           onTogglePISidebar={rawData.length > 0 ? panels.handleTogglePISidebar : undefined}
-          activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
+          activeIPTitle={workspaceProjectTitle}
           onOpenActiveIP={
             activeIPContext.activeIP
               ? () => panels.showProjects(activeIPContext.activeIP!.id)
@@ -1412,9 +1435,7 @@ function AppMain() {
                 onOpenManualEntry={importFlow.handleOpenManualEntry}
                 onImportVrs={handleImportVrs}
                 resolveProjectName={id =>
-                  sessionHub?.improvementProject?.id === id
-                    ? sessionHub.improvementProject.metadata.title
-                    : undefined
+                  workspaceViewModel?.project.id === id ? workspaceProjectTitle : undefined
                 }
               />
             ) : panels.activeView === 'home' ? (
@@ -1424,14 +1445,13 @@ function AppMain() {
                   onAccept={acceptInvite}
                   onDecline={revokeInvite}
                   resolveProjectName={id =>
-                    sessionHub?.improvementProject?.id === id
-                      ? sessionHub.improvementProject.metadata.title
-                      : undefined
+                    workspaceViewModel?.project.id === id ? workspaceProjectTitle : undefined
                   }
                 />
                 <ActiveIPLaunchpadCard
                   projects={
                     sessionHub?.improvementProject &&
+                    workspaceViewModel &&
                     sessionHub.improvementProject.deletedAt === null
                       ? [sessionHub.improvementProject]
                       : []
@@ -1620,7 +1640,7 @@ function AppMain() {
                 controlRecords={_liveControlRecords}
                 controlHandoffs={_liveControlHandoffs}
                 activeIPScope={activeIPScope}
-                activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
+                activeIPTitle={workspaceProjectTitle}
                 onOpenActiveIP={
                   activeIPContext.activeIP
                     ? () => panels.showProjects(activeIPContext.activeIP!.id)

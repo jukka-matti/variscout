@@ -25,6 +25,7 @@ import {
   useCurrentDocumentFingerprint,
   filterCategoricalValuesByColumn,
   useReingestAutoLink,
+  deriveWorkspaceViewModel,
 } from '@variscout/hooks';
 import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
 import { useStatsWorker } from '../workers/useStatsWorker';
@@ -561,6 +562,29 @@ export const Editor: React.FC<EditorProps> = ({
   );
   const activeIPContext = useActiveIPContext(activeHub, { userId: currentUser?.email });
   const clearScope = useAnalysisScopeStore(s => s.clearScope);
+  const scopeYColumn = useAnalysisScopeStore(s => s.yColumn);
+  const scopeBoxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
+  const scopeStepId = useAnalysisScopeStore(s => s.stepId);
+  const scopeCategoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const workspaceAnalysisScope = useMemo(
+    () => ({
+      yColumn: scopeYColumn,
+      boxplotFactor: scopeBoxplotFactor,
+      stepId: scopeStepId,
+      categoricalFilters: scopeCategoricalFilters,
+    }),
+    [scopeBoxplotFactor, scopeCategoricalFilters, scopeStepId, scopeYColumn]
+  );
+  const workspaceViewModel = useMemo(
+    () =>
+      deriveWorkspaceViewModel({
+        hub: activeHub,
+        project: activeIPContext.activeIP ?? activeHub?.improvementProject,
+        analysisScope: workspaceAnalysisScope,
+      }),
+    [activeHub, activeIPContext.activeIP, workspaceAnalysisScope]
+  );
+  const workspaceProjectTitle = workspaceViewModel?.project.title ?? null;
   useClearScopeOnIPSwitch(activeIPContext.activeIP?.id ?? null, clearScope);
   const canEditCanvas = useMemo(() => {
     const userId = currentUser?.email;
@@ -576,7 +600,7 @@ export const Editor: React.FC<EditorProps> = ({
     return activeIPContext.activeIP?.metadata.members?.find(member => member.userId === userId)
       ?.role;
   }, [activeIPContext.activeIP, currentUser?.email]);
-  const selectedOrActiveProjectId = activeIPContext.activeIP?.id ?? selectedProjectId;
+  const selectedOrActiveProjectId = workspaceViewModel?.project.id ?? selectedProjectId;
   const activeIPScopeLabels = useMemo(
     () =>
       activeIPContext.activeIP
@@ -591,7 +615,7 @@ export const Editor: React.FC<EditorProps> = ({
   const activeIPScope =
     activeIPContext.activeIP && activeIPScopeLabels
       ? {
-          title: activeIPContext.activeIP.metadata.title,
+          title: workspaceProjectTitle ?? 'Workspace',
           labels: activeIPScopeLabels,
         }
       : null;
@@ -1863,8 +1887,7 @@ export const Editor: React.FC<EditorProps> = ({
     hasDocumentContent &&
     (!hasActiveSavedAzureDocument || !savedFingerprint || currentFingerprint !== savedFingerprint);
   const activeHubIsUnsaved = activeHub ? unsavedHubs.some(hub => hub.id === activeHub.id) : false;
-  const activeIPTitleForInvite =
-    activeIP?.metadata.title ?? activeHub?.improvementProject?.metadata.title ?? null;
+  const activeIPTitleForInvite = workspaceProjectTitle ?? activeIP?.metadata.title ?? null;
   const inviteDisabledReason =
     activeIP &&
     (!hasActiveSavedAzureDocument ||
@@ -2047,7 +2070,7 @@ export const Editor: React.FC<EditorProps> = ({
         onRenameProject={currentProjectName ? handleRenameProject : undefined}
         onExportCSV={rawData.length > 0 ? handleExportCSV : undefined}
         onSaveAs={rawData.length > 0 ? handleSaveAs : undefined}
-        activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
+        activeIPTitle={workspaceProjectTitle}
         onOpenActiveIP={
           activeIPContext.activeIP
             ? () => usePanelsStore.getState().showProjects(activeIPContext.activeIP!.id)
@@ -2106,9 +2129,7 @@ export const Editor: React.FC<EditorProps> = ({
         onAccept={acceptInvite}
         onDecline={revokeInvite}
         resolveProjectName={id =>
-          activeHub?.improvementProject?.id === id
-            ? activeHub.improvementProject.metadata.title
-            : undefined
+          workspaceViewModel?.project.id === id ? workspaceViewModel.project.title : undefined
         }
       />
 
@@ -2166,8 +2187,7 @@ export const Editor: React.FC<EditorProps> = ({
                   <div className="p-4 sm:p-6">
                     <ActiveIPLaunchpadCard
                       projects={
-                        activeHub.improvementProject &&
-                        activeHub.improvementProject.deletedAt === null
+                        workspaceViewModel && activeHub.improvementProject?.deletedAt === null
                           ? [activeHub.improvementProject]
                           : []
                       }
@@ -2372,7 +2392,7 @@ export const Editor: React.FC<EditorProps> = ({
                       aiEnabled={aiEnabled && isAIAvailable()}
                       narrative={aiOrch.narration.narrative}
                       activeIPScope={activeIPScope}
-                      activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
+                      activeIPTitle={workspaceProjectTitle}
                       activeHub={activeHub}
                       activeIP={activeIPContext.activeIP}
                       onOpenActiveIP={

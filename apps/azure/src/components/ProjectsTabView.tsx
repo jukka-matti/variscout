@@ -8,7 +8,8 @@ import type {
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { HubAction } from '@variscout/core/actions';
 import type { ProjectMember } from '@variscout/core/projectMembership';
-import { useImprovementProjectStore } from '@variscout/stores';
+import { useAnalysisScopeStore, useImprovementProjectStore } from '@variscout/stores';
+import { deriveWorkspaceViewModel } from '@variscout/hooks';
 import { deriveProjectOverviewSignals, IPDetailPage } from '@variscout/ui/ipDetail';
 import type { CauseProjectionInputs, CauseRow, ControlClosureInputs } from '@variscout/ui/ipDetail';
 
@@ -41,11 +42,6 @@ interface ProjectsTabViewProps {
    * record/handoff arrays.
    */
   controlRegionSlot?: React.ReactNode;
-}
-
-function liveProjects(hub: ProcessHub | undefined): ImprovementProject[] {
-  const p = hub?.improvementProject;
-  return p && p.deletedAt === null ? [p] : [];
 }
 
 /**
@@ -120,6 +116,19 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   const storedProject = useImprovementProjectStore(s =>
     activeHub ? s.getProjectForHub(activeHub.id) : undefined
   );
+  const scopeYColumn = useAnalysisScopeStore(s => s.yColumn);
+  const scopeBoxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
+  const scopeStepId = useAnalysisScopeStore(s => s.stepId);
+  const scopeCategoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const analysisScope = React.useMemo(
+    () => ({
+      yColumn: scopeYColumn,
+      boxplotFactor: scopeBoxplotFactor,
+      stepId: scopeStepId,
+      categoricalFilters: scopeCategoricalFilters,
+    }),
+    [scopeBoxplotFactor, scopeCategoricalFilters, scopeStepId, scopeYColumn]
+  );
   const setProjectForHub = useImprovementProjectStore(s => s.setProjectForHub);
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);
 
@@ -128,9 +137,22 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
     setProjectForHub(activeHub.id, activeHub.improvementProject);
   }, [activeHub, setProjectForHub]);
 
-  const projects = storedProject
-    ? [storedProject].filter(p => p.deletedAt === null)
-    : liveProjects(activeHub);
+  const workspace = React.useMemo(
+    () =>
+      deriveWorkspaceViewModel({
+        hub: activeHub,
+        project: storedProject,
+        analysisScope,
+      }),
+    [activeHub, analysisScope, storedProject]
+  );
+  const workspaceProject =
+    storedProject && storedProject.deletedAt === null
+      ? storedProject
+      : activeHub?.improvementProject?.deletedAt === null
+        ? activeHub.improvementProject
+        : null;
+  const projects = workspace && workspaceProject ? [workspaceProject] : [];
 
   const applyProjectPatch = React.useCallback(
     (
@@ -147,13 +169,6 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   const selectedProject = selectedProjectId
     ? (projects.find(p => p.id === selectedProjectId) ?? null)
     : null;
-
-  React.useEffect(() => {
-    if (!selectedProject || selectedProject.metadata.formalizedAt) return;
-    applyProjectPatch(selectedProject, {
-      metadata: { ...selectedProject.metadata, formalizedAt: Date.now() },
-    });
-  }, [applyProjectPatch, selectedProject]);
 
   if (!activeHub) {
     return (
@@ -275,9 +290,11 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
               onClick={() => onSelectProject(project.id)}
               className="w-full rounded-md border border-edge bg-surface p-3 text-left hover:bg-surface-secondary"
             >
-              <div className="font-medium text-content">{project.metadata.title}</div>
+              <div className="font-medium text-content">
+                {workspace?.project.title ?? project.metadata.title}
+              </div>
               <div className="mt-1 text-xs text-content-secondary">
-                {project.status.toUpperCase()}
+                {(workspace?.project.status ?? project.status).toUpperCase()}
               </div>
             </button>
           </li>
