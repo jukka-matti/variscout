@@ -17,7 +17,7 @@
 
 **Boundary rule (portability test):** another analyst importing this hub needs it? Yes → Document. Survives reload but not portable → Annotation. Doesn't survive reload → View. `__tests__/layerBoundary.test.ts` enforces middleware presence/absence.
 
-**Document snapshot rule:** `DocumentSnapshot` is hub-scoped. Quick-analysis hubs may carry no `ImprovementProject`; formalized hubs carry at most one live Project. `useImprovementProjectStore.projectsById` is a multi-hub in-memory mirror, not a portable export surface, so snapshot helpers carry one Project for the active hub and never serialize the whole mirror.
+**Document snapshot rule:** `DocumentSnapshot` is hub-scoped. Every Workspace is backed by exactly one live `ImprovementProject` from first data entry; quick-analysis Workspaces carry an informal Project until a deliberate formalization act. `useImprovementProjectStore.projectsById` is a multi-hub in-memory mirror, not a portable export surface, so snapshot helpers carry the active hub's one Project and never serialize the whole mirror.
 
 ## Hard rules
 

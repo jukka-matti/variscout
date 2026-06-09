@@ -5,7 +5,7 @@ title: 'Save, Load & Access — the document contract'
 audience: both
 status: active
 date: 2026-06-02
-last-verified: 2026-06-02
+last-verified: 2026-06-09
 verified-against-commit: eba4b5af
 layer: L3
 kind: workflow
@@ -27,7 +27,7 @@ Every portable save/export/import speaks **one** model: a hub-scoped `DocumentSn
 
 ## The unit — `DocumentSnapshot`
 
-A `DocumentSnapshot` (`schemaVersion: 1`) is the **hub-scoped** portable envelope for one document: Project config/data + Analyze state (findings / categories / hypotheses / causalLinks / scopes) + Canvas state (`canonicalMap` / outcomes / `primaryScopeDimensions`) + **zero-or-one** `ImprovementProject` for that hub. The multi-hub `useImprovementProjectStore.projectsById` mirror is **never serialized**. Quick-analysis hubs carry no Project; formalized hubs carry one.
+A `DocumentSnapshot` (`schemaVersion: 1`) is the **hub-scoped** portable envelope for one Workspace document: Project config/data + Analyze state (findings / categories / hypotheses / causalLinks / scopes) + Canvas state (`canonicalMap` / outcomes / `primaryScopeDimensions`) + exactly one live `ImprovementProject` for that hub. The multi-hub `useImprovementProjectStore.projectsById` mirror is **never serialized**. Quick-analysis Workspaces carry an informal Project; deliberate formalization is tracked on the Project, not by adding a second object.
 
 - `buildDocumentSnapshot({ activeHub? })` reads the document-layer stores → a snapshot.
 - `hydrateDocumentSnapshot(snapshot)` loads it back into those stores.
@@ -69,8 +69,8 @@ Azure cloud writes send the prior `ETag` as `If-Match`. A `412` (precondition-fa
 
 ## Access — who can see/load a document
 
-- **Quick analyses (no Project)** are **private to the creator** (`ownerUserId = creator`, `memberUserIds = [creator]`).
-- **Formal Projects** derive access from `improvementProject.metadata.members` — only the **Lead / Member / Sponsor** roster can see or load them; non-members never see them in the list.
+- **Informal quick-analysis Workspaces** are **private to the creator** (`ownerUserId = creator`, `memberUserIds = [creator]`) even though they are backed by a Project record.
+- **Formalized Projects** derive access from `improvementProject.metadata.members` — only the **Lead / Member / Sponsor** roster can see or load them; non-members never see them in the list.
 - Access is **server-enforced** (R6e): all Blob list/read/write goes through same-origin `/api/storage/*` endpoints that check `hasAccessForPrincipal` against the EasyAuth principal **before** any blob op. Broad browser container SAS is retired; production storage disables Shared Key (connection strings are local-dev/test only). The customer's data never leaves their tenant ([ADR-059](../../07-decisions/adr-059-web-first-deployment-architecture.md)). Detail: [acl.md](acl.md).
 
 ## Not yet built (do not document as live)

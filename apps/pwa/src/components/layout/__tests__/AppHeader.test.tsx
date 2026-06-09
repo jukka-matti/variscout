@@ -165,7 +165,7 @@ describe('AppHeader', () => {
       expect(screen.getByRole('button', { name: 'Settings' })).toBeTruthy();
     });
 
-    it('renders active IP chip and wires title/exit actions', () => {
+    it('renders Workspace Project chip and wires the title action', () => {
       const onOpenActiveIP = vi.fn();
       const onExitActiveIP = vi.fn();
 
@@ -182,12 +182,14 @@ describe('AppHeader', () => {
       );
 
       expect(screen.getByTestId('ip-context-chip')).toHaveTextContent(
-        '◆ Working in IP: Heads 5-8 Cpk shortfall · Exit IP'
+        '◆ Workspace Project: Heads 5-8 Cpk shortfall'
       );
-      fireEvent.click(screen.getByRole('button', { name: /Open IP Heads 5-8 Cpk shortfall/i }));
+      fireEvent.click(
+        screen.getByRole('button', { name: /Open Project Heads 5-8 Cpk shortfall/i })
+      );
       expect(onOpenActiveIP).toHaveBeenCalledOnce();
-      fireEvent.click(screen.getByRole('button', { name: 'Exit IP' }));
-      expect(onExitActiveIP).toHaveBeenCalledOnce();
+      expect(screen.queryByRole('button', { name: 'Exit IP' })).not.toBeInTheDocument();
+      expect(onExitActiveIP).not.toHaveBeenCalled();
     });
   });
 });

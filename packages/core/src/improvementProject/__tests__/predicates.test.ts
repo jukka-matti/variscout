@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ImprovementProject } from '../types';
-import { isCollaborative } from '../predicates';
+import { isCollaborative, isFormalizedProject } from '../predicates';
 
 function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject {
   return {
@@ -49,5 +49,31 @@ describe('isCollaborative', () => {
       },
     });
     expect(isCollaborative(ip)).toBe(true);
+  });
+});
+
+describe('isFormalizedProject', () => {
+  it('does not treat an auto-title as formalization', () => {
+    expect(isFormalizedProject(makeIP({ metadata: { title: 'Loaded sample data' } }))).toBe(false);
+  });
+
+  it('treats an explicit formalization marker as formalized', () => {
+    expect(
+      isFormalizedProject(makeIP({ metadata: { title: 'Cpk lift', formalizedAt: 123 } }))
+    ).toBe(true);
+  });
+
+  it('treats deliberate charter content as formalized', () => {
+    expect(
+      isFormalizedProject(
+        makeIP({
+          goal: { outcomeGoals: [{ outcomeSpecId: 'yield', target: 98 }] },
+        })
+      )
+    ).toBe(true);
+  });
+
+  it('treats collaboration as formalized even when the roster later shrinks', () => {
+    expect(isFormalizedProject(makeIP({ collaboratedAt: 1_700_000_000_000 }))).toBe(true);
   });
 });

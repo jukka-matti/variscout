@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { ProcessHub } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import { useActiveIPStore, type ActiveIPScope, type ActiveIPState } from '@variscout/stores';
+import { type ActiveIPScope, type ActiveIPState } from '@variscout/stores';
 
 /** Default per-user scope key for active-IP state when the caller supplies no
  *  identity (PWA free tier has no auth). Exported so writers outside the hook
@@ -26,34 +26,6 @@ function liveProjects(hub: ProcessHub | undefined | null): ImprovementProject[] 
   return p && p.deletedAt === null ? [p] : [];
 }
 
-function clearedScopeKey(scopeKey: string): string {
-  return `variscout:activeIP:cleared:${scopeKey}`;
-}
-
-function wasUserCleared(scopeKey: string): boolean {
-  try {
-    return sessionStorage.getItem(clearedScopeKey(scopeKey)) === 'true';
-  } catch {
-    return false;
-  }
-}
-
-function markUserCleared(scopeKey: string): void {
-  try {
-    sessionStorage.setItem(clearedScopeKey(scopeKey), 'true');
-  } catch {
-    // Ignore storage failures; clearing still works for the current hook instance.
-  }
-}
-
-function clearUserCleared(scopeKey: string): void {
-  try {
-    sessionStorage.removeItem(clearedScopeKey(scopeKey));
-  } catch {
-    // Ignore storage failures.
-  }
-}
-
 export function useActiveIPContext(
   hub: ProcessHub | undefined | null,
   options: UseActiveIPContextOptions = {}
@@ -64,59 +36,23 @@ export function useActiveIPContext(
     () => (hubId ? { hubId, userId: resolvedUserId } : null),
     [hubId, resolvedUserId]
   );
-  const scopeKey = scope ? `${scope.hubId}:${scope.userId}` : null;
-  const autoActivatedScopeRef = useRef<string | null>(null);
-  const activeIPs = useActiveIPStore(state => state.activeIPs);
-  const rehydrateActiveIP = useActiveIPStore(state => state.rehydrateActiveIP);
-  const storeSetActiveIP = useActiveIPStore(state => state.setActiveIP);
-  const storeClearActiveIP = useActiveIPStore(state => state.clearActiveIP);
-
-  useEffect(() => {
-    if (scope) rehydrateActiveIP(scope);
-  }, [rehydrateActiveIP, scope, scopeKey]);
-
-  const activeState = scope ? useActiveIPStore.getState().getActiveIP(scope) : null;
   const projects = useMemo(() => liveProjects(hub), [hub]);
-  const activeIP = activeState
-    ? (projects.find(project => project.id === activeState.ipId) ?? null)
+  const activeIP = projects[0] ?? null;
+  const activeState: ActiveIPState | null = activeIP
+    ? { ipId: activeIP.id, setAt: activeIP.createdAt }
     : null;
 
-  useEffect(() => {
-    if (scope && activeState && !activeIP) {
-      storeClearActiveIP(scope);
-    }
-  }, [activeIP, activeState, scope, scopeKey, storeClearActiveIP]);
-
-  useEffect(() => {
-    if (!scope || !scopeKey || activeState || projects.length !== 1) return;
-    if (wasUserCleared(scopeKey)) return;
-    if (autoActivatedScopeRef.current === scopeKey) return;
-    autoActivatedScopeRef.current = scopeKey;
-    storeSetActiveIP(scope, projects[0].id);
-  }, [activeState, projects, scope, scopeKey, storeSetActiveIP]);
-
-  const setActiveIP = useCallback(
-    (ipId: ImprovementProject['id'], setAt?: number) => {
-      if (scope && scopeKey) {
-        clearUserCleared(scopeKey);
-        storeSetActiveIP(scope, ipId, setAt);
-      }
-    },
-    [scope, scopeKey, storeSetActiveIP]
-  );
+  const setActiveIP = useCallback((_ipId: ImprovementProject['id'], _setAt?: number) => {
+    // Compatibility no-op: a Workspace's attached Project is always the context.
+  }, []);
 
   const clearActiveIP = useCallback(() => {
-    if (scope && scopeKey) {
-      markUserCleared(scopeKey);
-      storeClearActiveIP(scope);
-    }
-  }, [scope, scopeKey, storeClearActiveIP]);
-
-  void activeIPs;
+    // Compatibility no-op: V1 no longer supports exiting the Workspace Project lens.
+  }, []);
 
   return {
     scope,
-    activeState: activeIP ? activeState : null,
+    activeState,
     activeIP,
     isIPScoped: Boolean(activeIP),
     setActiveIP,

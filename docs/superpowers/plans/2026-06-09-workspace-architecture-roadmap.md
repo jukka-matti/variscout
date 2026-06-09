@@ -21,30 +21,30 @@ related:
 This roadmap sequences the move to the [Workspace architecture spec](../specs/2026-06-09-workspace-architecture-and-project-formalization-design.md):
 
 ```text
-Workspace -> optional Project -> current Analysis Scope
+Workspace -> soft-formalized Project -> current Analysis Scope
 ```
 
-The roadmap is docs-first because the high-value simplification is conceptual before it is mechanical. The target is not a broad file split. The target is a cleaner product model that lets later refactors remove Active IP, simplify shells, and make CoScout operate over stable context.
+The accepted model is always backed by one active Project; "optional Project" language in earlier drafts is superseded by the soft-formalization rule. The roadmap is docs-first because the high-value simplification is conceptual before it is mechanical. The target is not a broad file split. The target is a cleaner product model that lets later refactors remove Active IP, simplify shells, and make CoScout operate over stable context.
 
 ## Slice Sequence
 
 | Slice | Goal                          | Outputs                                                                                                                                                                       | Verification                                                                                                                     |
 | ----: | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-|     1 | Product Model Lock            | Update canonical product docs so Workspace, optional Project, Analysis Scope, and internal `ProcessHub` are unambiguous.                                                      | `pnpm docs:check:frontmatter`, `pnpm docs:check`, `git diff --check`.                                                            |
+|     1 | Product Model Lock            | Update canonical product docs so Workspace, soft-formalized Project, Analysis Scope, and internal `ProcessHub` are unambiguous.                                               | `pnpm docs:check:frontmatter`, `pnpm docs:check`, `git diff --check`.                                                            |
 |     2 | User-Facing Vocabulary Pass   | Replace visible Hub/IP/Active IP language with Workspace/Project/Analysis Scope language in docs and UI copy, without persistence renames.                                    | Docs checks, i18n checks, targeted UI copy tests where present.                                                                  |
 |     3 | Behavior Simplification       | Remove Exit IP, active-IP scoped/free-roaming modes, auto-activation, and per-user active project selection. Project surfaces read the Workspace's attached Project directly. | `useActiveIPContext` tests, `activeIPStore` tests, shell tests, CanvasWorkspace tests, Report tests, membership ACL tests.       |
-|     4 | Workspace View Model Boundary | Introduce a shared Workspace view model over current `ProcessHub` plus optional `ImprovementProject`. App shells consume Workspace concepts.                                  | Focused view-model unit tests, Azure `Editor.test.tsx`, PWA `App.test.tsx`, panel routing tests.                                 |
+|     4 | Workspace View Model Boundary | Introduce a shared Workspace view model over current `ProcessHub` plus its attached `ImprovementProject`. App shells consume Workspace concepts.                              | Focused view-model unit tests, Azure `Editor.test.tsx`, PWA `App.test.tsx`, panel routing tests.                                 |
 |     5 | Analysis Scope Strengthening  | Clarify and harden `useAnalysisScopeStore` as outcome + factor + step + filters. Ensure Explore, Process, Analyze, Report, and CoScout consume it consistently.               | `analysisScopeStore` tests, ScopeChrome tests, Canvas chip navigation tests, Explore scope tests, Process/Analyze handoff tests. |
 |     6 | Shell Refactor                | Extract shared route/view-model logic from Azure `Editor.tsx` and PWA `App.tsx` around Workspace, Project presence, Analysis Scope, and app-owned capability adapters.        | Azure/PWA shell tests, mobile routing tests, panel store tests, app capability adapter tests.                                    |
 |     7 | Dead Residue Cleanup          | Delete Active IP store/hooks/UI and compatibility branches only after all live reads are migrated.                                                                            | Static zero-consumer proof plus owning tests.                                                                                    |
 |     8 | Optional Internal Rename      | Consider renaming `ProcessHub` internals only after public vocabulary and behavior are stable.                                                                                | Separate high-blast-radius plan, migration tests, persistence/snapshot/export/import tests.                                      |
-|     9 | CoScout Autonomy Design       | Redesign CoScout context around Workspace, optional Project role/ACL, and current Analysis Scope.                                                                             | Responses API tests, tool registry tests, action proposal tests, prompt/eval fixtures, role/ACL tests.                           |
+|     9 | CoScout Autonomy Design       | Redesign CoScout context around Workspace, Project role/ACL/formalization, and current Analysis Scope.                                                                        | Responses API tests, tool registry tests, action proposal tests, prompt/eval fixtures, role/ACL tests.                           |
 
 ## Slice Details
 
 ### 1. Product Model Lock
 
-Decision: Workspace is the V1 product object; Project is optional formalization; Analysis Scope is the only active analytical lens; `ProcessHub` is internal storage vocabulary.
+Decision: Workspace is the V1 product object; every Workspace is backed by one active Project; Project chrome is soft-formalized by deliberate action; Analysis Scope is the only active analytical lens; `ProcessHub` is internal storage vocabulary.
 
 Do:
 
@@ -86,8 +86,8 @@ Target removals:
 
 Replacement behavior:
 
-- A Workspace either has no Project or has one attached Project.
-- Project tab, Improve, Report, and ACL checks read the attached Project directly.
+- A Workspace has one attached active Project from first data entry.
+- Project tab, Improve, Report, and ACL checks read that attached Project directly.
 - Analytical narrowing reads Analysis Scope.
 
 Required proof:
@@ -107,7 +107,7 @@ Shape:
 type WorkspaceViewModel = {
   workspaceId: string;
   title: string;
-  project: ProjectSummary | null;
+  project: ProjectSummary;
   hasFormalProject: boolean;
   analysisScope: AnalysisScopeSummary;
   capabilities: WorkspaceCapabilities;

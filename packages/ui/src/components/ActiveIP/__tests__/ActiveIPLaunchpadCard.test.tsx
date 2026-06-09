@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { ActiveIPLaunchpadCard } from '../ActiveIPLaunchpadCard';
@@ -41,11 +41,11 @@ describe('ActiveIPLaunchpadCard', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Start your first Improvement Project' }));
+    fireEvent.click(screen.getByRole('button', { name: /new workspace/i }));
     expect(onStartNewIP).toHaveBeenCalledOnce();
   });
 
-  it('shows the active working project', () => {
+  it('shows the workspace identity and attached project', () => {
     render(
       <ActiveIPLaunchpadCard
         projects={[makeIP('ip-1', 'Reduce rework')]}
@@ -57,11 +57,13 @@ describe('ActiveIPLaunchpadCard', () => {
     );
 
     expect(screen.getByText('Reduce rework')).toBeInTheDocument();
-    expect(screen.getAllByText(/Day 1/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/workspace/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Switch IP/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Exit IP/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Free roaming/i)).not.toBeInTheDocument();
   });
 
-  it('keeps free-roaming visible when projects exist but no active IP is selected', () => {
+  it('ignores the retired active-project id and still shows the workspace project', () => {
     const onSelectIP = vi.fn();
     const onStartNewIP = vi.fn();
     render(
@@ -74,18 +76,14 @@ describe('ActiveIPLaunchpadCard', () => {
       />
     );
 
-    expect(screen.getByText('Free roaming')).toBeInTheDocument();
-    expect(screen.queryByText('Reduce rework')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Switch IP/ }));
-    fireEvent.click(screen.getByRole('button', { name: /Reduce rework/ }));
-    expect(onSelectIP).toHaveBeenCalledWith('ip-1');
-
-    fireEvent.click(screen.getByRole('button', { name: '+ New Improvement Project' }));
-    expect(onStartNewIP).toHaveBeenCalledOnce();
+    expect(screen.getByText('Reduce rework')).toBeInTheDocument();
+    expect(screen.queryByText('Free roaming')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Switch IP/ })).not.toBeInTheDocument();
+    expect(onSelectIP).not.toHaveBeenCalled();
+    expect(onStartNewIP).not.toHaveBeenCalled();
   });
 
-  it('opens a multiple-IP switch dropdown with sorted choices', () => {
+  it('does not expose a multiple-project switcher', () => {
     render(
       <ActiveIPLaunchpadCard
         projects={[makeIP('older', 'Older IP', 10), makeIP('newer', 'Newer IP', 20)]}
@@ -96,19 +94,12 @@ describe('ActiveIPLaunchpadCard', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Switch IP/ }));
-    const switcher = screen.getByTestId('active-ip-switcher');
-    const items = within(switcher).getAllByRole('button');
-
-    expect(items[0]).toHaveTextContent('Newer IP');
-    expect(items[1]).toHaveTextContent('Older IP');
-    expect(within(switcher).getByRole('button', { name: 'Free roaming' })).toBeInTheDocument();
-    expect(
-      within(switcher).getByRole('button', { name: '+ New Improvement Project' })
-    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Switch IP/ })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('active-ip-switcher')).not.toBeInTheDocument();
+    expect(screen.getByText('Older IP')).toBeInTheDocument();
   });
 
-  it('calls callbacks for Switch IP, Free roaming, Exit IP, and New IP', () => {
+  it('does not expose callbacks for Switch IP, Free roaming, Exit IP, or New IP when a workspace project exists', () => {
     const onSelectIP = vi.fn();
     const onExitIP = vi.fn();
     const onStartNewIP = vi.fn();
@@ -123,19 +114,14 @@ describe('ActiveIPLaunchpadCard', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Switch IP/ }));
-    fireEvent.click(screen.getByRole('button', { name: /Lift Cpk/ }));
-    expect(onSelectIP).toHaveBeenCalledWith('ip-2');
-
-    fireEvent.click(screen.getByRole('button', { name: /Switch IP/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Free roaming' }));
-    expect(onExitIP).toHaveBeenCalledOnce();
-
-    fireEvent.click(screen.getByRole('button', { name: /Switch IP/ }));
-    fireEvent.click(screen.getByRole('button', { name: '+ New Improvement Project' }));
-    expect(onStartNewIP).toHaveBeenCalledOnce();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Exit IP' }));
-    expect(onExitIP).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole('button', { name: /Switch IP/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Free roaming/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Exit IP/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /\+ New Improvement Project/ })
+    ).not.toBeInTheDocument();
+    expect(onSelectIP).not.toHaveBeenCalled();
+    expect(onExitIP).not.toHaveBeenCalled();
+    expect(onStartNewIP).not.toHaveBeenCalled();
   });
 });
