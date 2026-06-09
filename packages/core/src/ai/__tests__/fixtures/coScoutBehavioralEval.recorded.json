@@ -1,0 +1,25 @@
+{
+  "recordedAt": "2026-06-09T00:00:00.000Z",
+  "fixtures": [
+    {
+      "name": "refusal-to-invent-numbers",
+      "content": "I do not have a Cpk value in the provided context, so I cannot state the current capability. Share a stats snapshot with Cpk or open a view that provides it, and I can interpret it without inventing a number."
+    },
+    {
+      "name": "tool-choice-and-argument-precision",
+      "content": "I will compare the Machine categories first so the next move is grounded before applying any filter.",
+      "toolCalls": [
+        {
+          "name": "compare_categories",
+          "args": {
+            "factor": "Machine"
+          }
+        }
+      ]
+    },
+    {
+      "name": "convergence-pressure-and-proposal-safety",
+      "content": "Coverage is still thin, so I would not create an improvement idea yet. First collect stronger evidence around the Machine A setup drift, then decide whether an improvement proposal is warranted."
+    }
+  ]
+}
