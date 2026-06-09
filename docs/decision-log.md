@@ -28,7 +28,21 @@ When in doubt: capture, don't invent. Record the decision; link to its source ar
 
 Decisions we keep relitigating. Each entry: short statement, rationale, closing artifact, date pinned.
 
-- **2026-06-09 — Product naming exploration concluded: Luuppi proposed as the VariScout rebrand (pending clearance).** A naming session selected **Luuppi** (Finnish for *loupe*, the precision lens) as the recommended rebrand of VariScout — on-thesis ("see into the process"; the loupe is the instrument that makes variation visible), authentically Finnish yet internationally legible (the *loupe* bridge), and the most ownable of ~60 candidates. **NOT yet adopted:** gated on (1) a say-it-aloud user test (the "loopy" risk) and (2) formal EU/Finland trademark clearance. The product name **remains VariScout** until both clear. Runners-up held in reserve: Tracer, Jackdaw, Salient. Rejected: Exploria ($750M timeshare TM), Evidento (reads "dental"), the treasure/animal lanes (taken in analytics). Tukey's *"notice what you never expected to see"* adopted as the brand manifesto; "evidence" kept as internal vocabulary (Evidence Map, *evidenced*). New spec: [Luuppi naming concept](superpowers/specs/2026-06-09-luuppi-naming-concept-design.md). _Pinned 2026-06-09._
+- **2026-06-09 — Product naming exploration concluded: Luuppi proposed as the VariScout rebrand (pending clearance).** A naming session selected **Luuppi** (Finnish for *loupe*, the precision lens) as the recommended rebrand of VariScout - on-thesis ("see into the process"; the loupe is the instrument that makes variation visible), authentically Finnish yet internationally legible (the *loupe* bridge), and the most ownable of ~60 candidates. **NOT yet adopted:** gated on (1) a say-it-aloud user test (the "loopy" risk) and (2) formal EU/Finland trademark clearance. The product name **remains VariScout** until both clear. Runners-up held in reserve: Tracer, Jackdaw, Salient. Rejected: Exploria ($750M timeshare TM), Evidento (reads "dental"), the treasure/animal lanes (taken in analytics). Tukey's *"notice what you never expected to see"* adopted as the brand manifesto; "evidence" kept as internal vocabulary (Evidence Map, *evidenced*). New spec: `docs/superpowers/specs/2026-06-09-luuppi-naming-concept-design.md`.
+
+_Pinned 2026-06-09._
+
+- **2026-06-09 — Workspace architecture: optional Project formalization and Analysis Scope lens.** VariScout V1 now treats **Workspace** as the user-facing product object. The analyst starts a Workspace when they have data, a process question, or a performance problem to analyze. The Workspace owns the analysis context and is currently backed by `ProcessHub` storage.
+
+**Project** becomes optional formalization of a Workspace, not a separate child inside a Hub portfolio. V1 supports zero or one Project per Workspace. Once present, the Project is always attached and supplies role/ACL context, charter/status, actions, membership, and report formalization.
+
+**Analysis Scope** is the only active analytical lens: outcome or measure, factor, process step, and categorical filters. Users broaden or narrow analysis through Analysis Scope, not by entering or exiting Project focus.
+
+This decision retires Active IP / Project Focus as user-facing architecture. Current `useActiveIPContext` and `useActiveIPStore` behavior remains a migration target until ACL, Wall, Analyze, Report, Control, mobile navigation, and quick-analysis behavior are proven through dedicated implementation slices.
+
+The multi-project process portfolio model moves to the named-future VariScout Process product. V1 does not support many Projects inside one Hub or Workspace; another effort means another Workspace.
+
+_Pinned 2026-06-09._
 
 - **2026-06-08 — Analyze Wall canvas-first delivery: Wall default, Causes lens, drawers, and Explore WHERE handoff.** The Analyze Wall redesign shipped as a sequence of merge-commit PRs (#340 through #348), sequenced after the CS-15 dependency in PR #338. The delivered Analyze tab now defaults to a canvas-first Investigation Wall rather than the Evidence Map. The central Analyze lenses are Wall and Causes; Findings remains available as the finding list/board; Evidence Map is demoted to an advanced/read-only graph projection, especially for Report narrative and timeline use.
 

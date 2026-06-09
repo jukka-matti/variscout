@@ -156,6 +156,8 @@ Mitigation in all three cases: the three preconditions are exactly the checks th
 ## Related artifacts
 
 - Wedge architecture spec (canonical V1 design): `docs/superpowers/specs/2026-05-16-wedge-architecture-design.md`
+- Workspace architecture spec (2026-06-09 amendment): `docs/superpowers/specs/2026-06-09-workspace-architecture-and-project-formalization-design.md`
+- Workspace architecture roadmap: `docs/superpowers/plans/2026-06-09-workspace-architecture-roadmap.md`
 - Decision log entry: `docs/decision-log.md` 2026-05-16
 - ADR-007 (superseded in part — pricing section): `docs/07-decisions/adr-007-azure-marketplace-distribution.md`
 - ADR-033 (superseded — tier model, archived 2026-05-17): `docs/archive/adrs/adr-033-pricing-simplification.md`
@@ -163,3 +165,18 @@ Mitigation in all three cases: the three preconditions are exactly the checks th
 - Projects tab design (to be amended — stage list change): `docs/archive/specs/2026-05-14-projects-tab-design.md`
 - ADR-080 (preserved — Control auto-fire pattern): `docs/07-decisions/adr-080-control-auto-fire-pattern.md`
 - ADR-081 (preserved — canvas viewport architecture): `docs/07-decisions/adr-081-canvas-viewport-architecture.md`
+
+## Amendment — 2026-06-09
+
+The V1 formal unit is clarified as **Workspace with optional Project formalization**. ADR-082 remains accepted, but the product vocabulary and target architecture are narrowed by the [Workspace architecture spec](../superpowers/specs/2026-06-09-workspace-architecture-and-project-formalization-design.md) and sequenced by the [Workspace architecture roadmap](../superpowers/plans/2026-06-09-workspace-architecture-roadmap.md).
+
+Current target model:
+
+- **Workspace** is the user-facing V1 object. An analyst starts a Workspace when they have data, a process question, or a performance problem to analyze.
+- **Project** is optional formalization of that Workspace. V1 supports zero or one Project per Workspace. Once present, the Project is always attached.
+- **Analysis Scope** is the active analytical lens: outcome or measure, factor, process step, and filters.
+- **ProcessHub** remains internal storage vocabulary for now. It is not the V1 product noun.
+- **Active IP / Project Focus / Exit IP** retire as target architecture. Existing code remains a migration surface until dedicated slices prove ACL, Wall, Analyze, Report, Control, mobile navigation, and quick-analysis behavior.
+- **VariScout Process** keeps the named-future multi-project process model. V1 no longer treats one Hub/process as a portfolio with many Projects.
+
+This amendment supersedes the target direction of the earlier active-IP cascade while preserving the historical context for why it was built. The implementation sequence is docs and vocabulary first, behavior simplification second, Workspace view model third, and internal storage renames only as an optional later plan.
