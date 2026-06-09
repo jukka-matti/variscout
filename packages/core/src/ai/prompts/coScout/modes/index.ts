@@ -11,7 +11,7 @@
  */
 
 import type { AnalysisMode } from '../../../../types';
-import type { JourneyPhase } from '../../../types';
+import type { CoScoutScope, CoScoutSurface } from '../types';
 import { buildStandardWorkflow } from './standard';
 import { buildPerformanceWorkflow } from './performance';
 import { buildDefectWorkflow } from './defect';
@@ -29,18 +29,25 @@ export { buildDefectWorkflow } from './defect';
  * additional centering vs spread diagnostics.
  *
  * @param mode - Current analysis mode (standard, performance, defect)
- * @param phase - Current journey phase (frame, scout, investigate, improve)
+ * @param surface - Product surface where CoScout is mounted
+ * @param scope - Current Analyze-surface scope facts
  * @returns Mode-specific coaching string for inclusion in the system prompt
  */
-export function buildModeWorkflow(mode: AnalysisMode, phase: JourneyPhase): string {
+export function buildModeWorkflow(
+  mode: AnalysisMode,
+  surface: CoScoutSurface,
+  scope?: CoScoutScope
+): string {
+  if (surface !== 'analyze') return '';
+
   switch (mode) {
     case 'standard':
-      return buildStandardWorkflow(phase);
+      return buildStandardWorkflow(surface, scope);
     case 'performance':
-      return buildPerformanceWorkflow(phase);
+      return buildPerformanceWorkflow(surface, scope);
     case 'defect':
-      return buildDefectWorkflow(phase);
+      return buildDefectWorkflow(surface, scope);
     default:
-      return buildStandardWorkflow(phase);
+      return buildStandardWorkflow(surface, scope);
   }
 }

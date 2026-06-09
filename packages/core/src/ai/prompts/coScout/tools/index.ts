@@ -5,10 +5,5 @@
  * (replaces the former `buildCoScoutTools()` from the deleted legacy.ts).
  */
 
-export {
-  TOOL_REGISTRY,
-  getToolsForPhase,
-  getToolsForSurface,
-  mapJourneyPhaseToSurface,
-} from './registry';
+export { TOOL_REGISTRY, getToolsForSurface } from './registry';
 export type { ToolRegistryEntry, ToolName, BuildCoScoutToolsOptions } from './registry';

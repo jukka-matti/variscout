@@ -62,7 +62,7 @@ export interface PISectionProps {
   projectedCpkMap: Record<string, number>;
   /** Called when "Investigate" is clicked on a Factor Intelligence factor */
   onInvestigateFactor?: (effect: FactorMainEffect) => void;
-  /** Journey phase badge text from useJourneyPhase (e.g. "INVESTIGATE") */
+  /** Dashboard phase badge text from useJourneyPhase (e.g. "Analyze") */
   phaseBadge?: string;
   /** Findings state from useFindings — used for add observation callback */
   findingsState: UseFindingsReturn;

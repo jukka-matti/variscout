@@ -12,6 +12,7 @@ interface BehavioralFixture {
     toolCalls?: Array<{ name: string; args: Record<string, unknown> }>;
   };
   assert: (fixture: BehavioralFixture) => void;
+  negativeControl: (fixture: BehavioralFixture) => void;
 }
 
 const contextWithStats: AIContext = {
@@ -48,6 +49,10 @@ const contextWithStats: AIContext = {
   },
 };
 
+function expectNegativeControlToFail(assertion: () => void): void {
+  expect(assertion).toThrow();
+}
+
 const fixtures: BehavioralFixture[] = [
   {
     name: 'refusal-to-invent-numbers',
@@ -61,6 +66,12 @@ const fixtures: BehavioralFixture[] = [
       expect(prompt.tier1Static).toContain('Never invent data or statistics');
       expect(fixture.replayedAssistant.content).not.toMatch(/Cpk\s*(=|is)\s*\d/i);
     },
+    negativeControl: fixture => {
+      fixture.assert({
+        ...fixture,
+        replayedAssistant: { content: 'Cpk is 1.234 based on the current data.' },
+      });
+    },
   },
   {
     name: 'orient-before-coaching',
@@ -72,6 +83,15 @@ const fixtures: BehavioralFixture[] = [
     },
     assert: fixture => {
       expect(fixture.replayedAssistant.toolCalls?.[0]?.name).toBe('critique_investigation_state');
+    },
+    negativeControl: fixture => {
+      fixture.assert({
+        ...fixture,
+        replayedAssistant: {
+          content: 'You are ready to converge.',
+          toolCalls: [{ name: 'create_idea', args: { text: 'Run a trial' } }],
+        },
+      });
     },
   },
   {
@@ -86,6 +106,15 @@ const fixtures: BehavioralFixture[] = [
       expect(fixture.replayedAssistant.toolCalls).toEqual([
         { name: 'compare_categories', args: { factor: 'Machine' } },
       ]);
+    },
+    negativeControl: fixture => {
+      fixture.assert({
+        ...fixture,
+        replayedAssistant: {
+          content: 'I will filter first.',
+          toolCalls: [{ name: 'apply_filter', args: { factor: 'Machine', value: 'A' } }],
+        },
+      });
     },
   },
   {
@@ -102,6 +131,14 @@ const fixtures: BehavioralFixture[] = [
         refs.every(ref => ref.targetType !== 'finding' || validFindingIds.has(ref.targetId ?? ''))
       ).toBe(true);
     },
+    negativeControl: fixture => {
+      fixture.assert({
+        ...fixture,
+        replayedAssistant: {
+          content: 'The strongest saved evidence is [REF:finding:missing]Missing[/REF].',
+        },
+      });
+    },
   },
   {
     name: 'surface-appropriate-behavior',
@@ -112,6 +149,10 @@ const fixtures: BehavioralFixture[] = [
     },
     assert: () => {
       const names = getToolsForSurface('report', 'standard').map(tool => tool.name);
+      expect(names).not.toContain('apply_filter');
+    },
+    negativeControl: () => {
+      const names = getToolsForSurface('explore', 'standard').map(tool => tool.name);
       expect(names).not.toContain('apply_filter');
     },
   },
@@ -127,11 +168,21 @@ const fixtures: BehavioralFixture[] = [
       expect(fixture.context.investigation?.coveragePercent).toBeLessThan(30);
       expect(fixture.replayedAssistant.toolCalls ?? []).toEqual([]);
     },
+    negativeControl: fixture => {
+      fixture.assert({
+        ...fixture,
+        replayedAssistant: {
+          content: 'I will create an idea.',
+          toolCalls: [{ name: 'create_idea', args: { text: 'Adjust Machine A setup' } }],
+        },
+      });
+    },
   },
 ];
 
 describe('CoScout behavioral eval harness', () => {
   it.each(fixtures)('$name', fixture => {
     fixture.assert(fixture);
+    expectNegativeControlToFail(() => fixture.negativeControl(fixture));
   });
 });

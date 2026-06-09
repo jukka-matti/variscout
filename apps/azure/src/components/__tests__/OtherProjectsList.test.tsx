@@ -114,7 +114,7 @@ describe('OtherProjectsList', () => {
     });
     render(<OtherProjectsList projects={[project]} currentProjectId="p-1" />);
     expect(screen.getByTestId('other-project-phase-p-2')).toBeInTheDocument();
-    expect(screen.getByTestId('other-project-phase-p-2')).toHaveTextContent('ANALYZE');
+    expect(screen.getByTestId('other-project-phase-p-2')).toHaveTextContent('Analyze');
   });
 
   it('does not render phase badge without metadata', () => {

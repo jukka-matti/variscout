@@ -20,7 +20,6 @@ import {
 import type { ViewState } from '@variscout/hooks';
 import type {
   FilterAction,
-  JourneyPhase,
   EntryScenario,
   BuildAIContextOptions,
   AIContext,
@@ -94,7 +93,6 @@ export interface UseAIOrchestrationOptions {
   drillPath: DrillStep[];
   locale?: Locale;
   knowledgeSearchFolder?: string;
-  journeyPhase?: JourneyPhase;
   coscoutSurface?: CoScoutSurface;
   projectRole?: ProjectRole;
   analysisScope?: ProblemStatementScope;

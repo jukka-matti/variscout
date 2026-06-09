@@ -39,7 +39,7 @@ import { useProjectStore } from '@variscout/stores';
 // Constants
 // ---------------------------------------------------------------------------
 
-const COSCOUT_RESIZE_CONFIG = {
+const ASSISTANT_RESIZE_CONFIG = {
   storageKey: 'variscout-azure-coscout-panel-width',
   min: 320,
   max: 600,
@@ -127,7 +127,7 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
       coscout: aiOrch.coscout,
       knowledgeSearch: aiOrch.knowledgeSearch,
       suggestedQuestions: aiOrch.suggestedQuestions,
-      resizeConfig: COSCOUT_RESIZE_CONFIG,
+      resizeConfig: ASSISTANT_RESIZE_CONFIG,
     },
     findingsState,
     actionProposalsState: {

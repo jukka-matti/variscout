@@ -10,7 +10,7 @@ import type { CoScoutMessage } from '../../types';
 import type { InputContentPart, MessageContent } from '../../responsesApi';
 
 /** Maximum number of history messages to include in the input array */
-const COSCOUT_HISTORY_LIMIT = 10;
+const HISTORY_LIMIT = 10;
 
 /**
  * Build the Responses API `input` array from conversation history and user message.
@@ -29,7 +29,7 @@ export function buildCoScoutMessageInput(
   const input: Array<{ role: 'user' | 'assistant'; content: MessageContent }> = [];
 
   // Recent history (last N messages, skip error messages)
-  const recentHistory = history.slice(-COSCOUT_HISTORY_LIMIT);
+  const recentHistory = history.slice(-HISTORY_LIMIT);
   for (const msg of recentHistory) {
     if (!msg.error) {
       input.push({ role: msg.role as 'user' | 'assistant', content: msg.content });

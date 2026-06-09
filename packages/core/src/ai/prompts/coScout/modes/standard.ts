@@ -9,41 +9,15 @@
  * Standard mode is the default and most comprehensive mode.
  */
 
-import type { JourneyPhase } from '../../../types';
+import type { CoScoutScope, CoScoutSurface } from '../types';
 
-const PHASE_WORKFLOW: Record<JourneyPhase, string> = {
-  frame: `Workflow steps:
-1. Read I-Chart for patterns — trends, shifts, out-of-control points (Nelson rules)
-2. Check Boxplot for category differences — which factor levels show the widest spread?
-3. Review Pareto for ranking — which categories contribute the most variation?
-4. Check Capability — is Cpk below 1.33? How far is the process from meeting specs?
-
-Focus: Name what you see. Formulate a clear issue statement grounded in the data.`,
-
-  scout: `Workflow steps:
-1. Drill by highest eta-squared (effect size) — the factor explaining the most variation comes first
-2. Filter to isolate the dominant factor — does variation decrease within a single level?
-3. Create findings for patterns — record observations as you drill through factors
-4. Compare R-squared-adj across factor combinations — Best Subsets regression ranks multi-factor models
-
-Focus: Systematic factor-by-factor stratification. Evidence strength = R-squared-adj from Best Subsets.`,
-
-  analyze: `Workflow steps:
+const ANALYZE_WORKFLOW = `Workflow steps:
 1. Open a line of inquiry for each top factor — target a specific factor or level
 2. Validate with three evidence types: data (auto eta-squared), gemba (go-see), expert knowledge
 3. Synthesize validated evidence into hypotheses — name the mechanism, not just the factor
 4. Use the Evidence Map to visualize factor relationships and causal links
 
-Focus: Evidence-driven investigation. Each line of inquiry narrows the search space.`,
-
-  improve: `Workflow steps:
-1. HMW brainstorm per hypothesis — How Might We prevent, detect, simplify, or eliminate?
-2. Prioritize by impact x effort — use the Prioritization Matrix to rank ideas
-3. PDCA execution — Plan actions, Do the work, Check with staged analysis, Act on results
-4. Verify with Before/After comparison — staged analysis confirms improvement
-
-Focus: Lean improvement targeting the contribution. Simplest fix that addresses the mechanism.`,
-};
+Focus: Evidence-driven analysis. Each line of inquiry narrows the search space.`;
 
 /**
  * Build coaching instructions for Standard analysis mode.
@@ -51,7 +25,9 @@ Focus: Lean improvement targeting the contribution. Simplest fix that addresses 
  * Standard mode uses SPC terminology throughout:
  * Cpk, Cp, control limits, Nelson rules, R-squared-adj, eta-squared.
  */
-export function buildStandardWorkflow(phase: JourneyPhase): string {
+export function buildStandardWorkflow(surface: CoScoutSurface, _scope?: CoScoutScope): string {
+  if (surface !== 'analyze') return '';
+
   return `## Analysis Mode: Standard (SPC Variation Analysis)
 You are analyzing process variation using Statistical Process Control methods.
 
@@ -71,7 +47,7 @@ The four charts show:
 - Pareto: Categories ranked by contribution. Shows which levels matter most.
 - Stats/Capability: Process capability metrics (Cpk, Cp, pass rate, sigma).
 
-${PHASE_WORKFLOW[phase]}
+${ANALYZE_WORKFLOW}
 
 Evidence strength metric: R-squared-adj from Best Subsets regression.
 Key diagnostic: If Cp >> Cpk, the process is capable but off-center — investigate centering drift.`;

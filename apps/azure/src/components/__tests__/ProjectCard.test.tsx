@@ -58,7 +58,7 @@ describe('ProjectCard', () => {
     const project = makeProject({ metadata: makeMetadata({ phase: 'analyze' }) });
     render(<ProjectCard {...defaultProps} project={project} />);
     expect(screen.getByTestId('project-card-phase-badge')).toBeInTheDocument();
-    expect(screen.getByTestId('project-card-phase-badge')).toHaveTextContent('ANALYZE');
+    expect(screen.getByTestId('project-card-phase-badge')).toHaveTextContent('Analyze');
   });
 
   it('does not render phase badge without metadata', () => {

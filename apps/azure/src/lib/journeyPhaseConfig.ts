@@ -17,28 +17,28 @@ export interface PhaseConfig {
 
 export const PHASE_CONFIG: Record<string, PhaseConfig> = {
   frame: {
-    label: 'FRAME',
+    label: 'Frame',
     textColor: 'text-blue-500',
     solidBgColor: 'bg-blue-500',
     bgColor: 'bg-blue-500/10',
     borderColor: 'border-blue-500/30',
   },
   scout: {
-    label: 'SCOUT',
+    label: 'Explore',
     textColor: 'text-green-500',
     solidBgColor: 'bg-green-500',
     bgColor: 'bg-green-500/10',
     borderColor: 'border-green-500/30',
   },
   analyze: {
-    label: 'ANALYZE',
+    label: 'Analyze',
     textColor: 'text-amber-500',
     solidBgColor: 'bg-amber-500',
     bgColor: 'bg-amber-500/10',
     borderColor: 'border-amber-500/30',
   },
   improve: {
-    label: 'IMPROVE',
+    label: 'Improve',
     textColor: 'text-purple-500',
     solidBgColor: 'bg-purple-500',
     bgColor: 'bg-purple-500/10',
