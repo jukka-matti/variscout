@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { projectCauses, type CauseProjectionInputs, type CauseRow } from './causeProjection';
 import ApproachCauseCard from './ApproachCauseCard';
+import ProjectSignalChips from '../ProjectSignalChips';
+import type { ProjectOverviewSignals } from '../projectOverviewSignals';
 
 interface ApproachOverviewProps {
   ip: ImprovementProject;
@@ -11,6 +13,7 @@ interface ApproachOverviewProps {
   onOpenAnalyze: () => void;
   onOpenProcess: () => void;
   surveyHint?: string;
+  overviewSignals?: ProjectOverviewSignals;
 }
 
 const ApproachOverview: React.FC<ApproachOverviewProps> = ({
@@ -21,6 +24,7 @@ const ApproachOverview: React.FC<ApproachOverviewProps> = ({
   onOpenAnalyze,
   onOpenProcess,
   surveyHint,
+  overviewSignals,
 }) => {
   const allCauses = useMemo(() => projectCauses(ip, causeInputs), [ip, causeInputs]);
   const [showRuledOut, setShowRuledOut] = useState(false);
@@ -38,6 +42,11 @@ const ApproachOverview: React.FC<ApproachOverviewProps> = ({
         </div>
         {surveyHint ? <div className="mt-1 text-sm text-content">{surveyHint}</div> : null}
       </div>
+
+      <ProjectSignalChips
+        signals={overviewSignals}
+        groups={['hypotheses', 'findings', 'actions', 'team']}
+      />
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <div className="rounded-md border border-edge p-3">

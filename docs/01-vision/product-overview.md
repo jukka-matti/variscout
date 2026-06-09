@@ -52,7 +52,7 @@ Both modes follow the same methodological spine:
 
 - **Frame.** State the problem (data-first or hypothesis-first entry). Process map is sketched in the Process tab using canvas direct-manipulation (chips, zones, drag-and-drop).
 - **Explore.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
-- **Analyze.** Specialist picks suspected causes — data-derived, gemba-observed, or expert-supplied — and examines each with Evidence Map, statistics, and targeted Questions. The Investigation Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection (hypothesis-first path).
+- **Analyze.** Specialist picks suspected causes — data-derived, gemba-observed, or expert-supplied — and examines each with Evidence Map, statistics, and targeted Questions. The Analyze Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection (hypothesis-first path).
 - **Improve.** Hypotheses converge on improvement actions. Inside a Project this surfaces in the **Improve tab** (action tracker) — top-level verb tab scoped to the active project.
 - **Control.** Did it work? Verify the improvement held, then close the project (Handoff folds into Control closure).
 
@@ -68,15 +68,15 @@ Seven tabs, in workflow order:
 [Home] [Project] [Process] [Explore] [Analyze] [Improve] [Report]
 ```
 
-1. **Home** — pick what you're working on (project queue + active-IP launchpad)
+1. **Home** — pick what you're working on (project queue + active Project launchpad)
 2. **Project** — current project's status overview (Charter → Approach → Control stages)
 3. **Process** — canvas / process map (spatial substrate; direct-manipulation — no mode toggle)
 4. **Explore** — EDA / charts / Factor Intelligence
 5. **Analyze** — Wall + Evidence Map → suspected causes
-6. **Improve** — improvement actions, tracked and owned (active-IP cascade from Home)
+6. **Improve** — improvement actions, tracked and owned within the active Project context
 7. **Report** — narrative output for Sponsor signoff
 
-Improve is a top-level verb tab with active-IP cascade (not buried inside Project detail). Project detail runs three stages: Charter → Approach → Control. Handoff is folded into Control closure.
+Improve is a top-level verb tab scoped to the active Project context (not buried inside Project detail). Project detail runs three stages: Charter → Approach → Control. Handoff is folded into Control closure.
 
 ---
 

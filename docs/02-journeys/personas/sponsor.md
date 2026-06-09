@@ -53,18 +53,18 @@ sequenceDiagram
     Sponsor->>Explore: Read (optional engagement)
     Sponsor->>Analyze: Read — see Wall, evidence, Measurement Plans
     Sponsor->>Improve: Review proposed actions + owners
-    Note over Improve: Sponsor sees active-IP cascade<br/>(read-only), reviews IP scope
+    Note over Improve: Sponsor sees active Project context<br/>(read-only), reviews Project scope
     Sponsor->>Report: Read interim status during Control
     Note over Report: Control drift signal<br/>surfaces to Sponsor
     Sponsor->>Report: Review final Report (out-of-band sign-off; Lead records)
 ```
 
-The Sponsor reads Explore + Analyze when they want to engage with the analysis directly. Their active gestures are review and acknowledgement — sign-off happens out-of-band (the Lead records the result as a note). The Sponsor's primary touch-points are **Home** (project list), **Project** (Charter review), **Improve** (action review), and **Report** (interim + final review).
+The Sponsor reads Project, Explore, Analyze, and Improve when they want to engage with the work directly. Their active gestures are review and acknowledgement — sign-off happens out-of-band (the Lead records the result as a note). The Sponsor's primary touch-points are **Home** (project list), **Project** (Charter, roster, lifecycle, and Control status), **Improve** (action review), and **Report** (interim + final review).
 
 ## Feature touch-points
 
 - [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Charter sign-off, view roster + stage progression
-- [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — Read action items + active-IP scope (no edit)
+- [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — Read action items + active Project scope (no edit)
 - [**Control**](../../03-features/workflows/control.md) — Drift signals surface to Sponsor when they need attention
 
 Supporting reference: [`flows/enterprise.md`](../flows/enterprise.md), [`flows/azure-team-collaboration.md`](../flows/azure-team-collaboration.md).
@@ -80,6 +80,6 @@ A Sponsor has succeeded when:
 
 Failure modes the journey is designed to prevent:
 
-- Sponsor making structural edits they shouldn't (ACL gates: Sponsor cannot author canvas, close hypotheses, compile Report, or advance stages — Lead-only per 2-tier ACL §4.1; Sponsor may contribute Findings, evidence, comments)
+- Sponsor making structural edits they shouldn't (ACL gates: Sponsor cannot author canvas, close hypotheses, compile Report, or advance stages — Lead-only per 2-tier ACL §4.1; Sponsor may review Findings, evidence, and comments)
 - Sponsor missing drift signals (**Control** surfaces them to the Sponsor explicitly, not buried in the Wall)
 - Sign-off untracked (sign-off is optional, non-blocking, and out-of-band; Lead records the result as a note in the relevant stage — the sign-off section is hidden when the Project has no collaborators)

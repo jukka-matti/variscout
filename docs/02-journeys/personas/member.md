@@ -54,7 +54,7 @@ sequenceDiagram
     Note over Explore: Member may create a Finding<br/>that links back to a Hypothesis
     Analyze->>Analyze: Lead reviews + accepts evidence
     Member->>Improve: Open my assigned action item
-    Note over Improve: Active-IP cascade visible<br/>(Lead-owned, Member cannot change)
+    Note over Improve: Active Project context visible<br/>(Lead-owned lifecycle, Member cannot advance)
     Member->>Improve: Mark action complete, log result
     Member->>Report: Optionally view Report (no edit)
 ```
@@ -63,8 +63,8 @@ Member's scope is narrower than Lead's: they touch **Analyze** (hypothesis evide
 
 ## Feature touch-points
 
-- [Investigation Wall](../../03-features/workflows/analyze-wall.md) — Add evidence to assigned Hypotheses; log Measurement Plan rows
-- [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — Complete assigned action items under the active IP
+- [Analyze Wall](../../03-features/workflows/analyze-wall.md) — Add evidence to assigned Hypotheses; log Measurement Plan rows
+- [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — Complete assigned action items under the active Project
 - [Analysis Flow](../../03-features/workflows/analysis-flow.md) — Open datasets linked from the Wall; create Findings tied to a Hypothesis
 - [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Read Charter, see roster, view stage (no edit)
 

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { ProcessHub, ControlRecord } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import type { CauseProjectionInputs } from '@variscout/ui/ipDetail';
 import { getImprovementProjectInitialState, useImprovementProjectStore } from '@variscout/stores';
 import ProjectsTabView from '../ProjectsTabView';
 import ProcessHubControlRegion from '../ProcessHubControlRegion';
@@ -178,6 +179,86 @@ describe('ProjectsTabView', () => {
 
     // charter-team-section appears when onInvite is wired (requires onMembersChange to be passed)
     expect(screen.getByTestId('charter-team-section')).toBeInTheDocument();
+  });
+
+  it('threads live project signal counts into the Project dossier', () => {
+    const approachInputs: CauseProjectionInputs = {
+      hypotheses: [
+        {
+          id: 'h-1',
+          name: 'Nozzle temperature contribution',
+          synthesis: '',
+          findingIds: [],
+          status: 'evidence-survived-test',
+          updatedAt: 0,
+          createdAt: 0,
+          deletedAt: null,
+        },
+        {
+          id: 'h-2',
+          name: 'Viscosity contribution',
+          synthesis: '',
+          findingIds: [],
+          status: 'proposed',
+          updatedAt: 0,
+          createdAt: 0,
+          deletedAt: null,
+        },
+      ],
+      ideas: [],
+      actions: [
+        { id: 'a-1', text: 'Retune heads', status: 'done', createdAt: 0, deletedAt: null },
+        {
+          id: 'a-2',
+          text: 'Confirm recipe',
+          status: 'in-progress',
+          createdAt: 0,
+          deletedAt: null,
+        },
+      ],
+    };
+    const hub: ProcessHub = {
+      ...baseHub,
+      improvementProject: makeIP({
+        metadata: {
+          title: 'Azure signal project',
+          members: [
+            {
+              id: 'pm-lead',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'analyst@contoso.com',
+              displayName: 'Analyst Lead',
+              role: 'lead',
+              invitedAt: 0,
+            },
+            {
+              id: 'pm-sponsor',
+              createdAt: 0,
+              deletedAt: null,
+              userId: 'sponsor@contoso.com',
+              displayName: 'Sponsor',
+              role: 'sponsor',
+              invitedAt: 0,
+            },
+          ],
+        },
+      }),
+    };
+
+    render(
+      <ProjectsTabView
+        activeHub={hub}
+        selectedProjectId="ip-1"
+        onSelectProject={() => {}}
+        approachInputs={approachInputs}
+        currentUserId="analyst@contoso.com"
+      />
+    );
+
+    expect(screen.getByTestId('project-signal-hypotheses')).toHaveTextContent(/2 hypotheses/i);
+    expect(screen.getByTestId('project-signal-actions')).toHaveTextContent(/2 actions/i);
+    expect(screen.getByTestId('project-signal-team')).toHaveTextContent(/2 teammates/i);
   });
 
   it('onMembersChange flows through applyProjectPatch for the Azure app', () => {

@@ -53,7 +53,7 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
           className="hover:text-content"
           data-testid="ip-detail-back"
         >
-          ← All Improvement Projects
+          ← All Projects
         </button>
         <span>·</span>
         <span
@@ -89,16 +89,18 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
               </div>
             ) : null}
           </div>
-          <button
-            type="button"
-            onClick={onInviteClick}
-            disabled={inviteDisabledReason !== undefined}
-            title={inviteDisabledReason}
-            className="text-xs text-[var(--vs-accent)] hover:text-[var(--vs-accent-hover)] disabled:cursor-not-allowed disabled:text-content-tertiary"
-            data-testid="ip-detail-invite"
-          >
-            + Invite
-          </button>
+          {onInviteClick || inviteDisabledReason ? (
+            <button
+              type="button"
+              onClick={onInviteClick}
+              disabled={inviteDisabledReason !== undefined}
+              title={inviteDisabledReason}
+              className="text-xs text-[var(--vs-accent)] hover:text-[var(--vs-accent-hover)] disabled:cursor-not-allowed disabled:text-content-tertiary"
+              data-testid="ip-detail-invite"
+            >
+              + Invite
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={onOpenTeamWorkspace}

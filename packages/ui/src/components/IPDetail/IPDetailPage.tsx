@@ -22,6 +22,7 @@ import type { CauseProjectionInputs, CauseRow } from './stages/causeProjection';
 import type { ImprovementProjectFormProps } from '../ImprovementProject/ImprovementProjectForm';
 import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
 import type { ControlRecord, ControlHandoff, ProcessHub } from '@variscout/core';
+import type { ProjectOverviewSignals } from './projectOverviewSignals';
 
 export interface IPDetailPageProps {
   ip: ImprovementProject;
@@ -46,6 +47,8 @@ export interface IPDetailPageProps {
   charterFormProps?: ImprovementProjectFormProps;
   /** Cause projection inputs for the Approach stage. */
   approachInputs?: CauseProjectionInputs;
+  /** Project dossier signal counts derived by the app wrapper from already-loaded data. */
+  overviewSignals?: ProjectOverviewSignals;
   /** Called when user clicks "Open in Improve workbench" on a cause. */
   onOpenCauseWorkbench?: (cause: CauseRow) => void;
   /** Linked ControlRecord. Present when status === 'closed' or beyond. */
@@ -95,6 +98,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   onJumpOut,
   charterFormProps,
   approachInputs,
+  overviewSignals,
   onOpenCauseWorkbench,
   controlRecord,
   controlHandoff,
@@ -124,12 +128,10 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   // If currentUserId is absent OR members[] is empty/absent → backward-compatible open access.
   const hasIdentity = currentUserId !== undefined && members.length > 0;
   const isExplicitlyExcluded = hasIdentity && !canAccess(currentUserId, members, 'view-report');
-  // Sponsor detection is role-based per the 2-tier ACL: Member + Sponsor share
-  // ('edit-contributions' + 'view-report'), so canAccess() cannot distinguish them.
-  // The Sponsor-specific "Report-only" surface (header + placeholder, stage tabs
-  // hidden) keys off the explicit role label.
   const isSponsor =
     hasIdentity && members.find(m => m.userId === currentUserId)?.role === 'sponsor';
+  const canManageMembership =
+    !hasIdentity || canAccess(currentUserId, members, 'manage-membership');
 
   const handleInviteClick = () => {
     onInviteClick?.();
@@ -184,41 +186,13 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
     return <NoAccessRedirect projectTitle={ip.metadata.title ?? '(untitled)'} />;
   }
 
-  // Sponsor: render the header only + a Report placeholder. Stage tabs are hidden per spec §4.
-  if (isSponsor) {
-    return (
-      <div className="flex h-full min-h-0 flex-col">
-        <IPDetailHeader
-          ip={ip}
-          onBackToList={onBackToList}
-          onInviteClick={handleInviteClick}
-          inviteDisabledReason={inviteDisabledReason}
-          onOpenTeamWorkspace={() => setMobileTeamOpen(true)}
-          dayCounter={dayCounter}
-        />
-        <div
-          className="flex-1 p-8 text-content"
-          data-testid="sponsor-report-panel"
-          role="region"
-          aria-label="Report"
-        >
-          <h2 className="text-xl font-semibold mb-2">Report</h2>
-          <p className="text-sm text-content-secondary">
-            As a Sponsor, you have read-only access to this project&apos;s Report. Open the Report
-            tab in the workflow navigation for the full view.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-full min-h-0 flex-col">
       <IPDetailHeader
         ip={ip}
         onBackToList={onBackToList}
-        onInviteClick={handleInviteClick}
-        inviteDisabledReason={inviteDisabledReason}
+        onInviteClick={canManageMembership ? handleInviteClick : undefined}
+        inviteDisabledReason={canManageMembership ? inviteDisabledReason : undefined}
         onOpenTeamWorkspace={() => setMobileTeamOpen(true)}
         dayCounter={dayCounter}
       />
@@ -235,10 +209,11 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               ip={ip}
               onOpenInvestigation={() => onJumpOut?.('analyze')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
+              overviewSignals={overviewSignals}
               currentUserId={currentUserId}
-              onInvite={onMembersChange ? handleMemberInvite : undefined}
-              inviteDisabledReason={inviteDisabledReason}
-              onMemberRemove={onMembersChange ? handleMemberRemove : undefined}
+              onInvite={onMembersChange && canManageMembership ? handleMemberInvite : undefined}
+              inviteDisabledReason={canManageMembership ? inviteDisabledReason : undefined}
+              onMemberRemove={onMembersChange && !isSponsor ? handleMemberRemove : undefined}
             />
           )}
           {activeStage === 'charter' && mode === 'sections' && (
@@ -252,6 +227,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               onOpenWall={() => onJumpOut?.('analyze')}
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               onOpenProcess={() => onJumpOut?.('process')}
+              overviewSignals={overviewSignals}
             />
           )}
           {activeStage === 'approach' && mode === 'sections' && approachInputs && (
@@ -274,6 +250,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               perCauseRows={sustainmentPerCauseRows}
               closureInputs={closureInputs}
+              overviewSignals={overviewSignals}
               onNudgeOwner={_onNudgeProcessOwner}
               onOpenReport={() => onJumpOut?.('report')}
             />

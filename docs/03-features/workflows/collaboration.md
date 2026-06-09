@@ -45,15 +45,15 @@ flowchart LR
 
 - **`Invitation`** (`status: pending | accepted | revoked`, `projectId`, `userId`, `role`, `invitedAt`/`acceptedAt`/`revokedAt`) and **`ProjectMember`** (`role: lead | member | sponsor`) live in `improvementProject.metadata.members` — the canonical roster. Code: `packages/core/src/projectMembership/`.
 - **`INVITATION_ACCEPT`** synthesizes a `ProjectMember` from the invitation and appends it; revoke marks status only (does not prune the roster).
-- **Access** is role-gated by `canAccess(userId, members, action)` (ADR-082): Lead = full; Member = edit contributions; Sponsor = read-mostly (Report); non-members never see the Project. Detail: [acl.md](../data/acl.md).
+- **Access** is role-gated by `canAccess(userId, members, action)` (ADR-082): Lead = full; Member = edit contributions; Sponsor = read-mostly across Project context with active review gestures; non-members never see the Project. Detail: [acl.md](../data/acl.md).
 
 ## The `collaboratedAt` marker
 
 `ImprovementProject.collaboratedAt` (Unix ms) is set **once**, when the roster first grows beyond the solo creator (first invite), and **never cleared** — a durable marker of collaboration history. `isCollaborative(ip)` = `Boolean(ip.collaboratedAt)` gates Azure-only team affordances (the optional, non-blocking sign-off section). A PWA investigation never sets it (no invite flow) → always solo. (Note: this replaces the deleted `isPaidTier` gate.)
 
-## Active-IP cascade
+## Active Project Context
 
-Collaboration is scoped by the **active Improvement Project** — `useActiveIPContext` + the `<NoActiveProjectGuidance>` empty state. Selecting an active IP scopes the downstream tabs to it. Full model: [ia-nav-model.md §Active-IP cascade](../../02-journeys/ia-nav-model.md).
+Collaboration is scoped by the **active Project context**. Internally, some code still uses `useActiveIPContext` + the `<NoActiveProjectGuidance>` empty state; treat those as implementation names until a broader rename is justified. Selecting a Project scopes the workflow tabs to it. Full model: [ia-nav-model.md §Active Project Context Rules](../../02-journeys/ia-nav-model.md).
 
 ## Azure vs PWA
 
@@ -72,5 +72,5 @@ The real Graph user-lookup is a stub (`useInvitationSync` returns a derived disp
 ## See also
 
 - [findings-hypotheses.md](findings-hypotheses.md) — the entities comments/actions attach to.
-- [acl.md](../data/acl.md) — the role ACL. · [ia-nav-model.md](../../02-journeys/ia-nav-model.md) — the nav + active-IP cascade.
+- [acl.md](../data/acl.md) — the role ACL. · [ia-nav-model.md](../../02-journeys/ia-nav-model.md) — the nav + active Project context.
 - [ADR-082](../../07-decisions/adr-082-wedge-architecture.md) — the wedge membership model.
