@@ -106,13 +106,15 @@ Code-level smells, UX follow-ups, and architectural questions surfaced during wo
 
 **Severity:** low (latent) — no observed data loss today; risk materialises only when Azure adopts store-direct Wall writes.
 
-### Project-tab stage overviews need their own design pass [LOGGED 2026-06-05]
+### Project-tab stage overviews need their own design pass [PROMOTED 2026-06-09]
 
 **Surfaced by:** PO-5's stage-overview-count cleanup (`CharterOverview` / `ApproachOverview`). The PO-5 owner call was "minimal-honest interim, design routed": the dead lineage counts (`{hypoCount} hypotheses · {findingCount} findings`, `Wall · {n} hypotheses`) were dropped — they read the now-deleted `investigationLineage` and were always 0-ish — and replaced with a static "Hypotheses + findings live on the Wall" pointer + bare `Investigation` / `Wall` button labels. Buttons + navigation + testids untouched.
 
 **Summary:** the Project-tab IP-detail stage overviews have accumulated drift that wants a dedicated brainstorm, not piecemeal patches: (1) the interim static Wall pointer is honest but inert — a **status-shaped-chips** candidate (dot · count · label, echoing `ProjectStatusCard`'s pattern, fed by the new core `groupHypothesesByStatus`) would restore a live signal without re-introducing a lineage filter; (2) "Continue in Investigation" / the `Investigation` button vocabulary is **stale post-WV1** (the tab is Analyze; the Wall is the brand); (3) the **orientation-vs-dashboard role** of these overviews is unsettled — are they a launchpad or a status surface? (4) pre-existing nit: both `CharterOverview` continue buttons carry the same `data-testid="charter-continue-analyze"` (duplicate testid); (5) the read-only **"Investigation lineage"** Charter form section + its progress step also carry vocabulary drift — named after the now-retired concept (rename candidate: **"Linked evidence"**), the section component is `AnalyzeLineageSection` and the `ImprovementProjectForm` props are `lineageProps`, wired live from store hypotheses/findings (decoupled from the deleted `investigationLineage` data field — PO-5 left it in place). The design session owns the rename.
 
 **Promotion path:** a dedicated "Project tab / IP-detail stage overviews" brainstorm → spec. Fed by `groupHypothesesByStatus` (already shipped in core by PO-5) for the status-chips candidate.
+
+**Promoted to:** [`2026-06-09-project-tab-v1-redesign.md`](../superpowers/specs/2026-06-09-project-tab-v1-redesign.md). The spec chooses Project as the formal dossier plus a light cockpit layer, replaces stale Investigation/Handoff/IP user-facing vocabulary, and sets Sponsor Project visibility to read-only rather than Report-only.
 
 **Severity:** low — the interim is honest and non-blocking; the design questions outlive the PR.
 
