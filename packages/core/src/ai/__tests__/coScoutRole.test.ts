@@ -10,11 +10,11 @@ describe('buildRole', () => {
     expect(role).toContain('VariScout');
   });
 
-  it('includes four analytical tools', () => {
-    expect(role).toContain('I-Chart');
-    expect(role).toContain('Boxplot');
-    expect(role).toContain('Pareto');
-    expect(role).toContain('Capability');
+  it('includes the surface loop', () => {
+    expect(role).toContain('Process:');
+    expect(role).toContain('Explore:');
+    expect(role).toContain('Analyze Wall:');
+    expect(role).toContain('Report:');
   });
 
   it('includes Two Voices concept', () => {
@@ -56,7 +56,7 @@ describe('buildRole', () => {
 
   it('includes consolidated REF types list', () => {
     expect(role).toContain('boxplot, ichart, pareto, stats');
-    expect(role).toContain('finding, question, dashboard, improvement');
+    expect(role).toContain('finding, hypothesis, dashboard, improvement');
   });
 
   it('does NOT contain dynamic data values', () => {

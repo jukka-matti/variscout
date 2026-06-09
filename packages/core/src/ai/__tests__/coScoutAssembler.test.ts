@@ -28,8 +28,8 @@ describe('assembleCoScoutPrompt', () => {
     expect(result.tier1Static).toContain('Terminology rules');
   });
 
-  it('returns no action tools in frame phase', () => {
-    const result = assembleCoScoutPrompt({ phase: 'frame' });
+  it('returns no action tools on the Process surface', () => {
+    const result = assembleCoScoutPrompt({ surface: 'process' });
     const actionToolNames = result.tools
       .map(t => t.name)
       .filter(
@@ -43,30 +43,29 @@ describe('assembleCoScoutPrompt', () => {
     expect(actionToolNames).toEqual([]);
   });
 
-  it('returns action tools in scout phase', () => {
-    const result = assembleCoScoutPrompt({ phase: 'scout' });
+  it('returns action tools on the Explore surface', () => {
+    const result = assembleCoScoutPrompt({ surface: 'explore' });
     const toolNames = result.tools.map(t => t.name);
-    // Scout phase should include at least apply_filter and create_finding
+    // Explore should include at least apply_filter and create_finding
     expect(toolNames).toContain('apply_filter');
     expect(toolNames).toContain('create_finding');
   });
 
-  it('tier2SemiStatic contains phase coaching and mode workflow', () => {
+  it('tier2SemiStatic contains surface coaching and mode workflow', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'analyze',
       mode: 'standard',
-      surface: 'fullPanel',
+      surface: 'analyze',
       context: MINIMAL_CONTEXT,
     });
-    // Should have substantial content from phase + mode coaching
+    // Should have substantial content from surface + mode coaching
     expect(result.tier2SemiStatic.length).toBeGreaterThan(100);
+    expect(result.tier2SemiStatic).toContain('Surface: Analyze Wall');
   });
 
   it('tier1Static contains role but NOT investigation data', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'analyze',
       mode: 'standard',
-      surface: 'fullPanel',
+      surface: 'analyze',
       context: {
         ...MINIMAL_CONTEXT,
         investigation: { phase: 'diverging' } as unknown as AIContext['investigation'],
@@ -79,18 +78,16 @@ describe('assembleCoScoutPrompt', () => {
 
   it('tier1Static is identical regardless of context', () => {
     const rich = assembleCoScoutPrompt({
-      phase: 'analyze',
       mode: 'standard',
-      surface: 'fullPanel',
+      surface: 'analyze',
       context: {
         ...MINIMAL_CONTEXT,
         investigation: { phase: 'converging' } as unknown as AIContext['investigation'],
       },
     });
     const minimal = assembleCoScoutPrompt({
-      phase: 'frame',
       mode: 'standard',
-      surface: 'fullPanel',
+      surface: 'process',
       context: MINIMAL_CONTEXT,
     });
     expect(rich.tier1Static).toBe(minimal.tier1Static);
@@ -98,7 +95,7 @@ describe('assembleCoScoutPrompt', () => {
 
   it('tier1Static includes glossary when provided', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'frame',
+      surface: 'process',
       mode: 'standard',
       context: {
         ...MINIMAL_CONTEXT,
@@ -110,15 +107,14 @@ describe('assembleCoScoutPrompt', () => {
   });
 
   it('tier3Dynamic is empty string (Phase 2 placeholder)', () => {
-    const result = assembleCoScoutPrompt({ phase: 'analyze' });
+    const result = assembleCoScoutPrompt({ surface: 'analyze' });
     expect(result.tier3Dynamic).toBe('');
   });
 
   it('tier2SemiStatic includes investigation context when provided', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'analyze',
       mode: 'standard',
-      surface: 'fullPanel',
+      surface: 'analyze',
       context: {
         ...MINIMAL_CONTEXT,
         investigation: {
@@ -133,9 +129,8 @@ describe('assembleCoScoutPrompt', () => {
 
   it('tier2SemiStatic includes data context with stats', () => {
     const result = assembleCoScoutPrompt({
-      phase: 'scout',
       mode: 'standard',
-      surface: 'fullPanel',
+      surface: 'explore',
       context: {
         ...MINIMAL_CONTEXT,
         activeChart: 'boxplot',
@@ -143,5 +138,36 @@ describe('assembleCoScoutPrompt', () => {
     });
     expect(result.tier2SemiStatic).toContain('n=100');
     expect(result.tier2SemiStatic).toContain('boxplot');
+  });
+
+  it('tier2SemiStatic includes Analysis Scope when provided', () => {
+    const result = assembleCoScoutPrompt({
+      surface: 'analyze',
+      scope: {
+        analysisMode: 'standard',
+        activeScopeLabel: 'Machine = A',
+        activeScope: {
+          id: 'scope-1',
+          projectId: 'project-1',
+          outcome: 'Moisture',
+          predicates: [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }],
+          hypothesisIds: ['hub-1'],
+        },
+      },
+      context: {
+        ...MINIMAL_CONTEXT,
+        analysisScope: {
+          id: 'scope-1',
+          projectId: 'project-1',
+          outcome: 'Moisture',
+          factor: 'Machine',
+          filters: ['Machine = A'],
+          hypothesisIds: ['hub-1'],
+        },
+      },
+    });
+
+    expect(result.tier2SemiStatic).toContain('Current Analysis Scope: Machine = A');
+    expect(result.tier2SemiStatic).toContain('Analysis Scope: outcome=Moisture');
   });
 });

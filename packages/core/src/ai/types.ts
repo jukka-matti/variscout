@@ -10,7 +10,8 @@ import type { AnalyzeNodeMapping, ProcessParticipantRef } from '../processHub';
 import type { EvidenceSource, EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessMomentDefinition } from '../processMoments';
 import type { SignalCard } from '../signalCards';
-import type { HypothesisStatus } from '../findings/types';
+import type { HypothesisStatus, ProblemStatementScope } from '../findings/types';
+import type { ProjectRole } from '../projectMembership/types';
 
 /** AI model tier — maps to ARM deployment names ('fast' or 'reasoning') */
 export type AITier = 'fast' | 'reasoning';
@@ -153,6 +154,18 @@ export interface ProcessContext {
 export interface AIContext {
   /** Process context from user */
   process: ProcessContext;
+  /** Current member role in the Project, when known */
+  projectRole?: ProjectRole;
+  /** Current Analysis Scope: outcome/measure + factor + step + filters */
+  analysisScope?: {
+    id?: ProblemStatementScope['id'];
+    projectId?: ProblemStatementScope['projectId'];
+    outcome?: ProblemStatementScope['outcome'];
+    factor?: string;
+    stepId?: string;
+    filters: string[];
+    hypothesisIds?: string[];
+  };
   /** Currently active/focused chart */
   activeChart?: InsightChartType;
   /** Current statistics snapshot */

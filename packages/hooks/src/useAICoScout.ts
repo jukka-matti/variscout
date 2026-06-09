@@ -13,6 +13,7 @@ import type {
   ResponsesApiConfig,
   ToolHandlerMap,
   BuildCoScoutToolsOptions,
+  CoScoutScope,
 } from '@variscout/core';
 import {
   assembleCoScoutPrompt,
@@ -33,6 +34,8 @@ export interface UseAICoScoutOptions {
   toolHandlers?: ToolHandlerMap;
   /** Phase-gating options for tool availability (ADR-029) */
   toolsOptions?: BuildCoScoutToolsOptions;
+  /** Current Analysis Scope facts */
+  scope?: CoScoutScope;
 }
 
 export interface UseAICoScoutReturn {
@@ -67,7 +70,8 @@ function classifyErrorToCoScoutError(err: unknown): CoScoutError {
 }
 
 export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
-  const { context, initialNarrative, responsesApiConfig, toolHandlers, toolsOptions } = options;
+  const { context, initialNarrative, responsesApiConfig, toolHandlers, toolsOptions, scope } =
+    options;
 
   const [messages, setMessages] = useState<CoScoutMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -135,10 +139,9 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
       try {
         // Build tiered prompt via assembler (Phase 2 migration)
         const tiers = assembleCoScoutPrompt({
-          phase: toolsOptions?.phase ?? 'frame',
-          analyzePhase: toolsOptions?.analyzePhase,
+          surface: toolsOptions?.surface ?? 'analyze',
+          scope,
           mode: context.analysisMode ?? 'standard',
-          surface: 'fullPanel',
           context,
         });
         const instructions = [tiers.tier1Static, tiers.tier2SemiStatic, tiers.tier3Dynamic]
@@ -174,8 +177,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
               prompt_cache_key: 'variscout-coscout',
               reasoning: {
                 effort: getCoScoutReasoningEffort(
-                  toolsOptions?.phase,
-                  toolsOptions?.analyzePhase,
+                  toolsOptions?.surface,
                   context?.stagedComparison != null
                 ),
               },
@@ -228,7 +230,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
         }
       }
     },
-    [context, responsesApiConfig, toolHandlers, toolsOptions]
+    [context, responsesApiConfig, toolHandlers, toolsOptions, scope]
   );
 
   const stopStreaming = useCallback(() => {

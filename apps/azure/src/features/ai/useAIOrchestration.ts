@@ -27,6 +27,10 @@ import type {
   InsightChartType,
   Locale,
   AnalysisMode,
+  CoScoutSurface,
+  ProjectRole,
+  ProblemStatementScope,
+  CoScoutScope,
 } from '@variscout/core';
 import {
   buildSuggestedQuestions,
@@ -91,6 +95,9 @@ export interface UseAIOrchestrationOptions {
   locale?: Locale;
   knowledgeSearchFolder?: string;
   journeyPhase?: JourneyPhase;
+  coscoutSurface?: CoScoutSurface;
+  projectRole?: ProjectRole;
+  analysisScope?: ProblemStatementScope;
   entryScenario?: EntryScenario;
   capabilityData?: BuildAIContextOptions['capabilityData'];
   analysisMode?: AnalysisMode;
@@ -145,7 +152,9 @@ export function useAIOrchestration({
   drillPath,
   locale,
   knowledgeSearchFolder,
-  journeyPhase,
+  coscoutSurface = 'analyze',
+  projectRole,
+  analysisScope,
   entryScenario,
   capabilityData,
   analysisMode,
@@ -299,6 +308,8 @@ export function useAIOrchestration({
     entryScenario,
     capabilityData,
     analysisMode,
+    projectRole,
+    analysisScope,
     focusedQuestionId,
     evidenceMapTopology: effectiveTopology,
     hypotheses,
@@ -339,11 +350,21 @@ export function useAIOrchestration({
   });
 
   // Tool phase-gating options (ADR-029)
+  const coscoutScope = useMemo<CoScoutScope>(
+    () => ({
+      analysisMode,
+      activeScope: analysisScope,
+      activeScopeLabel: aiContext.context?.analysisScope?.filters.join(' + '),
+    }),
+    [analysisMode, analysisScope, aiContext.context?.analysisScope?.filters]
+  );
+
   const toolsOptions = useMemo(
     () => ({
-      phase: journeyPhase,
+      surface: coscoutSurface,
+      existingHubs: hypotheses,
     }),
-    [journeyPhase]
+    [coscoutSurface, hypotheses]
   );
 
   // AI CoScout conversation (disabled when per-component toggle is off)
@@ -353,6 +374,7 @@ export function useAIOrchestration({
     responsesApiConfig: aiAvailable && prefs.coscout ? responsesConfig : undefined,
     toolHandlers,
     toolsOptions,
+    scope: coscoutScope,
   });
 
   const suggestedQuestions = useMemo(

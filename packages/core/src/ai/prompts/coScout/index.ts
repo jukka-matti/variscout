@@ -1,13 +1,13 @@
 /**
  * CoScout prompt module — modular directory with tiered assembler.
  *
- * The assembler composes from extracted modules (role, phases, modes, context, tools).
+ * The assembler composes from extracted modules (role, surfaces, modes, context, tools).
  * legacy.ts has been deleted (ADR-068 complete — 2026-05-30).
  *
  * Consumers should use:
  *   - `assembleCoScoutPrompt()` for prompt construction
  *   - `buildCoScoutMessageInput()` for Responses API input array
- *   - `getToolsForPhase()` for tool definitions
+ *   - `getToolsForSurface()` for tool definitions
  */
 
 // BuildCoScoutToolsOptions relocated from legacy.ts to tools/registry.ts (ADR-068 migration)
@@ -20,19 +20,24 @@ export { formatKnowledgeContext } from './context';
 export { buildCoScoutMessageInput } from './messages';
 
 // ── New types ───────────────────────────────────────────────────────────
-export type { CoScoutSurface, CoScoutPromptTiers, AssembleCoScoutPromptOptions } from './types';
+export type {
+  CoScoutScope,
+  CoScoutSurface,
+  CoScoutPromptTiers,
+  AssembleCoScoutPromptOptions,
+} from './types';
 
 // ── Tool registry ──────────────────────────────────────────────────────
-export { TOOL_REGISTRY, getToolsForPhase } from './tools';
+export { TOOL_REGISTRY, getToolsForPhase, getToolsForSurface } from './tools';
 export type { ToolRegistryEntry, ToolName } from './tools';
 
 // ── Assembler ───────────────────────────────────────────────────────────
 import type { CoScoutPromptTiers, AssembleCoScoutPromptOptions } from './types';
 import { buildRole } from './role';
-import { buildPhaseCoaching } from './phases';
 import { buildModeWorkflow } from './modes';
 import { formatAnalyzeContext, formatDataContext, formatKnowledgeContext } from './context';
-import { getToolsForPhase } from './tools';
+import { getToolsForSurface } from './tools';
+import { buildSurfaceCoaching } from './surfaces';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from '../shared';
 import type { Hypothesis } from '../../../findings/types';
 import { analyzeDisciplinePrompt } from './tier2';
@@ -44,18 +49,23 @@ import { analyzeDisciplinePrompt } from './tier2';
  *   Completely session-invariant — forms the cacheable prefix for
  *   Azure AI Foundry prompt caching (≥1,024 tokens).
  *
- * Tier 2 (Semi-static): Phase coaching + mode workflow + investigation/data/knowledge context.
- *   Changes on navigation (phase transition, mode switch, drill path change).
+ * Tier 2 (Semi-static): Surface coaching + mode workflow + investigation/data/knowledge context.
+ *   Changes on surface, scope, mode, and context changes.
  *
  * Tier 3 (Dynamic): Reserved for Phase 2 — surface-specific context
  *   (e.g., chart-specific data for contextClick surface).
  *
- * Tools: Phase/mode/tier-gated tool definitions from the typed registry.
+ * Tools: Surface/mode/tier-gated tool definitions from the typed registry.
  */
 export function assembleCoScoutPrompt(
   options: AssembleCoScoutPromptOptions = {}
 ): CoScoutPromptTiers {
-  const { phase = 'frame', analyzePhase, mode = 'standard', context } = options;
+  const {
+    surface = 'analyze',
+    scope,
+    mode = scope?.analysisMode ?? options.context?.analysisMode ?? 'standard',
+    context,
+  } = options;
 
   // ── Tier 1: Static (cacheable prefix) ──────────────────────────────
   const tier1Parts: string[] = [];
@@ -78,21 +88,14 @@ export function assembleCoScoutPrompt(
   // ── Tier 2: Semi-static (changes on navigation) ───────────────────
   const tier2Parts: string[] = [];
 
-  // Phase-specific coaching
-  tier2Parts.push(
-    buildPhaseCoaching({
-      phase,
-      mode,
-      analyzePhase,
-      entryScenario: context?.entryScenario,
-    })
-  );
+  // Surface-specific coaching
+  tier2Parts.push(buildSurfaceCoaching(surface, scope));
 
-  // Mode-specific workflow guidance
-  tier2Parts.push(buildModeWorkflow(mode, phase));
+  // Mode-specific workflow guidance. Mode is a property of the Analyze scope.
+  tier2Parts.push(buildModeWorkflow(mode, surface === 'analyze' ? 'analyze' : 'frame'));
 
-  // Tier 2 discipline coaching — phase-specific targeted guidance
-  if (phase === 'analyze') {
+  // Tier 2 discipline coaching — Wall-specific targeted guidance
+  if (surface === 'analyze') {
     tier2Parts.push(analyzeDisciplinePrompt);
   }
 
@@ -100,7 +103,7 @@ export function assembleCoScoutPrompt(
   const investigationBlock = formatAnalyzeContext(context?.investigation);
   if (investigationBlock) tier2Parts.push(investigationBlock);
 
-  // Data context (active chart, drill scope, top factors, stats)
+  // Data context (active chart, Analysis Scope, top factors, stats)
   if (context) {
     const dataBlock = formatDataContext(context);
     if (dataBlock) tier2Parts.push(dataBlock);
@@ -120,8 +123,7 @@ export function assembleCoScoutPrompt(
   // conversation history summary for quickAsk, etc.
 
   // ── Tools ──────────────────────────────────────────────────────────
-  const tools = getToolsForPhase(phase, mode, {
-    analyzePhase,
+  const tools = getToolsForSurface(surface, mode, {
     existingHubs: context?.investigation?.hypothesisHubs as Hypothesis[] | undefined,
   });
 

@@ -42,7 +42,7 @@ const STATUS_DOT_COLORS: Record<FindingStatus, string> = {
 
 // ── Question status icons ────────────────────────────────────────────────────
 
-const QUESTION_STATUS_ICONS: Record<HypothesisStatus, string> = {
+const HYPOTHESIS_STATUS_ICONS: Record<HypothesisStatus, string> = {
   proposed: '?',
   evidenced: '\u25D0',
   'evidence-survived-test': '\u2713',
@@ -200,7 +200,7 @@ const ProjectStatusCard: React.FC<ProjectStatusCardProps> = ({
                     className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 text-xs font-mono"
                     title={h.status}
                   >
-                    {QUESTION_STATUS_ICONS[h.status]}
+                    {HYPOTHESIS_STATUS_ICONS[h.status]}
                   </span>
                   <span className="text-content flex-1 truncate">{h.name}</span>
                 </button>

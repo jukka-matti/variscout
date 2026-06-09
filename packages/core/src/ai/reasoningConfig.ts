@@ -6,42 +6,26 @@
  * and latency.
  */
 
-import type { JourneyPhase, AnalyzePhase } from './types';
+import type { CoScoutSurface } from './prompts/coScout/types';
 
 /**
- * Get the reasoning effort level for CoScout based on journey phase,
- * optional investigation sub-phase, and staged data presence.
+ * Get the reasoning effort level for CoScout based on product surface and staged data presence.
  *
- * - frame: Quick orientation, light reasoning
- * - scout: Pattern exploration, light reasoning
- * - investigate/initial|diverging: Exploration, light reasoning
- * - investigate/validating: Hypothesis validation, medium reasoning
- * - investigate/converging: Root cause synthesis, high reasoning
- * - improve (no staged data): Action planning, light reasoning
- * - improve (with staged data): Verification & impact, high reasoning
+ * Loop-intent is inferred inside the prompt and does not gate effort directly.
  */
 export function getCoScoutReasoningEffort(
-  phase?: JourneyPhase,
-  analyzePhase?: AnalyzePhase,
+  surface?: CoScoutSurface,
   hasStagedData?: boolean
 ): 'none' | 'low' | 'medium' | 'high' {
-  if (phase === 'improve' && hasStagedData) return 'high';
-  if (phase === 'analyze') {
-    switch (analyzePhase) {
-      case 'converging':
-        return 'high';
-      case 'validating':
-        return 'medium';
-      default:
-        return 'low';
-    }
-  }
-  switch (phase) {
-    case 'frame':
+  if (surface === 'analyze' && hasStagedData) return 'high';
+  switch (surface) {
+    case 'process':
       return 'low';
-    case 'scout':
+    case 'explore':
       return 'low';
-    case 'improve':
+    case 'analyze':
+      return 'medium';
+    case 'report':
       return 'low';
     default:
       return 'low';

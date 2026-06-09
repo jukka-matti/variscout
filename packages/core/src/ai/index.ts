@@ -48,6 +48,7 @@ export type {
   ChartInsightData,
   BuildCoScoutToolsOptions,
   CoScoutSurface,
+  CoScoutScope,
   CoScoutPromptTiers,
   AssembleCoScoutPromptOptions,
 } from './prompts';

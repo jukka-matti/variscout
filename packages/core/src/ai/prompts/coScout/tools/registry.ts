@@ -2,17 +2,16 @@
  * Typed tool registry for CoScout Responses API function calling.
  *
  * Each tool is defined ONCE with its schema, classification (read/action),
- * phase availability, and optional conditions. `getToolsForPhase()` filters
+ * surface availability, and optional conditions. `getToolsForSurface()` filters
  * the registry to produce the tools array for a given phase/mode/tier.
  *
- * ADR-029: Extended from 3 to 25 tools with action tool support.
- * PR #75 (Investigation Wall): 25 → 27 tools
- *   + `critique_investigation_state` (read, investigate phase)
- *   + `propose_hypothesis_from_finding` (action, investigate phase)
+ * ADR-029: Extended the original tool loop with action tools.
+ * 2026-06-09 surface redesign: registry now advertises only executable tools
+ * and gates them by deterministic product surface.
  */
 
 import type { ToolDefinition } from '../../../responsesApi';
-import type { JourneyPhase, AnalyzePhase } from '../../../types';
+import type { CoScoutSurface } from '../types';
 import type { AnalysisMode } from '../../../../types';
 import type { Hypothesis } from '../../../../findings/types';
 
@@ -20,10 +19,10 @@ import type { Hypothesis } from '../../../../findings/types';
 
 /** Options for building phase-gated CoScout tools (formerly in legacy.ts) */
 export interface BuildCoScoutToolsOptions {
-  /** Current journey phase — determines which tools are available */
-  phase?: JourneyPhase;
-  /** Current investigation phase — used for fine-grained tool gating within INVESTIGATE */
-  analyzePhase?: AnalyzePhase;
+  /** Current product surface — determines which tools are available */
+  surface?: CoScoutSurface;
+  /** @deprecated Phase is accepted by transitional callers and mapped to surface. */
+  phase?: 'frame' | 'scout' | 'analyze' | 'improve';
   /** Existing Hypothesis hubs — enables connect_hub_evidence when non-empty */
   existingHubs?: Hypothesis[];
 }
@@ -35,12 +34,12 @@ export interface ToolRegistryEntry {
   definition: ToolDefinition;
   /** Read tools are auto-executed; action tools need user confirmation */
   classification: 'read' | 'action';
-  /** Journey phases where this tool is available */
-  phases: JourneyPhase[];
+  /** Product surfaces where this tool is available */
+  surfaces: CoScoutSurface[];
   /** Optional: restrict to specific analysis modes */
   modes?: AnalysisMode[];
   /** Optional: dynamic availability condition */
-  condition?: (ctx: { analyzePhase?: AnalyzePhase; existingHubs?: Hypothesis[] }) => boolean;
+  condition?: (ctx: { existingHubs?: Hypothesis[] }) => boolean;
 }
 
 // ── Tool Registry ──────────────────────────────────────────────────────
@@ -69,7 +68,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'analyze', 'improve'],
+    surfaces: ['process', 'explore', 'analyze', 'report'],
   },
 
   get_statistical_summary: {
@@ -86,7 +85,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'analyze', 'improve'],
+    surfaces: ['process', 'explore', 'analyze', 'report'],
   },
 
   search_knowledge_base: {
@@ -106,7 +105,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'analyze', 'improve'],
+    surfaces: ['process', 'explore', 'analyze', 'report'],
   },
 
   get_available_factors: {
@@ -123,7 +122,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'analyze', 'improve'],
+    surfaces: ['process', 'explore', 'analyze', 'report'],
   },
 
   critique_investigation_state: {
@@ -131,7 +130,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'critique_investigation_state',
       description:
-        'Identify gaps in the current investigation: hypotheses missing disconfirmation attempts, open questions lacking a hypothesis, promising columns not yet hypothesized, stale questions. Returns a structured gap array for the Wall rail critique feed.',
+        'Orient the current investigation loop: coverage, open candidate factors, hypothesis support, disconfirmation gaps, and next best move. Returns a structured gap array for the Wall rail critique feed.',
       parameters: {
         type: 'object',
         properties: {},
@@ -140,7 +139,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['analyze'],
+    surfaces: ['analyze'],
   },
 
   compare_categories: {
@@ -163,7 +162,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'analyze', 'improve'],
+    surfaces: ['process', 'explore', 'analyze', 'report'],
   },
 
   get_finding_attachment: {
@@ -188,7 +187,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'read',
-    phases: ['frame', 'scout', 'analyze', 'improve'],
+    surfaces: ['process', 'explore', 'analyze', 'report'],
   },
 
   // ── SCOUT+ action tools ──────────────────────────────────────────────
@@ -211,30 +210,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['scout', 'analyze', 'improve'],
-  },
-
-  switch_factor: {
-    definition: {
-      type: 'function',
-      name: 'switch_factor',
-      description:
-        'Propose switching the Boxplot to show a different factor. Use after apply_filter to show remaining factors within the filtered subset.',
-      parameters: {
-        type: 'object',
-        properties: {
-          factor: {
-            type: 'string',
-            description: 'Factor column name to switch the Boxplot to',
-          },
-        },
-        required: ['factor'],
-        additionalProperties: false,
-        strict: true,
-      },
-    },
-    classification: 'action',
-    phases: ['scout', 'analyze', 'improve'],
+    surfaces: ['explore', 'analyze'],
   },
 
   clear_filters: {
@@ -251,7 +227,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['scout', 'analyze', 'improve'],
+    surfaces: ['explore', 'analyze'],
   },
 
   create_finding: {
@@ -275,7 +251,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['scout', 'analyze', 'improve'],
+    surfaces: ['explore', 'analyze'],
   },
 
   search_project: {
@@ -283,18 +259,18 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'search_project',
       description:
-        'Search findings, questions, improvement ideas, and actions in the current project by text and optional filters. Use when the user asks about past analysis, whether something was investigated, or what was found.',
+        'Search findings, hypotheses, improvement ideas, and actions in the current project by text and optional filters. Use when the user asks about past analysis, whether something was investigated, or what was found.',
       parameters: {
         type: 'object',
         properties: {
           query: {
             type: 'string',
             description:
-              'Search text (matched against text of findings, questions, ideas, actions, and comments)',
+              'Search text (matched against text of findings, hypotheses, ideas, actions, and comments)',
           },
           artifact_type: {
             type: 'string',
-            enum: ['finding', 'question', 'idea', 'action', 'all'],
+            enum: ['finding', 'hypothesis', 'idea', 'action', 'all'],
             description: 'Type of artifact to search. Use "all" for all types.',
           },
           finding_status: {
@@ -303,20 +279,20 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
             description:
               'Filter findings by status. Use "any" for no filter. Only applies to findings.',
           },
-          question_status: {
+          hypothesis_status: {
             type: 'string',
-            enum: ['open', 'answered', 'ruled-out', 'investigating', 'any'],
+            enum: ['candidate', 'supported', 'refuted', 'selected-for-improvement', 'any'],
             description:
-              'Filter questions by status. Use "any" for no filter. Only applies to questions.',
+              'Filter hypotheses by status. Use "any" for no filter. Only applies to hypotheses.',
           },
         },
-        required: ['query', 'artifact_type', 'finding_status', 'question_status'],
+        required: ['query', 'artifact_type', 'finding_status', 'hypothesis_status'],
         additionalProperties: false,
         strict: true,
       },
     },
     classification: 'read',
-    phases: ['scout', 'analyze', 'improve'],
+    surfaces: ['explore', 'analyze', 'report'],
   },
 
   navigate_to: {
@@ -324,18 +300,25 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       type: 'function',
       name: 'navigate_to',
       description:
-        'Navigate to a specific finding, question, chart view, or workspace. Auto-executes for panel navigation. Set restore_filters to true when restoring filter context from a finding (requires user confirmation).',
+        'Navigate to a specific finding, hypothesis, chart view, or workspace. Auto-executes for panel navigation. Set restore_filters to true when restoring filter context from a finding (requires user confirmation).',
       parameters: {
         type: 'object',
         properties: {
           target: {
             type: 'string',
-            enum: ['finding', 'question', 'chart', 'improvement_workspace', 'report', 'dashboard'],
+            enum: [
+              'finding',
+              'hypothesis',
+              'chart',
+              'improvement_workspace',
+              'report',
+              'dashboard',
+            ],
             description: 'What to navigate to',
           },
           target_id: {
             type: 'string',
-            description: 'ID of the finding or question. Empty string if not applicable.',
+            description: 'ID of the finding or hypothesis. Empty string if not applicable.',
           },
           chart_type: {
             type: 'string',
@@ -359,37 +342,10 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['scout', 'analyze', 'improve'],
+    surfaces: ['explore', 'analyze'],
   },
 
-  // ── INVESTIGATE+ action tools ────────────────────────────────────────
-
-  propose_hypothesis_from_finding: {
-    definition: {
-      type: 'function',
-      name: 'propose_hypothesis_from_finding',
-      description:
-        "Create a new Hypothesis hub seeded with an existing finding as first evidence. Condition auto-derives from the finding's source. Requires analyst confirmation before the hub is committed.",
-      parameters: {
-        type: 'object',
-        properties: {
-          finding_id: {
-            type: 'string',
-            description: 'ID of the finding that provides initial evidence for the hypothesis',
-          },
-          hypothesis_name: {
-            type: 'string',
-            description: 'Short analyst-ready label for the hypothesis',
-          },
-        },
-        required: ['finding_id', 'hypothesis_name'],
-        additionalProperties: false,
-        strict: true,
-      },
-    },
-    classification: 'action',
-    phases: ['analyze'],
-  },
+  // ── Analyze action tools ─────────────────────────────────────────────
 
   suggest_hypothesis: {
     definition: {
@@ -421,8 +377,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['analyze', 'improve'],
-    condition: ctx => ctx.analyzePhase === 'validating' || ctx.analyzePhase === 'converging',
+    surfaces: ['analyze'],
   },
 
   connect_hub_evidence: {
@@ -451,7 +406,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['analyze', 'improve'],
+    surfaces: ['analyze'],
     condition: ctx => Boolean(ctx.existingHubs && ctx.existingHubs.length > 0),
   },
 
@@ -518,7 +473,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['analyze', 'improve'],
+    surfaces: ['analyze'],
   },
 
   suggest_action: {
@@ -551,54 +506,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['analyze', 'improve'],
-  },
-
-  spark_brainstorm_ideas: {
-    definition: {
-      type: 'function',
-      name: 'spark_brainstorm_ideas',
-      description:
-        'Generate creative improvement ideas for a brainstorm session. Used in the Brainstorm Modal \u2014 ideas are text + direction only, no timeframe/cost/risk. Generate 1-2 ideas per empty direction, plus one bold idea. Reference Knowledge Base results when available.',
-      parameters: {
-        type: 'object',
-        properties: {
-          question_id: {
-            type: 'string',
-            description: 'ID of the question (hypothesis) being brainstormed',
-          },
-          cause_name: {
-            type: 'string',
-            description: 'Name of the hypothesis for context',
-          },
-          ideas: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                text: {
-                  type: 'string',
-                  description: 'Improvement idea description \u2014 concise, actionable',
-                },
-                direction: {
-                  type: 'string',
-                  enum: ['prevent', 'detect', 'simplify', 'eliminate'],
-                  description: 'Which HMW direction this idea addresses',
-                },
-              },
-              required: ['text', 'direction'],
-              additionalProperties: false,
-            },
-            description: 'Array of brainstorm ideas with direction classification',
-          },
-        },
-        required: ['question_id', 'cause_name', 'ideas'],
-        additionalProperties: false,
-        strict: true,
-      },
-    },
-    classification: 'action',
-    phases: ['analyze', 'improve'],
+    surfaces: ['analyze'],
   },
 
   suggest_save_finding: {
@@ -607,7 +515,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       name: 'suggest_save_finding',
       description:
         'Proactively suggest saving a key insight as a finding. Use when the conversation ' +
-        'reveals a significant process observation, a validated question conclusion, ' +
+        'reveals a significant process observation, a validated hypothesis conclusion, ' +
         'or a negative learning (approach tried and found ineffective). ' +
         'The analyst sees a confirmation card and can edit before saving.',
       parameters: {
@@ -625,19 +533,19 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
               'Why this insight is worth saving \u2014 helps analyst decide. ' +
               'E.g., "This explains 42% of total variation and directly informs the improvement plan."',
           },
-          suggested_question_id: {
+          suggested_hypothesis_id: {
             type: ['string', 'null'],
             description:
-              'If the insight relates to a specific question, provide its ID to link them. Null otherwise.',
+              'If the insight relates to a specific hypothesis, provide its ID to link them. Null otherwise.',
           },
         },
-        required: ['insight_text', 'reasoning', 'suggested_question_id'],
+        required: ['insight_text', 'reasoning', 'suggested_hypothesis_id'],
         additionalProperties: false,
         strict: true,
       },
     },
     classification: 'action',
-    phases: ['analyze', 'improve'],
+    surfaces: ['analyze'],
   },
 
   // ── Evidence Map tools (INVESTIGATE+) ────────────────────────────────
@@ -679,7 +587,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['analyze', 'improve'],
+    surfaces: ['analyze'],
   },
 
   highlight_map_pattern: {
@@ -714,114 +622,40 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
       },
     },
     classification: 'action',
-    phases: ['analyze', 'improve'],
-  },
-
-  // ── Team-only tools (INVESTIGATE+) ───────────────────────────────────
-
-  share_finding: {
-    definition: {
-      type: 'function',
-      name: 'share_finding',
-      description:
-        'Propose posting a finding summary to the Teams channel. Shows a preview before sending. Only use at investigation milestones.',
-      parameters: {
-        type: 'object',
-        properties: {
-          finding_id: {
-            type: 'string',
-            description: 'ID of the finding to share',
-          },
-        },
-        required: ['finding_id'],
-        additionalProperties: false,
-        strict: true,
-      },
-    },
-    classification: 'action',
-    phases: ['analyze', 'improve'],
-  },
-
-  publish_report: {
-    definition: {
-      type: 'function',
-      name: 'publish_report',
-      description:
-        'Propose publishing the current scouting report to SharePoint. Shows report type and section count before publishing.',
-      parameters: {
-        type: 'object',
-        properties: {},
-        additionalProperties: false,
-        strict: true,
-      },
-    },
-    classification: 'action',
-    phases: ['analyze', 'improve'],
-  },
-
-  // ── IMPROVE-only team tool ───────────────────────────────────────────
-
-  notify_action_owners: {
-    definition: {
-      type: 'function',
-      name: 'notify_action_owners',
-      description:
-        'Propose sending Teams notifications to action item assignees. Shows a preview of who will be notified. Only use after actions have been assigned.',
-      parameters: {
-        type: 'object',
-        properties: {
-          finding_id: {
-            type: 'string',
-            description: 'ID of the finding whose action owners to notify',
-          },
-        },
-        required: ['finding_id'],
-        additionalProperties: false,
-        strict: true,
-      },
-    },
-    classification: 'action',
-    phases: ['improve'],
+    surfaces: ['analyze'],
   },
 };
 
 /** Union of all tool names in the registry */
 export type ToolName = keyof typeof TOOL_REGISTRY;
 
-// ── Phase/mode/tier filter ─────────────────────────────────────────────
+// ── Surface/mode/tier filter ───────────────────────────────────────────
 
 /**
- * Filter the tool registry to produce the tools array for a given phase/mode.
+ * Filter the tool registry to produce the tools array for a given surface/mode.
  *
- * @param phase - Current journey phase
- * @param mode - Current analysis mode (unused for now, reserved for future mode-specific tools)
- * @param options - Investigation phase and existing hubs for dynamic gating
+ * @param surface - Current CoScout product surface
+ * @param mode - Current analysis mode, scoped to the Analyze surface
+ * @param options - Existing hubs for dynamic availability
  * @returns Filtered array of ToolDefinition for the Responses API
- *
- * Two tools are conditionally gated (excluded unless their condition is met):
- *   - suggest_hypothesis: requires options.analyzePhase ∈ {validating, converging}
- *   - connect_hub_evidence: requires options.existingHubs non-empty
- * Hence the improve phase yields 21 tools unconditionally / 23 with both conditions met.
  */
-export function getToolsForPhase(
-  phase: JourneyPhase,
+export function getToolsForSurface(
+  surface: CoScoutSurface,
   mode: AnalysisMode,
   options?: {
-    analyzePhase?: AnalyzePhase;
     existingHubs?: Hypothesis[];
   }
 ): ToolDefinition[] {
   return Object.values(TOOL_REGISTRY)
     .filter(entry => {
-      // Phase check
-      if (!entry.phases.includes(phase)) return false;
+      // Surface check
+      if (!entry.surfaces.includes(surface)) return false;
       // Mode check
       if (entry.modes && !entry.modes.includes(mode)) return false;
       // Dynamic condition
       if (
         entry.condition &&
         !entry.condition({
-          analyzePhase: options?.analyzePhase,
           existingHubs: options?.existingHubs,
         })
       )
@@ -829,4 +663,32 @@ export function getToolsForPhase(
       return true;
     })
     .map(entry => entry.definition);
+}
+
+export function mapJourneyPhaseToSurface(
+  phase?: BuildCoScoutToolsOptions['phase']
+): CoScoutSurface {
+  switch (phase) {
+    case 'frame':
+      return 'process';
+    case 'scout':
+      return 'explore';
+    case 'analyze':
+      return 'analyze';
+    case 'improve':
+      return 'report';
+    default:
+      return 'analyze';
+  }
+}
+
+/** @deprecated Use getToolsForSurface. */
+export function getToolsForPhase(
+  phase: NonNullable<BuildCoScoutToolsOptions['phase']>,
+  mode: AnalysisMode,
+  options?: {
+    existingHubs?: Hypothesis[];
+  }
+): ToolDefinition[] {
+  return getToolsForSurface(mapJourneyPhaseToSurface(phase), mode, options);
 }

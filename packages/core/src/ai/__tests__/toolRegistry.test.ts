@@ -1,263 +1,133 @@
-import { describe, it, expect } from 'vitest';
-import { TOOL_REGISTRY, getToolsForPhase } from '../prompts/coScout/tools';
+import { describe, expect, it } from 'vitest';
+import { TOOL_REGISTRY, getToolsForSurface } from '../prompts/coScout/tools';
+import type { CoScoutSurface } from '../prompts/coScout';
 import type { Hypothesis } from '../../findings/types';
-
-// ── Helpers ────────────────────────────────────────────────────────────
 
 const READ_TOOLS = [
   'get_chart_data',
   'get_statistical_summary',
   'search_knowledge_base',
   'get_available_factors',
+  'critique_investigation_state',
   'compare_categories',
   'get_finding_attachment',
   'search_project',
 ];
 
-const SCOUT_ACTION_TOOLS = [
-  'apply_filter',
+const DEAD_TOOLS = [
   'switch_factor',
-  'clear_filters',
-  'create_finding',
-  'navigate_to',
-];
-
-const INVESTIGATE_ACTION_TOOLS = [
-  'suggest_hypothesis',
-  'connect_hub_evidence',
-  'suggest_improvement_idea',
-  'suggest_action',
+  'propose_hypothesis_from_finding',
   'spark_brainstorm_ideas',
-  'suggest_save_finding',
-  'suggest_causal_link',
-  'highlight_map_pattern',
+  'share_finding',
+  'publish_report',
+  'notify_action_owners',
 ];
-
-const TEAM_TOOLS = ['share_finding', 'publish_report', 'notify_action_owners'];
 
 function toolNames(tools: { name: string }[]): string[] {
   return tools.map(t => t.name);
 }
 
-// ── Registry structure ─────────────────────────────────────────────────
+function schemaText(value: unknown): string {
+  return JSON.stringify(value);
+}
 
 describe('TOOL_REGISTRY', () => {
-  it('contains all expected read tools classified as read', () => {
-    // search_project is SCOUT+ read tool
-    const alwaysRead = READ_TOOLS.filter(n => n !== 'search_project');
-    for (const name of alwaysRead) {
+  it('advertises only executable tools', () => {
+    for (const name of DEAD_TOOLS) {
+      expect(TOOL_REGISTRY[name]).toBeUndefined();
+    }
+  });
+
+  it('classifies read tools as read and declares surfaces', () => {
+    for (const name of READ_TOOLS) {
       expect(TOOL_REGISTRY[name]).toBeDefined();
       expect(TOOL_REGISTRY[name].classification).toBe('read');
-      expect(TOOL_REGISTRY[name].phases).toContain('frame');
+      expect(TOOL_REGISTRY[name].surfaces.length).toBeGreaterThan(0);
     }
   });
 
-  it('classifies search_project as read with scout+ phases', () => {
-    const entry = TOOL_REGISTRY['search_project'];
-    expect(entry.classification).toBe('read');
-    expect(entry.phases).toContain('scout');
-    expect(entry.phases).not.toContain('frame');
-  });
-
-  it('contains all SCOUT+ action tools classified as action', () => {
-    for (const name of SCOUT_ACTION_TOOLS) {
-      expect(TOOL_REGISTRY[name]).toBeDefined();
-      expect(TOOL_REGISTRY[name].classification).toBe('action');
-      expect(TOOL_REGISTRY[name].phases).toContain('scout');
-    }
-  });
-
-  it('contains all INVESTIGATE+ action tools with investigate in phases', () => {
-    for (const name of INVESTIGATE_ACTION_TOOLS) {
-      expect(TOOL_REGISTRY[name]).toBeDefined();
-      expect(TOOL_REGISTRY[name].phases).toContain('analyze');
-    }
-  });
-
-  it('registers the share / publish / notify tools', () => {
-    for (const name of TEAM_TOOLS) {
-      expect(TOOL_REGISTRY[name]).toBeDefined();
-    }
-  });
-
-  it('notify_action_owners is IMPROVE-only', () => {
-    const entry = TOOL_REGISTRY['notify_action_owners'];
-    expect(entry.phases).toEqual(['improve']);
-  });
-
-  it('every entry has a valid ToolDefinition with type function', () => {
+  it('every entry has a valid ToolDefinition with matching name', () => {
     for (const [key, entry] of Object.entries(TOOL_REGISTRY)) {
       expect(entry.definition.type).toBe('function');
       expect(entry.definition.name).toBe(key);
       expect(entry.definition.parameters).toBeDefined();
+      expect(
+        entry.surfaces.every(surface =>
+          ['process', 'explore', 'analyze', 'report'].includes(surface)
+        )
+      ).toBe(true);
+    }
+  });
+
+  it('purges retired Question vocabulary from tool schemas', () => {
+    for (const entry of Object.values(TOOL_REGISTRY)) {
+      const text = schemaText(entry.definition.parameters).toLowerCase();
+      expect(text).not.toContain('question');
+      expect(text).not.toContain('question_id');
+      expect(text).not.toContain('question_status');
     }
   });
 });
 
-// ── getToolsForPhase ───────────────────────────────────────────────────
+describe('getToolsForSurface', () => {
+  it.each<CoScoutSurface>(['process', 'explore', 'analyze', 'report'])(
+    'returns function definitions for %s',
+    surface => {
+      const tools = getToolsForSurface(surface, 'standard');
+      expect(tools.length).toBeGreaterThan(0);
+      for (const tool of tools) {
+        expect(tool.type).toBe('function');
+        expect(typeof tool.name).toBe('string');
+      }
+    }
+  );
 
-describe('getToolsForPhase', () => {
-  it('FRAME returns only read tools (no action tools)', () => {
-    const tools = getToolsForPhase('frame', 'standard');
-    const names = toolNames(tools);
-    // Should have the 6 always-available read tools (not search_project)
-    expect(names).toContain('get_chart_data');
+  it('Process is orientation/read-only', () => {
+    const names = toolNames(getToolsForSurface('process', 'standard'));
     expect(names).toContain('get_statistical_summary');
     expect(names).toContain('get_available_factors');
-    // Should NOT have action tools
     expect(names).not.toContain('apply_filter');
     expect(names).not.toContain('create_finding');
-    expect(names).not.toContain('create_question');
-    // Should NOT have SCOUT+ read tool
-    expect(names).not.toContain('search_project');
   });
 
-  it('SCOUT includes apply_filter and search_project', () => {
-    const tools = getToolsForPhase('scout', 'standard');
-    const names = toolNames(tools);
+  it('Explore can propose filters and findings', () => {
+    const names = toolNames(getToolsForSurface('explore', 'standard'));
     expect(names).toContain('apply_filter');
+    expect(names).toContain('create_finding');
     expect(names).toContain('search_project');
-    expect(names).toContain('get_chart_data');
-  });
-
-  it('SCOUT does not include INVESTIGATE+ tools', () => {
-    const tools = getToolsForPhase('scout', 'standard');
-    const names = toolNames(tools);
     expect(names).not.toContain('suggest_causal_link');
-    expect(names).not.toContain('suggest_improvement_idea');
   });
 
-  it('INVESTIGATE includes the causal-link and map tools', () => {
-    const tools = getToolsForPhase('analyze', 'standard');
-    const names = toolNames(tools);
+  it('Analyze includes Wall orientation and convergence tools', () => {
+    const names = toolNames(getToolsForSurface('analyze', 'standard'));
+    expect(names).toContain('critique_investigation_state');
+    expect(names).toContain('suggest_hypothesis');
     expect(names).toContain('suggest_causal_link');
     expect(names).toContain('highlight_map_pattern');
   });
 
-  it('retired question tools (create_question/answer_question) are never advertised in any phase', () => {
-    // ADR-085: CoScout questionId plumbing retired with the Question entity (IM-1).
-    for (const phase of ['frame', 'scout', 'analyze', 'improve'] as const) {
-      const names = toolNames(getToolsForPhase(phase, 'standard'));
-      expect(names).not.toContain('create_question');
-      expect(names).not.toContain('answer_question');
-    }
-  });
-
-  it('includes share_finding + publish_report in INVESTIGATE phase (wedge V1 single SKU)', () => {
-    const tools = getToolsForPhase('analyze', 'standard');
-    const names = toolNames(tools);
-    expect(names).toContain('share_finding');
-    expect(names).toContain('publish_report');
-  });
-
-  it('notify_action_owners only in IMPROVE phase', () => {
-    const investigateTools = getToolsForPhase('analyze', 'standard');
-    expect(toolNames(investigateTools)).not.toContain('notify_action_owners');
-
-    const improveTools = getToolsForPhase('improve', 'standard');
-    expect(toolNames(improveTools)).toContain('notify_action_owners');
-  });
-
-  it('suggest_hypothesis requires validating or converging phase', () => {
-    // Without investigation phase — excluded
-    const tools1 = getToolsForPhase('analyze', 'standard');
-    expect(toolNames(tools1)).not.toContain('suggest_hypothesis');
-
-    // With diverging phase — excluded
-    const tools2 = getToolsForPhase('analyze', 'standard', {
-      analyzePhase: 'diverging',
-    });
-    expect(toolNames(tools2)).not.toContain('suggest_hypothesis');
-
-    // With validating phase — included
-    const tools3 = getToolsForPhase('analyze', 'standard', {
-      analyzePhase: 'validating',
-    });
-    expect(toolNames(tools3)).toContain('suggest_hypothesis');
-
-    // With converging phase — included
-    const tools4 = getToolsForPhase('analyze', 'standard', {
-      analyzePhase: 'converging',
-    });
-    expect(toolNames(tools4)).toContain('suggest_hypothesis');
+  it('Report is communication/read-oriented', () => {
+    const names = toolNames(getToolsForSurface('report', 'standard'));
+    expect(names).toContain('search_project');
+    expect(names).toContain('get_finding_attachment');
+    expect(names).not.toContain('apply_filter');
+    expect(names).not.toContain('suggest_improvement_idea');
   });
 
   it('connect_hub_evidence requires existing hubs', () => {
-    // Without hubs — excluded
-    const tools1 = getToolsForPhase('analyze', 'standard');
-    expect(toolNames(tools1)).not.toContain('connect_hub_evidence');
+    const withoutHubs = getToolsForSurface('analyze', 'standard');
+    expect(toolNames(withoutHubs)).not.toContain('connect_hub_evidence');
 
-    // With empty hubs — excluded
-    const tools2 = getToolsForPhase('analyze', 'standard', { existingHubs: [] });
-    expect(toolNames(tools2)).not.toContain('connect_hub_evidence');
-
-    // With hubs — included
-    const tools3 = getToolsForPhase('analyze', 'standard', {
+    const withHubs = getToolsForSurface('analyze', 'standard', {
       existingHubs: [
         {
           id: 'hub-1',
           name: 'Test Hub',
           synthesis: '',
-          questionIds: [],
           findingIds: [],
         } as unknown as Hypothesis,
       ],
     });
-    expect(toolNames(tools3)).toContain('connect_hub_evidence');
-  });
-
-  it('IMPROVE includes both SCOUT+ and INVESTIGATE+ tools', () => {
-    const tools = getToolsForPhase('improve', 'standard', {
-      analyzePhase: 'improving',
-    });
-    const names = toolNames(tools);
-    // SCOUT+ tools
-    expect(names).toContain('apply_filter');
-    expect(names).toContain('create_finding');
-    // INVESTIGATE+ tools
-    expect(names).toContain('suggest_improvement_idea');
-    expect(names).toContain('suggest_action');
-  });
-
-  it('returns ToolDefinition[] with correct shape', () => {
-    const tools = getToolsForPhase('scout', 'standard');
-    for (const tool of tools) {
-      expect(tool.type).toBe('function');
-      expect(typeof tool.name).toBe('string');
-      expect(typeof tool.description).toBe('string');
-      expect(tool.parameters).toBeDefined();
-    }
-  });
-});
-
-describe('Wall propose_hypothesis_from_finding tool', () => {
-  it('registers as an action tool (requires user confirmation)', () => {
-    expect(TOOL_REGISTRY.propose_hypothesis_from_finding).toBeDefined();
-    expect(TOOL_REGISTRY.propose_hypothesis_from_finding.classification).toBe('action');
-    expect(TOOL_REGISTRY.propose_hypothesis_from_finding.phases).toContain('analyze');
-  });
-
-  it('requires finding_id and hypothesis_name parameters', () => {
-    const required = TOOL_REGISTRY.propose_hypothesis_from_finding.definition.parameters.required;
-    expect(required).toContain('finding_id');
-    expect(required).toContain('hypothesis_name');
-  });
-});
-
-describe('Wall critique_investigation_state tool', () => {
-  it('registers critique_investigation_state as read tool in investigate phase', () => {
-    expect(TOOL_REGISTRY.critique_investigation_state).toBeDefined();
-    expect(TOOL_REGISTRY.critique_investigation_state.classification).toBe('read');
-    expect(TOOL_REGISTRY.critique_investigation_state.phases).toContain('analyze');
-  });
-
-  it('getToolsForPhase includes critique_investigation_state when phase is investigate', () => {
-    const tools = getToolsForPhase('analyze', 'standard');
-    expect(tools.some(t => t.name === 'critique_investigation_state')).toBe(true);
-  });
-
-  it('getToolsForPhase excludes critique_investigation_state in frame phase', () => {
-    const tools = getToolsForPhase('frame', 'standard');
-    expect(tools.some(t => t.name === 'critique_investigation_state')).toBe(false);
+    expect(toolNames(withHubs)).toContain('connect_hub_evidence');
   });
 });

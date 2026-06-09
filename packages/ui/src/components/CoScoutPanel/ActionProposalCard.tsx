@@ -6,9 +6,6 @@ import {
   FileText,
   GitBranch,
   Zap,
-  Share2,
-  FileUp,
-  Bell,
   Lightbulb,
   BookmarkPlus,
   Navigation,
@@ -38,19 +35,14 @@ const TOOL_CONFIG: Record<
 > = {
   apply_filter: { labelKey: 'ai.tool.applyFilter', icon: Filter, editable: false },
   clear_filters: { labelKey: 'ai.tool.clearFilters', icon: Filter, editable: false },
-  switch_factor: { labelKey: 'ai.tool.switchFactor', icon: Filter, editable: false },
   create_finding: { labelKey: 'ai.tool.createFinding', icon: FileText, editable: true },
   suggest_action: { labelKey: 'ai.tool.suggestAction', icon: Zap, editable: true },
   suggest_improvement_idea: { labelKey: 'ai.tool.suggestIdea', icon: Lightbulb, editable: true },
-  spark_brainstorm_ideas: { labelKey: 'ai.tool.sparkBrainstorm', icon: Lightbulb, editable: true },
   suggest_save_finding: {
     labelKey: 'ai.tool.suggestSaveFinding',
     icon: BookmarkPlus,
     editable: true,
   },
-  share_finding: { labelKey: 'ai.tool.shareFinding', icon: Share2, editable: false },
-  publish_report: { labelKey: 'ai.tool.publishReport', icon: FileUp, editable: false },
-  notify_action_owners: { labelKey: 'ai.tool.notifyOwners', icon: Bell, editable: false },
   navigate_to: { labelKey: 'ai.tool.navigateTo', icon: Navigation, editable: false },
   suggest_hypothesis: {
     labelKey: 'ai.tool.suggestHypothesis',
@@ -96,10 +88,6 @@ function formatPreview(
       if (preview.samples !== undefined) {
         lines.push(`Full dataset: n=${preview.samples}, mean=${formatNum(preview.mean as number)}`);
       }
-      break;
-
-    case 'switch_factor':
-      lines.push(`Switch Boxplot to: ${params.factor}`);
       break;
 
     case 'suggest_action':
@@ -165,26 +153,6 @@ function formatPreview(
       break;
     }
 
-    case 'share_finding':
-      if (preview.findingText) lines.push(`"${(preview.findingText as string).slice(0, 80)}..."`);
-      break;
-
-    case 'notify_action_owners': {
-      const actions = preview.actions as
-        | Array<{ text: string; assigneeDisplayName?: string }>
-        | undefined;
-      if (actions) {
-        lines.push(`${actions.length} notification${actions.length !== 1 ? 's' : ''}`);
-        for (const a of actions.slice(0, 3)) {
-          lines.push(`  ${a.assigneeDisplayName ?? 'Unassigned'}: ${a.text.slice(0, 50)}`);
-        }
-      }
-      if ((preview.unassignedCount as number) > 0) {
-        lines.push(`${preview.unassignedCount} action(s) without assignee`);
-      }
-      break;
-    }
-
     default:
       break;
   }
@@ -229,8 +197,6 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
     const toolName = proposal.tool;
     if (toolName === 'apply_filter' && proposal.params.value) {
       onHighlight('boxplot', String(proposal.params.value));
-    } else if (toolName === 'switch_factor') {
-      onHighlight('boxplot');
     } else if (toolName === 'create_finding' || toolName === 'suggest_save_finding') {
       onHighlight('finding');
     }
