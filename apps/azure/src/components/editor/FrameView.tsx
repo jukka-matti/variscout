@@ -338,12 +338,12 @@ interface FrameViewProps {
    *  When omitted, the workspace defaults to permissive (used by tests + non-membership callers like PWA). */
   canEditCanvas?: boolean;
   /** The active ImprovementProject (E1 T5). Resolved by Editor.tsx via
-   *  `useActiveIPContext(activeHub, { userId: currentUser?.email })`. Forwarded to
+   *  `useWorkspaceProjectContext(activeHub, { userId: currentUser?.email })`. Forwarded to
    *  `CanvasWorkspace` so Canvas Edit-mode state (processSteps / stepTimings /
    *  formulaBindings / timeDecompositionBindings) reads from + writes to the
-   *  active IP. When `null`, CanvasWorkspace falls back to local state — the
+   *  Workspace Project. When `null`, CanvasWorkspace falls back to local state — the
    *  pre-E1 behaviour preserved for the bootstrap window. */
-  activeIP?: ImprovementProject | null;
+  workspaceProject?: ImprovementProject | null;
   /**
    * F1 Task 6: live outcome specs owned by the active ProcessHub
    * (`hub.outcomes` filtered to `deletedAt === null`). Threaded from
@@ -390,7 +390,7 @@ interface FrameViewProps {
 
 const FrameView: React.FC<FrameViewProps> = ({
   canEditCanvas,
-  activeIP,
+  workspaceProject,
   outcomeSpecs = [],
   reingestPendingMatches = [],
   onFixData,
@@ -932,10 +932,10 @@ const FrameView: React.FC<FrameViewProps> = ({
 
   // E1 T6: Process tab is project-scoped. When no active project is selected,
   // route the user back to Home instead of rendering Canvas chrome. The
-  // production-runtime path therefore always has a non-null activeIP inside
+  // production-runtime path therefore always has a non-null workspaceProject inside
   // CanvasWorkspace; the `null` branch in CanvasWorkspace (T5) remains the
   // pre-E1 bootstrap fallback used by tests + non-membership callers.
-  if (activeIP == null) {
+  if (workspaceProject == null) {
     return (
       <NoActiveProjectGuidance
         onGoHome={() => usePanelsStore.getState().showHome()}
@@ -977,7 +977,7 @@ const FrameView: React.FC<FrameViewProps> = ({
         priorStepStats={priorStepStats}
         canEditCanvas={canEditCanvas}
         actionItems={actionItems}
-        activeIP={activeIP}
+        workspaceProject={workspaceProject}
         onPersistCanvasState={upsertProject}
         outcomeSpecs={outcomeSpecs}
         onExploreExit={handleExploreExit}

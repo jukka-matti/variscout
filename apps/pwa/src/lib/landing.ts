@@ -72,9 +72,9 @@ function applySampleImprovementProjectSeed(
  * can hold for entries that must NOT route (the wizard keeps today's landing).
  *
  * @param hubBase - Hub to ensure (null = create new, non-null = existing). If it
- *   already carries a live IP, ensureSessionProject is a referential no-op (spec
+ *   already carries a live Workspace Project, ensureSessionProject is a referential no-op (spec
  *   §3, reconstruct-not-create).
- * @param title - Fallback project title when the hub has no live IP.
+ * @param title - Fallback project title when the hub has no live Workspace Project.
  * @param setSessionHub - Update the session hub in app state.
  */
 export function ensureAndActivateProject(
@@ -121,9 +121,9 @@ export function ensureAndActivateProject(
  * NOT call showFrame().
  *
  * @param hubBase - Hub to land on (null = sessionHub, non-null = reconstructed
- *   or existing hub). If it already carries a live IP, ensureSessionProject is
+ *   or existing hub). If it already carries a live Workspace Project, ensureSessionProject is
  *   a no-op — reconstruct-not-create (spec §1).
- * @param title - Fallback project title when the hub has no live IP.
+ * @param title - Fallback project title when the hub has no live Workspace Project.
  * @param deps - App context: setSessionHub, showFrame, embed flag.
  */
 export function landHubOnProcess(
@@ -176,7 +176,7 @@ export function landOnProcess(sample: SampleDataset, deps: LandOnProcessDeps): v
   loadSample(sample);
 
   // 2. Ensure + route (shared core). sessionHub null → new hub+IP
-  //    created; non-null with live IP → same reference (spec §3).
+  //    created; non-null with live Workspace Project → same reference (spec §3).
   landHubOnProcess(
     coreDeps.sessionHub,
     sample.name,
@@ -196,7 +196,7 @@ export function landOnProcess(sample: SampleDataset, deps: LandOnProcessDeps): v
  * but the terminal literal here is 'Untitled project' (spec-correct lowercase) vs
  * 'Untitled Project' in the snapshot module — intentional divergence, do not unify.
  *
- * When the reconstructed hub already carries a live IP, ensureSessionProject
+ * When the reconstructed hub already carries a live Workspace Project, ensureSessionProject
  * is a no-op — the envelope's project is never re-wrapped.
  *
  * v1 envelope only (wedge no-back-compat). Embed mode still ensures the
@@ -219,7 +219,7 @@ export function landVrsOnProcess(
   const title = snapshot.hub?.name ?? snapshot.project.projectName ?? 'Untitled project';
 
   // 4. Ensure + route (shared core). Pass reconstructed as hubBase
-  //    so its live IP is preserved unchanged (ensureSessionProject is a no-op
+  //    so its live Workspace Project is preserved unchanged (ensureSessionProject is a no-op
   //    when improvementProject is already live). The ambient sessionHub is not
   //    part of LandHubOnProcessDeps — the reconstructed hub IS the authoritative
   //    source here.
@@ -269,11 +269,11 @@ export interface ProvisionPasteProjectDeps {
  * Ensure ONLY. Crucially it does NOT route (no showFrame) — the wizard
  * path keeps today's in-vestibule landing until the P2 re-framing banners ship.
  * Without this, cancelling out of the auto-surfaced wizard for all-categorical
- * data left activeIP == null, so the PWA Process tab fell back to
+ * data left workspaceProject == null, so the PWA Process tab fell back to
  * NoActiveProjectGuidance and the b0 no-Y OutcomeNoMatchBanner floor (spec §4.1)
  * was unreachable on its primary live trigger.
  *
- * Referential no-op when sessionHub already carries a live IP (spec §3).
+ * Referential no-op when sessionHub already carries a live Workspace Project (spec §3).
  */
 export function provisionPasteProject(deps: ProvisionPasteProjectDeps): void {
   ensureAndActivateProject(deps.sessionHub, 'Untitled project', deps.setSessionHub);
@@ -329,6 +329,6 @@ export function landManualOnProcess(
   manualAnalyze(data, config);
 
   // 2. Ensure + route (shared core). sessionHub null → new hub+IP
-  //    created; non-null with live IP → same reference (spec §3).
+  //    created; non-null with live Workspace Project → same reference (spec §3).
   landHubOnProcess(sessionHub, 'Untitled project', coreDeps);
 }

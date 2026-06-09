@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { isFormalizedProject } from '@variscout/core/improvementProject';
-import { deriveActiveIPPresentation } from './activeIPPresentation';
+import { deriveWorkspaceProjectPresentation } from './workspaceProjectPresentation';
 
-export interface ActiveIPLaunchpadCardProps {
+export interface WorkspaceProjectLaunchpadCardProps {
   projects: ImprovementProject[];
-  onStartNewIP: () => void;
+  onStartNewWorkspace: () => void;
 }
 
 const statusClass: Record<ImprovementProject['status'], string> = {
@@ -18,9 +18,9 @@ function sortProjects(projects: ImprovementProject[]): ImprovementProject[] {
   return [...projects].sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
-export const ActiveIPLaunchpadCard: React.FC<ActiveIPLaunchpadCardProps> = ({
+export const WorkspaceProjectLaunchpadCard: React.FC<WorkspaceProjectLaunchpadCardProps> = ({
   projects,
-  onStartNewIP,
+  onStartNewWorkspace,
 }) => {
   const sortedProjects = useMemo(() => sortProjects(projects), [projects]);
   const activeProject = sortedProjects[0] ?? null;
@@ -36,7 +36,7 @@ export const ActiveIPLaunchpadCard: React.FC<ActiveIPLaunchpadCardProps> = ({
         </div>
         <button
           type="button"
-          onClick={onStartNewIP}
+          onClick={onStartNewWorkspace}
           className="mt-4 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary"
         >
           New Workspace
@@ -49,7 +49,7 @@ export const ActiveIPLaunchpadCard: React.FC<ActiveIPLaunchpadCardProps> = ({
     return null;
   }
 
-  const presentation = deriveActiveIPPresentation(activeProject);
+  const presentation = deriveWorkspaceProjectPresentation(activeProject);
   const formalized = isFormalizedProject(activeProject);
 
   return (

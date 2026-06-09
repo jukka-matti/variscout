@@ -286,10 +286,10 @@ describe('PR-CCJ-F1 Task 6 — → Explore exit wiring e2e', () => {
     const ip = makeIP();
     const outcomeSpecs = [makeOutcomeSpec('Yield')];
 
-    // ── Step 2: render FrameView with activeIP + outcomeSpecs ──
+    // ── Step 2: render FrameView with workspaceProject + outcomeSpecs ──
     // outcomeSpecs are normally threaded from Editor.tsx via activeHub.outcomes;
     // in this test we pass them directly as props (post-F1 FrameViewProps).
-    render(<FrameView activeIP={ip} outcomeSpecs={outcomeSpecs} />);
+    render(<FrameView workspaceProject={ip} outcomeSpecs={outcomeSpecs} />);
 
     // Wait for FrameView's mount effects (snapshot + action-item loaders) to
     // flush before asserting, avoiding act() warnings.
@@ -330,8 +330,8 @@ describe('PR-CCJ-F1 Task 6 — → Explore exit wiring e2e', () => {
     });
   });
 
-  it('FrameView with null activeIP renders NoActiveProjectGuidance (guards the chain)', async () => {
-    render(<FrameView activeIP={null} />);
+  it('FrameView with null workspaceProject renders NoActiveProjectGuidance (guards the chain)', async () => {
+    render(<FrameView workspaceProject={null} />);
     expect(await screen.findByTestId('no-active-project-guidance')).toBeInTheDocument();
     expect(screen.queryByTestId('canvas-workspace')).not.toBeInTheDocument();
   });

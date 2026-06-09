@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@variscout/hooks';
 import {
-  IPContextChip,
+  WorkspaceProjectChip,
   PersistentScopeChip,
   WorkflowNav,
   useIsMobile,
@@ -67,8 +67,8 @@ export interface AppHeaderProps {
   onExportCSV?: () => void;
   /** Save As to a different location (Team only) */
   onSaveAs?: () => void;
-  activeIPTitle?: string | null;
-  onOpenActiveIP?: () => void;
+  workspaceProjectTitle?: string | null;
+  onOpenWorkspaceProject?: () => void;
 }
 
 /** Save status dot color */
@@ -119,8 +119,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onRenameProject,
   onExportCSV,
   onSaveAs,
-  activeIPTitle,
-  onOpenActiveIP,
+  workspaceProjectTitle,
+  onOpenWorkspaceProject,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
@@ -292,8 +292,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <Settings size={16} />
             </button>
           )}
-          {hasData && activeIPTitle && onOpenActiveIP && (
-            <IPContextChip title={activeIPTitle} onTitleClick={onOpenActiveIP} />
+          {hasData && workspaceProjectTitle && onOpenWorkspaceProject && (
+            <WorkspaceProjectChip
+              title={workspaceProjectTitle}
+              onTitleClick={onOpenWorkspaceProject}
+            />
           )}
           {/* PR-CS-3a: persistent live-scope chip (self-hides when no scope). */}
           {hasData && <PersistentScopeChip onOpen={() => handleWorkflowTabChange('explore')} />}
@@ -440,9 +443,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       {/* ── Separator ── */}
       <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
 
-      {hasData && activeIPTitle && onOpenActiveIP ? (
+      {hasData && workspaceProjectTitle && onOpenWorkspaceProject ? (
         <>
-          <IPContextChip title={activeIPTitle} onTitleClick={onOpenActiveIP} />
+          <WorkspaceProjectChip
+            title={workspaceProjectTitle}
+            onTitleClick={onOpenWorkspaceProject}
+          />
           <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
         </>
       ) : null}

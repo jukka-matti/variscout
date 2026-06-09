@@ -11,7 +11,7 @@ export interface BuildEditorCapabilitySourceInput {
   hubId: string;
   hubName: string;
   processMap: ProcessMap | null | undefined;
-  activeIP: ImprovementProject | null | undefined;
+  workspaceProject: ImprovementProject | null | undefined;
   rows: readonly DataRow[];
 }
 
@@ -23,7 +23,7 @@ export function buildEditorCapabilitySource({
   hubId,
   hubName,
   processMap,
-  activeIP,
+  workspaceProject,
   rows,
 }: BuildEditorCapabilitySourceInput): EditorCapabilitySource {
   const hub: ProcessHub = {
@@ -34,7 +34,7 @@ export function buildEditorCapabilitySource({
     ...(processMap ? { canonicalProcessMap: processMap } : {}),
   };
 
-  if (!processMap || !activeIP) {
+  if (!processMap || !workspaceProject) {
     return {
       hub,
       members: [],
@@ -50,8 +50,8 @@ export function buildEditorCapabilitySource({
     }));
 
   const member: ProcessStepCapabilityMember = {
-    id: activeIP.id,
-    name: activeIP.metadata.title,
+    id: workspaceProject.id,
+    name: workspaceProject.metadata.title,
     metadata: {
       processHubId: hubId,
       nodeMappings,
@@ -61,6 +61,6 @@ export function buildEditorCapabilitySource({
   return {
     hub,
     members: [member],
-    rowsByAnalyze: new Map([[activeIP.id, rows]]),
+    rowsByAnalyze: new Map([[workspaceProject.id, rows]]),
   };
 }

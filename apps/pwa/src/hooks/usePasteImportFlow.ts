@@ -411,7 +411,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       // FSJ-2 (spec §3): the Untitled-project guarantee holds on the wizard path
       // too. Fire ONLY for fresh entries — re-ingestion has its own hub and must
       // never provision (the no-Y floor's primary live trigger is cancelling out
-      // of this auto-surfaced wizard, which needs a live IP to be reachable).
+      // of this auto-surfaced wizard, which needs a live Workspace Project to be reachable).
       // Provisions WITHOUT routing (App wires this to provisionPasteProject).
       if (!opts?.reingest) {
         onFreshPasteAnalyzed?.();

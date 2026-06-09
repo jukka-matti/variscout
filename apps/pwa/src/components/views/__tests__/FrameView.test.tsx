@@ -18,10 +18,10 @@ const linkQuestionToCausalLinkMock = vi.fn();
 const removeCausalLinkMock = vi.fn();
 
 // E1 T6: Process tab is project-scoped. PWA FrameView guards CanvasWorkspace
-// behind `activeIP != null` (resolved via useActiveIPContext). Legacy tests
+// behind `workspaceProject != null` (resolved via useWorkspaceProjectContext). Legacy tests
 // cover the post-guard wiring; we supply a default non-null IP-shaped stub
 // so the guard passes. The dedicated "Process empty state" test below sets
-// activeIPRef.current.activeIP to null to assert the guidance branch.
+// workspaceProjectRef.current.workspaceProject to null to assert the guidance branch.
 const DEFAULT_TEST_IP = {
   id: 'ip-default',
   hubId: 'hub-1',
@@ -38,8 +38,8 @@ const DEFAULT_TEST_IP = {
   deletedAt: null,
 };
 
-const activeIPContextRef: { current: { activeIP: unknown } } = {
-  current: { activeIP: DEFAULT_TEST_IP },
+const workspaceProjectContextRef: { current: { workspaceProject: unknown } } = {
+  current: { workspaceProject: DEFAULT_TEST_IP },
 };
 
 const storeStateRef: { current: Record<string, unknown> } = {
@@ -136,20 +136,6 @@ const { pwaAnalysisScopeRef, pwaAnalysisScopeStoreMock } = vi.hoisted(() => {
   return { pwaAnalysisScopeRef: ref, pwaAnalysisScopeStoreMock: storeMock };
 });
 
-// E1 T5: useActiveIPStore is used by useActiveIPContext (imported by FrameView
-// to resolve the active IP). The mock exposes the minimal surface the hook
-// reads: `activeIPs` (selector source) + the three action setters + a no-op
-// `getState()` returning a getActiveIP that always reports no active IP.
-// FrameView tests don't need an active-IP cascade — they cover the legacy
-// CanvasWorkspace wiring; this mock makes useActiveIPContext return null
-// without crashing.
-const noActiveIPStoreState = {
-  activeIPs: {},
-  rehydrateActiveIP: vi.fn(),
-  setActiveIP: vi.fn(),
-  clearActiveIP: vi.fn(),
-  getActiveIP: () => null,
-};
 vi.mock('@variscout/stores', () => ({
   useProjectStore: Object.assign(
     vi.fn((selector: (s: unknown) => unknown) => selector(storeStateRef.current)),
@@ -183,12 +169,6 @@ vi.mock('@variscout/stores', () => ({
       setFocusedWallEntity: setFocusedWallEntityMock,
     }),
   }),
-  useActiveIPStore: Object.assign(
-    vi.fn((selector: (s: unknown) => unknown) => selector(noActiveIPStoreState)),
-    {
-      getState: () => noActiveIPStoreState,
-    }
-  ),
   // CS-0 Tasks 5+6: PWA handleSeeData seeds yColumn via useAnalysisScopeStore.getState().setY.
   useAnalysisScopeStore: pwaAnalysisScopeStoreMock,
 }));
@@ -292,7 +272,7 @@ vi.mock('@variscout/ui', async () => {
         columnName?: string;
         stepId?: string;
       }) => void;
-      activeIP?: unknown;
+      workspaceProject?: unknown;
       onPersistCanvasState?: unknown;
       canEditCanvas?: boolean;
       rawData?: unknown[];
@@ -405,11 +385,11 @@ vi.mock('../../../store/sessionStore', () => ({
   useSession: () => hoisted.sessionStateRef.current,
 }));
 
-// E1 T6: mock the useActiveIPContext hook directly so legacy tests can
-// supply a non-null activeIP (passes the Process tab guard) and the new
+// E1 T6: mock the useWorkspaceProjectContext hook directly so legacy tests can
+// supply a non-null workspaceProject (passes the Process tab guard) and the new
 // empty-state test can supply null (triggers the guidance branch).
 vi.mock('@variscout/hooks', () => ({
-  useActiveIPContext: () => activeIPContextRef.current,
+  useWorkspaceProjectContext: () => workspaceProjectContextRef.current,
 }));
 
 import FrameView from '../FrameView';
@@ -443,7 +423,7 @@ describe('FrameView (PWA shell)', () => {
     hoisted.sessionStateRef.current = { hub: { id: 'hub-1' } };
     // E1 T6: reset to default IP-shaped stub so the guard passes for legacy
     // tests. The dedicated empty-state test overrides this in its own body.
-    activeIPContextRef.current = { activeIP: DEFAULT_TEST_IP };
+    workspaceProjectContextRef.current = { workspaceProject: DEFAULT_TEST_IP };
     improvementProjectStateRef.current = {
       projectsById: {},
       getProjectForHub: () => undefined,
@@ -495,7 +475,7 @@ describe('FrameView (PWA shell)', () => {
     );
   });
 
-  it('CS-P5: passes active IP step timings into the shared Canvas workspace for PWA per-step parity', async () => {
+  it('CS-P5: passes Workspace Project step timings into the shared Canvas workspace for PWA per-step parity', async () => {
     const { createTestIP } =
       await import('../../../../../../packages/ui/src/test-utils/improvementProject');
     const { createTestStepTiming } =
@@ -507,14 +487,14 @@ describe('FrameView (PWA shell)', () => {
         endColumn: 'Step_2_End',
       }),
     ];
-    const activeIP = createTestIP({
+    const workspaceProject = createTestIP({
       id: 'ip-timed-process',
       hubId: 'hub-1',
       title: 'Timed process',
       stepTimings,
     });
     const upsertProject = vi.fn();
-    activeIPContextRef.current = { activeIP };
+    workspaceProjectContextRef.current = { workspaceProject };
     improvementProjectStateRef.current = {
       ...improvementProjectStateRef.current,
       upsertProject,
@@ -546,7 +526,7 @@ describe('FrameView (PWA shell)', () => {
     expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
     expect(hoisted.canvasWorkspaceMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        activeIP,
+        workspaceProject,
         onPersistCanvasState: upsertProject,
         canEditCanvas: true,
         canvasViewportHubId: 'hub-1',
@@ -558,9 +538,9 @@ describe('FrameView (PWA shell)', () => {
     expect(
       (
         hoisted.canvasWorkspaceMock.mock.lastCall?.[0] as {
-          activeIP?: { stepTimings?: unknown[] };
+          workspaceProject?: { stepTimings?: unknown[] };
         }
-      ).activeIP?.stepTimings
+      ).workspaceProject?.stepTimings
     ).toEqual(stepTimings);
   });
 
@@ -920,8 +900,8 @@ describe('FrameView (PWA shell)', () => {
 
   // E1 T6: Process tab "No active project" empty state.
   describe('Process tab guard (E1 T6)', () => {
-    it('renders NoActiveProjectGuidance instead of CanvasWorkspace when activeIP is null', () => {
-      activeIPContextRef.current = { activeIP: null };
+    it('renders NoActiveProjectGuidance instead of CanvasWorkspace when workspaceProject is null', () => {
+      workspaceProjectContextRef.current = { workspaceProject: null };
 
       render(<FrameView />);
 
@@ -933,7 +913,7 @@ describe('FrameView (PWA shell)', () => {
     });
 
     it('invokes panelsStore.showHome() when the "Go to Home" CTA is clicked', () => {
-      activeIPContextRef.current = { activeIP: null };
+      workspaceProjectContextRef.current = { workspaceProject: null };
 
       render(<FrameView />);
 
@@ -942,7 +922,7 @@ describe('FrameView (PWA shell)', () => {
       expect(showHomeMock).toHaveBeenCalledTimes(1);
     });
 
-    it('renders CanvasWorkspace (not the guidance) when activeIP is non-null', () => {
+    it('renders CanvasWorkspace (not the guidance) when workspaceProject is non-null', () => {
       render(<FrameView />);
 
       expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();

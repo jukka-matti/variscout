@@ -1546,17 +1546,17 @@ describe('CanvasWorkspace', () => {
 
   it('CS-15 seam 5: framed factors open in Explore while unassigned chips keep step-placement affordances', () => {
     const onChipExploreJump = vi.fn();
-    const activeIP = {
+    const workspaceProject = {
       id: 'ip-1',
       metadata: { title: 'Line investigation' },
       goal: {
         factorControls: [{ factor: 'Machine', stepId: 'step-1', targetCondition: '' }],
       },
-    } as React.ComponentProps<typeof CanvasWorkspace>['activeIP'];
+    } as React.ComponentProps<typeof CanvasWorkspace>['workspaceProject'];
 
     renderWorkspace({
       processContext: { processMap: mapWithStep() },
-      activeIP,
+      workspaceProject,
       onChipExploreJump,
       canEditCanvas: true,
     });
@@ -2837,19 +2837,19 @@ describe('D3 Task 8 — time-decomposition end-to-end', () => {
 });
 
 // ---------------------------------------------------------------------------
-// E1 Task 5 — activeIP-backed Canvas state
+// E1 Task 5 — workspaceProject-backed Canvas state
 // ---------------------------------------------------------------------------
 //
-// Exercises the prop-injected `activeIP` + `onPersistCanvasState` wiring that
+// Exercises the prop-injected `workspaceProject` + `onPersistCanvasState` wiring that
 // replaces the four `useState` arrays (`processSteps`, `stepTimings`,
-// `formulaBindings`, `timeDecompositionBindings`). When no `activeIP` is
+// `formulaBindings`, `timeDecompositionBindings`). When no `workspaceProject` is
 // supplied, the local-state fallback kicks in (covered by the suites above —
 // every existing modal-save test exercises that branch). The tests below
-// focus on the activeIP-backed branch: read-through + write-through via the
+// focus on the workspaceProject-backed branch: read-through + write-through via the
 // persist callback.
 // ---------------------------------------------------------------------------
 
-describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => {
+describe('CanvasWorkspace · E1 Task 5 — workspaceProject-backed Canvas state', () => {
   beforeEach(() => {
     window.history.replaceState(null, '', '/');
     wallIsMobileRef.current = false;
@@ -2907,8 +2907,8 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
   type SetProcessContextFn = React.ComponentProps<typeof CanvasWorkspace>['setProcessContext'];
   type SetProcessContextMock = ReturnType<typeof vi.fn<SetProcessContextFn>>;
 
-  function renderWithActiveIP(opts: {
-    activeIP: React.ComponentProps<typeof CanvasWorkspace>['activeIP'];
+  function renderWithWorkspaceProject(opts: {
+    workspaceProject: React.ComponentProps<typeof CanvasWorkspace>['workspaceProject'];
     onPersistCanvasState?: PersistMock;
     canvasViewportHubId?: ProcessHubId;
     rows?: ReadonlyArray<Record<string, unknown>>;
@@ -2933,7 +2933,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
         onSeeData={vi.fn()}
         canvasViewportHubId={opts.canvasViewportHubId}
         canEditCanvas={true}
-        activeIP={opts.activeIP}
+        workspaceProject={opts.workspaceProject}
         onPersistCanvasState={onPersist}
       />
     );
@@ -2949,7 +2949,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     { Order_Date: '2026-12-31', Value: 300 },
   ];
 
-  it('with activeIP=null, modal Save mutates local state and does not fire onPersistCanvasState', async () => {
+  it('with workspaceProject=null, modal Save mutates local state and does not fire onPersistCanvasState', async () => {
     const onPersist: PersistMock = vi.fn<PersistFn>();
     render(
       <CanvasWorkspace
@@ -2964,7 +2964,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
         setProcessContext={vi.fn()}
         onSeeData={vi.fn()}
         canEditCanvas={true}
-        activeIP={null}
+        workspaceProject={null}
         onPersistCanvasState={onPersist}
       />
     );
@@ -2981,11 +2981,11 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     expect(onPersist).not.toHaveBeenCalled();
   });
 
-  it('with activeIP set, TimeAsFactorsModal Save fires onPersistCanvasState with merged binding', async () => {
+  it('with workspaceProject set, TimeAsFactorsModal Save fires onPersistCanvasState with merged binding', async () => {
     const { createTestIP } = await import('../../../test-utils/improvementProject');
-    const activeIP = createTestIP();
-    const { onPersist } = renderWithActiveIP({
-      activeIP,
+    const workspaceProject = createTestIP();
+    const { onPersist } = renderWithWorkspaceProject({
+      workspaceProject,
       rows: dateRowsE1,
     });
 
@@ -2997,15 +2997,15 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     expect(onPersist).toHaveBeenCalledTimes(1);
     const persistedIP = onPersist.mock
       .calls[0][0] as import('@variscout/core/improvementProject').ImprovementProject;
-    expect(persistedIP.id).toBe(activeIP.id);
+    expect(persistedIP.id).toBe(workspaceProject.id);
     expect(persistedIP.timeDecompositionBindings).toHaveLength(1);
     expect(persistedIP.timeDecompositionBindings?.[0]?.sourceColumn).toBe('Order_Date');
-    expect(persistedIP.updatedAt).toBeGreaterThanOrEqual(activeIP.updatedAt);
+    expect(persistedIP.updatedAt).toBeGreaterThanOrEqual(workspaceProject.updatedAt);
   });
 
-  it('with activeIP set, CalculatedColumnModal Save fires onPersistCanvasState with new FormulaBinding', async () => {
+  it('with workspaceProject set, CalculatedColumnModal Save fires onPersistCanvasState with new FormulaBinding', async () => {
     const { createTestIP } = await import('../../../test-utils/improvementProject');
-    const activeIP = createTestIP();
+    const workspaceProject = createTestIP();
     const batchRows = [
       { Input_kg: 100, GradeA_kg: 80, GradeB_kg: 15 },
       { Input_kg: 110, GradeA_kg: 85, GradeB_kg: 18 },
@@ -3013,7 +3013,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
       { Input_kg: 95, GradeA_kg: 78, GradeB_kg: 14 },
       { Input_kg: 102, GradeA_kg: 81, GradeB_kg: 17 },
     ];
-    const { onPersist } = renderWithActiveIP({ activeIP, rows: batchRows });
+    const { onPersist } = renderWithWorkspaceProject({ workspaceProject, rows: batchRows });
 
     // Use the batch-data system-hint banner → opens CalculatedColumnModal.
     fireEvent.click(screen.getByTestId('system-hint-banner-batch-cta'));
@@ -3034,11 +3034,14 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
   // list. The new nodes are rich ProcessMapNodes minted with the canvas
   // `step-${slug}-${seq}` id scheme — the old `step-${columnName}-${idx}`
   // scheme is retired. IP.processSteps is no longer a stored write target.
-  it('with activeIP set, dropping a categorical column on ProcessZone authors rich map nodes (one id scheme)', async () => {
+  it('with workspaceProject set, dropping a categorical column on ProcessZone authors rich map nodes (one id scheme)', async () => {
     const { createTestIP } = await import('../../../test-utils/improvementProject');
-    const activeIP = createTestIP();
+    const workspaceProject = createTestIP();
     const stepRows = [{ Step: 'Prep' }, { Step: 'Mix' }, { Step: 'Pack' }];
-    const { onPersist, setProcessContext } = renderWithActiveIP({ activeIP, rows: stepRows });
+    const { onPersist, setProcessContext } = renderWithWorkspaceProject({
+      workspaceProject,
+      rows: stepRows,
+    });
 
     // Drop the Step categorical column on the process-zone target.
     act(() => {
@@ -3064,7 +3067,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     }
   });
 
-  it('with activeIP pre-populated, the IP-sourced values drive the rendered Canvas state', async () => {
+  it('with workspaceProject pre-populated, the IP-sourced values drive the rendered Canvas state', async () => {
     const { createTestIP } = await import('../../../test-utils/improvementProject');
     const { createTestStepTiming } = await import('../../../test-utils/stepTiming');
     const pairedRows = [
@@ -3086,7 +3089,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
       createdAt: '2026-05-04T00:00:00.000Z',
       updatedAt: '2026-05-04T00:00:00.000Z',
     };
-    const activeIP = createTestIP({
+    const workspaceProject = createTestIP({
       stepTimings: [
         createTestStepTiming({
           kind: 'paired',
@@ -3097,7 +3100,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
       ],
     });
 
-    renderWithActiveIP({ activeIP, rows: pairedRows, processMap: stepSeededMap });
+    renderWithWorkspaceProject({ workspaceProject, rows: pairedRows, processMap: stepSeededMap });
 
     // The IP-supplied stepTimings drive the DERIVED FROM TIMINGS palette
     // group: Lead_time / Total_work_time / Wait_time are present.
@@ -3109,7 +3112,7 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
 
   it('feeds active project rows and ctq node mappings into production-line glance data', async () => {
     const { createTestIP } = await import('../../../test-utils/improvementProject');
-    const activeIP = createTestIP({
+    const workspaceProject = createTestIP({
       id: 'ip-capability',
       title: 'Line 4 overfill',
     });
@@ -3131,8 +3134,8 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     };
 
     vi.mocked(useProductionLineGlanceData).mockClear();
-    renderWithActiveIP({
-      activeIP,
+    renderWithWorkspaceProject({
+      workspaceProject,
       canvasViewportHubId: h('hub-capability'),
       rows: capabilityRows,
       processMap: capabilityMap,
@@ -3152,11 +3155,11 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
     expect(screen.getByTestId('connected-step-capability-view')).toBeInTheDocument();
   });
 
-  // G1 Task 3 — bin chip surfaced in palette from activeIP.binnedFactorBindings
-  it('with activeIP carrying binnedFactorBindings, bin chip renders under DERIVED FROM BINNING', async () => {
+  // G1 Task 3 — bin chip surfaced in palette from workspaceProject.binnedFactorBindings
+  it('with workspaceProject carrying binnedFactorBindings, bin chip renders under DERIVED FROM BINNING', async () => {
     const { createTestIP } = await import('../../../test-utils/improvementProject');
     const binRows = [{ Reactor_temp: 45 }, { Reactor_temp: 55 }, { Reactor_temp: 60 }];
-    const activeIP = createTestIP({
+    const workspaceProject = createTestIP({
       binnedFactorBindings: [
         {
           id: 'binding-bin-1',
@@ -3169,8 +3172,8 @@ describe('CanvasWorkspace · E1 Task 5 — activeIP-backed Canvas state', () => 
       ],
     });
 
-    renderWithActiveIP({
-      activeIP,
+    renderWithWorkspaceProject({
+      workspaceProject,
       rows: binRows,
     });
 

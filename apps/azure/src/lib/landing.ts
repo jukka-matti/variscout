@@ -21,7 +21,7 @@ export interface AzureUserIdentity {
  * Azure divergence from PWA ensureSessionProject:
  * - The Lead member's userId is the EasyAuth email (not PWA_USER_ID 'analyst@local').
  * - The caller still passes the EasyAuth email through the landing dependency shape,
- *   though Active-IP activation is retired.
+ *   though Workspace Project activation is retired.
  */
 export function ensureHubProject(
   hub: ProcessHub | null,
@@ -97,7 +97,7 @@ export interface LandFreshEntryDeps {
  * land on the Process tab. The canvas self-routes b0 (no map) vs L2 (seeded
  * map) via detectScopeFromMap — we route to the TAB only.
  *
- * Referential no-op contract: when activeHub already carries a live IP,
+ * Referential no-op contract: when activeHub already carries a live Workspace Project,
  * ensureHubProject returns the same reference → registerHub + setProcessHubId
  * are not called (idempotent re-entry). showFrame is always called so every
  * fresh data entry lands on Process regardless of current nav state.

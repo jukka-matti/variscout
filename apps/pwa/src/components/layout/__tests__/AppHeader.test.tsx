@@ -166,7 +166,7 @@ describe('AppHeader', () => {
     });
 
     it('renders Workspace Project chip and wires the title action', () => {
-      const onOpenActiveIP = vi.fn();
+      const onOpenWorkspaceProject = vi.fn();
 
       render(
         <AppHeader
@@ -174,19 +174,19 @@ describe('AppHeader', () => {
           hasData={true}
           dataFilename="test.csv"
           rowCount={10}
-          activeIPTitle="Heads 5-8 Cpk shortfall"
-          onOpenActiveIP={onOpenActiveIP}
+          workspaceProjectTitle="Heads 5-8 Cpk shortfall"
+          onOpenWorkspaceProject={onOpenWorkspaceProject}
         />
       );
 
-      expect(screen.getByTestId('ip-context-chip')).toHaveTextContent(
+      expect(screen.getByTestId('workspace-project-chip')).toHaveTextContent(
         '◆ Workspace Project: Heads 5-8 Cpk shortfall'
       );
       fireEvent.click(
         screen.getByRole('button', { name: /Open Project Heads 5-8 Cpk shortfall/i })
       );
-      expect(onOpenActiveIP).toHaveBeenCalledOnce();
-      expect(screen.queryByRole('button', { name: 'Exit IP' })).not.toBeInTheDocument();
+      expect(onOpenWorkspaceProject).toHaveBeenCalledOnce();
+      expect(screen.queryByRole('button', { name: 'Exit Workspace' })).not.toBeInTheDocument();
     });
   });
 });

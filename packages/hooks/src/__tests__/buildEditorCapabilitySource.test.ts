@@ -32,7 +32,7 @@ function makeMap(overrides: Partial<ProcessMap> = {}): ProcessMap {
   };
 }
 
-function makeActiveIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject {
+function makeWorkspaceProject(overrides: Partial<ImprovementProject> = {}): ImprovementProject {
   return {
     id: 'ip-1',
     hubId: 'hub-1',
@@ -64,7 +64,7 @@ describe('buildEditorCapabilitySource', () => {
       hubId: 'hub-1',
       hubName: 'Line 4',
       processMap: makeMap(),
-      activeIP: makeActiveIP(),
+      workspaceProject: makeWorkspaceProject(),
       rows,
     });
 
@@ -89,7 +89,7 @@ describe('buildEditorCapabilitySource', () => {
       hubId: 'hub-1',
       hubName: 'Line 4',
       processMap: makeMap(),
-      activeIP: makeActiveIP(),
+      workspaceProject: makeWorkspaceProject(),
       rows,
     });
 
@@ -104,7 +104,7 @@ describe('buildEditorCapabilitySource', () => {
       hubId: 'hub-1',
       hubName: 'Line 4',
       processMap: makeMap(),
-      activeIP: null,
+      workspaceProject: null,
       rows,
     });
     expect(withoutIp.members).toEqual([]);
@@ -114,7 +114,7 @@ describe('buildEditorCapabilitySource', () => {
       hubId: 'hub-1',
       hubName: 'Line 4',
       processMap: null,
-      activeIP: makeActiveIP(),
+      workspaceProject: makeWorkspaceProject(),
       rows,
     });
     expect(withoutMap.hub.canonicalProcessMap).toBeUndefined();

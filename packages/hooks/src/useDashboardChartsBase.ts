@@ -106,7 +106,7 @@ export function useDashboardChartsBase({
   categoricalValuesByColumn,
 }: UseDashboardChartsBaseOptions): UseDashboardChartsBaseResult {
   // ── Merged factor list (raw + derived) ────────────────────────────────
-  // G1 Task 4: merge derived categorical columns from the active IP into
+  // G1 Task 4: merge derived categorical columns from the Workspace Project into
   // the factor picker list. Raw factors first, then derived in column-name
   // sort order, deduplicated by name.
   const allFactors = useMemo(

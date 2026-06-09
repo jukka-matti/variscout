@@ -48,7 +48,7 @@ export interface UseInflectionBinningStateInput {
   values: number[];
   /** Sorted ascending value array (precomputed by caller to match the prob plot). */
   sortedValues: number[];
-  /** Existing bindings on the active IP. */
+  /** Existing bindings on the Workspace Project. */
   existingBindings: BinnedFactorBinding[];
   /** Patch handler — called for every mutation in committed state, and on commit. */
   patchBindings: (next: BinnedFactorBinding[]) => void;

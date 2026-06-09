@@ -42,15 +42,15 @@ import {
   type ColumnMappingConfirmPayload,
   StageFiveModal,
   MatchSummaryCard,
-  ActiveIPLaunchpadCard,
-  ActiveIPScopeRibbon,
+  WorkspaceProjectLaunchpadCard,
+  WorkspaceProjectScopeRibbon,
   ImproveTabRoot,
   PendingInvitesBanner,
   CreateProjectModal,
   GoalBanner,
   DurabilityNudge,
-  deriveActiveIPCanvasFocus,
-  deriveActiveIPScopeLabels,
+  deriveWorkspaceProjectCanvasFocus,
+  deriveWorkspaceProjectScopeLabels,
   type CoScoutDrawerObject,
   type ColumnShape,
 } from '@variscout/ui';
@@ -107,7 +107,7 @@ import { useLocale } from '../context/LocaleContext';
 import { usePanelsStore } from '../features/panels/panelsStore';
 import { usePanelsPersistence } from '../features/panels/usePanelsPersistence';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
-import { useActiveIPContext, useClearScopeOnIPSwitch } from '@variscout/hooks';
+import { useWorkspaceProjectContext } from '@variscout/hooks';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { useTeamsShare } from '../hooks/useTeamsShare';
 import { useShareFinding } from '../hooks/useShareFinding';
@@ -394,7 +394,7 @@ export const Editor: React.FC<EditorProps> = ({
   }, [catalogHubs, unsavedHubs]);
   // Create-Project modal (Home CTA — PR-CCJ-E1 T4). Wedge V1 lightweight
   // flow replaces the legacy `showCharter()` ceremony; modal owns Title +
-  // optional Issue Statement, Editor owns IP creation + navigation.
+  // optional Issue Statement, Editor owns project creation + navigation.
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
   // Reset mobile tab when data is cleared
   useEffect(() => {
@@ -489,7 +489,7 @@ export const Editor: React.FC<EditorProps> = ({
     [isPhone]
   );
 
-  // Current user (for comment author attribution and per-user active-IP scope)
+  // Current user (for comment author attribution and per-user Workspace Project scope)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   useEffect(() => {
     getCurrentUser().then(setCurrentUser);
@@ -560,8 +560,9 @@ export const Editor: React.FC<EditorProps> = ({
     },
     [projectActions]
   );
-  const activeIPContext = useActiveIPContext(activeHub, { userId: currentUser?.email });
-  const clearScope = useAnalysisScopeStore(s => s.clearScope);
+  const workspaceProjectContext = useWorkspaceProjectContext(activeHub, {
+    userId: currentUser?.email,
+  });
   const scopeYColumn = useAnalysisScopeStore(s => s.yColumn);
   const scopeBoxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
   const scopeStepId = useAnalysisScopeStore(s => s.stepId);
@@ -579,47 +580,51 @@ export const Editor: React.FC<EditorProps> = ({
     () =>
       deriveWorkspaceViewModel({
         hub: activeHub,
-        project: activeIPContext.activeIP ?? activeHub?.improvementProject,
+        project: workspaceProjectContext.workspaceProject ?? activeHub?.improvementProject,
         analysisScope: workspaceAnalysisScope,
       }),
-    [activeHub, activeIPContext.activeIP, workspaceAnalysisScope]
+    [activeHub, workspaceProjectContext.workspaceProject, workspaceAnalysisScope]
   );
   const workspaceProjectTitle = workspaceViewModel?.project.title ?? null;
-  useClearScopeOnIPSwitch(activeIPContext.activeIP?.id ?? null, clearScope);
   const canEditCanvas = useMemo(() => {
     const userId = currentUser?.email;
     if (!userId) return false; // Pre-auth (user still loading) — gate is closed.
-    const members = activeIPContext.activeIP?.metadata.members ?? [];
+    const members = workspaceProjectContext.workspaceProject?.metadata.members ?? [];
     // Wedge V1: no back-compat fallback. An empty members[] has no Lead, so canAccess
     // returns false and the gate stays closed (per feedback_wedge_v1_no_migration_no_backcompat).
     return canAccess(userId, members, 'edit');
-  }, [activeIPContext.activeIP, currentUser?.email]);
+  }, [workspaceProjectContext.workspaceProject, currentUser?.email]);
   const projectRole = useMemo<ProjectRole | undefined>(() => {
     const userId = currentUser?.email;
     if (!userId) return undefined;
-    return activeIPContext.activeIP?.metadata.members?.find(member => member.userId === userId)
-      ?.role;
-  }, [activeIPContext.activeIP, currentUser?.email]);
+    return workspaceProjectContext.workspaceProject?.metadata.members?.find(
+      member => member.userId === userId
+    )?.role;
+  }, [workspaceProjectContext.workspaceProject, currentUser?.email]);
   const selectedOrActiveProjectId = workspaceViewModel?.project.id ?? selectedProjectId;
-  const activeIPScopeLabels = useMemo(
+  const workspaceProjectScopeLabels = useMemo(
     () =>
-      activeIPContext.activeIP
-        ? deriveActiveIPScopeLabels(
-            activeIPContext.activeIP,
+      workspaceProjectContext.workspaceProject
+        ? deriveWorkspaceProjectScopeLabels(
+            workspaceProjectContext.workspaceProject,
             activeHub,
-            activeIPContext.activeState?.setAt
+            workspaceProjectContext.activeState?.setAt
           )
         : null,
-    [activeHub, activeIPContext.activeIP, activeIPContext.activeState?.setAt]
+    [
+      activeHub,
+      workspaceProjectContext.workspaceProject,
+      workspaceProjectContext.activeState?.setAt,
+    ]
   );
-  const activeIPScope =
-    activeIPContext.activeIP && activeIPScopeLabels
+  const workspaceProjectScope =
+    workspaceProjectContext.workspaceProject && workspaceProjectScopeLabels
       ? {
           title: workspaceProjectTitle ?? 'Workspace',
-          labels: activeIPScopeLabels,
+          labels: workspaceProjectScopeLabels,
         }
       : null;
-  // PO-5: the lineage section is retired — active-IP surfaces show the whole
+  // PO-5: the lineage section is retired — Workspace Project surfaces show the whole
   // document (empty-set-means-unfiltered is now the permanent semantics). The
   // Wall, Findings, and Report no longer filter by a lineage membership set.
 
@@ -640,14 +645,14 @@ export const Editor: React.FC<EditorProps> = ({
     console.warn('[wall] setHubStatus called before hypothesesState was ready');
   });
 
-  const wallActiveIPMembers = useMemo(
-    () => activeIPContext.activeIP?.metadata.members ?? [],
-    [activeIPContext.activeIP]
+  const wallWorkspaceProjectMembers = useMemo(
+    () => workspaceProjectContext.workspaceProject?.metadata.members ?? [],
+    [workspaceProjectContext.workspaceProject]
   );
   const wallPlanningProps = useMemo(
     () => ({
       plans: wallMeasurementPlans,
-      members: wallActiveIPMembers,
+      members: wallWorkspaceProjectMembers,
       currentUserId: currentUser?.email ?? null,
       onAddPlan: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => {
         const stamped: MeasurementPlan = {
@@ -764,7 +769,7 @@ export const Editor: React.FC<EditorProps> = ({
     }),
     [
       wallMeasurementPlans,
-      wallActiveIPMembers,
+      wallWorkspaceProjectMembers,
       currentUser?.email,
       currentUser?.name,
       pendingMatchByPlanId,
@@ -774,26 +779,29 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Action item dispatch — wired to useImprovementProjectStore via upsertProject
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);
-  const activeIP = activeIPContext.activeIP ?? null;
+  const workspaceProject = workspaceProjectContext.workspaceProject ?? null;
   const applyAction = (action: ActionItemAction) => {
-    if (!activeIP) return;
-    const currentActions = activeIP.metadata.actions ?? [];
+    if (!workspaceProject) return;
+    const currentActions = workspaceProject.metadata.actions ?? [];
     const nextActions = reduceActionItems(currentActions, action);
-    upsertProject({ ...activeIP, metadata: { ...activeIP.metadata, actions: nextActions } });
+    upsertProject({
+      ...workspaceProject,
+      metadata: { ...workspaceProject.metadata, actions: nextActions },
+    });
   };
 
   // G1 Task 7 — inflection-binning patch handler. Synchronous: writes through
-  // upsertProject (Zustand setState) so the activeIP slice updates in the same
+  // upsertProject (Zustand setState) so the workspaceProject slice updates in the same
   // tick the inflection state machine expects. Downstream async persistence
   // (IDB / cloud blob) is the store's concern and fires in the background.
-  // No-op when there is no active IP (the Dashboard already suppresses the
+  // No-op when there is no Workspace Project (the Dashboard already suppresses the
   // workflow in that case via the absence of onBindingsChange).
   const handleBinningBindingsChange = useCallback(
     (next: BinnedFactorBinding[]) => {
-      if (!activeIP) return;
-      upsertProject({ ...activeIP, binnedFactorBindings: next });
+      if (!workspaceProject) return;
+      upsertProject({ ...workspaceProject, binnedFactorBindings: next });
     },
-    [activeIP, upsertProject]
+    [workspaceProject, upsertProject]
   );
 
   // Control + Handoff inputs for ProjectsTabView → IPDetailPage
@@ -823,12 +831,12 @@ export const Editor: React.FC<EditorProps> = ({
     : undefined;
 
   // PR-PO-2: the Control region re-homes to the Project tab's Control stage.
-  // The Project tab is single-project, so we pass the active project + its
+  // The Project tab is single-project, so we pass the Workspace Project + its
   // scoped control record/handoff. The region's cadence buckets degrade
   // gracefully to the single-project case (facts, not the analyzeStatus label).
-  const projectsControlRegionSlot = activeIPContext.activeIP ? (
+  const projectsControlRegionSlot = workspaceProjectContext.workspaceProject ? (
     <ProcessHubControlRegion
-      projects={[activeIPContext.activeIP]}
+      projects={[workspaceProjectContext.workspaceProject]}
       records={_azureLiveControlRecords}
       handoffs={_azureLiveControlHandoffs}
       onOpenProject={id => usePanelsStore.getState().showProjects(id)}
@@ -1402,26 +1410,26 @@ export const Editor: React.FC<EditorProps> = ({
     specs,
     stagedStats,
   });
-  // PO-5: scopedFindings/scopedFindingsState removed — active-IP surfaces show
+  // PO-5: scopedFindings/scopedFindingsState removed — Workspace Project surfaces show
   // the whole document (the lineage findingIds filter is retired). AnalyzeWorkspace
   // receives findingsState directly.
 
-  // PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
+  // PR-CS-6 Edge 1: COPY a finding-level action into the Workspace Project's action
   // tracker (`IP.metadata.actions`) via the existing ACTION_ITEM_ADD dispatch.
   // The source finding action is stamped with `parentImprovementProjectId` so the
   // promote affordance hides afterward (re-promotion guard). Report keeps reading
   // `finding.actions`, so there is NO double-count — the tracker is a separate
-  // collection. Only available when an active IP exists.
+  // collection. Only available when an Workspace Project exists.
   const handlePromoteFindingAction = useCallback(
     (findingId: string, actionId: string) => {
-      if (!activeIP) return;
+      if (!workspaceProject) return;
       const source = findingsState.findings
         .find(f => f.id === findingId)
         ?.actions?.find(a => a.id === actionId);
       if (!source || source.parentImprovementProjectId) return;
       const projectAction = createProjectActionItem({
         text: source.text,
-        parentImprovementProjectId: activeIP.id,
+        parentImprovementProjectId: workspaceProject.id,
       });
       // Carry the origin breadcrumb (dueAt / assignee / stepId) onto the tracker copy.
       const enriched = {
@@ -1430,54 +1438,55 @@ export const Editor: React.FC<EditorProps> = ({
         ...(source.assignedTo != null ? { assignedTo: source.assignedTo } : {}),
         ...(source.stepId != null ? { stepId: source.stepId } : {}),
       };
-      applyAction({ kind: 'ACTION_ITEM_ADD', hubId: activeIP.hubId, actionItem: enriched });
+      applyAction({ kind: 'ACTION_ITEM_ADD', hubId: workspaceProject.hubId, actionItem: enriched });
       // Stamp the source so the promote button disappears (re-promotion guard).
-      findingsState.promoteAction(findingId, actionId, activeIP.id);
+      findingsState.promoteAction(findingId, actionId, workspaceProject.id);
     },
-    [activeIP, applyAction, findingsState]
+    [workspaceProject, applyAction, findingsState]
   );
 
-  const activeIPAnalyzeFactorRequest = useMemo(
+  const workspaceProjectAnalyzeFactorRequest = useMemo(
     () =>
-      activeIPContext.isIPScoped && activeIPScopeLabels?.factorLabels[0]
+      workspaceProjectContext.isWorkspaceProjectScoped &&
+      workspaceProjectScopeLabels?.factorLabels[0]
         ? {
-            factor: activeIPScopeLabels.factorLabels[0],
-            seq: activeIPContext.activeState?.setAt ?? 0,
+            factor: workspaceProjectScopeLabels.factorLabels[0],
+            seq: workspaceProjectContext.activeState?.setAt ?? 0,
           }
         : null,
     [
-      activeIPContext.activeState?.setAt,
-      activeIPContext.isIPScoped,
-      activeIPScopeLabels?.factorLabels,
+      workspaceProjectContext.activeState?.setAt,
+      workspaceProjectContext.isWorkspaceProjectScoped,
+      workspaceProjectScopeLabels?.factorLabels,
     ]
   );
 
-  // G1 Task 4: derived categorical columns for the active IP's time-decomposition
+  // G1 Task 4: derived categorical columns for the Workspace Project's time-decomposition
   // and binned-factor bindings. Mirrors the CanvasWorkspace.tsx computation so
   // the Analyze-tab factor pickers include derived columns (e.g. `Reactor_temp_bin`,
   // `Order_Date.day-of-week`) and the data pipelines can group by them.
-  // Absent or empty when no active IP has bindings configured → backward compat.
+  // Absent or empty when no Workspace Project has bindings configured → backward compat.
   //
   // ALIGNMENT: This map is rawData-aligned — `categoricalValuesByColumn[col][i]`
   // is the derived value for `rawData[i]`. It must be projected onto the filtered
   // subset (`filteredCategoricalValuesByColumn` below) before being passed to any
   // hook that operates on `filteredData` (Boxplot / Probability / ANOVA / stats).
   const categoricalValuesByColumn = useMemo<Record<string, (string | null)[]>>(() => {
-    const activeIP = activeIPContext.activeIP;
-    if (!activeIP) return {};
+    const workspaceProject = workspaceProjectContext.workspaceProject;
+    if (!workspaceProject) return {};
     const merged: Record<string, (string | null)[]> = {};
-    for (const binding of activeIP.timeDecompositionBindings ?? []) {
+    for (const binding of workspaceProject.timeDecompositionBindings ?? []) {
       const cols = computeTimeDecompositionColumns([...rawData], binding);
       for (const [key, vals] of Object.entries(cols)) {
         merged[key] = vals;
       }
     }
-    for (const binding of activeIP.binnedFactorBindings ?? []) {
+    for (const binding of workspaceProject.binnedFactorBindings ?? []) {
       const vals = computeBinnedFactorColumn([...rawData], binding);
       merged[`${binding.sourceColumn}_bin`] = vals;
     }
     return merged;
-  }, [activeIPContext.activeIP, rawData]);
+  }, [workspaceProjectContext.workspaceProject, rawData]);
 
   // G1 Task 4 follow-up: project the rawData-aligned channel onto the filtered
   // subset via filteredIndexMap. After projection `result[col][j]` is the
@@ -1495,12 +1504,15 @@ export const Editor: React.FC<EditorProps> = ({
 
   useEffect(() => {
     if (activeView !== 'frame' || !activeHub) return;
-    if (activeIPContext.activeIP) {
+    if (workspaceProjectContext.workspaceProject) {
       const hubId = normalizeProcessHubId(activeHub.id);
-      const focus = deriveActiveIPCanvasFocus(activeIPContext.activeIP, activeHub);
+      const focus = deriveWorkspaceProjectCanvasFocus(
+        workspaceProjectContext.workspaceProject,
+        activeHub
+      );
       useCanvasViewportStore.getState().setLevel(hubId, focus.level, focus.focalStepId);
     }
-  }, [activeHub, activeIPContext.activeIP, activeView]);
+  }, [activeHub, workspaceProjectContext.workspaceProject, activeView]);
   const isAnalyzeWallCanvasFirst = activeView === 'analyze' && wallViewMode === 'wall';
 
   // Verification prompt: show when new data is uploaded while findings are improving
@@ -1889,12 +1901,13 @@ export const Editor: React.FC<EditorProps> = ({
     hasDocumentContent &&
     (!hasActiveSavedAzureDocument || !savedFingerprint || currentFingerprint !== savedFingerprint);
   const activeHubIsUnsaved = activeHub ? unsavedHubs.some(hub => hub.id === activeHub.id) : false;
-  const activeIPTitleForInvite = workspaceProjectTitle ?? activeIP?.metadata.title ?? null;
+  const workspaceProjectTitleForInvite =
+    workspaceProjectTitle ?? workspaceProject?.metadata.title ?? null;
   const inviteDisabledReason =
-    activeIP &&
+    workspaceProject &&
     (!hasActiveSavedAzureDocument ||
       activeHubIsUnsaved ||
-      isDefaultInviteTitle(activeIPTitleForInvite))
+      isDefaultInviteTitle(workspaceProjectTitleForInvite))
       ? 'Save and rename this project before inviting others.'
       : undefined;
 
@@ -2072,10 +2085,11 @@ export const Editor: React.FC<EditorProps> = ({
         onRenameProject={currentProjectName ? handleRenameProject : undefined}
         onExportCSV={rawData.length > 0 ? handleExportCSV : undefined}
         onSaveAs={rawData.length > 0 ? handleSaveAs : undefined}
-        activeIPTitle={workspaceProjectTitle}
-        onOpenActiveIP={
-          activeIPContext.activeIP
-            ? () => usePanelsStore.getState().showProjects(activeIPContext.activeIP!.id)
+        workspaceProjectTitle={workspaceProjectTitle}
+        onOpenWorkspaceProject={
+          workspaceProjectContext.workspaceProject
+            ? () =>
+                usePanelsStore.getState().showProjects(workspaceProjectContext.workspaceProject!.id)
             : undefined
         }
       />
@@ -2109,11 +2123,11 @@ export const Editor: React.FC<EditorProps> = ({
 
       {/* PR-PO-2: ControlEntryRow re-hosted OUT of the work-item strip (which
           Task 3 deletes). Gated by the Control-readiness predicate over the
-          active project — facts, not the analyzeStatus label. The active-IP
+          Workspace Project — facts, not the analyzeStatus label. The Workspace Project
           cascade gives the project; no project active → not shown. */}
-      {activeIPContext.activeIP &&
+      {workspaceProjectContext.workspaceProject &&
         isControlEligible(
-          activeIPContext.activeIP,
+          workspaceProjectContext.workspaceProject,
           activeHub?.controlRecords ?? [],
           activeHub?.controlHandoffs ?? []
         ) && (
@@ -2187,13 +2201,13 @@ export const Editor: React.FC<EditorProps> = ({
               <div className="flex-1 overflow-y-auto space-y-4">
                 {activeHub ? (
                   <div className="p-4 sm:p-6">
-                    <ActiveIPLaunchpadCard
+                    <WorkspaceProjectLaunchpadCard
                       projects={
                         workspaceViewModel && activeHub.improvementProject?.deletedAt === null
                           ? [activeHub.improvementProject]
                           : []
                       }
-                      onStartNewIP={() => setIsCreateProjectModalOpen(true)}
+                      onStartNewWorkspace={() => setIsCreateProjectModalOpen(true)}
                     />
                   </div>
                 ) : null}
@@ -2212,10 +2226,10 @@ export const Editor: React.FC<EditorProps> = ({
             ) : activeView === 'frame' ? (
               <div className="flex min-h-0 flex-1 overflow-hidden">
                 <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                  {activeIPScope ? (
-                    <ActiveIPScopeRibbon
-                      title={activeIPScope.title}
-                      labels={activeIPScope.labels}
+                  {workspaceProjectScope ? (
+                    <WorkspaceProjectScopeRibbon
+                      title={workspaceProjectScope.title}
+                      labels={workspaceProjectScope.labels}
                       surface="Process"
                     />
                   ) : null}
@@ -2239,7 +2253,7 @@ export const Editor: React.FC<EditorProps> = ({
                   ) : null}
                   <FrameView
                     canEditCanvas={canEditCanvas}
-                    activeIP={activeIPContext.activeIP}
+                    workspaceProject={workspaceProjectContext.workspaceProject}
                     outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
                     reingestPendingMatches={pendingMatches}
                     onFixData={dataFlow.openFactorManager}
@@ -2269,19 +2283,21 @@ export const Editor: React.FC<EditorProps> = ({
             ) : activeView === 'analyze' ? (
               <div className="flex min-h-0 flex-1 overflow-hidden">
                 <AnalyzeWorkspace
-                  activeIPScope={activeIPScope}
-                  scopeProjectId={activeIPContext.activeIP?.id ?? 'general-unassigned'}
+                  workspaceProjectScope={workspaceProjectScope}
+                  scopeProjectId={
+                    workspaceProjectContext.workspaceProject?.id ?? 'general-unassigned'
+                  }
                   findingsState={findingsState}
                   handleRestoreFinding={handleRestoreFinding}
                   handleSetFindingStatus={handleSetFindingStatus}
                   handleNavigateToChart={handleNavigateToChart}
                   handleShareFinding={handleShareFinding}
-                  onPromoteFindingAction={activeIP ? handlePromoteFindingAction : undefined}
+                  onPromoteFindingAction={workspaceProject ? handlePromoteFindingAction : undefined}
                   drillPath={drillPath}
                   handleAddCommentWithAuthor={handleAddCommentWithAuthor}
                   handleAddPhoto={handleAddPhoto}
                   userId={currentUser?.email ?? null}
-                  members={wallActiveIPMembers}
+                  members={wallWorkspaceProjectMembers}
                   onCoScoutObjectChange={handleAnalyzeCoScoutObjectChange}
                   columnAliases={columnAliases}
                   viewMode={
@@ -2308,7 +2324,7 @@ export const Editor: React.FC<EditorProps> = ({
                     usePanelsStore.getState().showProjects();
                     return;
                   }
-                  activeIPContext.setActiveIP(id);
+                  workspaceProjectContext.setWorkspaceProject(id);
                   usePanelsStore.getState().showProjects(id);
                 }}
                 onJumpOut={target => {
@@ -2326,7 +2342,7 @@ export const Editor: React.FC<EditorProps> = ({
                 }}
                 onOpenCauseWorkbench={_cause => {
                   // V1: jump to Improve tab (legacy PDCA workbench).
-                  // Plan 2 will add IP-context scoping so the workbench filters
+                  // Plan 2 will add Workspace Project scoping so the workbench filters
                   // to this cause's hypothesis automatically.
                   usePanelsStore.getState().showImprovement();
                 }}
@@ -2364,14 +2380,14 @@ export const Editor: React.FC<EditorProps> = ({
               />
             ) : activeView === 'improvement' ? (
               <ImproveTabRoot
-                activeIP={activeIP}
-                actions={activeIP?.metadata.actions ?? []}
+                workspaceProject={workspaceProject}
+                actions={workspaceProject?.metadata.actions ?? []}
                 currentUserId={currentUser?.email}
                 onGoHome={() => usePanelsStore.getState().showHome()}
                 onActionAdd={({ text, parentImprovementProjectId }) =>
                   applyAction({
                     kind: 'ACTION_ITEM_ADD',
-                    hubId: activeIP?.hubId ?? '',
+                    hubId: workspaceProject?.hubId ?? '',
                     actionItem: createProjectActionItem({
                       text,
                       parentImprovementProjectId: parentImprovementProjectId ?? null,
@@ -2393,14 +2409,16 @@ export const Editor: React.FC<EditorProps> = ({
                       onClose={() => usePanelsStore.getState().showExplore()}
                       aiEnabled={aiEnabled && isAIAvailable()}
                       narrative={aiOrch.narration.narrative}
-                      activeIPScope={activeIPScope}
-                      activeIPTitle={workspaceProjectTitle}
+                      workspaceProjectScope={workspaceProjectScope}
+                      workspaceProjectTitle={workspaceProjectTitle}
                       activeHub={activeHub}
-                      activeIP={activeIPContext.activeIP}
-                      onOpenActiveIP={
-                        activeIPContext.activeIP
+                      workspaceProject={workspaceProjectContext.workspaceProject}
+                      onOpenWorkspaceProject={
+                        workspaceProjectContext.workspaceProject
                           ? () =>
-                              usePanelsStore.getState().showProjects(activeIPContext.activeIP!.id)
+                              usePanelsStore
+                                .getState()
+                                .showProjects(workspaceProjectContext.workspaceProject!.id)
                           : undefined
                       }
                     />
@@ -2426,11 +2444,11 @@ export const Editor: React.FC<EditorProps> = ({
                   excludedRowIndices={excludedRowIndices}
                   excludedReasons={excludedReasons}
                   projectedCpkMap={improvementProjectedCpkMap}
-                  activeIPFactorRequest={activeIPAnalyzeFactorRequest}
-                  activeIPScope={activeIPScope}
+                  workspaceProjectFactorRequest={workspaceProjectAnalyzeFactorRequest}
+                  workspaceProjectScope={workspaceProjectScope}
                   categoricalValuesByColumn={filteredCategoricalValuesByColumn}
-                  binnedFactorBindings={activeIP?.binnedFactorBindings ?? undefined}
-                  onBindingsChange={activeIP ? handleBinningBindingsChange : undefined}
+                  binnedFactorBindings={workspaceProject?.binnedFactorBindings ?? undefined}
+                  onBindingsChange={workspaceProject ? handleBinningBindingsChange : undefined}
                   onOpenWall={() => {
                     useCanvasViewportStore.getState().setViewMode('wall');
                     usePanelsStore.getState().showAnalyze();
@@ -2604,8 +2622,7 @@ export const Editor: React.FC<EditorProps> = ({
 
       {/* Create-Project modal — lightweight Home CTA path (PR-CCJ-E1 T4).
           Wedge V1 single-SKU: on Save, names/frames the Untitled pair if one already
-          exists (IM-0a 1:1), or mints a fresh IP via the core factory — then sets
-          it active and routes to the Process tab (`showFrame`). The legacy
+          exists (IM-0a 1:1), or mints a fresh Workspace Project via the core factory — then attaches it to the Workspace and routes to the Process tab (`showFrame`). The legacy
           `showCharter()` ceremony (5-entry-point variant) is deferred to Task #44
           cross-tab presentation. Modal guards on activeHub + currentUser?.email —
           neither is meaningful otherwise. */}
@@ -2630,7 +2647,7 @@ export const Editor: React.FC<EditorProps> = ({
               }).catch(() => {
                 // Non-blocking — storage failure is logged by the storage service
               });
-              activeIPContext.setActiveIP(updated.id);
+              workspaceProjectContext.setWorkspaceProject(updated.id);
             } else {
               const newIP = createNewIP({
                 hubId: activeHub.id,
@@ -2640,7 +2657,7 @@ export const Editor: React.FC<EditorProps> = ({
                 currentUserDisplayName: currentUser.name,
               });
               upsertProject(newIP);
-              // FSJ-3a: embed on the hub row — useActiveIPContext derives activeIP
+              // FSJ-3a: embed on the hub row — useWorkspaceProjectContext derives workspaceProject
               // from hub.improvementProject (liveProjects), so a store-only upsert
               // leaves the Process tab gated (pre-existing gap, fixed here).
               void commitHubChange({
@@ -2650,7 +2667,7 @@ export const Editor: React.FC<EditorProps> = ({
               }).catch(() => {
                 // Non-blocking — storage failure is logged by the storage service
               });
-              activeIPContext.setActiveIP(newIP.id);
+              workspaceProjectContext.setWorkspaceProject(newIP.id);
             }
             setIsCreateProjectModalOpen(false);
             usePanelsStore.getState().showFrame();

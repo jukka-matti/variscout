@@ -277,13 +277,13 @@ test.describe('Framing layer Mode B (PWA) — cryptic column names (all-categori
   // spec §4.1 no-Y floor journey: cancel wizard → Process tab → b0 no-Y floor
   //
   // FSJ-2 addendum (T6b): the Untitled-project guarantee holds on the wizard path
-  // too (spec §3). After all-categorical paste + wizard cancel, an active IP WAS
+  // too (spec §3). After all-categorical paste + wizard cancel, an Workspace Project WAS
   // provisioned (usePasteImportFlow → onFreshPasteAnalyzed → provisionPasteProject,
   // which ensures + activates without routing). So navigating to the Process tab
   // renders frame-view-b0 — and because no numeric Y is inferable (yCandidates
   // empty), the b0 no-Y floor (OutcomeNoMatchBanner, role=alert "No clear outcome
   // match") surfaces. This is the no-Y floor's primary LIVE trigger (previously
-  // unreachable — FrameView fell back to NoActiveProjectGuidance for null activeIP).
+  // unreachable — FrameView fell back to NoActiveProjectGuidance for null workspaceProject).
   //
   // "Skip outcome" routes to Explore (handleSeeData → showExplore) where the
   // framing-toolbar (Explore/dashboard surface) renders.
@@ -302,7 +302,7 @@ test.describe('Framing layer Mode B (PWA) — cryptic column names (all-categori
     // Cancel the wizard (data survives — proven by prior test)
     await page.getByRole('button', { name: /back/i }).click();
 
-    // Navigate to Process tab (workflow-tab-process pattern per active-ip-cascade.spec)
+    // Navigate to Process tab (workflow-tab-process pattern per workspace-project-cascade.spec)
     await page.getByTestId('workflow-tab-process').click();
 
     // FSJ-2 §3: the wizard-path paste provisioned an Untitled project, so the

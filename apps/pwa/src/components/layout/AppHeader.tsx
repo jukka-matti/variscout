@@ -9,7 +9,12 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
-import { IPContextChip, PersistentScopeChip, WorkflowNav, type WorkflowTabId } from '@variscout/ui';
+import {
+  WorkspaceProjectChip,
+  PersistentScopeChip,
+  WorkflowNav,
+  type WorkflowTabId,
+} from '@variscout/ui';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
@@ -81,8 +86,8 @@ interface AppHeaderProps {
   /** Phase tabs rendered inside the app bar between filename and toolbar */
   activePhase?: PhaseId;
   onPhaseChange?: (phase: PhaseId) => void;
-  activeIPTitle?: string | null;
-  onOpenActiveIP?: () => void;
+  workspaceProjectTitle?: string | null;
+  onOpenWorkspaceProject?: () => void;
 }
 
 /**
@@ -113,8 +118,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   hideFindings = false,
   activePhase,
   onPhaseChange,
-  activeIPTitle,
-  onOpenActiveIP,
+  workspaceProjectTitle,
+  onOpenWorkspaceProject,
 }) => {
   const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -162,8 +167,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
       <div className="flex-1" />
 
-      {hasData && activeIPTitle && onOpenActiveIP ? (
-        <IPContextChip title={activeIPTitle} onTitleClick={onOpenActiveIP} />
+      {hasData && workspaceProjectTitle && onOpenWorkspaceProject ? (
+        <WorkspaceProjectChip title={workspaceProjectTitle} onTitleClick={onOpenWorkspaceProject} />
       ) : null}
 
       {/* PR-CS-3a: always-visible live analysis-scope chip (self-hides when no scope). */}

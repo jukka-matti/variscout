@@ -3,13 +3,13 @@
  *
  * Wraps ImproveTabRoot (wedge V1 action tracker) with PWA-specific wiring.
  * No AI (no onAskCoScout), no popout (no onPopout), no Teams.
- * Active-IP branching is handled internally by ImproveTabRoot:
- *   - activeIP = null  → NoActiveProjectGuidance
- *   - activeIP = <IP>  → ImproveStage action tracker
+ * Workspace Project branching is handled internally by ImproveTabRoot:
+ *   - workspaceProject = null  → NoActiveProjectGuidance
+ *   - workspaceProject = <IP>  → ImproveStage action tracker
  */
 import React from 'react';
-import { ActiveIPScopeRibbon, ImproveTabRoot } from '@variscout/ui';
-import type { ActiveIPScopeLabels } from '@variscout/ui';
+import { WorkspaceProjectScopeRibbon, ImproveTabRoot } from '@variscout/ui';
+import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { createProjectActionItem } from '@variscout/core/findings';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
@@ -17,9 +17,9 @@ import { useImprovementProjectStore } from '@variscout/stores';
 import { PWA_USER_ID } from '../../lib/pwaUser';
 
 interface ImprovementViewProps {
-  activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
-  /** Active IP for the wedge V1 action tracker. Null = no active project. */
-  activeIP: ImprovementProject | null;
+  workspaceProjectScope?: { title: string; labels: WorkspaceProjectScopeLabels } | null;
+  /** Workspace Project for the wedge V1 action tracker. Null = no active project. */
+  workspaceProject: ImprovementProject | null;
   /** Navigate to Home tab (used by NoActiveProjectGuidance). */
   onGoHome: () => void;
 }
@@ -29,42 +29,46 @@ interface ImprovementViewProps {
  * Exported for unit testing without full component rendering.
  */
 export function buildApplyAction(
-  activeIP: ImprovementProject | null,
+  workspaceProject: ImprovementProject | null,
   upsertProject: (project: ImprovementProject) => void
 ): (action: ActionItemAction) => void {
   return (action: ActionItemAction) => {
-    if (!activeIP) return;
-    const currentActions = activeIP.metadata.actions ?? [];
+    if (!workspaceProject) return;
+    const currentActions = workspaceProject.metadata.actions ?? [];
     const nextActions = reduceActionItems(currentActions, action);
     upsertProject({
-      ...activeIP,
-      metadata: { ...activeIP.metadata, actions: nextActions },
+      ...workspaceProject,
+      metadata: { ...workspaceProject.metadata, actions: nextActions },
     });
   };
 }
 
-const ImprovementView: React.FC<ImprovementViewProps> = ({ activeIPScope, activeIP, onGoHome }) => {
+const ImprovementView: React.FC<ImprovementViewProps> = ({
+  workspaceProjectScope,
+  workspaceProject,
+  onGoHome,
+}) => {
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);
-  const applyAction = buildApplyAction(activeIP, upsertProject);
+  const applyAction = buildApplyAction(workspaceProject, upsertProject);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {activeIPScope ? (
-        <ActiveIPScopeRibbon
-          title={activeIPScope.title}
-          labels={activeIPScope.labels}
+      {workspaceProjectScope ? (
+        <WorkspaceProjectScopeRibbon
+          title={workspaceProjectScope.title}
+          labels={workspaceProjectScope.labels}
           surface="Improve"
         />
       ) : null}
       <ImproveTabRoot
-        activeIP={activeIP}
-        actions={activeIP?.metadata.actions ?? []}
+        workspaceProject={workspaceProject}
+        actions={workspaceProject?.metadata.actions ?? []}
         currentUserId={PWA_USER_ID}
         onGoHome={onGoHome}
         onActionAdd={({ text, parentImprovementProjectId }) =>
           applyAction({
             kind: 'ACTION_ITEM_ADD',
-            hubId: activeIP?.hubId ?? '',
+            hubId: workspaceProject?.hubId ?? '',
             actionItem: createProjectActionItem({
               text,
               parentImprovementProjectId: parentImprovementProjectId ?? null,

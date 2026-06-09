@@ -10,7 +10,7 @@ import type { BinnedFactorBinding } from '@variscout/core/binning';
  * fields) with the Canvas-Edit-mode root fields persisted onto the IP by
  * PR-CCJ-E1 T5 (`stepTimings`, `formulaBindings`, `timeDecompositionBindings`).
  * The Canvas fields are layered ON TOP of the factory output so tests can hand
- * a single, fully-shaped IP to `CanvasWorkspace` via the `activeIP` prop.
+ * a single, fully-shaped IP to `CanvasWorkspace` via the `workspaceProject` prop.
  *
  * IM-0b (ADR-087): `processSteps` is NOT a settable override — it is a
  * read-only projection of the canonical `ProcessMap` (`deriveProcessSteps`).

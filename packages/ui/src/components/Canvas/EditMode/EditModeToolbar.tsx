@@ -16,7 +16,7 @@ export interface EditModeToolbarProps {
    */
   outcomeSpecs?: OutcomeSpec[];
   /**
-   * F1 Task 3: factor controls from activeIP.goal.factorControls.
+   * F1 Task 3: factor controls from workspaceProject.goal.factorControls.
    * Drives the explore route key (y-only vs y-plus-one-factor vs y-plus-multi-factor).
    * Defaults to [].
    */

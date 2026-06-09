@@ -149,7 +149,7 @@ export interface ImprovementProject extends EntityBase {
   // Canvas Connection Journey — flat root fields (CCJ E1)
   //
   // Persisted Canvas Edit-mode state, lifted out of CanvasWorkspace local
-  // useState into the active IP so it survives reloads + scopes per-project.
+  // useState into the Workspace Project so it survives reloads + scopes per-project.
   // All optional during the bootstrap window; UI wires + IDB persistence land
   // in subsequent E1 tasks (this task ships the type extension only).
   // ─────────────────────────────────────────────────────────────────────────

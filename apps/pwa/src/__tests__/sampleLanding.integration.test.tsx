@@ -235,7 +235,7 @@ describe('landOnProcess — sample landing (spec §1, §3)', () => {
     expect(hub.improvementProject!.deletedAt).toBeNull();
     expect(hub.improvementProject!.metadata.title).toBe(SAMPLE_DATASET.name);
 
-    // Active-IP store activation is retired; the Workspace Project is attached to the hub.
+    // Workspace Project activation is retired; the Workspace Project is attached to the hub.
     expect(hub.improvementProject!.hubId).toBe(hub.id);
   });
 
@@ -322,7 +322,7 @@ describe('landOnProcess — sample landing (spec §1, §3)', () => {
 });
 
 describe('landVrsOnProcess — .vrs reconstruct-not-create (spec §1)', () => {
-  it('(a) snapshot with live IP: same project id + title preserved, activeView frame', () => {
+  it('(a) snapshot with live Workspace Project: same project id + title preserved, activeView frame', () => {
     const IP_ID = 'ip-fixture-1';
     const HUB_ID = 'hub-fixture-1';
     const ip = makeTestIP(IP_ID, HUB_ID);
@@ -460,7 +460,7 @@ describe('landPasteOnProcess (FSJ-2, spec §1/§3)', () => {
   });
 
   it('reuses a live session hub + IP (referential no-op, spec §3)', () => {
-    // Build a hub with an existing live IP via the shared helper
+    // Build a hub with an existing live Workspace Project via the shared helper
     const existingHub = ensureSessionProject(null, 'Existing');
 
     let receivedHub: ProcessHub | null = null;
@@ -479,7 +479,7 @@ describe('landPasteOnProcess (FSJ-2, spec §1/§3)', () => {
     expect(setSessionHub).toHaveBeenCalledOnce();
 
     // Referential identity: ensureSessionProject must return the SAME object —
-    // not a copy — when a live IP already exists (spec §3 reconstruct-not-create).
+    // not a copy — when a live Workspace Project already exists (spec §3 reconstruct-not-create).
     expect(receivedHub).toBe(existingHub);
 
     // Title preserved — no re-wrap with 'Untitled project'
@@ -522,7 +522,7 @@ describe('provisionPasteProject (FSJ-2 addendum T6b, spec §3) — wizard-path U
     provisionPasteProject({ sessionHub: existingHub, setSessionHub });
 
     expect(setSessionHub).toHaveBeenCalledOnce();
-    // Same object reference — no re-wrap when a live IP already exists (spec §3).
+    // Same object reference — no re-wrap when a live Workspace Project already exists (spec §3).
     expect(receivedHub).toBe(existingHub);
     expect(receivedHub!.improvementProject!.metadata.title).toBe('Existing');
   });
