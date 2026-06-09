@@ -22,7 +22,7 @@ export type Project = DocumentSnapshot;
 // ── Metadata extraction ─────────────────────────────────────────────────
 
 /**
- * Extract portfolio metadata from the canonical DocumentSnapshot shape.
+ * Extract Workspace metadata from the canonical DocumentSnapshot shape.
  */
 export function extractMetadataInputs(
   project: Project,

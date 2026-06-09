@@ -35,8 +35,8 @@ export type WorkspaceView =
   | 'report';
 
 export interface AppHeaderProps {
-  mode: 'portfolio' | 'project';
-  onNavigateToPortfolio?: () => void;
+  mode: 'home' | 'project';
+  onNavigateToHome?: () => void;
   onOpenSettings?: () => void;
   canNavigateBack?: boolean;
   projectName?: string;
@@ -96,7 +96,7 @@ const toggleBtnClass = (isActive: boolean) =>
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
   mode,
-  onNavigateToPortfolio,
+  onNavigateToHome,
   onOpenSettings,
   canNavigateBack,
   projectName = '',
@@ -157,8 +157,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [projectMenuOpen]);
 
-  // ── Portfolio mode ────────────────────────────────────────────────────
-  if (mode === 'portfolio') {
+  // ── Home mode ────────────────────────────────────────────────────
+  if (mode === 'home') {
     return (
       <div className="flex items-center h-11 px-4 border-b border-edge bg-surface flex-shrink-0 sticky top-0 z-50">
         <div className="flex items-center gap-2">
@@ -223,11 +223,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     <div
       role={canNavigateBack ? 'button' : undefined}
       tabIndex={canNavigateBack ? 0 : undefined}
-      onClick={canNavigateBack ? onNavigateToPortfolio : undefined}
+      onClick={canNavigateBack ? onNavigateToHome : undefined}
       onKeyDown={
         canNavigateBack
           ? e => {
-              if (e.key === 'Enter' || e.key === ' ') onNavigateToPortfolio?.();
+              if (e.key === 'Enter' || e.key === ' ') onNavigateToHome?.();
             }
           : undefined
       }

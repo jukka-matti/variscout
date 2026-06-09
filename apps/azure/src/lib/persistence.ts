@@ -42,7 +42,7 @@ export async function saveProjectLocally(
     synced: false,
   };
 
-  // PO-8b: preserve the portfolio projection across the adapter save — the
+  // PO-8b: preserve the Workspace projection across the adapter save — the
   // previous full put wiped record.meta (incl. the Control-owned sustainment
   // chip) and record.access on every Editor save.
   const existing = await db.projects.get(name);
@@ -76,7 +76,7 @@ export async function updateProjectLocally(
     synced: false,
   };
 
-  // PO-8b: preserve portfolio meta + access across updates (same fix as saveProjectLocally).
+  // PO-8b: preserve Workspace metadata + access across updates (same fix as saveProjectLocally).
   const existing = await db.projects.get(name);
   await db.projects.put({
     name: project.name,

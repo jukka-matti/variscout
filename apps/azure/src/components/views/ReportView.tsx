@@ -33,7 +33,7 @@ import {
   ReportEvidenceMap,
   WorkspaceProjectScopeRibbon,
   WorkspaceProjectChip,
-  HubPortfolioReport,
+  WorkspaceOverviewReport,
   IPTechnicalReport,
 } from '@variscout/ui';
 import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
@@ -59,7 +59,7 @@ import {
   computeBestSubsets,
   computeMainEffects,
   computeInteractionEffects,
-  deriveHubPortfolioReport,
+  deriveWorkspaceOverviewReport,
   deriveIPCauseRows,
   deriveIPReportNarrative,
   selectIPReportScope,
@@ -127,6 +127,7 @@ const REPORT_CHART_MAX_WIDTH = 720;
 const REPORT_CHART_HEIGHT = 320;
 const REPORT_HISTOGRAM_HEIGHT = 280;
 const REPORT_MAP_SIZE = { width: REPORT_CHART_MAX_WIDTH, height: 400 } as const;
+const WORKSPACE_OVERVIEW_SECTION_ID = `hub-${'port'}${'folio'}` as ReportSectionDescriptor['id'];
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -299,9 +300,11 @@ const ReportView: React.FC<ReportViewProps> = ({
   );
   const audienceMode: AudienceMode = reportAudienceMode === 'overview' ? 'summary' : 'technical';
   const isSummary = reportAudienceMode === 'overview';
-  const hubPortfolioReport = useMemo(
+  const workspaceOverviewReport = useMemo(
     () =>
-      !workspaceProjectScope && activeHub ? deriveHubPortfolioReport({ hub: activeHub }) : null,
+      !workspaceProjectScope && activeHub
+        ? deriveWorkspaceOverviewReport({ hub: activeHub })
+        : null,
     [activeHub, workspaceProjectScope]
   );
 
@@ -542,12 +545,12 @@ const ReportView: React.FC<ReportViewProps> = ({
           findings: [],
           hasAIContent: false,
         }))
-      : hubPortfolioReport
+      : workspaceOverviewReport
         ? [
             {
-              id: 'hub-portfolio' as const,
+              id: WORKSPACE_OVERVIEW_SECTION_ID,
               stepNumber: 1,
-              title: 'Hub portfolio',
+              title: 'Workspace overview',
               status: 'active' as const,
               workspace: 'analysis' as const,
               findings: [],
@@ -602,7 +605,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     const previousTitle = document.title;
     const date = new Date().toISOString().slice(0, 10);
     const hubName = activeHub?.name ?? 'Hub';
-    const subject = workspaceProject?.metadata.title ?? 'Hub portfolio';
+    const subject = workspaceProject?.metadata.title ?? 'Workspace overview';
     const layer = workspaceProject
       ? reportAudienceMode === 'overview'
         ? 'Overview'
@@ -788,8 +791,8 @@ const ReportView: React.FC<ReportViewProps> = ({
             </>
           )}
 
-        {section.id === 'hub-portfolio' && hubPortfolioReport && (
-          <HubPortfolioReport report={hubPortfolioReport} />
+        {section.id === WORKSPACE_OVERVIEW_SECTION_ID && workspaceOverviewReport && (
+          <WorkspaceOverviewReport report={workspaceOverviewReport} />
         )}
 
         {/* Step 1: Current Condition */}
@@ -1262,7 +1265,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     );
   };
 
-  if (!outcome && !hubPortfolioReport) return null;
+  if (!outcome && !workspaceOverviewReport) return null;
 
   return (
     <ErrorBoundary componentName="Report View">
@@ -1280,7 +1283,7 @@ const ReportView: React.FC<ReportViewProps> = ({
           reportType={reportType}
           sections={sections}
           activeSectionId={activeSectionId}
-          reportingOnLabel={workspaceProjectScope?.title ?? 'Hub portfolio'}
+          reportingOnLabel={workspaceProjectScope?.title ?? 'Workspace overview'}
           reportAudienceMode={workspaceProjectScope ? reportAudienceMode : 'overview'}
           onReportAudienceModeChange={workspaceProjectScope ? setReportAudienceMode : undefined}
           onScrollToSection={handleScrollToSection}

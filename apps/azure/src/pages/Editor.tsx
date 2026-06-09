@@ -189,7 +189,7 @@ interface EditorProps {
   initialQuestionId?: string;
   /** Deep link: auto-open a specific mode (e.g. 'improvement', 'report') */
   initialMode?: string;
-  /** Sample dataset to load immediately (from portfolio "Try a Sample") */
+  /** Sample dataset to load immediately (from Home "Try a Sample") */
   initialSample?: SampleDataset | null;
   /** Process Hub to assign when starting a new investigation from the hub home */
   initialProcessHubId?: string;
@@ -1018,7 +1018,7 @@ export const Editor: React.FC<EditorProps> = ({
   const dataFlowRef = React.useRef(dataFlow);
   dataFlowRef.current = dataFlow;
 
-  // Load sample passed from portfolio "Try a Sample" (effect below, after hypothesesState)
+  // Load sample passed from Home "Try a Sample" (effect below, after hypothesesState)
   const initialSampleConsumedRef = useRef(false);
 
   // Manual data analyze with append-mode merge
@@ -1094,7 +1094,7 @@ export const Editor: React.FC<EditorProps> = ({
   }, []);
 
   /**
-   * Mode B entry: "New Hub" from the dashboard starts the paste → framing flow.
+   * Mode B entry: "New Workspace" from Home starts the paste → framing flow.
    * Navigates to the analysis view so PasteScreen is visible, then opens paste.
    */
   const handleNewHub = useCallback(() => {
@@ -1307,8 +1307,8 @@ export const Editor: React.FC<EditorProps> = ({
 
   // TODO: Phase 3 — deepLinkUrl and handleShareTeams move to ProjectNameMenu
 
-  // Overview dashboard data: userId + other projects list
-  const { overviewProjects, lastViewedAt, handleUpdateLastViewed } = useProjectOverview({
+  // Workspace Home metadata.
+  const { lastViewedAt, handleUpdateLastViewed } = useProjectOverview({
     listProjects,
     currentProjectName: currentProjectName ?? undefined,
     currentProjectLocation,
@@ -1356,7 +1356,7 @@ export const Editor: React.FC<EditorProps> = ({
 
   const projectionTarget = useAnalyzeFeatureStore(s => s.projectionTarget);
 
-  // Load sample passed from portfolio "Try a Sample"
+  // Load sample passed from Home "Try a Sample"
   useEffect(() => {
     if (initialSample && !initialSampleConsumedRef.current) {
       initialSampleConsumedRef.current = true;
@@ -2079,9 +2079,9 @@ export const Editor: React.FC<EditorProps> = ({
           usePanelsStore.getState().setActiveImprovementView('track');
         }}
         hasSelectedIdeas={selectedIdeaIds.size > 0}
-        onNavigateToPortfolio={onBack}
+        onNavigateToHome={onBack}
         onOpenSettings={onOpenSettings}
-        canNavigateBack={overviewProjects.length > 0}
+        canNavigateBack={Boolean(onBack)}
         onRenameProject={currentProjectName ? handleRenameProject : undefined}
         onExportCSV={rawData.length > 0 ? handleExportCSV : undefined}
         onSaveAs={rawData.length > 0 ? handleSaveAs : undefined}
@@ -2217,8 +2217,6 @@ export const Editor: React.FC<EditorProps> = ({
                   onAddData={handleDashboardAddData}
                   onResumeAnalysis={handleDashboardResumeAnalysis}
                   lastViewedAt={lastViewedAt}
-                  projects={overviewProjects}
-                  onViewPortfolio={onBack}
                   onUpdateLastViewed={handleUpdateLastViewed}
                   onNewHub={handleNewHub}
                 />

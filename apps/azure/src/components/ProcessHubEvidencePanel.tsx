@@ -382,7 +382,7 @@ const ProcessHubEvidencePanel: React.FC<ProcessHubEvidencePanelProps> = ({
             <h3>Evidence Sources</h3>
           </div>
           <p className="mt-1 text-xs text-content-secondary">
-            Customer-owned snapshot contracts for recurring hub evidence.
+            Customer-owned snapshot contracts for recurring Workspace evidence.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -181,7 +181,7 @@ describe('AzureHubRepository dispatch', () => {
   });
 
   it('HUB_PERSIST_SNAPSHOT returns undefined (bootstrap path)', async () => {
-    const hub = makeHub({ id: 'hub-azure-1', name: 'New Hub' });
+    const hub = makeHub({ id: 'hub-azure-1', name: 'New Workspace' });
     await expect(repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub })).resolves.toBeUndefined();
   });
 

@@ -4,12 +4,10 @@ import { Play, Plus, Upload, FileText, ListChecks } from 'lucide-react';
 import { useProjectStore, useAnalyzeStore, usePreferencesStore } from '@variscout/stores';
 import { useJourneyPhase } from '@variscout/hooks';
 import { useAIStore } from '../features/ai/aiStore';
-import type { CloudProject } from '../services/storage';
 
 import ProjectStatusCard from './ProjectStatusCard';
 import DashboardSummaryCard from './DashboardSummaryCard';
 import WhatsNewSection from './WhatsNewSection';
-import OtherProjectsList from './OtherProjectsList';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,13 +19,9 @@ export interface ProjectDashboardProps {
   onResumeAnalysis: () => void;
   /** Epoch ms — when the current user last viewed this project */
   lastViewedAt?: number;
-  /** All projects in the portfolio (for "Other projects" section) */
-  projects?: CloudProject[];
-  /** Navigate back to portfolio view */
-  onViewPortfolio?: () => void;
   /** Called once on mount to update the lastViewedAt timestamp */
   onUpdateLastViewed?: () => void;
-  /** Mode B entry point — start framing a new investigation hub */
+  /** Mode B entry point — start framing a new Workspace */
   onNewHub?: () => void;
 }
 
@@ -40,8 +34,6 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
   onAddData,
   onResumeAnalysis,
   lastViewedAt,
-  projects,
-  onViewPortfolio,
   onUpdateLastViewed,
   onNewHub,
 }) => {
@@ -145,7 +137,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
         />
       </div>
 
-      {/* Right column: AI Summary + Quick Actions + Other Projects */}
+      {/* Right column: AI Summary + Quick Actions */}
       <div className="flex-1 min-w-0 space-y-6">
         {/* AI Summary Card */}
         {/* TODO: Extend dashboard AI summary with "what's new" context (deferred from ADR-043).
@@ -188,7 +180,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                 data-testid="action-new-hub"
               >
                 <Plus size={14} />
-                New Hub
+                New Workspace
               </button>
             )}
             {hasFindings && (
@@ -213,15 +205,6 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
             )}
           </div>
         </div>
-
-        {/* Other Projects */}
-        {projects && projects.length > 1 && (
-          <OtherProjectsList
-            projects={projects}
-            currentProjectId={projectName}
-            onViewPortfolio={onViewPortfolio}
-          />
-        )}
       </div>
     </div>
   );

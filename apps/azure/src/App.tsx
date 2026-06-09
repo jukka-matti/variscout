@@ -238,7 +238,7 @@ function AppContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepLink.project]);
 
-  // Auto-redirect to portfolio if saved projects exist (first-run users stay on editor)
+  // Auto-redirect to Home if saved Workspaces exist (first-run users stay on editor).
   useEffect(() => {
     if (deepLink.project) return; // Deep links handle their own navigation
     listProjects()
@@ -269,9 +269,9 @@ function AppContent({
 
   return (
     <>
-      {/* Unified header — portfolio/admin views only (editor renders its own AppHeader) */}
+      {/* Unified header — Home/admin views only (editor renders its own AppHeader) */}
       {currentView !== 'editor' && (
-        <AppHeader mode="portfolio" onOpenSettings={() => setIsSettingsOpen(true)} />
+        <AppHeader mode="home" onOpenSettings={() => setIsSettingsOpen(true)} />
       )}
 
       {/* Main Content */}
@@ -288,7 +288,7 @@ function AppContent({
               }}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
             >
-              Go to Portfolio
+              Go to Home
             </button>
           </div>
         )}

@@ -7,7 +7,7 @@
  * flushes the hub to the catalog. Pre-auth edge: no identity → bare hub only
  * (the next authenticated entry's ensureHubProject completes the pair).
  *
- * Caller (FSJ-3b): Dashboard's "New Hub" entry. The HubCreationFlow Stage-1
+ * Caller (FSJ-3b): Dashboard's "New Workspace" entry. The HubCreationFlow Stage-1
  * vestibule that previously called this is retired — fresh-paste provisioning
  * now fires at paste-analyzed time (Editor's onFreshPasteAnalyzed). The created
  * hub id is written to `processContext.processHubId` so subsequent saves (e.g.
