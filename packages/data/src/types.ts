@@ -37,6 +37,26 @@ export interface SampleInvestigationState {
   categories?: import('@variscout/core').AnalyzeCategory[];
 }
 
+/**
+ * Pre-populated Improvement Project state for showcase/demo datasets.
+ * The sample loader creates the project shell first, then applies this seed so
+ * action items can be scoped to the runtime project id.
+ */
+export interface SampleImprovementProjectState {
+  issueStatement?: string;
+  metadata?: Partial<
+    Omit<import('@variscout/core/improvementProject').ImprovementProjectMetadata, 'actions'>
+  >;
+  goal?: Partial<import('@variscout/core/improvementProject').ImprovementProjectGoal>;
+  sections?: Partial<import('@variscout/core/improvementProject').ImprovementProject['sections']>;
+  actions?: Array<
+    Omit<import('@variscout/core').ActionItem, 'parentImprovementProjectId' | 'deletedAt'> & {
+      parentImprovementProjectId?: null;
+      deletedAt?: null;
+    }
+  >;
+}
+
 /** Seed of the FRAME Process Map for a showcase — loadSample writes this to processContext. */
 export type SampleProcessMap = import('@variscout/core/frame').ProcessMap;
 
@@ -62,6 +82,8 @@ export interface SampleConfig {
   };
   /** Pre-populated investigation state for showcase/demo datasets */
   investigation?: SampleInvestigationState;
+  /** Pre-populated Improvement Project state for showcase/demo datasets */
+  improvementProject?: SampleImprovementProjectState;
   /**
    * Pre-seeded FRAME Process Map. Populated on showcase/demo datasets so the
    * Frame workspace opens with a completed SIPOC spine that matches the

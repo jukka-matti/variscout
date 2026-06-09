@@ -24,7 +24,12 @@ export { finlandArrivals } from './finland-arrivals';
 export { manufacturingDefects } from './manufacturing-defects';
 
 // Re-export types
-export type { SampleDataset, SampleConfig, SpecLimits } from '../types';
+export type {
+  SampleDataset,
+  SampleConfig,
+  SampleImprovementProjectState,
+  SpecLimits,
+} from '../types';
 
 // Import all for SAMPLES array
 import { nistLongley } from './nistLongley';

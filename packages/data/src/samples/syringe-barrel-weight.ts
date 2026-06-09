@@ -530,5 +530,88 @@ export const syringeBarrelWeight: SampleDataset = {
       causalLinks: buildCausalLinks(),
       categories: buildCategories(),
     },
+    improvementProject: {
+      issueStatement:
+        'Baseline syringe barrel weight is not capable against 11.70-12.30 g specs; the left tail creates underweight rejects concentrated in Lot 3.',
+      metadata: {
+        businessCase:
+          'Recover barrel-weight capability before the next validation run by stabilizing Lot 3 pressure response and reducing underweight rejects.',
+      },
+      goal: {
+        outcomeGoals: [
+          {
+            outcomeSpecId: 'weight-g',
+            baseline: 0.76,
+            target: 1.33,
+            deadline: '2026-04-24',
+          },
+        ],
+        factorControls: [
+          {
+            factor: 'Hold_Pressure_bar',
+            targetCondition: 'Lot 3 recipe setpoint raised to 88 bar with first-hour verification',
+            linkedHypothesisId: IDS.HUB_LOT3_PRESSURE,
+          },
+          {
+            factor: 'Cavity',
+            targetCondition: 'Cavity 2 gate wear checked during planned mold maintenance',
+          },
+        ],
+        mechanismGoals: [
+          {
+            description:
+              'Confirm whether regrind-rich Lot 3 material needs a lot-specific hold-pressure recipe.',
+            linkedFindingIds: [IDS.F_LOT3_LIGHT, IDS.F_PRESSURE_SLOPE, IDS.F_INTERACTION],
+          },
+        ],
+      },
+      sections: {
+        background: {
+          snapshotText:
+            'Baseline Cpk is about 0.76 with Underweight as the dominant defect. Lot 3 and hold pressure together explain the largest share of variation.',
+          manualNarrative:
+            'The first improvement round should protect medical-device weight compliance while avoiding unnecessary broad process changes.',
+        },
+        approach: {
+          narrative:
+            'Pilot a Lot 3 pressure recipe, verify first-hour weight response, then decide whether to standardize the recipe and schedule Cavity 2 maintenance.',
+        },
+      },
+      actions: [
+        {
+          id: 'act-sbw-lot3-recipe-trial',
+          text: 'Run Lot 3 pilot at 88 bar and capture first-hour barrel weights',
+          status: 'in-progress',
+          assignedTo: { displayName: 'Process engineer' },
+          dueAt: '2026-04-10',
+          doneAt: null,
+          doneBy: null,
+          createdBy: { displayName: 'VariScout demo' },
+          createdAt: epochAt(28),
+        },
+        {
+          id: 'act-sbw-qc-pareto-watch',
+          text: 'Review Underweight Pareto after the pilot batch',
+          status: 'open',
+          assignedTo: { displayName: 'QA lead' },
+          dueAt: '2026-04-12',
+          doneAt: null,
+          doneBy: null,
+          createdBy: { displayName: 'VariScout demo' },
+          createdAt: epochAt(29),
+        },
+        {
+          id: 'act-sbw-cavity2-check',
+          text: 'Add Cavity 2 gate inspection to the planned mold maintenance window',
+          status: 'done',
+          assignedTo: null,
+          dueAt: null,
+          doneAt: isoAt(31),
+          doneBy: { displayName: 'Tooling lead' },
+          createdBy: { displayName: 'VariScout demo' },
+          createdAt: epochAt(30),
+        },
+      ],
+    },
   },
 };
