@@ -17,6 +17,8 @@ related:
 > **Grounded 2026-06-09.** Reconciles the 9-slice [Workspace roadmap](2026-06-09-workspace-architecture-roadmap.md) against what PRs **#351** (workspace formalization) and **#352/#354** (CoScout) actually shipped, via a 3-lane source audit on `origin/main`. It marks done/partial/not-started, adds two items the roadmap missed, and slices the remainder into **Codex-promptable work-items** in dependency order. Each work-item has greppable/testable acceptance so "done" is never taken on trust.
 >
 > **Execution protocol (the lesson of this migration):** spec on `main` before code · greppable acceptance in every prompt · **one work-item in flight** · a one-pass post-merge verify before the next · demo-path surfaces (first-session / Process / Explore / Wall / Home) always browser-verified · high-blast-radius items (W6/W7) timed _between_ demos.
+>
+> **Division of labor:** **Codex owns code** (implement → browser-verify → self-merge). **Claude owns docs + review**, **post-merge, per slice/batch** — the Apply-phase canonical-doc propagation (the `implements:` targets, e.g. W4 → `home.md` + `project-dashboard.md`; W6 → `ia-nav-model.md`) **and** the "how did Codex do" quality review. Doc propagation is deliberately _not_ inside the Codex prompts (Codex docs have drifted; keep prompts code-focused).
 
 ## Delivery state (grounded baseline)
 
