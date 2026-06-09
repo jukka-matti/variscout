@@ -166,17 +166,17 @@ Mitigation in all three cases: the three preconditions are exactly the checks th
 - ADR-080 (preserved — Control auto-fire pattern): `docs/07-decisions/adr-080-control-auto-fire-pattern.md`
 - ADR-081 (preserved — canvas viewport architecture): `docs/07-decisions/adr-081-canvas-viewport-architecture.md`
 
-## Amendment — 2026-06-09
+## Amendment — 2026-06-09 (accepted)
 
-The V1 formal unit is clarified as **Workspace with optional Project formalization**. ADR-082 remains accepted, but the product vocabulary and target architecture are narrowed by the [Workspace architecture spec](../superpowers/specs/2026-06-09-workspace-architecture-and-project-formalization-design.md) and sequenced by the [Workspace architecture roadmap](../superpowers/plans/2026-06-09-workspace-architecture-roadmap.md).
+The V1 product vocabulary is narrowed: the user-facing unit is the **Workspace**, with its **Project** as a soft-formalized layer. This **finishes in the product surface the Hub↔Project 1:1 collapse that IM-0a (PR #243) already made in the data model** — it is a migration, not a fresh pivot. ADR-082's wedge thesis (single product, Hub internal, Project as the unit of work) stands; this amendment refines the noun and retires the portfolio-era focus ceremony. Canonical: [Workspace architecture spec](../superpowers/specs/2026-06-09-workspace-architecture-and-project-formalization-design.md); sequence: [Workspace architecture roadmap](../superpowers/plans/2026-06-09-workspace-architecture-roadmap.md).
 
-Current target model:
+Target model:
 
 - **Workspace** is the user-facing V1 object. An analyst starts a Workspace when they have data, a process question, or a performance problem to analyze.
-- **Project** is optional formalization of that Workspace. V1 supports zero or one Project per Workspace. Once present, the Project is always attached.
-- **Analysis Scope** is the active analytical lens: outcome or measure, factor, process step, and filters.
-- **ProcessHub** remains internal storage vocabulary for now. It is not the V1 product noun.
-- **Active IP / Project Focus / Exit IP** retire as target architecture. Existing code remains a migration surface until dedicated slices prove ACL, Wall, Analyze, Report, Control, mobile navigation, and quick-analysis behavior.
-- **VariScout Process** keeps the named-future multi-project process model. V1 no longer treats one Hub/process as a portfolio with many Projects.
+- **Project** is the soft-formalized layer of that Workspace. Every Workspace is backed by exactly one `active` Project (the First-Session-Journey auto-project, #307–326); it stays **informal** (no Project chrome) until a deliberate formalization act (charter / invite / explicit "Make this a Project"). There is no "zero Project" state and no draft gating.
+- **Analysis Scope** is the only active analytical lens: outcome or measure, factor, process step, and filters.
+- **ProcessHub** remains internal storage vocabulary for now. It is not the V1 product noun; a rename is an optional later plan.
+- **Active IP / Project Focus / Exit IP / "Free roaming" / "Switch IP"** retire — the portfolio-era focus ceremony, now vestigial under 1:1. Their behavior collapses into "the Workspace's one Project is always the context; narrowing is Analysis Scope."
+- **VariScout Process** keeps the named-future multi-project process model. V1 does not treat one Hub/process as a portfolio of many Projects.
 
-This amendment supersedes the target direction of the earlier active-IP cascade while preserving the historical context for why it was built. The implementation sequence is docs and vocabulary first, behavior simplification second, Workspace view model third, and internal storage renames only as an optional later plan.
+This supersedes the target direction of the earlier active-IP cascade while preserving the historical context for why it was built. The migration is one holistic initiative, ordered for safety (model lock → Workspace view-model adapter → behavior swap → fossil deletion → render split), with the first-session / b0 walk as the acceptance gate.
