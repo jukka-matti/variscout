@@ -22,19 +22,21 @@ related:
 
 ## Delivery state (grounded baseline)
 
-| Roadmap slice                               | Status                  | Note                                                                                                                                                                                              |
-| ------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 Product Model Lock (docs)                 | ✅ done                 | corrected spec (PR #353) + Codex doc edits                                                                                                                                                        |
-| 2 User-facing vocabulary                    | 🟡 partial              | plural "Projects / New Project" copy remains → folded into W4/W5                                                                                                                                  |
-| 3 Behavior Simplification                   | 🟡 partial              | #351 did the core (auto-activation, sessionStorage cleared-state dance, Exit/Switch/Free-roaming all removed; `setActiveIP`/`clearActiveIP` neutered to no-ops). Dead **wiring** remains → **W1** |
-| 4 Workspace view-model                      | ❌ not started          | zero `WorkspaceViewModel`; shells read `ProcessHub`/`improvementProject` directly → **W2**                                                                                                        |
-| 5 Analysis Scope strengthening              | 🟡 partial              | store exists + wired into CoScout context; needs a verify pass → folded into W2 verify                                                                                                            |
-| 6 Shell refactor                            | ❌ not started          | `Editor.tsx` ~2671 / `App.tsx` ~1886 untouched → **W6**                                                                                                                                           |
-| 7 Dead residue cleanup                      | ❌ not started          | `activeIPStore` write-only/read-by-nobody but undeleted; `useActiveIPContext` hollowed but present; `ActiveIP/` UI dir + naming sweep → **W3**                                                    |
-| 8 Optional internal rename                  | ❌ not started          | `ProcessHub` + verb-keyed views → **W7**                                                                                                                                                          |
-| 9 CoScout                                   | 🟢 separate track       | #352 redesign + #354 phase-retirement + **#355 loop-wide surface mounts** all shipped; only **eval-hardening** remains                                                                            |
-| **NEW: Home/Project-portfolio realignment** | ❌ not started, unowned | Azure `pages/Dashboard.tsx` still a hub×analysis portfolio; `OtherProjectsList` + portfolio half of `useProjectOverview` are fossils → **W4**                                                     |
-| **NEW: view-naming reconcile**              | ❌ not started          | Azure `activeView:'dashboard'` is a stale alias for Home; PWA uses `'home'` (divergent) → **W5**                                                                                                  |
+> **Update 2026-06-09 — PR #358 shipped W1–W6 in one PR** (active-IP wiring cleanup, Workspace view-model adapter, dead-residue deletion, Home/Project resume-last realignment, view-naming reconcile, shell refactor). Browser-verified all 7 tabs in PWA + Azure. **W7 intentionally skipped** (optional internal rename — last/between-demos). CoScout eval-hardening landed via **#356**. **Remaining: W7 (optional) + post-merge canonical-doc propagation** (W4 → `home.md` + `project-dashboard.md`; W6 → `ia-nav-model.md`). The baseline table below reflects the pre-#358 grounding; statuses are updated inline.
+
+| Roadmap slice                               | Status                 | Note                                                                                                        |
+| ------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 1 Product Model Lock (docs)                 | ✅ done                | corrected spec (PR #353) + Codex doc edits                                                                  |
+| 2 User-facing vocabulary                    | ✅ done (#358)         | resolved via W4/W5                                                                                          |
+| 3 Behavior Simplification                   | ✅ done (#358)         | #351 did the core; dead **wiring** removed in **W1**                                                        |
+| 4 Workspace view-model                      | ✅ done (#358)         | `WorkspaceViewModel` adapter shipped in **W2**                                                              |
+| 5 Analysis Scope strengthening              | ✅ done (#358)         | verified in passing under **W2**                                                                            |
+| 6 Shell refactor                            | ✅ done (#358)         | shipped in **W6**                                                                                           |
+| 7 Dead residue cleanup                      | ✅ done (#358)         | `activeIPStore` deleted; `ActiveIP/` → `WorkspaceProject/` namespace; naming sweep done in **W3**           |
+| 8 Optional internal rename                  | ⏸️ deferred (optional) | `ProcessHub` + verb-keyed views → **W7** intentionally skipped in #358; last/between-demos                  |
+| 9 CoScout                                   | ✅ done                | #352 redesign + #354 phase-retirement + #355 loop-wide surface mounts + **#356 eval-hardening** all shipped |
+| **NEW: Home/Project-portfolio realignment** | ✅ done (#358)         | resume-last Home shipped in **W4**; doc rewrite (`project-dashboard.md`) owed post-merge                    |
+| **NEW: view-naming reconcile**              | ✅ done (#358)         | Azure `'dashboard'` → `'home'` aligned with PWA in **W5**                                                   |
 
 ## Work-items (dependency order)
 

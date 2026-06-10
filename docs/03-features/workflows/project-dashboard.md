@@ -18,7 +18,7 @@ serves:
 
 # Project Dashboard
 
-> **⚠ Being replaced (2026-06-09) — updates when slice W4 ships.** This describes the **current portfolio** Home/Project surface. Under the Workspace model, Home becomes **resume-last-Workspace + create-new** (no portfolio browser; `OtherProjectsList` retired), and the journey-phase indicator (FRAME / SCOUT / INVESTIGATE / IMPROVE) retires with the linear phase model. The faithful rewrite rides with **W4** — see the [Workspace migration mega-plan](../../superpowers/plans/2026-06-09-workspace-migration-mega-plan.md) + [product-overview](../../01-vision/product-overview.md).
+> **⚠ Superseded (W4 shipped #358, 2026-06-09) — faithful rewrite owed.** This still describes the **retired portfolio** Home/Project surface. Under the now-shipped Workspace model, Home is **resume-last-Workspace + create-new** (no portfolio browser; `OtherProjectsList` retired), and the journey-phase indicator (FRAME / SCOUT / INVESTIGATE / IMPROVE) is gone with the linear phase model. The faithful rewrite is now due as post-merge doc propagation — see the [Workspace migration mega-plan](../../superpowers/plans/2026-06-09-workspace-migration-mega-plan.md) + [product-overview](../../01-vision/product-overview.md).
 
 The Project Dashboard is a persistent overview screen shown when a user reopens a saved project in the Azure app. It provides orientation — a summary of where the Project stands — and acts as a navigation hub for jumping directly into relevant views.
 
