@@ -40,9 +40,9 @@ export interface TimeExtractionConfig {
 }
 
 /**
- * Month abbreviations (0-indexed)
+ * Month abbreviations (0-indexed, Jan=0)
  */
-const MONTH_ABBR = [
+export const MONTH_ABBR = [
   'Jan',
   'Feb',
   'Mar',
@@ -58,9 +58,148 @@ const MONTH_ABBR = [
 ];
 
 /**
- * Day-of-week abbreviations (0=Sunday)
+ * Full month names (0-indexed, January=0)
  */
-const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export const MONTH_FULL = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+/**
+ * Day-of-week abbreviations used for extraction (0=Sunday, Sun-first).
+ * Do NOT change this order — extractTimeComponents depends on Date.getDay() (0=Sun).
+ */
+export const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/**
+ * Weekday abbreviations in Mon-first display order (ISO/practitioner convention).
+ * Used for natural sort ordering; do NOT confuse with DAY_ABBR (Sun-first).
+ */
+export const WEEKDAY_DISPLAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/**
+ * Full weekday names in Mon-first display order.
+ */
+export const WEEKDAY_FULL_DISPLAY_ORDER = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+];
+
+/**
+ * Day-part vocabulary in natural time order.
+ */
+export const DAY_PART_ORDER = ['Morning', 'Afternoon', 'Evening', 'Night'];
+
+// ─── Natural-category comparator ─────────────────────────────────────────────
+
+/**
+ * Vocabulary definitions for natural-category detection.
+ * Each entry is a tuple of [abbreviation set, full-name set] (both sets
+ * contain lowercase keys for case-insensitive matching).
+ *
+ * Membership check: a key belongs to a vocabulary if it matches ANY entry
+ * in EITHER the abbreviation set or the full-name set.
+ */
+const NATURAL_VOCABULARIES: Array<{
+  name: string;
+  order: string[]; // canonical order, mixed case (the display labels)
+  fullNames?: readonly string[]; // optional full-name aliases (same positional index as order)
+  members: Set<string>; // lowercase keys for membership testing
+}> = [
+  {
+    name: 'weekday',
+    order: WEEKDAY_DISPLAY_ORDER,
+    fullNames: WEEKDAY_FULL_DISPLAY_ORDER,
+    members: new Set([
+      ...WEEKDAY_DISPLAY_ORDER.map(s => s.toLowerCase()),
+      ...WEEKDAY_FULL_DISPLAY_ORDER.map(s => s.toLowerCase()),
+    ]),
+  },
+  {
+    name: 'month',
+    order: MONTH_ABBR,
+    fullNames: MONTH_FULL,
+    members: new Set([
+      ...MONTH_ABBR.map(s => s.toLowerCase()),
+      ...MONTH_FULL.map(s => s.toLowerCase()),
+    ]),
+  },
+  {
+    name: 'day-part',
+    order: DAY_PART_ORDER,
+    members: new Set(DAY_PART_ORDER.map(s => s.toLowerCase())),
+  },
+];
+
+/**
+ * Build a vocab-index map for the given vocabulary entry.
+ * For a full-name key that appears in a vocabulary, returns the index
+ * of the matching abbreviation / canonical entry.
+ */
+function buildVocabIndex(vocab: (typeof NATURAL_VOCABULARIES)[0]): Map<string, number> {
+  const map = new Map<string, number>();
+  // Index by canonical order (abbreviations or primary label)
+  for (let i = 0; i < vocab.order.length; i++) {
+    map.set(vocab.order[i].toLowerCase(), i);
+  }
+  // Also index full-name aliases at the same positional index (if provided)
+  if (vocab.fullNames) {
+    for (let i = 0; i < vocab.fullNames.length; i++) {
+      map.set(vocab.fullNames[i].toLowerCase(), i);
+    }
+  }
+  return map;
+}
+
+/**
+ * Detect whether all keys in `uniqueKeys` belong to a single natural vocabulary.
+ * Returns a comparator function if detected, or `null` if no vocabulary matches.
+ *
+ * Detection rules:
+ * - Every unique key must belong to the SAME vocabulary (case-insensitive).
+ * - Subsets are allowed (e.g., Mon–Fri only).
+ * - A single non-member key → returns null (existing sort behaviour applies).
+ *
+ * @param uniqueKeys - The full set of unique category keys in the data.
+ * @param dir - Sort direction multiplier (1=asc, -1=desc).
+ * @returns A comparator (a, b) => number or null.
+ */
+export function detectNaturalVocabComparator(
+  uniqueKeys: string[],
+  dir: 1 | -1
+): ((a: string, b: string) => number) | null {
+  if (uniqueKeys.length === 0) return null;
+
+  const lowered = uniqueKeys.map(k => k.toLowerCase());
+
+  for (const vocab of NATURAL_VOCABULARIES) {
+    if (lowered.every(k => vocab.members.has(k))) {
+      const indexMap = buildVocabIndex(vocab);
+      return (a: string, b: string) => {
+        const ia = indexMap.get(a.toLowerCase()) ?? Number.MAX_SAFE_INTEGER;
+        const ib = indexMap.get(b.toLowerCase()) ?? Number.MAX_SAFE_INTEGER;
+        return (ia - ib) * dir;
+      };
+    }
+  }
+
+  return null;
+}
 
 /**
  * Parse a value into a Date object

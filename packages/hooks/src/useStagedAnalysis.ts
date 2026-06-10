@@ -28,17 +28,24 @@ export function useStagedAnalysis(): StagedAnalysisResult {
   const stageOrderMode = useProjectStore(s => s.stageOrderMode);
   const specs = useProjectStore(s => s.specs);
 
+  // Hoist stage resolution so both memos share the same computed order.
+  const resolvedStageOrder = useMemo(() => {
+    if (!stageColumn || filteredData.length === 0) return [];
+    const stageValues = filteredData.map(row => String(row[stageColumn] ?? ''));
+    return determineStageOrder(stageValues, stageOrderMode);
+  }, [filteredData, stageColumn, stageOrderMode]);
+
   const stagedData = useMemo(() => {
     if (!stageColumn || filteredData.length === 0) return filteredData;
-    const stageValues = filteredData.map(row => String(row[stageColumn] ?? ''));
-    const stageOrder = determineStageOrder(stageValues, stageOrderMode);
-    return sortDataByStage(filteredData, stageColumn, stageOrder);
-  }, [filteredData, stageColumn, stageOrderMode]);
+    return sortDataByStage(filteredData, stageColumn, resolvedStageOrder);
+  }, [filteredData, stageColumn, resolvedStageOrder]);
 
   const stagedStats = useMemo(() => {
     if (!stageColumn || !outcome || filteredData.length === 0) return null;
-    return calculateStatsByStage(filteredData, outcome, stageColumn, specs);
-  }, [filteredData, outcome, stageColumn, specs]);
+    // Pass the mode-aware resolved stage order so calculateStatsByStage uses the
+    // same order as stagedData (rather than re-deriving with default 'auto').
+    return calculateStatsByStage(filteredData, outcome, stageColumn, specs, resolvedStageOrder);
+  }, [filteredData, outcome, stageColumn, specs, resolvedStageOrder]);
 
   return { stagedData, stagedStats };
 }
