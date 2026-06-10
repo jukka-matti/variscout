@@ -4,7 +4,7 @@
 // a populated portfolio on load.
 //
 // Verified against apps/azure/src/db/schema.ts (2026-05-04):
-//   DB name  : 'VaRiScoutAzure'  (VariScoutDatabase constructor: super('VaRiScoutAzure'))
+//   DB name  : 'VaRiScoutAzureV1'  (VariScoutDatabase constructor: super('VaRiScoutAzureV1'))
 //   projects  table : primary key 'name', fields: name, location, modified, synced, data, meta?
 //   processHubs table : primary key 'id', fields: id, name, updatedAt, + optional framing fields
 //
@@ -17,8 +17,8 @@
 // from Node.js become plain objects in the browser. Instead, we pass the date as an
 // ISO string and construct the Date() inside the evaluate callback (browser context).
 //
-// Strategy: page.goto('/') to let Dexie migrate the schema, then page.evaluate()
-// to write data into the fully-migrated stores (with Date constructed in-browser),
+// Strategy: page.goto('/') to let Dexie open the schema, then page.evaluate()
+// to write data into the current stores (with Date constructed in-browser),
 // then page.reload() so the app re-reads the now-populated DB on mount.
 //
 // After seedPortfolioHub/seedIncompleteHub returns, the app has redirected to the
@@ -40,7 +40,7 @@ export interface SeedHubOptions {
   projectName?: string;
 }
 
-const DB_NAME = 'VaRiScoutAzure';
+const DB_NAME = 'VaRiScoutAzureV1';
 
 /**
  * Wait for the Azure app's initial landing state (any stable anchor).
@@ -63,8 +63,8 @@ async function waitForAppReady(page: Page) {
  *   - `processHubs`  — so the hub card appears in the portfolio with processGoal set
  *
  * Flow:
- *  1. page.goto('/') — lets Dexie run its full schema migration (v1→v8)
- *  2. page.evaluate() — writes fixture data into the migrated stores
+ *  1. page.goto('/') - lets Dexie open the current schema
+ *  2. page.evaluate() — writes fixture data into the current stores
  *     NOTE: Date is constructed inside evaluate (browser context) because JSON
  *     serialization of page.evaluate args does not preserve Date objects.
  *  3. page.reload()  — app re-reads DB on mount, auto-redirects to portfolio
@@ -84,7 +84,7 @@ export async function seedPortfolioHub(page: Page, opts: SeedHubOptions = {}) {
     { columnName: 'weight_g', characteristicType: 'nominalIsBest' as const },
   ];
 
-  // Step 1: let Dexie migrate the schema to the current version
+  // Step 1: let Dexie open the current schema
   await waitForAppReady(page);
 
   // Step 2: write fixture data
@@ -159,7 +159,7 @@ export async function seedPortfolioHub(page: Page, opts: SeedHubOptions = {}) {
 export async function seedIncompleteHub(page: Page, hubId = 'fixture-hub-incomplete') {
   const hubName = 'Incomplete Hub Fixture';
 
-  // Step 1: let Dexie migrate the schema
+  // Step 1: let Dexie open the current schema
   await waitForAppReady(page);
 
   // Step 2: write fixture data (Date constructed in browser context)

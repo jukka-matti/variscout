@@ -1,17 +1,18 @@
 // apps/pwa/src/db/schema.ts
 //
-// F3 normalized PWA Dexie schema.
+// Clean pre-launch PWA Dexie schema.
 //
-// Renames the IDB database from `variscout-pwa` (legacy single-blob document store) to
-// `variscout-pwa-normalized` and declares tables per spec §3 D3.
+// Uses the `variscout-pwa-v1` database and declares only current IndexedDB
+// tables. Retired compatibility stores are intentionally omitted: questions,
+// investigations, findings, causalLinks, hypotheses, and documentSnapshots.
 //
 // Locked decisions:
-//   1. DB rename, not version chain. The legacy `variscout-pwa` DB is
-//      orphaned in browser storage. Per wedge V1 no-back-compat policy
-//      (no users), the previous best-effort delete-on-construction has been
-//      retired; any stale legacy DB on dev machines is harmless.
-//   2. `version(1)` of the new schema. No `.upgrade()` callback; future schema
-//      work uses normal `version()`/`.upgrade()` chains from this point.
+//   1. DB rename, not version chain. The legacy `variscout-pwa` and
+//      `variscout-pwa-normalized` DBs are orphaned in browser storage. Per
+//      wedge V1 no-back-compat policy (no users), any stale legacy DB on dev
+//      machines is harmless.
+//   2. Clean `version(1)` schema. No `.upgrade()` callback; future schema work
+//      uses normal `version()`/`.upgrade()` chains from this point.
 //   3. canvasState lives in its own table (1:1 with hub). On
 //      `HUB_PERSIST_SNAPSHOT` the persistence layer decomposes
 //      `hub.canonicalProcessMap` out of the hub blob into a `canvasState` row;
@@ -21,14 +22,9 @@
 //
 // All other tables (evidenceSnapshots, evidenceSources, evidenceSourceCursors,
 // rowProvenance) start empty in F3 — the dispatch boundary will be wired by
-// F3.5 (evidence). The `questions` table (IM-1, ADR-085) was dropped at v10 —
-// ProblemStatementScope persists via the analyze blob. The former
-// documentSnapshots table was dropped at v12 when PWA durability became
-// export-only (.vrs). The never-written `investigations` projection table was
-// dropped at v13 (PO-4 — the per-step analyze projection dissolved). The
-// never-written `findings`/`causalLinks`/`hypotheses` tables were dropped at
-// v14 (PO-6 — findings/hypotheses persist via the .vrs DocumentSnapshot
-// analyze facet only; R6d: export-only, no IndexedDB document-save paths).
+// F3.5 (evidence). ProblemStatementScope persists via the analyze blob, not a
+// dedicated IndexedDB table. PWA durability is export-only (.vrs), so there is
+// no browser documentSnapshots table.
 //
 // Spec: docs/superpowers/specs/2026-05-06-data-flow-foundation-design.md §3 D3, §5
 
@@ -114,7 +110,7 @@ export class PwaDatabase extends Dexie {
   measurementPlans!: Table<MeasurementPlanRow, string>;
 
   constructor() {
-    super('variscout-pwa-normalized');
+    super('variscout-pwa-v1');
     this.version(1).stores({
       hubs: '&id, deletedAt',
       outcomes: '&id, hubId, deletedAt',
@@ -122,114 +118,15 @@ export class PwaDatabase extends Dexie {
       rowProvenance: '&id, snapshotId',
       evidenceSources: '&id, hubId, deletedAt',
       evidenceSourceCursors: '&id, sourceId',
-      investigations: '&id, hubId, deletedAt',
-      findings: '&id, investigationId, deletedAt',
-      questions: '&id, investigationId, deletedAt',
-      causalLinks: '&id, investigationId, deletedAt',
-      // NOTE: `questions` is declared at v1 to preserve the historical version
-      // chain, then dropped at v10 below (IM-1, ADR-085). Rewriting v1 to omit
-      // it would change the schema delta for any on-disk v1..v9 DB.
-      hypotheses: '&id, investigationId, deletedAt',
       improvementProjects: '&id, hubId, deletedAt, status, updatedAt',
-      canvasState: '&hubId',
-      meta: '&key',
-    });
-    this.version(2).stores({
       actionItems:
         '&id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
-    });
-    this.version(3).stores({
-      controlRecords: '&id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
-      controlReviews: '&id, recordId, investigationId, hubId, reviewedAt',
-    });
-    this.version(4).stores({
-      controlHandoffs: '&id, investigationId, hubId, status, handoffDate, deletedAt',
-    });
-    // Version 5: PR-WV1-3 — MeasurementPlan dedicated table for Investigation Wall plans.
-    this.version(5).stores({
-      measurementPlans: '&id, hypothesisId, status, deletedAt',
-    });
-
-    // Version 6: PR-WV1-NAV — Sustainment → Control vocabulary rename.
-    // Earlier version statements have been rewritten to declare 'controlRecords' /
-    // 'controlReviews' (the new table names) in their stores definitions. For
-    // any existing on-disk v5 database that physically holds tables named
-    // 'sustainmentRecords' / 'sustainmentReviews', Dexie will detect the
-    // schema mismatch and re-initialize on next open.
-    // Per wedge V1 no-back-compat policy (feedback_wedge_v1_no_migration_no_backcompat),
-    // NO upgrade callback is provided — existing v5 rows in the old tables
-    // become unreachable. Accepted because wedge V1 has no real users yet.
-    // This empty stores() call bumps the version to flush any cached schema.
-    this.version(6).stores({});
-
-    // Version 7: PR-CCJ-E1 — ImprovementProject extended with issueStatement +
-    // 3 Canvas-state binding fields (stepTimings, formulaBindings,
-    // timeDecompositionBindings; processSteps was added here but removed in v9).
-    // Stored shape changes but Dexie indexes are
-    // unchanged (new fields are in-row, not indexed). Per wedge V1
-    // no-back-compat policy (feedback_wedge_v1_no_migration_no_backcompat),
-    // NO upgrade callback — existing v6 rows that lack the new fields read
-    // back with `undefined`, which the optional type allows. The bump flushes
-    // cached schema state; no destructive re-init needed because the changes
-    // are purely additive.
-    this.version(7).stores({});
-
-    // Version 8: IM-0a — Hub↔Project 1:1 collapse. The improvementProjects
-    // Dexie table is unchanged (still keyed by id, hubId-indexed); the 1:1
-    // invariant is now enforced at the logical layer (ProcessHub.improvementProject
-    // is singular). No schema migration needed — the table shape is identical.
-    // Bumping the version flushes any cached schema.
-    this.version(8).stores({});
-
-    // Version 9: IM-0b — process-step model reconciliation (ADR-087). The rich
-    // ProcessMap (on ProcessContext.processMap, inside the hub blob) becomes the
-    // single canonical step structure. IP.processSteps was removed from the
-    // ImprovementProject type (it was vestigial — no write path ever persisted
-    // it; the derived projection via deriveProcessSteps is the only read path).
-    // The improvementProjects Dexie table shape is otherwise unchanged; the
-    // field is gone from the type so it can no longer be accidentally written.
-    // Per wedge V1 no-users / no-migration stance (ADR-082), NO upgrade
-    // callback. The bump flushes cached schema; no destructive re-init.
-    this.version(9).stores({});
-
-    // Version 10: IM-1 — drop the `Question` entity (ADR-085). The `questions`
-    // table was declared at v1 but never written (its QUESTION_* dispatch cases
-    // were always no-ops); ProblemStatementScope replaces Question and persists
-    // via the analyze blob, not Dexie. Declaring `questions: null` removes the
-    // store. Per wedge V1 no-back-compat policy, no data migration — the table
-    // was empty.
-    this.version(10).stores({ questions: null });
-    // Version 11: R6c — Former DocumentSnapshot browser-save table.
-    // Version 12 drops it; retain v11 in the historical chain so existing v10
-    // databases can upgrade through the same schema sequence.
-    this.version(11).stores({ documentSnapshots: '&key, savedAt' });
-
-    // Version 12: R6d — PWA durable persistence is export-only. Remove the
-    // browser documentSnapshot store from the latest schema.
-    this.version(12).stores({ documentSnapshots: null });
-
-    // v13 (PO-4): the per-step analyze projection entity dissolved — the
-    // never-written `investigations` projection table retires (tableName: null;
-    // the v1 store declaration stays per the Dexie monotonic-chain rule,
-    // mirroring the v10 `questions: null` precedent).
-    this.version(13).stores({ investigations: null });
-
-    // v14 (PO-6): the never-written findings/causalLinks/hypotheses normalized
-    // tables retire (tableName: null — the v10 questions / v13 investigations
-    // precedent). Findings/hypotheses persist via the .vrs DocumentSnapshot
-    // analyze facet only (R6d: export-only, no IndexedDB document-save paths).
-    this.version(14).stores({ findings: null, causalLinks: null, hypotheses: null });
-
-    // Version 15: PO-7 honest-rename — drop the phantom `investigationId` index
-    // from the three control tables (zero `.where('investigationId')` queries
-    // exist anywhere; control joins are post-fetch filters — PO-6 CausalLink
-    // precedent). The row FIELD renamed to `projectId` (in-row, unindexed; no
-    // `projectId` index added). No upgrade callback — wedge no-back-compat:
-    // pre-rename rows keep the old key in-row and simply stop joining.
-    this.version(15).stores({
       controlRecords: '&id, hubId, nextReviewDue, updatedAt, deletedAt',
       controlReviews: '&id, recordId, hubId, reviewedAt',
       controlHandoffs: '&id, hubId, status, handoffDate, deletedAt',
+      canvasState: '&hubId',
+      meta: '&key',
+      measurementPlans: '&id, hypothesisId, status, deletedAt',
     });
   }
 }

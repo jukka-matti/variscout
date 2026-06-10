@@ -553,10 +553,10 @@ describe('applyAction — OUTCOME_ARCHIVE', () => {
 // ---------------------------------------------------------------------------
 // No-op action kinds — F3 declares these as pass-through; they must not write.
 // One representative test per category; smoke-test pattern.
-// PO-6 (v14): findings/causalLinks/hypotheses tables retired. Assertions
-// re-pointed to db.actionItems (a surviving table) as the proxy.
+// Clean schema v1 omits findings/causalLinks/hypotheses tables. Assertions
+// use db.actionItems (a surviving table) as the proxy.
 // Proxy table: each no-op must write nothing anywhere — asserted via the surviving
-// actionItems table (the findings/causalLinks/hypotheses tables retired at v14, PO-6).
+// actionItems table.
 // ---------------------------------------------------------------------------
 
 describe('applyAction — no-op action kinds', () => {
@@ -570,9 +570,9 @@ describe('applyAction — no-op action kinds', () => {
   });
 
   it('SCOPE_ADD does not mutate any table (IM-1: ProblemStatementScope has no Dexie footprint)', async () => {
-    // IM-1 (ADR-085): the `questions` table was dropped at schema v10 and
-    // QUESTION_* was removed from the HubAction union entirely (it no longer
-    // exists — hence the `as unknown as HubAction` cast here). SCOPE_* is the
+    // Clean schema v1 omits the `questions` table and QUESTION_* was removed
+    // from the HubAction union entirely (it no longer exists — hence the
+    // `as unknown as HubAction` cast here). SCOPE_* is the
     // no-op action for ProblemStatementScope, which persists via the analyze
     // blob — not Dexie. No table holds scopes.
     await applyAction(db, {
@@ -613,7 +613,7 @@ describe('applyAction — no-op action kinds', () => {
 });
 
 // ---------------------------------------------------------------------------
-// MEASUREMENT_PLAN_* — dedicated measurementPlans Dexie table (PWA v5)
+// MEASUREMENT_PLAN_* — dedicated measurementPlans Dexie table (clean PWA v1)
 // ---------------------------------------------------------------------------
 
 function makeMeasurementPlan(id: string, hypothesisId: string): MeasurementPlan {

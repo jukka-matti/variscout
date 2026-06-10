@@ -21,7 +21,8 @@
 //   - `canvasState.getByHub` returns the row, stripped of the `hubId` FK.
 //   - `evidenceSnapshots` / `evidenceSources` query the real (empty) tables.
 //     Until F3.5 (evidence) wires writes, these consistently return empty rows.
-//   - `findings` / `causalLinks` / `hypotheses` tables retired at v14 (PO-6):
+//   - `findings` / `causalLinks` / `hypotheses` tables are omitted from the
+//     clean schema:
 //     these entities persist via the .vrs DocumentSnapshot analyze facet only.
 //   - `scopes` (ProblemStatementScope, ADR-085) has no Dexie table — it is
 //     stubbed empty and persists via the analyze blob.
