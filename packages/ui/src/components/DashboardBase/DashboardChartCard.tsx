@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { Copy, Check, Maximize2, Share2 } from 'lucide-react';
 import { ChartDownloadMenu, type ChartDownloadMenuColorScheme } from '../ChartExportMenu';
 import ChartSkeleton from '../ChartSkeleton/ChartSkeleton';
+import { useChartPaintLatch } from './internal/useChartPaintLatch';
 
 export interface DashboardChartCardProps {
   /** Container ID for copy-to-clipboard targeting */
@@ -48,11 +49,13 @@ export interface DashboardChartCardProps {
   utilityActions?: 'all' | 'maximize-only' | 'none';
   /**
    * Hold the chart slot on a ChartSkeleton while data/stats are pending.
-   * The card ALSO shows a skeleton for one rAF on every mount regardless of
-   * this flag — the painted frame precedes the synchronous chart render so no
-   * blank card window is visible on tab return / maximize.
-   * The one-rAF gate is deliberately always-on (paint-before-blocking-render
-   * guarantee), not data-gated — do not convert it to isLoading-only.
+   * The skeleton is an absolute overlay over the (always-mounted) chart slot —
+   * children render underneath immediately so measurement/render start at once.
+   * The overlay stays up until the slot's `<svg>` has ACTUALLY painted AND
+   * `isLoading` is false: `isLoading` clears when stats resolve, but visx's
+   * `withParentSize` paints the SVG a few frames later, so gating on `isLoading`
+   * alone leaves a blank window. Once hidden the overlay never re-shows for the
+   * life of the mount (recomputes use the dim isComputing overlays instead).
    */
   isLoading?: boolean;
 }
@@ -91,14 +94,10 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
   utilityActions = 'all',
   isLoading = false,
 }) => {
-  // One-rAF mount gate: paint a skeleton frame BEFORE the (potentially blocking,
-  // synchronous) chart render so the card is never blank on tab return / maximize.
-  const [painted, setPainted] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setPainted(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-  const showChart = painted && !isLoading;
+  // Skeleton overlay holds until the chart's <svg> has actually painted AND
+  // stats have resolved — covering the stats-done-but-not-yet-rendered window.
+  const chartSlotRef = useRef<HTMLDivElement>(null);
+  const showSkeleton = useChartPaintLatch(chartSlotRef, isLoading);
 
   const showExportButtons =
     utilityActions === 'all' && onCopyChart && onDownloadPng && onDownloadSvg;
@@ -198,7 +197,12 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
       {filterBar}
 
       <div className="flex-1 min-h-0 relative">
-        {showChart ? <div className="absolute inset-0">{children}</div> : <ChartSkeleton />}
+        {/* Children ALWAYS mount so withParentSize measures immediately. The
+            skeleton is an opaque overlay until the svg actually paints. */}
+        <div ref={chartSlotRef} className="absolute inset-0">
+          {children}
+        </div>
+        {showSkeleton && <ChartSkeleton />}
       </div>
 
       {footer}

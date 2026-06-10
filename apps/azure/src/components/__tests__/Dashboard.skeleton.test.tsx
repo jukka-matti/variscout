@@ -1,11 +1,13 @@
 /**
- * ER-1 Task 5 — Azure I-Chart skeleton gate (worker-backed stats).
+ * ER-1 Task 5 — Azure I-Chart skeleton overlay (worker-backed stats).
  *
  * Azure's Dashboard passes `ichartLoading={!stats || isComputing}` into the real
  * DashboardLayoutBase, which forwards it to the I-Chart DashboardChartCard's
- * one-rAF skeleton gate. This test exercises that exact seam with the REAL
+ * svg-paint skeleton overlay. This test exercises that exact seam with the REAL
  * @variscout/ui layout + card (the full Azure Dashboard test mocks the whole ui
  * surface), driving the pending → resolved transition the stats worker produces.
+ * The I-Chart content carries an `<svg>` so the latch can release the overlay
+ * once loading clears (mirrors the real visx chart painting an svg).
  */
 import React from 'react';
 import { describe, it, expect } from 'vitest';
@@ -70,25 +72,36 @@ const baseProps: DashboardLayoutBaseProps = {
   boxplotInsight: mockInsight,
   paretoInsight: mockInsight,
   statsInsight: mockInsight,
-  renderIChartContent: <div data-testid="azure-ichart">I-Chart</div>,
+  renderIChartContent: (
+    <div data-testid="azure-ichart">
+      <svg />
+      I-Chart
+    </div>
+  ),
   renderBoxplotContent: <div data-testid="azure-boxplot">Boxplot</div>,
   renderParetoContent: <div data-testid="azure-pareto">Pareto</div>,
 };
 
-describe('Azure Dashboard — I-Chart skeleton gate (ichartLoading seam)', () => {
-  it('holds the I-Chart card on a skeleton while stats are pending', async () => {
-    // Pending: ichartLoading=true (Azure passes !stats || isComputing).
+describe('Azure Dashboard — I-Chart skeleton overlay (ichartLoading seam)', () => {
+  it('holds the I-Chart card on a skeleton overlay while stats are pending', async () => {
+    // Pending: ichartLoading=true (Azure passes !stats || isComputing). The
+    // I-Chart content mounts underneath, but the overlay covers it.
     render(<DashboardLayoutBase {...baseProps} ichartLoading />);
     await flushRaf();
-    // The I-Chart card exists, but its content stays gated behind the skeleton.
     expect(screen.getByTestId('chart-ichart')).toBeDefined();
-    expect(screen.queryByTestId('azure-ichart')).toBeNull();
     expect(screen.getAllByTestId('chart-skeleton').length).toBeGreaterThan(0);
+    // The I-Chart card's own slot still carries the overlay even though its svg
+    // has painted — ichartLoading holds the latch.
+    const ichartCard = screen.getByTestId('chart-ichart');
+    expect(ichartCard.querySelector('[data-testid="chart-skeleton"]')).not.toBeNull();
   });
 
-  it('paints the I-Chart content once stats resolve (ichartLoading=false)', async () => {
+  it('drops the I-Chart overlay once stats resolve (ichartLoading=false)', async () => {
     render(<DashboardLayoutBase {...baseProps} ichartLoading={false} />);
     await flushRaf();
     expect(screen.getByTestId('azure-ichart')).toBeDefined();
+    // svg painted + !loading → the I-Chart card's overlay is released.
+    const ichartCard = screen.getByTestId('chart-ichart');
+    expect(ichartCard.querySelector('[data-testid="chart-skeleton"]')).toBeNull();
   });
 });

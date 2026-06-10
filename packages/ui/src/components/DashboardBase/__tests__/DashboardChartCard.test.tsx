@@ -20,11 +20,10 @@ const defaultProps: DashboardChartCardProps = {
 };
 
 describe('DashboardChartCard', () => {
-  it('renders title and children', async () => {
+  it('renders title and children', () => {
     render(<DashboardChartCard {...defaultProps} />);
     expect(screen.getByText('Boxplot')).toBeDefined();
-    // Children mount after the one-rAF skeleton gate.
-    await flushRaf();
+    // Children mount immediately — the skeleton is an overlay, not a swap.
     expect(screen.getByTestId('chart-content')).toBeDefined();
   });
 
@@ -172,29 +171,77 @@ describe('DashboardChartCard', () => {
     expect(onClick).toHaveBeenCalled();
   });
 
-  // --- skeleton mount gate ---
+  // --- skeleton overlay (svg-paint latch) ---
 
-  it('paints a ChartSkeleton (not children) on the first frame before rAF', () => {
+  // Children that include a painted <svg> — the latch's "the chart has painted"
+  // signal. The skeleton overlays until this svg appears AND !isLoading.
+  const childrenWithSvg = (
+    <div data-testid="chart-content">
+      <svg data-testid="chart-svg" />
+    </div>
+  );
+
+  it('mounts children underneath the skeleton overlay (overlay, not swap)', () => {
     render(<DashboardChartCard {...defaultProps} />);
-    // Pre-rAF: the skeleton is painted, children are NOT yet mounted.
+    // defaultProps.children has no <svg> → the overlay stays up...
     expect(screen.getByTestId('chart-skeleton')).toBeDefined();
-    expect(screen.queryByTestId('chart-content')).toBeNull();
+    // ...but the children are mounted underneath it (previously unmounted).
+    expect(screen.getByTestId('chart-content')).toBeDefined();
   });
 
-  it('swaps the skeleton for children after the rAF flush', async () => {
-    render(<DashboardChartCard {...defaultProps} />);
-    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+  it('hides the overlay once the slot contains an svg', async () => {
+    render(<DashboardChartCard {...defaultProps}>{childrenWithSvg}</DashboardChartCard>);
+    // Initially the overlay shows (latch effect hasn't latched on the sync pass
+    // until the slot ref is attached + queried) — children + svg are present.
+    expect(screen.getByTestId('chart-svg')).toBeDefined();
     await flushRaf();
+    // svg present + !isLoading → overlay latched off.
+    expect(screen.queryByTestId('chart-skeleton')).toBeNull();
     expect(screen.getByTestId('chart-content')).toBeDefined();
+  });
+
+  it('keeps the overlay while isLoading is true even with an svg present', async () => {
+    render(
+      <DashboardChartCard {...defaultProps} isLoading>
+        {childrenWithSvg}
+      </DashboardChartCard>
+    );
+    await flushRaf();
+    // svg present but isLoading holds the overlay up.
+    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+  });
+
+  it('drops the overlay when isLoading flips false with an svg painted', async () => {
+    const { rerender } = render(
+      <DashboardChartCard {...defaultProps} isLoading>
+        {childrenWithSvg}
+      </DashboardChartCard>
+    );
+    await flushRaf();
+    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+    rerender(
+      <DashboardChartCard {...defaultProps} isLoading={false}>
+        {childrenWithSvg}
+      </DashboardChartCard>
+    );
+    await flushRaf();
     expect(screen.queryByTestId('chart-skeleton')).toBeNull();
   });
 
-  it('keeps the skeleton while isLoading is true, even after the rAF flush', async () => {
-    render(<DashboardChartCard {...defaultProps} isLoading />);
-    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+  it('latches: once hidden, isLoading true again does NOT bring the overlay back', async () => {
+    const { rerender } = render(
+      <DashboardChartCard {...defaultProps}>{childrenWithSvg}</DashboardChartCard>
+    );
     await flushRaf();
-    // isLoading holds the gate closed regardless of the rAF tick.
-    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
-    expect(screen.queryByTestId('chart-content')).toBeNull();
+    expect(screen.queryByTestId('chart-skeleton')).toBeNull();
+    // Recompute: isLoading goes true again — overlay must stay hidden (the dim
+    // isComputing overlays cover recomputes, not the skeleton).
+    rerender(
+      <DashboardChartCard {...defaultProps} isLoading>
+        {childrenWithSvg}
+      </DashboardChartCard>
+    );
+    await flushRaf();
+    expect(screen.queryByTestId('chart-skeleton')).toBeNull();
   });
 });

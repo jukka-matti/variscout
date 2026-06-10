@@ -1,8 +1,9 @@
 /**
  * Tests for FocusedChartCard — focused (maximized) chart card.
  *
- * Covers the one-rAF skeleton mount gate (the maximize path's blank-window
- * fix) alongside the basic header/exit structure.
+ * Covers the svg-paint skeleton overlay (the maximize path's blank-window fix:
+ * the overlay holds until the chart's svg actually paints) alongside the basic
+ * header/exit structure.
  */
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
@@ -33,27 +34,68 @@ describe('FocusedChartCard', () => {
     expect(onExit).toHaveBeenCalled();
   });
 
-  // --- skeleton mount gate ---
+  // --- skeleton overlay (svg-paint latch) ---
 
-  it('paints a ChartSkeleton (not children) on the first frame before rAF', () => {
+  const childrenWithSvg = (
+    <div data-testid="focus-content">
+      <svg data-testid="focus-svg" />
+    </div>
+  );
+
+  it('mounts children underneath the skeleton overlay (overlay, not swap)', () => {
     render(<FocusedChartCard {...defaultProps} />);
+    // defaultProps.children has no <svg> → overlay stays up, children mounted.
     expect(screen.getByTestId('chart-skeleton')).toBeDefined();
-    expect(screen.queryByTestId('focus-content')).toBeNull();
+    expect(screen.getByTestId('focus-content')).toBeDefined();
   });
 
-  it('swaps the skeleton for children after the rAF flush', async () => {
-    render(<FocusedChartCard {...defaultProps} />);
-    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+  it('hides the overlay once the slot contains an svg', async () => {
+    render(<FocusedChartCard {...defaultProps}>{childrenWithSvg}</FocusedChartCard>);
+    expect(screen.getByTestId('focus-svg')).toBeDefined();
     await flushRaf();
+    expect(screen.queryByTestId('chart-skeleton')).toBeNull();
     expect(screen.getByTestId('focus-content')).toBeDefined();
+  });
+
+  it('keeps the overlay while isLoading is true even with an svg present', async () => {
+    render(
+      <FocusedChartCard {...defaultProps} isLoading>
+        {childrenWithSvg}
+      </FocusedChartCard>
+    );
+    await flushRaf();
+    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+  });
+
+  it('drops the overlay when isLoading flips false with an svg painted', async () => {
+    const { rerender } = render(
+      <FocusedChartCard {...defaultProps} isLoading>
+        {childrenWithSvg}
+      </FocusedChartCard>
+    );
+    await flushRaf();
+    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+    rerender(
+      <FocusedChartCard {...defaultProps} isLoading={false}>
+        {childrenWithSvg}
+      </FocusedChartCard>
+    );
+    await flushRaf();
     expect(screen.queryByTestId('chart-skeleton')).toBeNull();
   });
 
-  it('keeps the skeleton while isLoading is true, even after the rAF flush', async () => {
-    render(<FocusedChartCard {...defaultProps} isLoading />);
-    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+  it('latches: once hidden, isLoading true again does NOT bring the overlay back', async () => {
+    const { rerender } = render(
+      <FocusedChartCard {...defaultProps}>{childrenWithSvg}</FocusedChartCard>
+    );
     await flushRaf();
-    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
-    expect(screen.queryByTestId('focus-content')).toBeNull();
+    expect(screen.queryByTestId('chart-skeleton')).toBeNull();
+    rerender(
+      <FocusedChartCard {...defaultProps} isLoading>
+        {childrenWithSvg}
+      </FocusedChartCard>
+    );
+    await flushRaf();
+    expect(screen.queryByTestId('chart-skeleton')).toBeNull();
   });
 });

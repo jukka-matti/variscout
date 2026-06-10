@@ -1,10 +1,12 @@
 /**
- * ER-1 Task 5 — PWA I-Chart skeleton gate (worker-backed stats).
+ * ER-1 Task 5 — PWA I-Chart skeleton overlay (worker-backed stats).
  *
- * Asserts the I-Chart card paints a ChartSkeleton while stats are pending
- * (`!stats || isComputing`) and swaps in the real chart once they resolve.
- * `useAnalysisStats` is mocked to a controllable value so the pending → resolved
- * transition is deterministic (the real path resolves via the stats worker).
+ * Asserts the I-Chart card holds a ChartSkeleton overlay while stats are pending
+ * (`!stats || isComputing`) and drops it once the chart's svg has painted AND
+ * stats resolve. `useAnalysisStats` is mocked to a controllable value so the
+ * pending → resolved transition is deterministic (the real path resolves via the
+ * stats worker). The IChart stub renders an `<svg>` so the svg-paint latch can
+ * release the overlay once loading clears (the real chart paints a real svg).
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -32,7 +34,16 @@ vi.mock('@variscout/hooks', async importOriginal => {
 
 // Worker-free, DOM-light chart stubs (the real charts use withParentSize +
 // ResizeObserver, unavailable in jsdom).
-vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
+// The IChart stub paints an <svg> so the svg-paint latch can drop the overlay
+// once stats resolve (mirrors the real visx chart painting an svg).
+vi.mock('../charts/IChart', () => ({
+  default: () => (
+    <div data-testid="i-chart">
+      <svg />
+      I-Chart
+    </div>
+  ),
+}));
 vi.mock('../charts/Boxplot', () => ({ default: () => <div data-testid="boxplot">Boxplot</div> }));
 vi.mock('../charts/ParetoChart', () => ({
   default: () => <div data-testid="pareto-chart">Pareto</div>,
@@ -71,20 +82,24 @@ describe('PWA Dashboard — I-Chart skeleton gate', () => {
     });
   });
 
-  it('shows a ChartSkeleton while stats are pending and the chart once resolved', async () => {
+  it('holds the skeleton overlay while stats are pending and drops it once resolved', async () => {
     const { rerender } = render(<Dashboard />);
 
-    // Pending: even after a rAF tick, isComputing holds the I-Chart skeleton.
+    // Pending: the I-Chart card exists and its content mounts underneath, but
+    // isComputing (→ ichartLoading) holds the skeleton overlay up regardless.
     await flushRaf();
     expect(screen.getByTestId('chart-ichart')).toBeInTheDocument();
-    expect(screen.queryByTestId('i-chart')).not.toBeInTheDocument();
     const skeletons = screen.getAllByTestId('chart-skeleton');
     expect(skeletons.length).toBeGreaterThan(0);
 
-    // Resolve: stats arrive, isComputing flips false → the chart paints.
+    // Resolve: stats arrive, isComputing flips false → with the svg already
+    // painted, the overlay's svg-paint latch releases and the chart is revealed.
     statsState.value = { stats: RESOLVED_STATS, kde: null, isComputing: false };
     rerender(<Dashboard />);
     await flushRaf();
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
+    // The I-Chart card's skeleton overlay is gone (its content is now visible).
+    const ichartCard = screen.getByTestId('chart-ichart');
+    expect(ichartCard.querySelector('[data-testid="chart-skeleton"]')).toBeNull();
   });
 });

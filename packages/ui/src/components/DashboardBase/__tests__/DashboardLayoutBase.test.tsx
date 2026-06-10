@@ -95,23 +95,25 @@ describe('DashboardLayoutBase', () => {
     expect(screen.getByTestId('stats-content')).toBeDefined();
   });
 
-  it('renders render slot content', async () => {
+  it('renders render slot content', () => {
     render(<DashboardLayoutBase {...baseProps} />);
-    // Chart-content children mount after the cards' one-rAF skeleton gate.
-    await flushRaf();
+    // Chart-content children mount immediately underneath the skeleton overlay.
     expect(screen.getByTestId('ichart-content')).toBeDefined();
     expect(screen.getByTestId('boxplot-content')).toBeDefined();
     expect(screen.getByTestId('pareto-content')).toBeDefined();
   });
 
-  it('holds the I-Chart card on a skeleton while ichartLoading is true', async () => {
+  it('holds the I-Chart card on a skeleton overlay while ichartLoading is true', async () => {
     render(<DashboardLayoutBase {...baseProps} ichartLoading />);
     await flushRaf();
-    // I-Chart content stays gated; the other charts render normally.
-    expect(screen.queryByTestId('ichart-content')).toBeNull();
-    expect(screen.getByTestId('boxplot-content')).toBeDefined();
-    // The I-Chart card still exists — only its plot slot shows a skeleton.
+    // The I-Chart card still exists, and its content mounts underneath — but the
+    // skeleton overlay covers it (these stub children carry no <svg>, and
+    // ichartLoading holds the latch regardless).
     expect(screen.getByTestId('chart-ichart')).toBeDefined();
+    expect(screen.getByTestId('boxplot-content')).toBeDefined();
+    // At least the I-Chart card shows a skeleton overlay (the no-svg boxplot/
+    // pareto stubs also keep theirs, so ≥1 is the floor here).
+    expect(screen.getAllByTestId('chart-skeleton').length).toBeGreaterThan(0);
   });
 
   it('hides pareto card when showParetoPanel is false', () => {
