@@ -1779,3 +1779,7 @@ ER-10's LTTB revival addresses the **dominant render cost** (SVG node count). Th
 **Promotion path:** benchmark tab-return latency post-ER-10; if keep-mounted is the right call, a dedicated structural PR (not a rider on a feature PR). Azure .vrs export = its own explicit scope decision before building.
 
 **Severity:** low (mitigated) — skeletons cover the UX gap; recompute cost is measurable but not blocking at current dataset sizes.
+
+## Empty-data I-Chart shows the skeleton forever, hiding its own empty-state message [LOGGED 2026-06-11]
+
+**Summary:** with no outcome / zero rows, `useAsyncStats` settles at `stats=null, isComputing=false` (`packages/hooks/src/useAsyncStats.ts:46-50`), so the Dashboard's `ichartLoading = !stats || isComputing` stays `true` permanently and the ER-1 chart skeleton never yields — hiding the "No data available for I-Chart" message that renders underneath (`packages/ui/src/components/IChartWrapper/index.tsx:158-163`). Pre-existing in effect (the pre-latch gate had the same outcome — surfaced, not regressed, by the ER-1 svg-latch review). Fix direction: the loading flag should distinguish "computing" from "nothing to compute" (e.g. `isLoading = isComputing || (!stats && hasRows)`), decided at the Dashboard call sites in both apps.
