@@ -22,7 +22,6 @@ import {
   CapabilityMetricToggle,
   SubgroupConfigPopover,
   DefectSummary,
-  WorkspaceProjectScopeRibbon,
   useIsMobile,
   BREAKPOINTS,
   type ChartId,
@@ -138,7 +137,6 @@ const Dashboard = ({
   onExportCSV,
   onExportImage: _onExportImage,
   requestedFactor,
-  workspaceProjectScope,
   onOpenWall,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding, onOpenFinding } =
@@ -862,13 +860,6 @@ const Dashboard = ({
 
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
-        {workspaceProjectScope ? (
-          <WorkspaceProjectScopeRibbon
-            title={workspaceProjectScope.title}
-            labels={workspaceProjectScope.labels}
-            surface="Explore"
-          />
-        ) : null}
         {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}
         <ProcessHealthBar
           stats={stats}

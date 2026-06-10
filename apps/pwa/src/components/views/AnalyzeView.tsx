@@ -25,7 +25,6 @@ import {
   CANVAS_H,
   computeWallLayout,
   buildWallLayoutArgs,
-  WorkspaceProjectScopeRibbon,
   OverallProblemHeader,
   ScopeRail,
   useWallKeyboard,
@@ -597,13 +596,6 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">
-      {workspaceProjectScope && wallViewMode !== 'wall' ? (
-        <WorkspaceProjectScopeRibbon
-          title={workspaceProjectScope.title}
-          labels={workspaceProjectScope.labels}
-          surface="Analyze"
-        />
-      ) : null}
       <OverallProblemHeader
         issueStatement={workspaceProjectScope?.title}
         outcomeLabel={outcome}

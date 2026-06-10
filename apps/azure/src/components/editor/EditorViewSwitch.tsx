@@ -9,7 +9,6 @@ import {
   GoalBanner,
   ImproveTabRoot,
   WorkspaceProjectLaunchpadCard,
-  WorkspaceProjectScopeRibbon,
 } from '@variscout/ui';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { azureHubRepository } from '../../persistence';
@@ -235,18 +234,10 @@ function EditorFrameView({ props }: { props: EditorViewSwitchProps }): React.Rea
     pendingMatches,
     sharedCoScoutSection,
     workspaceProjectContext,
-    workspaceProjectScope,
   } = props;
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        {workspaceProjectScope ? (
-          <WorkspaceProjectScopeRibbon
-            title={workspaceProjectScope.title}
-            labels={workspaceProjectScope.labels}
-            surface="Process"
-          />
-        ) : null}
         {/* FSJ-3b (spec §3): goal ceremony opt-in — relocated off the retired
                     Stage-1 HubGoalForm; the empty start-prompt is the framing surface's
                     entry point. Populated banner renders when a goal already exists.

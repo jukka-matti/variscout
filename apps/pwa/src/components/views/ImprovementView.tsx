@@ -8,7 +8,7 @@
  *   - workspaceProject = <IP>  → ImproveStage action tracker
  */
 import React from 'react';
-import { WorkspaceProjectScopeRibbon, ImproveTabRoot } from '@variscout/ui';
+import { ImproveTabRoot } from '@variscout/ui';
 import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { createProjectActionItem } from '@variscout/core/findings';
@@ -43,23 +43,12 @@ export function buildApplyAction(
   };
 }
 
-const ImprovementView: React.FC<ImprovementViewProps> = ({
-  workspaceProjectScope,
-  workspaceProject,
-  onGoHome,
-}) => {
+const ImprovementView: React.FC<ImprovementViewProps> = ({ workspaceProject, onGoHome }) => {
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);
   const applyAction = buildApplyAction(workspaceProject, upsertProject);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {workspaceProjectScope ? (
-        <WorkspaceProjectScopeRibbon
-          title={workspaceProjectScope.title}
-          labels={workspaceProjectScope.labels}
-          surface="Improve"
-        />
-      ) : null}
       <ImproveTabRoot
         workspaceProject={workspaceProject}
         actions={workspaceProject?.metadata.actions ?? []}

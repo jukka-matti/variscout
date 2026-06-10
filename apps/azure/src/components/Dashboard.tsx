@@ -44,7 +44,6 @@ import {
   CapabilityMetricToggle,
   SubgroupConfigPopover,
   DefectSummary,
-  WorkspaceProjectScopeRibbon,
   InflectionSidePanelView,
   ScopeChrome,
   useInflectionBinningState,
@@ -204,7 +203,6 @@ const Dashboard = ({
   performance = {},
   ai = {},
   projectedCpkMap: externalProjectedCpkMap,
-  workspaceProjectScope,
   onOpenWall,
   categoricalValuesByColumn,
   workspaceProjectProcessSteps = [],
@@ -878,13 +876,6 @@ const Dashboard = ({
     >
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
-        {workspaceProjectScope ? (
-          <WorkspaceProjectScopeRibbon
-            title={workspaceProjectScope.title}
-            labels={workspaceProjectScope.labels}
-            surface="Explore"
-          />
-        ) : null}
         {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}
         {!isPhone && (
           <ProcessHealthBar

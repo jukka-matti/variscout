@@ -12,7 +12,6 @@ import {
   CANVAS_H,
   computeWallLayout,
   buildWallLayoutArgs,
-  WorkspaceProjectScopeRibbon,
   OverallProblemHeader,
   useWallKeyboard,
   useWallIsMobile,
@@ -92,6 +91,7 @@ const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 // Resize panel config (individual args for useResizablePanel)
 
 interface AnalyzeWorkspaceProps {
+  // TODO(ER-1): unused after ribbon deletion; prune with the EditorViewSwitch prop-threading pass
   workspaceProjectScope?: { title: string; labels: WorkspaceProjectScopeLabels } | null;
   /**
    * PR-CS-0 Task 2: id under which drill-materialized ProblemStatementScopes are
@@ -162,7 +162,6 @@ interface AnalyzeWorkspaceProps {
  * `Hypothesis` hubs; the Wall renders hubs + findings (no question column).
  */
 export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
-  workspaceProjectScope,
   scopeProjectId = 'general-unassigned',
   findingsState,
   handleRestoreFinding,
@@ -992,13 +991,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">
-      {workspaceProjectScope && wallViewMode !== 'wall' ? (
-        <WorkspaceProjectScopeRibbon
-          title={workspaceProjectScope.title}
-          labels={workspaceProjectScope.labels}
-          surface="Analyze"
-        />
-      ) : null}
       <OverallProblemHeader
         issueStatement={processContext?.issueStatement}
         outcomeLabel={outcome}

@@ -166,7 +166,6 @@ vi.mock('@variscout/ui', async importOriginal => {
     HelpTooltip: () => null,
     CapabilityMetricToggle: () => null,
     SubgroupConfigPopover: () => null,
-    WorkspaceProjectScopeRibbon: () => null,
     FocusedViewOverlay: () => null,
     NarrativeBar: () => null,
     DefectSummary: () => null,

@@ -13,7 +13,6 @@ import {
   ReportDefectKPIGrid,
   ReportImprovementSummary,
   ReportCpkLearningLoop,
-  WorkspaceProjectScopeRibbon,
   WorkspaceProjectChip,
   IPTechnicalReport,
 } from '@variscout/ui';
@@ -470,13 +469,6 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {workspaceProjectScope ? (
-        <WorkspaceProjectScopeRibbon
-          title={workspaceProjectScope.title}
-          labels={workspaceProjectScope.labels}
-          surface="Report"
-        />
-      ) : null}
       <ReportViewBase
         processName={
           workspaceProjectScope
