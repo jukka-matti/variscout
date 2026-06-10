@@ -444,7 +444,7 @@ describe('ProjectsTabView', () => {
 
     const slot = (
       <ProcessHubControlRegion
-        projects={[closedIP]}
+        project={closedIP}
         records={[dueRecord]}
         handoffs={[]}
         renderDate={new Date('2026-06-01T00:00:00.000Z')}
