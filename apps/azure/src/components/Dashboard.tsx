@@ -1238,7 +1238,7 @@ const Dashboard = ({
                         data-testid="btn-manage-factors"
                       >
                         <Settings2 size={14} />
-                        <span>Factors ({factors.length})</span>
+                        <span>Factors ({effectiveFactors.length})</span>
                       </button>
                     )}
                   </div>

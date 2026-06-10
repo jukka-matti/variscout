@@ -59,7 +59,7 @@ import {
 } from '@variscout/hooks';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
-import { Activity } from 'lucide-react';
+import { Activity, Settings2 } from 'lucide-react';
 import {
   getColumnNames,
   getEtaSquared,
@@ -1074,9 +1074,10 @@ const Dashboard = ({
         }
         ichartHeaderExtra={
           // CapabilityMetricToggle STAYS here (chart identity — ER-10 territory).
+          // Factors(N) twin added here (interim home until ER-2; mirrors Azure twin).
           // The SubgroupConfigPopover relocated to the context-line `subgroupSlot`
           // (ER-1 Task 2).
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <CapabilityMetricToggle
               metric={displayOptions.standardIChartMetric ?? 'measurement'}
               onMetricChange={m =>
@@ -1084,6 +1085,18 @@ const Dashboard = ({
               }
               disabled={specs.usl === undefined && specs.lsl === undefined}
             />
+            {onManageFactors && (
+              <button
+                onClick={onManageFactors}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-content-secondary hover:text-content bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
+                title="Manage analysis factors"
+                aria-label="Manage factors"
+                data-testid="btn-manage-factors"
+              >
+                <Settings2 size={14} />
+                <span>Factors ({effectiveFactors.length})</span>
+              </button>
+            )}
           </div>
         }
         // Render slots

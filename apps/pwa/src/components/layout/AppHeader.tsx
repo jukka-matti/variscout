@@ -15,6 +15,7 @@ import {
   WorkflowNav,
   type WorkflowTabId,
 } from '@variscout/ui';
+import { useAnalyzeStore } from '@variscout/stores';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
@@ -125,11 +126,13 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const shareButtonRef = useRef<HTMLButtonElement>(null);
+  // PO-6 §4.4: useAnalyzeStore.findings is the single findings source
+  const findingsCount = useAnalyzeStore(s => s.findings.length);
 
   const showPhaseTabs = hasData && activePhase !== undefined && onPhaseChange !== undefined;
 
   return (
-    <header className="border-b border-edge bg-surface/50 backdrop-blur-md z-10 flex flex-wrap items-center gap-x-2 px-4 sm:px-6 min-h-14">
+    <header className="border-b border-edge bg-surface/50 backdrop-blur-md z-10 flex items-center gap-x-2 px-4 sm:px-6 h-12">
       {/* Logo and dataset name - clickable to start new analysis */}
       <button
         onClick={onNewAnalysis}
@@ -187,7 +190,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 {onTogglePISidebar && (
                   <button
                     onClick={onTogglePISidebar}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    className={`p-2 rounded-lg text-xs font-medium transition-colors ${
                       isPISidebarOpen
                         ? 'text-blue-400 bg-blue-400/10'
                         : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
@@ -201,7 +204,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     aria-pressed={isPISidebarOpen}
                   >
                     <BarChart3 size={16} />
-                    <span className="hidden lg:inline">Stats</span>
                   </button>
                 )}
 
@@ -209,7 +211,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 {onToggleFindingsPanel && !hideFindings && (
                   <button
                     onClick={onToggleFindingsPanel}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    className={`relative p-2 rounded-lg text-xs font-medium transition-colors ${
                       isFindingsPanelOpen
                         ? 'text-blue-400 bg-blue-400/10'
                         : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
@@ -219,7 +221,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     aria-pressed={isFindingsPanelOpen}
                   >
                     <ClipboardList size={16} />
-                    <span className="hidden lg:inline">Findings</span>
+                    {findingsCount > 0 && (
+                      <span
+                        data-testid="findings-count-badge"
+                        className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[16px] h-[16px] px-0.5 text-[10px] font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                      >
+                        {findingsCount > 99 ? '99+' : findingsCount}
+                      </span>
+                    )}
                   </button>
                 )}
 
@@ -227,7 +236,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 {onOpenWhatIf && (
                   <button
                     onClick={onOpenWhatIf}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    className={`p-2 rounded-lg text-xs font-medium transition-colors ${
                       isWhatIfOpen
                         ? 'text-blue-400 bg-blue-400/10'
                         : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
@@ -236,7 +245,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     aria-label={t('panel.whatIf')}
                   >
                     <Beaker size={16} />
-                    <span className="hidden lg:inline">What-If</span>
                   </button>
                 )}
 

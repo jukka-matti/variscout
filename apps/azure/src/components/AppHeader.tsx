@@ -15,6 +15,7 @@ import {
   Plus,
   ChevronDown,
   ClipboardPaste,
+  ClipboardList,
   Upload,
   PenLine,
   MessageSquare,
@@ -24,6 +25,7 @@ import {
   FolderUp,
 } from 'lucide-react';
 import { usePanelsStore } from '../features/panels/panelsStore';
+import { useAnalyzeStore } from '@variscout/stores';
 
 export type WorkspaceView =
   | 'home'
@@ -124,6 +126,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
+  // PO-6 §4.4: useAnalyzeStore.findings is the single findings source
+  const findingsCount = useAnalyzeStore(s => s.findings.length);
 
   // Add Data dropdown state (must be before any early returns — Rules of Hooks)
   const [addDataOpen, setAddDataOpen] = useState(false);
@@ -479,6 +483,31 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             data-testid="btn-coscout"
           >
             <MessageSquare size={16} />
+          </button>
+        )}
+
+        {/* Findings icon — routes to Analyze with findings view */}
+        {hasData && (
+          <button
+            onClick={() => {
+              const panels = usePanelsStore.getState();
+              panels.setAnalyzeViewMode('findings');
+              panels.showAnalyze();
+            }}
+            className={`relative ${toggleBtnClass(activeView === 'analyze')}`}
+            title="View Findings"
+            aria-label="View Findings"
+            data-testid="btn-findings"
+          >
+            <ClipboardList size={16} />
+            {findingsCount > 0 && (
+              <span
+                data-testid="findings-count-badge"
+                className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[16px] h-[16px] px-0.5 text-[10px] font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+              >
+                {findingsCount > 99 ? '99+' : findingsCount}
+              </span>
+            )}
           </button>
         )}
 

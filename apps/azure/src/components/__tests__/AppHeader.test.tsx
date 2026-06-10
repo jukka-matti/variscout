@@ -2,10 +2,13 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppHeader } from '../AppHeader';
 import { usePanelsStore } from '../../features/panels/panelsStore';
+import { useAnalyzeStore } from '@variscout/stores';
+import { createFinding } from '@variscout/core';
 
 describe('AppHeader Workspace Project chip', () => {
   beforeEach(() => {
     usePanelsStore.setState(usePanelsStore.getInitialState());
+    useAnalyzeStore.setState(useAnalyzeStore.getInitialState());
   });
 
   it('renders Workspace Project chip and wires the title action', () => {
@@ -65,6 +68,84 @@ describe('AppHeader Workspace Project chip', () => {
 
     fireEvent.click(screen.getByTestId('workflow-tab-project'));
     expect(usePanelsStore.getState().activeView).toBe('projects');
+  });
+
+  describe('Findings button (Task 3 — net-new Azure header icon)', () => {
+    it('renders the Findings button when hasData is true', () => {
+      render(
+        <AppHeader
+          mode="project"
+          hasData={true}
+          projectName="Analysis"
+          rowCount={10}
+          activeView="explore"
+        />
+      );
+      expect(screen.getByTestId('btn-findings')).toBeTruthy();
+    });
+
+    it('does not show findings badge when findings count is 0', () => {
+      useAnalyzeStore.setState({ findings: [] });
+      render(
+        <AppHeader
+          mode="project"
+          hasData={true}
+          projectName="Analysis"
+          rowCount={10}
+          activeView="explore"
+        />
+      );
+      expect(screen.queryByTestId('findings-count-badge')).toBeNull();
+    });
+
+    it('shows findings count badge when findings are present', () => {
+      useAnalyzeStore.setState({
+        findings: [createFinding('F1', {}, null), createFinding('F2', {}, null)],
+      });
+      render(
+        <AppHeader
+          mode="project"
+          hasData={true}
+          projectName="Analysis"
+          rowCount={10}
+          activeView="explore"
+        />
+      );
+      const badge = screen.getByTestId('findings-count-badge');
+      expect(badge.textContent).toBe('2');
+    });
+
+    it('shows 99+ badge when more than 99 findings are present', () => {
+      useAnalyzeStore.setState({
+        findings: Array.from({ length: 150 }, (_, i) => createFinding(`F${i}`, {}, null)),
+      });
+      render(
+        <AppHeader
+          mode="project"
+          hasData={true}
+          projectName="Analysis"
+          rowCount={10}
+          activeView="explore"
+        />
+      );
+      const badge = screen.getByTestId('findings-count-badge');
+      expect(badge.textContent).toBe('99+');
+    });
+
+    it('clicking Findings sets analyzeViewMode to findings and routes to analyze', () => {
+      render(
+        <AppHeader
+          mode="project"
+          hasData={true}
+          projectName="Analysis"
+          rowCount={10}
+          activeView="explore"
+        />
+      );
+      fireEvent.click(screen.getByTestId('btn-findings'));
+      expect(usePanelsStore.getState().analyzeViewMode).toBe('findings');
+      expect(usePanelsStore.getState().activeView).toBe('analyze');
+    });
   });
 
   it('shows Save As in the project menu and invokes the fork action', () => {

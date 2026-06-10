@@ -342,6 +342,33 @@ describe('Dashboard', () => {
     ).not.toBeInTheDocument();
   });
 
+  // btn-manage-factors is injected via ichartHeaderExtra (rendered inside the I-Chart slot header
+  // when onManageFactors is provided). This is DISTINCT from the pre-existing empty-state Factors
+  // button (rendered only when hasData is false and there are no factors) — different render
+  // condition, different mount point.
+  describe('ER-1 Task 3: ichartHeaderExtra Factors(N) twin', () => {
+    it('renders btn-manage-factors in ichartHeaderExtra with factor count', () => {
+      const onManageFactors = vi.fn();
+      render(<Dashboard onManageFactors={onManageFactors} />);
+      const btn = screen.getByTestId('btn-manage-factors');
+      expect(btn).toBeTruthy();
+      // Factor count comes from projectStore.factors seeded to ['Machine'] in beforeEach
+      expect(btn.textContent).toContain('Factors (1)');
+    });
+
+    it('calls onManageFactors when btn-manage-factors is clicked', () => {
+      const onManageFactors = vi.fn();
+      render(<Dashboard onManageFactors={onManageFactors} />);
+      fireEvent.click(screen.getByTestId('btn-manage-factors'));
+      expect(onManageFactors).toHaveBeenCalledOnce();
+    });
+
+    it('does not render btn-manage-factors when onManageFactors is not provided', () => {
+      render(<Dashboard />);
+      expect(screen.queryByTestId('btn-manage-factors')).toBeNull();
+    });
+  });
+
   it('maps rolling-lens brush indices onto the visible raw rows', () => {
     usePreferencesStore.setState({ timeLens: { mode: 'rolling', windowSize: 2 } });
     useViewStore.getState().setSelectedPoints(new Set([0, 1]));
