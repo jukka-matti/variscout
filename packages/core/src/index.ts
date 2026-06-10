@@ -137,6 +137,16 @@ export {
   generateFindingText,
 } from './stats';
 
+export { computeSustainmentComparison, freezeBaseline } from './control/comparison';
+export type {
+  CategoryCount,
+  ControlBaseline,
+  FreezeBaselineInput,
+  PhaseLimits,
+  SustainmentComparison,
+  SustainmentComparisonInput,
+} from './control/comparison';
+
 // Finding text generation types
 export type { FindingTextInput } from './stats';
 
