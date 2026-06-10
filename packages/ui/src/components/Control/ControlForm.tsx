@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ControlCadence, ControlRecord, ControlReview } from '@variscout/core';
+import type { ControlRecord, ControlReview } from '@variscout/core';
 import type {
   ImprovementProjectFactorControl,
   ImprovementProjectGoal,
@@ -14,20 +14,8 @@ export interface ControlFormProps {
 }
 
 export type ControlRecordChangePatch = Partial<
-  Pick<ControlRecord, 'title' | 'targetSummary' | 'cadence'>
+  Pick<ControlRecord, 'title' | 'targetSummary' | 'nextCheckSuggestedAt' | 'ladderStep'>
 >;
-
-export type { ControlCadence };
-
-const cadenceOptions: ControlCadence[] = [
-  'weekly',
-  'biweekly',
-  'monthly',
-  'quarterly',
-  'semiannual',
-  'annual',
-  'on-demand',
-];
 
 const labelClassName = 'block space-y-2';
 const labelTextClassName = 'text-sm font-medium text-content';
@@ -136,8 +124,10 @@ export const ControlForm: React.FC<ControlFormProps> = ({
   reviews = [],
   onRecordChange,
 }) => {
-  const ticks = Math.max(0, Math.floor(record.consecutiveOnTargetTicks ?? 0));
   const isReadOnly = !onRecordChange;
+  const ladder = record.ladder?.length ? record.ladder : [7];
+  const ladderStep = Number.isFinite(record.ladderStep) ? record.ladderStep : 0;
+  const baseline = record.baseline;
 
   return (
     <div className="space-y-3">
@@ -151,24 +141,6 @@ export const ControlForm: React.FC<ControlFormProps> = ({
               value={record.title}
               onChange={event => onRecordChange?.({ title: event.currentTarget.value })}
             />
-          </label>
-
-          <label className={labelClassName}>
-            <span className={labelTextClassName}>Cadence</span>
-            <select
-              className={disabledInputClassName}
-              disabled={isReadOnly}
-              value={record.cadence}
-              onChange={event =>
-                onRecordChange?.({ cadence: event.currentTarget.value as ControlCadence })
-              }
-            >
-              {cadenceOptions.map(cadence => (
-                <option key={cadence} value={cadence}>
-                  {formatLabel(cadence)}
-                </option>
-              ))}
-            </select>
           </label>
 
           <label className={`${labelClassName} md:col-span-2`}>
@@ -187,12 +159,14 @@ export const ControlForm: React.FC<ControlFormProps> = ({
               <dd className="font-medium text-content">{record.owner?.displayName ?? 'not set'}</dd>
             </div>
             <div>
-              <dt className="text-content/60">Next review</dt>
-              <dd className="font-medium text-content">{formatDate(record.nextReviewDue)}</dd>
+              <dt className="text-content/60">Improvement date</dt>
+              <dd className="font-medium text-content">{formatDate(record.improvementDate)}</dd>
             </div>
             <div>
-              <dt className="text-content/60">Latest review</dt>
-              <dd className="font-medium text-content">{formatDate(record.latestReviewAt)}</dd>
+              <dt className="text-content/60">Next suggested re-check</dt>
+              <dd className="font-medium text-content">
+                {formatDate(record.nextCheckSuggestedAt)}
+              </dd>
             </div>
           </dl>
         </div>
@@ -205,12 +179,16 @@ export const ControlForm: React.FC<ControlFormProps> = ({
             <dd className="mt-1 font-medium text-content">{formatLabel(record.status)}</dd>
           </div>
           <div>
-            <dt className="text-content/60">Latest verdict</dt>
-            <dd className="mt-1 font-medium text-content">{formatLabel(record.latestVerdict)}</dd>
+            <dt className="text-content/60">Ladder step</dt>
+            <dd className="mt-1 font-medium text-content">
+              {ladderStep + 1} of {ladder.length}
+            </dd>
           </div>
           <div>
-            <dt className="text-content/60">On-target streak</dt>
-            <dd className="mt-1 font-medium text-content">{ticks} of 4 ticks</dd>
+            <dt className="text-content/60">Baseline</dt>
+            <dd className="mt-1 font-medium text-content">
+              {baseline ? `${baseline.measure} · n=${baseline.n}` : 'not set'}
+            </dd>
           </div>
         </dl>
       </CollapsibleSection>

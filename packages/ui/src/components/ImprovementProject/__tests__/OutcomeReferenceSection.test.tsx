@@ -6,7 +6,7 @@ import { ImprovementProjectForm } from '../ImprovementProjectForm';
 import { OutcomeReferenceSection } from '../sections/OutcomeReferenceSection';
 
 const makeControlRecord = (
-  overrides: Partial<ControlRecord & { title?: string }> & Pick<ControlRecord, 'id' | 'cadence'>
+  overrides: Partial<ControlRecord & { title?: string }> & Pick<ControlRecord, 'id'>
 ): ControlRecord & { title?: string } =>
   ({
     createdAt: 1,
@@ -14,6 +14,22 @@ const makeControlRecord = (
     updatedAt: 1,
     projectId: 'inv-1',
     hubId: 'hub-1',
+    status: 'verifying',
+    improvementDate: '2026-05-01T00:00:00.000Z',
+    baseline: {
+      capturedAt: 1,
+      window: {
+        startISO: '2026-04-01T00:00:00.000Z',
+        endISO: '2026-04-30T23:59:59.999Z',
+      },
+      measure: 'metric',
+      n: 12,
+      mean: 1,
+      sigma: 0.1,
+    },
+    ladder: [7, 30, 90],
+    ladderStep: 0,
+    lastEvaluatedSnapshotId: undefined,
     ...overrides,
   }) as ControlRecord & { title?: string };
 
@@ -28,7 +44,6 @@ const makeHandoff = (
     operationalOwner: { displayName: 'Process Owner' },
     handoffDate: Date.UTC(2026, 5, 15),
     description: 'Control transferred to operating system.',
-    retainControlReview: true,
     recordedBy: { displayName: 'Improvement Lead' },
     ...overrides,
   }) as ControlHandoff;
@@ -50,9 +65,10 @@ describe('OutcomeReferenceSection', () => {
         controlRecord={makeControlRecord({
           id: 'sr-1',
           title: 'Mix temperature sustainment',
-          cadence: 'monthly',
-          latestVerdict: 'holding',
-          nextReviewDue: '2026-07-01T00:00:00.000Z',
+          status: 'verifying',
+          ladder: [7, 30, 90],
+          ladderStep: 1,
+          nextCheckSuggestedAt: '2026-07-01T00:00:00.000Z',
           owner: { displayName: 'Avery Owner' },
         })}
         onNavigate={onNavigate}
@@ -62,9 +78,9 @@ describe('OutcomeReferenceSection', () => {
     const card = screen.getByRole('button', { name: /mix temperature sustainment/i });
 
     expect(card).toHaveTextContent('Mix temperature sustainment');
-    expect(card).toHaveTextContent('holding');
-    expect(card).toHaveTextContent('monthly');
-    expect(card).toHaveTextContent('Next review 2026-07-01');
+    expect(card).toHaveTextContent('verifying');
+    expect(card).toHaveTextContent('Ladder 2/3');
+    expect(card).toHaveTextContent('Next suggested re-check 2026-07-01');
     expect(card).toHaveTextContent('Avery Owner');
 
     fireEvent.click(card);
@@ -106,7 +122,6 @@ describe('OutcomeReferenceSection', () => {
         controlRecord={makeControlRecord({
           id: 'sr-1',
           title: 'Mix temperature sustainment',
-          cadence: 'weekly',
         })}
         controlHandoff={makeHandoff({
           id: 'handoff-1',
@@ -128,7 +143,6 @@ describe('OutcomeReferenceSection', () => {
         controlRecord={makeControlRecord({
           id: 'sr-1',
           title: 'Mix temperature sustainment',
-          cadence: 'weekly',
         })}
         controlHandoff={makeHandoff({
           id: 'handoff-1',
@@ -154,8 +168,9 @@ describe('ImprovementProjectForm outcome reference integration', () => {
           controlRecord: makeControlRecord({
             id: 'sr-1',
             title: 'Mix temperature sustainment',
-            cadence: 'monthly',
-            latestVerdict: 'holding',
+            status: 'verifying',
+            ladder: [7, 30, 90],
+            ladderStep: 1,
           }),
         }}
       />
@@ -165,7 +180,8 @@ describe('ImprovementProjectForm outcome reference integration', () => {
 
     const section = screen.getByRole('region', { name: 'Outcome reference' });
     expect(within(section).getByText('Mix temperature sustainment')).toBeInTheDocument();
-    expect(within(section).getByText('holding')).toBeInTheDocument();
+    expect(within(section).getByText('verifying')).toBeInTheDocument();
+    expect(within(section).getByText('Ladder 2/3')).toBeInTheDocument();
   });
 
   it('keeps sectionContent outcome override ahead of outcome reference props', () => {
@@ -175,7 +191,6 @@ describe('ImprovementProjectForm outcome reference integration', () => {
           controlRecord: makeControlRecord({
             id: 'sr-1',
             title: 'Mix temperature sustainment',
-            cadence: 'monthly',
           }),
         }}
         sectionContent={{

@@ -154,9 +154,9 @@ describe('PO-8b: adapter saves preserve Workspace metadata + access', () => {
       lastViewedAt: {},
       sustainment: {
         recordId: 'cr-1',
-        cadence: 'weekly' as const,
-        nextReviewDue: '2026-07-01T00:00:00.000Z',
-        latestVerdict: 'holding' as const,
+        ladderStep: 1,
+        nextCheckSuggestedAt: '2026-07-01T00:00:00.000Z',
+        status: 'verifying',
       },
     };
     const access = {

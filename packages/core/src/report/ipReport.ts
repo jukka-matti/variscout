@@ -129,8 +129,9 @@ function actionProgressLabel(actions: NonNullable<Finding['actions']>): string {
 
 function verificationLabel(record?: ControlRecord): string {
   if (!record) return 'Verification pending';
-  const verdict = record.latestVerdict ? `Control ${record.latestVerdict}` : 'Control pending';
-  return `${verdict} · ${record.consecutiveOnTargetTicks ?? 0} ticks`;
+  if (record.status === 'confirmed-sustained') return 'Control confirmed sustained';
+  if (record.status === 'drifted') return 'Control drift detected';
+  return 'Control verifying';
 }
 
 function reportCauseTitle(hypothesis: Hypothesis, findings: readonly Finding[]): string {
@@ -235,8 +236,8 @@ export function deriveIPReportNarrative(input: {
       title: 'Did it work?',
       items: [
         verificationLabel(input.controlRecord),
-        ...(input.controlRecord?.nextReviewDue
-          ? [`Next review: ${input.controlRecord.nextReviewDue}`]
+        ...(input.controlRecord?.nextCheckSuggestedAt
+          ? [`Next suggested re-check: ${input.controlRecord.nextCheckSuggestedAt}`]
           : []),
       ],
     },
@@ -253,7 +254,7 @@ export function deriveIPReportNarrative(input: {
         ...inProgress.map(row => `${row.title}: ${row.actionProgressLabel}`),
         ...openQuestions.map(hypothesis => `Open question: ${hypothesis.name}`),
         ...(inProgress.length === 0 && openQuestions.length === 0
-          ? ['Continue cadence review and watch for new Survey hints.']
+          ? ['Continue planned re-checks and watch for new Survey hints.']
           : []),
       ],
     },

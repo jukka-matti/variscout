@@ -37,7 +37,6 @@
 //   reaching this function — do not handle it here.
 
 import type { EvidenceSnapshot } from '@variscout/core';
-import { applyControlTick } from '@variscout/core';
 import type { HubAction } from '@variscout/core/actions';
 import { reduceMeasurementPlans } from '@variscout/core/measurementPlan';
 import { db } from '../db/schema';
@@ -160,21 +159,16 @@ export async function applyAction(action: HubAction): Promise<void> {
       // close could leave the replaced snapshot soft-deleted without the new
       // one inserted), but this is acceptable for Azure's single-table model
       // pre-F3.6. Future Azure normalization will revisit.
-      await db.transaction(
-        'rw',
-        [db.evidenceSnapshots, db.controlRecords, db.controlReviews],
-        async () => {
-          if (action.replacedSnapshotId) {
-            await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: Date.now() });
-          }
-          const envelope: EvidenceSnapshot = {
-            ...action.snapshot,
-            provenance: action.provenance,
-          };
-          await db.evidenceSnapshots.put(envelope);
-          await evaluateControlRecordsForSnapshot(action.hubId, envelope);
+      await db.transaction('rw', [db.evidenceSnapshots], async () => {
+        if (action.replacedSnapshotId) {
+          await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: Date.now() });
         }
-      );
+        const envelope: EvidenceSnapshot = {
+          ...action.snapshot,
+          provenance: action.provenance,
+        };
+        await db.evidenceSnapshots.put(envelope);
+      });
       return;
     }
 
@@ -383,13 +377,12 @@ export async function applyAction(action: HubAction): Promise<void> {
     case 'SUSTAINMENT_MARK_DRIFTED': {
       await db.controlRecords.update(action.recordId, {
         status: 'drifted',
-        consecutiveOnTargetTicks: 0,
         updatedAt: Date.now(),
       });
       return;
     }
 
-    case 'SUSTAINMENT_TICK_EVALUATED': {
+    case 'SUSTAINMENT_RECHECK_LOGGED': {
       await db.transaction('rw', [db.controlRecords, db.controlReviews], async () => {
         const existing = await db.controlRecords.get(action.record.id);
         await db.controlRecords.put({ ...existing, ...action.record });
@@ -421,27 +414,6 @@ export async function applyAction(action: HubAction): Promise<void> {
 
     case 'CONTROL_HANDOFF_ARCHIVE': {
       await db.controlHandoffs.update(action.handoffId, { deletedAt: Date.now() });
-      return;
-    }
-
-    case 'CONTROL_HANDOFF_ACKNOWLEDGE': {
-      const acknowledgedAt = action.acknowledgedAt ?? Date.now();
-      await db.controlHandoffs.update(action.handoffId, {
-        status: 'acknowledged',
-        acknowledgedAt,
-        ownerAcknowledgement: {
-          acknowledgedBy: action.acknowledgedBy,
-          notes: action.notes,
-        },
-      });
-      return;
-    }
-
-    case 'CONTROL_HANDOFF_MARK_OPERATIONAL': {
-      await db.controlHandoffs.update(action.handoffId, {
-        status: 'operational',
-        operationalAt: action.operationalAt ?? Date.now(),
-      });
       return;
     }
 
@@ -594,24 +566,4 @@ export async function applyAction(action: HubAction): Promise<void> {
     default:
       assertNever(action);
   }
-}
-
-async function evaluateControlRecordsForSnapshot(
-  hubId: string,
-  snapshot: EvidenceSnapshot
-): Promise<void> {
-  await db.transaction('rw', [db.controlRecords, db.controlReviews], async () => {
-    const liveRecords = await db.controlRecords
-      .where('hubId')
-      .equals(hubId)
-      .filter(record => record.deletedAt === null && record.lastEvaluatedSnapshotId !== snapshot.id)
-      .toArray();
-
-    if (liveRecords.length === 0) return;
-
-    const now = Date.now();
-    const evaluations = liveRecords.map(record => applyControlTick(record, snapshot, now));
-    await db.controlRecords.bulkPut(evaluations.map(evaluation => evaluation.record));
-    await db.controlReviews.bulkPut(evaluations.map(evaluation => evaluation.review));
-  });
 }

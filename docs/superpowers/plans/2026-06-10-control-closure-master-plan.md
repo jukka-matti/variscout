@@ -100,6 +100,8 @@ Sub-plan: [2026-06-10-cc-1-sustainment-comparison.md](2026-06-10-cc-1-sustainmen
 
 ### CC-2 — Control model reshape: atomic deletion cascade (spec §4)
 
+**Sub-plan:** [`2026-06-10-cc-2-control-model-cascade.md`](2026-06-10-cc-2-control-model-cascade.md).
+
 **Scope:** The breaking PR. Per the repo's atomic-sweep carve-out: **one Opus implementer** with Architect → Migration → Validator internal phases and per-category commits — do not split into sub-dispatches.
 
 Model changes (`packages/core`):

@@ -59,8 +59,11 @@ export const OutcomeReferenceSection: React.FC<OutcomeReferenceSectionProps> = (
   const handoffHeadingId = `${headingId}-handoff`;
 
   const sustainmentTitle = controlRecord?.title?.trim() || 'Linked sustainment record';
-  const nextReviewDate = formatDate(controlRecord?.nextReviewDue);
+  const nextCheckDate = formatDate(controlRecord?.nextCheckSuggestedAt);
   const handoffDate = formatDate(controlHandoff?.handoffDate);
+  const ladder = controlRecord?.ladder?.length ? controlRecord.ladder : [7];
+  const ladderStep =
+    controlRecord && Number.isFinite(controlRecord.ladderStep) ? controlRecord.ladderStep : 0;
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -79,15 +82,13 @@ export const OutcomeReferenceSection: React.FC<OutcomeReferenceSectionProps> = (
                 <span className={metadataClassName}>
                   {controlRecord.deletedAt ? 'archived' : 'active'}
                 </span>
-                {controlRecord.latestVerdict && (
-                  <span className={metadataClassName}>
-                    {formatLabel(controlRecord.latestVerdict)}
-                  </span>
-                )}
-                <span className={metadataClassName}>{formatLabel(controlRecord.cadence)}</span>
+                <span className={metadataClassName}>{formatLabel(controlRecord.status)}</span>
+                <span className={metadataClassName}>
+                  Ladder {ladderStep + 1}/{ladder.length}
+                </span>
               </span>
               <span className="mt-2 flex flex-wrap gap-2 text-xs text-content/70">
-                {nextReviewDate && <span>Next review {nextReviewDate}</span>}
+                {nextCheckDate && <span>Next suggested re-check {nextCheckDate}</span>}
                 {controlRecord.owner?.displayName && (
                   <span>Owner {controlRecord.owner.displayName}</span>
                 )}

@@ -163,7 +163,7 @@ function _exhaustiveWithHypothesisActions(action: HubAction): void {
       return;
     case 'SUSTAINMENT_MARK_DRIFTED':
       return;
-    case 'SUSTAINMENT_TICK_EVALUATED':
+    case 'SUSTAINMENT_RECHECK_LOGGED':
       return;
     // Control Handoff
     case 'CONTROL_HANDOFF_CREATE':
@@ -171,10 +171,6 @@ function _exhaustiveWithHypothesisActions(action: HubAction): void {
     case 'CONTROL_HANDOFF_UPDATE':
       return;
     case 'CONTROL_HANDOFF_ARCHIVE':
-      return;
-    case 'CONTROL_HANDOFF_ACKNOWLEDGE':
-      return;
-    case 'CONTROL_HANDOFF_MARK_OPERATIONAL':
       return;
     default:
       return assertNeverInTest(action);

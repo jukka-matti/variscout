@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import type { ControlCadence, ControlRecord } from '@variscout/core';
-import { nextDueFromCadence } from '@variscout/core';
+import type { ControlRecord } from '@variscout/core';
 import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
@@ -13,22 +12,7 @@ export interface ControlRecordEditorProps {
   onCancel: () => void;
 }
 
-const CADENCE_OPTIONS: { value: ControlCadence; label: string }[] = [
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'biweekly', label: 'Biweekly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'quarterly', label: 'Quarterly' },
-  { value: 'semiannual', label: 'Semiannual' },
-  { value: 'annual', label: 'Annual' },
-  { value: 'on-demand', label: 'On-demand' },
-];
-
 const todayDateString = (): string => new Date().toISOString().slice(0, 10);
-
-const suggestDueDate = (cadence: ControlCadence): string => {
-  const iso = nextDueFromCadence(cadence, new Date());
-  return iso ? iso.slice(0, 10) : '';
-};
 
 const ControlRecordEditor: React.FC<ControlRecordEditorProps> = ({
   projectId,
@@ -40,30 +24,19 @@ const ControlRecordEditor: React.FC<ControlRecordEditorProps> = ({
 }) => {
   const storage = useStorage();
 
-  const initialCadence: ControlCadence = existingRecord?.cadence ?? 'monthly';
-  const [cadence, setCadence] = useState<ControlCadence>(initialCadence);
   const [owner, setOwner] = useState(existingRecord?.owner?.displayName ?? currentUser.name ?? '');
-  const [nextReviewDue, setNextReviewDue] = useState(
-    existingRecord?.nextReviewDue
-      ? existingRecord.nextReviewDue.slice(0, 10)
-      : suggestDueDate(initialCadence)
+  const [improvementDate, setImprovementDate] = useState(
+    existingRecord?.improvementDate
+      ? existingRecord.improvementDate.slice(0, 10)
+      : todayDateString()
   );
-  // Treat an existing record's prior date as user-set so cadence changes don't overwrite it.
-  const [userEditedDate, setUserEditedDate] = useState(!!existingRecord?.nextReviewDue);
+  const [nextCheckSuggestedAt, setNextCheckSuggestedAt] = useState(
+    existingRecord?.nextCheckSuggestedAt
+      ? existingRecord.nextCheckSuggestedAt.slice(0, 10)
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  );
   const [openConcerns, setOpenConcerns] = useState(existingRecord?.openConcerns ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleCadenceChange = (next: ControlCadence) => {
-    setCadence(next);
-    if (!userEditedDate) {
-      setNextReviewDue(suggestDueDate(next));
-    }
-  };
-
-  const handleDateChange = (value: string) => {
-    setNextReviewDue(value);
-    setUserEditedDate(true);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,14 +49,25 @@ const ControlRecordEditor: React.FC<ControlRecordEditorProps> = ({
       title: existingRecord?.title ?? 'Control cadence',
       projectId,
       hubId,
-      status: existingRecord?.status ?? 'pending',
-      consecutiveOnTargetTicks: existingRecord?.consecutiveOnTargetTicks ?? 0,
-      hasOverride: existingRecord?.hasOverride ?? false,
-      lastEvaluatedSnapshotId: existingRecord?.lastEvaluatedSnapshotId,
-      cadence,
-      nextReviewDue: nextReviewDue
-        ? new Date(nextReviewDue + 'T00:00:00.000Z').toISOString()
+      status: existingRecord?.status ?? 'verifying',
+      improvementDate: new Date(improvementDate + 'T00:00:00.000Z').toISOString(),
+      baseline: existingRecord?.baseline ?? {
+        capturedAt: nowMs,
+        window: {
+          startISO: new Date(improvementDate + 'T00:00:00.000Z').toISOString(),
+          endISO: new Date(improvementDate + 'T00:00:00.000Z').toISOString(),
+        },
+        measure: 'outcome',
+        n: 0,
+        mean: 0,
+        sigma: 0,
+      },
+      ladder: existingRecord?.ladder ?? [7, 30, 90, 180],
+      ladderStep: existingRecord?.ladderStep ?? 0,
+      nextCheckSuggestedAt: nextCheckSuggestedAt
+        ? new Date(nextCheckSuggestedAt + 'T00:00:00.000Z').toISOString()
         : undefined,
+      lastEvaluatedSnapshotId: existingRecord?.lastEvaluatedSnapshotId,
       owner: owner
         ? {
             userId: existingRecord?.owner?.userId ?? currentUser.userId,
@@ -91,7 +75,6 @@ const ControlRecordEditor: React.FC<ControlRecordEditorProps> = ({
           }
         : undefined,
       openConcerns: openConcerns || undefined,
-      latestVerdict: existingRecord?.latestVerdict,
       latestReviewAt: existingRecord?.latestReviewAt,
       latestReviewId: existingRecord?.latestReviewId,
       controlHandoffId: existingRecord?.controlHandoffId,
@@ -116,23 +99,21 @@ const ControlRecordEditor: React.FC<ControlRecordEditorProps> = ({
       <h4 className="text-sm font-semibold text-content">Control record</h4>
 
       <div>
-        <label className="block text-xs font-medium text-content-secondary" htmlFor="sre-cadence">
-          Cadence
+        <label
+          className="block text-xs font-medium text-content-secondary"
+          htmlFor="sre-improvement-date"
+        >
+          Improvement date
         </label>
-        <select
-          id="sre-cadence"
-          aria-label="Cadence"
-          value={cadence}
-          onChange={e => handleCadenceChange(e.target.value as ControlCadence)}
+        <input
+          id="sre-improvement-date"
+          aria-label="Improvement date"
+          type="date"
+          value={improvementDate}
+          onChange={e => setImprovementDate(e.target.value)}
           className="w-full rounded-md border border-edge bg-surface-secondary px-2 py-1 text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
-        >
-          {CADENCE_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        />
       </div>
 
       <div>
@@ -153,17 +134,17 @@ const ControlRecordEditor: React.FC<ControlRecordEditorProps> = ({
       <div>
         <label
           className="block text-xs font-medium text-content-secondary"
-          htmlFor="sre-next-review"
+          htmlFor="sre-next-check"
         >
-          Next review due
+          Next suggested re-check
         </label>
         <input
-          id="sre-next-review"
-          aria-label="Next review due"
+          id="sre-next-check"
+          aria-label="Next suggested re-check"
           type="date"
-          value={nextReviewDue}
+          value={nextCheckSuggestedAt}
           min={todayDateString()}
-          onChange={e => handleDateChange(e.target.value)}
+          onChange={e => setNextCheckSuggestedAt(e.target.value)}
           className="w-full rounded-md border border-edge bg-surface-secondary px-2 py-1 text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>

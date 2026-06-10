@@ -12,11 +12,23 @@ const record: ControlRecord = {
   hubId: 'hub-1',
   projectId: 'inv-1',
   improvementProjectId: 'ip-1',
-  status: 'pending',
+  status: 'confirmed-sustained',
   title: 'Sustain Heads 5-8',
-  cadence: 'weekly',
-  consecutiveOnTargetTicks: 4,
-  hasOverride: false,
+  improvementDate: '2026-05-01T00:00:00.000Z',
+  baseline: {
+    capturedAt: 0,
+    window: {
+      startISO: '2026-04-01T00:00:00.000Z',
+      endISO: '2026-04-30T23:59:59.999Z',
+    },
+    measure: 'heads',
+    n: 12,
+    mean: 1,
+    sigma: 0.1,
+  },
+  ladder: [7, 30, 90],
+  ladderStep: 1,
+  nextCheckSuggestedAt: '2026-06-01T00:00:00.000Z',
   lastEvaluatedSnapshotId: undefined,
 };
 
@@ -33,7 +45,7 @@ const pendingAck: ControlClosureInputs = {
 };
 
 describe('ControlOverview', () => {
-  it('renders 4 cadence tick pills matching consecutiveOnTargetTicks', () => {
+  it('renders the re-check ladder state', () => {
     render(
       <ControlOverview
         record={record}
@@ -42,10 +54,10 @@ describe('ControlOverview', () => {
         onOpenAnalyze={() => {}}
       />
     );
-    expect(screen.getAllByTestId(/^cadence-tick-/)).toHaveLength(4);
+    expect(screen.getByTestId('control-ladder-step')).toHaveTextContent('Step 2 of 3');
   });
 
-  it('enables Control closeout CTA when consecutiveOnTargetTicks >= 4', () => {
+  it('enables Control closeout CTA when sustainment is analyst-confirmed', () => {
     render(
       <ControlOverview
         record={record}
@@ -59,8 +71,8 @@ describe('ControlOverview', () => {
     expect(screen.queryByText(/Start Handoff/i)).not.toBeInTheDocument();
   });
 
-  it('disables Control closeout CTA when fewer than 4 ticks', () => {
-    const r2: ControlRecord = { ...record, consecutiveOnTargetTicks: 2 };
+  it('disables Control closeout CTA while verification is still in progress', () => {
+    const r2: ControlRecord = { ...record, status: 'verifying' };
     render(
       <ControlOverview
         record={r2}

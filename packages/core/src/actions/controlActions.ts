@@ -1,4 +1,3 @@
-import type { EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessHub } from '../processHub';
 import type { ControlRecord, ControlReview } from '../control';
 
@@ -28,8 +27,7 @@ export type ControlAction =
       recordId: ControlRecord['id'];
     }
   | {
-      kind: 'SUSTAINMENT_TICK_EVALUATED';
+      kind: 'SUSTAINMENT_RECHECK_LOGGED';
       record: ControlRecord;
       review: ControlReview;
-      snapshotId?: EvidenceSnapshot['id'];
     };

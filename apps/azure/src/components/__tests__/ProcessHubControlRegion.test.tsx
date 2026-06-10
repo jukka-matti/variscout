@@ -38,11 +38,22 @@ function makeRecord(projectId: string, overrides: Partial<ControlRecord> = {}): 
     projectId: `inv-${projectId}`,
     improvementProjectId: projectId,
     hubId: 'hub-1',
-    status: 'pending',
-    consecutiveOnTargetTicks: 0,
-    hasOverride: false,
+    status: 'verifying',
+    improvementDate: '2026-04-01T00:00:00.000Z',
+    baseline: {
+      capturedAt: 1735689600000,
+      window: {
+        startISO: '2026-03-01T00:00:00.000Z',
+        endISO: '2026-03-31T23:59:59.999Z',
+      },
+      measure: 'metric',
+      n: 12,
+      mean: 1,
+      sigma: 0.1,
+    },
+    ladder: [7, 30, 90],
+    ladderStep: 0,
     lastEvaluatedSnapshotId: undefined,
-    cadence: 'monthly',
     createdAt: 1735689600000, // 2026-01-01T00:00:00.000Z
     updatedAt: 1735689600000,
     deletedAt: null,
@@ -55,13 +66,11 @@ function makeHandoff(projectId: string, overrides: Partial<ControlHandoff> = {})
     id: `ho-${projectId}`,
     projectId,
     hubId: 'hub-1',
-    status: 'operational',
     surface: 'qms-procedure',
     systemName: 'QMS',
     operationalOwner: { displayName: 'Alice' },
     handoffDate: 1740787200000,
     description: 'Procedure updated',
-    retainControlReview: true,
     createdAt: 1740787200000,
     deletedAt: null,
     recordedBy: { displayName: 'Alice' },
@@ -144,17 +153,16 @@ describe('ProcessHubControlRegion', () => {
     expect(onSetupControl).toHaveBeenCalledWith('p-2');
   });
 
-  it('renders the overdue status when a record is past due, calls onLogReview with the recordId', () => {
+  it('renders the suggested status when a record reaches its re-check suggestion', () => {
     const onLogReview = vi.fn();
     const project = makeProject({ id: 'p-3', title: 'Coffee Moisture', status: 'closed' });
     const records = [
       makeRecord('p-3', {
         id: 'rec-abc',
-        nextReviewDue: '2026-04-20T00:00:00.000Z', // before NOW → overdue
-        latestVerdict: 'holding',
+        nextCheckSuggestedAt: '2026-04-20T00:00:00.000Z',
       }),
     ];
-    const handoffs = [makeHandoff('inv-p-3', { retainControlReview: true })];
+    const handoffs = [makeHandoff('inv-p-3')];
 
     render(
       <ProcessHubControlRegion
@@ -169,11 +177,10 @@ describe('ProcessHubControlRegion', () => {
     );
 
     expect(screen.getByText('Coffee Moisture')).toBeInTheDocument();
-    expect(screen.getByText(/Holding/)).toBeInTheDocument();
-    expect(screen.getByTestId('control-overdue')).toBeInTheDocument();
+    expect(screen.getByTestId('control-suggested')).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole('button', { name: /Log overdue control review for Coffee Moisture/ })
+      screen.getByRole('button', { name: /Log control re-check for Coffee Moisture/ })
     );
     expect(onLogReview).toHaveBeenCalledWith('rec-abc');
   });
@@ -186,9 +193,8 @@ describe('ProcessHubControlRegion', () => {
     const records = [
       makeRecord('p-recent', {
         id: 'rec-recent',
-        nextReviewDue: oneMonthFromNow,
+        nextCheckSuggestedAt: oneMonthFromNow,
         latestReviewAt: sevenDaysAgo,
-        latestVerdict: 'holding',
       }),
     ];
 
@@ -208,13 +214,12 @@ describe('ProcessHubControlRegion', () => {
     expect(screen.getByText('Pasteurizer Temp')).toBeInTheDocument();
   });
 
-  it('renders empty-state when a controlled project has a retainControlReview=false handoff', () => {
+  it('renders suggested state when a controlled project reaches its re-check suggestion', () => {
     const project = makeProject({ id: 'p-5', title: 'Pressure Drop', status: 'closed' });
     const records = [
       makeRecord('p-5', {
         id: 'rec-xyz',
-        cadence: 'quarterly',
-        nextReviewDue: '2026-04-01T00:00:00.000Z', // overdue but opted-out
+        nextCheckSuggestedAt: '2026-04-01T00:00:00.000Z',
       }),
     ];
     const handoffs = [
@@ -223,7 +228,6 @@ describe('ProcessHubControlRegion', () => {
         surface: 'dashboard-only',
         systemName: 'Dashboard',
         operationalOwner: { displayName: 'Bob' },
-        retainControlReview: false,
         recordedBy: { displayName: 'Bob' },
       }),
     ];
@@ -240,15 +244,11 @@ describe('ProcessHubControlRegion', () => {
       />
     );
 
-    expect(screen.queryByTestId('control-overdue')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('control-due')).not.toBeInTheDocument();
+    expect(screen.getByTestId('control-suggested')).toBeInTheDocument();
     expect(screen.queryByTestId('control-recently-reviewed')).not.toBeInTheDocument();
     expect(screen.queryByTestId('control-setup')).not.toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'No control items yet — projects move here once they reach the Control stage.'
-      )
-    ).toBeInTheDocument();
+    expect(screen.getByText('Re-check suggested')).toBeInTheDocument();
+    expect(screen.getByText('Pressure Drop')).toBeInTheDocument();
   });
 
   it('NEGATIVE CONTROL — the label cannot lie: an active project with no record/handoff renders NO setup candidate', () => {

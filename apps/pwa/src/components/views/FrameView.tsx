@@ -510,7 +510,7 @@ const FrameView: React.FC<FrameViewProps> = ({
           ...controlHandoffs.map(handoff => ({
             id: handoff.id,
             label: handoff.systemName || handoff.operationalOwner.displayName || 'Handoff',
-            description: handoff.status,
+            description: handoff.referenceUri ?? 'handoff recorded',
           })),
         ],
       },

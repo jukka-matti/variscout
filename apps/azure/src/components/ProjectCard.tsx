@@ -54,9 +54,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     ? Object.values(metadata.questionCounts).reduce((sum, n) => sum + n, 0)
     : 0;
 
-  // Control due-ness chip (§8 interim contract — ControlMetadataProjection)
-  const nextReviewDue = metadata?.sustainment?.nextReviewDue;
-  const isControlOverdue = nextReviewDue ? new Date(nextReviewDue).getTime() < Date.now() : false;
+  const nextCheckSuggestedAt = metadata?.sustainment?.nextCheckSuggestedAt;
+  const isControlCheckSuggested = nextCheckSuggestedAt
+    ? new Date(nextCheckSuggestedAt).getTime() <= Date.now()
+    : false;
 
   // Location label
   const locationLabel = location === 'team' ? 'Team' : 'Personal';
@@ -99,18 +100,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         </div>
       )}
 
-      {/* Control due-ness chip — only when nextReviewDue is set */}
-      {nextReviewDue && (
+      {nextCheckSuggestedAt && (
         <div>
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-medium border ${
-              isControlOverdue
+              isControlCheckSuggested
                 ? 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-700'
                 : 'text-content-secondary bg-surface-primary border-edge'
             }`}
-            data-testid="project-card-control-due"
+            data-testid="project-card-control-check"
           >
-            {isControlOverdue ? 'Review overdue' : 'Review due'}
+            {isControlCheckSuggested ? 'Re-check suggested' : 'Re-check planned'}
           </span>
         </div>
       )}

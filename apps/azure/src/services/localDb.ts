@@ -267,9 +267,9 @@ export function buildSustainmentProjection(
 ): ControlMetadataProjection {
   return {
     recordId: record.id,
-    cadence: record.cadence,
-    nextReviewDue: record.nextReviewDue,
-    latestVerdict: record.latestVerdict,
+    ladderStep: record.ladderStep,
+    nextCheckSuggestedAt: record.nextCheckSuggestedAt,
+    status: record.status,
     handoffSurface: handoff?.surface,
   };
 }

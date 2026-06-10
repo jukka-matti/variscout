@@ -11,12 +11,23 @@ const controlRecord = (overrides: Partial<ControlRecord>): ControlRecord =>
     id: 'sr-1',
     projectId: 'inv-1',
     hubId: 'hub-1',
-    status: 'pending',
+    status: 'verifying',
     title: 'Mix temperature control',
-    consecutiveOnTargetTicks: 0,
-    hasOverride: false,
+    improvementDate: '2026-05-01T00:00:00.000Z',
+    baseline: {
+      capturedAt: NOW - 20 * DAY_MS,
+      window: {
+        startISO: '2026-04-01T00:00:00.000Z',
+        endISO: '2026-04-30T23:59:59.999Z',
+      },
+      measure: 'mix_temperature',
+      n: 30,
+      mean: 62,
+      sigma: 1.2,
+    },
+    ladder: [7, 30, 90],
+    ladderStep: 0,
     lastEvaluatedSnapshotId: undefined,
-    cadence: 'weekly',
     createdAt: NOW - 10 * DAY_MS,
     deletedAt: null,
     updatedAt: NOW - DAY_MS,
@@ -74,8 +85,8 @@ describe('surveySustainmentRules', () => {
         }),
         controlRecord({
           id: 'sr-archived-progress',
-          status: 'pending',
-          consecutiveOnTargetTicks: 3,
+          status: 'verifying',
+          nextCheckSuggestedAt: new Date(NOW - DAY_MS).toISOString(),
           deletedAt: NOW - DAY_MS,
         }),
       ],
@@ -85,31 +96,13 @@ describe('surveySustainmentRules', () => {
     expect(hints).toHaveLength(0);
   });
 
-  it('emits a warning drift hint for records whose latest verdict is drifting', () => {
-    const hints = surveySustainmentRules({
-      controlRecords: [
-        controlRecord({ id: 'sr-verdict', status: 'pending', latestVerdict: 'drifting' }),
-      ],
-      now: NOW,
-    });
-
-    expect(hints).toHaveLength(1);
-    expect(hints[0]).toMatchObject({
-      kind: 'drift-detection',
-      surface: 'sustainment',
-      targetEntityId: 'sr-verdict',
-      severity: 'warning',
-    });
-  });
-
-  it('emits a 3-of-4 progress prompt for pending records with three on-target ticks', () => {
+  it('emits a soft re-check prompt when the ladder suggestion is reached', () => {
     const hints = surveySustainmentRules({
       controlRecords: [
         controlRecord({
-          id: 'sr-progress',
-          status: 'pending',
-          consecutiveOnTargetTicks: 3,
-          latestVerdict: 'holding',
+          id: 'sr-recheck',
+          status: 'verifying',
+          nextCheckSuggestedAt: new Date(NOW - DAY_MS).toISOString(),
         }),
       ],
       now: NOW,
@@ -119,9 +112,9 @@ describe('surveySustainmentRules', () => {
       expect.objectContaining({
         kind: 'drift-detection',
         surface: 'sustainment',
-        targetEntityId: 'sr-progress',
+        targetEntityId: 'sr-recheck',
         severity: 'info',
-        message: '3 of 4 ticks confirmed',
+        message: 'Mix temperature control is ready for a sustainment re-check',
       }),
     ]);
   });
@@ -175,7 +168,7 @@ describe('surveySustainmentRules', () => {
       controlRecords: [
         controlRecord({
           id: 'sr-linked',
-          status: 'pending',
+          status: 'verifying',
           improvementProjectId: 'ip-linked',
           deletedAt: null,
         }),

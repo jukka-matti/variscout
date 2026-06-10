@@ -325,9 +325,9 @@ describe('localDb Process Hub support', () => {
   describe('PO-8b merge-preserving metadata (the heal contract)', () => {
     const seededSustainment: ControlMetadataProjection = {
       recordId: 'cr-1',
-      cadence: 'weekly',
-      nextReviewDue: '2026-07-01T00:00:00.000Z',
-      latestVerdict: 'holding',
+      ladderStep: 1,
+      nextCheckSuggestedAt: '2026-07-01T00:00:00.000Z',
+      status: 'verifying',
     };
 
     it('mergeProjectMetadata preserves the Control-owned sustainment projection over a recompute that lacks it', () => {

@@ -1,5 +1,5 @@
 import type { ImprovementProject } from '../improvementProject';
-import type { ControlRecord } from '../control';
+import { isCheckSuggested, type ControlRecord } from '../control';
 import type { SurveyHint, SurveyRule } from './types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -33,14 +33,8 @@ function hasLinkedLiveSustainment(project: ImprovementProject, records: ControlR
 }
 
 function driftSeverity(record: ControlRecord): SurveyHint['severity'] | undefined {
-  if (record.status === 'drifted' || record.latestVerdict === 'broken') return 'critical';
-  if (record.latestVerdict === 'drifting') return 'warning';
+  if (record.status === 'drifted') return 'critical';
   return undefined;
-}
-
-function driftMessage(record: ControlRecord, severity: SurveyHint['severity']): string {
-  if (severity === 'critical') return `${record.title} drift detected`;
-  return `${record.title} is drifting`;
 }
 
 export const surveySustainmentRules: SurveyRule = ctx => {
@@ -55,7 +49,7 @@ export const surveySustainmentRules: SurveyRule = ctx => {
         kind: 'drift-detection',
         surface: 'sustainment',
         targetEntityId: record.id,
-        message: driftMessage(record, severity),
+        message: `${record.title} drift detected`,
         severity,
         action: {
           label: 'Open sustainment record',
@@ -67,15 +61,16 @@ export const surveySustainmentRules: SurveyRule = ctx => {
     }
 
     if (
-      record.status === 'pending' &&
-      record.consecutiveOnTargetTicks >= 1 &&
-      record.consecutiveOnTargetTicks <= 3
+      isCheckSuggested(
+        record,
+        ctx.now instanceof Date ? ctx.now : new Date(timestamp(ctx.now) ?? 0)
+      )
     ) {
       hints.push({
         kind: 'drift-detection',
         surface: 'sustainment',
         targetEntityId: record.id,
-        message: `${record.consecutiveOnTargetTicks} of 4 ticks confirmed`,
+        message: `${record.title} is ready for a sustainment re-check`,
         severity: 'info',
         action: {
           label: 'Open sustainment record',
