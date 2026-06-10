@@ -158,6 +158,7 @@ export {
   computeMainEffects,
   computeInteractionEffects,
   generateFollowUpQuestions,
+  excludeYDerivedFactors,
 } from './factorEffects';
 
 // Interaction screening (Pass 2 of best subsets)

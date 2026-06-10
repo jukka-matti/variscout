@@ -43,7 +43,9 @@ export {
   computeSpecSuggestion,
   computeCumulativeProjection,
   computeBenchmarkProjection,
+  computeMatchedBestProjection,
 } from './projection';
+export type { MatchedBestProjection } from './projection';
 
 // Scope-level contribution (IM-5 — What-If projection + descriptive coverage %)
 export { computeScopeWhatIfProjection, computeConditionCoverage } from './scopeContribution';

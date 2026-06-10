@@ -13,6 +13,9 @@ import type { DataRow } from '../types';
 import { toNumericValue } from '../types';
 import { fDistributionPValue } from './distributions';
 import type { InteractionScreenResult } from './interactionScreening';
+import { classifyAllFactors } from './factorTypeDetection';
+import { quartileBin } from '../binning/quantileCuts';
+import type { BinnedFactorBinding } from '../binning/types';
 
 // ============================================================================
 // Types
@@ -38,8 +41,27 @@ export interface FactorMainEffect {
   factor: string;
   /** Per-level means and effects, sorted by mean descending */
   levels: LevelEffect[];
-  /** Eta-squared: proportion of total SS explained by this factor */
+  /** Eta-squared: descriptive share of total SS this factor accounts for. */
   etaSquared: number;
+  /**
+   * Cardinality-penalized (ω²-style) adjusted share, floored at 0. This is the
+   * ranking quantity — it discounts the level-count inflation that lets a
+   * high-cardinality factor fake a large raw η². See `computeMainEffects` for
+   * the formula. Never a "cause" — a level-count-honest contribution estimate.
+   */
+  adjustedEtaSquared: number;
+  /** Between-groups degrees of freedom (k − 1). */
+  dfBetween: number;
+  /** Within-groups degrees of freedom (N − k). */
+  dfWithin: number;
+  /** One-way ANOVA F statistic for this factor. */
+  fStatistic: number;
+  /**
+   * True when a continuous X was quartile-binned (Q1–Q4) before grouping so the
+   * ranking stays honest (continuous values otherwise stringify into ~N
+   * singleton groups → η² → 1). The UI annotates binned chips.
+   */
+  binnedForRanking: boolean;
   /** P-value from one-way ANOVA */
   pValue: number;
   /** Whether the effect is statistically significant (p < 0.05) */
@@ -54,7 +76,7 @@ export interface FactorMainEffect {
 
 /** Complete main effects result for all factors. */
 export interface MainEffectsResult {
-  /** Per-factor main effects, sorted by η² descending */
+  /** Per-factor main effects, sorted by adjusted η² (ω²-style) descending */
   factors: FactorMainEffect[];
   /** Grand mean of the outcome */
   grandMean: number;
@@ -115,8 +137,16 @@ export interface InteractionEffectsResult {
 /**
  * Compute main effects for all factors.
  *
- * For each factor, computes per-level means, effect sizes, η², and significance.
- * Results are sorted by η² descending (strongest factor first).
+ * For each factor, computes per-level means, effect sizes, raw η², a
+ * cardinality-penalized adjusted η² (ω²-style), the ANOVA df/F, and
+ * significance. Continuous X's are quartile-binned (Q1–Q4) BEFORE grouping —
+ * otherwise each near-unique numeric value forms its own singleton group, which
+ * mechanically inflates η² toward 1 and collapses the within-group df. Binning
+ * is a correctness requirement of the ranking, flagged via `binnedForRanking`.
+ *
+ * Results are sorted by adjusted η² descending (the level-count-honest share),
+ * with significance breaking ties (significant factors first on equal adjusted
+ * shares). The raw η² is retained for transparency, never for ranking.
  */
 export function computeMainEffects(
   data: DataRow[],
@@ -125,17 +155,44 @@ export function computeMainEffects(
 ): MainEffectsResult | null {
   if (factors.length === 0) return null;
 
+  // Decide which factors are continuous (→ quartile-bin) vs categorical.
+  // Binning happens before grouping so a continuous column ranks on its
+  // quartile structure, not on ~N singleton groups.
+  const classifications = classifyAllFactors(data, factors);
+  const binnedFactors = new Set<string>();
+  // Per-factor: row-index → bin label (only for binned continuous factors).
+  const binLabels = new Map<string, (string | undefined)[]>();
+  for (const factor of factors) {
+    if (classifications.get(factor)?.type !== 'continuous') continue;
+    const numeric = data.map(row => {
+      const v = toNumericValue(row[factor]);
+      return v === undefined ? NaN : v;
+    });
+    const { labels } = quartileBin(numeric);
+    binnedFactors.add(factor);
+    binLabels.set(factor, labels);
+  }
+
   // Extract valid observations
   const validRows: { value: number; factorValues: Record<string, string> }[] = [];
 
-  for (const row of data) {
+  for (let r = 0; r < data.length; r++) {
+    const row = data[r];
     const val = toNumericValue(row[outcome]);
     if (val === undefined) continue;
 
     const fv: Record<string, string> = {};
     let allPresent = true;
     for (const f of factors) {
-      const v = String(row[f] ?? '');
+      let v: string;
+      if (binnedFactors.has(f)) {
+        // Continuous factor: use its quartile bin label (skip rows the binner
+        // could not place — non-finite source values).
+        const label = binLabels.get(f)![r];
+        v = label ?? '';
+      } else {
+        v = String(row[f] ?? '');
+      }
       if (v === '' || v === 'undefined' || v === 'null') {
         allPresent = false;
         break;
@@ -168,7 +225,7 @@ export function computeMainEffects(
 
     if (groups.size < 2) continue; // Need at least 2 levels
 
-    // Compute eta-squared
+    // Compute eta-squared (raw descriptive share)
     let ssBetween = 0;
     for (const vals of groups.values()) {
       const groupMean = d3.mean(vals) ?? 0;
@@ -178,15 +235,33 @@ export function computeMainEffects(
     const etaSquared = Number.isFinite(rawEtaSquared) ? rawEtaSquared : 0;
 
     // F-test
-    const dfBetween = groups.size - 1;
-    const dfWithin = n - groups.size;
+    const k = groups.size;
+    const dfBetween = k - 1;
+    const dfWithin = n - k;
     const ssWithin = ssTotal - ssBetween;
     let pValue = 1;
+    let fStatistic = 0;
     if (dfBetween > 0 && dfWithin > 0 && ssWithin > 0) {
       const F = ssBetween / dfBetween / (ssWithin / dfWithin);
+      fStatistic = Number.isFinite(F) ? F : 0;
       pValue = fDistributionPValue(F, dfBetween, dfWithin);
     }
     if (!Number.isFinite(pValue)) pValue = 1;
+
+    // Cardinality-penalized (ω²-style) adjusted share, floored at 0.
+    //   msWithin = (ssTotal − ssBetween) / (N − k)
+    //   adjusted = (ssBetween − (k − 1)·msWithin) / (ssTotal + msWithin)
+    // Guard every degenerate path (N − k = 0, ssTotal + msWithin = 0) so the
+    // stat never returns NaN/Infinity (house rule).
+    let adjustedEtaSquared = 0;
+    if (dfWithin > 0) {
+      const msWithin = ssWithin / dfWithin;
+      const denom = ssTotal + msWithin;
+      if (denom > 0) {
+        const adj = (ssBetween - dfBetween * msWithin) / denom;
+        adjustedEtaSquared = Number.isFinite(adj) ? Math.max(0, adj) : 0;
+      }
+    }
 
     // Per-level effects
     const levels: LevelEffect[] = [];
@@ -210,6 +285,11 @@ export function computeMainEffects(
       factor,
       levels,
       etaSquared,
+      adjustedEtaSquared,
+      dfBetween,
+      dfWithin,
+      fStatistic,
+      binnedForRanking: binnedFactors.has(factor),
       pValue,
       isSignificant: pValue < 0.05,
       bestLevel: best.level,
@@ -218,8 +298,15 @@ export function computeMainEffects(
     });
   }
 
-  // Sort by η² descending
-  factorResults.sort((a, b) => b.etaSquared - a.etaSquared);
+  // Rank by the cardinality-honest adjusted share, descending. Significance
+  // breaks ties so a significant factor wins over a non-significant one with an
+  // equal adjusted share (ruled-out factors stay ranked, just lower).
+  factorResults.sort((a, b) => {
+    const diff = b.adjustedEtaSquared - a.adjustedEtaSquared;
+    if (diff !== 0) return diff;
+    if (a.isSignificant !== b.isSignificant) return a.isSignificant ? -1 : 1;
+    return 0;
+  });
 
   return {
     factors: factorResults,
@@ -227,6 +314,45 @@ export function computeMainEffects(
     n,
     significantCount: factorResults.filter(f => f.isSignificant).length,
   };
+}
+
+/**
+ * Drop Y-derived factors from a candidate list before ranking (spec §5/§11, D11).
+ *
+ * A bin column materialized from the outcome must never be ranked against its
+ * own source Y — that is a tautology, not a contribution. v1 keys exclusion off:
+ *   1. the raw source column itself equals the outcome (`sourceColumn === outcome`);
+ *   2. any binding whose `sourceColumn === outcome` (its materialized bin column
+ *      is recognised by name — `<source>_bin` / `<source>_band` / the binding id);
+ *   3. the `${outcome}_bin` materialized-name convention, even with no binding.
+ *
+ * The generic provenance `derivedFrom` field is ER-5a's; v1 stays name- and
+ * binding-based only.
+ *
+ * @param factors Candidate factor column names.
+ * @param outcome The active outcome (Y) column name.
+ * @param bindings Optional binned-factor bindings to consult for provenance.
+ * @returns The candidate factors with Y-derived columns removed (order preserved).
+ */
+export function excludeYDerivedFactors(
+  factors: string[],
+  outcome: string,
+  bindings?: BinnedFactorBinding[]
+): string[] {
+  // Materialized bin-column names that trace back to the outcome.
+  const yDerivedNames = new Set<string>();
+  yDerivedNames.add(`${outcome}_bin`);
+  for (const b of bindings ?? []) {
+    if (b.sourceColumn !== outcome) continue;
+    // The binding's source IS the outcome → every column materialized from it is
+    // Y-derived. Cover the common materialized-name conventions and the id.
+    // (b.sourceColumn itself is already excluded by the `f !== outcome` predicate.)
+    yDerivedNames.add(`${b.sourceColumn}_bin`);
+    yDerivedNames.add(`${b.sourceColumn}_band`);
+    yDerivedNames.add(b.id);
+  }
+
+  return factors.filter(f => f !== outcome && !yDerivedNames.has(f));
 }
 
 // ============================================================================

@@ -10,10 +10,12 @@
  */
 
 import type { StatsResult, SpecLimits, DataRow } from '../types';
-import { toNumericValue } from '../types';
+import { toNumericValue, inferCharacteristicType } from '../types';
 import { simulateOverallImpact } from './simulation';
 import type { ProcessProjection, CenteringOpportunity, SpecSuggestion } from './types';
 import { formatStatistic } from '../i18n/format';
+import { findBestSubgroup } from './bestSubgroup';
+import type { CategoryStats } from './types';
 
 export type { ProcessProjection, CenteringOpportunity, SpecSuggestion };
 
@@ -245,4 +247,142 @@ export function computeBenchmarkProjection(
     label: benchmarkLabel ? `benchmark: ${benchmarkLabel}` : 'benchmark',
     findingCount: 1,
   };
+}
+
+/** Result of a matched-best projection for one factor (spec §5 what-if hover). */
+export interface MatchedBestProjection {
+  /** The best-performing level every group is projected toward. */
+  bestLevel: string;
+  /** Overall outcome mean as observed. */
+  currentMean: number;
+  /** Overall outcome mean if every group matched the best group's mean. */
+  projectedMean: number;
+  /** Overall Cpk as observed — only present when spec limits are supplied. */
+  currentCpk?: number;
+  /** Overall Cpk after the matched-best shift — only with spec limits. */
+  projectedCpk?: number;
+  /** Number of factor levels (groups). */
+  k: number;
+  /** Number of valid observations used. */
+  n: number;
+}
+
+/** Standard Cpk for one-sided / two-sided limits; `undefined` on degenerates. */
+function cpkFor(
+  mean: number,
+  stdDev: number,
+  specs: Pick<SpecLimits, 'usl' | 'lsl'>
+): number | undefined {
+  if (!(stdDev > 0)) return undefined;
+  const { usl, lsl } = specs;
+  let cpk: number | undefined;
+  if (usl !== undefined && lsl !== undefined) {
+    cpk = Math.min((usl - mean) / (3 * stdDev), (mean - lsl) / (3 * stdDev));
+  } else if (usl !== undefined) {
+    cpk = (usl - mean) / (3 * stdDev);
+  } else if (lsl !== undefined) {
+    cpk = (mean - lsl) / (3 * stdDev);
+  } else {
+    return undefined;
+  }
+  return Number.isFinite(cpk) ? cpk : undefined;
+}
+
+/**
+ * Matched-best projection: "if every <factor> group matched the best group."
+ *
+ * The spec §5 factor-strip hover quantity. Every group's rows are mean-shifted
+ * by (bestMean − groupMean) — within-group spread preserved, group means
+ * collapsed onto the best — and the overall mean (plus Cpk when limits are
+ * supplied) is recomputed on the shifted data. This is DISTINCT from
+ * `computeCumulativeProjection`, which computes complement-fixing (bringing one
+ * problematic subset in line with the rest of the data); a different quantity.
+ *
+ * Direction comes from `inferCharacteristicType(specs)`: smaller-is-better picks
+ * the lowest-mean level, larger-is-better the highest, explicit nominal-with-anchor
+ * the closest-to-target. With no inferable direction (empty-spec 'nominal'
+ * fallback) the projection returns `undefined` — house style never recommends a
+ * "best" by row order, which is direction-blind and can recommend a
+ * mean-worsening shift (the `findBestSubgroup` precedent). This is a level-native
+ * contribution estimate, never a cause.
+ *
+ * @param data Rows carrying the outcome and factor columns.
+ * @param outcome Outcome (Y) column name.
+ * @param factor Factor column to project across.
+ * @param specs Optional spec limits / direction. No direction → `undefined`.
+ * @returns The projection, or `undefined` on any degenerate (one group, <3 valid
+ *   rows (need within-group spread), no direction).
+ */
+export function computeMatchedBestProjection(
+  data: DataRow[],
+  outcome: string,
+  factor: string,
+  specs?: SpecLimits
+): MatchedBestProjection | undefined {
+  // Group the valid (outcome + factor present) rows by factor level.
+  const groups = new Map<string, number[]>();
+  const allValues: number[] = [];
+  for (const row of data) {
+    const val = toNumericValue(row[outcome]);
+    if (val === undefined) continue;
+    const lvl = String(row[factor] ?? '');
+    if (lvl === '' || lvl === 'undefined' || lvl === 'null') continue;
+    if (!groups.has(lvl)) groups.set(lvl, []);
+    groups.get(lvl)!.push(val);
+    allValues.push(val);
+  }
+
+  const k = groups.size;
+  const n = allValues.length;
+  if (k < 2 || n < 3) return undefined;
+
+  // Per-level stats for direction-aware best selection.
+  const categories: CategoryStats[] = [];
+  const groupMean = new Map<string, number>();
+  for (const [level, vals] of groups) {
+    const m = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const variance = vals.reduce((s, v) => s + (v - m) ** 2, 0) / vals.length;
+    groupMean.set(level, m);
+    categories.push({ value: level, count: vals.length, mean: m, stdDev: Math.sqrt(variance) });
+  }
+
+  const characteristicType = inferCharacteristicType(specs ?? {});
+  const best = findBestSubgroup(categories, characteristicType, specs?.target, {
+    usl: specs?.usl,
+    lsl: specs?.lsl,
+  });
+  // No inferable direction → suppress the recommendation entirely.
+  if (best === undefined) return undefined;
+
+  const bestLevel = String(best.value);
+  const bestMean = best.mean;
+
+  // Shift every group's rows onto the best group's mean (spread preserved).
+  const currentMean = allValues.reduce((a, b) => a + b, 0) / n;
+  const shifted: number[] = [];
+  for (const [level, vals] of groups) {
+    const shift = bestMean - (groupMean.get(level) ?? 0);
+    for (const v of vals) shifted.push(v + shift);
+  }
+  const projectedMean = shifted.reduce((a, b) => a + b, 0) / shifted.length;
+
+  if (!Number.isFinite(currentMean) || !Number.isFinite(projectedMean)) return undefined;
+
+  const result: MatchedBestProjection = {
+    bestLevel,
+    currentMean,
+    projectedMean,
+    k,
+    n,
+  };
+
+  // Cpk only when spec limits are present.
+  if (specs && (specs.usl !== undefined || specs.lsl !== undefined)) {
+    const curVar = allValues.reduce((s, v) => s + (v - currentMean) ** 2, 0) / n;
+    const projVar = shifted.reduce((s, v) => s + (v - projectedMean) ** 2, 0) / shifted.length;
+    result.currentCpk = cpkFor(currentMean, Math.sqrt(curVar), specs);
+    result.projectedCpk = cpkFor(projectedMean, Math.sqrt(projVar), specs);
+  }
+
+  return result;
 }

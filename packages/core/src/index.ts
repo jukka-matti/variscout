@@ -133,6 +133,7 @@ export {
   computeMainEffects,
   computeInteractionEffects,
   generateFollowUpQuestions,
+  excludeYDerivedFactors,
   // Finding text generation
   generateFindingText,
 } from './stats';
@@ -357,6 +358,7 @@ export type {
   DirectAdjustmentResult,
   OverallImpactResult,
   DirectionColor,
+  MatchedBestProjection,
 } from './variation';
 
 export {
@@ -371,6 +373,7 @@ export {
   computeCategoryDirectionColors,
   findBestSubgroup,
   findTightestSubgroup,
+  computeMatchedBestProjection,
   DRILL_SWITCH_THRESHOLD,
 } from './variation';
 
