@@ -8,6 +8,7 @@
 @theme {
   /* Semantic surface colors */
   --color-surface: var(--surface-primary);
+  --color-surface-primary: var(--surface-primary);
   --color-surface-secondary: var(--surface-secondary);
   --color-surface-tertiary: var(--surface-tertiary);
   --color-surface-elevated: var(--surface-elevated);

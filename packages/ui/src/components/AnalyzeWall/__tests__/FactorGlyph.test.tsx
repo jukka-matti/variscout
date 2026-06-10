@@ -90,3 +90,33 @@ describe('CS-13 explore affordance', () => {
     expect(screen.queryByTestId('factor-glyph-explore-Vessel')).toBeNull();
   });
 });
+
+describe('fill token — unfocused rect', () => {
+  it('unfocused background rect uses fill-surface (not fill-surface-primary)', () => {
+    const { container } = render(
+      <svg>
+        <FactorGlyph {...baseProps} focused={false} />
+      </svg>
+    );
+    const group = container.querySelector('[data-testid="factor-glyph-Vessel"]');
+    // The first <rect> inside the group is the background rect.
+    const backgroundRect = group?.querySelector('rect');
+    expect(backgroundRect).not.toBeNull();
+    const cls = backgroundRect?.getAttribute('class') ?? '';
+    expect(cls).toContain('fill-surface');
+    expect(cls).not.toContain('fill-surface-primary');
+  });
+
+  it('focused background rect retains fill-status-info-soft (not changed by this fix)', () => {
+    const { container } = render(
+      <svg>
+        <FactorGlyph {...baseProps} focused />
+      </svg>
+    );
+    const group = container.querySelector('[data-testid="factor-glyph-Vessel"]');
+    const backgroundRect = group?.querySelector('rect');
+    expect(backgroundRect).not.toBeNull();
+    const cls = backgroundRect?.getAttribute('class') ?? '';
+    expect(cls).toContain('fill-status-info-soft');
+  });
+});

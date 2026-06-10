@@ -69,7 +69,7 @@ export function FactorGlyph({
         height={GLYPH_H}
         rx={8}
         className={
-          focused ? 'fill-status-info-soft stroke-status-info' : 'fill-surface-primary stroke-edge'
+          focused ? 'fill-status-info-soft stroke-status-info' : 'fill-surface stroke-edge'
         }
         strokeWidth={focused ? 2 : 1}
       />
