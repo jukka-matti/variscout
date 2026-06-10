@@ -7,7 +7,12 @@ import {
 } from './reportHumanizer';
 import { deriveIPReportMiniChartType, type IPReportMiniChartType } from '../findings/miniChart';
 import type { ImprovementProject } from '../improvementProject';
-import type { ControlHandoff, ControlRecord } from '../control';
+import type {
+  ControlHandoff,
+  ControlHandoffSurface,
+  ControlRecord,
+  ControlReview,
+} from '../control';
 
 export const D13_OVERVIEW_SECTION_TITLES = [
   'Executive summary',
@@ -26,6 +31,7 @@ export interface IPReportScopeInput {
   hypotheses: readonly Hypothesis[];
   findings: readonly Finding[];
   controlRecords?: readonly ControlRecord[];
+  controlReviews?: readonly ControlReview[];
   controlHandoffs?: readonly ControlHandoff[];
 }
 
@@ -33,6 +39,7 @@ export interface IPReportScope {
   hypotheses: Hypothesis[];
   findings: Finding[];
   controlRecord?: ControlRecord;
+  controlReviews: ControlReview[];
   controlHandoff?: ControlHandoff;
 }
 
@@ -99,9 +106,12 @@ export function selectIPReportScope(input: IPReportScopeInput): IPReportScope {
   const findingIds = reportFindingIds(input.ip, hypotheses);
   const findings = input.findings.filter(finding => findingIds.has(finding.id));
   const controlRecord = selectControlRecord(input.ip, input.controlRecords);
+  const controlReviews = (input.controlReviews ?? [])
+    .filter(review => review.deletedAt === null && review.recordId === controlRecord?.id)
+    .sort((a, b) => a.reviewedAt - b.reviewedAt);
   const controlHandoff = selectControlHandoff(input.ip, input.controlHandoffs, controlRecord);
 
-  return { hypotheses, findings, controlRecord, controlHandoff };
+  return { hypotheses, findings, controlRecord, controlReviews, controlHandoff };
 }
 
 function selectedIdeaText(hypothesis: Hypothesis): string | undefined {
@@ -127,10 +137,12 @@ function actionProgressLabel(actions: NonNullable<Finding['actions']>): string {
   return `${done} of ${actions.length} actions done`;
 }
 
-function verificationLabel(record?: ControlRecord): string {
+function verificationLabel(record?: ControlRecord, reviews: readonly ControlReview[] = []): string {
+  const latest = reviews.at(-1);
+  if (latest) return `Latest re-check ${latest.verdict}`;
   if (!record) return 'Verification pending';
   if (record.status === 'confirmed-sustained') return 'Control confirmed sustained';
-  if (record.status === 'drifted') return 'Control drift detected';
+  if (record.status === 'drifted') return 'Control analyst-marked drift';
   return 'Control verifying';
 }
 
@@ -147,6 +159,7 @@ export function deriveIPCauseRows(input: {
   hypotheses: readonly Hypothesis[];
   findings: readonly Finding[];
   controlRecord?: ControlRecord;
+  controlReviews?: readonly ControlReview[];
 }): IPCauseRow[] {
   // PO-5: cause rows key on analyst-owned status — evidence that survived
   // testing plus evidenced mechanisms. Refuted → tested-and-excluded;
@@ -164,7 +177,7 @@ export function deriveIPCauseRows(input: {
       synthesis: hypothesis.synthesis,
       selectedIdea: selectedIdeaText(hypothesis),
       actionProgressLabel: actionProgressLabel(actions),
-      verificationLabel: verificationLabel(input.controlRecord),
+      verificationLabel: verificationLabel(input.controlRecord, input.controlReviews),
       findingCount: causeFindings.length,
       miniChartType: deriveIPReportMiniChartType({
         ip: input.ip,
@@ -190,11 +203,99 @@ function goalItems(ip: ImprovementProject): string[] {
   return items;
 }
 
+function formatDate(isoOrMs: string | number): string {
+  const date = typeof isoOrMs === 'number' ? new Date(isoOrMs) : new Date(isoOrMs);
+  return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : String(isoOrMs);
+}
+
+function formatNumber(value: number | undefined, digits = 2): string {
+  if (value === undefined || !Number.isFinite(value)) return 'not available';
+  return Number(value.toFixed(digits)).toString();
+}
+
+function baselineAnchor(record?: ControlRecord): string | undefined {
+  const baseline = record?.baseline;
+  if (!baseline) return undefined;
+  const parts = [
+    `Baseline anchor: ${baseline.measure}`,
+    `n=${baseline.n}`,
+    `mean ${formatNumber(baseline.mean)}`,
+    `sigma ${formatNumber(baseline.sigma)}`,
+    ...(baseline.cpk !== undefined ? [`Cpk ${formatNumber(baseline.cpk)}`] : []),
+    `window ${formatDate(baseline.window.startISO)} to ${formatDate(baseline.window.endISO)}`,
+  ];
+  return parts.join(' · ');
+}
+
+function startingPointItems(ip: ImprovementProject, record?: ControlRecord): string[] {
+  const items = ip.sections.background.snapshotText
+    ? [ip.sections.background.snapshotText]
+    : ['Starting capability snapshot not recorded yet.'];
+  const anchor = baselineAnchor(record);
+  return anchor ? [...items, anchor] : items;
+}
+
+function recheckSequenceItem(record: ControlRecord | undefined, reviews: readonly ControlReview[]) {
+  if (!record) return 'Verification pending';
+  if (reviews.length === 0) return 'No re-check logged yet.';
+  return `Re-check sequence: ${reviews
+    .map(review => `${formatDate(review.reviewedAt)} ${review.verdict} (n=${review.nowStats.n})`)
+    .join('; ')}`;
+}
+
+function comparisonSummaryItem(
+  record: ControlRecord | undefined,
+  reviews: readonly ControlReview[]
+) {
+  const latest = reviews.at(-1);
+  if (!record || !latest) return undefined;
+  const parts = [
+    `mean ${formatNumber(record.baseline.mean)} to ${formatNumber(latest.nowStats.mean)}`,
+    `sigma ${formatNumber(record.baseline.sigma)} to ${formatNumber(latest.nowStats.sigma)}`,
+  ];
+  if (record.baseline.cpk !== undefined || latest.nowStats.cpk !== undefined) {
+    parts.push(`Cpk ${formatNumber(record.baseline.cpk)} to ${formatNumber(latest.nowStats.cpk)}`);
+  }
+  return `Latest comparison: ${parts.join('; ')}`;
+}
+
+function didItWorkItems(
+  record: ControlRecord | undefined,
+  reviews: readonly ControlReview[]
+): string[] {
+  const comparisonSummary = comparisonSummaryItem(record, reviews);
+  return [
+    recheckSequenceItem(record, reviews),
+    ...(comparisonSummary ? [comparisonSummary] : []),
+    verificationLabel(record, reviews),
+    ...(record?.nextCheckSuggestedAt
+      ? [`Next suggested re-check: ${record.nextCheckSuggestedAt}`]
+      : []),
+  ];
+}
+
+const HANDOFF_SURFACE_LABELS: Record<ControlHandoffSurface, string> = {
+  'mes-recipe': 'MES recipe',
+  'scada-alarm': 'SCADA alarm',
+  'qms-procedure': 'QMS procedure',
+  'work-instruction': 'work instruction',
+  'training-record': 'training record',
+  'audit-program': 'audit program',
+  'dashboard-only': 'dashboard',
+  'ticket-queue': 'ticket queue',
+  other: 'handoff record',
+};
+
+function handoffSurfaceLabel(surface: ControlHandoffSurface): string {
+  return HANDOFF_SURFACE_LABELS[surface];
+}
+
 export function deriveIPReportNarrative(input: {
   ip: ImprovementProject;
   hypotheses: readonly Hypothesis[];
   findings: readonly Finding[];
   controlRecord?: ControlRecord;
+  controlReviews?: readonly ControlReview[];
   controlHandoff?: ControlHandoff;
 }): IPReportOverviewSection[] {
   const causeRows = deriveIPCauseRows(input);
@@ -204,7 +305,9 @@ export function deriveIPReportNarrative(input: {
   const inProgress = causeRows.filter(row => !row.actionProgressLabel.startsWith('1 of 1'));
   const learnedItems = [
     ...(input.controlHandoff
-      ? [`Standardized in ${input.controlHandoff.systemName}: ${input.controlHandoff.description}`]
+      ? [
+          `Standardized via ${handoffSurfaceLabel(input.controlHandoff.surface)} in ${input.controlHandoff.systemName}: ${input.controlHandoff.description}`,
+        ]
       : []),
     ...(input.ip.reflection ? [input.ip.reflection] : []),
     ...refuted.map(hypothesis => `Ruled out: ${hypothesis.name}`),
@@ -217,9 +320,7 @@ export function deriveIPReportNarrative(input: {
     },
     {
       title: 'Where we started',
-      items: input.ip.sections.background.snapshotText
-        ? [input.ip.sections.background.snapshotText]
-        : ['Starting capability snapshot not recorded yet.'],
+      items: startingPointItems(input.ip, input.controlRecord),
     },
     {
       title: 'What we aimed for',
@@ -234,12 +335,7 @@ export function deriveIPReportNarrative(input: {
     },
     {
       title: 'Did it work?',
-      items: [
-        verificationLabel(input.controlRecord),
-        ...(input.controlRecord?.nextCheckSuggestedAt
-          ? [`Next suggested re-check: ${input.controlRecord.nextCheckSuggestedAt}`]
-          : []),
-      ],
+      items: didItWorkItems(input.controlRecord, input.controlReviews ?? []),
     },
     {
       title: 'What we standardized + learned',

@@ -33,15 +33,24 @@ const record: ControlRecord = {
 };
 
 const allDone: ControlClosureInputs = {
-  controlPlanDocumented: true,
-  trainingDelivered: true,
-  cadenceAssigned: true,
-  processOwnerAcknowledged: true,
+  handoffRecorded: true,
+  handoffSummary: 'Line SOP · Pat Owner',
+  ownerAcceptedDefault: true,
+  ladderWalked: true,
+  ladderSummary: 'Step 3 of 3 walked',
+  sustainmentConfirmed: true,
 };
 
-const pendingAck: ControlClosureInputs = {
+const pendingOwner: ControlClosureInputs = {
   ...allDone,
-  processOwnerAcknowledged: false,
+  ownerAcceptedDefault: false,
+};
+
+const needsOverride: ControlClosureInputs = {
+  ...allDone,
+  ownerAcceptedDefault: true,
+  ladderWalked: false,
+  ladderSummary: 'Step 2 of 3 walked',
 };
 
 describe('ControlOverview', () => {
@@ -115,35 +124,63 @@ describe('ControlOverview — closure panel', () => {
       />
     );
     expect(screen.getByText(/4 of 4 items complete/i)).toBeInTheDocument();
+    expect(screen.getByTestId('sustainment-start-handoff')).not.toBeDisabled();
   });
 
-  it('shows 3 of 4 items complete when process-owner acknowledgment is pending', () => {
+  it('blocks closeout until operational owner acceptance is checked', () => {
     render(
       <ControlOverview
         record={record}
         onStartHandoff={() => {}}
         onOpenProcess={() => {}}
         onOpenAnalyze={() => {}}
-        closureInputs={pendingAck}
+        closureInputs={pendingOwner}
       />
     );
     expect(screen.getByText(/3 of 4 items complete/i)).toBeInTheDocument();
+    expect(screen.getByTestId('sustainment-start-handoff')).toBeDisabled();
+
+    fireEvent.click(screen.getByLabelText(/owner accepted the control/i));
+
+    expect(screen.getByText(/4 of 4 items complete/i)).toBeInTheDocument();
+    expect(screen.getByTestId('sustainment-start-handoff')).not.toBeDisabled();
   });
 
-  it('calls onNudgeOwner when Nudge clicked on pending acknowledgment', () => {
-    const onNudge = vi.fn();
+  it('requires an analyst override reason when the ladder is not fully walked', () => {
     render(
       <ControlOverview
         record={record}
         onStartHandoff={() => {}}
         onOpenProcess={() => {}}
         onOpenAnalyze={() => {}}
-        closureInputs={pendingAck}
-        onNudgeOwner={onNudge}
+        closureInputs={needsOverride}
       />
     );
-    fireEvent.click(screen.getByTestId('sustainment-closure-nudge-owner'));
-    expect(onNudge).toHaveBeenCalled();
+    expect(screen.getByText(/3 of 4 items complete/i)).toBeInTheDocument();
+    expect(screen.getByTestId('sustainment-start-handoff')).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText(/analyst override reason/i), {
+      target: { value: 'Two stable customer releases complete; final 90-day check is not needed.' },
+    });
+
+    expect(screen.getByText(/4 of 4 items complete/i)).toBeInTheDocument();
+    expect(screen.getByTestId('sustainment-start-handoff')).not.toBeDisabled();
+  });
+
+  it('does not render retired closure checklist labels', () => {
+    render(
+      <ControlOverview
+        record={record}
+        onStartHandoff={() => {}}
+        onOpenProcess={() => {}}
+        onOpenAnalyze={() => {}}
+        closureInputs={allDone}
+      />
+    );
+    expect(screen.queryByText(/Control plan documented/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Training materials delivered/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Monitoring cadence assigned/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Process Owner acknowledgment/i)).not.toBeInTheDocument();
   });
 
   it('does not render closure panel when closureInputs is absent', () => {

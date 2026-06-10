@@ -31,6 +31,7 @@ import type {
   AnalysisMode,
   DataRow,
   ControlRecord,
+  ControlReview,
 } from '@variscout/core';
 import {
   deriveIPCauseRows,
@@ -61,6 +62,7 @@ interface ReportViewProps {
   workspaceProject?: ImprovementProject | null;
   hypotheses?: Hypothesis[];
   controlRecords?: ControlRecord[];
+  controlReviews?: ControlReview[];
   controlHandoffs?: ControlHandoff[];
   workspaceProjectScope?: { title: string; labels: WorkspaceProjectScopeLabels } | null;
   workspaceProjectTitle?: string | null;
@@ -83,6 +85,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   workspaceProject,
   hypotheses = [],
   controlRecords = [],
+  controlReviews = [],
   controlHandoffs = [],
   workspaceProjectScope,
   workspaceProjectTitle,
@@ -104,10 +107,11 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses,
             findings,
             controlRecords,
+            controlReviews,
             controlHandoffs,
           })
         : null,
-    [workspaceProject, controlHandoffs, findings, hypotheses, controlRecords]
+    [workspaceProject, controlHandoffs, findings, hypotheses, controlRecords, controlReviews]
   );
 
   const ipNarrative = useMemo(
@@ -118,6 +122,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             controlRecord: ipReportScope.controlRecord,
+            controlReviews: ipReportScope.controlReviews,
             controlHandoff: ipReportScope.controlHandoff,
           })
         : [],
@@ -132,6 +137,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             controlRecord: ipReportScope.controlRecord,
+            controlReviews: ipReportScope.controlReviews,
           })
         : [],
     [workspaceProject, ipReportScope]

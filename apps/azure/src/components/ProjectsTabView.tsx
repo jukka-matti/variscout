@@ -22,7 +22,7 @@ interface ProjectsTabViewProps {
   onOpenCauseWorkbench?: (cause: CauseRow) => void;
   controlRecord?: ControlRecord;
   controlHandoff?: ControlHandoff;
-  /** Closure checklist derived from controlHandoff (folded in from former Handoff stage). */
+  /** Closure checklist derived from Control record + optional handoff. */
   closureInputs?: ControlClosureInputs;
   onOpenLegacyControl?: () => void;
   onNudgeProcessOwner?: () => void;

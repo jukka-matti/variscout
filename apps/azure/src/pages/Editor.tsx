@@ -806,14 +806,16 @@ export const Editor: React.FC<EditorProps> = ({
   const projectsControlHandoff = _azureLiveControlHandoffs.find(
     h => h.projectId === (projectsControlRecord?.projectId ?? '')
   );
-  const projectsClosureInputs = projectsControlHandoff
+  const projectsClosureInputs = projectsControlRecord
     ? {
-        controlPlanDocumented: false,
-        trainingDelivered: Boolean(projectsControlHandoff.referenceUri),
-        cadenceAssigned: Boolean(projectsControlRecord?.nextCheckSuggestedAt),
-        processOwnerAcknowledged: Boolean(projectsControlHandoff.operationalOwner.displayName),
-        trainingRef: projectsControlHandoff.referenceUri,
-        cadenceOwner: projectsControlRecord?.owner?.displayName,
+        handoffRecorded: Boolean(projectsControlHandoff),
+        handoffSummary: projectsControlHandoff
+          ? `${projectsControlHandoff.systemName} · ${projectsControlHandoff.operationalOwner.displayName}`
+          : undefined,
+        ladderWalked:
+          projectsControlRecord.ladderStep >= Math.max(projectsControlRecord.ladder.length - 1, 0),
+        ladderSummary: `Step ${projectsControlRecord.ladderStep + 1} of ${projectsControlRecord.ladder.length}`,
+        sustainmentConfirmed: projectsControlRecord.status === 'confirmed-sustained',
       }
     : undefined;
 

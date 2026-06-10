@@ -368,6 +368,7 @@ function AppReportView({ props }: { props: AppViewSwitchProps }): React.ReactEle
     workspaceProjectTitle,
     _liveControlHandoffs,
     _liveControlRecords,
+    _liveControlReviews,
   } = props;
   return (
     <ReportView
@@ -385,6 +386,7 @@ function AppReportView({ props }: { props: AppViewSwitchProps }): React.ReactEle
       workspaceProject={workspaceProjectContext.workspaceProject}
       hypotheses={hypotheses}
       controlRecords={_liveControlRecords}
+      controlReviews={_liveControlReviews}
       controlHandoffs={_liveControlHandoffs}
       workspaceProjectScope={workspaceProjectScope}
       workspaceProjectTitle={workspaceProjectTitle}

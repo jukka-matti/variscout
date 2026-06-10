@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Finding, Hypothesis, HypothesisStatus } from '../../findings/types';
 import type { ImprovementProject } from '../../improvementProject';
-import type { ControlHandoff, ControlRecord } from '../../control';
+import type { ControlHandoff, ControlRecord, ControlReview } from '../../control';
 import {
   D13_OVERVIEW_SECTION_TITLES,
   deriveIPCauseRows,
@@ -122,12 +122,40 @@ function sustainment(overrides: Partial<ControlRecord> = {}): ControlRecord {
       n: 30,
       mean: 100,
       sigma: 1,
+      cpk: 0.86,
     },
     ladder: [7, 30, 90],
     ladderStep: 1,
     lastEvaluatedSnapshotId: undefined,
     nextCheckSuggestedAt: '2026-05-31T00:00:00.000Z',
     updatedAt: now,
+    createdAt: now,
+    deletedAt: null,
+    ...overrides,
+  };
+}
+
+function review(overrides: Partial<ControlReview> = {}): ControlReview {
+  return {
+    id: 'review-1',
+    recordId: 'sus-1',
+    projectId: 'ip-1',
+    hubId: 'hub-1',
+    reviewedAt: now,
+    reviewer: { displayName: 'Mira Lead' },
+    verdict: 'holding',
+    nowStats: {
+      window: {
+        startISO: '2026-05-01T00:00:00.000Z',
+        endISO: '2026-05-14T23:59:59.999Z',
+      },
+      n: 24,
+      mean: 99.4,
+      sigma: 0.72,
+      cpk: 1.28,
+    },
+    dataStamp: { rowCount: 54 },
+    observation: 'Still holding after the first re-check.',
     createdAt: now,
     deletedAt: null,
     ...overrides,
@@ -163,6 +191,7 @@ describe('selectIPReportScope', () => {
         sustainment(),
         sustainment({ id: 'sus-other', improvementProjectId: 'ip-other' }),
       ],
+      controlReviews: [review(), review({ id: 'review-other', recordId: 'sus-other' })],
       controlHandoffs: [handoff(), handoff({ id: 'handoff-other', projectId: 'inv-other' })],
     });
 
@@ -172,6 +201,7 @@ describe('selectIPReportScope', () => {
     expect(scope.findings.map(f => f.id).sort()).toEqual(['find-1', 'find-other']);
     expect(scope.findings.map(f => f.id)).not.toContain('find-unrelated');
     expect(scope.controlRecord?.id).toBe('sus-1');
+    expect(scope.controlReviews.map(review => review.id)).toEqual(['review-1']);
     expect(scope.controlHandoff?.id).toBe('handoff-1');
   });
 
@@ -242,6 +272,7 @@ describe('deriveIPReportNarrative', () => {
       ],
       findings: [finding()],
       controlRecord: sustainment(),
+      controlReviews: [review()],
       controlHandoff: handoff(),
     });
 
@@ -252,6 +283,20 @@ describe('deriveIPReportNarrative', () => {
     expect(
       narrative.find(section => section.title === 'What we standardized + learned')?.items
     ).toContain('Ruled out: Supplier batch');
+    expect(narrative.find(section => section.title === 'Where we started')?.items).toContain(
+      'Baseline anchor: fill_weight · n=30 · mean 100 · sigma 1 · Cpk 0.86 · window 2026-04-01 to 2026-04-30'
+    );
+    expect(narrative.find(section => section.title === 'Did it work?')?.items).toContain(
+      'Re-check sequence: 2026-05-15 holding (n=24)'
+    );
+    expect(narrative.find(section => section.title === 'Did it work?')?.items).toContain(
+      'Latest comparison: mean 100 to 99.4; sigma 1 to 0.72; Cpk 0.86 to 1.28'
+    );
+    expect(
+      narrative.find(section => section.title === 'What we standardized + learned')?.items
+    ).toContain(
+      'Standardized via work instruction in Line SOP: Recipe control moved into the line SOP.'
+    );
   });
 });
 
@@ -262,6 +307,7 @@ describe('deriveIPCauseRows', () => {
       hypotheses: [hypothesis()],
       findings: [finding()],
       controlRecord: sustainment(),
+      controlReviews: [review()],
     });
 
     expect(rows).toEqual([
@@ -270,7 +316,7 @@ describe('deriveIPCauseRows', () => {
         title: 'Night shift nozzle drift',
         selectedIdea: 'Retune night recipe',
         actionProgressLabel: '1 of 1 actions done',
-        verificationLabel: 'Control confirmed sustained',
+        verificationLabel: 'Latest re-check holding',
       }),
     ]);
   });

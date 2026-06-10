@@ -1178,6 +1178,7 @@ function AppMain() {
 
   // Control + Handoff inputs for ProjectsTabView → IPDetailPage
   const _liveControlRecords = (sessionHub?.controlRecords ?? []).filter(r => r.deletedAt === null);
+  const _liveControlReviews = (sessionHub?.controlReviews ?? []).filter(r => r.deletedAt === null);
   const _liveControlHandoffs = (sessionHub?.controlHandoffs ?? []).filter(
     h => h.deletedAt === null
   );
@@ -1187,14 +1188,16 @@ function AppMain() {
   const projectsControlHandoff = _liveControlHandoffs.find(
     h => h.projectId === (projectsControlRecord?.projectId ?? '')
   );
-  const projectsClosureInputs = projectsControlHandoff
+  const projectsClosureInputs = projectsControlRecord
     ? {
-        controlPlanDocumented: false,
-        trainingDelivered: Boolean(projectsControlHandoff.referenceUri),
-        cadenceAssigned: Boolean(projectsControlRecord?.nextCheckSuggestedAt),
-        processOwnerAcknowledged: Boolean(projectsControlHandoff.operationalOwner.displayName),
-        trainingRef: projectsControlHandoff.referenceUri,
-        cadenceOwner: projectsControlRecord?.owner?.displayName,
+        handoffRecorded: Boolean(projectsControlHandoff),
+        handoffSummary: projectsControlHandoff
+          ? `${projectsControlHandoff.systemName} · ${projectsControlHandoff.operationalOwner.displayName}`
+          : undefined,
+        ladderWalked:
+          projectsControlRecord.ladderStep >= Math.max(projectsControlRecord.ladder.length - 1, 0),
+        ladderSummary: `Step ${projectsControlRecord.ladderStep + 1} of ${projectsControlRecord.ladder.length}`,
+        sustainmentConfirmed: projectsControlRecord.status === 'confirmed-sustained',
       }
     : undefined;
   const isAnalyzeWallCanvasFirst = panels.activeView === 'analyze' && wallViewMode === 'wall';
@@ -1448,6 +1451,7 @@ function AppMain() {
               panels={panels}
               paretoMode={paretoMode}
               pendingMatches={pendingMatches}
+              _liveControlReviews={_liveControlReviews}
               projectsClosureInputs={projectsClosureInputs}
               rawData={rawData}
               timeColumn={importFlow.timeExtractionPrompt?.timeColumn}

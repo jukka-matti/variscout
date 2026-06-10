@@ -8,7 +8,7 @@ const sections: IPReportOverviewSection[] = [
   { title: 'Where we started', items: ['Baseline Cpk was below target.'] },
   { title: 'What we aimed for', items: ['Outcome target: 1.33'] },
   { title: 'What we found + what we did', items: ['Night shift nozzle drift'] },
-  { title: 'Did it work?', items: ['Control holding · 4 ticks'] },
+  { title: 'Did it work?', items: ['Re-check sequence: 2026-05-15 holding (n=24)'] },
   { title: 'What we standardized + learned', items: ['Retune checklist'] },
   { title: "What's next", items: ['Continue cadence review'] },
 ];
@@ -20,5 +20,11 @@ describe('IPOverviewReport', () => {
     for (const section of sections) {
       expect(screen.getByRole('heading', { name: section.title })).toBeInTheDocument();
     }
+  });
+
+  it('does not render retired tick-based verification copy', () => {
+    render(<IPOverviewReport sections={sections} causeRows={[]} />);
+
+    expect(screen.queryByText(/ticks/i)).not.toBeInTheDocument();
   });
 });
