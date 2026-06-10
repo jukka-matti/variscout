@@ -802,9 +802,9 @@ describe('storage service', () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
       const seededSustainment = {
         recordId: 'cr-1',
-        cadence: 'weekly',
-        nextReviewDue: '2026-07-01T00:00:00.000Z',
-        latestVerdict: 'holding',
+        ladderStep: 1,
+        nextCheckSuggestedAt: '2026-07-01T00:00:00.000Z',
+        status: 'verifying',
       };
       mockProjects.get.mockResolvedValue({
         name: 'control-project',
@@ -837,9 +837,9 @@ describe('storage service', () => {
       Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
       const seededSustainment = {
         recordId: 'cr-1',
-        cadence: 'weekly',
-        nextReviewDue: '2026-07-01T00:00:00.000Z',
-        latestVerdict: 'holding',
+        ladderStep: 1,
+        nextCheckSuggestedAt: '2026-07-01T00:00:00.000Z',
+        status: 'verifying',
       };
       mockProjects.get.mockResolvedValue({
         name: 'heal-me',
@@ -1304,12 +1304,22 @@ describe('storage service', () => {
       hubId: 'hub-1',
       projectId: 'investigation-1',
       title: 'Cached Control',
-      status: 'pending',
-      cadence: 'weekly',
-      nextReviewDue: '2026-06-01',
-      latestVerdict: 'inconclusive',
-      consecutiveOnTargetTicks: 0,
-      hasOverride: false,
+      status: 'verifying',
+      improvementDate: '2026-06-01T00:00:00.000Z',
+      baseline: {
+        capturedAt: 1000,
+        window: {
+          startISO: '2026-04-01T00:00:00.000Z',
+          endISO: '2026-05-31T23:59:59.999Z',
+        },
+        measure: 'fill_weight',
+        n: 42,
+        mean: 100.2,
+        sigma: 0.8,
+      },
+      ladder: [7, 30, 90, 180],
+      ladderStep: 0,
+      nextCheckSuggestedAt: '2026-06-08T00:00:00.000Z',
       lastEvaluatedSnapshotId: undefined,
       createdAt: 1000,
       updatedAt: 1000,

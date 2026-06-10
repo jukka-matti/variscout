@@ -65,8 +65,6 @@ interface ControlOverviewProps {
   onExportPdf?: () => void;
 }
 
-const SUSTAINMENT_THRESHOLD = 4;
-
 const ControlOverview: React.FC<ControlOverviewProps> = ({
   record,
   onStartHandoff,
@@ -79,10 +77,9 @@ const ControlOverview: React.FC<ControlOverviewProps> = ({
   onOpenReport,
   onExportPdf,
 }) => {
-  const ticks = Math.max(0, record.consecutiveOnTargetTicks);
-  const visibleTicks = Math.min(ticks, 8);
   const isDrifted = record.status === 'drifted';
-  const canHandoff = ticks >= SUSTAINMENT_THRESHOLD && !isDrifted;
+  const isConfirmed = record.status === 'confirmed-sustained';
+  const canHandoff = isConfirmed && !isDrifted;
 
   return (
     <div className="space-y-5">
@@ -94,7 +91,11 @@ const ControlOverview: React.FC<ControlOverviewProps> = ({
         <div
           className={`text-xs font-semibold uppercase tracking-wide ${isDrifted ? 'text-amber-700' : 'text-green-700'}`}
         >
-          {isDrifted ? 'Drift detected · last tick failed' : `Sustained · ${ticks} ticks on target`}
+          {isDrifted
+            ? 'Drift detected'
+            : isConfirmed
+              ? 'Sustained · analyst confirmed'
+              : 'Verifying · re-check in progress'}
         </div>
       </div>
 
@@ -105,18 +106,15 @@ const ControlOverview: React.FC<ControlOverviewProps> = ({
 
       <div>
         <div className="text-[10px] font-semibold uppercase tracking-wide text-content-tertiary">
-          Cadence tick history
+          Re-check ladder
         </div>
-        <div className="mt-2 flex flex-wrap gap-1">
-          {Array.from({ length: visibleTicks }, (_, i) => (
-            <span
-              key={i}
-              data-testid={`cadence-tick-${i}`}
-              className="rounded-sm bg-green-100 px-2 py-0.5 font-mono text-[10px] text-green-800"
-            >
-              Wk {i + 1} ✓
-            </span>
-          ))}
+        <div className="mt-2 flex flex-wrap gap-2 text-xs text-content-secondary">
+          <span data-testid="control-ladder-step">
+            Step {record.ladderStep + 1} of {record.ladder.length}
+          </span>
+          {record.nextCheckSuggestedAt && (
+            <span>Next suggested {record.nextCheckSuggestedAt.slice(0, 10)}</span>
+          )}
         </div>
       </div>
 

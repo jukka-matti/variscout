@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import type { ControlCadence, ControlReview, ControlVerdict } from '@variscout/core';
-import { nextDueFromCadence } from '@variscout/core';
+import type { ControlReview, ControlVerdict } from '@variscout/core';
 import type { EasyAuthUser } from '../auth/types';
 import { useStorage } from '../services/storage';
 
@@ -11,15 +10,13 @@ export interface ControlReviewLoggerProps {
   currentUser: EasyAuthUser;
   reviewerDisplayName: string;
   latestSnapshotId?: string;
-  cadence: ControlCadence;
   onSave: (review: ControlReview) => void;
   onCancel: () => void;
 }
 
 const VERDICTS: { value: ControlVerdict; label: string }[] = [
   { value: 'holding', label: 'Holding' },
-  { value: 'drifting', label: 'Drifting' },
-  { value: 'broken', label: 'Broken' },
+  { value: 'drifted', label: 'Drifted' },
   { value: 'inconclusive', label: 'Inconclusive' },
 ];
 
@@ -30,7 +27,6 @@ const ControlReviewLogger: React.FC<ControlReviewLoggerProps> = ({
   currentUser,
   reviewerDisplayName,
   latestSnapshotId,
-  cadence,
   onSave,
   onCancel,
 }) => {
@@ -55,28 +51,32 @@ const ControlReviewLogger: React.FC<ControlReviewLoggerProps> = ({
       reviewer: { userId: currentUser.userId, displayName: reviewerDisplayName },
       verdict,
       snapshotId: snapshotId || undefined,
+      nowStats: {
+        window: {
+          startISO: new Date(nowMs).toISOString(),
+          endISO: new Date(nowMs).toISOString(),
+        },
+        n: 0,
+        mean: 0,
+        sigma: 0,
+      },
+      dataStamp: { rowCount: 0, snapshotId: snapshotId || undefined },
       observation: observation || undefined,
     };
 
     await storage.saveControlReview(review);
 
-    // Update parent record with latest verdict + recomputed next due
+    // Update parent record with analyst-owned latest review pointer.
     const records = await storage.listControlRecords(hubId);
     const parentRecord = records.find(r => r.id === recordId);
     if (parentRecord) {
-      const nextDue = nextDueFromCadence(cadence, new Date(nowMs));
       const updatedRecord = {
         ...parentRecord,
-        latestVerdict: verdict,
+        status: verdict === 'drifted' ? ('drifted' as const) : parentRecord.status,
         latestReviewAt: new Date(nowMs).toISOString(),
         latestReviewId: review.id,
         updatedAt: nowMs,
       };
-      if (nextDue !== undefined) {
-        updatedRecord.nextReviewDue = nextDue;
-      } else {
-        delete updatedRecord.nextReviewDue;
-      }
       await storage.saveControlRecord(updatedRecord);
     }
 

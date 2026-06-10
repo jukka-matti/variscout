@@ -806,11 +806,9 @@ export const Editor: React.FC<EditorProps> = ({
   const projectsClosureInputs = projectsControlHandoff
     ? {
         controlPlanDocumented: false,
-        // Re-pointed from the deleted handoff.signoff to the handoff lifecycle
-        // (IM-7 §11 #6): "operational" is the fully-handed-off milestone.
-        trainingDelivered: projectsControlHandoff.status === 'operational',
-        cadenceAssigned: Boolean(projectsControlRecord?.cadence),
-        processOwnerAcknowledged: projectsControlHandoff.status !== 'pending',
+        trainingDelivered: Boolean(projectsControlHandoff.referenceUri),
+        cadenceAssigned: Boolean(projectsControlRecord?.nextCheckSuggestedAt),
+        processOwnerAcknowledged: Boolean(projectsControlHandoff.operationalOwner.displayName),
         trainingRef: projectsControlHandoff.referenceUri,
         cadenceOwner: projectsControlRecord?.owner?.displayName,
       }

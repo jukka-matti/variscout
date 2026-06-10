@@ -99,15 +99,14 @@ describe('ProjectCard', () => {
   // The card renders only the KEEP-set surfaces; none of the shed surfaces
   // (status chip, depth label, Your-tasks block, work-item amber accent) come back.
   //
-  // The one REAL surviving overdue surface is the control-due chip
-  // (data-testid="project-card-control-due"), driven by
-  // `metadata.sustainment.nextReviewDue`. It must be ABSENT when no sustainment
-  // is set. The companion positive case ("shows overdue chip when nextReviewDue
-  // is in the past") lives in the "control due-ness chip" block below.
+  // The one REAL surviving re-check surface is the control-check chip
+  // (data-testid="project-card-control-check"), driven by
+  // `metadata.sustainment.nextCheckSuggestedAt`. It must be ABSENT when no
+  // sustainment is set.
   it('negative control: shed surfaces absent; control-due chip absent without sustainment', () => {
     const project = makeProject({
       metadata: makeMetadata({ processHubId: 'line-4' }),
-      // No sustainment → nextReviewDue is absent → no control-due chip
+      // No sustainment -> nextCheckSuggestedAt is absent -> no control-check chip
     });
     render(<ProjectCard {...defaultProps} project={project} />);
     const card = screen.getByTestId('project-card');
@@ -116,69 +115,71 @@ describe('ProjectCard', () => {
     expect(card.className).not.toContain('border-l-amber-500');
     expect(screen.queryByTestId('project-card-your-tasks')).not.toBeInTheDocument();
 
-    // The surviving control-due chip is ABSENT when sustainment has no nextReviewDue
-    expect(screen.queryByTestId('project-card-control-due')).not.toBeInTheDocument();
+    // The surviving control-check chip is ABSENT when sustainment has no nextCheckSuggestedAt
+    expect(screen.queryByTestId('project-card-control-check')).not.toBeInTheDocument();
 
     // The KEEP-set processHubId line still renders
     expect(screen.getByTestId('project-card-hub')).toHaveTextContent('line-4');
   });
 
-  // ── control due-ness chip ────────────────────────────────────────────────────
+  // ── control re-check chip ────────────────────────────────────────────────────
 
-  it('shows overdue chip when nextReviewDue is in the past', () => {
+  it('shows suggested chip when nextCheckSuggestedAt is in the past', () => {
     const pastDate = new Date(NOW - 2 * 24 * 60 * 60 * 1000).toISOString(); // 2 days ago
     const project = makeProject({
       metadata: makeMetadata({
         sustainment: {
           recordId: 'r-1',
-          cadence: 'weekly',
-          nextReviewDue: pastDate,
+          ladderStep: 0,
+          status: 'verifying',
+          nextCheckSuggestedAt: pastDate,
         },
       }),
     });
     render(<ProjectCard {...defaultProps} project={project} />);
-    const chip = screen.getByTestId('project-card-control-due');
+    const chip = screen.getByTestId('project-card-control-check');
     expect(chip).toBeInTheDocument();
-    expect(chip).toHaveTextContent('Review overdue');
+    expect(chip).toHaveTextContent('Re-check suggested');
     expect(chip.className).toContain('amber');
   });
 
-  it('shows upcoming chip when nextReviewDue is in the future', () => {
+  it('shows planned chip when nextCheckSuggestedAt is in the future', () => {
     const futureDate = new Date(NOW + 3 * 24 * 60 * 60 * 1000).toISOString(); // 3 days from now
     const project = makeProject({
       metadata: makeMetadata({
         sustainment: {
           recordId: 'r-2',
-          cadence: 'monthly',
-          nextReviewDue: futureDate,
+          ladderStep: 1,
+          status: 'verifying',
+          nextCheckSuggestedAt: futureDate,
         },
       }),
     });
     render(<ProjectCard {...defaultProps} project={project} />);
-    const chip = screen.getByTestId('project-card-control-due');
+    const chip = screen.getByTestId('project-card-control-check');
     expect(chip).toBeInTheDocument();
-    expect(chip).toHaveTextContent('Review due');
+    expect(chip).toHaveTextContent('Re-check planned');
     expect(chip.className).not.toContain('amber');
   });
 
   it('shows no control chip when sustainment is absent', () => {
     const project = makeProject({ metadata: makeMetadata() });
     render(<ProjectCard {...defaultProps} project={project} />);
-    expect(screen.queryByTestId('project-card-control-due')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('project-card-control-check')).not.toBeInTheDocument();
   });
 
-  it('shows no control chip when sustainment exists but nextReviewDue is absent', () => {
+  it('shows no control chip when sustainment exists but nextCheckSuggestedAt is absent', () => {
     const project = makeProject({
       metadata: makeMetadata({
         sustainment: {
           recordId: 'r-3',
-          cadence: 'weekly',
-          // nextReviewDue deliberately absent
+          ladderStep: 0,
+          status: 'verifying',
         },
       }),
     });
     render(<ProjectCard {...defaultProps} project={project} />);
-    expect(screen.queryByTestId('project-card-control-due')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('project-card-control-check')).not.toBeInTheDocument();
   });
 
   it('calls onClick when card is clicked', () => {

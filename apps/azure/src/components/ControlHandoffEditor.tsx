@@ -54,9 +54,6 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
   );
   const [description, setDescription] = useState(existingHandoff?.description ?? '');
   const [referenceUri, setReferenceUri] = useState(existingHandoff?.referenceUri ?? '');
-  const [retainControlReview, setRetainControlReview] = useState(
-    existingHandoff?.retainControlReview ?? true
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +64,6 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
       id: existingHandoff?.id ?? crypto.randomUUID(),
       projectId,
       hubId,
-      status: existingHandoff?.status ?? 'pending',
       surface,
       systemName,
       // operationalOwner is the person operating the control, NOT the submitter.
@@ -77,7 +73,6 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
       handoffDate: new Date(handoffDate + 'T00:00:00.000Z').getTime(),
       description,
       referenceUri: referenceUri || undefined,
-      retainControlReview,
       createdAt: existingHandoff?.createdAt ?? nowMs,
       deletedAt: existingHandoff?.deletedAt ?? null,
       recordedBy: existingHandoff?.recordedBy ?? {
@@ -211,20 +206,6 @@ const ControlHandoffEditor: React.FC<ControlHandoffEditorProps> = ({
           placeholder="Optional"
           className="w-full rounded-md border border-edge bg-surface-secondary px-2 py-1 text-sm text-content focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-      </div>
-
-      <div className="flex items-center gap-2">
-        <input
-          id="che-retain-review"
-          aria-label="Retain control review"
-          type="checkbox"
-          checked={retainControlReview}
-          onChange={e => setRetainControlReview(e.target.checked)}
-          className="h-4 w-4 rounded border-edge"
-        />
-        <label className="text-xs font-medium text-content-secondary" htmlFor="che-retain-review">
-          Retain control review after handoff
-        </label>
       </div>
 
       <div className="flex justify-end gap-2">

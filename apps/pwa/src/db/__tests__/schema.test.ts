@@ -63,7 +63,7 @@ describe('PWA IndexedDB schema (clean v1)', () => {
 
     expect(db.controlRecords.schema.indexes.map(index => index.name)).toEqual([
       'hubId',
-      'nextReviewDue',
+      'nextCheckSuggestedAt',
       'updatedAt',
       'deletedAt',
     ]);
@@ -74,7 +74,6 @@ describe('PWA IndexedDB schema (clean v1)', () => {
     ]);
     expect(db.controlHandoffs.schema.indexes.map(index => index.name)).toEqual([
       'hubId',
-      'status',
       'handoffDate',
       'deletedAt',
     ]);

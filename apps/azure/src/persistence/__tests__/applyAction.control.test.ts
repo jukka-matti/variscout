@@ -1,6 +1,12 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { ControlHandoff, EvidenceSnapshot, ControlRecord } from '@variscout/core';
+import type {
+  ControlHandoff,
+  EvidenceSnapshot,
+  ControlRecord,
+  ControlReview,
+} from '@variscout/core';
+import type { ControlBaseline } from '@variscout/core';
 import type { ProcessHub } from '@variscout/core/processHub';
 import { applyAction } from '../applyAction';
 import { db } from '../../db/schema';
@@ -16,6 +22,22 @@ function makeHub(id: string): ProcessHub {
   };
 }
 
+function makeBaseline(overrides: Partial<ControlBaseline> = {}): ControlBaseline {
+  return {
+    capturedAt: NOW,
+    window: {
+      startISO: '2026-04-01T00:00:00.000Z',
+      endISO: '2026-05-31T23:59:59.999Z',
+    },
+    measure: 'fill_weight',
+    n: 42,
+    mean: 100.2,
+    sigma: 0.8,
+    cpk: 1.42,
+    ...overrides,
+  };
+}
+
 function makeRecord(
   id: string,
   hubId: string,
@@ -26,15 +48,45 @@ function makeRecord(
     title: 'Hold improved fill weight',
     projectId: 'inv-1',
     hubId,
-    cadence: 'weekly',
-    status: 'pending',
-    consecutiveOnTargetTicks: 0,
-    hasOverride: false,
-    lastEvaluatedSnapshotId: undefined,
+    status: 'verifying',
+    improvementDate: '2026-06-01T00:00:00.000Z',
+    baseline: makeBaseline(),
+    ladder: [7, 30, 90, 180],
+    ladderStep: 0,
+    nextCheckSuggestedAt: '2026-06-08T00:00:00.000Z',
     createdAt: NOW,
     updatedAt: NOW,
     deletedAt: null,
     ...overrides,
+    lastEvaluatedSnapshotId: overrides.lastEvaluatedSnapshotId ?? undefined,
+  };
+}
+
+function makeReview(
+  record: ControlRecord,
+  verdict: ControlReview['verdict'] = 'holding'
+): ControlReview {
+  return {
+    id: 'review-1',
+    recordId: record.id,
+    projectId: record.projectId,
+    hubId: record.hubId,
+    reviewedAt: NOW,
+    reviewer: { displayName: 'Analyst' },
+    verdict,
+    nowStats: {
+      window: {
+        startISO: '2026-06-01T00:00:00.000Z',
+        endISO: '2026-06-30T23:59:59.999Z',
+      },
+      n: 12,
+      mean: 100.8,
+      sigma: 0.9,
+    },
+    dataStamp: { rowCount: 64, snapshotId: 'snapshot-1' },
+    observation: 'Capability is holding.',
+    createdAt: NOW,
+    deletedAt: null,
   };
 }
 
@@ -78,9 +130,17 @@ afterEach(async () => {
 });
 
 describe('applyAction (Azure) — sustainment records', () => {
-  it('creates, updates, archives, and persists tick evaluations', async () => {
+  it('creates, updates, archives, and persists analyst re-checks', async () => {
     await db.processHubs.put(makeHub('hub-1'));
     const record = makeRecord('record-1', 'hub-1');
+    const updatedRecord = {
+      ...record,
+      ladderStep: 1,
+      nextCheckSuggestedAt: '2026-07-01T00:00:00.000Z',
+      latestReviewAt: new Date(NOW).toISOString(),
+      latestReviewId: 'review-1',
+      updatedAt: NOW,
+    };
 
     await applyAction({ kind: 'SUSTAINMENT_RECORD_CREATE', hubId: 'hub-1', record });
     await applyAction({
@@ -89,30 +149,24 @@ describe('applyAction (Azure) — sustainment records', () => {
       patch: { targetSummary: 'Cpk >= 1.33' },
     });
     await applyAction({
-      kind: 'SUSTAINMENT_TICK_EVALUATED',
-      record: { ...record, consecutiveOnTargetTicks: 1, lastEvaluatedSnapshotId: 'snapshot-1' },
-      review: {
-        id: 'review-1',
-        recordId: 'record-1',
-        projectId: 'inv-1',
-        hubId: 'hub-1',
-        reviewedAt: NOW,
-        reviewer: { displayName: 'System' },
-        verdict: 'holding',
-        snapshotId: 'snapshot-1',
-        createdAt: NOW,
-        deletedAt: null,
-      },
+      kind: 'SUSTAINMENT_RECHECK_LOGGED',
+      record: updatedRecord,
+      review: makeReview(updatedRecord),
     });
     await applyAction({ kind: 'SUSTAINMENT_RECORD_ARCHIVE', recordId: 'record-1' });
 
     const stored = await db.controlRecords.get('record-1');
-    expect(stored?.targetSummary).toBe('Cpk >= 1.33');
-    expect(stored?.lastEvaluatedSnapshotId).toBe('snapshot-1');
-    expect(stored?.deletedAt).toEqual(expect.any(Number));
+    expect(stored).toMatchObject({
+      targetSummary: 'Cpk >= 1.33',
+      ladderStep: 1,
+      nextCheckSuggestedAt: '2026-07-01T00:00:00.000Z',
+      latestReviewId: 'review-1',
+      deletedAt: expect.any(Number),
+    });
     expect(await db.controlReviews.get('review-1')).toMatchObject({
       recordId: 'record-1',
       verdict: 'holding',
+      dataStamp: { rowCount: 64, snapshotId: 'snapshot-1' },
     });
   });
 
@@ -130,12 +184,17 @@ describe('applyAction (Azure) — sustainment records', () => {
     expect(await db.controlRecords.get('record-mismatch')).toBeUndefined();
   });
 
-  it('evaluates live records when evidence snapshots are added', async () => {
+  it('does not write control status or reviews when evidence snapshots are added', async () => {
     await db.processHubs.put(makeHub('hub-2'));
+    const record = makeRecord('record-2', 'hub-2', {
+      ladderStep: 2,
+      status: 'verifying',
+      nextCheckSuggestedAt: '2026-06-08T00:00:00.000Z',
+    });
     await applyAction({
       kind: 'SUSTAINMENT_RECORD_CREATE',
       hubId: 'hub-2',
-      record: makeRecord('record-2', 'hub-2', { consecutiveOnTargetTicks: 3 }),
+      record,
     });
 
     await applyAction({
@@ -155,13 +214,13 @@ describe('applyAction (Azure) — sustainment records', () => {
       provenance: [],
     });
 
-    const record = await db.controlRecords.get('record-2');
-    expect(record?.status).toBe('confirmed-sustained');
-    expect(record?.consecutiveOnTargetTicks).toBe(4);
-    expect(record?.lastEvaluatedSnapshotId).toBe('snapshot-green');
-    const reviews = await db.controlReviews.where('recordId').equals('record-2').toArray();
-    expect(reviews).toHaveLength(1);
-    expect(reviews[0]).toMatchObject({ snapshotId: 'snapshot-green', verdict: 'holding' });
+    const stored = await db.controlRecords.get('record-2');
+    expect(stored).toMatchObject({
+      status: 'verifying',
+      ladderStep: 2,
+      nextCheckSuggestedAt: '2026-06-08T00:00:00.000Z',
+    });
+    expect(await db.controlReviews.where('recordId').equals('record-2').count()).toBe(0);
   });
 });
 
@@ -174,13 +233,11 @@ function makeHandoff(
     id,
     projectId: 'inv-1',
     hubId,
-    status: 'pending',
     surface: 'qms-procedure',
     systemName: 'QMS-42',
     operationalOwner: { displayName: 'Process owner' },
     handoffDate: NOW,
     description: 'Control handoff',
-    retainControlReview: true,
     recordedBy: { displayName: 'Analyst' },
     createdAt: NOW,
     deletedAt: null,
@@ -189,7 +246,7 @@ function makeHandoff(
 }
 
 describe('applyAction (Azure) — control handoffs', () => {
-  it('creates, updates, acknowledges, marks operational, and archives handoffs', async () => {
+  it('creates, updates, and archives simplified handoffs', async () => {
     await db.processHubs.put(makeHub('hub-handoff'));
 
     await applyAction({
@@ -202,33 +259,14 @@ describe('applyAction (Azure) — control handoffs', () => {
       handoffId: 'handoff-1',
       patch: { escalationPath: 'Escalate to manager', reactionPlan: 'Return to standard work' },
     });
-    await applyAction({
-      kind: 'CONTROL_HANDOFF_ACKNOWLEDGE',
-      handoffId: 'handoff-1',
-      acknowledgedAt: NOW + 1,
-      acknowledgedBy: { displayName: 'Process owner' },
-      notes: 'Accepted',
-    });
-    await applyAction({
-      kind: 'CONTROL_HANDOFF_MARK_OPERATIONAL',
-      handoffId: 'handoff-1',
-      operationalAt: NOW + 3,
-    });
     await applyAction({ kind: 'CONTROL_HANDOFF_ARCHIVE', handoffId: 'handoff-1' });
 
     const stored = await db.controlHandoffs.get('handoff-1');
     expect(stored).toMatchObject({
-      status: 'operational',
       escalationPath: 'Escalate to manager',
       reactionPlan: 'Return to standard work',
-      acknowledgedAt: NOW + 1,
-      operationalAt: NOW + 3,
-      ownerAcknowledgement: {
-        acknowledgedBy: { displayName: 'Process owner' },
-        notes: 'Accepted',
-      },
+      deletedAt: expect.any(Number),
     });
-    expect(stored?.deletedAt).toEqual(expect.any(Number));
   });
 
   it('rejects create payloads whose handoff hubId does not match the action hubId', async () => {

@@ -3,7 +3,6 @@ import type { SurveyHint, SurveyRule } from './types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CONFIRMED_WITHOUT_HANDOFF_DAYS = 42;
-const PENDING_ACKNOWLEDGEMENT_DAYS = 7;
 
 function timestamp(value: Date | number | string | undefined): number | undefined {
   if (value instanceof Date) return value.getTime();
@@ -35,15 +34,6 @@ function hasLiveHandoff(record: ControlRecord, handoffs: ControlHandoff[]): bool
   );
 }
 
-function needsOwnerAcknowledgement(handoff: ControlHandoff): boolean {
-  return (
-    isLiveHandoff(handoff) &&
-    handoff.status === 'pending' &&
-    handoff.acknowledgedAt === undefined &&
-    handoff.ownerAcknowledgement === undefined
-  );
-}
-
 export const surveyHandoffRules: SurveyRule = ctx => {
   const hints: SurveyHint[] = [];
   const now = timestamp(ctx.now);
@@ -69,29 +59,6 @@ export const surveyHandoffRules: SurveyRule = ctx => {
         label: 'Record control handoff',
         opensSurface: 'sustainment',
         opensId: record.id,
-      },
-    });
-  }
-
-  for (const handoff of handoffs) {
-    if (!needsOwnerAcknowledgement(handoff)) continue;
-
-    const recordedAt = timestamp(handoff.createdAt);
-    if (recordedAt === undefined) continue;
-
-    const ageMs = now - recordedAt;
-    if (ageMs < PENDING_ACKNOWLEDGEMENT_DAYS * DAY_MS) continue;
-
-    hints.push({
-      kind: 'lifecycle-gap',
-      surface: 'sustainment',
-      targetEntityId: handoff.id,
-      message: `${handoff.operationalOwner.displayName} has not acknowledged ${handoff.systemName} handoff`,
-      severity: 'warning',
-      action: {
-        label: 'Open handoff',
-        opensSurface: 'sustainment',
-        opensId: handoff.id,
       },
     });
   }

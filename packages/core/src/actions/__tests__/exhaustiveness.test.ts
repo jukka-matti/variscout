@@ -127,7 +127,7 @@ function _exhaustive(action: HubAction): void {
       return;
     case 'SUSTAINMENT_MARK_DRIFTED':
       return;
-    case 'SUSTAINMENT_TICK_EVALUATED':
+    case 'SUSTAINMENT_RECHECK_LOGGED':
       return;
     // Control Handoff
     case 'CONTROL_HANDOFF_CREATE':
@@ -135,10 +135,6 @@ function _exhaustive(action: HubAction): void {
     case 'CONTROL_HANDOFF_UPDATE':
       return;
     case 'CONTROL_HANDOFF_ARCHIVE':
-      return;
-    case 'CONTROL_HANDOFF_ACKNOWLEDGE':
-      return;
-    case 'CONTROL_HANDOFF_MARK_OPERATIONAL':
       return;
     default:
       return assertNever(action);
@@ -251,10 +247,22 @@ describe('SUSTAINMENT actions', () => {
         title: 'Hold improved fill weight',
         projectId: 'inv-1',
         hubId: 'hub-1',
-        cadence: 'weekly',
-        status: 'pending',
-        consecutiveOnTargetTicks: 0,
-        hasOverride: false,
+        status: 'verifying',
+        improvementDate: '2026-06-01T00:00:00.000Z',
+        baseline: {
+          capturedAt: 1_746_352_800_000,
+          window: {
+            startISO: '2026-04-01T00:00:00.000Z',
+            endISO: '2026-05-31T23:59:59.999Z',
+          },
+          measure: 'fill_weight',
+          n: 42,
+          mean: 100.2,
+          sigma: 0.8,
+        },
+        ladder: [7, 30, 90, 180],
+        ladderStep: 0,
+        nextCheckSuggestedAt: '2026-06-08T00:00:00.000Z',
         lastEvaluatedSnapshotId: undefined,
         createdAt: 1_746_352_800_000,
         updatedAt: 1_746_352_800_000,
@@ -269,8 +277,8 @@ describe('SUSTAINMENT actions', () => {
     const archive: HubAction = { kind: 'SUSTAINMENT_RECORD_ARCHIVE', recordId: 'sus-1' };
     const confirm: HubAction = { kind: 'SUSTAINMENT_CONFIRM', recordId: 'sus-1' };
     const drifted: HubAction = { kind: 'SUSTAINMENT_MARK_DRIFTED', recordId: 'sus-1' };
-    const tick: HubAction = {
-      kind: 'SUSTAINMENT_TICK_EVALUATED',
+    const recheck: HubAction = {
+      kind: 'SUSTAINMENT_RECHECK_LOGGED',
       record: create.record,
       review: {
         id: 'review-1',
@@ -281,6 +289,16 @@ describe('SUSTAINMENT actions', () => {
         reviewer: { displayName: 'System' },
         verdict: 'holding',
         snapshotId: 'snapshot-1',
+        nowStats: {
+          window: {
+            startISO: '2026-06-01T00:00:00.000Z',
+            endISO: '2026-06-30T23:59:59.999Z',
+          },
+          n: 12,
+          mean: 100.8,
+          sigma: 0.9,
+        },
+        dataStamp: { rowCount: 64, snapshotId: 'snapshot-1' },
         createdAt: 1_746_352_800_000,
         deletedAt: null,
       },
@@ -291,6 +309,6 @@ describe('SUSTAINMENT actions', () => {
     expect(archive.kind).toBe('SUSTAINMENT_RECORD_ARCHIVE');
     expect(confirm.kind).toBe('SUSTAINMENT_CONFIRM');
     expect(drifted.kind).toBe('SUSTAINMENT_MARK_DRIFTED');
-    expect(tick.kind).toBe('SUSTAINMENT_TICK_EVALUATED');
+    expect(recheck.kind).toBe('SUSTAINMENT_RECHECK_LOGGED');
   });
 });

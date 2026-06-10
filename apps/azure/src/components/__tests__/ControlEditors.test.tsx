@@ -47,7 +47,7 @@ describe('ControlRecordEditor', () => {
     const onSave = vi.fn();
     const onCancel = vi.fn();
 
-    // The "Next review due" input enforces min={today} via HTML5 constraint
+    // The re-check suggestion input enforces min={today} via HTML5 constraint
     // validation, which blocks form submit (the submit event never fires) when
     // the chosen date is in the past. Compute a date safely in the future
     // relative to the current clock so this test never becomes a time bomb.
@@ -63,9 +63,8 @@ describe('ControlRecordEditor', () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText('Cadence'), { target: { value: 'monthly' } });
     fireEvent.change(screen.getByLabelText('Owner'), { target: { value: 'Jane Doe' } });
-    fireEvent.change(screen.getByLabelText('Next review due'), {
+    fireEvent.change(screen.getByLabelText('Next suggested re-check'), {
       target: { value: futureDate },
     });
     fireEvent.change(screen.getByLabelText('Open concerns'), {
@@ -77,13 +76,15 @@ describe('ControlRecordEditor', () => {
     await waitFor(() => expect(mockSaveControlRecord).toHaveBeenCalledTimes(1));
 
     const saved = mockSaveControlRecord.mock.calls[0][0];
-    expect(saved.cadence).toBe('monthly');
+    expect(saved.status).toBe('verifying');
     expect(saved.projectId).toBe('inv-abc');
     expect(saved.hubId).toBe('hub-1');
     expect(saved.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(saved.owner?.displayName).toBe('Jane Doe');
     expect(saved.owner?.userId).toBe(FIXTURE_USER.userId);
-    expect(saved.nextReviewDue).toMatch(new RegExp(`^${futureDate}T`));
+    expect(saved.nextCheckSuggestedAt).toMatch(new RegExp(`^${futureDate}T`));
+    expect(saved.baseline).toMatchObject({ measure: 'outcome', n: 0 });
+    expect(saved.ladder).toEqual([7, 30, 90, 180]);
     expect(saved.openConcerns).toBe('Watch the variance trend');
     expect(onSave).toHaveBeenCalledWith(saved);
   });
@@ -120,7 +121,7 @@ describe('ControlRecordEditor', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  it('auto-suggests next-review-due from cadence on initial mount (no existing record)', () => {
+  it('auto-suggests next re-check on initial mount (no existing record)', () => {
     render(
       <ControlRecordEditor
         projectId="inv-abc"
@@ -130,13 +131,12 @@ describe('ControlRecordEditor', () => {
         onCancel={vi.fn()}
       />
     );
-    const dateInput = screen.getByLabelText('Next review due') as HTMLInputElement;
-    // Default cadence is monthly → suggested ~30 days out, never empty
+    const dateInput = screen.getByLabelText('Next suggested re-check') as HTMLInputElement;
     expect(dateInput.value).not.toBe('');
     expect(dateInput.value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
-  it('updates next-review-due when cadence changes if user has not edited the date', () => {
+  it('allows the suggested re-check date to be edited directly', () => {
     render(
       <ControlRecordEditor
         projectId="inv-abc"
@@ -146,41 +146,34 @@ describe('ControlRecordEditor', () => {
         onCancel={vi.fn()}
       />
     );
-    const dateInput = screen.getByLabelText('Next review due') as HTMLInputElement;
-    const monthlyDate = dateInput.value;
-    fireEvent.change(screen.getByLabelText('Cadence'), { target: { value: 'annual' } });
-    expect(dateInput.value).not.toBe(monthlyDate);
-    expect(dateInput.value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-  });
-
-  it('preserves user-edited next-review-due when cadence changes after manual edit', () => {
-    render(
-      <ControlRecordEditor
-        projectId="inv-abc"
-        hubId="hub-1"
-        currentUser={FIXTURE_USER}
-        onSave={vi.fn()}
-        onCancel={vi.fn()}
-      />
-    );
-    const dateInput = screen.getByLabelText('Next review due') as HTMLInputElement;
+    const dateInput = screen.getByLabelText('Next suggested re-check') as HTMLInputElement;
     fireEvent.change(dateInput, { target: { value: '2027-01-15' } });
-    fireEvent.change(screen.getByLabelText('Cadence'), { target: { value: 'annual' } });
     expect(dateInput.value).toBe('2027-01-15');
   });
 
-  it("preserves an existing record's next-review-due when cadence changes (treated as user-set)", () => {
+  it("preserves an existing record's next suggested re-check", () => {
     const existingRecord: ControlRecord = {
       id: 'rec-existing',
       title: 'Control cadence',
       projectId: 'inv-abc',
       hubId: 'hub-1',
-      status: 'pending',
-      consecutiveOnTargetTicks: 0,
-      hasOverride: false,
+      status: 'verifying',
+      improvementDate: '2026-04-01T00:00:00.000Z',
+      baseline: {
+        capturedAt: 1743465600000,
+        window: {
+          startISO: '2026-03-01T00:00:00.000Z',
+          endISO: '2026-03-31T23:59:59.999Z',
+        },
+        measure: 'metric',
+        n: 12,
+        mean: 1,
+        sigma: 0.1,
+      },
+      ladder: [7, 30, 90],
+      ladderStep: 1,
+      nextCheckSuggestedAt: '2026-12-01T00:00:00.000Z',
       lastEvaluatedSnapshotId: undefined,
-      cadence: 'monthly',
-      nextReviewDue: '2026-12-01T00:00:00.000Z',
       createdAt: 1743465600000, // 2026-04-01T00:00:00.000Z
       updatedAt: 1743465600000,
       deletedAt: null,
@@ -195,13 +188,11 @@ describe('ControlRecordEditor', () => {
         onCancel={vi.fn()}
       />
     );
-    const dateInput = screen.getByLabelText('Next review due') as HTMLInputElement;
-    expect(dateInput.value).toBe('2026-12-01');
-    fireEvent.change(screen.getByLabelText('Cadence'), { target: { value: 'quarterly' } });
+    const dateInput = screen.getByLabelText('Next suggested re-check') as HTMLInputElement;
     expect(dateInput.value).toBe('2026-12-01');
   });
 
-  it('sets a min attribute equal to today on the next-review-due input', () => {
+  it('sets a min attribute equal to today on the next suggested re-check input', () => {
     render(
       <ControlRecordEditor
         projectId="inv-abc"
@@ -211,7 +202,7 @@ describe('ControlRecordEditor', () => {
         onCancel={vi.fn()}
       />
     );
-    const dateInput = screen.getByLabelText('Next review due') as HTMLInputElement;
+    const dateInput = screen.getByLabelText('Next suggested re-check') as HTMLInputElement;
     const today = new Date().toISOString().slice(0, 10);
     expect(dateInput.min).toBe(today);
   });
@@ -256,18 +247,29 @@ describe('ControlReviewLogger', () => {
     title: 'Control cadence',
     projectId: 'inv-abc',
     hubId: 'hub-1',
-    status: 'pending',
-    consecutiveOnTargetTicks: 0,
-    hasOverride: false,
+    status: 'verifying',
+    improvementDate: '2026-03-01T00:00:00.000Z',
+    baseline: {
+      capturedAt: 1740787200000,
+      window: {
+        startISO: '2026-02-01T00:00:00.000Z',
+        endISO: '2026-02-28T23:59:59.999Z',
+      },
+      measure: 'metric',
+      n: 12,
+      mean: 1,
+      sigma: 0.1,
+    },
+    ladder: [7, 30, 90],
+    ladderStep: 0,
+    nextCheckSuggestedAt: '2026-04-27T00:00:00.000Z',
     lastEvaluatedSnapshotId: undefined,
-    cadence: 'monthly',
-    nextReviewDue: '2026-04-27T00:00:00.000Z',
     createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z
     updatedAt: 1740787200000,
     deletedAt: null,
   };
 
-  it('fills form with verdict=holding, submits, updates record with latestVerdict and nextReviewDue', async () => {
+  it('fills form with verdict=holding, submits, and updates the latest review pointer', async () => {
     mockListControlRecords.mockResolvedValue([baseRecord]);
 
     const onSave = vi.fn();
@@ -278,7 +280,6 @@ describe('ControlReviewLogger', () => {
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         reviewerDisplayName="Alice"
-        cadence="monthly"
         onSave={onSave}
         onCancel={vi.fn()}
       />
@@ -302,25 +303,24 @@ describe('ControlReviewLogger', () => {
     expect(savedReview.projectId).toBe('inv-abc');
     expect(savedReview.hubId).toBe('hub-1');
     expect(savedReview.verdict).toBe('holding');
+    expect(savedReview.nowStats.n).toBe(0);
+    expect(savedReview.dataStamp.rowCount).toBe(0);
     expect(savedReview.reviewer.displayName).toBe('Alice');
     expect(savedReview.reviewer.userId).toBe(FIXTURE_USER.userId);
     expect(typeof savedReview.reviewedAt).toBe('number');
     expect(savedReview.reviewedAt).toBeGreaterThan(0);
 
-    // Record should be updated with latestVerdict and nextReviewDue
+    // Record should be updated with the latest review pointer.
     await waitFor(() => expect(mockSaveControlRecord).toHaveBeenCalledTimes(1));
     const updatedRecord = mockSaveControlRecord.mock.calls[0][0];
-    expect(updatedRecord.latestVerdict).toBe('holding');
     expect(updatedRecord.latestReviewId).toBe(savedReview.id);
-    expect(updatedRecord.nextReviewDue).toBeDefined();
-    expect(updatedRecord.nextReviewDue).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(updatedRecord.nextCheckSuggestedAt).toBe('2026-04-27T00:00:00.000Z');
 
     expect(onSave).toHaveBeenCalledWith(savedReview);
   });
 
-  it('does not set nextReviewDue on the updated record when cadence is on-demand', async () => {
-    const onDemandRecord: ControlRecord = { ...baseRecord, cadence: 'on-demand' };
-    mockListControlRecords.mockResolvedValue([onDemandRecord]);
+  it('marks the record drifted when the analyst logs a drifted verdict', async () => {
+    mockListControlRecords.mockResolvedValue([baseRecord]);
 
     const onSave = vi.fn();
     render(
@@ -330,18 +330,17 @@ describe('ControlReviewLogger', () => {
         hubId="hub-1"
         currentUser={FIXTURE_USER}
         reviewerDisplayName="Bob"
-        cadence="on-demand"
         onSave={onSave}
         onCancel={vi.fn()}
       />
     );
 
-    fireEvent.click(screen.getByLabelText('Holding'));
+    fireEvent.click(screen.getByLabelText('Drifted'));
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => expect(mockSaveControlRecord).toHaveBeenCalledTimes(1));
     const updatedRecord = mockSaveControlRecord.mock.calls[0][0];
-    expect(updatedRecord.nextReviewDue).toBeUndefined();
+    expect(updatedRecord.status).toBe('drifted');
   });
 });
 
@@ -401,11 +400,22 @@ describe('ControlHandoffEditor', () => {
       title: 'Control cadence',
       projectId: 'inv-abc',
       hubId: 'hub-1',
-      status: 'pending',
-      consecutiveOnTargetTicks: 0,
-      hasOverride: false,
+      status: 'verifying',
+      improvementDate: '2026-03-01T00:00:00.000Z',
+      baseline: {
+        capturedAt: 1740787200000,
+        window: {
+          startISO: '2026-02-01T00:00:00.000Z',
+          endISO: '2026-02-28T23:59:59.999Z',
+        },
+        measure: 'metric',
+        n: 12,
+        mean: 1,
+        sigma: 0.1,
+      },
+      ladder: [7, 30, 90],
+      ladderStep: 0,
       lastEvaluatedSnapshotId: undefined,
-      cadence: 'monthly',
       createdAt: 1740787200000, // 2026-03-01T00:00:00.000Z
       updatedAt: 1740787200000,
       deletedAt: null,

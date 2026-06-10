@@ -4,7 +4,7 @@ import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { HubRepository } from '@variscout/core/persistence';
 
 export type ControlPanelRecordPatch = Partial<
-  Pick<ControlRecord, 'title' | 'targetSummary' | 'cadence'>
+  Pick<ControlRecord, 'title' | 'targetSummary' | 'nextCheckSuggestedAt' | 'ladderStep'>
 >;
 
 export interface UseControlPanelModelOptions {
@@ -80,15 +80,27 @@ function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): Control
     id: makeId(),
     hubId: hub.id,
     projectId: joinKey,
-    status: 'pending',
+    status: 'verifying',
     title,
+    improvementDate: new Date(now).toISOString(),
+    baseline: {
+      capturedAt: now,
+      window: {
+        startISO: new Date(now).toISOString(),
+        endISO: new Date(now).toISOString(),
+      },
+      measure: project?.goal.outcomeGoals[0]?.outcomeSpecId ?? 'outcome',
+      n: 0,
+      mean: 0,
+      sigma: 0,
+    },
+    ladder: [7, 30, 90, 180],
+    ladderStep: 0,
+    nextCheckSuggestedAt: new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString(),
     improvementProjectId: project?.id,
     goal: project?.goal,
     targetSummary: project?.goal.freeText,
-    consecutiveOnTargetTicks: 0,
-    hasOverride: false,
     lastEvaluatedSnapshotId: undefined,
-    cadence: 'monthly',
     createdAt: now,
     updatedAt: now,
     deletedAt: null,

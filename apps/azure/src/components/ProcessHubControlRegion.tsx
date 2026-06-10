@@ -3,8 +3,7 @@ import { ShieldCheck, ShieldAlert, History } from 'lucide-react';
 import {
   isControlEligible,
   isControlled,
-  isControlDue,
-  isControlOverdue,
+  isCheckSuggested,
   type ControlRecord,
   type ControlHandoff,
 } from '@variscout/core';
@@ -34,12 +33,6 @@ function liveRecordForProject(
   return records.find(r => r.improvementProjectId === projectId && r.deletedAt === null);
 }
 
-/** Find the live ControlHandoff that opts a record out of periodic reviews. */
-function handoffOptedOut(record: ControlRecord, handoffs: ControlHandoff[]): boolean {
-  const handoff = handoffs.find(h => h.projectId === record.projectId);
-  return handoff !== undefined && handoff.retainControlReview === false;
-}
-
 const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
   project,
   records,
@@ -66,14 +59,12 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
   const record = liveRecordForProject(project.id, records);
 
   // Determine single-project status.
-  let status: 'overdue' | 'due' | 'recently-reviewed' | 'needs-setup' | 'empty' = 'empty';
+  let status: 'suggested' | 'recently-reviewed' | 'needs-setup' | 'empty' = 'empty';
 
   if (eligible) {
-    if (record && !handoffOptedOut(record, handoffs)) {
-      if (isControlOverdue(record, now)) {
-        status = 'overdue';
-      } else if (isControlDue(record, now)) {
-        status = 'due';
+    if (record) {
+      if (isCheckSuggested(record, now)) {
+        status = 'suggested';
       } else if (record.latestReviewAt) {
         const recentCutoffMs = now.getTime() - 14 * 24 * 60 * 60 * 1000;
         const reviewedMs = new Date(record.latestReviewAt).getTime();
@@ -90,8 +81,8 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
   const subline =
     record && status !== 'needs-setup'
       ? [
-          record.latestVerdict ? formatSustainmentVerdict(record.latestVerdict) : null,
-          formatSustainmentDue(record.nextReviewDue, now),
+          record.status === 'drifted' ? formatSustainmentVerdict('drifted') : null,
+          formatSustainmentDue(record.nextCheckSuggestedAt, now),
         ]
           .filter(Boolean)
           .join(' · ')
@@ -99,13 +90,13 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
 
   return (
     <section className="space-y-3" data-testid="control-region" aria-label="Control region">
-      {status === 'overdue' && record && (
-        <div data-testid="control-overdue">
+      {status === 'suggested' && record && (
+        <div data-testid="control-suggested">
           <div className="mb-1 flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
-              <ShieldAlert size={14} className="text-red-400" />
+              <ShieldAlert size={14} className="text-amber-400" />
               <p className="text-xs font-medium uppercase tracking-wide text-content-secondary">
-                Overdue
+                Re-check suggested
               </p>
             </div>
           </div>
@@ -113,35 +104,10 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
             type="button"
             onClick={() => onLogReview(record.id)}
             className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
-            aria-label={`Log overdue control review for ${project.metadata.title}`}
+            aria-label={`Log control re-check for ${project.metadata.title}`}
           >
             <div className="flex items-center gap-2 text-sm font-medium text-content">
-              <ShieldAlert size={14} className="text-red-400" />
-              <span>{project.metadata.title}</span>
-            </div>
-            {subline && <p className="mt-1 text-xs text-content-secondary">{subline}</p>}
-          </button>
-        </div>
-      )}
-
-      {status === 'due' && record && (
-        <div data-testid="control-due">
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck size={14} className="text-amber-400" />
-              <p className="text-xs font-medium uppercase tracking-wide text-content-secondary">
-                Control due
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => onLogReview(record.id)}
-            className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
-            aria-label={`Log control review for ${project.metadata.title}`}
-          >
-            <div className="flex items-center gap-2 text-sm font-medium text-content">
-              <ShieldCheck size={14} className="text-amber-400" />
+              <ShieldAlert size={14} className="text-amber-400" />
               <span>{project.metadata.title}</span>
             </div>
             {subline && <p className="mt-1 text-xs text-content-secondary">{subline}</p>}

@@ -23,12 +23,23 @@ const makeRecord = (overrides: Partial<ControlRecord> = {}): ControlRecord => ({
   title: 'Control cadence',
   projectId: 'inv-1',
   hubId: 'hub-1',
-  status: 'pending',
-  consecutiveOnTargetTicks: 0,
-  hasOverride: false,
+  status: 'verifying',
+  improvementDate: '2026-05-01T00:00:00.000Z',
+  baseline: {
+    capturedAt: 1745625600000,
+    window: {
+      startISO: '2026-04-01T00:00:00.000Z',
+      endISO: '2026-04-30T23:59:59.999Z',
+    },
+    measure: 'fill_weight',
+    n: 30,
+    mean: 100,
+    sigma: 1,
+  },
+  ladder: [7, 30, 90],
+  ladderStep: 1,
+  nextCheckSuggestedAt: '2026-05-31T00:00:00.000Z',
   lastEvaluatedSnapshotId: undefined,
-  cadence: 'monthly',
-  nextReviewDue: '2026-05-26T00:00:00.000Z',
   createdAt: 1745625600000, // 2026-04-26T00:00:00.000Z
   updatedAt: 1745625600000, // 2026-04-26T00:00:00.000Z
   deletedAt: null,
@@ -49,7 +60,7 @@ describe('sustainment storage round-trip', () => {
     await saveControlRecordToIndexedDB(makeRecord());
     const result = await listControlRecordsFromIndexedDB('hub-1');
     expect(result).toHaveLength(1);
-    expect(result[0].cadence).toBe('monthly');
+    expect(result[0].ladderStep).toBe(1);
   });
 
   it('appends ControlReviews and reads them ordered by reviewedAt desc', async () => {
@@ -63,6 +74,16 @@ describe('sustainment storage round-trip', () => {
       deletedAt: null,
       reviewer: { userId: 'u-1', displayName: 'Alice' },
       verdict: 'holding',
+      nowStats: {
+        window: {
+          startISO: '2026-05-01T00:00:00.000Z',
+          endISO: '2026-05-31T23:59:59.999Z',
+        },
+        n: 12,
+        mean: 100.5,
+        sigma: 1.1,
+      },
+      dataStamp: { rowCount: 48, snapshotId: 'snapshot-1' },
     };
     const r2: ControlReview = {
       ...r1,
@@ -83,13 +104,11 @@ describe('sustainment storage round-trip', () => {
       id: 'h-1',
       projectId: 'inv-1',
       hubId: 'hub-1',
-      status: 'operational',
       surface: 'mes-recipe',
       systemName: 'MES',
       operationalOwner: { userId: 'u-1', displayName: 'Op' },
       handoffDate: 1745625600000, // 2026-04-26T00:00:00.000Z
       description: 'Recipe lock',
-      retainControlReview: false,
       createdAt: 1745625600000, // 2026-04-26T00:00:00.000Z (formerly recordedAt)
       deletedAt: null,
       recordedBy: { userId: 'u-1', displayName: 'Op' },
@@ -136,7 +155,11 @@ describe('sustainment projection recompute', () => {
     const updated = await db.projects.get('inv-1');
     expect(updated?.meta?.sustainment).toBeDefined();
     expect(updated?.meta?.sustainment?.recordId).toBe('rec-1');
-    expect(updated?.meta?.sustainment?.cadence).toBe('monthly');
+    expect(updated?.meta?.sustainment).toMatchObject({
+      ladderStep: 1,
+      nextCheckSuggestedAt: '2026-05-31T00:00:00.000Z',
+      status: 'verifying',
+    });
   });
 
   it('no-ops when no project matches the projectId', async () => {
@@ -149,13 +172,11 @@ describe('sustainment projection recompute', () => {
       id: 'h-1',
       projectId: 'inv-1',
       hubId: 'hub-1',
-      status: 'operational',
       surface: 'mes-recipe',
       systemName: 'MES',
       operationalOwner: { userId: 'u-1', displayName: 'Op' },
       handoffDate: 1745625600000,
       description: 'Recipe lock',
-      retainControlReview: false,
       createdAt: 1745625600000,
       deletedAt: null,
       recordedBy: { userId: 'u-1', displayName: 'Op' },
@@ -174,13 +195,11 @@ describe('sustainment projection recompute', () => {
       id: 'h-2',
       projectId: 'inv-1',
       hubId: 'hub-1',
-      status: 'operational',
       surface: 'qms-procedure',
       systemName: 'Doc Control',
       operationalOwner: { userId: 'u-1', displayName: 'Op' },
       handoffDate: 1745625600000,
       description: 'SOP lock',
-      retainControlReview: true,
       createdAt: 1745625600000,
       deletedAt: null,
       recordedBy: { userId: 'u-1', displayName: 'Op' },

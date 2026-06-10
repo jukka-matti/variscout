@@ -77,7 +77,7 @@ export class VariScoutDatabase extends Dexie {
       processHubs: 'id, name, updatedAt',
       evidenceSources: 'id, hubId, name, profileId, updatedAt',
       evidenceSnapshots: 'id, hubId, sourceId, capturedAt',
-      controlRecords: 'id, hubId, nextReviewDue, updatedAt, deletedAt',
+      controlRecords: 'id, hubId, nextCheckSuggestedAt, updatedAt, deletedAt',
       controlReviews: 'id, recordId, hubId, reviewedAt',
       controlHandoffs: 'id, hubId, handoffDate',
       evidenceSourceCursors: '[hubId+sourceId]',

@@ -38,7 +38,6 @@
 
 import type { HubAction } from '@variscout/core/actions';
 import { generateDeterministicId } from '@variscout/core/identity';
-import { applyControlTick, type EvidenceSnapshot } from '@variscout/core';
 import { reduceMeasurementPlans } from '@variscout/core/measurementPlan';
 import type { PwaDatabase } from '../db/schema';
 
@@ -307,13 +306,12 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     case 'SUSTAINMENT_MARK_DRIFTED': {
       await db.controlRecords.update(action.recordId, {
         status: 'drifted',
-        consecutiveOnTargetTicks: 0,
         updatedAt: Date.now(),
       });
       return;
     }
 
-    case 'SUSTAINMENT_TICK_EVALUATED': {
+    case 'SUSTAINMENT_RECHECK_LOGGED': {
       await db.transaction('rw', [db.controlRecords, db.controlReviews], async () => {
         const existing = await db.controlRecords.get(action.record.id);
         await db.controlRecords.put({ ...existing, ...action.record });
@@ -345,27 +343,6 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
 
     case 'CONTROL_HANDOFF_ARCHIVE': {
       await db.controlHandoffs.update(action.handoffId, { deletedAt: Date.now() });
-      return;
-    }
-
-    case 'CONTROL_HANDOFF_ACKNOWLEDGE': {
-      const acknowledgedAt = action.acknowledgedAt ?? Date.now();
-      await db.controlHandoffs.update(action.handoffId, {
-        status: 'acknowledged',
-        acknowledgedAt,
-        ownerAcknowledgement: {
-          acknowledgedBy: action.acknowledgedBy,
-          notes: action.notes,
-        },
-      });
-      return;
-    }
-
-    case 'CONTROL_HANDOFF_MARK_OPERATIONAL': {
-      await db.controlHandoffs.update(action.handoffId, {
-        status: 'operational',
-        operationalAt: action.operationalAt ?? Date.now(),
-      });
       return;
     }
 
@@ -416,40 +393,35 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     // are soft-deleted inside the same transaction before the new rows are
     // written, ensuring no partial state is observable.
     case 'EVIDENCE_ADD_SNAPSHOT': {
-      await db.transaction(
-        'rw',
-        [db.evidenceSnapshots, db.rowProvenance, db.controlRecords, db.controlReviews],
-        async () => {
-          const now = Date.now();
+      await db.transaction('rw', [db.evidenceSnapshots, db.rowProvenance], async () => {
+        const now = Date.now();
 
-          // Cascade: if replacing, mark replaced snapshot + its provenance rows.
-          if (action.replacedSnapshotId) {
-            await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: now });
-            const replacedTags = await db.rowProvenance
-              .where('snapshotId')
-              .equals(action.replacedSnapshotId)
-              .toArray();
-            if (replacedTags.length > 0) {
-              await db.rowProvenance.bulkUpdate(
-                replacedTags.map(t => ({ key: t.id, changes: { deletedAt: now } }))
-              );
-            }
+        // Cascade: if replacing, mark replaced snapshot + its provenance rows.
+        if (action.replacedSnapshotId) {
+          await db.evidenceSnapshots.update(action.replacedSnapshotId, { deletedAt: now });
+          const replacedTags = await db.rowProvenance
+            .where('snapshotId')
+            .equals(action.replacedSnapshotId)
+            .toArray();
+          if (replacedTags.length > 0) {
+            await db.rowProvenance.bulkUpdate(
+              replacedTags.map(t => ({ key: t.id, changes: { deletedAt: now } }))
+            );
           }
-
-          // Insert the new snapshot.
-          await db.evidenceSnapshots.put(action.snapshot);
-
-          // Insert provenance tags with snapshotId now populated (closes F3.5 wiring gap).
-          if (action.provenance.length > 0) {
-            const tagsWithSnapshotId = action.provenance.map(t => ({
-              ...t,
-              snapshotId: action.snapshot.id,
-            }));
-            await db.rowProvenance.bulkPut(tagsWithSnapshotId);
-          }
-          await evaluateControlRecordsForSnapshot(db, action.hubId, action.snapshot);
         }
-      );
+
+        // Insert the new snapshot.
+        await db.evidenceSnapshots.put(action.snapshot);
+
+        // Insert provenance tags with snapshotId now populated (closes F3.5 wiring gap).
+        if (action.provenance.length > 0) {
+          const tagsWithSnapshotId = action.provenance.map(t => ({
+            ...t,
+            snapshotId: action.snapshot.id,
+          }));
+          await db.rowProvenance.bulkPut(tagsWithSnapshotId);
+        }
+      });
       return;
     }
 
@@ -630,25 +602,4 @@ export async function applyAction(db: PwaDatabase, action: HubAction): Promise<v
     default:
       assertNever(action);
   }
-}
-
-async function evaluateControlRecordsForSnapshot(
-  db: PwaDatabase,
-  hubId: string,
-  snapshot: EvidenceSnapshot
-): Promise<void> {
-  await db.transaction('rw', [db.controlRecords, db.controlReviews], async () => {
-    const liveRecords = await db.controlRecords
-      .where('hubId')
-      .equals(hubId)
-      .filter(record => record.deletedAt === null && record.lastEvaluatedSnapshotId !== snapshot.id)
-      .toArray();
-
-    if (liveRecords.length === 0) return;
-
-    const now = Date.now();
-    const evaluations = liveRecords.map(record => applyControlTick(record, snapshot, now));
-    await db.controlRecords.bulkPut(evaluations.map(evaluation => evaluation.record));
-    await db.controlReviews.bulkPut(evaluations.map(evaluation => evaluation.review));
-  });
 }

@@ -7,23 +7,25 @@ import { formatPlural } from '@variscout/core/i18n';
 
 const VERDICT_LABELS: Record<ControlVerdict, string> = {
   holding: 'Holding',
-  drifting: 'Drifting',
-  broken: 'Broken',
+  drifted: 'Drifted',
   inconclusive: 'Inconclusive',
 };
 
 export const formatSustainmentVerdict = (v: ControlVerdict): string => VERDICT_LABELS[v];
 
-export const formatSustainmentDue = (nextReviewDue: string | undefined, now: Date): string => {
-  if (!nextReviewDue) return 'No cadence set';
-  const dueMs = new Date(nextReviewDue).getTime();
+export const formatSustainmentDue = (
+  nextCheckSuggestedAt: string | undefined,
+  now: Date
+): string => {
+  if (!nextCheckSuggestedAt) return 'No re-check suggestion set';
+  const dueMs = new Date(nextCheckSuggestedAt).getTime();
   const days = Math.round((dueMs - now.getTime()) / (24 * 60 * 60 * 1000));
   if (days < 0) {
-    const overdue = Math.abs(days);
-    return `${overdue} ${formatPlural(overdue, { one: 'day', other: 'days' })} overdue`;
+    const elapsed = Math.abs(days);
+    return `Suggested ${elapsed} ${formatPlural(elapsed, { one: 'day', other: 'days' })} ago`;
   }
-  if (days === 0) return 'Due today';
-  return `Due in ${days} ${formatPlural(days, { one: 'day', other: 'days' })}`;
+  if (days === 0) return 'Suggested today';
+  return `Suggested in ${days} ${formatPlural(days, { one: 'day', other: 'days' })}`;
 };
 
 const HANDOFF_LABELS: Record<ControlHandoffSurface, string> = {

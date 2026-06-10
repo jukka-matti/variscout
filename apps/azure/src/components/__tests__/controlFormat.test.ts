@@ -11,12 +11,8 @@ describe('controlFormat', () => {
       expect(formatSustainmentVerdict('holding')).toBe('Holding');
     });
 
-    it('formats drifting verdict', () => {
-      expect(formatSustainmentVerdict('drifting')).toBe('Drifting');
-    });
-
-    it('formats broken verdict', () => {
-      expect(formatSustainmentVerdict('broken')).toBe('Broken');
+    it('formats drifted verdict', () => {
+      expect(formatSustainmentVerdict('drifted')).toBe('Drifted');
     });
 
     it('formats inconclusive verdict', () => {
@@ -27,33 +23,33 @@ describe('controlFormat', () => {
   describe('formatSustainmentDue', () => {
     const baseDate = new Date('2026-04-27T12:00:00Z');
 
-    it('returns "No cadence set" for undefined', () => {
-      expect(formatSustainmentDue(undefined, baseDate)).toBe('No cadence set');
+    it('returns "No re-check suggestion set" for undefined', () => {
+      expect(formatSustainmentDue(undefined, baseDate)).toBe('No re-check suggestion set');
     });
 
-    it('returns "Due today" for same day', () => {
+    it('returns "Suggested today" for same day', () => {
       const dueDate = new Date('2026-04-27T18:00:00Z');
-      expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('Due today');
+      expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('Suggested today');
     });
 
     it('formats future date with plural days', () => {
       const dueDate = new Date('2026-04-29T12:00:00Z');
-      expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('Due in 2 days');
+      expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('Suggested in 2 days');
     });
 
     it('formats future date with singular day', () => {
       const dueDate = new Date('2026-04-28T12:00:00Z');
-      expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('Due in 1 day');
+      expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('Suggested in 1 day');
     });
 
-    it('formats past date with plural days overdue', () => {
+    it('formats past date with plural days suggested', () => {
       const dueDate = new Date('2026-04-25T12:00:00Z');
-      expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('2 days overdue');
+      expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('Suggested 2 days ago');
     });
 
-    it('formats past date with singular day overdue', () => {
+    it('formats past date with singular day suggested', () => {
       const dueDate = new Date('2026-04-26T12:00:00Z');
-      expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('1 day overdue');
+      expect(formatSustainmentDue(dueDate.toISOString(), baseDate)).toBe('Suggested 1 day ago');
     });
   });
 

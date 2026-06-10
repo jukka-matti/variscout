@@ -121,9 +121,9 @@ export class PwaDatabase extends Dexie {
       improvementProjects: '&id, hubId, deletedAt, status, updatedAt',
       actionItems:
         '&id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
-      controlRecords: '&id, hubId, nextReviewDue, updatedAt, deletedAt',
+      controlRecords: '&id, hubId, nextCheckSuggestedAt, updatedAt, deletedAt',
       controlReviews: '&id, recordId, hubId, reviewedAt',
-      controlHandoffs: '&id, hubId, status, handoffDate, deletedAt',
+      controlHandoffs: '&id, hubId, handoffDate, deletedAt',
       canvasState: '&hubId',
       meta: '&key',
       measurementPlans: '&id, hypothesisId, status, deletedAt',
