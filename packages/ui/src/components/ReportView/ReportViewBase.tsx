@@ -58,6 +58,7 @@ export interface ReportViewBaseProps {
   onCopyAllCharts?: () => void;
   onPrintReport?: () => void;
   onClose: () => void;
+  headerHint?: string;
   workspaceProjectContextChip?: React.ReactNode;
   colorScheme?: Partial<ReportViewBaseColorScheme>;
   /** Ref to attach to the scrollable content area (for measuring width) */
@@ -134,6 +135,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   onCopyAllCharts,
   onPrintReport,
   onClose,
+  headerHint,
   workspaceProjectContextChip,
   colorScheme,
   contentRef,
@@ -277,6 +279,9 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
             <h1 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
               {processName}
             </h1>
+            {headerHint ? (
+              <p className="truncate text-xs text-slate-500 dark:text-slate-400">{headerHint}</p>
+            ) : null}
           </div>
 
           {workspaceProjectContextChip}

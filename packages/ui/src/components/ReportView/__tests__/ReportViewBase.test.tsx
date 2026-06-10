@@ -147,6 +147,19 @@ describe('ReportViewBase', () => {
       expect(screen.getAllByText('Reporting on: Fill Cpk lift').length).toBeGreaterThan(0);
     });
 
+    it('renders an informal Workspace formalization hint when provided', () => {
+      const props = {
+        ...defaultProps(),
+        headerHint: 'Formalize this Workspace to add charter context to this report',
+      } as ReportViewBaseProps & { headerHint: string };
+
+      render(<ReportViewBase {...props} />);
+
+      expect(
+        screen.getByText('Formalize this Workspace to add charter context to this report')
+      ).toBeInTheDocument();
+    });
+
     it('renders Overview and Technical report audience controls', () => {
       const onReportAudienceModeChange = vi.fn();
       render(

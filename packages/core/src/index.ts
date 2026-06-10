@@ -826,8 +826,6 @@ export type { HubProjection, EvidenceCluster, AnalysisBrief } from './findings';
 // Report domain helpers
 export {
   D13_OVERVIEW_SECTION_TITLES,
-  deriveHubPortfolioReport,
-  deriveHubPortfolioReport as deriveWorkspaceOverviewReport,
   deriveIPCauseRows,
   deriveIPReportNarrative,
   selectIPReportScope,
@@ -835,10 +833,6 @@ export {
   isAutoMintedReportLabel,
 } from './report';
 export type {
-  HubCapabilitySummary,
-  HubPortfolioReport,
-  HubPortfolioReport as WorkspaceOverviewReportModel,
-  HubPortfolioRow,
   IPCauseRow,
   IPReportOverviewSection,
   IPReportOverviewSectionTitle,

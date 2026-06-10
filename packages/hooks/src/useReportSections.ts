@@ -21,8 +21,7 @@ export type ReportSectionId =
   | 'evidence-trail'
   | 'improvement-plan'
   | 'actions-taken'
-  | 'verification'
-  | 'hub-portfolio';
+  | 'verification';
 
 export type SectionStatus = 'done' | 'active' | 'future';
 
@@ -114,8 +113,6 @@ function sectionWorkspace(sectionId: ReportSectionId): ReportWorkspace {
     case 'actions-taken':
     case 'verification':
       return 'improvement';
-    case 'hub-portfolio':
-      return 'analysis';
   }
 }
 

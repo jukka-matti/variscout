@@ -518,10 +518,6 @@ export {
   IPTechnicalReport,
   REPORT_METHODOLOGY_FOOTNOTE,
   type IPTechnicalReportProps,
-  HubPortfolioReport,
-  HubPortfolioReport as WorkspaceOverviewReport,
-  type HubPortfolioReportProps,
-  type HubPortfolioReportProps as WorkspaceOverviewReportProps,
 } from './components/ReportView';
 
 // Report Evidence Map
