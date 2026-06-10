@@ -5,8 +5,8 @@ title: 'Report — the compilation surface'
 audience: both
 status: active
 date: 2026-06-02
-last-verified: 2026-06-02
-verified-against-commit: 5173695a
+last-verified: 2026-06-10
+verified-against-commit: fef2c110
 layer: L3
 kind: workflow
 topic: [report, export, distributions, sponsor, wedge-v1]
@@ -22,7 +22,7 @@ related:
 
 # Report — the compilation surface
 
-The terminal, **read-mostly** surface: Findings, Hypotheses, Actions, and Control status compile into a narrative report the Sponsor reviews and the team shares. The report **type auto-detects** from how far the investigation has progressed.
+The terminal, **read-mostly** surface: Findings, Hypotheses, Actions, and Control evidence compile into a narrative report the Sponsor reviews and the team shares. Under the Workspace model, Report always renders the single-project report because every Workspace is backed by one active Project. Informal Projects get one soft formalization hint; the retired Hub portfolio fallback is gone.
 
 ## Three report types (auto-detected)
 
@@ -35,7 +35,26 @@ flowchart LR
   F -->|actions / outcomes| S["Improvement Story<br/>all 8 sections + Cpk Learning Loop + Control Review"]
 ```
 
-Sections are tagged by **workspace origin** and colour-coded: Analysis (green), Findings (amber), Improvement (purple). The 7 section ids: `current-condition`, `drivers`, `evidence-trail`, `improvement-plan`, `actions-taken`, `verification`, + optional `hub-portfolio` (hypothesis summaries render _within_ `evidence-trail`, not as a separate id). `ReportImprovementSummary` maps `Hypothesis.status` (the `confirmed` status renders as **"Supported"**).
+Sections are tagged by **workspace origin** and colour-coded: Analysis (green), Findings (amber), Improvement (purple). The legacy `hub-portfolio` section id was deleted by RPT-1; hypothesis summaries render _within_ `evidence-trail`, not as a separate id. `ReportImprovementSummary` maps `Hypothesis.status` (the `confirmed` status renders as **"Supported"**).
+
+## Single-project overview report
+
+The Overview audience mode renders the seven QC-story-shaped sections from `deriveIPReportNarrative()`:
+
+1. Executive summary
+2. Where we started
+3. What we aimed for
+4. What we found + what we did
+5. Did it work?
+6. What we standardized + learned
+7. What's next
+
+Control integration is explicit:
+
+- **Where we started** includes the frozen `ControlRecord.baseline` anchor when present: measure, baseline window, n, mean, sigma, and Cpk when specs exist.
+- **Did it work?** reads the `ControlReview` re-check sequence and latest before/now comparison. It does not use tick counts or auto-verdict copy.
+- **What we standardized + learned** reads the simplified handoff surface and system name.
+- Cause rows use the latest analyst re-check verdict as verification context.
 
 ## Audience toggle
 
@@ -66,7 +85,7 @@ The **Sponsor** is read-only on the Report (the role's primary surface); Lead/Me
 
 ## Not yet built (do not document as live)
 
-No cross-hub / cross-investigation statistical aggregation (ADR-073 — by design, not a gap); in-product sign-off workflow is out-of-band in V1.
+No cross-hub / cross-investigation statistical aggregation (ADR-073 — by design, not a gap); no Hub portfolio report fallback; in-product sign-off workflow is out-of-band in V1.
 
 ## See also
 

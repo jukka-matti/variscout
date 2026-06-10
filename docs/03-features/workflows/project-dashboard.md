@@ -5,8 +5,8 @@ title: 'Project Dashboard'
 audience: human
 category: workflow
 status: active
-last-verified: 2026-06-09
-verified-against-commit: 160991867
+last-verified: 2026-06-10
+verified-against-commit: fef2c110
 related: [investigation, findings, hypotheses, coscout, azure, navigation]
 layer: L3
 kind: ui
@@ -54,7 +54,7 @@ A prominent card at the top of the list (`data-testid="resume-last-workspace"`).
 - **Open another Workspace** — a `<select>` populated from `listProjects()` / `listProcessHubs()`, with each option's title derived by `deriveWorkspaceViewModel` (the W2 Workspace view-model adapter from `@variscout/hooks`). Choosing a Workspace filters the recent-work list below.
 - **Search + Refresh** — text filter over Workspace names; refresh re-fetches the listing.
 
-The recent-work list renders `ProjectCard` rows (`components/ProjectCard.tsx`), each opening its project via `onOpenProject(project.id)`. When there are zero saved Workspaces, an empty state offers "Try a Sample".
+The recent-work list renders `ProjectCard` rows (`components/ProjectCard.tsx`), each opening its project via `onOpenProject(project.id)`. If a Workspace has a Control record with `nextCheckSuggestedAt`, the row shows a compact `project-card-control-check` chip: "Re-check planned" before the suggested date and "Re-check suggested" once the ladder date has arrived. When there are zero saved Workspaces, an empty state offers "Try a Sample".
 
 ---
 
@@ -72,6 +72,7 @@ The recent-work list renders `ProjectCard` rows (`components/ProjectCard.tsx`), 
 - **Findings by status** — clickable counts with color-coded dots (`finding-status-{status}`); clicking navigates to the findings view filtered to that status.
 - **Suspected causes** — hypothesis hubs (`question-{id}`) with a status glyph; clicking opens the Analyze workspace focused on that hub (`expandToHypothesis`). (IM-1 replaced the retired Question entity with hypothesis hubs.)
 - **Action progress** — "{completed}/{total} completed" progress bar; clicking opens the actions view.
+- **Control resume line** — when a Project has a Control record, the home surface uses the re-check ladder suggestion as a calm resume cue. It names the next suggested re-ingest/check date when one exists, but it does not render overdue, amber/red, or automatic verdict semantics.
 
 ### AI Summary Card (right top)
 
@@ -91,6 +92,8 @@ Contextual buttons (`data-testid="quick-actions"`):
 | New Workspace     | `onNewHub` provided | `action-new-hub`        | `onNewHub()`                  |
 | View report       | Findings exist      | `action-report`         | `onNavigate('report')`        |
 | Review actions    | Open actions exist  | `action-review-actions` | navigates to the actions view |
+
+Control re-check work is surfaced in the recent-work card chip and the workspace Control region (`ProcessHubControlRegion`), not as a quick-action button.
 
 ---
 
@@ -158,6 +161,7 @@ See [`ia-nav-model.md`](../../02-journeys/ia-nav-model.md) for the full role × 
 | `apps/azure/src/components/DashboardSummaryCard.tsx`     | AI summary card + quick-ask                       |
 | `apps/azure/src/components/WhatsNewSection.tsx`          | Timestamp-diff "what's new" panel                 |
 | `apps/azure/src/components/ProjectCard.tsx`              | Workspace row in the Home listing                 |
+| `apps/azure/src/components/ProcessHubControlRegion.tsx`  | Control setup / suggested re-check region         |
 | `apps/azure/src/lib/journeyPhaseConfig.ts`               | Phase labels + colors (`PHASE_CONFIG`)            |
 | `packages/hooks/src/useJourneyPhase.ts`                  | Deterministic phase derivation                    |
 | `packages/core/src/ai/searchProject.ts`                  | `searchProjectArtifacts()` pure function          |

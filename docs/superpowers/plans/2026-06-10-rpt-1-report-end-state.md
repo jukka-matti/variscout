@@ -3,7 +3,7 @@ tier: living
 purpose: build
 title: 'RPT-1 report end-state sub-plan'
 audience: agent
-status: active
+status: delivered
 date: 2026-06-10
 layer: spec
 topic: [report, workspace, fallback, wedge-v1]

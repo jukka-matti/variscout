@@ -4,7 +4,8 @@ purpose: decide
 title: 'ADR-080: Sustainment auto-fire + Inbox prompt + signoff-gated lifecycle pattern'
 audience: human
 category: architecture
-status: active
+status: superseded
+superseded-by: docs/superpowers/specs/2026-06-10-control-closure-and-report-endstate-design.md
 date: 2026-05-13
 related:
   - adr-064-suspected-cause-hub-model
@@ -16,7 +17,9 @@ layer: L5
 
 # ADR-080: Sustainment auto-fire + Inbox prompt + signoff-gated lifecycle pattern
 
-**Status**: Accepted — auto-fire pattern deferred to F5 (see Implementation status below)
+> **Superseded 2026-06-10 by [Control closure + Report end-state](../superpowers/specs/2026-06-10-control-closure-and-report-endstate-design.md).** The auto-fire/cadence/signoff pattern below is retained as historical context for RPS V1, but the shipped Control model is now analyst-owned data-driven sustainment: frozen baseline, widening re-check ladder, explicit `ControlReview` verdicts, no automatic verdict/status writes, and a closure checklist rather than a handoff status machine.
+
+**Status**: Superseded
 
 **Implementation status (added 2026-05-26):** the auto-fire dispatch pattern this ADR prescribes is **not yet implemented**. Sustainment records are currently written via the documented R13 exception in `packages/stores/CLAUDE.md` — direct `saveSustainmentRecordToIndexedDB` writes rather than HubAction → reducer co-located auto-fire. The user-visible Sustainment flow is functional (UI exists in both apps; see [feature-parity Sustainment rows](../08-products/feature-parity.md)), but the architectural pattern described below is aspirational until F5 lands. PWA Sustainment is session-only (does not round-trip through `.vrs`); Azure Sustainment is durable via the same R13 path. Surfaced by the 2026-05-26 user-journey audit (`docs/decision-log.md` §1 2026-05-26 entry).
 
