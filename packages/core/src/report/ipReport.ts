@@ -7,7 +7,6 @@ import {
 } from './reportHumanizer';
 import { deriveIPReportMiniChartType, type IPReportMiniChartType } from '../findings/miniChart';
 import type { ImprovementProject } from '../improvementProject';
-import type { ProcessHub } from '../processHub';
 import type { ControlHandoff, ControlRecord } from '../control';
 
 export const D13_OVERVIEW_SECTION_TITLES = [
@@ -51,32 +50,6 @@ export interface IPCauseRow {
   verificationLabel: string;
   findingCount: number;
   miniChartType: IPReportMiniChartType;
-}
-
-export interface HubPortfolioRow {
-  id: ImprovementProject['id'];
-  title: string;
-  status: ImprovementProject['status'];
-  dayCounter: number;
-  lastActivityAt: number;
-  cadenceLabel: string;
-  driftLabel: string;
-}
-
-export interface HubCapabilitySummary {
-  kind: 'single-spec' | 'distribution' | 'empty';
-  label: string;
-}
-
-export interface HubPortfolioReport {
-  rows: HubPortfolioRow[];
-  capabilitySummary: HubCapabilitySummary;
-  cadenceHealthLabel: string;
-  driftSignalCount: number;
-}
-
-function unique<T>(values: Iterable<T>): T[] {
-  return Array.from(new Set(values));
 }
 
 /** Findings enter the Report via their hypothesis linkage + goal mechanism links (PO-5). */
@@ -285,80 +258,4 @@ export function deriveIPReportNarrative(input: {
       ],
     },
   ];
-}
-
-function daysSince(start: number, now: number): number {
-  return Math.max(0, Math.floor((now - start) / 86_400_000));
-}
-
-function lastActivity(ip: ImprovementProject, record?: ControlRecord): number {
-  return Math.max(ip.updatedAt, record?.updatedAt ?? 0);
-}
-
-function cadenceLabel(record?: ControlRecord): string {
-  if (!record) return 'No cadence';
-  return record.nextReviewDue ? `${record.cadence} · due ${record.nextReviewDue}` : record.cadence;
-}
-
-function driftLabel(record?: ControlRecord): string {
-  if (!record) return 'No sustainment record';
-  if (record.status === 'drifted' || record.latestVerdict === 'drifting') return 'Drift detected';
-  if (record.latestVerdict === 'holding') return 'Holding';
-  return record.latestVerdict ?? record.status;
-}
-
-function capabilitySummary(
-  hub: ProcessHub,
-  projects: readonly ImprovementProject[]
-): HubCapabilitySummary {
-  if (projects.length === 0) return { kind: 'empty', label: 'No Improvement Projects yet' };
-  // Flatten the outcome-spec lists across all projects, then dedupe.
-  // Multi-outcome IPs contribute multiple spec ids; missing first entries are skipped.
-  const outcomeSpecIds = unique(
-    projects.flatMap(project => project.goal.outcomeGoals.map(g => g.outcomeSpecId))
-  );
-  if (outcomeSpecIds.length === 1) {
-    const outcome = hub.outcomes?.find(candidate => candidate.id === outcomeSpecIds[0]);
-    return { kind: 'single-spec', label: outcome?.columnName ?? outcomeSpecIds[0] };
-  }
-  return {
-    kind: 'distribution',
-    label: `${outcomeSpecIds.length} outcome specs · show distributions`,
-  };
-}
-
-export function deriveHubPortfolioReport(input: {
-  hub: ProcessHub;
-  now?: number;
-}): HubPortfolioReport {
-  const now = input.now ?? Date.now();
-  const projects =
-    input.hub.improvementProject && input.hub.improvementProject.deletedAt === null
-      ? [input.hub.improvementProject]
-      : [];
-  const records = (input.hub.controlRecords ?? []).filter(record => record.deletedAt === null);
-  const rows = projects
-    .map(project => {
-      const record = selectControlRecord(project, records);
-      return {
-        id: project.id,
-        title: project.metadata.title,
-        status: project.status,
-        dayCounter: daysSince(project.createdAt, now),
-        lastActivityAt: lastActivity(project, record),
-        cadenceLabel: cadenceLabel(record),
-        driftLabel: driftLabel(record),
-      };
-    })
-    .sort((a, b) => b.lastActivityAt - a.lastActivityAt);
-  const withHoldingCadence = rows.filter(row => row.driftLabel === 'Holding').length;
-  const cadenceHealthLabel =
-    rows.length === 0 ? 'No cadence data' : `${withHoldingCadence} of ${rows.length} holding`;
-
-  return {
-    rows,
-    capabilitySummary: capabilitySummary(input.hub, projects),
-    cadenceHealthLabel,
-    driftSignalCount: rows.filter(row => row.driftLabel === 'Drift detected').length,
-  };
 }

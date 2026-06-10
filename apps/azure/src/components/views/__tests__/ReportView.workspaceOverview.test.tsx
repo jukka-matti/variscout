@@ -2,6 +2,7 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DEFAULT_TIME_LENS, type ProcessHub, type TimeLens } from '@variscout/core';
+import type { ImprovementProject } from '@variscout/core/improvementProject';
 import ReportView from '../ReportView';
 
 type ProjectStoreMockState = {
@@ -72,6 +73,27 @@ const activeHub: ProcessHub = {
   deletedAt: null,
 };
 
+const informalWorkspaceProject: ImprovementProject = {
+  id: 'ip-1',
+  hubId: 'hub-1',
+  status: 'active',
+  metadata: { title: 'Loaded sample data', projectId: 'proj-1' },
+  goal: {
+    outcomeGoals: [],
+    factorControls: [],
+    mechanismGoals: [],
+  },
+  sections: {
+    background: {},
+    approach: { improvementIdeaIds: [], actionItemIds: [] },
+    outcomeReference: {},
+  },
+  signoff: undefined,
+  createdAt: 1745539200000,
+  updatedAt: 1745539200000,
+  deletedAt: null,
+};
+
 beforeEach(() => {
   class ResizeObserverStub {
     observe = vi.fn();
@@ -87,11 +109,20 @@ beforeEach(() => {
   vi.stubGlobal('IntersectionObserver', IntersectionObserverStub);
 });
 
-describe('ReportView Workspace overview fallback', () => {
-  it('renders the Workspace overview report when no Workspace Project scope is active', () => {
-    render(<ReportView onClose={vi.fn()} activeHub={activeHub} />);
+describe('ReportView single-project report end-state', () => {
+  it('renders the single-project report for a fresh informal Workspace Project without scope labels', () => {
+    render(
+      <ReportView
+        onClose={vi.fn()}
+        activeHub={activeHub}
+        workspaceProject={informalWorkspaceProject}
+      />
+    );
 
-    expect(screen.getByTestId(`hub-${'port'}${'folio'}-report`)).toBeInTheDocument();
-    expect(screen.getAllByText('Workspace overview').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByRole('button', { name: 'Executive summary' }).length).toBeGreaterThan(0);
+    expect(screen.getByText('Loaded sample data is active.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Formalize this Workspace to add charter context to this report')
+    ).toBeInTheDocument();
   });
 });

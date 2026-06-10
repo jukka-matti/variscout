@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Finding, Hypothesis, HypothesisStatus } from '../../findings/types';
 import type { ImprovementProject } from '../../improvementProject';
-import type { ProcessHub } from '../../processHub';
 import type { ControlHandoff, ControlRecord } from '../../control';
 import {
   D13_OVERVIEW_SECTION_TITLES,
-  deriveHubPortfolioReport,
   deriveIPCauseRows,
   deriveIPReportNarrative,
   selectIPReportScope,
@@ -360,52 +358,5 @@ describe('Report composes from analyst-owned status (PO-5)', () => {
       findings: [],
     });
     expect(rows.map(r => r.hypothesisId).sort()).toEqual(['a', 'b']);
-  });
-});
-
-describe('deriveHubPortfolioReport', () => {
-  it('uses distributions instead of means when outcome specs are heterogeneous', () => {
-    const hub: ProcessHub = {
-      id: 'hub-1',
-      name: 'Line hub',
-      createdAt: now,
-      deletedAt: null,
-      outcomes: [
-        {
-          id: 'out-fill',
-          hubId: 'hub-1',
-          columnName: 'fill',
-          characteristicType: 'nominalIsBest',
-          target: 10,
-          createdAt: now,
-          deletedAt: null,
-        },
-        {
-          id: 'out-scrap',
-          hubId: 'hub-1',
-          columnName: 'scrap',
-          characteristicType: 'smallerIsBetter',
-          usl: 2,
-          createdAt: now,
-          deletedAt: null,
-        },
-      ],
-      // 1:1 hub↔project — single project targeting 2 outcome specs triggers distribution summary.
-      improvementProject: project({
-        goal: {
-          outcomeGoals: [
-            { outcomeSpecId: 'out-fill', target: 1.33 },
-            { outcomeSpecId: 'out-scrap', target: 1 },
-          ],
-        },
-      }),
-      controlRecords: [sustainment()],
-    };
-
-    const report = deriveHubPortfolioReport({ hub, now });
-
-    expect(report.capabilitySummary.kind).toBe('distribution');
-    expect(report.capabilitySummary.label).toContain('2 outcome specs');
-    expect(report.rows.map(row => row.title)).toEqual(['Fill Cpk lift']);
   });
 });

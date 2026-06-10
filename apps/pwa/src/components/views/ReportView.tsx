@@ -15,7 +15,6 @@ import {
   ReportCpkLearningLoop,
   WorkspaceProjectScopeRibbon,
   WorkspaceProjectChip,
-  HubPortfolioReport,
   IPTechnicalReport,
 } from '@variscout/ui';
 import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
@@ -34,7 +33,6 @@ import type {
   ControlRecord,
 } from '@variscout/core';
 import {
-  deriveHubPortfolioReport,
   deriveIPCauseRows,
   deriveIPReportNarrative,
   formatFindingFilters,
@@ -42,6 +40,7 @@ import {
   selectIPReportScope,
 } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import { isFormalizedProject } from '@variscout/core/improvementProject';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 
 interface ReportViewProps {
@@ -138,7 +137,6 @@ const ReportView: React.FC<ReportViewProps> = ({
     [workspaceProject, ipReportScope]
   );
 
-  const hubPortfolio = useMemo(() => (hub ? deriveHubPortfolioReport({ hub }) : null), [hub]);
   const reportFindings = workspaceProject && ipReportScope ? ipReportScope.findings : findings;
   // IM-1: improvement summary derives from hypothesis hubs (Question entity retired).
   const reportHypotheses =
@@ -209,19 +207,8 @@ const ReportView: React.FC<ReportViewProps> = ({
       }));
     }
     if (workspaceProject && reportAudienceMode === 'technical') return sections;
-    if (!workspaceProject && hubPortfolio) {
-      return [
-        {
-          id: 'hub-portfolio',
-          stepNumber: 1,
-          title: 'Hub portfolio',
-          status: 'active' as const,
-          workspace: 'analysis' as const,
-        },
-      ];
-    }
     return sections;
-  }, [workspaceProject, hubPortfolio, ipNarrative, reportAudienceMode, sections]);
+  }, [workspaceProject, ipNarrative, reportAudienceMode, sections]);
 
   const contentRef = useRef<HTMLDivElement>(null);
   const { activeId, refs: sectionRefs } = useScrollSpy({
@@ -252,7 +239,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     const previousTitle = document.title;
     const date = new Date().toISOString().slice(0, 10);
     const hubName = hub?.name ?? 'Hub';
-    const subject = workspaceProject?.metadata.title ?? 'Hub portfolio';
+    const subject = workspaceProject?.metadata.title ?? 'Analysis';
     const layer = workspaceProject
       ? reportAudienceMode === 'overview'
         ? 'Overview'
@@ -316,22 +303,6 @@ const ReportView: React.FC<ReportViewProps> = ({
                 ))}
               </div>
             ) : null}
-          </ReportSection>
-        );
-      }
-
-      if (!workspaceProject && hubPortfolio && sectionId === 'hub-portfolio') {
-        return (
-          <ReportSection
-            key={sectionId}
-            id={sectionId}
-            stepNumber={section.stepNumber}
-            title={section.title}
-            status={section.status}
-            workspace={section.workspace}
-            sectionRef={ref}
-          >
-            <HubPortfolioReport report={hubPortfolio} />
           </ReportSection>
         );
       }
@@ -481,7 +452,6 @@ const ReportView: React.FC<ReportViewProps> = ({
       strategy,
       sectionRefs,
       workspaceProject,
-      hubPortfolio,
       ipCauseRows,
       ipNarrative,
       plan4Sections,
@@ -510,7 +480,7 @@ const ReportView: React.FC<ReportViewProps> = ({
         reportType={reportType}
         sections={plan4Sections}
         activeSectionId={activeId}
-        reportingOnLabel={workspaceProject?.metadata.title ?? 'Hub portfolio'}
+        reportingOnLabel={workspaceProject?.metadata.title}
         reportAudienceMode={workspaceProject ? reportAudienceMode : 'overview'}
         onReportAudienceModeChange={workspaceProject ? setReportAudienceMode : undefined}
         onScrollToSection={handleScrollToSection}
@@ -518,6 +488,11 @@ const ReportView: React.FC<ReportViewProps> = ({
         onCopyAllCharts={handleCopyAllCharts}
         onPrintReport={handlePrintReport}
         onClose={onClose}
+        headerHint={
+          workspaceProject && !isFormalizedProject(workspaceProject)
+            ? 'Formalize this Workspace to add charter context to this report'
+            : undefined
+        }
         workspaceProjectContextChip={
           workspaceProjectTitle && onOpenWorkspaceProject ? (
             <WorkspaceProjectChip

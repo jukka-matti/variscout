@@ -761,12 +761,13 @@ function AppMain() {
           : undefined;
       importFlow.handleMappingConfirm(firstOutcome, legacyFactors, legacySpecs);
 
-      const base = sessionHub ?? {
-        id: crypto.randomUUID(),
-        name: '',
-        createdAt: Date.now(),
-        deletedAt: null as null,
-      };
+      const base = sessionHub;
+      if (!base) {
+        if (import.meta.env.DEV) {
+          throw new Error('Expected an active session Hub before confirming column mapping.');
+        }
+        return;
+      }
 
       setSessionHub({
         ...base,
