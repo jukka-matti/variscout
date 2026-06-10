@@ -8,6 +8,7 @@ status: active
 date: 2026-06-10
 last-verified: 2026-06-10
 related:
+  - docs/superpowers/plans/2026-06-10-control-closure-master-plan.md
   - docs/superpowers/specs/2026-06-09-workspace-architecture-and-project-formalization-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
   - docs/decision-log.md
@@ -20,6 +21,8 @@ implements:
 ---
 
 # Control closure reframe + Report end-state
+
+> **Build roadmap:** [master plan](../plans/2026-06-10-control-closure-master-plan.md) (RPT-1 + CC-1…CC-7 + CC-DOC).
 
 > **Accepted design — 2026-06-10.** Resolves the two linked Open Questions from the 2026-06-09 future-Process-code audit (decision-log §2): **(Q1)** Control's verdict model is reframed from calendar-cadence + signal ticks to **data-driven capability sustainment** built on the existing Measure⇄Analyze re-ingest loop, with all verdicts analyst-owned; **(Q2)** the `HubPortfolioReport` / `deriveWorkspaceOverviewReport` fallback is **deleted** — Report always renders the single-project report (every Workspace is always backed by an active Project per the Workspace model). Benchmark-grounded: the verification surface follows QC-storyboard / A3 conventions (effect check = same chart, before vs after, same scale; sustainment = phase-marked run chart), not a net-new capability-trend component.
 
