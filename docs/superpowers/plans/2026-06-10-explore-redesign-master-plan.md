@@ -65,6 +65,8 @@ Model sizing: Sonnet implementers; mechanical-to-standard tasks against named fi
 
 ## ER-1 — Chrome consolidation (§3, D1)
 
+**Sub-plan:** [`2026-06-10-er-1-chrome-consolidation.md`](2026-06-10-er-1-chrome-consolidation.md).
+
 One-row header (promote the compact responsive variant; icon-only tools w/ tooltips + Findings badge) · context line replaces the stats strip (clickable Cpk stub → ER-10's lens; red-below-target) · delete the scope ribbon · **gate the framing toolbar to the Process tab** (`apps/pwa/src/App.tsx:1327-1377` + Azure twin `EditorViewSwitch.tsx:77-92`) with Export relocated to the context line and Edit framing into the scope-chip menu · chart-generous heights become the default (the scroll-layout geometry; the grid/scroll toggle retires) · **render-feedback states**: skeletons for the chart panels on tab return and maximize (today: 3-5s blank with no feedback — Explore sweep item 3). Acceptance: ≤2 persistent chrome rows; the I-Chart plot band ≥3× its current default height at 1440×900; no blank-without-skeleton render windows; nothing from the old strips becomes unreachable (per-strip relocation table in §3).
 
 ## ER-2 — Factor strip v1 (§5 v1, D2/D3, §13.1)
