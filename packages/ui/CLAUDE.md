@@ -12,6 +12,7 @@
 
 - **Surfaces**: Tailwind 50-300 only — never 700+ fills. **Text/strokes**: 400-700 paired with darker 600-800 for label contrast (`feedback_green_400_light_contrast`).
 - No dark mode, no deep saturation. Canonical invariant: `.claude/INVARIANTS.md` §Visual design + `docs/01-vision/constitution.md` §V1 Wedge Principles.
+- **Tailwind v4 token discipline**: Tailwind v4 generates utilities **only** for tokens declared in the `@theme` block of `packages/ui/src/styles/theme.css`. Unknown candidates are **silently skipped** — failure modes are SVG fills defaulting to black and HTML backgrounds going transparent (same family as A1 FactorGlyph + FSJ-10 sparklines). The architecture test `src/__tests__/architecture.tailwindTokens.test.ts` enforces token existence; its `KNOWN_MISSING_TOKEN_ALLOWLIST` documents current debt. `--color-surface-primary` is a declared alias of `--color-surface`. **Before using a new color utility (`bg-*`, `fill-*`, `text-*`, `border-*`), verify its token is declared in theme.css** — or add the declaration first.
 
 ## Invariants
 
