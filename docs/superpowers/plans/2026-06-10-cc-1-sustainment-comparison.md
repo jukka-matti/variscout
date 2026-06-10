@@ -3,7 +3,7 @@ tier: living
 purpose: build
 title: 'CC-1 sustainment comparison sub-plan'
 audience: agent
-status: active
+status: delivered
 date: 2026-06-10
 layer: spec
 topic: [control, sustainment, baseline, capability, wedge-v1]

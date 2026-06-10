@@ -3,7 +3,7 @@ tier: living
 purpose: build
 title: 'CC-3 phase I-Chart sub-plan'
 audience: agent
-status: active
+status: delivered
 date: 2026-06-10
 layer: spec
 topic: [control, chart, ichart, phase-split, sustainment]

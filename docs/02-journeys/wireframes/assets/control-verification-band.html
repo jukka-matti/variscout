@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Control verification band wireframe</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #162033;
+        background: #f6f7f9;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+      }
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #d5dbe5;
+        border-radius: 8px;
+        box-shadow: 0 16px 40px rgba(22, 32, 51, 0.08);
+        overflow: hidden;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 22px 24px;
+        border-bottom: 1px solid #d5dbe5;
+      }
+      h1 {
+        margin: 0;
+        font-size: 20px;
+      }
+      .meta {
+        margin-top: 6px;
+        color: #536176;
+        font-size: 13px;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      button {
+        border: 1px solid #9aa8bd;
+        background: #ffffff;
+        color: #162033;
+        border-radius: 6px;
+        padding: 9px 12px;
+        font: inherit;
+        font-size: 13px;
+      }
+      button.primary {
+        border-color: #2f67d8;
+        background: #2f67d8;
+        color: #ffffff;
+      }
+      .chart {
+        padding: 24px;
+        border-bottom: 1px solid #d5dbe5;
+      }
+      .chart-labels {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        margin-bottom: 8px;
+        color: #536176;
+        font-size: 12px;
+      }
+      svg {
+        width: 100%;
+        height: 220px;
+        display: block;
+        border: 1px solid #d5dbe5;
+        border-radius: 8px;
+        background: #fbfcfe;
+      }
+      .panels {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .panel {
+        padding: 22px 24px;
+        border-right: 1px solid #d5dbe5;
+        min-height: 150px;
+      }
+      .panel:last-child {
+        border-right: 0;
+      }
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 15px;
+      }
+      .stat {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 7px 0;
+        border-bottom: 1px solid #eef1f5;
+        font-size: 13px;
+      }
+      .note {
+        margin-top: 12px;
+        color: #536176;
+        font-size: 12px;
+      }
+      .flag {
+        display: inline-block;
+        margin-top: 12px;
+        border-radius: 999px;
+        background: #e8f2ff;
+        color: #164ea6;
+        padding: 5px 8px;
+        font-size: 12px;
+      }
+      @media (max-width: 760px) {
+        body {
+          padding: 16px;
+        }
+        header,
+        .panels {
+          display: block;
+        }
+        .actions {
+          margin-top: 16px;
+        }
+        .panel {
+          border-right: 0;
+          border-bottom: 1px solid #d5dbe5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Control verification</h1>
+          <div class="meta">
+            Fill Weight · improvement date May 1 · baseline frozen Apr 1-30 · ladder 7 / 30 /
+            90 / 180
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary">Log re-check</button>
+          <button>Edit setup</button>
+        </div>
+      </header>
+
+      <section class="chart" aria-label="Phase split I-Chart">
+        <div class="chart-labels">
+          <span>Before baseline</span>
+          <span>After improvement</span>
+          <span>Now re-check</span>
+        </div>
+        <svg viewBox="0 0 980 220" role="img" aria-label="I-Chart with improvement phase split">
+          <line x1="60" y1="42" x2="940" y2="42" stroke="#b9c3d1" />
+          <line x1="60" y1="110" x2="940" y2="110" stroke="#8896aa" stroke-dasharray="6 6" />
+          <line x1="60" y1="178" x2="940" y2="178" stroke="#b9c3d1" />
+          <line x1="360" y1="24" x2="360" y2="196" stroke="#2f67d8" stroke-width="3" />
+          <line x1="690" y1="24" x2="690" y2="196" stroke="#63758e" stroke-width="2" />
+          <polyline
+            points="70,120 110,92 150,118 190,102 230,130 270,108 310,116 350,104 390,96 430,88 470,94 510,82 550,90 590,86 630,92 670,80 710,84 750,78 790,82 830,76 870,80 910,74"
+            fill="none"
+            stroke="#1f7a5b"
+            stroke-width="4"
+          />
+          <g fill="#1f7a5b">
+            <circle cx="70" cy="120" r="6" />
+            <circle cx="150" cy="118" r="6" />
+            <circle cx="230" cy="130" r="6" />
+            <circle cx="310" cy="116" r="6" />
+            <circle cx="390" cy="96" r="6" />
+            <circle cx="470" cy="94" r="6" />
+            <circle cx="550" cy="90" r="6" />
+            <circle cx="630" cy="92" r="6" />
+            <circle cx="710" cy="84" r="6" />
+            <circle cx="790" cy="82" r="6" />
+            <circle cx="870" cy="80" r="6" />
+          </g>
+          <text x="368" y="36" font-size="13" fill="#164ea6">improvement date</text>
+          <text x="700" y="36" font-size="13" fill="#536176">latest re-check</text>
+        </svg>
+      </section>
+
+      <section class="panels" aria-label="Before after now comparison">
+        <article class="panel">
+          <h2>Before</h2>
+          <div class="stat"><span>n</span><strong>30</strong></div>
+          <div class="stat"><span>Mean</span><strong>100.0</strong></div>
+          <div class="stat"><span>Sigma</span><strong>1.00</strong></div>
+          <div class="stat"><span>Cpk</span><strong>0.86</strong></div>
+          <div class="note">Frozen baseline anchor.</div>
+        </article>
+        <article class="panel">
+          <h2>After</h2>
+          <div class="stat"><span>n</span><strong>28</strong></div>
+          <div class="stat"><span>Mean</span><strong>99.2</strong></div>
+          <div class="stat"><span>Sigma</span><strong>0.76</strong></div>
+          <div class="stat"><span>Cpk</span><strong>1.21</strong></div>
+          <div class="note">First effect check.</div>
+        </article>
+        <article class="panel">
+          <h2>Now</h2>
+          <div class="stat"><span>n</span><strong>24</strong></div>
+          <div class="stat"><span>Mean</span><strong>99.4</strong></div>
+          <div class="stat"><span>Sigma</span><strong>0.72</strong></div>
+          <div class="stat"><span>Cpk</span><strong>1.28</strong></div>
+          <span class="flag">Analyst verdict: holding</span>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

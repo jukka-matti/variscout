@@ -3,7 +3,7 @@ tier: living
 purpose: build
 title: 'Control closure reframe + Report end-state — master plan'
 audience: human
-status: active
+status: delivered
 date: 2026-06-10
 layer: spec
 topic: [control, sustainment, closure, baseline, report, capability, wedge-v1]
@@ -11,6 +11,7 @@ related:
   - docs/superpowers/specs/2026-06-10-control-closure-and-report-endstate-design.md
   - docs/superpowers/specs/2026-06-09-workspace-architecture-and-project-formalization-design.md
   - docs/07-decisions/adr-080-control-auto-fire-pattern.md
+  - docs/superpowers/plans/2026-06-10-cc-doc-control-closure.md
 implements:
   - docs/03-features/workflows/control.md
   - docs/03-features/workflows/report.md
@@ -27,6 +28,8 @@ implements:
 **Tech Stack:** React + TypeScript, SVG charts, Zustand, Vitest + RTL (happy-dom), Dexie (clean v1 schemas — pre-production, no data migration), pnpm/turbo monorepo.
 
 **Canonical spec:** [`2026-06-10-control-closure-and-report-endstate-design.md`](../specs/2026-06-10-control-closure-and-report-endstate-design.md). Read the relevant § before any sub-plan. Decisions D1–D6 are settled — do not relitigate in sub-plans.
+
+> **Delivered 2026-06-10.** RPT-1, CC-1, CC-2, CC-3, CC-4, CC-5, CC-6, CC-7, and CC-DOC shipped as separate PRs and were merged with merge commits.
 
 ---
 
