@@ -6,7 +6,7 @@ audience: both
 status: active
 date: 2026-06-02
 last-verified: 2026-06-09
-verified-against-commit: 5173695a
+verified-against-commit: 160991867
 layer: L3
 kind: workflow
 topic: [home, entry, workspace, invitations, wedge-v1]
@@ -22,7 +22,7 @@ related:
 
 # Home — the entry surface
 
-Home is where a session starts. It opens or creates **Workspaces**; it does not start a Hub portfolio or an active-IP focus mode. The Home surface **diverges sharply by app**: PWA is a training funnel, Azure is a durable Workspace/document portfolio.
+Home is where a session starts. It opens or creates **Workspaces**; it does not start a Hub portfolio or an active-IP focus mode. The Home surface **diverges sharply by app**: PWA is a training funnel, Azure is a **resume-last-Workspace + create-new** surface backed by durable storage (W4 retired the hub×analysis portfolio browser).
 
 ```mermaid
 flowchart TD
@@ -32,10 +32,11 @@ flowchart TD
     V[Import .vrs] --> W
     W -.session-only · export-only.-> V
   end
-  subgraph AZ["Azure Home / Dashboard — durable portfolio"]
-    L[Saved Workspace list<br/>listProjects] --> O[Open Workspace]
-    Q[Project queue] --> O
-    IPC[Workspace identity header] --> Cascade[Workspace context<br/>→ Process/Explore/Analyze/Improve]
+  subgraph AZ["Azure Home — resume-last + create-new"]
+    R[Resume last Workspace<br/>most-recently-modified] --> O[Open Workspace]
+    N[Start new · sample / paste / .vrs / file] --> O
+    L[Open another Workspace<br/>listProjects] --> O
+    O --> Cascade[Workspace context<br/>→ Process/Explore/Analyze/Improve]
   end
 ```
 
@@ -43,9 +44,9 @@ flowchart TD
 
 `HomeScreen` (`apps/pwa/src/components/HomeScreen.tsx`) shows **sample datasets**, a **paste-from-Excel** primary action, a manual-entry link, and a **`.vrs` import** button. It is **session-only** — there is no saved-document list; `.vrs` export is the only durable path (R6d export-only). The `PendingInvitesBanner` renders at the top, keyed to the hardcoded single-user `'analyst@local'`.
 
-## Azure Home / Dashboard — durable portfolio
+## Azure Home — resume-last + create-new
 
-The Azure Editor's `dashboard` view renders `ProjectDashboard` (the saved Workspace/document list, `listProjects` from storage) + the project queue + a Workspace identity header. Documents are durable (IndexedDB + Blob); formalized Project access is roster-gated ([save-and-load.md §Access](../data/save-and-load.md)).
+The Azure Home (`apps/azure/src/pages/Dashboard.tsx`, the `'home'` view) leads with a **Resume last Workspace** card — `resumeProject`, the most-recently-modified saved project — alongside **start a new Workspace** (sample dataset, paste-from-Excel, `.vrs` import, file browse) and **open another Workspace** (the `listProjects` list, no longer a hub×analysis portfolio browser). It derives its product shape through `deriveWorkspaceViewModel` (`@variscout/hooks`). Documents are durable (IndexedDB + Blob); formalized Project access is roster-gated ([save-and-load.md §Access](../data/save-and-load.md)).
 
 ## Workspace context
 
@@ -57,13 +58,13 @@ Opening data creates/opens a Workspace that is always backed by one active Proje
 
 ## Azure vs PWA
 
-|                                           | Azure (€120) | PWA (free)                      |
-| ----------------------------------------- | ------------ | ------------------------------- |
-| Saved-document list                       | ✓ (durable)  | — (session-only)                |
-| Sample datasets / training funnel         | —            | ✓                               |
-| `.vrs` import / export                    | ✓            | ✓ (export-only durability)      |
-| Workspace identity header / project queue | ✓            | —                               |
-| `PendingInvitesBanner`                    | ✓            | ✓ (single-user `analyst@local`) |
+|                                              | Azure (€120)  | PWA (free)                      |
+| -------------------------------------------- | ------------- | ------------------------------- |
+| Resume-last-Workspace card                   | ✓             | — (session-only)                |
+| Open-another-Workspace list (`listProjects`) | ✓ (durable)   | — (session-only)                |
+| Sample datasets / training funnel            | ✓ (start-new) | ✓                               |
+| `.vrs` import / export                       | ✓             | ✓ (export-only durability)      |
+| `PendingInvitesBanner`                       | ✓             | ✓ (single-user `analyst@local`) |
 
 ## Not yet built (do not document as live)
 
@@ -71,6 +72,6 @@ Home does **not** own a project focus selector; `PendingInvitesBanner` has no cr
 
 ## See also
 
-- [project-dashboard.md](project-dashboard.md) — the Azure Workspace/document portfolio + identity header.
+- [project-dashboard.md](project-dashboard.md) — the in-Workspace Project overview surface (resume / status / what's-new).
 - [collaboration.md](collaboration.md) — invitations + roster. · [save-and-load.md](../data/save-and-load.md) — durability + access.
 - [ia-nav-model.md](../../02-journeys/ia-nav-model.md) — the 7-tab nav + Workspace context.

@@ -1,6 +1,6 @@
 ---
 name: "Store State Glossary"
-description: "Use when you need to know what state lives in which Zustand store before reading or mutating store state. Covers the 9 stores across 3 layers (Document ×4, Annotation ×4 — 1 per-hub + 3 per-user, View ×1) per ADR-078 + F4. Use before any store read/write, before dispatching actions, or when you're unsure which store owns a piece of state."
+description: "Use when you need to know what state lives in which Zustand store before reading or mutating store state. Covers the 9 stores across 3 layers (Document ×4, Annotation ×3 — 1 per-hub + 2 per-user, View ×2) per ADR-078 + F4 (activeIPStore deleted in the Workspace migration, W3/PR #358). Use before any store read/write, before dispatching actions, or when you're unsure which store owns a piece of state."
 ---
 
 # Store State Glossary

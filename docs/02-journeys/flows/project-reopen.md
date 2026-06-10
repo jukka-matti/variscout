@@ -50,13 +50,13 @@ The chip is a non-interactive display element — the card itself carries the `o
 
 ### Step 1: Authenticate + Load Project
 
-| Action                          | Implementation                                                                                           |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| App loads, SSO session active   | `easyAuth.ts`, `getEasyAuthUser()`                                                                       |
-| Specialist selects project card | `Dashboard.tsx` list → `onClick`                                                                         |
-| Document loads wholesale        | `hydrateDocumentSnapshot()` — one blob / one `.vrs` aggregate                                            |
-| Stores hydrate                  | `useProjectStore`, `useImprovementProjectStore`, `useAnalyzeStore`, `useCanvasStore` + annotation stores |
-| Active hub established          | `useActiveIPStore` restores per-session active IP if one existed                                         |
+| Action                          | Implementation                                                                                                                                             |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App loads, SSO session active   | `easyAuth.ts`, `getEasyAuthUser()`                                                                                                                         |
+| Specialist selects project card | `Dashboard.tsx` list → `onClick`                                                                                                                           |
+| Document loads wholesale        | `hydrateDocumentSnapshot()` — one blob / one `.vrs` aggregate                                                                                              |
+| Stores hydrate                  | `useProjectStore`, `useImprovementProjectStore`, `useAnalyzeStore`, `useCanvasStore` + annotation stores                                                   |
+| Workspace established           | The opened document is the active Workspace, always backed by one Project record (no per-user active-IP selection — `activeIPStore` deleted in W3/PR #358) |
 
 **PWA note:** The PWA is session-only (`R6d`). On re-open it shows a fresh start; findings and hypotheses survive if the specialist exported a `.vrs` and imports it (the file round-trips the full `DocumentSnapshot` including findings via PO-6).
 
@@ -70,7 +70,7 @@ Once the document is loaded the full workflow nav is available:
 Home · Project · Process · Explore · Analyze · Improve · Report
 ```
 
-The specialist picks up where they left off. The active-IP cascade (if an IP was set active) scopes Project, Process, Explore, and Analyze to that IP automatically.
+The specialist picks up where they left off. The Workspace carries its attached Project across all tabs; analytical narrowing of Process, Explore, and Analyze is handled by the shared **Analysis Scope** lens (not a per-IP cascade — the active-IP model was retired in the Workspace migration, PR #358).
 
 **Tab purposes at a glance:**
 
@@ -124,7 +124,7 @@ When the Home card shows a control due-ness chip the specialist navigates direct
 | Specialist reviews / logs        | `ControlRecordEditor`, `ControlReviewLogger` write via `services/localDb.ts`             |
 | `sustainment` projection updated | `metadata.sustainment.nextReviewDue` written at save; next Home visit shows updated chip |
 
-The Control region is the Project tab's third stage (Charter → Approach → **Control**), gated by the active-IP cascade. Only Leads and Members can write control reviews; Sponsors see the Report-level summary.
+The Control region is the Project tab's third stage (Charter → Approach → **Control**), scoped to the Workspace's Project. Only Leads and Members can write control reviews; Sponsors see the Report-level summary.
 
 #### Option D: Build or Share the Report
 
@@ -160,7 +160,6 @@ Non-members never see the project in their list. Access gates inside each surfac
 | `hydrateDocumentSnapshot()`            | `packages/stores/src/documentSnapshot.ts`               | Wholesale document load → store hydration       |
 | `useImprovementProjectStore`           | `packages/stores/src/improvementProjectStore.ts`        | Document-layer project mirror                   |
 | `useAnalyzeStore`                      | `packages/stores/src/analyzeStore.ts`                   | Findings, scopes, causal links                  |
-| `useActiveIPStore`                     | `packages/stores/src/activeIPStore.ts`                  | Per-session active IP (annotation-user layer)   |
 | `ProjectsTabView`                      | `apps/azure/src/components/ProjectsTabView.tsx`         | Project tab host; mounts `controlRegionSlot`    |
 | `ProcessHubControlRegion`              | `apps/azure/src/components/ProcessHubControlRegion.tsx` | Control review UI on Project tab                |
 | `projectMetadata.buildProjectMetadata` | `packages/core/src/projectMetadata.ts`                  | Derives `findingCounts` + `sustainment` at save |
@@ -173,4 +172,4 @@ Non-members never see the project in their list. Access gates inside each surfac
 - [ADR-043: Teams Entry Experience](../../archive/adrs/adr-043-teams-entry-experience.md) — historical heritage (portfolio home screen, pre-wedge entry design)
 - [Journey Traceability — Flow 5](../traceability.md#flow-5-return-visitor) — high-level flow index
 - [Journey Traceability — Flow 7](../traceability.md#flow-7-azure-daily-use) — daily use flow
-- [IA Nav Model](../ia-nav-model.md) — 7-tab nav + active-IP cascade
+- [IA Nav Model](../ia-nav-model.md) — 7-tab nav + Workspace context / Analysis Scope

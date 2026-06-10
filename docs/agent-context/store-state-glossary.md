@@ -5,8 +5,8 @@ tier: living
 audience: agent
 status: active
 topic: [ax, stores]
-last-verified: 2026-05-16
-verified-against-commit: 5ee58dc9
+last-verified: 2026-06-09
+verified-against-commit: 160991867
 ---
 
 # VariScout Store State Glossary
@@ -24,8 +24,8 @@ verified-against-commit: 5ee58dc9
 | Layer               | Role                                                                | Portability test                       | Middleware                                               |
 | ------------------- | ------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------- |
 | **Document** (×4)   | Portable project data — another analyst importing this hub needs it | `Yes → Document`                       | persist middleware (hub repository dispatch)             |
-| **Annotation** (×4) | Survives reload but not portable; scoped per-hub or per-user        | `Reload yes, portable no → Annotation` | persist middleware (Dexie or idb-keyval or localStorage) |
-| **View** (×1)       | Transient — does not survive reload                                 | `No → View`                            | no persist middleware                                    |
+| **Annotation** (×3) | Survives reload but not portable; scoped per-hub or per-user        | `Reload yes, portable no → Annotation` | persist middleware (Dexie or idb-keyval or localStorage) |
+| **View** (×2)       | Transient — does not survive reload                                 | `No → View`                            | no persist middleware                                    |
 
 **ADR-074 boundary**: cross-investigation aggregation is forbidden. `investigationStore` never aggregates across multiple hubs.
 
@@ -125,7 +125,7 @@ Renames the deleted `useImprovementStore` from the F4 era with the wedge V1 data
 
 ---
 
-## Annotation Layer (4 stores — 1 per-hub + 3 per-user)
+## Annotation Layer (3 stores — 1 per-hub + 2 per-user)
 
 ### `useCanvasViewportStore`
 
@@ -168,23 +168,7 @@ Durable per-user preferences that survive reload but are not portable to other a
 | `budgetConfig`         | `BudgetConfig`   | Improvement budget configuration                                                                              |
 | `isIPTeamRailExpanded` | `boolean`        | Whether the IP team rail is expanded                                                                          |
 
-**Renamed / deleted stores**: `useSessionStore` was deleted in F4 (2026-05-07; durable half → `usePreferencesStore`, transient half → `useViewStore`). `useImprovementStore` was renamed to `useImprovementProjectStore` post-wedge-V1 with a per-IP data shape (`projectsByHub`); do not re-introduce the F4 name. Improvement preferences (matrix axis, budget) live in `usePreferencesStore`; the IP records themselves live in the renamed store.
-
----
-
-### `useActiveIPStore`
-
-**Location**: `packages/stores/src/activeIPStore.ts`
-**Persistence**: localStorage, key `variscout:activeIP:{hubId}:{userId}` (with URL-encoded scope parts)
-**`STORE_LAYER`**: `'annotation-per-user'`
-
-Tracks the active improvement project per hub per user. Scoped to prevent cross-user bleed.
-
-| Field       | Type                            | Description                            |
-| ----------- | ------------------------------- | -------------------------------------- |
-| `activeIPs` | `Record<string, ActiveIPState>` | Map of storage key → `{ ipId, setAt }` |
-
-**Key actions**: `getActiveIP(scope)`, `setActiveIP(scope, ipId)`, `clearActiveIP(scope)`, `rehydrateActiveIP(scope)`.
+**Renamed / deleted stores**: `useSessionStore` was deleted in F4 (2026-05-07; durable half → `usePreferencesStore`, transient half → `useViewStore`). `useImprovementStore` was renamed to `useImprovementProjectStore` post-wedge-V1 with a per-IP data shape (`projectsByHub`); do not re-introduce the F4 name. Improvement preferences (matrix axis, budget) live in `usePreferencesStore`; the IP records themselves live in the renamed store. `useActiveIPStore` was **deleted in the Workspace migration (W3, PR #358, 2026-06-09)** — the Workspace is always backed by one active Project, so there is no per-user active-IP selection; use the Workspace's attached Project via `useActiveIPContext` (compatibility accessor) instead.
 
 ---
 
@@ -206,7 +190,7 @@ Per-user pending-invitation queue for the wedge V1 collaboration model (Lead/Mem
 
 ---
 
-## View Layer (1 store)
+## View Layer (2 stores)
 
 ### `useViewStore`
 
@@ -232,6 +216,16 @@ All state that does not survive browser reload. Test pattern: `beforeEach(() => 
 | `selectionIndexMap`            | `Map<number, number>`        | Row index → display point index mapping                |
 
 Note: `problemContributionTree` highlights live in this store; the tree itself lives in `useInvestigationStore`.
+
+---
+
+### `useAnalysisScopeStore`
+
+**Location**: `packages/stores/src/analysisScopeStore.ts`
+**Persistence**: NONE — transient, session-scoped (linked-views bridge per spec 2026-05-28 §3 D10)
+**`STORE_LAYER`**: `'view'`
+
+The single Analysis Scope lens shared across Process ↔ Explore ↔ Analyze ↔ Report ↔ CoScout. Holds the current scope (outcome / factor / step / categorical filters) that narrows charts and Wall without switching Project. Authoritative table: `packages/stores/CLAUDE.md`.
 
 ---
 

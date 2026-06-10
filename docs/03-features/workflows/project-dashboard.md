@@ -5,8 +5,8 @@ title: 'Project Dashboard'
 audience: human
 category: workflow
 status: active
-last-verified: 2026-06-02
-verified-against-commit: fe9d52c0
+last-verified: 2026-06-09
+verified-against-commit: 160991867
 related: [investigation, findings, hypotheses, coscout, azure, navigation]
 layer: L3
 kind: ui
@@ -18,214 +18,151 @@ serves:
 
 # Project Dashboard
 
-> **⚠ Superseded (W4 shipped #358, 2026-06-09) — faithful rewrite owed.** This still describes the **retired portfolio** Home/Project surface. Under the now-shipped Workspace model, Home is **resume-last-Workspace + create-new** (no portfolio browser; `OtherProjectsList` retired), and the journey-phase indicator (FRAME / SCOUT / INVESTIGATE / IMPROVE) is gone with the linear phase model. The faithful rewrite is now due as post-merge doc propagation — see the [Workspace migration mega-plan](../../superpowers/plans/2026-06-09-workspace-migration-mega-plan.md) + [product-overview](../../01-vision/product-overview.md).
+Under the Workspace model (see [workspace architecture spec](../../superpowers/specs/2026-06-09-workspace-architecture-and-project-formalization-design.md)), there are **two distinct "home" surfaces** in the Azure app, and the code carries both under dashboard-ish names. This doc describes them as they ship today on `main`.
 
-The Project Dashboard is a persistent overview screen shown when a user reopens a saved project in the Azure app. It provides orientation — a summary of where the Project stands — and acts as a navigation hub for jumping directly into relevant views.
+1. **Home** — the app-level launcher shown before a Workspace is open. Resume the last Workspace, start a new one, or open another. Component: `pages/Dashboard.tsx` (`App.tsx` renders it when `currentView === 'dashboard'`).
+2. **Project home view** — the in-Workspace orientation surface shown when `panelsStore.activeView === 'home'`. Status card + AI summary + quick actions + what's-new. Component: `components/ProjectDashboard.tsx` (rendered by `EditorViewSwitch`).
 
-> Azure-only feature. PWA has no project persistence and no dashboard.
+```
+App launch ──► Home (pages/Dashboard.tsx)
+                 │  Resume last │ New │ Open another
+                 ▼
+            open Workspace ──► Editor ──► activeView
+                                            ├─ 'home'  ──► ProjectDashboard (status · AI summary · quick actions · what's-new)
+                                            └─ deep link ──► Explore / Analyze / Improve / Report (bypasses home)
+```
 
-> Process Hub is the higher-level Azure home above individual project dashboards. Selecting a hub opens a cadence review board that rolls up multiple investigations, latest signals, readiness gaps, actions, verification, and sustainment candidates for one process or work system. This is improvement-cadence review, not 24/7 live monitoring. See [Process Hub](../../archive/specs/2026-04-25-process-hub-design.md).
+> Azure-only feature. The PWA has no Workspace persistence and no dashboard.
+
+> The product object is the **Workspace**, always backed by one active **Project** record (informal until deliberately formalized). The only analytical-narrowing lens is **Analysis Scope**. There is no active-IP focus mode, exit mode, free-roaming, or project-switcher (retired by the Workspace migration). Code still uses legacy internal names (`ProcessHub`, `improvementProject`, `activeView`); user-facing copy says Workspace / Project / Analysis Scope.
 
 ---
 
-## What the dashboard shows
+## Home (app-level launcher)
 
-The dashboard has three zones:
+`pages/Dashboard.tsx`. Header reads **"Home"** with the subtitle "Resume the last Workspace, start a new one, or open another Workspace." The W4 migration (#358) replaced the former hub × analysis **portfolio browser** with a resume-first launcher.
+
+### Resume last Workspace
+
+A prominent card at the top of the list (`data-testid="resume-last-workspace"`). `resumeProject` is the project with the most-recent `metadata.lastViewedAt[userId]`, falling back to the most-recently-`modified` project. The card shows the project name and "Updated {date}", and the **Resume** button calls `onOpenProject(resumeProject.id)`.
+
+### Start new / open existing
+
+- **New Workspace** — `handleCreateHub()` provisions an incomplete Workspace via `useNewHubProvision`.
+- **Try a Sample** — opens `SampleDataPicker`; the chosen sample loads into a new analysis.
+- **Open from SharePoint** — `.vrs` file browse (rendered only when `onLoadProjectFile` is provided).
+- **Open another Workspace** — a `<select>` populated from `listProjects()` / `listProcessHubs()`, with each option's title derived by `deriveWorkspaceViewModel` (the W2 Workspace view-model adapter from `@variscout/hooks`). Choosing a Workspace filters the recent-work list below.
+- **Search + Refresh** — text filter over Workspace names; refresh re-fetches the listing.
+
+The recent-work list renders `ProjectCard` rows (`components/ProjectCard.tsx`), each opening its project via `onOpenProject(project.id)`. When there are zero saved Workspaces, an empty state offers "Try a Sample".
+
+---
+
+## Project home view (in-Workspace)
+
+`components/ProjectDashboard.tsx`, shown when `panelsStore.activeView === 'home'`. A two-column orientation surface, with `WhatsNewSection` pinned to the top on mobile.
 
 ### Project Status (left column)
 
-Visible without AI, works offline.
+`components/ProjectStatusCard.tsx`. Visible without AI, works offline:
 
-- **Project name and last edited timestamp**
-- **Journey phase indicator** — FRAME / SCOUT / INVESTIGATE / IMPROVE shown as filled/empty segments with phase colors (blue / green / amber / purple)
-- **Current focus** — active view description derived from `ViewState`, including the filter breadcrumb trail from `filterStack`. Example: "Investigating Operator → Night Shift, focused on Boxplot"
-- **Findings by status** — clickable counts with color-coded dots. Clicking "3 investigating" opens the Editor with the Findings panel filtered to investigating status.
-- **Hypothesis tree summary** — hypotheses with validation icon (supported / contradicted / untested / partial) and η² percentage. Clicking a hypothesis opens the Editor with the Analyze sidebar scrolled to that hypothesis.
-- **Action progress** — "2/5 actions completed" progress bar. Clicking opens the Editor with the Improvement workspace.
+- **Project name and last-edited timestamp**
+- **Phase indicator** — four progress segments labeled **Frame / Explore / Analyze / Improve** (`PHASE_CONFIG` in `apps/azure/src/lib/journeyPhaseConfig.ts`; colors blue / green / amber / purple). The active phase is derived deterministically by `useJourneyPhase(hasData, findings)` — no data → frame, findings present → analyze, a finding with actions → improve, otherwise scout/explore. (Internal phase keys are still `frame`/`scout`/`analyze`/`improve`; the older linear journey-phase model and CoScout's `JourneyPhase` enum were retired — this indicator is a passive state read, not a workflow gate.)
+- **Current focus** — when a filter stack is active, a breadcrumb trail from `filterStack` (e.g. "Operator > Night Shift"); clicking it calls `onResumeAnalysis`.
+- **Findings by status** — clickable counts with color-coded dots (`finding-status-{status}`); clicking navigates to the findings view filtered to that status.
+- **Suspected causes** — hypothesis hubs (`question-{id}`) with a status glyph; clicking opens the Analyze workspace focused on that hub (`expandToHypothesis`). (IM-1 replaced the retired Question entity with hypothesis hubs.)
+- **Action progress** — "{completed}/{total} completed" progress bar; clicking opens the actions view.
 
 ### AI Summary Card (right top)
 
-Progressive enhancement — hidden when AI is unavailable; left column expands to full width.
+`components/DashboardSummaryCard.tsx`. Progressive enhancement — hidden when `aiEnabled` is false:
 
-- 1–3 sentence contextual summary highlighting current investigation status, overdue items, and a suggested next step
-- Generated by `buildDashboardSummaryPrompt()` using the fast model tier (same as narration)
-- Cache key based on `findingCount + hypothesisStatusCounts + actionCompletionCount` — refreshes when project state changes, not on a fixed TTL
-- **Quick-ask input** — "Ask CoScout..." text input. On submit, stores the question in `aiStore.pendingDashboardQuestion`, switches to the Editor, and opens the CoScout panel with the question pre-loaded.
+- A short contextual summary, sourced from the AI narration store (`narration.narrative`).
+- **Quick-ask input** — on submit, stores the question in `aiStore.pendingDashboardQuestion` and navigates to the CoScout surface (`onNavigate('coscout')`).
 
 ### Quick Actions (right bottom)
 
-Contextual buttons based on project state:
+Contextual buttons (`data-testid="quick-actions"`):
 
-| Button             | Condition                  | Action                                               |
-| ------------------ | -------------------------- | ---------------------------------------------------- |
-| Go to analysis     | Always                     | Switch to Editor at current ViewState                |
-| Add new data batch | Always                     | Switch to Editor in data append flow                 |
-| View report        | When findings exist        | `showReport()` — switches to Report workspace        |
-| Review actions     | When overdue actions exist | Opens Improvement workspace (replaces "View report") |
+| Button            | Condition           | testid                  | Action                        |
+| ----------------- | ------------------- | ----------------------- | ----------------------------- |
+| Continue analysis | Always              | `action-resume`         | `onResumeAnalysis()`          |
+| Add data          | Always              | `action-add-data`       | `onAddData()`                 |
+| New Workspace     | `onNewHub` provided | `action-new-hub`        | `onNewHub()`                  |
+| View report       | Findings exist      | `action-report`         | `onNavigate('report')`        |
+| Review actions    | Open actions exist  | `action-review-actions` | navigates to the actions view |
+
+---
+
+## What's New (timestamp diff)
+
+`components/WhatsNewSection.tsx`. Renders only when `lastViewedAt > 0`. It compares each artifact's timestamp against the current user's `lastViewedAt` and lists changes since the last visit (newest first, capped at 10):
+
+- New findings (`finding.createdAt > lastViewedAt`)
+- Finding status changes
+- Completed actions
+- New comments on findings
+- Hypothesis hub status changes (`hypothesis.updatedAt > lastViewedAt`)
+
+`ProjectDashboard` updates `lastViewedAt` once on mount via `onUpdateLastViewed`. The header reads "What's new since {date}"; with nothing new it shows an all-caught-up empty state.
 
 ---
 
 ## Navigation model
 
-The dashboard is a **peer view** alongside the analysis Editor within a loaded project. The active view is controlled by `panelsStore.activeView: 'dashboard' | 'analysis' | 'investigation' | 'improvement' | 'report'`.
+The project home view is one of the workspace tabs controlled by `panelsStore.activeView`, whose values are `'home' | 'frame' | 'explore' | 'analyze' | 'projects' | 'improvement' | 'report' | 'charter' | 'sustainment'`. `showHome()` sets `'home'`. (The former value `'dashboard'` was renamed to `'home'` in W5; `initFromViewState` still maps the legacy key for older saved documents.)
 
-```
-Project List → [select project] → loadProject()
-                                       ↓
-                             Project Shell (document + view stores)
-                             ┌─────────────────────────┐
-                             │  [Overview] | [Edit]     │  ← tab bar
-                             │                          │
-                             │  Dashboard   Editor      │
-                             └─────────────────────────┘
+When a Workspace loads (`Editor`):
 
-Deep links (Teams, initialFindingId) → skip to Editor directly
-```
-
-- **Default landing**: saved projects with data → Dashboard tab
-- **New projects** (no data): skip straight to Editor in FRAME mode
-- **Tab switching**: "Overview" tab → Dashboard; "Edit" tab → Editor
-- **Dashboard navigation actions**: clicking any status item switches to `'editor'` and opens the relevant panel
-
-### Deep link bypass
-
-Deep links always bypass the dashboard and land directly in the Editor at the target:
-
-- Teams task module links
-- `initialFindingId` parameter
-- `initialChart` parameter
-
----
-
-## AI Summary: progressive enhancement
-
-The AI Summary Card is designed so the dashboard is fully functional without it:
-
-- Status counts, hypothesis tree, action progress, and quick actions are all derived from hydrated document stores synchronously
-- The AI card is hidden when `isAIAvailable()` returns false (no endpoint configured, network offline)
-- Layout adapts: left column expands to full width when the AI card is absent
+- **Deep links bypass the home view** and land directly in the relevant surface — `initialFindingId` and `initialChart` open the Explore/Analyze target; `initialMode` (`analyze` / `improvement` / `report` / `home`) selects the workspace; stale linked items show a toast.
+- **No deep link, with a persisted view** — the persisted `activeView` is restored via `initFromViewState`.
+- **No deep link, no persisted view** — defaults to Home (`showHome()`).
 
 ---
 
 ## CoScout tools
 
-Two CoScout tools are available from SCOUT phase onward that work in combination with the dashboard.
+CoScout tools are gated by **product surface** (`process` / `explore` / `analyze` / `report`) in `packages/core/src/ai/prompts/coScout/tools/registry.ts` via `getToolsForSurface()` — not by a journey phase. Two tools relate to project-wide orientation:
 
-### `search_project` (auto-execute)
+### `search_project` (read / auto-execute)
 
-Searches findings, hypotheses, improvement ideas, and actions in the current project by text and optional filters.
+Searches findings, hypotheses, improvement ideas, and actions in the current project by text, with optional `finding_status` / `hypothesis_status` filters (each status filter applies only to its artifact type). Available on the **explore, analyze, and report** surfaces. The pure search is `searchProjectArtifacts()` in `packages/core/src/ai/searchProject.ts`.
 
-```
-User: "have we checked if it's the material?"
-CoScout → search_project({ query: "material", artifact_type: "hypothesis" })
-→ Returns: hypothesis "Material supplier batch variation" — contradicted (η²=2%)
-CoScout: "Yes — tested and contradicted. Want to see the details?"
-```
+### `navigate_to` (action / hybrid)
 
-- Returns up to 5 results ranked by match quality then recency
-- `finding_status` and `hypothesis_status` filters are independent — status filters apply only to their artifact type; other types are included unfiltered
-- Available in SCOUT, INVESTIGATE, IMPROVE phases (not FRAME — no artifacts to search yet)
-
-### `navigate_to` (hybrid)
-
-Navigates to a specific finding, hypothesis, chart, workspace, or the dashboard itself.
-
-- **Auto-executes** for panel/view navigation (low-risk, reversible)
-- **Shows proposal card** when `restore_filters: true` — filter restoration mutates the data pipeline and requires user confirmation
-- `'dashboard'` is a valid target: "show me the project overview" triggers auto-execute navigation back to the dashboard
-
-```
-User: "take me back to where I found the Night Shift issue"
-CoScout → search_project({ query: "night shift" })
-→ Returns: Finding "Night Shift operators show 3x higher spread"
-CoScout → [PROPOSAL] navigate_to({ target: "finding", target_id: "...", restore_filters: true })
-→ Proposal card: "Navigate to Finding and restore filters: Operator → Night Shift (47 samples)"
-User confirms → Findings panel opens, filters restored, finding highlighted
-```
-
-Stale filter handling: if a filter category no longer exists in current data (e.g., a factor was removed), that filter level is skipped and a toast is shown: "Some filter context could not be restored (data has changed)."
+Navigates to a finding, hypothesis, chart, improvement workspace, report, or **home**. Available on the **explore and analyze** surfaces. Auto-executes for plain panel/view navigation; when `restore_filters: true`, it returns a proposal card requiring user confirmation (filter restoration mutates the data pipeline). `'home'` is a valid target and calls `panels.showHome()`. Handler: `apps/azure/src/features/ai/teamToolHandlers.ts`.
 
 ---
 
-## Persona mapping
+## Roles
 
-| Persona             | How they use the dashboard                                                                                                          |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **OpEx Olivia**     | Primary entry for KPI monitoring across sessions. Checks findings-by-status and action progress before jumping into the Editor.     |
-| **Green Belt Gary** | Uses question tree summary to re-orient after a break. Asks CoScout "have we tested X?" before starting a new investigation thread. |
-| **Field Fiona**     | Single-column mobile layout. Quick status check from phone before a shift review meeting. Taps "Go to analysis" to dig in.          |
+Access is per-project membership, not persona-routing. The V1 model collapses to one Specialist who takes a role per Project (wedge §3.5):
+
+| Role        | How they use the home surfaces                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| **Lead**    | Resumes the active Workspace, advances stage, drives the investigation. Full edit per ACL.             |
+| **Member**  | Opens formalized Projects they belong to; edits within role gating. Uses the status card to re-orient. |
+| **Sponsor** | Read-mostly. Checks findings-by-status and action progress; reviews the compiled Report.               |
+
+See [`ia-nav-model.md`](../../02-journeys/ia-nav-model.md) for the full role × tab access matrix.
 
 ---
 
 ## Implementation references
 
-| File                                                          | Purpose                                                                                                                                                                             |
-| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/azure/src/components/ProjectDashboard.tsx`              | Full dashboard view                                                                                                                                                                 |
-| `apps/azure/src/components/ProjectStatusCard.tsx`             | Status summary component                                                                                                                                                            |
-| `apps/azure/src/components/DashboardSummaryCard.tsx`          | AI summary card + quick-ask                                                                                                                                                         |
-| `packages/core/src/ai/searchProject.ts`                       | `searchProjectArtifacts()` pure function                                                                                                                                            |
-| `packages/core/src/ai/prompts/dashboardSummary.ts`            | Dashboard summary prompt builder                                                                                                                                                    |
-| `apps/azure/src/features/panels/panelsStore.ts`               | `activeView` field + `showDashboard()` / `showAnalysis()` / `showInvestigation()` / `showImprovement()` / `showReport()` actions (ADR-055; legacy action names may remain internal) |
-| `apps/azure/src/features/findings/findingsStore.ts`           | `statusFilter` field + `setStatusFilter()` action                                                                                                                                   |
-| `apps/azure/src/features/investigation/investigationStore.ts` | `expandedHypothesisId` + `expandToHypothesis()` action                                                                                                                              |
-| `apps/azure/src/features/ai/aiStore.ts`                       | `pendingDashboardQuestion` + `setPendingDashboardQuestion()` action                                                                                                                 |
+| File                                                     | Purpose                                           |
+| -------------------------------------------------------- | ------------------------------------------------- |
+| `apps/azure/src/pages/Dashboard.tsx`                     | App-level Home (resume / new / open Workspace)    |
+| `apps/azure/src/components/ProjectDashboard.tsx`         | In-Workspace project home view                    |
+| `apps/azure/src/components/ProjectStatusCard.tsx`        | Status summary (phase, findings, causes, actions) |
+| `apps/azure/src/components/DashboardSummaryCard.tsx`     | AI summary card + quick-ask                       |
+| `apps/azure/src/components/WhatsNewSection.tsx`          | Timestamp-diff "what's new" panel                 |
+| `apps/azure/src/components/ProjectCard.tsx`              | Workspace row in the Home listing                 |
+| `apps/azure/src/lib/journeyPhaseConfig.ts`               | Phase labels + colors (`PHASE_CONFIG`)            |
+| `packages/hooks/src/useJourneyPhase.ts`                  | Deterministic phase derivation                    |
+| `packages/core/src/ai/searchProject.ts`                  | `searchProjectArtifacts()` pure function          |
+| `packages/core/src/ai/prompts/coScout/tools/registry.ts` | Surface-gated CoScout tool registry               |
+| `apps/azure/src/features/ai/teamToolHandlers.ts`         | `navigate_to` handler                             |
+| `apps/azure/src/features/panels/panelsStore.ts`          | `activeView` + `showHome()` / view actions        |
 
-See [ADR-042](../../07-decisions/adr-042-project-dashboard.md) for design decisions and consequences.
-
----
-
-## What's New (Timestamp Diff Mechanism)
-
-When a user reopens a project, VariScout compares the project's `lastModified` timestamp against `lastViewedAt` (both stored in the `.meta.json` sidecar):
-
-```
-if (lastModified > lastViewedAt) → show WhatsNewSection
-```
-
-`lastViewedAt` is written to `.meta.json` at the moment the project is opened. If the project was modified by a teammate (via Blob Storage sync) or by the same user on another device since the last visit, the condition triggers.
-
-`WhatsNewSection` renders at the top of the Project Dashboard before the main status columns. It summarizes changes since `lastViewedAt`:
-
-- New findings added (count + names)
-- Hypotheses whose status changed (e.g., "Operator hypothesis moved to Supported")
-- Actions completed or newly overdue
-- Findings resolved
-
-The section is dismissed by clicking "Got it" or switching to the Editor tab. Dismissal updates `lastViewedAt` in both the local store and the `.meta.json` sidecar.
-
-**Component**: `WhatsNewSection` — `apps/azure/src/components/WhatsNewSection.tsx`
-
----
-
-## Other Projects (Cross-Project List)
-
-The Project Dashboard (Overview tab) includes an `OtherProjectsList` component at the bottom of the page. It shows a compact list of up to three other active projects, each displaying:
-
-- Project name
-- Current journey phase indicator
-- Overdue action flag (amber badge if any actions are past due)
-
-Clicking a project card in `OtherProjectsList` navigates to that project's portfolio card (loads the project). This provides cross-project awareness without leaving the current project context.
-
-`OtherProjectsList` reads lightweight health metadata from the already-loaded Azure document listing — no full `analysis.json` `DocumentSnapshot` payload is loaded at render time.
-
-**Component**: `OtherProjectsList` — `apps/azure/src/components/OtherProjectsList.tsx`
-
----
-
-## Portfolio Integration
-
-The Project Dashboard (Overview tab) is reached via the Azure Process Hub home. The home renders Process Hub cards first, then investigation `ProjectCard` components for saved projects, reading lightweight health data from Azure document metadata without loading full `analysis.json` `DocumentSnapshot` payloads. Selecting a Process Hub keeps the hub cadence board visible while filtering the investigation list below it. Each investigation card shows:
-
-- Journey phase indicator and finding counts by status
-- Assigned task count and overdue flag
-- "What's new" indicator dot when `lastModified > lastViewedAt`
-
-When there are zero saved analyses (first-run experience), the app bypasses the Portfolio entirely and opens the Editor empty state directly, where users can upload data, paste from Excel, or load a sample dataset. The Portfolio appears once the user has saved at least one project. Opening a project from the Portfolio sets `panelsStore.activeView` to `'dashboard'` (for projects with data) or `'editor'` (for new empty projects). The Dashboard then loads synchronously from already-hydrated document stores.
-
-Deep links can target the Dashboard directly via `?tab=overview`, or bypass it to land in the Editor via `?tab=analysis`, `?finding=<id>`, `?chart=<type>`, `?hypothesis=<id>`, or `?workspace=improve`.
-
-**Component**: `ProjectCard` — `apps/azure/src/components/ProjectCard.tsx`
-
-See archived [ADR-043](../../archive/adrs/adr-043-teams-entry-experience.md) for the original Portfolio and Teams entry experience design. Current Process Hub storage/context direction is [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md).
+See [ADR-042](../../07-decisions/adr-042-project-dashboard.md) for the original dashboard design intent. The retired portfolio/Teams entry experience is archived in [ADR-043](../../archive/adrs/adr-043-teams-entry-experience.md); current Process Hub storage/context direction is [ADR-072](../../07-decisions/adr-072-process-hub-storage-and-coscout-context.md).
