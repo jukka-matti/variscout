@@ -41,13 +41,18 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
        * visible the I-Chart card simply overflows into the scroll area — the
        * min-h-[500px] floor keeps it usable.
        */}
-      {/* calc operands MUST be underscore-separated: Tailwind emits the underscores
-          as spaces, and CSS calc() requires whitespace around the minus operator —
-          `calc(100dvh-240px)` is invalid CSS the browser silently drops. */}
-      <div className="h-[calc(100dvh_-_240px)] min-h-[500px] rounded-2xl">{ichartCard}</div>
-      <div className="min-h-[400px] rounded-2xl">{boxplotCard}</div>
-      {paretoCard && <div className="min-h-[400px] rounded-2xl">{paretoCard}</div>}
-      {verificationCard && <div className="min-h-[400px] rounded-2xl">{verificationCard}</div>}
+      {/* shrink-0 is load-bearing: these are flex children of an overflow-y-auto
+          column — with the default flex-shrink:1 they compress to their min-h
+          floors to fit the container BEFORE overflow scrolls, silently defeating
+          the viewport-relative I-Chart height. */}
+      <div className="h-[calc(100dvh_-_240px)] min-h-[500px] shrink-0 rounded-2xl">
+        {ichartCard}
+      </div>
+      <div className="min-h-[400px] shrink-0 rounded-2xl">{boxplotCard}</div>
+      {paretoCard && <div className="min-h-[400px] shrink-0 rounded-2xl">{paretoCard}</div>}
+      {verificationCard && (
+        <div className="min-h-[400px] shrink-0 rounded-2xl">{verificationCard}</div>
+      )}
       {piPanel && <div className="rounded-2xl">{piPanel}</div>}
     </div>
   );
