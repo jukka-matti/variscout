@@ -191,6 +191,7 @@ function AppWorkspaceHomeView({ props }: { props: AppViewSwitchProps }): React.R
             ? [sessionHub.improvementProject]
             : []
         }
+        controlRecords={sessionHub?.controlRecords}
         onStartNewWorkspace={panels.showCharter}
       />
     </div>

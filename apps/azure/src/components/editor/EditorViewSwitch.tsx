@@ -206,6 +206,7 @@ function EditorHomeView({ props }: { props: EditorViewSwitchProps }): React.Reac
                 ? [activeHub.improvementProject]
                 : []
             }
+            controlRecords={activeHub.controlRecords}
             onStartNewWorkspace={() => setIsCreateProjectModalOpen(true)}
           />
         </div>

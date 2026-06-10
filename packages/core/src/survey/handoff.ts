@@ -1,29 +1,12 @@
 import type { ControlHandoff, ControlRecord } from '../control';
 import type { SurveyHint, SurveyRule } from './types';
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-const CONFIRMED_WITHOUT_HANDOFF_DAYS = 42;
-
-function timestamp(value: Date | number | string | undefined): number | undefined {
-  if (value instanceof Date) return value.getTime();
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string') {
-    const parsed = Date.parse(value);
-    return Number.isFinite(parsed) ? parsed : undefined;
-  }
-  return undefined;
-}
-
 function isLiveRecord(record: ControlRecord): boolean {
   return record.deletedAt === null;
 }
 
 function isLiveHandoff(handoff: ControlHandoff): boolean {
   return handoff.deletedAt === null;
-}
-
-function confirmedAt(record: ControlRecord): number {
-  return timestamp(record.latestReviewAt) ?? record.updatedAt ?? record.createdAt;
 }
 
 function hasLiveHandoff(record: ControlRecord, handoffs: ControlHandoff[]): boolean {
@@ -36,9 +19,6 @@ function hasLiveHandoff(record: ControlRecord, handoffs: ControlHandoff[]): bool
 
 export const surveyHandoffRules: SurveyRule = ctx => {
   const hints: SurveyHint[] = [];
-  const now = timestamp(ctx.now);
-  if (now === undefined) return hints;
-
   const handoffs = ctx.controlHandoffs ?? [];
 
   for (const record of ctx.controlRecords ?? []) {
@@ -46,14 +26,11 @@ export const surveyHandoffRules: SurveyRule = ctx => {
     if (record.status !== 'confirmed-sustained') continue;
     if (hasLiveHandoff(record, handoffs)) continue;
 
-    const ageMs = now - confirmedAt(record);
-    if (ageMs < CONFIRMED_WITHOUT_HANDOFF_DAYS * DAY_MS) continue;
-
     hints.push({
       kind: 'lifecycle-gap',
       surface: 'sustainment',
       targetEntityId: record.id,
-      message: `${record.title} confirmed sustained more than 6 weeks ago without live handoff`,
+      message: `${record.title} is confirmed sustained without a recorded handoff`,
       severity: 'warning',
       action: {
         label: 'Record control handoff',

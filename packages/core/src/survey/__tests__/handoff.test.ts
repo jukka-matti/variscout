@@ -50,9 +50,16 @@ const controlHandoff = (overrides: Partial<ControlHandoff>): ControlHandoff =>
   }) as ControlHandoff;
 
 describe('surveyHandoffRules', () => {
-  it('prompts for handoff when confirmed sustainment is older than 6 weeks without live handoff', () => {
+  it('prompts for handoff when confirmed sustainment has no recorded handoff', () => {
     const hints = surveyHandoffRules({
-      controlRecords: [controlRecord({ id: 'sr-old', projectId: 'inv-old' })],
+      controlRecords: [
+        controlRecord({
+          id: 'sr-confirmed-no-handoff',
+          projectId: 'inv-confirmed-no-handoff',
+          latestReviewAt: new Date(NOW).toISOString(),
+          updatedAt: NOW,
+        }),
+      ],
       controlHandoffs: [],
       now: NOW,
     });
@@ -61,16 +68,18 @@ describe('surveyHandoffRules', () => {
       expect.objectContaining({
         kind: 'lifecycle-gap',
         surface: 'sustainment',
-        targetEntityId: 'sr-old',
+        targetEntityId: 'sr-confirmed-no-handoff',
         severity: 'warning',
         action: {
           label: 'Record control handoff',
           opensSurface: 'sustainment',
-          opensId: 'sr-old',
+          opensId: 'sr-confirmed-no-handoff',
         },
       }),
     ]);
-    expect(hints[0].message).toContain('Mix temperature control');
+    expect(hints[0].message).toBe(
+      'Mix temperature control is confirmed sustained without a recorded handoff'
+    );
   });
 
   it('does not prompt for old confirmed sustainment when a linked live handoff exists', () => {

@@ -37,6 +37,26 @@ function driftSeverity(record: ControlRecord): SurveyHint['severity'] | undefine
   return undefined;
 }
 
+function ordinal(value: number): string {
+  const n = Number.isFinite(value) && value > 0 ? Math.floor(value) : 1;
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1:
+      return `${n}st`;
+    case 2:
+      return `${n}nd`;
+    case 3:
+      return `${n}rd`;
+    default:
+      return `${n}th`;
+  }
+}
+
+function verificationOrdinal(record: ControlRecord): string {
+  return ordinal(record.ladderStep + 1);
+}
+
 export const surveySustainmentRules: SurveyRule = ctx => {
   const hints: SurveyHint[] = [];
   const records = ctx.controlRecords ?? [];
@@ -49,7 +69,7 @@ export const surveySustainmentRules: SurveyRule = ctx => {
         kind: 'drift-detection',
         surface: 'sustainment',
         targetEntityId: record.id,
-        message: `${record.title} drift detected`,
+        message: `${record.title} has an analyst-recorded drift verdict`,
         severity,
         action: {
           label: 'Open sustainment record',
@@ -61,6 +81,7 @@ export const surveySustainmentRules: SurveyRule = ctx => {
     }
 
     if (
+      record.status !== 'confirmed-sustained' &&
       isCheckSuggested(
         record,
         ctx.now instanceof Date ? ctx.now : new Date(timestamp(ctx.now) ?? 0)
@@ -70,7 +91,7 @@ export const surveySustainmentRules: SurveyRule = ctx => {
         kind: 'drift-detection',
         surface: 'sustainment',
         targetEntityId: record.id,
-        message: `${record.title} is ready for a sustainment re-check`,
+        message: `${verificationOrdinal(record)} verification suggested - re-ingest recent data`,
         severity: 'info',
         action: {
           label: 'Open sustainment record',

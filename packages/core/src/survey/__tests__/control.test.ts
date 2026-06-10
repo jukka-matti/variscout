@@ -72,7 +72,7 @@ describe('surveySustainmentRules', () => {
         },
       }),
     ]);
-    expect(hints[0].message).toContain('drift');
+    expect(hints[0].message).toBe('Mix temperature control has an analyst-recorded drift verdict');
   });
 
   it('does not emit drift or progress hints for archived sustainment records', () => {
@@ -96,12 +96,13 @@ describe('surveySustainmentRules', () => {
     expect(hints).toHaveLength(0);
   });
 
-  it('emits a soft re-check prompt when the ladder suggestion is reached', () => {
+  it('emits a soft ladder prompt when the next verification is suggested', () => {
     const hints = surveySustainmentRules({
       controlRecords: [
         controlRecord({
           id: 'sr-recheck',
           status: 'verifying',
+          ladderStep: 1,
           nextCheckSuggestedAt: new Date(NOW - DAY_MS).toISOString(),
         }),
       ],
@@ -114,9 +115,55 @@ describe('surveySustainmentRules', () => {
         surface: 'sustainment',
         targetEntityId: 'sr-recheck',
         severity: 'info',
-        message: 'Mix temperature control is ready for a sustainment re-check',
+        message: '2nd verification suggested - re-ingest recent data',
       }),
     ]);
+  });
+
+  it('does not emit a ladder prompt before the suggested verification date', () => {
+    const hints = surveySustainmentRules({
+      controlRecords: [
+        controlRecord({
+          id: 'sr-future',
+          status: 'verifying',
+          ladderStep: 2,
+          nextCheckSuggestedAt: new Date(NOW + DAY_MS).toISOString(),
+        }),
+      ],
+      now: NOW,
+    });
+
+    expect(hints).toHaveLength(0);
+  });
+
+  it('does not emit a ladder prompt after sustainment is confirmed', () => {
+    const hints = surveySustainmentRules({
+      controlRecords: [
+        controlRecord({
+          id: 'sr-confirmed',
+          status: 'confirmed-sustained',
+          ladderStep: 2,
+          nextCheckSuggestedAt: new Date(NOW - DAY_MS).toISOString(),
+        }),
+      ],
+      now: NOW,
+    });
+
+    expect(hints).toHaveLength(0);
+  });
+
+  it('does not write status or verdict while deriving survey hints', () => {
+    const record = controlRecord({
+      id: 'sr-negative-control',
+      status: 'verifying',
+      ladderStep: 1,
+      nextCheckSuggestedAt: new Date(NOW - DAY_MS).toISOString(),
+    });
+
+    surveySustainmentRules({ controlRecords: [record], now: NOW });
+
+    expect(record.status).toBe('verifying');
+    expect('verdict' in record).toBe(false);
   });
 
   it('emits a lifecycle gap for closed improvement projects older than 30 days without live sustainment', () => {

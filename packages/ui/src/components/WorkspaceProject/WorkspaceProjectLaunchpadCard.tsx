@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
+import type { ControlMetadataProjection, ControlRecord } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { isFormalizedProject } from '@variscout/core/improvementProject';
 import { deriveWorkspaceProjectPresentation } from './workspaceProjectPresentation';
 
 export interface WorkspaceProjectLaunchpadCardProps {
   projects: ImprovementProject[];
+  controlRecords?: ControlRecord[];
   onStartNewWorkspace: () => void;
 }
 
@@ -18,8 +20,27 @@ function sortProjects(projects: ImprovementProject[]): ImprovementProject[] {
   return [...projects].sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
+function projectSustainmentProjection(
+  project: ImprovementProject,
+  records: ControlRecord[] | undefined
+): ControlMetadataProjection | undefined {
+  const liveRecords = (records ?? []).filter(record => record.deletedAt === null);
+  const referencedId = project.sections.outcomeReference.sustainmentRecordId;
+  const record =
+    liveRecords.find(candidate => referencedId !== undefined && candidate.id === referencedId) ??
+    liveRecords.find(candidate => candidate.improvementProjectId === project.id);
+  if (!record) return undefined;
+  return {
+    recordId: record.id,
+    ladderStep: record.ladderStep,
+    nextCheckSuggestedAt: record.nextCheckSuggestedAt,
+    status: record.status,
+  };
+}
+
 export const WorkspaceProjectLaunchpadCard: React.FC<WorkspaceProjectLaunchpadCardProps> = ({
   projects,
+  controlRecords,
   onStartNewWorkspace,
 }) => {
   const sortedProjects = useMemo(() => sortProjects(projects), [projects]);
@@ -49,7 +70,11 @@ export const WorkspaceProjectLaunchpadCard: React.FC<WorkspaceProjectLaunchpadCa
     return null;
   }
 
-  const presentation = deriveWorkspaceProjectPresentation(activeProject);
+  const presentation = deriveWorkspaceProjectPresentation(
+    activeProject,
+    Date.now(),
+    projectSustainmentProjection(activeProject, controlRecords)
+  );
   const formalized = isFormalizedProject(activeProject);
 
   return (
