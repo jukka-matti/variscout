@@ -211,6 +211,43 @@ describe('IChartBase rendering', () => {
     );
   });
 
+  it('keeps normal control lines when phase limits cannot render without a split', () => {
+    const data = makeISOData([10, 11, 12, 13, 14]);
+    const stats = {
+      ...makeStats(data),
+      mean: 12,
+      ucl: 15,
+      lcl: 9,
+    };
+    const { container } = render(
+      <IChartBase
+        data={data}
+        stats={stats}
+        {...defaultProps}
+        specs={{}}
+        phaseLimits={{
+          before: { mean: 10, ucl: 60, lcl: -40 },
+          after: { mean: 13, ucl: 70, lcl: -30 },
+        }}
+      />
+    );
+
+    const fullWidthControlLines = Array.from(container.querySelectorAll('line')).filter(line => {
+      const isControlLine =
+        line.getAttribute('stroke') === chartColors.control ||
+        line.getAttribute('stroke') === chartColors.mean;
+      return (
+        isControlLine &&
+        line.getAttribute('x1') === '0' &&
+        line.getAttribute('x2') === '645' &&
+        !line.getAttribute('data-testid')?.startsWith('ichart-phase-limits-')
+      );
+    });
+
+    expect(fullWidthControlLines).toHaveLength(3);
+    expect(container.querySelector('[data-testid^="ichart-phase-limits-"]')).toBeNull();
+  });
+
   it('renders event flags clipped to chart bounds', () => {
     const data = makeISOData([10, 11, 12, 13, 14]);
     const stats = makeStats(data);

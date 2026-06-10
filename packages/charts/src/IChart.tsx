@@ -25,6 +25,14 @@ import DataPoints from './ichart/DataPoints';
 import IChartTooltip from './ichart/IChartTooltip';
 import PhaseSplitOverlay from './ichart/PhaseSplitOverlay';
 
+function hasResolvablePhaseSplit(data: IChartProps['data'], atISO: string | undefined): boolean {
+  if (!atISO || !Number.isFinite(Date.parse(atISO))) return false;
+  return data.some(point => {
+    if (!point.isoTimestamp) return false;
+    return Number.isFinite(Date.parse(point.isoTimestamp));
+  });
+}
+
 /**
  * I-Chart (Individual Control Chart) - Props-based version
  * Shows time series data with control limits and optional spec limits
@@ -83,6 +91,9 @@ const IChartBase: React.FC<IChartProps> = ({
 
   const isStaged = stageBoundaries.length > 0;
   const hasSecondary = secondaryData && secondaryData.length > 0;
+  const resolvedPhaseLimits = hasResolvablePhaseSplit(data, phaseSplit?.atISO)
+    ? phaseLimits
+    : undefined;
 
   // Determine Y domain
   const yDomain = useMemo(() => {
@@ -94,7 +105,7 @@ const IChartBase: React.FC<IChartProps> = ({
       stageBoundaries,
       axisSettings,
       yDomainOverride,
-      phaseLimits
+      resolvedPhaseLimits
     );
 
     if (!hasSecondary) return baseDomain;
@@ -118,7 +129,7 @@ const IChartBase: React.FC<IChartProps> = ({
     specs,
     axisSettings,
     yDomainOverride,
-    phaseLimits,
+    resolvedPhaseLimits,
     hasSecondary,
     secondaryData,
     secondaryStats,
@@ -249,7 +260,7 @@ const IChartBase: React.FC<IChartProps> = ({
             height={height}
             yScale={yScale}
             xScale={xScale}
-            stats={phaseLimits ? null : stats}
+            stats={resolvedPhaseLimits ? null : stats}
             specs={specs}
             isStaged={isStaged}
             stageBoundaries={stageBoundaries}
@@ -272,7 +283,7 @@ const IChartBase: React.FC<IChartProps> = ({
             xScale={xScale}
             yScale={yScale}
             phaseSplit={phaseSplit}
-            phaseLimits={phaseLimits}
+            phaseLimits={resolvedPhaseLimits}
             eventFlags={eventFlags}
           />
 
