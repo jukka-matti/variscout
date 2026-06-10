@@ -23,6 +23,15 @@ import NelsonSequenceOverlay from './ichart/NelsonSequenceOverlay';
 import ControlLines from './ichart/ControlLines';
 import DataPoints from './ichart/DataPoints';
 import IChartTooltip from './ichart/IChartTooltip';
+import PhaseSplitOverlay from './ichart/PhaseSplitOverlay';
+
+function hasResolvablePhaseSplit(data: IChartProps['data'], atISO: string | undefined): boolean {
+  if (!atISO || !Number.isFinite(Date.parse(atISO))) return false;
+  return data.some(point => {
+    if (!point.isoTimestamp) return false;
+    return Number.isFinite(Date.parse(point.isoTimestamp));
+  });
+}
 
 /**
  * I-Chart (Individual Control Chart) - Props-based version
@@ -59,6 +68,9 @@ const IChartBase: React.FC<IChartProps> = ({
   primaryLabel,
   secondaryLabel,
   targetLabel,
+  phaseSplit,
+  phaseLimits,
+  eventFlags,
 }) => {
   const { chrome, formatStat, t, tf } = useChartTheme();
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
@@ -79,6 +91,9 @@ const IChartBase: React.FC<IChartProps> = ({
 
   const isStaged = stageBoundaries.length > 0;
   const hasSecondary = secondaryData && secondaryData.length > 0;
+  const resolvedPhaseLimits = hasResolvablePhaseSplit(data, phaseSplit?.atISO)
+    ? phaseLimits
+    : undefined;
 
   // Determine Y domain
   const yDomain = useMemo(() => {
@@ -89,7 +104,8 @@ const IChartBase: React.FC<IChartProps> = ({
       isStaged,
       stageBoundaries,
       axisSettings,
-      yDomainOverride
+      yDomainOverride,
+      resolvedPhaseLimits
     );
 
     if (!hasSecondary) return baseDomain;
@@ -113,6 +129,7 @@ const IChartBase: React.FC<IChartProps> = ({
     specs,
     axisSettings,
     yDomainOverride,
+    resolvedPhaseLimits,
     hasSecondary,
     secondaryData,
     secondaryStats,
@@ -243,7 +260,7 @@ const IChartBase: React.FC<IChartProps> = ({
             height={height}
             yScale={yScale}
             xScale={xScale}
-            stats={stats}
+            stats={resolvedPhaseLimits ? null : stats}
             specs={specs}
             isStaged={isStaged}
             stageBoundaries={stageBoundaries}
@@ -257,6 +274,17 @@ const IChartBase: React.FC<IChartProps> = ({
             targetLabel={targetLabel}
             secondaryStats={secondaryStats}
             hasSecondary={!!hasSecondary}
+          />
+
+          <PhaseSplitOverlay
+            data={data}
+            width={width}
+            height={height}
+            xScale={xScale}
+            yScale={yScale}
+            phaseSplit={phaseSplit}
+            phaseLimits={resolvedPhaseLimits}
+            eventFlags={eventFlags}
           />
 
           {/* Nelson Rule 2 & 3 sequence highlighting */}

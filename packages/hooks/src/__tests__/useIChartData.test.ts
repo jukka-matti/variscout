@@ -61,6 +61,14 @@ describe('useIChartData', () => {
     expect(result.current[2].stage).toBe('treatment');
   });
 
+  it('keeps raw ISO timestamps separate from formatted time labels', () => {
+    const { result } = renderHook(() => useIChartData(SIMPLE_DATA, 'Temp', null, 'Time'));
+
+    expect(result.current[0].isoTimestamp).toBe('2026-01-01T00:00:00.000Z');
+    expect(result.current[0].timeValue).toContain('Jan 1, 2026');
+    expect(result.current[0].timeValue).not.toBe(result.current[0].isoTimestamp);
+  });
+
   it('filters out NaN y-values', () => {
     const { result } = renderHook(() => useIChartData(NAN_DATA, 'Temp', null, null));
 
