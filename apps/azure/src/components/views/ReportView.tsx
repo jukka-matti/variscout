@@ -33,7 +33,6 @@ import {
   ReportEvidenceMap,
   WorkspaceProjectScopeRibbon,
   WorkspaceProjectChip,
-  WorkspaceOverviewReport,
   IPTechnicalReport,
 } from '@variscout/ui';
 import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
@@ -59,13 +58,13 @@ import {
   computeBestSubsets,
   computeMainEffects,
   computeInteractionEffects,
-  deriveWorkspaceOverviewReport,
   deriveIPCauseRows,
   deriveIPReportNarrative,
   selectIPReportScope,
   humanizeReportFindingLabel,
 } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import { isFormalizedProject } from '@variscout/core/improvementProject';
 import { resolveMode, getStrategy } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import type { ResolvedMode } from '@variscout/core/strategy';
@@ -127,8 +126,6 @@ const REPORT_CHART_MAX_WIDTH = 720;
 const REPORT_CHART_HEIGHT = 320;
 const REPORT_HISTOGRAM_HEIGHT = 280;
 const REPORT_MAP_SIZE = { width: REPORT_CHART_MAX_WIDTH, height: 400 } as const;
-const WORKSPACE_OVERVIEW_SECTION_ID = `hub-${'port'}${'folio'}` as ReportSectionDescriptor['id'];
-
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
@@ -166,7 +163,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   const findings = useAnalyzeStore(s => s.findings);
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
-  const workspaceProject = workspaceProjectScope ? (providedWorkspaceProject ?? null) : null;
+  const workspaceProject = providedWorkspaceProject ?? null;
   const ipReportScope = useMemo(
     () =>
       workspaceProject
@@ -300,14 +297,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   );
   const audienceMode: AudienceMode = reportAudienceMode === 'overview' ? 'summary' : 'technical';
   const isSummary = reportAudienceMode === 'overview';
-  const workspaceOverviewReport = useMemo(
-    () =>
-      !workspaceProjectScope && activeHub
-        ? deriveWorkspaceOverviewReport({ hub: activeHub })
-        : null,
-    [activeHub, workspaceProjectScope]
-  );
-
   // ---------------------------------------------------------------------------
   // Responsive chart width — clamp to container width on small screens
   // ---------------------------------------------------------------------------
@@ -545,19 +534,7 @@ const ReportView: React.FC<ReportViewProps> = ({
           findings: [],
           hasAIContent: false,
         }))
-      : workspaceOverviewReport
-        ? [
-            {
-              id: WORKSPACE_OVERVIEW_SECTION_ID,
-              stepNumber: 1,
-              title: 'Workspace overview',
-              status: 'active' as const,
-              workspace: 'analysis' as const,
-              findings: [],
-              hasAIContent: false,
-            },
-          ]
-        : derivedSections;
+      : derivedSections;
 
   // Scroll spy for sidebar highlighting
   const { activeId: activeSectionId, refs: sectionRefs } = useScrollSpy({
@@ -594,7 +571,9 @@ const ReportView: React.FC<ReportViewProps> = ({
   // Process name for the report header
   const processName = workspaceProjectScope
     ? `Workspace Project Report: ${workspaceProjectScope.title}`
-    : processContext?.issueStatement || outcome || 'Analysis';
+    : workspaceProject
+      ? `Workspace Project Report: ${workspaceProject.metadata.title}`
+      : processContext?.issueStatement || outcome || 'Analysis';
 
   // ---------------------------------------------------------------------------
   // Print / Save as PDF
@@ -605,7 +584,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     const previousTitle = document.title;
     const date = new Date().toISOString().slice(0, 10);
     const hubName = activeHub?.name ?? 'Hub';
-    const subject = workspaceProject?.metadata.title ?? 'Workspace overview';
+    const subject = workspaceProject?.metadata.title ?? 'Analysis';
     const layer = workspaceProject
       ? reportAudienceMode === 'overview'
         ? 'Overview'
@@ -790,10 +769,6 @@ const ReportView: React.FC<ReportViewProps> = ({
               ) : null}
             </>
           )}
-
-        {section.id === WORKSPACE_OVERVIEW_SECTION_ID && workspaceOverviewReport && (
-          <WorkspaceOverviewReport report={workspaceOverviewReport} />
-        )}
 
         {/* Step 1: Current Condition */}
         {section.id === 'current-condition' && outcome && (
@@ -1265,7 +1240,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     );
   };
 
-  if (!outcome && !workspaceOverviewReport) return null;
+  if (!outcome && !workspaceProject) return null;
 
   return (
     <ErrorBoundary componentName="Report View">
@@ -1283,13 +1258,18 @@ const ReportView: React.FC<ReportViewProps> = ({
           reportType={reportType}
           sections={sections}
           activeSectionId={activeSectionId}
-          reportingOnLabel={workspaceProjectScope?.title ?? 'Workspace overview'}
-          reportAudienceMode={workspaceProjectScope ? reportAudienceMode : 'overview'}
-          onReportAudienceModeChange={workspaceProjectScope ? setReportAudienceMode : undefined}
+          reportingOnLabel={workspaceProject?.metadata.title}
+          reportAudienceMode={workspaceProject ? reportAudienceMode : 'overview'}
+          onReportAudienceModeChange={workspaceProject ? setReportAudienceMode : undefined}
           onScrollToSection={handleScrollToSection}
           renderSection={renderSection}
           onPrintReport={handlePrint}
           onClose={onClose}
+          headerHint={
+            workspaceProject && !isFormalizedProject(workspaceProject)
+              ? 'Formalize this Workspace to add charter context to this report'
+              : undefined
+          }
           workspaceProjectContextChip={
             workspaceProjectTitle && onOpenWorkspaceProject ? (
               <WorkspaceProjectChip

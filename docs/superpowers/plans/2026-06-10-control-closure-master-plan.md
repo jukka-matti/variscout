@@ -82,7 +82,7 @@ Parallelizable: RPT-1, CC-1, CC-3 are mutually independent and can run as a para
 
 **Acceptance:** grep `-i "portfolio"` in `packages/core/src/report/`, both `ReportView`s, and barrels returns nothing; both ReportView test suites green with the branch deleted; Report renders the single-project report for a fresh FSJ auto-project.
 
-**Sub-plan note:** verify at grounding time whether any test fixtures construct project-less hubs and rewrite them to carry the auto-project.
+**Sub-plan:** [`2026-06-10-rpt-1-report-end-state.md`](2026-06-10-rpt-1-report-end-state.md). Verify at grounding time whether any test fixtures construct project-less hubs and rewrite them to carry the auto-project.
 
 ### CC-1 — Comparison engine (spec §5)
 

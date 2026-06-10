@@ -52,4 +52,3 @@ export {
   REPORT_METHODOLOGY_FOOTNOTE,
   type IPTechnicalReportProps,
 } from './IPTechnicalReport';
-export { HubPortfolioReport, type HubPortfolioReportProps } from './HubPortfolioReport';
