@@ -381,7 +381,13 @@ function showInteraction(){
   });
   drawBoxes(items,{groupRule:true});
   document.getElementById("boxTitle").textContent="Handle_Time by Team × Queue — Billing vs other";
-  document.getElementById("sortNote").innerHTML=`Pattern: <b>disordinal — these act together</b>`;
+  /* geometric classification per classifyInteractionPattern: disordinal iff the
+     team ranking flips between queue slices (profiles cross), else ordinal */
+  const rank=slice=>TEAMS.slice().sort((a,b)=>
+    quart(data.filter(d=>d.team===a&&(d.queue==="Billing")===slice).map(d=>d.v)).mean-
+    quart(data.filter(d=>d.team===b&&(d.queue==="Billing")===slice).map(d=>d.v)).mean).join();
+  const disordinal=rank(true)!==rank(false);
+  document.getElementById("sortNote").innerHTML=`Pattern: <b>${disordinal?"disordinal — the ranking flips between queues":"ordinal — same direction, much larger for Gamma"}</b>`;
 }
 
 /* ═══ Factor strip — clickable, ✓ visited, what-if hover ═══ */
