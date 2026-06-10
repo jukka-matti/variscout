@@ -1,10 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ControlRecord, ControlReview, ProcessHub } from '@variscout/core';
+import {
+  advanceLadder,
+  resetLadder,
+  type ControlRecord,
+  type ControlReview,
+  type OutcomeSpec,
+  type ProcessHub,
+} from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { HubRepository } from '@variscout/core/persistence';
 
 export type ControlPanelRecordPatch = Partial<
-  Pick<ControlRecord, 'title' | 'targetSummary' | 'nextCheckSuggestedAt' | 'ladderStep'>
+  Omit<ControlRecord, 'id' | 'createdAt' | 'hubId' | 'projectId' | 'updatedAt' | 'deletedAt'>
+>;
+
+export type ControlPanelReviewInput = Pick<
+  ControlReview,
+  'verdict' | 'nowStats' | 'dataStamp' | 'observation'
 >;
 
 export interface UseControlPanelModelOptions {
@@ -22,11 +34,12 @@ export interface UseControlPanelModelReturn {
   heading: string;
   selectRecord: (recordId: ControlRecord['id']) => void;
   updateSelectedRecord: (patch: ControlPanelRecordPatch) => void;
+  logRecheck: (input: ControlPanelReviewInput) => void;
 }
 
-function makeId(): string {
+function makeId(prefix = 'sr'): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
-  return `sr-${Date.now()}`;
+  return `${prefix}-${Date.now()}`;
 }
 
 function liveRecords(records: ControlRecord[] | undefined): ControlRecord[] {
@@ -75,6 +88,7 @@ function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): Control
   // not a project id and is preserved byte-identical.
   const joinKey = project?.metadata.projectId ?? `${hub.id}:sustainment`;
   const title = project ? `Sustain ${project.metadata.title}` : `Sustain ${hub.name}`;
+  const measure = defaultMeasureForProject(project, hub.outcomes);
 
   return {
     id: makeId(),
@@ -89,7 +103,7 @@ function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): Control
         startISO: new Date(now).toISOString(),
         endISO: new Date(now).toISOString(),
       },
-      measure: project?.goal.outcomeGoals[0]?.outcomeSpecId ?? 'outcome',
+      measure,
       n: 0,
       mean: 0,
       sigma: 0,
@@ -105,6 +119,15 @@ function buildDraftRecord(hub: ProcessHub, preferredProjectId?: string): Control
     updatedAt: now,
     deletedAt: null,
   };
+}
+
+function defaultMeasureForProject(
+  project: ImprovementProject | undefined,
+  outcomes: OutcomeSpec[] | undefined
+): string {
+  const outcomeSpecId = project?.goal.outcomeGoals[0]?.outcomeSpecId;
+  const outcome = outcomes?.find(spec => spec.id === outcomeSpecId);
+  return outcome?.columnName ?? outcomeSpecId ?? outcomes?.[0]?.columnName ?? 'outcome';
 }
 
 function mergeRecordPatch(record: ControlRecord, patch: ControlPanelRecordPatch): ControlRecord {
@@ -215,7 +238,7 @@ export function useControlPanelModel({
     return () => {
       cancelled = true;
     };
-  }, [activeHub, repository, selectedRecord]);
+  }, [activeHub, repository, selectedRecord?.id]);
 
   const selectRecord = useCallback((recordId: ControlRecord['id']) => {
     setSelectedRecordId(recordId);
@@ -235,6 +258,54 @@ export function useControlPanelModel({
     [repository, selectedRecord]
   );
 
+  const logRecheck = useCallback(
+    (input: ControlPanelReviewInput) => {
+      if (!selectedRecord) return;
+      const now = Date.now();
+      const reviewId = makeId('review');
+      const reviewedAtISO = new Date(now).toISOString();
+      const observation = input.observation?.trim();
+      const review: ControlReview = {
+        id: reviewId,
+        recordId: selectedRecord.id,
+        projectId: selectedRecord.projectId,
+        hubId: selectedRecord.hubId,
+        reviewedAt: now,
+        reviewer: selectedRecord.owner ?? { displayName: 'Analyst' },
+        verdict: input.verdict,
+        nowStats: input.nowStats,
+        dataStamp: input.dataStamp,
+        ...(observation ? { observation } : {}),
+        createdAt: now,
+        deletedAt: null,
+      };
+      const reviewAnchor = reviewedAtISO;
+      const reviewedRecord = {
+        ...selectedRecord,
+        latestReviewAt: reviewedAtISO,
+        latestReviewId: reviewId,
+        updatedAt: now,
+      };
+      const nextRecord =
+        input.verdict === 'holding'
+          ? advanceLadder(reviewedRecord, reviewAnchor)
+          : input.verdict === 'drifted'
+            ? resetLadder({ ...reviewedRecord, status: 'drifted' }, reviewAnchor)
+            : reviewedRecord;
+
+      setRecords(current =>
+        current.map(record => (record.id === nextRecord.id ? nextRecord : record))
+      );
+      setReviews(current => [review, ...current]);
+      void repository
+        .dispatch({ kind: 'SUSTAINMENT_RECHECK_LOGGED', record: nextRecord, review })
+        .catch(() => {
+          setError('Could not log the sustainment re-check.');
+        });
+    },
+    [repository, selectedRecord]
+  );
+
   const heading = useMemo(() => activeHub?.name ?? 'No active hub', [activeHub]);
 
   return {
@@ -246,5 +317,6 @@ export function useControlPanelModel({
     heading,
     selectRecord,
     updateSelectedRecord,
+    logRecheck,
   };
 }

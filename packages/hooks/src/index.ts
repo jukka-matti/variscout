@@ -218,6 +218,7 @@ export { useControlViolations } from './useControlViolations';
 export {
   useControlPanelModel,
   type ControlPanelRecordPatch,
+  type ControlPanelReviewInput,
   type UseControlPanelModelOptions,
   type UseControlPanelModelReturn,
 } from './useControlPanelModel';

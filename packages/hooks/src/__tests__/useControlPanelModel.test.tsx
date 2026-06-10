@@ -38,6 +38,17 @@ function makeHub(
     name: 'Paint line',
     createdAt: 1_714_000_000_000,
     deletedAt: null,
+    outcomes: [
+      {
+        id: 'outcome-1',
+        hubId: 'hub-1',
+        columnName: 'first_pass_yield',
+        characteristicType: 'largerIsBetter',
+        target: 98,
+        createdAt: 1_714_000_000_000,
+        deletedAt: null,
+      },
+    ],
     ...(project ? { improvementProject: project } : {}),
     ...overrides,
   };
@@ -154,7 +165,7 @@ describe('useControlPanelModel', () => {
           targetSummary: 'Hold first pass yield at 98%.',
           status: 'verifying',
           improvementDate: '2027-01-15T08:00:00.000Z',
-          baseline: expect.objectContaining({ measure: 'outcome-1' }),
+          baseline: expect.objectContaining({ measure: 'first_pass_yield' }),
           ladder: [7, 30, 90, 180],
           ladderStep: 0,
           nextCheckSuggestedAt: '2027-01-22T08:00:00.000Z',
@@ -167,6 +178,23 @@ describe('useControlPanelModel', () => {
     );
     await waitFor(() =>
       expect(result.current.selectedRecord?.title).toBe('Sustain Reduce defects')
+    );
+  });
+
+  it('defaults the draft measure to the outcome column when id and column differ', async () => {
+    const repository = makeRepository();
+    const hub = makeHub(makeProject());
+
+    renderHook(() => useControlPanelModel({ activeHub: hub, repository }));
+
+    await waitFor(() => expect(repository.dispatch).toHaveBeenCalledTimes(1));
+    expect(repository.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'SUSTAINMENT_RECORD_CREATE',
+        record: expect.objectContaining({
+          baseline: expect.objectContaining({ measure: 'first_pass_yield' }),
+        }),
+      })
     );
   });
 
@@ -238,6 +266,180 @@ describe('useControlPanelModel', () => {
         kind: 'SUSTAINMENT_RECORD_UPDATE',
         recordId: 'sr-1',
         patch: { title: 'Updated sustainment' },
+      })
+    );
+  });
+
+  it('logs a holding re-check and advances the verification ladder', async () => {
+    const repository = makeRepository();
+    vi.mocked(repository.controlRecords.listByHub).mockResolvedValue([makeRecord()]);
+    const hub = makeHub();
+
+    const { result } = renderHook(() => useControlPanelModel({ activeHub: hub, repository }));
+
+    await waitFor(() => expect(result.current.selectedRecord?.id).toBe('sr-1'));
+
+    act(() =>
+      result.current.logRecheck({
+        verdict: 'holding',
+        observation: 'Still centered.',
+        nowStats: {
+          window: {
+            startISO: '2026-06-01T00:00:00.000Z',
+            endISO: '2026-06-14T00:00:00.000Z',
+          },
+          n: 14,
+          mean: 100.4,
+          sigma: 0.7,
+        },
+        dataStamp: {
+          rowCount: 56,
+          rowTimestampRange: {
+            startISO: '2026-04-01T00:00:00.000Z',
+            endISO: '2026-06-14T00:00:00.000Z',
+          },
+        },
+      })
+    );
+
+    expect(result.current.selectedRecord?.ladderStep).toBe(1);
+    expect(result.current.selectedRecord?.nextCheckSuggestedAt).toBe('2027-02-14T08:00:00.000Z');
+    expect(result.current.selectedRecord?.status).toBe('verifying');
+    await waitFor(() =>
+      expect(repository.dispatch).toHaveBeenCalledWith({
+        kind: 'SUSTAINMENT_RECHECK_LOGGED',
+        record: expect.objectContaining({
+          id: 'sr-1',
+          ladderStep: 1,
+          nextCheckSuggestedAt: '2027-02-14T08:00:00.000Z',
+          latestReviewId: expect.any(String),
+          latestReviewAt: '2027-01-15T08:00:00.000Z',
+        }),
+        review: expect.objectContaining({
+          id: expect.any(String),
+          recordId: 'sr-1',
+          verdict: 'holding',
+          observation: 'Still centered.',
+          nowStats: expect.objectContaining({ n: 14, mean: 100.4, sigma: 0.7 }),
+          dataStamp: expect.objectContaining({ rowCount: 56 }),
+        }),
+      })
+    );
+  });
+
+  it('runs setup update into a holding re-check round trip', async () => {
+    const repository = makeRepository();
+    vi.mocked(repository.controlRecords.listByHub).mockResolvedValue([makeRecord()]);
+    const hub = makeHub();
+
+    const { result } = renderHook(() => useControlPanelModel({ activeHub: hub, repository }));
+
+    await waitFor(() => expect(result.current.selectedRecord?.id).toBe('sr-1'));
+
+    act(() =>
+      result.current.updateSelectedRecord({
+        improvementDate: '2026-06-15T00:00:00.000Z',
+        baseline: {
+          capturedAt: 1_800_000_000_000,
+          window: {
+            startISO: '2026-05-01T00:00:00.000Z',
+            endISO: '2026-06-14T23:59:59.999Z',
+          },
+          measure: 'first_pass_yield',
+          n: 45,
+          mean: 98.1,
+          sigma: 0.5,
+        },
+        ladder: [14, 45],
+        ladderStep: 0,
+        nextCheckSuggestedAt: '2026-06-29T00:00:00.000Z',
+      })
+    );
+
+    expect(result.current.selectedRecord?.baseline.measure).toBe('first_pass_yield');
+
+    act(() =>
+      result.current.logRecheck({
+        verdict: 'holding',
+        nowStats: {
+          window: {
+            startISO: '2026-06-15T00:00:00.000Z',
+            endISO: '2026-07-01T00:00:00.000Z',
+          },
+          n: 12,
+          mean: 98.3,
+          sigma: 0.4,
+        },
+        dataStamp: { rowCount: 57 },
+      })
+    );
+
+    expect(result.current.selectedRecord?.ladder).toEqual([14, 45]);
+    expect(result.current.selectedRecord?.ladderStep).toBe(1);
+    expect(result.current.selectedRecord?.nextCheckSuggestedAt).toBe('2027-03-01T08:00:00.000Z');
+    await waitFor(() =>
+      expect(repository.dispatch).toHaveBeenCalledWith({
+        kind: 'SUSTAINMENT_RECHECK_LOGGED',
+        record: expect.objectContaining({
+          baseline: expect.objectContaining({ measure: 'first_pass_yield', n: 45 }),
+          ladder: [14, 45],
+          ladderStep: 1,
+        }),
+        review: expect.objectContaining({
+          verdict: 'holding',
+          nowStats: expect.objectContaining({ n: 12, mean: 98.3 }),
+        }),
+      })
+    );
+  });
+
+  it('logs a drifted re-check and resets the ladder', async () => {
+    const repository = makeRepository();
+    vi.mocked(repository.controlRecords.listByHub).mockResolvedValue([
+      makeRecord({
+        ladderStep: 2,
+        nextCheckSuggestedAt: '2026-10-01T00:00:00.000Z',
+      }),
+    ]);
+    const hub = makeHub();
+
+    const { result } = renderHook(() => useControlPanelModel({ activeHub: hub, repository }));
+
+    await waitFor(() => expect(result.current.selectedRecord?.id).toBe('sr-1'));
+
+    act(() =>
+      result.current.logRecheck({
+        verdict: 'drifted',
+        observation: 'Recent data moved away from the frozen baseline.',
+        nowStats: {
+          window: {
+            startISO: '2026-06-01T00:00:00.000Z',
+            endISO: '2026-06-14T00:00:00.000Z',
+          },
+          n: 14,
+          mean: 103.4,
+          sigma: 1.4,
+        },
+        dataStamp: { rowCount: 56 },
+      })
+    );
+
+    expect(result.current.selectedRecord?.status).toBe('drifted');
+    expect(result.current.selectedRecord?.ladderStep).toBe(0);
+    expect(result.current.selectedRecord?.nextCheckSuggestedAt).toBe('2027-01-22T08:00:00.000Z');
+    await waitFor(() =>
+      expect(repository.dispatch).toHaveBeenCalledWith({
+        kind: 'SUSTAINMENT_RECHECK_LOGGED',
+        record: expect.objectContaining({
+          id: 'sr-1',
+          status: 'drifted',
+          ladderStep: 0,
+          nextCheckSuggestedAt: '2027-01-22T08:00:00.000Z',
+        }),
+        review: expect.objectContaining({
+          verdict: 'drifted',
+          observation: 'Recent data moved away from the frozen baseline.',
+        }),
       })
     );
   });
