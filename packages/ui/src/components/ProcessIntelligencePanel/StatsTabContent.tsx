@@ -244,11 +244,17 @@ const StatsTabContent: React.FC<StatsTabContentProps> = ({
   const { getTerm } = useGlossary();
 
   // Store reads
-  const specs = useProjectStore(s => s.specs);
+  const globalSpecs = useProjectStore(s => s.specs);
   const outcome = useProjectStore(s => s.outcome);
   const storeCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
   const factors = useProjectStore(s => s.factors);
+
+  // Prefer the per-measure spec over the global spec — spec-EDIT surfaces write
+  // measureSpecs[outcome] when an outcome is set, so reading global specs alone
+  // leaves the Cp/Cpk/Pass-Rate cards hidden (hasSpecs gate) even after a saved
+  // spec. Mirrors the resolution in useAnalysisStats + IChart.
+  const specs = outcome ? (measureSpecs[outcome] ?? globalSpecs) : globalSpecs;
 
   // Hook reads
   const { stats } = useAnalysisStats();

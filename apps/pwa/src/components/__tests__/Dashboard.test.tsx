@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import Dashboard from '../Dashboard';
 import { calculateAnova, type Finding } from '@variscout/core';
 import * as UseFilterNavigationModule from '../../hooks/useFilterNavigation';
@@ -20,8 +20,13 @@ vi.mock('../charts/ParetoChart', () => ({
 vi.mock('../ProcessIntelligencePanel', () => ({
   default: () => <div data-testid="stats-panel">Process Intelligence Panel</div>,
 }));
+// Capture the specs prop so the per-measure resolution can be asserted.
+const capturedHistogramSpecs = vi.hoisted(() => ({ value: undefined as unknown }));
 vi.mock('../charts/CapabilityHistogram', () => ({
-  default: () => <div data-testid="capability-histogram">Histogram</div>,
+  default: ({ specs }: { specs: unknown }) => {
+    capturedHistogramSpecs.value = specs;
+    return <div data-testid="capability-histogram">Histogram</div>;
+  },
 }));
 vi.mock('../charts/ProbabilityPlot', () => ({
   default: () => <div data-testid="probability-plot">Probability Plot</div>,
@@ -30,12 +35,18 @@ vi.mock('../AnovaResults', () => ({
   default: () => <div data-testid="anova-results">ANOVA Results</div>,
 }));
 
+// Capture the ProcessHealthBar specs prop so the per-measure resolution can be
+// asserted (the bar gates its own Cpk chip on `specs`, independent of stats).
+const capturedHealthBarSpecs = vi.hoisted(() => ({ value: undefined as unknown }));
 // Mock new dashboard chrome components
 vi.mock('@variscout/ui', async () => {
   const actual = await vi.importActual('@variscout/ui');
   return {
     ...actual,
-    ProcessHealthBar: () => <div data-testid="process-health-bar">Health Bar</div>,
+    ProcessHealthBar: ({ specs }: { specs: unknown }) => {
+      capturedHealthBarSpecs.value = specs;
+      return <div data-testid="process-health-bar">Health Bar</div>;
+    },
     VerificationCard: ({
       tabs,
       activeTab,
@@ -165,6 +176,38 @@ describe('Dashboard', () => {
     render(<Dashboard />);
 
     expect(screen.queryByTestId('anova-results')).not.toBeInTheDocument();
+  });
+
+  it('feeds the histogram measureSpecs[outcome] when global specs are empty', () => {
+    // Global specs empty; the per-measure spec for the outcome carries limits.
+    useProjectStore.setState({
+      specs: {},
+      measureSpecs: { Result: { lsl: 5, usl: 45 } },
+    });
+
+    render(<Dashboard />);
+
+    // Switch the verify card to the distribution/capability lens (2nd button).
+    const verifyTab = screen.getByTestId('verify-tab');
+    const lensButtons = within(verifyTab).getAllByRole('button');
+    fireEvent.click(lensButtons[1]);
+
+    // The histogram must receive the per-measure spec, not the empty global one.
+    expect(capturedHistogramSpecs.value).toEqual({ lsl: 5, usl: 45 });
+  });
+
+  it('feeds ProcessHealthBar measureSpecs[outcome] when global specs are empty', () => {
+    // Global specs empty; the per-measure spec for the outcome carries limits.
+    // ProcessHealthBar gates its own Cpk chip on the specs prop, so a raw empty
+    // global spec would hide the chip while stats.cpk is actually defined.
+    useProjectStore.setState({
+      specs: {},
+      measureSpecs: { Result: { lsl: 5, usl: 45 } },
+    });
+
+    render(<Dashboard />);
+
+    expect(capturedHealthBarSpecs.value).toEqual({ lsl: 5, usl: 45 });
   });
 
   it('opens the shared capture card for an I-Chart brush and saves a factor-backed Finding', () => {

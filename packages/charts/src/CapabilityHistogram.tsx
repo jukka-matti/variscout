@@ -194,9 +194,13 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
           stroke={colors.meanAlt}
           strokeWidth={2}
         />
+        {/* Mean label sits below the AxisBottom tick row (top={height}, tick
+            labels at ~height + 4 + ascent) — render it lower so it can't
+            collide with the x-axis tick labels. height + 34 keeps it inside the
+            40px histogram bottom margin. */}
         <text
           x={xScale(mean)}
-          y={height + 25}
+          y={height + 34}
           textAnchor="middle"
           fill={colors.meanAlt}
           fontSize={fonts.statLabel}

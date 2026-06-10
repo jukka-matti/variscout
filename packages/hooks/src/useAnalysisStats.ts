@@ -21,8 +21,16 @@ export interface AnalysisStatsResult {
 export function useAnalysisStats(workerApi?: StatsWorkerAPI | null): AnalysisStatsResult {
   const { filteredData } = useFilteredData();
   const outcome = useProjectStore(s => s.outcome);
-  const specs = useProjectStore(s => s.specs);
+  const globalSpecs = useProjectStore(s => s.specs);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
   const timeLens = usePreferencesStore(s => s.timeLens);
+
+  // Prefer the per-measure spec over the global spec. Spec-EDIT surfaces write
+  // measureSpecs[outcome] when an outcome is set, so reading global specs alone
+  // leaves stats.cpk/cp/outOfSpecPercentage undefined even after a saved spec.
+  // This is the deepest read-side fix: every consumer of these stats (Stats
+  // panel, ProcessHealthBar, What-If, Azure ReportView/CoScout) inherits it.
+  const specs = outcome ? (measureSpecs[outcome] ?? globalSpecs) : globalSpecs;
 
   // Apply time lens before extracting values.
   const lensedData = useMemo(
