@@ -290,6 +290,15 @@ export {
   type UseDashboardChartsBaseResult,
 } from './useDashboardChartsBase';
 
+// Factor Strip Model (ER-2 — ω²-ranked chips for the FactorStrip component)
+export {
+  useFactorStripModel,
+  type UseFactorStripModelArgs,
+  type UseFactorStripModelResult,
+  type FactorStripChip,
+  type FactorStripWhatIf,
+} from './useFactorStripModel';
+
 // Factor list utilities (G1 Task 4 — derived categorical column support)
 export {
   buildFactorList,
