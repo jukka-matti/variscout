@@ -21,11 +21,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   specs,
   onBack,
 }) => {
-  const { selectedRecord, reviews, error, heading, updateSelectedRecord } = useControlPanelModel({
-    activeHub,
-    targetId,
-    repository: azureHubRepository,
-  });
+  const { selectedRecord, reviews, error, heading, updateSelectedRecord, logRecheck } =
+    useControlPanelModel({
+      activeHub,
+      targetId,
+      repository: azureHubRepository,
+    });
   const comparison = useSustainmentComparison({
     rows: rawData,
     timeColumn,
@@ -70,7 +71,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           <ControlForm
             record={selectedRecord}
             reviews={reviews}
+            rawData={rawData}
+            timeColumn={timeColumn}
+            specs={specs}
+            comparison={comparison}
             onRecordChange={updateSelectedRecord}
+            onLogRecheck={logRecheck}
           />
         </>
       ) : (

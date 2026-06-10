@@ -158,6 +158,8 @@ Consumer inventory to rewire (grounded 2026-06-10 — verify again at sub-plan t
 
 ### CC-5 — Editors rewrite (spec §6 last bullets)
 
+**Sub-plan:** [`2026-06-10-cc-5-recheck-editors.md`](2026-06-10-cc-5-recheck-editors.md).
+
 **Scope:**
 
 - `ControlRecordEditor` → Control setup: improvement date picker, measure binding (default: the project's outcome column), ladder editor (chip row of intervals, default 7/30/90/180, add/remove/edit), **baseline freeze preview** (shows the `freezeBaseline` result before save), owner field stays.

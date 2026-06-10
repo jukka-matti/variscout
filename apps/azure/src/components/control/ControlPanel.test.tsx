@@ -17,13 +17,20 @@ vi.mock('@variscout/ui', async () => {
     ControlForm: (props: {
       record: ControlRecord;
       reviews?: ControlReview[];
+      rawData?: unknown[];
+      timeColumn?: string | null;
+      comparison?: SustainmentComparison | null;
       onRecordChange?: (patch: Partial<ControlRecord>) => void;
+      onLogRecheck?: (input: { verdict: 'holding' }) => void;
     }) =>
       React.createElement(
         'section',
         { 'data-testid': 'sustainment-form' },
         React.createElement('h3', null, props.record.title),
         React.createElement('p', null, `Reviews ${props.reviews?.length ?? 0}`),
+        React.createElement('p', null, `Form rows ${props.rawData?.length ?? 0}`),
+        React.createElement('p', null, `Form time ${props.timeColumn ?? 'none'}`),
+        React.createElement('p', null, `Form after ${props.comparison?.after?.n ?? 0}`),
         React.createElement(
           'button',
           {
@@ -31,6 +38,14 @@ vi.mock('@variscout/ui', async () => {
             onClick: () => props.onRecordChange?.({ targetSummary: 'Updated target' }),
           },
           'Update target'
+        ),
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            onClick: () => props.onLogRecheck?.({ verdict: 'holding' }),
+          },
+          'Log holding'
         )
       ),
     ControlVerificationBand: (props: {
@@ -124,6 +139,7 @@ function makeModel(
     heading: 'Paint line',
     selectRecord: vi.fn(),
     updateSelectedRecord: vi.fn(),
+    logRecheck: vi.fn(),
     ...overrides,
   };
 }
@@ -165,11 +181,13 @@ describe('ControlPanel (Azure)', () => {
 
   it('renders the shared model state and forwards ControlForm patches', () => {
     const updateSelectedRecord = vi.fn();
+    const logRecheck = vi.fn();
     mockUseControlPanelModel.mockReturnValue(
       makeModel({
         selectedRecord: makeRecord(),
         reviews: [{ id: 'review-1' } as ControlReview],
         updateSelectedRecord,
+        logRecheck,
       })
     );
     mockUseSustainmentComparison.mockReturnValue({
@@ -190,9 +208,14 @@ describe('ControlPanel (Azure)', () => {
     expect(screen.getByTestId('verification-band')).toHaveTextContent('After 12');
     expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Existing sustainment');
     expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Reviews 1');
+    expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Form rows 1');
+    expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Form time captured_at');
+    expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Form after 12');
 
     fireEvent.click(screen.getByRole('button', { name: 'Update target' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Log holding' }));
 
     expect(updateSelectedRecord).toHaveBeenCalledWith({ targetSummary: 'Updated target' });
+    expect(logRecheck).toHaveBeenCalledWith({ verdict: 'holding' });
   });
 });
