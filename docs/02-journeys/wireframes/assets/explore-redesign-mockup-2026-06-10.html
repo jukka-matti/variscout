@@ -104,6 +104,14 @@
   .factor.unexplained .pct { color: var(--content-muted); }
   .factor.unexplained .name { color: var(--content-muted); font-weight: 500; }
 
+  .capture-pill { position: absolute; left: 50%; top: 86px; transform: translateX(-50%);
+                  display: flex; align-items: stretch; border-radius: 9px; overflow: hidden; z-index: 10;
+                  box-shadow: 0 6px 20px rgba(15,23,42,.18); border: 1px solid var(--edge); font-size: 12px; background: var(--surface-card); }
+  .capture-pill .info { padding: 7px 10px; color: var(--content-2); white-space: nowrap; }
+  .capture-pill .info b { color: var(--content); }
+  .capture-pill button { border: none; background: var(--content); color: #fff; font-family: var(--font-ui);
+                         font-weight: 600; font-size: 12px; padding: 0 13px; cursor: pointer; white-space: nowrap; }
+
   .whatif { position: absolute; z-index: 30; display: none; flex-direction: column; gap: 3px;
             background: var(--content); color: #e2e8f0; border-radius: 9px; padding: 9px 12px;
             font-size: 11.5px; box-shadow: 0 8px 24px rgba(15,23,42,.3); pointer-events: none; max-width: 280px; }
@@ -240,12 +248,16 @@
       <div class="right"><span title="Maximize">⤢</span></div>
     </div>
     <svg id="ichart" preserveAspectRatio="none"></svg>
+    <div class="capture-pill" id="bandPill" style="display:none">
+      <span class="info num" id="bandPillInfo"></span>
+      <button id="bandPillBtn">view as condition →</button>
+    </div>
   </section>
 
   <section class="card factors">
     <div class="label-row">
       <h2 id="stripTitle">What explains the variation?</h2>
-      <span class="how">how much of the call-to-call differences each factor accounts for (η²) — shares overlap, won't sum to 100%</span>
+      <span class="how" id="stripHow">how much of the call-to-call differences each factor accounts for (η²) — shares overlap, won't sum to 100%</span>
       <a href="#" id="openModel">How these % are computed (model & ANOVA) →</a>
     </div>
     <div class="factor-strip" id="factorStrip"></div>
@@ -391,16 +403,23 @@ const state={
   findings:[],
   drawerTab:"findings",
 };
-const rowsInScope=()=>state.scope?data.filter(d=>state.scope.filters.every(f=>f.levels.includes(d[f.key]))):data;
-const condLabel=f=>f.levels.length===1?`${f.key==="tenureBand"?"Tenure":f.key[0].toUpperCase()+f.key.slice(1)} = ${f.levels[0].replace("Team ","")}`
-                  :`${f.key[0].toUpperCase()+f.key.slice(1)} ≠ Billing`;
+/* a condition = optional categorical filters AND an optional Y-range — one predicate grammar */
+const BAND_LO=640;
+const buildPred=c=>d=>(!c.filters||c.filters.every(f=>f.levels.includes(d[f.key])))&&(!c.range||d.v>c.range.lo);
+const rowsInScope=()=>state.scope?data.filter(buildPred(state.scope)):data;
+const isMembership=()=>!!(state.scope&&state.scope.range);
 
 /* ═══ I-Chart ═══ */
 function renderIChart(rows){
   const svg=document.getElementById("ichart");
   const W=1500,H=420,L=46,R=72,T=14,B=26;
   svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
-  const n=rows.length, m=meanOf(rows), s=sdOf(rows,m);
+  /* HIGHLIGHT tier for Y-range conditions: a control chart of only-slow-calls is a
+     truncated nonsense chart — show ALL data with members emphasized instead. */
+  const highlight=isMembership();
+  const plotted=highlight?data:rows;
+  const pred=highlight?buildPred(state.scope):null;
+  const n=plotted.length, m=meanOf(plotted), s=sdOf(plotted,m);
   const ucl=m+3*s, lcl=Math.max(0,m-3*s);
   const x=i=>L+i*(W-L-R)/Math.max(1,n-1), y=v=>T+(900-v)*(H-T-B)/(900-100);
   let out="";
@@ -410,13 +429,24 @@ function renderIChart(rows){
   out+=`<line x1="${L}" x2="${W-R}" y1="${y(USL)}" y2="${y(USL)}" stroke="#b91c1c" stroke-width="1.4"/>`;
   out+=`<line x1="${L}" x2="${W-R}" y1="${y(TGT)}" y2="${y(TGT)}" stroke="#166534" stroke-dasharray="2 4"/>`;
   out+=`<line x1="${L}" x2="${W-R}" y1="${y(m)}" y2="${y(m)}" stroke="#475569"/>`;
-  let path="M";
-  rows.forEach((d,i)=>{path+=`${x(i).toFixed(1)},${y(d.v).toFixed(1)} `; if(i===0)path+="L";});
-  out+=`<path d="${path}" fill="none" stroke="#64748b" stroke-opacity="${n>800?0.18:0.3}" stroke-width="0.7"/>`;
-  rows.forEach((d,i)=>{
-    if(d.v>USL) out+=`<circle cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="${n>800?1.9:2.6}" fill="#ea580c" fill-opacity="0.7"/>`;
+  if(!highlight){
+    let path="M";
+    plotted.forEach((d,i)=>{path+=`${x(i).toFixed(1)},${y(d.v).toFixed(1)} `; if(i===0)path+="L";});
+    out+=`<path d="${path}" fill="none" stroke="#64748b" stroke-opacity="${n>800?0.18:0.3}" stroke-width="0.7"/>`;
+  }
+  plotted.forEach((d,i)=>{
+    if(highlight){
+      if(pred(d)) out+=`<circle cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="2.3" fill="${d.v>USL?"#ea580c":"#2563eb"}" fill-opacity="0.85"/>`;
+      else out+=`<circle cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="1.3" fill="#94a3b8" fill-opacity="0.14"/>`;
+    }
+    else if(d.v>USL) out+=`<circle cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="${n>800?1.9:2.6}" fill="#ea580c" fill-opacity="0.7"/>`;
     else out+=`<circle cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="${n>800?1.4:2.1}" fill="#64748b" fill-opacity="0.45"/>`;
   });
+  /* the brushed band (pre-condition): translucent, with the pill parked on it */
+  if(!state.scope){
+    out+=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${y(BAND_LO)-T}" fill="#2563eb" fill-opacity="0.05"/>`;
+    out+=`<line x1="${L}" x2="${W-R}" y1="${y(BAND_LO)}" y2="${y(BAND_LO)}" stroke="#2563eb" stroke-opacity="0.5" stroke-dasharray="4 4"/>`;
+  }
   const lbl=(v,txt,c,dy=0)=>`<text x="${W-R+7}" y="${y(v)+3.5+dy}" fill="${c}" style="font-size:10.5px">${txt}</text>`;
   const close=Math.abs(y(TGT)-y(m))<13;
   out+=lbl(ucl,`UCL ${ucl.toFixed(0)}`,"#64748b")+lbl(USL,`USL ${USL}`,"#b91c1c")
@@ -425,6 +455,13 @@ function renderIChart(rows){
   [0,0.25,0.5,0.75,1].forEach(f=>{const t=Math.round(f*n);out+=`<text x="${L+f*(W-L-R)}" y="${H-8}" text-anchor="middle">${t}</text>`;});
   out+=`<text class="axis-label" x="${(W-R+L)/2+120}" y="${H-8}" text-anchor="middle">observation →</text>`;
   svg.innerHTML=out;
+  /* the brushed-band pill */
+  const pill=document.getElementById("bandPill");
+  if(!state.scope){
+    const members=data.filter(d=>d.v>BAND_LO);
+    document.getElementById("bandPillInfo").innerHTML=`brushed: > ${BAND_LO}s · <b>n=${members.length}</b> · x̄ ${meanOf(members).toFixed(0)}s vs ${meanOf(data.filter(d=>d.v<=BAND_LO)).toFixed(0)}s`;
+    pill.style.display="flex";
+  } else pill.style.display="none";
 }
 
 /* ═══ Boxplots ═══ */
@@ -459,6 +496,7 @@ function drawBoxes(items,opts={}){
 }
 
 function showFactor(key){
+  if(isMembership()){drawComposition(key);return;}
   const rows=rowsInScope();
   const def=FACTOR_DEFS.find(f=>f.key===key), label=def?def.label:key;
   const g=groupsOf(rows,key);
@@ -508,9 +546,85 @@ function whatIfFor(rows,key){
   const nm=adj.reduce((a,b)=>a+b,0)/rows.length, nsd=Math.sqrt(adj.reduce((a,b)=>a+(b-nm)**2,0)/(rows.length-1));
   return {bestName:ms.find(o=>o.m===best).c, nm, ncpk:(USL-nm)/(3*nsd), k:ms.length};
 }
+/* ── Membership analysis: what distinguishes the condition members from the rest? ── */
+function membershipStats(key){
+  const pred=buildPred(state.scope);
+  const inRows=data.filter(pred), outRows=data.filter(d=>!pred(d));
+  const levels=[...new Set(data.map(d=>d[key]))];
+  let chi2=0, top=null;
+  levels.forEach(lv=>{
+    const a=inRows.filter(d=>d[key]===lv).length, b=outRows.filter(d=>d[key]===lv).length;
+    const pIn=a/inRows.length, pOut=b/outRows.length;
+    const exp=(a+b)*inRows.length/data.length;
+    if(exp>0)chi2+=(a-exp)**2/exp + (b-((a+b)-exp))**2/Math.max(1,(a+b)-exp);
+    const lift=pOut>0?pIn/pOut:0;
+    if(pIn>0.04&&(!top||lift>top.lift))top={lv,lift,pIn,pOut};
+  });
+  return {V:Math.sqrt(chi2/data.length), top, levels, inRows, outRows};
+}
+function drawComposition(key){
+  const def=FACTOR_DEFS.find(f=>f.key===key), label=def?def.label:key;
+  const ms=membershipStats(key);
+  const rows=ms.levels.map(lv=>({lv,
+    pIn:ms.inRows.filter(d=>d[key]===lv).length/ms.inRows.length,
+    pOut:ms.outRows.filter(d=>d[key]===lv).length/ms.outRows.length}))
+    .sort((a,b)=>b.pIn-a.pIn).slice(0,6);
+  const svg=document.getElementById("boxplot");
+  const W=740,H=240,L=46,R=14,T=24,B=34;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const maxP=Math.max(...rows.map(r=>Math.max(r.pIn,r.pOut)),0.1);
+  const y=p=>T+(1-p/maxP)*(H-T-B);
+  let s=`<text x="${L}" y="${T-10}" style="font-family:var(--font-ui);font-size:10px"><tspan fill="#2563eb">■ slow calls</tspan>  <tspan fill="#94a3b8" dx="8">■ the rest</tspan></text>`;
+  const k=rows.length, slot=(W-L-R)/k, bw=Math.min(26,slot*0.22);
+  rows.forEach((r,i)=>{
+    const cx=L+(i+0.5)*slot;
+    const lead=ms.top&&r.lv===ms.top.lv;
+    s+=`<rect x="${cx-bw-2}" y="${y(r.pIn)}" width="${bw}" height="${H-B-y(r.pIn)}" fill="${lead?"#b45309":"#2563eb"}" rx="2"/>`;
+    s+=`<rect x="${cx+2}" y="${y(r.pOut)}" width="${bw}" height="${H-B-y(r.pOut)}" fill="#cbd5e1" rx="2"/>`;
+    s+=`<text x="${cx-bw/2-2}" y="${y(r.pIn)-3}" text-anchor="middle" fill="${lead?"#b45309":"#2563eb"}" style="font-size:9.5px">${(r.pIn*100).toFixed(0)}%</text>`;
+    s+=`<text x="${cx+bw/2+2}" y="${y(r.pOut)-3}" text-anchor="middle" fill="#94a3b8" style="font-size:9.5px">${(r.pOut*100).toFixed(0)}%</text>`;
+    s+=`<text x="${cx}" y="${H-18}" text-anchor="middle" style="font-family:var(--font-ui);font-size:10.5px" fill="#0f172a">${String(r.lv).replace("Team ","")}</text>`;
+    if(lead){
+      s+=`<text x="${cx}" y="${T+2}" text-anchor="middle" fill="#b45309" style="font-family:var(--font-ui);font-size:10.5px;font-weight:600">×${(r.pIn/Math.max(0.001,r.pOut)).toFixed(1)} over-represented</text>`;
+      s+=`<g class="capture-g" data-capture="{'range':true,'key':'${key}','level':'${r.lv}','label':'${label} = ${String(r.lv).replace("Team ","")}'}" style="cursor:pointer">
+        <circle cx="${cx+bw+16}" cy="${(y(r.pIn)+H-B)/2}" r="9" fill="#2563eb"/><text x="${cx+bw+16}" y="${(y(r.pIn)+H-B)/2+3.8}" text-anchor="middle" fill="#fff" style="font-size:12.5px;font-weight:700">+</text></g>`;
+    }
+  });
+  svg.innerHTML=s;
+  svg.querySelectorAll(".capture-g").forEach(g=>g.addEventListener("click",()=>{
+    const c=JSON.parse(g.dataset.capture.replace(/'/g,'"'));
+    captureFinding({range:{lo:BAND_LO},filters:[{key:c.key,levels:[c.level],label:c.label}]});
+  }));
+  document.getElementById("boxTitle").textContent=`${label} mix — slow calls vs the rest`;
+  document.getElementById("sortNote").innerHTML=`Sort: <b>by share among slow calls</b>`;
+}
+
 function renderStrip(){
   const rows=rowsInScope();
   const scoped=!!state.scope;
+  if(isMembership()){
+    document.getElementById("stripTitle").textContent="What distinguishes these calls?";
+    document.getElementById("stripHow").textContent="how strongly each factor separates the slow calls from the rest — with the most over-represented group";
+    const facts=FACTOR_DEFS.filter(f=>!(state.scope.filters||[]).some(x=>x.key===f.key))
+      .map(f=>({...f,ms:membershipStats(f.key)})).sort((a,b)=>b.ms.V-a.ms.V);
+    const maxV=Math.max(...facts.map(f=>f.ms.V),0.05);
+    const strip=document.getElementById("factorStrip");
+    strip.innerHTML=facts.map((f,idx)=>`
+      <div class="factor ${f.key===state.selectedKey?"selected":""} ${f.ms.V<0.06?"weak":""}" data-key="${f.key}">
+        <span class="name">${f.label} ${idx===0&&f.ms.V>0.08?'<span class="star">★ separates most</span>':""}</span>
+        <span class="meter"><span class="bar" style="width:${Math.max(4,f.ms.V/maxV*72)}px"></span>
+        <span class="pct num">${f.ms.top?`${String(f.ms.top.lv).replace("Team ","")} ×${f.ms.top.lift.toFixed(1)}`:"—"}</span></span>
+      </div>`).join("")+`
+      <div class="factor unexplained" title="Cramér's V between each factor and membership in the brushed band — association strength for a yes/no split.">
+        <span class="name">ranked by separation</span>
+        <span class="meter"><span class="pct num">share in slow vs share in rest</span></span>
+      </div>`;
+    strip.querySelectorAll(".factor[data-key]").forEach(el=>el.addEventListener("click",()=>{
+      state.selectedKey=el.dataset.key; state.visited.add(el.dataset.key);
+      drawComposition(el.dataset.key); renderStrip();
+    }));
+    return;
+  }
   const scopedKeys=scoped?state.scope.filters.map(f=>f.key):[];
   const facts=FACTOR_DEFS.filter(f=>!scopedKeys.includes(f.key))
     .map(f=>({...f,pct:etaAdj(rows,f.key)*100})).sort((a,b)=>b.pct-a.pct);
@@ -519,6 +633,7 @@ function renderStrip(){
   const unexplained=100-cellEta(rows,keys.slice(0,4))*100;
   const max=Math.max(...facts.map(f=>f.pct),ixPct,1);
   document.getElementById("stripTitle").textContent=scoped?`What explains the variation within this condition?`:"What explains the variation?";
+  document.getElementById("stripHow").textContent="how much of the call-to-call differences each factor accounts for (η²) — shares overlap, won't sum to 100%";
   let html=facts.map((f,idx)=>`
     <div class="factor ${f.key===state.selectedKey?"selected":""} ${f.pct<1?"weak":""}" data-key="${f.key}" data-label="${f.label}">
       <span class="name">${f.label} ${idx===0&&f.pct>=1?'<span class="star">★ largest share</span>':""} ${state.visited.has(f.key)?'<span class="check">✓</span>':""}</span>
@@ -585,11 +700,12 @@ function renderHist(rows){
 
 /* ═══ Findings drawer + scope ═══ */
 function captureFinding(cond){
-  const pred=d=>cond.filters.every(f=>f.levels.includes(d[f.key]));
+  const pred=buildPred(cond);
   const sel=data.filter(pred), rest=data.filter(d=>!pred(d));
+  const parts=[...(cond.range?[`Handle_Time > ${cond.range.lo}s`]:[]),...(cond.filters||[]).map(f=>f.label)];
   const f={
-    id:Date.now(), filters:cond.filters,
-    label:cond.filters.map(f=>f.label).join(" ∧ "),
+    id:Date.now(), filters:cond.filters, range:cond.range,
+    label:parts.join(" ∧ "), parts,
     n:sel.length, mean:meanOf(sel), restMean:meanOf(rest),
     status:"Observed",
     note:"",
@@ -618,7 +734,7 @@ function renderFindings(){
   }
   body.innerHTML=state.findings.map(f=>`
     <div class="fcard ${state.scope&&state.scope.label===f.label?"active":""}">
-      <div class="frow">${f.filters.map(x=>`<span class="cond">${x.label}</span>`).join("")}<span class="status">${f.status}</span></div>
+      <div class="frow">${f.parts.map(x=>`<span class="cond">${x}</span>`).join("")}<span class="status">${f.status}</span></div>
       <div class="ev num">x̄ ${f.mean.toFixed(0)}s vs ${f.restMean.toFixed(0)}s rest · n=${f.n} of ${N}</div>
       ${f.note?`<div class="note">“${f.note}”</div>`:""}
       <div class="frow factions">
@@ -629,16 +745,19 @@ function renderFindings(){
   body.querySelectorAll("[data-view]").forEach(a=>a.addEventListener("click",()=>{
     const f=state.findings.find(x=>x.id==a.dataset.view);
     if(state.scope&&state.scope.label===f.label) clearScope();
-    else applyScope({filters:f.filters,label:f.label});
+    else applyScope({filters:f.filters,range:f.range,label:f.label});
   }));
 }
 function applyScope(scope){
   state.scope=scope;
-  if(scope.filters.some(f=>f.key===state.selectedKey)||state.selectedKey==="__ix"){
-    state.selectedKey=FACTOR_DEFS.find(f=>!scope.filters.some(x=>x.key===f.key)).key;
+  const taken=scope.filters||[];
+  if(taken.some(f=>f.key===state.selectedKey)||state.selectedKey==="__ix"){
+    state.selectedKey=FACTOR_DEFS.find(f=>!taken.some(x=>x.key===f.key)).key;
   }
   renderAll();
 }
+document.getElementById("bandPillBtn").addEventListener("click",()=>
+  applyScope({range:{lo:BAND_LO},label:`Handle_Time > ${BAND_LO}s`}));
 function clearScope(){ state.scope=null; renderAll(); }
 
 function renderScopebar(){
