@@ -25,7 +25,7 @@ import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
-import type { AzureFindingsCallbacks, ActiveIPScopeLabels } from '@variscout/ui';
+import type { AzureFindingsCallbacks, WorkspaceProjectScopeLabels } from '@variscout/ui';
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
@@ -60,17 +60,17 @@ interface EditorDashboardViewProps {
   excludedReasons: Map<number, ExclusionReason[]> | undefined;
   // Improvement projection
   projectedCpkMap: Record<string, number>;
-  activeIPFactorRequest?: { factor: string; seq: number } | null;
-  activeIPScope?: {
+  workspaceProjectFactorRequest?: { factor: string; seq: number } | null;
+  workspaceProjectScope?: {
     title: string;
-    labels: ActiveIPScopeLabels;
+    labels: WorkspaceProjectScopeLabels;
   } | null;
   /**
    * G1 Task 4: derived categorical columns from the active ImprovementProject.
    * Merged into the factor picker list and used for Boxplot/ProbabilityPlot data extraction.
    */
   categoricalValuesByColumn?: Record<string, (string | null)[]>;
-  /** G1 Task 7: existing inflection-binning bindings from the active IP. */
+  /** G1 Task 7: existing inflection-binning bindings from the Workspace Project. */
   binnedFactorBindings?: BinnedFactorBinding[];
   /** G1 Task 7: synchronous patch handler for `binnedFactorBindings`. */
   onBindingsChange?: (next: BinnedFactorBinding[]) => void;
@@ -97,8 +97,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   excludedRowIndices,
   excludedReasons,
   projectedCpkMap,
-  activeIPFactorRequest,
-  activeIPScope,
+  workspaceProjectFactorRequest,
+  workspaceProjectScope,
   categoricalValuesByColumn,
   binnedFactorBindings,
   onBindingsChange,
@@ -117,7 +117,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
     if (!filteredData?.length || !outcome || factors.length === 0) return null;
     return computeBestSubsets(filteredData, outcome, factors);
   }, [filteredData, outcome, factors]);
-  const effectiveFactorRequest = activeIPFactorRequest ?? null;
+  const effectiveFactorRequest = workspaceProjectFactorRequest ?? null;
 
   // ── Journey phase badge ─────────────────────────────────────────────────
   const journeyPhase = useJourneyPhase(!!rawData?.length, findingsState.findings);
@@ -190,7 +190,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           onInvestigateFactor={handleInvestigateFactor}
           onOpenWall={onOpenWall}
           projectedCpkMap={projectedCpkMap}
-          activeIPScope={activeIPScope}
+          workspaceProjectScope={workspaceProjectScope}
           aiAvailable={aiAvailable}
           categoricalValuesByColumn={categoricalValuesByColumn}
           binnedFactorBindings={binnedFactorBindings}

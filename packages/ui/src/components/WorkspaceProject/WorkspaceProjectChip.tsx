@@ -1,9 +1,8 @@
 import React from 'react';
 
-export interface IPContextChipProps {
+export interface WorkspaceProjectChipProps {
   title: string;
   onTitleClick: () => void;
-  onExitIP?: () => void;
 }
 
 const chipStyle: React.CSSProperties = {
@@ -14,11 +13,14 @@ const chipStyle: React.CSSProperties = {
   color: '#4f46e5',
 };
 
-export const IPContextChip: React.FC<IPContextChipProps> = ({ title, onTitleClick }) => (
+export const WorkspaceProjectChip: React.FC<WorkspaceProjectChipProps> = ({
+  title,
+  onTitleClick,
+}) => (
   <span
     className="inline-flex max-w-full items-center gap-1 text-xs font-medium leading-tight"
     style={chipStyle}
-    data-testid="ip-context-chip"
+    data-testid="workspace-project-chip"
   >
     <span aria-hidden="true">◆</span> <span className="shrink-0">Workspace Project:</span>{' '}
     <button

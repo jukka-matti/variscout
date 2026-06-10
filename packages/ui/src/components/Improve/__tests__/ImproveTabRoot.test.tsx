@@ -41,10 +41,10 @@ const ip: ImprovementProject = {
 const actions: ActionItem[] = [];
 
 describe('ImproveTabRoot', () => {
-  it('renders Workspace guidance when activeIP is null', () => {
+  it('renders Workspace guidance when workspaceProject is null', () => {
     render(
       <ImproveTabRoot
-        activeIP={null}
+        workspaceProject={null}
         actions={actions}
         currentUserId="lead@org"
         onGoHome={() => {}}
@@ -57,10 +57,10 @@ describe('ImproveTabRoot', () => {
     expect(screen.queryByRole('heading', { name: /actions/i })).not.toBeInTheDocument();
   });
 
-  it('renders ImproveStage scoped to activeIP when set', () => {
+  it('renders ImproveStage scoped to workspaceProject when set', () => {
     render(
       <ImproveTabRoot
-        activeIP={ip}
+        workspaceProject={ip}
         actions={actions}
         currentUserId="lead@org"
         onGoHome={() => {}}
@@ -79,7 +79,7 @@ describe('ImproveTabRoot', () => {
     const onGoHome = vi.fn();
     render(
       <ImproveTabRoot
-        activeIP={null}
+        workspaceProject={null}
         actions={actions}
         currentUserId="lead@org"
         onGoHome={onGoHome}

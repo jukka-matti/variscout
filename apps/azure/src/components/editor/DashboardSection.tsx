@@ -18,7 +18,7 @@ import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
 import type { UseFindingsReturn } from '@variscout/hooks';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
-import type { AzureFindingsCallbacks, ActiveIPScopeLabels } from '@variscout/ui';
+import type { AzureFindingsCallbacks, WorkspaceProjectScopeLabels } from '@variscout/ui';
 import type { ViewState } from '@variscout/hooks';
 import type { FactorMainEffect } from '@variscout/core/stats';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
@@ -56,16 +56,16 @@ export interface DashboardSectionProps {
   projectedCpkMap?: Record<string, number>;
   /** Whether AI is available and enabled */
   aiAvailable?: boolean;
-  activeIPScope?: {
+  workspaceProjectScope?: {
     title: string;
-    labels: ActiveIPScopeLabels;
+    labels: WorkspaceProjectScopeLabels;
   } | null;
   /**
    * G1 Task 4: derived categorical columns from the active ImprovementProject.
    * Passed through to Dashboard → useDashboardCharts / useProbabilityPlotData / Boxplot.
    */
   categoricalValuesByColumn?: Record<string, (string | null)[]>;
-  /** G1 Task 7: existing inflection-binning bindings from the active IP. */
+  /** G1 Task 7: existing inflection-binning bindings from the Workspace Project. */
   binnedFactorBindings?: BinnedFactorBinding[];
   /** G1 Task 7: synchronous patch handler for `binnedFactorBindings`. */
   onBindingsChange?: (next: BinnedFactorBinding[]) => void;
@@ -90,7 +90,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   onOpenWall,
   projectedCpkMap,
   aiAvailable = false,
-  activeIPScope,
+  workspaceProjectScope,
   categoricalValuesByColumn,
   binnedFactorBindings,
   onBindingsChange,
@@ -110,7 +110,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
       onViewStateChange={onViewStateChange}
       onManageFactors={dataFlow.openFactorManager}
       requestedFactor={factorRequest}
-      activeIPScope={activeIPScope}
+      workspaceProjectScope={workspaceProjectScope}
       onPinFinding={onPinFinding}
       onShareChart={onShareChart}
       findingsCallbacks={findingsCallbacks}

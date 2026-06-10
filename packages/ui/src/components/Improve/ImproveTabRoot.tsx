@@ -1,10 +1,10 @@
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { ActionItem } from '@variscout/core/findings';
 import { ImproveStage } from './ImproveStage';
-import { NoActiveProjectGuidance } from '../ActiveIP/NoActiveProjectGuidance';
+import { NoActiveProjectGuidance } from '../WorkspaceProject/NoActiveProjectGuidance';
 
 export interface ImproveTabRootProps {
-  activeIP: ImprovementProject | null;
+  workspaceProject: ImprovementProject | null;
   actions: ActionItem[];
   currentUserId?: string;
   onGoHome: () => void;
@@ -17,7 +17,7 @@ export interface ImproveTabRootProps {
 }
 
 export function ImproveTabRoot({
-  activeIP,
+  workspaceProject,
   actions,
   currentUserId,
   onGoHome,
@@ -25,14 +25,14 @@ export function ImproveTabRoot({
   onActionUpdate,
   onActionRemove,
 }: ImproveTabRootProps) {
-  if (activeIP === null) {
+  if (workspaceProject === null) {
     return <NoActiveProjectGuidance onGoHome={onGoHome} />;
   }
-  const members = activeIP.metadata.members ?? [];
-  const scopedActions = actions.filter(a => a.parentImprovementProjectId === activeIP.id);
+  const members = workspaceProject.metadata.members ?? [];
+  const scopedActions = actions.filter(a => a.parentImprovementProjectId === workspaceProject.id);
   return (
     <ImproveStage
-      projectId={activeIP.id}
+      projectId={workspaceProject.id}
       actions={scopedActions}
       members={members}
       currentUserId={currentUserId}

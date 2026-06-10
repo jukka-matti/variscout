@@ -25,13 +25,13 @@ import {
   CANVAS_H,
   computeWallLayout,
   buildWallLayoutArgs,
-  ActiveIPScopeRibbon,
+  WorkspaceProjectScopeRibbon,
   OverallProblemHeader,
   ScopeRail,
   useWallKeyboard,
   useWallIsMobile,
 } from '@variscout/ui';
-import type { ActiveIPScopeLabels } from '@variscout/ui';
+import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
 import { useResizablePanel, useReturnNavigation } from '@variscout/hooks';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
 import type { CapturedModelSnapshot, ObjectDetailSelection } from '@variscout/ui';
@@ -74,7 +74,7 @@ import { usePanelsStore } from '../../features/panels/panelsStore';
 const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 
 interface AnalyzeViewProps {
-  activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
+  workspaceProjectScope?: { title: string; labels: WorkspaceProjectScopeLabels } | null;
   canvasViewportHubId: ProcessHubId;
   // Data context
   filteredData: Record<string, unknown>[];
@@ -84,7 +84,7 @@ interface AnalyzeViewProps {
   handleSetFindingStatus: (id: string, status: FindingStatus) => void;
   /**
    * PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
-   * tracker. Provided only when an active IP exists; FindingCard hides the
+   * tracker. Provided only when an Workspace Project exists; FindingCard hides the
    * promote button once the source action carries `parentImprovementProjectId`.
    */
   onPromoteFindingAction?: (findingId: string, actionId: string) => void;
@@ -102,7 +102,7 @@ interface AnalyzeViewProps {
 }
 
 const AnalyzeView: React.FC<AnalyzeViewProps> = ({
-  activeIPScope,
+  workspaceProjectScope,
   canvasViewportHubId,
   filteredData,
   factors,
@@ -235,7 +235,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
       hasAppliedFindingsArrivalRef.current = true;
     }
   }, [hubs.length, setWallViewMode, wallFindings.length]);
-  // PO-5: active-IP scope shows the whole document — the Wall renders every hub
+  // PO-5: Workspace Project scope shows the whole document — the Wall renders every hub
   // and finding (the lineage-membership filter is retired; empty-set-means-
   // unfiltered is the permanent semantics).
 
@@ -513,7 +513,7 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   }, [planningProps, handleEvaluateFactor, activeScope?.id]);
 
   // ── FE-1 — scope-level vital-few model-builder band ──────────────────────
-  // The PWA scope = the active-IP filtered data; factors are the candidates.
+  // The PWA scope = the Workspace Project data; factors are the candidates.
   // Capture-as-Finding stamps the model snapshot into the Finding's
   // projection.modelContext (rSquaredAdj / scopeLabel / linkedFactor).
   //
@@ -582,12 +582,12 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
       candidateFactors: factors,
       scopeLabel: activeScope
         ? formatConditionLeaves(activeScope.predicates)
-        : (activeIPScope?.title ?? 'All data'),
+        : (workspaceProjectScope?.title ?? 'All data'),
       scopeRows: filteredData,
       constantFactors,
       onCaptureModel: handleCaptureModel,
     };
-  }, [outcome, factors, filteredData, activeScope, activeIPScope, handleCaptureModel]);
+  }, [outcome, factors, filteredData, activeScope, workspaceProjectScope, handleCaptureModel]);
 
   // PO-5: the conclusion-categorizer memo was gate-only ceremony — its
   // suspected/contributing/ruledOut buckets partition `hubs`, so the conclusion-
@@ -597,15 +597,15 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">
-      {activeIPScope && wallViewMode !== 'wall' ? (
-        <ActiveIPScopeRibbon
-          title={activeIPScope.title}
-          labels={activeIPScope.labels}
+      {workspaceProjectScope && wallViewMode !== 'wall' ? (
+        <WorkspaceProjectScopeRibbon
+          title={workspaceProjectScope.title}
+          labels={workspaceProjectScope.labels}
           surface="Analyze"
         />
       ) : null}
       <OverallProblemHeader
-        issueStatement={activeIPScope?.title}
+        issueStatement={workspaceProjectScope?.title}
         outcomeLabel={outcome}
         targetLabel={null}
         scopeBranchCount={railScopes.length}

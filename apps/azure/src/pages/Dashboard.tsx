@@ -2,11 +2,13 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { normalizeProcessHubId } from '@variscout/core';
 import type { ProcessHub } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
+import { deriveWorkspaceViewModel } from '@variscout/hooks';
+import { getAnalysisScopeInitialState } from '@variscout/stores';
 import { useStorage, type CloudProject, downloadFileFromGraph } from '../services/storage';
 import { useNewHubProvision } from '../features/hubCreation/useNewHubProvision';
 import { useUnsavedHubsStore } from '../features/hubs/unsavedHubsStore';
 import { getEasyAuthUser } from '../auth/easyAuth';
-import { RefreshCw, Cloud, CloudOff, FolderOpen, Search, FlaskConical } from 'lucide-react';
+import { RefreshCw, Cloud, CloudOff, FolderOpen, Search, FlaskConical, Play } from 'lucide-react';
 import { FileBrowseButton, type FilePickerResult } from '../components/FileBrowseButton';
 import ProjectCard from '../components/ProjectCard';
 import ProcessHubEvidencePanel from '../components/ProcessHubEvidencePanel';
@@ -18,6 +20,11 @@ interface DashboardProps {
   onLoadProjectFile?: (file: File) => void;
   /** Load a sample dataset directly into a new analysis */
   onLoadSample?: (sample: SampleDataset) => void;
+}
+
+interface DashboardWorkspaceOption {
+  workspaceId: string;
+  title: string;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -47,6 +54,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const unsavedIds = new Set(unsavedHubs.map(h => h.id));
     return [...catalogHubs.filter(h => !unsavedIds.has(h.id)), ...unsavedHubs];
   }, [catalogHubs, unsavedHubs]);
+  const workspaceAnalysisScope = useMemo(() => getAnalysisScopeInitialState(), []);
+  const workspaces = useMemo<DashboardWorkspaceOption[]>(
+    () =>
+      processHubs.map(hub => {
+        const workspace =
+          deriveWorkspaceViewModel({
+            hub,
+            analysisScope: workspaceAnalysisScope,
+          }) ?? null;
+        return {
+          workspaceId: workspace?.workspaceId ?? hub.id,
+          title: workspace?.title ?? hub.name,
+        };
+      }),
+    [processHubs, workspaceAnalysisScope]
+  );
 
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -95,7 +118,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     loadProjects();
   }, [loadProjects]);
 
-  // Sort by recency — newest activity first (work-item sort keys shed per spec §3)
+  // Sort by recency — newest activity first.
   const sortedProjects = useMemo(() => {
     return [...projects].sort((a, b) => {
       const aModified = new Date(a.modified).getTime();
@@ -104,11 +127,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
   }, [projects]);
 
-  const selectedHub = useMemo(
-    () => processHubs.find(hub => hub.id === selectedHubId),
-    [processHubs, selectedHubId]
+  const selectedWorkspace = useMemo(
+    () => workspaces.find(workspace => workspace.workspaceId === selectedHubId),
+    [selectedHubId, workspaces]
   );
 
+  const resumeProject = useMemo(() => {
+    if (projects.length === 0) return null;
+    return (
+      [...projects].sort((a, b) => {
+        const aViewed = a.metadata?.lastViewedAt?.[userId] ?? 0;
+        const bViewed = b.metadata?.lastViewedAt?.[userId] ?? 0;
+        if (aViewed !== bViewed) return bViewed - aViewed;
+        return new Date(b.modified).getTime() - new Date(a.modified).getTime();
+      })[0] ?? null
+    );
+  }, [projects, userId]);
   const visibleProjects = useMemo(() => {
     const normalizedSearchQuery = searchQuery.trim().toLowerCase();
     return sortedProjects.filter(project => {
@@ -141,7 +175,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     await createHubFromGoal('');
   }, [createHubFromGoal]);
 
-  // Get sync status display
+  // Get sync status display.
   const getSyncStatusDisplay = (): React.ReactNode => {
     const isOnline = navigator.onLine;
     const Icon = isOnline ? Cloud : CloudOff;
@@ -172,9 +206,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-content">Process Hubs</h2>
+          <h2 className="text-2xl font-bold text-content">Home</h2>
           <p className="text-content-secondary text-sm mt-1">
-            Scan process contexts and the analyzes inside them
+            Resume the last Workspace, start a new one, or open another Workspace.
           </p>
         </div>
         <div className="flex items-center gap-3">{getSyncStatusDisplay()}</div>
@@ -187,7 +221,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           className="flex items-center justify-center gap-2 px-4 py-2 border border-edge rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors font-medium"
         >
           <FolderOpen size={16} />
-          New Hub
+          New Workspace
         </button>
         <div className="flex items-center gap-3">
           <button
@@ -218,7 +252,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           />
           <input
             type="text"
-            placeholder="Search analyzes..."
+            placeholder="Search workspaces..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-surface-secondary border border-edge rounded-lg text-content placeholder-content-muted focus:outline-none focus:border-blue-500 transition-colors"
@@ -228,13 +262,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           onClick={loadProjects}
           disabled={isLoading}
           className="p-2 text-content-secondary hover:text-content hover:bg-surface-secondary rounded-lg transition-colors disabled:opacity-50"
-          title="Refresh analyzes"
+          title="Refresh workspaces"
         >
           <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
         </button>
       </div>
 
-      {/* Process Hub List */}
+      {/* Workspace List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <RefreshCw size={32} className="text-content-muted animate-spin" />
@@ -243,11 +277,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FolderOpen size={48} className="text-content-muted mb-4" />
           <h3 className="text-lg font-medium text-content mb-2">
-            {projects.length === 0 ? 'No analyzes yet' : 'No matching analyzes'}
+            {projects.length === 0 ? 'No Workspaces yet' : 'No matching Workspaces'}
           </h3>
           <p className="text-content-secondary text-sm max-w-md">
             {projects.length === 0
-              ? 'Create your first analyze to start exploring variation data with your team.'
+              ? 'Create your first Workspace to start exploring variation data with your team.'
               : "Try adjusting your search or filter to find what you're looking for."}
           </p>
           {projects.length === 0 && (
@@ -264,30 +298,57 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       ) : (
         <div className="space-y-6">
+          {resumeProject ? (
+            <section className="rounded-lg border border-edge bg-surface-secondary p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-content-secondary">
+                    Resume last Workspace
+                  </h3>
+                  <p className="mt-2 text-lg font-semibold text-content">{resumeProject.name}</p>
+                  <p className="mt-1 text-sm text-content-secondary">
+                    Updated {new Date(resumeProject.modified).toLocaleDateString()}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onOpenProject(resumeProject.id)}
+                  className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                  data-testid="resume-last-workspace"
+                >
+                  <Play size={16} />
+                  Resume
+                </button>
+              </div>
+            </section>
+          ) : null}
+
           <section>
             <div className="mb-3 flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold text-content">Process Hubs</h3>
+              <h3 className="text-sm font-semibold text-content">Open another Workspace</h3>
             </div>
             <select
-              aria-label="Select process hub"
+              aria-label="Filter by Workspace"
               value={selectedHubId ?? ''}
               onChange={e => setSelectedHubId(e.target.value || null)}
               className="w-full max-w-md rounded-lg border border-edge bg-surface px-3 py-2 text-sm text-content"
             >
-              <option value="">All process hubs</option>
-              {processHubs.map(hub => (
-                <option key={hub.id} value={hub.id}>
-                  {hub.name}
+              <option value="">All Workspaces</option>
+              {workspaces.map(workspace => (
+                <option key={workspace.workspaceId} value={workspace.workspaceId}>
+                  {workspace.title}
                 </option>
               ))}
             </select>
           </section>
 
-          {selectedHub && <ProcessHubEvidencePanel hubId={selectedHub.id} />}
+          {selectedWorkspace && <ProcessHubEvidencePanel hubId={selectedWorkspace.workspaceId} />}
 
           <section>
             <h3 className="mb-3 text-sm font-semibold text-content">
-              {selectedHub ? `Investigations in ${selectedHub.name}` : 'Investigations'}
+              {selectedWorkspace
+                ? `Recent work in ${selectedWorkspace.title}`
+                : 'Recent Workspaces'}
             </h3>
             <div className="flex flex-col gap-3">
               {visibleProjects.map(project => (

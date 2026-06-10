@@ -10,7 +10,6 @@ import {
 } from './lib/landing';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
-  ColumnMapping,
   type ColumnMappingConfirmPayload,
   FindingsWindow,
   openFindingsPopout,
@@ -24,11 +23,8 @@ import {
   OutcomePin,
   StageFiveModal,
   MatchSummaryCard,
-  ActiveIPLaunchpadCard,
-  ActiveIPScopeRibbon,
-  deriveActiveIPCanvasFocus,
-  deriveActiveIPScopeLabels,
-  PendingInvitesBanner,
+  deriveWorkspaceProjectCanvasFocus,
+  deriveWorkspaceProjectScopeLabels,
   DurabilityNudge,
   type ColumnShape,
   type ChartObservationCaptureOptions,
@@ -53,7 +49,6 @@ import {
   useDefectTransform,
   useDefectSummary,
   useReingestAutoLink,
-  useClearScopeOnIPSwitch,
 } from '@variscout/hooks';
 import type { FindingsActionMessage } from '@variscout/hooks';
 import {
@@ -93,21 +88,18 @@ import { computeCenteringOpportunity } from '@variscout/core/variation';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { EvidenceMapPopout } from './components/EvidenceMapPopout';
 import { useAppPanels } from './hooks/useAppPanels';
-import { usePanelsStore } from './features/panels/panelsStore';
 import { useFindingsStore, groupFindingsByChart } from './features/findings/findingsStore';
 import { useProjectionStore } from './features/projection/projectionStore';
 import { useAnalyzeOrchestration } from './features/analyze/useAnalyzeOrchestration';
 import { useCanvasViewportLifecycle } from './features/analyze/useCanvasViewportLifecycle';
 import { useStatsWorker } from './workers/useStatsWorker';
-import { useActiveIPContext } from '@variscout/hooks';
+import { deriveWorkspaceViewModel, useWorkspaceProjectContext } from '@variscout/hooks';
+import { AppViewSwitch } from './components/AppViewSwitch';
 
 // Lazy-loaded heavy components for code splitting
 const dashboardImport = () => import('./components/Dashboard');
-const Dashboard = lazyWithRetry(dashboardImport);
 void dashboardImport(); // Prefetch so sample→Dashboard transition is instant
-const HomeScreen = lazyWithRetry(() => import('./components/HomeScreen'));
 const pasteScreenImport = () => import('./components/data/PasteScreen');
-const PasteScreen = lazyWithRetry(pasteScreenImport);
 const schedulePrefetch = (fn: () => void): void => {
   if (typeof window === 'undefined') return;
   const ric = (window as Window & { requestIdleCallback?: (cb: () => void) => void })
@@ -118,7 +110,6 @@ const schedulePrefetch = (fn: () => void): void => {
 schedulePrefetch(() => {
   void pasteScreenImport().catch(() => {});
 });
-const ManualEntry = lazyWithRetry(() => import('./components/data/ManualEntry'));
 const WhatIfPage = lazyWithRetry(() => import('./components/WhatIfPage'));
 const SettingsPanel = lazyWithRetry(() => import('./components/settings/SettingsPanel'));
 const DataTableModal = lazyWithRetry(() => import('./components/data/DataTableModal'));
@@ -126,13 +117,6 @@ const FindingsPanel = lazyWithRetry(() => import('./components/FindingsPanel'));
 const ProcessIntelligencePanel = lazyWithRetry(
   () => import('./components/ProcessIntelligencePanel')
 );
-const FrameView = lazyWithRetry(() => import('./components/views/FrameView'));
-const ImprovementProjectPanel = lazyWithRetry(() => import('./components/ImprovementProjectPanel'));
-const ControlPanel = lazyWithRetry(() => import('./components/ControlPanel'));
-const AnalyzeView = lazyWithRetry(() => import('./components/views/AnalyzeView'));
-const ImprovementView = lazyWithRetry(() => import('./components/views/ImprovementView'));
-const ProjectsTabView = lazyWithRetry(() => import('./components/ProjectsTabView'));
-const ReportView = lazyWithRetry(() => import('./components/views/ReportView'));
 
 const LazyFallback = () => (
   <div className="flex items-center justify-center h-dvh">
@@ -181,9 +165,30 @@ function AppMain() {
   // PWA durability is export-only: startup never hydrates an IndexedDB
   // documentSnapshot. Analysts restore work explicitly from .vrs on Home.
   const { hub: sessionHub, setHub: setSessionHub } = useSession();
-  const activeIPContext = useActiveIPContext(sessionHub);
-  const clearScope = useAnalysisScopeStore(s => s.clearScope);
-  useClearScopeOnIPSwitch(activeIPContext.activeIP?.id ?? null, clearScope);
+  const workspaceProjectContext = useWorkspaceProjectContext(sessionHub);
+  const scopeYColumn = useAnalysisScopeStore(s => s.yColumn);
+  const scopeBoxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
+  const scopeStepId = useAnalysisScopeStore(s => s.stepId);
+  const scopeCategoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const workspaceAnalysisScope = useMemo(
+    () => ({
+      yColumn: scopeYColumn,
+      boxplotFactor: scopeBoxplotFactor,
+      stepId: scopeStepId,
+      categoricalFilters: scopeCategoricalFilters,
+    }),
+    [scopeBoxplotFactor, scopeCategoricalFilters, scopeStepId, scopeYColumn]
+  );
+  const workspaceViewModel = useMemo(
+    () =>
+      deriveWorkspaceViewModel({
+        hub: sessionHub,
+        project: workspaceProjectContext.workspaceProject ?? sessionHub?.improvementProject,
+        analysisScope: workspaceAnalysisScope,
+      }),
+    [workspaceProjectContext.workspaceProject, sessionHub, workspaceAnalysisScope]
+  );
+  const workspaceProjectTitle = workspaceViewModel?.project.title ?? null;
   const wallViewMode = useCanvasViewportStore(s => s.viewMode);
 
   // ── Zustand store selectors (replaces useDataStateCtx) ──────────────────
@@ -380,7 +385,7 @@ function AppMain() {
     clearSelection,
     applyTimeExtraction: ingestion.applyTimeExtraction,
     // FSJ-2: measurement-shaped paste landed without the mapping vestibule — ensure
-    // the Untitled project + activate + route (spec §1/§3). Inline arrow so
+    // the Untitled project + route (spec §1/§3). Inline arrow so
     // the closure re-captures sessionHub each render (FSJ-1 stale-closure lesson).
     // showFrame is read via showFrameRef because panels is declared below (panels
     // depends on importFlow — see useAppPanels call).
@@ -528,7 +533,7 @@ function AppMain() {
       const sample = SAMPLES.find(s => s.urlKey === sampleKey);
       if (sample) {
         // Use handleLoadSample so ?sample= deep-links also land on Process tab
-        // and get an auto-activated Untitled project (spec §1). The embed guard
+        // and get an attached Untitled project (spec §1). The embed guard
         // inside landOnProcess keeps ?embed=true&sample=… on the chart surface.
         landOnProcess(sample, {
           loadSample: ingestion.loadSample,
@@ -779,7 +784,7 @@ function AppMain() {
   );
 
   // First-session landing (spec §1, §3): fresh sample entry lands on the
-  // Process tab with an auto-activated Untitled project.
+  // Process tab with an attached Untitled project.
   // Thin wrapper — business logic lives in landOnProcess for testability.
   const handleLoadSample = useCallback(
     (sample: SampleDataset) => {
@@ -797,8 +802,8 @@ function AppMain() {
   // .vrs import: reconstruct the envelope's own project and land on Process
   // (spec §1 applicability). reconstruct-not-create: the envelope's project is
   // the wrapper — only a project-less hub gets an Untitled wrap. v1 envelope
-  // only (wedge no-back-compat). Embed mode: IP activation runs but navigation
-  // is skipped (spec §1 applicability).
+  // only (wedge no-back-compat). Embed mode ensures the Workspace Project but
+  // skips navigation (spec §1 applicability).
   // Thin wrapper — business logic lives in landVrsOnProcess for testability.
   // ISP: LandHubOnProcessDeps no longer includes sessionHub; the reconstructed
   // hub from the snapshot is the authoritative source (sessionHub unused there).
@@ -814,7 +819,7 @@ function AppMain() {
   );
 
   // Manual-entry landing: write data into the project store then land on the
-  // Process tab with an auto-activated 'Untitled project'.
+  // Process tab with an attached 'Untitled project'.
   // Thin wrapper — business logic lives in landManualOnProcess for testability.
   const handleManualAnalyze = useCallback(
     (...args: Parameters<typeof importFlow.handleManualDataAnalyze>) => {
@@ -923,44 +928,48 @@ function AppMain() {
   }, [findingsPopoutMessage]);
 
   const isOnline = useOnlineStatus();
-  const selectedOrActiveProjectId = activeIPContext.activeIP?.id ?? panels.selectedProjectId;
-  const activeIPScopeLabels = useMemo(
+  const selectedOrActiveProjectId = workspaceViewModel?.project.id ?? panels.selectedProjectId;
+  const workspaceProjectScopeLabels = useMemo(
     () =>
-      activeIPContext.activeIP
-        ? deriveActiveIPScopeLabels(
-            activeIPContext.activeIP,
+      workspaceProjectContext.workspaceProject
+        ? deriveWorkspaceProjectScopeLabels(
+            workspaceProjectContext.workspaceProject,
             sessionHub,
-            activeIPContext.activeState?.setAt
+            workspaceProjectContext.activeState?.setAt
           )
         : null,
-    [activeIPContext.activeIP, activeIPContext.activeState?.setAt, sessionHub]
+    [
+      workspaceProjectContext.workspaceProject,
+      workspaceProjectContext.activeState?.setAt,
+      sessionHub,
+    ]
   );
-  const activeIPScope =
-    activeIPContext.activeIP && activeIPScopeLabels
+  const workspaceProjectScope =
+    workspaceProjectContext.workspaceProject && workspaceProjectScopeLabels
       ? {
-          title: activeIPContext.activeIP.metadata.title,
-          labels: activeIPScopeLabels,
+          title: workspaceProjectTitle ?? 'Workspace',
+          labels: workspaceProjectScopeLabels,
         }
       : null;
-  // PO-5: the lineage section is retired — active-IP surfaces show the whole
+  // PO-5: the lineage section is retired — Workspace Project surfaces show the whole
   // document (empty-set-means-unfiltered is now the permanent semantics). The
   // scopedFindings/scopedFindingsState memos are gone; AnalyzeView reads findings
   // from useAnalyzeStore directly (PO-6 §4.4 unification).
 
-  // PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
+  // PR-CS-6 Edge 1: COPY a finding-level action into the Workspace Project's action
   // tracker (`IP.metadata.actions`) via ACTION_ITEM_ADD, then stamp the source so
   // the promote button hides (re-promotion guard). COPY — Report keeps reading
   // `finding.actions`; the tracker is a separate collection (no double-count).
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);
   const handlePromoteFindingAction = useCallback(
     (findingId: string, actionId: string) => {
-      const activeIP = activeIPContext.activeIP;
-      if (!activeIP) return;
+      const workspaceProject = workspaceProjectContext.workspaceProject;
+      if (!workspaceProject) return;
       const source = findings.find(f => f.id === findingId)?.actions?.find(a => a.id === actionId);
       if (!source || source.parentImprovementProjectId) return;
       const projectAction = createProjectActionItem({
         text: source.text,
-        parentImprovementProjectId: activeIP.id,
+        parentImprovementProjectId: workspaceProject.id,
       });
       const enriched = {
         ...projectAction,
@@ -970,30 +979,30 @@ function AppMain() {
       };
       const action: ActionItemAction = {
         kind: 'ACTION_ITEM_ADD',
-        hubId: activeIP.hubId,
+        hubId: workspaceProject.hubId,
         actionItem: enriched,
       };
-      const nextActions = reduceActionItems(activeIP.metadata.actions ?? [], action);
+      const nextActions = reduceActionItems(workspaceProject.metadata.actions ?? [], action);
       upsertProject({
-        ...activeIP,
-        metadata: { ...activeIP.metadata, actions: nextActions },
+        ...workspaceProject,
+        metadata: { ...workspaceProject.metadata, actions: nextActions },
       });
-      useAnalyzeStore.getState().promoteFindingAction(findingId, actionId, activeIP.id);
+      useAnalyzeStore.getState().promoteFindingAction(findingId, actionId, workspaceProject.id);
     },
-    [activeIPContext.activeIP, findings, upsertProject]
+    [workspaceProjectContext.workspaceProject, findings, upsertProject]
   );
 
   // ── Measurement plan callbacks for WallCanvas planningProps ─────────────
   // PWA uses 'analyst@local' as the single-user identity (no auth).
   const PWA_WALL_USER_ID = 'analyst@local';
-  const wallActiveIPMembers = useMemo(
-    () => activeIPContext.activeIP?.metadata.members ?? [],
-    [activeIPContext.activeIP]
+  const wallWorkspaceProjectMembers = useMemo(
+    () => workspaceProjectContext.workspaceProject?.metadata.members ?? [],
+    [workspaceProjectContext.workspaceProject]
   );
   const wallPlanningProps = useMemo(
     () => ({
       plans: wallMeasurementPlans,
-      members: wallActiveIPMembers,
+      members: wallWorkspaceProjectMembers,
       currentUserId: PWA_WALL_USER_ID,
       onAddPlan: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => {
         const stamped: MeasurementPlan = {
@@ -1094,7 +1103,7 @@ function AppMain() {
       // from useAnalyzeStore, so comment/task/idea writes route through the store
       // (its source of truth). parseMentions resolves @-tags against members.
       onAddHubComment: (hubId: string, text: string) => {
-        const mentionedUserIds = parseMentions(text, wallActiveIPMembers);
+        const mentionedUserIds = parseMentions(text, wallWorkspaceProjectMembers);
         void useAnalyzeStore
           .getState()
           .addHubComment(hubId, text, PWA_WALL_USER_ID, mentionedUserIds);
@@ -1103,7 +1112,7 @@ function AppMain() {
         useAnalyzeStore.getState().editHubComment(hubId, commentId, text),
       onDeleteHubComment: (hubId: string, commentId: string) =>
         useAnalyzeStore.getState().deleteHubComment(hubId, commentId),
-      showCommentAuthors: wallActiveIPMembers.length > 0,
+      showCommentAuthors: wallWorkspaceProjectMembers.length > 0,
       // IM-4b Task 3 — ActionItem tasks
       onAddHypothesisAction: (hypothesisId: string, text: string) => {
         useAnalyzeStore.getState().addHypothesisAction(hypothesisId, text);
@@ -1130,7 +1139,7 @@ function AppMain() {
 
     [
       wallMeasurementPlans,
-      wallActiveIPMembers,
+      wallWorkspaceProjectMembers,
       PWA_WALL_USER_ID,
       investigation,
       pendingMatchByPlanId,
@@ -1138,29 +1147,33 @@ function AppMain() {
     ]
   );
 
-  const activeIPAnalyzeFactorRequest = useMemo(
+  const workspaceProjectAnalyzeFactorRequest = useMemo(
     () =>
-      activeIPContext.isIPScoped && activeIPScopeLabels?.factorLabels[0]
+      workspaceProjectContext.isWorkspaceProjectScoped &&
+      workspaceProjectScopeLabels?.factorLabels[0]
         ? {
-            factor: activeIPScopeLabels.factorLabels[0],
-            seq: activeIPContext.activeState?.setAt ?? 0,
+            factor: workspaceProjectScopeLabels.factorLabels[0],
+            seq: workspaceProjectContext.activeState?.setAt ?? 0,
           }
         : null,
     [
-      activeIPContext.activeState?.setAt,
-      activeIPContext.isIPScoped,
-      activeIPScopeLabels?.factorLabels,
+      workspaceProjectContext.activeState?.setAt,
+      workspaceProjectContext.isWorkspaceProjectScoped,
+      workspaceProjectScopeLabels?.factorLabels,
     ]
   );
 
   useEffect(() => {
     if (panels.activeView !== 'frame' || !sessionHub) return;
-    if (activeIPContext.activeIP) {
+    if (workspaceProjectContext.workspaceProject) {
       const hubId = normalizeProcessHubId(sessionHub.id);
-      const focus = deriveActiveIPCanvasFocus(activeIPContext.activeIP, sessionHub);
+      const focus = deriveWorkspaceProjectCanvasFocus(
+        workspaceProjectContext.workspaceProject,
+        sessionHub
+      );
       useCanvasViewportStore.getState().setLevel(hubId, focus.level, focus.focalStepId);
     }
-  }, [activeIPContext.activeIP, panels.activeView, sessionHub]);
+  }, [workspaceProjectContext.workspaceProject, panels.activeView, sessionHub]);
 
   // Control + Handoff inputs for ProjectsTabView → IPDetailPage
   const _liveControlRecords = (sessionHub?.controlRecords ?? []).filter(r => r.deletedAt === null);
@@ -1241,16 +1254,12 @@ function AppMain() {
           isWhatIfOpen={panels.isWhatIfPageOpen}
           isPISidebarOpen={panels.isPISidebarOpen}
           onTogglePISidebar={rawData.length > 0 ? panels.handleTogglePISidebar : undefined}
-          activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
-          onOpenActiveIP={
-            activeIPContext.activeIP
-              ? () => panels.showProjects(activeIPContext.activeIP!.id)
+          workspaceProjectTitle={workspaceProjectTitle}
+          onOpenWorkspaceProject={
+            workspaceProjectContext.workspaceProject
+              ? () => panels.showProjects(workspaceProjectContext.workspaceProject!.id)
               : undefined
           }
-          onExitActiveIP={() => {
-            activeIPContext.clearActiveIP();
-            if (panels.activeView === 'projects') panels.showProjects();
-          }}
           hideFindings={panels.activeView === 'analyze'}
           activePhase={
             rawData.length > 0 &&
@@ -1398,290 +1407,73 @@ function AppMain() {
         {/* Main content area */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <Suspense fallback={<LazyFallback />}>
-            {importFlow.isPasteMode ? (
-              <PasteScreen
-                onAnalyze={importFlow.handlePasteAnalyze}
-                onCancel={importFlow.handlePasteCancel}
-                error={importFlow.pasteError}
-              />
-            ) : importFlow.isManualEntry ? (
-              <ManualEntry
-                onAnalyze={handleManualAnalyze}
-                onCancel={importFlow.handleManualEntryCancel}
-              />
-            ) : rawData.length === 0 ? (
-              <HomeScreen
-                onLoadSample={handleLoadSample}
-                onOpenPaste={importFlow.handleOpenPaste}
-                onOpenManualEntry={importFlow.handleOpenManualEntry}
-                onImportVrs={handleImportVrs}
-                resolveProjectName={id =>
-                  sessionHub?.improvementProject?.id === id
-                    ? sessionHub.improvementProject.metadata.title
-                    : undefined
-                }
-              />
-            ) : panels.activeView === 'home' ? (
-              <div className="h-full overflow-auto p-4 sm:p-6">
-                <PendingInvitesBanner
-                  invites={pendingInvites}
-                  onAccept={acceptInvite}
-                  onDecline={revokeInvite}
-                  resolveProjectName={id =>
-                    sessionHub?.improvementProject?.id === id
-                      ? sessionHub.improvementProject.metadata.title
-                      : undefined
-                  }
-                />
-                <ActiveIPLaunchpadCard
-                  projects={
-                    sessionHub?.improvementProject &&
-                    sessionHub.improvementProject.deletedAt === null
-                      ? [sessionHub.improvementProject]
-                      : []
-                  }
-                  activeProjectId={activeIPContext.activeIP?.id ?? null}
-                  onSelectIP={projectId => {
-                    activeIPContext.setActiveIP(projectId);
-                    panels.showProjects(projectId);
-                  }}
-                  onExitIP={() => activeIPContext.clearActiveIP()}
-                  onStartNewIP={panels.showCharter}
-                />
-              </div>
-            ) : importFlow.isMapping ? (
-              <ColumnMapping
-                columnAnalysis={importFlow.mappingColumnAnalysis}
-                availableColumns={Object.keys(rawData[0])}
-                previewRows={rawData.slice(0, 5)}
-                totalRows={rawData.length}
-                columnAliases={columnAliases}
-                onColumnRename={importFlow.handleColumnRename}
-                initialOutcome={outcome}
-                initialFactors={factors}
-                initialOutcomes={
-                  importFlow.isMappingReEdit ? (sessionHub?.outcomes ?? undefined) : undefined
-                }
-                initialPrimaryScopeDimensions={
-                  importFlow.isMappingReEdit
-                    ? (sessionHub?.primaryScopeDimensions ?? undefined)
-                    : undefined
-                }
-                datasetName={dataFilename || undefined}
-                onConfirm={handleMappingConfirmToHub}
-                onCancel={importFlow.handleMappingCancel}
-                dataQualityReport={dataQualityReport}
-                onViewExcludedRows={panels.openDataTableExcluded}
-                onViewAllData={panels.openDataTableAll}
-                paretoMode={paretoMode}
-                separateParetoFilename={separateParetoFilename}
-                onParetoFileUpload={ingestion.handleParetoFileUpload}
-                onClearParetoFile={ingestion.clearParetoFile}
-                timeColumn={importFlow.timeExtractionPrompt?.timeColumn}
-                hasTimeComponent={importFlow.timeExtractionPrompt?.hasTimeComponent}
-                onTimeExtractionChange={importFlow.setTimeExtractionConfig}
-                mode={importFlow.isMappingReEdit ? 'edit' : 'setup'}
-                suggestedStack={importFlow.suggestedStack}
-                onStackConfigChange={importFlow.handleStackConfigChange}
-                rowLimit={50000}
-                hideSpecs={analysisMode === 'defect'}
-              />
-            ) : panels.activeView === 'frame' ? (
-              <div className="flex min-h-0 flex-1 flex-col">
-                {activeIPScope ? (
-                  <ActiveIPScopeRibbon
-                    title={activeIPScope.title}
-                    labels={activeIPScope.labels}
-                    surface="Process"
-                  />
-                ) : null}
-                <FrameView
-                  reingestPendingMatches={pendingMatches}
-                  onFixData={importFlow.openFactorManager}
-                  onRenameColumn={importFlow.handleColumnRename}
-                  quietTimeExtraction={importFlow.quietTimeExtraction}
-                  onDismissQuietTimeExtraction={importFlow.dismissQuietTimeExtraction}
-                  onUndoQuietTimeExtraction={importFlow.undoQuietTimeExtraction}
-                  defectDetection={importFlow.defectDetection}
-                  onAcceptDefectDetection={mapping => {
-                    setDefectMapping(mapping);
-                    setAnalysisMode('defect');
-                    importFlow.handleDismissDefect();
-                  }}
-                  onDismissDefectDetection={importFlow.handleDismissDefect}
-                  wideFormatDetection={importFlow.wideFormatDetection}
-                  onAcceptWideFormatDetection={(columns, label) => {
-                    setMeasureColumns(columns);
-                    setMeasureLabel(label);
-                    setSelectedMeasure(null);
-                    setAnalysisMode('performance');
-                    importFlow.handleDismissWideFormat();
-                  }}
-                  onDismissWideFormatDetection={importFlow.handleDismissWideFormat}
-                />
-              </div>
-            ) : panels.activeView === 'charter' ? (
-              <ImprovementProjectPanel
-                activeHub={sessionHub ?? undefined}
-                onBack={panels.showFrame}
-                onOpenWall={() => {
-                  useCanvasViewportStore.getState().setViewMode('wall');
-                  panels.showAnalyze();
-                }}
-              />
-            ) : panels.activeView === 'sustainment' ? (
-              <ControlPanel
-                activeHub={sessionHub ?? undefined}
-                targetId={panels.controlTargetId ?? undefined}
-                onBack={panels.showFrame}
-              />
-            ) : panels.activeView === 'analyze' ? (
-              <AnalyzeView
-                activeIPScope={activeIPScope}
-                canvasViewportHubId={normalizeProcessHubId(canvasViewportHubId)}
-                filteredData={filteredData ?? []}
-                outcome={outcome}
-                factors={factors}
-                handleRestoreFinding={handleRestoreFinding}
-                handleSetFindingStatus={investigation.handleSetFindingStatus}
-                onPromoteFindingAction={
-                  activeIPContext.activeIP ? handlePromoteFindingAction : undefined
-                }
-                drillPath={drillPath}
-                columnAliases={columnAliases}
-                resolvedMode={resolved}
-                planningProps={wallPlanningProps}
-              />
-            ) : panels.activeView === 'projects' ? (
-              <ProjectsTabView
-                activeHub={sessionHub ?? undefined}
-                selectedProjectId={selectedOrActiveProjectId}
-                onSelectProject={id => {
-                  if (id === '') {
-                    activeIPContext.clearActiveIP();
-                    panels.showProjects();
-                    return;
-                  }
-                  activeIPContext.setActiveIP(id);
-                  panels.showProjects(id);
-                }}
-                onJumpOut={target => {
-                  if (target === 'analyze') panels.showAnalyze();
-                  else if (target === 'explore') panels.showExplore();
-                  else if (target === 'process') panels.showFrame();
-                  else if (target === 'improve-workbench') panels.showImprovement();
-                  else if (target === 'report') panels.showReport();
-                }}
-                approachInputs={{
-                  hypotheses,
-                  ideas: hypotheses.flatMap(h => h.ideas ?? []),
-                  actions: findings.flatMap(f => f.actions ?? []),
-                }}
-                onOpenCauseWorkbench={_cause => {
-                  // V1: jump to Improve tab (legacy PDCA workbench).
-                  // Plan 2 will add IP-context scoping so the workbench filters
-                  // to this cause's hypothesis automatically.
-                  panels.showImprovement();
-                }}
-                controlRecord={projectsControlRecord}
-                controlHandoff={projectsControlHandoff}
-                closureInputs={projectsClosureInputs}
-                onOpenLegacyControl={() =>
-                  usePanelsStore
-                    .getState()
-                    .showControl(projectsControlRecord?.projectId ?? undefined)
-                }
-                onNudgeProcessOwner={() => {
-                  // Plan 3 will emit EngagementEvent webhook here.
-                  console.info('[handoff] Nudge process owner — Plan 3 will wire EngagementEvent');
-                }}
-                onProjectPatch={(projectId, patch) => {
-                  void pwaHubRepository
-                    .dispatch({ kind: 'IMPROVEMENT_PROJECT_UPDATE', projectId, patch })
-                    .catch(error => {
-                      console.error(
-                        '[projects] Failed to persist Improvement Project patch',
-                        error
-                      );
-                    });
-                }}
-                onStartNewProject={panels.showCharter}
-              />
-            ) : panels.activeView === 'improvement' ? (
-              <ImprovementView
-                activeIPScope={activeIPScope}
-                activeIP={activeIPContext.activeIP ?? null}
-                onGoHome={panels.showHome}
-              />
-            ) : panels.activeView === 'report' ? (
-              <ReportView
-                onClose={panels.showExplore}
-                stats={stats}
-                specs={specs}
-                findings={findings}
-                columnAliases={columnAliases}
-                dataFilename={dataFilename}
-                sampleCount={lensedSampleCount}
-                analysisMode={analysisMode}
-                filteredData={filteredData}
-                outcome={outcome}
-                hub={sessionHub}
-                activeIP={activeIPContext.activeIP}
-                hypotheses={hypotheses}
-                controlRecords={_liveControlRecords}
-                controlHandoffs={_liveControlHandoffs}
-                activeIPScope={activeIPScope}
-                activeIPTitle={activeIPContext.activeIP?.metadata.title ?? null}
-                onOpenActiveIP={
-                  activeIPContext.activeIP
-                    ? () => panels.showProjects(activeIPContext.activeIP!.id)
-                    : undefined
-                }
-                onExitActiveIP={() => {
-                  activeIPContext.clearActiveIP();
-                }}
-                defectSummary={
-                  defectSummaryProps
-                    ? {
-                        ...defectSummaryProps,
-                        sampleCount: lensedSampleCount,
-                      }
-                    : null
-                }
-              />
-            ) : (
-              <Dashboard
-                onPointClick={panels.openDataTableAtRow}
-                hideStatsInGrid={panels.isPISidebarOpen}
-                onExportCSV={handleExportCSV}
-                onExportImage={handleExport}
-                highlightedChart={highlightedChart}
-                highlightIntensity={highlightIntensity}
-                onChartClick={isEmbedMode ? notifyChartClicked : undefined}
-                embedFocusChart={embedFocusChart}
-                embedStatsTab={embedStatsTab}
-                onManageFactors={importFlow.openFactorManager}
-                openSpecEditorRequested={panels.openSpecEditorRequested}
-                onSpecEditorOpened={() => panels.setOpenSpecEditorRequested(false)}
-                highlightedPointIndex={panels.highlightedChartPoint}
-                filterNav={filterNav}
-                onPinFinding={handlePinFinding}
-                requestedFactor={activeIPAnalyzeFactorRequest}
-                activeIPScope={activeIPScope}
-                onOpenWall={() => {
-                  useCanvasViewportStore.getState().setViewMode('wall');
-                  panels.showAnalyze();
-                }}
-                findingsCallbacks={{
-                  onAddChartObservation: handleAddChartObservation,
-                  chartFindings,
-                  onEditFinding: useAnalyzeStore.getState().editFinding,
-                  onDeleteFinding: useAnalyzeStore.getState().deleteFinding,
-                  onOpenFinding: handleOpenFinding,
-                }}
-                findings={findings}
-              />
-            )}
+            <AppViewSwitch
+              analysisMode={analysisMode}
+              canvasViewportHubId={canvasViewportHubId}
+              chartFindings={chartFindings}
+              columnAliases={columnAliases}
+              controlHandoff={projectsControlHandoff}
+              controlRecord={projectsControlRecord}
+              dataFilename={dataFilename}
+              dataQualityReport={dataQualityReport}
+              defectSummaryProps={defectSummaryProps}
+              drillPath={drillPath}
+              embedFocusChart={embedFocusChart}
+              embedStatsTab={embedStatsTab}
+              factors={factors}
+              filteredData={filteredData}
+              findings={findings}
+              filterNav={filterNav}
+              handleAddChartObservation={handleAddChartObservation}
+              handleExport={handleExport}
+              handleExportCSV={handleExportCSV}
+              handleImportVrs={handleImportVrs}
+              handleLoadSample={handleLoadSample}
+              handleManualAnalyze={handleManualAnalyze}
+              handleMappingConfirmToHub={handleMappingConfirmToHub}
+              handleOpenFinding={handleOpenFinding}
+              handlePinFinding={handlePinFinding}
+              handlePromoteFindingAction={handlePromoteFindingAction}
+              handleRestoreFinding={handleRestoreFinding}
+              highlightedChart={highlightedChart}
+              highlightedPointIndex={panels.highlightedChartPoint}
+              highlightIntensity={highlightIntensity}
+              hypotheses={hypotheses}
+              importFlow={importFlow}
+              ingestion={ingestion}
+              investigation={investigation}
+              isEmbedMode={isEmbedMode}
+              lensedSampleCount={lensedSampleCount}
+              notifyChartClicked={notifyChartClicked}
+              outcome={outcome}
+              panels={panels}
+              paretoMode={paretoMode}
+              pendingMatches={pendingMatches}
+              projectsClosureInputs={projectsClosureInputs}
+              rawData={rawData}
+              resolved={resolved}
+              revokeInvite={revokeInvite}
+              acceptInvite={acceptInvite}
+              pendingInvites={pendingInvites}
+              selectedOrActiveProjectId={selectedOrActiveProjectId}
+              separateParetoFilename={separateParetoFilename}
+              sessionHub={sessionHub}
+              setAnalysisMode={setAnalysisMode}
+              setDefectMapping={setDefectMapping}
+              setMeasureColumns={setMeasureColumns}
+              setMeasureLabel={setMeasureLabel}
+              setSelectedMeasure={setSelectedMeasure}
+              specs={specs}
+              stats={stats}
+              wallPlanningProps={wallPlanningProps}
+              workspaceProjectAnalyzeFactorRequest={workspaceProjectAnalyzeFactorRequest}
+              workspaceProjectContext={workspaceProjectContext}
+              workspaceProjectScope={workspaceProjectScope}
+              workspaceProjectTitle={workspaceProjectTitle}
+              workspaceViewModel={workspaceViewModel}
+              _liveControlHandoffs={_liveControlHandoffs}
+              _liveControlRecords={_liveControlRecords}
+            />
           </Suspense>
         </div>
 

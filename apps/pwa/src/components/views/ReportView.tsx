@@ -13,12 +13,12 @@ import {
   ReportDefectKPIGrid,
   ReportImprovementSummary,
   ReportCpkLearningLoop,
-  ActiveIPScopeRibbon,
-  IPContextChip,
+  WorkspaceProjectScopeRibbon,
+  WorkspaceProjectChip,
   HubPortfolioReport,
   IPTechnicalReport,
 } from '@variscout/ui';
-import type { ActiveIPScopeLabels } from '@variscout/ui';
+import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
 import type { ReportDefectKPIGridProps } from '@variscout/ui';
 import { useReportSections, useScrollSpy, copySectionAsHTML } from '@variscout/hooks';
 import type { AudienceMode } from '@variscout/hooks';
@@ -59,14 +59,13 @@ interface ReportViewProps {
   /** Defect mode KPI data — when provided, renders defect-specific KPIs */
   defectSummary?: ReportDefectKPIGridProps | null;
   hub?: ProcessHub | null;
-  activeIP?: ImprovementProject | null;
+  workspaceProject?: ImprovementProject | null;
   hypotheses?: Hypothesis[];
   controlRecords?: ControlRecord[];
   controlHandoffs?: ControlHandoff[];
-  activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
-  activeIPTitle?: string | null;
-  onOpenActiveIP?: () => void;
-  onExitActiveIP?: () => void;
+  workspaceProjectScope?: { title: string; labels: WorkspaceProjectScopeLabels } | null;
+  workspaceProjectTitle?: string | null;
+  onOpenWorkspaceProject?: () => void;
 }
 
 const ReportView: React.FC<ReportViewProps> = ({
@@ -82,14 +81,13 @@ const ReportView: React.FC<ReportViewProps> = ({
   outcome,
   defectSummary,
   hub,
-  activeIP,
+  workspaceProject,
   hypotheses = [],
   controlRecords = [],
   controlHandoffs = [],
-  activeIPScope,
-  activeIPTitle,
-  onOpenActiveIP,
-  onExitActiveIP,
+  workspaceProjectScope,
+  workspaceProjectTitle,
+  onOpenWorkspaceProject,
 }) => {
   const resolved = resolveMode(analysisMode ?? 'standard');
   const strategy = getStrategy(resolved);
@@ -101,49 +99,50 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   const ipReportScope = useMemo(
     () =>
-      activeIP
+      workspaceProject
         ? selectIPReportScope({
-            ip: activeIP,
+            ip: workspaceProject,
             hypotheses,
             findings,
             controlRecords,
             controlHandoffs,
           })
         : null,
-    [activeIP, controlHandoffs, findings, hypotheses, controlRecords]
+    [workspaceProject, controlHandoffs, findings, hypotheses, controlRecords]
   );
 
   const ipNarrative = useMemo(
     () =>
-      activeIP && ipReportScope
+      workspaceProject && ipReportScope
         ? deriveIPReportNarrative({
-            ip: activeIP,
+            ip: workspaceProject,
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             controlRecord: ipReportScope.controlRecord,
             controlHandoff: ipReportScope.controlHandoff,
           })
         : [],
-    [activeIP, ipReportScope]
+    [workspaceProject, ipReportScope]
   );
 
   const ipCauseRows = useMemo(
     () =>
-      activeIP && ipReportScope
+      workspaceProject && ipReportScope
         ? deriveIPCauseRows({
-            ip: activeIP,
+            ip: workspaceProject,
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             controlRecord: ipReportScope.controlRecord,
           })
         : [],
-    [activeIP, ipReportScope]
+    [workspaceProject, ipReportScope]
   );
 
   const hubPortfolio = useMemo(() => (hub ? deriveHubPortfolioReport({ hub }) : null), [hub]);
-  const reportFindings = activeIP && ipReportScope ? ipReportScope.findings : findings;
+  const reportFindings = workspaceProject && ipReportScope ? ipReportScope.findings : findings;
   // IM-1: improvement summary derives from hypothesis hubs (Question entity retired).
-  const reportHypotheses = activeIP && ipReportScope ? ipReportScope.hypotheses : hypotheses;
+  const reportHypotheses =
+    workspaceProject && ipReportScope ? ipReportScope.hypotheses : hypotheses;
   const technicalOutcomeSeries = useMemo(
     () =>
       outcome
@@ -194,7 +193,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   });
 
   const plan4Sections = useMemo(() => {
-    if (activeIP && reportAudienceMode === 'overview') {
+    if (workspaceProject && reportAudienceMode === 'overview') {
       return ipNarrative.map((section, index) => ({
         id: `ip-overview-${index}`,
         stepNumber: index + 1,
@@ -209,8 +208,8 @@ const ReportView: React.FC<ReportViewProps> = ({
         items: section.items,
       }));
     }
-    if (activeIP && reportAudienceMode === 'technical') return sections;
-    if (!activeIP && hubPortfolio) {
+    if (workspaceProject && reportAudienceMode === 'technical') return sections;
+    if (!workspaceProject && hubPortfolio) {
       return [
         {
           id: 'hub-portfolio',
@@ -222,7 +221,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       ];
     }
     return sections;
-  }, [activeIP, hubPortfolio, ipNarrative, reportAudienceMode, sections]);
+  }, [workspaceProject, hubPortfolio, ipNarrative, reportAudienceMode, sections]);
 
   const contentRef = useRef<HTMLDivElement>(null);
   const { activeId, refs: sectionRefs } = useScrollSpy({
@@ -253,8 +252,8 @@ const ReportView: React.FC<ReportViewProps> = ({
     const previousTitle = document.title;
     const date = new Date().toISOString().slice(0, 10);
     const hubName = hub?.name ?? 'Hub';
-    const subject = activeIP?.metadata.title ?? 'Hub portfolio';
-    const layer = activeIP
+    const subject = workspaceProject?.metadata.title ?? 'Hub portfolio';
+    const layer = workspaceProject
       ? reportAudienceMode === 'overview'
         ? 'Overview'
         : 'Technical'
@@ -262,7 +261,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     document.title = `${hubName}-${subject}-${layer}-${date}.pdf`;
     window.print();
     document.title = previousTitle;
-  }, [activeIP, hub?.name, reportAudienceMode]);
+  }, [workspaceProject, hub?.name, reportAudienceMode]);
 
   // Render section content based on section descriptor
   // The callback receives SectionDescriptor (subset), we look up the full descriptor
@@ -277,7 +276,11 @@ const ReportView: React.FC<ReportViewProps> = ({
       const sectionId = section.id;
       const ref = sectionRefs[sectionId];
 
-      if (activeIP && reportAudienceMode === 'overview' && sectionId.startsWith('ip-overview-')) {
+      if (
+        workspaceProject &&
+        reportAudienceMode === 'overview' &&
+        sectionId.startsWith('ip-overview-')
+      ) {
         const overviewSection = ipNarrative[section.stepNumber - 1];
         return (
           <ReportSection
@@ -317,7 +320,7 @@ const ReportView: React.FC<ReportViewProps> = ({
         );
       }
 
-      if (!activeIP && hubPortfolio && sectionId === 'hub-portfolio') {
+      if (!workspaceProject && hubPortfolio && sectionId === 'hub-portfolio') {
         return (
           <ReportSection
             key={sectionId}
@@ -350,7 +353,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             ) : stats ? (
               <ReportKPIGrid stats={stats} specs={specs} sampleCount={sampleCount} />
             ) : null}
-            {activeIP && reportAudienceMode === 'technical' ? (
+            {workspaceProject && reportAudienceMode === 'technical' ? (
               <div className="mt-4">
                 <IPTechnicalReport
                   outcomeSeries={technicalOutcomeSeries}
@@ -477,7 +480,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       columnAliases,
       strategy,
       sectionRefs,
-      activeIP,
+      workspaceProject,
       hubPortfolio,
       ipCauseRows,
       ipNarrative,
@@ -491,34 +494,35 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {activeIPScope ? (
-        <ActiveIPScopeRibbon
-          title={activeIPScope.title}
-          labels={activeIPScope.labels}
+      {workspaceProjectScope ? (
+        <WorkspaceProjectScopeRibbon
+          title={workspaceProjectScope.title}
+          labels={workspaceProjectScope.labels}
           surface="Report"
         />
       ) : null}
       <ReportViewBase
         processName={
-          activeIPScope ? `IP Report: ${activeIPScope.title}` : dataFilename || 'Analysis Report'
+          workspaceProjectScope
+            ? `Workspace Project Report: ${workspaceProjectScope.title}`
+            : dataFilename || 'Analysis Report'
         }
         reportType={reportType}
         sections={plan4Sections}
         activeSectionId={activeId}
-        reportingOnLabel={activeIP?.metadata.title ?? 'Hub portfolio'}
-        reportAudienceMode={activeIP ? reportAudienceMode : 'overview'}
-        onReportAudienceModeChange={activeIP ? setReportAudienceMode : undefined}
+        reportingOnLabel={workspaceProject?.metadata.title ?? 'Hub portfolio'}
+        reportAudienceMode={workspaceProject ? reportAudienceMode : 'overview'}
+        onReportAudienceModeChange={workspaceProject ? setReportAudienceMode : undefined}
         onScrollToSection={handleScrollToSection}
         renderSection={renderSection}
         onCopyAllCharts={handleCopyAllCharts}
         onPrintReport={handlePrintReport}
         onClose={onClose}
-        activeIPContextChip={
-          activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
-            <IPContextChip
-              title={activeIPTitle}
-              onTitleClick={onOpenActiveIP}
-              onExitIP={onExitActiveIP}
+        workspaceProjectContextChip={
+          workspaceProjectTitle && onOpenWorkspaceProject ? (
+            <WorkspaceProjectChip
+              title={workspaceProjectTitle}
+              onTitleClick={onOpenWorkspaceProject}
             />
           ) : null
         }

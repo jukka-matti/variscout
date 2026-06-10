@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@variscout/hooks';
 import {
-  IPContextChip,
+  WorkspaceProjectChip,
   PersistentScopeChip,
   WorkflowNav,
   useIsMobile,
@@ -26,7 +26,7 @@ import {
 import { usePanelsStore } from '../features/panels/panelsStore';
 
 export type WorkspaceView =
-  | 'dashboard'
+  | 'home'
   | 'frame'
   | 'explore'
   | 'analyze'
@@ -35,8 +35,8 @@ export type WorkspaceView =
   | 'report';
 
 export interface AppHeaderProps {
-  mode: 'portfolio' | 'project';
-  onNavigateToPortfolio?: () => void;
+  mode: 'home' | 'project';
+  onNavigateToHome?: () => void;
   onOpenSettings?: () => void;
   canNavigateBack?: boolean;
   projectName?: string;
@@ -67,9 +67,8 @@ export interface AppHeaderProps {
   onExportCSV?: () => void;
   /** Save As to a different location (Team only) */
   onSaveAs?: () => void;
-  activeIPTitle?: string | null;
-  onOpenActiveIP?: () => void;
-  onExitActiveIP?: () => void;
+  workspaceProjectTitle?: string | null;
+  onOpenWorkspaceProject?: () => void;
 }
 
 /** Save status dot color */
@@ -97,7 +96,7 @@ const toggleBtnClass = (isActive: boolean) =>
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
   mode,
-  onNavigateToPortfolio,
+  onNavigateToHome,
   onOpenSettings,
   canNavigateBack,
   projectName = '',
@@ -120,9 +119,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onRenameProject,
   onExportCSV,
   onSaveAs,
-  activeIPTitle,
-  onOpenActiveIP,
-  onExitActiveIP,
+  workspaceProjectTitle,
+  onOpenWorkspaceProject,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
@@ -159,8 +157,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [projectMenuOpen]);
 
-  // ── Portfolio mode ────────────────────────────────────────────────────
-  if (mode === 'portfolio') {
+  // ── Home mode ────────────────────────────────────────────────────
+  if (mode === 'home') {
     return (
       <div className="flex items-center h-11 px-4 border-b border-edge bg-surface flex-shrink-0 sticky top-0 z-50">
         <div className="flex items-center gap-2">
@@ -200,7 +198,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   const dotColor = statusDotColor(saveStatus, syncStatus);
   const activeWorkflowTab: WorkflowTabId =
-    activeView === 'dashboard'
+    activeView === 'home'
       ? 'home'
       : activeView === 'projects'
         ? 'project'
@@ -211,7 +209,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             : activeView;
   const handleWorkflowTabChange = (tab: WorkflowTabId) => {
     const panels = usePanelsStore.getState();
-    if (tab === 'home') panels.showDashboard();
+    if (tab === 'home') panels.showHome();
     else if (tab === 'project') panels.showProjects();
     else if (tab === 'process') panels.showFrame();
     else if (tab === 'explore') panels.showExplore();
@@ -225,11 +223,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     <div
       role={canNavigateBack ? 'button' : undefined}
       tabIndex={canNavigateBack ? 0 : undefined}
-      onClick={canNavigateBack ? onNavigateToPortfolio : undefined}
+      onClick={canNavigateBack ? onNavigateToHome : undefined}
       onKeyDown={
         canNavigateBack
           ? e => {
-              if (e.key === 'Enter' || e.key === ' ') onNavigateToPortfolio?.();
+              if (e.key === 'Enter' || e.key === ' ') onNavigateToHome?.();
             }
           : undefined
       }
@@ -294,11 +292,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <Settings size={16} />
             </button>
           )}
-          {hasData && activeIPTitle && onOpenActiveIP && onExitActiveIP && (
-            <IPContextChip
-              title={activeIPTitle}
-              onTitleClick={onOpenActiveIP}
-              onExitIP={onExitActiveIP}
+          {hasData && workspaceProjectTitle && onOpenWorkspaceProject && (
+            <WorkspaceProjectChip
+              title={workspaceProjectTitle}
+              onTitleClick={onOpenWorkspaceProject}
             />
           )}
           {/* PR-CS-3a: persistent live-scope chip (self-hides when no scope). */}
@@ -446,12 +443,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       {/* ── Separator ── */}
       <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
 
-      {hasData && activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
+      {hasData && workspaceProjectTitle && onOpenWorkspaceProject ? (
         <>
-          <IPContextChip
-            title={activeIPTitle}
-            onTitleClick={onOpenActiveIP}
-            onExitIP={onExitActiveIP}
+          <WorkspaceProjectChip
+            title={workspaceProjectTitle}
+            onTitleClick={onOpenWorkspaceProject}
           />
           <div className="w-px h-5 bg-edge mx-1 flex-shrink-0" />
         </>

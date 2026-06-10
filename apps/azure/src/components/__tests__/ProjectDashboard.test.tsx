@@ -58,12 +58,6 @@ vi.mock('../WhatsNewSection', () => ({
   ),
 }));
 
-vi.mock('../OtherProjectsList', () => ({
-  default: ({ currentProjectId }: { currentProjectId: string }) => (
-    <div data-testid="other-projects-section" data-current={currentProjectId} />
-  ),
-}));
-
 vi.mock('../../services/storage', () => ({
   updateLastViewedAt: vi.fn(),
 }));
@@ -395,18 +389,19 @@ describe('ProjectDashboard', () => {
     expect(onAddData).toHaveBeenCalled();
   });
 
-  it('renders New Hub button when onNewHub is provided', () => {
+  it('renders New Workspace button when onNewHub is provided', () => {
     const onNewHub = vi.fn();
     render(<ProjectDashboard {...defaultProps} onNewHub={onNewHub} />);
     expect(screen.getByTestId('action-new-hub')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /new workspace/i })).toBeInTheDocument();
   });
 
-  it('does not render New Hub button when onNewHub is absent', () => {
+  it('does not render New Workspace button when onNewHub is absent', () => {
     render(<ProjectDashboard {...defaultProps} />);
     expect(screen.queryByTestId('action-new-hub')).not.toBeInTheDocument();
   });
 
-  it('calls onNewHub when New Hub button is clicked', () => {
+  it('calls onNewHub when New Workspace button is clicked', () => {
     const onNewHub = vi.fn();
     render(<ProjectDashboard {...defaultProps} onNewHub={onNewHub} />);
     fireEvent.click(screen.getByTestId('action-new-hub'));
@@ -443,35 +438,8 @@ describe('ProjectDashboard', () => {
     expect(screen.queryByTestId('whats-new-section')).not.toBeInTheDocument();
   });
 
-  it('renders OtherProjectsList when projects has more than 1 project', () => {
-    const projects = [
-      {
-        id: 'p1',
-        name: 'Coffee Line 3',
-        modified: new Date().toISOString(),
-        location: 'personal' as const,
-      },
-      {
-        id: 'p2',
-        name: 'Sachet Fill',
-        modified: new Date().toISOString(),
-        location: 'personal' as const,
-      },
-    ];
-    render(<ProjectDashboard {...defaultProps} projects={projects} />);
-    expect(screen.getByTestId('other-projects-section')).toBeInTheDocument();
-  });
-
-  it('does not render OtherProjectsList when only 1 project', () => {
-    const projects = [
-      {
-        id: 'p1',
-        name: 'Coffee Line 3',
-        modified: new Date().toISOString(),
-        location: 'personal' as const,
-      },
-    ];
-    render(<ProjectDashboard {...defaultProps} projects={projects} />);
+  it('does not render the retired other-workspaces list', () => {
+    render(<ProjectDashboard {...defaultProps} />);
     expect(screen.queryByTestId('other-projects-section')).not.toBeInTheDocument();
   });
 

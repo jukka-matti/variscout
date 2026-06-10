@@ -113,7 +113,7 @@ describe('FindingCard — PR-CS-6 Edge 1 promote action', () => {
     expect(screen.getByTestId('action-promoted-marker')).toBeDefined();
   });
 
-  it('does not show the promote button when onPromoteAction is absent (no active IP)', () => {
+  it('does not show the promote button when onPromoteAction is absent (no Workspace Project)', () => {
     render(<FindingCard finding={analyzedFinding()} {...noopHandlers} onAddAction={vi.fn()} />);
 
     expect(screen.queryByTestId('promote-action-btn')).toBeNull();

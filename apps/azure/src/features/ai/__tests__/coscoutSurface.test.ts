@@ -11,7 +11,7 @@ describe('getCoScoutSurfaceForView', () => {
     expect(getCoScoutSurfaceForView(activeView)).toBe(surface);
   });
 
-  it.each(['dashboard', 'projects', 'improvement', 'charter', 'sustainment'] as const)(
+  it.each(['home', 'projects', 'improvement', 'charter', 'sustainment'] as const)(
     'does not expose CoScout on %s',
     activeView => {
       expect(getCoScoutSurfaceForView(activeView)).toBeNull();

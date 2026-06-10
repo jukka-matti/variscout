@@ -79,7 +79,7 @@ describe('ProjectsTabView', () => {
     expect(onStartNewProject).toHaveBeenCalledTimes(1);
   });
 
-  it('stamps formalizedAt when the Workspace Project is opened', () => {
+  it('does not stamp formalizedAt when an informal Workspace Project is opened', () => {
     const onProjectPatch = vi.fn();
     const hub: ProcessHub = {
       ...baseHub,
@@ -98,12 +98,7 @@ describe('ProjectsTabView', () => {
       />
     );
 
-    expect(onProjectPatch).toHaveBeenCalledWith(
-      'ip-1',
-      expect.objectContaining({
-        metadata: expect.objectContaining({ formalizedAt: expect.any(Number) }),
-      })
-    );
+    expect(onProjectPatch).not.toHaveBeenCalled();
   });
 
   it('updates the project store and emits a patch from detail signoff actions', () => {

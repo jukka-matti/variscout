@@ -9,7 +9,7 @@
  * STORE_LAYER enum has 6 values; today 4 are realised in code:
  *   - 'document' (projectStore, analyzeStore, canvasStore, improvementProjectStore)
  *   - 'annotation-per-hub' (canvasViewportStore)
- *   - 'annotation-per-user' (preferencesStore, activeIPStore, useProjectMembershipStore)
+ *   - 'annotation-per-user' (preferencesStore, useProjectMembershipStore)
  *   - 'view' (viewStore, analysisScopeStore)
  * Reserved for future use (no test coverage today, intentional):
  *   - 'annotation-per-project'
@@ -106,11 +106,11 @@ describe('layer boundary', () => {
     });
   });
 
-  it('matches the ratified 10-store layer model', () => {
-    expect(files).toHaveLength(10);
+  it('matches the ratified 9-store layer model', () => {
+    expect(files).toHaveLength(9);
     expect(files.filter(f => f.layer === 'document')).toHaveLength(4);
     expect(files.filter(f => f.layer === 'annotation-per-hub')).toHaveLength(1);
-    expect(files.filter(f => f.layer === 'annotation-per-user')).toHaveLength(3);
+    expect(files.filter(f => f.layer === 'annotation-per-user')).toHaveLength(2);
     expect(files.filter(f => f.layer === 'view')).toHaveLength(2);
   });
 
@@ -132,10 +132,10 @@ describe('layer boundary', () => {
   it('persist-backed annotation-per-user stores DO import persist from zustand/middleware', () => {
     // Two valid persistence patterns for annotation-per-user stores:
     //   (a) Zustand `persist` middleware (preferencesStore)
-    //   (b) Manual localStorage with per-user key (activeIPStore, useProjectMembershipStore)
+    //   (b) Manual localStorage with per-user key (useProjectMembershipStore)
     // The manual pattern is required when persistence needs a per-user (or
     // per-user-and-hub) key that isn't known at store-construction time.
-    const MANUAL_STORAGE_STORES = new Set(['activeIPStore.ts', 'useProjectMembershipStore.ts']);
+    const MANUAL_STORAGE_STORES = new Set(['useProjectMembershipStore.ts']);
     files
       .filter(f => f.layer === 'annotation-per-user' && !MANUAL_STORAGE_STORES.has(f.filename))
       .forEach(f => {
@@ -146,7 +146,7 @@ describe('layer boundary', () => {
   });
 
   it('manual-localStorage annotation-per-user stores use per-key localStorage without Document-layer persistence', () => {
-    const MANUAL_STORAGE_STORES = ['activeIPStore.ts', 'useProjectMembershipStore.ts'];
+    const MANUAL_STORAGE_STORES = ['useProjectMembershipStore.ts'];
     MANUAL_STORAGE_STORES.forEach(filename => {
       const store = files.find(f => f.filename === filename);
       expect(store).toBeDefined();

@@ -1,5 +1,5 @@
 /**
- * Shared phase badge configuration for portfolio and project-status components.
+ * Shared phase badge configuration for Home and project-status components.
  * Centralizes colors and labels for the four journey phases.
  */
 

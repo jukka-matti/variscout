@@ -135,21 +135,20 @@ export interface CanvasWorkspaceProps {
    *  Azure derives this from canAccess(currentUserId, members, 'edit');
    *  PWA passes true (no membership model). */
   canEditCanvas?: boolean;
-  /** The active ImprovementProject (CCJ E1 T5). When provided, the four
+  /** The Workspace Project (CCJ E1 T5). When provided, the four
    *  Canvas-Edit-mode binding arrays (`processSteps`, `stepTimings`,
-   *  `formulaBindings`, `timeDecompositionBindings`) are sourced from this IP
+   *  `formulaBindings`, `timeDecompositionBindings`) are sourced from this project
    *  and writes flow through `onPersistCanvasState`. When `null` /
    *  `undefined`, the four arrays fall back to local `useState` (legacy
    *  behaviour preserved for callers that pre-date E1 — e.g. `FrameViewB0`
-   *  test wrappers, fixture-only renders, and PWA wiring before the active-IP
-   *  cascade lands there). Production Azure passes a resolved `activeIP` via
+   *  test wrappers and fixture-only renders). Production shells pass a resolved `workspaceProject` via
    *  `FrameView`. */
-  activeIP?: ImprovementProject | null;
-  /** Persist a freshly-patched IP. Called by Canvas Edit-mode handlers
-   *  (modal saves, drag-and-drop step replacement) with `{ ...activeIP,
+  workspaceProject?: ImprovementProject | null;
+  /** Persist a freshly-patched Workspace Project. Called by Canvas Edit-mode handlers
+   *  (modal saves, drag-and-drop step replacement) with `{ ...workspaceProject,
    *  <field>: nextValue, updatedAt: now }`. Expected to upsert via the app's
-   *  IP store (`useImprovementProjectStore.upsertProject`). No-op when
-   *  `activeIP` is `null` / `undefined` — handlers guard internally and fall
+   *  project store (`useImprovementProjectStore.upsertProject`). No-op when
+   *  `workspaceProject` is `null` / `undefined` — handlers guard internally and fall
    *  back to local state. */
   onPersistCanvasState?: (next: ImprovementProject) => void;
   /**
@@ -324,7 +323,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   priorStepStats,
   actionItems = [],
   canEditCanvas,
-  activeIP,
+  workspaceProject,
   onPersistCanvasState,
   outcomeSpecs = [],
   onExploreExit,
@@ -516,20 +515,20 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const runOrderColumn = detected?.timeColumn ?? null;
   const columnAnalysis = React.useMemo(() => detected?.columnAnalysis ?? [], [detected]);
   const timeColumnByAnalyze = React.useMemo(() => {
-    if (!activeIP || !runOrderColumn) return undefined;
-    return new Map([[activeIP.id, runOrderColumn]]);
-  }, [activeIP, runOrderColumn]);
+    if (!workspaceProject || !runOrderColumn) return undefined;
+    return new Map([[workspaceProject.id, runOrderColumn]]);
+  }, [workspaceProject, runOrderColumn]);
 
   const capabilitySource = React.useMemo(
     () =>
       buildEditorCapabilitySource({
         hubId,
-        hubName: activeIP?.metadata.title ?? 'Process',
+        hubName: workspaceProject?.metadata.title ?? 'Process',
         processMap: capabilityMap,
-        activeIP,
+        workspaceProject,
         rows: rawData,
       }),
-    [activeIP, capabilityMap, hubId, rawData]
+    [workspaceProject, capabilityMap, hubId, rawData]
   );
 
   const data = useProductionLineGlanceData({
@@ -623,18 +622,17 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
 
   // PR-CCJ-E1 T5: the Canvas-Edit-mode binding arrays (`stepTimings`,
   // `formulaBindings`, `timeDecompositionBindings`) live on the active
-  // `ImprovementProject` after E1. When `activeIP` is provided, reads come
-  // from the IP and writes flow through `onPersistCanvasState` (the IP store's
-  // `upsertProject`). When `activeIP` is `null` / `undefined` (test fixtures,
-  // FrameViewB0 stubs, PWA without active-IP wiring), the local-state fallback
-  // below keeps the modal save flows working in isolation. The fallback is
-  // structural — once `activeIP` is supplied it owns the source of truth and
+  // `ImprovementProject` after E1. When `workspaceProject` is provided, reads come
+  // from the project and writes flow through `onPersistCanvasState` (the project store's
+  // `upsertProject`). When `workspaceProject` is `null` / `undefined` (test fixtures,
+  // FrameViewB0 stubs), the local-state fallback below keeps the modal save flows working in isolation. The fallback is
+  // structural — once `workspaceProject` is supplied it owns the source of truth and
   // local state goes unused for those fields.
   //
   // IM-0b (ADR-087): `processSteps` is NO LONGER one of these binding arrays.
   // The rich `ProcessMap` is the single canonical step structure; the step
   // list is a read-only projection of `map.nodes` via `deriveProcessSteps`.
-  // There is no local-state fallback and no IP write path for steps — the
+  // There is no local-state fallback and no project write path for steps — the
   // canvas map (canvasStore → persistCanvasStoreMap → setProcessContext) is
   // the only step author path.
   const [localStepTimings, setLocalStepTimings] = React.useState<StepTimingBinding[]>([]);
@@ -644,15 +642,15 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   >([]);
 
   const processSteps = React.useMemo(() => deriveProcessSteps(map), [map]);
-  const stepTimings = activeIP?.stepTimings ?? localStepTimings;
-  const formulaBindings = activeIP?.formulaBindings ?? localFormulaBindings;
+  const stepTimings = workspaceProject?.stepTimings ?? localStepTimings;
+  const formulaBindings = workspaceProject?.formulaBindings ?? localFormulaBindings;
   const timeDecompositionBindings =
-    activeIP?.timeDecompositionBindings ?? localTimeDecompositionBindings;
-  // G1: binnedFactorBindings are read-only from activeIP (no local-state
+    workspaceProject?.timeDecompositionBindings ?? localTimeDecompositionBindings;
+  // G1: binnedFactorBindings are read-only from workspaceProject (no local-state
   // fallback — binning is always persisted via the probability-plot UX which
-  // requires an active IP to be open). Defaults to [] when absent so the
+  // requires an Workspace Project to be open). Defaults to [] when absent so the
   // derived-column memos stay stable.
-  const binnedFactorBindings = activeIP?.binnedFactorBindings ?? [];
+  const binnedFactorBindings = workspaceProject?.binnedFactorBindings ?? [];
 
   const valueRolesByStepId = React.useMemo(() => {
     const roles: Record<string, 'time'> = {};
@@ -687,60 +685,60 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   );
 
   // E1 T5: route a per-field patch through `onPersistCanvasState`. Always
-  // emits a fully-formed IP (factory contract: `upsertProject` expects the
+  // emits a fully-formed project (factory contract: `upsertProject` expects the
   // whole object) with `updatedAt` refreshed at the moment of the write.
-  // No-op when `activeIP` / `onPersistCanvasState` is missing; callers
+  // No-op when `workspaceProject` / `onPersistCanvasState` is missing; callers
   // dispatch to the local-state setters in that branch instead.
-  const patchActiveIP = React.useCallback(
+  const patchWorkspaceProject = React.useCallback(
     (
       fieldPatch: Partial<
         Pick<ImprovementProject, 'stepTimings' | 'formulaBindings' | 'timeDecompositionBindings'>
       >
     ) => {
-      if (!activeIP || !onPersistCanvasState) return;
-      onPersistCanvasState({ ...activeIP, ...fieldPatch, updatedAt: Date.now() });
+      if (!workspaceProject || !onPersistCanvasState) return;
+      onPersistCanvasState({ ...workspaceProject, ...fieldPatch, updatedAt: Date.now() });
     },
-    [activeIP, onPersistCanvasState]
+    [workspaceProject, onPersistCanvasState]
   );
 
   const setStepTimings = React.useCallback(
     (next: StepTimingBinding[]) => {
-      if (activeIP && onPersistCanvasState) {
-        patchActiveIP({ stepTimings: next });
+      if (workspaceProject && onPersistCanvasState) {
+        patchWorkspaceProject({ stepTimings: next });
       } else {
         setLocalStepTimings(next);
       }
     },
-    [activeIP, onPersistCanvasState, patchActiveIP]
+    [workspaceProject, onPersistCanvasState, patchWorkspaceProject]
   );
 
   const setFormulaBindings = React.useCallback(
     (next: FormulaBinding[]) => {
-      if (activeIP && onPersistCanvasState) {
-        patchActiveIP({ formulaBindings: next });
+      if (workspaceProject && onPersistCanvasState) {
+        patchWorkspaceProject({ formulaBindings: next });
       } else {
         setLocalFormulaBindings(next);
       }
     },
-    [activeIP, onPersistCanvasState, patchActiveIP]
+    [workspaceProject, onPersistCanvasState, patchWorkspaceProject]
   );
 
   const setTimeDecompositionBindings = React.useCallback(
     (next: TimeDecompositionBinding[]) => {
-      if (activeIP && onPersistCanvasState) {
-        patchActiveIP({ timeDecompositionBindings: next });
+      if (workspaceProject && onPersistCanvasState) {
+        patchWorkspaceProject({ timeDecompositionBindings: next });
       } else {
         setLocalTimeDecompositionBindings(next);
       }
     },
-    [activeIP, onPersistCanvasState, patchActiveIP]
+    [workspaceProject, onPersistCanvasState, patchWorkspaceProject]
   );
 
-  // F1 Task 3: factor controls sourced from the active IP's goal.factorControls.
-  // Falls back to [] when no IP is present (test fixtures, PWA without active-IP
-  // cascade, FrameViewB0 stubs). Read-only; mutations are owned by the IP charter
+  // F1 Task 3: factor controls sourced from the Workspace Project's goal.factorControls.
+  // Falls back to [] when no project is present (test fixtures, FrameViewB0 stubs).
+  // Read-only; mutations are owned by the project charter
   // panel (ImprovementProjectPanel) — CanvasWorkspace does not write factorControls.
-  const factorControls = activeIP?.goal?.factorControls ?? [];
+  const factorControls = workspaceProject?.goal?.factorControls ?? [];
 
   // F1 Task 6: `onExploreExit` is injected by the calling app (Azure FrameView /
   // PWA FrameView). @variscout/ui cannot import `usePanelsStore` from apps/ —
@@ -1092,7 +1090,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
 
   // H1 Task 2: ghost suggestions for unbound palette chips.
   // `outcomeSpecs` comes from the CanvasWorkspace prop (set by the Azure/PWA wrapper).
-  // `factorControls` is derived from activeIP?.goal?.factorControls (line ~642 above).
+  // `factorControls` is derived from workspaceProject?.goal?.factorControls (line ~642 above).
   // StepBinding: no unified StepBinding type exists in @variscout/core yet; step
   // associations live on ImprovementProjectOutcomeGoal.stepId and
   // ImprovementProjectFactorControl.stepId. Passing empty array for now (graceful
@@ -1342,7 +1340,7 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   );
 
   // IM-0b (ADR-087): the column-drop-to-process-zone gesture authors the
-  // CANONICAL rich map, not a flat IP.processSteps list. We dispatch the
+  // CANONICAL rich map, not a flat project.processSteps list. We dispatch the
   // canvasStore `addStepsFromColumn` action (one rich `ProcessMapNode` per
   // distinct value, minted with the canvas `step-${slug}-${seq}` id scheme),
   // then mirror `persistCanvasStoreMap` so the new nodes flow through
@@ -1361,15 +1359,15 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   );
 
   // IM-0b (ADR-087): wire `onFactorControlAdd` (previously `undefined` — a
-  // silent no-op). Writes `IP.goal.factorControls` via `onPersistCanvasState`,
+  // silent no-op). Writes `workspaceProject.goal.factorControls` via `onPersistCanvasState`,
   // appending one control per dropped column. `stepId` (set for a per-step
   // factor zone) is already a canonical `ProcessMap` node id — the FactorZone
   // step list comes from deriveProcessSteps(map) (ADR-087).
-  // No-op when no active IP is wired.
+  // No-op when no Workspace Project is wired.
   const handleFactorControlAdd = React.useCallback(
     (columnName: string, stepId?: string) => {
-      if (!activeIP || !onPersistCanvasState) return;
-      const existing = activeIP.goal.factorControls ?? [];
+      if (!workspaceProject || !onPersistCanvasState) return;
+      const existing = workspaceProject.goal.factorControls ?? [];
       if (existing.some(control => control.factor === columnName && control.stepId === stepId)) {
         return;
       }
@@ -1379,12 +1377,12 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
         ...(stepId !== undefined && { stepId }),
       };
       onPersistCanvasState({
-        ...activeIP,
-        goal: { ...activeIP.goal, factorControls: [...existing, nextControl] },
+        ...workspaceProject,
+        goal: { ...workspaceProject.goal, factorControls: [...existing, nextControl] },
         updatedAt: Date.now(),
       });
     },
-    [activeIP, onPersistCanvasState]
+    [workspaceProject, onPersistCanvasState]
   );
 
   // PR-LV1-C: drag-end router for the inlined Edit chrome's `DndContext`.

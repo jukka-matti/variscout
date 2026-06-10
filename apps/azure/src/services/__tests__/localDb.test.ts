@@ -254,7 +254,7 @@ describe('localDb Process Hub support', () => {
     expect(projects.map(project => project.name)).toEqual(['visible']);
   });
 
-  it('stores named Process Hubs locally', async () => {
+  it('stores named Workspaces locally', async () => {
     await saveProcessHubToIndexedDB({
       id: 'line-4',
       name: 'Line 4',

@@ -2,23 +2,23 @@ import type { ImprovementProject } from '@variscout/core/improvementProject';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export type ActiveIPStageLabel = 'Charter' | 'Approach' | 'Control';
+export type WorkspaceProjectStageLabel = 'Charter' | 'Approach' | 'Control';
 
-export interface ActiveIPPresentation {
+export interface WorkspaceProjectPresentation {
   id: ImprovementProject['id'];
   title: string;
   statusLabel: string;
-  stageLabel: ActiveIPStageLabel;
+  stageLabel: WorkspaceProjectStageLabel;
   dayCounter: number;
   urgentLine: string;
   recentActivity: string[];
 }
 
-export function getIPDayCounter(ip: ImprovementProject, now = Date.now()): number {
+export function getWorkspaceProjectDayCounter(ip: ImprovementProject, now = Date.now()): number {
   return Math.max(1, Math.floor((now - ip.createdAt) / DAY_MS) + 1);
 }
 
-export function getIPStageLabel(ip: ImprovementProject): ActiveIPStageLabel {
+export function getWorkspaceProjectStageLabel(ip: ImprovementProject): WorkspaceProjectStageLabel {
   if (ip.status === 'draft') return 'Charter';
 
   const hasOutcomeReference =
@@ -34,8 +34,8 @@ export function getIPStageLabel(ip: ImprovementProject): ActiveIPStageLabel {
   return hasApproachWork ? 'Control' : 'Approach';
 }
 
-export function getIPUrgentLine(ip: ImprovementProject): string {
-  const stage = getIPStageLabel(ip);
+export function getWorkspaceProjectUrgentLine(ip: ImprovementProject): string {
+  const stage = getWorkspaceProjectStageLabel(ip);
 
   if (stage === 'Charter') {
     // Legacy first-outcome check — multi-outcome activity copy is a later phase
@@ -58,27 +58,30 @@ function formatRelativeUpdatedAt(ip: ImprovementProject, now: number): string {
   return `${elapsedDays}d ago`;
 }
 
-export function getIPRecentActivityFallback(ip: ImprovementProject, now = Date.now()): string[] {
-  const stage = getIPStageLabel(ip);
+export function getWorkspaceProjectRecentActivityFallback(
+  ip: ImprovementProject,
+  now = Date.now()
+): string[] {
+  const stage = getWorkspaceProjectStageLabel(ip);
   // Legacy first-outcome read — multi-outcome UI is later phases (Spec 2 §3.2.2 / PR-CCJ-C1).
   return [
-    `${ip.metadata.title} opened · Day ${getIPDayCounter(ip, now)}`,
+    `${ip.metadata.title} opened · Day ${getWorkspaceProjectDayCounter(ip, now)}`,
     `${stage} stage active · ${formatRelativeUpdatedAt(ip, now)}`,
     `Target set to ${ip.goal.outcomeGoals[0]?.target ?? '—'} · current goal`,
   ];
 }
 
-export function deriveActiveIPPresentation(
+export function deriveWorkspaceProjectPresentation(
   ip: ImprovementProject,
   now = Date.now()
-): ActiveIPPresentation {
+): WorkspaceProjectPresentation {
   return {
     id: ip.id,
     title: ip.metadata.title,
     statusLabel: ip.status.toUpperCase(),
-    stageLabel: getIPStageLabel(ip),
-    dayCounter: getIPDayCounter(ip, now),
-    urgentLine: getIPUrgentLine(ip),
-    recentActivity: getIPRecentActivityFallback(ip, now),
+    stageLabel: getWorkspaceProjectStageLabel(ip),
+    dayCounter: getWorkspaceProjectDayCounter(ip, now),
+    urgentLine: getWorkspaceProjectUrgentLine(ip),
+    recentActivity: getWorkspaceProjectRecentActivityFallback(ip, now),
   };
 }

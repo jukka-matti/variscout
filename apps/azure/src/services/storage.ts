@@ -314,7 +314,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       name: string,
       location: StorageLocation
     ): Promise<SaveProjectResult> => {
-      // Build lightweight metadata for portfolio view
+      // Build lightweight metadata for Workspace Home
       const user = await getEasyAuthUser().catch(() => null);
       const userId = user?.userId || user?.email || 'local';
       // Read the existing record so the rebuild preserves lastViewedAt AND the
@@ -536,7 +536,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      // Fallback to local — heal the portfolio projection on open (PO-8b):
+      // Fallback to local — heal the Workspace projection on open (PO-8b):
       // recompute the aggregate-derived fields, merge-preserving the Control-owned
       // sustainment projection; write only on an actual change; a null recompute
       // (malformed aggregate) skips the heal — never write null meta.
@@ -703,7 +703,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return [];
       }
       if (!(error instanceof CloudSyncUnavailableErrorClass)) {
-        errorService.logWarning('Failed to list process hubs from cloud', {
+        errorService.logWarning('Failed to list Workspaces from cloud', {
           component: 'storage',
           action: 'listProcessHubs',
           metadata: { error: error instanceof Error ? error.message : String(error) },

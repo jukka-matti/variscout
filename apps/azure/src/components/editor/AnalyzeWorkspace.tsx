@@ -12,14 +12,14 @@ import {
   CANVAS_H,
   computeWallLayout,
   buildWallLayoutArgs,
-  ActiveIPScopeRibbon,
+  WorkspaceProjectScopeRibbon,
   OverallProblemHeader,
   useWallKeyboard,
   useWallIsMobile,
   navigateToExploreForChip,
   type HubComposerBranchFields,
 } from '@variscout/ui';
-import type { ActiveIPScopeLabels } from '@variscout/ui';
+import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
 import {
   useResizablePanel,
   useProblemStatement,
@@ -92,12 +92,12 @@ const DEFAULT_WALL_PAN = { x: 0, y: 0 };
 // Resize panel config (individual args for useResizablePanel)
 
 interface AnalyzeWorkspaceProps {
-  activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
+  workspaceProjectScope?: { title: string; labels: WorkspaceProjectScopeLabels } | null;
   /**
    * PR-CS-0 Task 2: id under which drill-materialized ProblemStatementScopes are
-   * keyed. Threaded from the active Improvement Project (`activeIP.id`) so scopes
+   * keyed. Threaded from the active Improvement Project (`workspaceProject.id`) so scopes
    * are durable per-IP and don't co-mingle across projects. Defaults to the
-   * `'general-unassigned'` sentinel for the quick-analysis flow (no active IP) and
+   * `'general-unassigned'` sentinel for the quick-analysis flow (no Workspace Project) and
    * for render harnesses that don't pass the prop.
    */
   scopeProjectId?: string;
@@ -110,7 +110,7 @@ interface AnalyzeWorkspaceProps {
   drillPath: UseFindingsOrchestrationReturn['drillPath'];
   /**
    * PR-CS-6 Edge 1: COPY a finding-level action into the active project's action
-   * tracker. Provided only when an active IP exists; FindingCard hides the
+   * tracker. Provided only when an Workspace Project exists; FindingCard hides the
    * promote button once the source action carries `parentImprovementProjectId`.
    */
   onPromoteFindingAction?: (findingId: string, actionId: string) => void;
@@ -162,7 +162,7 @@ interface AnalyzeWorkspaceProps {
  * `Hypothesis` hubs; the Wall renders hubs + findings (no question column).
  */
 export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
-  activeIPScope,
+  workspaceProjectScope,
   scopeProjectId = 'general-unassigned',
   findingsState,
   handleRestoreFinding,
@@ -253,7 +253,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // (SCOPE_ARCHIVE) — not here.
   const categoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
   const scopes = useAnalyzeStore(s => s.scopes);
-  // PR-CS-0 Task 2: scopeProjectId arrives as a prop (active IP id, or the
+  // PR-CS-0 Task 2: scopeProjectId arrives as a prop (Workspace Project id, or the
   // 'general-unassigned' sentinel for the quick-analysis flow). It is now a dep
   // of every consumer below so an IP switch re-keys materialization + switching.
   useEffect(() => {
@@ -685,7 +685,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   }, [bestSubsets]);
 
   // ── Hub model computations (Hypothesis hubs) ───────────────────────
-  // PO-5: active-IP scope shows the whole document — the Wall renders every hub
+  // PO-5: Workspace Project scope shows the whole document — the Wall renders every hub
   // and finding (the lineage-membership filter is retired; empty-set-means-
   // unfiltered is the permanent semantics).
   const hubs = hypothesesState.hubs;
@@ -992,10 +992,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">
-      {activeIPScope && wallViewMode !== 'wall' ? (
-        <ActiveIPScopeRibbon
-          title={activeIPScope.title}
-          labels={activeIPScope.labels}
+      {workspaceProjectScope && wallViewMode !== 'wall' ? (
+        <WorkspaceProjectScopeRibbon
+          title={workspaceProjectScope.title}
+          labels={workspaceProjectScope.labels}
           surface="Analyze"
         />
       ) : null}

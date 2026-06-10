@@ -327,7 +327,7 @@ const testInvite = {
   deletedAt: null,
 };
 
-describe('PendingInvitesBanner — mounted in App.tsx Home view (active-IP launchpad path)', () => {
+describe('PendingInvitesBanner — mounted in App.tsx Home view (Workspace Project launchpad path)', () => {
   beforeEach(() => {
     // Non-empty rawData so the HomeScreen empty-state branch is skipped and the
     // panels.activeView branch is reached.

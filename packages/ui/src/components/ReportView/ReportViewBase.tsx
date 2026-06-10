@@ -58,7 +58,7 @@ export interface ReportViewBaseProps {
   onCopyAllCharts?: () => void;
   onPrintReport?: () => void;
   onClose: () => void;
-  activeIPContextChip?: React.ReactNode;
+  workspaceProjectContextChip?: React.ReactNode;
   colorScheme?: Partial<ReportViewBaseColorScheme>;
   /** Ref to attach to the scrollable content area (for measuring width) */
   contentRef?: React.RefObject<HTMLDivElement | null>;
@@ -134,7 +134,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   onCopyAllCharts,
   onPrintReport,
   onClose,
-  activeIPContextChip,
+  workspaceProjectContextChip,
   colorScheme,
   contentRef,
 }) => {
@@ -279,7 +279,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
             </h1>
           </div>
 
-          {activeIPContextChip}
+          {workspaceProjectContextChip}
 
           <span className={`${scheme.badge} ${BADGE_COLORS[reportType]}`}>
             {t(BADGE_I18N_KEYS[reportType])}

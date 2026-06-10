@@ -41,8 +41,8 @@ function makeActionItem(overrides: Partial<ActionItem> = {}): ActionItem {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('buildApplyAction — null activeIP guard', () => {
-  it('is a no-op when activeIP is null', () => {
+describe('buildApplyAction — null workspaceProject guard', () => {
+  it('is a no-op when workspaceProject is null', () => {
     const upsertProject = vi.fn();
     const apply = buildApplyAction(null, upsertProject);
     apply({ kind: 'ACTION_ITEM_ADD', hubId: 'hub-1', actionItem: makeActionItem() });

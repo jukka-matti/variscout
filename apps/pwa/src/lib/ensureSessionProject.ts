@@ -7,7 +7,7 @@ import { PWA_USER_ID } from './pwaUser';
  * The Untitled-project guarantee (first-session spec §3): every data entry
  * yields a session hub carrying a live ImprovementProject, auto-named for
  * the entry (sample name / .vrs envelope name / 'Untitled project').
- * Pure: returns the input hub unchanged (same reference) when a live IP
+ * Pure: returns the input hub unchanged (same reference) when a live Workspace Project
  * already exists — .vrs imports reconstruct, never re-wrap (spec §1).
  * Session-only per R6d: nothing here persists.
  */

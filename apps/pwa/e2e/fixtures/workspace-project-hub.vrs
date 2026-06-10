@@ -4,13 +4,13 @@
   "exportedAt": "2026-05-15T00:00:00.000Z",
   "metadata": {
     "exportSource": "pwa",
-    "appVersion": "e2e-active-ip-fixture"
+    "appVersion": "e2e-workspace-project-fixture"
   },
   "documentSnapshot": {
     "schemaVersion": 1,
-    "hubId": "e2e-active-ip-hub",
+    "hubId": "e2e-workspace-project-hub",
     "hub": {
-      "id": "e2e-active-ip-hub",
+      "id": "e2e-workspace-project-hub",
       "name": "Syringe barrel moulding",
       "processGoal": "Lift syringe barrel weight capability on the fill step.",
       "createdAt": 1747267200000,
@@ -18,7 +18,7 @@
       "deletedAt": null
     },
     "project": {
-      "projectId": "e2e-active-ip-hub",
+      "projectId": "e2e-workspace-project-hub",
       "projectName": "Syringe barrel moulding",
       "rawData": [
         { "weight_g": 4.5, "product": "A", "shift": "morning", "batch_id": "B1" },
@@ -39,7 +39,7 @@
       "dataFilename": "syringe-barrel.csv",
       "timeColumn": null,
       "processContext": {
-        "processHubId": "e2e-active-ip-hub"
+        "processHubId": "e2e-workspace-project-hub"
       },
       "entryScenario": "process"
     },
@@ -63,7 +63,7 @@
       "outcomes": [
         {
           "id": "outcome-weight",
-          "hubId": "e2e-active-ip-hub",
+          "hubId": "e2e-workspace-project-hub",
           "columnName": "weight_g",
           "characteristicType": "nominalIsBest",
           "target": 4.5,
@@ -79,7 +79,7 @@
     },
     "improvementProject": {
       "id": "ip-fill-cpk",
-      "hubId": "e2e-active-ip-hub",
+      "hubId": "e2e-workspace-project-hub",
       "createdAt": 1747267200000,
       "updatedAt": 1747267200000,
       "deletedAt": null,
