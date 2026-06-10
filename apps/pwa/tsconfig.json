@@ -10,6 +10,7 @@
       "@variscout/hooks/*": ["../../packages/hooks/src/*"],
       "@variscout/ui": ["../../packages/ui/src"],
       "@variscout/ui/ipDetail": ["../../packages/ui/src/components/IPDetail/index.ts"],
+      "@variscout/ui/test-utils": ["../../packages/ui/src/test-utils/index.ts"],
       "@variscout/ui/*": ["../../packages/ui/src/*"],
       "@variscout/charts": ["../../packages/charts/src"],
       "@variscout/charts/*": ["../../packages/charts/src/*"],

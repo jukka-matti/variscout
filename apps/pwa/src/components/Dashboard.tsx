@@ -59,6 +59,7 @@ import {
 } from '@variscout/hooks';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
+import { useStatsWorker } from '../workers/useStatsWorker';
 import { Activity, Settings2 } from 'lucide-react';
 import {
   getColumnNames,
@@ -180,7 +181,10 @@ const Dashboard = ({
   const { filteredData, filteredIndexMap } = useFilteredData();
   const lensedSampleCount = useLensedSampleCount();
   const dataDateRange = useDataDateRange();
-  const { stats, isComputing } = useAnalysisStats();
+  // Pass the worker so computeStats runs off the main thread; the I-Chart card's
+  // skeleton gate covers the async round-trip (no blank window on tab return).
+  const workerApi = useStatsWorker();
+  const { stats, isComputing } = useAnalysisStats(workerApi);
   const { stagedStats } = useStagedAnalysis();
   const { t } = useTranslation();
   const [analysisLensTab, setAnalysisLensTab] = useState<AnalysisLensTab>('probability');
@@ -999,6 +1003,7 @@ const Dashboard = ({
         stageColumn={stageColumn}
         stagedStats={stagedStats}
         controlStats={stats}
+        ichartLoading={!stats || isComputing}
         chartTitles={chartTitles}
         onChartTitleChange={handleChartTitleChange}
         boxplotFactor={boxplotFactor}
@@ -1245,6 +1250,7 @@ const Dashboard = ({
               anovaResult={anovaResult}
               boxplotData={boxplotData}
               stats={stats}
+              ichartLoading={!stats || isComputing}
               stagedStats={stagedStats}
               stageColumn={stageColumn}
               onSetOutcome={setOutcome}

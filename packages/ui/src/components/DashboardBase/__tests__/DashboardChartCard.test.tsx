@@ -9,6 +9,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import DashboardChartCard from '../DashboardChartCard';
 import type { DashboardChartCardProps } from '../DashboardChartCard';
+import { flushRaf } from '../../../test-utils/raf';
 
 const defaultProps: DashboardChartCardProps = {
   id: 'chart-boxplot',
@@ -19,9 +20,11 @@ const defaultProps: DashboardChartCardProps = {
 };
 
 describe('DashboardChartCard', () => {
-  it('renders title and children', () => {
+  it('renders title and children', async () => {
     render(<DashboardChartCard {...defaultProps} />);
     expect(screen.getByText('Boxplot')).toBeDefined();
+    // Children mount after the one-rAF skeleton gate.
+    await flushRaf();
     expect(screen.getByTestId('chart-content')).toBeDefined();
   });
 
@@ -167,5 +170,31 @@ describe('DashboardChartCard', () => {
     render(<DashboardChartCard {...defaultProps} onClick={onClick} />);
     fireEvent.click(screen.getByTestId('chart-boxplot'));
     expect(onClick).toHaveBeenCalled();
+  });
+
+  // --- skeleton mount gate ---
+
+  it('paints a ChartSkeleton (not children) on the first frame before rAF', () => {
+    render(<DashboardChartCard {...defaultProps} />);
+    // Pre-rAF: the skeleton is painted, children are NOT yet mounted.
+    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+    expect(screen.queryByTestId('chart-content')).toBeNull();
+  });
+
+  it('swaps the skeleton for children after the rAF flush', async () => {
+    render(<DashboardChartCard {...defaultProps} />);
+    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+    await flushRaf();
+    expect(screen.getByTestId('chart-content')).toBeDefined();
+    expect(screen.queryByTestId('chart-skeleton')).toBeNull();
+  });
+
+  it('keeps the skeleton while isLoading is true, even after the rAF flush', async () => {
+    render(<DashboardChartCard {...defaultProps} isLoading />);
+    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+    await flushRaf();
+    // isLoading holds the gate closed regardless of the rAF tick.
+    expect(screen.getByTestId('chart-skeleton')).toBeDefined();
+    expect(screen.queryByTestId('chart-content')).toBeNull();
   });
 });

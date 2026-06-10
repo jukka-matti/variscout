@@ -22,6 +22,8 @@ export interface FocusedChartViewProps {
   anovaResult: AnovaResult | null;
   boxplotData?: BoxplotGroupData[];
   stats?: StatsResult | null;
+  /** Hold the focused I-Chart on a skeleton while stats are pending. */
+  ichartLoading?: boolean;
   stagedStats?: StagedStatsResult | null;
   stageColumn?: string | null;
   onSetOutcome: (outcome: string) => void;
@@ -85,6 +87,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
     anovaResult,
     boxplotData,
     stats,
+    ichartLoading,
     stagedStats,
     stageColumn,
     onSetOutcome,
@@ -147,6 +150,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
         chartTitle: chartTitles?.ichart || '',
         onTitleChange: title => onChartTitleChange?.('ichart', title),
         stats: stats ?? null,
+        isLoading: ichartLoading,
         stageColumn,
         stagedStats: stagedStats ?? null,
         findings: ichartFindings,

@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import Dashboard from '../Dashboard';
+import { flushRaf } from '@variscout/ui/test-utils';
 import { calculateAnova, type Finding } from '@variscout/core';
 import * as UseFilterNavigationModule from '../../hooks/useFilterNavigation';
 import {
@@ -178,13 +179,16 @@ describe('Dashboard', () => {
     );
   });
 
-  it('renders dashboard view by default with tab navigation', () => {
+  it('renders dashboard view by default with tab navigation', async () => {
     render(<Dashboard />);
 
-    // Dashboard view shows I-Chart, Boxplot, and ProcessHealthBar
+    // ProcessHealthBar paints synchronously; chart content mounts after the
+    // one-rAF skeleton gate.
+    expect(screen.getByTestId('process-health-bar')).toBeInTheDocument();
+    await flushRaf();
+    // Dashboard view shows I-Chart + Boxplot once painted.
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
-    expect(screen.getByTestId('process-health-bar')).toBeInTheDocument();
   });
 
   it('does not render AnovaResults when calculation returns null', () => {
@@ -195,7 +199,7 @@ describe('Dashboard', () => {
     expect(screen.queryByTestId('anova-results')).not.toBeInTheDocument();
   });
 
-  it('feeds the histogram measureSpecs[outcome] when global specs are empty', () => {
+  it('feeds the histogram measureSpecs[outcome] when global specs are empty', async () => {
     // Global specs empty; the per-measure spec for the outcome carries limits.
     useProjectStore.setState({
       specs: {},
@@ -203,6 +207,10 @@ describe('Dashboard', () => {
     });
 
     render(<Dashboard />);
+
+    // The histogram lives inside the verify card, which is gated by the one-rAF
+    // skeleton; flush so its content (CapabilityHistogram) mounts.
+    await flushRaf();
 
     // Switch the verify card to the distribution/capability lens (2nd button).
     const verifyTab = screen.getByTestId('verify-tab');

@@ -193,6 +193,13 @@ export interface DashboardLayoutBaseProps {
   onParetoCardClick?: () => void;
   /** I-Chart observation count */
   ichartObservationCount?: number;
+  /**
+   * Hold the I-Chart card's plot slot on a ChartSkeleton while its stats are
+   * pending (apps pass `!stats || isComputing`). The card paints a skeleton for
+   * one rAF on mount regardless; this flag keeps it skeletoned across the async
+   * worker round-trip so no blank window shows on tab return.
+   */
+  ichartLoading?: boolean;
   /** Boxplot observation count */
   boxplotObservationCount?: number;
   /** Pareto observation count */
@@ -270,6 +277,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   paretoHighlightClass,
   onParetoCardClick,
   ichartObservationCount,
+  ichartLoading,
   boxplotObservationCount,
   paretoObservationCount,
 }) => {
@@ -469,6 +477,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
               onDownloadSvg={onDownloadSvg}
               onShareChart={onShareChart}
               observationCount={ichartObservationCount}
+              isLoading={ichartLoading}
               utilityActions="maximize-only"
               title={ichartTitle}
               controls={ichartControls}

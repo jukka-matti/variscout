@@ -10,6 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import DashboardLayoutBase from '../DashboardLayoutBase';
 import type { DashboardLayoutBaseProps } from '../DashboardLayoutBase';
+import { flushRaf } from '../../../test-utils/raf';
 
 const noopAsync = vi.fn().mockResolvedValue(undefined);
 const noop = vi.fn();
@@ -94,11 +95,23 @@ describe('DashboardLayoutBase', () => {
     expect(screen.getByTestId('stats-content')).toBeDefined();
   });
 
-  it('renders render slot content', () => {
+  it('renders render slot content', async () => {
     render(<DashboardLayoutBase {...baseProps} />);
+    // Chart-content children mount after the cards' one-rAF skeleton gate.
+    await flushRaf();
     expect(screen.getByTestId('ichart-content')).toBeDefined();
     expect(screen.getByTestId('boxplot-content')).toBeDefined();
     expect(screen.getByTestId('pareto-content')).toBeDefined();
+  });
+
+  it('holds the I-Chart card on a skeleton while ichartLoading is true', async () => {
+    render(<DashboardLayoutBase {...baseProps} ichartLoading />);
+    await flushRaf();
+    // I-Chart content stays gated; the other charts render normally.
+    expect(screen.queryByTestId('ichart-content')).toBeNull();
+    expect(screen.getByTestId('boxplot-content')).toBeDefined();
+    // The I-Chart card still exists — only its plot slot shows a skeleton.
+    expect(screen.getByTestId('chart-ichart')).toBeDefined();
   });
 
   it('hides pareto card when showParetoPanel is false', () => {
@@ -315,7 +328,7 @@ describe('DashboardLayoutBase', () => {
    * that removes the maximize (drill) affordance, fails these assertions.
    */
   describe('IM-6 always-on charts + drillability (ADR-089 §6.1)', () => {
-    it('shows all four charts at once with no lens picker gating them', () => {
+    it('shows all four charts at once with no lens picker gating them', async () => {
       render(
         <DashboardLayoutBase
           {...baseProps}
@@ -328,7 +341,9 @@ describe('DashboardLayoutBase', () => {
       expect(screen.getByTestId('chart-boxplot')).toBeTruthy();
       expect(screen.getByTestId('chart-pareto')).toBeTruthy();
       expect(screen.getByTestId('chart-stats')).toBeTruthy();
-      // The verify card renders its diagnostic content directly...
+      // The verify card renders its diagnostic content directly (after the
+      // card's one-rAF skeleton gate)...
+      await flushRaf();
       expect(screen.getByTestId('verify-content')).toBeTruthy();
       // ...with no lens-tab SegmentedControl switcher. The apps pass
       // testId="verify-tab" to the SegmentedControl, which emits one button per

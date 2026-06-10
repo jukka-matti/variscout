@@ -68,6 +68,11 @@ vi.mock('html-to-image', () => ({
   toBlob: vi.fn(),
 }));
 
+// Worker is not available in jsdom; the singleton hook returns null in tests.
+vi.mock('../../workers/useStatsWorker', () => ({
+  useStatsWorker: () => null,
+}));
+
 // Mock @variscout/charts
 vi.mock('@variscout/charts', () => ({
   calculateBoxplotStats: vi.fn(() => ({ key: 'A', min: 0, max: 10, median: 5, q1: 2.5, q3: 7.5 })),

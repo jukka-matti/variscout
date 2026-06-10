@@ -42,6 +42,8 @@ interface FocusedChartViewProps {
   stageOrderMode: StageOrderMode;
   stagedStats: StagedStatsResult | null;
   stats: StatsResult | null;
+  /** Hold the focused I-Chart on a skeleton while stats are pending. */
+  ichartLoading?: boolean;
   ichartChartTitle: string;
   onSetOutcome: (o: string) => void;
   onSetStageColumn: (sc: string | null) => void;
@@ -158,6 +160,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
         chartTitle: props.ichartChartTitle,
         onTitleChange: props.onIChartTitleChange,
         stats: props.stats,
+        isLoading: props.ichartLoading,
         stageColumn: props.stageColumn,
         stagedStats: props.stagedStats,
         findings: props.ichartFindings,

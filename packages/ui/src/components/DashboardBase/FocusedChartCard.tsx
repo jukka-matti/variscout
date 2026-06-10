@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Minimize2, Copy, Check } from 'lucide-react';
 import { ChartDownloadMenu, type ChartDownloadMenuColorScheme } from '../ChartExportMenu';
 import { FilterContextBar } from '../FilterContextBar';
 import type { FilterChipData } from '../filterTypes';
+import ChartSkeleton from '../ChartSkeleton/ChartSkeleton';
 
 export interface FocusedChartCardProps {
   /** Container ID (e.g. "ichart-focus") */
@@ -11,7 +12,14 @@ export interface FocusedChartCardProps {
   header: React.ReactNode;
   /** Optional stats bar on the right side of the header row */
   headerRight?: React.ReactNode;
-  /** Chart content (ErrorBoundary + chart component) */
+  /**
+   * Chart content (ErrorBoundary + chart component).
+   *
+   * **Layout contract**: children are rendered unwrapped (no `absolute inset-0`
+   * wrapper) — the parent `flex-1 min-h-0` container provides the sizing context.
+   * Children must be flow-layout (e.g. `w-full h-full` SVG/div). Do NOT pass
+   * absolutely-positioned subtrees here; use DashboardChartCard for that pattern.
+   */
   children: React.ReactNode;
   /** Footer content below the chart (BoxplotStatsTable, AnovaResults) */
   footer?: React.ReactNode;
@@ -35,6 +43,15 @@ export interface FocusedChartCardProps {
   chartDownloadMenuColorScheme?: ChartDownloadMenuColorScheme;
   /** Additional class on the card */
   className?: string;
+  /**
+   * Hold the chart slot on a ChartSkeleton while data/stats are pending.
+   * The card ALSO shows a skeleton for one rAF on every mount regardless of
+   * this flag — the painted frame precedes the synchronous chart render so the
+   * maximize path never paints a blank card.
+   * The one-rAF gate is deliberately always-on (paint-before-blocking-render
+   * guarantee), not data-gated — do not convert it to isLoading-only.
+   */
+  isLoading?: boolean;
 }
 
 /**
@@ -63,7 +80,17 @@ const FocusedChartCard: React.FC<FocusedChartCardProps> = ({
   showFilterContext = true,
   chartDownloadMenuColorScheme,
   className = '',
+  isLoading = false,
 }) => {
+  // One-rAF mount gate: paint a skeleton frame BEFORE the (potentially blocking,
+  // synchronous) chart render so the maximize path is never blank.
+  const [painted, setPainted] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setPainted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const showChart = painted && !isLoading;
+
   const showExportButtons = onCopyChart && onDownloadPng && onDownloadSvg;
 
   return (
@@ -120,7 +147,9 @@ const FocusedChartCard: React.FC<FocusedChartCardProps> = ({
         />
       )}
 
-      <div className="flex-1 min-h-0 w-full">{children}</div>
+      <div className="flex-1 min-h-0 w-full relative">
+        {showChart ? children : <ChartSkeleton />}
+      </div>
 
       {footer}
     </div>

@@ -90,6 +90,7 @@ const IChartFocusedSection: React.FC<{
       onExit={navigation.onExit}
       header={header}
       headerRight={headerRight}
+      isLoading={ichart.isLoading}
       {...chartExport}
       filterChipData={filterContext?.filterChipData}
       columnAliases={filterContext?.columnAliases}

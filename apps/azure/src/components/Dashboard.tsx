@@ -30,6 +30,7 @@ import { subgroupAxisColumns } from '@variscout/core/frame';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
+import { useStatsWorker } from '../workers/useStatsWorker';
 import {
   ErrorBoundary,
   ProcessHealthBar,
@@ -262,7 +263,10 @@ const Dashboard = ({
   const { filteredData, filteredIndexMap } = useFilteredData();
   const lensedSampleCount = useLensedSampleCount();
   const dataDateRange = useDataDateRange();
-  const { stats, isComputing } = useAnalysisStats();
+  // Pass the worker so computeStats runs off the main thread; the I-Chart card's
+  // skeleton gate covers the async round-trip (no blank window on tab return).
+  const workerApi = useStatsWorker();
+  const { stats, isComputing } = useAnalysisStats(workerApi);
   const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
   const { t } = useTranslation();
@@ -1161,6 +1165,7 @@ const Dashboard = ({
                     ? capabilityIChartData.cpkStats
                     : stats
                 }
+                ichartLoading={!stats || isComputing}
                 getTermUcl={getTerm('ucl')}
                 getTermMean={getTerm('mean')}
                 getTermLcl={getTerm('lcl')}
@@ -1401,6 +1406,7 @@ const Dashboard = ({
                       stageOrderMode={stageOrderMode}
                       stagedStats={stagedStats}
                       stats={stats}
+                      ichartLoading={!stats || isComputing}
                       ichartChartTitle={chartTitles.ichart || ''}
                       onSetOutcome={setOutcome}
                       onSetStageColumn={setStageColumn}

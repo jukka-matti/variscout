@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Copy, Check, Maximize2, Share2 } from 'lucide-react';
 import { ChartDownloadMenu, type ChartDownloadMenuColorScheme } from '../ChartExportMenu';
+import ChartSkeleton from '../ChartSkeleton/ChartSkeleton';
 
 export interface DashboardChartCardProps {
   /** Container ID for copy-to-clipboard targeting */
@@ -45,6 +46,15 @@ export interface DashboardChartCardProps {
   observationCount?: number;
   /** Which utility actions are visible in the title row */
   utilityActions?: 'all' | 'maximize-only' | 'none';
+  /**
+   * Hold the chart slot on a ChartSkeleton while data/stats are pending.
+   * The card ALSO shows a skeleton for one rAF on every mount regardless of
+   * this flag — the painted frame precedes the synchronous chart render so no
+   * blank card window is visible on tab return / maximize.
+   * The one-rAF gate is deliberately always-on (paint-before-blocking-render
+   * guarantee), not data-gated — do not convert it to isLoading-only.
+   */
+  isLoading?: boolean;
 }
 
 /**
@@ -79,7 +89,17 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
   onShareChart,
   observationCount,
   utilityActions = 'all',
+  isLoading = false,
 }) => {
+  // One-rAF mount gate: paint a skeleton frame BEFORE the (potentially blocking,
+  // synchronous) chart render so the card is never blank on tab return / maximize.
+  const [painted, setPainted] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setPainted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const showChart = painted && !isLoading;
+
   const showExportButtons =
     utilityActions === 'all' && onCopyChart && onDownloadPng && onDownloadSvg;
   const showShareButton = utilityActions === 'all' && onShareChart;
@@ -178,7 +198,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
       {filterBar}
 
       <div className="flex-1 min-h-0 relative">
-        <div className="absolute inset-0">{children}</div>
+        {showChart ? <div className="absolute inset-0">{children}</div> : <ChartSkeleton />}
       </div>
 
       {footer}
