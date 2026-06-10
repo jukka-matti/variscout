@@ -41,7 +41,10 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
        * visible the I-Chart card simply overflows into the scroll area — the
        * min-h-[500px] floor keeps it usable.
        */}
-      <div className="h-[calc(100dvh-240px)] min-h-[500px] rounded-2xl">{ichartCard}</div>
+      {/* calc operands MUST be underscore-separated: Tailwind emits the underscores
+          as spaces, and CSS calc() requires whitespace around the minus operator —
+          `calc(100dvh-240px)` is invalid CSS the browser silently drops. */}
+      <div className="h-[calc(100dvh_-_240px)] min-h-[500px] rounded-2xl">{ichartCard}</div>
       <div className="min-h-[400px] rounded-2xl">{boxplotCard}</div>
       {paretoCard && <div className="min-h-[400px] rounded-2xl">{paretoCard}</div>}
       {verificationCard && <div className="min-h-[400px] rounded-2xl">{verificationCard}</div>}
