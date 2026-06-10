@@ -86,6 +86,8 @@ Parallelizable: RPT-1, CC-1, CC-3 are mutually independent and can run as a para
 
 ### CC-1 — Comparison engine (spec §5)
 
+Sub-plan: [2026-06-10-cc-1-sustainment-comparison.md](2026-06-10-cc-1-sustainment-comparison.md).
+
 **Scope:** Additive only. New `packages/core/src/control/comparison.ts` (new `control/` dir; existing `control.ts` untouched in this PR):
 
 - `ControlBaseline` interface (spec §4.1 shape) + `SustainmentComparison` output type (before `live|frozen`-sourced stats, after stats or null, per-phase I-chart limits, deltas, optional defect category counts).

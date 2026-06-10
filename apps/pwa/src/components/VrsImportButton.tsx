@@ -1,5 +1,6 @@
 // apps/pwa/src/components/VrsImportButton.tsx
 import { useRef, type ChangeEvent } from 'react';
+import { FileUp } from 'lucide-react';
 import { parseDocumentSnapshotVrs, type DocumentSnapshotVrsFile } from '@variscout/stores';
 
 export interface VrsImportButtonProps {
@@ -24,8 +25,7 @@ export function VrsImportButton({ onImport }: VrsImportButtonProps) {
   };
 
   return (
-    <label>
-      Import .vrs
+    <>
       <input
         ref={inputRef}
         type="file"
@@ -39,9 +39,11 @@ export function VrsImportButton({ onImport }: VrsImportButtonProps) {
         type="button"
         data-testid="vrs-import-button"
         onClick={() => inputRef.current?.click()}
+        className="inline-flex items-center gap-1.5 text-xs text-content-muted hover:text-content-secondary transition-colors"
       >
-        Choose .vrs file
+        <FileUp size={12} />
+        Import .vrs file
       </button>
-    </label>
+    </>
   );
 }
