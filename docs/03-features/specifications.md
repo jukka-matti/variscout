@@ -69,7 +69,7 @@ Seven tabs, in workflow order:
 | **Improve** | Active-IP-scoped action tracker; PDCA workbench behind **"Advanced" toggle** (V1 spec §3.5 amend) |
 | **Report**  | Narrative output for Sponsor signoff                                                              |
 
-Improve is a top-level verb tab with active-IP cascade (2026-05-16 amendment — V1 spec §3.5). Project detail runs three stages: Charter → Approach → Control. Handoff folds into Control closure.
+Improve is a top-level verb tab scoped to the Workspace's active Project (2026-05-16 amendment — V1 spec §3.5; the earlier active-IP cascade framing was retired by the Workspace model, PR #358). Project detail runs three stages: Charter → Approach → Control. Handoff folds into Control closure.
 
 ---
 

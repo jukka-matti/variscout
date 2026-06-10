@@ -214,7 +214,7 @@ AI never sends raw measurement data — only computed statistics. See [ADR-019](
 
 - [Project Reopen Flow](project-reopen.md) — full project-open mechanics, store hydration, Home card chips
 - [First Analysis](azure-first-analysis.md) — onboarding journey
-- [IA Nav Model](../ia-nav-model.md) — 7-tab nav + active-IP cascade
+- [IA Nav Model](../ia-nav-model.md) — 7-tab nav + Workspace context / Analysis Scope
 - [ADR-082: Wedge Architecture](../../07-decisions/adr-082-wedge-architecture.md) — single-SKU + per-project ACLs
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — AI architectural decisions
 - [Performance Mode](../../03-features/analysis/performance-mode.md) — multi-channel analysis

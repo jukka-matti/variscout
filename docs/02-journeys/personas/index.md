@@ -15,7 +15,7 @@ last-reviewed: 2026-05-18
 
 V1 ships 3 personas inside each Project. Per-project ACLs; no cross-AD-tenant invites.
 
-- [**Lead**](lead.md) — drives Charter → Approach → Control; owns active-IP cascade
+- [**Lead**](lead.md) — drives Charter → Approach → Control; owns the Workspace's active Project
 - [**Member**](member.md) — contributes evidence, measurement rows, action items
 - [**Sponsor**](sponsor.md) — approves Charter; reviews Control + signs off Report
 
