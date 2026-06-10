@@ -172,10 +172,18 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses,
             findings,
             controlRecords: activeHub?.controlRecords,
+            controlReviews: activeHub?.controlReviews,
             controlHandoffs: activeHub?.controlHandoffs,
           })
         : null,
-    [activeHub?.controlHandoffs, activeHub?.controlRecords, workspaceProject, findings, hypotheses]
+    [
+      activeHub?.controlHandoffs,
+      activeHub?.controlRecords,
+      activeHub?.controlReviews,
+      workspaceProject,
+      findings,
+      hypotheses,
+    ]
   );
   // PO-5: one composition path — the core engine (status-keyed) is the
   // canonical Report scope; mirrors the PWA ReportView exactly.
@@ -190,6 +198,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             controlRecord: ipReportScope.controlRecord,
+            controlReviews: ipReportScope.controlReviews,
             controlHandoff: ipReportScope.controlHandoff,
           })
         : [],
@@ -203,6 +212,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             controlRecord: ipReportScope.controlRecord,
+            controlReviews: ipReportScope.controlReviews,
           })
         : [],
     [workspaceProject, ipReportScope]
@@ -740,8 +750,11 @@ const ReportView: React.FC<ReportViewProps> = ({
           section.id.startsWith('ip-overview-') && (
             <>
               <ul className="space-y-2">
-                {(ipNarrative[section.stepNumber - 1]?.items ?? []).map(item => (
-                  <li key={item} className="text-sm text-slate-600 dark:text-slate-400">
+                {(ipNarrative[section.stepNumber - 1]?.items ?? []).map((item, index) => (
+                  <li
+                    key={`${section.id}-${index}`}
+                    className="text-sm text-slate-600 dark:text-slate-400"
+                  >
                     {item}
                   </li>
                 ))}

@@ -182,6 +182,8 @@ Consumer inventory to rewire (grounded 2026-06-10 — verify again at sub-plan t
 
 ### CC-7 — Closure checklist + Report integration (spec §8)
 
+Sub-plan: [2026-06-10-cc-7-closure-report.md](2026-06-10-cc-7-closure-report.md).
+
 **Scope:**
 
 - Closure checklist (Editor closure inputs both apps): **handoff recorded** · **operational owner accepted** (plain checkbox, trusted) · **ladder walked or analyst override with required reason** · **sustainment confirmed** (`confirmed-sustained` set by analyst). Closing fires nothing automatically.

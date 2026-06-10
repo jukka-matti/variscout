@@ -17,8 +17,8 @@ export function IPOverviewReport({ sections, causeRows }: IPOverviewReportProps)
           <h2 className="text-lg font-semibold text-content">{section.title}</h2>
           {section.items.length > 0 ? (
             <ul className="mt-3 space-y-2">
-              {section.items.map(item => (
-                <li key={item} className="text-sm text-content-secondary">
+              {section.items.map((item, index) => (
+                <li key={`${section.title}-${index}`} className="text-sm text-content-secondary">
                   {item}
                 </li>
               ))}
