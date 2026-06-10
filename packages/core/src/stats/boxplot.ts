@@ -6,6 +6,7 @@ import type {
   SpecLimits,
 } from '../types';
 import { inferCharacteristicType } from '../types';
+import { detectNaturalVocabComparator } from '../time';
 
 /**
  * Calculate boxplot statistics from raw values
@@ -96,6 +97,14 @@ export function sortBoxplotData(
   direction: BoxplotSortDirection = 'asc'
 ): BoxplotGroupData[] {
   const dir = direction === 'asc' ? 1 : -1;
+
+  // For 'name' sort: detect natural vocabulary order before falling back to localeCompare
+  let naturalNameComparator: ((a: string, b: string) => number) | null = null;
+  if (sortBy === 'name') {
+    const uniqueKeys = [...new Set(data.map(d => d.key))];
+    naturalNameComparator = detectNaturalVocabComparator(uniqueKeys, dir);
+  }
+
   return [...data].sort((a, b) => {
     switch (sortBy) {
       case 'mean':
@@ -104,6 +113,9 @@ export function sortBoxplotData(
         return (a.q3 - a.q1 - (b.q3 - b.q1)) * dir;
       case 'name':
       default:
+        if (naturalNameComparator) {
+          return naturalNameComparator(a.key, b.key);
+        }
         return a.key.localeCompare(b.key) * dir;
     }
   });

@@ -192,6 +192,18 @@ const Dashboard = ({
   const effectiveData = isDefectMode && defectResult ? defectResult.data : filteredData;
   const effectiveOutcome = isDefectMode && defectResult ? defectResult.outcomeColumn : outcome;
   const effectiveFactors = isDefectMode && defectResult ? defectResult.factors : factors;
+  // Prefer the per-measure spec over the global spec for the column actually
+  // shown. Spec-EDIT surfaces write measureSpecs[outcome] when an outcome is
+  // set, so reading global specs alone leaves the histogram with no spec lines
+  // and the verify tab never relabels Distribution -> Capability.
+  const effectiveSpecs = effectiveOutcome ? (measureSpecs[effectiveOutcome] ?? specs) : specs;
+  // Resolved specs keyed on the GLOBAL outcome (not effectiveOutcome). The
+  // ProcessHealthBar Cpk chip + the Stats-panel/What-If surfaces read `stats`
+  // from useAnalysisStats, which keys its spec resolution on `outcome` (the
+  // global one); their other spec-scoped props here (cpkTarget, columnLabel)
+  // also key on `outcome`. Match that source so the Cpk chip never hides while
+  // stats.cpk is defined (the histogram, in contrast, follows effectiveOutcome).
+  const outcomeSpecs = outcome ? (measureSpecs[outcome] ?? specs) : specs;
   const effectiveLensWindow = useMemo(
     () => timeLensIndices(effectiveData.length, timeLens),
     [effectiveData.length, timeLens]
@@ -652,7 +664,7 @@ const Dashboard = ({
     rows: filteredData,
   });
 
-  const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
+  const hasSpecs = effectiveSpecs.usl !== undefined || effectiveSpecs.lsl !== undefined;
 
   const subgroupEmptyState = useMemo(() => {
     const timeLabel = timeColumn ? columnAliases[timeColumn] || timeColumn : null;
@@ -692,7 +704,9 @@ const Dashboard = ({
     {
       id: 'distribution',
       label: hasSpecs ? t('verify.tab.capability') : t('verify.tab.distribution'),
-      content: <CapabilityHistogram data={histogramData} specs={specs} mean={stats?.mean ?? 0} />,
+      content: (
+        <CapabilityHistogram data={histogramData} specs={effectiveSpecs} mean={stats?.mean ?? 0} />
+      ),
     },
   ] satisfies Array<{ id: AnalysisLensTab; label: string; content: React.ReactNode }>;
 
@@ -771,7 +785,7 @@ const Dashboard = ({
         paretoFactor={paretoFactor}
         factors={effectiveFactors}
         stats={stats}
-        specs={specs}
+        specs={outcomeSpecs}
         filteredData={filteredData}
         filters={filters}
         showParetoComparison={showParetoComparison}
@@ -801,7 +815,7 @@ const Dashboard = ({
           outcome={effectiveOutcome}
           factors={effectiveFactors}
           stats={stats}
-          specs={specs}
+          specs={outcomeSpecs}
           boxplotFactor={boxplotFactor}
           paretoFactor={paretoFactor}
           filteredData={filteredData}
@@ -858,7 +872,7 @@ const Dashboard = ({
         {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}
         <ProcessHealthBar
           stats={stats}
-          specs={specs}
+          specs={outcomeSpecs}
           cpkTarget={
             resolveCpkTarget(outcome ?? '', {
               measureSpecs,
@@ -1194,7 +1208,11 @@ const Dashboard = ({
                 }
               >
                 {focusedChart === 'histogram' && histogramData.length > 0 && stats ? (
-                  <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
+                  <CapabilityHistogram
+                    data={histogramData}
+                    specs={effectiveSpecs}
+                    mean={stats.mean}
+                  />
                 ) : focusedChart === 'probability-plot' && histogramData.length > 0 && stats ? (
                   <ProbabilityPlot
                     series={probabilitySeries}

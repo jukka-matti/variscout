@@ -278,6 +278,18 @@ const Dashboard = ({
   const effectiveData = isDefectMode && defectResult ? defectResult.data : filteredData;
   const effectiveOutcome = isDefectMode && defectResult ? defectResult.outcomeColumn : outcome;
   const effectiveFactors = isDefectMode && defectResult ? defectResult.factors : factors;
+  // Prefer the per-measure spec over the global spec for the column actually
+  // shown. Spec-EDIT surfaces write measureSpecs[outcome] when an outcome is
+  // set, so reading global specs alone leaves the histogram with no spec lines
+  // and the verify tab never relabels Distribution -> Capability.
+  const effectiveSpecs = effectiveOutcome ? (measureSpecs[effectiveOutcome] ?? specs) : specs;
+  // Resolved specs keyed on the GLOBAL outcome (not effectiveOutcome). The
+  // ProcessHealthBar Cpk chip + the mobile carousel read `stats` from
+  // useAnalysisStats, which keys its spec resolution on `outcome` (the global
+  // one); their other spec-scoped props here (cpkTarget, columnLabel) also key
+  // on `outcome`. Match that source so the Cpk chip never hides while stats.cpk
+  // is defined (the histogram, in contrast, follows effectiveOutcome).
+  const outcomeSpecs = outcome ? (measureSpecs[outcome] ?? specs) : specs;
 
   // In defect mode + value aggregation, use cost/duration column for Pareto value mode
   const defectParetoOutcome = (() => {
@@ -662,7 +674,7 @@ const Dashboard = ({
   );
 
   // Verify card tabs (Probability / Capability|Distribution)
-  const hasSpecs = !!(specs.usl !== undefined || specs.lsl !== undefined);
+  const hasSpecs = !!(effectiveSpecs.usl !== undefined || effectiveSpecs.lsl !== undefined);
   const azureAnalysisLensTabs: {
     id: AzureAnalysisLensTab;
     label: string;
@@ -676,7 +688,9 @@ const Dashboard = ({
     {
       id: 'distribution',
       label: hasSpecs ? t('verify.tab.capability') : t('verify.tab.distribution'),
-      content: <CapabilityHistogram data={histogramData} specs={specs} mean={stats?.mean ?? 0} />,
+      content: (
+        <CapabilityHistogram data={histogramData} specs={effectiveSpecs} mean={stats?.mean ?? 0} />
+      ),
     },
   ];
   const activeAzureAnalysisLensTab = azureAnalysisLensTabs.some(tab => tab.id === analysisLensTab)
@@ -875,7 +889,7 @@ const Dashboard = ({
         {!isPhone && (
           <ProcessHealthBar
             stats={stats}
-            specs={specs}
+            specs={outcomeSpecs}
             cpkTarget={
               resolveCpkTarget(outcome ?? '', {
                 measureSpecs,
@@ -1094,7 +1108,7 @@ const Dashboard = ({
               }}
               onDrillDown={handleDrillDown}
               stats={stats}
-              specs={outcome ? (measureSpecs[outcome] ?? specs) : specs}
+              specs={outcomeSpecs}
               filteredData={filteredData}
               outcome={outcome}
               onSaveSpecs={
@@ -1351,7 +1365,7 @@ const Dashboard = ({
                         {focusedChart === 'histogram' && histogramData.length > 0 && stats ? (
                           <CapabilityHistogram
                             data={histogramData}
-                            specs={specs}
+                            specs={effectiveSpecs}
                             mean={stats.mean}
                           />
                         ) : focusedChart === 'probability-plot' &&

@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import WhatIfPage from '../WhatIfPage';
-import { useProjectStore } from '@variscout/stores';
+import { useProjectStore, useAnalysisScopeStore } from '@variscout/stores';
+
+// Records the props the wrapper passes to WhatIfExplorerPage so tests can
+// assert factor + spec resolution.
+const lastExplorerProps: { activeFactor?: string | null; specs?: Record<string, unknown> } = {};
 
 // Default store state
 const defaultStoreState = {
@@ -13,6 +17,7 @@ const defaultStoreState = {
   ],
   outcome: 'Value',
   specs: { usl: 25, lsl: 5 } as { usl?: number; lsl?: number; target?: number },
+  measureSpecs: {} as Record<string, { usl?: number; lsl?: number; target?: number }>,
   filters: {} as Record<string, (string | number)[]>,
   factors: ['Machine'],
   cpkTarget: 1.33,
@@ -44,6 +49,7 @@ vi.mock('@variscout/ui', async () => {
       specs,
       filterCount,
       onBack,
+      activeFactor,
     }: {
       filteredData: Record<string, unknown>[];
       rawData: Record<string, unknown>[];
@@ -51,7 +57,10 @@ vi.mock('@variscout/ui', async () => {
       specs: Record<string, unknown>;
       filterCount: number;
       onBack: () => void;
+      activeFactor?: string | null;
     }) => {
+      lastExplorerProps.activeFactor = activeFactor;
+      lastExplorerProps.specs = specs;
       // Simplified rendering that mirrors the real WhatIfExplorerPage behavior
       if (!outcome || rawData.length === 0) {
         return (
@@ -86,8 +95,17 @@ vi.mock('@variscout/ui', async () => {
 describe('WhatIfPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    lastExplorerProps.activeFactor = undefined;
+    lastExplorerProps.specs = undefined;
     useProjectStore.setState(
       defaultStoreState as unknown as Partial<ReturnType<typeof useProjectStore.getState>>
+    );
+    useAnalysisScopeStore.setState(
+      (
+        useAnalysisScopeStore as unknown as {
+          getInitialState: () => ReturnType<typeof useAnalysisScopeStore.getState>;
+        }
+      ).getInitialState()
     );
   });
 
@@ -164,5 +182,29 @@ describe('WhatIfPage', () => {
     const buttons = screen.getAllByRole('button');
     fireEvent.click(buttons[0]);
     expect(onBack).toHaveBeenCalledOnce();
+  });
+
+  it('binds activeFactor from analysisScopeStore.boxplotFactor (the analyzed factor)', () => {
+    // factors[0] is 'Machine' — but the analyzed boxplot factor is the scope store's.
+    useProjectStore.setState({ factors: ['Machine', 'Shift'] });
+    useAnalysisScopeStore.getState().setBoxplotFactor('Shift');
+    render(<WhatIfPage onBack={() => {}} />);
+    expect(lastExplorerProps.activeFactor).toBe('Shift');
+  });
+
+  it('falls back to factors[0] when analysisScopeStore has no boxplotFactor', () => {
+    useProjectStore.setState({ factors: ['Machine', 'Shift'] });
+    render(<WhatIfPage onBack={() => {}} />);
+    expect(lastExplorerProps.activeFactor).toBe('Machine');
+  });
+
+  it('resolves per-measure specs for the active outcome', () => {
+    // measureSpecs override for "Value" should win over the global specs.
+    useProjectStore.setState({
+      specs: { usl: 25, lsl: 5 },
+      measureSpecs: { Value: { usl: 30, lsl: 10 } },
+    });
+    render(<WhatIfPage onBack={() => {}} />);
+    expect(lastExplorerProps.specs).toEqual({ usl: 30, lsl: 10 });
   });
 });

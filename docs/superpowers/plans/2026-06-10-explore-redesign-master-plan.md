@@ -50,6 +50,8 @@ Codex CC PRs were merging throughout the design session (CC-2…CC-6 merged 2026
 
 ## ER-0 — Numbers you can trust (independent bug cluster; can ship first, smallest)
 
+**Sub-plan:** [`2026-06-10-er-0-trust-fixes.md`](2026-06-10-er-0-trust-fixes.md).
+
 Standalone correctness fixes; every item already grounded with file pointers in the 2026-06-10 investigations entries.
 
 1. **Finding card condition-n** — the bug is in the ROWS argument, not a missing metadata field: `buildFindingContext(filters, filteredData, …)` (`packages/hooks/src/findingCreation.ts`) computes `context.stats` over the dashboard's current `filteredData` while the FILTERS argument carries the draft's condition — so the persisted stats ignore the condition the card's own chips claim. Fix: at the capture call sites (`apps/pwa/src/App.tsx:680-686` `handleAddChartObservation`; Azure mirror `useFindingsOrchestration.ts:208-214`), compute the condition-scoped rows at capture time (apply the draft's condition/brush range to the data) and pass THOSE rows to `buildFindingContext` — never the unconditioned view data. The capture-options type is imported in `App.tsx:30` (ground its exact home at sub-plan time). Acceptance: dialog n=404 → saved card n=404, mean/Cpk equally condition-scoped.

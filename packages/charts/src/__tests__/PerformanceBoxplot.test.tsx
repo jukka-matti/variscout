@@ -87,3 +87,20 @@ describe('PerformanceBoxplot dot fallback', () => {
     expect(MIN_BOXPLOT_VALUES).toBe(7);
   });
 });
+
+describe('PerformanceBoxplot violin render', () => {
+  it('renders violin path (visx-violin) when showViolin=true and channel has >= 7 values', () => {
+    // Three conditions must all hold for a violin to render:
+    // 1. showViolin=true
+    // 2. >= MIN_BOXPLOT_VALUES (7) values — below this the dot-fallback fires instead
+    // 3. calculateKDE produces a non-empty result (requires >= 2 values)
+    // 10 values satisfies all three.
+    const channels = [makeChannel('ch-violin', [2, 4, 6, 8, 10, 12, 14, 16, 18, 20])];
+    const { container } = render(
+      <PerformanceBoxplotBase channels={channels} showViolin={true} {...defaultProps} />
+    );
+
+    const violinPath = container.querySelector('path.visx-violin');
+    expect(violinPath).not.toBeNull();
+  });
+});

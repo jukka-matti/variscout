@@ -11,32 +11,44 @@ const categories: CategoryStats[] = [
 describe('findBestSubgroup', () => {
   it('should find lowest mean for smaller-is-better', () => {
     const best = findBestSubgroup(categories, 'smaller');
-    expect(best.value).toBe('Day');
+    expect(best?.value).toBe('Day');
   });
 
   it('should find highest mean for larger-is-better', () => {
     const best = findBestSubgroup(categories, 'larger');
-    expect(best.value).toBe('Night');
+    expect(best?.value).toBe('Night');
   });
 
   it('should find closest to target for nominal', () => {
     const best = findBestSubgroup(categories, 'nominal', 14.0);
-    expect(best.value).toBe('Evening');
+    expect(best?.value).toBe('Evening');
   });
 
-  it('should find closest to spec midpoint when nominal and no target', () => {
+  it('should find closest to spec midpoint when explicit nominal and no target', () => {
     const best = findBestSubgroup(categories, 'nominal', undefined, { usl: 16, lsl: 12 });
-    expect(best.value).toBe('Evening'); // midpoint = 14.0
+    expect(best?.value).toBe('Evening'); // midpoint = 14.0
   });
 
-  it('should default to first category mean when nominal and no target or specs', () => {
+  it('should return undefined for nominal with no target and no limits (no anchor)', () => {
+    // explicit vs inferred 'nominal' is a caller-level distinction (inferCharacteristicType);
+    // both arrive here as 'nominal' — direction-blind, must NOT fabricate a "best".
     const best = findBestSubgroup(categories, 'nominal');
-    expect(best.value).toBe('Day'); // closest to first category mean 13.0
+    expect(best).toBeUndefined();
+  });
+
+  it('should rank by direction for explicit smaller even with one-sided limit', () => {
+    const best = findBestSubgroup(categories, 'smaller', undefined, { usl: 16 });
+    expect(best?.value).toBe('Day'); // lowest mean
+  });
+
+  it('should rank by direction for explicit larger even with one-sided limit', () => {
+    const best = findBestSubgroup(categories, 'larger', undefined, { lsl: 10 });
+    expect(best?.value).toBe('Night'); // highest mean
   });
 
   it('should return the only category if only one', () => {
     const best = findBestSubgroup([categories[0]], 'nominal');
-    expect(best.value).toBe('Day');
+    expect(best?.value).toBe('Day');
   });
 
   it('should throw for empty array', () => {

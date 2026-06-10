@@ -417,6 +417,7 @@ describe('Stage Order Detection', () => {
     expect(order).toEqual(['3', '1', '2']);
   });
 
+  // Guard: non-member text stays first-occurrence
   it('should sort text stages by data order in auto mode', () => {
     const stages = ['Charlie', 'Alpha', 'Bravo'];
     const order = determineStageOrder(stages, 'auto');
@@ -441,6 +442,46 @@ describe('Stage Order Detection', () => {
   it('should handle single stage', () => {
     const order = determineStageOrder(['Only']);
     expect(order).toEqual(['Only']);
+  });
+
+  describe('natural vocabulary ordering in auto mode', () => {
+    it('auto + day-parts in data order → Morning→Afternoon→Evening→Night natural order', () => {
+      // data order is Afternoon first, then Morning, then Evening
+      const stages = ['Afternoon', 'Morning', 'Evening', 'Afternoon', 'Morning'];
+      const order = determineStageOrder(stages, 'auto');
+      expect(order).toEqual(['Morning', 'Afternoon', 'Evening']);
+    });
+
+    it('auto + weekday abbreviations → Mon→Tue→Wed→Thu→Fri order', () => {
+      const stages = ['Wed', 'Mon', 'Fri', 'Mon', 'Wed', 'Tue', 'Thu'];
+      const order = determineStageOrder(stages, 'auto');
+      expect(order).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+    });
+
+    it('auto + month abbreviations → Jan→…→Dec natural order', () => {
+      const stages = ['Mar', 'Jan', 'Feb', 'Jan', 'Mar'];
+      const order = determineStageOrder(stages, 'auto');
+      expect(order).toEqual(['Jan', 'Feb', 'Mar']);
+    });
+
+    it('data-order mode bypasses natural ordering', () => {
+      const stages = ['Afternoon', 'Morning', 'Evening'];
+      const order = determineStageOrder(stages, 'data-order');
+      // must NOT sort naturally — preserves data order
+      expect(order).toEqual(['Afternoon', 'Morning', 'Evening']);
+    });
+
+    it('composite stage keys containing "·" fall through to first-occurrence', () => {
+      const stages = ['Station 2 · Before', 'Station 1 · After'];
+      const order = determineStageOrder(stages, 'auto');
+      expect(order).toEqual(['Station 2 · Before', 'Station 1 · After']);
+    });
+
+    it('numeric patterns still win over natural vocab (Stage 1/2 stays numeric)', () => {
+      const stages = ['Stage 3', 'Stage 1', 'Stage 2'];
+      const order = determineStageOrder(stages, 'auto');
+      expect(order).toEqual(['Stage 1', 'Stage 2', 'Stage 3']);
+    });
   });
 });
 

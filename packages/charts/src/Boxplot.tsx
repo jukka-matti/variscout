@@ -4,7 +4,7 @@ import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
-import ViolinPlot from '@visx/stats/lib/ViolinPlot';
+import { ViolinPlot } from '@visx/stats';
 import type { BoxplotProps, BoxplotGroupData } from './types';
 import ChartSourceBar from './ChartSourceBar';
 import { chartColors } from './colors';

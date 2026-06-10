@@ -22,7 +22,7 @@ import { MIN_BOXPLOT_VALUES } from './Boxplot';
 import { useChartTheme, getDocumentFontScale } from './useChartTheme';
 import { getResponsiveMargins, getScaledFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
-import ViolinPlot from '@visx/stats/lib/ViolinPlot';
+import { ViolinPlot } from '@visx/stats';
 import * as d3 from 'd3-array';
 
 const DEFAULT_MAX_DISPLAYED = 5;

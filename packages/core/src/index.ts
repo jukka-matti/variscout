@@ -457,6 +457,13 @@ export {
   formatTimeBucket,
   augmentWithTimeColumns,
   hasTimeComponent,
+  DAY_ABBR,
+  MONTH_ABBR,
+  MONTH_FULL,
+  WEEKDAY_DISPLAY_ORDER,
+  WEEKDAY_FULL_DISPLAY_ORDER,
+  DAY_PART_ORDER,
+  detectNaturalVocabComparator,
 } from './time';
 
 // Selection utilities (Minitab-style brushing)

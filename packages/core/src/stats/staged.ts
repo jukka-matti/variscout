@@ -7,6 +7,7 @@ import type {
 } from '../types';
 import { calculateStats } from './basic';
 import { safeMin, safeMax } from '../utils/minmax';
+import { detectNaturalVocabComparator } from '../time';
 
 // ============================================================================
 // Staged Comparison Types
@@ -144,6 +145,8 @@ export function calculateStagedComparison(stagedStats: StagedStatsResult): Stage
  *
  * Auto-detection logic:
  * - If all stage values are numeric or match patterns like "Stage 1", "Phase 2" → numerical order
+ * - Else if all values belong to a single natural vocabulary (weekday abbreviations/full names,
+ *   month abbreviations/full names, or day-part labels) → natural vocabulary order
  * - Otherwise → first occurrence order (preserve original data sequence)
  *
  * @param stageValues - Array of stage values in original data order
@@ -153,6 +156,10 @@ export function calculateStagedComparison(stagedStats: StagedStatsResult): Stage
  * @example
  * determineStageOrder(['2', '1', '3', '1'], 'auto');
  * // Returns: ['1', '2', '3'] (numeric detected)
+ *
+ * @example
+ * determineStageOrder(['Wed', 'Mon', 'Fri'], 'auto');
+ * // Returns: ['Mon', 'Wed', 'Fri'] (weekday vocabulary detected)
  *
  * @example
  * determineStageOrder(['Before', 'After', 'Before'], 'auto');
@@ -194,6 +201,13 @@ export function determineStageOrder(
       const numB = parseInt(b.match(/\d+/)?.[0] ?? '0', 10);
       return numA - numB;
     });
+  }
+
+  // Natural vocabulary detection: weekdays, months, day-parts
+  // Only applied when every unique key belongs to a single vocabulary.
+  const naturalComparator = detectNaturalVocabComparator(unique, 1);
+  if (naturalComparator) {
+    return [...unique].sort(naturalComparator);
   }
 
   // Default to first occurrence order

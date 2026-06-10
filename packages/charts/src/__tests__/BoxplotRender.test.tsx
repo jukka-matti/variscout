@@ -130,4 +130,17 @@ describe('BoxplotBase rendering', () => {
     const svg = container.querySelector('svg');
     expect(svg).not.toBeNull();
   });
+
+  it('renders violin path (visx-violin) when showViolin=true and group has >= 7 values', () => {
+    // Three conditions must all hold for a violin to render:
+    // 1. showViolin=true
+    // 2. >= MIN_BOXPLOT_VALUES (7) values — below this the dot-fallback fires instead
+    // 3. calculateKDE produces a non-empty result (requires >= 2 values)
+    // 10 values satisfies all three.
+    const data = [makeGroup('GroupV', [1, 3, 5, 7, 9, 11, 13, 15, 17, 19])];
+    const { container } = render(<BoxplotBase data={data} {...defaultProps} showViolin={true} />);
+
+    const violinPath = container.querySelector('path.visx-violin');
+    expect(violinPath).not.toBeNull();
+  });
 });
