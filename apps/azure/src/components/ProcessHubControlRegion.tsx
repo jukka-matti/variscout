@@ -1,10 +1,10 @@
 import React from 'react';
 import { ShieldCheck, ShieldAlert, History } from 'lucide-react';
 import {
-  selectControlBuckets,
   isControlEligible,
   isControlled,
-  type ControlReviewItem,
+  isControlDue,
+  isControlOverdue,
   type ControlRecord,
   type ControlHandoff,
 } from '@variscout/core';
@@ -13,11 +13,10 @@ import { formatSustainmentVerdict, formatSustainmentDue } from './controlFormat'
 
 export interface ProcessHubControlRegionProps {
   /**
-   * Projects in scope for the control queue. On the Project tab this is the
-   * single active project (`[activeProject]`); the buckets degrade gracefully
-   * to the single-project case.
+   * The single active project for this workspace. Pass `null` / `undefined`
+   * when no project is loaded (region renders the empty-state line).
    */
-  projects: ImprovementProject[];
+  project: ImprovementProject | null | undefined;
   records: ControlRecord[];
   handoffs: ControlHandoff[];
   /** Injectable "now" for deterministic tests. Defaults to the render time. */
@@ -27,63 +26,22 @@ export interface ProcessHubControlRegionProps {
   onLogReview: (recordId: string) => void;
 }
 
-interface BucketSectionProps {
-  label: string;
-  count: number;
-  icon: React.ReactNode;
-  items: ControlReviewItem[];
-  onItemClick: (item: ControlReviewItem) => void;
-  itemAriaLabel: (item: ControlReviewItem) => string;
-  iconForItem: React.ReactNode;
-  renderSubline?: (item: ControlReviewItem) => string;
-  testId: string;
+/** Find the first non-tombstoned ControlRecord for a given project id. */
+function liveRecordForProject(
+  projectId: string,
+  records: ControlRecord[]
+): ControlRecord | undefined {
+  return records.find(r => r.improvementProjectId === projectId && r.deletedAt === null);
 }
 
-const BucketSection: React.FC<BucketSectionProps> = ({
-  label,
-  count,
-  icon,
-  items,
-  onItemClick,
-  itemAriaLabel,
-  iconForItem,
-  renderSubline,
-  testId,
-}) => (
-  <div data-testid={testId}>
-    <div className="mb-1 flex items-center justify-between gap-2">
-      <div className="flex items-center gap-1.5">
-        {icon}
-        <p className="text-xs font-medium uppercase tracking-wide text-content-secondary">
-          {label}
-        </p>
-      </div>
-      <span className="text-xs text-content-muted">{count}</span>
-    </div>
-    <div className="space-y-2">
-      {items.map(item => (
-        <button
-          key={item.project.id}
-          type="button"
-          onClick={() => onItemClick(item)}
-          className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
-          aria-label={itemAriaLabel(item)}
-        >
-          <div className="flex items-center gap-2 text-sm font-medium text-content">
-            {iconForItem}
-            <span>{item.project.metadata.title}</span>
-          </div>
-          {renderSubline && (
-            <p className="mt-1 text-xs text-content-secondary">{renderSubline(item)}</p>
-          )}
-        </button>
-      ))}
-    </div>
-  </div>
-);
+/** Find the live ControlHandoff that opts a record out of periodic reviews. */
+function handoffOptedOut(record: ControlRecord, handoffs: ControlHandoff[]): boolean {
+  const handoff = handoffs.find(h => h.projectId === record.projectId);
+  return handoff !== undefined && handoff.retainControlReview === false;
+}
 
 const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
-  projects,
+  project,
   records,
   handoffs,
   renderDate,
@@ -93,94 +51,130 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
 }) => {
   const now = renderDate ?? new Date();
 
-  const buckets = selectControlBuckets(projects, records, handoffs, now);
+  if (!project) {
+    return (
+      <section className="space-y-3" data-testid="control-region" aria-label="Control region">
+        <p className="text-sm text-content-secondary">
+          No control items yet — projects move here once they reach the Control stage.
+        </p>
+      </section>
+    );
+  }
 
-  // Setup candidates read FACTS, not the analyzeStatus label (PR-PO-2): a
-  // project is control-eligible (closed lifecycle OR a live control artifact)
-  // but not yet controlled (no live ControlRecord). Projects already surfaced
-  // in a due/overdue/recently-reviewed bucket are not re-listed here.
-  const bucketedProjectIds = new Set([
-    ...buckets.dueNow.map(item => item.project.id),
-    ...buckets.overdue.map(item => item.project.id),
-    ...buckets.recentlyReviewed.map(item => item.project.id),
-  ]);
+  const eligible = isControlEligible(project, records, handoffs);
+  const controlled = isControlled(project, records);
+  const record = liveRecordForProject(project.id, records);
 
-  const setupCandidates = projects.filter(project => {
-    if (!isControlEligible(project, records, handoffs)) return false;
-    if (isControlled(project, records)) return false;
-    if (bucketedProjectIds.has(project.id)) return false;
-    return true;
-  });
+  // Determine single-project status.
+  let status: 'overdue' | 'due' | 'recently-reviewed' | 'needs-setup' | 'empty' = 'empty';
 
-  const reviewSubline = (item: ControlReviewItem): string => {
-    const verdict = item.record.latestVerdict;
-    const nextReviewDue = item.record.nextReviewDue;
-    return [
-      verdict ? formatSustainmentVerdict(verdict) : null,
-      formatSustainmentDue(nextReviewDue, now),
-    ]
-      .filter(Boolean)
-      .join(' · ');
-  };
+  if (eligible) {
+    if (record && !handoffOptedOut(record, handoffs)) {
+      if (isControlOverdue(record, now)) {
+        status = 'overdue';
+      } else if (isControlDue(record, now)) {
+        status = 'due';
+      } else if (record.latestReviewAt) {
+        const recentCutoffMs = now.getTime() - 14 * 24 * 60 * 60 * 1000;
+        const reviewedMs = new Date(record.latestReviewAt).getTime();
+        if (Number.isFinite(reviewedMs) && reviewedMs >= recentCutoffMs) {
+          status = 'recently-reviewed';
+        }
+      }
+    } else if (!controlled) {
+      // Eligible but no live record → show setup prompt.
+      status = 'needs-setup';
+    }
+  }
 
-  // Due/overdue → log a review against the record. Recently-reviewed → open the
-  // project (nothing to log right now; mirrors the pre-PO-2 open-not-log intent).
-  const handleReviewClick = (item: ControlReviewItem) => {
-    onLogReview(item.record.id);
-  };
-
-  const handleOpenClick = (item: ControlReviewItem) => {
-    onOpenProject(item.project.id);
-  };
-
-  const totalSustainmentItems =
-    buckets.dueNow.length + buckets.overdue.length + buckets.recentlyReviewed.length;
+  const subline =
+    record && status !== 'needs-setup'
+      ? [
+          record.latestVerdict ? formatSustainmentVerdict(record.latestVerdict) : null,
+          formatSustainmentDue(record.nextReviewDue, now),
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : undefined;
 
   return (
     <section className="space-y-3" data-testid="control-region" aria-label="Control region">
-      {buckets.overdue.length > 0 && (
-        <BucketSection
-          label="Overdue"
-          count={buckets.overdue.length}
-          icon={<ShieldAlert size={14} className="text-red-400" />}
-          items={buckets.overdue}
-          onItemClick={handleReviewClick}
-          itemAriaLabel={item => `Log overdue control review for ${item.project.metadata.title}`}
-          iconForItem={<ShieldAlert size={14} className="text-red-400" />}
-          renderSubline={reviewSubline}
-          testId="control-overdue"
-        />
+      {status === 'overdue' && record && (
+        <div data-testid="control-overdue">
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <ShieldAlert size={14} className="text-red-400" />
+              <p className="text-xs font-medium uppercase tracking-wide text-content-secondary">
+                Overdue
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onLogReview(record.id)}
+            className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
+            aria-label={`Log overdue control review for ${project.metadata.title}`}
+          >
+            <div className="flex items-center gap-2 text-sm font-medium text-content">
+              <ShieldAlert size={14} className="text-red-400" />
+              <span>{project.metadata.title}</span>
+            </div>
+            {subline && <p className="mt-1 text-xs text-content-secondary">{subline}</p>}
+          </button>
+        </div>
       )}
 
-      {buckets.dueNow.length > 0 && (
-        <BucketSection
-          label="Control due"
-          count={buckets.dueNow.length}
-          icon={<ShieldCheck size={14} className="text-amber-400" />}
-          items={buckets.dueNow}
-          onItemClick={handleReviewClick}
-          itemAriaLabel={item => `Log control review for ${item.project.metadata.title}`}
-          iconForItem={<ShieldCheck size={14} className="text-amber-400" />}
-          renderSubline={reviewSubline}
-          testId="control-due"
-        />
+      {status === 'due' && record && (
+        <div data-testid="control-due">
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck size={14} className="text-amber-400" />
+              <p className="text-xs font-medium uppercase tracking-wide text-content-secondary">
+                Control due
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onLogReview(record.id)}
+            className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
+            aria-label={`Log control review for ${project.metadata.title}`}
+          >
+            <div className="flex items-center gap-2 text-sm font-medium text-content">
+              <ShieldCheck size={14} className="text-amber-400" />
+              <span>{project.metadata.title}</span>
+            </div>
+            {subline && <p className="mt-1 text-xs text-content-secondary">{subline}</p>}
+          </button>
+        </div>
       )}
 
-      {buckets.recentlyReviewed.length > 0 && (
-        <BucketSection
-          label="Recently reviewed"
-          count={buckets.recentlyReviewed.length}
-          icon={<History size={14} className="text-green-400" />}
-          items={buckets.recentlyReviewed}
-          onItemClick={handleOpenClick}
-          itemAriaLabel={item => `Open recently reviewed project ${item.project.metadata.title}`}
-          iconForItem={<ShieldCheck size={14} className="text-green-400" />}
-          renderSubline={reviewSubline}
-          testId="control-recently-reviewed"
-        />
+      {status === 'recently-reviewed' && record && (
+        <div data-testid="control-recently-reviewed">
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <History size={14} className="text-green-400" />
+              <p className="text-xs font-medium uppercase tracking-wide text-content-secondary">
+                Recently reviewed
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpenProject(project.id)}
+            className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
+            aria-label={`Open recently reviewed project ${project.metadata.title}`}
+          >
+            <div className="flex items-center gap-2 text-sm font-medium text-content">
+              <ShieldCheck size={14} className="text-green-400" />
+              <span>{project.metadata.title}</span>
+            </div>
+            {subline && <p className="mt-1 text-xs text-content-secondary">{subline}</p>}
+          </button>
+        </div>
       )}
 
-      {setupCandidates.length > 0 ? (
+      {status === 'needs-setup' && (
         <div data-testid="control-setup">
           <div className="mb-1 flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
@@ -189,29 +183,23 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
                 Set up control
               </p>
             </div>
-            <span className="text-xs text-content-muted">{setupCandidates.length}</span>
           </div>
-          <div className="space-y-2">
-            {setupCandidates.map(project => (
-              <button
-                key={project.id}
-                type="button"
-                onClick={() => onSetupControl(project.id)}
-                className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
-                aria-label={`Set up control cadence for ${project.metadata.title}`}
-              >
-                <p className="text-sm font-medium text-content">{project.metadata.title}</p>
-                <p className="mt-1 text-xs text-content-secondary">Set up control cadence</p>
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => onSetupControl(project.id)}
+            className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-secondary"
+            aria-label={`Set up control cadence for ${project.metadata.title}`}
+          >
+            <p className="text-sm font-medium text-content">{project.metadata.title}</p>
+            <p className="mt-1 text-xs text-content-secondary">Set up control cadence</p>
+          </button>
         </div>
-      ) : (
-        totalSustainmentItems === 0 && (
-          <p className="text-sm text-content-secondary">
-            No control items yet — projects move here once they reach the Control stage.
-          </p>
-        )
+      )}
+
+      {status === 'empty' && (
+        <p className="text-sm text-content-secondary">
+          No control items yet — projects move here once they reach the Control stage.
+        </p>
       )}
     </section>
   );

@@ -5,10 +5,8 @@ import ProcessHubControlRegion from '../ProcessHubControlRegion';
 import type { ControlRecord, ControlHandoff } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 
-// PR-PO-2: the Control region is project-keyed and reads FACTS (control
-// artifacts + lifecycle status), not the free-text analyzeStatus label. The
-// Project tab is single-project, so most fixtures pass a single project, but the
-// selectors degrade gracefully across any number of projects.
+// Single-project Control status — the region now accepts a single `project` prop
+// (not an array). All status derivation uses per-record predicates directly.
 
 function makeProject({
   id,
@@ -72,17 +70,37 @@ function makeHandoff(projectId: string, overrides: Partial<ControlHandoff> = {})
 }
 
 const noOp = vi.fn();
-// Anchor for deterministic bucket math.
+// Anchor for deterministic status math.
 const NOW = new Date('2026-05-01T00:00:00.000Z');
 
 describe('ProcessHubControlRegion', () => {
   it('renders the empty-state line when no project is control-eligible', () => {
     // active project, no control artifacts → not eligible → empty state.
-    const projects = [makeProject({ id: 'p-1', title: 'Fill Weight', status: 'active' })];
+    const project = makeProject({ id: 'p-1', title: 'Fill Weight', status: 'active' });
 
     render(
       <ProcessHubControlRegion
-        projects={projects}
+        project={project}
+        records={[]}
+        handoffs={[]}
+        renderDate={NOW}
+        onOpenProject={noOp}
+        onSetupControl={noOp}
+        onLogReview={noOp}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        'No control items yet — projects move here once they reach the Control stage.'
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('renders the empty-state line when project is null', () => {
+    render(
+      <ProcessHubControlRegion
+        project={null}
         records={[]}
         handoffs={[]}
         renderDate={NOW}
@@ -103,11 +121,11 @@ describe('ProcessHubControlRegion', () => {
     const onSetupControl = vi.fn();
     // Closed lifecycle status makes it control-eligible by FACT, even with no
     // record yet → it surfaces as a setup candidate (facts, not the label).
-    const projects = [makeProject({ id: 'p-2', title: 'Syringe Barrel', status: 'closed' })];
+    const project = makeProject({ id: 'p-2', title: 'Syringe Barrel', status: 'closed' });
 
     render(
       <ProcessHubControlRegion
-        projects={projects}
+        project={project}
         records={[]}
         handoffs={[]}
         renderDate={NOW}
@@ -126,9 +144,9 @@ describe('ProcessHubControlRegion', () => {
     expect(onSetupControl).toHaveBeenCalledWith('p-2');
   });
 
-  it('renders the overdue bucket when a record is past due, calls onLogReview with the recordId', () => {
+  it('renders the overdue status when a record is past due, calls onLogReview with the recordId', () => {
     const onLogReview = vi.fn();
-    const projects = [makeProject({ id: 'p-3', title: 'Coffee Moisture', status: 'closed' })];
+    const project = makeProject({ id: 'p-3', title: 'Coffee Moisture', status: 'closed' });
     const records = [
       makeRecord('p-3', {
         id: 'rec-abc',
@@ -140,7 +158,7 @@ describe('ProcessHubControlRegion', () => {
 
     render(
       <ProcessHubControlRegion
-        projects={projects}
+        project={project}
         records={records}
         handoffs={handoffs}
         renderDate={NOW}
@@ -160,11 +178,11 @@ describe('ProcessHubControlRegion', () => {
     expect(onLogReview).toHaveBeenCalledWith('rec-abc');
   });
 
-  it('renders the recently-reviewed bucket for a not-yet-due record with a recent review', () => {
+  it('renders the recently-reviewed status for a not-yet-due record with a recent review', () => {
     const sevenDaysAgo = new Date(NOW.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const oneMonthFromNow = new Date(NOW.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    const projects = [makeProject({ id: 'p-recent', title: 'Pasteurizer Temp', status: 'closed' })];
+    const project = makeProject({ id: 'p-recent', title: 'Pasteurizer Temp', status: 'closed' });
     const records = [
       makeRecord('p-recent', {
         id: 'rec-recent',
@@ -176,7 +194,7 @@ describe('ProcessHubControlRegion', () => {
 
     render(
       <ProcessHubControlRegion
-        projects={projects}
+        project={project}
         records={records}
         handoffs={[]}
         renderDate={NOW}
@@ -190,8 +208,8 @@ describe('ProcessHubControlRegion', () => {
     expect(screen.getByText('Pasteurizer Temp')).toBeInTheDocument();
   });
 
-  it('hides all control buckets when a controlled project has a retainControlReview=false handoff', () => {
-    const projects = [makeProject({ id: 'p-5', title: 'Pressure Drop', status: 'closed' })];
+  it('renders empty-state when a controlled project has a retainControlReview=false handoff', () => {
+    const project = makeProject({ id: 'p-5', title: 'Pressure Drop', status: 'closed' });
     const records = [
       makeRecord('p-5', {
         id: 'rec-xyz',
@@ -212,7 +230,7 @@ describe('ProcessHubControlRegion', () => {
 
     render(
       <ProcessHubControlRegion
-        projects={projects}
+        project={project}
         records={records}
         handoffs={handoffs}
         renderDate={NOW}
@@ -238,11 +256,11 @@ describe('ProcessHubControlRegion', () => {
     // prompt. The label is gone: eligibility now reads FACTS, so an 'active'
     // project with zero control artifacts is NOT eligible → no setup candidate,
     // just empty state.
-    const projects = [makeProject({ id: 'p-lie', title: 'Label Lies', status: 'active' })];
+    const project = makeProject({ id: 'p-lie', title: 'Label Lies', status: 'active' });
 
     render(
       <ProcessHubControlRegion
-        projects={projects}
+        project={project}
         records={[]}
         handoffs={[]}
         renderDate={NOW}

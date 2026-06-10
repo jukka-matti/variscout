@@ -505,22 +505,17 @@ export type {
   ControlVerdict,
   ControlHandoffSurface,
   ControlMetadataProjection,
-  ControlBuckets,
-  ControlBucketOptions,
 } from './control';
 export {
   applyControlTick,
   nextDueFromCadence,
   isControlDue,
   isControlOverdue,
-  selectControlReviews,
-  selectControlBuckets,
   controlRecordBlobPath,
   controlReviewBlobPath,
   controlHandoffBlobPath,
   controlCatalogPath,
 } from './control';
-export type { ControlReviewItem } from './control';
 
 // Control-readiness predicates (PR-PO-2 — facts, not labels)
 export { isControlEligible, isControlled } from './controlReadiness';
