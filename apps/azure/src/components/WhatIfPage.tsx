@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useProjectStore } from '@variscout/stores';
-import { useFilteredData } from '@variscout/hooks';
+import { useFilteredData, useSpecsForMeasure } from '@variscout/hooks';
 import { WhatIfExplorerPage } from '@variscout/ui';
 import type { FilterAction, FindingProjection } from '@variscout/core';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -25,10 +25,12 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({
   const { filteredData } = useFilteredData();
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
-  const specs = useProjectStore(s => s.specs);
   const columnAliases = useProjectStore(s => s.columnAliases);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
+  // Per-measure spec resolution (measureSpecs[outcome] ?? global specs).
+  const specsFor = useSpecsForMeasure();
+  const specs = specsFor(outcome ?? '');
   const { value: cpkTarget } = resolveCpkTarget(outcome ?? '', {
     measureSpecs,
     projectCpkTarget,

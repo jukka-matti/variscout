@@ -164,11 +164,20 @@ export function computePresets(
     const categoryStats = getCategoryStats(filteredData, activeFactor, outcome);
 
     if (categoryStats && categoryStats.length >= 2) {
-      // 3. Match best category
+      // 3. Match best category.
+      // `bestCategory` is undefined when no direction is inferable (nominal with
+      // no target and no two-sided limits) — in that case we MUST NOT recommend a
+      // mean shift, since "best" would be direction-blind / row-order-dependent
+      // and could worsen the outcome. We suppress the two mean-anchored presets
+      // ("Match X mean", "Match X fully"). The spread preset below is
+      // direction-independent and stays available.
       const bestCategory = findBestSubgroup(categoryStats, type, target, specs);
 
-      const matchBestShift = bestCategory.mean - currentStats.mean;
-      if (Math.abs(matchBestShift) > currentStats.stdDev * 0.05) {
+      const matchBestShift = bestCategory !== undefined ? bestCategory.mean - currentStats.mean : 0; // 0 is never consumed — hasDirectionalBest gates all reads
+      const hasDirectionalBest =
+        bestCategory !== undefined && Math.abs(matchBestShift) > currentStats.stdDev * 0.05;
+
+      if (hasDirectionalBest) {
         const bestLabel = referenceLabel ?? bestCategory.value;
         presets.push({
           label: `Match ${bestLabel} mean`,
@@ -178,7 +187,7 @@ export function computePresets(
         });
       }
 
-      // 4. Tighten spread (match tightest category)
+      // 4. Tighten spread (match tightest category) — direction-independent.
       const tightestCategory = findTightestSubgroup(categoryStats);
       if (tightestCategory.stdDev > 0 && tightestCategory.stdDev < currentStats.stdDev) {
         const reduction = Math.min(1 - tightestCategory.stdDev / currentStats.stdDev, 0.5);
@@ -193,9 +202,10 @@ export function computePresets(
         }
       }
 
-      // 6. Best of both (combine match best + tighten spread)
+      // 6. Best of both (combine match best + tighten spread) — only when a
+      // directional best exists, otherwise it would carry a blind mean shift.
       if (
-        Math.abs(matchBestShift) > currentStats.stdDev * 0.05 &&
+        hasDirectionalBest &&
         tightestCategory.stdDev > 0 &&
         tightestCategory.stdDev < currentStats.stdDev
       ) {

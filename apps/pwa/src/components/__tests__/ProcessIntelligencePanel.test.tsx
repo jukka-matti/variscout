@@ -56,7 +56,7 @@ const mockFilteredData = [{ value: 10 }, { value: 11 }, { value: 9 }];
 // Set up projectStore state before import
 import { useProjectStore } from '@variscout/stores';
 
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ProcessIntelligencePanel from '../ProcessIntelligencePanel';
 
 describe('ProcessIntelligencePanel', () => {
@@ -65,6 +65,7 @@ describe('ProcessIntelligencePanel', () => {
     // Seed the project store with test data
     useProjectStore.setState({
       specs: mockSpecs,
+      measureSpecs: {},
       outcome: 'value',
       cpkTarget: undefined,
       factors: [],
@@ -179,5 +180,22 @@ describe('ProcessIntelligencePanel', () => {
 
     expect(container.querySelector('.scroll-touch')).not.toBeNull();
     expect(screen.getByText('Edit specifications')).toBeInTheDocument();
+  });
+
+  it('shows the What-If entry when only a per-measure spec exists (global specs empty)', () => {
+    // Global specs empty, but the active outcome has a per-measure spec —
+    // the What-If entry must appear, gated on the resolved per-measure spec.
+    useProjectStore.setState({ specs: {}, measureSpecs: { value: { usl: 15, lsl: 5 } } });
+    render(
+      <ProcessIntelligencePanel
+        stats={mockStats}
+        specs={{}}
+        filteredData={mockFilteredData}
+        outcome="value"
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('pi-overflow-trigger'));
+    expect(screen.getByTestId('pi-overflow-item-whatif')).toBeInTheDocument();
   });
 });

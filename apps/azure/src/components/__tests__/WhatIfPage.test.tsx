@@ -3,6 +3,9 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import WhatIfPage from '../WhatIfPage';
 import { useProjectStore } from '@variscout/stores';
 
+// Records the props the wrapper passes to WhatIfExplorerPage.
+const lastExplorerProps: { specs?: Record<string, unknown>; activeFactor?: string | null } = {};
+
 // Mock @variscout/ui — WhatIfExplorerPage is what the wrapper renders
 vi.mock('@variscout/ui', async () => {
   const actual = await vi.importActual<typeof import('@variscout/ui')>('@variscout/ui');
@@ -16,6 +19,7 @@ vi.mock('@variscout/ui', async () => {
       filterCount,
       onBack,
       mode,
+      activeFactor,
     }: {
       filteredData: Record<string, unknown>[];
       rawData: Record<string, unknown>[];
@@ -24,7 +28,10 @@ vi.mock('@variscout/ui', async () => {
       filterCount: number;
       onBack: () => void;
       mode?: string;
+      activeFactor?: string | null;
     }) => {
+      lastExplorerProps.specs = specs;
+      lastExplorerProps.activeFactor = activeFactor;
       if (!outcome || rawData.length === 0) {
         return (
           <div>
@@ -68,6 +75,7 @@ describe('WhatIfPage', () => {
       { Weight: 9.8, Machine: 'A' },
     ],
     specs: { usl: 12, lsl: 8 },
+    measureSpecs: {} as Record<string, { usl?: number; lsl?: number; target?: number }>,
     columnAliases: {},
     cpkTarget: undefined,
     viewState: null,
@@ -77,6 +85,8 @@ describe('WhatIfPage', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    lastExplorerProps.specs = undefined;
+    lastExplorerProps.activeFactor = undefined;
     useProjectStore.setState(
       mockStoreState as unknown as Partial<ReturnType<typeof useProjectStore.getState>>
     );
@@ -157,5 +167,25 @@ describe('WhatIfPage', () => {
     render(<WhatIfPage onBack={mockOnBack} />);
 
     expect(screen.getByTestId('what-if-simulator').getAttribute('data-mode')).toBe('standard');
+  });
+
+  it('resolves per-measure specs for the active outcome', () => {
+    // measureSpecs override for "Weight" should win over the global specs.
+    useProjectStore.setState({
+      specs: { usl: 12, lsl: 8 },
+      measureSpecs: { Weight: { usl: 14, lsl: 6 } },
+    });
+    render(<WhatIfPage onBack={mockOnBack} />);
+    expect(lastExplorerProps.specs).toEqual({ usl: 14, lsl: 6 });
+  });
+
+  it('binds activeFactor from viewState.boxplotFactor', () => {
+    // Symmetric with the useDashboardCharts mirror write: WhatIfPage reads
+    // viewState.boxplotFactor so What-If binds to the actually-analyzed factor.
+    useProjectStore.setState({
+      viewState: { boxplotFactor: 'Machine' },
+    });
+    render(<WhatIfPage onBack={mockOnBack} />);
+    expect(lastExplorerProps.activeFactor).toBe('Machine');
   });
 });

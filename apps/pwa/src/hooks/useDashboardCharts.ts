@@ -9,7 +9,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { useProjectStore } from '@variscout/stores';
+import { useProjectStore, useAnalysisScopeStore } from '@variscout/stores';
 import { useFilteredData } from '@variscout/hooks';
 import { useStatsWorker } from '../workers/useStatsWorker';
 import type { AnovaResult } from '@variscout/core';
@@ -98,6 +98,19 @@ export function useDashboardCharts({
     workerApi,
   });
 
+  // Mirror the selected boxplot factor into the View-layer analysisScopeStore so
+  // downstream surfaces (e.g. What-If) bind to the actually-analyzed factor rather
+  // than factors[0]. The base setter owns the local picker state; the PWA has no
+  // projectStore.viewState, so this is the only writer (mirrors Azure's viewState
+  // write pattern in apps/azure/src/hooks/useDashboardCharts.ts).
+  const setBoxplotFactor = useCallback(
+    (f: string) => {
+      base.setBoxplotFactor(f);
+      useAnalysisScopeStore.getState().setBoxplotFactor(f);
+    },
+    [base.setBoxplotFactor]
+  );
+
   // Focus mode + keyboard navigation
   const { focusedChart, setFocusedChart, handleNextChart, handlePrevChart } = useFocusMode();
 
@@ -138,6 +151,7 @@ export function useDashboardCharts({
 
   return {
     ...base,
+    setBoxplotFactor,
     focusedChart,
     setFocusedChart,
     handleNextChart,

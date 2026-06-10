@@ -37,8 +37,17 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
 }) => {
   const setSpecs = useProjectStore(s => s.setSpecs);
   const setMeasureSpec = useProjectStore(s => s.setMeasureSpec);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
   const analysisMode = useProjectStore(s => s.analysisMode);
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
+
+  // Resolve per-measure specs (measureSpecs[outcome] ?? prop/global specs) so the
+  // What-If gate + presets see the per-measure spec even when the global specs are
+  // unset. Idempotent when the caller already passes resolved specs.
+  const resolvedSpecs = useMemo<SpecLimits>(
+    () => (outcome ? (measureSpecs[outcome] ?? specs) : specs),
+    [measureSpecs, outcome, specs]
+  );
 
   const handleSaveSpecs = (newSpecs: SpecLimits) => {
     if (outcome) {
@@ -52,11 +61,11 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
     if (!stats || !outcome) return undefined;
     return computePresets(
       { mean: stats.mean, stdDev: stats.stdDev, median: stats.median },
-      specs,
+      resolvedSpecs,
       filteredData,
       outcome
     );
-  }, [stats, specs, filteredData, outcome]);
+  }, [stats, resolvedSpecs, filteredData, outcome]);
 
   // Build tabs config
   const tabs: PITabConfig[] = useMemo(() => {
@@ -122,7 +131,7 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
         ),
       });
     }
-    if (stats && (specs.usl !== undefined || specs.lsl !== undefined)) {
+    if (stats && (resolvedSpecs.usl !== undefined || resolvedSpecs.lsl !== undefined)) {
       items.push({
         id: 'whatif',
         label: 'What-If',
@@ -130,14 +139,14 @@ const ProcessIntelligencePanel: React.FC<ProcessIntelligencePanelProps> = ({
           <WhatIfExplorer
             mode={analysisMode ?? 'standard'}
             currentStats={{ mean: stats.mean, stdDev: stats.stdDev, cpk: stats.cpk }}
-            specs={specs}
+            specs={resolvedSpecs}
             presets={presets}
           />
         ),
       });
     }
     return items;
-  }, [filteredData, outcome, stats, specs, cpkTarget, presets, analysisMode]);
+  }, [filteredData, outcome, stats, resolvedSpecs, cpkTarget, presets, analysisMode]);
 
   return (
     <>

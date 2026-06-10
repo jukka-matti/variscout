@@ -125,18 +125,25 @@ export const PISection: React.FC<PISectionProps> = ({
   // Spec editor overlay state
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
+  // Resolve per-measure specs (measureSpecs[outcome] ?? global specs) so the
+  // What-If gate + presets see the per-measure spec even when global specs are unset.
+  const resolvedSpecs = useMemo(
+    () => (outcome ? (measureSpecs[outcome] ?? specs) : specs),
+    [measureSpecs, outcome, specs]
+  );
+
   // What-If presets
   const presets = useMemo(() => {
     if (!stats || !outcome) return undefined;
     return computePresets(
       { mean: stats.mean, stdDev: stats.stdDev, median: stats.median },
-      specs,
+      resolvedSpecs,
       filteredData,
       outcome
     );
-  }, [stats, specs, filteredData, outcome]);
+  }, [stats, resolvedSpecs, filteredData, outcome]);
 
-  const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
+  const hasSpecs = resolvedSpecs.usl !== undefined || resolvedSpecs.lsl !== undefined;
 
   const surveyEvaluation = useMemo(
     () =>
@@ -241,7 +248,7 @@ export const PISection: React.FC<PISectionProps> = ({
         <WhatIfExplorer
           mode={analysisMode ?? 'standard'}
           currentStats={{ mean: stats.mean, stdDev: stats.stdDev, cpk: stats.cpk }}
-          specs={specs}
+          specs={resolvedSpecs}
           presets={presets}
         />
       ),
