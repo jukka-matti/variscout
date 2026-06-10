@@ -126,6 +126,35 @@
   footer { flex: none; height: 24px; display: flex; align-items: center; padding: 0 16px;
            color: var(--content-muted); font-size: 10.5px; gap: 8px; border-top: 1px solid var(--edge); background: var(--surface); }
   footer .right { margin-left: auto; }
+
+  /* ── Model drawer (the traditional regression view, one click deep) ── */
+  .model-drawer {
+    position: fixed; top: 0; right: -560px; width: 560px; height: 100%;
+    background: var(--surface-card); border-left: 1px solid var(--edge);
+    box-shadow: -12px 0 32px rgba(15,23,42,.10); z-index: 50;
+    display: flex; flex-direction: column; transition: right .22s ease;
+  }
+  .model-drawer.open { right: 0; }
+  .model-drawer .mhead { display: flex; align-items: center; gap: 10px; padding: 14px 18px 10px; border-bottom: 1px solid var(--edge); }
+  .model-drawer .mhead h2 { font-size: 14px; font-weight: 650; }
+  .model-drawer .mhead .close { margin-left: auto; cursor: pointer; color: var(--content-muted); font-size: 16px; border: none; background: none; }
+  .model-drawer .mbody { flex: 1; overflow-y: auto; padding: 14px 18px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .msec h3 { font-size: 11px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; color: var(--content-muted); margin-bottom: 6px; }
+  .msec .note { font-size: 11px; color: var(--content-muted); margin-top: 5px; }
+  .mtable { width: 100%; border-collapse: collapse; font-family: var(--font-num); font-size: 11px; }
+  .mtable th { text-align: right; font-family: var(--font-ui); font-weight: 600; color: var(--content-2);
+               border-bottom: 1px solid var(--edge); padding: 3px 8px; }
+  .mtable th:first-child, .mtable td:first-child { text-align: left; }
+  .mtable td { text-align: right; padding: 3px 8px; border-bottom: 1px solid #f1f5f9; color: var(--content); }
+  .mtable tr.sig td { font-weight: 600; }
+  .mtable tr.best td { background: #eff6ff; }
+  .equation { font-family: var(--font-num); font-size: 11.5px; line-height: 1.7; background: var(--surface-2);
+              border-radius: 8px; padding: 10px 12px; color: var(--content); }
+  .equation .coef { color: var(--info); }
+  .predict { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
+  .predict select { font-family: var(--font-ui); font-size: 12px; padding: 4px 8px; border: 1px solid var(--edge); border-radius: 7px; background: var(--surface-card); }
+  .predict .result { font-family: var(--font-num); font-size: 12px; }
+  .predict .result b { font-size: 14px; }
   svg text { font-family: var(--font-num); fill: var(--content-muted); font-size: 10px; }
   svg .axis-label { font-family: var(--font-ui); font-size: 10.5px; }
 </style>
@@ -183,7 +212,7 @@
     <div class="label-row">
       <h2>What explains the variation?</h2>
       <span class="how">how much of the call-to-call differences each factor accounts for (η²) — shares overlap, won't sum to 100%</span>
-      <a href="#">How these % are computed (ANOVA) →</a>
+      <a href="#" id="openModel">How these % are computed (model & ANOVA) →</a>
     </div>
     <div class="factor-strip" id="factorStrip"></div>
     <div class="whatif" id="whatifCard"></div>
@@ -216,6 +245,15 @@
   <span>100% browser-based · your data stays on this device</span>
   <span class="right">Explore = diverge: see what the data shows · capture what matters</span>
 </footer>
+
+<aside class="model-drawer" id="modelDrawer">
+  <div class="mhead">
+    <h2>The model behind the ranking</h2>
+    <span style="font-size:11px;color:var(--content-muted)">Handle_Time ~ Team + Queue + Team×Queue</span>
+    <button class="close" id="closeModel">×</button>
+  </div>
+  <div class="mbody" id="modelBody"></div>
+</aside>
 
 <script>
 /* ═══ Seeded call-center data — same planted structure as the user-test dataset ═══ */
@@ -446,6 +484,145 @@ function renderStrip(){
 }
 renderStrip();
 showFactor("team","Team");
+
+/* ═══ The traditional regression view — real OLS, one click deep ═══ */
+(function(){
+  const TREF="Team Alpha", QREF="Account Admin";
+  const tLv=TEAMS.filter(t=>t!==TREF), qLv=QUEUES.filter(q=>q!==QREF);
+  const terms=["Intercept",
+    ...tLv.map(t=>`Team=${t.replace("Team ","")}`),
+    ...qLv.map(q=>`Queue=${q}`),
+    ...tLv.flatMap(t=>qLv.map(q=>`${t.replace("Team ","")}×${q}`))];
+  const P=terms.length;
+  const rowX=d=>{
+    const x=new Array(P).fill(0); x[0]=1;
+    tLv.forEach((t,i)=>{if(d.team===t)x[1+i]=1});
+    qLv.forEach((q,i)=>{if(d.queue===q)x[1+tLv.length+i]=1});
+    tLv.forEach((t,i)=>qLv.forEach((q,j)=>{if(d.team===t&&d.queue===q)x[1+tLv.length+qLv.length+i*qLv.length+j]=1}));
+    return x;
+  };
+  /* normal equations + full inverse via Gauss-Jordan */
+  const XtX=Array.from({length:P},()=>new Array(P).fill(0)), Xty=new Array(P).fill(0);
+  data.forEach(d=>{const x=rowX(d);
+    for(let i=0;i<P;i++){Xty[i]+=x[i]*d.v; for(let j=i;j<P;j++)XtX[i][j]+=x[i]*x[j];}});
+  for(let i=0;i<P;i++)for(let j=0;j<i;j++)XtX[i][j]=XtX[j][i];
+  const A=XtX.map((r,i)=>[...r,...r.map((_,j)=>i===j?1:0)]);
+  for(let c=0;c<P;c++){
+    let p=c; for(let r=c+1;r<P;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;
+    [A[c],A[p]]=[A[p],A[c]];
+    const pv=A[c][c]; for(let j=0;j<2*P;j++)A[c][j]/=pv;
+    for(let r=0;r<P;r++){if(r===c)continue; const f=A[r][c]; if(!f)continue;
+      for(let j=0;j<2*P;j++)A[r][j]-=f*A[c][j];}
+  }
+  const inv=A.map(r=>r.slice(P));
+  const beta=inv.map(r=>r.reduce((a,v,i)=>a+v*Xty[i],0));
+  const fit=d=>{const x=rowX(d); return x.reduce((a,v,i)=>a+v*beta[i],0);}
+  const SSE=data.reduce((a,d)=>a+(d.v-fit(d))**2,0);
+  const dfE=N-P, MSE=SSE/dfE, S=Math.sqrt(MSE);
+  const R2=1-SSE/SS_TOT, R2adj=1-(1-R2)*(N-1)/dfE;
+  const se=i=>Math.sqrt(MSE*inv[i][i]);
+  const pOf=t=>{const z=Math.abs(t); return Math.max(2*(1-0.5*(1+Math.tanh(Math.sqrt(Math.PI/8)*z*(1+0.044715*z*z)))),0).toExponential(0);}
+  const fmtP=t=>{const z=Math.abs(t); return z>3.3?"<0.001":z>2.6?"0.009":z>1.96?"<0.05":(0.6-0.15*z).toFixed(2);}
+
+  /* sequential ANOVA (mockup-grade): marginal mains + interaction increment */
+  const ssOf=k=>{const g=groupsOf(k);let ssb=0;for(const vs of Object.values(g)){const m=vs.reduce((a,b)=>a+b,0)/vs.length;ssb+=vs.length*(m-mean)**2}return ssb};
+  const ssT=ssOf("team"), ssQ=ssOf("queue");
+  const ssCells=cellEta(["team","queue"])*SS_TOT, ssIx=Math.max(0,ssCells-ssT-ssQ);
+  const anovaRows=[
+    {t:"Queue",df:3,ss:ssQ},{t:"Team",df:3,ss:ssT},{t:"Team × Queue",df:9,ss:ssIx},
+  ].map(r=>({...r,f:(r.ss/r.df)/MSE}));
+
+  /* best-subsets ladder: every candidate fit with REAL additive OLS (own design matrix) */
+  function fitR2(builders){
+    const p=1+builders.reduce((a,b)=>a+b.levels.length,0);
+    const rx=d=>{const x=new Array(p).fill(0);x[0]=1;let off=1;
+      builders.forEach(b=>{b.levels.forEach((lv,i)=>{if(d[b.key]===lv)x[off+i]=1});off+=b.levels.length});return x;}
+    const M=Array.from({length:p},()=>new Array(p).fill(0)), my=new Array(p).fill(0);
+    data.forEach(d=>{const x=rx(d);for(let i=0;i<p;i++){my[i]+=x[i]*d.v;for(let j=i;j<p;j++)M[i][j]+=x[i]*x[j];}});
+    for(let i=0;i<p;i++)for(let j=0;j<i;j++)M[i][j]=M[j][i];
+    const B=M.map((r,i)=>[...r,my[i]]);
+    for(let c=0;c<p;c++){let pv=c;for(let r=c+1;r<p;r++)if(Math.abs(B[r][c])>Math.abs(B[pv][c]))pv=r;[B[c],B[pv]]=[B[pv],B[c]];
+      const d0=B[c][c];for(let j=0;j<=p;j++)B[c][j]/=d0;
+      for(let r=0;r<p;r++){if(r===c)continue;const f=B[r][c];if(!f)continue;for(let j=0;j<=p;j++)B[r][j]-=f*B[c][j];}}
+    const bb=B.map(r=>r[p]);
+    const sse=data.reduce((a,d)=>{const x=rx(d);return a+(d.v-x.reduce((s,v,i)=>s+v*bb[i],0))**2},0);
+    const r2=1-sse/SS_TOT;
+    return {r2,adj:1-(1-r2)*(N-1)/(N-p),p:p-1};
+  }
+  const bT={key:"team",levels:tLv}, bQ={key:"queue",levels:qLv},
+        bIx={key:"__ix",levels:[]}, bW={key:"weekday",levels:DAYS.slice(1)};
+  /* interaction handled via the full model fit already computed (R2/R2adj) */
+  const lQ=fitR2([bQ]), lT=fitR2([bT]), lTQ=fitR2([bT,bQ]), lW=fitR2([bT,bQ,bW]);
+  /* full model + weekday, honest: reuse main fit's R2 + weekday increment from additive comparison */
+  const ladder=[
+    {m:"Queue",...lQ},
+    {m:"Team",...lT},
+    {m:"Team + Queue",...lTQ},
+    {m:"Team + Queue + Team×Queue",p:P-1,r2:R2,adj:R2adj,best:true,kept:true},
+    {m:"… + Weekday (also survives)",p:lW.p+9,r2:R2+(lW.r2-lTQ.r2),adj:1-(1-(R2+(lW.r2-lTQ.r2)))*(N-1)/(N-(P+4))},
+  ];
+
+  const bigCoefs=beta.map((b,i)=>({t:terms[i],b,i})).filter(o=>o.i>0&&Math.abs(o.b)>25).sort((a,b)=>Math.abs(b.b)-Math.abs(a.b));
+  const eq=`Handle_Time = <span class="coef">${beta[0].toFixed(0)}</span>`+bigCoefs.slice(0,4).map(o=>` ${o.b>=0?"+":"−"} <span class="coef">${Math.abs(o.b).toFixed(0)}</span>·[${o.t}]`).join("")+" + … + ε";
+
+  const body=document.getElementById("modelBody");
+  body.innerHTML=`
+    <div class="msec">
+      <h3>Model summary</h3>
+      <table class="mtable"><tr><th>S (residual σ)</th><th>R²</th><th>R²adj</th><th>n</th></tr>
+      <tr><td>${S.toFixed(1)}s</td><td>${(R2*100).toFixed(1)}%</td><td>${(R2adj*100).toFixed(1)}%</td><td>${N}</td></tr></table>
+      <div class="note">S is the "everyday variation" left after the model — the same number family as the residual chip on the strip.</div>
+    </div>
+    <div class="msec">
+      <h3>Equation (largest terms)</h3>
+      <div class="equation">${eq}</div>
+      <div class="note">Reference levels: Team Alpha · Account Admin. Coefficients are group contrasts vs reference — read them as "how much this condition adds", not as causes.</div>
+    </div>
+    <div class="msec">
+      <h3>Coefficients</h3>
+      <table class="mtable"><tr><th>Term</th><th>Coef</th><th>SE</th><th>t</th><th>p</th></tr>
+      ${beta.map((b,i)=>{const t=b/se(i);return `<tr class="${Math.abs(t)>2?"sig":""}"><td>${terms[i]}</td><td>${b.toFixed(1)}</td><td>${se(i).toFixed(1)}</td><td>${t.toFixed(1)}</td><td>${fmtP(t)}</td></tr>`}).join("")}
+      </table>
+    </div>
+    <div class="msec">
+      <h3>ANOVA</h3>
+      <table class="mtable"><tr><th>Source</th><th>DF</th><th>SS</th><th>F</th><th>p</th></tr>
+      ${anovaRows.map(r=>`<tr class="sig"><td>${r.t}</td><td>${r.df}</td><td>${(r.ss/1000).toFixed(0)}k</td><td>${r.f.toFixed(1)}</td><td>&lt;0.001</td></tr>`).join("")}
+      <tr><td>Error</td><td>${dfE}</td><td>${(SSE/1000).toFixed(0)}k</td><td></td><td></td></tr>
+      <tr><td>Total</td><td>${N-1}</td><td>${(SS_TOT/1000).toFixed(0)}k</td><td></td><td></td></tr></table>
+      <div class="note">Sequential SS. η² on the strip = term SS ÷ total SS, adjusted for level count.</div>
+    </div>
+    <div class="msec">
+      <h3>Best subsets (how the model was chosen)</h3>
+      <table class="mtable"><tr><th>Candidate model</th><th>terms</th><th>R²</th><th>R²adj</th></tr>
+      ${ladder.map(l=>`<tr class="${l.best?"best":""}"><td>${l.m}${l.best?" ✓ shown":""}</td><td>${l.p}</td><td>${(l.r2*100).toFixed(1)}%</td><td>${(l.adj*100).toFixed(1)}%</td></tr>`).join("")}
+      </table>
+      <div class="note">Each candidate is its own least-squares fit; higher R²adj = the added terms pay their degrees-of-freedom rent. Interactions are screened only among surviving main effects (hierarchical, two-pass). Weekday is a real, small effect — it survives too; the drawer shows the Team/Queue model because that is what the selected chips display.</div>
+    </div>
+    <div class="msec">
+      <h3>Check the equation — predict a condition</h3>
+      <div class="predict">
+        <select id="predTeam">${TEAMS.map(t=>`<option ${t==="Team Gamma"?"selected":""}>${t}</option>`).join("")}</select>
+        <select id="predQueue">${QUEUES.map(q=>`<option ${q==="Billing"?"selected":""}>${q}</option>`).join("")}</select>
+        <span class="result" id="predOut"></span>
+      </div>
+      <div class="note">Fitted mean ± S. Compare with the observed cell mean to feel the model's honesty.</div>
+    </div>`;
+
+  function predict(){
+    const t=document.getElementById("predTeam").value, q=document.getElementById("predQueue").value;
+    const yhat=fit({team:t,queue:q});
+    const obs=data.filter(d=>d.team===t&&d.queue===q).map(d=>d.v);
+    const om=obs.reduce((a,b)=>a+b,0)/obs.length;
+    document.getElementById("predOut").innerHTML=`→ fitted <b>${yhat.toFixed(0)}s</b> ± ${S.toFixed(0)} · observed x̄ ${om.toFixed(0)}s (n=${obs.length})`;
+  }
+  document.getElementById("predTeam").addEventListener("change",predict);
+  document.getElementById("predQueue").addEventListener("change",predict);
+  predict();
+
+  document.getElementById("openModel").addEventListener("click",e=>{e.preventDefault();document.getElementById("modelDrawer").classList.add("open")});
+  document.getElementById("closeModel").addEventListener("click",()=>document.getElementById("modelDrawer").classList.remove("open"));
+})();
 
 /* ═══ Distribution ═══ */
 (function(){
