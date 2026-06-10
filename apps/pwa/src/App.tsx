@@ -30,7 +30,6 @@ import {
   type ChartObservationCaptureOptions,
 } from '@variscout/ui';
 import { useStageFiveOpener } from './hooks/useStageFiveOpener';
-import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
 import { pwaHubRepository } from './persistence';
 import { generateDeterministicId } from '@variscout/core/identity';
@@ -60,6 +59,7 @@ import {
   useProjectMembershipStore,
   useAnalysisScopeStore,
   useImprovementProjectStore,
+  buildDocumentSnapshotVrs,
   type DocumentSnapshotVrsFile,
 } from '@variscout/stores';
 import { createProjectActionItem } from '@variscout/core/findings';
@@ -622,6 +622,28 @@ function AppMain() {
     setHasOwnCaptureSinceExport(true);
     setShowDurabilityNudge(current => current || !durabilityNudgeDismissed);
   }, [durabilityNudgeDismissed]);
+
+  // .vrs export — the single source of truth (ER-1 retired VrsExportButton). Shared
+  // by the Process-tab framing toolbar button + the Explore context-line Export menu.
+  const handleExportVrs = useCallback(() => {
+    if (!sessionHub) return;
+    const json = buildDocumentSnapshotVrs({
+      activeHub: sessionHub,
+      metadata: {
+        exportSource: 'pwa',
+        appVersion: import.meta.env.VITE_APP_VERSION ?? 'dev',
+      },
+    });
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const safeName = (sessionHub.processGoal ?? 'hub').slice(0, 32).replace(/[^a-z0-9-]+/gi, '-');
+    a.download = `${safeName}.vrs`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setHasOwnCaptureSinceExport(false);
+  }, [sessionHub]);
 
   useEffect(() => {
     if (!hasOwnCaptureSinceExport) return;
@@ -1346,6 +1368,9 @@ function AppMain() {
           analysis canvas (not in a framing modal). Shows OutcomePin, .vrs
           export, and Edit-framing re-entry. */}
       {rawData.length > 0 &&
+        // ER-1: the framing toolbar is canvas chrome for the Process tab only —
+        // Explore's chrome is the context line (ProcessHealthBar).
+        panels.activeView === 'frame' &&
         // First-session spec §1: embeds are exempt from the journey spine chrome.
         !isEmbedMode &&
         !isAnalyzeWallCanvasFirst &&
@@ -1382,10 +1407,13 @@ function AppMain() {
             >
               + New analyze
             </button>
-            <VrsExportButton
-              currentHub={sessionHub}
-              onExported={() => setHasOwnCaptureSinceExport(false)}
-            />
+            <button
+              type="button"
+              className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+              onClick={handleExportVrs}
+            >
+              Export .vrs
+            </button>
             <button
               type="button"
               className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
@@ -1448,6 +1476,7 @@ function AppMain() {
               handleAddChartObservation={handleAddChartObservation}
               handleExport={handleExport}
               handleExportCSV={handleExportCSV}
+              handleExportVrs={handleExportVrs}
               handleImportVrs={handleImportVrs}
               handleLoadSample={handleLoadSample}
               handleManualAnalyze={handleManualAnalyze}

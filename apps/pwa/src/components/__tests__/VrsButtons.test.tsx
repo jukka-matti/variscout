@@ -1,7 +1,12 @@
 // apps/pwa/src/components/__tests__/VrsButtons.test.tsx
+//
+// ER-1: VrsExportButton was retired — its .vrs export logic now lives in
+// App.tsx#handleExportVrs (the single source of truth, shared by the Process-tab
+// toolbar button + the Explore context-line Export menu). The .vrs snapshot shape
+// stays covered by buildDocumentSnapshotVrs's stores-level tests. The import path
+// below is unaffected.
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { VrsExportButton } from '../VrsExportButton';
 import { VrsImportButton } from '../VrsImportButton';
 import { DEFAULT_PROCESS_HUB } from '@variscout/core/processHub';
 import {
@@ -11,39 +16,6 @@ import {
 } from '@variscout/stores';
 
 const hub = { ...DEFAULT_PROCESS_HUB, processGoal: 'Test goal.' };
-
-describe('VrsExportButton', () => {
-  it('downloads a snapshot-only .vrs with no legacy hub or rawData', async () => {
-    useProjectStore.setState({
-      ...getProjectInitialState(),
-      rawData: [{ x: 1 }],
-      outcome: 'x',
-    });
-    const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:mock');
-    const revokeObjectURL = vi.fn();
-    Object.defineProperty(URL, 'createObjectURL', { value: createObjectURL, configurable: true });
-    Object.defineProperty(URL, 'revokeObjectURL', { value: revokeObjectURL, configurable: true });
-
-    render(<VrsExportButton currentHub={hub} />);
-    const clickSpy = vi.fn();
-    HTMLAnchorElement.prototype.click = clickSpy;
-
-    fireEvent.click(screen.getByRole('button', { name: /export.*\.vrs/i }));
-    expect(createObjectURL).toHaveBeenCalled();
-    expect(clickSpy).toHaveBeenCalled();
-    const blob = createObjectURL.mock.calls[0]?.[0] as Blob;
-    const parsed = JSON.parse(await blob.text());
-    expect(parsed.kind).toBe('variscout.document');
-    expect(parsed.version).toBe(1);
-    expect(parsed).not.toHaveProperty('hub');
-    expect(parsed).not.toHaveProperty('rawData');
-    expect(parsed.documentSnapshot).toMatchObject({
-      schemaVersion: 1,
-      hub: { id: hub.id },
-      project: { rawData: [{ x: 1 }], outcome: 'x' },
-    });
-  });
-});
 
 describe('VrsImportButton', () => {
   it('rejects an uploaded non-snapshot .vrs', async () => {

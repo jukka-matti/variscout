@@ -41,6 +41,8 @@ vi.mock('../../SharePopover', () => ({ default: () => null }));
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import AppHeader, { type PhaseId } from '../AppHeader';
+import { useAnalyzeStore } from '@variscout/stores';
+import { createFinding } from '@variscout/core';
 
 const baseProps = {
   hasData: false,
@@ -57,6 +59,7 @@ const baseProps = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  useAnalyzeStore.setState(useAnalyzeStore.getInitialState());
 });
 
 describe('AppHeader', () => {
@@ -156,6 +159,108 @@ describe('AppHeader', () => {
       const header = document.querySelector('header');
       const nav = screen.getByTestId('workflow-nav');
       expect(header?.contains(nav)).toBe(true);
+    });
+  });
+
+  describe('compact one-row header (Task 3)', () => {
+    it('header container has no flex-wrap class (structural one-row assertion)', () => {
+      render(<AppHeader {...baseProps} hasData={true} dataFilename="test.csv" rowCount={10} />);
+      const header = document.querySelector('header');
+      expect(header?.className).not.toContain('flex-wrap');
+    });
+
+    it('Stats button has no inline label text (icon-only at all widths)', () => {
+      render(
+        <AppHeader
+          {...baseProps}
+          hasData={true}
+          dataFilename="test.csv"
+          rowCount={10}
+          onTogglePISidebar={vi.fn()}
+        />
+      );
+      // "Stats" label span must not be in the DOM
+      expect(screen.queryByText('Stats')).toBeNull();
+    });
+
+    it('Findings button has no inline label text (icon-only at all widths)', () => {
+      render(
+        <AppHeader
+          {...baseProps}
+          hasData={true}
+          dataFilename="test.csv"
+          rowCount={10}
+          onToggleFindingsPanel={vi.fn()}
+        />
+      );
+      // "Findings" as a visible inline span must not exist (title attr is still "Findings")
+      expect(screen.queryByText('Findings')).toBeNull();
+    });
+
+    it('What-If button has no inline label text (icon-only at all widths)', () => {
+      render(
+        <AppHeader
+          {...baseProps}
+          hasData={true}
+          dataFilename="test.csv"
+          rowCount={10}
+          onOpenWhatIf={vi.fn()}
+        />
+      );
+      expect(screen.queryByText('What-If')).toBeNull();
+    });
+
+    it('no findings badge when findings count is 0', () => {
+      useAnalyzeStore.setState({ findings: [] });
+      render(
+        <AppHeader
+          {...baseProps}
+          hasData={true}
+          dataFilename="test.csv"
+          rowCount={10}
+          onToggleFindingsPanel={vi.fn()}
+        />
+      );
+      expect(screen.queryByTestId('findings-count-badge')).toBeNull();
+    });
+
+    it('shows findings count badge when findings are present', () => {
+      useAnalyzeStore.setState({
+        findings: [
+          createFinding('Finding 1', {}, null),
+          createFinding('Finding 2', {}, null),
+          createFinding('Finding 3', {}, null),
+        ],
+      });
+      render(
+        <AppHeader
+          {...baseProps}
+          hasData={true}
+          dataFilename="test.csv"
+          rowCount={10}
+          onToggleFindingsPanel={vi.fn()}
+        />
+      );
+      const badge = screen.getByTestId('findings-count-badge');
+      expect(badge).toBeTruthy();
+      expect(badge.textContent).toBe('3');
+    });
+
+    it('shows 99+ badge when more than 99 findings are present', () => {
+      useAnalyzeStore.setState({
+        findings: Array.from({ length: 150 }, (_, i) => createFinding(`Finding ${i}`, {}, null)),
+      });
+      render(
+        <AppHeader
+          {...baseProps}
+          hasData={true}
+          dataFilename="test.csv"
+          rowCount={10}
+          onToggleFindingsPanel={vi.fn()}
+        />
+      );
+      const badge = screen.getByTestId('findings-count-badge');
+      expect(badge.textContent).toBe('99+');
     });
   });
 

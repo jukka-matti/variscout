@@ -1082,6 +1082,10 @@ export const ms: MessageCatalog = {
   'verify.tab.capability': 'Capability',
   'verify.tab.pareto': 'Pareto',
 
+  // ProcessHealthBar generic labels
+
+  'healthBar.rows': 'rows',
+
   // Time lens (ProcessHealthBar) — TODO(i18n): translate
   'timeLens.button': 'Time',
   'timeLens.popover.title': 'Time window',

@@ -1,4 +1,4 @@
-import { parseTimeValue } from '../time';
+import { parseTimeValue, rangeOf } from '../time';
 import type { DataCellValue } from '../types';
 import type {
   ClassifyPasteContext,
@@ -23,24 +23,6 @@ function parseMs(value: unknown): number | undefined {
   if (!parsed) return undefined;
   const ms = parsed.getTime();
   return Number.isFinite(ms) ? ms : undefined;
-}
-
-function rangeOf(
-  rows: ReadonlyArray<Record<string, unknown>>,
-  col: string
-): { startISO: string; endISO: string } | undefined {
-  let min = Infinity;
-  let max = -Infinity;
-  let hasAny = false;
-  for (const r of rows) {
-    const ms = parseMs(r[col]);
-    if (ms === undefined) continue;
-    if (ms < min) min = ms;
-    if (ms > max) max = ms;
-    hasAny = true;
-  }
-  if (!hasAny) return undefined;
-  return { startISO: new Date(min).toISOString(), endISO: new Date(max).toISOString() };
 }
 
 function detectGrainMs(

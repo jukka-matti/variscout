@@ -9,7 +9,6 @@ import {
   GoalBanner,
   ImproveTabRoot,
   WorkspaceProjectLaunchpadCard,
-  WorkspaceProjectScopeRibbon,
 } from '@variscout/ui';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { azureHubRepository } from '../../persistence';
@@ -77,9 +76,9 @@ export function EditorViewSwitch(props: EditorViewSwitchProps): React.ReactEleme
       ) : outcome || hasB0ModeProposal || hasAcceptedB0ModeFraming ? (
         <>
           {/* Canvas framing toolbar — '+New investigation' on-demand entry
-                (Mode A.1 reopen path, spec §5.5). Visible whenever data + outcome are
-                set (i.e. the analyst is on the canvas, not in a mapping modal). */}
-          {!isAnalyzeWallCanvasFirst ? (
+                (Mode A.1 reopen path, spec §5.5). ER-1: this is Process-tab canvas
+                chrome only — Explore's chrome is the context line (ProcessHealthBar). */}
+          {activeView === 'frame' && !isAnalyzeWallCanvasFirst ? (
             <div
               className="flex items-center gap-2 px-4 py-1.5 bg-surface-secondary border-b border-edge"
               data-testid="framing-toolbar"
@@ -235,18 +234,10 @@ function EditorFrameView({ props }: { props: EditorViewSwitchProps }): React.Rea
     pendingMatches,
     sharedCoScoutSection,
     workspaceProjectContext,
-    workspaceProjectScope,
   } = props;
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        {workspaceProjectScope ? (
-          <WorkspaceProjectScopeRibbon
-            title={workspaceProjectScope.title}
-            labels={workspaceProjectScope.labels}
-            surface="Process"
-          />
-        ) : null}
         {/* FSJ-3b (spec §3): goal ceremony opt-in — relocated off the retired
                     Stage-1 HubGoalForm; the empty start-prompt is the framing surface's
                     entry point. Populated banner renders when a goal already exists.
@@ -477,6 +468,7 @@ function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.R
     findingsCallbacksWithPrompt,
     findingsState,
     handleBinningBindingsChange,
+    handleExportCSV,
     handlePinFinding,
     handleSetFindingStatus,
     handleShareChart,
@@ -503,6 +495,7 @@ function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.R
         handleSetFindingStatus={handleSetFindingStatus}
         aiOrch={aiOrch}
         handleShareChart={handleShareChart}
+        onExportCSV={handleExportCSV}
         controlViolations={controlViolations}
         excludedRowIndices={excludedRowIndices}
         excludedReasons={excludedReasons}

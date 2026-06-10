@@ -74,9 +74,9 @@ Sub-path exports declared in `package.json#exports` and corresponding TypeScript
 | `@variscout/data` | `.`, `./computed`, `./samples` | _(none)_ |
 | `@variscout/hooks` | `.` | _(none)_ |
 | `@variscout/stores` | `.`, `./feature-factories` | _(none)_ |
-| `@variscout/ui` | `.`, `./ipDetail`, `./styles/components.css`, `./styles/report-print.css`, `./styles/theme.css` | _(none)_ |
-| `@variscout/azure-app` | _(none)_ | `@/*`, `@variscout/charts`, `@variscout/charts/*`, `@variscout/core`, `@variscout/core/*`, `@variscout/data`, `@variscout/data/*`, `@variscout/hooks`, `@variscout/hooks/*`, `@variscout/ui`, `@variscout/ui/*`, `@variscout/ui/ipDetail` |
-| `@variscout/pwa` | _(none)_ | `@variscout/charts`, `@variscout/charts/*`, `@variscout/core`, `@variscout/core/*`, `@variscout/data`, `@variscout/data/*`, `@variscout/hooks`, `@variscout/hooks/*`, `@variscout/ui`, `@variscout/ui/*`, `@variscout/ui/ipDetail` |
+| `@variscout/ui` | `.`, `./ipDetail`, `./styles/components.css`, `./styles/report-print.css`, `./styles/theme.css`, `./test-utils` | _(none)_ |
+| `@variscout/azure-app` | _(none)_ | `@/*`, `@variscout/charts`, `@variscout/charts/*`, `@variscout/core`, `@variscout/core/*`, `@variscout/data`, `@variscout/data/*`, `@variscout/hooks`, `@variscout/hooks/*`, `@variscout/ui`, `@variscout/ui/*`, `@variscout/ui/ipDetail`, `@variscout/ui/test-utils` |
+| `@variscout/pwa` | _(none)_ | `@variscout/charts`, `@variscout/charts/*`, `@variscout/core`, `@variscout/core/*`, `@variscout/data`, `@variscout/data/*`, `@variscout/hooks`, `@variscout/hooks/*`, `@variscout/ui`, `@variscout/ui/*`, `@variscout/ui/ipDetail`, `@variscout/ui/test-utils` |
 
 ---
 

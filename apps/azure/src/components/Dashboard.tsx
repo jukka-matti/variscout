@@ -14,6 +14,7 @@ import {
   useFilteredData,
   useAnalysisStats,
   useLensedSampleCount,
+  useDataDateRange,
   useStagedAnalysis,
   useDefectTransform,
   useDefectSummary,
@@ -29,6 +30,7 @@ import { subgroupAxisColumns } from '@variscout/core/frame';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
+import { useStatsWorker } from '../workers/useStatsWorker';
 import {
   ErrorBoundary,
   ProcessHealthBar,
@@ -44,7 +46,6 @@ import {
   CapabilityMetricToggle,
   SubgroupConfigPopover,
   DefectSummary,
-  WorkspaceProjectScopeRibbon,
   InflectionSidePanelView,
   ScopeChrome,
   useInflectionBinningState,
@@ -137,6 +138,8 @@ interface DashboardProps {
   onManageFactors?: () => void;
   onPinFinding?: (noteText?: string) => void;
   onShareChart?: (chartType: string) => void;
+  /** Export CSV handler (context-line Export menu — Azure CSV-only, no .vrs). */
+  onExportCSV?: () => void;
   findingsCallbacks?: AzureFindingsCallbacks;
   findings?: Finding[];
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
@@ -197,6 +200,7 @@ const Dashboard = ({
   onManageFactors,
   onPinFinding,
   onShareChart,
+  onExportCSV,
   findingsCallbacks,
   findings: allFindings,
   onInvestigateFactor,
@@ -204,7 +208,6 @@ const Dashboard = ({
   performance = {},
   ai = {},
   projectedCpkMap: externalProjectedCpkMap,
-  workspaceProjectScope,
   onOpenWall,
   categoricalValuesByColumn,
   workspaceProjectProcessSteps = [],
@@ -259,7 +262,11 @@ const Dashboard = ({
   const defectMapping = useProjectStore(s => s.defectMapping);
   const { filteredData, filteredIndexMap } = useFilteredData();
   const lensedSampleCount = useLensedSampleCount();
-  const { stats, isComputing } = useAnalysisStats();
+  const dataDateRange = useDataDateRange();
+  // Pass the worker so computeStats runs off the main thread; the I-Chart card's
+  // skeleton gate covers the async round-trip (no blank window on tab return).
+  const workerApi = useStatsWorker();
+  const { stats, isComputing } = useAnalysisStats(workerApi);
   const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
   const { t } = useTranslation();
@@ -878,13 +885,6 @@ const Dashboard = ({
     >
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
-        {workspaceProjectScope ? (
-          <WorkspaceProjectScopeRibbon
-            title={workspaceProjectScope.title}
-            labels={workspaceProjectScope.labels}
-            surface="Explore"
-          />
-        ) : null}
         {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}
         {!isPhone && (
           <ProcessHealthBar
@@ -905,16 +905,34 @@ const Dashboard = ({
             onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
             columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
             sampleCount={lensedSampleCount}
+            dateRange={dataDateRange}
             filterChipData={filterChipData}
             columnAliases={columnAliases}
             onUpdateFilterValues={handleUpdateFilterValues}
             onRemoveFilter={handleRemoveFilter}
             onClearAll={handleClearAllFilters}
             onPinFinding={onPinFinding}
-            layout={displayOptions.dashboardLayout ?? 'grid'}
-            onLayoutChange={l => setDisplayOptions({ ...displayOptions, dashboardLayout: l })}
-            factorCount={factors.length}
-            onManageFactors={onManageFactors}
+            subgroupSlot={
+              displayOptions.standardIChartMetric === 'capability' ? (
+                <SubgroupConfigPopover
+                  config={subgroupConfig}
+                  onConfigChange={setSubgroupConfig}
+                  availableColumns={(() => {
+                    const fromMap = subgroupAxisColumns(processContext?.processMap);
+                    return fromMap.length > 0 ? fromMap : factors;
+                  })()}
+                  columnAliases={columnAliases}
+                />
+              ) : undefined
+            }
+            availableStageColumns={availableStageColumns}
+            stageColumn={stageColumn}
+            setStageColumn={setStageColumn}
+            stageOrderMode={stageOrderMode}
+            onStageOrderModeChange={setStageOrderMode}
+            measureLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
+            onEditFraming={onManageFactors}
+            onExportCSV={onExportCSV}
             onSetSpecs={() => setShowSpecEditor(true)}
             onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
             centeringOpportunity={centeringOpportunity}
@@ -1140,17 +1158,14 @@ const Dashboard = ({
                 }
                 availableOutcomes={availableOutcomes}
                 setOutcome={setOutcome}
-                availableStageColumns={availableStageColumns}
                 stageColumn={stageColumn}
-                setStageColumn={setStageColumn}
-                stageOrderMode={stageOrderMode}
-                setStageOrderMode={setStageOrderMode}
                 stagedStats={stagedStats}
                 controlStats={
                   isCapabilityMode && capabilityIChartData?.cpkStats
                     ? capabilityIChartData.cpkStats
                     : stats
                 }
+                ichartLoading={!stats || isComputing}
                 getTermUcl={getTerm('ucl')}
                 getTermMean={getTerm('mean')}
                 getTermLcl={getTerm('lcl')}
@@ -1161,7 +1176,6 @@ const Dashboard = ({
                 paretoFactor={paretoFactor}
                 setParetoFactor={setParetoFactor}
                 showParetoPanel={showParetoPanel}
-                layout={displayOptions.dashboardLayout ?? 'grid'}
                 focusedChart={focusedChart}
                 setFocusedChart={setFocusedChart}
                 filterChipData={filterChipData}
@@ -1205,6 +1219,10 @@ const Dashboard = ({
                 onInsightCapture={!isDefectMode ? () => openEngineSignalCaptureDraft() : undefined}
                 // Azure-specific: Manage Factors button in I-Chart header
                 ichartHeaderExtra={
+                  // CapabilityMetricToggle + the Factors(N) twin STAY here
+                  // (chart identity + the ER-2 interim Factors home). The
+                  // SubgroupConfigPopover relocated to the context-line
+                  // `subgroupSlot` (ER-1 Task 2).
                   <div className="flex items-center gap-2">
                     <CapabilityMetricToggle
                       metric={displayOptions.standardIChartMetric ?? 'measurement'}
@@ -1213,20 +1231,6 @@ const Dashboard = ({
                       }
                       disabled={specs.usl === undefined && specs.lsl === undefined}
                     />
-                    {displayOptions.standardIChartMetric === 'capability' && (
-                      <SubgroupConfigPopover
-                        config={subgroupConfig}
-                        onConfigChange={setSubgroupConfig}
-                        availableColumns={(() => {
-                          // Prefer the rational-subgroup axes the user picked in FRAME
-                          // — they reflect process structure. Fall back to all factors
-                          // for projects without a map (backward compat). ADR-070.
-                          const fromMap = subgroupAxisColumns(processContext?.processMap);
-                          return fromMap.length > 0 ? fromMap : factors;
-                        })()}
-                        columnAliases={columnAliases}
-                      />
-                    )}
                     {onManageFactors && (
                       <button
                         onClick={onManageFactors}
@@ -1236,7 +1240,7 @@ const Dashboard = ({
                         data-testid="btn-manage-factors"
                       >
                         <Settings2 size={14} />
-                        <span>Factors ({factors.length})</span>
+                        <span>Factors ({effectiveFactors.length})</span>
                       </button>
                     )}
                   </div>
@@ -1402,6 +1406,7 @@ const Dashboard = ({
                       stageOrderMode={stageOrderMode}
                       stagedStats={stagedStats}
                       stats={stats}
+                      ichartLoading={!stats || isComputing}
                       ichartChartTitle={chartTitles.ichart || ''}
                       onSetOutcome={setOutcome}
                       onSetStageColumn={setStageColumn}

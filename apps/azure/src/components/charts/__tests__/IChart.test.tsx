@@ -52,6 +52,11 @@ vi.mock('../../../hooks/useChartScale', () => ({
   useChartScale: () => ({ min: 0, max: 100 }),
 }));
 
+// Worker is not available in jsdom; the singleton hook returns null in tests.
+vi.mock('../../../workers/useStatsWorker', () => ({
+  useStatsWorker: () => null,
+}));
+
 vi.mock('@variscout/core/capability', () => ({
   resolveCpkTarget: () => ({ value: 1.33 }),
 }));

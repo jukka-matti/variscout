@@ -41,6 +41,11 @@ export interface IChartSectionProps {
   /** Azure injects stage column selector here */
   renderHeaderExtra?: React.ReactNode;
   renderChart: () => React.ReactNode;
+  /**
+   * Hold the focused I-Chart on a ChartSkeleton while its stats are pending
+   * (apps pass `!stats || isComputing`). Covers the maximize-path blank window.
+   */
+  isLoading?: boolean;
 }
 
 export interface BoxplotSectionProps {

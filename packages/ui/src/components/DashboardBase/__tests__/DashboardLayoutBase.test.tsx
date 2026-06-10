@@ -10,6 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import DashboardLayoutBase from '../DashboardLayoutBase';
 import type { DashboardLayoutBaseProps } from '../DashboardLayoutBase';
+import { flushRaf } from '../../../test-utils/raf';
 
 const noopAsync = vi.fn().mockResolvedValue(undefined);
 const noop = vi.fn();
@@ -52,11 +53,7 @@ const baseProps: DashboardLayoutBaseProps = {
   onDisplayOptionChange: noop,
   availableOutcomes: ['Weight', 'Height'],
   setOutcome: noop,
-  availableStageColumns: [],
   stageColumn: null,
-  setStageColumn: noop,
-  stageOrderMode: 'auto',
-  setStageOrderMode: noop,
   stagedStats: null,
   controlStats: { ucl: 12, lcl: 8, mean: 10 },
   chartTitles: {},
@@ -100,9 +97,23 @@ describe('DashboardLayoutBase', () => {
 
   it('renders render slot content', () => {
     render(<DashboardLayoutBase {...baseProps} />);
+    // Chart-content children mount immediately underneath the skeleton overlay.
     expect(screen.getByTestId('ichart-content')).toBeDefined();
     expect(screen.getByTestId('boxplot-content')).toBeDefined();
     expect(screen.getByTestId('pareto-content')).toBeDefined();
+  });
+
+  it('holds the I-Chart card on a skeleton overlay while ichartLoading is true', async () => {
+    render(<DashboardLayoutBase {...baseProps} ichartLoading />);
+    await flushRaf();
+    // The I-Chart card still exists, and its content mounts underneath — but the
+    // skeleton overlay covers it (these stub children carry no <svg>, and
+    // ichartLoading holds the latch regardless).
+    expect(screen.getByTestId('chart-ichart')).toBeDefined();
+    expect(screen.getByTestId('boxplot-content')).toBeDefined();
+    // At least the I-Chart card shows a skeleton overlay (the no-svg boxplot/
+    // pareto stubs also keep theirs, so ≥1 is the floor here).
+    expect(screen.getAllByTestId('chart-skeleton').length).toBeGreaterThan(0);
   });
 
   it('hides pareto card when showParetoPanel is false', () => {
@@ -224,6 +235,12 @@ describe('DashboardLayoutBase', () => {
     expect(screen.queryByTestId('staged-stats-chips')).toBeNull();
   });
 
+  it('no longer renders the stage-column / stage-order selects (moved to the context line, ER-1)', () => {
+    render(<DashboardLayoutBase {...baseProps} stageColumn="Batch" />);
+    expect(screen.queryByLabelText('Select stage column')).toBeNull();
+    expect(screen.queryByLabelText('Stage order mode')).toBeNull();
+  });
+
   it('does not render Fixed/Rolling/Open-ended/Cumulative windowing buttons', () => {
     render(<DashboardLayoutBase {...baseProps} />);
     expect(screen.queryByTestId('timeline-window-picker-host')).toBeNull();
@@ -313,7 +330,7 @@ describe('DashboardLayoutBase', () => {
    * that removes the maximize (drill) affordance, fails these assertions.
    */
   describe('IM-6 always-on charts + drillability (ADR-089 §6.1)', () => {
-    it('shows all four charts at once with no lens picker gating them', () => {
+    it('shows all four charts at once with no lens picker gating them', async () => {
       render(
         <DashboardLayoutBase
           {...baseProps}
@@ -326,7 +343,9 @@ describe('DashboardLayoutBase', () => {
       expect(screen.getByTestId('chart-boxplot')).toBeTruthy();
       expect(screen.getByTestId('chart-pareto')).toBeTruthy();
       expect(screen.getByTestId('chart-stats')).toBeTruthy();
-      // The verify card renders its diagnostic content directly...
+      // The verify card renders its diagnostic content directly (after the
+      // card's one-rAF skeleton gate)...
+      await flushRaf();
       expect(screen.getByTestId('verify-content')).toBeTruthy();
       // ...with no lens-tab SegmentedControl switcher. The apps pass
       // testId="verify-tab" to the SegmentedControl, which emits one button per

@@ -10,6 +10,7 @@ import {
   useCapabilityIChartData,
 } from '@variscout/hooks';
 import { useChartScale } from '../../hooks/useChartScale';
+import { useStatsWorker } from '../../workers/useStatsWorker';
 import { IChartWrapperBase } from '@variscout/ui';
 import type { Finding, DataRow, IChartDataPoint } from '@variscout/core';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -42,7 +43,8 @@ const IChart = ({
 }: IChartProps) => {
   const { filteredData: storeData } = useFilteredData();
   const filteredData = dataOverride ?? storeData;
-  const { stats, isComputing } = useAnalysisStats();
+  const workerApi = useStatsWorker();
+  const { stats, isComputing } = useAnalysisStats(workerApi);
   const { stagedData, stagedStats } = useStagedAnalysis();
   const storeOutcome = useProjectStore(s => s.outcome);
   const outcome = outcomeOverride ?? storeOutcome;

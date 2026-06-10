@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Minimize2, Copy, Check } from 'lucide-react';
 import { ChartDownloadMenu, type ChartDownloadMenuColorScheme } from '../ChartExportMenu';
 import { FilterContextBar } from '../FilterContextBar';
 import type { FilterChipData } from '../filterTypes';
+import ChartSkeleton from '../ChartSkeleton/ChartSkeleton';
+import { useChartPaintLatch } from './internal/useChartPaintLatch';
 
 export interface FocusedChartCardProps {
   /** Container ID (e.g. "ichart-focus") */
@@ -11,7 +13,14 @@ export interface FocusedChartCardProps {
   header: React.ReactNode;
   /** Optional stats bar on the right side of the header row */
   headerRight?: React.ReactNode;
-  /** Chart content (ErrorBoundary + chart component) */
+  /**
+   * Chart content (ErrorBoundary + chart component).
+   *
+   * **Layout contract**: children are rendered unwrapped (no `absolute inset-0`
+   * wrapper) — the parent `flex-1 min-h-0` container provides the sizing context.
+   * Children must be flow-layout (e.g. `w-full h-full` SVG/div). Do NOT pass
+   * absolutely-positioned subtrees here; use DashboardChartCard for that pattern.
+   */
   children: React.ReactNode;
   /** Footer content below the chart (BoxplotStatsTable, AnovaResults) */
   footer?: React.ReactNode;
@@ -35,6 +44,17 @@ export interface FocusedChartCardProps {
   chartDownloadMenuColorScheme?: ChartDownloadMenuColorScheme;
   /** Additional class on the card */
   className?: string;
+  /**
+   * Hold the chart slot on a ChartSkeleton while data/stats are pending.
+   * The skeleton is an absolute overlay over the (always-mounted) chart slot —
+   * children render underneath immediately so measurement/render start at once.
+   * The overlay stays up until the slot's `<svg>` has ACTUALLY painted AND
+   * `isLoading` is false: `isLoading` clears when stats resolve, but visx's
+   * `withParentSize` paints the SVG a few frames later, so gating on `isLoading`
+   * alone leaves a blank window. Once hidden the overlay never re-shows for the
+   * life of the mount.
+   */
+  isLoading?: boolean;
 }
 
 /**
@@ -63,7 +83,13 @@ const FocusedChartCard: React.FC<FocusedChartCardProps> = ({
   showFilterContext = true,
   chartDownloadMenuColorScheme,
   className = '',
+  isLoading = false,
 }) => {
+  // Skeleton overlay holds until the chart's <svg> has actually painted AND
+  // stats have resolved — covering the stats-done-but-not-yet-rendered window.
+  const chartSlotRef = useRef<HTMLDivElement>(null);
+  const showSkeleton = useChartPaintLatch(chartSlotRef, isLoading);
+
   const showExportButtons = onCopyChart && onDownloadPng && onDownloadSvg;
 
   return (
@@ -120,7 +146,12 @@ const FocusedChartCard: React.FC<FocusedChartCardProps> = ({
         />
       )}
 
-      <div className="flex-1 min-h-0 w-full">{children}</div>
+      <div ref={chartSlotRef} className="flex-1 min-h-0 w-full relative">
+        {/* Children ALWAYS render so withParentSize measures immediately. The
+            skeleton is an opaque overlay until the svg actually paints. */}
+        {children}
+        {showSkeleton && <ChartSkeleton />}
+      </div>
 
       {footer}
     </div>

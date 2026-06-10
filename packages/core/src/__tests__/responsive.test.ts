@@ -39,7 +39,9 @@ describe('getResponsiveMargins', () => {
   describe('desktop (≥768)', () => {
     it('returns base margins for ichart', () => {
       const margins = getResponsiveMargins(800, 'ichart');
-      expect(margins).toEqual({ top: 40, right: 85, bottom: 60, left: 70 });
+      // ER-1: ichart top trimmed 40→24 to reclaim plot-band height under the
+      // two-row chrome (ichart row only; the shared margins map is otherwise unchanged).
+      expect(margins).toEqual({ top: 24, right: 85, bottom: 60, left: 70 });
     });
 
     it('returns base margins for boxplot', () => {

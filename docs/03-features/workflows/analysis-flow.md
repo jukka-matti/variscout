@@ -30,13 +30,16 @@ All of this happens inside one **Workspace** — the place the analyst brings da
 
 ### Analysis Workspace Anatomy
 
-In the normal laptop **Explore** view (the EDA / Four Lenses dashboard):
+The Explore tab has exactly **two persistent chrome rows** above the chart area:
 
-- the **I-Chart** is always visible
-- the **left lower panel** stays about subgroup / variation-source drill-down
-- the **right lower panel** is an adaptive lens with `Probability`, `Distribution` or `Capability`, and optional `Pareto`
+1. **Compact header** (AppHeader) — one row, icon-only tools, workspace + scope chip, Findings count badge.
+2. **Context line** (ProcessHealthBar) — one row; left cluster: `N rows · <date range> · x̄ · σ · Cpk (graded, clickable → capability I-Chart) · Filters`; right cluster: `Subgroup · Time · Stages · Export · measure chip (Edit framing menu)`.
 
-This UI structure mirrors the EDA flow: orient on the hero chart, compare subgroup variation, read distribution/spec context, then rank contributors when ranking is meaningful.
+The framing toolbar is **Process-tab chrome only** — it does not appear on Explore. Below the two chrome rows, the layout is **scroll-only**: the I-Chart fills a viewport-relative hero band (`h-[calc(100dvh-240px)]`), giving the chart the room it needs. The scope ribbon was deleted (header chips are the single scope chrome).
+
+This structure mirrors the EDA flow: orient on the hero I-Chart, use the context-line lenses (Subgroup / Time / Stages) to slice and compare, read the stats summary inline, then drill into variation sources on the lower panels.
+
+Canonical wireframe: [`docs/02-journeys/wireframes/assets/explore-redesign-mockup-2026-06-10.html`](../../02-journeys/wireframes/assets/explore-redesign-mockup-2026-06-10.html)
 
 ```mermaid
 flowchart TD

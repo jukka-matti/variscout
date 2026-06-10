@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import Dashboard from '../Dashboard';
+import { flushRaf } from '@variscout/ui/test-utils';
 import { calculateAnova, type Finding } from '@variscout/core';
 import * as UseFilterNavigationModule from '../../hooks/useFilterNavigation';
 import {
@@ -38,13 +39,19 @@ vi.mock('../AnovaResults', () => ({
 // Capture the ProcessHealthBar specs prop so the per-measure resolution can be
 // asserted (the bar gates its own Cpk chip on `specs`, independent of stats).
 const capturedHealthBarSpecs = vi.hoisted(() => ({ value: undefined as unknown }));
+// Capture the full ProcessHealthBar props so the ER-1 relocations (Subgroup
+// slot, Stages selects, Export CSV/.vrs, Edit-framing) can be asserted.
+const capturedHealthBarProps = vi.hoisted(() => ({
+  value: undefined as Record<string, unknown> | undefined,
+}));
 // Mock new dashboard chrome components
 vi.mock('@variscout/ui', async () => {
   const actual = await vi.importActual('@variscout/ui');
   return {
     ...actual,
-    ProcessHealthBar: ({ specs }: { specs: unknown }) => {
-      capturedHealthBarSpecs.value = specs;
+    ProcessHealthBar: (props: { specs: unknown } & Record<string, unknown>) => {
+      capturedHealthBarSpecs.value = props.specs;
+      capturedHealthBarProps.value = props;
       return <div data-testid="process-health-bar">Health Bar</div>;
     },
     VerificationCard: ({
@@ -94,6 +101,17 @@ vi.mock('html-to-image', () => ({
 vi.mock('../../workers/useStatsWorker', () => ({
   useStatsWorker: vi.fn(() => null),
 }));
+
+// Explicitly stub useDataDateRange — the hook reads from IndexedDB which isn't
+// available in jsdom; returning null is the correct "no date range" fallback
+// (mirrors the Azure test's intentional approach).
+vi.mock('@variscout/hooks', async () => {
+  const actual = await vi.importActual('@variscout/hooks');
+  return {
+    ...(actual as object),
+    useDataDateRange: () => null,
+  };
+});
 
 // Mock core functions
 vi.mock('@variscout/core', async () => {
@@ -161,13 +179,16 @@ describe('Dashboard', () => {
     );
   });
 
-  it('renders dashboard view by default with tab navigation', () => {
+  it('renders dashboard view by default with tab navigation', async () => {
     render(<Dashboard />);
 
-    // Dashboard view shows I-Chart, Boxplot, and ProcessHealthBar
+    // ProcessHealthBar paints synchronously; chart content mounts after the
+    // one-rAF skeleton gate.
+    expect(screen.getByTestId('process-health-bar')).toBeInTheDocument();
+    await flushRaf();
+    // Dashboard view shows I-Chart + Boxplot once painted.
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
-    expect(screen.getByTestId('process-health-bar')).toBeInTheDocument();
   });
 
   it('does not render AnovaResults when calculation returns null', () => {
@@ -178,7 +199,7 @@ describe('Dashboard', () => {
     expect(screen.queryByTestId('anova-results')).not.toBeInTheDocument();
   });
 
-  it('feeds the histogram measureSpecs[outcome] when global specs are empty', () => {
+  it('feeds the histogram measureSpecs[outcome] when global specs are empty', async () => {
     // Global specs empty; the per-measure spec for the outcome carries limits.
     useProjectStore.setState({
       specs: {},
@@ -186,6 +207,10 @@ describe('Dashboard', () => {
     });
 
     render(<Dashboard />);
+
+    // The histogram lives inside the verify card, which is gated by the one-rAF
+    // skeleton; flush so its content (CapabilityHistogram) mounts.
+    await flushRaf();
 
     // Switch the verify card to the distribution/capability lens (2nd button).
     const verifyTab = screen.getByTestId('verify-tab');
@@ -208,6 +233,48 @@ describe('Dashboard', () => {
     render(<Dashboard />);
 
     expect(capturedHealthBarSpecs.value).toEqual({ lsl: 5, usl: 45 });
+  });
+
+  describe('ER-1: context-line relocations', () => {
+    it('feeds ProcessHealthBar the relocated stage controls + Export CSV/.vrs + Edit-framing', () => {
+      const onExportCSV = vi.fn();
+      const onExportVrs = vi.fn();
+      const onManageFactors = vi.fn();
+      render(
+        <Dashboard
+          onExportCSV={onExportCSV}
+          onExportVrs={onExportVrs}
+          onManageFactors={onManageFactors}
+        />
+      );
+      const props = capturedHealthBarProps.value!;
+      // Stage selects relocated from DashboardLayoutBase into the strip.
+      expect(props).toHaveProperty('availableStageColumns');
+      expect(typeof props.setStageColumn).toBe('function');
+      expect(typeof props.onStageOrderModeChange).toBe('function');
+      // PWA: both Export CSV and the relocated .vrs export.
+      expect(props.onExportCSV).toBe(onExportCSV);
+      expect(props.onExportVrs).toBe(onExportVrs);
+      // Measure chip + Edit-framing menu wired to the factor manager.
+      expect(props.onEditFraming).toBe(onManageFactors);
+      expect(props.measureLabel).toBeTruthy();
+    });
+
+    it('passes the relocated Subgroup slot only when the capability metric is active', () => {
+      // Default standardIChartMetric is measurement → no subgroup slot.
+      render(<Dashboard />);
+      expect(capturedHealthBarProps.value!.subgroupSlot).toBeUndefined();
+
+      useProjectStore.setState({
+        displayOptions: {
+          ...useProjectStore.getState().displayOptions,
+          standardIChartMetric: 'capability',
+        },
+        specs: { lsl: 5, usl: 45 },
+      });
+      render(<Dashboard />);
+      expect(capturedHealthBarProps.value!.subgroupSlot).toBeTruthy();
+    });
   });
 
   it('opens the shared capture card for an I-Chart brush and saves a factor-backed Finding', () => {
@@ -281,6 +348,33 @@ describe('Dashboard', () => {
     expect(
       screen.queryByRole('button', { name: /Take it to Analyze ->/i })
     ).not.toBeInTheDocument();
+  });
+
+  // btn-manage-factors is injected via ichartHeaderExtra (rendered inside the I-Chart slot header
+  // when onManageFactors is provided). This is DISTINCT from the pre-existing empty-state Factors
+  // button (rendered only when hasData is false and there are no factors) — different render
+  // condition, different mount point.
+  describe('ER-1 Task 3: ichartHeaderExtra Factors(N) twin', () => {
+    it('renders btn-manage-factors in ichartHeaderExtra with factor count', () => {
+      const onManageFactors = vi.fn();
+      render(<Dashboard onManageFactors={onManageFactors} />);
+      const btn = screen.getByTestId('btn-manage-factors');
+      expect(btn).toBeTruthy();
+      // Factor count comes from projectStore.factors seeded to ['Machine'] in beforeEach
+      expect(btn.textContent).toContain('Factors (1)');
+    });
+
+    it('calls onManageFactors when btn-manage-factors is clicked', () => {
+      const onManageFactors = vi.fn();
+      render(<Dashboard onManageFactors={onManageFactors} />);
+      fireEvent.click(screen.getByTestId('btn-manage-factors'));
+      expect(onManageFactors).toHaveBeenCalledOnce();
+    });
+
+    it('does not render btn-manage-factors when onManageFactors is not provided', () => {
+      render(<Dashboard />);
+      expect(screen.queryByTestId('btn-manage-factors')).toBeNull();
+    });
   });
 
   it('maps rolling-lens brush indices onto the visible raw rows', () => {

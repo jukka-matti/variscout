@@ -301,6 +301,9 @@ export {
   type DashboardChartFindings,
 } from './components/DashboardBase';
 
+// Chart skeleton placeholder (one-rAF mount gate in the chart cards)
+export { ChartSkeleton, type ChartSkeletonProps } from './components/ChartSkeleton';
+
 // Findings callback types (shared by PWA and Azure dashboards)
 export type {
   ChartObservationCaptureOptions,

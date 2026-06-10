@@ -49,6 +49,8 @@ export interface DashboardSectionProps {
   onPinFinding?: (noteText?: string) => void;
   /** Handler for sharing a chart */
   onShareChart?: (chartType: string) => void;
+  /** Export CSV handler (context-line Export menu — Azure CSV-only). */
+  onExportCSV?: () => void;
   /** Handler for clicking "Investigate" on a Factor Intelligence factor */
   onInvestigateFactor?: (effect: FactorMainEffect) => void;
   onOpenWall?: () => void;
@@ -86,6 +88,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   findingsCallbacks,
   onPinFinding,
   onShareChart,
+  onExportCSV,
   onInvestigateFactor,
   onOpenWall,
   projectedCpkMap,
@@ -113,6 +116,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
       workspaceProjectScope={workspaceProjectScope}
       onPinFinding={onPinFinding}
       onShareChart={onShareChart}
+      onExportCSV={onExportCSV}
       findingsCallbacks={findingsCallbacks}
       findings={findingsState.findings}
       onInvestigateFactor={onInvestigateFactor}

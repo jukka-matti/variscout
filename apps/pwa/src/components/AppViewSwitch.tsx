@@ -2,12 +2,7 @@ import React from 'react';
 import { lazyWithRetry } from '../lib/chunkReload';
 import { normalizeProcessHubId } from '@variscout/core';
 import { useAnalyzeStore, useCanvasViewportStore } from '@variscout/stores';
-import {
-  ColumnMapping,
-  PendingInvitesBanner,
-  WorkspaceProjectLaunchpadCard,
-  WorkspaceProjectScopeRibbon,
-} from '@variscout/ui';
+import { ColumnMapping, PendingInvitesBanner, WorkspaceProjectLaunchpadCard } from '@variscout/ui';
 import { pwaHubRepository } from '../persistence';
 import { usePanelsStore } from '../features/panels/panelsStore';
 const Dashboard = lazyWithRetry(() => import('./Dashboard'));
@@ -207,17 +202,9 @@ function AppProcessView({ props }: { props: AppViewSwitchProps }): React.ReactEl
     setMeasureColumns,
     setMeasureLabel,
     setSelectedMeasure,
-    workspaceProjectScope,
   } = props;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {workspaceProjectScope ? (
-        <WorkspaceProjectScopeRibbon
-          title={workspaceProjectScope.title}
-          labels={workspaceProjectScope.labels}
-          surface="Process"
-        />
-      ) : null}
       <FrameView
         reingestPendingMatches={pendingMatches}
         onFixData={importFlow.openFactorManager}
@@ -417,6 +404,7 @@ function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactEl
     handleAddChartObservation,
     handleExport,
     handleExportCSV,
+    handleExportVrs,
     handleOpenFinding,
     handlePinFinding,
     highlightedChart,
@@ -433,6 +421,7 @@ function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactEl
       onPointClick={panels.openDataTableAtRow}
       hideStatsInGrid={panels.isPISidebarOpen}
       onExportCSV={handleExportCSV}
+      onExportVrs={handleExportVrs}
       onExportImage={handleExport}
       highlightedChart={highlightedChart}
       highlightIntensity={highlightIntensity}

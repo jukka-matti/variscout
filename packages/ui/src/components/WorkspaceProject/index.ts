@@ -17,10 +17,6 @@ export {
   WorkspaceProjectLaunchpadCard,
   type WorkspaceProjectLaunchpadCardProps,
 } from './WorkspaceProjectLaunchpadCard';
-export {
-  WorkspaceProjectScopeRibbon,
-  type WorkspaceProjectScopeRibbonProps,
-} from './WorkspaceProjectScopeRibbon';
 export { WorkspaceProjectChip, type WorkspaceProjectChipProps } from './WorkspaceProjectChip';
 export {
   NoActiveProjectGuidance,

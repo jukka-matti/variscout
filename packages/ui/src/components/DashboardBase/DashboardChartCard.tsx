@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Copy, Check, Maximize2, Share2 } from 'lucide-react';
 import { ChartDownloadMenu, type ChartDownloadMenuColorScheme } from '../ChartExportMenu';
+import ChartSkeleton from '../ChartSkeleton/ChartSkeleton';
+import { useChartPaintLatch } from './internal/useChartPaintLatch';
 
 export interface DashboardChartCardProps {
   /** Container ID for copy-to-clipboard targeting */
@@ -45,6 +47,17 @@ export interface DashboardChartCardProps {
   observationCount?: number;
   /** Which utility actions are visible in the title row */
   utilityActions?: 'all' | 'maximize-only' | 'none';
+  /**
+   * Hold the chart slot on a ChartSkeleton while data/stats are pending.
+   * The skeleton is an absolute overlay over the (always-mounted) chart slot —
+   * children render underneath immediately so measurement/render start at once.
+   * The overlay stays up until the slot's `<svg>` has ACTUALLY painted AND
+   * `isLoading` is false: `isLoading` clears when stats resolve, but visx's
+   * `withParentSize` paints the SVG a few frames later, so gating on `isLoading`
+   * alone leaves a blank window. Once hidden the overlay never re-shows for the
+   * life of the mount (recomputes use the dim isComputing overlays instead).
+   */
+  isLoading?: boolean;
 }
 
 /**
@@ -79,7 +92,13 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
   onShareChart,
   observationCount,
   utilityActions = 'all',
+  isLoading = false,
 }) => {
+  // Skeleton overlay holds until the chart's <svg> has actually painted AND
+  // stats have resolved — covering the stats-done-but-not-yet-rendered window.
+  const chartSlotRef = useRef<HTMLDivElement>(null);
+  const showSkeleton = useChartPaintLatch(chartSlotRef, isLoading);
+
   const showExportButtons =
     utilityActions === 'all' && onCopyChart && onDownloadPng && onDownloadSvg;
   const showShareButton = utilityActions === 'all' && onShareChart;
@@ -116,7 +135,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
                     e.stopPropagation();
                     onCopyChart(id, chartName);
                   }}
-                  className={`p-1.5 rounded transition-all min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                  className={`p-1.5 rounded transition-all min-w-7 min-h-7 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-blue-400 ${
                     copyFeedback === chartName
                       ? 'bg-green-500/20 text-green-400'
                       : 'text-content-muted hover:text-content hover:bg-surface-tertiary'
@@ -143,7 +162,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
                   e.stopPropagation();
                   onShareChart(chartName);
                 }}
-                className="p-1.5 rounded text-content-muted hover:text-blue-400 hover:bg-blue-400/10 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-1.5 rounded text-content-muted hover:text-blue-400 hover:bg-blue-400/10 transition-colors min-w-7 min-h-7 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-blue-400"
                 title={`Share ${chartName}`}
                 aria-label={`Share ${chartName}`}
                 data-export-hide
@@ -158,7 +177,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
                   e.stopPropagation();
                   onMaximize?.();
                 }}
-                className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors min-w-7 min-h-7 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-blue-400"
                 title="Maximize Chart"
                 aria-label="Maximize chart"
               >
@@ -178,7 +197,12 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
       {filterBar}
 
       <div className="flex-1 min-h-0 relative">
-        <div className="absolute inset-0">{children}</div>
+        {/* Children ALWAYS mount so withParentSize measures immediately. The
+            skeleton is an opaque overlay until the svg actually paints. */}
+        <div ref={chartSlotRef} className="absolute inset-0">
+          {children}
+        </div>
+        {showSkeleton && <ChartSkeleton />}
       </div>
 
       {footer}

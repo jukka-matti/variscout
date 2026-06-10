@@ -64,7 +64,7 @@ export interface Breakpoints {
  *
  * @example
  * const margins = getResponsiveMargins(800, 'ichart');
- * // { top: 40, right: 85, bottom: 60, left: 70 }
+ * // { top: 24, right: 85, bottom: 60, left: 70 }
  *
  * @example
  * const margins = getResponsiveMargins(350, 'boxplot', 20);
@@ -81,7 +81,7 @@ export function getResponsiveMargins(
   // Base margins per chart type (desktop defaults)
   // I-Chart has larger right margin to accommodate Minitab-style limit labels
   const baseMargins: Record<ChartType, ChartMargins> = {
-    ichart: { top: 40, right: 85, bottom: 60, left: 70 },
+    ichart: { top: 24, right: 85, bottom: 60, left: 70 },
     boxplot: { top: 20, right: 20, bottom: 60, left: 70 },
     pareto: { top: 20, right: 20, bottom: 60, left: 70 },
     histogram: { top: 20, right: 20, bottom: 40, left: 40 },

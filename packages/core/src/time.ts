@@ -256,6 +256,41 @@ export function parseTimeValue(value: DataCellValue | Date): Date | null {
 }
 
 /**
+ * Compute the [min, max] ISO timestamp range over a column of rows.
+ *
+ * Parses each row's `col` value via {@link parseTimeValue}; rows that don't
+ * parse (or whose ms are non-finite) are skipped. Returns `undefined` when no
+ * row carries a parseable timestamp.
+ *
+ * Moved here from `matchSummary/classifier.ts` (its behaviour is unchanged) so
+ * the lensed-data date-range view (`useDataDateRange`) can share it. Lives
+ * beside `parseTimeValue` because it is a thin reduction over it.
+ *
+ * @param rows - Rows to scan
+ * @param col - Column name carrying the timestamp value
+ * @returns `{ startISO, endISO }` or `undefined` when no parseable value exists
+ */
+export function rangeOf(
+  rows: ReadonlyArray<Record<string, unknown>>,
+  col: string
+): { startISO: string; endISO: string } | undefined {
+  let min = Infinity;
+  let max = -Infinity;
+  let hasAny = false;
+  for (const r of rows) {
+    const parsed = parseTimeValue(r[col] as DataCellValue);
+    if (!parsed) continue;
+    const ms = parsed.getTime();
+    if (!Number.isFinite(ms)) continue;
+    if (ms < min) min = ms;
+    if (ms > max) max = ms;
+    hasAny = true;
+  }
+  if (!hasAny) return undefined;
+  return { startISO: new Date(min).toISOString(), endISO: new Date(max).toISOString() };
+}
+
+/**
  * Calculate ISO week number (ISO 8601 standard)
  *
  * Week 1 is the first week with a Thursday in it

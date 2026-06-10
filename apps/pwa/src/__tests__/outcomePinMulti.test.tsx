@@ -64,12 +64,13 @@ vi.mock('../workers/useStatsWorker', () => ({
   }),
 }));
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import App from '../App';
 import { LocaleProvider } from '../context/LocaleContext';
 import { db } from '../db/schema';
 import { pwaHubRepository } from '../persistence';
+import { usePanelsStore } from '../features/panels/panelsStore';
 import {
   buildDocumentSnapshotVrs,
   getCanvasInitialState,
@@ -185,10 +186,22 @@ describe('PWA framing toolbar — OutcomePin per outcome (F3)', () => {
     window.history.pushState({}, '', '/');
   });
 
-  it('renders the framing toolbar for a non-embed sample deep-link with data and session hub', async () => {
+  it('gates the framing toolbar to the Process tab — present on Process, absent on Explore (ER-1)', async () => {
+    // The sample deep-link lands on the Process tab (landOnProcess).
     renderSampleDeepLink({ embed: false });
 
+    // ER-1: the framing toolbar is canvas chrome for the Process tab.
     expect(await screen.findByTestId('framing-toolbar')).toBeInTheDocument();
+
+    // Switch to Explore → the framing toolbar disappears (the context line owns
+    // the Explore chrome; the framing toolbar is Process-tab-only).
+    // Use waitFor so the removal assertion retries until React has flushed the
+    // Zustand state update and re-rendered (guards against the race where a bare
+    // synchronous queryByTestId runs before the commit phase).
+    act(() => usePanelsStore.getState().showExplore());
+    await waitFor(() => expect(screen.queryByTestId('framing-toolbar')).not.toBeInTheDocument());
+    // The Explore surface (stubbed Dashboard) confirms the tab switch.
+    expect(await screen.findByTestId('dashboard-stub')).toBeInTheDocument();
   });
 
   it('does not render the framing toolbar in embed mode after sample data creates a session hub', async () => {

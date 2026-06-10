@@ -80,8 +80,6 @@ export interface DisplayOptions {
   standardIChartMetric?: StandardIChartMetric;
   /** Capability boxplot metric (default: 'cpk') */
   capabilityBoxplotMetric?: 'cp' | 'cpk';
-  /** Dashboard layout mode: grid (2x2 viewport-fit) or scroll (stacked full-width) */
-  dashboardLayout?: 'grid' | 'scroll';
 }
 
 /**

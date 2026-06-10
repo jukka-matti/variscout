@@ -166,7 +166,6 @@ vi.mock('@variscout/ui', async importOriginal => {
     HelpTooltip: () => null,
     CapabilityMetricToggle: () => null,
     SubgroupConfigPopover: () => null,
-    WorkspaceProjectScopeRibbon: () => null,
     FocusedViewOverlay: () => null,
     NarrativeBar: () => null,
     DefectSummary: () => null,
@@ -292,6 +291,9 @@ vi.mock('../components/PerformanceDashboard', () => ({ default: () => null }));
 vi.mock('../components/MobileChartCarousel', () => ({ default: () => null }));
 vi.mock('../components/settings/SpecEditor', () => ({ default: () => null }));
 vi.mock('html-to-image', () => ({ toBlob: vi.fn() }));
+
+// Worker is not available in jsdom; the singleton hook returns null in tests.
+vi.mock('../workers/useStatsWorker', () => ({ useStatsWorker: () => null }));
 
 vi.mock('../hooks', () => ({
   useDashboardCharts: () => ({

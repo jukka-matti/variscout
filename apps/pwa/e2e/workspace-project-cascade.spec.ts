@@ -34,19 +34,14 @@ test('attached Workspace Project persists across tabs without switch or exit con
   await expect(page.getByRole('region', { name: 'Overall problem' })).toContainText(
     'Fill Cpk lift'
   );
+  // Tombstone: the ribbon was deleted in ER-1 — this guards against reintroduction, not tab behavior.
   await expect(page.getByTestId('workspace-project-scope-ribbon')).toHaveCount(0);
   await page.getByRole('button', { name: 'Findings' }).click();
-  await expect(page.getByTestId('workspace-project-scope-ribbon')).toContainText(
-    'Analyze scoped to Fill Cpk lift'
-  );
-  await expect(page.getByTestId('workspace-project-scope-ribbon')).toContainText('Factor: shift');
+  await expect(chip).toContainText('Fill Cpk lift');
 
   await page.getByTestId('workflow-tab-report').click();
   const reportChip = page.getByTestId('workspace-project-chip').last();
   await expect(reportChip).toContainText('Fill Cpk lift');
-  await expect(page.getByTestId('workspace-project-scope-ribbon')).toContainText(
-    'Report scoped to Fill Cpk lift'
-  );
   await expect(page.getByText('Reporting on: Fill Cpk lift')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Overview' }).first()).toBeVisible();
   await expect(page.getByRole('button', { name: 'Executive summary' }).first()).toBeVisible();
@@ -60,9 +55,7 @@ test('attached Workspace Project persists across tabs without switch or exit con
   ).toBeVisible();
 
   await expect(reportChip.getByRole('button', { name: /exit workspace/i })).toHaveCount(0);
-  await expect(page.getByTestId('workspace-project-scope-ribbon')).toContainText(
-    'Report scoped to Fill Cpk lift'
-  );
+  await expect(reportChip).toContainText('Fill Cpk lift');
   await expect(page.getByText('Reporting on: Fill Cpk lift')).toBeVisible();
 });
 

@@ -39,6 +39,11 @@ const capturedHistogramSpecs = vi.hoisted(() => ({ value: undefined as unknown }
 // Capture the ProcessHealthBar specs prop too — the bar gates its own Cpk chip
 // on `specs`, independent of stats.
 const capturedHealthBarSpecs = vi.hoisted(() => ({ value: undefined as unknown }));
+// Capture the full ProcessHealthBar props so the ER-1 relocations (Subgroup
+// slot, Stages selects, Export CSV, Edit-framing) can be asserted.
+const capturedHealthBarProps = vi.hoisted(() => ({
+  value: undefined as Record<string, unknown> | undefined,
+}));
 vi.mock('../charts/CapabilityHistogram', () => ({
   default: ({ specs }: { specs: unknown }) => {
     capturedHistogramSpecs.value = specs;
@@ -61,6 +66,11 @@ vi.mock('../settings/SpecEditor', () => ({
 // Mock html-to-image
 vi.mock('html-to-image', () => ({
   toBlob: vi.fn(),
+}));
+
+// Worker is not available in jsdom; the singleton hook returns null in tests.
+vi.mock('../../workers/useStatsWorker', () => ({
+  useStatsWorker: () => null,
 }));
 
 // Mock @variscout/charts
@@ -93,8 +103,9 @@ vi.mock('@variscout/ui', () => ({
       ))}
     </select>
   ),
-  ProcessHealthBar: ({ specs }: { specs: unknown }) => {
-    capturedHealthBarSpecs.value = specs;
+  ProcessHealthBar: (props: { specs: unknown } & Record<string, unknown>) => {
+    capturedHealthBarSpecs.value = props.specs;
+    capturedHealthBarProps.value = props;
     return <div data-testid="process-health-bar">Health Bar</div>;
   },
   VerificationCard: ({
@@ -584,6 +595,7 @@ vi.mock('@variscout/hooks', () => ({
   useDefectTransform: () => null,
   useDefectSummary: () => null,
   useLensedSampleCount: () => null,
+  useDataDateRange: () => null,
   useTranslation: () => ({
     t: (key: string) => key,
     formatStat: (v: unknown) => String(v),
@@ -689,6 +701,43 @@ describe('Dashboard', () => {
     render(<Dashboard />);
 
     expect(capturedHealthBarSpecs.value).toEqual({ lsl: 5, usl: 45 });
+  });
+
+  describe('ER-1: context-line relocations', () => {
+    it('feeds ProcessHealthBar the relocated stage controls + Export CSV + Edit-framing', () => {
+      const onExportCSV = vi.fn();
+      const onManageFactors = vi.fn();
+      render(<Dashboard onExportCSV={onExportCSV} onManageFactors={onManageFactors} />);
+      const props = capturedHealthBarProps.value!;
+      // Stage selects relocated from DashboardLayoutBase into the strip.
+      expect(props).toHaveProperty('availableStageColumns');
+      expect(typeof props.setStageColumn).toBe('function');
+      expect(typeof props.onStageOrderModeChange).toBe('function');
+      // Azure: Export CSV plumbed down (CSV-only, no .vrs).
+      expect(props.onExportCSV).toBe(onExportCSV);
+      expect(props.onExportVrs).toBeUndefined();
+      // Measure chip + Edit-framing menu wired to the factor manager.
+      expect(props.onEditFraming).toBe(onManageFactors);
+      expect(props.measureLabel).toBeTruthy();
+    });
+
+    it('does not pass the relocated Subgroup slot unless capability metric is active', () => {
+      render(<Dashboard />);
+      // Default standardIChartMetric is measurement → no subgroup slot.
+      expect(capturedHealthBarProps.value!.subgroupSlot).toBeUndefined();
+    });
+
+    it('passes a Subgroup slot when the capability metric is active', () => {
+      useProjectStore.setState({
+        displayOptions: {
+          ...useProjectStore.getState().displayOptions,
+          standardIChartMetric: 'capability',
+        },
+        specs: { lsl: 5, usl: 45 },
+      });
+      render(<Dashboard />);
+      expect(capturedHealthBarProps.value!.subgroupSlot).toBeTruthy();
+    });
   });
 
   it('returns null when no outcome is selected', () => {

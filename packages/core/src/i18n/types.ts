@@ -1166,6 +1166,9 @@ export interface MessageCatalog {
   'verify.tab.capability': string;
   'verify.tab.pareto': string;
 
+  // ProcessHealthBar generic labels
+  'healthBar.rows': string;
+
   // Time lens (ProcessHealthBar)
   'timeLens.button': string;
   'timeLens.popover.title': string;
