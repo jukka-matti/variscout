@@ -128,9 +128,9 @@ interface CausalLink extends EntityBase {
 
 **How to apply:** F1 adds the fields to all entity types in `@variscout/core`. Test fixtures + seed data update in the same PR. Type-only change at the persistence boundary (F3 then writes them); F2 wires up cascade rules.
 
-### D3. Normalized persistence schema (mirrors Azure's table structure)
+### D3. Normalized persistence schema (clean pre-launch v1)
 
-PWA Dexie schema becomes:
+PWA Dexie schema is a clean `version(1)` in the `variscout-pwa-v1` database:
 
 ```ts
 this.version(1).stores({
@@ -140,21 +140,23 @@ this.version(1).stores({
   rowProvenance: '&id, snapshotId',
   evidenceSources: '&id, hubId, deletedAt',
   evidenceSourceCursors: '&id, sourceId',
-  investigations: '&id, hubId, deletedAt',
-  findings: '&id, investigationId, deletedAt',
-  questions: '&id, investigationId, deletedAt',
-  causalLinks: '&id, investigationId, deletedAt',
-  suspectedCauses: '&id, investigationId, deletedAt',
+  improvementProjects: '&id, hubId, deletedAt, status, updatedAt',
+  actionItems:
+    '&id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
+  controlRecords: '&id, hubId, nextReviewDue, updatedAt, deletedAt',
+  controlReviews: '&id, recordId, hubId, reviewedAt',
+  controlHandoffs: '&id, hubId, status, handoffDate, deletedAt',
   canvasState: '&hubId', // 1:1 with hub
   meta: '&key', // opt-in flag, app version, etc.
+  measurementPlans: '&id, hypothesisId, status, deletedAt',
 });
 ```
 
-Azure schema gets the same shape; Azure additionally has `syncQueue`, `syncState`, `photoQueue`, `channelDriveCache` tables which are tier-gated implementation details PWA doesn't carry.
+Azure also declares a clean `version(1)` in the `VaRiScoutAzureV1` database. It keeps the current hub-domain tables plus Azure-only document/cloud-sync overlay tables: `projects`, `syncQueue`, and `syncState`. Retired compatibility stores such as PWA `questions`/`investigations`/`findings`/`causalLinks`/`hypotheses`/`documentSnapshots` and Azure `photoQueue`/`channelDriveCache` are intentionally omitted because VariScout has no launched-customer IndexedDB upgrade contract.
 
-**Why:** Option A from the brainstorm — fully honors ADR-078 D2. The schemas DIFFER only in the cloud-sync overlay tables; everything else is identical. Per-entity writes; per-entity indexing; partial loads; finer-grained subscription invalidation.
+**Why:** The clean pre-launch reset keeps ADR-078 D2's boundary: both apps use normalized hub-domain persistence where relevant, while Azure alone owns durable saved-document identity and cloud-sync overlay state. The products do not need identical physical tables where their promises differ.
 
-**How to apply:** F3 (= PR7) declares this as Dexie `version(1)` in `apps/pwa/src/db/schema.ts`. Existing dev-state PWA users get their hubs wiped on first open after F3 deploy. No `.upgrade()` callback. Showcase data regenerates from `apps/pwa/src/seedData/` on demand.
+**How to apply:** F3 (= PR7) originally declared the PWA normalized schema as Dexie `version(1)`. The 2026-06-10 pre-launch reset renamed both active databases and collapsed both app schemas back to one clean current `version(1)`. No `.upgrade()` callback is needed for old local browser databases; stale pre-launch databases may remain orphaned on developer machines.
 
 ### D4. Discriminated-union actions for ALL writes
 

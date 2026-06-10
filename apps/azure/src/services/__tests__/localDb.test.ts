@@ -266,7 +266,7 @@ describe('localDb Process Hub support', () => {
     expect(hubs.map(h => h.name)).toContain('Line 4');
   });
 
-  it('stores Evidence Sources and Snapshots locally in Dexie v5 tables', async () => {
+  it('stores Evidence Sources and Snapshots locally in current Dexie tables', async () => {
     await saveEvidenceSourceToIndexedDB({
       id: 'source-1',
       hubId: 'line-4',

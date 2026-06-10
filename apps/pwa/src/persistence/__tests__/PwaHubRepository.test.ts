@@ -160,9 +160,8 @@ beforeEach(async () => {
     db.evidenceSnapshots.clear(),
     db.evidenceSources.clear(),
     db.evidenceSourceCursors.clear(),
-    // IM-1 (ADR-085): db.questions table dropped at schema v10. ProblemStatementScope
-    // has no Dexie footprint — no table to clear.
-    // PO-6 (v14): findings/causalLinks/hypotheses tables retired — no tables to clear.
+    // Clean schema v1 omits questions and findings/causalLinks/hypotheses.
+    // ProblemStatementScope has no Dexie footprint — no tables to clear.
     db.controlRecords.clear(),
     db.controlReviews.clear(),
   ]);
@@ -523,7 +522,7 @@ describe('PwaHubRepository.evidenceSources.getCursor', () => {
 // ---------------------------------------------------------------------------
 // Stub read APIs — F3 declares tables, F3.5 wires writes; reads must work
 // against the (empty) tables today without throwing.
-// PO-6 (v14): findings/causalLinks/hypotheses ReadAPIs deleted — those
+// Clean schema v1 omits findings/causalLinks/hypotheses ReadAPIs — those
 // entities persist via the .vrs DocumentSnapshot analyze facet only.
 // ---------------------------------------------------------------------------
 

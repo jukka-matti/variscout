@@ -10,7 +10,6 @@
 // vi.mock() blocks MUST come before any component imports (testing.md invariant).
 import 'fake-indexeddb/auto';
 import { vi } from 'vitest';
-import Dexie from 'dexie';
 import type { AnalysisBrief } from '@variscout/core';
 
 // Capture the StageFiveModal onOpenInvestigation callback for Stage-5 draft tests.
@@ -76,7 +75,6 @@ import {
   useAnalyzeStore,
   useProjectMembershipStore,
   projectMembershipStorageKey,
-  type DocumentSnapshot,
 } from '@variscout/stores';
 
 // Register locale loaders (mirrors main.tsx) so useTranslation works.
@@ -87,81 +85,22 @@ registerLocaleLoaders(
   )
 );
 
-const LEGACY_DOCUMENT_SNAPSHOT_STORES = {
-  hubs: '&id, deletedAt',
-  outcomes: '&id, hubId, deletedAt',
-  evidenceSnapshots: '&id, hubId, capturedAt, deletedAt',
-  rowProvenance: '&id, snapshotId',
-  evidenceSources: '&id, hubId, deletedAt',
-  evidenceSourceCursors: '&id, sourceId',
-  investigations: '&id, hubId, deletedAt',
-  findings: '&id, investigationId, deletedAt',
-  causalLinks: '&id, investigationId, deletedAt',
-  hypotheses: '&id, investigationId, deletedAt',
-  improvementProjects: '&id, hubId, deletedAt, status, updatedAt',
-  actionItems:
-    '&id, hubId, stepId, parentImprovementProjectId, parentImprovementIdeaId, status, deletedAt, createdAt',
-  controlRecords: '&id, investigationId, hubId, nextReviewDue, updatedAt, deletedAt',
-  controlReviews: '&id, recordId, investigationId, hubId, reviewedAt',
-  controlHandoffs: '&id, investigationId, hubId, status, handoffDate, deletedAt',
-  canvasState: '&hubId',
-  meta: '&key',
-  measurementPlans: '&id, hypothesisId, status, deletedAt',
-  documentSnapshots: '&key, savedAt',
-};
-
-async function seedLegacyDocumentSnapshot(processGoal: string) {
-  db.close();
-  await db.delete();
-
-  const legacyDb = new Dexie('variscout-pwa-normalized');
-  legacyDb.version(11).stores(LEGACY_DOCUMENT_SNAPSHOT_STORES);
-  await legacyDb.open();
-  await legacyDb.table('meta').put({ key: 'persistence.optIn', value: true });
-  await legacyDb.table('documentSnapshots').put({
-    key: 'current',
-    savedAt: new Date().toISOString(),
-    snapshot: {
-      schemaVersion: 1,
-      hubId: 'legacy-hub',
-      hub: {
-        id: 'legacy-hub',
-        name: 'Legacy hub',
-        processGoal,
-        createdAt: 1_700_000_000_000,
-        deletedAt: null,
-      },
-      project: {
-        projectId: 'legacy-hub',
-        projectName: 'Legacy hub',
-        rawData: [{ value: 1 }],
-        outcome: 'value',
-        factors: [],
-        specs: {},
-        analysisMode: 'standard',
-        processContext: { processHubId: 'legacy-hub' },
-        entryScenario: null,
-      },
-      analyze: { findings: [], categories: [], hypotheses: [], causalLinks: [], scopes: [] },
-      canvas: {
-        canonicalMap: {
-          version: 1,
-          nodes: [],
-          tributaries: [],
-          assignments: {},
-          arrows: [],
-          createdAt: '2026-06-01T00:00:00.000Z',
-          updatedAt: '2026-06-01T00:00:00.000Z',
-        },
-        outcomes: [],
-        primaryScopeDimensions: [],
-        canonicalMapVersion: 'canvas-map-0',
-      },
-      improvementProject: null,
-    } satisfies DocumentSnapshot,
+async function seedCurrentIndexedDbHub(processGoal: string) {
+  if (!db.isOpen()) await db.open();
+  await Promise.all([
+    db.meta.clear(),
+    db.hubs.clear(),
+    db.outcomes.clear(),
+    db.canvasState.clear(),
+  ]);
+  await db.meta.put({ key: 'persistence.optIn', value: true });
+  await db.hubs.put({
+    id: 'saved-hub',
+    name: 'Saved hub',
+    processGoal,
+    createdAt: 1_700_000_000_000,
+    deletedAt: null,
   });
-  legacyDb.close();
-  await db.open();
 }
 
 function renderApp() {
@@ -222,17 +161,30 @@ describe('setState-in-render regression — useAppPanels individual selectors', 
 
 describe('PWA export-only startup persistence', () => {
   beforeEach(async () => {
+    if (!db.isOpen()) await db.open();
+    await Promise.all([
+      db.meta.clear(),
+      db.hubs.clear(),
+      db.outcomes.clear(),
+      db.canvasState.clear(),
+    ]);
     useProjectStore.setState({ rawData: [], outcome: null, factors: [] });
     usePanelsStore.setState(initialPanelsState);
   });
 
   afterEach(async () => {
+    await Promise.all([
+      db.meta.clear(),
+      db.hubs.clear(),
+      db.outcomes.clear(),
+      db.canvasState.clear(),
+    ]);
     useProjectStore.setState({ rawData: [], outcome: null, factors: [] });
     usePanelsStore.setState(initialPanelsState);
   });
 
-  it('does not hydrate from a stale browser documentSnapshots row on startup', async () => {
-    await seedLegacyDocumentSnapshot('Stale browser snapshot should stay ignored.');
+  it('does not hydrate from current IndexedDB rows on startup', async () => {
+    await seedCurrentIndexedDbHub('Saved browser-local hub should stay ignored.');
 
     const { unmount } = renderApp();
 

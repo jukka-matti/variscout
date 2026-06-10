@@ -27,7 +27,7 @@ Both tiers are available to all Azure App users. Blob Storage is the shared team
 
 ## IndexedDB Schema
 
-Database name: `VaRiScoutAzure` (Dexie.js)
+Database name: `VaRiScoutAzureV1` (Dexie.js)
 
 | Table       | Key    | Columns                                             | Purpose                       |
 | ----------- | ------ | --------------------------------------------------- | ----------------------------- |
