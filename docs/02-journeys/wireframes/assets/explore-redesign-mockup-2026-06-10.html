@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Explore — redesign mockup v2, interactive (VariScout, 2026-06-10)</title>
+<title>Explore — redesign mockup v3, full loop (VariScout, 2026-06-10)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -24,7 +24,6 @@
          font-size: 13px; display: flex; flex-direction: column; overflow: hidden; }
   .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 
-  /* ── Row 1: the ONLY chrome row ── */
   header { display: flex; align-items: center; gap: 6px; padding: 0 14px; height: 46px; flex: none;
            background: var(--surface-card); border-bottom: 1px solid var(--edge); }
   .logo { width: 26px; height: 26px; border-radius: 7px; background: var(--info-mid); color: #fff;
@@ -41,11 +40,12 @@
   .chip .x { color: var(--content-muted); cursor: pointer; font-size: 13px; line-height: 1; }
   .chip.scope { border-color: #bfdbfe; background: #eff6ff; color: var(--info); }
   .chip.scope b { color: var(--info); }
-  .iconbtn { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 7px;
+  .iconbtn { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 7px; position: relative;
              color: var(--content-2); cursor: pointer; border: none; background: none; font-size: 15px; }
   .iconbtn:hover { background: var(--surface-2); }
+  .iconbtn .badge { position: absolute; top: 1px; right: 1px; min-width: 13px; height: 13px; border-radius: 7px;
+                    background: var(--info-mid); color: #fff; font-size: 9px; font-weight: 700; display: grid; place-items: center; }
 
-  /* ── Row 2: ONE contextual line ── */
   .context { display: flex; align-items: center; gap: 14px; height: 34px; padding: 0 16px; flex: none;
              color: var(--content-2); font-size: 12px; border-bottom: 1px solid var(--edge); background: var(--surface); }
   .context .stat b { color: var(--content); font-weight: 600; }
@@ -55,11 +55,20 @@
   .context .lens b { color: var(--content); }
   .cpk-flag { color: var(--fail); font-weight: 600; }
 
+  /* drilled-scope banner — appears only when a condition is applied */
+  .scopebar { display: none; align-items: center; gap: 10px; height: 32px; padding: 0 16px; flex: none;
+              background: #eff6ff; border-bottom: 1px solid #bfdbfe; color: var(--info); font-size: 12px; }
+  .scopebar.on { display: flex; }
+  .scopebar .cond { font-family: var(--font-num); font-weight: 600; }
+  .scopebar .clear { margin-left: 6px; cursor: pointer; border: 1px solid #bfdbfe; border-radius: 999px;
+                     background: var(--surface-card); padding: 2px 10px; font-size: 11.5px; color: var(--info); }
+  .scopebar .take { margin-left: auto; cursor: pointer; border: none; border-radius: 7px;
+                    background: var(--info-mid); color: #fff; padding: 5px 12px; font-size: 12px; font-weight: 600; }
+
   main { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 10px 14px 8px; gap: 8px; }
   .card { background: var(--surface-card); border: 1px solid var(--edge); border-radius: 12px;
           display: flex; flex-direction: column; min-height: 0; }
 
-  /* ── I-Chart hero ── */
   .hero { flex: 1.5; position: relative; }
   .hero .head { display: flex; align-items: center; gap: 10px; padding: 9px 14px 0; }
   .hero .head h1 { font-size: 14px; font-weight: 650; letter-spacing: -0.01em; }
@@ -70,14 +79,7 @@
   .signals .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
   .hero .head .right { margin-left: auto; display: flex; gap: 8px; align-items: center; color: var(--content-muted); font-size: 11.5px; }
   .hero svg { flex: 1; width: 100%; min-height: 0; }
-  .capture-pill { position: absolute; display: flex; align-items: stretch; border-radius: 9px; overflow: hidden;
-                  box-shadow: 0 6px 20px rgba(15,23,42,.18); border: 1px solid var(--edge); font-size: 12px; background: var(--surface-card); }
-  .capture-pill .info { padding: 7px 10px; color: var(--content-2); }
-  .capture-pill .info b { color: var(--content); }
-  .capture-pill button { border: none; background: var(--content); color: #fff; font-family: var(--font-ui);
-                         font-weight: 600; font-size: 12px; padding: 0 13px; cursor: pointer; }
 
-  /* ── Ranked factor strip ── */
   .factors { flex: none; padding: 9px 14px 11px; position: relative; }
   .factors .label-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 7px; }
   .factors .label-row h2 { font-size: 12.5px; font-weight: 650; }
@@ -102,16 +104,12 @@
   .factor.unexplained .pct { color: var(--content-muted); }
   .factor.unexplained .name { color: var(--content-muted); font-weight: 500; }
 
-  /* what-if hover card */
-  .whatif {
-    position: absolute; z-index: 30; display: none; flex-direction: column; gap: 3px;
-    background: var(--content); color: #e2e8f0; border-radius: 9px; padding: 9px 12px;
-    font-size: 11.5px; box-shadow: 0 8px 24px rgba(15,23,42,.3); pointer-events: none; max-width: 260px;
-  }
+  .whatif { position: absolute; z-index: 30; display: none; flex-direction: column; gap: 3px;
+            background: var(--content); color: #e2e8f0; border-radius: 9px; padding: 9px 12px;
+            font-size: 11.5px; box-shadow: 0 8px 24px rgba(15,23,42,.3); pointer-events: none; max-width: 280px; }
   .whatif b { color: #fff; }
   .whatif .wlabel { color: #94a3b8; font-size: 10.5px; }
 
-  /* ── Bottom row ── */
   .bottom { flex: 1; display: flex; gap: 8px; min-height: 0; }
   .panel { flex: 1; }
   .panel .head { display: flex; align-items: center; gap: 8px; padding: 8px 13px 0; }
@@ -126,19 +124,53 @@
   footer { flex: none; height: 24px; display: flex; align-items: center; padding: 0 16px;
            color: var(--content-muted); font-size: 10.5px; gap: 8px; border-top: 1px solid var(--edge); background: var(--surface); }
   footer .right { margin-left: auto; }
+  svg text { font-family: var(--font-num); fill: var(--content-muted); font-size: 10px; }
+  svg .axis-label { font-family: var(--font-ui); font-size: 10.5px; }
 
-  /* ── Model drawer (the traditional regression view, one click deep) ── */
-  .model-drawer {
-    position: fixed; top: 0; right: -560px; width: 560px; height: 100%;
-    background: var(--surface-card); border-left: 1px solid var(--edge);
-    box-shadow: -12px 0 32px rgba(15,23,42,.10); z-index: 50;
-    display: flex; flex-direction: column; transition: right .22s ease;
-  }
-  .model-drawer.open { right: 0; }
-  .model-drawer .mhead { display: flex; align-items: center; gap: 10px; padding: 14px 18px 10px; border-bottom: 1px solid var(--edge); }
-  .model-drawer .mhead h2 { font-size: 14px; font-weight: 650; }
-  .model-drawer .mhead .close { margin-left: auto; cursor: pointer; color: var(--content-muted); font-size: 16px; border: none; background: none; }
-  .model-drawer .mbody { flex: 1; overflow-y: auto; padding: 14px 18px 24px; display: flex; flex-direction: column; gap: 16px; }
+  /* ── Drawers (right overlays): Findings + Model ── */
+  .drawer { position: fixed; top: 0; right: -560px; width: 560px; height: 100%;
+            background: var(--surface-card); border-left: 1px solid var(--edge);
+            box-shadow: -12px 0 32px rgba(15,23,42,.10); z-index: 50;
+            display: flex; flex-direction: column; transition: right .22s ease, left .22s ease; }
+  .drawer.open { right: 0; }
+  .drawer.narrow { width: 400px; right: -400px; }
+  .drawer.narrow.open { right: 0; }
+  /* drawer grammar (matches the Analyze tab): LEFT = evidence objects (findings/detail),
+     RIGHT = CoScout (Azure build) + transient inspectors (model) */
+  .drawer.left { left: -400px; right: auto; width: 400px; border-left: none;
+                 border-right: 1px solid var(--edge); box-shadow: 12px 0 32px rgba(15,23,42,.10); }
+  .drawer.left.open { left: 0; right: auto; }
+  .coscout-ghost { display: flex; flex-direction: column; gap: 10px; padding: 4px 2px;
+                   color: var(--content-muted); font-size: 12px; line-height: 1.65; }
+  .coscout-ghost .bubble { border: 1px dashed #c4b5fd; border-radius: 10px; padding: 10px 12px; background: #faf5ff; color: #6d28d9; }
+  .drawer .dhead { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; border-bottom: 1px solid var(--edge); }
+  .drawer .dhead h2 { font-size: 14px; font-weight: 650; }
+  .drawer .dhead .sub { font-size: 11px; color: var(--content-muted); }
+  .drawer .dhead .close { margin-left: auto; cursor: pointer; color: var(--content-muted); font-size: 16px; border: none; background: none; }
+  .drawer .dtabs { display: flex; gap: 2px; padding: 8px 16px 0; border-bottom: 1px solid var(--edge); }
+  .drawer .dtabs span { padding: 6px 11px; font-size: 12px; font-weight: 550; color: var(--content-2); cursor: pointer;
+                        border-bottom: 2px solid transparent; }
+  .drawer .dtabs span.on { color: var(--info); border-bottom-color: var(--info-mid); }
+  .drawer .dbody { flex: 1; overflow-y: auto; padding: 12px 16px 24px; display: flex; flex-direction: column; gap: 10px; }
+  .drawer .dfoot { flex: none; border-top: 1px solid var(--edge); padding: 10px 16px; display: flex; gap: 8px; }
+  .drawer .dfoot button { flex: 1; border: none; border-radius: 8px; padding: 9px 0; font-family: var(--font-ui);
+                          font-weight: 600; font-size: 12.5px; cursor: pointer; }
+  .drawer .dfoot .primary { background: var(--content); color: #fff; }
+  .drawer .dfoot .ghost { background: var(--surface-2); color: var(--content-2); }
+
+  .fcard { border: 1px solid var(--edge); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .fcard.active { border-color: var(--info-mid); background: #eff6ff; }
+  .fcard .frow { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .fcard .cond { font-family: var(--font-num); font-size: 11px; background: var(--surface-2); border-radius: 5px; padding: 2px 7px; }
+  .fcard .status { margin-left: auto; font-size: 10.5px; color: var(--warn); background: var(--warn-soft);
+                   border-radius: 999px; padding: 2px 8px; font-weight: 600; }
+  .fcard .ev { font-family: var(--font-num); font-size: 11.5px; color: var(--content-2); }
+  .fcard .note { font-size: 12px; color: var(--content); font-style: italic; }
+  .fcard .factions { display: flex; gap: 10px; font-size: 11px; }
+  .fcard .factions a { color: var(--info); text-decoration: none; cursor: pointer; }
+  .jrow { display: flex; gap: 8px; font-size: 12px; color: var(--content-2); padding: 7px 2px; border-bottom: 1px solid #f1f5f9; }
+  .jrow .when { font-family: var(--font-num); font-size: 10.5px; color: var(--content-muted); white-space: nowrap; padding-top: 2px; }
+
   .msec h3 { font-size: 11px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; color: var(--content-muted); margin-bottom: 6px; }
   .msec .note { font-size: 11px; color: var(--content-muted); margin-top: 5px; }
   .mtable { width: 100%; border-collapse: collapse; font-family: var(--font-num); font-size: 11px; }
@@ -149,14 +181,11 @@
   .mtable tr.sig td { font-weight: 600; }
   .mtable tr.best td { background: #eff6ff; }
   .equation { font-family: var(--font-num); font-size: 11.5px; line-height: 1.7; background: var(--surface-2);
-              border-radius: 8px; padding: 10px 12px; color: var(--content); }
+              border-radius: 8px; padding: 10px 12px; }
   .equation .coef { color: var(--info); }
   .predict { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
   .predict select { font-family: var(--font-ui); font-size: 12px; padding: 4px 8px; border: 1px solid var(--edge); border-radius: 7px; background: var(--surface-card); }
   .predict .result { font-family: var(--font-num); font-size: 12px; }
-  .predict .result b { font-size: 14px; }
-  svg text { font-family: var(--font-num); fill: var(--content-muted); font-size: 10px; }
-  svg .axis-label { font-family: var(--font-ui); font-size: 10.5px; }
 </style>
 </head>
 <body>
@@ -170,14 +199,15 @@
   <div class="spacer"></div>
   <span class="chip">◆ <b>Untitled project</b></span>
   <span class="chip scope">⌖ <b>Handle_Time</b> · USL 600 <span class="x">×</span></span>
-  <button class="iconbtn" title="Findings (1)">▤</button>
+  <button class="iconbtn" id="findingsBtn" title="Findings">▤<span class="badge" id="findingsBadge" style="display:none">0</span></button>
+  <button class="iconbtn" id="coscoutBtn" title="CoScout (Azure build)">✦</button>
   <button class="iconbtn" title="What-If">⇌</button>
   <button class="iconbtn" title="Share">↗</button>
   <button class="iconbtn" title="Settings">⚙</button>
 </header>
 
 <div class="context">
-  <span class="stat num"><b>1,600</b> calls</span>
+  <span class="stat num"><b id="statN">·</b> calls</span>
   <span class="sep">·</span>
   <span class="stat num">Apr 13 – Jun 5</span>
   <span class="sep">·</span>
@@ -185,7 +215,7 @@
   <span class="stat num">σ <b id="statSd">·</b></span>
   <span class="stat num">Cpk <b class="cpk-flag" id="statCpk">·</b></span>
   <span class="sep">·</span>
-  <span class="stat">Filters: <b>none</b></span>
+  <span class="stat" id="filtersLabel">Filters: <b>none</b></span>
   <div class="spacer" style="flex:1"></div>
   <span class="lens">Subgroup: <b>by day</b> ▾</span>
   <span class="lens">Time: <b>Cumulative</b> ▾</span>
@@ -193,24 +223,28 @@
   <span class="lens">⤓ Export</span>
 </div>
 
+<div class="scopebar" id="scopebar">
+  <span>⌖ Viewing condition:</span>
+  <span class="cond" id="scopeCond"></span>
+  <span class="num" id="scopeN"></span>
+  <button class="clear" id="scopeClear">× back to all data</button>
+  <button class="take" id="scopeTake">Take it to Analyze →</button>
+</div>
+
 <main>
   <section class="card hero">
     <div class="head">
-      <h1>I-Chart · Handle_Time</h1>
+      <h1 id="heroTitle">I-Chart · Handle_Time</h1>
       <span class="measure">Handle_Time ▾</span>
-      <span class="signals"><span class="dot"></span> 2 signals ▾</span>
+      <span class="signals" id="signalsChip"><span class="dot"></span> 2 signals ▾</span>
       <div class="right"><span title="Maximize">⤢</span></div>
     </div>
     <svg id="ichart" preserveAspectRatio="none"></svg>
-    <div class="capture-pill" id="capturePill">
-      <span class="info num"><b>n=87</b> · mean 511 vs 475</span>
-      <button>✚ Capture finding</button>
-    </div>
   </section>
 
   <section class="card factors">
     <div class="label-row">
-      <h2>What explains the variation?</h2>
+      <h2 id="stripTitle">What explains the variation?</h2>
       <span class="how">how much of the call-to-call differences each factor accounts for (η²) — shares overlap, won't sum to 100%</span>
       <a href="#" id="openModel">How these % are computed (model & ANOVA) →</a>
     </div>
@@ -222,10 +256,10 @@
     <section class="card panel">
       <div class="head">
         <h2 id="boxTitle">Handle_Time by Team</h2>
-        <span class="hint" id="boxHint">click a factor above to compare its groups here</span>
+        <span class="hint">click a factor above to compare its groups here</span>
         <div class="right">
           <div class="toggle"><span class="on">Box</span><span>Violin</span></div>
-          <span id="sortNote">Sort: <b>by mean</b></span>
+          <span id="sortNote">Sort: <b>by mean, worst first</b></span>
         </div>
       </div>
       <svg id="boxplot" preserveAspectRatio="none"></svg>
@@ -233,7 +267,7 @@
     <section class="card panel">
       <div class="head">
         <h2>Distribution</h2>
-        <span class="hint">right-skewed · log view available</span>
+        <span class="hint" id="histHint">right-skewed · log view available</span>
         <div class="right"><div class="toggle"><span class="on">Histogram</span><span>Probability</span></div></div>
       </div>
       <svg id="hist" preserveAspectRatio="none"></svg>
@@ -246,21 +280,56 @@
   <span class="right">Explore = diverge: see what the data shows · capture what matters</span>
 </footer>
 
-<aside class="model-drawer" id="modelDrawer">
-  <div class="mhead">
-    <h2>The model behind the ranking</h2>
-    <span style="font-size:11px;color:var(--content-muted)">Handle_Time ~ Team + Queue + Team×Queue</span>
-    <button class="close" id="closeModel">×</button>
+<!-- ═══ Findings drawer — LEFT, mirroring the Analyze tab's detail drawer ═══ -->
+<aside class="drawer narrow left" id="findingsDrawer">
+  <div class="dhead">
+    <h2>Findings</h2>
+    <span class="sub">conditions you captured — evidence, not conclusions</span>
+    <button class="close" data-close="findingsDrawer">×</button>
   </div>
-  <div class="mbody" id="modelBody"></div>
+  <div class="dtabs">
+    <span class="on" data-tab="findings">Findings <b id="fCount" class="num"></b></span>
+    <span data-tab="journal">Journal</span>
+  </div>
+  <div class="dbody" id="findingsBody"></div>
+  <div class="dfoot">
+    <button class="ghost">Export .vrs</button>
+    <button class="primary" id="takeAllBtn">Take it to Analyze →</button>
+  </div>
+</aside>
+
+<!-- ═══ CoScout slot — RIGHT drawer, Azure build only (P8: no AI in free PWA) ═══ -->
+<aside class="drawer narrow" id="coscoutDrawer">
+  <div class="dhead">
+    <h2>✦ CoScout</h2>
+    <span class="sub">Azure build — interpretation partner</span>
+    <button class="close" data-close="coscoutDrawer">×</button>
+  </div>
+  <div class="dbody">
+    <div class="coscout-ghost">
+      <div class="bubble">This right-drawer slot is where CoScout lives in the Azure build — the same position it has on the Analyze tab (CS-14 two-drawer grammar: evidence on the left, assistant on the right).</div>
+      <span>On Explore, CoScout's tools are surface-gated to <b>explore</b>: it reads the current scope, the selected factor, and chart elements via REF markers (never raw values), and can explain the strip — <i>"Team's share is the largest; want to see it split by queue?"</i></span>
+      <span>The free PWA shows this button as an upgrade hint only (Constitution P8: no AI in the free tier). The deterministic strip, drawer, and findings all work without it — CoScout adds interpretation, not authority.</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ Model drawer ═══ -->
+<aside class="drawer" id="modelDrawer">
+  <div class="dhead">
+    <h2>The model behind the ranking</h2>
+    <span class="sub">Handle_Time ~ Team + Queue + Team×Queue · fitted on all 1,600 calls</span>
+    <button class="close" data-close="modelDrawer">×</button>
+  </div>
+  <div class="dbody" id="modelBody"></div>
 </aside>
 
 <script>
 /* ═══ Seeded call-center data — same planted structure as the user-test dataset ═══ */
 function mulberry32(a){return function(){let t=(a+=0x6d2b79f5);t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
-const rand = mulberry32(20260610);
-const noise = s => (rand()+rand()+rand()+rand()-2)*s;
-const pickW = (arr,w)=>{const tot=w.reduce((a,b)=>a+b,0);let r=rand()*tot;for(let i=0;i<arr.length;i++){r-=w[i];if(r<=0)return arr[i]}return arr[arr.length-1]};
+const rand=mulberry32(20260610);
+const noise=s=>(rand()+rand()+rand()+rand()-2)*s;
+const pickW=(arr,w)=>{const tot=w.reduce((a,b)=>a+b,0);let r=rand()*tot;for(let i=0;i<arr.length;i++){r-=w[i];if(r<=0)return arr[i]}return arr[arr.length-1]};
 const TEAMS=["Team Alpha","Team Beta","Team Gamma","Team Delta"];
 const QUEUES=["Billing","Tech Support","Sales","Account Admin"];
 const SHIFTS=["Morning","Afternoon","Evening"];
@@ -279,89 +348,87 @@ for(let i=0;i<N;i++){
   const tenureBand=tenure<6?"< 6 mo":tenure<24?"6–24 mo":"24+ mo";
   let v=395+noise(78);
   if(queue==="Billing")v+=80; if(queue==="Tech Support")v+=45;
-  if(team==="Team Gamma"){v+=42; if(queue==="Billing")v+=125;}   /* the planted interaction */
+  if(team==="Team Gamma"){v+=42; if(queue==="Billing")v+=125;}
   if(weekday==="Mon")v+=32;
   if(tenure<6)v+=48;
-  if(rand()<0.06)v+=170+noise(60);                                /* escalations → right skew */
+  if(rand()<0.06)v+=170+noise(60);
   v=Math.max(140,v);
   data.push({v,team,queue,shift,site,weekday,tenureBand});
 }
-const mean=data.reduce((a,d)=>a+d.v,0)/N;
-const sd=Math.sqrt(data.reduce((a,d)=>a+(d.v-mean)**2,0)/(N-1));
-const UCL=mean+3*sd, LCL=Math.max(0,mean-3*sd);
-document.getElementById("statMean").textContent=mean.toFixed(1);
-document.getElementById("statSd").textContent=sd.toFixed(1);
-document.getElementById("statCpk").textContent=((USL-mean)/(3*sd)).toFixed(2);
 
-/* ═══ Honest per-factor variance share (adjusted η², computed live) ═══ */
-const SS_TOT=data.reduce((a,d)=>a+(d.v-mean)**2,0);
-function groupsOf(key){ const g={}; data.forEach(d=>{(g[d[key]]??=[]).push(d.v)}); return g; }
-function etaAdj(key){
-  const g=groupsOf(key); const k=Object.keys(g).length;
-  let ssb=0; for(const vs of Object.values(g)){const m=vs.reduce((a,b)=>a+b,0)/vs.length; ssb+=vs.length*(m-mean)**2;}
-  const eta2=ssb/SS_TOT;                       /* adjusted (~omega²) penalises level count */
-  return Math.max(0,(ssb-(k-1)*( (SS_TOT-ssb)/(N-k) ))/ (SS_TOT + (SS_TOT-ssb)/(N-k)) );
+/* ═══ Stats helpers — every renderer takes a row subset ═══ */
+const meanOf=rows=>rows.reduce((a,d)=>a+d.v,0)/rows.length;
+const sdOf=(rows,m)=>Math.sqrt(rows.reduce((a,d)=>a+(d.v-m)**2,0)/(rows.length-1));
+function quart(vs){vs=[...vs].sort((a,b)=>a-b);const q=p=>vs[Math.floor(p*(vs.length-1))];
+  return {n:vs.length,q1:q(.25),med:q(.5),q3:q(.75),lo:q(.05),hi:q(.95),mean:vs.reduce((a,b)=>a+b,0)/vs.length};}
+const groupsOf=(rows,key)=>{const g={};rows.forEach(d=>{(g[d[key]]??=[]).push(d.v)});return g;}
+function etaAdj(rows,key){
+  const m=meanOf(rows), n=rows.length, sst=rows.reduce((a,d)=>a+(d.v-m)**2,0);
+  const g=groupsOf(rows,key), k=Object.keys(g).length;
+  if(k<2||n-k<2) return 0;
+  let ssb=0; for(const vs of Object.values(g)){const gm=vs.reduce((a,b)=>a+b,0)/vs.length; ssb+=vs.length*(gm-m)**2;}
+  const msw=(sst-ssb)/(n-k);
+  return Math.max(0,(ssb-(k-1)*msw)/(sst+msw));
 }
-function cellEta(keys){ const g={}; data.forEach(d=>{const c=keys.map(k=>d[k]).join("|");(g[c]??=[]).push(d.v)});
-  let ssb=0; for(const vs of Object.values(g)){const m=vs.reduce((a,b)=>a+b,0)/vs.length; ssb+=vs.length*(m-mean)**2;} return ssb/SS_TOT; }
+function cellEta(rows,keys){
+  const m=meanOf(rows), sst=rows.reduce((a,d)=>a+(d.v-m)**2,0);
+  const g={}; rows.forEach(d=>{const c=keys.map(k=>d[k]).join("|");(g[c]??=[]).push(d.v)});
+  let ssb=0; for(const vs of Object.values(g)){const gm=vs.reduce((a,b)=>a+b,0)/vs.length; ssb+=vs.length*(gm-m)**2;}
+  return ssb/sst;
+}
 
-const FACTORS=[
-  {key:"team", label:"Team"},
-  {key:"queue", label:"Queue"},
-  {key:"tenureBand", label:"Agent tenure"},
-  {key:"shift", label:"Shift"},
-  {key:"weekday", label:"Weekday"},
-  {key:"site", label:"Site"},
+const FACTOR_DEFS=[
+  {key:"team",label:"Team"},{key:"queue",label:"Queue"},{key:"tenureBand",label:"Agent tenure"},
+  {key:"shift",label:"Shift"},{key:"weekday",label:"Weekday"},{key:"site",label:"Site"},
 ];
-FACTORS.forEach(f=>f.pct=etaAdj(f.key)*100);
-FACTORS.sort((a,b)=>b.pct-a.pct);
-const interactionPct=Math.max(0,(cellEta(["team","queue"]) - etaAdj("team") - etaAdj("queue"))*100);
-const unexplained=100 - cellEta(["team","queue","weekday","tenureBand"])*100;
+const NATURAL={weekday:DAYS, shift:SHIFTS, tenureBand:["< 6 mo","6–24 mo","24+ mo"]};
 
-/* ═══ I-Chart hero ═══ */
-(function(){
+/* ═══ App state ═══ */
+const state={
+  scope:null,            /* {filters:[{key,levels,label}], label} */
+  selectedKey:"team",
+  visited:new Set(["team"]),
+  findings:[],
+  drawerTab:"findings",
+};
+const rowsInScope=()=>state.scope?data.filter(d=>state.scope.filters.every(f=>f.levels.includes(d[f.key]))):data;
+const condLabel=f=>f.levels.length===1?`${f.key==="tenureBand"?"Tenure":f.key[0].toUpperCase()+f.key.slice(1)} = ${f.levels[0].replace("Team ","")}`
+                  :`${f.key[0].toUpperCase()+f.key.slice(1)} ≠ Billing`;
+
+/* ═══ I-Chart ═══ */
+function renderIChart(rows){
   const svg=document.getElementById("ichart");
   const W=1500,H=420,L=46,R=72,T=14,B=26;
   svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
-  const x=i=>L+i*(W-L-R)/(N-1), y=v=>T+(900-v)*(H-T-B)/(900-100);
-  let s="";
-  [200,400,600,800].forEach(g=>{s+=`<line x1="${L}" x2="${W-R}" y1="${y(g)}" y2="${y(g)}" stroke="#f1f5f9"/><text x="${L-8}" y="${y(g)+3}" text-anchor="end">${g}</text>`;});
-  s+=`<line x1="${L}" x2="${W-R}" y1="${y(UCL)}" y2="${y(UCL)}" stroke="#94a3b8" stroke-dasharray="5 4"/>`;
-  s+=`<line x1="${L}" x2="${W-R}" y1="${y(LCL)}" y2="${y(LCL)}" stroke="#94a3b8" stroke-dasharray="5 4"/>`;
-  s+=`<line x1="${L}" x2="${W-R}" y1="${y(USL)}" y2="${y(USL)}" stroke="#b91c1c" stroke-width="1.4"/>`;
-  s+=`<line x1="${L}" x2="${W-R}" y1="${y(TGT)}" y2="${y(TGT)}" stroke="#166534" stroke-dasharray="2 4"/>`;
-  s+=`<line x1="${L}" x2="${W-R}" y1="${y(mean)}" y2="${y(mean)}" stroke="#475569"/>`;
+  const n=rows.length, m=meanOf(rows), s=sdOf(rows,m);
+  const ucl=m+3*s, lcl=Math.max(0,m-3*s);
+  const x=i=>L+i*(W-L-R)/Math.max(1,n-1), y=v=>T+(900-v)*(H-T-B)/(900-100);
+  let out="";
+  [200,400,600,800].forEach(g=>{out+=`<line x1="${L}" x2="${W-R}" y1="${y(g)}" y2="${y(g)}" stroke="#f1f5f9"/><text x="${L-8}" y="${y(g)+3}" text-anchor="end">${g}</text>`;});
+  out+=`<line x1="${L}" x2="${W-R}" y1="${y(ucl)}" y2="${y(ucl)}" stroke="#94a3b8" stroke-dasharray="5 4"/>`;
+  out+=`<line x1="${L}" x2="${W-R}" y1="${y(lcl)}" y2="${y(lcl)}" stroke="#94a3b8" stroke-dasharray="5 4"/>`;
+  out+=`<line x1="${L}" x2="${W-R}" y1="${y(USL)}" y2="${y(USL)}" stroke="#b91c1c" stroke-width="1.4"/>`;
+  out+=`<line x1="${L}" x2="${W-R}" y1="${y(TGT)}" y2="${y(TGT)}" stroke="#166534" stroke-dasharray="2 4"/>`;
+  out+=`<line x1="${L}" x2="${W-R}" y1="${y(m)}" y2="${y(m)}" stroke="#475569"/>`;
   let path="M";
-  data.forEach((d,i)=>{path+=`${x(i).toFixed(1)},${y(d.v).toFixed(1)} `; if(i===0)path+="L";});
-  s+=`<path d="${path}" fill="none" stroke="#64748b" stroke-opacity="0.18" stroke-width="0.7"/>`;
-  data.forEach((d,i)=>{
-    if(d.v>USL) s+=`<circle cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="1.9" fill="#ea580c" fill-opacity="0.7"/>`;
-    else s+=`<circle cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="1.4" fill="#64748b" fill-opacity="0.45"/>`;
+  rows.forEach((d,i)=>{path+=`${x(i).toFixed(1)},${y(d.v).toFixed(1)} `; if(i===0)path+="L";});
+  out+=`<path d="${path}" fill="none" stroke="#64748b" stroke-opacity="${n>800?0.18:0.3}" stroke-width="0.7"/>`;
+  rows.forEach((d,i)=>{
+    if(d.v>USL) out+=`<circle cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="${n>800?1.9:2.6}" fill="#ea580c" fill-opacity="0.7"/>`;
+    else out+=`<circle cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="${n>800?1.4:2.1}" fill="#64748b" fill-opacity="0.45"/>`;
   });
-  const bx1=x(600), bx2=x(688);
-  s+=`<rect x="${bx1}" y="${T}" width="${bx2-bx1}" height="${H-T-B}" fill="#2563eb" fill-opacity="0.07" stroke="#2563eb" stroke-opacity="0.45" rx="3"/>`;
   const lbl=(v,txt,c,dy=0)=>`<text x="${W-R+7}" y="${y(v)+3.5+dy}" fill="${c}" style="font-size:10.5px">${txt}</text>`;
-  const close=Math.abs(y(TGT)-y(mean))<13;
-  s+=lbl(UCL,`UCL ${UCL.toFixed(0)}`,"#64748b")+lbl(USL,`USL ${USL}`,"#b91c1c")
-    +lbl(mean,`x̄ ${mean.toFixed(1)}`,"#475569",close?9:0)+lbl(TGT,`Tgt ${TGT}`,"#166534",close?-4:0)
-    +lbl(LCL,`LCL ${LCL.toFixed(0)}`,"#64748b");
-  [0,400,800,1200,1600].forEach(t=>{s+=`<text x="${L+t*(W-L-R)/N}" y="${H-8}" text-anchor="middle">${t}</text>`;});
-  s+=`<text class="axis-label" x="${(W-R+L)/2+120}" y="${H-8}" text-anchor="middle">observation →</text>`;
-  svg.innerHTML=s;
-  const pill=document.getElementById("capturePill");
-  function place(){const r=svg.getBoundingClientRect(),hr=svg.closest(".hero").getBoundingClientRect();
-    pill.style.left=(r.left-hr.left+((bx1+bx2)/2)*(r.width/W)-pill.offsetWidth/2)+"px";
-    pill.style.top=(r.top-hr.top+T*(r.height/H)+6)+"px";}
-  place(); window.addEventListener("resize",place);
-})();
+  const close=Math.abs(y(TGT)-y(m))<13;
+  out+=lbl(ucl,`UCL ${ucl.toFixed(0)}`,"#64748b")+lbl(USL,`USL ${USL}`,"#b91c1c")
+    +lbl(m,`x̄ ${m.toFixed(1)}`,"#475569",close?9:0)+lbl(TGT,`Tgt ${TGT}`,"#166534",close?-4:0)
+    +lbl(lcl,`LCL ${lcl.toFixed(0)}`,"#64748b");
+  [0,0.25,0.5,0.75,1].forEach(f=>{const t=Math.round(f*n);out+=`<text x="${L+f*(W-L-R)}" y="${H-8}" text-anchor="middle">${t}</text>`;});
+  out+=`<text class="axis-label" x="${(W-R+L)/2+120}" y="${H-8}" text-anchor="middle">observation →</text>`;
+  svg.innerHTML=out;
+}
 
-/* ═══ Boxplot renderer — per-factor + interaction view ═══ */
-const NATURAL={weekday:DAYS, shift:SHIFTS, tenureBand:["< 6 mo","6–24 mo","24+ mo"]};
-function quart(vs){vs=[...vs].sort((a,b)=>a-b);const q=p=>vs[Math.floor(p*(vs.length-1))];
-  return {n:vs.length,q1:q(.25),med:q(.5),q3:q(.75),lo:q(.05),hi:q(.95),mean:vs.reduce((a,b)=>a+b,0)/vs.length};}
-
-function drawBoxes(items, opts={}){
-  /* items: [{label, sub, vs, lead, group}] */
+/* ═══ Boxplots ═══ */
+function drawBoxes(items,opts={}){
   const svg=document.getElementById("boxplot");
   const W=740,H=240,L=46,R=14,T=20,B=34;
   svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
@@ -379,160 +446,273 @@ function drawBoxes(items, opts={}){
     s+=`<circle cx="${cx}" cy="${y(st.mean)}" r="2.6" fill="${lead?"#b45309":"#475569"}"/>`;
     s+=`<text x="${cx}" y="${H-18}" text-anchor="middle" style="font-family:var(--font-ui);font-size:10.5px" fill="#0f172a">${it.label}</text>`;
     s+=`<text x="${cx}" y="${H-6}" text-anchor="middle">n=${st.n} · x̄ ${st.mean.toFixed(0)}</text>`;
-    if(lead){
+    if(lead&&it.capture){
       const py=(y(st.q1)+y(st.q3))/2;
-      s+=`<g style="cursor:pointer"><circle cx="${cx+bw/2+14}" cy="${py}" r="9" fill="#2563eb"/><text x="${cx+bw/2+14}" y="${py+3.8}" text-anchor="middle" fill="#fff" style="font-size:12.5px;font-weight:700">+</text>
-          <text x="${cx+bw/2+27}" y="${py+3.5}" fill="#2563eb" style="font-family:var(--font-ui);font-size:10px;font-weight:600">capture as finding</text></g>`;
+      s+=`<g class="capture-g" data-capture="${it.capture}" style="cursor:pointer"><circle cx="${cx+bw/2+14}" cy="${py}" r="9" fill="#2563eb"/><text x="${cx+bw/2+14}" y="${py+3.8}" text-anchor="middle" fill="#fff" style="font-size:12.5px;font-weight:700">+</text>
+        <text x="${cx+bw/2+27}" y="${py+3.5}" fill="#2563eb" style="font-family:var(--font-ui);font-size:10px;font-weight:600">capture as finding</text></g>`;
       if(it.note) s+=`<text x="${cx}" y="${T-6}" text-anchor="middle" fill="#b45309" style="font-family:var(--font-ui);font-size:10.5px;font-weight:600">${it.note}</text>`;
     }
   });
-  if(opts.groupRule){ /* dashed separators between team groups in interaction view */
-    for(let i=2;i<k;i+=2){const gx=L+i*slot; s+=`<line x1="${gx}" x2="${gx}" y1="${T}" y2="${H-B}" stroke="#e2e8f0" stroke-dasharray="3 4"/>`;}
-  }
+  if(opts.groupRule){for(let i=2;i<k;i+=2){const gx=L+i*slot; s+=`<line x1="${gx}" x2="${gx}" y1="${T}" y2="${H-B}" stroke="#e2e8f0" stroke-dasharray="3 4"/>`;}}
   svg.innerHTML=s;
+  svg.querySelectorAll(".capture-g").forEach(g=>g.addEventListener("click",()=>captureFinding(JSON.parse(g.dataset.capture.replace(/'/g,'"')))));
 }
 
-function showFactor(key,label){
-  const g=groupsOf(key);
-  let cats=Object.keys(g);
-  let sortNote;
-  if(NATURAL[key]){ cats=NATURAL[key].filter(c=>g[c]); sortNote="natural order"; }
-  else { cats.sort((a,b)=>quart(g[b]).mean-quart(g[a]).mean); sortNote="by mean, worst first"; }
+function showFactor(key){
+  const rows=rowsInScope();
+  const def=FACTOR_DEFS.find(f=>f.key===key), label=def?def.label:key;
+  const g=groupsOf(rows,key);
+  let cats=Object.keys(g), sortNote;
+  if(NATURAL[key]){cats=NATURAL[key].filter(c=>g[c]); sortNote="natural order";}
+  else {cats.sort((a,b)=>quart(g[b]).mean-quart(g[a]).mean); sortNote="by mean, worst first";}
+  if(!cats.length){document.getElementById("boxTitle").textContent=`Handle_Time by ${label} — no groups in scope`;return;}
   const means=cats.map(c=>quart(g[c]).mean);
-  const worst=Math.max(...means), others=(means.reduce((a,b)=>a+b,0)-worst)/(means.length-1);
+  const worst=Math.max(...means), others=cats.length>1?(means.reduce((a,b)=>a+b,0)-worst)/(means.length-1):worst;
   const items=cats.map(c=>{const st=quart(g[c]);
-    return {label:c.replace("Team ",""), vs:g[c], lead:st.mean===worst&&(worst-others)>15,
-            note:`+${(worst-others).toFixed(0)}s vs the others' average`};});
+    const lead=st.mean===worst&&(worst-others)>15&&cats.length>1;
+    return {label:c.replace("Team ",""), vs:g[c], lead,
+            capture:lead?`{'filters':[{'key':'${key}','levels':['${c}'],'label':'${label} = ${c.replace("Team ","")}'}]}`:null,
+            note:lead?`+${(worst-others).toFixed(0)}s vs the others' average`:null};});
   drawBoxes(items);
-  document.getElementById("boxTitle").textContent=`Handle_Time by ${label}`;
+  document.getElementById("boxTitle").textContent=`Handle_Time by ${label}`+(state.scope?" — within condition":"");
   document.getElementById("sortNote").innerHTML=`Sort: <b>${sortNote}</b>`;
 }
 
 function showInteraction(){
-  const items=[];
+  const rows=rowsInScope(), items=[];
   TEAMS.forEach(t=>{
-    const bill=data.filter(d=>d.team===t&&d.queue==="Billing").map(d=>d.v);
-    const oth =data.filter(d=>d.team===t&&d.queue!=="Billing").map(d=>d.v);
+    const bill=rows.filter(d=>d.team===t&&d.queue==="Billing").map(d=>d.v);
+    const oth =rows.filter(d=>d.team===t&&d.queue!=="Billing").map(d=>d.v);
+    if(!bill.length||!oth.length)return;
     const short=t.replace("Team ","");
-    items.push({label:`${short} · Bill`, vs:bill, lead:t==="Team Gamma", note:t==="Team Gamma"?`Gamma on Billing: +${(quart(bill).mean-quart(oth).mean).toFixed(0)}s`:null});
+    const lead=t==="Team Gamma";
+    items.push({label:`${short} · Bill`, vs:bill, lead,
+      capture:lead?`{'filters':[{'key':'team','levels':['Team Gamma'],'label':'Team = Gamma'},{'key':'queue','levels':['Billing'],'label':'Queue = Billing'}]}`:null,
+      note:lead?`Gamma on Billing: +${(quart(bill).mean-quart(oth).mean).toFixed(0)}s`:null});
     items.push({label:`${short} · other`, vs:oth});
   });
   drawBoxes(items,{groupRule:true});
-  document.getElementById("boxTitle").textContent="Handle_Time by Team × Queue — Billing vs other";
-  /* geometric classification per classifyInteractionPattern: disordinal iff the
-     team ranking flips between queue slices (profiles cross), else ordinal */
   const rank=slice=>TEAMS.slice().sort((a,b)=>
-    quart(data.filter(d=>d.team===a&&(d.queue==="Billing")===slice).map(d=>d.v)).mean-
-    quart(data.filter(d=>d.team===b&&(d.queue==="Billing")===slice).map(d=>d.v)).mean).join();
+    quart(rows.filter(d=>d.team===a&&(d.queue==="Billing")===slice).map(d=>d.v)).mean-
+    quart(rows.filter(d=>d.team===b&&(d.queue==="Billing")===slice).map(d=>d.v)).mean).join();
   const disordinal=rank(true)!==rank(false);
+  document.getElementById("boxTitle").textContent="Handle_Time by Team × Queue — Billing vs other";
   document.getElementById("sortNote").innerHTML=`Pattern: <b>${disordinal?"disordinal — the ranking flips between queues":"ordinal — same direction, much larger for Gamma"}</b>`;
 }
 
-/* ═══ Factor strip — clickable, ✓ visited, what-if hover ═══ */
-const strip=document.getElementById("factorStrip");
-const visited=new Set(["team"]);
-let selectedKey="team";
-function whatIfFor(key){
-  const g=groupsOf(key); const ms=Object.entries(g).map(([c,vs])=>({c,m:quart(vs).mean}));
+/* ═══ Factor strip ═══ */
+function whatIfFor(rows,key){
+  const g=groupsOf(rows,key); const ms=Object.entries(g).map(([c,vs])=>({c,m:quart(vs).mean}));
   const best=Math.min(...ms.map(o=>o.m));
-  const adj=data.map(d=>d.v-(ms.find(o=>o.c===d[key]).m-best));
-  const nm=adj.reduce((a,b)=>a+b,0)/N, nsd=Math.sqrt(adj.reduce((a,b)=>a+(b-nm)**2,0)/(N-1));
-  const bestName=ms.find(o=>o.m===best).c;
-  return {bestName,nm,ncpk:(USL-nm)/(3*nsd)};
+  const adj=rows.map(d=>d.v-(ms.find(o=>o.c===d[key]).m-best));
+  const nm=adj.reduce((a,b)=>a+b,0)/rows.length, nsd=Math.sqrt(adj.reduce((a,b)=>a+(b-nm)**2,0)/(rows.length-1));
+  return {bestName:ms.find(o=>o.m===best).c, nm, ncpk:(USL-nm)/(3*nsd), k:ms.length};
 }
 function renderStrip(){
-  const max=Math.max(...FACTORS.map(f=>f.pct),1);
-  let html=FACTORS.map(f=>`
-    <div class="factor ${f.key===selectedKey?"selected":""} ${f.pct<1?"weak":""}" data-key="${f.key}" data-label="${f.label}">
-      <span class="name">${f.label} ${f===FACTORS[0]?'<span class="star">★ largest share</span>':""} ${visited.has(f.key)?'<span class="check">✓</span>':""}</span>
+  const rows=rowsInScope();
+  const scoped=!!state.scope;
+  const scopedKeys=scoped?state.scope.filters.map(f=>f.key):[];
+  const facts=FACTOR_DEFS.filter(f=>!scopedKeys.includes(f.key))
+    .map(f=>({...f,pct:etaAdj(rows,f.key)*100})).sort((a,b)=>b.pct-a.pct);
+  const ixPct=scoped?0:Math.max(0,(cellEta(rows,["team","queue"])-etaAdj(rows,"team")-etaAdj(rows,"queue"))*100);
+  const keys=scoped?facts.map(f=>f.key):["team","queue","weekday","tenureBand"];
+  const unexplained=100-cellEta(rows,keys.slice(0,4))*100;
+  const max=Math.max(...facts.map(f=>f.pct),ixPct,1);
+  document.getElementById("stripTitle").textContent=scoped?`What explains the variation within this condition?`:"What explains the variation?";
+  let html=facts.map((f,idx)=>`
+    <div class="factor ${f.key===state.selectedKey?"selected":""} ${f.pct<1?"weak":""}" data-key="${f.key}" data-label="${f.label}">
+      <span class="name">${f.label} ${idx===0&&f.pct>=1?'<span class="star">★ largest share</span>':""} ${state.visited.has(f.key)?'<span class="check">✓</span>':""}</span>
       <span class="meter"><span class="bar" style="width:${Math.max(4,f.pct/max*72)}px"></span><span class="pct num">${f.pct.toFixed(1)}%</span></span>
     </div>`).join("");
+  if(!scoped) html+=`
+    <div class="factor interaction ${state.selectedKey==="__ix"?"selected":""}" data-key="__ix">
+      <span class="name">⚡ Team × Queue ${state.visited.has("__ix")?'<span class="check">✓</span>':""}</span>
+      <span class="meter"><span class="bar" style="width:${Math.max(4,ixPct/max*72)}px"></span><span class="pct num">+${ixPct.toFixed(1)}% <span style="color:#7c3aed">— Team differences depend on the queue</span></span></span>
+    </div>`;
   html+=`
-    <div class="factor interaction ${selectedKey==="__ix"?"selected":""}" data-key="__ix">
-      <span class="name">⚡ Team × Queue ${visited.has("__ix")?'<span class="check">✓</span>':""}</span>
-      <span class="meter"><span class="bar" style="width:${Math.max(4,interactionPct/max*72)}px"></span><span class="pct num">+${interactionPct.toFixed(1)}% <span style="color:#7c3aed">— Team differences depend on the queue</span></span></span>
-    </div>
     <div class="factor unexplained" title="Residual of the joint model — mostly routine call-to-call variation, plus factors not yet measured. A large residual is typical for service data.">
       <span class="name">everyday variation</span>
       <span class="meter"><span class="pct num">~${unexplained.toFixed(0)}% — not tied to these factors</span></span>
     </div>`;
+  const strip=document.getElementById("factorStrip");
   strip.innerHTML=html;
   strip.querySelectorAll(".factor[data-key]").forEach(el=>{
     const key=el.dataset.key;
     el.addEventListener("click",()=>{
-      selectedKey=key; visited.add(key);
-      if(key==="__ix") showInteraction(); else showFactor(key,el.dataset.label);
+      state.selectedKey=key; state.visited.add(key);
+      if(key==="__ix") showInteraction(); else showFactor(key);
       renderStrip();
     });
     if(key!=="__ix"){
       el.addEventListener("mouseenter",()=>{
-        const w=whatIfFor(key), card=document.getElementById("whatifCard");
-        const g=groupsOf(key), kk=Object.keys(g).length;
+        const w=whatIfFor(rows,key), card=document.getElementById("whatifCard");
+        const m=meanOf(rows), s=sdOf(rows,m);
         card.innerHTML=`<span class="wlabel">what-if · everyone matched the best group</span>
           <span>If all <b>${el.dataset.label}</b> groups matched <b>${w.bestName.replace("Team ","")}</b>:</span>
-          <span class="num">average handle time, all 1,600 calls: ${mean.toFixed(0)}s → <b>${w.nm.toFixed(0)}s</b></span>
-          <span class="num">Cpk ${((USL-mean)/(3*sd)).toFixed(2)} → <b>${w.ncpk.toFixed(2)}</b> <span class="wlabel">(reference 1.33 · fewer calls over 600s)</span></span>
-          <span class="wlabel">the gap is bigger per group — this is the overall average across ${kk} groups</span>`;
+          <span class="num">average handle time, ${scoped?"this condition":"all 1,600 calls"}: ${m.toFixed(0)}s → <b>${w.nm.toFixed(0)}s</b></span>
+          <span class="num">Cpk ${((USL-m)/(3*s)).toFixed(2)} → <b>${w.ncpk.toFixed(2)}</b> <span class="wlabel">(reference 1.33 · fewer calls over 600s)</span></span>
+          <span class="wlabel">the gap is bigger per group — this is the overall average across ${w.k} groups</span>`;
         card.style.display="flex";
         const r=el.getBoundingClientRect(), pr=strip.closest(".factors").getBoundingClientRect();
-        card.style.left=Math.min(r.left-pr.left, pr.width-280)+"px";
+        card.style.left=Math.min(r.left-pr.left, pr.width-300)+"px";
         card.style.top=(r.bottom-pr.top+6)+"px";
       });
       el.addEventListener("mouseleave",()=>{document.getElementById("whatifCard").style.display="none";});
     }
   });
 }
-renderStrip();
-showFactor("team","Team");
 
-/* ═══ The traditional regression view — real OLS, one click deep ═══ */
+/* ═══ Histogram ═══ */
+function renderHist(rows){
+  const svg=document.getElementById("hist");
+  const W=740,H=240,L=40,R=14,T=16,B=30;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const lo=150,hi=950,nb=32, bins=new Array(nb).fill(0);
+  rows.forEach(d=>{bins[Math.min(nb-1,Math.max(0,Math.floor((d.v-lo)/(hi-lo)*nb)))]++;});
+  const bmax=Math.max(...bins,1), x=v=>L+(v-lo)*(W-L-R)/(hi-lo), y=c=>T+(1-c/bmax)*(H-T-B);
+  const m=meanOf(rows);
+  let s="";
+  bins.forEach((c,i)=>{const x0=x(lo+i*(hi-lo)/nb), bw=(W-L-R)/nb-1.5;
+    s+=`<rect x="${x0}" y="${y(c)}" width="${bw}" height="${H-B-y(c)}" fill="#94a3b8" fill-opacity="0.55" rx="1.5"/>`;});
+  s+=`<line x1="${x(m)}" x2="${x(m)}" y1="${T}" y2="${H-B}" stroke="#475569" stroke-width="1.2"/><text x="${x(m)}" y="${T-4}" text-anchor="middle" fill="#475569" style="font-size:10.5px">x̄ ${m.toFixed(0)}</text>`;
+  s+=`<line x1="${x(USL)}" x2="${x(USL)}" y1="${T}" y2="${H-B}" stroke="#b91c1c" stroke-width="1.4"/><text x="${x(USL)+4}" y="${T+8}" fill="#b91c1c" style="font-size:10.5px">USL 600</text>`;
+  s+=`<line x1="${x(TGT)}" x2="${x(TGT)}" y1="${T}" y2="${H-B}" stroke="#166534" stroke-dasharray="2 4"/>`;
+  const above=(rows.filter(d=>d.v>USL).length/rows.length*100).toFixed(0);
+  s+=`<text x="${x(USL)+4}" y="${T+22}" fill="#b91c1c" style="font-size:10.5px">${above}% above</text>`;
+  [200,400,600,800].forEach(t=>{s+=`<text x="${x(t)}" y="${H-8}" text-anchor="middle">${t}</text>`;});
+  svg.innerHTML=s;
+}
+
+/* ═══ Findings drawer + scope ═══ */
+function captureFinding(cond){
+  const pred=d=>cond.filters.every(f=>f.levels.includes(d[f.key]));
+  const sel=data.filter(pred), rest=data.filter(d=>!pred(d));
+  const f={
+    id:Date.now(), filters:cond.filters,
+    label:cond.filters.map(f=>f.label).join(" ∧ "),
+    n:sel.length, mean:meanOf(sel), restMean:meanOf(rest),
+    status:"Observed",
+    note:"",
+  };
+  state.findings.push(f);
+  renderFindings();
+  openDrawer("findingsDrawer");
+}
+function renderFindings(){
+  const badge=document.getElementById("findingsBadge");
+  badge.style.display=state.findings.length?"grid":"none";
+  badge.textContent=state.findings.length;
+  document.getElementById("fCount").textContent=state.findings.length?`(${state.findings.length})`:"";
+  const body=document.getElementById("findingsBody");
+  if(state.drawerTab==="journal"){
+    body.innerHTML=`
+      <div class="jrow"><span class="when">12:41</span><span>Set spec USL 600s · Tgt 480s for Handle_Time</span></div>
+      <div class="jrow"><span class="when">12:38</span><span>Pasted 1,600 calls · 25 columns · Apr 13 – Jun 5</span></div>
+      <div class="jrow"><span class="when">—</span><span style="color:var(--content-muted)">Journal = the session's actions, automatically logged. Findings = conditions you deliberately captured.</span></div>`;
+    return;
+  }
+  if(!state.findings.length){
+    body.innerHTML=`<div style="color:var(--content-muted);font-size:12px;line-height:1.6;padding:8px 2px">
+      Nothing captured yet.<br><br>When a chart shows you something worth keeping — a group that runs high, a condition that explains variation — press <b style="color:var(--info)">⊕ capture as finding</b> on the chart. The condition and its evidence travel with it to Analyze.</div>`;
+    return;
+  }
+  body.innerHTML=state.findings.map(f=>`
+    <div class="fcard ${state.scope&&state.scope.label===f.label?"active":""}">
+      <div class="frow">${f.filters.map(x=>`<span class="cond">${x.label}</span>`).join("")}<span class="status">${f.status}</span></div>
+      <div class="ev num">x̄ ${f.mean.toFixed(0)}s vs ${f.restMean.toFixed(0)}s rest · n=${f.n} of ${N}</div>
+      ${f.note?`<div class="note">“${f.note}”</div>`:""}
+      <div class="frow factions">
+        <a data-view="${f.id}">${state.scope&&state.scope.label===f.label?"✓ viewing in charts":"view in charts"}</a>
+        <a>add note</a><a>evidence: Data ▾</a>
+      </div>
+    </div>`).join("");
+  body.querySelectorAll("[data-view]").forEach(a=>a.addEventListener("click",()=>{
+    const f=state.findings.find(x=>x.id==a.dataset.view);
+    if(state.scope&&state.scope.label===f.label) clearScope();
+    else applyScope({filters:f.filters,label:f.label});
+  }));
+}
+function applyScope(scope){
+  state.scope=scope;
+  if(scope.filters.some(f=>f.key===state.selectedKey)||state.selectedKey==="__ix"){
+    state.selectedKey=FACTOR_DEFS.find(f=>!scope.filters.some(x=>x.key===f.key)).key;
+  }
+  renderAll();
+}
+function clearScope(){ state.scope=null; renderAll(); }
+
+function renderScopebar(){
+  const bar=document.getElementById("scopebar");
+  if(!state.scope){bar.classList.remove("on");return;}
+  bar.classList.add("on");
+  const rows=rowsInScope();
+  document.getElementById("scopeCond").textContent=state.scope.label;
+  document.getElementById("scopeN").textContent=`· ${rows.length} of ${N} calls`;
+}
+
+/* ═══ Context line ═══ */
+function renderContext(){
+  const rows=rowsInScope(), m=meanOf(rows), s=sdOf(rows,m);
+  document.getElementById("statN").textContent=rows.length.toLocaleString();
+  document.getElementById("statMean").textContent=m.toFixed(1);
+  document.getElementById("statSd").textContent=s.toFixed(1);
+  document.getElementById("statCpk").textContent=((USL-m)/(3*s)).toFixed(2);
+  document.getElementById("filtersLabel").innerHTML=state.scope?`Filters: <b>1 condition</b>`:`Filters: <b>none</b>`;
+  document.getElementById("signalsChip").style.display=state.scope?"none":"inline-flex";
+}
+
+function renderAll(){
+  renderContext(); renderScopebar();
+  renderIChart(rowsInScope());
+  renderStrip();
+  if(state.selectedKey==="__ix") showInteraction(); else showFactor(state.selectedKey);
+  renderHist(rowsInScope());
+  renderFindings();
+}
+
+/* ═══ Drawer plumbing ═══ */
+function openDrawer(id){document.getElementById(id).classList.add("open");}
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>document.getElementById(b.dataset.close).classList.remove("open")));
+document.getElementById("findingsBtn").addEventListener("click",()=>openDrawer("findingsDrawer"));
+document.getElementById("coscoutBtn").addEventListener("click",()=>openDrawer("coscoutDrawer"));
+document.querySelectorAll(".dtabs span").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".dtabs span").forEach(x=>x.classList.remove("on"));
+  t.classList.add("on"); state.drawerTab=t.dataset.tab; renderFindings();
+}));
+document.getElementById("scopeClear").addEventListener("click",clearScope);
+
+/* ═══ The model drawer (fitted on ALL data — caption says so) ═══ */
 (function(){
   const TREF="Team Alpha", QREF="Account Admin";
   const tLv=TEAMS.filter(t=>t!==TREF), qLv=QUEUES.filter(q=>q!==QREF);
-  const terms=["Intercept",
-    ...tLv.map(t=>`Team=${t.replace("Team ","")}`),
-    ...qLv.map(q=>`Queue=${q}`),
+  const terms=["Intercept",...tLv.map(t=>`Team=${t.replace("Team ","")}`),...qLv.map(q=>`Queue=${q}`),
     ...tLv.flatMap(t=>qLv.map(q=>`${t.replace("Team ","")}×${q}`))];
   const P=terms.length;
-  const rowX=d=>{
-    const x=new Array(P).fill(0); x[0]=1;
+  const SS_TOT=data.reduce((a,d)=>a+(d.v-meanOf(data))**2,0);
+  const rowX=d=>{const x=new Array(P).fill(0);x[0]=1;
     tLv.forEach((t,i)=>{if(d.team===t)x[1+i]=1});
     qLv.forEach((q,i)=>{if(d.queue===q)x[1+tLv.length+i]=1});
     tLv.forEach((t,i)=>qLv.forEach((q,j)=>{if(d.team===t&&d.queue===q)x[1+tLv.length+qLv.length+i*qLv.length+j]=1}));
-    return x;
-  };
-  /* normal equations + full inverse via Gauss-Jordan */
+    return x;};
   const XtX=Array.from({length:P},()=>new Array(P).fill(0)), Xty=new Array(P).fill(0);
-  data.forEach(d=>{const x=rowX(d);
-    for(let i=0;i<P;i++){Xty[i]+=x[i]*d.v; for(let j=i;j<P;j++)XtX[i][j]+=x[i]*x[j];}});
+  data.forEach(d=>{const x=rowX(d);for(let i=0;i<P;i++){Xty[i]+=x[i]*d.v;for(let j=i;j<P;j++)XtX[i][j]+=x[i]*x[j];}});
   for(let i=0;i<P;i++)for(let j=0;j<i;j++)XtX[i][j]=XtX[j][i];
   const A=XtX.map((r,i)=>[...r,...r.map((_,j)=>i===j?1:0)]);
-  for(let c=0;c<P;c++){
-    let p=c; for(let r=c+1;r<P;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;
-    [A[c],A[p]]=[A[p],A[c]];
-    const pv=A[c][c]; for(let j=0;j<2*P;j++)A[c][j]/=pv;
-    for(let r=0;r<P;r++){if(r===c)continue; const f=A[r][c]; if(!f)continue;
-      for(let j=0;j<2*P;j++)A[r][j]-=f*A[c][j];}
-  }
+  for(let c=0;c<P;c++){let p=c;for(let r=c+1;r<P;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;[A[c],A[p]]=[A[p],A[c]];
+    const pv=A[c][c];for(let j=0;j<2*P;j++)A[c][j]/=pv;
+    for(let r=0;r<P;r++){if(r===c)continue;const f=A[r][c];if(!f)continue;for(let j=0;j<2*P;j++)A[r][j]-=f*A[c][j];}}
   const inv=A.map(r=>r.slice(P));
   const beta=inv.map(r=>r.reduce((a,v,i)=>a+v*Xty[i],0));
-  const fit=d=>{const x=rowX(d); return x.reduce((a,v,i)=>a+v*beta[i],0);}
-  const SSE=data.reduce((a,d)=>a+(d.v-fit(d))**2,0);
+  const fitRow=d=>rowX(d).reduce((a,v,i)=>a+v*beta[i],0);
+  const SSE=data.reduce((a,d)=>a+(d.v-fitRow(d))**2,0);
   const dfE=N-P, MSE=SSE/dfE, S=Math.sqrt(MSE);
   const R2=1-SSE/SS_TOT, R2adj=1-(1-R2)*(N-1)/dfE;
   const se=i=>Math.sqrt(MSE*inv[i][i]);
-  const pOf=t=>{const z=Math.abs(t); return Math.max(2*(1-0.5*(1+Math.tanh(Math.sqrt(Math.PI/8)*z*(1+0.044715*z*z)))),0).toExponential(0);}
-  const fmtP=t=>{const z=Math.abs(t); return z>3.3?"<0.001":z>2.6?"0.009":z>1.96?"<0.05":(0.6-0.15*z).toFixed(2);}
-
-  /* sequential ANOVA (mockup-grade): marginal mains + interaction increment */
-  const ssOf=k=>{const g=groupsOf(k);let ssb=0;for(const vs of Object.values(g)){const m=vs.reduce((a,b)=>a+b,0)/vs.length;ssb+=vs.length*(m-mean)**2}return ssb};
-  const ssT=ssOf("team"), ssQ=ssOf("queue");
-  const ssCells=cellEta(["team","queue"])*SS_TOT, ssIx=Math.max(0,ssCells-ssT-ssQ);
-  const anovaRows=[
-    {t:"Queue",df:3,ss:ssQ},{t:"Team",df:3,ss:ssT},{t:"Team × Queue",df:9,ss:ssIx},
-  ].map(r=>({...r,f:(r.ss/r.df)/MSE}));
-
-  /* best-subsets ladder: every candidate fit with REAL additive OLS (own design matrix) */
+  const fmtP=t=>{const z=Math.abs(t);return z>3.3?"&lt;0.001":z>2.6?"0.009":z>1.96?"&lt;0.05":(0.6-0.15*z).toFixed(2);}
+  const m0=meanOf(data);
+  const ssOf=k=>{const g=groupsOf(data,k);let ssb=0;for(const vs of Object.values(g)){const gm=vs.reduce((a,b)=>a+b,0)/vs.length;ssb+=vs.length*(gm-m0)**2}return ssb};
+  const ssT=ssOf("team"), ssQ=ssOf("queue"), ssCells=cellEta(data,["team","queue"])*SS_TOT, ssIx=Math.max(0,ssCells-ssT-ssQ);
+  const anovaRows=[{t:"Queue",df:3,ss:ssQ},{t:"Team",df:3,ss:ssT},{t:"Team × Queue",df:9,ss:ssIx}].map(r=>({...r,f:(r.ss/r.df)/MSE}));
   function fitR2(builders){
     const p=1+builders.reduce((a,b)=>a+b.levels.length,0);
     const rx=d=>{const x=new Array(p).fill(0);x[0]=1;let off=1;
@@ -545,73 +725,50 @@ showFactor("team","Team");
       const d0=B[c][c];for(let j=0;j<=p;j++)B[c][j]/=d0;
       for(let r=0;r<p;r++){if(r===c)continue;const f=B[r][c];if(!f)continue;for(let j=0;j<=p;j++)B[r][j]-=f*B[c][j];}}
     const bb=B.map(r=>r[p]);
-    const sse=data.reduce((a,d)=>{const x=rx(d);return a+(d.v-x.reduce((s,v,i)=>s+v*bb[i],0))**2},0);
+    const sse=data.reduce((a,d)=>{const x=rx(d);return a+(d.v-x.reduce((s2,v,i)=>s2+v*bb[i],0))**2},0);
     const r2=1-sse/SS_TOT;
     return {r2,adj:1-(1-r2)*(N-1)/(N-p),p:p-1};
   }
-  const bT={key:"team",levels:tLv}, bQ={key:"queue",levels:qLv},
-        bIx={key:"__ix",levels:[]}, bW={key:"weekday",levels:DAYS.slice(1)};
-  /* interaction handled via the full model fit already computed (R2/R2adj) */
+  const bT={key:"team",levels:tLv}, bQ={key:"queue",levels:qLv}, bW={key:"weekday",levels:DAYS.slice(1)};
   const lQ=fitR2([bQ]), lT=fitR2([bT]), lTQ=fitR2([bT,bQ]), lW=fitR2([bT,bQ,bW]);
-  /* full model + weekday, honest: reuse main fit's R2 + weekday increment from additive comparison */
   const ladder=[
-    {m:"Queue",...lQ},
-    {m:"Team",...lT},
-    {m:"Team + Queue",...lTQ},
-    {m:"Team + Queue + Team×Queue",p:P-1,r2:R2,adj:R2adj,best:true,kept:true},
+    {m:"Queue",...lQ},{m:"Team",...lT},{m:"Team + Queue",...lTQ},
+    {m:"Team + Queue + Team×Queue",p:P-1,r2:R2,adj:R2adj,best:true},
     {m:"… + Weekday (also survives)",p:lW.p+9,r2:R2+(lW.r2-lTQ.r2),adj:1-(1-(R2+(lW.r2-lTQ.r2)))*(N-1)/(N-(P+4))},
   ];
-
   const bigCoefs=beta.map((b,i)=>({t:terms[i],b,i})).filter(o=>o.i>0&&Math.abs(o.b)>25).sort((a,b)=>Math.abs(b.b)-Math.abs(a.b));
   const eq=`Handle_Time = <span class="coef">${beta[0].toFixed(0)}</span>`+bigCoefs.slice(0,4).map(o=>` ${o.b>=0?"+":"−"} <span class="coef">${Math.abs(o.b).toFixed(0)}</span>·[${o.t}]`).join("")+" + … + ε";
-
-  const body=document.getElementById("modelBody");
-  body.innerHTML=`
-    <div class="msec">
-      <h3>Model summary</h3>
+  document.getElementById("modelBody").innerHTML=`
+    <div class="msec"><h3>Model summary</h3>
       <table class="mtable"><tr><th>S (residual σ)</th><th>R²</th><th>R²adj</th><th>n</th></tr>
       <tr><td>${S.toFixed(1)}s</td><td>${(R2*100).toFixed(1)}%</td><td>${(R2adj*100).toFixed(1)}%</td><td>${N}</td></tr></table>
-      <div class="note">S is the "everyday variation" left after the model — the same number family as the residual chip on the strip.</div>
-    </div>
-    <div class="msec">
-      <h3>Equation (largest terms)</h3>
+      <div class="note">S is the "everyday variation" left after the model — the same number family as the residual chip on the strip.</div></div>
+    <div class="msec"><h3>Equation (largest terms)</h3>
       <div class="equation">${eq}</div>
-      <div class="note">Reference levels: Team Alpha · Account Admin. Coefficients are group contrasts vs reference — read them as "how much this condition adds", not as causes.</div>
-    </div>
-    <div class="msec">
-      <h3>Coefficients</h3>
+      <div class="note">Reference levels: Team Alpha · Account Admin. Coefficients are group contrasts vs reference — read them as "how much this condition adds", not as causes.</div></div>
+    <div class="msec"><h3>Coefficients</h3>
       <table class="mtable"><tr><th>Term</th><th>Coef</th><th>SE</th><th>t</th><th>p</th></tr>
-      ${beta.map((b,i)=>{const t=b/se(i);return `<tr class="${Math.abs(t)>2?"sig":""}"><td>${terms[i]}</td><td>${b.toFixed(1)}</td><td>${se(i).toFixed(1)}</td><td>${t.toFixed(1)}</td><td>${fmtP(t)}</td></tr>`}).join("")}
-      </table>
-    </div>
-    <div class="msec">
-      <h3>ANOVA</h3>
+      ${beta.map((b,i)=>{const t=b/se(i);return `<tr class="${Math.abs(t)>2?"sig":""}"><td>${terms[i]}</td><td>${b.toFixed(1)}</td><td>${se(i).toFixed(1)}</td><td>${t.toFixed(1)}</td><td>${fmtP(t)}</td></tr>`}).join("")}</table></div>
+    <div class="msec"><h3>ANOVA</h3>
       <table class="mtable"><tr><th>Source</th><th>DF</th><th>SS</th><th>F</th><th>p</th></tr>
       ${anovaRows.map(r=>`<tr class="sig"><td>${r.t}</td><td>${r.df}</td><td>${(r.ss/1000).toFixed(0)}k</td><td>${r.f.toFixed(1)}</td><td>&lt;0.001</td></tr>`).join("")}
       <tr><td>Error</td><td>${dfE}</td><td>${(SSE/1000).toFixed(0)}k</td><td></td><td></td></tr>
       <tr><td>Total</td><td>${N-1}</td><td>${(SS_TOT/1000).toFixed(0)}k</td><td></td><td></td></tr></table>
-      <div class="note">Sequential SS. η² on the strip = term SS ÷ total SS, adjusted for level count.</div>
-    </div>
-    <div class="msec">
-      <h3>Best subsets (how the model was chosen)</h3>
+      <div class="note">Sequential SS. η² on the strip = term SS ÷ total SS, adjusted for level count.</div></div>
+    <div class="msec"><h3>Best subsets (how the model was chosen)</h3>
       <table class="mtable"><tr><th>Candidate model</th><th>terms</th><th>R²</th><th>R²adj</th></tr>
-      ${ladder.map(l=>`<tr class="${l.best?"best":""}"><td>${l.m}${l.best?" ✓ shown":""}</td><td>${l.p}</td><td>${(l.r2*100).toFixed(1)}%</td><td>${(l.adj*100).toFixed(1)}%</td></tr>`).join("")}
-      </table>
-      <div class="note">Each candidate is its own least-squares fit; higher R²adj = the added terms pay their degrees-of-freedom rent. Interactions are screened only among surviving main effects (hierarchical, two-pass). Weekday is a real, small effect — it survives too; the drawer shows the Team/Queue model because that is what the selected chips display.</div>
-    </div>
-    <div class="msec">
-      <h3>Check the equation — predict a condition</h3>
+      ${ladder.map(l=>`<tr class="${l.best?"best":""}"><td>${l.m}${l.best?" ✓ shown":""}</td><td>${l.p}</td><td>${(l.r2*100).toFixed(1)}%</td><td>${(l.adj*100).toFixed(1)}%</td></tr>`).join("")}</table>
+      <div class="note">Each candidate is its own least-squares fit; higher R²adj = the added terms pay their degrees-of-freedom rent. Interactions are screened only among surviving main effects (hierarchical, two-pass). Weekday is a real, small effect — it survives too; the drawer shows the Team/Queue model because that is what the selected chips display.</div></div>
+    <div class="msec"><h3>Check the equation — predict a condition</h3>
       <div class="predict">
         <select id="predTeam">${TEAMS.map(t=>`<option ${t==="Team Gamma"?"selected":""}>${t}</option>`).join("")}</select>
         <select id="predQueue">${QUEUES.map(q=>`<option ${q==="Billing"?"selected":""}>${q}</option>`).join("")}</select>
         <span class="result" id="predOut"></span>
       </div>
-      <div class="note">Fitted mean ± S. Compare with the observed cell mean to feel the model's honesty.</div>
-    </div>`;
-
+      <div class="note">Fitted mean ± S. Compare with the observed cell mean to feel the model's honesty.</div></div>`;
   function predict(){
     const t=document.getElementById("predTeam").value, q=document.getElementById("predQueue").value;
-    const yhat=fit({team:t,queue:q});
+    const yhat=fitRow({team:t,queue:q});
     const obs=data.filter(d=>d.team===t&&d.queue===q).map(d=>d.v);
     const om=obs.reduce((a,b)=>a+b,0)/obs.length;
     document.getElementById("predOut").innerHTML=`→ fitted <b>${yhat.toFixed(0)}s</b> ± ${S.toFixed(0)} · observed x̄ ${om.toFixed(0)}s (n=${obs.length})`;
@@ -619,30 +776,10 @@ showFactor("team","Team");
   document.getElementById("predTeam").addEventListener("change",predict);
   document.getElementById("predQueue").addEventListener("change",predict);
   predict();
-
-  document.getElementById("openModel").addEventListener("click",e=>{e.preventDefault();document.getElementById("modelDrawer").classList.add("open")});
-  document.getElementById("closeModel").addEventListener("click",()=>document.getElementById("modelDrawer").classList.remove("open"));
+  document.getElementById("openModel").addEventListener("click",e=>{e.preventDefault();openDrawer("modelDrawer")});
 })();
 
-/* ═══ Distribution ═══ */
-(function(){
-  const svg=document.getElementById("hist");
-  const W=740,H=240,L=40,R=14,T=16,B=30;
-  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
-  const lo=150,hi=950,nb=32, bins=new Array(nb).fill(0);
-  data.forEach(d=>{bins[Math.min(nb-1,Math.max(0,Math.floor((d.v-lo)/(hi-lo)*nb)))]++;});
-  const bmax=Math.max(...bins), x=v=>L+(v-lo)*(W-L-R)/(hi-lo), y=c=>T+(1-c/bmax)*(H-T-B);
-  let s="";
-  bins.forEach((c,i)=>{const x0=x(lo+i*(hi-lo)/nb), bw=(W-L-R)/nb-1.5;
-    s+=`<rect x="${x0}" y="${y(c)}" width="${bw}" height="${H-B-y(c)}" fill="#94a3b8" fill-opacity="0.55" rx="1.5"/>`;});
-  s+=`<line x1="${x(mean)}" x2="${x(mean)}" y1="${T}" y2="${H-B}" stroke="#475569" stroke-width="1.2"/><text x="${x(mean)}" y="${T-4}" text-anchor="middle" fill="#475569" style="font-size:10.5px">x̄ ${mean.toFixed(0)}</text>`;
-  s+=`<line x1="${x(USL)}" x2="${x(USL)}" y1="${T}" y2="${H-B}" stroke="#b91c1c" stroke-width="1.4"/><text x="${x(USL)+4}" y="${T+8}" fill="#b91c1c" style="font-size:10.5px">USL 600</text>`;
-  s+=`<line x1="${x(TGT)}" x2="${x(TGT)}" y1="${T}" y2="${H-B}" stroke="#166534" stroke-dasharray="2 4"/>`;
-  const above=(data.filter(d=>d.v>USL).length/N*100).toFixed(0);
-  s+=`<text x="${x(USL)+4}" y="${T+22}" fill="#b91c1c" style="font-size:10.5px">${above}% above</text>`;
-  [200,400,600,800].forEach(t=>{s+=`<text x="${x(t)}" y="${H-8}" text-anchor="middle">${t}</text>`;});
-  svg.innerHTML=s;
-})();
+renderAll();
 </script>
 </body>
 </html>
