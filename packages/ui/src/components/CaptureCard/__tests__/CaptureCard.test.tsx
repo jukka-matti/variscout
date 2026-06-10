@@ -137,4 +137,32 @@ describe('CaptureCard', () => {
     expect(screen.queryByRole('button', { name: 'Factor only' })).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Factor name')).not.toBeInTheDocument();
   });
+
+  it('keeps focus in the Note field while typing when callbacks are inline closures', () => {
+    // Mirrors the Dashboard wiring: draft lives in parent state and every
+    // callback is an inline closure, so each keystroke re-renders the parent
+    // with fresh callback identities. The card must not steal focus back.
+    function Harness() {
+      const [d, setD] = React.useState<CaptureDraft>(draft);
+      return (
+        <CaptureCard
+          draft={d}
+          onDraftChange={patch => setD(current => ({ ...current, ...patch }))}
+          onCapture={() => {}}
+          onCancel={() => {}}
+        />
+      );
+    }
+
+    render(<Harness />);
+
+    const note = screen.getByLabelText('Note');
+    note.focus();
+    fireEvent.change(note, { target: { value: 'T' } });
+    expect(document.activeElement).toBe(note);
+
+    fireEvent.change(note, { target: { value: 'Team Gamma runs high' } });
+    expect(note).toHaveValue('Team Gamma runs high');
+    expect(document.activeElement).toBe(note);
+  });
 });
