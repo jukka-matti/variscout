@@ -23,6 +23,7 @@ import NelsonSequenceOverlay from './ichart/NelsonSequenceOverlay';
 import ControlLines from './ichart/ControlLines';
 import DataPoints from './ichart/DataPoints';
 import IChartTooltip from './ichart/IChartTooltip';
+import PhaseSplitOverlay from './ichart/PhaseSplitOverlay';
 
 /**
  * I-Chart (Individual Control Chart) - Props-based version
@@ -59,6 +60,9 @@ const IChartBase: React.FC<IChartProps> = ({
   primaryLabel,
   secondaryLabel,
   targetLabel,
+  phaseSplit,
+  phaseLimits,
+  eventFlags,
 }) => {
   const { chrome, formatStat, t, tf } = useChartTheme();
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
@@ -89,7 +93,8 @@ const IChartBase: React.FC<IChartProps> = ({
       isStaged,
       stageBoundaries,
       axisSettings,
-      yDomainOverride
+      yDomainOverride,
+      phaseLimits
     );
 
     if (!hasSecondary) return baseDomain;
@@ -113,6 +118,7 @@ const IChartBase: React.FC<IChartProps> = ({
     specs,
     axisSettings,
     yDomainOverride,
+    phaseLimits,
     hasSecondary,
     secondaryData,
     secondaryStats,
@@ -257,6 +263,17 @@ const IChartBase: React.FC<IChartProps> = ({
             targetLabel={targetLabel}
             secondaryStats={secondaryStats}
             hasSecondary={!!hasSecondary}
+          />
+
+          <PhaseSplitOverlay
+            data={data}
+            width={width}
+            height={height}
+            xScale={xScale}
+            yScale={yScale}
+            phaseSplit={phaseSplit}
+            phaseLimits={phaseLimits}
+            eventFlags={eventFlags}
           />
 
           {/* Nelson Rule 2 & 3 sequence highlighting */}

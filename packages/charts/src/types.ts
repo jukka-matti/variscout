@@ -67,6 +67,27 @@ export interface BaseChartProps {
 /**
  * I-Chart (Individual Control Chart) props
  */
+export interface IChartPhaseSplit {
+  atISO: string;
+  label?: string;
+}
+
+export interface IChartPhaseLimitSet {
+  mean: number;
+  ucl: number;
+  lcl: number;
+}
+
+export interface IChartPhaseLimits {
+  before?: IChartPhaseLimitSet;
+  after?: IChartPhaseLimitSet;
+}
+
+export interface IChartEventFlag {
+  atISO: string;
+  label: string;
+}
+
 export interface IChartProps extends BaseChartProps {
   /** Data points with x (index), y (value), and optional stage */
   data: IChartDataPoint[];
@@ -120,6 +141,12 @@ export interface IChartProps extends BaseChartProps {
   secondaryLabel?: string;
   /** Override the target line label (default: translated "Tgt") */
   targetLabel?: string;
+  /** Optional improvement-date phase marker */
+  phaseSplit?: IChartPhaseSplit;
+  /** Optional before/after control limits for phase-split I-Charts */
+  phaseLimits?: IChartPhaseLimits;
+  /** Optional time-based re-check/event markers */
+  eventFlags?: IChartEventFlag[];
 }
 
 /**

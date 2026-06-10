@@ -4,7 +4,7 @@
 
 import { safeMin, safeMax } from '@variscout/core';
 import type { StatsResult, SpecLimits } from '@variscout/core';
-import type { StageBoundary } from '../types';
+import type { IChartPhaseLimits, StageBoundary } from '../types';
 
 interface AxisSettings {
   min?: number;
@@ -26,7 +26,8 @@ export function computeIChartYDomain(
   isStaged: boolean,
   stageBoundaries: StageBoundary[],
   axisSettings?: AxisSettings,
-  yDomainOverride?: { min: number; max: number }
+  yDomainOverride?: { min: number; max: number },
+  phaseLimits?: IChartPhaseLimits
 ): [number, number] {
   // Priority 1: yDomainOverride (for Y-axis lock feature)
   if (yDomainOverride) {
@@ -58,6 +59,13 @@ export function computeIChartYDomain(
   // Include spec limits
   if (specs.usl !== undefined) maxVal = Math.max(maxVal, specs.usl);
   if (specs.lsl !== undefined) minVal = Math.min(minVal, specs.lsl);
+
+  // Include optional phase-specific control limits
+  for (const limits of [phaseLimits?.before, phaseLimits?.after]) {
+    if (!limits) continue;
+    minVal = Math.min(minVal, limits.lcl);
+    maxVal = Math.max(maxVal, limits.ucl);
+  }
 
   // Add padding
   const padding = (maxVal - minVal) * 0.1;

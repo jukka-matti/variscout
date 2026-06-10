@@ -130,6 +130,8 @@ Consumer inventory to rewire (grounded 2026-06-10 — verify again at sub-plan t
 
 ### CC-3 — Phase-split I-Chart (spec §6 top band)
 
+**Sub-plan:** [`2026-06-10-cc-3-phase-ichart.md`](2026-06-10-cc-3-phase-ichart.md).
+
 **Scope:** Extend the I-Chart rendering in `@variscout/charts` (grounding: locate the exact component; the Values⇄Capability toggle lives in `ConnectedStepCapabilityView` — the band needs the plain I-Chart primitive) with optional props: `phaseSplit?: { atISO: string; label?: string }`, per-phase center line + limits (stair-step), and `eventFlags?: Array<{ atISO: string; label: string }>` (re-check ▼ markers). Purely additive props — existing call sites unaffected (negative-control test: render without new props is pixel/DOM-identical).
 
 **Acceptance:** charts suite green; new props covered (marker position, two limit segments, flags render + clip), no consumer regression.
