@@ -2,13 +2,13 @@ import type { ProcessHub } from '@variscout/core';
 import type { CanvasLevel } from '@variscout/core/canvas';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 
-export interface ActiveIPScopeLabels {
+export interface WorkspaceProjectScopeLabels {
   outcomeLabel: string | null;
   factorLabels: string[];
   timelineLabel: string;
 }
 
-export interface ActiveIPCanvasFocus {
+export interface WorkspaceProjectCanvasFocus {
   level: CanvasLevel;
   focalStepId?: string;
 }
@@ -26,11 +26,11 @@ function resolveOutcomeLabel(ip: ImprovementProject, hub?: ProcessHub | null): s
   return outcome?.columnName ?? outcomeSpecId;
 }
 
-export function deriveActiveIPScopeLabels(
+export function deriveWorkspaceProjectScopeLabels(
   ip: ImprovementProject,
   hub?: ProcessHub | null,
   setAt?: number | null
-): ActiveIPScopeLabels {
+): WorkspaceProjectScopeLabels {
   const factorLabels = (ip.goal.factorControls ?? []).map(control => control.factor);
   const since = setAt ?? ip.createdAt;
   return {
@@ -40,10 +40,10 @@ export function deriveActiveIPScopeLabels(
   };
 }
 
-export function deriveActiveIPCanvasFocus(
+export function deriveWorkspaceProjectCanvasFocus(
   ip: ImprovementProject,
   hub?: ProcessHub | null
-): ActiveIPCanvasFocus {
+): WorkspaceProjectCanvasFocus {
   const processMap = hub?.canonicalProcessMap;
   const outcomeLabel = resolveOutcomeLabel(ip, hub);
   const outcomeStep = processMap?.nodes.find(node => node.ctqColumn === outcomeLabel);

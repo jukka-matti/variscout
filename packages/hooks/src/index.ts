@@ -221,6 +221,14 @@ export {
   type UseControlPanelModelOptions,
   type UseControlPanelModelReturn,
 } from './useControlPanelModel';
+
+export {
+  deriveWorkspaceViewModel,
+  type DeriveWorkspaceViewModelInput,
+  type ProjectSummary,
+  type WorkspaceCapabilities,
+  type WorkspaceViewModel,
+} from './workspaceViewModel';
 export {
   useImprovementProjectPanelModel,
   type ImprovementProjectPanelPatch,
@@ -644,11 +652,10 @@ export {
   type UseProjectActionsOptions,
 } from './useProjectActions';
 export {
-  useActiveIPContext,
-  DEFAULT_ACTIVE_IP_USER_ID,
-  type ActiveIPContext,
-  type UseActiveIPContextOptions,
-} from './useActiveIPContext';
+  useWorkspaceProjectContext,
+  type WorkspaceProjectContext,
+  type UseWorkspaceProjectContextOptions,
+} from './useWorkspaceProjectContext';
 
 export {
   RETURN_NAVIGATION_STORAGE_KEY,
@@ -689,6 +696,3 @@ export { useLiveProjection } from './useLiveProjection';
 
 // IM-3 reactive auto-link cascade (shared by Azure + PWA)
 export { useReingestAutoLink, type UseReingestAutoLinkOptions } from './useReingestAutoLink';
-
-// CS-0 durable scope: clear transient drill-filters on IP switch (Azure + PWA)
-export { useClearScopeOnIPSwitch } from './useClearScopeOnIPSwitch';

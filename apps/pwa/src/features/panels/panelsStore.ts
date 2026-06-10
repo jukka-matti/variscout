@@ -3,8 +3,8 @@ import { create } from 'zustand';
 // ── State ────────────────────────────────────────────────────────────────────
 
 interface PanelsState {
-  // Workspace navigation (aligned with Azure's activeView naming per ADR-055
-  // and extended with 'frame' per ADR-070).
+  // Workspace navigation uses the shared Home/Project/Process/Explore/Analyze/Improve/Report
+  // view naming, extended with setup/control surfaces.
   activeView:
     | 'home'
     | 'frame'

@@ -45,7 +45,7 @@ import {
   type FindingContext,
 } from '@variscout/core/findings';
 import { surveyInboxRules } from '@variscout/core/survey';
-import { useActiveIPContext } from '@variscout/hooks';
+import { useWorkspaceProjectContext } from '@variscout/hooks';
 import { pwaHubRepository } from '../../persistence';
 import { useSession } from '../../store/sessionStore';
 import { usePanelsStore } from '../../features/panels/panelsStore';
@@ -403,10 +403,10 @@ const FrameView: React.FC<FrameViewProps> = ({
     activeHubId ? s.getProjectForHub(activeHubId) : undefined
   );
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);
-  // E1 T5: PWA active-IP cascade for Canvas Edit-mode state.
-  // PWA passes `userId: 'local'` internally to `useActiveIPContext` (no
+  // E1 T5: PWA Workspace Project cascade for Canvas Edit-mode state.
+  // PWA passes `userId: 'local'` internally to `useWorkspaceProjectContext` (no
   // AD identity in the free tier); the hook still scopes per-hub.
-  const { activeIP } = useActiveIPContext(activeHub);
+  const { workspaceProject } = useWorkspaceProjectContext(activeHub);
   const [priorStepStats, setPriorStepStats] =
     React.useState<ReadonlyMap<string, StepCapabilityStamp>>(EMPTY_PRIOR_STEP_STATS);
   const [actionItems, setActionItems] = React.useState<ActionItem[]>(EMPTY_ACTION_ITEMS);
@@ -902,11 +902,11 @@ const FrameView: React.FC<FrameViewProps> = ({
 
   // E1 T6: Process tab is project-scoped. When no active project is selected,
   // route the user back to Home instead of rendering Canvas chrome. PWA has no
-  // AD identity in the free tier; `useActiveIPContext` returns `null` whenever
-  // there is no IP for the active hub. The CanvasWorkspace `activeIP: null`
+  // AD identity in the free tier; `useWorkspaceProjectContext` returns `null` whenever
+  // there is no IP for the active hub. The CanvasWorkspace `workspaceProject: null`
   // branch (T5) remains as the bootstrap fallback for tests + non-membership
   // callers, but the production Process tab never reaches it.
-  if (activeIP == null) {
+  if (workspaceProject == null) {
     return (
       <NoActiveProjectGuidance
         onGoHome={() => usePanelsStore.getState().showHome()}
@@ -951,7 +951,7 @@ const FrameView: React.FC<FrameViewProps> = ({
         // Edit mode is always reachable. Azure derives this from canAccess(..., 'edit').
         canEditCanvas={true}
         actionItems={actionItems}
-        activeIP={activeIP}
+        workspaceProject={workspaceProject}
         onPersistCanvasState={upsertProject}
         outcomeSpecs={(activeHub?.outcomes ?? []).filter(o => o.deletedAt === null)}
         onExploreExit={handleExploreExit}

@@ -304,14 +304,7 @@ export const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {
         properties: {
           target: {
             type: 'string',
-            enum: [
-              'finding',
-              'hypothesis',
-              'chart',
-              'improvement_workspace',
-              'report',
-              'dashboard',
-            ],
+            enum: ['finding', 'hypothesis', 'chart', 'improvement_workspace', 'report', 'home'],
             description: 'What to navigate to',
           },
           target_id: {

@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import {
-  deriveActiveIPPresentation,
-  getIPDayCounter,
-  getIPRecentActivityFallback,
-  getIPStageLabel,
-  getIPUrgentLine,
-} from '../activeIPPresentation';
+  deriveWorkspaceProjectPresentation,
+  getWorkspaceProjectDayCounter,
+  getWorkspaceProjectRecentActivityFallback,
+  getWorkspaceProjectStageLabel,
+  getWorkspaceProjectUrgentLine,
+} from '../workspaceProjectPresentation';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const now = Date.UTC(2026, 4, 15);
 
-function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject {
+function makeWorkspaceProject(overrides: Partial<ImprovementProject> = {}): ImprovementProject {
   return {
     id: 'ip-1',
     hubId: 'hub-1',
@@ -26,23 +26,25 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
   };
 }
 
-describe('activeIPPresentation', () => {
+describe('workspaceProjectPresentation', () => {
   it('derives a day counter from createdAt', () => {
-    expect(getIPDayCounter(makeIP(), now)).toBe(4);
+    expect(getWorkspaceProjectDayCounter(makeWorkspaceProject(), now)).toBe(4);
   });
 
   it('labels draft projects as Charter', () => {
-    expect(getIPStageLabel(makeIP({ status: 'draft' }))).toBe('Charter');
+    expect(getWorkspaceProjectStageLabel(makeWorkspaceProject({ status: 'draft' }))).toBe(
+      'Charter'
+    );
   });
 
   it('labels active projects with no approach work as Approach', () => {
-    expect(getIPStageLabel(makeIP())).toBe('Approach');
+    expect(getWorkspaceProjectStageLabel(makeWorkspaceProject())).toBe('Approach');
   });
 
   it('labels active projects with approach work as Control', () => {
     expect(
-      getIPStageLabel(
-        makeIP({
+      getWorkspaceProjectStageLabel(
+        makeWorkspaceProject({
           sections: {
             background: {},
             approach: { actionItemIds: ['a-1'] },
@@ -54,13 +56,15 @@ describe('activeIPPresentation', () => {
   });
 
   it('labels closed projects as Control (not Handoff)', () => {
-    expect(getIPStageLabel(makeIP({ status: 'closed' }))).toBe('Control');
+    expect(getWorkspaceProjectStageLabel(makeWorkspaceProject({ status: 'closed' }))).toBe(
+      'Control'
+    );
   });
 
   it('labels projects with sustainmentRecordId as Control', () => {
     expect(
-      getIPStageLabel(
-        makeIP({
+      getWorkspaceProjectStageLabel(
+        makeWorkspaceProject({
           sections: {
             background: {},
             approach: {},
@@ -73,8 +77,8 @@ describe('activeIPPresentation', () => {
 
   it('labels projects with controlHandoffId as Control', () => {
     expect(
-      getIPStageLabel(
-        makeIP({
+      getWorkspaceProjectStageLabel(
+        makeWorkspaceProject({
           sections: {
             background: {},
             approach: {},
@@ -86,11 +90,15 @@ describe('activeIPPresentation', () => {
   });
 
   it('derives urgent lines with deterministic fallbacks', () => {
-    expect(getIPUrgentLine(makeIP({ status: 'draft' }))).toBe('Pat awaiting Charter signoff');
-    expect(getIPUrgentLine(makeIP())).toBe('Pat awaiting your Approach signoff');
+    expect(getWorkspaceProjectUrgentLine(makeWorkspaceProject({ status: 'draft' }))).toBe(
+      'Pat awaiting Charter signoff'
+    );
+    expect(getWorkspaceProjectUrgentLine(makeWorkspaceProject())).toBe(
+      'Pat awaiting your Approach signoff'
+    );
     expect(
-      getIPUrgentLine(
-        makeIP({
+      getWorkspaceProjectUrgentLine(
+        makeWorkspaceProject({
           sections: {
             background: {},
             approach: { actionItemIds: ['a-1'] },
@@ -102,12 +110,12 @@ describe('activeIPPresentation', () => {
   });
 
   it('gives a meaningful urgent line for closed projects referencing handoff/control plan', () => {
-    const urgentLine = getIPUrgentLine(makeIP({ status: 'closed' }));
+    const urgentLine = getWorkspaceProjectUrgentLine(makeWorkspaceProject({ status: 'closed' }));
     expect(urgentLine.toLowerCase()).toMatch(/control plan|handoff/);
   });
 
   it('builds recent activity fallback rows when no feed exists', () => {
-    expect(getIPRecentActivityFallback(makeIP(), now)).toEqual([
+    expect(getWorkspaceProjectRecentActivityFallback(makeWorkspaceProject(), now)).toEqual([
       'Heads 5-8 Cpk shortfall opened · Day 4',
       'Approach stage active · 1d ago',
       'Target set to 1.33 · current goal',
@@ -115,7 +123,7 @@ describe('activeIPPresentation', () => {
   });
 
   it('returns the full presentation model for cards', () => {
-    expect(deriveActiveIPPresentation(makeIP(), now)).toMatchObject({
+    expect(deriveWorkspaceProjectPresentation(makeWorkspaceProject(), now)).toMatchObject({
       title: 'Heads 5-8 Cpk shortfall',
       statusLabel: 'ACTIVE',
       stageLabel: 'Approach',

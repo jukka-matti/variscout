@@ -52,7 +52,7 @@ vi.mock('../../db/schema', () => ({
       where: vi.fn(() => ({
         equals: vi.fn(() => ({ filter: vi.fn(() => ({ delete: vi.fn().mockResolvedValue(0) })) })),
       })),
-      // 1:1 hub↔IP: HUB_PERSIST_SNAPSHOT uses single-row put (not bulkPut);
+      // 1:1 hub↔Workspace Project: HUB_PERSIST_SNAPSHOT uses single-row put (not bulkPut);
       // applyAction (mocked here) additionally uses add/get/update. Provide all
       // the methods the production persistence calls so the table mock is faithful.
       put: vi.fn().mockResolvedValue(undefined),
@@ -181,7 +181,7 @@ describe('AzureHubRepository dispatch', () => {
   });
 
   it('HUB_PERSIST_SNAPSHOT returns undefined (bootstrap path)', async () => {
-    const hub = makeHub({ id: 'hub-azure-1', name: 'New Hub' });
+    const hub = makeHub({ id: 'hub-azure-1', name: 'New Workspace' });
     await expect(repo.dispatch({ kind: 'HUB_PERSIST_SNAPSHOT', hub })).resolves.toBeUndefined();
   });
 

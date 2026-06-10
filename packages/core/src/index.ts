@@ -832,6 +832,7 @@ export type { HubProjection, EvidenceCluster, AnalysisBrief } from './findings';
 export {
   D13_OVERVIEW_SECTION_TITLES,
   deriveHubPortfolioReport,
+  deriveHubPortfolioReport as deriveWorkspaceOverviewReport,
   deriveIPCauseRows,
   deriveIPReportNarrative,
   selectIPReportScope,
@@ -841,6 +842,7 @@ export {
 export type {
   HubCapabilitySummary,
   HubPortfolioReport,
+  HubPortfolioReport as WorkspaceOverviewReportModel,
   HubPortfolioRow,
   IPCauseRow,
   IPReportOverviewSection,

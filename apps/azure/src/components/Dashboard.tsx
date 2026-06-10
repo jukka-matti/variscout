@@ -44,14 +44,14 @@ import {
   CapabilityMetricToggle,
   SubgroupConfigPopover,
   DefectSummary,
-  ActiveIPScopeRibbon,
+  WorkspaceProjectScopeRibbon,
   InflectionSidePanelView,
   ScopeChrome,
   useInflectionBinningState,
   useIsMobile,
   useGlossary,
   BREAKPOINTS,
-  type ActiveIPScopeLabels,
+  type WorkspaceProjectScopeLabels,
 } from '@variscout/ui';
 import {
   getColumnNames,
@@ -151,9 +151,9 @@ interface DashboardProps {
   ai?: DashboardAIProps;
   /** Projected Cpk map from improvement workspace (finding ID -> projected Cpk) */
   projectedCpkMap?: Record<string, number>;
-  activeIPScope?: {
+  workspaceProjectScope?: {
     title: string;
-    labels: ActiveIPScopeLabels;
+    labels: WorkspaceProjectScopeLabels;
   } | null;
   onOpenWall?: () => void;
   /**
@@ -170,9 +170,9 @@ interface DashboardProps {
    * step chip with no options (graceful no-op; step scope selection is
    * deferred until the parent threads the full IP context here).
    */
-  activeIPProcessSteps?: ReadonlyArray<{ stepId: string; label: string }>;
+  workspaceProjectProcessSteps?: ReadonlyArray<{ stepId: string; label: string }>;
   /**
-   * G1 Task 7: existing inflection-binning bindings from the active IP.
+   * G1 Task 7: existing inflection-binning bindings from the Workspace Project.
    * When provided alongside `onBindingsChange`, the Probability lens shows the
    * inflection-binning workflow (Detect → propose → commit → manage). Without
    * a writer the workflow is suppressed (read-only consumers).
@@ -204,10 +204,10 @@ const Dashboard = ({
   performance = {},
   ai = {},
   projectedCpkMap: externalProjectedCpkMap,
-  activeIPScope,
+  workspaceProjectScope,
   onOpenWall,
   categoricalValuesByColumn,
-  activeIPProcessSteps = [],
+  workspaceProjectProcessSteps = [],
   binnedFactorBindings,
   onBindingsChange,
 }: DashboardProps) => {
@@ -864,10 +864,10 @@ const Dashboard = ({
     >
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
-        {activeIPScope ? (
-          <ActiveIPScopeRibbon
-            title={activeIPScope.title}
-            labels={activeIPScope.labels}
+        {workspaceProjectScope ? (
+          <WorkspaceProjectScopeRibbon
+            title={workspaceProjectScope.title}
+            labels={workspaceProjectScope.labels}
             surface="Explore"
           />
         ) : null}
@@ -1049,7 +1049,7 @@ const Dashboard = ({
                 columnName: col,
                 label: columnAliases[col] ?? col,
               }))}
-              availableSteps={activeIPProcessSteps}
+              availableSteps={workspaceProjectProcessSteps}
               categoricalValuesByColumn={
                 // Filter out nulls: ScopeChrome expects (string | number)[], not (string | null)[]
                 Object.fromEntries(

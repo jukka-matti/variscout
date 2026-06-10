@@ -36,6 +36,11 @@ describe('usePreferencesStore', () => {
     expect(usePreferencesStore.getState().isPISidebarOpen).toBe(false);
   });
 
+  it('showHome sets workspace to home', () => {
+    usePreferencesStore.getState().showHome();
+    expect(usePreferencesStore.getState().activeView).toBe('home');
+  });
+
   it('showInvestigation sets workspace to investigation and opens PI sidebar with scope tab', () => {
     usePreferencesStore.getState().showInvestigation();
     const s = usePreferencesStore.getState();

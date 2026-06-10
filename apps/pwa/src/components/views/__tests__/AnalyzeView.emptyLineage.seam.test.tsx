@@ -1,10 +1,10 @@
 /**
- * AnalyzeView (PWA) — active-IP scope shows the whole document on the Wall
+ * AnalyzeView (PWA) — Workspace Project scope shows the whole document on the Wall
  * (PO-5 permanent semantics).
  *
  * Mirrors the Azure AnalyzeWorkspace seam test. The IP lineage section is
- * retired (PO-5); active-IP surfaces no longer filter the Wall by a lineage
- * membership set — under active-IP scope the Wall renders every hub.
+ * retired (PO-5); Workspace Project surfaces no longer filter the Wall by a lineage
+ * membership set — under Workspace Project scope the Wall renders every hub.
  * See decision-log 2026-06-05 (PO-5).
  *
  * IMPORTANT: vi.mock() calls must appear before any component imports.
@@ -88,12 +88,12 @@ import {
   useAnalyzeStore,
 } from '@variscout/stores';
 import { createHypothesis, createFinding } from '@variscout/core/findings';
-import type { ActiveIPScopeLabels } from '@variscout/ui';
+import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
 import AnalyzeView from '../AnalyzeView';
 
 // ── 3. Fixtures ─────────────────────────────────────────────────────────────
 
-const activeScope: { title: string; labels: ActiveIPScopeLabels } = {
+const activeScope: { title: string; labels: WorkspaceProjectScopeLabels } = {
   title: 'Reduce Defect Rate',
   labels: {
     outcomeLabel: 'Defect Rate',
@@ -128,7 +128,7 @@ function makeMinimalProps(
 
 // ── 4. Tests ───────────────────────────────────────────────────────────────
 
-describe('PWA AnalyzeView — active IP shows the whole document on the Wall (PO-5 permanent semantics)', () => {
+describe('PWA AnalyzeView — Workspace Project shows the whole document on the Wall (PO-5 permanent semantics)', () => {
   beforeEach(() => {
     capturedWallCanvasProps.current = null;
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
@@ -142,16 +142,16 @@ describe('PWA AnalyzeView — active IP shows the whole document on the Wall (PO
     window.sessionStorage.clear();
   });
 
-  // PO-5: under active-IP scope the Wall renders every hub (lineage filter retired).
-  it('(1) active-IP scope → all hubs visible on Wall', () => {
-    render(<AnalyzeView {...makeMinimalProps()} activeIPScope={activeScope} />);
+  // PO-5: under Workspace Project scope the Wall renders every hub (lineage filter retired).
+  it('(1) Workspace Project scope → all hubs visible on Wall', () => {
+    render(<AnalyzeView {...makeMinimalProps()} workspaceProjectScope={activeScope} />);
     expect(capturedWallCanvasProps.current).not.toBeNull();
     const receivedHubs = capturedWallCanvasProps.current!.hubs as { id: string }[];
     expect(receivedHubs.map(h => h.id).sort()).toEqual(['hub-A', 'hub-B']);
   });
 
-  // CONTROL: no activeIPScope → all hubs visible.
-  it('(control) no activeIPScope → all hubs visible', () => {
+  // CONTROL: no workspaceProjectScope → all hubs visible.
+  it('(control) no workspaceProjectScope → all hubs visible', () => {
     render(<AnalyzeView {...makeMinimalProps()} />);
     const receivedHubs = capturedWallCanvasProps.current!.hubs as { id: string }[];
     expect(receivedHubs.map(h => h.id).sort()).toEqual(['hub-A', 'hub-B']);

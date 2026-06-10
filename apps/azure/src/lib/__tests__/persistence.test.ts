@@ -138,7 +138,7 @@ describe('Azure persistence .vrs import/export', () => {
   });
 });
 
-describe('PO-8b: adapter saves preserve portfolio meta + access', () => {
+describe('PO-8b: adapter saves preserve Workspace metadata + access', () => {
   it('saveProjectLocally no longer wipes record.meta / record.access', async () => {
     useProjectStore.setState({
       ...getProjectInitialState(),

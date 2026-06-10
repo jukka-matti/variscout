@@ -3,7 +3,7 @@
  *
  * Layer: Annotation (per-user axis). Persists to localStorage under the key
  * `variscout:projectMembership:{userId}` — one partition per authenticated user,
- * matching the pattern used by useActiveIPStore (see activeIPStore.ts).
+ * matching the annotation-per-user localStorage pattern.
  *
  * Consumer pattern (selectors required — never bare useStore()):
  *   const invites = useProjectMembershipStore(s => s.getPendingInvites(userId));
@@ -42,7 +42,7 @@ export function projectMembershipStorageKey(userId: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Storage helpers — mirrors activeIPStore.ts defensive pattern.
+// Storage helpers — defensive localStorage access.
 // ---------------------------------------------------------------------------
 
 function getLocalStorage(): Storage | null {
@@ -91,7 +91,7 @@ function isInvitationArray(value: unknown): value is Invitation[] {
 // `getPendingInvites` causes React infinite-render loops when consumed as a
 // Zustand selector (`useProjectMembershipStore(s => s.getPendingInvites(uid))`):
 // every render produces a new array reference, fails the snapshot equality
-// check, and triggers a re-render. Mirror activeIPStore's null-fallback shape.
+// check, and triggers a re-render. Keep a null-fallback shape for corrupt entries.
 const EMPTY_INVITES: readonly Invitation[] = Object.freeze([]);
 
 // ---------------------------------------------------------------------------

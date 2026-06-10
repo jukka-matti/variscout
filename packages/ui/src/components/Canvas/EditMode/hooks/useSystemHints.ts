@@ -16,7 +16,7 @@ export interface UseSystemHintsInput {
   columnProfiles: ReadonlyArray<ColumnParsingProfile>;
   dismissedHints: ReadonlySet<string>;
   /**
-   * Time decomposition bindings — resolved from `activeIP.timeDecompositionBindings`
+   * Time decomposition bindings — resolved from `workspaceProject.timeDecompositionBindings`
    * or local-state fallback in CanvasWorkspace. Used to suppress the time hint
    * once every detected date column has been decomposed.
    */

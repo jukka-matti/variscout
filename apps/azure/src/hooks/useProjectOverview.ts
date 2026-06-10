@@ -10,14 +10,12 @@ interface UseProjectOverviewOptions {
 
 interface UseProjectOverviewReturn {
   overviewUserId: string;
-  overviewProjects: CloudProject[];
   lastViewedAt: number;
   handleUpdateLastViewed: () => void;
 }
 
 /**
- * Fetches current user ID and project list for the ProjectDashboard overview.
- * Computes lastViewedAt for the WhatsNewSection.
+ * Fetches current user ID and current-project metadata for Workspace Home.
  */
 export function useProjectOverview({
   listProjects,
@@ -25,7 +23,9 @@ export function useProjectOverview({
   currentProjectLocation,
 }: UseProjectOverviewOptions): UseProjectOverviewReturn {
   const [overviewUserId, setOverviewUserId] = useState<string>('local');
-  const [overviewProjects, setOverviewProjects] = useState<CloudProject[]>([]);
+  const [currentProjectMeta, setCurrentProjectMeta] = useState<CloudProject['metadata'] | null>(
+    null
+  );
 
   useEffect(() => {
     getEasyAuthUser()
@@ -35,21 +35,23 @@ export function useProjectOverview({
       })
       .catch(() => {});
     listProjects()
-      .then(setOverviewProjects)
-      .catch(() => {});
-  }, [listProjects]);
+      .then(projects => {
+        const project = projects.find(
+          p => p.name === currentProjectName || p.id === currentProjectName
+        );
+        setCurrentProjectMeta(project?.metadata ?? null);
+      })
+      .catch(() => setCurrentProjectMeta(null));
+  }, [currentProjectName, listProjects]);
 
   const lastViewedAt = useMemo(() => {
-    const project = overviewProjects.find(
-      p => p.name === currentProjectName || p.id === currentProjectName
-    );
-    return project?.metadata?.lastViewedAt?.[overviewUserId] ?? 0;
-  }, [overviewProjects, currentProjectName, overviewUserId]);
+    return currentProjectMeta?.lastViewedAt?.[overviewUserId] ?? 0;
+  }, [currentProjectMeta, overviewUserId]);
 
   const handleUpdateLastViewed = useCallback(() => {
     if (!currentProjectName || !currentProjectLocation) return;
     updateLastViewedAt(currentProjectName, currentProjectLocation, overviewUserId);
   }, [currentProjectName, currentProjectLocation, overviewUserId]);
 
-  return { overviewUserId, overviewProjects, lastViewedAt, handleUpdateLastViewed };
+  return { overviewUserId, lastViewedAt, handleUpdateLastViewed };
 }

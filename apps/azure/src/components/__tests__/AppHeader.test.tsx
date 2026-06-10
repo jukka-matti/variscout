@@ -3,14 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppHeader } from '../AppHeader';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 
-describe('AppHeader active IP chip', () => {
+describe('AppHeader Workspace Project chip', () => {
   beforeEach(() => {
     usePanelsStore.setState(usePanelsStore.getInitialState());
   });
 
   it('renders Workspace Project chip and wires the title action', () => {
-    const onOpenActiveIP = vi.fn();
-    const onExitActiveIP = vi.fn();
+    const onOpenWorkspaceProject = vi.fn();
 
     render(
       <AppHeader
@@ -19,19 +18,17 @@ describe('AppHeader active IP chip', () => {
         projectName="Analysis"
         rowCount={10}
         activeView="explore"
-        activeIPTitle="Heads 5-8 Cpk shortfall"
-        onOpenActiveIP={onOpenActiveIP}
-        onExitActiveIP={onExitActiveIP}
+        workspaceProjectTitle="Heads 5-8 Cpk shortfall"
+        onOpenWorkspaceProject={onOpenWorkspaceProject}
       />
     );
 
-    expect(screen.getByTestId('ip-context-chip')).toHaveTextContent(
+    expect(screen.getByTestId('workspace-project-chip')).toHaveTextContent(
       '◆ Workspace Project: Heads 5-8 Cpk shortfall'
     );
     fireEvent.click(screen.getByRole('button', { name: /Open Project Heads 5-8 Cpk shortfall/i }));
-    expect(onOpenActiveIP).toHaveBeenCalledOnce();
-    expect(screen.queryByRole('button', { name: 'Exit IP' })).not.toBeInTheDocument();
-    expect(onExitActiveIP).not.toHaveBeenCalled();
+    expect(onOpenWorkspaceProject).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('button', { name: 'Exit Workspace' })).not.toBeInTheDocument();
   });
 
   it('renders the shared workflow tabs and routes clicks through the panel store', () => {
@@ -61,7 +58,7 @@ describe('AppHeader active IP chip', () => {
     expect(usePanelsStore.getState().activeView).toBe('frame');
 
     fireEvent.click(screen.getByTestId('workflow-tab-home'));
-    expect(usePanelsStore.getState().activeView).toBe('dashboard');
+    expect(usePanelsStore.getState().activeView).toBe('home');
 
     fireEvent.click(screen.getByTestId('workflow-tab-analyze'));
     expect(usePanelsStore.getState().activeView).toBe('analyze');

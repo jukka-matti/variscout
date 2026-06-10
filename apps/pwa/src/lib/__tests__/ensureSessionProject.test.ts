@@ -35,7 +35,7 @@ describe('ensureSessionProject', () => {
     expect(hub.improvementProject!.hubId).toBe('hub-1');
   });
 
-  it('is a no-op when a live IP already exists (reconstruct-not-create, spec §1)', () => {
+  it('is a no-op when a live Workspace Project already exists (reconstruct-not-create, spec §1)', () => {
     const withIP = ensureSessionProject(null, 'Imported scenario', NOW);
     const again = ensureSessionProject(withIP, 'SHOULD NOT APPLY', NOW);
     expect(again).toBe(withIP); // referential no-op

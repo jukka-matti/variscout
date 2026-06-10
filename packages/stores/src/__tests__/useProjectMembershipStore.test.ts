@@ -11,7 +11,7 @@ import {
 } from '../improvementProjectStore';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 
-// Polyfill localStorage for the Node test environment — mirrors activeIPStore.test.ts.
+// Polyfill localStorage for the Node test environment.
 if (typeof globalThis.localStorage === 'undefined') {
   const store = new Map<string, string>();
   Object.defineProperty(globalThis, 'localStorage', {

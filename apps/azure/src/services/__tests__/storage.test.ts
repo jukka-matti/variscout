@@ -1332,7 +1332,7 @@ describe('storage service', () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
-    it('does not return cached process hubs when the cloud catalog is forbidden', async () => {
+    it('does not return cached Workspaces when the cloud catalog is forbidden', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
       mockProcessHubs.toArray.mockResolvedValueOnce([localHub]);
       mockListBlobProcessHubs.mockRejectedValueOnce(new Error('403 Forbidden'));

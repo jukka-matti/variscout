@@ -519,7 +519,9 @@ export {
   REPORT_METHODOLOGY_FOOTNOTE,
   type IPTechnicalReportProps,
   HubPortfolioReport,
+  HubPortfolioReport as WorkspaceOverviewReport,
   type HubPortfolioReportProps,
+  type HubPortfolioReportProps as WorkspaceOverviewReportProps,
 } from './components/ReportView';
 
 // Report Evidence Map
@@ -625,7 +627,7 @@ export {
 } from './components/ImprovementPlan';
 
 // Improvement Project workspace
-export * from './components/ActiveIP';
+export * from './components/WorkspaceProject';
 export * from './components/ImprovementProject';
 export * from './components/projects';
 export * from './components/Control';

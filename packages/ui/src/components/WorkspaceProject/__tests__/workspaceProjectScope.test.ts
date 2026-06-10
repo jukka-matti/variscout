@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { ProcessHub } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import { deriveActiveIPCanvasFocus, deriveActiveIPScopeLabels } from '../activeIPScope';
+import {
+  deriveWorkspaceProjectCanvasFocus,
+  deriveWorkspaceProjectScopeLabels,
+} from '../workspaceProjectScope';
 
 const hub: ProcessHub = {
   id: 'hub-1',
@@ -50,9 +53,9 @@ function makeIP(overrides: Partial<ImprovementProject> = {}): ImprovementProject
   };
 }
 
-describe('activeIPScope', () => {
+describe('workspaceProjectScope', () => {
   it('derives visible Analyze context labels without mutating document data', () => {
-    const labels = deriveActiveIPScopeLabels(
+    const labels = deriveWorkspaceProjectScopeLabels(
       makeIP({
         goal: {
           outcomeGoals: [{ outcomeSpecId: 'outcome-weight', target: 1.33 }],
@@ -69,9 +72,9 @@ describe('activeIPScope', () => {
   });
 
   it('derives process focus level from goal depth', () => {
-    expect(deriveActiveIPCanvasFocus(makeIP(), hub)).toEqual({ level: 'l1' });
+    expect(deriveWorkspaceProjectCanvasFocus(makeIP(), hub)).toEqual({ level: 'l1' });
     expect(
-      deriveActiveIPCanvasFocus(
+      deriveWorkspaceProjectCanvasFocus(
         makeIP({
           goal: {
             outcomeGoals: [{ outcomeSpecId: 'outcome-weight', target: 1.33 }],
@@ -82,7 +85,7 @@ describe('activeIPScope', () => {
       )
     ).toEqual({ level: 'l2' });
     expect(
-      deriveActiveIPCanvasFocus(
+      deriveWorkspaceProjectCanvasFocus(
         makeIP({
           goal: {
             outcomeGoals: [{ outcomeSpecId: 'outcome-weight', target: 1.33 }],

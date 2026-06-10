@@ -40,8 +40,9 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 
 - Entry point is `assembleCoScoutPrompt()`; `legacy.ts` deleted (ADR-068 migration complete 2026-05-30). `BuildCoScoutToolsOptions` lives in `ai/prompts/coScout/tools/registry.ts`.
 - Tier 1 (role + glossary) must stay session-invariant — it is the prompt-cacheable prefix (Azure AI Foundry, ≥1024 tokens). Moving content tier1 ↔ tier3 breaks cache hit rate or embeds ephemeral state.
-- Every tool in `ai/prompts/coScout/tools/registry.ts` MUST declare `phases`. The `tier` field is an internal prompt-cache phasing signal per ADR-068 (Tier 1 session-invariant vs Tier 3 per-session) — NOT customer-facing pricing tier. Ungated tools (missing `phases`) leak across investigation phases.
+- Every tool in `ai/prompts/coScout/tools/registry.ts` MUST declare `surfaces`. Surface gating is deterministic (`process` / `explore` / `analyze` / `report`), and missing surfaces leak tools across the loop.
 - CoScout references chart elements via REF markers (`REF:boxplot:productLine`), never raw data values — upholds customer-owned-data + contribution-not-causation framing.
+- `src/ai/__tests__/coScoutBehavioralEval.test.ts` is the load-bearing gate for CoScout prompt/surface/tool changes. Default runs replay committed fixtures with no network. To refresh recorded model-behavior fixtures, run `COSCOUT_RECORD=1 COSCOUT_RECORD_ENDPOINT=... COSCOUT_RECORD_DEPLOYMENT=reasoning COSCOUT_RECORD_API_KEY=... pnpm --filter @variscout/core test -- coScoutBehavioralEval.test.ts`.
 
 ## i18n loading invariants
 

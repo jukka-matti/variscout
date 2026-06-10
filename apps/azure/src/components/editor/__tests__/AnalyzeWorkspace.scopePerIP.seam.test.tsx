@@ -1,7 +1,7 @@
 /**
  * PR-CS-0 Task 2 — drill-materialized scopes are keyed per Improvement Project.
  *
- * The `scopeProjectId` prop (active IP id, or the 'general-unassigned'
+ * The `scopeProjectId` prop (Workspace Project id, or the 'general-unassigned'
  * sentinel for the quick-analysis flow) is threaded into the drill→scope spine:
  *  - `syncScopeFromDrill(scopeProjectId, outcome, filters)` stamps the id
  *    onto the materialized ProblemStatementScope, AND
@@ -14,7 +14,7 @@
  *     scope whose projectId === 'ip-A';
  *  2. rendering with scopeProjectId="ip-B" (same filters) materializes a
  *     DISTINCT scope (projectId === 'ip-B') — no co-mingling;
- *  3. the rail (railScopes → ScopeRail chips) shows ONLY the active IP's scopes.
+ *  3. the rail (railScopes → ScopeRail chips) shows ONLY the Workspace Project's scopes.
  *
  * Strategy mirrors AnalyzeWorkspace.mapwall.test.tsx: heavy deps mocked,
  * useAnalyzeStore + useAnalysisScopeStore are the REAL stores (reset per test),
@@ -266,7 +266,7 @@ describe('AnalyzeWorkspace — scope is keyed per Improvement Project (PR-CS-0 T
     useAnalyzeStore.setState({ scopes: [] });
   });
 
-  it('materializes a scope stamped with the active IP id (scopeProjectId="ip-A")', () => {
+  it('materializes a scope stamped with the Workspace Project id (scopeProjectId="ip-A")', () => {
     render(<AnalyzeWorkspace {...makeMinimalProps()} scopeProjectId="ip-A" />);
 
     const scopes = useAnalyzeStore.getState().scopes;
@@ -280,7 +280,7 @@ describe('AnalyzeWorkspace — scope is keyed per Improvement Project (PR-CS-0 T
     expect(useAnalyzeStore.getState().scopes.map(s => s.projectId)).toEqual(['ip-A']);
     unmount();
 
-    // Same drill filters, but the active IP switched to ip-B → a NEW scope keyed
+    // Same drill filters, but the Workspace Project switched to ip-B → a NEW scope keyed
     // to ip-B (the existing ip-A scope is NOT reused — idempotency is per-IP).
     render(<AnalyzeWorkspace {...makeMinimalProps()} scopeProjectId="ip-B" />);
 
@@ -310,14 +310,14 @@ describe('AnalyzeWorkspace — scope is keyed per Improvement Project (PR-CS-0 T
   });
 });
 
-// ── 5. Rail isolation — railScopes shows ONLY the active IP's scopes ───────────
+// ── 5. Rail isolation — railScopes shows ONLY the Workspace Project's scopes ───────────
 //
 // Pre-seed scopes from TWO different IPs into the store, render with the active
 // IP = ip-A, and assert the ScopeRail (mounted by AnalyzeWorkspace, preserved via
 // `...actual` in the @variscout/ui mock) renders ONLY ip-A's chip — proving the
 // railScopes memo filters on scopeProjectId (and has it in its deps).
 
-describe('AnalyzeWorkspace ScopeRail — only the active IP scopes appear (PR-CS-0 Task 2)', () => {
+describe('AnalyzeWorkspace ScopeRail — only the Workspace Project scopes appear (PR-CS-0 Task 2)', () => {
   beforeEach(() => {
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
     useCanvasViewportStore.getState().setViewMode('wall');
@@ -352,13 +352,13 @@ describe('AnalyzeWorkspace ScopeRail — only the active IP scopes appear (PR-CS
     });
   });
 
-  it('renders only the active IP (ip-A) scope chip, not the other IP (ip-B)', () => {
+  it('renders only the Workspace Project (ip-A) scope chip, not the other IP (ip-B)', () => {
     render(<AnalyzeWorkspace {...makeMinimalProps()} scopeProjectId="ip-A" />);
     expect(screen.getByTestId('scope-chip-scope-ipA')).toBeInTheDocument();
     expect(screen.queryByTestId('scope-chip-scope-ipB')).toBeNull();
   });
 
-  it('switching the active IP to ip-B flips which chip the rail shows', () => {
+  it('switching the Workspace Project to ip-B flips which chip the rail shows', () => {
     render(<AnalyzeWorkspace {...makeMinimalProps()} scopeProjectId="ip-B" />);
     expect(screen.getByTestId('scope-chip-scope-ipB')).toBeInTheDocument();
     expect(screen.queryByTestId('scope-chip-scope-ipA')).toBeNull();

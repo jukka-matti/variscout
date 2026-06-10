@@ -13,8 +13,8 @@
  *   4. CanvasWorkspace's onPersistCanvasState callback is wired to the store's
  *      upsertProject (proves the persist edge of the chain).
  *   5. Re-rendering FrameView with an updated IP (stepTimings populated)
- *      surfaces the new shape via the CanvasWorkspace `activeIP` prop —
- *      proving the activeIP-backed read path holds across simulated reload.
+ *      surfaces the new shape via the CanvasWorkspace `workspaceProject` prop —
+ *      proving the workspaceProject-backed read path holds across simulated reload.
  *
  * The CanvasWorkspace + NoActiveProjectGuidance + InboxDigest are mocked at
  * the `@variscout/ui` boundary (same pattern as FrameView.test.tsx) so we
@@ -45,7 +45,7 @@ const showImprovementMock = vi.fn();
 const showAnalyzeMock = vi.fn();
 const showCharterMock = vi.fn();
 const showSustainmentMock = vi.fn();
-const showDashboardMock = vi.fn();
+const showHomeMock = vi.fn();
 const expandToQuestionMock = vi.fn();
 const setWallViewModeMock = vi.fn();
 const setAnalyzeViewModeMock = vi.fn();
@@ -145,15 +145,18 @@ vi.mock('@variscout/ui', async importOriginal => {
       }),
     CanvasWorkspace: (props: Record<string, unknown>) => {
       hoisted.canvasWorkspaceMock(props);
-      const activeIP = props.activeIP as { stepTimings?: unknown[] } | null | undefined;
-      const stepTimingsCount = activeIP?.stepTimings?.length ?? 0;
+      const workspaceProject = props.workspaceProject as
+        | { stepTimings?: unknown[] }
+        | null
+        | undefined;
+      const stepTimingsCount = workspaceProject?.stepTimings?.length ?? 0;
       return React.createElement(
         'div',
         { 'data-testid': 'canvas-workspace' },
         React.createElement(
           'div',
-          { 'data-testid': 'canvas-active-ip-id' },
-          (activeIP as { id?: string } | null)?.id ?? ''
+          { 'data-testid': 'canvas-workspace-project-id' },
+          (workspaceProject as { id?: string } | null)?.id ?? ''
         ),
         React.createElement(
           'div',
@@ -171,9 +174,9 @@ vi.mock('@variscout/ui', async importOriginal => {
             'data-testid': 'canvas-simulate-modal-save',
             onClick: () => {
               const persist = props.onPersistCanvasState as ((next: unknown) => void) | undefined;
-              if (!activeIP || !persist) return;
+              if (!workspaceProject || !persist) return;
               persist({
-                ...activeIP,
+                ...workspaceProject,
                 stepTimings: [
                   {
                     kind: 'paired',
@@ -201,7 +204,7 @@ vi.mock('../features/panels/panelsStore', () => ({
       showAnalyze: showAnalyzeMock,
       showCharter: showCharterMock,
       showControl: showSustainmentMock,
-      showDashboard: showDashboardMock,
+      showHome: showHomeMock,
       setAnalyzeViewMode: setAnalyzeViewModeMock,
     }),
   }),
@@ -240,7 +243,7 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
     hoisted.dispatchMock.mockReset();
     hoisted.dispatchMock.mockResolvedValue(undefined);
     upsertProjectMock.mockReset();
-    showDashboardMock.mockClear();
+    showHomeMock.mockClear();
     storeStateRef.current = {
       rawData: [],
       outcome: null,
@@ -318,28 +321,28 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
 
     // ── Step C: FrameView with the new IP renders CanvasWorkspace ──
     // (not the NoActiveProjectGuidance empty-state guard) and forwards the
-    // IP downstream. This proves the activeIP cascade from Home → Process.
+    // IP downstream. This proves the workspaceProject cascade from Home → Process.
     // Wait for CanvasWorkspace to render before asserting so FrameView's
     // mount effects (snapshot / action-item / control-record loaders
     // dispatched via the persistence facade) flush, silencing the noisy
     // "update to FrameView inside a test was not wrapped in act(...)"
     // warning that would otherwise fire when the loaders resolve after the
     // render call returns.
-    const { rerender, unmount: unmountFrame } = render(<FrameView activeIP={newIP} />);
+    const { rerender, unmount: unmountFrame } = render(<FrameView workspaceProject={newIP} />);
     await waitFor(() => expect(hoisted.canvasWorkspaceMock).toHaveBeenCalled());
 
     expect(screen.queryByTestId('no-active-project-guidance')).not.toBeInTheDocument();
     expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
-    expect(screen.getByTestId('canvas-active-ip-id')).toHaveTextContent('ip-e2e-1');
+    expect(screen.getByTestId('canvas-workspace-project-id')).toHaveTextContent('ip-e2e-1');
     expect(screen.getByTestId('canvas-step-timings-count')).toHaveTextContent('0');
 
     // FrameView forwarded the IP + the store's upsertProject as the
     // onPersistCanvasState callback (proving the persist edge is wired).
     const initialCanvasProps = hoisted.canvasWorkspaceMock.mock.lastCall?.[0] as {
-      activeIP: unknown;
+      workspaceProject: unknown;
       onPersistCanvasState: unknown;
     };
-    expect(initialCanvasProps.activeIP).toBe(newIP);
+    expect(initialCanvasProps.workspaceProject).toBe(newIP);
     expect(initialCanvasProps.onPersistCanvasState).toBe(upsertProjectMock);
 
     // ── Step D: simulate a Canvas Edit-mode modal save ──
@@ -367,11 +370,11 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
     expect(persistedIP.updatedAt).toBeGreaterThan(newIP.updatedAt);
 
     // ── Step E: simulate a reload by re-rendering FrameView with the
-    //           updated IP. The activeIP-backed read path holds: the new
+    //           updated IP. The workspaceProject-backed read path holds: the new
     //           stepTimings array surfaces through CanvasWorkspace, proving
     //           the Canvas state survives a re-render from the store.
     hoisted.canvasWorkspaceMock.mockClear();
-    rerender(<FrameView activeIP={persistedIP} />);
+    rerender(<FrameView workspaceProject={persistedIP} />);
     await waitFor(() => expect(hoisted.canvasWorkspaceMock).toHaveBeenCalled());
 
     expect(screen.getByTestId('canvas-workspace')).toBeInTheDocument();
@@ -379,18 +382,18 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
     expect(screen.getByTestId('canvas-step-timings-count')).toHaveTextContent('1');
 
     const reloadedCanvasProps = hoisted.canvasWorkspaceMock.mock.lastCall?.[0] as {
-      activeIP: { stepTimings?: unknown[] };
+      workspaceProject: { stepTimings?: unknown[] };
     };
-    expect(reloadedCanvasProps.activeIP.stepTimings).toHaveLength(1);
+    expect(reloadedCanvasProps.workspaceProject.stepTimings).toHaveLength(1);
 
     unmountFrame();
 
-    // ── Sanity: when activeIP is null, the Process tab routes back to Home
+    // ── Sanity: when workspaceProject is null, the Process tab routes back to Home
     //           via NoActiveProjectGuidance (closes the empty-state branch).
     //           `findBy*` waits for FrameView's mount effects (loaders that
     //           still fire even on the empty-state branch) to flush, keeping
     //           the assertion act()-clean.
-    render(<FrameView activeIP={null} />);
+    render(<FrameView workspaceProject={null} />);
     expect(await screen.findByTestId('no-active-project-guidance')).toBeInTheDocument();
     expect(screen.queryByTestId('canvas-workspace')).not.toBeInTheDocument();
   });

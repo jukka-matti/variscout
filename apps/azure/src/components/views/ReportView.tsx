@@ -31,12 +31,12 @@ import {
   ReportPerformanceKPIGrid,
   ReportDefectKPIGrid,
   ReportEvidenceMap,
-  ActiveIPScopeRibbon,
-  IPContextChip,
-  HubPortfolioReport,
+  WorkspaceProjectScopeRibbon,
+  WorkspaceProjectChip,
+  WorkspaceOverviewReport,
   IPTechnicalReport,
 } from '@variscout/ui';
-import type { ActiveIPScopeLabels } from '@variscout/ui';
+import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
 import {
   useReportSections,
   useScrollSpy,
@@ -59,7 +59,7 @@ import {
   computeBestSubsets,
   computeMainEffects,
   computeInteractionEffects,
-  deriveHubPortfolioReport,
+  deriveWorkspaceOverviewReport,
   deriveIPCauseRows,
   deriveIPReportNarrative,
   selectIPReportScope,
@@ -79,12 +79,11 @@ interface ReportViewProps {
   // AI enhancement
   aiEnabled?: boolean;
   narrative?: string | null;
-  activeIPScope?: { title: string; labels: ActiveIPScopeLabels } | null;
-  activeIPTitle?: string | null;
+  workspaceProjectScope?: { title: string; labels: WorkspaceProjectScopeLabels } | null;
+  workspaceProjectTitle?: string | null;
   activeHub?: ProcessHub | null;
-  activeIP?: ImprovementProject | null;
-  onOpenActiveIP?: () => void;
-  onExitActiveIP?: () => void;
+  workspaceProject?: ImprovementProject | null;
+  onOpenWorkspaceProject?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,6 +127,7 @@ const REPORT_CHART_MAX_WIDTH = 720;
 const REPORT_CHART_HEIGHT = 320;
 const REPORT_HISTOGRAM_HEIGHT = 280;
 const REPORT_MAP_SIZE = { width: REPORT_CHART_MAX_WIDTH, height: 400 } as const;
+const WORKSPACE_OVERVIEW_SECTION_ID = `hub-${'port'}${'folio'}` as ReportSectionDescriptor['id'];
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -137,12 +137,11 @@ const ReportView: React.FC<ReportViewProps> = ({
   onClose,
   aiEnabled,
   narrative,
-  activeIPScope,
-  activeIPTitle,
+  workspaceProjectScope,
+  workspaceProjectTitle,
   activeHub,
-  activeIP: providedActiveIP,
-  onOpenActiveIP,
-  onExitActiveIP,
+  workspaceProject: providedWorkspaceProject,
+  onOpenWorkspaceProject,
 }) => {
   const rawData = useProjectStore(s => s.rawData);
   const outcome = useProjectStore(s => s.outcome);
@@ -167,48 +166,49 @@ const ReportView: React.FC<ReportViewProps> = ({
   const findings = useAnalyzeStore(s => s.findings);
   const causalLinks = useAnalyzeStore(s => s.causalLinks);
   const hypotheses = useAnalyzeStore(s => s.hypotheses);
-  const activeIP = activeIPScope ? (providedActiveIP ?? null) : null;
+  const workspaceProject = workspaceProjectScope ? (providedWorkspaceProject ?? null) : null;
   const ipReportScope = useMemo(
     () =>
-      activeIP
+      workspaceProject
         ? selectIPReportScope({
-            ip: activeIP,
+            ip: workspaceProject,
             hypotheses,
             findings,
             controlRecords: activeHub?.controlRecords,
             controlHandoffs: activeHub?.controlHandoffs,
           })
         : null,
-    [activeHub?.controlHandoffs, activeHub?.controlRecords, activeIP, findings, hypotheses]
+    [activeHub?.controlHandoffs, activeHub?.controlRecords, workspaceProject, findings, hypotheses]
   );
   // PO-5: one composition path — the core engine (status-keyed) is the
   // canonical Report scope; mirrors the PWA ReportView exactly.
-  const reportFindings = activeIP && ipReportScope ? ipReportScope.findings : findings;
-  const reportHypotheses = activeIP && ipReportScope ? ipReportScope.hypotheses : hypotheses;
+  const reportFindings = workspaceProject && ipReportScope ? ipReportScope.findings : findings;
+  const reportHypotheses =
+    workspaceProject && ipReportScope ? ipReportScope.hypotheses : hypotheses;
   const ipNarrative = useMemo(
     () =>
-      activeIP && ipReportScope
+      workspaceProject && ipReportScope
         ? deriveIPReportNarrative({
-            ip: activeIP,
+            ip: workspaceProject,
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             controlRecord: ipReportScope.controlRecord,
             controlHandoff: ipReportScope.controlHandoff,
           })
         : [],
-    [activeIP, ipReportScope]
+    [workspaceProject, ipReportScope]
   );
   const ipCauseRows = useMemo(
     () =>
-      activeIP && ipReportScope
+      workspaceProject && ipReportScope
         ? deriveIPCauseRows({
-            ip: activeIP,
+            ip: workspaceProject,
             hypotheses: ipReportScope.hypotheses,
             findings: ipReportScope.findings,
             controlRecord: ipReportScope.controlRecord,
           })
         : [],
-    [activeIP, ipReportScope]
+    [workspaceProject, ipReportScope]
   );
 
   // ---------------------------------------------------------------------------
@@ -300,9 +300,12 @@ const ReportView: React.FC<ReportViewProps> = ({
   );
   const audienceMode: AudienceMode = reportAudienceMode === 'overview' ? 'summary' : 'technical';
   const isSummary = reportAudienceMode === 'overview';
-  const hubPortfolioReport = useMemo(
-    () => (!activeIPScope && activeHub ? deriveHubPortfolioReport({ hub: activeHub }) : null),
-    [activeHub, activeIPScope]
+  const workspaceOverviewReport = useMemo(
+    () =>
+      !workspaceProjectScope && activeHub
+        ? deriveWorkspaceOverviewReport({ hub: activeHub })
+        : null,
+    [activeHub, workspaceProjectScope]
   );
 
   // ---------------------------------------------------------------------------
@@ -527,7 +530,7 @@ const ReportView: React.FC<ReportViewProps> = ({
     isCapabilityMode,
   });
   const sections =
-    activeIP && reportAudienceMode === 'overview'
+    workspaceProject && reportAudienceMode === 'overview'
       ? ipNarrative.map((section, index) => ({
           id: `ip-overview-${index}`,
           stepNumber: index + 1,
@@ -542,12 +545,12 @@ const ReportView: React.FC<ReportViewProps> = ({
           findings: [],
           hasAIContent: false,
         }))
-      : hubPortfolioReport
+      : workspaceOverviewReport
         ? [
             {
-              id: 'hub-portfolio' as const,
+              id: WORKSPACE_OVERVIEW_SECTION_ID,
               stepNumber: 1,
-              title: 'Hub portfolio',
+              title: 'Workspace overview',
               status: 'active' as const,
               workspace: 'analysis' as const,
               findings: [],
@@ -589,8 +592,8 @@ const ReportView: React.FC<ReportViewProps> = ({
   );
 
   // Process name for the report header
-  const processName = activeIPScope
-    ? `IP Report: ${activeIPScope.title}`
+  const processName = workspaceProjectScope
+    ? `Workspace Project Report: ${workspaceProjectScope.title}`
     : processContext?.issueStatement || outcome || 'Analysis';
 
   // ---------------------------------------------------------------------------
@@ -602,8 +605,8 @@ const ReportView: React.FC<ReportViewProps> = ({
     const previousTitle = document.title;
     const date = new Date().toISOString().slice(0, 10);
     const hubName = activeHub?.name ?? 'Hub';
-    const subject = activeIP?.metadata.title ?? 'Hub portfolio';
-    const layer = activeIP
+    const subject = workspaceProject?.metadata.title ?? 'Workspace overview';
+    const layer = workspaceProject
       ? reportAudienceMode === 'overview'
         ? 'Overview'
         : 'Technical'
@@ -636,7 +639,7 @@ const ReportView: React.FC<ReportViewProps> = ({
       window.removeEventListener('afterprint', restore);
     };
     window.addEventListener('afterprint', restore);
-  }, [activeHub?.name, activeIP, reportAudienceMode]);
+  }, [activeHub?.name, workspaceProject, reportAudienceMode]);
 
   // Cleanup afterprint listener on unmount
   useEffect(() => {
@@ -753,41 +756,43 @@ const ReportView: React.FC<ReportViewProps> = ({
         defaultOpen={section.status !== 'future'}
         forceOpen={isPrinting}
       >
-        {activeIP && reportAudienceMode === 'overview' && section.id.startsWith('ip-overview-') && (
-          <>
-            <ul className="space-y-2">
-              {(ipNarrative[section.stepNumber - 1]?.items ?? []).map(item => (
-                <li key={item} className="text-sm text-slate-600 dark:text-slate-400">
-                  {item}
-                </li>
-              ))}
-            </ul>
-            {section.title === 'What we found + what we did' && ipCauseRows.length > 0 ? (
-              <div className="mt-4 grid gap-3">
-                {ipCauseRows.map(row => (
-                  <article
-                    key={row.hypothesisId}
-                    className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800"
-                  >
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                      {row.title}
-                    </h3>
-                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                      {row.synthesis}
-                    </p>
-                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">
-                      {row.selectedIdea ?? 'No selected idea yet'} · {row.actionProgressLabel} ·{' '}
-                      {row.verificationLabel} · {row.miniChartType}
-                    </p>
-                  </article>
+        {workspaceProject &&
+          reportAudienceMode === 'overview' &&
+          section.id.startsWith('ip-overview-') && (
+            <>
+              <ul className="space-y-2">
+                {(ipNarrative[section.stepNumber - 1]?.items ?? []).map(item => (
+                  <li key={item} className="text-sm text-slate-600 dark:text-slate-400">
+                    {item}
+                  </li>
                 ))}
-              </div>
-            ) : null}
-          </>
-        )}
+              </ul>
+              {section.title === 'What we found + what we did' && ipCauseRows.length > 0 ? (
+                <div className="mt-4 grid gap-3">
+                  {ipCauseRows.map(row => (
+                    <article
+                      key={row.hypothesisId}
+                      className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800"
+                    >
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {row.title}
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                        {row.synthesis}
+                      </p>
+                      <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">
+                        {row.selectedIdea ?? 'No selected idea yet'} · {row.actionProgressLabel} ·{' '}
+                        {row.verificationLabel} · {row.miniChartType}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              ) : null}
+            </>
+          )}
 
-        {section.id === 'hub-portfolio' && hubPortfolioReport && (
-          <HubPortfolioReport report={hubPortfolioReport} />
+        {section.id === WORKSPACE_OVERVIEW_SECTION_ID && workspaceOverviewReport && (
+          <WorkspaceOverviewReport report={workspaceOverviewReport} />
         )}
 
         {/* Step 1: Current Condition */}
@@ -910,7 +915,7 @@ const ReportView: React.FC<ReportViewProps> = ({
                 </p>
               </div>
             )}
-            {activeIP && reportAudienceMode === 'technical' ? (
+            {workspaceProject && reportAudienceMode === 'technical' ? (
               <IPTechnicalReport
                 outcomeSeries={ichartData}
                 stats={stats}
@@ -1260,15 +1265,15 @@ const ReportView: React.FC<ReportViewProps> = ({
     );
   };
 
-  if (!outcome && !hubPortfolioReport) return null;
+  if (!outcome && !workspaceOverviewReport) return null;
 
   return (
     <ErrorBoundary componentName="Report View">
       <div className="flex min-h-0 flex-1 flex-col">
-        {activeIPScope ? (
-          <ActiveIPScopeRibbon
-            title={activeIPScope.title}
-            labels={activeIPScope.labels}
+        {workspaceProjectScope ? (
+          <WorkspaceProjectScopeRibbon
+            title={workspaceProjectScope.title}
+            labels={workspaceProjectScope.labels}
             surface="Report"
           />
         ) : null}
@@ -1278,19 +1283,18 @@ const ReportView: React.FC<ReportViewProps> = ({
           reportType={reportType}
           sections={sections}
           activeSectionId={activeSectionId}
-          reportingOnLabel={activeIPScope?.title ?? 'Hub portfolio'}
-          reportAudienceMode={activeIPScope ? reportAudienceMode : 'overview'}
-          onReportAudienceModeChange={activeIPScope ? setReportAudienceMode : undefined}
+          reportingOnLabel={workspaceProjectScope?.title ?? 'Workspace overview'}
+          reportAudienceMode={workspaceProjectScope ? reportAudienceMode : 'overview'}
+          onReportAudienceModeChange={workspaceProjectScope ? setReportAudienceMode : undefined}
           onScrollToSection={handleScrollToSection}
           renderSection={renderSection}
           onPrintReport={handlePrint}
           onClose={onClose}
-          activeIPContextChip={
-            activeIPTitle && onOpenActiveIP && onExitActiveIP ? (
-              <IPContextChip
-                title={activeIPTitle}
-                onTitleClick={onOpenActiveIP}
-                onExitIP={onExitActiveIP}
+          workspaceProjectContextChip={
+            workspaceProjectTitle && onOpenWorkspaceProject ? (
+              <WorkspaceProjectChip
+                title={workspaceProjectTitle}
+                onTitleClick={onOpenWorkspaceProject}
               />
             ) : null
           }

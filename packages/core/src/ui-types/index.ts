@@ -116,7 +116,7 @@ export type ParetoAggregation = 'count' | 'value';
  * Captures where the analyst was working so reload resumes their context.
  */
 export interface ViewState {
-  activeView?: 'dashboard' | 'frame' | 'explore' | 'analyze' | 'improvement' | 'report';
+  activeView?: 'home' | 'frame' | 'explore' | 'analyze' | 'improvement' | 'report';
   activeTab?: 'analysis' | 'performance';
   isFindingsOpen?: boolean;
   isWhatIfOpen?: boolean;

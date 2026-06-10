@@ -22,11 +22,11 @@ import {
   CapabilityMetricToggle,
   SubgroupConfigPopover,
   DefectSummary,
-  ActiveIPScopeRibbon,
+  WorkspaceProjectScopeRibbon,
   useIsMobile,
   BREAKPOINTS,
   type ChartId,
-  type ActiveIPScopeLabels,
+  type WorkspaceProjectScopeLabels,
 } from '@variscout/ui';
 import {
   useKeyboardNavigation,
@@ -112,9 +112,9 @@ interface DashboardProps {
   onExportImage?: () => void;
   /** External factor switch request (from question click) — sets boxplot + pareto factor */
   requestedFactor?: { factor: string; seq: number } | null;
-  activeIPScope?: {
+  workspaceProjectScope?: {
     title: string;
-    labels: ActiveIPScopeLabels;
+    labels: WorkspaceProjectScopeLabels;
   } | null;
   onOpenWall?: () => void;
 }
@@ -138,7 +138,7 @@ const Dashboard = ({
   onExportCSV,
   onExportImage: _onExportImage,
   requestedFactor,
-  activeIPScope,
+  workspaceProjectScope,
   onOpenWall,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding, onOpenFinding } =
@@ -848,10 +848,10 @@ const Dashboard = ({
 
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
-        {activeIPScope ? (
-          <ActiveIPScopeRibbon
-            title={activeIPScope.title}
-            labels={activeIPScope.labels}
+        {workspaceProjectScope ? (
+          <WorkspaceProjectScopeRibbon
+            title={workspaceProjectScope.title}
+            labels={workspaceProjectScope.labels}
             surface="Explore"
           />
         ) : null}

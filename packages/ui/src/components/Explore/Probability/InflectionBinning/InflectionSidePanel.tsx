@@ -25,7 +25,7 @@
  * gets an explanatory `title` so the merge direction is explicit.
  *
  * Direct manipulation in committed state: every drag / add / remove / rename
- * patches the active IP immediately (no second confirm step). Matches
+ * patches the Workspace Project immediately (no second confirm step). Matches
  * Figma / Tableau direct-manipulation discipline.
  *
  * Styling uses semantic Tailwind tokens (`bg-surface-secondary`, `text-content`,
@@ -59,7 +59,7 @@ export interface InflectionSidePanelProps {
   values: number[];
   /** Sorted ascending value array (precomputed by caller to match the prob plot). */
   sortedValues: number[];
-  /** Existing bindings on the active IP. */
+  /** Existing bindings on the Workspace Project. */
   existingBindings: BinnedFactorBinding[];
   /**
    * Patch handler called for every mutation (commit, drag, add, remove, rename).

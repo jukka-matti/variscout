@@ -1,16 +1,16 @@
 /**
- * AnalyzeWorkspace — active-IP scope shows the whole document on the Wall
+ * AnalyzeWorkspace — Workspace Project scope shows the whole document on the Wall
  * (PO-5 permanent semantics).
  *
- * The IP lineage section is retired (PO-5). Active-IP surfaces no longer
+ * The IP lineage section is retired (PO-5). Workspace Project surfaces no longer
  * filter the Wall by a lineage membership set — empty-set-means-unfiltered is
- * now the permanent behavior: under active-IP scope, the Wall renders every
+ * now the permanent behavior: under Workspace Project scope, the Wall renders every
  * hub + finding. See decision-log 2026-06-05 (PO-5).
  *
  * LOAD-BEARING:
- *  1. active-IP scope → all hubs visible on the Wall.
- *  2. active-IP scope → all findings visible on the Wall.
- *  3. No active-IP scope → all hubs visible (control).
+ *  1. Workspace Project scope → all hubs visible on the Wall.
+ *  2. Workspace Project scope → all findings visible on the Wall.
+ *  3. No Workspace Project scope → all hubs visible (control).
  *
  * IMPORTANT: vi.mock() calls must appear before any component imports.
  */
@@ -213,12 +213,12 @@ import {
 } from '@variscout/stores';
 import { usePanelsStore } from '../../../features/panels/panelsStore';
 import { AnalyzeWorkspace } from '../AnalyzeWorkspace';
-import type { ActiveIPScopeLabels } from '@variscout/ui';
+import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
 import { createHypothesis, createFinding } from '@variscout/core/findings';
 
 // ── 3. Fixtures ─────────────────────────────────────────────────────────────
 
-const activeScope: { title: string; labels: ActiveIPScopeLabels } = {
+const activeScope: { title: string; labels: WorkspaceProjectScopeLabels } = {
   title: 'Reduce Defect Rate',
   labels: {
     outcomeLabel: 'Defect Rate',
@@ -273,7 +273,7 @@ function makeMinimalProps(): React.ComponentProps<typeof AnalyzeWorkspace> {
 
 // ── 4. Tests ───────────────────────────────────────────────────────────────
 
-describe('AnalyzeWorkspace — active IP shows the whole document on the Wall (PO-5 permanent semantics)', () => {
+describe('AnalyzeWorkspace — Workspace Project shows the whole document on the Wall (PO-5 permanent semantics)', () => {
   beforeEach(() => {
     capturedWallCanvasProps.current = null;
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
@@ -284,9 +284,9 @@ describe('AnalyzeWorkspace — active IP shows the whole document on the Wall (P
     useAnalyzeStore.setState({ scopes: [] });
   });
 
-  // PO-5: under active-IP scope the Wall renders every hub (lineage filter retired).
-  it('(1) active-IP scope → all hubs visible on the Wall', () => {
-    render(<AnalyzeWorkspace {...makeMinimalProps()} activeIPScope={activeScope} />);
+  // PO-5: under Workspace Project scope the Wall renders every hub (lineage filter retired).
+  it('(1) Workspace Project scope → all hubs visible on the Wall', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} workspaceProjectScope={activeScope} />);
     // WallCanvas receives ALL hubs (not an empty array)
     expect(capturedWallCanvasProps.current).not.toBeNull();
     const receivedHubs = capturedWallCanvasProps.current!.hubs as { id: string }[];
@@ -294,8 +294,8 @@ describe('AnalyzeWorkspace — active IP shows the whole document on the Wall (P
   });
 
   // PO-5: same for findings — the whole document is in scope.
-  it('(2) active-IP scope → all findings visible on the Wall', () => {
-    render(<AnalyzeWorkspace {...makeMinimalProps()} activeIPScope={activeScope} />);
+  it('(2) Workspace Project scope → all findings visible on the Wall', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} workspaceProjectScope={activeScope} />);
     const receivedFindings = capturedWallCanvasProps.current?.findings as { id: string }[];
     if (receivedFindings) {
       expect(receivedFindings.map(f => f.id).sort()).toEqual(['f-A', 'f-B']);
@@ -304,8 +304,8 @@ describe('AnalyzeWorkspace — active IP shows the whole document on the Wall (P
     // still verifies the hub path above and doesn't false-fail.)
   });
 
-  // CONTROL: no active-IP scope at all → hubs unfiltered.
-  it('(control) no activeIPScope → all hubs visible', () => {
+  // CONTROL: no Workspace Project scope at all → hubs unfiltered.
+  it('(control) no workspaceProjectScope → all hubs visible', () => {
     render(<AnalyzeWorkspace {...makeMinimalProps()} />);
     const receivedHubs = capturedWallCanvasProps.current!.hubs as { id: string }[];
     expect(receivedHubs.map(h => h.id).sort()).toEqual(['hub-A', 'hub-B']);

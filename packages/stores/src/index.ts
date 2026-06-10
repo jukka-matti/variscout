@@ -95,19 +95,6 @@ export type {
   PITab,
 } from './preferencesStore';
 export {
-  activeIPStorageKey,
-  useActiveIPStore,
-  getActiveIPInitialState,
-  STORE_LAYER as ACTIVE_IP_STORE_LAYER,
-} from './activeIPStore';
-export type {
-  ActiveIPState,
-  ActiveIPScope,
-  ActiveIPStoreState,
-  ActiveIPStoreActions,
-  ActiveIPStore,
-} from './activeIPStore';
-export {
   buildDocumentSnapshot,
   documentSnapshotFingerprint,
   hydrateDocumentSnapshot,
