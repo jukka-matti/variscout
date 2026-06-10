@@ -30,7 +30,7 @@ Single-product tool for improvement specialists (the ICP), one SKU (€120/mo Az
 
 **7-tab workflow nav**: `Home · Project · Process · Explore · Analyze · Improve · Report`
 
-- "Improve" is a **top-level verb tab** with active-IP cascade (restored from earlier "stage inside Projects" framing per the 2026-05-16 Improve-tab amendment)
+- "Improve" is a **top-level verb tab** scoped to the Workspace's Project (restored from earlier "stage inside Projects" framing per the 2026-05-16 Improve-tab amendment; the active-IP cascade was retired by the Workspace model, PR #358)
 - Project stages (inside Projects detail): Charter → Approach → Sustainment (Handoff folded into Sustainment)
 - Hub = a single process investigation unit
 - Per-project ACLs; no cross-AD-tenant invites
@@ -66,7 +66,7 @@ Canonical sources: [wedge spec](../superpowers/specs/2026-05-16-wedge-architectu
 Violating any of these is a hard error. ESLint enforces the language ones. Full index with canonical homes + enforcement mechanisms: [`.claude/INVARIANTS.md`](../../.claude/INVARIANTS.md).
 
 1. **Browser-only processing** — data never leaves the customer's tenant. No server-side aggregation, no external API calls with row data (ADR-059).
-2. **9 Zustand stores across 3 layers** — Document (×4): `useProjectStore`, `useInvestigationStore`, `useCanvasStore`, `useImprovementProjectStore`; Annotation (×4): `useCanvasViewportStore` (per-hub), `usePreferencesStore` (per-user), `useActiveIPStore` (per-user), `useProjectMembershipStore` (per-user); View (×1): `useViewStore`. No DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
+2. **9 Zustand stores across 3 layers** — Document (×4): `useProjectStore`, `useAnalyzeStore`, `useCanvasStore`, `useImprovementProjectStore`; Annotation (×3): `useCanvasViewportStore` (per-hub), `usePreferencesStore` (per-user), `useProjectMembershipStore` (per-user); View (×2): `useViewStore`, `useAnalysisScopeStore`. No DataContext. (`useActiveIPStore` deleted in Workspace migration W3/PR #358.) Authoritative table: `packages/stores/CLAUDE.md`.
 3. **No statistical roll-up across heterogeneous units** — distributions, not aggregates; no Cpk arithmetic across different spec limits (ADR-073).
 4. **Language**: never write "root cause" — use "contribution" / "suspected cause" / "mechanism". Never call interactions "moderator/primary" — use `'ordinal'` / `'disordinal'`. ESLint rules enforce both.
 

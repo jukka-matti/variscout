@@ -21,7 +21,7 @@ Multiple surfaces (canvas, charts, investigation wall, projects tab, evidence ma
 
 ## Capability claim
 
-`@variscout/stores` provides Zustand domain stores split across 3 layers per ADR-078 + the F4 three-layer-state design: **Document** stores (`useProjectStore`, `useInvestigationStore`, `useCanvasStore`) hold portable analyst-owned data, **Annotation** stores (`useCanvasViewportStore`, `usePreferencesStore`, `useActiveIPStore`, `useProjectMembershipStore`) hold per-user-or-per-hub-but-non-portable state, and **View** (`useViewStore`) holds transient session-only focus. A portability-test boundary rule plus `__tests__/layerBoundary.test.ts` enforces middleware presence/absence; `useImprovementProjectStore` participates in the Document layer for V1 wedge projects.
+`@variscout/stores` provides Zustand domain stores split across 3 layers per ADR-078 + the F4 three-layer-state design: **Document** stores (`useProjectStore`, `useAnalyzeStore`, `useCanvasStore`) hold portable analyst-owned data, **Annotation** stores (`useCanvasViewportStore`, `usePreferencesStore`, `useProjectMembershipStore`) hold per-user-or-per-hub-but-non-portable state, and **View** stores (`useViewStore`, `useAnalysisScopeStore`) hold transient session-only focus. A portability-test boundary rule plus `__tests__/layerBoundary.test.ts` enforces middleware presence/absence; `useImprovementProjectStore` participates in the Document layer for V1 wedge projects. (`useActiveIPStore` was deleted in the Workspace migration, W3/PR #358.)
 
 ## Intent diagram
 
@@ -37,6 +37,6 @@ TBD. Feature-local UI state (`apps/azure/src/features/*/`) is NOT a domain store
 
 ## Links
 
-- **Code**: `packages/stores/src/projectStore.ts`, `packages/stores/src/investigationStore.ts`, `packages/stores/src/canvasStore.ts`, `packages/stores/src/canvasViewportStore.ts`, `packages/stores/src/preferencesStore.ts`, `packages/stores/src/activeIPStore.ts`, `packages/stores/src/viewStore.ts`, `packages/stores/src/useProjectMembershipStore.ts`, `packages/stores/src/improvementProjectStore.ts`
+- **Code**: `packages/stores/src/projectStore.ts`, `packages/stores/src/analyzeStore.ts`, `packages/stores/src/canvasStore.ts`, `packages/stores/src/canvasViewportStore.ts`, `packages/stores/src/preferencesStore.ts`, `packages/stores/src/viewStore.ts`, `packages/stores/src/analysisScopeStore.ts`, `packages/stores/src/useProjectMembershipStore.ts`, `packages/stores/src/improvementProjectStore.ts` (`activeIPStore.ts` deleted in Workspace migration W3/PR #358)
 - **Tests**: `packages/stores/src/__tests__/`
 - **Related**: `docs/07-decisions/adr-078-pwa-azure-architecture-alignment.md`, `docs/superpowers/specs/2026-05-07-data-flow-foundation-f4-three-layer-state-design.md`, `packages/stores/CLAUDE.md`

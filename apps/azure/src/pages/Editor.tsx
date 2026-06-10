@@ -816,13 +816,11 @@ export const Editor: React.FC<EditorProps> = ({
       }
     : undefined;
 
-  // PR-PO-2: the Control region re-homes to the Project tab's Control stage.
-  // The Project tab is single-project, so we pass the Workspace Project + its
-  // scoped control record/handoff. The region's cadence buckets degrade
-  // gracefully to the single-project case (facts, not the analyzeStatus label).
-  const projectsControlRegionSlot = workspaceProjectContext.workspaceProject ? (
+  // Single-project Control status — passes the workspace project directly (no
+  // multi-project array; the region now accepts a single project prop).
+  const projectsControlRegionSlot = (
     <ProcessHubControlRegion
-      projects={[workspaceProjectContext.workspaceProject]}
+      project={workspaceProjectContext.workspaceProject ?? null}
       records={_azureLiveControlRecords}
       handoffs={_azureLiveControlHandoffs}
       onOpenProject={id => usePanelsStore.getState().showProjects(id)}
@@ -833,7 +831,7 @@ export const Editor: React.FC<EditorProps> = ({
         usePanelsStore.getState().showControl(projectsControlRecord?.projectId ?? undefined)
       }
     />
-  ) : null;
+  );
 
   // FSJ-3a: shared landing deps — the paste path joins as the third caller in FSJ-3b.
   const makeLandingDeps = useCallback(

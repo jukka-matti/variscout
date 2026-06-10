@@ -9,7 +9,7 @@ Shared agent map: `docs/llms.txt`
 Full index with canonical homes + enforcement mechanisms: `.claude/INVARIANTS.md`.
 
 - Browser-only processing; data stays in customer's tenant (ADR-059). Deterministic stats engine is authority; CoScout (AI) adds context. No statistical roll-up across heterogeneous units — distributions, not aggregates (ADR-073).
-- 9 Zustand stores split across 3 layers per ADR-078 + F4 (Document ×4, Annotation ×4 — 1 per-hub + 3 per-user, View ×1); no DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
+- 9 Zustand stores split across 3 layers per ADR-078 + F4 (Document ×4, Annotation ×3 — 1 per-hub + 2 per-user, View ×2); no DataContext. Authoritative table: `packages/stores/CLAUDE.md`. (activeIPStore deleted in the Workspace migration W3/PR #358; analysisScopeStore is the 2nd View store.)
 - Package dependencies flow downward: core → hooks → ui → apps. Sub-path exports need **both** `package.json#exports` AND `tsconfig.json#paths` updated together. Tailwind v4: every app's `src/index.css` needs `@source` for shared packages — missing it silently breaks responsive utils.
 - Never "root cause" — say "contribution" / "suspected cause" / "mechanism" (P5 amended). Never call interactions "moderator/primary" — use `'ordinal'` / `'disordinal'`. ESLint enforces both.
 

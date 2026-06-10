@@ -52,11 +52,11 @@ The evidence domain beneath the spine — Finding lifecycle + sources, Hypothesi
 
 ### [Collaboration](collaboration.md)
 
-The team layer — comments / @mentions / attachments, invitations + roster + `collaboratedAt`, active-IP cascade, Azure-vs-PWA split.
+The team layer — comments / @mentions / attachments, invitations + roster + `collaboratedAt`, Workspace's active Project, Azure-vs-PWA split.
 
 ### [Home](home.md)
 
-The entry surface — PWA training-funnel vs Azure durable portfolio; the active-IP cascade originates downstream (not Home); pending invites.
+The entry surface — PWA training-funnel vs Azure resume-last-Workspace + create-new (W4 retired the portfolio browser); the Workspace's Project is established on open; pending invites.
 
 ### [Report](report.md)
 

@@ -2,12 +2,11 @@
 tier: living
 purpose: design
 title: Analysis Flow
-description: Complete two-thread analysis flow — variation analysis and capability analysis — through FRAME, SCOUT, INVESTIGATE, and IMPROVE phases
+description: Complete two-thread analysis flow — variation analysis and capability analysis — across the Frame, Explore, Analyze, Improve, and Control activities
 audience: human
 category: workflow
 status: active
 related: [capability, subgroup-capability, progressive-stratification, investigation-diamond]
-journey-phase: [all]
 layer: L3
 kind: workflow
 serves:
@@ -17,21 +16,21 @@ serves:
 
 # Analysis Flow
 
-> **⚠ Phase vocabulary out of date (2026-06-09) — faithful rewrite pending.** This doc is structured on the retired 4-verb spine **FRAME / SCOUT / INVESTIGATE / IMPROVE**. The current model is the **5-verb spine Frame → Explore → Analyze → Improve → Control** (SCOUT→Explore, INVESTIGATE→Analyze, +Control), with the **canvas-first Investigation Wall** as the Analyze home (the **Finding** is the unit; Evidence Map demoted to a read-only lens) inside the **Workspace** product model. The two-thread analytical _content_ below is still sound — only the phase names + structure are stale. Current model: [product-overview](../../01-vision/product-overview.md) + [Workspace spec](../../superpowers/specs/2026-06-09-workspace-architecture-and-project-formalization-design.md). A structural rewrite is a tracked doc follow-up.
-
 ## 1. Introduction
 
-VariScout's analysis journey weaves **two analytical threads** through four phases (FRAME, SCOUT, INVESTIGATE, IMPROVE):
+VariScout's analysis journey weaves **two analytical threads** through the 5-verb activity frame — **Frame → Explore → Analyze → Improve → Control** (see [IA & Nav Model §Vocabulary](../../02-journeys/ia-nav-model.md)):
 
 - **Variation Analysis** — "Where does variation come from?" Uses the I-Chart with raw measurement values, the subgroup/variation panel for factor comparison, and Pareto when ranking is meaningful. The analyst progressively drills down using the highest eta-squared factor until sufficient variation is isolated.
 
 - **Capability Analysis** — "Are we meeting our Cpk target?" Uses the same I-Chart with a **"Values | Capability" toggle** that switches the Y-axis from raw measurements to per-subgroup Cp/Cpk. This reveals whether capability itself is stable across batches, shifts, time periods, or equipment.
 
-Capability mode is a **flexible I-Chart view toggle**, not a separate workflow. The analyst switches freely at any point during analysis. Findings, drill-down, and investigation work identically in both modes. Three entry paths determine which thread leads the analysis.
+Capability mode is a **flexible I-Chart view toggle**, not a separate workflow. The analyst switches freely at any point during analysis. Findings, drill-down, and Wall investigation work identically in both modes. Three entry paths determine which thread leads the analysis.
+
+All of this happens inside one **Workspace** — the place the analyst brings data and investigates. The Workspace is always backed by a single Project (informal until deliberately formalized), and the only analytical-narrowing lens is **Analysis Scope** (outcome · factor · process step · filters). There is no activate/exit/switch — you narrow and broaden attention with scope.
 
 ### Analysis Workspace Anatomy
 
-In the normal laptop Analysis view:
+In the normal laptop **Explore** view (the EDA / Four Lenses dashboard):
 
 - the **I-Chart** is always visible
 - the **left lower panel** stays about subgroup / variation-source drill-down
@@ -41,25 +40,27 @@ This UI structure mirrors the EDA flow: orient on the hero chart, compare subgro
 
 ```mermaid
 flowchart TD
-    FRAME["FRAME\nData + specs + Cpk target"] --> SCOUT["SCOUT\nTwo threads in parallel"]
+    FRAME["Frame (Process tab)\nData + specs + Cpk target"] --> EXPLORE["Explore tab\nTwo threads in parallel"]
 
-    subgraph SCOUT_DETAIL["SCOUT Phase"]
+    subgraph EXPLORE_DETAIL["Explore (EDA / Four Lenses)"]
         direction TB
         VAR["Variation Thread\nI-Chart values + Boxplot η² + Pareto"]
         CAP["Capability Thread\nI-Chart Cp/Cpk per subgroup"]
         VAR <-- "Toggle freely" --> CAP
     end
 
-    SCOUT --> SCOUT_DETAIL
-    SCOUT_DETAIL --> INV["INVESTIGATE\nBoth threads converge\nDiamond pattern"]
-    INV --> IMP["IMPROVE\nBoth threads verify\nPDCA cycle"]
-    IMP -- "PDCA loop" --> FRAME
+    EXPLORE --> EXPLORE_DETAIL
+    EXPLORE_DETAIL --> ANALYZE["Analyze tab\nInvestigation Wall\nFindings → hypotheses"]
+    ANALYZE --> IMPROVE["Improve tab\nWhat-If + staged verify"]
+    IMPROVE --> CONTROL["Control stage\nSustained capability + handoff"]
+    CONTROL -- "New signal" --> FRAME
 
     style FRAME fill:#3b82f6,color:#fff
     style VAR fill:#22c55e,color:#fff
     style CAP fill:#22c55e,color:#fff
-    style INV fill:#f59e0b,color:#fff
-    style IMP fill:#8b5cf6,color:#fff
+    style ANALYZE fill:#f59e0b,color:#fff
+    style IMPROVE fill:#8b5cf6,color:#fff
+    style CONTROL fill:#0ea5e9,color:#fff
 ```
 
 ---
@@ -106,9 +107,9 @@ The first question the analyst asks depends on the entry path — not a fixed se
 
 ---
 
-## 4. FRAME Phase
+## 4. Frame
 
-FRAME defines the problem space and seeds both analytical threads.
+**Frame** (the **Process tab**) defines the problem space and seeds both analytical threads.
 
 - **Data input** — Upload, paste, or open file. Parser detects delimiters and validates structure.
 - **Column mapping** — Assign measurement column and factor columns. Data-rich cards with type badges and preview values.
@@ -116,13 +117,13 @@ FRAME defines the problem space and seeds both analytical threads.
 - **Cpk target setting** — Enables the capability thread's target line. Without a Cpk target, capability mode still works but has no compliance reference.
 - **Characteristic type** — Nominal, smaller-is-better, or larger-is-better. Affects both threads (one-sided specs change Cp/Cpk calculation).
 - **Time factor extraction** — TimeExtractionPanel creates categorical columns from timestamps (Year, Month, Week, DayOfWeek, Hour, and minute intervals). These become regular factor columns usable in Boxplot drill-down, findings, AND as subgroup columns in capability mode. This unification means time-based subgroups are fully integrated with the variation analysis infrastructure.
-- **CapabilitySuggestionModal** — When specs are set during FRAME, a contextual modal suggests starting SCOUT in capability view. The analyst can accept (auto-configures subgroups) or dismiss (starts in standard view). Either way, they can toggle freely later.
+- **CapabilitySuggestionModal** — When specs are set during Frame, a contextual modal suggests starting in capability view once you move to Explore. The analyst can accept (auto-configures subgroups) or dismiss (starts in standard view). Either way, they can toggle freely later.
 
 ---
 
-## 5. SCOUT Phase
+## 5. Explore
 
-SCOUT is EDA for process improvement — **not sequential verification gates**. The analyst follows the most interesting signal, switching between threads as questions arise.
+**Explore** (the **Explore tab**) is EDA for process improvement — **not sequential verification gates**. The analyst follows the most interesting signal across the Four Lenses, switching between threads as questions arise, narrowing and broadening with **Analysis Scope**.
 
 ### Decision Points (Natural Questions, Not Gates)
 
@@ -132,7 +133,7 @@ SCOUT is EDA for process improvement — **not sequential verification gates**. 
 | 2   | Where does variation come from? | Boxplot eta-squared                                        | Drill into highest eta-squared factor |
 | 3   | Are we meeting Cpk target?      | Capability I-Chart vs target line                          | Below target: which subgroups?        |
 | 4   | Centering problem?              | Cp-Cpk gap                                                 | Large gap: investigate centering      |
-| 5   | Enough variation isolated?      | Key factors identified via R²adj ranking? Findings pinned? | Pin finding, move to INVESTIGATE      |
+| 5   | Enough variation isolated?      | Key factors identified via R²adj ranking? Findings pinned? | Capture finding, carry to Analyze     |
 | 6   | Toggle view?                    | Curiosity about other perspective                          | Switch I-Chart mode freely            |
 
 ### Thread Switching Moments
@@ -142,7 +143,7 @@ flowchart LR
     subgraph Variation["Variation Thread"]
         V1["Boxplot η²"]
         V2["Drill down"]
-        V3["Pin finding"]
+        V3["Capture finding"]
     end
 
     subgraph Capability["Capability Thread"]
@@ -192,87 +193,97 @@ This flow bridges capability observations back into the variation analysis infra
 - No separate "capability finding" type needed
 - Whether toggled to Values or Capability when pinning — same FindingContext
 
+The **Finding is the unit of progress.** A Finding captured here is the connective tissue that links forward into the Analyze tab — it becomes the seed for a hypothesis on the Investigation Wall.
+
 ---
 
-## 6. INVESTIGATE Phase
+## 6. Analyze
 
-Both threads converge in INVESTIGATE. Whether the finding came from variation drill-down or capability observation, the investigation follows the same diamond pattern: **Initial, Diverge, Validate, Converge**.
+**Analyze** (the **Analyze tab**) is **canvas-first** — the **Investigation Wall** is its home. A Finding captured during Explore links forward into a hypothesis / suspected cause on the Wall, where data-, gemba-, and expert-evidence accumulate against it.
 
-- **Variation-sourced finding:** "Machine C explains 47%" — hypothesis tree — test why Machine C produces more variation
-- **Capability-sourced finding:** "Batch 7 Cpk dropped" — switch to variation — filter to Batch 7 — drill to find why Cpk dropped — then investigate the cause
+- **Variation-sourced finding:** "Machine C explains 47%" — propose a hypothesis on the Wall — test why Machine C produces more variation
+- **Capability-sourced finding:** "Batch 7 Cpk dropped" — cross back to Explore — filter to Batch 7 — drill to find why Cpk dropped — then carry the finding to the Wall as a hypothesis
 - **Hypotheses test causes (eta-squared), not capability** — clean separation of concerns. The question shifts from "what is the Cpk?" to "why is it low?"
-- **Convergence synthesis** weaves evidence from both threads into a suspected cause narrative
+- **Synthesis** weaves evidence from both threads into a suspected-cause narrative on the Wall.
 
-The thread the finding originated from does not change the investigation method. The diamond pattern is the same regardless.
+The thread the finding originated from does not change the investigation method on the Wall. The **Evidence Map** is available as a demoted, **read-only lens** alongside the Wall — a supporting view, not the home of investigation.
 
 ---
 
-## 7. IMPROVE Phase
+## 7. Improve
 
-Both threads provide complementary verification evidence through the PDCA cycle.
+**Improve** (the **Improve tab**) is where both threads provide complementary verification evidence as the analyst plans and stages a change.
 
 - **What-If:** Projects Cpk improvement from mean shift and sigma reduction. The analyst sees projected Cpk before implementing changes.
 - **Staged analysis:** Before/after comparison showing mean shift, sigma ratio, and Cpk delta. Quantifies the actual improvement.
 - **Capability verification:** Subgroup Cpk I-Chart in control after improvement = sustained evidence. An in-control Cpk series means the process consistently meets the target.
-- **PDCA Check:** Uses both variation evidence (staged before/after comparison) AND capability evidence (consistent Cpk above target) to verify the improvement.
+- **Verification:** Uses both variation evidence (staged before/after comparison) AND capability evidence (consistent Cpk above target) to verify the improvement.
 - **Outcome learning loop:** Projected Cpk vs actual Cpk — green if the projection was met, red if it fell short. This feeds back into the analyst's calibration for future What-If projections.
+
+---
+
+## 8. Control
+
+**Control** is the closing stage on the **Project tab** — verify that the improvement holds, then hand off.
+
+- **Sustained capability:** A subgroup Cpk I-Chart that stays in control above target is the durable evidence that the gain is held, not a one-off.
+- **Outcome check:** Projected vs actual Cpk closes the learning loop and feeds the analyst's calibration.
+- **Handoff:** When the target is met and held, standardize and hand off via the Report. If the target is not met, a new signal sends the work back to Frame.
 
 ```mermaid
 flowchart TD
-    PLAN["PLAN\nWhat-If projects Cpk improvement"]
-    DO["DO\nImplement corrective actions"]
-    CHECK["CHECK\nStaged analysis + Capability I-Chart"]
-    ACT["ACT\nOutcome: projected vs actual Cpk"]
+    IMPROVE["Improve\nWhat-If projects Cpk improvement\nImplement corrective actions"]
+    VERIFY["Verify\nStaged analysis + Capability I-Chart"]
+    CONTROL["Control\nOutcome: projected vs actual Cpk"]
 
-    PLAN --> DO --> CHECK --> ACT
+    IMPROVE --> VERIFY --> CONTROL
 
-    subgraph CHECK_DETAIL["Verification Evidence"]
+    subgraph VERIFY_DETAIL["Verification Evidence"]
         STAGED["Variation thread:\nBefore/after mean, σ, Cpk delta"]
         CAPCHART["Capability thread:\nSubgroup Cpk in control above target"]
     end
 
-    CHECK --> CHECK_DETAIL
+    VERIFY --> VERIFY_DETAIL
 
-    ACT -- "Target met" --> RESOLVED["Resolved: standardize"]
-    ACT -- "Target not met" --> PLAN
+    CONTROL -- "Target met + held" --> RESOLVED["Resolved: standardize + hand off"]
+    CONTROL -- "Target not met" --> IMPROVE
 
-    style PLAN fill:#8b5cf6,color:#fff
-    style DO fill:#8b5cf6,color:#fff
-    style CHECK fill:#8b5cf6,color:#fff
-    style ACT fill:#8b5cf6,color:#fff
+    style IMPROVE fill:#8b5cf6,color:#fff
+    style VERIFY fill:#8b5cf6,color:#fff
+    style CONTROL fill:#0ea5e9,color:#fff
     style RESOLVED fill:#22c55e,color:#fff
 ```
 
 ---
 
-## 8. Cpk Touchpoint Matrix
+## 9. Cpk Touchpoint Matrix
 
-Cpk appears at 10 touchpoints across all four phases, forming a continuous thread from goal-setting through verification.
+Cpk appears at 10 touchpoints across the activity frame, forming a continuous thread from goal-setting through verification.
 
-| Phase       | Touchpoint                            | Purpose                                             |
-| ----------- | ------------------------------------- | --------------------------------------------------- |
-| FRAME       | Cpk target in specs                   | Set the goal                                        |
-| SCOUT       | Stats panel (Cp, Cpk)                 | Current capability at any drill level               |
-| SCOUT       | Capability Histogram                  | Visual spec compliance (distribution overlay)       |
-| SCOUT       | Capability I-Chart (per subgroup)     | Meeting target across subgroups?                    |
-| SCOUT       | Probability Plot                      | Can we trust the Cpk calculation? (normality check) |
-| INVESTIGATE | Finding context (Cpk at drill level)  | Quantify impact of each driver in Cpk terms         |
-| IMPROVE     | What-If projected Cpk                 | Project improvement before acting                   |
-| IMPROVE     | Staged analysis Cpk delta             | Verify actual improvement                           |
-| IMPROVE     | Capability I-Chart (post-improvement) | Sustained stable capability after fix               |
-| IMPROVE     | Outcome (projected vs actual)         | Learning loop — calibrate future projections        |
+| Activity | Touchpoint                            | Purpose                                             |
+| -------- | ------------------------------------- | --------------------------------------------------- |
+| Frame    | Cpk target in specs                   | Set the goal                                        |
+| Explore  | Stats panel (Cp, Cpk)                 | Current capability at any drill level               |
+| Explore  | Capability Histogram                  | Visual spec compliance (distribution overlay)       |
+| Explore  | Capability I-Chart (per subgroup)     | Meeting target across subgroups?                    |
+| Explore  | Probability Plot                      | Can we trust the Cpk calculation? (normality check) |
+| Analyze  | Finding context (Cpk at drill level)  | Quantify impact of each driver in Cpk terms         |
+| Improve  | What-If projected Cpk                 | Project improvement before acting                   |
+| Improve  | Staged analysis Cpk delta             | Verify actual improvement                           |
+| Control  | Capability I-Chart (post-improvement) | Sustained stable capability after fix               |
+| Control  | Outcome (projected vs actual)         | Learning loop — calibrate future projections        |
 
 ---
 
-## 9. Use Case Examples
+## 10. Use Case Examples
 
 ### Supplier PPAP (Routine Check — Capability Thread Leads)
 
-Weekly data load. Toggle to capability mode. All subgroups above Cpk 1.67? In-control Cpk I-Chart = PPAP evidence — submit report. If a subgroup fails: filter to that subgroup, switch to variation thread, drill to find the cause, investigate, improve.
+Weekly data load. Toggle to capability mode. All subgroups above Cpk 1.67? In-control Cpk I-Chart = PPAP evidence — submit report. If a subgroup fails: filter to that subgroup, switch to variation thread, drill to find the cause, carry the finding to the Wall, improve.
 
 ### Customer Complaint (Problem to Solve — Variation Thread Leads)
 
-Complaint data loaded. I-Chart: when did the shift happen? Boxplot: Machine C eta-squared = 47%. Drill to Machine C + Night Shift. Pin finding. Hypothesis: worn nozzle. Gemba validates. What-If: replace nozzle, projected Cpk = 1.35. Staged verification: Cpk 0.85 to 1.38. Toggle to capability mode — Cpk I-Chart in control — sustained improvement confirmed. Resolved.
+Complaint data loaded. I-Chart: when did the shift happen? Boxplot: Machine C eta-squared = 47%. Drill to Machine C + Night Shift. Capture finding. On the Wall, hypothesis: worn nozzle. Gemba validates. What-If: replace nozzle, projected Cpk = 1.35. Staged verification: Cpk 0.85 to 1.38. Toggle to capability mode — Cpk I-Chart in control — sustained improvement confirmed. Resolved.
 
 ### Batch Consistency (Hypothesis to Check — Depends on Hypothesis)
 
@@ -280,16 +291,16 @@ Complaint data loaded. I-Chart: when did the shift happen? Boxplot: Machine C et
 
 ---
 
-## 10. Code Traceability
+## 11. Code Traceability
 
-| Phase              | Thread     | Key Hooks                                                                        | Key Components                                                                      |
-| ------------------ | ---------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| FRAME              | Both       | `useDataIngestion`, `useDataState`                                               | `ColumnMapping`, `SpecsPopover`, `TimeExtractionPanel`, `CapabilitySuggestionModal` |
-| SCOUT (variation)  | Variation  | `useFilterNavigation`, `useVariationTracking`, `useIChartData`, `useBoxplotData` | `IChartWrapperBase`, `BoxplotWrapperBase`, `ParetoChartWrapperBase`                 |
-| SCOUT (capability) | Capability | `useCapabilityIChartData`                                                        | `CapabilityMetricToggle`, `SubgroupConfig`                                          |
-| SCOUT (both)       | Both       | `useFindings`, `useChartScale`                                                   | `FindingsLog`, `ChartAnnotationLayer`, `CreateFactorModal`                          |
-| INVESTIGATE        | Both       | `useHypotheses`, `useFindings`                                                   | `HypothesisTreeView`, `FindingBoardView`, `SynthesisCard`                           |
-| IMPROVE            | Both       | `useFindings` (actions, outcome)                                                 | `WhatIfPageBase`, `StagedComparisonCard`, `ImprovementWorkspaceBase`                |
+| Activity             | Thread     | Key Hooks                                                                        | Key Components                                                                      |
+| -------------------- | ---------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Frame                | Both       | `useDataIngestion`, `useDataState`                                               | `ColumnMapping`, `SpecsPopover`, `TimeExtractionPanel`, `CapabilitySuggestionModal` |
+| Explore (variation)  | Variation  | `useFilterNavigation`, `useVariationTracking`, `useIChartData`, `useBoxplotData` | `IChartWrapperBase`, `BoxplotWrapperBase`, `ParetoChartWrapperBase`                 |
+| Explore (capability) | Capability | `useCapabilityIChartData`                                                        | `CapabilityMetricToggle`, `SubgroupConfig`                                          |
+| Explore (both)       | Both       | `useFindings`, `useChartScale`                                                   | `FindingsLog`, `ChartAnnotationLayer`, `CreateFactorModal`                          |
+| Analyze              | Both       | `useHypotheses`, `useFindings`                                                   | `HypothesisTreeView`, `FindingBoardView`, `SynthesisCard`                           |
+| Improve / Control    | Both       | `useFindings` (actions, outcome)                                                 | `WhatIfPageBase`, `StagedComparisonCard`, `ImprovementWorkspaceBase`                |
 
 ---
 
@@ -300,5 +311,5 @@ Complaint data loaded. I-Chart: when did the shift happen? Boxplot: Machine C et
 - [Methodology](../../01-vision/methodology.md) — Watson's EDA, Four Lenses, Two Voices
 - [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) — How all conceptual frameworks nest together
 - [Drill-Down Workflow](drill-down-workflow.md) — Progressive stratification protocol
-- [Investigation to Action](analyze-to-action.md) — Findings, hypothesis trees, What-If
+- [Analyze to Action](analyze-to-action.md) — Findings, hypothesis trees, What-If
 - [Staged Analysis](../analysis/staged-analysis.md) — Before/after comparison methodology

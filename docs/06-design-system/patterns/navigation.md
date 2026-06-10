@@ -559,8 +559,8 @@ This is **designed but not implemented** on main. The branch code is 38+ commits
 - [Investigation to Action](../../03-features/workflows/analyze-to-action.md) — INVESTIGATE phase workflow
 - [Improvement Workspace](../../03-features/workflows/improvement-workspace.md) — full Improvement Hub feature doc (Plan/Track views, context panel, What-If integration)
 - IMPROVE Phase UX Design — three-workspace model detail (historical)
-- [Project Dashboard](../../03-features/workflows/project-dashboard.md) — Dashboard feature (What's New, OtherProjectsList, Portfolio integration)
-- [Project Reopen Flow](../../02-journeys/flows/project-reopen.md) — Full flow: Portfolio → Dashboard → Analysis
+- [Project Dashboard](../../03-features/workflows/project-dashboard.md) — in-Workspace project home view (resume, What's New, status); the portfolio / OtherProjectsList browser was retired in the Workspace migration (PR #358)
+- [Project Reopen Flow](../../02-journeys/flows/project-reopen.md) — Full flow: Home (resume-last) → project home view → Analysis
 - [ADR-042: Project Dashboard](../../07-decisions/adr-042-project-dashboard.md) — Dashboard ↔ Editor design decisions
 - [ADR-043: Teams Entry Experience](../../archive/adrs/adr-043-teams-entry-experience.md) — historical Portfolio, ProjectCard, deep links design decisions
 - [ADR-055: Workspace-Based Navigation](../../07-decisions/adr-055-workspace-navigation.md) — Workspace tabs, investigation workspace, state model

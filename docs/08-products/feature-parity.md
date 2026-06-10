@@ -286,7 +286,7 @@ Features that behave differently on phone (<640px) versus desktop.
 - Report workspace (workspace tab for report view, export, and PDF — replaces presentation mode)
 - Closed-loop investigations: 5-status model (observed → resolved), suspected cause, corrective actions with due dates, outcome assessment with Cpk before/after
 - Process Hub home screen: hub cards before investigation cards, with status/depth/action rollups and legacy investigations under General / Unassigned
-- Project Dashboard: default landing for saved projects with status overview, What's New section, AI summary card, OtherProjectsList, and quick navigation
+- Project Dashboard: in-Workspace project home view for saved projects with status overview, What's New section, AI summary card, and quick navigation (the OtherProjectsList / portfolio browser was retired in the Workspace migration, PR #358; Home now resumes the last Workspace)
 - ID-based deep links (UUID) to findings, charts, hypotheses, improvement workspace, and overview/analysis tabs; backward-compatible name fallback
 - CoScout AI (methodology-grounded, mode-aware, tool-calling), voice input
 - Project membership (Lead / Member / Sponsor) with project sharing, photo evidence, team assignment, Knowledge Catalyst — see [Project-membership-role gating](#project-membership-role-gating)

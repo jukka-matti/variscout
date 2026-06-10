@@ -6,7 +6,7 @@ status: active
 audience: both
 layer: L2
 last-verified: 2026-06-09
-verified-against-commit: 0b0d4cc0
+verified-against-commit: 160991867
 ---
 
 # V1 Information Architecture — Nav Model
@@ -46,8 +46,8 @@ The solid arrows are the workflow walk (left-to-right). The dotted arrows are th
 
 ### Home
 
-**Purpose**: entry surface for Workspaces. In PWA this is sample/paste/import; in Azure this is the durable Workspace/document list filtered by role membership once formalized.
-**Primary action**: open or create a Workspace.
+**Purpose**: entry surface for Workspaces. In PWA this is sample/paste/import; in Azure this is **resume-last-Workspace + create-new + open-another** (`pages/Dashboard.tsx`, the `'home'` view — W4 retired the hub×analysis portfolio browser), with the saved-Workspace list filtered by role membership once formalized.
+**Primary action**: resume the last Workspace, or open / create another.
 
 ### Project
 
@@ -93,7 +93,7 @@ The **Workspace** is the user's current analysis container. It is always backed 
 
 The Lead can formalize and advance Projects. Members and Sponsors can open formalized Projects they belong to, but role gating limits what they can edit. Informal quick-analysis Workspaces remain private to the creator.
 
-The code still uses `useActiveIPContext(sessionHub)` and `<NoActiveProjectGuidance>` names in places. Treat those as internal compatibility names until a broader rename is worth the churn; user-facing copy should say Workspace, Project, and Analysis Scope.
+The code still uses `useActiveIPContext(sessionHub)`, `ProcessHub`, and `improvementProject` names internally; W3 renamed the UI `ActiveIP/` namespace to `WorkspaceProject/` and W5 renamed the Azure `activeView` value `'dashboard' → 'home'` (aligning with the PWA key). Treat the remaining legacy names as internal compatibility until the W7 rename is worth the churn; user-facing copy should say Workspace, Project, and Analysis Scope.
 
 ## Role × tab matrix
 
