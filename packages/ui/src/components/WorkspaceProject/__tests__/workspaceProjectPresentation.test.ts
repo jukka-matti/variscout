@@ -106,12 +106,54 @@ describe('workspaceProjectPresentation', () => {
           },
         })
       )
-    ).toBe('Cadence tick due after sustainment setup');
+    ).toBe('Control setup ready');
+  });
+
+  it('renders a soft Control resume line when the ladder suggests a check', () => {
+    expect(
+      getWorkspaceProjectUrgentLine(
+        makeWorkspaceProject({
+          sections: {
+            background: {},
+            approach: {},
+            outcomeReference: { sustainmentRecordId: 'sr-1' },
+          },
+        }),
+        now,
+        {
+          recordId: 'sr-1',
+          ladderStep: 1,
+          nextCheckSuggestedAt: new Date(now - DAY_MS).toISOString(),
+          status: 'verifying',
+        }
+      )
+    ).toBe('Control: re-ingest to verify - 2nd check suggested');
+  });
+
+  it('keeps Control resume styling soft when the ladder date is in the future', () => {
+    expect(
+      getWorkspaceProjectUrgentLine(
+        makeWorkspaceProject({
+          sections: {
+            background: {},
+            approach: {},
+            outcomeReference: { sustainmentRecordId: 'sr-1' },
+          },
+        }),
+        now,
+        {
+          recordId: 'sr-1',
+          ladderStep: 2,
+          nextCheckSuggestedAt: new Date(now + DAY_MS).toISOString(),
+          status: 'verifying',
+        }
+      )
+    ).toBe('Control setup ready');
   });
 
   it('gives a meaningful urgent line for closed projects referencing handoff/control plan', () => {
     const urgentLine = getWorkspaceProjectUrgentLine(makeWorkspaceProject({ status: 'closed' }));
-    expect(urgentLine.toLowerCase()).toMatch(/control plan|handoff/);
+    expect(urgentLine.toLowerCase()).toMatch(/control|handoff/);
   });
 
   it('builds recent activity fallback rows when no feed exists', () => {

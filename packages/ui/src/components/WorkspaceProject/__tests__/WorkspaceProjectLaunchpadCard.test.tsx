@@ -1,11 +1,17 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ControlRecord } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { WorkspaceProjectLaunchpadCard } from '../WorkspaceProjectLaunchpadCard';
 
 const now = Date.UTC(2026, 4, 15);
 
-function makeWorkspaceProject(id: string, title: string, updatedAt = now): ImprovementProject {
+function makeWorkspaceProject(
+  id: string,
+  title: string,
+  updatedAt = now,
+  overrides: Partial<ImprovementProject> = {}
+): ImprovementProject {
   return {
     id,
     hubId: 'hub-1',
@@ -16,6 +22,38 @@ function makeWorkspaceProject(id: string, title: string, updatedAt = now): Impro
     metadata: { title },
     goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', target: 1.33 }] },
     sections: { background: {}, approach: {}, outcomeReference: {} },
+    ...overrides,
+  };
+}
+
+function makeControlRecord(overrides: Partial<ControlRecord> = {}): ControlRecord {
+  return {
+    id: 'sr-1',
+    projectId: 'ip-1',
+    hubId: 'hub-1',
+    status: 'verifying',
+    title: 'Reduce rework sustainment',
+    improvementDate: '2026-05-01T00:00:00.000Z',
+    baseline: {
+      capturedAt: now - 20 * 24 * 60 * 60 * 1000,
+      window: {
+        startISO: '2026-04-01T00:00:00.000Z',
+        endISO: '2026-04-30T23:59:59.999Z',
+      },
+      measure: 'yield',
+      n: 30,
+      mean: 95,
+      sigma: 1.5,
+    },
+    ladder: [7, 30, 90],
+    ladderStep: 1,
+    nextCheckSuggestedAt: new Date(now - 24 * 60 * 60 * 1000).toISOString(),
+    improvementProjectId: 'ip-1',
+    lastEvaluatedSnapshotId: undefined,
+    createdAt: now - 20 * 24 * 60 * 60 * 1000,
+    updatedAt: now - 24 * 60 * 60 * 1000,
+    deletedAt: null,
+    ...overrides,
   };
 }
 
@@ -103,5 +141,27 @@ describe('WorkspaceProjectLaunchpadCard', () => {
       screen.queryByRole('button', { name: /\+ New Improvement Project/ })
     ).not.toBeInTheDocument();
     expect(onStartNewWorkspace).not.toHaveBeenCalled();
+  });
+
+  it('renders the soft ladder resume line from the linked sustainment record', () => {
+    render(
+      <WorkspaceProjectLaunchpadCard
+        projects={[
+          makeWorkspaceProject('ip-1', 'Reduce rework', now, {
+            sections: {
+              background: {},
+              approach: {},
+              outcomeReference: { sustainmentRecordId: 'sr-1' },
+            },
+          }),
+        ]}
+        controlRecords={[makeControlRecord()]}
+        onStartNewWorkspace={() => {}}
+      />
+    );
+
+    expect(
+      screen.getByText('Control: re-ingest to verify - 2nd check suggested')
+    ).toBeInTheDocument();
   });
 });

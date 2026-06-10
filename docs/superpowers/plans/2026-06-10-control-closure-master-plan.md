@@ -170,6 +170,8 @@ Consumer inventory to rewire (grounded 2026-06-10 — verify again at sub-plan t
 
 ### CC-6 — Rhythm + prompts (spec §7)
 
+**Sub-plan:** [`2026-06-10-cc-6-ladder-prompts.md`](2026-06-10-cc-6-ladder-prompts.md).
+
 **Scope:**
 
 - Rewrite `survey/control.ts`: hints become "{nth} verification suggested — re-ingest recent data" (from `isCheckSuggested` + `ladderStep`); analyst-recorded `drifted` verdict → warning hint; delete remaining tick-progression copy. `survey/handoff.ts`: keep only the "confirmed-sustained without handoff → suggest recording one" hint, retargeted.
