@@ -1,3 +1,19 @@
+---
+tier: living
+purpose: build
+title: 'CC-1 sustainment comparison sub-plan'
+audience: agent
+status: active
+date: 2026-06-10
+layer: spec
+topic: [control, sustainment, baseline, capability, wedge-v1]
+related:
+  - docs/superpowers/plans/2026-06-10-control-closure-master-plan.md
+  - docs/superpowers/specs/2026-06-10-control-closure-and-report-endstate-design.md
+implements:
+  - docs/03-features/workflows/control.md
+---
+
 # CC-1 Sustainment Comparison
 
 - [x] Add deterministic core tests for `freezeBaseline` and `computeSustainmentComparison` covering live/frozen baseline choice, no-specs, no-timeColumn, no post-improvement rows, phase limits, and defect breakdown.
