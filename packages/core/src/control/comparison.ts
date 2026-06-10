@@ -50,6 +50,7 @@ export interface SustainmentComparisonInput {
 }
 
 type StatsSummary = { n: number; mean: number; sigma: number; cpk?: number };
+type ComparisonSpecs = Pick<SpecLimits, 'usl' | 'lsl'> | undefined;
 
 export interface FreezeBaselineInput {
   rows: DataRow[];
@@ -64,17 +65,20 @@ export interface FreezeBaselineInput {
 export function computeSustainmentComparison(
   input: SustainmentComparisonInput
 ): SustainmentComparison {
-  const hasSpecs = input.specs?.usl !== undefined || input.specs?.lsl !== undefined;
+  const comparisonSpecs = comparisonSpecsFor(input.baseline, input.specs);
+  const hasSpecs = hasCpkSpecs(comparisonSpecs);
 
   if (!input.timeColumn) {
     const afterRows = rowsWithNumericMeasure(input.rows, input.baseline.measure);
     const after =
-      afterRows.length > 0 ? statsSummary(afterRows, input.baseline.measure, input.specs) : null;
+      afterRows.length > 0
+        ? statsSummary(afterRows, input.baseline.measure, comparisonSpecs)
+        : null;
     const before = baselineSummary(input.baseline, hasSpecs);
     return {
       before,
       after,
-      deltas: deltas(before, after),
+      deltas: deltas(before, after, canCompareCpk(before, input.baseline)),
       defects: defectsForRows(
         undefined,
         input.rows,
@@ -85,24 +89,30 @@ export function computeSustainmentComparison(
   }
 
   const windows = splitByImprovementDate(input.rows, input.timeColumn, input.improvementDate);
-  const beforeRows = rowsWithNumericMeasure(windows.before, input.baseline.measure);
-  const afterRows = rowsWithNumericMeasure(windows.after, input.baseline.measure);
+  const beforeRows = sortRowsByTimeColumn(
+    rowsWithNumericMeasure(windows.before, input.baseline.measure),
+    input.timeColumn
+  );
+  const afterRows = sortRowsByTimeColumn(
+    rowsWithNumericMeasure(windows.after, input.baseline.measure),
+    input.timeColumn
+  );
   const liveBefore =
     beforeRows.length >= MIN_LIVE_BEFORE_N
-      ? statsSummary(beforeRows, input.baseline.measure, input.specs)
+      ? statsSummary(beforeRows, input.baseline.measure, comparisonSpecs)
       : undefined;
   const before = liveBefore
     ? { source: 'live' as const, ...liveBefore }
     : baselineSummary(input.baseline, hasSpecs);
   const after =
-    afterRows.length > 0 ? statsSummary(afterRows, input.baseline.measure, input.specs) : null;
+    afterRows.length > 0 ? statsSummary(afterRows, input.baseline.measure, comparisonSpecs) : null;
   const phases = {
     beforeLimits: liveBefore
-      ? phaseLimits(beforeRows, input.timeColumn, input.baseline.measure, input.specs)
+      ? phaseLimits(beforeRows, input.timeColumn, input.baseline.measure, comparisonSpecs)
       : undefined,
     afterLimits:
       afterRows.length > 0
-        ? phaseLimits(afterRows, input.timeColumn, input.baseline.measure, input.specs)
+        ? phaseLimits(afterRows, input.timeColumn, input.baseline.measure, comparisonSpecs)
         : undefined,
   };
 
@@ -110,7 +120,7 @@ export function computeSustainmentComparison(
     before,
     after,
     phases,
-    deltas: deltas(before, after),
+    deltas: deltas(before, after, canCompareCpk(before, input.baseline)),
     defects: defectsForRows(
       before.source === 'frozen' ? undefined : windows.before,
       windows.after,
@@ -141,10 +151,18 @@ export function freezeBaseline(
       }
     : inputOrRows;
 
-  const beforeRows = rowsWithNumericMeasure(
-    splitByImprovementDate(input.rows, input.timeColumn, input.improvementDate).before,
-    input.measure
+  const beforeRows = sortRowsByTimeColumn(
+    rowsWithNumericMeasure(
+      splitByImprovementDate(input.rows, input.timeColumn, input.improvementDate).before,
+      input.measure
+    ),
+    input.timeColumn
   );
+  if (beforeRows.length === 0) {
+    throw new Error(
+      `Cannot freeze baseline without valid pre-improvement rows for measure "${input.measure}".`
+    );
+  }
   const stats = calculateStats(
     valuesForMeasure(beforeRows, input.measure),
     input.specs?.usl,
@@ -209,13 +227,9 @@ function baselineSummary(
   };
 }
 
-function statsSummary(
-  rows: DataRow[],
-  measure: string,
-  specs?: Pick<SpecLimits, 'usl' | 'lsl'>
-): StatsSummary {
+function statsSummary(rows: DataRow[], measure: string, specs?: ComparisonSpecs): StatsSummary {
   const stats = calculateStats(valuesForMeasure(rows, measure), specs?.usl, specs?.lsl);
-  const hasSpecs = specs?.usl !== undefined || specs?.lsl !== undefined;
+  const hasSpecs = hasCpkSpecs(specs);
   return {
     n: rows.length,
     mean: stats.mean,
@@ -228,7 +242,7 @@ function phaseLimits(
   rows: DataRow[],
   timeColumn: string,
   measure: string,
-  specs?: Pick<SpecLimits, 'usl' | 'lsl'>
+  specs?: ComparisonSpecs
 ): PhaseLimits | undefined {
   const window = windowRange(rows, timeColumn);
   if (!window) return undefined;
@@ -244,16 +258,35 @@ function phaseLimits(
 
 function deltas(
   before: SustainmentComparison['before'],
-  after: SustainmentComparison['after']
+  after: SustainmentComparison['after'],
+  allowCpkDelta = true
 ): SustainmentComparison['deltas'] {
   if (!after) return {};
   return {
     meanPct: safeDivide(after.mean - before.mean, Math.abs(before.mean)),
     sigmaPct: safeDivide(after.sigma - before.sigma, Math.abs(before.sigma)),
-    ...(before.cpk !== undefined && after.cpk !== undefined
+    ...(allowCpkDelta && before.cpk !== undefined && after.cpk !== undefined
       ? { cpkDelta: after.cpk - before.cpk }
       : {}),
   };
+}
+
+function comparisonSpecsFor(
+  baseline: ControlBaseline,
+  specs?: Pick<SpecLimits, 'usl' | 'lsl'>
+): ComparisonSpecs {
+  return baseline.specsSnapshot ?? specs;
+}
+
+function hasCpkSpecs(specs: ComparisonSpecs): boolean {
+  return specs?.usl !== undefined || specs?.lsl !== undefined;
+}
+
+function canCompareCpk(
+  before: SustainmentComparison['before'],
+  baseline: ControlBaseline
+): boolean {
+  return before.source === 'live' || baseline.specsSnapshot !== undefined;
 }
 
 function defectsForRows(
@@ -290,6 +323,17 @@ function valuesForMeasure(rows: DataRow[], measure: string): number[] {
   return rows.flatMap(row => {
     const value = toNumericValue(row[measure]);
     return value === undefined ? [] : [value];
+  });
+}
+
+function sortRowsByTimeColumn(rows: DataRow[], timeColumn: string): DataRow[] {
+  return [...rows].sort((a, b) => {
+    const aTime = parseTimeValue(a[timeColumn])?.getTime();
+    const bTime = parseTimeValue(b[timeColumn])?.getTime();
+    if (aTime === undefined && bTime === undefined) return 0;
+    if (aTime === undefined) return 1;
+    if (bTime === undefined) return -1;
+    return aTime - bTime;
   });
 }
 
