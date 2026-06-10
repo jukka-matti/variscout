@@ -8,8 +8,8 @@ layer: L3
 kind: workflow
 serves:
   - docs/02-journeys/index.md
-last-verified: 2026-06-02
-verified-against-commit: a7b42ce2
+last-verified: 2026-06-09
+verified-against-commit: 15e86e823
 ---
 
 > **L3 feature stub** (M0 SDD inventory, 2026-05-18). Verified accurate against the CoScout code 2026-06-02 — the entry point is `assembleCoScoutPrompt()` (the `buildCoScoutSystemPrompt()` monolith was deleted, ADR-068). Full body expansion deferred to M3. Deep context-assembly reference: [ai-context-engineering.md](../../05-technical/architecture/ai-context-engineering.md).
@@ -18,7 +18,7 @@ verified-against-commit: a7b42ce2
 
 ## Problem
 
-An LLM assistant in an EDA tool must not recompute statistics, must respect customer-data boundaries, and must adapt its prompt scope to whichever investigation phase the analyst is in — otherwise it leaks context across phases, hallucinates numeric claims, or undermines the stats engine's authority.
+An LLM assistant in an EDA tool must not recompute statistics, must respect customer-data boundaries, and must adapt its coaching to **whichever surface the analyst is on** (Process / Explore / Analyze-Wall / Report) and where they are in the investigation loop — otherwise it coaches the wrong surface, hallucinates numeric claims, or undermines the stats engine's authority. (The earlier linear "phase" model is retired — see the [CoScout surface + intent redesign](../../superpowers/specs/2026-06-09-coscout-surface-intent-redesign-design.md); ADR-068 amended.)
 
 ## Capability claim
 
@@ -40,9 +40,9 @@ sequenceDiagram
     participant D as Response-path dispatcher
 
     U->>V: Trigger (quickAsk / contextClick / canvas tile)
-    V->>O: dispatch({ surface, phase, mode, hub })
-    O->>S: aggregate AIContext (stats results, scope, KB hits)
-    O->>A: assembleCoScoutPrompt({ phase, mode, context })
+    V->>O: dispatch({ surface, scope, hub })
+    O->>S: aggregate AIContext (stats results, analysisScope, role, KB hits)
+    O->>A: assembleCoScoutPrompt({ surface, scope, context })
     A-->>O: { tier1Static, tier2SemiStatic, tier3Dynamic, tools }
     O->>API: Responses API (system=tier1, user=tier2+tier3, tools)
     API-->>O: stream + tool_calls (REF markers embedded)
@@ -64,4 +64,4 @@ TBD.
 
 - **Code**: `packages/core/src/ai/`, `packages/core/src/ai/prompts/coScout/`, `apps/azure/src/features/ai/aiStore.ts`, `apps/azure/src/features/ai/useAIOrchestration.ts`
 - **Tests**: `packages/core/src/ai/__tests__/`, `apps/azure/src/features/ai/__tests__/`
-- **Related**: `docs/03-features/ai/visual-grounding.md`, `docs/07-decisions/adr-068-coscout-cognitive-redesign.md`, `docs/07-decisions/adr-080-control-auto-fire-pattern.md`
+- **Related**: `docs/03-features/ai/visual-grounding.md`, `docs/07-decisions/adr-068-coscout-cognitive-redesign.md`, `docs/07-decisions/adr-080-control-auto-fire-pattern.md`, `docs/superpowers/specs/2026-06-09-coscout-surface-intent-redesign-design.md` (surface + intent model; supersedes ADR-068's phase-adaptive assembly)

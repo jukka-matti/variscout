@@ -18,6 +18,8 @@ serves:
 
 # Project Dashboard
 
+> **⚠ Superseded (W4 shipped #358, 2026-06-09) — faithful rewrite owed.** This still describes the **retired portfolio** Home/Project surface. Under the now-shipped Workspace model, Home is **resume-last-Workspace + create-new** (no portfolio browser; `OtherProjectsList` retired), and the journey-phase indicator (FRAME / SCOUT / INVESTIGATE / IMPROVE) is gone with the linear phase model. The faithful rewrite is now due as post-merge doc propagation — see the [Workspace migration mega-plan](../../superpowers/plans/2026-06-09-workspace-migration-mega-plan.md) + [product-overview](../../01-vision/product-overview.md).
+
 The Project Dashboard is a persistent overview screen shown when a user reopens a saved project in the Azure app. It provides orientation — a summary of where the Project stands — and acts as a navigation hub for jumping directly into relevant views.
 
 > Azure-only feature. PWA has no project persistence and no dashboard.

@@ -17,6 +17,8 @@ serves:
 
 # Analysis Flow
 
+> **⚠ Phase vocabulary out of date (2026-06-09) — faithful rewrite pending.** This doc is structured on the retired 4-verb spine **FRAME / SCOUT / INVESTIGATE / IMPROVE**. The current model is the **5-verb spine Frame → Explore → Analyze → Improve → Control** (SCOUT→Explore, INVESTIGATE→Analyze, +Control), with the **canvas-first Investigation Wall** as the Analyze home (the **Finding** is the unit; Evidence Map demoted to a read-only lens) inside the **Workspace** product model. The two-thread analytical _content_ below is still sound — only the phase names + structure are stale. Current model: [product-overview](../../01-vision/product-overview.md) + [Workspace spec](../../superpowers/specs/2026-06-09-workspace-architecture-and-project-formalization-design.md). A structural rewrite is a tracked doc follow-up.
+
 ## 1. Introduction
 
 VariScout's analysis journey weaves **two analytical threads** through four phases (FRAME, SCOUT, INVESTIGATE, IMPROVE):

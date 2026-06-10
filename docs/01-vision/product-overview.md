@@ -37,12 +37,12 @@ The breadth-first features (Hub portfolios, automated data pipelines, Process Ow
 
 ## What VariScout V1 does
 
-The Specialist works in two modes, both first-class:
+The Specialist works in a **Workspace** — the place they bring data and investigate (data, process map, Explore, the Analyze Wall, findings, report). Two ways of working, both first-class:
 
-- **Quick analysis.** Paste data, explore in charts, save findings. No project ceremony required. Free PWA supports session-only use; Azure tier adds persistence and CoScout.
-- **Project-anchored investigation.** Create a Project from Home, invite teammates (Lead / Member / Sponsor roles), run the formal lifecycle Charter → Approach → Control. Each project produces a Report the Sponsor reviews; sign-off is optional and out-of-band — it does not gate closure.
+- **Quick analysis (informal Workspace).** Paste data, explore in charts, capture findings. No project ceremony — the Workspace just presents plainly. Free PWA supports session-only use; Azure tier adds persistence and CoScout.
+- **Formalized Project.** When the work matters, **formalize** the Workspace into a Project — name it, set a charter, invite teammates (Lead / Member / Sponsor roles) — and run the lifecycle Charter → Approach → Control. Each Project produces a Report the Sponsor reviews; sign-off is optional and out-of-band — it does not gate closure.
 
-Internally, paste data lands in a **data container** (called a Hub in code) that is tenant-wide — anyone in the buyer's Azure tenant can analyze without creating a Project. The Project is the optional formal wrapper that adds membership ACLs and lifecycle ceremony. The UI does not surface "Hub" as a noun; users see only Project and Process.
+Every Workspace is backed by exactly one Project from first data entry; that Project stays **informal** (no project chrome) until a deliberate formalization act. There is no "activate / exit / switch project" — the Workspace's one Project is always the context; you narrow and broaden attention with **Analysis Scope** (outcome · factor · process step · filters), the only active lens. Internally a Workspace is backed by a **Hub** storage container (code-only — never a user-facing noun); multi-project portfolios are a VariScout Process (future) concern, not V1.
 
 ### The journey spine
 
@@ -52,7 +52,7 @@ Both modes follow the same methodological spine:
 
 - **Frame.** State the problem (data-first or hypothesis-first entry). Process map is sketched in the Process tab using canvas direct-manipulation (chips, zones, drag-and-drop).
 - **Explore.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
-- **Analyze.** Specialist picks suspected causes — data-derived, gemba-observed, or expert-supplied — and examines each with Evidence Map, statistics, and targeted Questions. The Analyze Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection (hypothesis-first path).
+- **Analyze.** The canvas-first **Investigation Wall** is home: the **Finding is the unit of evidence**, linked to hypotheses / suspected causes (data-derived, gemba-observed, or expert-supplied), with statistics and the demoted, read-only **Evidence Map** as supporting lenses. Measurement Plans capture what evidence still needs collecting (hypothesis-first path).
 - **Improve.** Hypotheses converge on improvement actions. Inside a Project this surfaces in the **Improve tab** (action tracker) — top-level verb tab scoped to the active project.
 - **Control.** Did it work? Verify the improvement held, then close the project (Handoff folds into Control closure).
 
@@ -68,11 +68,11 @@ Seven tabs, in workflow order:
 [Home] [Project] [Process] [Explore] [Analyze] [Improve] [Report]
 ```
 
-1. **Home** — pick what you're working on (project queue + active Project launchpad)
-2. **Project** — current project's status overview (Charter → Approach → Control stages)
+1. **Home** — resume your last Workspace, or start a new one (no portfolio browser)
+2. **Project** — the current Workspace's formal layer: status overview (Charter → Approach → Control stages), present once the Workspace is formalized
 3. **Process** — canvas / process map (spatial substrate; direct-manipulation — no mode toggle)
 4. **Explore** — EDA / charts / Factor Intelligence
-5. **Analyze** — Wall + Evidence Map → suspected causes
+5. **Analyze** — the canvas-first Investigation Wall (Findings + suspected causes); Evidence Map is a demoted read-only lens
 6. **Improve** — improvement actions, tracked and owned within the active Project context
 7. **Report** — narrative output for Sponsor signoff
 
@@ -108,7 +108,7 @@ This supersedes the legacy €79 Standard + €199 Team split (see [feature-pari
 
 ## CoScout — the AI assistant
 
-CoScout is an assistant, not an oracle. It coaches methodology, asks targeted questions, surfaces references, and proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override. CoScout is modular (tier1/2/3 prompt layering), mode-aware (methodology coaching varies by analysis mode), and tool-calling (27-tool registry gated by phase/mode). On Azure, CoScout accepts voice input transcript-first: speak, text lands in the draft box, review/edit, send. Replies remain text in V1.
+CoScout is an assistant, not an oracle. It coaches methodology, asks targeted questions, surfaces references, and proposes actions (read tools auto-execute; action tools return proposals you confirm). The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override. CoScout is modular (tier1/2/3 prompt layering) and **surface-driven**: it's organized by the surface you're on — Process / Explore / Analyze-Wall / Report — with coaching that adapts to where you are in the investigation loop (the older linear "phase" model is retired). Its ~25-tool registry is gated by surface. The tool layer is transport-agnostic (the in-browser panel today; an in-tenant MCP server is named-future). On Azure, CoScout accepts voice input transcript-first: speak, text lands in the draft box, review/edit, send. Replies remain text in V1.
 
 ---
 
