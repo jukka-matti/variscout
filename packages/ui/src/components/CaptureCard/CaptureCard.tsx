@@ -26,9 +26,15 @@ export function CaptureCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const canSaveFactor = onFactorOnly !== undefined;
 
+  // Focus the card on mount only. This must NOT live in the listeners effect
+  // below: parents pass inline closures, so `onCancel` gets a new identity on
+  // every keystroke (draft edits re-render the parent), and re-running
+  // `focus()` would steal focus from the Note field after the first character.
   useEffect(() => {
     cardRef.current?.focus();
+  }, []);
 
+  useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
         onCancel();
