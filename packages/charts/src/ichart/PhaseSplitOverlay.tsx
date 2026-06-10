@@ -27,7 +27,37 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function getPointTime(point: IChartDataPoint): number | null {
-  return parseISO(point.isoTimestamp) ?? parseISO(point.timeValue);
+  return parseISO(point.isoTimestamp);
+}
+
+function getFlagGeometry(
+  x: number,
+  width: number
+): {
+  points: string;
+  labelX: number;
+  textAnchor: 'start' | 'end';
+} {
+  const halfFlagWidth = 5;
+  if (x <= halfFlagWidth) {
+    return {
+      points: '0,-12 10,-12 5,-2',
+      labelX: 12,
+      textAnchor: 'start',
+    };
+  }
+  if (x >= width - halfFlagWidth) {
+    return {
+      points: '-10,-12 0,-12 -5,-2',
+      labelX: -12,
+      textAnchor: 'end',
+    };
+  }
+  return {
+    points: '-5,-12 5,-12 0,-2',
+    labelX: 6,
+    textAnchor: 'start',
+  };
 }
 
 function resolveISOX(
@@ -148,6 +178,7 @@ const PhaseSplitOverlay: React.FC<PhaseSplitOverlayProps> = ({
       {eventFlags.map((flag, index) => {
         const x = resolveISOX(data, flag.atISO, xScale, width);
         if (x === null) return null;
+        const flagGeometry = getFlagGeometry(x, width);
         return (
           <g
             key={`${flag.atISO}-${index}`}
@@ -155,17 +186,18 @@ const PhaseSplitOverlay: React.FC<PhaseSplitOverlayProps> = ({
             transform={`translate(${x}, 0)`}
           >
             <polygon
-              points="-5,-12 5,-12 0,-2"
+              points={flagGeometry.points}
               fill={chartColors.warning}
               stroke={chartColors.warning}
             />
             <text
               data-testid={`ichart-event-flag-label-${index}`}
-              x={6}
+              x={flagGeometry.labelX}
               y={-8}
               fill={chartColors.warning}
               fontSize={10}
               fontWeight={600}
+              textAnchor={flagGeometry.textAnchor}
             >
               {flag.label}
             </text>

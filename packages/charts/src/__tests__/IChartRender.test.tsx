@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import { IChartBase } from '../IChart';
 import type { IChartDataPoint } from '../types';
 import type { StatsResult } from '@variscout/core';
+import { chartColors } from '../colors';
 
 /** Generate N data points for testing */
 function makeData(n: number): IChartDataPoint[] {
@@ -167,6 +168,49 @@ describe('IChartBase rendering', () => {
     ).toHaveAttribute('x2', '645');
   });
 
+  it('does not render full-width non-staged control lines when phase limits are present', () => {
+    const data = makeISOData([10, 11, 12, 13, 14]);
+    const stats = {
+      ...makeStats(data),
+      mean: 12,
+      ucl: 15,
+      lcl: 9,
+    };
+    const { container } = render(
+      <IChartBase
+        data={data}
+        stats={stats}
+        {...defaultProps}
+        specs={{}}
+        phaseSplit={{ atISO: '2026-01-03T00:00:00.000Z' }}
+        phaseLimits={{
+          before: { mean: 10, ucl: 16, lcl: 4 },
+          after: { mean: 13, ucl: 24, lcl: 2 },
+        }}
+      />
+    );
+
+    const fullWidthControlLines = Array.from(container.querySelectorAll('line')).filter(line => {
+      const isControlLine =
+        line.getAttribute('stroke') === chartColors.control ||
+        line.getAttribute('stroke') === chartColors.mean;
+      return (
+        isControlLine &&
+        line.getAttribute('x1') === '0' &&
+        line.getAttribute('x2') === '645' &&
+        !line.getAttribute('data-testid')?.startsWith('ichart-phase-limits-')
+      );
+    });
+
+    expect(fullWidthControlLines).toHaveLength(0);
+    expect(container.querySelectorAll('[data-testid^="ichart-phase-limits-before-"]')).toHaveLength(
+      3
+    );
+    expect(container.querySelectorAll('[data-testid^="ichart-phase-limits-after-"]')).toHaveLength(
+      3
+    );
+  });
+
   it('renders event flags clipped to chart bounds', () => {
     const data = makeISOData([10, 11, 12, 13, 14]);
     const stats = makeStats(data);
@@ -186,6 +230,37 @@ describe('IChartBase rendering', () => {
     expect(getByTestId('ichart-event-flag-1').getAttribute('transform')).toBe('translate(645, 0)');
     expect(getByTestId('ichart-event-flag-label-0').textContent).toBe('Before data');
     expect(getByTestId('ichart-event-flag-label-1').textContent).toBe('After data');
+
+    const leftPolygon = getByTestId('ichart-event-flag-0').querySelector('polygon')!;
+    const rightPolygon = getByTestId('ichart-event-flag-1').querySelector('polygon')!;
+    expect(leftPolygon.getAttribute('points')).toBe('0,-12 10,-12 5,-2');
+    expect(rightPolygon.getAttribute('points')).toBe('-10,-12 0,-12 -5,-2');
+
+    expect(getByTestId('ichart-event-flag-label-0')).toHaveAttribute('x', '12');
+    expect(getByTestId('ichart-event-flag-label-0')).toHaveAttribute('text-anchor', 'start');
+    expect(getByTestId('ichart-event-flag-label-1')).toHaveAttribute('x', '-12');
+    expect(getByTestId('ichart-event-flag-label-1')).toHaveAttribute('text-anchor', 'end');
+  });
+
+  it('skips ISO overlays when chart points only have formatted time labels', () => {
+    const data = makeISOData([10, 11, 12, 13, 14]).map(({ isoTimestamp, ...point }) => ({
+      ...point,
+      timeValue: isoTimestamp,
+    }));
+    const stats = makeStats(data);
+    const { container } = render(
+      <IChartBase
+        data={data}
+        stats={stats}
+        {...defaultProps}
+        phaseSplit={{ atISO: '2026-01-03T00:00:00.000Z', label: 'Improve' }}
+        eventFlags={[{ atISO: '2026-01-04T00:00:00.000Z', label: 'Check' }]}
+      />
+    );
+
+    expect(container.querySelector('[data-testid="ichart-phase-split-marker"]')).toBeNull();
+    expect(container.querySelector('[data-testid="ichart-phase-split-label"]')).toBeNull();
+    expect(container.querySelector('[data-testid^="ichart-event-flag-"]')).toBeNull();
   });
 
   it('includes phase limits in the auto y-domain', () => {

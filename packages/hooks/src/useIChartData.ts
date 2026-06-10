@@ -1,7 +1,18 @@
 import { useMemo } from 'react';
 import type { IChartDataPoint, StatsResult } from '@variscout/core';
-import { formatTimeValue, lttb, type DataCellValue, applyTimeLens } from '@variscout/core';
+import {
+  formatTimeValue,
+  lttb,
+  type DataCellValue,
+  applyTimeLens,
+  parseTimeValue,
+} from '@variscout/core';
 import { usePreferencesStore } from '@variscout/stores';
+
+function toISOTimestamp(value: DataCellValue): string | null {
+  const parsed = parseTimeValue(value);
+  return parsed ? parsed.toISOString() : null;
+}
 
 /**
  * Shared hook to transform source data into IChartDataPoint[].
@@ -39,6 +50,7 @@ export function useIChartData(
           y: Number(d[outcome]),
           stage: stageColumn ? String(d[stageColumn] ?? '') : undefined,
           timeValue: timeColumn ? formatTimeValue(d[timeColumn] as DataCellValue) : undefined,
+          isoTimestamp: timeColumn ? toISOTimestamp(d[timeColumn] as DataCellValue) : undefined,
           originalIndex: i,
           factorValues:
             factors && factors.length > 0
