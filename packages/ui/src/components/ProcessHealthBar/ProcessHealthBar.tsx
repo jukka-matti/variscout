@@ -1,15 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import {
-  LayoutGrid,
-  List,
-  Settings2,
-  ChevronDown,
-  X,
-  Download,
-  Presentation,
-  Pin,
-  Clock,
-} from 'lucide-react';
+import { LayoutGrid, List, Layers, ChevronDown, X, Download, Pin, Clock } from 'lucide-react';
 import type { ProcessHealthBarProps } from './types';
 import { ScopeCoverageBar } from './ScopeCoverageBar';
 import { FilterChipDropdown } from '../FilterChipDropdown';
@@ -58,11 +48,15 @@ function cpkColor(cpk: number, target: number): string {
 }
 
 /**
- * ProcessHealthBar — unified toolbar row that displays process health stats,
- * filter chips, variation bar, and controls in a single compact line.
+ * ProcessHealthBar — the Explore **context line** (ER-1). One compact ~34px row
+ * under the header.
  *
- * Layout (left → right):
- *   [Layout toggle] [Factors(n)] | [Stats] | [Filter chips (n=X)] | [Cpk target] [Export] [Present]
+ * Layout (wireframe `explore-redesign-mockup-2026-06-10.html`):
+ *   LEFT:  N calls · date range · x̄ <v> σ <v> Cpk <v> · Filters: <none | chips>
+ *   RIGHT: [grid/scroll toggle] · Subgroup · Time · Stages · Export · measure chip ▾
+ *
+ * The grid/scroll toggle is retained until ER-1 Task 4 retires the layout
+ * machinery. The Factors(N) and Present buttons were removed in Task 2.
  */
 const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   stats,
@@ -72,6 +66,7 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   onCpkTargetCommit,
   columnLabel,
   sampleCount,
+  dateRange,
   filterChipData,
   columnAliases = {},
   onUpdateFilterValues,
@@ -80,12 +75,18 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   onPinFinding,
   layout,
   onLayoutChange,
-  factorCount,
-  onManageFactors,
   onExportCSV,
-  onEnterPresentationMode,
+  onExportVrs,
   onSetSpecs,
   onCpkClick,
+  subgroupSlot,
+  availableStageColumns = [],
+  stageColumn,
+  setStageColumn,
+  stageOrderMode = 'auto',
+  onStageOrderModeChange,
+  measureLabel,
+  onEditFraming,
   centeringOpportunity,
   specSuggestion,
   activeProjection,
@@ -264,7 +265,55 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
     setEditingCpkTarget(false);
   }, [cpkTargetInput, cpkTarget, onCpkTargetCommit]);
 
-  // Render stats section
+  // ---- Export menu state ----
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setExportMenuOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExportMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [exportMenuOpen]);
+
+  // ---- Measure/scope chip menu state ----
+  const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
+  const measureMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!measureMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (measureMenuRef.current && !measureMenuRef.current.contains(e.target as Node)) {
+        setMeasureMenuOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMeasureMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [measureMenuOpen]);
+
+  const sep = (
+    <span className="text-edge shrink-0 hidden sm:inline" aria-hidden>
+      &middot;
+    </span>
+  );
+
+  // Render the x̄ / σ / Cpk stats segment
   const renderStats = () => {
     if (!stats) return null;
 
@@ -273,52 +322,46 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
     const n = sampleCount;
 
     if (!hasSpecs) {
+      // No spec → no Cpk. Show x̄/σ/n + the "Set specs →" affordance (the
+      // legible story for the absent Cpk — no fake disabled control).
       return (
         <div className="flex items-center gap-2 text-xs text-content-secondary">
           <span>
             <span className="text-content-muted">x&#772;</span>
             <span className="ml-1 font-mono">{meanStr}</span>
           </span>
-          <span className="text-content-muted">|</span>
           <span>
             <span className="text-content-muted">&sigma;</span>
             <span className="ml-1 font-mono">{sigmaStr}</span>
           </span>
-          <span className="text-content-muted">|</span>
           <span>
             <span className="text-content-muted">n</span>
             <span className="ml-1 font-mono">{n}</span>
           </span>
           {specSuggestion && onAcceptSpecSuggestion ? (
-            <>
-              <span className="text-content-muted">|</span>
-              <button
-                onClick={() =>
-                  onAcceptSpecSuggestion(specSuggestion.suggestedLsl, specSuggestion.suggestedUsl)
-                }
-                data-testid="btn-spec-suggestion"
-                className="text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap"
-              >
-                {specSuggestion.label} &rarr; Set specs
-              </button>
-            </>
+            <button
+              onClick={() =>
+                onAcceptSpecSuggestion(specSuggestion.suggestedLsl, specSuggestion.suggestedUsl)
+              }
+              data-testid="btn-spec-suggestion"
+              className="text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap"
+            >
+              {specSuggestion.label} &rarr; Set specs
+            </button>
           ) : onSetSpecs ? (
-            <>
-              <span className="text-content-muted">|</span>
-              <button
-                onClick={onSetSpecs}
-                data-testid="btn-set-specs"
-                className="text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap"
-              >
-                Set specs &rarr;
-              </button>
-            </>
+            <button
+              onClick={onSetSpecs}
+              data-testid="btn-set-specs"
+              className="text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap"
+            >
+              Set specs &rarr;
+            </button>
           ) : null}
         </div>
       );
     }
 
-    // Specs set: show Pass Rate (or subgroup target %), Cpk/target, Mean, σ, n
+    // Specs set: show Pass Rate (or subgroup target %), x̄, σ, Cpk/target, n
     const passRate =
       stats.outOfSpecPercentage !== undefined
         ? (Number.isFinite(stats.outOfSpecPercentage)
@@ -357,11 +400,19 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
             <span className="ml-1 font-mono text-content">{passRate}</span>
           </span>
         )}
-        <span className="text-content-muted">|</span>
+        <span>
+          <span className="text-content-muted">x&#772;</span>
+          <span className="ml-1 font-mono">{meanStr}</span>
+        </span>
+        <span>
+          <span className="text-content-muted">&sigma;</span>
+          <span className="ml-1 font-mono">{sigmaStr}</span>
+        </span>
         <span>
           <button
             onClick={onCpkClick}
             data-testid="stat-cpk"
+            title={onCpkClick ? 'View capability on the I-Chart' : undefined}
             className={`font-mono font-medium ${colorClass} ${onCpkClick ? 'hover:underline cursor-pointer' : 'cursor-default'}`}
           >
             Cpk {cpkStr}
@@ -430,17 +481,6 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
             </span>
           )}
         </span>
-        <span className="text-content-muted">|</span>
-        <span>
-          <span className="text-content-muted">x&#772;</span>
-          <span className="ml-1 font-mono">{meanStr}</span>
-        </span>
-        <span className="text-content-muted">|</span>
-        <span>
-          <span className="text-content-muted">&sigma;</span>
-          <span className="ml-1 font-mono">{sigmaStr}</span>
-        </span>
-        <span className="text-content-muted">|</span>
         <span>
           <span className="text-content-muted">
             {isCapabilityMode && capabilityStats ? 'k' : 'n'}
@@ -455,67 +495,38 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
 
   return (
     <div
-      className="flex items-center gap-2 px-3 py-1.5 bg-surface-secondary border-b border-edge min-h-[36px] flex-wrap"
+      className="flex items-center gap-3 px-4 bg-surface-secondary border-b border-edge h-[34px] text-xs text-content-secondary overflow-x-auto"
       data-testid="process-health-bar"
     >
-      {/* Left: Layout toggle + Factors button */}
-      <div className="flex items-center gap-1 shrink-0" data-export-hide>
-        {/* Layout toggle — hidden on mobile */}
-        <div className="hidden sm:flex items-center gap-0.5">
-          <button
-            onClick={() => onLayoutChange('grid')}
-            data-testid="layout-grid-btn"
-            className={`p-1 rounded transition-colors ${
-              layout === 'grid'
-                ? 'bg-surface-tertiary text-content'
-                : 'text-content-muted hover:text-content'
-            }`}
-            aria-label="Grid layout"
-            aria-pressed={layout === 'grid'}
-          >
-            <LayoutGrid size={14} />
-          </button>
-          <button
-            onClick={() => onLayoutChange('scroll')}
-            data-testid="layout-scroll-btn"
-            className={`p-1 rounded transition-colors ${
-              layout === 'scroll'
-                ? 'bg-surface-tertiary text-content'
-                : 'text-content-muted hover:text-content'
-            }`}
-            aria-label="Scroll layout"
-            aria-pressed={layout === 'scroll'}
-          >
-            <List size={14} />
-          </button>
-        </div>
-
-        {/* Factors button */}
-        <button
-          onClick={onManageFactors}
-          data-testid="btn-manage-factors"
-          className="flex items-center gap-1 px-2 py-0.5 rounded text-xs text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
-          aria-label={`Factors (${factorCount})`}
-        >
-          <Settings2 size={12} />
-          <span>Factors({factorCount})</span>
-        </button>
-      </div>
-
-      {/* Divider */}
-      <span className="text-edge shrink-0 hidden sm:inline" aria-hidden>
-        |
+      {/* ── LEFT: N · date · stats · Filters ── */}
+      {/* N calls */}
+      <span className="shrink-0 whitespace-nowrap" data-testid="context-n-calls">
+        <span className="font-medium text-content font-mono">{sampleCount}</span>
+        <span className="ml-1 text-content-muted">{t('healthBar.rows')}</span>
       </span>
 
-      {/* Stats section */}
+      {/* Date range (computed; hidden when null) */}
+      {dateRange && (
+        <>
+          {sep}
+          <span
+            className="shrink-0 whitespace-nowrap font-mono text-content-secondary hidden sm:inline"
+            data-testid="context-date-range"
+          >
+            {dateRange}
+          </span>
+        </>
+      )}
+
+      {sep}
+
+      {/* x̄ / σ / Cpk stats */}
       <div className="shrink-0">{renderStats()}</div>
 
       {/* IM-5 scope coverage bar (eda §3.3) — coverage % banded + What-If Cpk text */}
       {scopeCoverage != null && (
         <>
-          <span className="text-edge shrink-0 hidden sm:inline" aria-hidden>
-            |
-          </span>
+          {sep}
           <div className="shrink-0">
             <ScopeCoverageBar
               coverage={scopeCoverage}
@@ -526,12 +537,13 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
         </>
       )}
 
-      {/* Filter chips — shown when drilling */}
-      {isDrilling && (
-        <>
-          <span className="text-edge shrink-0" aria-hidden>
-            |
-          </span>
+      {sep}
+
+      {/* Filters segment — "Filters: none" muted when empty; chips when drilling */}
+      <div className="flex items-center gap-1 shrink-0" data-testid="context-filters">
+        <span className="text-content-muted whitespace-nowrap">Filters:</span>
+        {!isDrilling && <span className="text-content-muted">none</span>}
+        {isDrilling && (
           <div className="flex items-center gap-1 flex-wrap">
             {chips.map(chipData => {
               const factorLabel = columnAliases[chipData.factor] ?? chipData.factor;
@@ -608,11 +620,48 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
               </button>
             )}
           </div>
-        </>
-      )}
+        )}
+      </div>
 
-      {/* Right: actions */}
+      {/* ── RIGHT cluster: toggle · Subgroup · Time · Stages · Export · measure chip ── */}
       <div className="flex items-center gap-1 ml-auto shrink-0" data-export-hide>
+        {/* Layout toggle — retained until Task 4; hidden on mobile */}
+        <div className="hidden sm:flex items-center gap-0.5">
+          <button
+            onClick={() => onLayoutChange('grid')}
+            data-testid="layout-grid-btn"
+            className={`p-1 rounded transition-colors ${
+              layout === 'grid'
+                ? 'bg-surface-tertiary text-content'
+                : 'text-content-muted hover:text-content'
+            }`}
+            aria-label="Grid layout"
+            aria-pressed={layout === 'grid'}
+          >
+            <LayoutGrid size={14} />
+          </button>
+          <button
+            onClick={() => onLayoutChange('scroll')}
+            data-testid="layout-scroll-btn"
+            className={`p-1 rounded transition-colors ${
+              layout === 'scroll'
+                ? 'bg-surface-tertiary text-content'
+                : 'text-content-muted hover:text-content'
+            }`}
+            aria-label="Scroll layout"
+            aria-pressed={layout === 'scroll'}
+          >
+            <List size={14} />
+          </button>
+        </div>
+
+        {/* Subgroup lens (relocated SubgroupConfigPopover) */}
+        {subgroupSlot && (
+          <div className="hidden sm:flex items-center" data-testid="context-subgroup">
+            {subgroupSlot}
+          </div>
+        )}
+
         {/* Time lens button */}
         <button
           ref={timeLensButtonRef}
@@ -624,31 +673,129 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
         >
           <Clock size={12} />
           <span>
-            {t('timeLens.button')}: {timeLensLabel(timeLens)} ▾
+            {t('timeLens.button')}: {timeLensLabel(timeLens)} &#9662;
           </span>
         </button>
 
-        {onExportCSV && (
-          <button
-            onClick={onExportCSV}
-            data-testid="btn-export-csv"
-            className="flex items-center gap-1 px-2 py-0.5 rounded text-xs text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
-            aria-label="Export CSV"
-          >
-            <Download size={12} />
-            <span className="hidden sm:inline">Export</span>
-          </button>
+        {/* Stages lens (relocated stage-column + stage-order selects) */}
+        {availableStageColumns.length > 0 && (
+          <div className="hidden sm:flex items-center gap-1" data-testid="context-stages">
+            <Layers size={14} className="text-blue-400" />
+            <select
+              value={stageColumn || ''}
+              onChange={e => setStageColumn?.(e.target.value || null)}
+              data-testid="stage-column-select"
+              className="bg-surface border border-edge text-xs text-content rounded px-1.5 py-0.5 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
+              title="Select a column to divide the chart into stages"
+              aria-label="Select stage column"
+            >
+              <option value="">No stages</option>
+              {availableStageColumns.map(col => (
+                <option key={col} value={col}>
+                  {columnAliases[col] || col}
+                </option>
+              ))}
+            </select>
+            {stageColumn && (
+              <select
+                value={stageOrderMode}
+                onChange={e => onStageOrderModeChange?.(e.target.value as 'auto' | 'data-order')}
+                data-testid="stage-order-select"
+                className="bg-surface border border-edge text-xs text-content-secondary rounded px-1.5 py-0.5 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
+                aria-label="Stage order mode"
+              >
+                <option value="auto">Auto order</option>
+                <option value="data-order">As in data</option>
+              </select>
+            )}
+          </div>
         )}
-        {onEnterPresentationMode && (
-          <button
-            onClick={onEnterPresentationMode}
-            data-testid="btn-present"
-            className="flex items-center gap-1 px-2 py-0.5 rounded text-xs text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
-            aria-label="Presentation mode"
-          >
-            <Presentation size={12} />
-            <span className="hidden sm:inline">Present</span>
-          </button>
+
+        {/* Export menu */}
+        {onExportCSV && (
+          <div className="relative" ref={exportMenuRef}>
+            <button
+              onClick={() => setExportMenuOpen(prev => !prev)}
+              data-testid="btn-export-csv"
+              className="flex items-center gap-1 px-2 py-0.5 rounded text-xs text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
+              aria-label="Export"
+              aria-haspopup="menu"
+              aria-expanded={exportMenuOpen}
+            >
+              <Download size={12} />
+              <span className="hidden sm:inline">Export &#9662;</span>
+            </button>
+            {exportMenuOpen && (
+              <div
+                role="menu"
+                data-testid="export-menu"
+                className="absolute right-0 top-full mt-1 z-50 min-w-[10rem] bg-surface-secondary border border-edge rounded-lg shadow-2xl py-1"
+              >
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    onExportCSV();
+                    setExportMenuOpen(false);
+                  }}
+                  data-testid="export-menu-csv"
+                  className="block w-full text-left px-3 py-1.5 text-xs text-content-secondary hover:bg-surface-tertiary hover:text-content transition-colors"
+                >
+                  Export CSV
+                </button>
+                {onExportVrs && (
+                  <button
+                    role="menuitem"
+                    onClick={() => {
+                      onExportVrs();
+                      setExportMenuOpen(false);
+                    }}
+                    data-testid="export-menu-vrs"
+                    className="block w-full text-left px-3 py-1.5 text-xs text-content-secondary hover:bg-surface-tertiary hover:text-content transition-colors"
+                  >
+                    Export .vrs
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Measure/scope chip + dropdown menu — only shown when there is a menu action to offer */}
+        {measureLabel && onEditFraming && (
+          <div className="relative hidden sm:block" ref={measureMenuRef}>
+            <button
+              onClick={() => setMeasureMenuOpen(prev => !prev)}
+              data-testid="measure-chip"
+              className="flex items-center gap-1 px-2 py-0.5 rounded border border-edge text-xs text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors max-w-[12rem]"
+              aria-label={`Measure: ${measureLabel}`}
+              aria-haspopup="menu"
+              aria-expanded={measureMenuOpen}
+            >
+              <span className="truncate font-medium text-content">{measureLabel}</span>
+              <ChevronDown size={10} />
+            </button>
+            {measureMenuOpen && (
+              <div
+                role="menu"
+                data-testid="measure-menu"
+                className="absolute right-0 top-full mt-1 z-50 min-w-[10rem] bg-surface-secondary border border-edge rounded-lg shadow-2xl py-1"
+              >
+                {onEditFraming && (
+                  <button
+                    role="menuitem"
+                    onClick={() => {
+                      onEditFraming();
+                      setMeasureMenuOpen(false);
+                    }}
+                    data-testid="measure-menu-edit-framing"
+                    className="block w-full text-left px-3 py-1.5 text-xs text-content-secondary hover:bg-surface-tertiary hover:text-content transition-colors"
+                  >
+                    Edit framing
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

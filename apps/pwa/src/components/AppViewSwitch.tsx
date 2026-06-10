@@ -404,6 +404,7 @@ function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactEl
     handleAddChartObservation,
     handleExport,
     handleExportCSV,
+    handleExportVrs,
     handleOpenFinding,
     handlePinFinding,
     highlightedChart,
@@ -420,6 +421,7 @@ function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactEl
       onPointClick={panels.openDataTableAtRow}
       hideStatsInGrid={panels.isPISidebarOpen}
       onExportCSV={handleExportCSV}
+      onExportVrs={handleExportVrs}
       onExportImage={handleExport}
       highlightedChart={highlightedChart}
       highlightIntensity={highlightIntensity}

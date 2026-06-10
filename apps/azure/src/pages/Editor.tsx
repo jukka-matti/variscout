@@ -2186,6 +2186,7 @@ export const Editor: React.FC<EditorProps> = ({
           handleDashboardAddData={handleDashboardAddData}
           handleDashboardNavigate={handleDashboardNavigate}
           handleDashboardResumeAnalysis={handleDashboardResumeAnalysis}
+          handleExportCSV={handleExportCSV}
           handleLoadSampleWithLanding={handleLoadSampleWithLanding}
           handleMappingConfirmWithCategories={handleMappingConfirmWithCategories}
           handleNavigateToChart={handleNavigateToChart}

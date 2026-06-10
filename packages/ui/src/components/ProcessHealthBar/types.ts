@@ -1,3 +1,4 @@
+import type React from 'react';
 import type { StatsResult, SpecLimits } from '@variscout/core';
 import type { CpkTargetSource } from '@variscout/core/capability';
 import type {
@@ -27,6 +28,12 @@ export interface ProcessHealthBarProps {
   columnLabel?: string;
   /** Total sample count */
   sampleCount: number;
+  /**
+   * Pre-formatted date range over the lensed/filtered rows ("Apr 13 – Jun 5").
+   * Computed by `useDataDateRange` in the consuming app. `null`/omitted when
+   * there is no time column or no parseable timestamp — the segment is hidden.
+   */
+  dateRange?: string | null;
   /** Filter chip data for active filters */
   filterChipData: FilterChipData[];
   /** Column aliases for display labels */
@@ -39,22 +46,53 @@ export interface ProcessHealthBarProps {
   onClearAll?: () => void;
   /** Optional callback to pin current filter state as a finding */
   onPinFinding?: () => void;
-  /** Current dashboard layout mode */
+  /**
+   * Current dashboard layout mode. KEPT for the grid/scroll toggle which
+   * Task 4 (layout-machinery retirement) owns — ER-1 Task 2 does not touch it.
+   */
   layout: 'grid' | 'scroll';
-  /** Called when user changes layout */
+  /** Called when user changes layout. (See `layout` — Task 4 retires this.) */
   onLayoutChange: (layout: 'grid' | 'scroll') => void;
-  /** Number of active factors */
-  factorCount: number;
-  /** Called when user clicks the Factors button to manage factors */
-  onManageFactors?: () => void;
-  /** Called when user clicks Export CSV */
+  /** Called when user clicks Export CSV (the Export menu's CSV item). */
   onExportCSV?: () => void;
-  /** Called when user enters presentation mode */
-  onEnterPresentationMode?: () => void;
+  /**
+   * Called when the user picks "Export .vrs" from the Export menu. PWA-only —
+   * Azure omits it (settled disposition; no Azure .vrs UI). When absent the
+   * .vrs menu item is not rendered.
+   */
+  onExportVrs?: () => void;
   /** Called when user clicks Set Specs */
   onSetSpecs?: () => void;
   /** Called when user clicks the Cpk stat to open capability editor */
   onCpkClick?: () => void;
+
+  // --- ER-1: context-line right cluster ---
+
+  /**
+   * Relocated Subgroup lens (the app's `SubgroupConfigPopover`). Rendered in the
+   * right cluster between the date/stats segment and the Time lens. App owns the
+   * popover wiring; the strip only hosts the slot.
+   */
+  subgroupSlot?: React.ReactNode;
+
+  /** Available stage columns (relocated from DashboardLayoutBase). Empty → no stage selects. */
+  availableStageColumns?: string[];
+  /** Currently selected stage column (null = no stages). */
+  stageColumn?: string | null;
+  /** Called when the stage column changes. */
+  setStageColumn?: (c: string | null) => void;
+  /** Stage ordering mode. */
+  stageOrderMode?: 'auto' | 'data-order' | string;
+  /** Called when the stage order mode changes (only relevant when a stage column is set). */
+  onStageOrderModeChange?: (m: 'auto' | 'data-order') => void;
+
+  /**
+   * Active measure (outcome) label shown on the right-end chip. When provided
+   * the chip renders with a dropdown menu carrying "Edit framing".
+   */
+  measureLabel?: string;
+  /** Called when the user picks "Edit framing" from the measure-chip menu. */
+  onEditFraming?: () => void;
 
   // --- Phase 2: Projection props (all optional for backward compat) ---
 

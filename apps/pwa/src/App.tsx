@@ -60,6 +60,7 @@ import {
   useProjectMembershipStore,
   useAnalysisScopeStore,
   useImprovementProjectStore,
+  buildDocumentSnapshotVrs,
   type DocumentSnapshotVrsFile,
 } from '@variscout/stores';
 import { createProjectActionItem } from '@variscout/core/findings';
@@ -622,6 +623,28 @@ function AppMain() {
     setHasOwnCaptureSinceExport(true);
     setShowDurabilityNudge(current => current || !durabilityNudgeDismissed);
   }, [durabilityNudgeDismissed]);
+
+  // .vrs export for the context-line Export menu (ER-1). Mirrors VrsExportButton —
+  // the framing-toolbar mount is Task 4's to gate; this is the relocated behavior.
+  const handleExportVrs = useCallback(() => {
+    if (!sessionHub) return;
+    const json = buildDocumentSnapshotVrs({
+      activeHub: sessionHub,
+      metadata: {
+        exportSource: 'pwa',
+        appVersion: import.meta.env.VITE_APP_VERSION ?? 'dev',
+      },
+    });
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const safeName = (sessionHub.processGoal ?? 'hub').slice(0, 32).replace(/[^a-z0-9-]+/gi, '-');
+    a.download = `${safeName}.vrs`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setHasOwnCaptureSinceExport(false);
+  }, [sessionHub]);
 
   useEffect(() => {
     if (!hasOwnCaptureSinceExport) return;
@@ -1448,6 +1471,7 @@ function AppMain() {
               handleAddChartObservation={handleAddChartObservation}
               handleExport={handleExport}
               handleExportCSV={handleExportCSV}
+              handleExportVrs={handleExportVrs}
               handleImportVrs={handleImportVrs}
               handleLoadSample={handleLoadSample}
               handleManualAnalyze={handleManualAnalyze}

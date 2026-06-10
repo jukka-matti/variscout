@@ -14,6 +14,7 @@ import {
   useFilteredData,
   useAnalysisStats,
   useLensedSampleCount,
+  useDataDateRange,
   useStagedAnalysis,
   useDefectTransform,
   useDefectSummary,
@@ -136,6 +137,8 @@ interface DashboardProps {
   onManageFactors?: () => void;
   onPinFinding?: (noteText?: string) => void;
   onShareChart?: (chartType: string) => void;
+  /** Export CSV handler (context-line Export menu — Azure CSV-only, no .vrs). */
+  onExportCSV?: () => void;
   findingsCallbacks?: AzureFindingsCallbacks;
   findings?: Finding[];
   /** Factor Intelligence: callback when user clicks "Investigate" on a significant factor */
@@ -196,6 +199,7 @@ const Dashboard = ({
   onManageFactors,
   onPinFinding,
   onShareChart,
+  onExportCSV,
   findingsCallbacks,
   findings: allFindings,
   onInvestigateFactor,
@@ -257,6 +261,7 @@ const Dashboard = ({
   const defectMapping = useProjectStore(s => s.defectMapping);
   const { filteredData, filteredIndexMap } = useFilteredData();
   const lensedSampleCount = useLensedSampleCount();
+  const dataDateRange = useDataDateRange();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
@@ -896,6 +901,7 @@ const Dashboard = ({
             onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
             columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
             sampleCount={lensedSampleCount}
+            dateRange={dataDateRange}
             filterChipData={filterChipData}
             columnAliases={columnAliases}
             onUpdateFilterValues={handleUpdateFilterValues}
@@ -904,8 +910,27 @@ const Dashboard = ({
             onPinFinding={onPinFinding}
             layout={displayOptions.dashboardLayout ?? 'grid'}
             onLayoutChange={l => setDisplayOptions({ ...displayOptions, dashboardLayout: l })}
-            factorCount={factors.length}
-            onManageFactors={onManageFactors}
+            subgroupSlot={
+              displayOptions.standardIChartMetric === 'capability' ? (
+                <SubgroupConfigPopover
+                  config={subgroupConfig}
+                  onConfigChange={setSubgroupConfig}
+                  availableColumns={(() => {
+                    const fromMap = subgroupAxisColumns(processContext?.processMap);
+                    return fromMap.length > 0 ? fromMap : factors;
+                  })()}
+                  columnAliases={columnAliases}
+                />
+              ) : undefined
+            }
+            availableStageColumns={availableStageColumns}
+            stageColumn={stageColumn}
+            setStageColumn={setStageColumn}
+            stageOrderMode={stageOrderMode}
+            onStageOrderModeChange={setStageOrderMode}
+            measureLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
+            onEditFraming={onManageFactors}
+            onExportCSV={onExportCSV}
             onSetSpecs={() => setShowSpecEditor(true)}
             onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
             centeringOpportunity={centeringOpportunity}
@@ -1131,11 +1156,7 @@ const Dashboard = ({
                 }
                 availableOutcomes={availableOutcomes}
                 setOutcome={setOutcome}
-                availableStageColumns={availableStageColumns}
                 stageColumn={stageColumn}
-                setStageColumn={setStageColumn}
-                stageOrderMode={stageOrderMode}
-                setStageOrderMode={setStageOrderMode}
                 stagedStats={stagedStats}
                 controlStats={
                   isCapabilityMode && capabilityIChartData?.cpkStats
@@ -1196,6 +1217,10 @@ const Dashboard = ({
                 onInsightCapture={!isDefectMode ? () => openEngineSignalCaptureDraft() : undefined}
                 // Azure-specific: Manage Factors button in I-Chart header
                 ichartHeaderExtra={
+                  // CapabilityMetricToggle + the Factors(N) twin STAY here
+                  // (chart identity + the ER-2 interim Factors home). The
+                  // SubgroupConfigPopover relocated to the context-line
+                  // `subgroupSlot` (ER-1 Task 2).
                   <div className="flex items-center gap-2">
                     <CapabilityMetricToggle
                       metric={displayOptions.standardIChartMetric ?? 'measurement'}
@@ -1204,20 +1229,6 @@ const Dashboard = ({
                       }
                       disabled={specs.usl === undefined && specs.lsl === undefined}
                     />
-                    {displayOptions.standardIChartMetric === 'capability' && (
-                      <SubgroupConfigPopover
-                        config={subgroupConfig}
-                        onConfigChange={setSubgroupConfig}
-                        availableColumns={(() => {
-                          // Prefer the rational-subgroup axes the user picked in FRAME
-                          // — they reflect process structure. Fall back to all factors
-                          // for projects without a map (backward compat). ADR-070.
-                          const fromMap = subgroupAxisColumns(processContext?.processMap);
-                          return fromMap.length > 0 ? fromMap : factors;
-                        })()}
-                        columnAliases={columnAliases}
-                      />
-                    )}
                     {onManageFactors && (
                       <button
                         onClick={onManageFactors}

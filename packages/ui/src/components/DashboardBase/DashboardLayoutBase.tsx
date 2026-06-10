@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from '@variscout/hooks';
-import { Activity, Layers, X } from 'lucide-react';
+import { Activity, X } from 'lucide-react';
 import { EditableChartTitle } from '../EditableChartTitle';
 import { FactorSelector } from '../FactorSelector';
 import { FilterContextBar } from '../FilterContextBar';
@@ -80,11 +80,10 @@ export interface DashboardLayoutBaseProps {
   setOutcome: (o: string) => void;
 
   // ---- Stage controls ----
-  availableStageColumns: string[];
+  // The stage-column + stage-order SELECTS moved to the context line
+  // (ProcessHealthBar) in ER-1 Task 2. Only `stageColumn` (read by the
+  // staged-stats chip) + `stagedStats` remain here.
   stageColumn: string | null;
-  setStageColumn: (c: string | null) => void;
-  stageOrderMode: 'auto' | 'data-order' | string;
-  setStageOrderMode: (m: 'auto' | 'data-order') => void;
   stagedStats: DashboardStagedStats | null;
   controlStats: DashboardControlStats | null;
 
@@ -221,11 +220,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   onDisplayOptionChange,
   availableOutcomes,
   setOutcome,
-  availableStageColumns,
   stageColumn,
-  setStageColumn,
-  stageOrderMode,
-  setStageOrderMode,
   stagedStats,
   controlStats: _controlStats,
   getTermUcl: _getTermUcl,
@@ -330,39 +325,9 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
           ))}
         </select>
 
-        {availableStageColumns.length > 0 && (
-          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-edge">
-            <Layers
-              size={16}
-              className={availableStageColumns.length > 0 ? 'text-blue-400' : 'text-content-muted'}
-            />
-            <select
-              value={stageColumn || ''}
-              onChange={e => setStageColumn(e.target.value || null)}
-              className="bg-surface border border-edge text-sm text-content rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
-              title="Select a column to divide the chart into stages"
-              aria-label="Select stage column"
-            >
-              <option value="">No stages</option>
-              {availableStageColumns.map(col => (
-                <option key={col} value={col}>
-                  {columnAliases[col] || col}
-                </option>
-              ))}
-            </select>
-            {stageColumn && (
-              <select
-                value={stageOrderMode}
-                onChange={e => setStageOrderMode(e.target.value as 'auto' | 'data-order')}
-                className="bg-surface border border-edge text-xs text-content-secondary rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
-                aria-label="Stage order mode"
-              >
-                <option value="auto">Auto order</option>
-                <option value="data-order">As in data</option>
-              </select>
-            )}
-          </div>
-        )}
+        {/* Stage-column + stage-order selects relocated to the context line
+            (ProcessHealthBar right cluster) in ER-1 Task 2. The staged-stats
+            chips below stay with the I-Chart card. */}
 
         {ichartHeaderExtra}
 

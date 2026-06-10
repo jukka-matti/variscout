@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   parseTimeValue,
+  rangeOf,
   extractTimeComponents,
   formatTimeValue,
   augmentWithTimeColumns,
@@ -540,5 +541,36 @@ describe('hasTimeComponent', () => {
     ];
 
     expect(hasTimeComponent(asRows(data), 'Date')).toBe(true);
+  });
+});
+
+describe('rangeOf', () => {
+  it('returns the min/max ISO range over a timestamp column', () => {
+    const rows = [
+      { Date: '2026-04-13T00:00:00Z' },
+      { Date: '2026-06-05T00:00:00Z' },
+      { Date: '2026-05-01T00:00:00Z' },
+    ];
+    const r = rangeOf(rows, 'Date');
+    expect(r).toBeDefined();
+    expect(r!.startISO).toBe('2026-04-13T00:00:00.000Z');
+    expect(r!.endISO).toBe('2026-06-05T00:00:00.000Z');
+  });
+
+  it('skips rows whose value does not parse', () => {
+    const rows = [{ Date: 'not-a-date' }, { Date: '2026-04-13T00:00:00Z' }, { Date: null }];
+    const r = rangeOf(rows, 'Date');
+    expect(r).toBeDefined();
+    expect(r!.startISO).toBe('2026-04-13T00:00:00.000Z');
+    expect(r!.endISO).toBe('2026-04-13T00:00:00.000Z');
+  });
+
+  it('returns undefined when no row carries a parseable timestamp', () => {
+    const rows = [{ Date: 'x' }, { Date: null }, { Other: 1 }];
+    expect(rangeOf(rows, 'Date')).toBeUndefined();
+  });
+
+  it('returns undefined for an empty dataset', () => {
+    expect(rangeOf([], 'Date')).toBeUndefined();
   });
 });

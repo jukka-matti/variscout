@@ -38,13 +38,19 @@ vi.mock('../AnovaResults', () => ({
 // Capture the ProcessHealthBar specs prop so the per-measure resolution can be
 // asserted (the bar gates its own Cpk chip on `specs`, independent of stats).
 const capturedHealthBarSpecs = vi.hoisted(() => ({ value: undefined as unknown }));
+// Capture the full ProcessHealthBar props so the ER-1 relocations (Subgroup
+// slot, Stages selects, Export CSV/.vrs, Edit-framing) can be asserted.
+const capturedHealthBarProps = vi.hoisted(() => ({
+  value: undefined as Record<string, unknown> | undefined,
+}));
 // Mock new dashboard chrome components
 vi.mock('@variscout/ui', async () => {
   const actual = await vi.importActual('@variscout/ui');
   return {
     ...actual,
-    ProcessHealthBar: ({ specs }: { specs: unknown }) => {
-      capturedHealthBarSpecs.value = specs;
+    ProcessHealthBar: (props: { specs: unknown } & Record<string, unknown>) => {
+      capturedHealthBarSpecs.value = props.specs;
+      capturedHealthBarProps.value = props;
       return <div data-testid="process-health-bar">Health Bar</div>;
     },
     VerificationCard: ({
@@ -94,6 +100,17 @@ vi.mock('html-to-image', () => ({
 vi.mock('../../workers/useStatsWorker', () => ({
   useStatsWorker: vi.fn(() => null),
 }));
+
+// Explicitly stub useDataDateRange — the hook reads from IndexedDB which isn't
+// available in jsdom; returning null is the correct "no date range" fallback
+// (mirrors the Azure test's intentional approach).
+vi.mock('@variscout/hooks', async () => {
+  const actual = await vi.importActual('@variscout/hooks');
+  return {
+    ...(actual as object),
+    useDataDateRange: () => null,
+  };
+});
 
 // Mock core functions
 vi.mock('@variscout/core', async () => {
@@ -208,6 +225,48 @@ describe('Dashboard', () => {
     render(<Dashboard />);
 
     expect(capturedHealthBarSpecs.value).toEqual({ lsl: 5, usl: 45 });
+  });
+
+  describe('ER-1: context-line relocations', () => {
+    it('feeds ProcessHealthBar the relocated stage controls + Export CSV/.vrs + Edit-framing', () => {
+      const onExportCSV = vi.fn();
+      const onExportVrs = vi.fn();
+      const onManageFactors = vi.fn();
+      render(
+        <Dashboard
+          onExportCSV={onExportCSV}
+          onExportVrs={onExportVrs}
+          onManageFactors={onManageFactors}
+        />
+      );
+      const props = capturedHealthBarProps.value!;
+      // Stage selects relocated from DashboardLayoutBase into the strip.
+      expect(props).toHaveProperty('availableStageColumns');
+      expect(typeof props.setStageColumn).toBe('function');
+      expect(typeof props.onStageOrderModeChange).toBe('function');
+      // PWA: both Export CSV and the relocated .vrs export.
+      expect(props.onExportCSV).toBe(onExportCSV);
+      expect(props.onExportVrs).toBe(onExportVrs);
+      // Measure chip + Edit-framing menu wired to the factor manager.
+      expect(props.onEditFraming).toBe(onManageFactors);
+      expect(props.measureLabel).toBeTruthy();
+    });
+
+    it('passes the relocated Subgroup slot only when the capability metric is active', () => {
+      // Default standardIChartMetric is measurement → no subgroup slot.
+      render(<Dashboard />);
+      expect(capturedHealthBarProps.value!.subgroupSlot).toBeUndefined();
+
+      useProjectStore.setState({
+        displayOptions: {
+          ...useProjectStore.getState().displayOptions,
+          standardIChartMetric: 'capability',
+        },
+        specs: { lsl: 5, usl: 45 },
+      });
+      render(<Dashboard />);
+      expect(capturedHealthBarProps.value!.subgroupSlot).toBeTruthy();
+    });
   });
 
   it('opens the shared capture card for an I-Chart brush and saves a factor-backed Finding', () => {

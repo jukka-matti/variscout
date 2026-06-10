@@ -54,6 +54,8 @@ interface EditorDashboardViewProps {
   // AI (from useAIOrchestration)
   aiOrch: UseAIOrchestrationReturn;
   handleShareChart: (chartType: string) => void;
+  /** Export CSV handler (context-line Export menu — Azure CSV-only). */
+  onExportCSV?: () => void;
   // Data quality
   controlViolations: Map<number, string[]> | undefined;
   excludedRowIndices: Set<number> | undefined;
@@ -93,6 +95,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   handleSetFindingStatus,
   aiOrch,
   handleShareChart,
+  onExportCSV,
   controlViolations,
   excludedRowIndices,
   excludedReasons,
@@ -187,6 +190,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           findingsCallbacks={findingsCallbacks}
           onPinFinding={handlePinFinding}
           onShareChart={handleShareChart}
+          onExportCSV={onExportCSV}
           onInvestigateFactor={handleInvestigateFactor}
           onOpenWall={onOpenWall}
           projectedCpkMap={projectedCpkMap}

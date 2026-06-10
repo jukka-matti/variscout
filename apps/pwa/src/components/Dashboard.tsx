@@ -55,6 +55,7 @@ import {
   useAnalysisStats,
   useStagedAnalysis,
   useLensedSampleCount,
+  useDataDateRange,
 } from '@variscout/hooks';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
@@ -105,8 +106,10 @@ interface DashboardProps {
   findings?: Finding[];
   /** When true, omit stats panel from grid (rendered as sidebar instead) */
   hideStatsInGrid?: boolean;
-  /** Export CSV callback (for toolbar) */
+  /** Export CSV callback (context-line Export menu) */
   onExportCSV?: () => void;
+  /** Export .vrs callback (context-line Export menu — PWA-only). */
+  onExportVrs?: () => void;
   /** Export image callback (for toolbar) */
   onExportImage?: () => void;
   /** External factor switch request (from question click) — sets boxplot + pareto factor */
@@ -135,6 +138,7 @@ const Dashboard = ({
   findings: _allFindings,
   hideStatsInGrid: _hideStatsInGrid = false,
   onExportCSV,
+  onExportVrs,
   onExportImage: _onExportImage,
   requestedFactor,
   onOpenWall,
@@ -175,6 +179,7 @@ const Dashboard = ({
   const defectMapping = useProjectStore(s => s.defectMapping);
   const { filteredData, filteredIndexMap } = useFilteredData();
   const lensedSampleCount = useLensedSampleCount();
+  const dataDateRange = useDataDateRange();
   const { stats, isComputing } = useAnalysisStats();
   const { stagedStats } = useStagedAnalysis();
   const { t } = useTranslation();
@@ -879,6 +884,7 @@ const Dashboard = ({
           onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
           columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
           sampleCount={lensedSampleCount}
+          dateRange={dataDateRange}
           filterChipData={filterChipData}
           columnAliases={columnAliases}
           onUpdateFilterValues={handleUpdateFilterValues}
@@ -887,9 +893,28 @@ const Dashboard = ({
           onPinFinding={onPinFinding}
           layout={displayOptions.dashboardLayout ?? 'grid'}
           onLayoutChange={l => setDisplayOptions({ ...displayOptions, dashboardLayout: l })}
-          factorCount={factors.length}
-          onManageFactors={onManageFactors}
+          subgroupSlot={
+            displayOptions.standardIChartMetric === 'capability' ? (
+              <SubgroupConfigPopover
+                config={subgroupConfig}
+                onConfigChange={setSubgroupConfig}
+                availableColumns={(() => {
+                  const fromMap = subgroupAxisColumns(processContext?.processMap);
+                  return fromMap.length > 0 ? fromMap : factors;
+                })()}
+                columnAliases={columnAliases}
+              />
+            ) : undefined
+          }
+          availableStageColumns={availableStageColumns}
+          stageColumn={stageColumn}
+          setStageColumn={setStageColumn}
+          stageOrderMode={stageOrderMode}
+          onStageOrderModeChange={setStageOrderMode}
+          measureLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
+          onEditFraming={onManageFactors}
           onExportCSV={onExportCSV}
+          onExportVrs={onExportVrs}
           onSetSpecs={() => setShowSpecEditor(true)}
           onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
           centeringOpportunity={centeringOpportunity}
@@ -973,11 +998,7 @@ const Dashboard = ({
         }
         availableOutcomes={availableOutcomes}
         setOutcome={setOutcome}
-        availableStageColumns={availableStageColumns}
         stageColumn={stageColumn}
-        setStageColumn={setStageColumn}
-        stageOrderMode={stageOrderMode}
-        setStageOrderMode={setStageOrderMode}
         stagedStats={stagedStats}
         controlStats={stats}
         chartTitles={chartTitles}
@@ -1052,6 +1073,9 @@ const Dashboard = ({
           </div>
         }
         ichartHeaderExtra={
+          // CapabilityMetricToggle STAYS here (chart identity — ER-10 territory).
+          // The SubgroupConfigPopover relocated to the context-line `subgroupSlot`
+          // (ER-1 Task 2).
           <div className="flex items-center gap-1">
             <CapabilityMetricToggle
               metric={displayOptions.standardIChartMetric ?? 'measurement'}
@@ -1060,20 +1084,6 @@ const Dashboard = ({
               }
               disabled={specs.usl === undefined && specs.lsl === undefined}
             />
-            {displayOptions.standardIChartMetric === 'capability' && (
-              <SubgroupConfigPopover
-                config={subgroupConfig}
-                onConfigChange={setSubgroupConfig}
-                availableColumns={(() => {
-                  // Prefer the rational-subgroup axes the user picked in FRAME — they
-                  // reflect process structure. Fall back to all factors for projects
-                  // without a map (backward compat). ADR-070.
-                  const fromMap = subgroupAxisColumns(processContext?.processMap);
-                  return fromMap.length > 0 ? fromMap : factors;
-                })()}
-                columnAliases={columnAliases}
-              />
-            )}
           </div>
         }
         // Render slots

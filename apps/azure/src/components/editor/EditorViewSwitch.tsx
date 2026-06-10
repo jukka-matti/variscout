@@ -468,6 +468,7 @@ function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.R
     findingsCallbacksWithPrompt,
     findingsState,
     handleBinningBindingsChange,
+    handleExportCSV,
     handlePinFinding,
     handleSetFindingStatus,
     handleShareChart,
@@ -494,6 +495,7 @@ function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.R
         handleSetFindingStatus={handleSetFindingStatus}
         aiOrch={aiOrch}
         handleShareChart={handleShareChart}
+        onExportCSV={handleExportCSV}
         controlViolations={controlViolations}
         excludedRowIndices={excludedRowIndices}
         excludedReasons={excludedReasons}

@@ -122,7 +122,6 @@ const defaultProps: ProcessHealthBarProps = {
   onRemoveFilter: vi.fn(),
   layout: 'grid',
   onLayoutChange: vi.fn(),
-  factorCount: 2,
 };
 
 describe('ProcessHealthBar', () => {
@@ -139,6 +138,33 @@ describe('ProcessHealthBar', () => {
     expect(bar.textContent).toContain('10.50');
     expect(bar.textContent).toContain('1.20');
     expect(bar.textContent).toContain('100');
+  });
+
+  // ---- Context-line LEFT order (wireframe contract): N · date · x̄/σ/Cpk · Filters ----
+  it('renders the N-calls segment from sampleCount', () => {
+    render(<ProcessHealthBar {...defaultProps} sampleCount={42} />);
+    const bar = screen.getByTestId('process-health-bar');
+    expect(bar.textContent).toContain('42');
+    // The label is now i18n'd — in tests, t(key) returns the key itself.
+    expect(bar.textContent).toContain('healthBar.rows');
+  });
+
+  it('renders the date-range segment when dateRange prop is provided', () => {
+    render(<ProcessHealthBar {...defaultProps} dateRange="Apr 13 – Jun 5" />);
+    const bar = screen.getByTestId('process-health-bar');
+    expect(bar.textContent).toContain('Apr 13 – Jun 5');
+  });
+
+  it('omits the date-range segment when dateRange is null', () => {
+    render(<ProcessHealthBar {...defaultProps} dateRange={null} />);
+    expect(screen.queryByTestId('context-date-range')).toBeNull();
+  });
+
+  it('renders "Filters: none" (muted) when there are no filters', () => {
+    render(<ProcessHealthBar {...defaultProps} filterChipData={[]} />);
+    const filters = screen.getByTestId('context-filters');
+    expect(filters.textContent).toContain('Filters:');
+    expect(filters.textContent).toContain('none');
   });
 
   it('renders Cpk and Pass Rate when specs set', () => {
@@ -192,6 +218,23 @@ describe('ProcessHealthBar', () => {
     render(<ProcessHealthBar {...propsWithSpecs} />);
     const cpkBtn = screen.getByTestId('stat-cpk');
     expect(cpkBtn.className).toContain('text-red-400');
+  });
+
+  it('Cpk button keeps onCpkClick wiring and gains a title', () => {
+    const onCpkClick = vi.fn();
+    render(
+      <ProcessHealthBar
+        {...defaultProps}
+        specs={specsWithLimits}
+        stats={{ ...baseStats, cpk: 1.4 }}
+        cpkTarget={1.33}
+        onCpkClick={onCpkClick}
+      />
+    );
+    const cpkBtn = screen.getByTestId('stat-cpk');
+    expect(cpkBtn.getAttribute('title')).toBe('View capability on the I-Chart');
+    fireEvent.click(cpkBtn);
+    expect(onCpkClick).toHaveBeenCalled();
   });
 
   it('renders filter chips when drilling', () => {
@@ -277,41 +320,144 @@ describe('ProcessHealthBar', () => {
     expect(screen.queryByTestId('btn-set-specs')).toBeNull();
   });
 
-  it('renders layout toggle buttons', () => {
+  // ---- Retired controls (ER-1) ----
+  it('does NOT render the Present button (PresentationView cut, PR #281)', () => {
     render(<ProcessHealthBar {...defaultProps} />);
-    expect(screen.getByTestId('layout-grid-btn')).toBeDefined();
-    expect(screen.getByTestId('layout-scroll-btn')).toBeDefined();
+    expect(screen.queryByTestId('btn-present')).toBeNull();
   });
 
-  it('calls onLayoutChange with correct value when layout buttons clicked', () => {
-    const onLayoutChange = vi.fn();
-    render(<ProcessHealthBar {...defaultProps} layout="grid" onLayoutChange={onLayoutChange} />);
-    fireEvent.click(screen.getByTestId('layout-scroll-btn'));
-    expect(onLayoutChange).toHaveBeenCalledWith('scroll');
-
-    fireEvent.click(screen.getByTestId('layout-grid-btn'));
-    expect(onLayoutChange).toHaveBeenCalledWith('grid');
+  it('does NOT render the Factors button (moved to the I-Chart header-extra in ER-1)', () => {
+    render(<ProcessHealthBar {...defaultProps} />);
+    expect(screen.queryByTestId('btn-manage-factors')).toBeNull();
   });
 
-  it('marks active layout button as pressed', () => {
-    render(<ProcessHealthBar {...defaultProps} layout="scroll" />);
-    const scrollBtn = screen.getByTestId('layout-scroll-btn');
-    expect(scrollBtn.getAttribute('aria-pressed')).toBe('true');
-    const gridBtn = screen.getByTestId('layout-grid-btn');
-    expect(gridBtn.getAttribute('aria-pressed')).toBe('false');
+  describe('Export menu (right cluster)', () => {
+    it('opens with an Export CSV item; clicking it fires onExportCSV', () => {
+      const onExportCSV = vi.fn();
+      render(<ProcessHealthBar {...defaultProps} onExportCSV={onExportCSV} />);
+      fireEvent.click(screen.getByTestId('btn-export-csv'));
+      const csvItem = screen.getByTestId('export-menu-csv');
+      fireEvent.click(csvItem);
+      expect(onExportCSV).toHaveBeenCalled();
+    });
+
+    it('includes an Export .vrs item only when onExportVrs is provided', () => {
+      const onExportCSV = vi.fn();
+      const onExportVrs = vi.fn();
+      render(
+        <ProcessHealthBar {...defaultProps} onExportCSV={onExportCSV} onExportVrs={onExportVrs} />
+      );
+      fireEvent.click(screen.getByTestId('btn-export-csv'));
+      const vrsItem = screen.getByTestId('export-menu-vrs');
+      fireEvent.click(vrsItem);
+      expect(onExportVrs).toHaveBeenCalled();
+    });
+
+    it('omits the .vrs item when onExportVrs is absent (Azure)', () => {
+      render(<ProcessHealthBar {...defaultProps} onExportCSV={vi.fn()} />);
+      fireEvent.click(screen.getByTestId('btn-export-csv'));
+      expect(screen.queryByTestId('export-menu-vrs')).toBeNull();
+    });
   });
 
-  it('renders Factors button with count', () => {
-    render(<ProcessHealthBar {...defaultProps} factorCount={3} />);
-    const factorsBtn = screen.getByTestId('btn-manage-factors');
-    expect(factorsBtn.textContent).toContain('Factors(3)');
+  describe('Measure/scope chip menu (right cluster)', () => {
+    it('renders the measure label and opens a menu with Edit framing', () => {
+      const onEditFraming = vi.fn();
+      render(
+        <ProcessHealthBar
+          {...defaultProps}
+          measureLabel="Handle_Time"
+          onEditFraming={onEditFraming}
+        />
+      );
+      const chip = screen.getByTestId('measure-chip');
+      expect(chip.textContent).toContain('Handle_Time');
+      fireEvent.click(chip);
+      const editItem = screen.getByTestId('measure-menu-edit-framing');
+      fireEvent.click(editItem);
+      expect(onEditFraming).toHaveBeenCalled();
+    });
+
+    it('closes the measure menu on Escape', () => {
+      render(
+        <ProcessHealthBar {...defaultProps} measureLabel="Handle_Time" onEditFraming={vi.fn()} />
+      );
+      fireEvent.click(screen.getByTestId('measure-chip'));
+      expect(screen.getByTestId('measure-menu-edit-framing')).toBeDefined();
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(screen.queryByTestId('measure-menu-edit-framing')).toBeNull();
+    });
+
+    it('does not render the chip when measureLabel is absent', () => {
+      render(<ProcessHealthBar {...defaultProps} />);
+      expect(screen.queryByTestId('measure-chip')).toBeNull();
+    });
   });
 
-  it('calls onManageFactors when Factors button clicked', () => {
-    const onManageFactors = vi.fn();
-    render(<ProcessHealthBar {...defaultProps} onManageFactors={onManageFactors} />);
-    fireEvent.click(screen.getByTestId('btn-manage-factors'));
-    expect(onManageFactors).toHaveBeenCalled();
+  describe('Subgroup slot (relocated SubgroupConfigPopover)', () => {
+    it('renders the subgroupSlot node in the right cluster', () => {
+      render(
+        <ProcessHealthBar
+          {...defaultProps}
+          subgroupSlot={<div data-testid="subgroup-slot-content">Subgroup</div>}
+        />
+      );
+      expect(screen.getByTestId('subgroup-slot-content')).toBeDefined();
+    });
+  });
+
+  describe('Stages selects (relocated from DashboardLayoutBase)', () => {
+    it('renders the stage-column select when availableStageColumns is non-empty', () => {
+      const setStageColumn = vi.fn();
+      render(
+        <ProcessHealthBar
+          {...defaultProps}
+          availableStageColumns={['Step']}
+          stageColumn={null}
+          setStageColumn={setStageColumn}
+          stageOrderMode="auto"
+          onStageOrderModeChange={vi.fn()}
+          columnAliases={{ Step: 'Process Step' }}
+        />
+      );
+      const select = screen.getByTestId('stage-column-select') as HTMLSelectElement;
+      expect(select).toBeDefined();
+      fireEvent.change(select, { target: { value: 'Step' } });
+      expect(setStageColumn).toHaveBeenCalledWith('Step');
+    });
+
+    it('renders the stage-order select only when a stage column is selected', () => {
+      const onStageOrderModeChange = vi.fn();
+      const { rerender } = render(
+        <ProcessHealthBar
+          {...defaultProps}
+          availableStageColumns={['Step']}
+          stageColumn={null}
+          setStageColumn={vi.fn()}
+          stageOrderMode="auto"
+          onStageOrderModeChange={onStageOrderModeChange}
+        />
+      );
+      expect(screen.queryByTestId('stage-order-select')).toBeNull();
+      rerender(
+        <ProcessHealthBar
+          {...defaultProps}
+          availableStageColumns={['Step']}
+          stageColumn="Step"
+          setStageColumn={vi.fn()}
+          stageOrderMode="auto"
+          onStageOrderModeChange={onStageOrderModeChange}
+        />
+      );
+      const orderSelect = screen.getByTestId('stage-order-select') as HTMLSelectElement;
+      fireEvent.change(orderSelect, { target: { value: 'data-order' } });
+      expect(onStageOrderModeChange).toHaveBeenCalledWith('data-order');
+    });
+
+    it('does NOT render stage selects when availableStageColumns is empty', () => {
+      render(<ProcessHealthBar {...defaultProps} availableStageColumns={[]} />);
+      expect(screen.queryByTestId('stage-column-select')).toBeNull();
+    });
   });
 
   it('renders Export button when onExportCSV provided', () => {
@@ -319,17 +465,6 @@ describe('ProcessHealthBar', () => {
     render(<ProcessHealthBar {...defaultProps} onExportCSV={onExportCSV} />);
     const exportBtn = screen.getByTestId('btn-export-csv');
     expect(exportBtn).toBeDefined();
-    fireEvent.click(exportBtn);
-    expect(onExportCSV).toHaveBeenCalled();
-  });
-
-  it('renders Present button when onEnterPresentationMode provided', () => {
-    const onPresentationMode = vi.fn();
-    render(<ProcessHealthBar {...defaultProps} onEnterPresentationMode={onPresentationMode} />);
-    const presentBtn = screen.getByTestId('btn-present');
-    expect(presentBtn).toBeDefined();
-    fireEvent.click(presentBtn);
-    expect(onPresentationMode).toHaveBeenCalled();
   });
 
   it('does not render when stats is null', () => {

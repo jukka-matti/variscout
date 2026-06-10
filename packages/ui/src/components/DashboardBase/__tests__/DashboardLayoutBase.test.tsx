@@ -52,11 +52,7 @@ const baseProps: DashboardLayoutBaseProps = {
   onDisplayOptionChange: noop,
   availableOutcomes: ['Weight', 'Height'],
   setOutcome: noop,
-  availableStageColumns: [],
   stageColumn: null,
-  setStageColumn: noop,
-  stageOrderMode: 'auto',
-  setStageOrderMode: noop,
   stagedStats: null,
   controlStats: { ucl: 12, lcl: 8, mean: 10 },
   chartTitles: {},
@@ -222,6 +218,12 @@ describe('DashboardLayoutBase', () => {
   it('does not render staged stats chips when stageColumn is null', () => {
     render(<DashboardLayoutBase {...baseProps} stageColumn={null} stagedStats={null} />);
     expect(screen.queryByTestId('staged-stats-chips')).toBeNull();
+  });
+
+  it('no longer renders the stage-column / stage-order selects (moved to the context line, ER-1)', () => {
+    render(<DashboardLayoutBase {...baseProps} stageColumn="Batch" />);
+    expect(screen.queryByLabelText('Select stage column')).toBeNull();
+    expect(screen.queryByLabelText('Stage order mode')).toBeNull();
   });
 
   it('does not render Fixed/Rolling/Open-ended/Cumulative windowing buttons', () => {

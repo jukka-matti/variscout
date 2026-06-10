@@ -452,6 +452,7 @@ export {
 export type { TimeComponents, TimeExtractionConfig, TimeGranularity } from './time';
 export {
   parseTimeValue,
+  rangeOf,
   extractTimeComponents,
   formatTimeValue,
   formatTimeBucket,
