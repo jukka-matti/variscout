@@ -891,8 +891,6 @@ const Dashboard = ({
           onRemoveFilter={handleRemoveFilter}
           onClearAll={handleClearAllFilters}
           onPinFinding={onPinFinding}
-          layout={displayOptions.dashboardLayout ?? 'grid'}
-          onLayoutChange={l => setDisplayOptions({ ...displayOptions, dashboardLayout: l })}
           subgroupSlot={
             displayOptions.standardIChartMetric === 'capability' ? (
               <SubgroupConfigPopover
@@ -1008,7 +1006,6 @@ const Dashboard = ({
         paretoFactor={paretoFactor}
         setParetoFactor={setParetoFactor}
         showParetoPanel={false}
-        layout={displayOptions.dashboardLayout ?? 'grid'}
         focusedChart={focusedChart}
         setFocusedChart={setFocusedChart}
         filterChipData={filterChipData}

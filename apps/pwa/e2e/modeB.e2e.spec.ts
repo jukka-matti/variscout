@@ -97,15 +97,19 @@ test.describe('Framing layer Mode B (PWA) — happy path', () => {
     await seeCta.click();
 
     // 7. After CTA click we land on Explore (analysisScope seeded with Y).
-    //    The framing-toolbar with OutcomePin and .vrs export should now be visible
-    //    (rawData > 0 + sessionHub + not in paste/mapping mode).
-    await expect(page.getByTestId('framing-toolbar')).toBeVisible({ timeout: 10000 });
+    //    ER-1: the Explore chrome is the context line (ProcessHealthBar), not the
+    //    framing toolbar — the framing toolbar is now Process-tab-only canvas chrome.
+    await expect(page.getByTestId('process-health-bar')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('framing-toolbar')).toHaveCount(0);
 
     // 8. No browser-save affordances (PWA is export-only per R6d).
     await expect(page.getByTestId('save-to-browser-button')).toHaveCount(0);
     await expect(page.getByTestId('save-to-browser-saved')).toHaveCount(0);
 
-    // 9. .vrs export button is present (export-only durability path).
+    // 9. The Process tab carries the framing toolbar with its .vrs export
+    //    (export-only durability path) — ER-1 relocated it from a universal strip.
+    await page.getByTestId('workflow-tab-process').click();
+    await expect(page.getByTestId('framing-toolbar')).toBeVisible({ timeout: 5000 });
     await expect(page.getByRole('button', { name: /export.*\.vrs/i })).toBeVisible({
       timeout: 5000,
     });
@@ -120,15 +124,17 @@ test.describe('Framing layer Mode B (PWA) — happy path', () => {
     await page.getByTestId('paste-start-analysis').click();
     await expect(page.getByTestId('frame-view-b0')).toBeVisible({ timeout: 10000 });
 
-    // Navigate to Explore via the CTA so we leave b0
+    // Navigate to Explore via the CTA so we leave b0 — ER-1: the context line
+    // (ProcessHealthBar) is Explore's chrome, not the framing toolbar.
     await page.getByTestId('see-the-data-cta').click();
-    await expect(page.getByTestId('framing-toolbar')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('process-health-bar')).toBeVisible({ timeout: 10000 });
 
     // 2. Reload — PWA startup is export-only; no browser snapshot hydrates.
     await page.reload();
     await page.waitForLoadState('networkidle');
 
-    // 3. After reload: no framing toolbar, no b0 — back to HomeScreen.
+    // 3. After reload: no context line, no framing toolbar, no b0 — back to HomeScreen.
+    await expect(page.getByTestId('process-health-bar')).toHaveCount(0);
     await expect(page.getByTestId('framing-toolbar')).toHaveCount(0);
     await expect(page.getByTestId('home-paste-button')).toBeVisible({ timeout: 5000 });
     await expect(page.getByTestId('vrs-import-button')).toBeVisible({ timeout: 5000 });
@@ -201,7 +207,9 @@ test.describe('Framing layer Mode B (PWA) — multi-outcome confirm', () => {
       await stageFiveSkip.click();
     }
 
-    // Workspace framing-toolbar should show 2 OutcomePins
+    // ER-1: OutcomePins live in the Process-tab framing toolbar (canvas chrome).
+    // Land on the Process tab, then assert the toolbar shows 2 OutcomePins.
+    await page.getByTestId('workflow-tab-process').click();
     await expect(page.getByTestId('framing-toolbar')).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId('outcome-pin')).toHaveCount(2, { timeout: 10000 });
   });
@@ -321,8 +329,9 @@ test.describe('Framing layer Mode B (PWA) — cryptic column names (all-categori
     // "Skip outcome — paint canvas with all columns unclassified" routes to Explore.
     await page.getByRole('button', { name: /Skip outcome/i }).click();
 
-    // The Explore/dashboard surface renders (framing-toolbar visible once we leave b0).
-    await expect(page.getByTestId('framing-toolbar')).toBeVisible({ timeout: 10000 });
+    // The Explore/dashboard surface renders — ER-1: the context line
+    // (ProcessHealthBar) is Explore's chrome, not the framing toolbar.
+    await expect(page.getByTestId('process-health-bar')).toBeVisible({ timeout: 10000 });
   });
 });
 

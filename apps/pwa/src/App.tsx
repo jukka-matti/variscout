@@ -30,7 +30,6 @@ import {
   type ChartObservationCaptureOptions,
 } from '@variscout/ui';
 import { useStageFiveOpener } from './hooks/useStageFiveOpener';
-import { VrsExportButton } from './components/VrsExportButton';
 import { SessionProvider, useSession } from './store/sessionStore';
 import { pwaHubRepository } from './persistence';
 import { generateDeterministicId } from '@variscout/core/identity';
@@ -624,8 +623,8 @@ function AppMain() {
     setShowDurabilityNudge(current => current || !durabilityNudgeDismissed);
   }, [durabilityNudgeDismissed]);
 
-  // .vrs export for the context-line Export menu (ER-1). Mirrors VrsExportButton —
-  // the framing-toolbar mount is Task 4's to gate; this is the relocated behavior.
+  // .vrs export — the single source of truth (ER-1 retired VrsExportButton). Shared
+  // by the Process-tab framing toolbar button + the Explore context-line Export menu.
   const handleExportVrs = useCallback(() => {
     if (!sessionHub) return;
     const json = buildDocumentSnapshotVrs({
@@ -1369,6 +1368,9 @@ function AppMain() {
           analysis canvas (not in a framing modal). Shows OutcomePin, .vrs
           export, and Edit-framing re-entry. */}
       {rawData.length > 0 &&
+        // ER-1: the framing toolbar is canvas chrome for the Process tab only —
+        // Explore's chrome is the context line (ProcessHealthBar).
+        panels.activeView === 'frame' &&
         // First-session spec §1: embeds are exempt from the journey spine chrome.
         !isEmbedMode &&
         !isAnalyzeWallCanvasFirst &&
@@ -1405,10 +1407,13 @@ function AppMain() {
             >
               + New analyze
             </button>
-            <VrsExportButton
-              currentHub={sessionHub}
-              onExported={() => setHasOwnCaptureSinceExport(false)}
-            />
+            <button
+              type="button"
+              className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+              onClick={handleExportVrs}
+            >
+              Export .vrs
+            </button>
             <button
               type="button"
               className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"

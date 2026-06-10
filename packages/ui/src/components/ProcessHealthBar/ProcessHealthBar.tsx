@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { LayoutGrid, List, Layers, ChevronDown, X, Download, Pin, Clock } from 'lucide-react';
+import { Layers, ChevronDown, X, Download, Pin, Clock } from 'lucide-react';
 import type { ProcessHealthBarProps } from './types';
 import { ScopeCoverageBar } from './ScopeCoverageBar';
 import { FilterChipDropdown } from '../FilterChipDropdown';
@@ -53,10 +53,10 @@ function cpkColor(cpk: number, target: number): string {
  *
  * Layout (wireframe `explore-redesign-mockup-2026-06-10.html`):
  *   LEFT:  N calls · date range · x̄ <v> σ <v> Cpk <v> · Filters: <none | chips>
- *   RIGHT: [grid/scroll toggle] · Subgroup · Time · Stages · Export · measure chip ▾
+ *   RIGHT: Subgroup · Time · Stages · Export · measure chip ▾
  *
- * The grid/scroll toggle is retained until ER-1 Task 4 retires the layout
- * machinery. The Factors(N) and Present buttons were removed in Task 2.
+ * The grid/scroll layout toggle was retired in ER-1 Task 4 (scroll is the only
+ * layout). The Factors(N) and Present buttons were removed in Task 2.
  */
 const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   stats,
@@ -73,8 +73,6 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   onRemoveFilter,
   onClearAll,
   onPinFinding,
-  layout,
-  onLayoutChange,
   onExportCSV,
   onExportVrs,
   onSetSpecs,
@@ -623,38 +621,8 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
         )}
       </div>
 
-      {/* ── RIGHT cluster: toggle · Subgroup · Time · Stages · Export · measure chip ── */}
+      {/* ── RIGHT cluster: Subgroup · Time · Stages · Export · measure chip ── */}
       <div className="flex items-center gap-1 ml-auto shrink-0" data-export-hide>
-        {/* Layout toggle — retained until Task 4; hidden on mobile */}
-        <div className="hidden sm:flex items-center gap-0.5">
-          <button
-            onClick={() => onLayoutChange('grid')}
-            data-testid="layout-grid-btn"
-            className={`p-1 rounded transition-colors ${
-              layout === 'grid'
-                ? 'bg-surface-tertiary text-content'
-                : 'text-content-muted hover:text-content'
-            }`}
-            aria-label="Grid layout"
-            aria-pressed={layout === 'grid'}
-          >
-            <LayoutGrid size={14} />
-          </button>
-          <button
-            onClick={() => onLayoutChange('scroll')}
-            data-testid="layout-scroll-btn"
-            className={`p-1 rounded transition-colors ${
-              layout === 'scroll'
-                ? 'bg-surface-tertiary text-content'
-                : 'text-content-muted hover:text-content'
-            }`}
-            aria-label="Scroll layout"
-            aria-pressed={layout === 'scroll'}
-          >
-            <List size={14} />
-          </button>
-        </div>
-
         {/* Subgroup lens (relocated SubgroupConfigPopover) */}
         {subgroupSlot && (
           <div className="hidden sm:flex items-center" data-testid="context-subgroup">

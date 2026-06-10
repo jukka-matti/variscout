@@ -76,9 +76,9 @@ export function EditorViewSwitch(props: EditorViewSwitchProps): React.ReactEleme
       ) : outcome || hasB0ModeProposal || hasAcceptedB0ModeFraming ? (
         <>
           {/* Canvas framing toolbar — '+New investigation' on-demand entry
-                (Mode A.1 reopen path, spec §5.5). Visible whenever data + outcome are
-                set (i.e. the analyst is on the canvas, not in a mapping modal). */}
-          {!isAnalyzeWallCanvasFirst ? (
+                (Mode A.1 reopen path, spec §5.5). ER-1: this is Process-tab canvas
+                chrome only — Explore's chrome is the context line (ProcessHealthBar). */}
+          {activeView === 'frame' && !isAnalyzeWallCanvasFirst ? (
             <div
               className="flex items-center gap-2 px-4 py-1.5 bg-surface-secondary border-b border-edge"
               data-testid="framing-toolbar"

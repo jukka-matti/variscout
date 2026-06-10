@@ -116,7 +116,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
                     e.stopPropagation();
                     onCopyChart(id, chartName);
                   }}
-                  className={`p-1.5 rounded transition-all min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                  className={`p-1.5 rounded transition-all min-w-7 min-h-7 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-blue-400 ${
                     copyFeedback === chartName
                       ? 'bg-green-500/20 text-green-400'
                       : 'text-content-muted hover:text-content hover:bg-surface-tertiary'
@@ -143,7 +143,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
                   e.stopPropagation();
                   onShareChart(chartName);
                 }}
-                className="p-1.5 rounded text-content-muted hover:text-blue-400 hover:bg-blue-400/10 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-1.5 rounded text-content-muted hover:text-blue-400 hover:bg-blue-400/10 transition-colors min-w-7 min-h-7 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-blue-400"
                 title={`Share ${chartName}`}
                 aria-label={`Share ${chartName}`}
                 data-export-hide
@@ -158,7 +158,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
                   e.stopPropagation();
                   onMaximize?.();
                 }}
-                className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors min-w-7 min-h-7 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-blue-400"
                 title="Maximize Chart"
                 aria-label="Maximize chart"
               >

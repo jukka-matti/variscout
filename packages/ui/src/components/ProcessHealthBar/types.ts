@@ -46,13 +46,6 @@ export interface ProcessHealthBarProps {
   onClearAll?: () => void;
   /** Optional callback to pin current filter state as a finding */
   onPinFinding?: () => void;
-  /**
-   * Current dashboard layout mode. KEPT for the grid/scroll toggle which
-   * Task 4 (layout-machinery retirement) owns — ER-1 Task 2 does not touch it.
-   */
-  layout: 'grid' | 'scroll';
-  /** Called when user changes layout. (See `layout` — Task 4 retires this.) */
-  onLayoutChange: (layout: 'grid' | 'scroll') => void;
   /** Called when user clicks Export CSV (the Export menu's CSV item). */
   onExportCSV?: () => void;
   /**

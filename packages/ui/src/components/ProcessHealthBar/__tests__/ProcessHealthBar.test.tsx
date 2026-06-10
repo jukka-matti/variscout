@@ -120,8 +120,6 @@ const defaultProps: ProcessHealthBarProps = {
   filterChipData: [],
   onUpdateFilterValues: vi.fn(),
   onRemoveFilter: vi.fn(),
-  layout: 'grid',
-  onLayoutChange: vi.fn(),
 };
 
 describe('ProcessHealthBar', () => {
@@ -329,6 +327,12 @@ describe('ProcessHealthBar', () => {
   it('does NOT render the Factors button (moved to the I-Chart header-extra in ER-1)', () => {
     render(<ProcessHealthBar {...defaultProps} />);
     expect(screen.queryByTestId('btn-manage-factors')).toBeNull();
+  });
+
+  it('does NOT render the grid/scroll layout toggle (retired in ER-1 Task 4 — scroll is the only layout)', () => {
+    render(<ProcessHealthBar {...defaultProps} />);
+    expect(screen.queryByTestId('layout-grid-btn')).toBeNull();
+    expect(screen.queryByTestId('layout-scroll-btn')).toBeNull();
   });
 
   describe('Export menu (right cluster)', () => {
