@@ -1,12 +1,17 @@
 import React from 'react';
 import { ShieldCheck, ShieldAlert, History } from 'lucide-react';
+import { ControlVerificationBand } from '@variscout/ui';
 import {
   isControlEligible,
   isControlled,
   isCheckSuggested,
   type ControlRecord,
+  type ControlReview,
   type ControlHandoff,
+  type DataRow,
+  type SpecLimits,
 } from '@variscout/core';
+import { useSustainmentComparison } from '@variscout/hooks';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { formatSustainmentVerdict, formatSustainmentDue } from './controlFormat';
 
@@ -17,7 +22,11 @@ export interface ProcessHubControlRegionProps {
    */
   project: ImprovementProject | null | undefined;
   records: ControlRecord[];
+  reviews?: ControlReview[];
   handoffs: ControlHandoff[];
+  rawData?: DataRow[];
+  timeColumn?: string | null;
+  specs?: SpecLimits;
   /** Injectable "now" for deterministic tests. Defaults to the render time. */
   renderDate?: Date;
   onOpenProject: (projectId: string) => void;
@@ -36,13 +45,27 @@ function liveRecordForProject(
 const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
   project,
   records,
+  reviews = [],
   handoffs,
+  rawData = [],
+  timeColumn,
+  specs,
   renderDate,
   onOpenProject,
   onSetupControl,
   onLogReview,
 }) => {
   const now = renderDate ?? new Date();
+  const record = project ? liveRecordForProject(project.id, records) : undefined;
+  const recordReviews = record
+    ? reviews.filter(review => review.recordId === record.id && review.deletedAt === null)
+    : [];
+  const comparison = useSustainmentComparison({
+    rows: rawData,
+    timeColumn,
+    specs,
+    record,
+  });
 
   if (!project) {
     return (
@@ -56,7 +79,6 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
 
   const eligible = isControlEligible(project, records, handoffs);
   const controlled = isControlled(project, records);
-  const record = liveRecordForProject(project.id, records);
 
   // Determine single-project status.
   let status: 'suggested' | 'recently-reviewed' | 'needs-setup' | 'empty' = 'empty';
@@ -112,6 +134,17 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
             </div>
             {subline && <p className="mt-1 text-xs text-content-secondary">{subline}</p>}
           </button>
+          <div className="mt-3">
+            <ControlVerificationBand
+              record={record}
+              comparison={comparison}
+              reviews={recordReviews}
+              rawData={rawData}
+              timeColumn={timeColumn}
+              specs={specs}
+              onLogReview={onLogReview}
+            />
+          </div>
         </div>
       )}
 
@@ -137,6 +170,17 @@ const ProcessHubControlRegion: React.FC<ProcessHubControlRegionProps> = ({
             </div>
             {subline && <p className="mt-1 text-xs text-content-secondary">{subline}</p>}
           </button>
+          <div className="mt-3">
+            <ControlVerificationBand
+              record={record}
+              comparison={comparison}
+              reviews={recordReviews}
+              rawData={rawData}
+              timeColumn={timeColumn}
+              specs={specs}
+              onLogReview={onLogReview}
+            />
+          </div>
         </div>
       )}
 

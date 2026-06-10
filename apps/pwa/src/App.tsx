@@ -1450,6 +1450,7 @@ function AppMain() {
               pendingMatches={pendingMatches}
               projectsClosureInputs={projectsClosureInputs}
               rawData={rawData}
+              timeColumn={importFlow.timeExtractionPrompt?.timeColumn}
               resolved={resolved}
               revokeInvite={revokeInvite}
               acceptInvite={acceptInvite}

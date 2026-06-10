@@ -142,6 +142,8 @@ Consumer inventory to rewire (grounded 2026-06-10 — verify again at sub-plan t
 
 ### CC-4 — Verification band (spec §6)
 
+**Sub-plan:** [`2026-06-10-cc-4-verification-band.md`](2026-06-10-cc-4-verification-band.md).
+
 **Scope:** New `packages/ui/src/components/ControlVerificationBand/` composing CC-1 (comparison) + CC-3 (chart):
 
 - Top: phase-split I-Chart (improvement marker, stair-step limits, re-check flags from the ControlReview sequence).

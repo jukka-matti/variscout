@@ -1,9 +1,42 @@
 import React from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import ProcessHubControlRegion from '../ProcessHubControlRegion';
 import type { ControlRecord, ControlHandoff } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
+import { useSustainmentComparison } from '@variscout/hooks';
+import ProcessHubControlRegion from '../ProcessHubControlRegion';
+
+vi.mock('@variscout/ui', async () => {
+  const React = await import('react');
+  return {
+    ControlVerificationBand: (props: {
+      record: ControlRecord;
+      rawData?: unknown[];
+      timeColumn?: string | null;
+      onLogReview?: (recordId: string) => void;
+    }) =>
+      React.createElement(
+        'section',
+        { 'data-testid': 'verification-band' },
+        React.createElement('p', null, props.record.title),
+        React.createElement('p', null, `Rows ${props.rawData?.length ?? 0}`),
+        React.createElement('p', null, `Time ${props.timeColumn ?? 'none'}`),
+        React.createElement(
+          'button',
+          { type: 'button', onClick: () => props.onLogReview?.(props.record.id) },
+          'Band log re-check'
+        )
+      ),
+  };
+});
+
+vi.mock('@variscout/hooks', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/hooks')>();
+  return {
+    ...actual,
+    useSustainmentComparison: vi.fn(),
+  };
+});
 
 // Single-project Control status — the region now accepts a single `project` prop
 // (not an array). All status derivation uses per-record predicates directly.
@@ -81,8 +114,14 @@ function makeHandoff(projectId: string, overrides: Partial<ControlHandoff> = {})
 const noOp = vi.fn();
 // Anchor for deterministic status math.
 const NOW = new Date('2026-05-01T00:00:00.000Z');
+const mockUseSustainmentComparison = vi.mocked(useSustainmentComparison);
 
 describe('ProcessHubControlRegion', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseSustainmentComparison.mockReturnValue(null);
+  });
+
   it('renders the empty-state line when no project is control-eligible', () => {
     // active project, no control artifacts → not eligible → empty state.
     const project = makeProject({ id: 'p-1', title: 'Fill Weight', status: 'active' });
@@ -169,6 +208,9 @@ describe('ProcessHubControlRegion', () => {
         project={project}
         records={records}
         handoffs={handoffs}
+        rawData={[{ captured_at: '2026-04-21T00:00:00.000Z', metric: 1.2 }]}
+        timeColumn="captured_at"
+        specs={{ lsl: 0, usl: 2 }}
         renderDate={NOW}
         onOpenProject={noOp}
         onSetupControl={noOp}
@@ -178,10 +220,20 @@ describe('ProcessHubControlRegion', () => {
 
     expect(screen.getByText('Coffee Moisture')).toBeInTheDocument();
     expect(screen.getByTestId('control-suggested')).toBeInTheDocument();
+    expect(screen.getByTestId('verification-band')).toHaveTextContent('Rows 1');
+    expect(mockUseSustainmentComparison).toHaveBeenCalledWith({
+      rows: [{ captured_at: '2026-04-21T00:00:00.000Z', metric: 1.2 }],
+      timeColumn: 'captured_at',
+      specs: { lsl: 0, usl: 2 },
+      record: records[0],
+    });
 
     fireEvent.click(
       screen.getByRole('button', { name: /Log control re-check for Coffee Moisture/ })
     );
+    expect(onLogReview).toHaveBeenCalledWith('rec-abc');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Band log re-check' }));
     expect(onLogReview).toHaveBeenCalledWith('rec-abc');
   });
 

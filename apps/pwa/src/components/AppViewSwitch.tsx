@@ -46,6 +46,8 @@ export function AppViewSwitch(props: AppViewSwitchProps): React.ReactElement {
     rawData,
     separateParetoFilename,
     sessionHub,
+    specs,
+    timeColumn,
     workspaceProjectContext,
     workspaceProjectScope,
     workspaceProjectTitle,
@@ -131,6 +133,9 @@ export function AppViewSwitch(props: AppViewSwitchProps): React.ReactElement {
         <ControlPanel
           activeHub={sessionHub ?? undefined}
           targetId={panels.controlTargetId ?? undefined}
+          rawData={rawData}
+          timeColumn={timeColumn}
+          specs={specs}
           onBack={panels.showFrame}
         />
       ) : panels.activeView === 'analyze' ? (

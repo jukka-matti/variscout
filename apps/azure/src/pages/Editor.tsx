@@ -797,6 +797,9 @@ export const Editor: React.FC<EditorProps> = ({
   const _azureLiveControlHandoffs = (activeHub?.controlHandoffs ?? []).filter(
     h => h.deletedAt === null
   );
+  const _azureLiveControlReviews = (activeHub?.controlReviews ?? []).filter(
+    review => review.deletedAt === null
+  );
   const projectsControlRecord = _azureLiveControlRecords.find(
     r => r.improvementProjectId === selectedOrActiveProjectId
   );
@@ -820,7 +823,11 @@ export const Editor: React.FC<EditorProps> = ({
     <ProcessHubControlRegion
       project={workspaceProjectContext.workspaceProject ?? null}
       records={_azureLiveControlRecords}
+      reviews={_azureLiveControlReviews}
       handoffs={_azureLiveControlHandoffs}
+      rawData={rawData}
+      timeColumn={timeColumn}
+      specs={specs}
       onOpenProject={id => usePanelsStore.getState().showProjects(id)}
       onSetupControl={() =>
         usePanelsStore.getState().showControl(projectsControlRecord?.projectId ?? undefined)
@@ -2210,6 +2217,8 @@ export const Editor: React.FC<EditorProps> = ({
           projectsControlRecord={projectsControlRecord}
           projectsControlRegionSlot={projectsControlRegionSlot}
           rawData={rawData}
+          timeColumn={timeColumn}
+          specs={specs}
           selectedOrActiveProjectId={selectedOrActiveProjectId}
           setIsCreateProjectModalOpen={setIsCreateProjectModalOpen}
           sharedCoScoutSection={sharedCoScoutSection}

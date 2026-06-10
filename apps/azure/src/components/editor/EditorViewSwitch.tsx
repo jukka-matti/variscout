@@ -39,6 +39,8 @@ export function EditorViewSwitch(props: EditorViewSwitchProps): React.ReactEleme
     currentUser,
     dataFilename,
     dataFlow,
+    specs,
+    timeColumn,
     dataQualityReport,
     factors,
     handleLoadSampleWithLanding,
@@ -60,6 +62,9 @@ export function EditorViewSwitch(props: EditorViewSwitchProps): React.ReactEleme
         <ControlPanel
           activeHub={activeHub}
           targetId={controlTargetId ?? undefined}
+          rawData={rawData}
+          timeColumn={timeColumn}
+          specs={specs}
           onBack={() => usePanelsStore.getState().showFrame()}
         />
       ) : rawData.length === 0 ? (
