@@ -8,6 +8,12 @@ export interface DashboardGridProps {
   verificationCard?: React.ReactNode;
   /** Stats panel (only when sidebar is closed) */
   piPanel?: React.ReactNode;
+  /**
+   * Optional factor-strip band (ER-2) mounted between the I-Chart and the
+   * boxplot. flex-none chrome — never a chart slot. When present the I-Chart
+   * wrapper deducts more viewport (the strip eats ~116px under the hero).
+   */
+  factorStrip?: React.ReactNode;
 }
 
 /**
@@ -22,7 +28,21 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
   paretoCard,
   verificationCard,
   piPanel,
+  factorStrip,
 }) => {
+  // When the ER-2 factor strip is mounted it sits between the hero and the
+  // boxplot as flex-none chrome (~116px estimate: ~110px strip + the gap),
+  // so the I-Chart wrapper deducts that much more viewport. Without the strip
+  // the original 240px deduction is unchanged.
+  //
+  // NOTE: 356px = the 240px base chrome (see breakdown below) + ~116px strip
+  // estimate. The exact strip height is tuned at the `--chrome` browser gate
+  // (the strip is content-sized, not a fixed 116px); the floor (min-h-[440px])
+  // keeps the hero usable if the estimate runs short.
+  const ichartHeightClass = factorStrip
+    ? 'h-[calc(100dvh_-_356px)] min-h-[440px] shrink-0 rounded-2xl'
+    : 'h-[calc(100dvh_-_240px)] min-h-[500px] shrink-0 rounded-2xl';
+
   return (
     <div className="flex flex-col gap-4 p-3 overflow-y-auto">
       {/*
@@ -37,17 +57,22 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
        *     there is more content to scroll to)
        *   Total                              = 240px
        *
+       * When the factor strip is mounted, add ~116px (strip + gap) → 356px.
+       *
        * GoalBanner is conditional (variable height, not included). If it is
        * visible the I-Chart card simply overflows into the scroll area — the
-       * min-h-[500px] floor keeps it usable.
+       * min-h floor keeps it usable.
        */}
       {/* shrink-0 is load-bearing: these are flex children of an overflow-y-auto
           column — with the default flex-shrink:1 they compress to their min-h
           floors to fit the container BEFORE overflow scrolls, silently defeating
           the viewport-relative I-Chart height. */}
-      <div className="h-[calc(100dvh_-_240px)] min-h-[500px] shrink-0 rounded-2xl">
-        {ichartCard}
-      </div>
+      <div className={ichartHeightClass}>{ichartCard}</div>
+      {factorStrip && (
+        <div data-testid="factor-strip-band" className="flex-none shrink-0 rounded-2xl">
+          {factorStrip}
+        </div>
+      )}
       <div className="min-h-[400px] shrink-0 rounded-2xl">{boxplotCard}</div>
       {paretoCard && <div className="min-h-[400px] shrink-0 rounded-2xl">{paretoCard}</div>}
       {verificationCard && (

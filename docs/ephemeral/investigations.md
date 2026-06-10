@@ -1783,3 +1783,23 @@ ER-10's LTTB revival addresses the **dominant render cost** (SVG node count). Th
 ## Empty-data I-Chart shows the skeleton forever, hiding its own empty-state message [LOGGED 2026-06-11]
 
 **Summary:** with no outcome / zero rows, `useAsyncStats` settles at `stats=null, isComputing=false` (`packages/hooks/src/useAsyncStats.ts:46-50`), so the Dashboard's `ichartLoading = !stats || isComputing` stays `true` permanently and the ER-1 chart skeleton never yields — hiding the "No data available for I-Chart" message that renders underneath (`packages/ui/src/components/IChartWrapper/index.tsx:158-163`). Pre-existing in effect (the pre-latch gate had the same outcome — surfaced, not regressed, by the ER-1 svg-latch review). Fix direction: the loading flag should distinguish "computing" from "nothing to compute" (e.g. `isLoading = isComputing || (!stats && hasRows)`), decided at the Dashboard call sites in both apps.
+
+## FactorStrip what-if card anchors to the strip container, not the chip [LOGGED 2026-06-11]
+
+**Surfaced by:** ER-2 code review (commit eebc367d5).
+
+**Summary:** the what-if hover card in `FactorStripBase` uses `absolute left-3.5 top-full` positioning relative to the strip's outer `<div className="relative …">` container. When the chip row wraps (many factors or narrow viewport), chips in the second or third row will have their hover card appear misaligned — anchored to the strip top edge rather than the triggering chip. The fix direction is a `useTooltipPosition` hook (or equivalent `getBoundingClientRect` measurement on the chip element) that computes viewport-relative coordinates for the card, similar to the evidence-map context-menu pattern in `packages/ui/src/components/EvidenceMapContextMenu/`. Verify and fix at the `--chrome` gate (real viewport wrap behaviour is hard to replicate in jsdom).
+
+**Promotion path:** fix before ER-6 (the strip gains more chips once interaction chips land, making wrap more likely in practice). Candidate `useTooltipPosition` swap, same pattern as `EdgeContextMenu`.
+
+**Severity:** low — visible only when factor count causes chip wrap; single-factor and top-3 views are unaffected.
+
+## Dead i18n key `boxplot.factor.label` left in 32 catalogs after dropdown retirement [LOGGED 2026-06-11]
+
+**Surfaced by:** ER-2 code review (commit eebc367d5).
+
+**Summary:** the key `boxplot.factor.label` is present in all 32 locale catalogs under `packages/core/src/i18n/messages/` but is no longer referenced by any component or hook — the factor-select dropdown it served was retired as part of the strip-first redesign. The dead key is harmless but accumulates as catalog noise and will confuse future i18n sweeps.
+
+**Promotion path:** grep for any remaining `boxplot.factor.label` callers before deleting (confirm zero call sites), then delete the key from all 32 catalogs in a single mechanical cleanup commit. No UI change.
+
+**Severity:** very low — catalog hygiene only; no behavioural impact.

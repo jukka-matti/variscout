@@ -1086,6 +1086,32 @@ export const hi: MessageCatalog = {
 
   'healthBar.rows': 'rows',
 
+  // Factor strip (ER-2 — "What explains the variation?")
+  'factorStrip.title': 'What explains the variation?',
+  'factorStrip.title.scoped': 'What explains the variation within this condition?',
+  'factorStrip.subtitle':
+    "how much of the row-to-row differences each factor accounts for (η²) — shares overlap, won't sum to 100%",
+  'factorStrip.modelLink': 'How these % are computed (model & ANOVA) →',
+  'factorStrip.modelLink.stub': 'coming with the model drawer',
+  'factorStrip.star.title': 'largest share',
+  'factorStrip.binned': '(binned)',
+  'factorStrip.examined': 'examined',
+  'factorStrip.chip.hover': 'p={p} · df={dfB},{dfW} · joint n={n}',
+  'factorStrip.residual': 'everyday variation · ~{n}% — not tied to these factors',
+  'factorStrip.residual.hover':
+    'Residual of the joint model — mostly routine row-to-row variation, plus factors not yet measured. A large residual is typical for service data.',
+  'factorStrip.alsoScreened': '+{n} also screened',
+  'factorStrip.whatif.label': 'what-if · everyone matched the best group',
+  'factorStrip.whatif.matched': 'If all {factor} groups matched {bestLevel}:',
+  'factorStrip.whatif.average': 'average {outcome}, all {n} rows: {current} → {projected}',
+  'factorStrip.whatif.average.scoped': 'average {outcome}, this condition: {current} → {projected}',
+  'factorStrip.whatif.cpk': 'Cpk {current} → {projected} (reference {target})',
+  'factorStrip.whatif.bridge':
+    'the gap is bigger per group — this is the overall average across {k} groups',
+  // Boxplot card (factor dropdown absorbed by the strip)
+  'boxplot.title.by': '{outcome} by {factor}',
+  'boxplot.factor.hint': 'click a factor above to compare its groups here',
+
   // Time lens (ProcessHealthBar) — TODO(i18n): translate
   'timeLens.button': 'Time',
   'timeLens.popover.title': 'Time window',

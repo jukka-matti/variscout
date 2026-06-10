@@ -300,6 +300,7 @@ export {
   type DashboardAnnotations,
   type DashboardChartFindings,
 } from './components/DashboardBase';
+export { FactorStripBase, type FactorStripBaseProps } from './components/FactorStrip';
 
 // Chart skeleton placeholder (one-rAF mount gate in the chart cards)
 export { ChartSkeleton, type ChartSkeletonProps } from './components/ChartSkeleton';

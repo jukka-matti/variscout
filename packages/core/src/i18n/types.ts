@@ -1169,6 +1169,29 @@ export interface MessageCatalog {
   // ProcessHealthBar generic labels
   'healthBar.rows': string;
 
+  // Factor strip (ER-2 — "What explains the variation?")
+  'factorStrip.title': string;
+  'factorStrip.title.scoped': string;
+  'factorStrip.subtitle': string;
+  'factorStrip.modelLink': string;
+  'factorStrip.modelLink.stub': string;
+  'factorStrip.star.title': string;
+  'factorStrip.binned': string;
+  'factorStrip.examined': string;
+  'factorStrip.chip.hover': string;
+  'factorStrip.residual': string;
+  'factorStrip.residual.hover': string;
+  'factorStrip.alsoScreened': string;
+  'factorStrip.whatif.label': string;
+  'factorStrip.whatif.matched': string;
+  'factorStrip.whatif.average': string;
+  'factorStrip.whatif.average.scoped': string;
+  'factorStrip.whatif.cpk': string;
+  'factorStrip.whatif.bridge': string;
+  // Boxplot card (factor dropdown absorbed by the strip)
+  'boxplot.title.by': string;
+  'boxplot.factor.hint': string;
+
   // Time lens (ProcessHealthBar)
   'timeLens.button': string;
   'timeLens.popover.title': string;

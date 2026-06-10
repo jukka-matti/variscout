@@ -1245,10 +1245,9 @@ const Dashboard = ({
                     )}
                   </div>
                 }
-                // Boxplot factor wrapper (visual feedback removed with variation tracking)
-                boxplotFactorWrapper={selector => (
-                  <div className="rounded-lg transition-all duration-300">{selector}</div>
-                )}
+                // ER-2: boxplotFactorWrapper retired — the factor strip absorbs
+                // factor selection (the dropdown it wrapped is gone). The strip
+                // node itself is wired in Task 4 (apps).
                 // Render slots
                 renderIChartContent={
                   <ErrorBoundary componentName="I-Chart">
