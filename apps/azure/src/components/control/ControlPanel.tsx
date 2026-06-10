@@ -1,20 +1,36 @@
 import React from 'react';
-import { ControlForm } from '@variscout/ui';
-import type { ProcessHub } from '@variscout/core';
-import { useControlPanelModel } from '@variscout/hooks';
+import { ControlForm, ControlVerificationBand } from '@variscout/ui';
+import type { DataRow, ProcessHub, SpecLimits } from '@variscout/core';
+import { useControlPanelModel, useSustainmentComparison } from '@variscout/hooks';
 import { azureHubRepository } from '../../persistence';
 
 interface ControlPanelProps {
   activeHub?: ProcessHub;
   targetId?: string;
+  rawData?: DataRow[];
+  timeColumn?: string | null;
+  specs?: SpecLimits;
   onBack: () => void;
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({ activeHub, targetId, onBack }) => {
+const ControlPanel: React.FC<ControlPanelProps> = ({
+  activeHub,
+  targetId,
+  rawData = [],
+  timeColumn,
+  specs,
+  onBack,
+}) => {
   const { selectedRecord, reviews, error, heading, updateSelectedRecord } = useControlPanelModel({
     activeHub,
     targetId,
     repository: azureHubRepository,
+  });
+  const comparison = useSustainmentComparison({
+    rows: rawData,
+    timeColumn,
+    specs,
+    record: selectedRecord,
   });
 
   return (
@@ -42,11 +58,21 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ activeHub, targetId, onBack
           {error}
         </p>
       ) : selectedRecord ? (
-        <ControlForm
-          record={selectedRecord}
-          reviews={reviews}
-          onRecordChange={updateSelectedRecord}
-        />
+        <>
+          <ControlVerificationBand
+            record={selectedRecord}
+            comparison={comparison}
+            reviews={reviews}
+            rawData={rawData}
+            timeColumn={timeColumn}
+            specs={specs}
+          />
+          <ControlForm
+            record={selectedRecord}
+            reviews={reviews}
+            onRecordChange={updateSelectedRecord}
+          />
+        </>
       ) : (
         <p className="rounded-md border border-edge bg-surface-secondary p-4 text-sm text-content-secondary">
           Creating sustainment record...

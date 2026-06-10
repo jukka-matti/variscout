@@ -221,6 +221,10 @@ export {
   type UseControlPanelModelOptions,
   type UseControlPanelModelReturn,
 } from './useControlPanelModel';
+export {
+  useSustainmentComparison,
+  type UseSustainmentComparisonOptions,
+} from './useSustainmentComparison';
 
 export {
   deriveWorkspaceViewModel,

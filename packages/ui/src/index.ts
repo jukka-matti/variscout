@@ -207,6 +207,10 @@ export { FilterContextBar, type FilterContextBarProps } from './components/Filte
 export { SurveyNotebookBase, type SurveyNotebookBaseProps } from './components/SurveyNotebookBase';
 
 export { ControlForm, type ControlFormProps } from './components/Control';
+export {
+  ControlVerificationBand,
+  type ControlVerificationBandProps,
+} from './components/ControlVerificationBand';
 export { InboxDigest, type InboxDigestProps, type InboxDigestPrompt } from './components/Inbox';
 
 export {

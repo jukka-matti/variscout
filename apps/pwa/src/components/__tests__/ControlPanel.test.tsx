@@ -1,10 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ControlRecord, ControlReview, ProcessHub } from '@variscout/core';
+import type {
+  ControlRecord,
+  ControlReview,
+  ProcessHub,
+  SustainmentComparison,
+} from '@variscout/core';
 import type { UseControlPanelModelReturn } from '@variscout/hooks';
 import ControlPanel from '../ControlPanel';
 import { pwaHubRepository } from '../../persistence';
-import { useControlPanelModel } from '@variscout/hooks';
+import { useControlPanelModel, useSustainmentComparison } from '@variscout/hooks';
 
 vi.mock('@variscout/ui', async () => {
   const React = await import('react');
@@ -28,6 +33,20 @@ vi.mock('@variscout/ui', async () => {
           'Rename'
         )
       ),
+    ControlVerificationBand: (props: {
+      record: ControlRecord;
+      comparison: SustainmentComparison | null;
+      rawData?: unknown[];
+      timeColumn?: string | null;
+    }) =>
+      React.createElement(
+        'section',
+        { 'data-testid': 'verification-band' },
+        React.createElement('h3', null, props.record.title),
+        React.createElement('p', null, `Rows ${props.rawData?.length ?? 0}`),
+        React.createElement('p', null, `Time ${props.timeColumn ?? 'none'}`),
+        React.createElement('p', null, `After ${props.comparison?.after?.n ?? 0}`)
+      ),
   };
 });
 
@@ -36,6 +55,7 @@ vi.mock('@variscout/hooks', async importOriginal => {
   return {
     ...actual,
     useControlPanelModel: vi.fn(),
+    useSustainmentComparison: vi.fn(),
   };
 });
 
@@ -52,6 +72,7 @@ vi.mock('../../persistence', () => ({
 }));
 
 const mockUseControlPanelModel = vi.mocked(useControlPanelModel);
+const mockUseSustainmentComparison = vi.mocked(useSustainmentComparison);
 
 function makeHub(): ProcessHub {
   return {
@@ -110,18 +131,34 @@ function makeModel(
 beforeEach(() => {
   vi.clearAllMocks();
   mockUseControlPanelModel.mockReturnValue(makeModel());
+  mockUseSustainmentComparison.mockReturnValue(null);
 });
 
 describe('ControlPanel (PWA)', () => {
   it('passes the app repository and target id into the shared model hook', () => {
     const activeHub = makeHub();
 
-    render(<ControlPanel activeHub={activeHub} targetId="ip-1" onBack={vi.fn()} />);
+    render(
+      <ControlPanel
+        activeHub={activeHub}
+        targetId="ip-1"
+        rawData={[{ fill_weight: 101 }]}
+        timeColumn="captured_at"
+        specs={{ lsl: 95, usl: 105 }}
+        onBack={vi.fn()}
+      />
+    );
 
     expect(mockUseControlPanelModel).toHaveBeenCalledWith({
       activeHub,
       targetId: 'ip-1',
       repository: pwaHubRepository,
+    });
+    expect(mockUseSustainmentComparison).toHaveBeenCalledWith({
+      rows: [{ fill_weight: 101 }],
+      timeColumn: 'captured_at',
+      specs: { lsl: 95, usl: 105 },
+      record: null,
     });
     expect(screen.getByText('Paint line')).toBeInTheDocument();
   });
@@ -135,9 +172,22 @@ describe('ControlPanel (PWA)', () => {
         updateSelectedRecord,
       })
     );
+    mockUseSustainmentComparison.mockReturnValue({
+      before: { source: 'frozen', n: 42, mean: 100.2, sigma: 0.8 },
+      after: { n: 12, mean: 100.8, sigma: 0.9 },
+      deltas: {},
+    });
 
-    render(<ControlPanel activeHub={makeHub()} onBack={vi.fn()} />);
+    render(
+      <ControlPanel
+        activeHub={makeHub()}
+        rawData={[{ captured_at: '2026-06-02T00:00:00.000Z', fill_weight: 100.8 }]}
+        timeColumn="captured_at"
+        onBack={vi.fn()}
+      />
+    );
 
+    expect(screen.getByTestId('verification-band')).toHaveTextContent('After 12');
     expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Existing sustainment');
     expect(screen.getByTestId('sustainment-form')).toHaveTextContent('Reviews 1');
 
