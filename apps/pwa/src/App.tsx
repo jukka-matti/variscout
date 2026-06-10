@@ -81,6 +81,7 @@ import {
   parseMentions,
   findDuplicateFinding,
   findDuplicateBySource,
+  applyFilters,
 } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -677,11 +678,29 @@ function AppMain() {
         setHighlightedFindingId(existing.id);
         return;
       }
+      // ER-0 Task 6: when a capture supplies its own condition (brush /
+      // probability / category / engine-signal drafts), the persisted stats
+      // MUST be computed over THAT condition's rows — not the dashboard's
+      // unconditioned `filteredData` (that mismatch is the "dialog n=404 →
+      // saved card n=1600" bug). Read rawData FRESH from the store, not the
+      // render-scope closure: brush/probability/engine-signal captures call
+      // setRawData (adding a derived column the condition filter references) in
+      // the SAME tick, so the closed-over rawData/filteredData are stale.
+      // getState() reads the just-written rows (Zustand setState is sync — see
+      // the FSJ-2 precedent near useDataIngestion above). Context-menu captures
+      // (no captureOptions) keep today's filteredData and stay self-consistent.
+      // Per-measure spec resolution (conditionSpecs) applies to BOTH branches —
+      // context-menu captures get it too; deliberate, consistent with Tasks 4/5.
+      const conditionFilters = captureOptions?.activeFilters;
+      const conditionRows = conditionFilters
+        ? applyFilters(useProjectStore.getState().rawData, conditionFilters)
+        : filteredData;
+      const conditionSpecs = useProjectStore.getState().measureSpecs[outcome!] ?? specs;
       const context = buildFindingContext(
-        captureOptions?.activeFilters ?? filters,
-        filteredData,
+        conditionFilters ?? filters,
+        conditionRows,
         outcome!,
-        specs,
+        conditionSpecs,
         drillPath
       );
       const newFinding = useAnalyzeStore
