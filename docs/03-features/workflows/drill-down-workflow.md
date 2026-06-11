@@ -95,6 +95,16 @@ Esc cascade: the first press clears the transient highlight, the second clears t
 
 > **Conditions vs filter chips:** an applied condition does **not** write filter chips — it renders in the scope bar and leaves the filter state untouched (filters remain the carrier for state set outside the condition loop: focused views, mobile, saved-state restore). This is what keeps the plotted I-Chart series and its stats reading from the same population.
 
+## Membership analysis + the composition view (ER-5a, 2026-06-11)
+
+When a condition is applied, the factor strip switches questions — from "What explains the variation?" (the ω²-adjusted η² magnitude ranking) to **"What distinguishes these rows?"**:
+
+- **The membership ranking** scores each factor by how well it separates in-condition rows from the rest: **bias-corrected Cramér's V** on the factor × membership contingency table, computed over the **full** population — never within-subset η² (D7). The value is a separation score in [0, 1], deliberately NOT labeled a "% of variation" (it isn't one). Continuous factors quartile-bin first, marked `(binned)`; Y-derived columns are excluded from ranking against their own outcome (D11, `derivedFrom` provenance).
+- **Chips carry the most over-represented level** with its lift — e.g. `Cavity — Cav1 ×2.8` (share inside the condition ÷ share outside; levels appearing only inside the condition show the "only in condition" label). A level needs n ≥ 3 inside the condition to qualify.
+- **Selecting a membership chip swaps the comparison slot to the composition view**: paired share-in vs share-out bars per level with lift annotations, plus a **count ⇄ lift toggle** (the freed Pareto's condition half, D12 — count = how many condition rows per level; lift = how over-represented). The toggle is condition-scoped; no global mode switcher exists.
+- **⊕ on a level adds it to the condition** — a compound AND condition through the same pill/scope-bar machinery (`applyCondition` over the accumulated leaves); the scope bar, I-Chart membership tier, and all filter-tier charts re-apply.
+- **Inflection-binning segments commit as conditions** ("view as condition →" in the Azure binding editor; the PWA does not mount that editor) — once the segment condition applies, the membership strip is the natural "what distinguishes these rows?" follow-up (§10).
+
 ## The Drill-Down Pattern
 
 ```mermaid
