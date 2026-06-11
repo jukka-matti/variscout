@@ -34,8 +34,8 @@ import { lnGamma } from './distributions';
  *
  * `shareIn  = nIn  / NIn`  (fraction of the in-condition population at this level)
  * `shareOut = nOut / NOut` (fraction of the out-of-condition population at this level)
- * `lift     = shareIn / shareOut`; Infinity when nOut === 0 && nIn > 0 (level
- *             appears exclusively inside the condition).
+ * `lift     = shareIn / shareOut`; `undefined` when nOut === 0 && nIn > 0 (level
+ *             appears exclusively inside the condition); 0 when nIn === 0.
  */
 export interface MembershipLevelComposition {
   /** Factor level label (or quartile bin label for continuous factors). */
@@ -50,10 +50,12 @@ export interface MembershipLevelComposition {
   shareOut: number;
   /**
    * Over-representation ratio: shareIn / shareOut.
-   * Infinity when nOut === 0 and nIn > 0 (level present only inside the condition).
-   * NaN is never returned — see implementation guards.
+   * `undefined` when nOut === 0 and nIn > 0 (level present only inside the
+   * condition — supreme over-representation with no out-of-condition exposure).
+   * 0 when nIn === 0.
+   * NaN and Infinity are never returned — see implementation guards.
    */
-  lift: number;
+  lift?: number;
 }
 
 /**
@@ -394,35 +396,40 @@ export function computeMembershipSeparation(
       const shareIn = NIn > 0 ? nInLevel / NIn : 0;
       const shareOut = NOut > 0 ? nOutLevel / NOut : 0;
 
-      let lift: number;
+      let lift: number | undefined;
       if (nOutLevel === 0 && nInLevel > 0) {
         // Level appears exclusively inside the condition.
-        lift = Infinity;
+        // undefined is the sentinel for supreme over-representation (never Infinity
+        // per the stats never-Infinity invariant — packages/core/CLAUDE.md).
+        lift = undefined;
       } else if (shareOut === 0) {
         lift = 0;
       } else {
-        lift = shareIn / shareOut;
-        if (!Number.isFinite(lift)) lift = 0;
+        const candidate = shareIn / shareOut;
+        lift = Number.isFinite(candidate) ? candidate : 0;
       }
 
       levels.push({ level, nIn: nInLevel, nOut: nOutLevel, shareIn, shareOut, lift });
     }
 
     // Sort levels by lift descending for display.
+    // undefined lift sorts FIRST (supreme over-representation), then finite lift descending.
     levels.sort((a, b) => {
-      // Infinity first, then descending finite lift.
-      if (a.lift === Infinity && b.lift === Infinity) return a.level.localeCompare(b.level);
-      if (a.lift === Infinity) return -1;
-      if (b.lift === Infinity) return 1;
-      return b.lift - a.lift;
+      const aIsUndef = a.lift === undefined;
+      const bIsUndef = b.lift === undefined;
+      if (aIsUndef && bIsUndef) return a.level.localeCompare(b.level);
+      if (aIsUndef) return -1;
+      if (bIsUndef) return 1;
+      return b.lift! - a.lift!;
     });
 
     // topLevel: argmax lift among levels with nIn ≥ 3 (disposition 3).
+    // Levels with undefined lift and nIn ≥ 3 outrank all finite lifts.
     let topLevel: string | null = null;
     let topLift = -Infinity;
     for (const lv of levels) {
       if (lv.nIn < 3) continue;
-      const lvLift = lv.lift === Infinity ? Number.MAX_VALUE : lv.lift;
+      const lvLift = lv.lift === undefined ? Number.MAX_VALUE : lv.lift;
       if (lvLift > topLift) {
         topLift = lvLift;
         topLevel = lv.level;

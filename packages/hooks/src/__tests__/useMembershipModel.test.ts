@@ -306,7 +306,8 @@ describe('useMembershipModel', () => {
     // Color=Red has nIn = 10 ≥ 3 → topLevel must be non-null
     expect(chip.topLevel).not.toBeNull();
     expect(chip.topLevel!.level).toBeTruthy();
-    expect(Number.isFinite(chip.topLevel!.lift) || chip.topLevel!.lift === Infinity).toBe(true);
+    // lift is either a finite number or undefined (only-in-condition sentinel).
+    expect(chip.topLevel!.lift === undefined || Number.isFinite(chip.topLevel!.lift)).toBe(true);
   });
 
   it('topLevel.level is "Red" for the Color chip (highest lift in condition)', () => {
@@ -319,12 +320,12 @@ describe('useMembershipModel', () => {
     expect(result).not.toBeNull();
     const chip = result!.chips[0];
     expect(chip.topLevel).not.toBeNull();
-    // Red is the in-condition level (lift = Infinity since nOut=0 for Color=Red)
+    // Red is the in-condition level (lift = undefined since nOut=0 for Color=Red)
     expect(chip.topLevel!.level).toBe('Red');
   });
 
-  it('topLevel.lift is Infinity when the level only appears inside the condition', () => {
-    // Color=Red only appears in-condition (no Red rows outside) → lift = Infinity
+  it('topLevel.lift is undefined when the level only appears inside the condition', () => {
+    // Color=Red only appears in-condition (no Red rows outside) → lift = undefined
     const result = callMembershipHook({
       lensedRows: makeColorSizeRows(),
       leaves: [colorRedLeaf()],
@@ -333,7 +334,7 @@ describe('useMembershipModel', () => {
     });
     expect(result).not.toBeNull();
     const chip = result!.chips[0];
-    expect(chip.topLevel!.lift).toBe(Infinity);
+    expect(chip.topLevel!.lift).toBeUndefined();
   });
 
   it('topLevel is null when all levels have nIn < 3', () => {
@@ -529,15 +530,15 @@ describe('useCompositionModel', () => {
     for (let i = 1; i < levels.length; i++) {
       const prevLift = levels[i - 1].lift;
       const currLift = levels[i].lift;
-      // Infinity is always first
-      if (prevLift === Infinity) continue;
-      expect(prevLift).toBeGreaterThanOrEqual(currLift);
+      // undefined lift is always first (supreme over-representation)
+      if (prevLift === undefined) continue;
+      expect(prevLift).toBeGreaterThanOrEqual(currLift ?? 0);
     }
   });
 
-  it('Red level has lift = Infinity (appears only inside the condition)', () => {
+  it('Red level has lift = undefined (appears only inside the condition)', () => {
     // In the colorSizeRows dataset: all Red rows are in-condition
-    // → nOut = 0 for Red → lift = Infinity
+    // → nOut = 0 for Red → lift = undefined (only-in-condition sentinel)
     const result = callCompositionHook({
       lensedRows: makeColorSizeRows(),
       leaves: [colorRedLeaf()],
@@ -546,7 +547,7 @@ describe('useCompositionModel', () => {
     expect(result).not.toBeNull();
     const redLevel = result!.levels.find(lv => lv.level === 'Red');
     expect(redLevel).toBeDefined();
-    expect(redLevel!.lift).toBe(Infinity);
+    expect(redLevel!.lift).toBeUndefined();
   });
 
   it('levels.shareIn sums to 1 (or close to 1) over all levels', () => {
@@ -587,7 +588,7 @@ describe('useCompositionModel', () => {
     // Call the hook and verify level-by-level that the data matches the engine
     // expectation for a hand-verifiable fixture.
     // 10 in-condition Red rows, 10 out-of-condition Blue rows:
-    //   Color=Red:  nIn=10, nOut=0,  shareIn=1.0, shareOut=0,   lift=Infinity
+    //   Color=Red:  nIn=10, nOut=0,  shareIn=1.0, shareOut=0,   lift=undefined
     //   Color=Blue: nIn=0,  nOut=10, shareIn=0,   shareOut=1.0, lift=0
     const result = callCompositionHook({
       lensedRows: makeColorSizeRows(),
@@ -607,7 +608,7 @@ describe('useCompositionModel', () => {
     expect(red!.nOut).toBe(0);
     expect(red!.shareIn).toBeCloseTo(1.0, 5);
     expect(red!.shareOut).toBeCloseTo(0, 5);
-    expect(red!.lift).toBe(Infinity);
+    expect(red!.lift).toBeUndefined();
 
     // Blue: only outside condition
     expect(blue!.nIn).toBe(0);

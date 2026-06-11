@@ -109,15 +109,15 @@ describe('computeMembershipSeparation — hand-verified fixture', () => {
     expect(result.factors[1].factor).toBe('Size');
   });
 
-  it('Color topLevel is "Red" (lift = Infinity since nOut=0)', () => {
+  it('Color topLevel is "Red" (lift = undefined since nOut=0)', () => {
     const result = computeMembershipSeparation(rows20, [colorLeaf], ['Color', 'Size'])!;
     const colorFactor = result.factors.find(f => f.factor === 'Color')!;
-    // Red: nIn=10, nOut=0 → lift = Infinity
+    // Red: nIn=10, nOut=0 → lift = undefined (only-in-condition sentinel)
     expect(colorFactor.topLevel).toBe('Red');
     const redLevel = colorFactor.levels.find(l => l.level === 'Red')!;
     expect(redLevel.nIn).toBe(10);
     expect(redLevel.nOut).toBe(0);
-    expect(redLevel.lift).toBe(Infinity);
+    expect(redLevel.lift).toBeUndefined();
   });
 
   it('Size topLevel is null when all levels have nIn < 3 threshold… actually null since no level is dominant', () => {
@@ -224,7 +224,7 @@ describe('cardinality penalty', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Test 4: topLevel floor (nIn ≥ 3), lift=Infinity, topLevel=null
+// Test 4: topLevel floor (nIn ≥ 3), lift=undefined, topLevel=null
 // ---------------------------------------------------------------------------
 
 describe('topLevel floor and lift edge cases', () => {
@@ -252,13 +252,13 @@ describe('topLevel floor and lift edge cases', () => {
     expect(catFactor.topLevel).not.toBe('Rare');
   });
 
-  it('Rare level has lift=Infinity and nIn=2', () => {
+  it('Rare level has lift=undefined and nIn=2', () => {
     const result = computeMembershipSeparation(rows, [leaf], ['cat'])!;
     const catFactor = result.factors.find(f => f.factor === 'cat')!;
     const rareLevel = catFactor.levels.find(l => l.level === 'Rare')!;
     expect(rareLevel.nIn).toBe(2);
     expect(rareLevel.nOut).toBe(0);
-    expect(rareLevel.lift).toBe(Infinity);
+    expect(rareLevel.lift).toBeUndefined();
   });
 
   it('topLevel is "Common" (nIn≥3 and highest valid lift)', () => {
@@ -428,7 +428,7 @@ describe('p-value correctness', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Test 8: No NaN, no Infinity (except lift where NOut=0), no raw Infinity in adjustedV
+// Test 8: No NaN, no Infinity (lift uses undefined for NOut=0), no raw Infinity in adjustedV
 // ---------------------------------------------------------------------------
 
 describe('numeric safety invariant', () => {

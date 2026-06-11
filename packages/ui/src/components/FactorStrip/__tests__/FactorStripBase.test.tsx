@@ -462,11 +462,11 @@ describe('FactorStripBase — membership variant (ER-5a)', () => {
     expect(topLevel.textContent).toContain('×2.8');
   });
 
-  // ── Infinity lift renders only-in-condition label ───────────────────────────
-  it('renders the "only in condition" label when lift is Infinity (not bare ∞)', () => {
+  // ── undefined lift renders only-in-condition label ─────────────────────────
+  it('renders the "only in condition" label when lift is undefined (not bare ∞)', () => {
     const chip = makeMembershipChip({
       factor: 'Shift',
-      topLevel: { level: 'NightShift', lift: Infinity },
+      topLevel: { level: 'NightShift', lift: undefined },
     });
     render(<FactorStripBase {...membershipBaseProps} membershipChips={[chip]} />);
     const chipEl = screen.getByTestId('factor-chip-Shift');

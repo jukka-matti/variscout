@@ -252,11 +252,11 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
     // ER-9 step badge: look up from the caller-supplied decorations map.
     const stepDecoration = membershipStepDecorations?.get(chip.factor) ?? null;
 
-    // Lift rendering: Infinity → i18n label; finite → formatted to 1 decimal.
+    // Lift rendering: undefined (only-in-condition) → i18n label; finite → formatted to 1 decimal.
     let topLevelAnnotation: string | null = null;
     if (chip.topLevel !== null) {
       const { level, lift } = chip.topLevel;
-      if (!Number.isFinite(lift)) {
+      if (lift === undefined || !Number.isFinite(lift)) {
         topLevelAnnotation = `${level} — ${t('factorStrip.membership.chip.onlyInCondition')}`;
       } else {
         topLevelAnnotation = tf('factorStrip.membership.chip.topLevel', {

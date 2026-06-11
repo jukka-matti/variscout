@@ -100,10 +100,10 @@ describe('CompositionViewBase', () => {
     expect(screen.getByTestId('composition-lift-Billing').textContent).toContain('×2.8');
   });
 
-  // ── Infinity lift → "only in condition" label ──────────────────────────
-  it('renders the "only in condition" label when lift is Infinity', () => {
+  // ── undefined lift → "only in condition" label ─────────────────────────
+  it('renders the "only in condition" label when lift is undefined', () => {
     const levels = [
-      makeLevel({ level: 'Billing', nIn: 40, nOut: 0, shareIn: 1.0, shareOut: 0, lift: Infinity }),
+      makeLevel({ level: 'Billing', nIn: 40, nOut: 0, shareIn: 1.0, shareOut: 0, lift: undefined }),
     ];
     render(<CompositionViewBase {...baseProps} levels={levels} />);
     const liftEl = screen.getByTestId('composition-lift-Billing');

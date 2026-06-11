@@ -35,14 +35,15 @@ import type { BinnedFactorBinding } from '@variscout/core/binning';
  * The over-represented level annotation on a membership chip.
  *
  * `level` — the level label (factor value or quartile bin label).
- * `lift`  — shareIn / shareOut; Infinity when the level appears exclusively
- *            inside the condition (nOut === 0 && nIn > 0).  The UI must render
- *            the i18n "only in condition" label when lift is Infinity, never the
- *            bare `∞` glyph alone (ER-5a disposition 3).
+ * `lift`  — shareIn / shareOut; `undefined` when the level appears exclusively
+ *            inside the condition (nOut === 0 && nIn > 0 — supreme
+ *            over-representation).  The UI must render the i18n "only in
+ *            condition" label when lift is undefined, never a bare `∞` glyph
+ *            (ER-5a disposition 3).
  */
 export interface MembershipChipTopLevel {
   level: string;
-  lift: number;
+  lift: number | undefined;
 }
 
 /**
@@ -79,8 +80,9 @@ export interface MembershipChip {
    * The level with the highest lift among levels where nIn ≥ 3.
    * null when no level qualifies (chip shows the statistic only, no "— Level ×N.N").
    *
-   * If `topLevel.lift === Infinity`, the UI must render the i18n "only in
-   * condition" label rather than the raw Infinity glyph.
+   * If `topLevel.lift === undefined`, the level appears exclusively inside the
+   * condition.  The UI must render the i18n "only in condition" label rather than
+   * a bare `∞` glyph.
    */
   topLevel: MembershipChipTopLevel | null;
   /**

@@ -1356,8 +1356,8 @@ export interface MessageCatalog {
    */
   'factorStrip.membership.chip.topLevel': string;
   /**
-   * Label rendered instead of "×{lift}" when lift is Infinity
-   * (level appears exclusively inside the condition).
+   * Label rendered instead of "×{lift}" when lift is undefined
+   * (level appears exclusively inside the condition — no out-of-condition rows).
    * Never render the bare ∞ glyph alone.
    */
   'factorStrip.membership.chip.onlyInCondition': string;
@@ -1379,7 +1379,7 @@ export interface MessageCatalog {
    */
   'compositionView.lift': string;
   /**
-   * Lift annotation when lift is Infinity.
+   * Lift annotation when lift is undefined (only-in-condition sentinel).
    * Rendered instead of "×∞" for statistical honesty.
    */
   'compositionView.liftOnlyInCondition': string;

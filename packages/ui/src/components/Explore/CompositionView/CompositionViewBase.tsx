@@ -95,7 +95,9 @@ export const CompositionViewBase: React.FC<CompositionViewBaseProps> = ({
 
   // Lift label for a level entry.
   const liftLabel = (level: MembershipLevelComposition): string => {
-    if (!Number.isFinite(level.lift)) return t('compositionView.liftOnlyInCondition');
+    if (level.lift === undefined || !Number.isFinite(level.lift)) {
+      return t('compositionView.liftOnlyInCondition');
+    }
     return tf('compositionView.lift', { lift: formatStat(level.lift, 1) });
   };
 

@@ -63,7 +63,7 @@ const membership = vi.hoisted(() => ({
   } as unknown,
   compositionReturn: {
     levels: [
-      { level: 'B', nIn: 3, nOut: 0, shareIn: 1, shareOut: 0, lift: Infinity },
+      { level: 'B', nIn: 3, nOut: 0, shareIn: 1, shareOut: 0, lift: undefined },
       { level: 'A', nIn: 0, nOut: 3, shareIn: 0, shareOut: 1, lift: 0 },
     ],
     nIn: 3,
