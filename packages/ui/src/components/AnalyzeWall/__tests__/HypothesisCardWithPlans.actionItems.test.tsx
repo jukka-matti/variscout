@@ -401,6 +401,41 @@ describe('HypothesisCardWithPlans — add task flow', () => {
     expect(text).toBe('@Jane: validate against night-shift data');
   });
 
+  it('save forwards the selected member as the task assignee', () => {
+    const onAdd = vi.fn();
+    renderInSvg(
+      <HypothesisCardWithPlans
+        hub={hub}
+        displayStatus="proposed"
+        x={0}
+        y={0}
+        plans={[]}
+        members={[leadMember, sponsorMember]}
+        currentUserId="user-lead"
+        findings={[]}
+        onAddPlan={vi.fn()}
+        onLinkFinding={vi.fn()}
+        onEditPlan={vi.fn()}
+        onAddHypothesisAction={onAdd}
+        onCompleteHypothesisAction={vi.fn()}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /add task/i }));
+    fireEvent.change(screen.getByRole('textbox', { name: /task/i }), {
+      target: { value: 'Validate with sponsor' },
+    });
+    fireEvent.change(screen.getByLabelText(/assignee/i), {
+      target: { value: 'user-sponsor' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    expect(onAdd).toHaveBeenCalledOnce();
+    expect(onAdd).toHaveBeenCalledWith('h1', 'Validate with sponsor', {
+      upn: 'user-sponsor',
+      displayName: 'Bob Sponsor',
+    });
+  });
+
   it('cancel closes the form without firing onAddHypothesisAction', () => {
     const onAdd = vi.fn();
     renderInSvg(

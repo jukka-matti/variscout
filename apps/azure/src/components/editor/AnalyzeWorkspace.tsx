@@ -536,8 +536,11 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         hypothesesState.deleteComment(hubId, commentId),
       showCommentAuthors: members.length > 0,
       // Task 3 — ActionItem tasks
-      onAddHypothesisAction: (hypothesisId: string, text: string) =>
-        hypothesesState.addAction(hypothesisId, text),
+      onAddHypothesisAction: (
+        hypothesisId: string,
+        text: string,
+        assignee?: import('@variscout/core').FindingAssignee
+      ) => hypothesesState.addAction(hypothesisId, text, assignee),
       onCompleteHypothesisAction: (hypothesisId: string, actionId: string) =>
         hypothesesState.completeAction(hypothesisId, actionId, Date.now()),
       // Task 6 — improvement ideas
@@ -841,6 +844,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // card. Gated on `wallViewMode === 'wall'` so we don't pan an invisible Wall.
   const focusedWallEntityId = useViewStore(s => s.focusedWallEntityId);
   const setFocusedWallEntity = useViewStore(s => s.setFocusedWallEntity);
+  const focusedHub = useMemo(
+    () => hubs.find(h => h.id === focusedWallEntityId),
+    [focusedWallEntityId, hubs]
+  );
   useEffect(() => {
     if (wallViewMode !== 'wall') return;
     if (!focusedWallEntityId) return;
@@ -867,6 +874,32 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const evidenceClusters = useMemo(
     () => detectEvidenceClusters(scopedFindings, hubs),
     [scopedFindings, hubs]
+  );
+
+  const handleMarkFindingSupport = useCallback(
+    (findingId: string) => {
+      if (!focusedHub) return;
+      hypothesesState.connectFinding(focusedHub.id, findingId);
+      findingsState.setValidation(findingId, 'supports', false);
+    },
+    [findingsState, focusedHub, hypothesesState]
+  );
+
+  const handleMarkFindingCounter = useCallback(
+    (findingId: string) => {
+      if (!focusedHub) return;
+      const existingCounter = focusedHub.counterFindingIds ?? [];
+      if (!existingCounter.includes(findingId)) {
+        hypothesesState.updateHub(focusedHub.id, {
+          counterFindingIds: [...existingCounter, findingId],
+        });
+      }
+      if (!focusedHub.findingIds.includes(findingId)) {
+        hypothesesState.connectFinding(focusedHub.id, findingId);
+      }
+      findingsState.setValidation(findingId, 'contradicts', false);
+    },
+    [findingsState, focusedHub, hypothesesState]
   );
 
   // Left panel resizable
@@ -1254,6 +1287,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onSetOutcome={findingsState.setOutcome}
                 onShareFinding={handleShareFinding}
                 onNavigateToChart={handleNavigateToChart}
+                onMarkSupport={focusedHub ? handleMarkFindingSupport : undefined}
+                onMarkCounter={focusedHub ? handleMarkFindingCounter : undefined}
                 showAuthors
                 voiceInput={voiceInput}
               />

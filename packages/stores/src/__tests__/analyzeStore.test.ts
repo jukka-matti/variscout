@@ -721,6 +721,86 @@ describe('analyzeStore — hypothesis hubs', () => {
     expect(persisted.status).toBe('proposed');
   });
 
+  it('createHubFromFinding derives a boxplot condition from the captured filter context', () => {
+    const ctx = makeContext({ activeFilters: { Shift: ['Night'] } });
+    const finding = useAnalyzeStore.getState().addFinding('Night shift is higher', ctx, {
+      chart: 'boxplot',
+      category: 'Night',
+      timeLens: DEFAULT_TIME_LENS,
+    });
+
+    const hub = useAnalyzeStore.getState().createHubFromFinding(finding.id);
+
+    expect(hub?.condition).toEqual({ kind: 'leaf', column: 'Shift', op: 'eq', value: 'Night' });
+    expect(hub?.findingIds).toEqual([finding.id]);
+    expect(hub?.status).toBe('proposed');
+  });
+
+  it('createHubFromFinding derives a pareto condition from the captured filter context', () => {
+    const ctx = makeContext({ activeFilters: { Queue: ['Billing'] } });
+    const finding = useAnalyzeStore.getState().addFinding('Billing has the most misses', ctx, {
+      chart: 'pareto',
+      category: 'Billing',
+      timeLens: DEFAULT_TIME_LENS,
+    });
+
+    const hub = useAnalyzeStore.getState().createHubFromFinding(finding.id);
+
+    expect(hub?.condition).toEqual({ kind: 'leaf', column: 'Queue', op: 'eq', value: 'Billing' });
+  });
+
+  it('createHubFromFinding derives an I-Chart condition from the captured Y column', () => {
+    const ctx = makeContext({ yColumn: 'Handle_Time' });
+    const finding = useAnalyzeStore.getState().addFinding('Long calls cluster', ctx, {
+      chart: 'ichart',
+      anchorX: 12,
+      anchorY: 580,
+      timeLens: DEFAULT_TIME_LENS,
+    });
+
+    const hub = useAnalyzeStore.getState().createHubFromFinding(finding.id);
+
+    expect(hub?.condition).toEqual({ kind: 'leaf', column: 'Handle_Time', op: 'gte', value: 580 });
+  });
+
+  it('createHubFromFinding derives a probability band condition from the captured Y column', () => {
+    const ctx = makeContext({ yColumn: 'Handle_Time' });
+    const finding = useAnalyzeStore.getState().addFinding('Upper mode separates', ctx, {
+      chart: 'probability',
+      anchorX: 0.8,
+      anchorY: 540,
+      anchorYMax: 720,
+      timeLens: DEFAULT_TIME_LENS,
+    });
+
+    const hub = useAnalyzeStore.getState().createHubFromFinding(finding.id);
+
+    expect(hub?.condition).toEqual({
+      kind: 'leaf',
+      column: 'Handle_Time',
+      op: 'between',
+      value: [540, 720],
+    });
+  });
+
+  it('createHubFromFinding still creates a linked hub when no condition can be derived', () => {
+    const ctx = makeContext();
+    const finding = useAnalyzeStore
+      .getState()
+      .addFinding('Chart note without condition hints', ctx, {
+        chart: 'coscout',
+        messageId: 'm-1',
+        timeLens: DEFAULT_TIME_LENS,
+      });
+
+    const hub = useAnalyzeStore.getState().createHubFromFinding(finding.id);
+
+    expect(hub).not.toBeNull();
+    expect(hub?.findingIds).toEqual([finding.id]);
+    expect(hub?.condition).toBeUndefined();
+    expect(hub?.status).toBe('proposed');
+  });
+
   it('createHubFromFinding uses fallback name when finding text is empty', () => {
     const ctx = makeContext();
     const finding = useAnalyzeStore.getState().addFinding('   ', ctx);

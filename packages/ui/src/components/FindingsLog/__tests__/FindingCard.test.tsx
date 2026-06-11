@@ -175,3 +175,39 @@ describe('FindingCard — evidence angle', () => {
     expect(onSetEvidenceType).toHaveBeenCalledWith(finding.id, 'expert');
   });
 });
+
+describe('FindingCard — ER-7 evidence affordances', () => {
+  it('renders condition-scoped evidence and support/counts-against actions', () => {
+    const onMarkSupport = vi.fn();
+    const onMarkCounter = vi.fn();
+    const finding = makeFinding({
+      context: {
+        activeFilters: { Shift: ['Night'] },
+        cumulativeScope: 40,
+        stats: { mean: 612, samples: 64 },
+      },
+      windowContext: {
+        windowAtCreation: { kind: 'cumulative' },
+        statsAtCreation: { n: 160 },
+      },
+    });
+
+    render(
+      <FindingCard
+        finding={finding}
+        {...noopHandlers}
+        onMarkSupport={onMarkSupport}
+        onMarkCounter={onMarkCounter}
+      />
+    );
+
+    expect(screen.getByTestId('finding-condition-evidence')).toHaveTextContent(
+      'mean in 612.00 · n=64 of 160'
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /support/i }));
+    fireEvent.click(screen.getByRole('button', { name: /counts against/i }));
+    expect(onMarkSupport).toHaveBeenCalledWith(finding.id);
+    expect(onMarkCounter).toHaveBeenCalledWith(finding.id);
+  });
+});

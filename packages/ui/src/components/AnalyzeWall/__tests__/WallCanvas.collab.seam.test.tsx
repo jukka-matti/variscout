@@ -211,7 +211,7 @@ describe('WallCanvas seam — ActionItem "+ Add Task" renders + dispatches', () 
     fireEvent.change(input, { target: { value: 'Collect 30 samples' } });
     fireEvent.click(screen.getByText('Save'));
 
-    expect(onAddHypothesisAction).toHaveBeenCalledWith('h1', 'Collect 30 samples');
+    expect(onAddHypothesisAction).toHaveBeenCalledWith('h1', 'Collect 30 samples', undefined);
   });
 
   it('marking an open task done fires onCompleteHypothesisAction', () => {
