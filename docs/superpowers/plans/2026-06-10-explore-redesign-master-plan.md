@@ -89,6 +89,8 @@ Generalize the scope carry to **range predicates** (the named "remaining design 
 
 ## ER-5a — Membership analysis + composition view + binning reframe (§7.3, §10, D7/D11)
 
+**Sub-plan:** [`2026-06-11-er-5a-membership.md`](2026-06-11-er-5a-membership.md).
+
 Core: a membership-separation ranking (factor vs binary membership; statistic choice at build per §16) + composition data (per-level share-in vs share-out + lift). UI: the membership strip variant ("What distinguishes these calls?") and the composition view (paired bars, lift annotation, ⊕ minting compound conditions, **count ⇄ lift toggle** = the freed Pareto's condition half, D12). Inflection binning re-output: segment commits as a **condition** with the "what distinguishes these calls?" follow-up; bin columns carry `derivedFrom` provenance.
 
 ## ER-5b — Count-shaped-Y auto-detection + Pareto promotion (§12, D12's other half — split from 5a; touches `resolveMode()`)
