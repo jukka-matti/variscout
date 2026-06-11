@@ -25,7 +25,12 @@ import {
   FolderUp,
 } from 'lucide-react';
 import { usePanelsStore } from '../features/panels/panelsStore';
-import { useAnalyzeStore } from '@variscout/stores';
+import {
+  useAnalyzeStore,
+  useProjectStore,
+  useAnalysisScopeStore,
+  useViewStore,
+} from '@variscout/stores';
 
 export type WorkspaceView =
   | 'home'
@@ -222,6 +227,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     else panels.showReport();
   };
 
+  // ER-4: the persistent scope chip's × is the coherent clear (filters + the
+  // filter-stack breadcrumbs + scope store + transient highlight) — fixes the
+  // pre-existing scope-store-only clear.
+  const handleCoherentScopeClear = () => {
+    useProjectStore.getState().setFilters({});
+    useProjectStore.getState().setFilterStack([]);
+    useAnalysisScopeStore.getState().clearScope();
+    useViewStore.getState().setTransientHighlight(null);
+  };
+
   // Logo mark element (reused in phone and desktop)
   const logoMark = (
     <div
@@ -303,7 +318,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             />
           )}
           {/* PR-CS-3a: persistent live-scope chip (self-hides when no scope). */}
-          {hasData && <PersistentScopeChip onOpen={() => handleWorkflowTabChange('explore')} />}
+          {hasData && (
+            <PersistentScopeChip
+              onOpen={() => handleWorkflowTabChange('explore')}
+              onClear={handleCoherentScopeClear}
+            />
+          )}
         </div>
       </div>
     );
@@ -458,7 +478,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       ) : null}
 
       {/* PR-CS-3a: always-visible live analysis-scope chip (self-hides when no scope). */}
-      {hasData && <PersistentScopeChip onOpen={() => handleWorkflowTabChange('explore')} />}
+      {hasData && (
+        <PersistentScopeChip
+          onOpen={() => handleWorkflowTabChange('explore')}
+          onClear={handleCoherentScopeClear}
+        />
+      )}
 
       {/* ── Right zone: panel toggles + primary action + settings ── */}
       <div className="flex items-center gap-1.5 flex-shrink-0">

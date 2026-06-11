@@ -83,6 +83,8 @@ Core: expose coefficient SE/covariance from the ADR-067 GLM/QR solver (NIST test
 
 ## ER-4 — The condition loop (§7.1–7.2, D6)
 
+**Sub-plan:** [`2026-06-11-er-4-condition-loop.md`](2026-06-11-er-4-condition-loop.md).
+
 Generalize the scope carry to **range predicates** (the named "remaining design crack"): brush pill (capture + view-as-condition) on the I-Chart · the scope bar (condition · n of N · clear · persistent "Take it to Analyze →") · per-chart tier defaults (I-Chart highlights via the full-data + members-emphasized render; comparisons filter; probability = regime check) · wire drill→`ProblemStatementScope` creation (its zero-live-caller state ends here) with `Finding.scopeId` linkage (coordinate with AW's "wire scopeId as a reader"). Esc-clearable transient click-highlight (tier 2) across charts.
 
 ## ER-5a — Membership analysis + composition view + binning reframe (§7.3, §10, D7/D11)

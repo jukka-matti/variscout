@@ -147,6 +147,16 @@ export interface IChartProps extends BaseChartProps {
   phaseLimits?: IChartPhaseLimits;
   /** Optional time-based re-check/event markers */
   eventFlags?: IChartEventFlag[];
+  /**
+   * Condition-membership highlight tier (ER-4, D6). Display-index space — the same index
+   * space `selectedPoints`/brush uses. When present and non-empty, the chart plots the FULL
+   * lensed series with a membership mask: members keep their violation color/shape but lit
+   * (≈.85, slightly larger); non-members render gray-muted (≈.14, smaller); dimmed violations
+   * floor at .3 so signals never vanish; the connecting line is suppressed. Limits/run-rules
+   * are unchanged — they compute over the chart's input `data`/`stats` (the full series under
+   * this tier). Distinct from `selectedPoints` (the brush) and from the violation channels.
+   */
+  conditionMemberIndices?: Set<number>;
 }
 
 /**

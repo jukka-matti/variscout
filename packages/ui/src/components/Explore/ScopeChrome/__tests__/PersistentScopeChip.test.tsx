@@ -50,7 +50,7 @@ describe('PersistentScopeChip', () => {
     expect(screen.getByTestId('persistent-scope-chip')).toHaveTextContent('Yield %');
   });
 
-  it('clears the scope when the × affordance is clicked', () => {
+  it('clears the scope when the × affordance is clicked (no onClear → scope store only)', () => {
     useAnalysisScopeStore.getState().setY('yield');
     useAnalysisScopeStore.getState().setCategoricalValues('vessel', ['A']);
     render(<PersistentScopeChip />);
@@ -58,6 +58,17 @@ describe('PersistentScopeChip', () => {
     const state = useAnalysisScopeStore.getState();
     expect(state.yColumn).toBeUndefined();
     expect(state.categoricalFilters).toHaveLength(0);
+  });
+
+  it('ER-4: invokes the injected coherent onClear (not the scope-store-only clear)', () => {
+    const onClear = vi.fn();
+    useAnalysisScopeStore.getState().setY('yield');
+    render(<PersistentScopeChip onClear={onClear} />);
+    fireEvent.click(screen.getByTestId('persistent-scope-chip-clear'));
+    expect(onClear).toHaveBeenCalledTimes(1);
+    // The scope-store-only clearScope is NOT auto-invoked — the host's coherent
+    // handler owns clearing both stores.
+    expect(useAnalysisScopeStore.getState().yColumn).toBe('yield');
   });
 
   it('renders the summary as a button calling onOpen when provided', () => {

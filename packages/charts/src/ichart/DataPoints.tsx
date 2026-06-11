@@ -90,7 +90,30 @@ interface DataPointsProps {
   hideTooltip: () => void;
   /** Secondary data series */
   secondaryData?: IChartDataPoint[];
+  /**
+   * Condition-membership set (ER-4) in display-index space. When present and non-empty the
+   * highlight tier is ACTIVE: members keep their violation color/shape but lit; non-members
+   * gray-muted; dimmed violations floor at .3; the connecting line is suppressed. Distinct
+   * from `selectedPoints` (the brush) and from the violation channels.
+   */
+  conditionMemberIndices?: Set<number>;
 }
+
+// --- Membership highlight tier (ER-4) opacity/size constants ---
+/** Lit member opacity (wireframe :439). */
+const MEMBER_OPACITY = 0.85;
+/** Dimmed non-member opacity (wireframe :440). */
+const NON_MEMBER_OPACITY = 0.14;
+/**
+ * Floor opacity for a dimmed non-member that IS a violation. A deliberate, commented
+ * divergence from the wireframe's uniform .14 — signals (spec/control/Nelson) never fully
+ * vanish so a member-highlight pass can't hide an out-of-control point.
+ */
+const DIMMED_VIOLATION_FLOOR = 0.3;
+/** Member point radius (wireframe r 2.3, scaled to the chart's base r=4 register). */
+const MEMBER_POINT_SIZE = 5;
+/** Non-member point radius (wireframe r 1.3, smaller than the base). */
+const NON_MEMBER_POINT_SIZE = 3;
 
 const DataPoints: React.FC<DataPointsProps> = ({
   data,
@@ -118,8 +141,12 @@ const DataPoints: React.FC<DataPointsProps> = ({
   showTooltipAtCoords,
   hideTooltip,
   secondaryData,
+  conditionMemberIndices,
 }) => {
   const hasSecondary = secondaryData && secondaryData.length > 0;
+  // Highlight tier is active only when the channel is present AND non-empty (IChart already
+  // gates on size, but guard here too so DataPoints is correct in isolation).
+  const membershipActive = !!conditionMemberIndices && conditionMemberIndices.size > 0;
 
   // Infer characteristic type once for color/shape decisions
   const characteristicType = useMemo(() => inferCharacteristicType(specs), [specs]);
@@ -258,28 +285,53 @@ const DataPoints: React.FC<DataPointsProps> = ({
         </>
       )}
 
-      {/* Primary data line */}
-      <LinePath
-        data={data}
-        x={d => xScale(d.x)}
-        y={d => yScale(d.y)}
-        stroke={chrome.dataLine}
-        strokeWidth={1}
-        strokeOpacity={0.5}
-      />
+      {/* Primary data line — suppressed under the membership highlight tier (wireframe :432):
+          a connecting line through a masked, full-context series reads as noise. */}
+      {!membershipActive && (
+        <LinePath
+          data={data}
+          x={d => xScale(d.x)}
+          y={d => yScale(d.y)}
+          stroke={chrome.dataLine}
+          strokeWidth={1}
+          strokeOpacity={0.5}
+        />
+      )}
 
       {/* Primary data points */}
       {data.map((d, i) => {
         const isHighlighted = highlightedPointIndex === i;
         const isSelected = enableBrushSelection && isPointSelected(i);
-        const pointOpacity = enableBrushSelection ? getPointOpacity(i) : 1;
-        const pointSize =
-          enableBrushSelection && isSelected ? getPointSize(i) : isHighlighted ? 6 : 4;
+
+        // --- Membership highlight tier (ER-4) ---
+        // When active, the tier OWNS opacity + size (orthogonal to violation color/shape):
+        // members lit, non-members dim; a non-member that is a violation floors at .3.
+        const isMember = membershipActive ? conditionMemberIndices!.has(i) : false;
+        const pointColor = getPointColor(d.y, i, d.stage);
+        const isViolation = pointColor !== chartColors.mean;
+        let pointOpacity: number;
+        let pointSize: number;
+        if (membershipActive) {
+          if (isMember) {
+            pointOpacity = MEMBER_OPACITY;
+            pointSize = MEMBER_POINT_SIZE;
+          } else {
+            pointOpacity = isViolation ? DIMMED_VIOLATION_FLOOR : NON_MEMBER_OPACITY;
+            pointSize = NON_MEMBER_POINT_SIZE;
+          }
+        } else {
+          pointOpacity = enableBrushSelection ? getPointOpacity(i) : 1;
+          pointSize = enableBrushSelection && isSelected ? getPointSize(i) : isHighlighted ? 6 : 4;
+        }
         const strokeWidth =
           enableBrushSelection && isSelected ? getPointStrokeWidth(i) : isHighlighted ? 2 : 1;
 
         return (
-          <g key={i} opacity={pointOpacity}>
+          <g
+            key={i}
+            opacity={pointOpacity}
+            data-member={membershipActive ? String(isMember) : undefined}
+          >
             {/* Highlight ring for selected point */}
             {isHighlighted && (
               <Circle
@@ -297,7 +349,7 @@ const DataPoints: React.FC<DataPointsProps> = ({
               cy={yScale(d.y)}
               r={pointSize}
               shape={getPointShape(d.y, i, d.stage)}
-              fill={getPointColor(d.y, i, d.stage)}
+              fill={pointColor}
               stroke={
                 isSelected
                   ? chartColors.selectedPointStroke

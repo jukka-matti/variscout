@@ -835,6 +835,10 @@ export type {
   EmptyStateHintProps,
   PersistentScopeChipProps,
 } from './components/Explore';
+
+// Explore tab — the condition loop: ConditionPill (mint) + ScopeBar (show) (ER-4)
+export { ConditionPillBase, ScopeBarBase } from './components/Explore';
+export type { ConditionPillBaseProps, ScopeBarBaseProps } from './components/Explore';
 export { SingleSelectPopover } from './components/SingleSelectPopover';
 export type {
   SingleSelectPopoverProps,

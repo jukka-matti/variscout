@@ -177,6 +177,28 @@ export interface AnalyzeActions {
     outcome: string,
     filters: ReadonlyArray<CategoricalFilterInput>
   ) => ProblemStatementScope | undefined;
+  /**
+   * ER-4 — Range-capable Explore-side PSS producer.
+   *
+   * Accepts a flat `ConditionLeaf[]` (may contain range ops: between / gte /
+   * lte / lt / gt / neq) instead of chip-filtered categoricals, and materialises
+   * a `ProblemStatementScope` from the pill condition.
+   *
+   * Semantics mirror `syncScopeFromDrill`:
+   * - Empty `leaves` → undefined (no-op, no scope created).
+   * - IDEMPOTENT: same projectId + outcome + predicateSetKey(leaves) returns the
+   *   existing scope id without creating a duplicate (soft-deleted scopes are
+   *   excluded from the idempotency check — they trigger a fresh mint).
+   * - Returns the scope id string (not the full scope object) so the caller can
+   *   pass it to `recomputeScopeWhatIf` without an extra lookup.
+   *
+   * `syncScopeFromDrill` remains UNTOUCHED — the two producers coexist.
+   */
+  syncScopeFromCondition: (
+    projectId: string,
+    outcome: string,
+    leaves: ConditionLeaf[]
+  ) => string | undefined;
   updateScope: (
     scopeId: string,
     patch: Partial<Omit<ProblemStatementScope, 'id' | 'createdAt' | 'deletedAt'>>
@@ -765,6 +787,27 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     if (existing) return existing;
 
     return get().addScope(projectId, outcome, predicates);
+  },
+
+  syncScopeFromCondition: (projectId, outcome, leaves) => {
+    // Empty leaves → no scope (no condition to persist).
+    if (leaves.length === 0) return undefined;
+
+    // Idempotency: key on the predicate SET (range-capable — predicateSetKey
+    // handles between/gte/neq etc. natively). Soft-deleted scopes are excluded:
+    // they do not satisfy the idempotency check so a fresh scope is minted.
+    const key = predicateSetKey(leaves);
+    const existing = get().scopes.find(
+      s =>
+        !s.deletedAt &&
+        s.projectId === projectId &&
+        s.outcome === outcome &&
+        predicateSetKey(s.predicates) === key
+    );
+    if (existing) return existing.id;
+
+    const scope = get().addScope(projectId, outcome, leaves);
+    return scope.id;
   },
 
   updateScope: (scopeId, patch) => {

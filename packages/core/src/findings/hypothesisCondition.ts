@@ -10,6 +10,7 @@
 
 import type { FindingSource } from './types';
 import type { ProcessMap } from '../frame/types';
+import { evaluateCondition, type DataRow } from './hypothesisConditionEvaluator';
 
 export type ComparisonOp = 'eq' | 'neq' | 'lt' | 'lte' | 'gt' | 'gte' | 'between' | 'in';
 
@@ -399,4 +400,139 @@ export function conditionReferencesStep(
     if (stepColumns.has(column)) return true;
   }
   return false;
+}
+
+// ============================================================================
+// ER-4 — Condition Loop additions
+// ============================================================================
+
+/**
+ * Return true iff `row` satisfies every leaf in `leaves` (AND semantics).
+ *
+ * Delegates to the single canonical evaluator (`evaluateCondition` in
+ * `hypothesisConditionEvaluator.ts`) so there is ONE evaluator in this codebase.
+ * All ops are honoured: eq / neq / in / gt / gte / lt / lte / between.
+ *
+ * Semantics:
+ * - Empty `leaves` → `true` (vacuous truth; caller decides whether to use as a
+ *   no-op pass-through or a guard — document the choice at the call site).
+ * - Missing column → `false` for any op (ADR-069 B2).
+ * - `null` / `undefined` cell → `false` for any op.
+ * - Non-numeric cell vs numeric comparison op → `false` (no implicit coercion).
+ * - `between` is inclusive on both bounds: [lo, hi].
+ *
+ * @param row    - A data row (Record<string, unknown> — DataRow-compatible).
+ * @param leaves - Flat list of predicates combined with AND.
+ */
+export function rowMatchesConditionLeaves(row: DataRow, leaves: ConditionLeaf[]): boolean {
+  if (leaves.length === 0) return true;
+  return evaluateCondition({ kind: 'and', children: leaves }, row);
+}
+
+/**
+ * Split a flat `ConditionLeaf[]` into:
+ *   - `categoricalFilters`: columns from `eq` / `in` leaves, merged into a
+ *     `Record<column, (string|number)[]>` map (same semantics as `projectStore.filters`).
+ *   - `rangeLeaves`: everything else (neq, lt, lte, gt, gte, between) — leaves
+ *     that cannot be represented as categorical membership chips.
+ *
+ * The split is lossless: `buildConditionLeavesFromScopeState(split.categoricalFilters,
+ * split.rangeLeaves)` rebuilds leaves whose `predicateSetKey` is equal to the
+ * original — output order is stable (alphabetical column for categorical; input
+ * order for rangeLeaves) so the key is consistent.
+ */
+export function conditionLeavesToScopeState(leaves: ReadonlyArray<ConditionLeaf>): {
+  categoricalFilters: Record<string, (string | number)[]>;
+  rangeLeaves: ConditionLeaf[];
+} {
+  const byColumn = new Map<string, (string | number)[]>();
+  const rangeLeaves: ConditionLeaf[] = [];
+
+  const addValues = (column: string, values: ReadonlyArray<string | number>): void => {
+    const existing = byColumn.get(column) ?? [];
+    for (const v of values) {
+      if (!existing.includes(v)) existing.push(v);
+    }
+    byColumn.set(column, existing);
+  };
+
+  for (const leaf of leaves) {
+    if (leaf.op === 'eq' && (typeof leaf.value === 'string' || typeof leaf.value === 'number')) {
+      addValues(leaf.column, [leaf.value]);
+    } else if (leaf.op === 'in' && Array.isArray(leaf.value)) {
+      const vals = (leaf.value as Array<unknown>).filter(
+        (v): v is string | number => typeof v === 'string' || typeof v === 'number'
+      );
+      addValues(leaf.column, vals);
+    } else {
+      rangeLeaves.push(leaf);
+    }
+  }
+
+  // Stable alphabetical order for categoricalFilters so predicateSetKey is consistent.
+  const sortedEntries = [...byColumn.entries()].sort(([a], [b]) => a.localeCompare(b));
+  const categoricalFilters: Record<string, (string | number)[]> = Object.fromEntries(sortedEntries);
+
+  return { categoricalFilters, rangeLeaves };
+}
+
+/**
+ * Rebuild a flat `ConditionLeaf[]` from a split scope state produced by
+ * `conditionLeavesToScopeState`. Lossless round-trip — `predicateSetKey` of
+ * the output equals `predicateSetKey` of the original leaves.
+ *
+ * Reconstruction:
+ * - Single-value entries → `eq` leaf.
+ * - Multi-value entries → `in` leaf (homogeneous string[] or number[]).
+ * - Empty entries → dropped.
+ * - `rangeLeaves` appended as-is after categorical leaves.
+ */
+export function buildConditionLeavesFromScopeState(
+  categoricalFilters: Record<string, (string | number)[]>,
+  rangeLeaves: ConditionLeaf[]
+): ConditionLeaf[] {
+  const leaves: ConditionLeaf[] = [];
+
+  for (const [column, values] of Object.entries(categoricalFilters)) {
+    if (values.length === 0) continue;
+    if (values.length === 1) {
+      leaves.push({ kind: 'leaf', column, op: 'eq', value: values[0] });
+    } else {
+      leaves.push({ kind: 'leaf', column, op: 'in', value: normalizeInValues(values) });
+    }
+  }
+
+  leaves.push(...rangeLeaves);
+  return leaves;
+}
+
+/**
+ * Build a range-predicate leaf from a brushed y-band on the I-Chart.
+ *
+ * - `hi` present → `between [lo, hi]` (inclusive both ends).
+ * - `hi` absent → `gte lo` (open-ended upper bound).
+ *
+ * The pill uses this to mint the y-band condition leaf from a brush mouse-up.
+ *
+ * @param column - The outcome (Y) column name.
+ * @param lo     - Lower bound (inclusive).
+ * @param hi     - Upper bound (inclusive). Omit for an open-ended range.
+ */
+export function buildBandLeaf(column: string, lo: number, hi?: number): ConditionLeaf {
+  if (hi !== undefined) {
+    return { kind: 'leaf', column, op: 'between', value: [lo, hi] };
+  }
+  return { kind: 'leaf', column, op: 'gte', value: lo };
+}
+
+/**
+ * Build an equality leaf from a group (boxplot / Pareto category) click.
+ *
+ * The pill uses this to mint the group-level condition leaf from a chart click.
+ *
+ * @param column - The grouping (X) column name.
+ * @param level  - The clicked category value (string or number).
+ */
+export function buildGroupLeaf(column: string, level: string | number): ConditionLeaf {
+  return { kind: 'leaf', column, op: 'eq', value: level };
 }

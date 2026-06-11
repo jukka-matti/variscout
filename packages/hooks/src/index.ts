@@ -300,7 +300,13 @@ export {
 } from './useFactorStripModel';
 
 // Scope match (ER-2 — shared drill→scope lookup for the strip's what-if refresh)
-export { matchActiveScopeId, type MatchActiveScopeArgs } from './matchActiveScope';
+// matchActiveScopeIdByLeaves (ER-4) — range-capable sibling for pill condition
+export {
+  matchActiveScopeId,
+  matchActiveScopeIdByLeaves,
+  type MatchActiveScopeArgs,
+  type MatchActiveScopeByLeavesArgs,
+} from './matchActiveScope';
 
 // Factor list utilities (G1 Task 4 — derived categorical column support)
 export {
@@ -714,3 +720,12 @@ export { useLiveProjection } from './useLiveProjection';
 
 // IM-3 reactive auto-link cascade (shared by Azure + PWA)
 export { useReingestAutoLink, type UseReingestAutoLinkOptions } from './useReingestAutoLink';
+
+// ER-4 condition loop — the shared brush-pill / group-pill / scope-bar / apply /
+// clear / take-to-Analyze orchestration consumed by both apps' Dashboards.
+export {
+  useConditionLoop,
+  type UseConditionLoopArgs,
+  type UseConditionLoopReturn,
+  type ConditionPillSummary,
+} from './useConditionLoop';

@@ -26,7 +26,17 @@ function makeCapturedFinding(id: string): Finding {
 }
 
 // Mock components
-vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
+// Capture the I-Chart props so the ER-4 highlight-tier passthrough (full lensed
+// series + the member Set, NOT a categorical-filtered subset) can be asserted.
+const capturedIChartProps = vi.hoisted(() => ({
+  value: undefined as Record<string, unknown> | undefined,
+}));
+vi.mock('../charts/IChart', () => ({
+  default: (props: Record<string, unknown>) => {
+    capturedIChartProps.value = props;
+    return <div data-testid="i-chart">I-Chart</div>;
+  },
+}));
 vi.mock('../charts/Boxplot', () => ({ default: () => <div data-testid="boxplot">Boxplot</div> }));
 vi.mock('../charts/ParetoChart', () => ({
   default: () => <div data-testid="pareto-chart">Pareto</div>,
@@ -423,6 +433,55 @@ vi.mock('@variscout/ui', () => ({
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
   // LV1-E Task 7: ScopeChrome stub — renders data-testid so render-smoke tests work
   ScopeChrome: () => <div data-testid="scope-chrome">ScopeChrome</div>,
+  // ER-4: ConditionPill + ScopeBar stubs — expose the testids + action buttons the
+  // condition-loop JSX wiring tests click.
+  ConditionPillBase: ({
+    summary,
+    nIn,
+    onCapture,
+    onViewAsCondition,
+    onDismiss,
+  }: {
+    summary: string;
+    nIn: number;
+    onCapture?: () => void;
+    onViewAsCondition: () => void;
+    onDismiss: () => void;
+  }) => (
+    <div data-testid="condition-pill">
+      <span>{`${summary} · n=${nIn}`}</span>
+      {onCapture && (
+        <button data-testid="condition-pill-capture" onClick={onCapture}>
+          capture
+        </button>
+      )}
+      <button data-testid="condition-pill-apply" onClick={onViewAsCondition}>
+        apply
+      </button>
+      <button data-testid="condition-pill-dismiss" onClick={onDismiss}>
+        dismiss
+      </button>
+    </div>
+  ),
+  ScopeBarBase: ({
+    conditionLabel,
+    onClear,
+    onTakeToAnalyze,
+  }: {
+    conditionLabel: string;
+    onClear: () => void;
+    onTakeToAnalyze: () => void;
+  }) => (
+    <div data-testid="scope-bar">
+      <span>{conditionLabel}</span>
+      <button data-testid="scope-bar-clear" onClick={onClear}>
+        clear
+      </button>
+      <button data-testid="scope-bar-analyze" onClick={onTakeToAnalyze}>
+        analyze
+      </button>
+    </div>
+  ),
   // ER-3: Model drawer stub — closed by default so existing tests are unaffected.
   ModelDrawerBase: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
@@ -441,6 +500,40 @@ const chartSetterSpies = vi.hoisted(() => ({
   setBoxplotFactor: vi.fn(),
   setFocusedChart: vi.fn(),
 }));
+
+// ER-4: a mutable holder for the mocked useConditionLoop return so individual
+// tests can supply a groupPill / hasCondition to exercise the pill + scope-bar
+// JSX wiring (the loop LOGIC is covered by the hook's own test).
+const emptyConditionLoop = vi.hoisted(() => ({
+  appliedLeaves: [] as unknown[],
+  hasCondition: false,
+  conditionRows: [] as unknown[],
+  conditionMemberIndices: new Set<number>(),
+  scopeBarLabel: '',
+  scopeBarNIn: 0,
+  scopeBarNTotal: 0,
+  groupPill: null as unknown,
+  transientMemberIndices: new Set<number>(),
+  buildBrushPill: () => null,
+  applyCondition: vi.fn(),
+  clearCondition: vi.fn(),
+  takeToAnalyze: vi.fn(),
+  mintScopeIdForCapture: () => undefined,
+}));
+const conditionLoopHolder = vi.hoisted(() => ({ current: null as unknown }));
+// Lazily fall back to the empty loop when a test hasn't supplied one.
+const conditionLoopReturn = new Proxy(
+  {},
+  {
+    get(_t, prop) {
+      const src = (conditionLoopHolder.current ?? emptyConditionLoop) as Record<
+        string | symbol,
+        unknown
+      >;
+      return src[prop];
+    },
+  }
+);
 
 // Mock hooks
 vi.mock('../../hooks', () => ({
@@ -609,6 +702,10 @@ vi.mock('@variscout/hooks', () => ({
   // ER-2: strip hidden in these legacy tests (null model → no factorStrip node).
   useFactorStripModel: () => null,
   matchActiveScopeId: () => null,
+  // ER-4: condition loop — default-empty (no condition applied) so the legacy
+  // render tests don't see the pill / scope bar. Tests that exercise the loop
+  // override `conditionLoopReturn` (a hoisted holder) before render.
+  useConditionLoop: () => conditionLoopReturn,
   useTranslation: () => ({
     t: (key: string) => key,
     formatStat: (v: unknown) => String(v),
@@ -654,6 +751,11 @@ describe('Dashboard', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    // ER-4: reset the condition-loop mock holder so the loop is empty by default.
+    conditionLoopHolder.current = null;
+    emptyConditionLoop.applyCondition.mockClear();
+    emptyConditionLoop.clearCondition.mockClear();
+    emptyConditionLoop.takeToAnalyze.mockClear();
     useProjectStore.setState(
       mockStoreState as unknown as Partial<ReturnType<typeof useProjectStore.getState>>
     );
@@ -803,7 +905,7 @@ describe('Dashboard', () => {
     expect(titles.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('shows one-time Analyze afterglow after an engine-signal Finding capture', () => {
+  it('ER-4: no capture-afterglow toast after an engine-signal Finding capture (retired)', () => {
     const onAddChartObservation = vi.fn(() => makeCapturedFinding('f-dashboard'));
     const onOpenWall = vi.fn();
 
@@ -820,12 +922,12 @@ describe('Dashboard', () => {
     fireEvent.click(screen.getByTestId('insight-capture'));
     fireEvent.click(screen.getByRole('button', { name: 'Capture' }));
 
-    expect(screen.getByRole('button', { name: /Take it to Analyze ->/i })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Take it to Analyze ->/i }));
-    expect(onOpenWall).toHaveBeenCalledTimes(1);
-    expect(
-      screen.queryByRole('button', { name: /Take it to Analyze ->/i })
-    ).not.toBeInTheDocument();
+    // ER-4: the capture-afterglow toast retired (subsumed by the scope bar). The
+    // "Take it to Analyze →" verb now appears only on the scope bar, which is shown
+    // only when a CONDITION is applied — not merely after a capture. The capture
+    // itself still fired.
+    expect(onAddChartObservation).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: /Take it to Analyze/i })).not.toBeInTheDocument();
   });
 
   // ────────────────────────────────────────────────────────────────────────
@@ -922,17 +1024,20 @@ describe('Dashboard', () => {
   });
 
   // ────────────────────────────────────────────────────────────────────────
-  // LV1-E Task 7: ScopeChrome mount + reverse-mirror effects
+  // LV1-E Task 7: reverse-mirror effects (the ScopeChrome MOUNT was deleted in
+  // ER-4 — the conditional scope bar is the single scope-chrome surface — but the
+  // reverse-mirror effects stay: any producer that writes the scope store's
+  // yColumn/boxplotFactor (e.g. the PersistentScopeChip) still propagates to charts).
   // ────────────────────────────────────────────────────────────────────────
-  describe('LV1-E: ScopeChrome mount + reverse-mirror effects', () => {
-    it('renders the ScopeChrome stub in the analysis tab (desktop)', () => {
+  describe('ER-4: ScopeChrome mount deleted; reverse-mirror effects retained', () => {
+    it('does NOT render the ScopeChrome mount in the analysis tab (ER-4 deletion)', () => {
       // useIsMobile returns false by default (desktop)
       render(<Dashboard />);
 
-      expect(screen.getByTestId('scope-chrome')).toBeInTheDocument();
+      expect(screen.queryByTestId('scope-chrome')).not.toBeInTheDocument();
     });
 
-    it('LV1-E reverse-mirror: scope.yColumn change calls setOutcome on projectStore', async () => {
+    it('reverse-mirror: scope.yColumn change calls setOutcome on projectStore', async () => {
       render(<Dashboard />);
 
       // Simulate ScopeChrome writing yColumn into the scope store
@@ -966,6 +1071,106 @@ describe('Dashboard', () => {
       // Give effects time to run (they shouldn't call setOutcome)
       await new Promise(resolve => setTimeout(resolve, 20));
       expect(setOutcomeSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // ER-4: the condition-loop JSX wiring (pill + scope bar). The loop LOGIC is
+  // covered by useConditionLoop's own test; here we verify the Dashboard mounts
+  // the pill / scope bar / clear when the hook reports a group pill / condition.
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('ER-4 condition loop (Azure JSX wiring)', () => {
+    it('renders the group pill when the hook reports one', () => {
+      conditionLoopHolder.current = {
+        ...emptyConditionLoop,
+        groupPill: {
+          summary: 'Machine = A',
+          nIn: 12,
+          meanIn: 15,
+          meanOut: 35,
+          leaf: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+        },
+      };
+      render(<Dashboard />);
+      const pill = screen.getByTestId('condition-pill');
+      expect(pill).toBeInTheDocument();
+      expect(pill.textContent).toContain('Machine = A');
+      expect(pill.textContent).toContain('n=12');
+    });
+
+    it('renders the scope bar when a condition is applied; × routes to clearCondition', () => {
+      conditionLoopHolder.current = {
+        ...emptyConditionLoop,
+        hasCondition: true,
+        scopeBarLabel: 'Machine = A',
+        scopeBarNIn: 12,
+        scopeBarNTotal: 40,
+      };
+      render(<Dashboard />);
+      expect(screen.getByTestId('scope-bar')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('scope-bar-clear'));
+      expect(emptyConditionLoop.clearCondition).toHaveBeenCalled();
+    });
+
+    it('Take it to Analyze → on the scope bar routes to takeToAnalyze', () => {
+      conditionLoopHolder.current = {
+        ...emptyConditionLoop,
+        hasCondition: true,
+        scopeBarLabel: 'Machine = A',
+        scopeBarNIn: 12,
+        scopeBarNTotal: 40,
+      };
+      render(<Dashboard onOpenWall={vi.fn()} />);
+      fireEvent.click(screen.getByTestId('scope-bar-analyze'));
+      expect(emptyConditionLoop.takeToAnalyze).toHaveBeenCalled();
+    });
+
+    it('shows no pill / scope bar when the loop is empty (default)', () => {
+      render(<Dashboard />);
+      expect(screen.queryByTestId('condition-pill')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('scope-bar')).not.toBeInTheDocument();
+    });
+
+    it('view-as-condition routes to applyCondition with the leaf ONLY (no setFilters arg)', () => {
+      // Scope-store-only routing: handleApplyCondition no longer threads setFilters
+      // into the hook. A CATEGORICAL group pill commits scope-store-only — filters
+      // stay untouched so useFilteredData / useAnalysisStats remain full-series.
+      conditionLoopHolder.current = {
+        ...emptyConditionLoop,
+        groupPill: {
+          summary: 'Machine = A',
+          nIn: 12,
+          meanIn: 15,
+          meanOut: 35,
+          leaf: { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+        },
+      };
+      render(<Dashboard />);
+      fireEvent.click(screen.getByTestId('condition-pill-apply'));
+      // Called with exactly one arg — the leaves. No setFilters callback.
+      expect(emptyConditionLoop.applyCondition).toHaveBeenCalledTimes(1);
+      expect(emptyConditionLoop.applyCondition).toHaveBeenCalledWith([
+        { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+      ]);
+    });
+
+    it('the I-Chart receives the member Set under a CATEGORICAL condition (full series + members lit)', () => {
+      // The I-Chart reads filteredData / stats internally (full series, since a
+      // condition writes no filters); the Dashboard passes the membership Set so the
+      // categorical members are lit WITHIN that full series (D6).
+      conditionLoopHolder.current = {
+        ...emptyConditionLoop,
+        hasCondition: true,
+        scopeBarLabel: 'Machine = A',
+        scopeBarNIn: 12,
+        scopeBarNTotal: 40,
+        conditionMemberIndices: new Set<number>([0, 1, 2]),
+      };
+      render(<Dashboard />);
+      const members = capturedIChartProps.value?.conditionMemberIndices as Set<number>;
+      expect(members).toBeInstanceOf(Set);
+      expect([...members].sort((a, b) => a - b)).toEqual([0, 1, 2]);
     });
   });
 });

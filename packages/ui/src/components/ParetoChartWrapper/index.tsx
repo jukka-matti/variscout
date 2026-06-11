@@ -101,12 +101,14 @@ export interface ParetoChartWrapperBaseProps {
    */
   scopeFilterValues?: ReadonlyArray<string | number>;
   /**
-   * LV1-F: Linked-views scope accumulation. When provided, fires on every bar click
-   * with `(factor, key)` regardless of legacy filter-toggle or `onDrillDown` branches.
-   * Caller (Azure thin wrapper) wires this to `useAnalysisScopeStore.addCategoricalValue`.
-   * Spec §5.4. Scope-store-agnostic at this layer per D-LV1F-3.
+   * ER-4 (D6/Principle 6) — neutral group-click handler. When provided, a bar
+   * click no longer commits a drill or toggles a filter: it fires
+   * `onGroupClick(factor, level)` so the host can set a TRANSIENT highlight + show
+   * the condition pill (commit is explicit, via the pill's actions). Takes
+   * precedence over the legacy `onDrillDown` / filter-toggle path. When ABSENT the
+   * legacy click behaviour is preserved (focused views, mobile, embed).
    */
-  onScopeAccumulate?: (factor: string, key: string | number) => void;
+  onGroupClick?: (factor: string, level: string | number) => void;
   /**
    * Active Y-axis metric id. When set, takes precedence over `aggregation` for
    * non-count metrics. Forwarded to useParetoChartData.
@@ -295,7 +297,7 @@ export const ParetoChartWrapperBase = ({
   separateParetoData,
   onDrillDown,
   onCaptureCategory,
-  onScopeAccumulate,
+  onGroupClick,
   scopeFilterValues,
   showComparison = false,
   onToggleComparison,
@@ -348,8 +350,15 @@ export const ParetoChartWrapperBase = ({
   // Signature mirrors ParetoChartBase.onBarClick (2-arg); ctx.shiftKey is
   // unused since the onScopeFilterClick branch retired.
   const handleBarClick = (key: string, _ctx?: { shiftKey: boolean }) => {
-    // LV1-F: fires unconditionally regardless of legacy/drillDown branches. Spec §5.4.
-    onScopeAccumulate?.(factor, key);
+    // ER-4 (D6): the neutral group-click path. When the host supplies
+    // `onGroupClick`, a click NEVER commits a filter/drill — it only sets the
+    // transient highlight + opens the condition pill (commit is explicit). The
+    // legacy filter-toggle / drill path is preserved ONLY when `onGroupClick` is
+    // absent (focused views, mobile, embed callers that haven't migrated).
+    if (onGroupClick) {
+      onGroupClick(factor, key);
+      return;
+    }
     if (onDrillDown) {
       onDrillDown(factor, key);
       return;

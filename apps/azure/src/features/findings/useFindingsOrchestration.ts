@@ -13,9 +13,15 @@ import {
   useDrillPath,
   buildFindingContext,
   buildFindingSource,
+  matchActiveScopeIdByLeaves,
 } from '@variscout/hooks';
-import { usePreferencesStore, useProjectStore } from '@variscout/stores';
-import { applyFilters } from '@variscout/core';
+import {
+  usePreferencesStore,
+  useProjectStore,
+  useAnalysisScopeStore,
+  useAnalyzeStore,
+} from '@variscout/stores';
+import { applyFilters, DEFAULT_PROCESS_HUB_ID } from '@variscout/core';
 import { useFindingsStore, groupFindingsByChart } from './findingsStore';
 import { usePanelsStore } from '../panels/panelsStore';
 import { usePopoutSync } from './usePopoutSync';
@@ -67,6 +73,13 @@ export interface UseFindingsOrchestrationOptions {
   projectName?: string;
   /** Called only when a live user action creates a new Finding. */
   onOwnFindingCaptured?: (finding: Finding) => void;
+  /**
+   * ER-4: the scope-project id scopes are keyed under (the same value the Dashboard
+   * receives as `scopeProjectId` + AnalyzeWorkspace stores scopes under). Used to
+   * mint-or-match the active condition's ProblemStatementScope when a capture is
+   * made inside an applied condition. Defaults to DEFAULT_PROCESS_HUB_ID.
+   */
+  scopeProjectId?: string;
 }
 
 export interface UseFindingsOrchestrationReturn {
@@ -119,7 +132,22 @@ export function useFindingsOrchestration({
   addNotification: _addNotification,
   projectName: _projectName,
   onOwnFindingCaptured,
+  scopeProjectId = DEFAULT_PROCESS_HUB_ID,
 }: UseFindingsOrchestrationOptions): UseFindingsOrchestrationReturn {
+  // ER-4: resolve the active condition's ProblemStatementScope id for a capture.
+  // Mint-or-match (range-capable) when a condition is applied; undefined otherwise.
+  const resolveActiveScopeIdForCapture = useCallback((): string | undefined => {
+    const leaves = useAnalysisScopeStore.getState().conditionLeaves;
+    if (leaves.length === 0 || !outcome) return undefined;
+    const matched = matchActiveScopeIdByLeaves({
+      leaves,
+      outcome,
+      scopeProjectId,
+      scopes: useAnalyzeStore.getState().scopes,
+    });
+    if (matched) return matched;
+    return useAnalyzeStore.getState().syncScopeFromCondition(scopeProjectId, outcome, [...leaves]);
+  }, [outcome, scopeProjectId]);
   // Core findings state (CRUD engine from @variscout/hooks)
   const findingsState = useFindings({
     initialFindings: persistedFindings,
@@ -158,12 +186,23 @@ export function useFindingsOrchestration({
         return;
       }
       const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
-      const newFinding = findingsState.addFinding(text, context);
+      // ER-4: a pin made INSIDE an applied condition links to that scope.
+      const scopeId = resolveActiveScopeIdForCapture();
+      const newFinding = findingsState.addFinding(text, context, undefined, scopeId);
       onOwnFindingCaptured?.(newFinding);
       usePanelsStore.getState().setFindingsOpen(true);
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
     },
-    [filters, drillPath, filteredData, outcome, specs, findingsState, onOwnFindingCaptured]
+    [
+      filters,
+      drillPath,
+      filteredData,
+      outcome,
+      specs,
+      findingsState,
+      onOwnFindingCaptured,
+      resolveActiveScopeIdForCapture,
+    ]
   );
 
   // Restore a finding's filters and time lens
@@ -231,11 +270,14 @@ export function useFindingsOrchestration({
         conditionSpecs,
         drillPath
       );
+      // ER-4: a capture made INSIDE an applied condition links to that condition's
+      // ProblemStatementScope (mint-or-match); a capture without one stays undefined.
+      const scopeId = resolveActiveScopeIdForCapture();
       const newFinding = findingsState.addFinding(
         noteText ?? '',
         context,
         source,
-        undefined,
+        scopeId,
         undefined,
         captureOptions?.evidenceType
       );
@@ -244,7 +286,16 @@ export function useFindingsOrchestration({
       useFindingsStore.getState().setHighlightedFindingId(newFinding.id);
       return newFinding;
     },
-    [filters, drillPath, filteredData, outcome, specs, findingsState, onOwnFindingCaptured]
+    [
+      filters,
+      drillPath,
+      filteredData,
+      outcome,
+      specs,
+      findingsState,
+      onOwnFindingCaptured,
+      resolveActiveScopeIdForCapture,
+    ]
   );
 
   // Navigate to chart from finding source

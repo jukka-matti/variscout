@@ -71,6 +71,7 @@ const IChartBase: React.FC<IChartProps> = ({
   phaseSplit,
   phaseLimits,
   eventFlags,
+  conditionMemberIndices,
 }) => {
   const { chrome, formatStat, t, tf } = useChartTheme();
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
@@ -91,6 +92,8 @@ const IChartBase: React.FC<IChartProps> = ({
 
   const isStaged = stageBoundaries.length > 0;
   const hasSecondary = secondaryData && secondaryData.length > 0;
+  // Membership highlight tier (ER-4): active when the channel is present AND non-empty.
+  const membershipActive = !!conditionMemberIndices && conditionMemberIndices.size > 0;
   const resolvedPhaseLimits = hasResolvablePhaseSplit(data, phaseSplit?.atISO)
     ? phaseLimits
     : undefined;
@@ -324,6 +327,7 @@ const IChartBase: React.FC<IChartProps> = ({
             showTooltipAtCoords={showTooltipAtCoords}
             hideTooltip={hideTooltip}
             secondaryData={secondaryData}
+            conditionMemberIndices={membershipActive ? conditionMemberIndices : undefined}
           />
 
           {/* Axes */}
