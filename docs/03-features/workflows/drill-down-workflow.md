@@ -46,16 +46,16 @@ VariScout's signature interaction pattern—progressive stratification using fil
   <div class="process-arrow"></div>
   <div class="process-step">
     <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read ANOVA</div>
-      <div class="process-step__detail">Check eta-squared under Boxplot</div>
+      <div class="process-step__title">Read Factor Strip</div>
+      <div class="process-step__detail">ω²-adjusted η² below I-Chart</div>
     </div>
     <div class="process-step__clicks">0 clicks</div>
   </div>
   <div class="process-arrow"></div>
   <div class="process-step">
     <div class="process-step__box process-step__box--analyze">
-      <div class="process-step__title">Filter Top Factor</div>
-      <div class="process-step__detail">Click highest-eta bar</div>
+      <div class="process-step__title">Click Top Chip</div>
+      <div class="process-step__detail">Rebinds boxplot comparison</div>
     </div>
     <div class="process-step__clicks">1 click</div>
   </div>
@@ -77,17 +77,19 @@ _See [all process maps](process-maps.md) for PWA and Azure variants._
 
 ## Overview
 
-Drill-down analysis lets you progressively filter data to isolate specific variation sources. Factor Intelligence (R²adj) guides which factors to explore. η² confirms each factor's effect size. The boxplot visual and StdDev comparison reveal which categories to investigate.
+Drill-down analysis lets you progressively filter data to isolate specific variation sources. The **factor strip** (ω²-adjusted η² ranking, ER-2 2026-06-11) is the default guidance surface — it ranks every candidate factor by cardinality-penalised share of variation directly beneath the I-Chart hero. Click a factor chip to rebind the Variation Sources boxplot comparison; the chip goes examined-✓. For deeper factor-combination analysis, the underlying ANOVA detail is available from the model drawer (ER-3).
+
+> **Note on Factor Intelligence:** the η² ranking previously surfaced inside the `FactorIntelligencePanel` (Stats sidebar). That η² ranking re-homes to the Explore factor strip (ER-2, 2026-06-11); the PI-panel `FactorIntelligencePanel` retires in ER-7.
 
 ## The Drill-Down Pattern
 
 ```mermaid
 flowchart TD
-    A[Start: All data] --> B[Boxplot shows η² by factor]
-    B --> C[Click highest η² factor value]
-    C --> D[Filter applied]
+    A[Start: All data] --> B["Factor strip ranks all factors by ω²-adjusted η²"]
+    B --> C["Click largest-share chip → rebinds boxplot comparison + examined-✓"]
+    C --> D[Filter applied to a category level]
     D --> E["Filter chip shows: Factor = Value (n=X)"]
-    E --> F[All charts update to subset]
+    E --> F[All charts update to subset; strip retitles '…within this condition?']
     F --> G{Insight found?}
     G -->|"Yes"| H[Actionable insight found]
     G -->|"No"| I[Continue drilling]
@@ -134,7 +136,7 @@ Useful for comparing similar groups or establishing baselines.
 
 ### Step 1: Start with Full Data
 
-View the Boxplot with all data. Note which factor has highest η². Check Factor Intelligence for R²adj rankings — it evaluates all factor combinations simultaneously and may reveal that a pair of factors together explains more than either alone.
+The **factor strip** renders automatically beneath the I-Chart hero and ranks all candidate factors by ω²-adjusted η² (cardinality-penalised). The ★ chip is the largest significant contributor. Click a chip to rebind the Variation Sources boxplot comparison to that factor — no scrolling or carousel navigation required. The model drawer (ER-3) exposes factor-combination rankings (R²adj) for analysts who want to check whether a pair of factors together explains more than either alone.
 
 ### Step 2: Click to Filter
 
@@ -268,8 +270,8 @@ Does new operator perform differently by shift?
 
 ### Do
 
-- Start with Factor Intelligence R²adj ranking for guidance
-- Confirm with η² on the Boxplot
+- Start with the factor strip (ω²-adjusted η² ranking) for guidance — it ranks all candidates on the default surface
+- Click a chip to rebind the comparison and examine the boxplot for category-level spread
 - Compare StdDev values to find high-spread categories
 - Check Cpk at each level
 - Verify sample size remains adequate (watch n=X on chips)

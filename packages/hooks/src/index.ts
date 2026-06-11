@@ -290,6 +290,18 @@ export {
   type UseDashboardChartsBaseResult,
 } from './useDashboardChartsBase';
 
+// Factor Strip Model (ER-2 — ω²-ranked chips for the FactorStrip component)
+export {
+  useFactorStripModel,
+  type UseFactorStripModelArgs,
+  type UseFactorStripModelResult,
+  type FactorStripChip,
+  type FactorStripWhatIf,
+} from './useFactorStripModel';
+
+// Scope match (ER-2 — shared drill→scope lookup for the strip's what-if refresh)
+export { matchActiveScopeId, type MatchActiveScopeArgs } from './matchActiveScope';
+
 // Factor list utilities (G1 Task 4 — derived categorical column support)
 export {
   buildFactorList,

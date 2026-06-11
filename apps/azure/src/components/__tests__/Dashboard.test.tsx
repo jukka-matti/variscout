@@ -454,6 +454,7 @@ vi.mock('../../hooks', () => ({
     availableStageColumns: [],
     anovaResult: null,
     boxplotData: [],
+    allFactors: ['Machine'],
     filterStack: [],
     applyFilter: vi.fn(),
     clearFilters: vi.fn(),
@@ -596,6 +597,9 @@ vi.mock('@variscout/hooks', () => ({
   useDefectSummary: () => null,
   useLensedSampleCount: () => null,
   useDataDateRange: () => null,
+  // ER-2: strip hidden in these legacy tests (null model → no factorStrip node).
+  useFactorStripModel: () => null,
+  matchActiveScopeId: () => null,
   useTranslation: () => ({
     t: (key: string) => key,
     formatStat: (v: unknown) => String(v),

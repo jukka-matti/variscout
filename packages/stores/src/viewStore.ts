@@ -37,6 +37,14 @@ export interface ViewState {
   selectedPoints: Set<number>;
   /** Mapping from data row index → display point index (relocated from projectStore). */
   selectionIndexMap: Map<number, number>;
+
+  /**
+   * ER-2 factor strip: the set of factor chips the analyst has examined,
+   * keyed `${outcome}::${factor}`. Transient (View layer — no persist); cleared
+   * on loadProject / newProject via clearTransientSelections. The strip projects
+   * this to a per-outcome factor-name Set for the active outcome.
+   */
+  examinedFactors: Set<string>;
 }
 
 export interface ViewActions {
@@ -72,6 +80,16 @@ export interface ViewActions {
   clearSelection: () => void;
   /** Toggle whether a single index is in the selection set. */
   togglePointSelection: (index: number) => void;
+
+  // Factor strip examined-state (ER-2)
+  /**
+   * Mark a factor as examined for the given outcome. Idempotent — re-marking an
+   * already-examined `${outcome}::${factor}` key is a no-op (no new Set identity).
+   * Never called by an effect — only from a user chip click (ER-2 invariant).
+   */
+  markFactorExamined: (outcome: string, factor: string) => void;
+  /** Clear ONLY the examined-factors set. */
+  clearExaminedFactors: () => void;
 }
 
 export type ViewStore = ViewState & ViewActions;
@@ -88,7 +106,12 @@ export const getViewInitialState = (): ViewState => ({
   improvementActiveView: 'plan',
   selectedPoints: new Set(),
   selectionIndexMap: new Map(),
+  examinedFactors: new Set(),
 });
+
+/** Compose the canonical examined-factors Set key. */
+export const examinedFactorKey = (outcome: string, factor: string): string =>
+  `${outcome}::${factor}`;
 
 export const useViewStore = create<ViewStore>(set => ({
   ...getViewInitialState(),
@@ -107,7 +130,13 @@ export const useViewStore = create<ViewStore>(set => ({
 
   setSelectedPoints: points => set({ selectedPoints: points }),
   setSelectionIndexMap: map => set({ selectionIndexMap: map }),
-  clearTransientSelections: () => set({ selectedPoints: new Set(), selectionIndexMap: new Map() }),
+  clearTransientSelections: () =>
+    set({
+      selectedPoints: new Set(),
+      selectionIndexMap: new Map(),
+      // ER-2: examined-factor marks are project-scoped — reset on load/new.
+      examinedFactors: new Set(),
+    }),
 
   addToSelection: indices =>
     set(s => {
@@ -129,6 +158,16 @@ export const useViewStore = create<ViewStore>(set => ({
       else newSet.add(index);
       return { selectedPoints: newSet };
     }),
+
+  markFactorExamined: (outcome, factor) =>
+    set(s => {
+      const key = examinedFactorKey(outcome, factor);
+      if (s.examinedFactors.has(key)) return {}; // idempotent — preserve identity
+      const next = new Set(s.examinedFactors);
+      next.add(key);
+      return { examinedFactors: next };
+    }),
+  clearExaminedFactors: () => set({ examinedFactors: new Set() }),
 }));
 
 // Expose getInitialState on the store instance for the canonical test reset

@@ -9,7 +9,12 @@ import MobileChartCarousel from './MobileChartCarousel';
 import PerformanceDashboard from './PerformanceDashboard';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
-import { useProjectStore, useViewStore, useAnalysisScopeStore } from '@variscout/stores';
+import {
+  useProjectStore,
+  useViewStore,
+  useAnalysisScopeStore,
+  useAnalyzeStore,
+} from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
@@ -42,6 +47,7 @@ import {
   CreateFactorModal,
   DashboardLayoutBase,
   DashboardChartCard,
+  FactorStripBase,
   FocusedViewOverlay,
   CapabilityMetricToggle,
   SubgroupConfigPopover,
@@ -59,6 +65,7 @@ import {
   getEtaSquared,
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
+  DEFAULT_PROCESS_HUB_ID,
 } from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
@@ -74,6 +81,8 @@ import {
   useJourneyPhase,
   useCapabilityIChartData,
   useTranslation,
+  useFactorStripModel,
+  matchActiveScopeId,
 } from '@variscout/hooks';
 import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
@@ -189,6 +198,13 @@ interface DashboardProps {
    * background, otherwise the inflection state machine races with itself.
    */
   onBindingsChange?: (next: BinnedFactorBinding[]) => void;
+  /**
+   * ER-2: active scope project id (Workspace Project id, or DEFAULT_PROCESS_HUB_ID).
+   * The factor strip uses it to refresh an existing ProblemStatementScope's
+   * what-if number — must match the id scopes are stored under (the same value
+   * AnalyzeWorkspace receives). Absent → falls back to DEFAULT_PROCESS_HUB_ID.
+   */
+  scopeProjectId?: string;
 }
 
 const Dashboard = ({
@@ -213,6 +229,7 @@ const Dashboard = ({
   workspaceProjectProcessSteps = [],
   binnedFactorBindings,
   onBindingsChange,
+  scopeProjectId = DEFAULT_PROCESS_HUB_ID,
 }: DashboardProps) => {
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -370,6 +387,7 @@ const Dashboard = ({
     availableStageColumns,
     anovaResult,
     boxplotData,
+    allFactors,
     filterStack,
     clearFilters,
     updateFilterValues,
@@ -876,6 +894,74 @@ const Dashboard = ({
         }
       : undefined;
 
+  // ── ER-2 Factor strip ──────────────────────────────────────────────────────
+  // Ranks every candidate factor by cardinality-penalised share of variation over
+  // the SAME rows + outcome the rendered Variation Sources boxplot uses
+  // (effectiveData / effectiveOutcome), so the strip and the comparison agree.
+  // bindings: Azure threads the live ImprovementProject's binnedFactorBindings,
+  // so D11 excludes Y-derived bins by binding too (not just the name convention).
+  const stripModel = useFactorStripModel({
+    rows: effectiveData,
+    outcome: effectiveOutcome,
+    allFactors,
+    selectedFactors: effectiveFactors,
+    specs: effectiveSpecs,
+    bindings: binnedFactorBindings,
+  });
+
+  // Examined keys are stored `${outcome}::${factor}`; the component takes a
+  // factor-name Set for the active outcome — project it here.
+  const examinedFactors = useViewStore(s => s.examinedFactors);
+  const markFactorExamined = useViewStore(s => s.markFactorExamined);
+  const examinedFactorNames = useMemo(() => {
+    const prefix = `${effectiveOutcome ?? ''}::`;
+    const names = new Set<string>();
+    examinedFactors.forEach(key => {
+      if (key.startsWith(prefix)) names.add(key.slice(prefix.length));
+    });
+    return names;
+  }, [examinedFactors, effectiveOutcome]);
+
+  const isDrilling = Object.keys(filters ?? {}).length > 0;
+
+  // Scope what-if write-through: when a chip is selected AND the live drill
+  // matches an EXISTING ProblemStatementScope, refresh that scope's stored
+  // what-if number. NEVER creates a scope (ER-4 owns creation). The drill source
+  // is analysisScopeStore.categoricalFilters; scopeProjectId is the Workspace
+  // Project id threaded as a prop (matches AnalyzeWorkspace's scope keying).
+  const maybeRefreshScopeWhatIf = useCallback(() => {
+    const scopeId = matchActiveScopeId({
+      categoricalFilters: useAnalysisScopeStore.getState().categoricalFilters,
+      outcome: effectiveOutcome,
+      scopeProjectId,
+      scopes: useAnalyzeStore.getState().scopes,
+    });
+    if (scopeId) useAnalyzeStore.getState().recomputeScopeWhatIf(scopeId);
+  }, [effectiveOutcome, scopeProjectId]);
+
+  const factorStripNode =
+    stripModel && effectiveOutcome ? (
+      <FactorStripBase
+        chips={stripModel.chips}
+        residualPct={stripModel.residualPct}
+        selectedFactor={boxplotFactor}
+        examinedKeys={examinedFactorNames}
+        isScoped={isDrilling}
+        cpkTarget={
+          resolveCpkTarget(effectiveOutcome, {
+            measureSpecs,
+            projectCpkTarget: cpkTarget,
+          }).value
+        }
+        outcomeLabel={columnAliases[effectiveOutcome] ?? effectiveOutcome}
+        onFactorSelect={f => {
+          setBoxplotFactor(f);
+          markFactorExamined(effectiveOutcome, f);
+          maybeRefreshScopeWhatIf();
+        }}
+      />
+    ) : undefined;
+
   if (!outcome) return null;
 
   return (
@@ -1147,6 +1233,7 @@ const Dashboard = ({
               <DashboardLayoutBase
                 outcome={outcome}
                 factors={factors}
+                factorStrip={factorStripNode}
                 columnAliases={columnAliases}
                 filters={filters}
                 showFilterContext={displayOptions.showFilterContext !== false}
@@ -1245,10 +1332,9 @@ const Dashboard = ({
                     )}
                   </div>
                 }
-                // Boxplot factor wrapper (visual feedback removed with variation tracking)
-                boxplotFactorWrapper={selector => (
-                  <div className="rounded-lg transition-all duration-300">{selector}</div>
-                )}
+                // ER-2: boxplotFactorWrapper retired — the factor strip absorbs
+                // factor selection (the dropdown it wrapped is gone). The strip
+                // node itself is wired in Task 4 (apps).
                 // Render slots
                 renderIChartContent={
                   <ErrorBoundary componentName="I-Chart">

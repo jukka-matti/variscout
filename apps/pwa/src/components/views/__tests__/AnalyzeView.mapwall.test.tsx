@@ -84,7 +84,7 @@ vi.mock('@variscout/ui', async importOriginal => {
           )}
           {props.onSeedFromFactorIntel && (
             <button data-testid="empty-seed-factors" onClick={props.onSeedFromFactorIntel}>
-              Seed 3 from Factor Intelligence
+              Seed 3 largest contributors
             </button>
           )}
         </div>

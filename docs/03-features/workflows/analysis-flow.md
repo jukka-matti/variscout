@@ -85,8 +85,8 @@ The first question the analyst asks depends on the entry path — not a fixed se
 ### Thread 1: Variation Analysis
 
 - **Core question:** "Where does variation come from?"
-- **Tools:** I-Chart (values), Boxplot (eta-squared), optional Pareto, top-strip summary
-- **Method:** Progressive stratification — drill via highest eta-squared, filter, repeat until 50-70% or more of variation is isolated
+- **Tools:** I-Chart (values), Factor strip (ω²-adjusted η² ranking), Boxplot (comparison after chip click), optional Pareto
+- **Method:** Progressive stratification — read the strip for guidance, click the chip with the largest share to rebind the comparison, filter, repeat until 50-70% or more of variation is isolated
 - **Findings:** Pin at breadcrumb (filter state + stats + Cpk) or right-click chart observation
 
 ### Thread 2: Capability Analysis
@@ -128,16 +128,29 @@ The first question the analyst asks depends on the entry path — not a fixed se
 
 **Explore** (the **Explore tab**) is EDA for process improvement — **not sequential verification gates**. The analyst follows the most interesting signal across the Four Lenses, switching between threads as questions arise, narrowing and broadening with **Analysis Scope**.
 
+### Factor Strip — "What explains the variation?"
+
+The **factor strip** renders as a flex-none band directly beneath the I-Chart hero. It ranks **every candidate factor** by its cardinality-penalised share of variation (ω²-adjusted η²), from largest to smallest, so the analyst sees guidance on the **default surface** without drilling into the boxplot carousel.
+
+Key strip behaviours:
+
+- **Prominence, not gate (D13 seed-not-gate).** All candidate factors appear — weak or non-significant chips render in gray at the bottom of the list. The strip frames selection as attention, not permission. Unselected candidates collapse under an "+ N also screened" disclosure row.
+- **Cardinality-penalised shares.** Continuous X columns are quartile-binned (Q1–Q4) inside the engine before ranking, so a high-cardinality continuous factor is not artificially inflated. The ★ badge marks the largest significant share.
+- **Chip → comparison rebind.** Clicking a chip sets the active factor for the Variation Sources boxplot comparison (identical to using the now-retired Factor dropdown). The selected chip goes examined-✓ (transient per-session).
+- **What-if hover (spec-direction-gated).** Hovering a chip shows the matched-best projection: "if every group's mean shifted to the best group's mean, the overall outcome would move from X to Y." Only rendered when a characteristic type (smaller/larger-is-better) is set — never recommended without a direction. Note: `computeMatchedBestProjection` computes this quantity (every group shifted to best-group mean); `computeCumulativeProjection` computes a different, complement-fixing quantity — do not conflate them.
+- **Residual chip (~approximation until ER-6).** Until the joint model runs (ER-6 upgrades to in-model R²adj residual), the strip shows `~(100 − largest share)%` with a mandatory `~` prefix and a hover explaining it is an approximation.
+- **Scoped retitle.** When an Analysis Scope / drill condition is active, the strip title changes to "…within this condition?" to make the scope visible.
+
 ### Decision Points (Natural Questions, Not Gates)
 
-| #   | Decision                        | Evidence                                                   | Outcome                               |
-| --- | ------------------------------- | ---------------------------------------------------------- | ------------------------------------- |
-| 1   | What patterns exist?            | All four lenses simultaneously                             | Follow the most interesting signal    |
-| 2   | Where does variation come from? | Boxplot eta-squared                                        | Drill into highest eta-squared factor |
-| 3   | Are we meeting Cpk target?      | Capability I-Chart vs target line                          | Below target: which subgroups?        |
-| 4   | Centering problem?              | Cp-Cpk gap                                                 | Large gap: investigate centering      |
-| 5   | Enough variation isolated?      | Key factors identified via R²adj ranking? Findings pinned? | Capture finding, carry to Analyze     |
-| 6   | Toggle view?                    | Curiosity about other perspective                          | Switch I-Chart mode freely            |
+| #   | Decision                        | Evidence                                                 | Outcome                               |
+| --- | ------------------------------- | -------------------------------------------------------- | ------------------------------------- |
+| 1   | What patterns exist?            | All four lenses simultaneously                           | Follow the most interesting signal    |
+| 2   | Where does variation come from? | Factor strip (ω²-adjusted η²) + Boxplot comparison       | Click the largest-share chip to drill |
+| 3   | Are we meeting Cpk target?      | Capability I-Chart vs target line                        | Below target: which subgroups?        |
+| 4   | Centering problem?              | Cp-Cpk gap                                               | Large gap: investigate centering      |
+| 5   | Enough variation isolated?      | Key factors examined via strip ranking? Findings pinned? | Capture finding, carry to Analyze     |
+| 6   | Toggle view?                    | Curiosity about other perspective                        | Switch I-Chart mode freely            |
 
 ### Thread Switching Moments
 
@@ -296,14 +309,14 @@ Complaint data loaded. I-Chart: when did the shift happen? Boxplot: Machine C et
 
 ## 11. Code Traceability
 
-| Activity             | Thread     | Key Hooks                                                                        | Key Components                                                                      |
-| -------------------- | ---------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Frame                | Both       | `useDataIngestion`, `useDataState`                                               | `ColumnMapping`, `SpecsPopover`, `TimeExtractionPanel`, `CapabilitySuggestionModal` |
-| Explore (variation)  | Variation  | `useFilterNavigation`, `useVariationTracking`, `useIChartData`, `useBoxplotData` | `IChartWrapperBase`, `BoxplotWrapperBase`, `ParetoChartWrapperBase`                 |
-| Explore (capability) | Capability | `useCapabilityIChartData`                                                        | `CapabilityMetricToggle`, `SubgroupConfig`                                          |
-| Explore (both)       | Both       | `useFindings`, `useChartScale`                                                   | `FindingsLog`, `ChartAnnotationLayer`, `CreateFactorModal`                          |
-| Analyze              | Both       | `useHypotheses`, `useFindings`                                                   | `HypothesisTreeView`, `FindingBoardView`, `SynthesisCard`                           |
-| Improve / Control    | Both       | `useFindings` (actions, outcome)                                                 | `WhatIfPageBase`, `StagedComparisonCard`, `ImprovementWorkspaceBase`                |
+| Activity             | Thread     | Key Hooks                                                                                               | Key Components                                                                         |
+| -------------------- | ---------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Frame                | Both       | `useDataIngestion`, `useDataState`                                                                      | `ColumnMapping`, `SpecsPopover`, `TimeExtractionPanel`, `CapabilitySuggestionModal`    |
+| Explore (variation)  | Variation  | `useFilterNavigation`, `useVariationTracking`, `useIChartData`, `useBoxplotData`, `useFactorStripModel` | `IChartWrapperBase`, `BoxplotWrapperBase`, `ParetoChartWrapperBase`, `FactorStripBase` |
+| Explore (capability) | Capability | `useCapabilityIChartData`                                                                               | `CapabilityMetricToggle`, `SubgroupConfig`                                             |
+| Explore (both)       | Both       | `useFindings`, `useChartScale`                                                                          | `FindingsLog`, `ChartAnnotationLayer`, `CreateFactorModal`                             |
+| Analyze              | Both       | `useHypotheses`, `useFindings`                                                                          | `HypothesisTreeView`, `FindingBoardView`, `SynthesisCard`                              |
+| Improve / Control    | Both       | `useFindings` (actions, outcome)                                                                        | `WhatIfPageBase`, `StagedComparisonCard`, `ImprovementWorkspaceBase`                   |
 
 ---
 

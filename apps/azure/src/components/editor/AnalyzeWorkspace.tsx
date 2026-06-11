@@ -42,7 +42,10 @@ import {
   formatConditionLeaves,
   predicateSetKey,
   parseMentions,
+  computeMainEffects,
+  excludeYDerivedFactors,
 } from '@variscout/core';
+import type { DataRow } from '@variscout/core';
 import { computeBestSubsets } from '@variscout/core/stats';
 import {
   detectEvidenceClusters,
@@ -943,10 +946,21 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     hypothesesState.createHub('New suspected cause', '');
   }, [hypothesesState]);
   const handleSeedFromFactorIntel = useCallback(() => {
-    for (const factor of factors.slice(0, 3)) {
+    // ER-2 / A3 honesty fix: rank by adjustedEtaSquared (ω²-style) rather than
+    // seeding by insertion order. D11 exclusion drops any Y-derived bin columns.
+    // Engine null (n<3, all-single-level) → fall back to list order so the CTA
+    // never blocks.
+    const candidates = outcome ? excludeYDerivedFactors(factors, outcome) : factors;
+    const rows = (filteredData ?? []) as DataRow[];
+    const ranked =
+      outcome && rows.length >= 3
+        ? computeMainEffects(rows, outcome, candidates)?.factors.map(e => e.factor)
+        : null;
+    const seeded = (ranked ?? candidates).slice(0, 3);
+    for (const factor of seeded) {
       hypothesesState.createHub(`Suspected cause: ${factor}`, '');
     }
-  }, [hypothesesState, factors]);
+  }, [hypothesesState, factors, filteredData, outcome]);
 
   const handleToggleHubSelect = useCallback(
     (hubId: string) => {

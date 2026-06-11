@@ -11,6 +11,8 @@ layer: L2
 
 # Flow: Factor Intelligence
 
+> **Supersession note (ER-2, 2026-06-11):** the η² ranking previously surfaced inside `FactorIntelligencePanel` (Stats sidebar) re-homes to the Explore factor strip, which ranks all candidate factors by ω²-adjusted η² on the default surface. `FactorIntelligencePanel` retires in ER-7. The multi-factor combination ranking (R²adj layers below) moves to the model drawer (ER-3).
+
 > Green Belt Gary uses Factor Intelligence to systematically identify which factors matter, how they affect the outcome, and whether they interact — before forming hypotheses.
 >
 > **Priority:** High — accelerates the SCOUT-to-INVESTIGATE transition

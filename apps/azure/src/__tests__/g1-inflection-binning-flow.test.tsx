@@ -315,6 +315,8 @@ vi.mock('../hooks', () => ({
     availableStageColumns: [],
     anovaResult: null,
     boxplotData: [],
+    // ER-2: empty → useFactorStripModel returns null (strip hidden in this flow test).
+    allFactors: [],
     filterStack: [],
     applyFilter: vi.fn(),
     clearFilters: vi.fn(),

@@ -71,6 +71,8 @@ One-row header (promote the compact responsive variant; icon-only tools w/ toolt
 
 ## ER-2 — Factor strip v1 (§5 v1, D2/D3, §13.1)
 
+**Sub-plan:** [`2026-06-11-er-2-factor-strip.md`](2026-06-11-er-2-factor-strip.md).
+
 New `@variscout/ui` strip component fed by an ω²-adjusted `computeMainEffects` variant in `packages/core/src/stats/factorEffects.ts` (formula in spec §5; extend the existing function additively — ground its signature at sub-plan time). **Mounting:** the strip is a new band in `packages/ui/src/components/DashboardBase/DashboardLayoutBase.tsx` between the I-Chart slot and the bottom panels (NOT a 5th chart slot — it is chrome/guidance, outside the 4-slot contract); it absorbs the Variation Sources panel's `Factor:` dropdown (lives in that panel's header inside `DashboardLayoutBase` — ground exact lines at sub-plan). Ranks **all candidate factors** (framing selection = prominence, unselected collapse under "also screened (+N)" — D13 seed-not-gate); honesty copy verbatim from the spec; examined-✓ state; what-if hover via `computeCumulativeProjection` (write-through to `ProblemStatementScope.whatIfProjection` when a scope exists); clicking a chip rebinds the comparison panel. Strip recomputes on Y switch and within categorical scopes ("within this condition" retitle). Provenance exclusion for Y-derived columns (D11). The "ANOVA details" link lands on a drawer stub until ER-3. **Same PR, same ranking engine:** fix the misleading "Seed 3 from Factor Intelligence" handlers (`apps/pwa/src/components/views/AnalyzeView.tsx:371-376`, `apps/azure/src/components/editor/AnalyzeWorkspace.tsx:946-950` — today literally `factors.slice(0,3)`) to seed from this ranking (walkthrough finding A3).
 
 ## ER-3 — The model drawer (§6, D5)

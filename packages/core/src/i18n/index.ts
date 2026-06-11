@@ -16,6 +16,11 @@ export { LOCALES, LOCALE_NAMES } from './types';
 export { formatStatistic, formatPercent, formatDate, formatInteger, formatPlural } from './format';
 export type { PluralForms } from './format';
 
+// The English catalog is the always-loaded fallback and the canonical key set.
+// Re-exported so synchronous consumers (e.g. UI component tests that need real
+// copy without async locale registration) can read it directly.
+export { en } from './messages/en';
+
 import type { Locale, MessageCatalog } from './types';
 import { LOCALES } from './types';
 import { en } from './messages/en';

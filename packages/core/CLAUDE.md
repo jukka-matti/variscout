@@ -59,6 +59,8 @@ pnpm --filter @variscout/core test
 
 Float assertions use `toBeCloseTo(expected, precision)`. NIST regression tests in `src/stats/__tests__/nistLongley.test.ts` validate the OLS QR solver against Minitab/JMP reference outputs to 9 significant digits — never weaken the threshold. Two-pass best-subsets only screens interactions among Pass-1 winners (hierarchical constraint per ADR-067) — never enumerate all factor pairs.
 
+`factorEffects.ts` (ER-2, 2026-06-11): `FactorMainEffect` now exposes ω²-adjusted `adjustedEtaSquared` (floored 0, `Number.isFinite` guards) + `dfBetween/dfWithin/fStatistic`; continuous X's are quartile-pre-binned inside `computeMainEffects` before grouping (correctness requirement); `computeMatchedBestProjection` ≠ `computeCumulativeProjection` — matched-best shifts every group to the best group mean (direction-aware, undefined without a spec direction); the cumulative projection complements-fix; never confuse them.
+
 ## Core sub-domains
 
 Agents searching code may miss these — they live in `core` despite "package-like" names:

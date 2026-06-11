@@ -88,6 +88,13 @@ export interface UseDashboardChartsBaseResult {
   anovaResult: AnovaResult | null;
   boxplotData: BoxplotGroupData[];
 
+  /**
+   * Merged factor list (raw factors + derived columns) in picker order.
+   * Passed into useFactorStripModel as the `allFactors` argument so the strip
+   * ranks the same candidate set the picker uses.
+   */
+  allFactors: string[];
+
   // Drill handler
   handleDrillDown: (factor: string, value: string) => void;
 }
@@ -191,6 +198,7 @@ export function useDashboardChartsBase({
     availableStageColumns,
     anovaResult,
     boxplotData,
+    allFactors,
     handleDrillDown,
   };
 }

@@ -98,6 +98,11 @@ export interface DashboardLayoutBaseProps {
 
   // ---- Factor selectors ----
   boxplotFactor: string;
+  /**
+   * The active comparison factor setter. ER-2 retired the in-card dropdown;
+   * the factor strip drives this (apps wire it onto the strip node via
+   * `factorStrip`). Kept here for the app caller contract.
+   */
   setBoxplotFactor: (f: string) => void;
   paretoFactor: string;
   setParetoFactor: (f: string) => void;
@@ -171,8 +176,11 @@ export interface DashboardLayoutBaseProps {
   ichartExtraControls?: React.ReactNode;
   /** Extra controls after Manage Factors in I-Chart header (Azure: inline manage button) */
   ichartHeaderExtra?: React.ReactNode;
-  /** Wrap boxplot FactorSelector (Azure: lastAdvancedFactor ring) */
-  boxplotFactorWrapper?: (selector: React.ReactNode) => React.ReactNode;
+  /**
+   * Optional ER-2 factor-strip band between the I-Chart hero and the boxplot.
+   * The strip's chip clicks drive `setBoxplotFactor` (the dropdown is retired).
+   */
+  factorStrip?: React.ReactNode;
   /** Share chart callback (Azure only) */
   onShareChart?: (chartName: string) => void;
   /** Stats panel click handler (PWA embed mode) */
@@ -234,7 +242,11 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   chartTitles,
   onChartTitleChange,
   boxplotFactor,
-  setBoxplotFactor,
+  // ER-2: factor selection moved to the strip (chip click → app wires
+  // setBoxplotFactor onto the strip node). DashboardLayoutBase no longer
+  // renders the dropdown, so it no longer consumes the setter directly. The
+  // prop stays on the interface for the app callers + Task 4 strip wiring.
+  setBoxplotFactor: _setBoxplotFactor,
   paretoFactor,
   setParetoFactor,
   showParetoPanel,
@@ -266,7 +278,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   ichartTitleSlot,
   ichartExtraControls,
   ichartHeaderExtra,
-  boxplotFactorWrapper,
+  factorStrip,
   onShareChart,
   onPIPanelClick,
   piPanelHighlightClass,
@@ -281,7 +293,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   boxplotObservationCount,
   paretoObservationCount,
 }) => {
-  const { formatStat, t } = useTranslation();
+  const { formatStat, t, tf } = useTranslation();
   const {
     contextMenu,
     closeContextMenu,
@@ -357,26 +369,18 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
     </>
   );
 
-  // ---- Boxplot factor dropdown (inline in title row) ----
-  const boxplotFactorDropdown =
-    factors.length > 0 ? (
-      <FactorSelector
-        variant="dropdown"
-        factors={factors}
-        selected={boxplotFactor}
-        onChange={setBoxplotFactor}
-        hasActiveFilter={!!filters?.[boxplotFactor]?.length}
-        columnAliases={columnAliases}
-        label={t('boxplot.factor.label')}
-        testId="boxplot-factor-dropdown"
-      />
-    ) : null;
+  // ER-2: the boxplot factor dropdown is RETIRED — the factor strip above the
+  // boxplot owns factor selection (chip click → setBoxplotFactor). The card
+  // title now reflects the active comparison ("<outcome> by <factor>").
+  const outcomeLabel = columnAliases[outcome] ?? outcome;
+  const boxplotCardTitle = boxplotFactor
+    ? tf('boxplot.title.by', {
+        outcome: outcomeLabel,
+        factor: columnAliases[boxplotFactor] ?? boxplotFactor,
+      })
+    : outcomeLabel;
 
-  const wrappedBoxplotFactor = boxplotFactorWrapper
-    ? boxplotFactorWrapper(boxplotFactorDropdown)
-    : boxplotFactorDropdown;
-
-  // ---- Boxplot controls (display toggle + clear — factor dropdown moved to title row) ----
+  // ---- Boxplot controls (display toggle + clear) ----
   const boxplotControls = boxplotFactor ? (
     <>
       <BoxplotDisplayToggle
@@ -462,6 +466,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
         renderFocusedView
       ) : (
         <DashboardGrid
+          factorStrip={factorStrip}
           ichartCard={
             <DashboardChartCard
               id="ichart-card"
@@ -507,12 +512,14 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
                 <div className="flex items-center gap-2 min-w-0">
                   <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider min-w-0">
                     <EditableChartTitle
-                      defaultTitle={boxplotFactor ? 'Variation Sources' : 'Variation Sources'}
+                      defaultTitle={boxplotCardTitle}
                       value={chartTitles.boxplot || ''}
                       onChange={title => onChartTitleChange('boxplot', title)}
                     />
                   </h3>
-                  {wrappedBoxplotFactor}
+                  <span className="text-xs text-content-muted normal-case font-normal truncate">
+                    {t('boxplot.factor.hint')}
+                  </span>
                 </div>
               }
               controls={boxplotControls}
