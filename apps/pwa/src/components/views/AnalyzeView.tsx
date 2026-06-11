@@ -42,6 +42,8 @@ import {
   buildConditionFromCategoricalFilters,
   formatConditionLeaves,
   predicateSetKey,
+  computeMainEffects,
+  excludeYDerivedFactors,
 } from '@variscout/core';
 import { generateDeterministicId } from '@variscout/core/identity';
 import {
@@ -369,10 +371,21 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   }, []);
   const handleSeedFromFactorIntel = useCallback(() => {
     const store = useAnalyzeStore.getState();
-    for (const factor of factors.slice(0, 3)) {
+    // ER-2 / A3 honesty fix: rank by adjustedEtaSquared (ω²-style) rather than
+    // seeding by insertion order. D11 exclusion drops any Y-derived bin columns.
+    // Engine null (n<3, all-single-level) → fall back to list order so the CTA
+    // never blocks.
+    const candidates = outcome ? excludeYDerivedFactors(factors, outcome) : factors;
+    const rows = filteredData as unknown as DataRow[];
+    const ranked =
+      outcome && rows.length >= 3
+        ? computeMainEffects(rows, outcome, candidates)?.factors.map(e => e.factor)
+        : null;
+    const seeded = (ranked ?? candidates).slice(0, 3);
+    for (const factor of seeded) {
       store.createHub(`Suspected cause: ${factor}`, '');
     }
-  }, [factors]);
+  }, [factors, filteredData, outcome]);
 
   // FE-2a — one-tap evaluate of a hypothesis factor (PRODUCTION seam). The PWA
   // Wall reads hubs + findings from `useAnalyzeStore` REACTIVELY, so the typed

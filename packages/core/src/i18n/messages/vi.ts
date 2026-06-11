@@ -903,7 +903,7 @@ export const vi: MessageCatalog = {
   'wall.empty.title': 'Start a suspected cause',
   'wall.empty.subtitle': 'Start from a suspected cause, question, or Factor Intelligence.',
   'wall.empty.writeHypothesis': 'Add a suspected cause',
-  'wall.empty.seedFromFactorIntel': 'Seed 3 from Factor Intelligence',
+  'wall.empty.seedFromFactorIntel': 'Seed 3 largest contributors',
   'wall.rail.title': 'CoScout',
   'wall.rail.openAria': 'Open narrator rail',
   'wall.rail.closeAria': 'Close narrator rail',

@@ -197,6 +197,12 @@ vi.mock('@variscout/core', async importOriginal => {
     createHypothesis: actual.createHypothesis,
     computeMainEffects: () => null,
     computeInteractionEffects: () => null,
+    // excludeYDerivedFactors used in handleSeedFromFactorIntel (ER-2); explicit
+    // inline implementation because the `...actual` spread may not carry deep
+    // re-exports under the test mock runtime (same note as
+    // categoricalFiltersToActiveFilters below). Logic: drop outcome + _bin cols.
+    excludeYDerivedFactors: (factors: string[], outcome: string, _bindings?: unknown[]) =>
+      factors.filter(f => f !== outcome && f !== `${outcome}_bin`),
     inferCharacteristicType: () => 'continuous',
     // Provide categoricalFiltersToActiveFilters explicitly — the `...actual`
     // spread sometimes doesn't carry deep re-exports under the test mock runtime.
@@ -1164,7 +1170,7 @@ describe('AnalyzeWorkspace — Wall empty-state CTA wiring (Bug 2)', () => {
     expect((createHub.mock.calls[0] as unknown[])[0]).toBe('New suspected cause');
   });
 
-  it('(b) zero hubs + factors — clicking "Seed 3 from Factor Intelligence" creates min(3, factors) hubs', () => {
+  it('(b) zero hubs + factors — clicking "Seed 3 largest contributors" creates min(3, factors) hubs (fallback order when filteredData is empty)', () => {
     const createHub = vi.fn(() => ({ id: 'hub-seed' }) as never);
     const props = makeMinimalProps();
     props.hypothesesState = { ...props.hypothesesState, createHub, hubs: [] } as never;
