@@ -54,6 +54,7 @@ import {
   DefectSummary,
   InflectionSidePanelView,
   ScopeChrome,
+  ModelDrawerBase,
   useInflectionBinningState,
   useIsMobile,
   useGlossary,
@@ -66,6 +67,7 @@ import {
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
   DEFAULT_PROCESS_HUB_ID,
+  excludeYDerivedFactors,
 } from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
@@ -293,6 +295,8 @@ const Dashboard = ({
   const [analysisLensTab, setAnalysisLensTab] = useState<AzureAnalysisLensTab>('probability');
   const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
   const [showCaptureAfterglow, setShowCaptureAfterglow] = useState(false);
+  // ER-3: Model drawer open state (Explore door).
+  const [modelDrawerOpen, setModelDrawerOpen] = useState(false);
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveMode(analysisMode) === 'defect';
@@ -924,6 +928,25 @@ const Dashboard = ({
 
   const isDrilling = Object.keys(filters ?? {}).length > 0;
 
+  // ER-3: D11-excluded candidates for the model drawer — mirrors the exclusion
+  // inside useFactorStripModel so the drawer and strip rank from the same pool.
+  // Azure threads the live binnedFactorBindings so D11 excludes Y-derived bins.
+  const candidateFactorsForDrawer = useMemo(
+    () =>
+      effectiveOutcome
+        ? excludeYDerivedFactors(allFactors, effectiveOutcome, binnedFactorBindings)
+        : [],
+    [allFactors, effectiveOutcome, binnedFactorBindings]
+  );
+
+  // ER-3: Scope label for the model drawer header.
+  const modelDrawerScopeLabel = useMemo(() => {
+    if (!isDrilling) return t('modelDrawer.allData');
+    return Object.entries(filters ?? {})
+      .map(([col, vals]) => `${col}=${vals.join(',')}`)
+      .join(' · ');
+  }, [isDrilling, filters, t]);
+
   // Scope what-if write-through: when a chip is selected AND the live drill
   // matches an EXISTING ProblemStatementScope, refresh that scope's stored
   // what-if number. NEVER creates a scope (ER-4 owns creation). The drill source
@@ -959,6 +982,7 @@ const Dashboard = ({
           markFactorExamined(effectiveOutcome, f);
           maybeRefreshScopeWhatIf();
         }}
+        onAnovaLinkClick={() => setModelDrawerOpen(true)}
       />
     ) : undefined;
 
@@ -1567,6 +1591,20 @@ const Dashboard = ({
           onRetry={onNarrativeRetry}
         />
       )}
+      {/* ER-3: Model drawer — Explore door. Mounted in the relative root so it
+          is screen-space (never viewBox-cropped). No onCaptureModel (Explore
+          capture deferred). No onModelStats (DOI feed is Analyze-only). */}
+      <ModelDrawerBase
+        open={modelDrawerOpen}
+        onClose={() => setModelDrawerOpen(false)}
+        rows={effectiveData}
+        outcome={effectiveOutcome}
+        outcomeLabel={
+          effectiveOutcome ? (columnAliases[effectiveOutcome] ?? effectiveOutcome) : undefined
+        }
+        candidateFactors={candidateFactorsForDrawer}
+        scopeLabel={modelDrawerScopeLabel}
+      />
     </div>
   );
 };

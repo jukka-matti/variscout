@@ -1046,6 +1046,7 @@ export const sk: MessageCatalog = {
   'modelDrawer.captureModel': 'Capture model as Finding',
   'modelDrawer.warningRankDeficient':
     'Collinear or single-level factor — affected coefficients are shown as 0.',
+  'modelDrawer.allData': 'All data',
   'wall.testplan.heading': 'How do I test this?',
   'wall.testplan.toolTwoSample': 'Boxplot + 2-sample',
   'wall.testplan.toolRegression': 'Scatter + regression',

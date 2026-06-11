@@ -23,6 +23,7 @@ import {
   CapabilityMetricToggle,
   SubgroupConfigPopover,
   DefectSummary,
+  ModelDrawerBase,
   useIsMobile,
   BREAKPOINTS,
   type ChartId,
@@ -77,6 +78,7 @@ import {
   getNelsonRule3Sequences,
   timeLensIndices,
   DEFAULT_PROCESS_HUB_ID,
+  excludeYDerivedFactors,
   type SpecLimits,
   type Finding,
   type IChartDataPoint,
@@ -208,6 +210,8 @@ const Dashboard = ({
   const [analysisLensTab, setAnalysisLensTab] = useState<AnalysisLensTab>('probability');
   const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
   const [showCaptureAfterglow, setShowCaptureAfterglow] = useState(false);
+  // ER-3: Model drawer open state (Explore door).
+  const [modelDrawerOpen, setModelDrawerOpen] = useState(false);
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveModeUtil(analysisMode) === 'defect';
@@ -830,6 +834,22 @@ const Dashboard = ({
 
   const isDrilling = Object.keys(filters ?? {}).length > 0;
 
+  // ER-3: D11-excluded candidates for the model drawer — mirrors the exclusion
+  // inside useFactorStripModel so the drawer and strip rank from the same pool.
+  // PWA has no live bindings (undefined) → only name-convention exclusion applies.
+  const candidateFactorsForDrawer = useMemo(
+    () => (effectiveOutcome ? excludeYDerivedFactors(allFactors, effectiveOutcome, undefined) : []),
+    [allFactors, effectiveOutcome]
+  );
+
+  // ER-3: Scope label for the model drawer header.
+  const modelDrawerScopeLabel = useMemo(() => {
+    if (!isDrilling) return t('modelDrawer.allData');
+    return Object.entries(filters ?? {})
+      .map(([col, vals]) => `${col}=${vals.join(',')}`)
+      .join(' · ');
+  }, [isDrilling, filters, t]);
+
   // Scope what-if write-through: when a chip is selected AND the live drill
   // matches an EXISTING ProblemStatementScope, refresh that scope's stored
   // what-if number. NEVER creates a scope (ER-4 owns creation). The drill source
@@ -867,6 +887,7 @@ const Dashboard = ({
           markFactorExamined(effectiveOutcome, f);
           maybeRefreshScopeWhatIf();
         }}
+        onAnovaLinkClick={() => setModelDrawerOpen(true)}
       />
     ) : undefined;
 
@@ -1401,6 +1422,20 @@ const Dashboard = ({
             />
           ) : undefined
         }
+      />
+      {/* ER-3: Model drawer — Explore door. Mounted in the relative root so it
+          is screen-space (never viewBox-cropped). No onCaptureModel (Explore
+          capture deferred). No onModelStats (DOI feed is Analyze-only). */}
+      <ModelDrawerBase
+        open={modelDrawerOpen}
+        onClose={() => setModelDrawerOpen(false)}
+        rows={effectiveData}
+        outcome={effectiveOutcome}
+        outcomeLabel={
+          effectiveOutcome ? (columnAliases[effectiveOutcome] ?? effectiveOutcome) : undefined
+        }
+        candidateFactors={candidateFactorsForDrawer}
+        scopeLabel={modelDrawerScopeLabel}
       />
     </div>
   );

@@ -1125,6 +1125,8 @@ export interface MessageCatalog {
   'modelDrawer.constantInScope': string;
   'modelDrawer.captureModel': string;
   'modelDrawer.warningRankDeficient': string;
+  /** Scope label used when the Explore drawer is not drilling (full dataset). */
+  'modelDrawer.allData': string;
   // Hypothesis test-plan triad (Factors & Evaluation Increment 2a)
   'wall.testplan.heading': string;
   'wall.testplan.toolTwoSample': string;
