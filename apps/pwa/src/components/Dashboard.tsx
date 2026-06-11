@@ -19,6 +19,7 @@ import {
   DashboardLayoutBase,
   DashboardChartCard,
   FactorStripBase,
+  CompositionViewBase,
   FocusedViewOverlay,
   CapabilityMetricToggle,
   SubgroupConfigPopover,
@@ -52,6 +53,8 @@ import {
   applyDerivedFactorToFilters,
   resolveDerivedFactorName,
   useFactorStripModel,
+  useMembershipModel,
+  useCompositionModel,
   useConditionLoop,
   matchActiveScopeId,
   type CaptureDraft,
@@ -83,6 +86,7 @@ import {
   timeLensIndices,
   DEFAULT_PROCESS_HUB_ID,
   excludeYDerivedFactors,
+  buildGroupLeaf,
   type SpecLimits,
   type Finding,
   type IChartDataPoint,
@@ -946,6 +950,49 @@ const Dashboard = ({
     stepDecorations: stepFactorDecorations,
   });
 
+  // ── ER-5a membership analysis ───────────────────────────────────────────────
+  // When a condition is applied, the strip answers a DIFFERENT question — "what
+  // distinguishes the rows in this condition?" — via membership separation over
+  // the FULL lensed population (disposition 2 / D7: in-vs-out labels on every
+  // row, NEVER within-subset η²). lensedRows = lensedEffectiveData (the SAME rows
+  // the I-Chart highlight tier uses), leaves = conditionLoop.appliedLeaves. When
+  // the model is null (degenerate), the strip falls back to the magnitude variant.
+  const membershipModel = useMembershipModel({
+    lensedRows: lensedEffectiveData,
+    leaves: conditionLoop.appliedLeaves,
+    allFactors,
+    outcome: effectiveOutcome,
+    bindings: undefined,
+    selectedFactors: effectiveFactors,
+  });
+  // The strip flips to membership only when a condition is applied AND the
+  // membership model resolved (non-degenerate). Otherwise the magnitude path.
+  const useMembershipStrip = conditionLoop.hasCondition && membershipModel !== null;
+
+  // Composition view for the freed comparison slot: when a factor is selected
+  // under a condition, decompose it by membership composition (paired share bars
+  // + lift + ⊕). FULL lensed rows + leaves (D7). Null → keep the boxplot.
+  const compositionModel = useCompositionModel({
+    lensedRows: lensedEffectiveData,
+    leaves: conditionLoop.appliedLeaves,
+    factor: boxplotFactor ?? '',
+  });
+  // The composition view replaces the boxplot ONLY under a condition with a
+  // selected factor whose composition model resolved (within-slot content change;
+  // the 4-slot contract is preserved — never a 5th slot).
+  const showCompositionView =
+    conditionLoop.hasCondition && !!boxplotFactor && compositionModel !== null;
+  // ⊕ a level mints the COMPOUND condition through the EXISTING API (disposition
+  // 5): appendable group leaf onto the current applied leaves.
+  const handleAddLevelToCondition = useCallback(
+    (level: string) => {
+      if (!boxplotFactor) return;
+      handleApplyCondition([...conditionLoop.appliedLeaves, buildGroupLeaf(boxplotFactor, level)]);
+    },
+
+    [boxplotFactor, conditionLoop.appliedLeaves, handleApplyCondition]
+  );
+
   // Examined keys are stored `${outcome}::${factor}`; the component takes a
   // factor-name Set for the active outcome — project it here.
   const examinedFactors = useViewStore(s => s.examinedFactors);
@@ -994,8 +1041,35 @@ const Dashboard = ({
     if (scopeId) useAnalyzeStore.getState().recomputeScopeWhatIf(scopeId);
   }, [effectiveOutcome, scopeProjectId]);
 
+  // ER-5a: under a condition with a resolved membership model, the strip flips to
+  // the membership variant (over-represented-level chips). Otherwise — including
+  // the degenerate-model fallback — the magnitude strip renders exactly as today.
   const factorStripNode =
-    stripModel && effectiveOutcome ? (
+    useMembershipStrip && membershipModel && effectiveOutcome ? (
+      <FactorStripBase
+        variant="membership"
+        membershipChips={membershipModel.chips}
+        membershipStepDecorations={stepFactorDecorations}
+        chips={stripModel?.chips ?? []}
+        residualPct={stripModel?.residualPct ?? 0}
+        selectedFactor={boxplotFactor}
+        examinedKeys={examinedFactorNames}
+        isScoped={isDrilling}
+        cpkTarget={
+          resolveCpkTarget(effectiveOutcome, {
+            measureSpecs,
+            projectCpkTarget: cpkTarget,
+          }).value
+        }
+        outcomeLabel={columnAliases[effectiveOutcome] ?? effectiveOutcome}
+        onFactorSelect={f => {
+          setBoxplotFactor(f);
+          markFactorExamined(effectiveOutcome, f);
+          maybeRefreshScopeWhatIf();
+        }}
+        onAnovaLinkClick={() => setModelDrawerOpen(true)}
+      />
+    ) : stripModel && effectiveOutcome ? (
       <FactorStripBase
         chips={stripModel.chips}
         residualPct={stripModel.residualPct}
@@ -1017,6 +1091,20 @@ const Dashboard = ({
         onAnovaLinkClick={() => setModelDrawerOpen(true)}
       />
     ) : undefined;
+
+  // ER-5a: the composition view occupies the freed comparison slot under a
+  // condition when a factor is selected (within-slot content change). Built once
+  // here and passed into the boxplot render slot below.
+  const compositionViewNode =
+    showCompositionView && compositionModel && boxplotFactor ? (
+      <CompositionViewBase
+        levels={compositionModel.levels}
+        nIn={compositionModel.nIn}
+        nOut={compositionModel.nOut}
+        factorLabel={columnAliases[boxplotFactor] ?? boxplotFactor}
+        onAddToCondition={handleAddLevelToCondition}
+      />
+    ) : null;
 
   if (!effectiveOutcome) return null;
 
@@ -1401,7 +1489,12 @@ const Dashboard = ({
         }
         renderBoxplotContent={
           <ErrorBoundary componentName="Boxplot">
-            {boxplotFactor ? (
+            {/* ER-5a: under a condition with a selected factor, the freed
+                comparison slot hosts the composition view (paired share bars +
+                lift + ⊕). Within-slot content change — the 4-slot contract holds. */}
+            {compositionViewNode ? (
+              compositionViewNode
+            ) : boxplotFactor ? (
               <Boxplot
                 factor={boxplotFactor}
                 // ER-4 (D6): the click sets a transient highlight + shows the pill

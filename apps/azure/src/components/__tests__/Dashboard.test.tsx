@@ -701,6 +701,10 @@ vi.mock('@variscout/hooks', () => ({
   useDataDateRange: () => null,
   // ER-2: strip hidden in these legacy tests (null model → no factorStrip node).
   useFactorStripModel: () => null,
+  // ER-5a: membership/composition models null in legacy tests (no condition) →
+  // strip stays magnitude-or-hidden, composition slot stays the boxplot.
+  useMembershipModel: () => null,
+  useCompositionModel: () => null,
   matchActiveScopeId: () => null,
   // ER-4: condition loop — default-empty (no condition applied) so the legacy
   // render tests don't see the pill / scope bar. Tests that exercise the loop

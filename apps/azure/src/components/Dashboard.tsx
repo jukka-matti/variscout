@@ -54,6 +54,7 @@ import {
   DashboardLayoutBase,
   DashboardChartCard,
   FactorStripBase,
+  CompositionViewBase,
   FocusedViewOverlay,
   CapabilityMetricToggle,
   SubgroupConfigPopover,
@@ -75,11 +76,12 @@ import {
   getNelsonRule3Sequences,
   DEFAULT_PROCESS_HUB_ID,
   excludeYDerivedFactors,
+  buildGroupLeaf,
   applyTimeLens,
 } from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
-import type { BinnedFactorBinding } from '@variscout/core/binning';
+import { buildSegmentLeaf, type BinnedFactorBinding } from '@variscout/core/binning';
 import type { AzureFindingsCallbacks, FilterChipData } from '@variscout/ui';
 import { InflectionOverlay } from '@variscout/charts';
 import {
@@ -92,6 +94,8 @@ import {
   useCapabilityIChartData,
   useTranslation,
   useFactorStripModel,
+  useMembershipModel,
+  useCompositionModel,
   useConditionLoop,
   matchActiveScopeId,
 } from '@variscout/hooks';
@@ -749,6 +753,39 @@ const Dashboard = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on column change only; controller identity is stable per render
   }, [effectiveOutcome, inflectionEnabled]);
 
+  // ER-5a §10: commit an inflection-binning segment as a CONDITION (not a
+  // factor). Builds a between/gte leaf on the SOURCE column from the segment's
+  // cut edges (buildSegmentLeaf) and applies it via the condition loop (scope
+  // store only — same path as handleApplyCondition; defined here so it precedes
+  // probabilityContent in source order). Works in proposing (synthesise a
+  // binding-shaped {sourceColumn, cuts} for the builder, which reads only those
+  // two fields) and committed (state.binding) states. Idle → no-op. Once applied,
+  // the membership strip variant IS the "what distinguishes these calls?" follow-up.
+  const handleViewSegmentAsCondition = useCallback(
+    (segmentIndex: number) => {
+      const s = binningController.state;
+      let binding: BinnedFactorBinding | null = null;
+      if (s.kind === 'committed') {
+        binding = s.binding;
+      } else if (s.kind === 'proposing') {
+        // buildSegmentLeaf only reads { sourceColumn, cuts }; the other fields
+        // satisfy the type (this proposal is not a persisted binding).
+        binding = {
+          id: `proposal-${effectiveOutcome ?? ''}`,
+          sourceColumn: effectiveOutcome ?? '',
+          cuts: s.cuts,
+          levelNames: s.levelNames,
+          detectionMethod: 'gap-ratio-v1',
+          detectedAt: new Date(0).toISOString(),
+        };
+      }
+      if (!binding) return;
+      conditionLoop.applyCondition([buildSegmentLeaf(binding, segmentIndex)]);
+      clearSelection();
+    },
+    [binningController.state, effectiveOutcome, conditionLoop, clearSelection]
+  );
+
   // Compute the cuts the overlay should render + the variant. In committed
   // state the cuts are solid (binding is persisted); in proposing state they
   // are ghosted (preview only). In idle state no overlay is rendered.
@@ -793,6 +830,10 @@ const Dashboard = ({
         <InflectionSidePanelView
           sourceColumn={effectiveOutcome ?? ''}
           controller={binningController}
+          // ER-5a §10: a segment commits as a CONDITION (buildSegmentLeaf →
+          // applyCondition); the membership strip then answers "what
+          // distinguishes these calls?".
+          onViewSegmentAsCondition={handleViewSegmentAsCondition}
         />
       </div>
     </div>
@@ -1050,6 +1091,46 @@ const Dashboard = ({
     stepDecorations: stepFactorDecorations,
   });
 
+  // ── ER-5a membership analysis ───────────────────────────────────────────────
+  // When a condition is applied, the strip answers a DIFFERENT question — "what
+  // distinguishes the rows in this condition?" — via membership separation over
+  // the FULL lensed population (disposition 2 / D7: in-vs-out labels on every
+  // row, NEVER within-subset η²). lensedRows = lensedEffectiveData (the SAME rows
+  // the I-Chart highlight tier uses), leaves = conditionLoop.appliedLeaves. Azure
+  // threads binnedFactorBindings so D11 excludes Y-derived bins by binding too.
+  // When the model is null (degenerate), the strip falls back to the magnitude
+  // variant exactly as today.
+  const membershipModel = useMembershipModel({
+    lensedRows: lensedEffectiveData,
+    leaves: conditionLoop.appliedLeaves,
+    allFactors,
+    outcome: effectiveOutcome,
+    bindings: binnedFactorBindings,
+    selectedFactors: effectiveFactors,
+  });
+  const useMembershipStrip = conditionLoop.hasCondition && membershipModel !== null;
+
+  // Composition view for the freed comparison slot: when a factor is selected
+  // under a condition, decompose it by membership composition (paired share bars
+  // + lift + ⊕). FULL lensed rows + leaves (D7). Null → keep the boxplot.
+  const compositionModel = useCompositionModel({
+    lensedRows: lensedEffectiveData,
+    leaves: conditionLoop.appliedLeaves,
+    factor: boxplotFactor ?? '',
+  });
+  const showCompositionView =
+    conditionLoop.hasCondition && !!boxplotFactor && compositionModel !== null;
+  // ⊕ a level mints the COMPOUND condition through the EXISTING API (disposition
+  // 5): appendable group leaf onto the current applied leaves.
+  const handleAddLevelToCondition = useCallback(
+    (level: string) => {
+      if (!boxplotFactor) return;
+      handleApplyCondition([...conditionLoop.appliedLeaves, buildGroupLeaf(boxplotFactor, level)]);
+    },
+
+    [boxplotFactor, conditionLoop.appliedLeaves, handleApplyCondition]
+  );
+
   // Examined keys are stored `${outcome}::${factor}`; the component takes a
   // factor-name Set for the active outcome — project it here.
   const examinedFactors = useViewStore(s => s.examinedFactors);
@@ -1099,8 +1180,35 @@ const Dashboard = ({
     if (scopeId) useAnalyzeStore.getState().recomputeScopeWhatIf(scopeId);
   }, [effectiveOutcome, scopeProjectId]);
 
+  // ER-5a: under a condition with a resolved membership model, the strip flips to
+  // the membership variant (over-represented-level chips). Otherwise — including
+  // the degenerate-model fallback — the magnitude strip renders exactly as today.
   const factorStripNode =
-    stripModel && effectiveOutcome ? (
+    useMembershipStrip && membershipModel && effectiveOutcome ? (
+      <FactorStripBase
+        variant="membership"
+        membershipChips={membershipModel.chips}
+        membershipStepDecorations={stepFactorDecorations}
+        chips={stripModel?.chips ?? []}
+        residualPct={stripModel?.residualPct ?? 0}
+        selectedFactor={boxplotFactor}
+        examinedKeys={examinedFactorNames}
+        isScoped={isDrilling}
+        cpkTarget={
+          resolveCpkTarget(effectiveOutcome, {
+            measureSpecs,
+            projectCpkTarget: cpkTarget,
+          }).value
+        }
+        outcomeLabel={columnAliases[effectiveOutcome] ?? effectiveOutcome}
+        onFactorSelect={f => {
+          setBoxplotFactor(f);
+          markFactorExamined(effectiveOutcome, f);
+          maybeRefreshScopeWhatIf();
+        }}
+        onAnovaLinkClick={() => setModelDrawerOpen(true)}
+      />
+    ) : stripModel && effectiveOutcome ? (
       <FactorStripBase
         chips={stripModel.chips}
         residualPct={stripModel.residualPct}
@@ -1122,6 +1230,19 @@ const Dashboard = ({
         onAnovaLinkClick={() => setModelDrawerOpen(true)}
       />
     ) : undefined;
+
+  // ER-5a: the composition view occupies the freed comparison slot under a
+  // condition when a factor is selected (within-slot content change).
+  const compositionViewNode =
+    showCompositionView && compositionModel && boxplotFactor ? (
+      <CompositionViewBase
+        levels={compositionModel.levels}
+        nIn={compositionModel.nIn}
+        nOut={compositionModel.nOut}
+        factorLabel={columnAliases[boxplotFactor] ?? boxplotFactor}
+        onAddToCondition={handleAddLevelToCondition}
+      />
+    ) : null;
 
   if (!outcome) return null;
 
@@ -1536,7 +1657,13 @@ const Dashboard = ({
                 }
                 renderBoxplotContent={
                   <ErrorBoundary componentName="Boxplot">
-                    {boxplotFactor && (
+                    {/* ER-5a: under a condition with a selected factor, the freed
+                        comparison slot hosts the composition view (paired share
+                        bars + lift + ⊕). Within-slot content change — the 4-slot
+                        contract holds. */}
+                    {compositionViewNode ? (
+                      compositionViewNode
+                    ) : boxplotFactor ? (
                       <Boxplot
                         factor={boxplotFactor}
                         // ER-4 (D6): the click sets a transient highlight + shows the
@@ -1559,7 +1686,7 @@ const Dashboard = ({
                         }
                         categoricalValuesByColumn={categoricalValuesByColumn}
                       />
-                    )}
+                    ) : null}
                   </ErrorBoundary>
                 }
                 renderParetoContent={

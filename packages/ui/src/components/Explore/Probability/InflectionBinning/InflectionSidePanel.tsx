@@ -95,11 +95,19 @@ export interface InflectionSidePanelViewProps {
   sourceColumn: string;
   /** State machine controller — typically `useInflectionBinningState(...)` called by a parent. */
   controller: UseInflectionBinningStateReturn;
+  /**
+   * ER-5a §10: commit a segment as a condition. Called with the 0-based segment
+   * index when the analyst clicks the per-segment "view as condition →" CTA. The
+   * host builds the segment leaf (`buildSegmentLeaf`) and applies it. Absent →
+   * the per-segment CTA is hidden (never a dead control).
+   */
+  onViewSegmentAsCondition?: (segmentIndex: number) => void;
 }
 
 export function InflectionSidePanelView({
   sourceColumn,
   controller,
+  onViewSegmentAsCondition,
 }: InflectionSidePanelViewProps) {
   const {
     state,
@@ -214,6 +222,7 @@ export function InflectionSidePanelView({
           onRemoveSegment={segmentIdx =>
             removeCut(Math.max(0, segmentIdx === 0 ? 0 : segmentIdx - 1))
           }
+          onViewSegmentAsCondition={onViewSegmentAsCondition}
         />
 
         <button
@@ -273,6 +282,7 @@ export function InflectionSidePanelView({
           onRemoveSegment={segmentIdx =>
             removeCut(Math.max(0, segmentIdx === 0 ? 0 : segmentIdx - 1))
           }
+          onViewSegmentAsCondition={onViewSegmentAsCondition}
         />
 
         <button
@@ -318,6 +328,8 @@ interface SegmentTableProps {
   cuts: number[];
   onRename: (levelIndex: number, newName: string) => void;
   onRemoveSegment: (segmentIndex: number) => void;
+  /** ER-5a §10: per-segment "view as condition →"; absent → CTA hidden. */
+  onViewSegmentAsCondition?: (segmentIndex: number) => void;
 }
 
 function SegmentTable({
@@ -326,6 +338,7 @@ function SegmentTable({
   cuts,
   onRename,
   onRemoveSegment,
+  onViewSegmentAsCondition,
 }: SegmentTableProps) {
   return (
     <ul className="flex flex-col gap-2" data-testid="inflection-segment-table">
@@ -338,6 +351,9 @@ function SegmentTable({
           cuts={cuts}
           onRename={newName => onRename(idx, newName)}
           onRemove={() => onRemoveSegment(idx)}
+          onViewAsCondition={
+            onViewSegmentAsCondition ? () => onViewSegmentAsCondition(idx) : undefined
+          }
         />
       ))}
     </ul>
@@ -360,6 +376,8 @@ interface SegmentRowProps {
   cuts: number[];
   onRename: (newName: string) => void;
   onRemove: () => void;
+  /** ER-5a §10: commit this segment as a condition; absent → CTA hidden. */
+  onViewAsCondition?: () => void;
 }
 
 function SegmentRow({
@@ -369,6 +387,7 @@ function SegmentRow({
   cuts,
   onRename,
   onRemove,
+  onViewAsCondition,
 }: SegmentRowProps) {
   const cutCount = cuts.length;
   const ambiguousMerge = cutCount >= 2 && segmentIndex > 0;
@@ -450,6 +469,21 @@ function SegmentRow({
           <> · AD p={formatStatistic(segment.adPValue, 'en', 3)}</>
         )}
       </span>
+      {/* ER-5a §10: a committed segment is a CONDITION, not a factor — "view as
+          condition →" applies it as the scope; the membership strip then answers
+          "what distinguishes these calls?". Absent when no host handler supplied. */}
+      {onViewAsCondition && (
+        <button
+          type="button"
+          onClick={onViewAsCondition}
+          data-testid={`inflection-segment-view-condition-${segmentIndex}`}
+          className="shrink-0 whitespace-nowrap rounded border border-edge bg-surface-secondary px-1.5 py-0.5 text-xs font-medium text-content hover:bg-surface-hover"
+          aria-label={`View segment ${segmentIndex + 1} as condition`}
+          title="View as condition"
+        >
+          view as condition →
+        </button>
+      )}
       <button
         type="button"
         onClick={onRemove}
