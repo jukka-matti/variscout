@@ -72,6 +72,19 @@ export interface MembershipChip {
   /** True when p < 0.05. */
   isSignificant: boolean;
   /**
+   * Degrees of freedom for the χ² test: k − 1, where k is the number of
+   * distinct levels in this factor's contingency table. Equals 1 only for
+   * binary factors; higher-cardinality factors have df > 1. Forwarded from
+   * `MembershipFactorSeparation.df` so the UI can show honest hover copy.
+   */
+  df: number;
+  /**
+   * Number of rows used in this factor's contingency table (NIn + NOut minus
+   * any rows where this factor's value was null). Forwarded from
+   * `MembershipFactorSeparation.n` for honest sample-size display.
+   */
+  n: number;
+  /**
    * True when a continuous factor was quartile-binned before computing
    * the contingency table.  The UI should annotate these chips with "(binned)".
    */
@@ -205,6 +218,8 @@ export function useMembershipModel({
         separation: fs.adjustedV,
         pValue: fs.pValue,
         isSignificant: fs.pValue < 0.05,
+        df: fs.df,
+        n: fs.n,
         binnedForRanking: fs.binnedForRanking,
         topLevel,
         isSelected: selectedSet.has(fs.factor),

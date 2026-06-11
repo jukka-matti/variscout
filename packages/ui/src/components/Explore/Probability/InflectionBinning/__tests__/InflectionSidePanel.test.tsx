@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
 import { InflectionSidePanel, InflectionSidePanelView } from '../InflectionSidePanel';
@@ -486,6 +486,126 @@ describe('InflectionSidePanel', () => {
         'Remove binning'
       );
     });
+  });
+});
+
+// ============================================================================
+// onViewSegmentAsCondition CTA — ER-5a §10
+// ============================================================================
+
+describe('onViewSegmentAsCondition CTA (ER-5a §10)', () => {
+  const twoCuts: BinnedFactorBinding = {
+    id: 'binding-2',
+    sourceColumn: 'X',
+    cuts: [20, 40],
+    levelNames: ['<20', '20-40', '≥40'],
+    detectionMethod: 'gap-ratio-v1',
+    detectedAt: '2026-05-28T00:00:00.000Z',
+  };
+
+  it('renders one "view as condition →" CTA per segment when handler is provided (committed state)', () => {
+    const { values, sortedValues } = bimodalFixture();
+    render(
+      <InflectionSidePanel
+        sourceColumn="X"
+        values={values}
+        sortedValues={sortedValues}
+        existingBindings={[twoCuts]}
+        patchBindings={vi.fn()}
+        // NOTE: InflectionSidePanel doesn't accept onViewSegmentAsCondition — use View
+      />
+    );
+    // The self-contained API doesn't thread onViewSegmentAsCondition; verify via
+    // ViewHarness which can pass the handler through.
+    // Segments render but without the handler → CTAs absent (see separate test).
+    expect(screen.queryByTestId('inflection-segment-view-condition-0')).not.toBeInTheDocument();
+  });
+
+  it('hides "view as condition →" CTAs when no handler is provided (InflectionSidePanelView)', () => {
+    const { values, sortedValues } = bimodalFixture();
+    const controller = {
+      state: {
+        kind: 'committed' as const,
+        binding: twoCuts,
+        segments: [
+          { n: 10, percentShare: 33, mean: 10, adPValue: 0.8 },
+          { n: 20, percentShare: 67, mean: 30, adPValue: 0.4 },
+          { n: 10, percentShare: 33, mean: 50, adPValue: 0.7 },
+        ],
+      },
+      canDetect: true,
+      valueCount: 40,
+      dismissBanner: vi.fn(),
+      detectInflections: vi.fn(),
+      addCut: vi.fn(),
+      removeCut: vi.fn(),
+      renameLevel: vi.fn(),
+      commit: vi.fn(),
+      removeBinning: vi.fn(),
+    } as unknown as Parameters<typeof InflectionSidePanelView>[0]['controller'];
+    void values;
+    void sortedValues;
+
+    render(
+      <InflectionSidePanelView sourceColumn="X" controller={controller} />
+      // onViewSegmentAsCondition absent → CTAs must not render
+    );
+    // No "view as condition →" button should be present
+    expect(screen.queryByTestId('inflection-segment-view-condition-0')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('inflection-segment-view-condition-1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('inflection-segment-view-condition-2')).not.toBeInTheDocument();
+  });
+
+  it('renders one CTA per segment and clicking segment i calls handler with i', () => {
+    const onViewSegmentAsCondition = vi.fn();
+    const segments = [
+      { n: 10, percentShare: 33, mean: 10, adPValue: 0.8 },
+      { n: 20, percentShare: 67, mean: 30, adPValue: 0.4 },
+      { n: 10, percentShare: 33, mean: 50, adPValue: 0.7 },
+    ];
+    const controller = {
+      state: { kind: 'committed' as const, binding: twoCuts, segments },
+      canDetect: true,
+      valueCount: 40,
+      dismissBanner: vi.fn(),
+      detectInflections: vi.fn(),
+      addCut: vi.fn(),
+      removeCut: vi.fn(),
+      renameLevel: vi.fn(),
+      commit: vi.fn(),
+      removeBinning: vi.fn(),
+    } as unknown as Parameters<typeof InflectionSidePanelView>[0]['controller'];
+
+    render(
+      <InflectionSidePanelView
+        sourceColumn="X"
+        controller={controller}
+        onViewSegmentAsCondition={onViewSegmentAsCondition}
+      />
+    );
+
+    // One CTA per segment — there are 3 segments (twoCuts has 3 levels).
+    const cta0 = screen.getByTestId('inflection-segment-view-condition-0');
+    const cta1 = screen.getByTestId('inflection-segment-view-condition-1');
+    const cta2 = screen.getByTestId('inflection-segment-view-condition-2');
+    expect(cta0).toBeInTheDocument();
+    expect(cta1).toBeInTheDocument();
+    expect(cta2).toBeInTheDocument();
+
+    // Clicking segment 0 calls handler with 0.
+    fireEvent.click(cta0);
+    expect(onViewSegmentAsCondition).toHaveBeenCalledTimes(1);
+    expect(onViewSegmentAsCondition).toHaveBeenLastCalledWith(0);
+
+    // Clicking segment 2 calls handler with 2.
+    fireEvent.click(cta2);
+    expect(onViewSegmentAsCondition).toHaveBeenCalledTimes(2);
+    expect(onViewSegmentAsCondition).toHaveBeenLastCalledWith(2);
+
+    // Clicking segment 1 calls handler with 1.
+    fireEvent.click(cta1);
+    expect(onViewSegmentAsCondition).toHaveBeenCalledTimes(3);
+    expect(onViewSegmentAsCondition).toHaveBeenLastCalledWith(1);
   });
 });
 

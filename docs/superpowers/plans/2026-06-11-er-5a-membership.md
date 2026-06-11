@@ -1,6 +1,6 @@
 ---
 tier: ephemeral
-purpose: plan
+purpose: build
 title: 'ER-5a — Membership analysis + composition view + binning reframe'
 audience: agent
 status: active
@@ -39,6 +39,7 @@ related:
 **Files:** create `packages/core/src/stats/membershipSeparation.ts` + `__tests__/membershipSeparation.test.ts`; export from `packages/core/src/index.ts` (or the stats barrel — match `factorEffects` export style).
 
 `computeMembershipSeparation(rows: DataRow[], leaves: ReadonlyArray<ConditionLeaf>, factors: string[]): MembershipSeparationResult | null`
+
 - Membership labels via `rowMatchesConditionLeaves(row, leaves)` (`packages/core/src/findings/hypothesisCondition.ts`, ER-4).
 - Per factor: contingency build (quartile-pre-bin continuous via `quartileBin`; skip rows with null/empty factor values, consistent with `computeMainEffects`), χ², bias-corrected Cramér's V per disposition 1, p-value (ground how `factorEffects` computes its F p-value and use the analogous χ² path; if no χ² CDF exists in core, implement the standard Wilson–Hilferty/regularized-gamma approximation with a hand-verified fixture), composition rows per disposition 4, `topLevel` per disposition 3, `binnedForRanking`.
 - Result: `{ factors: MembershipFactorSeparation[] (sorted Ṽ desc), nIn, nOut, n }`; degenerate → `null`.
@@ -52,6 +53,7 @@ related:
 ### Task 3 — Hooks: membership strip + composition models (Sonnet, TDD)
 
 **Files:** create `packages/hooks/src/useMembershipModel.ts` + tests; thread from `useConditionLoop` consumers.
+
 - `useMembershipModel({ lensedRows, leaves, allFactors, outcome, bindings })` → `{ chips: MembershipChip[], nIn, nOut } | null` calling Task 1's engine with `excludeYDerivedFactors` applied; memoized like `useFactorStripModel`.
 - Composition selector: `useCompositionModel({ lensedRows, leaves, factor })` → per-level composition rows + counts for the count⇄lift toggle (counts = nIn per level, the "condition Pareto" reading).
 - Do NOT mutate `useFactorStripModel` — the magnitude path stays byte-identical when no condition is applied.
@@ -63,6 +65,7 @@ related:
 ### Task 5 — Apps integration (Opus)
 
 **Files:** both `apps/*/src/components/Dashboard.tsx` (+ tests per app).
+
 - When `hasCondition`: the strip renders the membership variant fed by `useMembershipModel` over the FULL lensed rows (disposition 2); when not, the magnitude strip exactly as today.
 - The freed Pareto/comparison slot under a condition hosts `CompositionView` for the strip-selected factor (4-slot contract: content change within the slot, never a 5th slot).
 - ⊕ → `applyCondition([...appliedLeaves, buildGroupLeaf(column, level)])`; the scope bar label/counts update (already reactive via the store).

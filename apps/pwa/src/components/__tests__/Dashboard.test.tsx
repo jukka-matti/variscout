@@ -525,5 +525,31 @@ describe('Dashboard', () => {
         screen.queryByRole('button', { name: /Dismiss Analyze afterglow/i })
       ).not.toBeInTheDocument();
     });
+
+    it('⊕ dedup: adding the same level twice is a no-op (applyCondition called once)', async () => {
+      // Pre-apply a Machine=A condition so hasCondition=true and appliedLeaves=[Machine=A].
+      // The same leaf is what ⊕ would try to append; the dedup guard must prevent it.
+      const leafA = { kind: 'leaf' as const, column: 'Machine', op: 'eq' as const, value: 'A' };
+      useAnalysisScopeStore.setState({ conditionLeaves: [leafA] });
+
+      render(
+        <Dashboard findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }} />
+      );
+
+      // Wait for boxplotFactor to sync to 'Machine' (useEffect in useDashboardChartsBase)
+      // and for compositionViewNode to appear. The ⊕ button for level 'A' should render
+      // once showCompositionView is true.
+      const addBtn = await screen.findByTestId('composition-add-A');
+      expect(addBtn).toBeInTheDocument();
+
+      // First click: the leaf is already in appliedLeaves → dedup no-op, leaves unchanged.
+      fireEvent.click(addBtn);
+      expect(useAnalysisScopeStore.getState().conditionLeaves).toHaveLength(1);
+      expect(useAnalysisScopeStore.getState().conditionLeaves[0]).toMatchObject(leafA);
+
+      // Second click: still a no-op.
+      fireEvent.click(addBtn);
+      expect(useAnalysisScopeStore.getState().conditionLeaves).toHaveLength(1);
+    });
   });
 });

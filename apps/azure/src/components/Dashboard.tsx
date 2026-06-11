@@ -77,6 +77,7 @@ import {
   DEFAULT_PROCESS_HUB_ID,
   excludeYDerivedFactors,
   buildGroupLeaf,
+  predicateSetKey,
   applyTimeLens,
 } from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
@@ -1122,10 +1123,18 @@ const Dashboard = ({
     conditionLoop.hasCondition && !!boxplotFactor && compositionModel !== null;
   // ⊕ a level mints the COMPOUND condition through the EXISTING API (disposition
   // 5): appendable group leaf onto the current applied leaves.
+  // Dedup guard: skip the apply when the identical leaf (same column + op + value)
+  // is already present — clicking ⊕ twice on the same level is a no-op.
   const handleAddLevelToCondition = useCallback(
     (level: string) => {
       if (!boxplotFactor) return;
-      handleApplyCondition([...conditionLoop.appliedLeaves, buildGroupLeaf(boxplotFactor, level)]);
+      const newLeaf = buildGroupLeaf(boxplotFactor, level);
+      const newLeafKey = predicateSetKey([newLeaf]);
+      const alreadyPresent = conditionLoop.appliedLeaves.some(
+        existing => predicateSetKey([existing]) === newLeafKey
+      );
+      if (alreadyPresent) return;
+      handleApplyCondition([...conditionLoop.appliedLeaves, newLeaf]);
     },
 
     [boxplotFactor, conditionLoop.appliedLeaves, handleApplyCondition]

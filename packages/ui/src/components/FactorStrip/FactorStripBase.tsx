@@ -266,11 +266,12 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
       }
     }
 
-    // Chip hover: p-value + χ² df (df = 1 for binary membership column, r−1=1).
+    // Chip hover: p-value + χ² df (k−1 for the factor's level count) + n.
+    // Both df and n are forwarded from the engine — never hardcoded constants.
     const hoverTitle = tf('factorStrip.membership.chip.hover', {
       p: formatStat(chip.pValue, 4),
-      df: 1,
-      n: 0,
+      df: chip.df,
+      n: chip.n,
     });
 
     return (

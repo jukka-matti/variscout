@@ -82,6 +82,22 @@ export interface MembershipFactorSeparation {
    */
   pValue: number;
   /**
+   * Degrees of freedom for the χ² test: k − 1, where k is the number of
+   * distinct levels seen in this factor's contingency table (after any
+   * quartile-binning of continuous factors). This is exactly the df used to
+   * compute `pValue` above; it equals 1 only for binary factors.
+   */
+  df: number;
+  /**
+   * Number of rows that contributed to this factor's contingency table —
+   * rows with a non-null value for this factor column (NIn + NOut, minus any
+   * rows where the factor value was null/undefined and therefore excluded from
+   * the contingency counts). In the current implementation all rows are used,
+   * so this equals NIn + NOut; exposed as a first-class field so the UI can
+   * show honest sample sizes per factor rather than a hardcoded constant.
+   */
+  n: number;
+  /**
    * True when the factor was quartile-binned before building the contingency
    * table (continuous X's are binned to prevent singleton-group inflation,
    * exactly as in `computeMainEffects`).
@@ -440,6 +456,8 @@ export function computeMembershipSeparation(
       factor,
       adjustedV,
       pValue,
+      df,
+      n,
       binnedForRanking: binnedFactors.has(factor),
       levels,
       topLevel,

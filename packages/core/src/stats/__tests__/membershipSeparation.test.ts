@@ -137,6 +137,20 @@ describe('computeMembershipSeparation — hand-verified fixture', () => {
     expect(redLevel.shareIn).toBeCloseTo(1.0, 10);
     expect(redLevel.shareOut).toBeCloseTo(0.0, 10);
   });
+
+  it('Color factor df = 1 (binary: k=2, df = k−1 = 1)', () => {
+    // Color has 2 levels (Red / Blue) → k=2, df = k−1 = 1.
+    const result = computeMembershipSeparation(rows20, [colorLeaf], ['Color', 'Size'])!;
+    const colorFactor = result.factors.find(f => f.factor === 'Color')!;
+    expect(colorFactor.df).toBe(1);
+  });
+
+  it('Color factor n = 20 (all rows used, no nulls)', () => {
+    // NIn=10, NOut=10 → n = 20.
+    const result = computeMembershipSeparation(rows20, [colorLeaf], ['Color', 'Size'])!;
+    const colorFactor = result.factors.find(f => f.factor === 'Color')!;
+    expect(colorFactor.n).toBe(20);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -189,15 +203,22 @@ describe('cardinality penalty', () => {
    * a mild skew (3 In + 1 Out for first 4 levels, 1 In + 3 Out for last 4
    * levels). Adjusted V of "Many" must be < 1.0 (Binary's adjusted V).
    */
-  // Build the dataset: Binary is a perfect separator; Many has 10 levels each
-  // with uniform in/out distribution (χ²=0 for Many → Ṽ=0 < Binary's Ṽ=1).
+  // Build the dataset: Binary is a PERFECT 2-level separator (all 20 In rows have
+  // Binary='Yes', all 20 Out rows have Binary='No'). Many is a PERFECT 10-level
+  // separator — rows are divided into 10 groups of 4 (i/4), and the first 5 groups
+  // (rows 0–19) are entirely in-condition while the last 5 (rows 20–39) are entirely
+  // out-of-condition. Both factors have χ²=40 (equal raw separation strength), so
+  // the test exercises the cardinality penalty at EQUAL raw separation:
+  //   Binary: k=2, df=1  → bias correction is mild → Ṽ ≈ 1.0
+  //   Many:   k=10, df=9 → heavier bias penalty   → Ṽ ≈ 0.889
+  // The assertion verifies that Binary (Ṽ≈1.0) ranks above Many (Ṽ≈0.889).
   const rows40: DataRow[] = [];
   for (let i = 0; i < 40; i++) {
     const inCond = i < 20;
     // Binary: perfect separator
     const Binary = inCond ? 'Yes' : 'No';
-    // Many: 10 levels each with 4 rows, slight skew in first 5 levels (3 In, 1 Out)
-    // and last 5 levels (1 In, 3 Out) — this creates some association but NOT perfect
+    // Many: 10 levels each with 4 rows; first 5 levels (L0–L4) are all-In,
+    // last 5 levels (L5–L9) are all-Out → perfect separation, same χ²=40 as Binary.
     const levelIdx = Math.floor(i / 4); // 10 levels of 4 rows
     const Many = `L${levelIdx}`;
     const grp = inCond ? 'In' : 'Out';
@@ -220,6 +241,22 @@ describe('cardinality penalty', () => {
     expect(bin.adjustedV).toBeGreaterThanOrEqual(many.adjustedV);
     // Binary should be first in the sorted result
     expect(result.factors[0].factor).toBe('Binary');
+  });
+
+  it('Binary df = 1 (k=2, df = k−1 = 1), n = 40', () => {
+    const result = computeMembershipSeparation(rows40, [leaf], ['Binary'])!;
+    const bin = result.factors.find(f => f.factor === 'Binary')!;
+    expect(bin.df).toBe(1);
+    expect(bin.n).toBe(40);
+  });
+
+  it('Many df = 9 (k=10, df = k−1 = 9) — the regression case for the chip hover', () => {
+    // This is the key regression test: a 3+-level factor must have df > 1.
+    // Using df=1 in the hover (the original bug) would misrepresent the test.
+    const result = computeMembershipSeparation(rows40, [leaf], ['Many'])!;
+    const many = result.factors.find(f => f.factor === 'Many')!;
+    expect(many.df).toBe(9);
+    expect(many.n).toBe(40);
   });
 });
 

@@ -408,6 +408,8 @@ function makeMembershipChip(over: Partial<MembershipChip> = {}): MembershipChip 
     separation: 0.45,
     pValue: 0.0003,
     isSignificant: true,
+    df: 1,
+    n: 20,
     binnedForRanking: false,
     topLevel: { level: 'Billing', lift: 2.8 },
     isSelected: false,
@@ -545,5 +547,23 @@ describe('FactorStripBase — membership variant (ER-5a)', () => {
     );
     fireEvent.click(screen.getByTestId('factor-chip-Queue'));
     expect(onFactorSelect).toHaveBeenCalledWith('Queue');
+  });
+
+  // ── Chip hover uses real df and n (statistical-honesty regression) ──────────
+  it('hover title uses real df (not hardcoded 1) and real n — 3-level factor fixture', () => {
+    // df=2 (3-level factor, k−1=2) and n=40 must appear in the title attribute,
+    // NOT the fabricated constants df=1 / n=0 that were the original bug.
+    const chip = makeMembershipChip({
+      factor: 'Region',
+      df: 2, // 3-level factor: k=3, df = k−1 = 2
+      n: 40,
+      pValue: 0.012,
+    });
+    render(<FactorStripBase {...membershipBaseProps} membershipChips={[chip]} />);
+    const chipEl = screen.getByTestId('factor-chip-Region');
+    const title = chipEl.getAttribute('title') ?? '';
+    // The hover interpolation includes df and n: verify real values appear.
+    expect(title).toContain('2'); // df=2 (not 1)
+    expect(title).toContain('40'); // n=40 (not 0)
   });
 });

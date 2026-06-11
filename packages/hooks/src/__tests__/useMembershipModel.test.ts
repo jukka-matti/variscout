@@ -409,6 +409,59 @@ describe('useMembershipModel', () => {
     }
   });
 
+  // 6b ─ df and n passthrough ──────────────────────────────────────────────────
+
+  it('Color chip df = 1 (binary factor: k=2, df = k−1 = 1)', () => {
+    const result = callMembershipHook({
+      lensedRows: makeColorSizeRows(),
+      leaves: [colorRedLeaf()],
+      allFactors: ['Color'],
+      outcome: 'Value',
+    });
+    expect(result).not.toBeNull();
+    const chip = result!.chips[0];
+    // Color has 2 levels (Red / Blue) → k=2 → df = 1
+    expect(chip.df).toBe(1);
+  });
+
+  it('Color chip n = 20 (all 20 rows used in the contingency table)', () => {
+    const result = callMembershipHook({
+      lensedRows: makeColorSizeRows(),
+      leaves: [colorRedLeaf()],
+      allFactors: ['Color'],
+      outcome: 'Value',
+    });
+    expect(result).not.toBeNull();
+    const chip = result!.chips[0];
+    // NIn=10, NOut=10 → n = 20
+    expect(chip.n).toBe(20);
+  });
+
+  it('df > 1 for a 3-level factor (regression: df must NOT be hardcoded to 1)', () => {
+    // 3-level factor (A/B/C) → k=3 → df = 2.
+    // This is the regression case: the original hover used df=1 unconditionally.
+    const rows: DataRow[] = [];
+    for (let i = 0; i < 9; i++) {
+      rows.push({
+        Cat: i < 3 ? 'A' : i < 6 ? 'B' : 'C',
+        V: i,
+        grp: i < 4 ? 'X' : 'Y',
+      });
+    }
+    const leaf: ConditionLeaf = { kind: 'leaf', column: 'grp', op: 'eq', value: 'X' };
+    const result = callMembershipHook({
+      lensedRows: rows,
+      leaves: [leaf],
+      allFactors: ['Cat'],
+      outcome: 'V',
+    });
+    expect(result).not.toBeNull();
+    const chip = result!.chips[0];
+    // Cat has 3 distinct levels → df = 2
+    expect(chip.df).toBe(2);
+    expect(chip.df).toBeGreaterThan(1);
+  });
+
   // 7 ─ binnedForRanking passthrough ───────────────────────────────────────────
 
   it('binnedForRanking is false for categorical factors', () => {
