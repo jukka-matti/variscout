@@ -406,6 +406,82 @@ describe('excludeYDerivedFactors', () => {
     const survivors = excludeYDerivedFactors(['CycleTime', 'Machine'], 'CycleTime', bindings);
     expect(survivors).not.toContain('CycleTime');
   });
+
+  // ER-5a: derivedFrom provenance field
+  it('excludes a binding whose derivedFrom === outcome (even when sourceColumn !== outcome)', () => {
+    // This binding was derived from CycleTime (the outcome) but its sourceColumn
+    // is a separate column (e.g. a lag or rolling-window variant). The derivedFrom
+    // field is the provenance signal — it should trigger exclusion just like
+    // sourceColumn === outcome would.
+    const bindingsWithDerivedFrom: BinnedFactorBinding[] = [
+      {
+        id: 'b-derived',
+        sourceColumn: 'CycleTime_lag',
+        derivedFrom: 'CycleTime', // <— provenance: derived from the outcome
+        cuts: [8, 18],
+        levelNames: ['Low', 'Mid', 'High'],
+        detectionMethod: 'manual',
+        detectedAt: '2026-06-11T00:00:00Z',
+      },
+    ];
+    const survivors = excludeYDerivedFactors(
+      ['b-derived', 'CycleTime_lag_bin', 'Machine'],
+      'CycleTime',
+      bindingsWithDerivedFrom
+    );
+    // The binding id and its materialized bin-name are excluded via derivedFrom
+    expect(survivors).not.toContain('b-derived');
+    expect(survivors).not.toContain('CycleTime_lag_bin');
+    // Unrelated factor survives
+    expect(survivors).toContain('Machine');
+  });
+
+  it('does NOT exclude bindings whose derivedFrom references a different column', () => {
+    // derivedFrom = 'SomethingElse' (not the outcome) — binding should NOT be excluded.
+    const bindingsUnrelated: BinnedFactorBinding[] = [
+      {
+        id: 'b-unrelated',
+        sourceColumn: 'Pressure',
+        derivedFrom: 'Temperature', // temperature ≠ 'CycleTime' (outcome)
+        cuts: [50],
+        levelNames: ['Low', 'High'],
+        detectionMethod: 'manual',
+        detectedAt: '2026-06-11T00:00:00Z',
+      },
+    ];
+    const survivors = excludeYDerivedFactors(
+      ['b-unrelated', 'Machine'],
+      'CycleTime',
+      bindingsUnrelated
+    );
+    expect(survivors).toContain('b-unrelated');
+    expect(survivors).toContain('Machine');
+  });
+
+  it('regression: bindings without derivedFrom keep working identically (no field = no change)', () => {
+    // Negative regression — the field is optional; old bindings must produce the
+    // exact same result as before ER-5a. Only sourceColumn-based exclusion applies.
+    const legacyBindings: BinnedFactorBinding[] = [
+      {
+        id: 'legacy-b1',
+        sourceColumn: 'CycleTime',
+        // derivedFrom intentionally absent
+        cuts: [10, 20],
+        levelNames: ['Low', 'Mid', 'High'],
+        detectionMethod: 'manual',
+        detectedAt: '2026-06-11T00:00:00Z',
+      },
+    ];
+    // CycleTime_band is excluded because sourceColumn === outcome
+    const survivors = excludeYDerivedFactors(
+      ['CycleTime_band', 'Machine', 'Shift'],
+      'CycleTime',
+      legacyBindings
+    );
+    expect(survivors).not.toContain('CycleTime_band');
+    expect(survivors).toContain('Machine');
+    expect(survivors).toContain('Shift');
+  });
 });
 
 // ---------------------------------------------------------------------------

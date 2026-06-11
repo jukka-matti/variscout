@@ -320,14 +320,17 @@ export function computeMainEffects(
  * Drop Y-derived factors from a candidate list before ranking (spec §5/§11, D11).
  *
  * A bin column materialized from the outcome must never be ranked against its
- * own source Y — that is a tautology, not a contribution. v1 keys exclusion off:
+ * own source Y — that is a tautology, not a contribution. Exclusion keys off:
  *   1. the raw source column itself equals the outcome (`sourceColumn === outcome`);
- *   2. any binding whose `sourceColumn === outcome` (its materialized bin column
- *      is recognised by name — `<source>_bin` / `<source>_band` / the binding id);
+ *   2. any binding whose `sourceColumn === outcome` OR `derivedFrom === outcome`
+ *      (its materialized bin column is recognised by name — `<source>_bin` /
+ *      `<source>_band` / the binding id);
  *   3. the `${outcome}_bin` materialized-name convention, even with no binding.
  *
- * The generic provenance `derivedFrom` field is ER-5a's; v1 stays name- and
- * binding-based only.
+ * The generic provenance `derivedFrom` field (ER-5a, now present on
+ * `BinnedFactorBinding`) is honoured here: a binding whose `derivedFrom ===
+ * outcome` is excluded exactly like `sourceColumn === outcome`. Existing bindings
+ * without the field continue to work (optional field, `sourceColumn` fallback).
  *
  * @param factors Candidate factor column names.
  * @param outcome The active outcome (Y) column name.
@@ -343,12 +346,17 @@ export function excludeYDerivedFactors(
   const yDerivedNames = new Set<string>();
   yDerivedNames.add(`${outcome}_bin`);
   for (const b of bindings ?? []) {
-    if (b.sourceColumn !== outcome) continue;
+    // A binding is Y-derived if its sourceColumn OR its generic derivedFrom field
+    // traces back to the outcome. Check both so provenance-only bindings (where
+    // sourceColumn !== outcome but derivedFrom === outcome) are also excluded.
+    const isDerivedFromOutcome = b.sourceColumn === outcome || b.derivedFrom === outcome;
+    if (!isDerivedFromOutcome) continue;
     // The binding's source IS the outcome → every column materialized from it is
     // Y-derived. Cover the common materialized-name conventions and the id.
     // (b.sourceColumn itself is already excluded by the `f !== outcome` predicate.)
-    yDerivedNames.add(`${b.sourceColumn}_bin`);
-    yDerivedNames.add(`${b.sourceColumn}_band`);
+    const originColumn = b.sourceColumn;
+    yDerivedNames.add(`${originColumn}_bin`);
+    yDerivedNames.add(`${originColumn}_band`);
     yDerivedNames.add(b.id);
   }
 
