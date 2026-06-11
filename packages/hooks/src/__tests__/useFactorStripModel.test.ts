@@ -173,6 +173,23 @@ describe('useFactorStripModel', () => {
     expect(result!.chips[0].adjustedPct).toBeGreaterThan(0);
   });
 
+  it('attaches process step decorations to matching factor chips', () => {
+    const result = callHook({
+      rows: makeTwoFactorRows(),
+      outcome: 'Outcome',
+      allFactors: ['Machine', 'Operator'],
+      selectedFactors: [],
+      stepDecorations: new Map([['Machine', { stepId: 'step-fill', stepName: 'Fill' }]]),
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.chips.find(chip => chip.factor === 'Machine')?.step).toEqual({
+      stepId: 'step-fill',
+      stepName: 'Fill',
+    });
+    expect(result!.chips.find(chip => chip.factor === 'Operator')?.step).toBeUndefined();
+  });
+
   it('discrimination: Machine ranks first with substantially higher adjustedPct; independent Operator is weak', () => {
     // Operator is assigned independently of Machine (deterministic alternation) with
     // no outcome effect — its adjustedPct should be near zero and chip isWeak.

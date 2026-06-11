@@ -45,6 +45,25 @@ function goalKeywordBonus(columnName: string, goalContext: string | undefined): 
   return overlap / colTokens.length;
 }
 
+function factorSeedScore(column: ColumnAnalysis, rowCount: number): number {
+  const nameLower = column.name.toLowerCase();
+  const keywordBonus = FACTOR_KEYWORDS.some(kw => nameLower.includes(kw)) ? 2 : 0;
+  const usefulCardinality = column.uniqueCount >= 2 && column.uniqueCount <= 20;
+  const tooBroad = rowCount > 0 && column.uniqueCount > Math.min(50, Math.max(20, rowCount * 0.5));
+  const timeLike =
+    column.type === 'date' || TIME_KEYWORDS.some(kw => nameLower.includes(kw.replace(/_/g, '')));
+
+  if (!column.hasVariation) return -100 + keywordBonus;
+
+  let score = 100;
+  if (usefulCardinality) score += 30;
+  if (tooBroad) score -= 30;
+  if (!timeLike) score += 10;
+  score -= Math.min(20, column.missingCount);
+  score += keywordBonus;
+  return score;
+}
+
 /**
  * Analyze a single column to determine its type and characteristics.
  * Samples multiple rows (not just the first) for better accuracy.
@@ -187,23 +206,19 @@ export function detectColumns(data: DataRow[], options?: DetectColumnsOptions): 
     scoredNumericCols.find(s => s.col.hasVariation && s.finalScore > 0)?.col ??
     numericCols.find(c => c.hasVariation);
 
-  // Find factors: categorical columns, prioritize keyword matches
+  // Find default factor seeds. The cap is only for initial prominence; the full
+  // columnAnalysis remains available to Explore so Frame inference cannot gate
+  // the analytical candidate universe.
   const categoricalCols = columnAnalysis
-    .filter(c => c.type === 'categorical' && c.name !== outcome?.name)
-    .sort((a, b) => {
-      const aMatch = FACTOR_KEYWORDS.some(kw => a.name.toLowerCase().includes(kw));
-      const bMatch = FACTOR_KEYWORDS.some(kw => b.name.toLowerCase().includes(kw));
-      if (aMatch && !bMatch) return -1;
-      if (!aMatch && bMatch) return 1;
-      // Secondary sort: prefer columns with reasonable unique counts (2-20)
-      const aGoodCount = a.uniqueCount >= 2 && a.uniqueCount <= 20;
-      const bGoodCount = b.uniqueCount >= 2 && b.uniqueCount <= 20;
-      if (aGoodCount && !bGoodCount) return -1;
-      if (!aGoodCount && bGoodCount) return 1;
-      return 0;
-    });
+    .map((col, index) => ({ col, index, score: factorSeedScore(col, data.length) }))
+    .filter(entry => entry.col.type === 'categorical' && entry.col.name !== outcome?.name)
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map(entry => entry.col);
 
-  const factors = categoricalCols.slice(0, 3).map(c => c.name);
+  const factors = categoricalCols
+    .filter(c => c.hasVariation)
+    .slice(0, 3)
+    .map(c => c.name);
 
   // Find time column: date type or keyword match
   let timeCandidate = columnAnalysis.find(c => c.type === 'date');

@@ -85,15 +85,18 @@ describe('FactorStripBase', () => {
   // ── Label row ──────────────────────────────────────────────────────────
   it('renders the unscoped title + subtitle', () => {
     render(<FactorStripBase chips={rankedChips()} {...baseProps} />);
-    expect(screen.getByText('What explains the variation?')).toBeDefined();
+    expect(screen.getByText('What does explain it?')).toBeDefined();
     expect(screen.getByText(/each factor accounts for \(η²\)/)).toBeDefined();
     expect(screen.getByText(/won't sum to 100%/)).toBeDefined();
+    expect(
+      screen.getByText('Same candidate factors as Frame; ranked here from the data.')
+    ).toBeDefined();
   });
 
   it('retitles to the scoped question when isScoped', () => {
     render(<FactorStripBase chips={rankedChips()} {...baseProps} isScoped />);
-    expect(screen.getByText('What explains the variation within this condition?')).toBeDefined();
-    expect(screen.queryByText('What explains the variation?')).toBeNull();
+    expect(screen.getByText('What does explain it within this condition?')).toBeDefined();
+    expect(screen.queryByText('What does explain it?')).toBeNull();
   });
 
   // ── Ranking render order ───────────────────────────────────────────────
@@ -157,6 +160,17 @@ describe('FactorStripBase', () => {
     expect(
       within(screen.getByTestId('factor-chip-CallLength')).getByText('(binned)')
     ).toBeDefined();
+  });
+
+  it('renders a compact process step badge when a chip is step-attributed', () => {
+    const chips = [makeChip({ factor: 'Shift', step: { stepId: 'step-fill', stepName: 'Fill' } })];
+    render(<FactorStripBase chips={chips} {...baseProps} />);
+
+    const badge = within(screen.getByTestId('factor-chip-Shift')).getByTestId(
+      'factor-chip-step-badge'
+    );
+    expect(badge.textContent).toBe('Fill');
+    expect(badge.getAttribute('title')).toBe('Process step: Fill');
   });
 
   // ── Common-scale bars ──────────────────────────────────────────────────

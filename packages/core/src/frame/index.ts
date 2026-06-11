@@ -24,7 +24,11 @@ export type {
 export { inferMode } from './modeInference';
 export { detectGaps } from './gapDetector';
 export { subgroupAxisColumns } from './subgroupAxes';
-export { getStepColumnAssignments } from './stepColumns';
-export type { StepColumnAssignments } from './stepColumns';
+export {
+  getStepColumnAssignments,
+  buildStepFactorDecorations,
+  processStageColumnCandidates,
+} from './stepColumns';
+export type { StepColumnAssignments, StepFactorDecoration } from './stepColumns';
 export { createEmptyMap } from './factories';
 export { deriveProcessSteps } from './deriveProcessSteps';

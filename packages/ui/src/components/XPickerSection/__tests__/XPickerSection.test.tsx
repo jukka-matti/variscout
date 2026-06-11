@@ -66,6 +66,9 @@ describe('XPickerSection', () => {
     render(<XPickerSection candidates={defaultCandidates} selectedXs={[]} onToggleX={vi.fn()} />);
     expect(screen.getByTestId('x-picker-headline').textContent).toBe('What might be affecting it?');
     expect(screen.getByTestId('x-picker-hint').textContent).toBe("your X's / inputs");
+    expect(screen.getByTestId('x-picker-bridge').textContent).toBe(
+      'These are the same candidate factors Explore will rank from the data.'
+    );
   });
 
   it('renders one chip per candidate, all idle when nothing selected', () => {

@@ -128,13 +128,14 @@ The first question the analyst asks depends on the entry path — not a fixed se
 
 **Explore** (the **Explore tab**) is EDA for process improvement — **not sequential verification gates**. The analyst follows the most interesting signal across the Four Lenses, switching between threads as questions arise, narrowing and broadening with **Analysis Scope**.
 
-### Factor Strip — "What explains the variation?"
+### Factor Strip — "What does explain it?"
 
 The **factor strip** renders as a flex-none band directly beneath the I-Chart hero. It ranks **every candidate factor** by its cardinality-penalised share of variation (ω²-adjusted η²), from largest to smallest, so the analyst sees guidance on the **default surface** without drilling into the boxplot carousel.
 
 Key strip behaviours:
 
 - **Prominence, not gate (D13 seed-not-gate).** All candidate factors appear — weak or non-significant chips render in gray at the bottom of the list. The strip frames selection as attention, not permission. Unselected candidates collapse under an "+ N also screened" disclosure row.
+- **Process-to-Explore bridge.** Process asks "What might be affecting it?" and Explore answers "What does explain it?" The candidate set is the same; Explore ranks it from the data. Step-attributed X columns show compact process-step badges and become available to the Stages lens without auto-selection.
 - **Cardinality-penalised shares.** Continuous X columns are quartile-binned (Q1–Q4) inside the engine before ranking, so a high-cardinality continuous factor is not artificially inflated. The ★ badge marks the largest significant share.
 - **Chip → comparison rebind.** Clicking a chip sets the active factor for the Variation Sources boxplot comparison (identical to using the now-retired Factor dropdown). The selected chip goes examined-✓ (transient per-session).
 - **What-if hover (spec-direction-gated).** Hovering a chip shows the matched-best projection: "if every group's mean shifted to the best group's mean, the overall outcome would move from X to Y." Only rendered when a characteristic type (smaller/larger-is-better) is set — never recommended without a direction. Note: `computeMatchedBestProjection` computes this quantity (every group shifted to best-group mean); `computeCumulativeProjection` computes a different, complement-fixing quantity — do not conflate them.
