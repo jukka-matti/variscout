@@ -97,6 +97,14 @@ export interface IChartWrapperBaseProps {
   capabilityCpStats?: StatsResult | null;
   /** Cpk target threshold — renders as green target line in capability mode */
   cpkTarget?: number;
+  /**
+   * Condition-membership highlight tier (ER-4) in DISPLAY-index space — the same index space
+   * `selectedPoints`/brush uses. When present and non-empty, the I-Chart plots the full lensed
+   * series with members lit and non-members dim (limits computed over the full series). The
+   * Dashboard translates condition rows → display indices and feeds the full series here.
+   * Ignored in capability mode (different data path).
+   */
+  conditionMemberIndices?: Set<number>;
 }
 
 export const IChartWrapperBase = ({
@@ -136,13 +144,23 @@ export const IChartWrapperBase = ({
   capabilityCpkStats,
   capabilityCpStats,
   cpkTarget,
+  conditionMemberIndices,
 }: IChartWrapperBaseProps) => {
   const [isEditingScale, setIsEditingScale] = useState(false);
 
   // Use staged data when stage column is active
   const sourceData = stageColumn ? stagedData : filteredData;
 
-  const data = useIChartData(sourceData, outcome, stageColumn, timeColumn);
+  const data = useIChartData(
+    sourceData,
+    outcome,
+    stageColumn,
+    timeColumn,
+    undefined,
+    undefined,
+    undefined,
+    isCapabilityMode ? undefined : conditionMemberIndices
+  );
 
   const { effectiveStats, effectiveStagedStats, categoryPositions, handleContextMenu } =
     useIChartWrapperData({
@@ -209,6 +227,7 @@ export const IChartWrapperBase = ({
         primaryLabel={isCapabilityMode ? 'Cpk' : undefined}
         secondaryLabel={isCapabilityMode ? 'Cp' : undefined}
         targetLabel={isCapabilityMode && cpkTarget !== undefined ? 'Cpk target' : undefined}
+        conditionMemberIndices={isCapabilityMode ? undefined : conditionMemberIndices}
       />
 
       {ichartFindings.length > 0 && onEditFinding && onDeleteFinding && (

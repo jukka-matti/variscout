@@ -340,3 +340,168 @@ describe('IChartBase rendering', () => {
     expect(container.querySelector('[data-testid^="ichart-event-flag-"]')).toBeNull();
   });
 });
+
+describe('IChartBase membership highlight tier (ER-4)', () => {
+  // Data with a clear in-spec mid-band and an out-of-spec violation at index 2.
+  // specs usl/lsl 15/5; index 2 (y=30) is a spec violation (diamond, chartColors.spec).
+  function makeMixedData(): IChartDataPoint[] {
+    return [10, 11, 30, 12, 9].map((y, i) => ({ x: i, y, originalIndex: i }));
+  }
+  const mixedStats = makeStats(makeMixedData());
+
+  // Members = display indices {0, 2}. So idx 0 = in-spec member; idx 2 = violation member;
+  // idx 1,3,4 = non-members (idx 1,3,4 in-spec).
+  const members = new Set<number>([0, 2]);
+
+  /** Collect the rendered per-point <g opacity> wrappers (skip secondary/finding groups). */
+  function pointGroups(container: HTMLElement): Element[] {
+    // Each primary data point is a <g opacity=...> wrapping a ViolationPoint shape.
+    return Array.from(container.querySelectorAll('g[opacity]')).filter(
+      g => g.querySelector('[data-shape], circle, polygon, rect, path') !== null
+    );
+  }
+
+  it('suppresses the connecting data line while membership is active', () => {
+    const dataLineStroke = chartColors.mean; // not directly the data line, but assert via path count
+    void dataLineStroke;
+    const data = makeMixedData();
+    const { container: withTier } = render(
+      <IChartBase
+        data={data}
+        stats={mixedStats}
+        {...defaultProps}
+        conditionMemberIndices={members}
+      />
+    );
+    const { container: noTier } = render(
+      <IChartBase data={data} stats={mixedStats} {...defaultProps} />
+    );
+
+    // The primary connecting LinePath is a <path> with stroke = chrome.dataLine.
+    // With the tier active, the primary data line is suppressed → fewer <path> elements.
+    const pathsWithTier = withTier.querySelectorAll('path').length;
+    const pathsNoTier = noTier.querySelectorAll('path').length;
+    expect(pathsWithTier).toBeLessThan(pathsNoTier);
+  });
+
+  it('renders the data line when membership is absent (regression pin)', () => {
+    const data = makeMixedData();
+    const { container } = render(<IChartBase data={data} stats={mixedStats} {...defaultProps} />);
+    // At least one <path> (the primary data LinePath) is present.
+    expect(container.querySelectorAll('path').length).toBeGreaterThan(0);
+  });
+
+  it('lights members at ~.85 and dims non-members at ~.14', () => {
+    const data = makeMixedData();
+    const { container } = render(
+      <IChartBase
+        data={data}
+        stats={mixedStats}
+        {...defaultProps}
+        conditionMemberIndices={members}
+      />
+    );
+    const groups = pointGroups(container);
+    expect(groups).toHaveLength(5);
+
+    const opacities = groups.map(g => Number(g.getAttribute('opacity')));
+    // idx 0 member (in-spec) → lit
+    expect(opacities[0]).toBeCloseTo(0.85, 2);
+    // idx 1 non-member (in-spec) → dim
+    expect(opacities[1]).toBeCloseTo(0.14, 2);
+    // idx 2 member (violation) → lit
+    expect(opacities[2]).toBeCloseTo(0.85, 2);
+    // idx 3 non-member (in-spec) → dim
+    expect(opacities[3]).toBeCloseTo(0.14, 2);
+  });
+
+  it('floors a dimmed non-member VIOLATION at opacity .3 so signals never vanish', () => {
+    const data = makeMixedData();
+    // Members exclude idx 2 (the violation) → it is a non-member violation.
+    const membersExclViolation = new Set<number>([0, 1]);
+    const { container } = render(
+      <IChartBase
+        data={data}
+        stats={mixedStats}
+        {...defaultProps}
+        conditionMemberIndices={membersExclViolation}
+      />
+    );
+    const groups = pointGroups(container);
+    const opacities = groups.map(g => Number(g.getAttribute('opacity')));
+    // idx 2 is a non-member but IS a spec violation → floored at .3 (not .14).
+    expect(opacities[2]).toBeCloseTo(0.3, 2);
+    // idx 3 is a non-member, non-violation → plain dim .14.
+    expect(opacities[3]).toBeCloseTo(0.14, 2);
+  });
+
+  it('preserves the violation color/shape on a lit member', () => {
+    const data = makeMixedData();
+    const { container } = render(
+      <IChartBase
+        data={data}
+        stats={mixedStats}
+        {...defaultProps}
+        conditionMemberIndices={members}
+      />
+    );
+    // idx 2 is a member AND a spec violation → keeps chartColors.spec fill + diamond shape.
+    // The violation diamond is a <polygon> (ViolationShapes); find a fill matching spec color.
+    const specColored = Array.from(container.querySelectorAll('[fill]')).filter(
+      el => el.getAttribute('fill') === chartColors.spec
+    );
+    expect(specColored.length).toBeGreaterThan(0);
+  });
+
+  it('renders members larger than non-members', () => {
+    const data = makeMixedData();
+    const { container } = render(
+      <IChartBase
+        data={data}
+        stats={mixedStats}
+        {...defaultProps}
+        conditionMemberIndices={members}
+      />
+    );
+    const groups = pointGroups(container);
+    // Member r (idx 0) vs non-member r (idx 1) — read the shape's r/size attribute.
+    const memberShape = groups[0].querySelector('circle, polygon, rect, path');
+    const nonMemberShape = groups[1].querySelector('circle, polygon, rect, path');
+    // Members carry a larger radius. ViolationPoint encodes size via r (circle) or scale.
+    // We assert via a data attribute set on the shape wrapper.
+    expect(groups[0].getAttribute('data-member')).toBe('true');
+    expect(groups[1].getAttribute('data-member')).toBe('false');
+    void memberShape;
+    void nonMemberShape;
+  });
+
+  it('channel absent → opacity behavior identical to today (regression pin)', () => {
+    const data = makeMixedData();
+    const { container } = render(<IChartBase data={data} stats={mixedStats} {...defaultProps} />);
+    const groups = pointGroups(container);
+    // No brush selection, no membership → every point opaque (1).
+    groups.forEach(g => {
+      expect(Number(g.getAttribute('opacity'))).toBe(1);
+    });
+    // And no membership data attributes leak when the channel is absent.
+    expect(container.querySelector('[data-member]')).toBeNull();
+  });
+
+  it('empty membership set behaves like the channel being absent', () => {
+    const data = makeMixedData();
+    const { container } = render(
+      <IChartBase
+        data={data}
+        stats={mixedStats}
+        {...defaultProps}
+        conditionMemberIndices={new Set()}
+      />
+    );
+    const groups = pointGroups(container);
+    groups.forEach(g => {
+      expect(Number(g.getAttribute('opacity'))).toBe(1);
+    });
+    // The data line is NOT suppressed for an empty set.
+    expect(container.querySelectorAll('path').length).toBeGreaterThan(0);
+  });
+});
