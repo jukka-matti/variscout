@@ -141,6 +141,12 @@ export {
 // Type III SS decomposition
 export { computeTypeIIISS } from './typeIIISS';
 
+// Fit a single named subset as a GLM — coefficient table (intercept row first)
+// for any shown subset, incl. the all-categorical shape the enumeration path
+// returns no table for. (ER-3 model drawer.)
+export type { FitSubsetGLMResult, FitSubsetGLMOptions } from './fitSubsetGLM';
+export { fitSubsetGLM, INTERCEPT_TERM } from './fitSubsetGLM';
+
 // Factor type detection
 export type { FactorTypeClassification } from './factorTypeDetection';
 export { classifyFactorType, classifyAllFactors } from './factorTypeDetection';

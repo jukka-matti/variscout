@@ -119,6 +119,9 @@ export {
   getBestSingleFactor,
   generateQuestionsFromRanking,
   predictFromModel,
+  // Fit a single named subset as a GLM (coefficient table incl. intercept row)
+  fitSubsetGLM,
+  INTERCEPT_TERM,
   computeCoverage,
   // Point decimation for chart rendering
   lttb,
@@ -170,6 +173,9 @@ export type {
   ModelPrediction,
   CoverageResult,
 } from './stats';
+
+// fitSubsetGLM — coefficient table for any shown subset (ER-3 model drawer)
+export type { FitSubsetGLMResult, FitSubsetGLMOptions } from './stats';
 
 // Factor effects types (Factor Intelligence Layers 2-3)
 export type {
