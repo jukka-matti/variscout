@@ -46,6 +46,7 @@ stateDiagram-v2
 - **`validationStatus`** (`supports` | `contradicts` | `inconclusive`) — _how the finding relates to its hypothesis_. `supports` counts as evidence; `inconclusive` routes to **not-tested** (never silently supports); `contradicts` + `refutes:true` short-circuits the hypothesis to refuted.
 - **`FindingProjection`** — baseline + projected stats (mean/sigma/cpk/yield) with deltas + `modelContext` (R²adj, gap closure) for What-If.
 - **`FindingOutcome`** — post-action effectiveness (`yes`/`no`/`partial`, Cpk before/after) to close the loop.
+- **`FindingContext.yColumn`** — optional active outcome/Y stamp captured from Explore chart actions. It preserves which measure the evidence came from and gives numeric chart findings the metric needed for condition derivation.
 
 ## Condition & scope linkage (ER-4, 2026-06-11)
 
@@ -54,6 +55,9 @@ The condition is the WHERE that travels between Explore and Analyze:
 - **`ConditionLeaf`** (`findings/hypothesisCondition.ts`) is the predicate grammar — leaf ops `eq`/`neq`/`in`/`gt`/`gte`/`lt`/`lte`/`between`. ER-4 added the Explore-side bridges: `rowMatchesConditionLeaves(row, leaves)` (flat-AND row evaluation), `buildBandLeaf` (I-Chart y-brush → `between`/`gte`), `buildGroupLeaf` (category click → `eq`), and `conditionLeavesToScopeState` / `buildConditionLeavesFromScopeState` (the scope-store round-trip).
 - **`Finding.scopeId`** (optional FK, added in CS-0) is now **written**: capturing under an active condition mints-or-matches a `ProblemStatementScope` (`syncScopeFromCondition` — `predicateSetKey`-idempotent, soft-deleted scopes excluded) and stamps the finding. PSS's zero-live-caller state (the PR-CS-0 finding) ended with ER-4.
 - The minting gesture is the **condition pill** — one pattern on both apps; the chart click itself is an Esc-clearable transient highlight, never a silent commit. Surface behavior (scope bar, D6 per-chart tiers): [drill-down-workflow.md §The condition loop](drill-down-workflow.md#the-condition-loop-er-4-2026-06-11).
+- ER-7 wires finding → hypothesis condition inheritance inside the store action, not at call sites: `createHubFromFinding(findingId)` derives `Hypothesis.condition` with `deriveConditionFromFindingSource`, resolving categorical chart categories against `Finding.context.activeFilters` and numeric bands against `FindingContext.yColumn`.
+- Finding → hypothesis is **seed-not-become**: "What might cause this?" creates a new Hypothesis, links the finding as its first supporting evidence, and asks exactly one mechanism question: **"Why do you think this happens?"** The Finding remains evidence; it does not turn into a Hypothesis.
+- Finding cards can mark evidence as **support** or **counts against** a focused hypothesis. Support links through `findingIds`; counts-against writes `counterFindingIds` and classifies the finding relationship as contradictory evidence for that hypothesis.
 
 ## Hypothesis
 
@@ -79,7 +83,7 @@ Nested on `Hypothesis.ideas` (re-homed from the retired Question entity, ADR-085
 
 ## ActionItem
 
-Two caller shapes share one type: legacy (`assignee` + `dueDate`) and Quick Action (`stepId` + `parentImprovementProjectId`/`parentImprovementIdeaId` + `assignedTo`/`dueAt`). `status: open | in-progress | done`; removal is soft (`deletedAt`). Reducer: `reduceActionItems` (`ACTION_ITEM_*`). `HYPOTHESIS_ACTION_*` action kinds are **reserved** (hypothesis-level action items are F5-deferred no-ops today).
+Two caller shapes share one type: legacy (`assignee` + `dueDate`) and Quick Action (`stepId` + `parentImprovementProjectId`/`parentImprovementIdeaId` + `assignedTo`/`dueAt`). `status: open | in-progress | done`; removal is soft (`deletedAt`). Reducer: `reduceActionItems` (`ACTION_ITEM_*`). Wall hypothesis cards also store lightweight hypothesis-level tasks on `Hypothesis.actions`; the task form threads `assignee` from member selection into `addHypothesisAction(hubId, text, assignee?)`.
 
 ## Persistence
 
@@ -87,7 +91,7 @@ All domain entities round-trip in the `DocumentSnapshot` / `.vrs` **except `disc
 
 ## Not yet built (do not document as live)
 
-Durable disconfirmation persistence (F5); hypothesis-level `ActionItem`s (`HYPOTHESIS_ACTION_*` reserved); the auto-link re-ingest cascade (post-IM-4).
+Durable disconfirmation persistence (F5); HubAction reducer persistence for `HYPOTHESIS_ACTION_*`; the auto-link re-ingest cascade (post-IM-4).
 
 ## See also
 

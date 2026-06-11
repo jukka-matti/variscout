@@ -24,6 +24,7 @@ import type {
   ImprovementIdea,
   IdeaImpact,
   HypothesisStatus,
+  FindingAssignee,
 } from '@variscout/core';
 import type { DataRow } from '@variscout/core';
 import type { ColumnTypeMap, ConditionLeaf } from '@variscout/core/findings';
@@ -194,7 +195,7 @@ export interface WallCanvasPlanningProps {
    * has edit-contributions access, the card renders the "+ Add Task" affordance.
    * The app dispatches HYPOTHESIS_ACTION_ADD.
    */
-  onAddHypothesisAction?: (hypothesisId: string, text: string) => void;
+  onAddHypothesisAction?: (hypothesisId: string, text: string, assignee?: FindingAssignee) => void;
   /**
    * IM-4b Task 3 — mark an open ActionItem done. When provided, each open task
    * row renders a "Mark Done" control. The app dispatches HYPOTHESIS_ACTION_COMPLETE.
@@ -933,7 +934,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         What might cause this?
       </h2>
       <label className="mt-3 block text-sm font-medium text-content">
-        What might cause this?
+        Why do you think this happens?
         <input
           className="mt-1 w-full rounded border border-edge bg-background px-3 py-2 text-sm text-content"
           value={promotionName}
@@ -1499,6 +1500,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
           )}
         </g>
       </svg>
+
+      {promotionPrompt}
 
       {mode === 'destination' ? (
         <MissingEvidencePanel

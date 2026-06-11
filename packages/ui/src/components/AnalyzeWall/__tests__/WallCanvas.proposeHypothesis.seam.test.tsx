@@ -66,7 +66,7 @@ describe('WallCanvas — findings-forward promotion affordance', () => {
       />
     );
     fireEvent.click(screen.getByRole('button', { name: /what might cause this\?/i }));
-    const input = screen.getByLabelText(/what might cause this\?/i);
+    const input = screen.getByLabelText(/why do you think this happens\?/i);
     expect(input).toHaveValue('');
 
     const submit = screen.getByRole('button', { name: /create hypothesis/i });
@@ -101,7 +101,7 @@ describe('WallCanvas — findings-forward promotion affordance', () => {
     expect(screen.queryByText(/Coolant recirculation lag/i)).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: /what might cause this\?/i }));
-    fireEvent.change(screen.getByLabelText(/what might cause this\?/i), {
+    fireEvent.change(screen.getByLabelText(/why do you think this happens\?/i), {
       target: { value: 'Coolant recirculation lag' },
     });
     fireEvent.click(screen.getByRole('button', { name: /create hypothesis/i }));

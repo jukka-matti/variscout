@@ -9,6 +9,7 @@ import type {
   Hypothesis,
   DisconfirmationAttempt,
   FindingComment,
+  FindingAssignee,
   ActionItem,
   ImprovementIdea,
 } from '@variscout/core';
@@ -85,7 +86,7 @@ export interface UseHypothesesReturn {
    * IM-4b Task 3 — append an ActionItem task to a hub. Returns the created item
    * so the caller can mirror it to the repository. No-op + null if hub absent.
    */
-  addAction: (hubId: string, text: string) => ActionItem | null;
+  addAction: (hubId: string, text: string, assignee?: FindingAssignee) => ActionItem | null;
   /** IM-4b Task 3 — mark a hub action item done (sets completedAt). */
   completeAction: (hubId: string, actionId: string, completedAt: number) => void;
   /**
@@ -292,10 +293,10 @@ export function useHypotheses(options: UseHypothesesOptions): UseHypothesesRetur
 
   // ── IM-4b Task 3 — hub ActionItem tasks ─────────────────────────────────
   const addAction = useCallback(
-    (hubId: string, text: string): ActionItem | null => {
+    (hubId: string, text: string, assignee?: FindingAssignee): ActionItem | null => {
       const hub = hubs.find(h => h.id === hubId);
       if (!hub) return null;
-      const action = createActionItem(text);
+      const action = createActionItem(text, assignee);
       update(prev =>
         prev.map(h =>
           h.id === hubId

@@ -129,6 +129,10 @@ export interface FindingCardProps {
   onAskCoScoutQuestion?: (question: string) => void;
   /** Optional Azure-only voice input that transcribes into finding/comment editors */
   voiceInput?: VoiceInputConfig;
+  /** Mark this finding as supporting evidence for the selected hypothesis. */
+  onMarkSupport?: (findingId: string) => void;
+  /** Mark this finding as evidence that counts against the selected hypothesis. */
+  onMarkCounter?: (findingId: string) => void;
 }
 
 /**
@@ -190,6 +194,8 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAskCoScoutQuestion,
   renderActionAssigneePicker,
   voiceInput,
+  onMarkSupport,
+  onMarkCounter,
 }) => {
   const { t, formatStat, locale } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
@@ -198,6 +204,21 @@ const FindingCard: React.FC<FindingCardProps> = ({
   const comments = finding.comments;
 
   const filterEntries = Object.entries(context.activeFilters);
+  const conditionEvidence =
+    context.stats?.mean !== undefined || context.stats?.samples !== undefined
+      ? [
+          context.stats.mean !== undefined ? `mean in ${formatStat(context.stats.mean)}` : null,
+          context.stats.samples !== undefined
+            ? `n=${context.stats.samples}${
+                finding.windowContext?.statsAtCreation.n !== undefined
+                  ? ` of ${finding.windowContext.statsAtCreation.n}`
+                  : ''
+              }`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : null;
 
   const handleSave = (text: string) => {
     onEdit(finding.id, text);
@@ -316,6 +337,14 @@ const FindingCard: React.FC<FindingCardProps> = ({
             <span>{Math.round(context.cumulativeScope)}% in focus</span>
           )}
         </div>
+        {conditionEvidence && (
+          <div
+            data-testid="finding-condition-evidence"
+            className="mt-1 text-[0.625rem] text-content-secondary"
+          >
+            {conditionEvidence}
+          </div>
+        )}
       </div>
 
       {/* Note + actions */}
@@ -430,6 +459,35 @@ const FindingCard: React.FC<FindingCardProps> = ({
 
         {/* Inline assign slot (e.g., PeoplePicker) */}
         {renderAssignSlot}
+
+        {(onMarkSupport || onMarkCounter) && (
+          <div className="mt-2 flex flex-wrap gap-1.5 border-t border-edge/50 pt-2">
+            {onMarkSupport && (
+              <button
+                type="button"
+                className="rounded border border-green-500/30 px-2 py-0.5 text-[0.625rem] text-green-400 hover:bg-green-500/10"
+                onClick={e => {
+                  e.stopPropagation();
+                  onMarkSupport(finding.id);
+                }}
+              >
+                support
+              </button>
+            )}
+            {onMarkCounter && (
+              <button
+                type="button"
+                className="rounded border border-amber-500/30 px-2 py-0.5 text-[0.625rem] text-amber-400 hover:bg-amber-500/10"
+                onClick={e => {
+                  e.stopPropagation();
+                  onMarkCounter(finding.id);
+                }}
+              >
+                counts against
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Projection display (visible when projection exists) */}
         {finding.projection && (

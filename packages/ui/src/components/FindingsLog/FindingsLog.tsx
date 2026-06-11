@@ -103,6 +103,10 @@ export interface FindingsLogProps {
   linkedFindings?: Array<{ id: string; text: string }>;
   /** Optional Azure-only voice input that transcribes into finding/comment editors */
   voiceInput?: VoiceInputConfig;
+  /** Mark a finding as supporting evidence for the selected hypothesis. */
+  onMarkSupport?: (findingId: string) => void;
+  /** Mark a finding as evidence that counts against the selected hypothesis. */
+  onMarkCounter?: (findingId: string) => void;
 }
 
 /**
@@ -149,6 +153,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   synthesis,
   linkedFindings,
   voiceInput,
+  onMarkSupport,
+  onMarkCounter,
 }) => {
   if (findings.length === 0) {
     return (
@@ -248,6 +254,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
             onAskCoScout={onAskCoScoutAboutFinding}
             projectedCpk={projectedCpkMap?.[finding.id]}
             voiceInput={voiceInput}
+            onMarkSupport={onMarkSupport}
+            onMarkCounter={onMarkCounter}
           />
         ))}
       </div>
