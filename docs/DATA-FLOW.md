@@ -114,6 +114,8 @@ Customer Azure AI calls leave the browser but stay in the customer's tenant (Azu
 
 Future local MCP/agent access should use controlled Agent Workspace Bundles or a local server surface. Agents may read computed results and propose report copy, actions, Control plans, or redacted Analysis Packs. They must not silently mutate canonical workspace state.
 
+**Voice input — scheduled for deletion (ADR-093 D6).** The shipped Azure voice path below remains accurate until the sweep lands; do not build on it. CoScout is typed-first.
+
 Azure voice input uses the same tenant boundary:
 
 - browser records a short audio clip in memory only
@@ -129,7 +131,7 @@ There is no persisted audio object in IndexedDB or Blob Storage, and PWA keeps t
 
 ## Trust chain summary
 
-Parse -> transform -> stats -> persist/export -> optional sync -> display -> optional AI. Every boundary either validates or passes through, never silently corrupts. Three numeric gates (B1, B2, B3) guarantee no `NaN`/`Infinity` reaches the user. Local-first/customer-owned principle guarantees no data leaves the browser or customer environment unless the user enables an explicit export/service path. Project-membership ACLs (ADR-082 §4) scope formal Azure Project documents to invited members; local `.vrs` and Analysis Packs are controlled by the analyst's file-sharing choices. Voice input, when enabled on Azure, follows the same tenant-owned-data rule: audio is transient, transcript is durable.
+Parse -> transform -> stats -> persist/export -> optional sync -> display -> optional AI. Every boundary either validates or passes through, never silently corrupts. Three numeric gates (B1, B2, B3) guarantee no `NaN`/`Infinity` reaches the user. Local-first/customer-owned principle guarantees no data leaves the browser or customer environment unless the user enables an explicit export/service path. Project-membership ACLs (ADR-082 §4) scope formal Azure Project documents to invited members; local `.vrs` and Analysis Packs are controlled by the analyst's file-sharing choices. Voice input (scheduled for deletion, ADR-093 D6) followed the same tenant-owned-data rule while shipped: audio transient, transcript durable.
 
 ## Reference
 

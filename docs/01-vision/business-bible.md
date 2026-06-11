@@ -498,9 +498,9 @@ persistence.
 
 ### L3: AI Augmentation
 
-**What:** NarrativeBar, ChartInsightChips, CoScout (chat + voice input) — AI
-explains stats in plain language, suggests next steps, references
-investigation history.
+**What:** NarrativeBar, ChartInsightChips, CoScout (chat; typed-first — voice
+cut per ADR-093 D6) — AI explains stats in plain language, suggests next
+steps, references investigation history.
 
 **Why it matters:** Bridges the gap between statistical output and actionable
 insight. Non-statisticians can understand variation analysis results.

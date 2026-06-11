@@ -7,8 +7,13 @@ layer: L5
 
 # ADR-071: CoScout Voice Input
 
-**Status:** Accepted
+**Status:** Superseded by [ADR-093 D6](adr-093-v1-simplification-cuts.md) (2026-06-11)
 **Date:** 2026-04-24
+
+> **Superseded 2026-06-11.** Voice input is cut from V1 (ADR-093 D6): CoScout
+> is typed-first, and voice is not a design principle. The shipped voice code
+> remains until the ADR-093 deletion sweeps land; do not build on it. This ADR
+> is retained as the design record should voice be deliberately revived.
 
 ## Context
 

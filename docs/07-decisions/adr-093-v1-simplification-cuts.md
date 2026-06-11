@@ -126,11 +126,23 @@ security pack). BYOK constraint is architectural: supported-provider list
 (endpoints that accept direct browser calls), key in browser storage only,
 **no vendor proxy ever**.
 
+### D6 — Cut CoScout voice input (added same day, owner call)
+
+CoScout's transcription-first voice input (ADR-071; shipped on Azure —
+`CoScoutSection`, finding editor, `runtimeConfig`) is **cut from V1**. Voice
+is not a design principle anywhere in the product: CoScout is typed-first,
+and new designs (e.g., the Ishikawa lens) must not assume a voice mode.
+ADR-071 is superseded in effect; the code deletion rides the D1–D3 sweep
+program (grounding audit first, same discipline). The consultation loop is
+unaffected — its talk-track mode processes _Teams_ recordings/transcripts,
+which never depended on in-product voice capture. Revive trigger: field
+demand for hands-free gemba capture, as a deliberate re-decision.
+
 ## Execution discipline
 
-- **Ground before delete.** Each deletion program (D1, D2, D3) gets its own
-  grounded audit before any sweep — the 2026-06-09 future-code audit showed
-  deletion priors are frequently wrong in both directions.
+- **Ground before delete.** Each deletion program (D1, D2, D3, D6) gets its
+  own grounded audit before any sweep — the 2026-06-09 future-code audit
+  showed deletion priors are frequently wrong in both directions.
 - **Deletion sweeps follow the atomic-cascade carve-out** (one implementer,
   Architect → Migration → Validator phases, per-category commits) and
   validators run **app test suites**, not just builds.
