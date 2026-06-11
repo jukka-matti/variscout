@@ -59,6 +59,7 @@ import {
   computeInteractionEffects,
   deriveIPCauseRows,
   deriveIPReportNarrative,
+  deriveIPReportOverviewSectionStatuses,
   selectIPReportScope,
   humanizeReportFindingLabel,
 } from '@variscout/core';
@@ -529,20 +530,23 @@ const ReportView: React.FC<ReportViewProps> = ({
   });
   const sections =
     workspaceProject && reportAudienceMode === 'overview'
-      ? ipNarrative.map((section, index) => ({
-          id: `ip-overview-${index}`,
-          stepNumber: index + 1,
-          title: section.title,
-          status: 'done' as const,
-          workspace:
-            index <= 2
-              ? ('analysis' as const)
-              : index <= 4
-                ? ('findings' as const)
-                : ('improvement' as const),
-          findings: [],
-          hasAIContent: false,
-        }))
+      ? (() => {
+          const statuses = deriveIPReportOverviewSectionStatuses(ipNarrative);
+          return ipNarrative.map((section, index) => ({
+            id: `ip-overview-${index}`,
+            stepNumber: index + 1,
+            title: section.title,
+            status: statuses[index] ?? 'future',
+            workspace:
+              index <= 2
+                ? ('analysis' as const)
+                : index <= 4
+                  ? ('findings' as const)
+                  : ('improvement' as const),
+            findings: [],
+            hasAIContent: false,
+          }));
+        })()
       : derivedSections;
 
   // Scroll spy for sidebar highlighting

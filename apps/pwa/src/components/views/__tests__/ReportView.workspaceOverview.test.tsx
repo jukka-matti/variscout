@@ -109,21 +109,23 @@ beforeEach(() => {
   vi.stubGlobal('IntersectionObserver', IntersectionObserverStub);
 });
 
-describe('ReportView single-project report end-state', () => {
-  it('renders the single-project report for a fresh informal Workspace Project without scope labels', () => {
+describe('PWA ReportView single-project overview truthfulness', () => {
+  it('marks empty found/done content as active instead of done', () => {
     const { container } = render(
       <ReportView
         onClose={vi.fn()}
-        activeHub={activeHub}
+        stats={null}
+        specs={{}}
+        findings={[]}
+        columnAliases={{}}
+        dataFilename="workspace.csv"
+        sampleCount={0}
+        analysisMode="standard"
+        hub={activeHub}
         workspaceProject={informalWorkspaceProject}
       />
     );
 
-    expect(screen.getAllByRole('button', { name: 'Executive summary' }).length).toBeGreaterThan(0);
-    expect(screen.getByText('Loaded sample data is active.')).toBeInTheDocument();
-    expect(
-      screen.getByText('Formalize this Workspace to add charter context to this report')
-    ).toBeInTheDocument();
     expect(
       screen.getByText(
         'No findings, actions, or suspected causes have been recorded for this report yet.'

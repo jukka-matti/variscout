@@ -20,6 +20,6 @@ The old auto-fire / cadence / signoff-gated lifecycle pattern from ADR-080 is su
 
 Report now always renders the single-project report. The former Hub portfolio fallback, workspace overview aliases, and null-session defensive branch are deleted. The overview narrative can cite the frozen baseline anchor, re-check sequence, latest comparison summary, and simplified handoff.
 
-Delivery was intentionally split across independent PRs: RPT-1, CC-1, CC-2, CC-3, CC-4, CC-5, CC-6, CC-7, and CC-DOC. The named-view verification-band wireframe lives at [`control-verification-band`](../../02-journeys/wireframes/control-verification-band.md).
+Delivery was intentionally split across independent PRs: RPT-1, CC-1, CC-2, CC-3, CC-4, CC-5, CC-6, CC-7, and CC-DOC. The named-view verification-band wireframe lives at [`control-verification-band`](02-journeys/wireframes/control-verification-band.md).
 
 _Pinned 2026-06-10._

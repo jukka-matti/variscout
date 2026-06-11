@@ -37,6 +37,8 @@ flowchart LR
 
 Sections are tagged by **workspace origin** and colour-coded: Analysis (green), Findings (amber), Improvement (purple). The legacy `hub-portfolio` section id was deleted by RPT-1; hypothesis summaries render _within_ `evidence-trail`, not as a separate id. `ReportImprovementSummary` maps `Hypothesis.status` (the `confirmed` status renders as **"Supported"**).
 
+Section status markers are derived from content. Empty or placeholder-only sections do not render as completed; the Report shows an explicit empty-state line instead of a decorative checkmark.
+
 ## Single-project overview report
 
 The Overview audience mode renders the seven QC-story-shaped sections from `deriveIPReportNarrative()`:
@@ -55,6 +57,9 @@ Control integration is explicit:
 - **Did it work?** reads the `ControlReview` re-check sequence and latest before/now comparison. It does not use tick counts or auto-verdict copy.
 - **What we standardized + learned** reads the simplified handoff surface and system name.
 - Cause rows use the latest analyst re-check verdict as verification context.
+- **What we found + what we did** includes evidenced suspected-cause rows and the explicit unattached-finding destination: "Findings not yet attached to a suspected cause." If no findings, actions, or suspected causes exist yet, the section says so directly.
+
+PO-5 governs Report composition through analyst-owned hypothesis status and evidence links. RPT-1 governs the container: Report is always the single-project report, with the old portfolio fallback removed. ER-11 adds the missing destination for findings captured before they are attached to a suspected cause; it does not change PO-5's status rules for cause rows.
 
 ## Audience toggle
 

@@ -197,9 +197,14 @@ describe('selectIPReportScope', () => {
 
     // ALL input hypotheses are in scope now (no lineage membership filter).
     expect(scope.hypotheses.map(h => h.id).sort()).toEqual(['hyp-1', 'hyp-other']);
-    // Findings surface via hypothesis findingIds + goal.mechanismGoals.linkedFindingIds.
-    expect(scope.findings.map(f => f.id).sort()).toEqual(['find-1', 'find-other']);
-    expect(scope.findings.map(f => f.id)).not.toContain('find-unrelated');
+    // Findings surface via hypothesis findingIds + goal.mechanismGoals.linkedFindingIds,
+    // plus the explicit unattached-finding destination.
+    expect(scope.findings.map(f => f.id).sort()).toEqual([
+      'find-1',
+      'find-other',
+      'find-unrelated',
+    ]);
+    expect(scope.orphanFindings.map(f => f.id)).toEqual(['find-unrelated']);
     expect(scope.controlRecord?.id).toBe('sus-1');
     expect(scope.controlReviews.map(review => review.id)).toEqual(['review-1']);
     expect(scope.controlHandoff?.id).toBe('handoff-1');
@@ -260,6 +265,24 @@ describe('selectIPReportScope', () => {
     });
     expect(scope.controlRecord).toBeUndefined();
   });
+
+  it('routes findings with no hypothesis or mechanism link to the unattached finding destination', () => {
+    const scope = selectIPReportScope({
+      ip: project(),
+      hypotheses: [hypothesis()],
+      findings: [
+        finding(),
+        finding({
+          id: 'find-unattached',
+          text: 'Weekend batches show a wider spread.',
+          actions: [],
+        }),
+      ],
+    });
+
+    expect(scope.findings.map(f => f.id).sort()).toEqual(['find-1', 'find-unattached']);
+    expect(scope.orphanFindings.map(f => f.id)).toEqual(['find-unattached']);
+  });
 });
 
 describe('deriveIPReportNarrative', () => {
@@ -297,6 +320,38 @@ describe('deriveIPReportNarrative', () => {
     ).toContain(
       'Standardized via work instruction in Line SOP: Recipe control moved into the line SOP.'
     );
+  });
+
+  it('adds unattached findings under What we found + what we did without action or verification claims', () => {
+    const narrative = deriveIPReportNarrative({
+      ip: project(),
+      hypotheses: [],
+      findings: [
+        finding({
+          id: 'find-unattached',
+          text: 'Weekend batches show a wider spread.',
+          actions: [],
+        }),
+      ],
+    });
+
+    const found = narrative.find(section => section.title === 'What we found + what we did')!;
+    expect(found.items).toEqual([
+      'Findings not yet attached to a suspected cause: Weekend batches show a wider spread.',
+    ]);
+  });
+
+  it('emits an honest empty state when nothing has been found or done yet', () => {
+    const narrative = deriveIPReportNarrative({
+      ip: project(),
+      hypotheses: [],
+      findings: [],
+    });
+
+    const found = narrative.find(section => section.title === 'What we found + what we did')!;
+    expect(found.items).toEqual([
+      'No findings, actions, or suspected causes have been recorded for this report yet.',
+    ]);
   });
 });
 
