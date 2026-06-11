@@ -835,8 +835,9 @@ export interface ProblemStatementScope extends EntityBase {
    */
   gateNode?: GateNode;
   /**
-   * Optional 'if-fixed' overall impact projection. Field only — the computation
-   * lands in IM-5.
+   * Optional 'if-fixed' overall impact projection. Written by
+   * `recomputeScopeWhatIf` (shipped ER-2, 2026-06-11) — the scope's own
+   * matched-best number. Per-chip hover numbers are ephemeral UI only.
    */
   whatIfProjection?: number;
   /** Updated timestamp (Unix ms). */
