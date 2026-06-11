@@ -414,6 +414,21 @@ describe('round-trip losslessness', () => {
     const rebuilt = buildConditionLeavesFromScopeState(categoricalFilters, rangeLeaves);
     expect(predicateSetKey(rebuilt)).toBe(predicateSetKey(original));
   });
+
+  it('neq round-trip: neq leaves travel through rangeLeaves and preserve predicateSetKey', () => {
+    // `neq` is a range/comparison leaf (not eq/in), so it lands in rangeLeaves
+    // and must survive the round-trip with an identical predicateSetKey.
+    const original: ConditionLeaf[] = [
+      { kind: 'leaf', column: 'Shift', op: 'neq', value: 'Night' },
+      { kind: 'leaf', column: 'Machine', op: 'eq', value: 'B' },
+    ];
+    const { categoricalFilters, rangeLeaves } = conditionLeavesToScopeState(original);
+    // neq should end up in rangeLeaves, not categoricalFilters
+    expect(rangeLeaves).toHaveLength(1);
+    expect(rangeLeaves[0].op).toBe('neq');
+    const rebuilt = buildConditionLeavesFromScopeState(categoricalFilters, rangeLeaves);
+    expect(predicateSetKey(rebuilt)).toBe(predicateSetKey(original));
+  });
 });
 
 // ---------------------------------------------------------------------------

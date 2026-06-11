@@ -22,6 +22,7 @@ import {
   predicateSetKey,
   type ProblemStatementScope,
   type CategoricalFilterInput,
+  type ConditionLeaf,
 } from '@variscout/core';
 
 export interface MatchActiveScopeArgs {
@@ -49,6 +50,48 @@ export function matchActiveScopeId({
   const predicates = buildConditionFromCategoricalFilters(categoricalFilters);
   if (predicates.length === 0) return null;
   const key = predicateSetKey(predicates);
+  const match = scopes.find(
+    scope =>
+      !scope.deletedAt &&
+      scope.projectId === scopeProjectId &&
+      scope.outcome === outcome &&
+      predicateSetKey(scope.predicates) === key
+  );
+  return match?.id ?? null;
+}
+
+export interface MatchActiveScopeByLeavesArgs {
+  /** ER-4 pill condition leaves (may include range ops: between / gte / etc.). */
+  leaves: ReadonlyArray<ConditionLeaf>;
+  /** Active outcome (Y). Null/empty → no match. */
+  outcome: string | null | undefined;
+  /** Project id key (String(canvasViewportHubId) / scopeProjectId sentinel). */
+  scopeProjectId: string;
+  /** All known scopes (useAnalyzeStore.scopes). */
+  scopes: ReadonlyArray<ProblemStatementScope>;
+}
+
+/**
+ * Range-capable sibling of `matchActiveScopeId` — matches by a flat
+ * `ConditionLeaf[]` (which may contain range predicates like `between` / `gte`)
+ * rather than categorical chip filters.
+ *
+ * Computes the key via `predicateSetKey(leaves)` directly; this is the same
+ * key that `syncScopeFromCondition` uses when minting a scope, so the match
+ * is guaranteed to be consistent.
+ *
+ * Existing `matchActiveScopeId` callers are UNAFFECTED — this is an additive
+ * sibling. Pure — no store reads.
+ */
+export function matchActiveScopeIdByLeaves({
+  leaves,
+  outcome,
+  scopeProjectId,
+  scopes,
+}: MatchActiveScopeByLeavesArgs): string | null {
+  if (!outcome) return null;
+  if (leaves.length === 0) return null;
+  const key = predicateSetKey(leaves);
   const match = scopes.find(
     scope =>
       !scope.deletedAt &&
