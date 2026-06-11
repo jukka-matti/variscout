@@ -103,3 +103,17 @@ The `predictFromUnifiedModel()` function in `bestSubsets.ts` accepts mixed facto
 | [ADR-052](adr-052-factor-intelligence.md)         | Factor Intelligence — best subsets now uses the unified engine |
 | [ADR-065](adr-065-evidence-map-causal-graph.md)   | Evidence Map — continuous factor nodes now positioned by R²adj |
 | [ADR-066](adr-066-evidence-map-analyze-center.md) | Evidence Map spine — What-If Profiler uses GLM prediction      |
+
+## Amendment (2026-06-11) — ER-3 model drawer
+
+**SE/t/p were already built and NIST-certified pre-ER-3.** The original spec text described per-coefficient SE/t/p as "one real core addition" needing ER-3. This was stale: `solveOLS` (`packages/core/src/stats/olsRegression.ts`, Householder QR) has computed SE/t/p since the initial GLM build, flowing through `BestSubsetResult.predictors` (`PredictorInfo{coefficient,standardError,tStatistic,pValue,isSignificant}`) and validated to 9 significant digits on the NIST Norris/Pontius/Longley certified datasets (including certified SE assertions).
+
+**What ER-3 actually added:**
+
+1. **`fitSubsetGLM`** (`packages/core/src/stats/fitSubsetGLM.ts`, barrel-exported from `@variscout/core`): refit any shown factor subset via `buildDesignMatrix` + `solveOLS` and return `{predictors (including the intercept row, term '(Intercept)'), intercept, rmse, sse, rSquared, rSquaredAdj, n, referenceLevels, typeIII}`. This closes the all-categorical dispatch gap: `computeBestSubsetsANOVA` returned no predictors/intercept/rmse/typeIIIResults on the common demo shape; the drawer calls `fitSubsetGLM` of the shown subset to obtain the full coefficient table on those paths. The intercept row (index 0 of the OLSSolution arrays) is exposed with a reference-level caption, not omitted as a non-factor.
+
+2. **`computeTypeIIISS` made hierarchy/marginality-aware** (`packages/core/src/stats/typeIIISS.ts`): the previous implementation silently dropped the entire Type III decomposition on interaction-augmented models — it passed the factor list from the base main-effects result into the full interaction-augmented model, so the reduced models it compared against the full model were incompatible (wrong baseline). ER-3 fixed the decomposition to use the interaction-augmented factor list consistently, so Type III SS is computed correctly for models containing interaction terms.
+
+3. **`BestSubsetResult.sse`**: added to the type and populated at the OLS path; the drawer displays it as part of the ANOVA table.
+
+**Covariance matrix: deliberately NOT exposed (YAGNI).** The drawer's coefficient-uncertainty presentation uses `fitted ± S` (residual standard deviation). The full covariance matrix — needed for joint prediction intervals, multi-coefficient hypothesis tests, and ridge/penalised paths — is not surfaced. Revive when prediction intervals or penalised regression enter scope.

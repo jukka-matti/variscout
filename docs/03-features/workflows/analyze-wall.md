@@ -35,16 +35,16 @@ It turns suspected causes into **disconfirmable claims**, not labels, and surfac
 
 ## What's on it — the bands
 
-| Band                       | Contents                                                                                                                                                                                                                                 |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Model-builder**          | On-demand vital-few overlay in the factor zone — pre-selects the fewest factors within 1pt of max R²adj (each `p < .15`); surfaces **adjusted R² + per-factor p only**; O(1) toggle; conclude → capture-as-Finding (§Model-builder band) |
-| **Problem (scope anchor)** | The current scope's compound WHERE + live Cpk + **HOLDS N/M** + **What-If Cpk** + coverage %; includes a compact switcher across flat sibling scopes (§Scope anchor)                                                                     |
-| **Waterline**              | Dashed labelled divider                                                                                                                                                                                                                  |
-| **Hypothesis**             | Cards with status-tinted borders, mini-charts, the **test-plan triad**, and the disconfirmation gesture; AND/OR/NOT gate nodes (§Test-plan triad, §Disconfirmation)                                                                      |
-| **Evidence**               | Finding/gemba chips tethered to their hub — **Supports** (left) and **Counts-against** (right, loud) (§Evidence band)                                                                                                                    |
-| **Contributing factors**   | Live factor chip row; each labelled by column + referencing hypotheses (derived); orphan factors dimmed                                                                                                                                  |
+| Band                       | Contents                                                                                                                                                                                                                                                                                                                                     |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Model drawer**           | On-demand right drawer — "The model behind the ranking"; toggle opens a screen-space HTML drawer (`ModelDrawerBase`) showing model summary, reference-coded equation, full coefficient table (incl. intercept row), ANOVA table (Type III SS), best-subsets ladder, and predict widget; conclude → capture-as-Finding footer (§Model drawer) |
+| **Problem (scope anchor)** | The current scope's compound WHERE + live Cpk + **HOLDS N/M** + **What-If Cpk** + coverage %; includes a compact switcher across flat sibling scopes (§Scope anchor)                                                                                                                                                                         |
+| **Waterline**              | Dashed labelled divider                                                                                                                                                                                                                                                                                                                      |
+| **Hypothesis**             | Cards with status-tinted borders, mini-charts, the **test-plan triad**, and the disconfirmation gesture; AND/OR/NOT gate nodes (§Test-plan triad, §Disconfirmation)                                                                                                                                                                          |
+| **Evidence**               | Finding/gemba chips tethered to their hub — **Supports** (left) and **Counts-against** (right, loud) (§Evidence band)                                                                                                                                                                                                                        |
+| **Contributing factors**   | Live factor chip row; each labelled by column + referencing hypotheses (derived); orphan factors dimmed                                                                                                                                                                                                                                      |
 
-The canvas owns the screen. The thin Overall Problem Header sits above it; compact Wall/Causes controls, minimap, model toggle, and missing-evidence nudge float around the canvas instead of pushing it down. The redesign tracks **"% of viewport that is canvas"** as an acceptance metric (target: roughly 85%+ on the Analyze tab). Per-hypothesis warning badges are the main gap signal.
+The canvas owns the screen. The thin Overall Problem Header sits above it; compact Wall/Causes controls, minimap, **Model toggle** (opens the screen-space model drawer — ER-3 fixed A2: the toggle now changes visible pixels on a populated Wall), and missing-evidence nudge float around the canvas instead of pushing it down. The redesign tracks **"% of viewport that is canvas"** as an acceptance metric (target: roughly 85%+ on the Analyze tab). Per-hypothesis warning badges are the main gap signal.
 
 ## Intent diagram
 
@@ -73,9 +73,15 @@ The canvas owns the screen. The thin Overall Problem Header sits above it; compa
 
 `computeWallLayout` (`packages/ui/src/components/AnalyzeWall/wallLayout.ts`) is the **single source of truth for every node position** — hubs, findings, factors, the scope anchor, orphans — in one coordinate space. The Minimap and pan-to-node consume the same `buildWallLayoutArgs`, so there is no position drift. The canvas is a **bipartite factor↔hypothesis** layout (one surface, not two components): ranked factors on one side, hypothesis cards on the other, typed support/refute edges between.
 
-## Model-builder band
+## Model drawer
 
-A scope-level **vital-few** selector (`packages/core/src/stats/modelBuilder.ts`, `selectVitalFew`): the fewest factors whose best-subset R²adj is within 1pt of the max where each factor's **partial** `p < .15` (screening — the lower bar of the two-α split). The header surfaces **adjusted R² + per-factor p only** (Cp/BIC are internal picker metrics, never on the surface). Toggling a candidate across the line is an O(1) `lookupSubset` (no recompute). Ambient honesty cues: a "fit-only estimate" dot (overfit / low obs-per-predictor) and a redundancy hint ("removing X barely changed the model — redundant, not irrelevant"). Concluding a model is **capture-as-Finding** (view-state while exploring; persisted only as a Finding), never a stored selection field.
+The **Model toggle** (floating chrome, Analyze tab) opens `ModelDrawerBase` — a right-anchored screen-space HTML drawer (`w-[min(560px,calc(100%-1.5rem))]`), Escape + × + backdrop-click close. **A2 is fixed (ER-3, 2026-06-11):** the drawer is screen-space HTML, never inside the SVG `<foreignObject>` at y≈960 that the populated `computeReadableWallContentBBox` crops away — the toggle now changes visible pixels on any populated Wall. The drawer is also the surface opened by the Explore strip's ANOVA link (`onAnovaLinkClick`), making it the single Model surface in both tabs.
+
+Six sections: **(1)** header with `<outcome> ~ <terms>` subtitle; **(2)** model summary (S / R² / R²adj / n); **(3)** reference-coded equation (largest |coef| first, guardrail caption); **(4)** full coefficient table (Term / Coef / SE / t / p, including the intercept row; significant rows bold); **(5)** ANOVA table (Type III (model-comparison) SS per term + Error/Total rows); **(6)** best-subsets ladder (all candidates sorted by R²adj, ✓ shown row highlighted). Predict widget: per-factor level selects defaulting to reference levels → `fitted x̄ ± S`. Capture-model footer (Analyze surface only, when `onCaptureModel` is present).
+
+The in-SVG `ModelBuilderBand` is **deleted** — the drawer is the sole Model surface. `fitSubsetGLM` provides the full coefficient table for all-categorical paths (the band previously returned no predictors on those paths). The drawer's always-live engine run replaces the band's `onModelStatsChange` feed: `{kept, deltaR2}` flows out via `WallCanvas`'s `modelStats` prop, keeping glyph contribution bars and DOI weighting always-live (not open-band-only as before). Interactive kept/candidate toggling, redundancy/VIF hint, and snap-back were **cut in the v1 read-only drawer** — see investigations.md "band interactivity cut" entry; ER-6 revival candidates.
+
+Mobile: the drawer is desktop-only; the Wall's mobile `MobileCardList` branch is focus-only (ADR-086).
 
 ## Scope anchor — current scope + switcher + HOLDS
 
@@ -122,7 +128,7 @@ Analyze lands on the Wall. The everyday Analyze lenses are **Wall** (spatial hyp
 - **Command palette** (`Cmd/Ctrl-K`) — jump to hub, create hypothesis, run HOLDS-check.
 - **Minimap** — orientation when zoomed; reads the layout authority.
 - **Explore handoff** — opening a factor from the Wall carries the categorical WHERE into Explore as both the visible scope chip and chart filters.
-- **Mobile** — phone widths render a vertical `MobileCardList` (the model-builder band is desktop-only — focus-only mobile, [ADR-086](../../07-decisions/adr-086-unified-investigation-canvas.md)).
+- **Mobile** — phone widths render a vertical `MobileCardList` (the model drawer is desktop-only — focus-only mobile, [ADR-086](../../07-decisions/adr-086-unified-investigation-canvas.md)).
 
 ## Tier availability
 
