@@ -110,29 +110,34 @@ Most tools force everything through "the numbers." VariScout structures the
 investigation around the methodology, then lets the right evidence answer the
 question at hand.
 
-### 3.3 Local-first data, customer-owned services
+### 3.3 Local-first data, customer-owned AI
 
-Data enters in the browser and stays local for analysis. Durable output starts
-as user-controlled files: `.vrs` snapshots and Analysis Packs. If a customer
-enables optional services, storage and AI stay in the customer's own Azure
-tenant. No data ever touches VariScout-operated cloud infrastructure
-(ADR-059, ADR-092). This isn't a privacy bullet point — it is the
-load-bearing architectural decision that makes VariScout sellable into
-regulated and quality-sensitive industries.
+Data enters in the browser and stays local for analysis. Durable output is
+user-controlled files: `.vrs` snapshots and Analysis Packs — there is no cloud
+document store (ADR-093). AI is always the customer's: the company tier uses
+the tenant's own Azure AI endpoint; the individual tier uses the user's own
+key with direct browser→provider calls. No data ever touches
+VariScout-operated cloud infrastructure (ADR-059, ADR-092). This isn't a
+privacy bullet point — it is the load-bearing architectural decision that
+makes VariScout sellable into regulated and quality-sensitive industries.
 
 The same principle makes the free PWA possible: no backend, no signup, no
 data leaving the laptop. Try-before-buy without paperwork.
 
-### 3.4 Artifact-first sharing before live collaboration
+### 3.4 Artifact collaboration — the consultation loop
 
-VariScout V1 shares work through the right artifact first: executive Analysis
-Pack, technical Analysis Pack, reproducible `.vrs` bundle, or redacted pack
-for external sharing. Live project membership remains valuable for customers
-that need managed shared workspaces, but it is not the default product proof
-point.
+VariScout V1 shares work through the right artifact: executive Analysis Pack,
+technical Analysis Pack, reproducible `.vrs` bundle, redacted pack for
+external sharing — and the **Consultation Pack**, which closes the loop:
+questions ride out with the data over Teams/email, the expert answers in the
+pack or on a recorded call, and their knowledge comes back as structured
+evidence the analyst explicitly accepts ([consultation-loop spec](../superpowers/specs/2026-06-11-consultation-loop-design.md)).
+Live project membership is deleted from V1 (ADR-093); multi-user workspaces
+are a VariScout Process (future) concern.
 
 This is a deliberate counter-positioning move against the enterprise SaaS norm
-of cloud-first collaboration. The analyst controls what leaves the workspace.
+of cloud-first collaboration. The analyst controls what leaves the workspace —
+and what comes back in.
 
 ---
 
@@ -150,9 +155,10 @@ The methodology nests:
 - **Workspace** is the default container: data, process map, findings, actions,
   Control evidence, report, and share artifacts.
 - **Project** is the optional formalization layer (Charter → Approach →
-  Control), invited team, and governed services when needed. Improvement
-  actions are owned by the **Improve tab** — a top-level verb tab, not a stage
-  inside Project detail.
+  Control) — a solo act of naming, chartering, and running the lifecycle;
+  there is no membership or invite flow (ADR-093). Improvement actions are
+  owned by the **Improve tab** — a top-level verb tab, not a stage inside
+  Project detail.
 - **Frame → Explore → Analyze → Improve → Control** explains how one investigation is
   done inside a Project (or as quick analysis without one).
 - **Questions** drive the reasoning. Each question can be answered by data,
@@ -170,19 +176,19 @@ The methodology nests:
 - **Not a 24/7 operational monitoring system.** VariScout reviews performance
   at an improvement cadence; live alerts, shift-critical escalation, and
   real-time control loops stay in operational systems.
-- **Not cloud collaboration first.** Collaboration starts with controlled
-  share artifacts; live project membership is optional capability.
+- **Not cloud collaboration.** Collaboration is controlled share artifacts +
+  the consultation loop; there is no live multi-user workspace in V1.
 
 ### Multi-level pitch
 
-| Context                 | Pitch                                                                                                                                                                                                                                 |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **One sentence**        | VariScout is a local-first process improvement workspace that turns process data into verified improvement and shareable evidence.                                                                                                    |
-| **Improvement specialist** | Replace the practical Minitab + Excel + PowerPoint loop: map the process, explore variation, analyze suspected causes, drive action, verify Control, export the evidence pack.                                                     |
-| **Elevator**            | Paste data locally, connect it to the process, find where variation lives, decide what to change, prove whether it held, and export a polished Analysis Pack. Optional Azure services add company-approved distribution, AI, and persistence. |
-| **Website hero**        | Analyze the process behind the data. Improve it. Prove it held. Share the evidence.                                                                                                                                                  |
-| **Marketplace listing** | Local-first structured improvement workspace for process specialists. Browser-based analysis, process context, action tracking, Control verification, and polished Analysis Packs, with optional customer-tenant Azure services.       |
-| **Internal strategy**   | VariScout is the first tool that ships structured EDA investigation as a local-first improvement workspace. The methodology is the product. Deterministic stats compute; AI and agents propose.                                      |
+| Context                    | Pitch                                                                                                                                                                                                                                                                                     |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **One sentence**           | VariScout is a local-first process improvement workspace that turns process data into verified improvement and shareable evidence.                                                                                                                                                        |
+| **Improvement specialist** | Replace the practical Minitab + Excel + PowerPoint loop: map the process, explore variation, analyze suspected causes, drive action, verify Control, export the evidence pack.                                                                                                            |
+| **Elevator**               | Paste data locally, connect it to the process, find where variation lives, decide what to change, prove whether it held, and export a polished Analysis Pack — or send the expert a Consultation Pack and pull their knowledge back as evidence. €17/month solo, €120/month company-wide. |
+| **Website hero**           | Analyze the process behind the data. Improve it. Prove it held. Share the evidence.                                                                                                                                                                                                       |
+| **Marketplace listing**    | Local-first structured improvement workspace for process specialists. Browser-based analysis in your own tenant, process context, action tracking, Control verification, polished Analysis Packs, and CoScout on your own Azure AI endpoint. Your data never reaches the vendor.          |
+| **Internal strategy**      | VariScout is the first tool that ships structured EDA investigation as a local-first improvement workspace. The methodology is the product. Deterministic stats compute; AI and agents propose.                                                                                           |
 
 ---
 
@@ -234,60 +240,71 @@ supports recurring data collection without forcing a separate "Measure" stage.
 
 ## 6. Pricing and access
 
-### 6.1 Simple Distribution / Services Price
+### 6.1 Three channels, one product (ADR-093 D5)
 
-**VariScout** targets **€120/month for company-approved distribution and
-optional services.** Full analytical capability stays local-first; the paid
-surface expands approved use, customer AI, persistence, governance, and
-managed sharing where needed.
+- **Free** — public web URL. Full in-session analysis; no save/export, no AI.
+  Training, evaluation, the funnel.
+- **Individual** — **€17+VAT/month or €99+VAT/year** via Paddle. Installable
+  desktop PWA from a Paddle-gated app origin (runs on the user's machine,
+  offline-capable); the artifact layer (`.vrs`, Analysis Packs, the
+  consultation loop); BYOK CoScout — the user's own AI key, direct
+  browser→provider calls. Personal-use license.
+- **Company** — **€120/month per Azure tenant** via Azure Marketplace.
+  Deployed into the customer's own subscription, tenant-wide users, the
+  artifact layer, CoScout on the tenant's IT-governed AI endpoint, security
+  review pack. VariScout, the vendor, never touches customer data.
 
-Azure Marketplace can remain the trusted approval/licensing route, but Azure is
-not the default data home. If customers enable Azure services, they deploy into
-their own subscription, own the data, own the AI Foundry resources, and own the
-Blob storage. VariScout, the vendor, never touches customer data.
+The paid product never runs on VariScout's public website — it runs on the
+user's machine or in the customer's tenant.
 
-### 6.2 The PWA as product proof
+### 6.2 The free deployment as product proof
 
-The free PWA stays. Same charts, same methodology, same investigation
-structure — session-only storage, `.vrs` export/import, no CoScout. It teaches
-structured investigation and can support real local analysis. The "magic
-moment" of linked filtering happens without paywall friction. When the analyst
-hits the natural ceiling ("I need approved company use, optional AI, managed
-save, or governed sharing"), the company-approved product is the next step.
+The free deployment stays. Same charts, same methodology, same investigation
+structure — full in-session analysis, no save/export (build-time gate, ADR-093
+D5), no CoScout. It teaches structured investigation; the "magic moment" of
+linked filtering happens without paywall friction. When the analyst hits the
+natural ceiling ("I need to keep this work, export the evidence pack, consult
+an expert, use AI"), the €17 personal license is one Paddle checkout away —
+and the company deployment follows when IT-governed AI and approved
+distribution matter.
 
-The PWA is not a degraded paid product. It is the clearest expression of the
-local-first promise.
+The free deployment is not a degraded paid product. It is the clearest
+expression of the local-first promise: the full analysis loop, in your
+browser, on your data.
 
-### 6.3 Why One Paid Offer
+### 6.3 Why a license-scope ladder, not a feature ladder
 
-Per [ADR-082](../07-decisions/adr-082-wedge-architecture.md), the V1
-go-to-market collapses the prior Standard / Team tier split into one price.
-Reasons:
+Per [ADR-082](../07-decisions/adr-082-wedge-architecture.md) and
+[ADR-093](../07-decisions/adr-093-v1-simplification-cuts.md), there is no
+feature-tier ladder. Channels differ by license scope, delivery, and AI
+governance — never by analytical capability. Reasons:
 
-- **Sales conversation is one sentence.** "Local-first process improvement,
-  with optional company-approved services." No tier decision moment.
+- **Sales conversation is one sentence per buyer.** Individual: "€17/month,
+  your own AI key, your work is yours." Company: "€120/month tenant-wide,
+  IT-governed AI, security pack." No plan-comparison worksheet.
 - **Customer success doesn't need plan-mapping.** Every customer is on the
-  same surface; support is consistent.
-- **Engineering doesn't carry tier-gating UX.** ~28 files of `isPaidTier()` /
-  `hasTeamFeatures()` retire.
-- **Distribution pricing honors ADR-033 H6.** €120 remains a company-approved
-  use target rather than a per-seat feature ladder.
+  same analytical surface; support is consistent.
+- **Engineering doesn't carry tier-gating UX.** Channel boundaries are
+  build-time deployment differences, not runtime feature flags.
+- **Distribution pricing honors ADR-033 H6 for companies**; the individual
+  channel monetizes the long tail the company SKU can never reach.
 
-Access control remains an optional managed-workspace capability. See
-[Membership Philosophy](../08-products/membership-philosophy.md).
+Access control via project-membership ACLs is deleted from V1 (ADR-093 D1).
+[Membership Philosophy](../08-products/membership-philosophy.md) is retained
+as historical context only.
 
 ---
 
 ## 7. Audience-specific messaging
 
-| Audience                  | What they care about                            | Lead with                                                                                                                                                                       |
-| ------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Audience                      | What they care about                                      | Lead with                                                                                                                                                 |
+| ----------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Improvement lead (BB/MBB)** | "I need to replace the Minitab + Excel + PowerPoint loop" | Process to Control lifecycle. Investigation Wall with Measurement Plans. Cpk before/after proves whether the change held. Analysis Pack shares the story. |
-| **Quality engineer (GB)** | "I need more than Excel, less than Minitab"     | Four Lenses with linked filtering. Question-driven investigation. Capability + control limits. Local-first by default.                                                           |
-| **CI / OpEx lead**        | "I need a tool for improvement work"            | One product specialists can use privately first. Process-to-Control loop. Three evidence types. Share artifacts before live collaboration.                                       |
-| **Trainer / consultant**  | "I need a tool that teaches the methodology"    | Free PWA teaches structured EDA — same methodology, same lenses. The guided investigation builds statistical intuition.                                                         |
-| **Sponsor / Champion**    | "Did the project work? What did we learn?"      | Reads the Analysis Pack: Cpk delta, action completion, Control evidence, and next steps. Sign-off is optional, non-blocking, and out-of-band.                                   |
-| **IT / Procurement**      | "Is this safe? Customer-owned? One vendor?"     | Local-first browser analysis. Optional Azure services stay in the customer's tenant. No VariScout-operated data cloud.                                                           |
+| **Quality engineer (GB)**     | "I need more than Excel, less than Minitab"               | Four Lenses with linked filtering. Question-driven investigation. Capability + control limits. Local-first by default.                                    |
+| **CI / OpEx lead**            | "I need a tool for improvement work"                      | One product specialists can use privately first. Process-to-Control loop. Three evidence types. Share artifacts before live collaboration.                |
+| **Trainer / consultant**      | "I need a tool that teaches the methodology"              | Free PWA teaches structured EDA — same methodology, same lenses. The guided investigation builds statistical intuition.                                   |
+| **Sponsor / Champion**        | "Did the project work? What did we learn?"                | Reads the Analysis Pack: Cpk delta, action completion, Control evidence, and next steps. Sign-off is optional, non-blocking, and out-of-band.             |
+| **IT / Procurement**          | "Is this safe? Customer-owned? One vendor?"               | Local-first browser analysis. Optional Azure services stay in the customer's tenant. No VariScout-operated data cloud.                                    |
 
 ---
 
@@ -295,8 +312,9 @@ Access control remains an optional managed-workspace capability. See
 
 V1 is **VariScout**: the local-first process improvement workspace an
 improvement specialist uses to replace the practical Minitab + Excel +
-PowerPoint workflow. Optional services support company-approved distribution,
-customer AI, managed persistence, and governed sharing.
+PowerPoint workflow. Three channels — free in-session, €17/€99 individual
+(Paddle, BYOK AI), €120 company (Marketplace, tenant-governed AI) — one
+analytical surface.
 
 A future second product, **VariScout Process**, addresses a distinct customer
 — enterprises with ongoing process ownership across multiple lines or sites,

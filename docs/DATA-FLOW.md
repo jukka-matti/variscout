@@ -6,14 +6,15 @@ audience: human
 category: architecture
 status: active
 last-reviewed: 2026-06-11
-related: [data-flow, persistence, sync, customer-owned, blob-storage, indexeddb, easyauth, local-first]
+related:
+  [data-flow, persistence, sync, customer-owned, blob-storage, indexeddb, easyauth, local-first]
 ---
 
 # VariScout Data Lifecycle
 
-> **Last material edit 2026-06-11** — Data lifecycle aligned with [ADR-092](07-decisions/adr-092-local-first-variscout-product-model.md): local browser processing and user-controlled files are the default; Azure persistence, AI, and managed sharing are optional customer-tenant services.
+> **Last material edit 2026-06-11** — Data lifecycle aligned with [ADR-092](07-decisions/adr-092-local-first-variscout-product-model.md) + [ADR-093](07-decisions/adr-093-v1-simplification-cuts.md): local browser processing and user-controlled files are the model; there is no cloud document store in the V1 product. **Sections 4–6 below describe shipped code (Blob sync, document ACLs, EasyAuth document identity) that is scheduled for deletion per ADR-093 D1/D2** — they remain accurate until the sweeps land; do not build on them.
 
-Data enters VariScout in the browser and stays in the browser for analysis. The default durable artifacts are user-controlled files: `.vrs` workspace snapshots and Analysis Packs. When optional services are enabled, data can sync to storage **in the customer's own Azure tenant** or flow to the customer's AI endpoint. No data ever touches VariScout-operated cloud infrastructure. This is the **local-first / customer-owned data** principle, and every architectural decision downstream respects it (ADR-059, ADR-092).
+Data enters VariScout in the browser and stays in the browser for analysis. The durable artifacts are user-controlled files: `.vrs` workspace snapshots and Analysis Packs. AI calls flow only to the customer's own endpoint (tenant or BYOK key). No data ever touches VariScout-operated cloud infrastructure. This is the **local-first / customer-owned data** principle, and every architectural decision downstream respects it (ADR-059, ADR-092, ADR-093).
 
 ## 1. Parse boundary (B1 — the first numeric gate)
 
@@ -53,21 +54,23 @@ Two-pass best subsets with interaction screening (ADR-067) drives Evidence Map. 
 
 ## 4. Persistence
 
-VariScout V1 is local-first. There is no tier-based split in analytical capability — the distinction is between the **local/PWA capability** (browser runtime, `.vrs`, Analysis Packs, no backend required) and **optional customer-tenant services** (Azure persistence, customer AI, managed sharing). Both are part of the same product direction, but the local path is the default proof of value.
+VariScout V1 is local-first. There is no tier-based split in analytical capability — durability is `.vrs` + a minimal local autosave cache; the channel model (free / individual / company) is ADR-093 D5. The Azure persistence rows below describe shipped code **scheduled for deletion (ADR-093 D2)**.
 
-| Capability | Storage | Scope |
-| --- | --- | --- |
-| Browser session | In-memory stores | Session-only by default. Refresh = unsaved data gone unless exported. |
-| `.vrs` snapshot | User-downloaded JSON file | Portable workspace envelope for backup, transfer, and reproducible review. |
-| Analysis Pack | Self-contained export artifact | Executive, technical, reproducible, or redacted share output. |
-| Optional local cache | IndexedDB (local to browser) | Device-local convenience cache where product slice enables it. |
-| Optional Azure services | IndexedDB + Blob Storage | Customer-tenant persistence and managed sharing when explicitly enabled. |
+| Capability              | Storage                        | Scope                                                                      |
+| ----------------------- | ------------------------------ | -------------------------------------------------------------------------- |
+| Browser session         | In-memory stores               | Session-only by default. Refresh = unsaved data gone unless exported.      |
+| `.vrs` snapshot         | User-downloaded JSON file      | Portable workspace envelope for backup, transfer, and reproducible review. |
+| Analysis Pack           | Self-contained export artifact | Executive, technical, reproducible, or redacted share output.              |
+| Optional local cache    | IndexedDB (local to browser)   | Device-local convenience cache where product slice enables it.             |
+| Optional Azure services | IndexedDB + Blob Storage       | Customer-tenant persistence and managed sharing when explicitly enabled.   |
 
 IndexedDB schema in `apps/azure/src/db/schema.ts` (Dexie). `services/localDb.ts` is the facade. Document-level persistence goes through the R6 `DocumentSnapshot` boundary in `@variscout/stores`: Project config/data, Analyze state, Canvas document state, and zero-or-one hub-scoped `ImprovementProject`.
 
 PWA has no browser save identity or reload-from-browser promise. Exported `.vrs` files are user-owned backups or share artifacts; importing one starts a new unsaved in-memory session. Analysis Packs are read/share artifacts, not canonical save state unless they include or link a `.vrs` snapshot. Azure owns durable document identity only when optional customer-tenant persistence is enabled: Save updates the active Azure document, Save As forks a new document, and dirty state is based on the canonical `DocumentSnapshot` fingerprint versus the saved baseline.
 
-## 5. Project-membership ACL as data-isolation layer
+## 5. Project-membership ACL as data-isolation layer — scheduled for deletion (ADR-093 D1)
+
+> The ACL/membership layer below is shipped code scheduled for deletion; documented until the sweep lands. Do not build on it.
 
 Saved Azure documents are access-aware when optional customer-tenant persistence is enabled. Local `.vrs` files and Analysis Packs rely on file/share discipline: the analyst chooses which artifact to export and where to send it. Formal Projects derive allowed users from `improvementProject.metadata.members`; only the Lead/Member/Sponsor roster should see or load a managed Azure document.
 
@@ -80,7 +83,9 @@ and profile-specific; ordinary process datasets do not yet have a general
 promotion path from one-off project to recurring Evidence Source or Current
 Process State review.
 
-## 6. Sync (optional Azure — Blob Storage)
+## 6. Sync (Azure — Blob Storage) — scheduled for deletion (ADR-093 D2)
+
+> The Blob sync/document-identity stack below (including the PO-8b save-conflict machinery) is shipped code scheduled for deletion; documented until the sweep lands. Do not build on it.
 
 `services/cloudSync.ts` pushes/pulls project documents to/from Blob Storage in the **customer's tenant** when optional Azure persistence is enabled. Flow:
 
@@ -103,7 +108,7 @@ UI code never calls `.toFixed()` on stat values. `formatStatistic()` from `@vari
 
 ## 8. AI boundary (CoScout / local agents)
 
-AI is provider-boundary based. VariScout can run with no AI, with customer Azure AI, and later with local LLM or MCP agent surfaces. The deterministic stats engine remains the authority.
+AI is provider-boundary based. VariScout can run with no AI (free), with the individual user's own key (BYOK — direct browser→provider calls, never a VariScout proxy), with customer Azure AI (company; IT-governed), and later with local LLM or MCP agent surfaces. The deterministic stats engine remains the authority.
 
 Customer Azure AI calls leave the browser but stay in the customer's tenant (Azure OpenAI endpoint provisioned in the customer's subscription). Prompts include investigation state (findings, hubs, causal links, evidence map topology) but **never raw data rows beyond what the user has exposed in charts**. Visual grounding markers (ADR-057) reference chart elements by ID, not data. Tool calls return structured diffs the user confirms before applying.
 

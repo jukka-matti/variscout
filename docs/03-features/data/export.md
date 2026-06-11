@@ -37,14 +37,17 @@ VariScout has four outbound channels:
 
 Analysis Packs are the strategic sharing layer for local-first VariScout. They are not the canonical save format; `.vrs` remains the workspace snapshot.
 
+**Channel boundary (ADR-093 D5, direction — current code still ships `.vrs` export in the PWA):** the artifact layer (`.vrs` save + all pack exports) is **paid-only**; the free deployment excludes export code at build time. Both paid channels (individual via Paddle, company via Marketplace) carry the full artifact layer.
+
 ## Analysis Pack family
 
-| Pack | Audience | Data posture | Content |
-| --- | --- | --- | --- |
-| **Executive** | Sponsor, manager, customer | No raw rows | Summary, selected charts, findings, actions, Control outcome, next step. |
-| **Technical** | Engineer, Black Belt, auditor | Computed details, not necessarily raw rows | Full chart set, methods, assumptions, specs, computed tables, evidence trace. |
-| **Reproducible** | Analyst, internal reviewer | Includes or links `.vrs` | Technical pack plus workspace snapshot for reopening. |
-| **Redacted** | External reviewer, supplier, training | Sensitive labels/raw rows removed or generalized | Same structure as Executive/Technical, with explicit redaction note. |
+| Pack             | Audience                              | Data posture                                     | Content                                                                                                                                                                                                  |
+| ---------------- | ------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Executive**    | Sponsor, manager, customer            | No raw rows                                      | Summary, selected charts, findings, actions, Control outcome, next step.                                                                                                                                 |
+| **Technical**    | Engineer, Black Belt, auditor         | Computed details, not necessarily raw rows       | Full chart set, methods, assumptions, specs, computed tables, evidence trace.                                                                                                                            |
+| **Reproducible** | Analyst, internal reviewer            | Includes or links `.vrs`                         | Technical pack plus workspace snapshot for reopening.                                                                                                                                                    |
+| **Redacted**     | External reviewer, supplier, training | Sensitive labels/raw rows removed or generalized | Same structure as Executive/Technical, with explicit redaction note.                                                                                                                                     |
+| **Consultation** | SME / domain expert                   | Selected views only; redaction inherited         | Anchored questions rendered in context with inline answer boxes + "Download my responses"; the outbound half of the [consultation loop](../../superpowers/specs/2026-06-11-consultation-loop-design.md). |
 
 The quality bar is a polished standalone HTML file: responsive, printable, navigable, and visually strong enough to replace a hand-built PowerPoint summary. It may include tabs, cards, timelines, tables, charts, and a print stylesheet, but it must remain inspectable and portable as a local file.
 

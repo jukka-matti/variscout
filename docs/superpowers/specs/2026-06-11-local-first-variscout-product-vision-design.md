@@ -9,6 +9,8 @@ date: 2026-06-11
 last-verified: 2026-06-11
 related:
   - docs/07-decisions/adr-092-local-first-variscout-product-model.md
+  - docs/07-decisions/adr-093-v1-simplification-cuts.md
+  - docs/superpowers/specs/2026-06-11-consultation-loop-design.md
   - docs/07-decisions/adr-082-wedge-architecture.md
   - docs/07-decisions/adr-091-two-tier-persistence-model.md
 layer: spec
@@ -23,7 +25,7 @@ implements:
 
 # Local-first VariScout product vision
 
-> **Accepted design - 2026-06-11.** This spec reframes VariScout V1 as a local-first process improvement workspace: private analysis first, Azure as optional distribution/licensing and customer-tenant services, collaboration by share artifacts before live multi-user projects. The durable decision is recorded in [ADR-092](../../07-decisions/adr-092-local-first-variscout-product-model.md).
+> **Accepted design - 2026-06-11, amended same day by the owner review.** This spec reframes VariScout V1 as a local-first process improvement workspace. The original draft kept Azure persistence and project membership as optional capabilities; the accepted scope **deletes** them ([ADR-093](../../07-decisions/adr-093-v1-simplification-cuts.md)): Azure = distribution + CoScout only, desktop-only hard cut, one app / two deployments, build-time free/paid gate, and collaboration = the [consultation loop](2026-06-11-consultation-loop-design.md). Durable decisions: [ADR-092](../../07-decisions/adr-092-local-first-variscout-product-model.md) + [ADR-093](../../07-decisions/adr-093-v1-simplification-cuts.md).
 
 ## Summary
 
@@ -37,7 +39,7 @@ The product still carries the full improvement loop:
 Process -> Explore -> Analyze -> Improve -> Control -> Report
 ```
 
-The shift is about the product's default posture. A user should be able to run the valuable work locally in a browser: bring data, map the process, find variation, record findings, decide actions, verify Control evidence, and export a beautiful evidence pack. Azure remains useful for company-approved distribution/licensing and optional customer-tenant services, but Azure storage, project membership, and live collaboration are no longer the center of the V1 pitch.
+The shift is about the product's default posture. A user should be able to run the valuable work locally in a browser: bring data, map the process, find variation, record findings, decide actions, verify Control evidence, and export a beautiful evidence pack. Azure's role is company-approved distribution/licensing plus CoScout on the customer's AI endpoint. Azure document storage, project membership, and live collaboration are **deleted from V1** (ADR-093) — collaboration happens through the consultation loop and Analysis Packs. The product targets desktop browsers only.
 
 ## Product Thesis
 
@@ -59,13 +61,12 @@ VariScout does not need to match every Minitab test. It wins by making the commo
 
 Local-first means:
 
-- the browser is the primary runtime;
+- the browser is the primary runtime (desktop browsers only — mobile is unsupported per ADR-093 D3);
 - raw data processing happens locally;
-- `.vrs` remains the portable workspace snapshot;
-- durable cloud services are optional, not required for the product to make sense;
-- Azure can approve, license, distribute, and optionally host customer-tenant services without becoming the default data center of gravity.
+- `.vrs` is the workspace snapshot; durability is file-based plus a minimal local autosave cache — there is no cloud document store;
+- Azure approves, licenses, and distributes the paid deployment and hosts the customer's CoScout AI endpoint; it is not a data home.
 
-The free PWA is therefore not only a funnel. It is the clearest expression of the product promise.
+The free deployment is the product promise made tangible: full in-session analysis with **no save/export in the bundle** (build-time gate, ADR-093 D5). The paid channels (individual via Paddle; company via Marketplace) add the artifact layer (`.vrs`, packs, the consultation loop) and CoScout — BYOK for individuals, tenant-governed for companies.
 
 ### Process context is the Minitab gap
 
@@ -73,36 +74,38 @@ The Process tab is central to the new positioning. Minitab analyzes a dataset; V
 
 ## Distribution Model
 
-V1 should support three product postures:
+V1 is **one desktop web app with three deployments** (ADR-093 D4/D5):
 
-| Posture | Role | Data location | Notes |
-| --- | --- | --- | --- |
-| Public PWA | Try, train, and perform local analysis | Browser session + `.vrs` files | No account, no backend, no AI requirement. |
-| Company-approved local app | Approved use inside a company environment | Browser/local files by default | May be distributed/licensed through Azure or an equivalent IT-approved route. |
-| Optional customer-tenant services | Persistence, customer AI, governance, shared saved work | Customer Azure tenant | Azure Blob, EasyAuth, CoScout, and membership remain optional capabilities. |
+| Deployment                                    | Role                                                        | Data location                                 | What's in the bundle                                                                                                                                                                                                             |
+| --------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free web deployment                           | Try, train, evaluate — full in-session analysis             | Browser session only                          | Upload/paste in; **no save/export code** (build-time gate); no AI; no account.                                                                                                                                                   |
+| Individual (Paddle, €17+VAT/mo or €99+VAT/yr) | Personal real work — consultants, freelance belts, trainees | Browser/local files (`.vrs` + local autosave) | Installable desktop PWA from a Paddle-authenticated app origin (offline-capable, license grace period); artifact layer (`.vrs`, packs, consultation loop); **BYOK CoScout** (own key, direct browser→provider, no vendor proxy). |
+| Company (Marketplace, €120/mo target)         | Company-approved real work, tenant-wide                     | Browser/local files (`.vrs` + local autosave) | Runs in the customer's tenant; Marketplace licensing; artifact layer; CoScout on the tenant's IT-governed Azure AI endpoint; security review pack.                                                                               |
 
-This preserves the current Azure work but changes the story: Azure is an optional company-controlled service layer, not the default reason to buy.
+The boundary message: **"analyze free; keep, share, and consult on your work = paid."** The paid product runs on the user's machine or in the customer's tenant — the public website carries only the free demo. A named, deliberate regression: the free deployment is weaker than the 2026-06 shipped PWA (which has `.vrs` export today). `apps/azure` and `apps/pwa` converge into the single app after the ADR-093 deletion sweeps; a true downloadable desktop build (Tauri) is named-future.
 
 ## Collaboration Model
 
-V1 collaboration should be artifact-first:
+V1 collaboration **is** the closed consultation loop — **Ask → Share → Respond → Distill → Accept** (full design: [consultation-loop spec](2026-06-11-consultation-loop-design.md)):
 
-- Analysts share Analysis Packs instead of inviting people into a live project by default.
-- Recipients can read, comment, print, and return feedback without needing a VariScout account.
-- Formal project membership remains available or future-facing for customers that need managed shared workspaces.
+- Analysts export question-carrying Consultation Packs; recipients read, click through, and respond — typed answers in the pack or a recorded Teams walk-through — without a VariScout account.
+- Returning knowledge imports as proposed insights the analyst explicitly accepts into the investigation with provenance (typed responses deterministically; transcripts via CoScout distillation).
+- Live project membership is **deleted from V1** (ADR-093 D1); multi-user workspaces remain named-future in VariScout Process. "Sponsor" survives as a pack audience, not a role.
+- A named future stage: gate reviews as routing events — each Consulted/Informed person gets the audience-appropriate pack.
 
-This lowers security review burden because the default share surface is a controlled export, not a multi-user data application.
+This lowers security review burden because both directions of the share surface are controlled artifacts riding the customer's existing rails (Teams/email/SharePoint), not a multi-user data application.
 
 ## Analysis Pack
 
 An **Analysis Pack** is a self-contained export family for sharing process improvement work.
 
-| Pack | Audience | Contents |
-| --- | --- | --- |
-| Executive HTML pack | Sponsor, manager, customer, supplier | Polished summary, selected charts, findings, actions, Control outcome; no raw rows. |
-| Technical HTML pack | Engineer, Black Belt, auditor | Full chart set, methods, assumptions, computed tables, evidence trace. |
-| Reproducible pack | Analyst or internal reviewer | Technical pack plus embedded or linked `.vrs` snapshot for re-opening the workspace. |
-| Redacted pack | External sharing | Sensitive labels/raw rows removed or generalized before export. |
+| Pack                | Audience                             | Contents                                                                                                                            |
+| ------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Executive HTML pack | Sponsor, manager, customer, supplier | Polished summary, selected charts, findings, actions, Control outcome; no raw rows.                                                 |
+| Technical HTML pack | Engineer, Black Belt, auditor        | Full chart set, methods, assumptions, computed tables, evidence trace.                                                              |
+| Reproducible pack   | Analyst or internal reviewer         | Technical pack plus embedded or linked `.vrs` snapshot for re-opening the workspace.                                                |
+| Redacted pack       | External sharing                     | Sensitive labels/raw rows removed or generalized before export.                                                                     |
+| Consultation pack   | SME / domain expert                  | Selected views + anchored questions with inline answer boxes + "Download my responses"; the outbound half of the consultation loop. |
 
 The quality bar is a polished standalone interactive HTML artifact: responsive, printable, navigable, and beautiful enough to replace a hand-built PowerPoint deck. The Kesko HTML file from the 2026-06-11 design conversation is a reference for quality and structure, not a template to copy.
 
@@ -131,7 +134,8 @@ AI remains a collaborator, never the authority.
 Provider boundary:
 
 - `none`: deterministic stats only.
-- `customer-azure`: customer Azure OpenAI / Foundry endpoint.
+- `customer-azure`: customer Azure OpenAI / Foundry endpoint (company tier; IT-governed).
+- `byok`: the individual user's own AI key — direct browser→provider calls against a supported-provider list; never a VariScout-operated proxy (ADR-059).
 - `local-llm`: future on-device or local-network model.
 - `mcp-agent`: local MCP surface for Claude Code or company-approved agents.
 
@@ -170,8 +174,9 @@ Align Report with self-contained HTML evidence packs and explain that print/PDF 
 
 ## Non-Goals
 
-- Do not delete Azure app docs or current implementation.
-- Do not remove Project membership from code or docs that describe shipped behavior.
+- ~~Do not delete Azure app docs or current implementation.~~ **Superseded same day by ADR-093:** the collaboration, Azure-persistence, and mobile layers ARE deleted — via grounded deletion sweeps, not doc-time rewrites. L3/L4 docs describing shipped behavior keep documenting the code until each sweep lands, carrying a "scheduled for deletion (ADR-093)" marker.
+- ~~Do not remove Project membership from code or docs that describe shipped behavior.~~ **Superseded same day by ADR-093 D1** (same discipline as above).
 - Do not promise local LLM support as shipped V1 behavior.
 - Do not make MCP a launch blocker.
 - Do not broaden statistical scope into a full Minitab clone.
+- Do not build the Graph API transcript auto-fetch or gate-review routing in V1 (consultation-loop spec non-goals).

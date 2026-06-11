@@ -23,9 +23,10 @@ architecture lineage: [`docs/superpowers/specs/2026-05-16-wedge-architecture-des
 
 ## 1. The bet
 
-> **Local-first process improvement workspace. Replace the practical Minitab
-> + Excel + PowerPoint workflow, with Azure as optional distribution/licensing
-> and customer-tenant services.**
+> \*\*Local-first process improvement workspace. Replace the practical Minitab
+>
+> - Excel + PowerPoint workflow, with Azure as optional distribution/licensing
+>   and customer-tenant services.\*\*
 
 VariScout is betting that the right unit of value in 2026 process-improvement
 software is _the private Workspace a specialist uses to understand variation,
@@ -37,15 +38,19 @@ stance:
 
 - **Local-first, not cloud-first.** The product is valuable before any shared
   backend exists: local browser analysis, `.vrs` snapshots, and Analysis Packs.
-- **Single SKU, not feature-gated tiers.** Every paid customer gets the full
-  product. Optional services are distribution, persistence, AI, and governance
-  choices, not analytical feature gates.
-- **Artifact-first sharing, not collaboration-first SaaS.** Analysts share
-  polished Analysis Packs before they need project invites or ACL-heavy live
-  workspaces.
-- **Company-approved distribution, not vendor cloud dependency.** Azure can
-  approve, license, distribute, and optionally host customer-tenant services
-  without becoming the default data home.
+  The paid product runs on the user's machine or in the customer's tenant;
+  the public website carries only the free demo.
+- **One product, three access channels — no feature-tier ladder.** Free
+  (in-session analysis), Individual (€17+VAT/mo or €99+VAT/yr via Paddle),
+  Company (€120/mo via Azure Marketplace). Channels differ by license scope,
+  delivery, and AI governance — never by analytical capability (ADR-093 D5).
+- **Artifact-based collaboration, not collaboration-first SaaS.** Analysts
+  share polished Analysis Packs and run the consultation loop (questions out,
+  expert knowledge back, analyst accepts) — live project membership is
+  deleted from V1 (ADR-093 D1).
+- **Company-approved distribution, not vendor cloud dependency.** Azure
+  approves, licenses, and distributes the company deployment into the
+  customer's own tenant; it is not a data home.
 
 This is a deliberately narrow ICP at V1: improvement specialists running
 process improvement work that currently spills across Minitab, Excel,
@@ -152,9 +157,10 @@ containing supplier performance and process secrets.
   data sovereignty by design (ADR-059).
 - Local-first `.vrs` and Analysis Pack workflows let sensitive data stay on
   the analyst's machine unless they deliberately share it.
-- Optional project-membership ACLs sharpen the privacy story for customers
-  that need managed shared workspaces, but ACLs are no longer the default
-  product proof point.
+- The consultation loop keeps both directions of collaboration on controlled
+  artifacts riding the customer's existing rails (Teams/email/SharePoint) —
+  no multi-user data application to security-review. Project-membership ACLs
+  are deleted from V1 (ADR-093 D1).
 - EU AI Act and ISO 9001:2026 favor transparent, auditable architectures.
 
 **Evidence against:** First field signal (2026-06-11): a large-enterprise
@@ -190,8 +196,8 @@ experience.
   on Azure Marketplace."
 - ADR-007: PWA repositioned as free training tool; same funnel role as the
   shelved Excel Add-in at zero marginal cost.
-- ADR-092: local browser analysis, `.vrs`, and Analysis Packs are the default
-  proof of value; paid distribution/services expand from that base.
+- ADR-092/093: free in-session analysis is the proof of value; the artifact
+  layer (`.vrs`, Analysis Packs, the consultation loop) is the paid product.
 
 **Evidence against:** None in funnel data (pre-launch). One structural risk
 logged 2026-06-11: the large-company procurement objection lands exactly on
@@ -199,9 +205,11 @@ the PWA→Azure conversion step — the practitioner adopts the free PWA without
 friction, but the €120 deployment still passes vendor onboarding unless the
 purchase rides existing Microsoft agreements (transactable Marketplace offer)
 or enters via the training budget (trainer-network land motion). See
-decision-log 2026-06-11 GTM entry. ADR-092 reduces this risk by allowing
-company-approved local use and artifact sharing before Azure services are
-needed.
+decision-log 2026-06-11 GTM entry. ADR-093 reduces this risk twice over: the
+individual Paddle tier gives practitioners a sub-procurement-threshold way to
+buy (expensed personal license → internal champion), and the company purchase
+buys distribution + governance rather than a data platform, shrinking the
+security-review surface.
 
 **Invalidation criteria:** If <5% of PWA users visit the Azure Marketplace
 listing within 12 months, the funnel is broken.
@@ -227,8 +235,13 @@ the default product is local-first and artifact-based.
   single €120 SKU. €120 is still per-deployment, honoring this hypothesis.
   The tier collapse is a refinement of H6, not a contradiction.
 - ADR-092 reframes "deployment" as an approved distribution/licensing and
-  optional services unit. The analytical value no longer depends on inviting
+  AI-governance unit. The analytical value no longer depends on inviting
   more people into a shared Azure project.
+- ADR-093 adds a per-person channel _below_ the per-deployment SKU
+  (Individual, €17+VAT/mo or €99+VAT/yr via Paddle). H6's claim narrows to
+  the company offer: companies buy per-deployment; individuals buy personal
+  licenses. Seat math makes ~7 monthly seats ≈ the company price — the
+  natural upgrade trigger.
 
 **Evidence against:** Enterprise buyers may expect per-user pricing and find
 flat pricing suspicious; some procurement processes are built around seat
@@ -364,41 +377,54 @@ caps at €120/mo until VariScout Process ships.
 option" as primary objection, single-SKU was too aggressive.
 
 **Status:** New hypothesis (V1 single-SKU pivot 2026-05-16); will be tested
-by V1 customer validation conversations (see §6).
+by V1 customer validation conversations (see §6). **Amended by ADR-093
+(2026-06-11):** the model is now one product with three _access channels_
+(free / individual / company) — a license-scope ladder, not a feature-tier
+ladder. H10's core claim — no feature gating inside any paid offer, one
+decision moment per buyer type — stands.
 
 ---
 
 ## 3. Unit economics
 
-### 3.1 Pricing
+### 3.1 Pricing — three channels (ADR-093 D5)
 
-**€120/month target for company-approved distribution/services.** Full
-analytical capability remains local-first; optional customer-tenant services
-add persistence, AI, governance, and managed sharing.
+| Channel        | Price                        | Vehicle                                   | What it is                                                                                                                                                                                                                |
+| -------------- | ---------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Free**       | €0                           | Public web URL                            | Full in-session analysis; no save/export (build-time gate); no AI. Training, evaluation, the funnel.                                                                                                                      |
+| **Individual** | **€17+VAT/mo or €99+VAT/yr** | Paddle (merchant of record — VAT handled) | Installable desktop PWA from a Paddle-gated app origin; personal artifact layer (`.vrs`, packs, consultation loop); BYOK CoScout (own key, direct browser→provider). Personal-use license; trainer/launch discount codes. |
+| **Company**    | **€120/month per tenant**    | Azure Marketplace                         | Runs in the customer's tenant; tenant-wide users; artifact layer; tenant-governed CoScout (IT-sanctioned AI vs shadow-AI personal keys); security review pack.                                                            |
 
-The price sits above the retired €79 Standard and below the retired €199
-Team. Reasoning:
+Company-price reasoning (unchanged): €120/mo = €1,440/year sits slightly above
+the typical €1,000 SME purchasing threshold, justified by the full improvement
+loop + artifact layer + governed AI; a team of 3+ is still <10% the cost of
+Minitab seats. Individual-price reasoning: the buyer's anchor is a Minitab
+seat (~€135–155/mo), so €17 is ~8× under the incumbent while reading
+professional-grade; €99/yr is the intended purchase (sub-€100 psychology,
+churn-killing prepay); ~7 monthly seats ≈ the company price, creating the
+upgrade trigger. AI inference cost is always the customer's (tenant endpoint
+or BYOK key) — VariScout's marginal serving cost stays near zero.
 
-- €120/mo = €1,440/year sits slightly above the typical €1,000 SME purchasing
-  threshold, which the V1 product scope (full improvement loop, project
-  formalization, Analysis Packs, optional customer services) justifies.
-- A team of 3+ on VariScout is still <10% the cost of Minitab seats.
-- Customer-deployed AI Foundry, Blob, or other optional service resources are
-  the customer's Azure cost, not ours — VariScout's marginal serving cost
-  stays near zero.
+### 3.2 What the paid channels buy
 
-### 3.2 What €120 buys
+Both paid channels: the full local analytical surface (chart modes,
+capability, ANOVA, OLS, Evidence Map, control limits), the full improvement
+loop (Process → Explore → Analyze → Improve → Control → Report), and the
+**artifact layer** — `.vrs` snapshots, polished Analysis Packs, and the
+consultation loop. Plus per channel:
 
-- Full local analytical surface (chart modes, capability, ANOVA, OLS, Evidence
-  Map, control limits).
-- Full improvement loop: Process -> Explore -> Analyze -> Improve -> Control
-  -> Report.
-- `.vrs` snapshots and polished Analysis Packs.
-- Optional CoScout AI via customer Azure AI / Foundry.
-- Optional project-membership ACLs (Lead / Member / Sponsor) and Blob Storage
-  sync in the customer's tenant.
+- **Individual:** BYOK CoScout (the user's own AI key; direct
+  browser→provider calls, never a VariScout proxy); installable desktop PWA
+  that runs offline with a license grace period.
+- **Company:** company-approved distribution into the customer's own tenant;
+  CoScout on the tenant's IT-governed Azure AI / Foundry endpoint; the
+  security review pack; tenant-wide use.
 - Future Agent Workspace Bundle / MCP extension points for companies that use
   local or approved AI agents.
+
+Deleted from the offer (ADR-093): project-membership ACLs, Blob Storage sync,
+cloud document persistence — collaboration is the consultation loop, not a
+shared data application.
 
 ### 3.3 Implications for growth
 
@@ -409,9 +435,10 @@ Team. Reasoning:
   feature anxiety. Support load scales with volume, not with SKU complexity.
 - **Marketing is one message.** No "which plan is right for you" worksheet.
   One landing page. One Marketplace listing.
-- **Sales motion is self-serve.** Free/local PWA evaluation -> company-approved
-  distribution/licensing -> optional Azure services. No enterprise sales cycle
-  until VariScout Process arrives.
+- **Sales motion is self-serve, with a ladder.** Free in-session evaluation →
+  individual Paddle license (expensed, sub-threshold; the champion forms) →
+  company Marketplace deployment (governed AI + legitimacy). No enterprise
+  sales cycle until VariScout Process arrives.
 - **Marketplace removes the contracting leg of procurement, not the
   security-review leg** (verified 2026-06-11 against Microsoft Learn). A
   transactable listing makes Microsoft the billing counterparty under the
@@ -465,8 +492,9 @@ Verification (5-status closed-loop investigation).
 **Why it matters:** Transforms analysis from "interesting chart" into
 "measured improvement." Creates audit trail.
 
-**Available in:** Local-first Workspace direction. PWA durability remains
-`.vrs` export/import; optional services add managed persistence.
+**Available in:** All channels for the in-session workflow; durability
+(`.vrs` + local autosave) is paid (ADR-093 D5). There is no cloud document
+persistence.
 
 ### L3: AI Augmentation
 
@@ -480,18 +508,20 @@ insight. Non-statisticians can understand variation analysis results.
 **Available in:** Optional customer Azure AI today; future local LLM / MCP
 agent provider boundary.
 
-### L4: Artifact-First Sharing
+### L4: Artifact Collaboration — packs + the consultation loop
 
-**What:** Executive, Technical, Reproducible, and Redacted Analysis Packs;
-`.vrs` snapshots; future Agent Workspace Bundles for company-approved agents.
+**What:** Executive, Technical, Reproducible, Redacted, and Consultation
+Analysis Packs; `.vrs` snapshots; the consultation loop (questions out via
+pack → expert responds typed or on a recorded call → AI distills → analyst
+accepts insights as evidence); future Agent Workspace Bundles.
 
-**Why it matters:** Quality is a team sport, but V1 does not need to make live
-collaboration the default. The analyst can share the right evidence with the
-right audience without exposing the full workspace or creating an access
-management surface.
+**Why it matters:** Quality is a team sport, but V1 does not make live
+collaboration the product. The analyst shares the right evidence with the
+right audience — and pulls expert knowledge back in as structured evidence —
+without exposing the full workspace or creating an access-management surface.
 
-**Available in:** Local/PWA direction for Analysis Packs; optional customer
-services for managed sharing and project membership.
+**Available in:** Paid channels (individual + company). Live membership is
+deleted from V1 (ADR-093 D1).
 
 ### L5: Optional Organizational Memory
 
@@ -521,9 +551,9 @@ index. Not the V1 proof point.
                              ▼
                     ┌──────────────────┐
                     │  VariScout       │
-                    │  (company-       │◄──── "I need approved use,
-                    │  approved use)   │      AI, managed save,
-                    │                  │      or governed sharing"
+                    │  (individual €17 │◄──── "I need to keep this work,
+                    │  or company €120)│      export the evidence pack,
+                    │                  │      consult an expert, use AI"
                     │  Process ->      │
                     │  Control ->      │
                     │  Analysis Packs  │
@@ -547,8 +577,10 @@ index. Not the V1 proof point.
    churn.
 3. **Evidence Packs → Demand.** Better Analysis Packs travel through the
    organization → more specialists try VariScout.
-4. **Optional services → Expansion.** When teams need managed save, AI, or
-   sharing, company-approved distribution becomes natural.
+4. **Individual → Company.** A practitioner expenses the €17/€99 personal
+   license under every procurement threshold, becomes the internal champion,
+   and pulls the €120 company deployment through (governed AI + security
+   pack); ~7 seats ≈ company price makes the tip-over natural.
 5. **Trainers → Reach.** More certified trainers → more courses + consulting
    → more VariScout users → more future trainers.
 
@@ -636,14 +668,14 @@ The expected sequence: V1 reaches ~500 customer validation (real revenue at
 
 ## 8. Audience-Journey Mapping
 
-| Audience                 | Entry point                   | First experience                                                               | Conversion trigger                                                                   |
-| ------------------------ | ----------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| **Improvement lead (BB)** | Google, referral, Marketplace | PWA demo with seeded sample → linked filtering magic → Analysis Pack           | "This replaces my analysis-to-report workflow"                                      |
-| **Quality engineer**     | Google, LinkedIn              | PWA with sample data → linked filtering "magic moment" → own data              | "I need to save/export this and share the evidence"                                 |
-| **CI / OpEx lead**       | Referral, case study          | Local-first demo → see Process/Improve/Control loop                            | "This carries the full improvement loop without forcing a cloud collaboration platform"    |
-| **Trainer / consultant** | LinkedIn, conference          | PWA in training session → students learn through guided investigation          | "I want to embed this in my curriculum"                                              |
-| **Sponsor / Champion**   | Lead presents the Analysis Pack | Reads outcome, evidence, actions, and Control result. Signoff out-of-band.    | "Did the project work? What was the Cpk delta?"                                     |
-| **IT / Procurement**     | Direct link                   | Local-first/customer-owned architecture review                                 | "Data can stay local; optional Azure services stay in our tenant"                   |
+| Audience                  | Entry point                     | First experience                                                           | Conversion trigger                                                                      |
+| ------------------------- | ------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Improvement lead (BB)** | Google, referral, Marketplace   | PWA demo with seeded sample → linked filtering magic → Analysis Pack       | "This replaces my analysis-to-report workflow"                                          |
+| **Quality engineer**      | Google, LinkedIn                | PWA with sample data → linked filtering "magic moment" → own data          | "I need to save/export this and share the evidence"                                     |
+| **CI / OpEx lead**        | Referral, case study            | Local-first demo → see Process/Improve/Control loop                        | "This carries the full improvement loop without forcing a cloud collaboration platform" |
+| **Trainer / consultant**  | LinkedIn, conference            | PWA in training session → students learn through guided investigation      | "I want to embed this in my curriculum"                                                 |
+| **Sponsor / Champion**    | Lead presents the Analysis Pack | Reads outcome, evidence, actions, and Control result. Signoff out-of-band. | "Did the project work? What was the Cpk delta?"                                         |
+| **IT / Procurement**      | Direct link                     | Local-first/customer-owned architecture review                             | "Data can stay local; optional Azure services stay in our tenant"                       |
 
 ### Trainer Network overlay
 
@@ -664,13 +696,13 @@ See [Trainer Network](trainer-network.md).
 
 ## 9. Competitive landscape
 
-| Segment         | Incumbent                    | VariScout advantage                                                                                                              | VariScout weakness                                      |
-| --------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Full-suite SPC  | Minitab (~€135-155/user/mo)  | Local-first browser workflow, process context, full improvement loop, polished Analysis Packs                                    | Fewer statistical tests (no DOE, no broad test catalog) |
-| Enterprise QMS  | InfinityQS ($50–100/user/mo) | No implementation cost, instant ARM deploy, customer-owned data                                                                  | No MES/ERP integration (deferred to VariScout Process)  |
-| Free tools      | R, Python, Google Sheets     | No coding required, guided workflows                                                                                             | Less flexible at the statistical edge                   |
-| Training tools  | Minitab academic licenses    | Free PWA, browser-based, offline-first                                                                                           | Less brand recognition                                  |
-| AI-enhanced SPC | Minitab AI (April 2025)      | Deterministic-first stats, optional customer/local AI boundary, closed-loop findings and Control evidence                        | Smaller brand, newer product                            |
+| Segment         | Incumbent                    | VariScout advantage                                                                                       | VariScout weakness                                      |
+| --------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Full-suite SPC  | Minitab (~€135-155/user/mo)  | Local-first browser workflow, process context, full improvement loop, polished Analysis Packs             | Fewer statistical tests (no DOE, no broad test catalog) |
+| Enterprise QMS  | InfinityQS ($50–100/user/mo) | No implementation cost, instant ARM deploy, customer-owned data                                           | No MES/ERP integration (deferred to VariScout Process)  |
+| Free tools      | R, Python, Google Sheets     | No coding required, guided workflows                                                                      | Less flexible at the statistical edge                   |
+| Training tools  | Minitab academic licenses    | Free PWA, browser-based, offline-first                                                                    | Less brand recognition                                  |
+| AI-enhanced SPC | Minitab AI (April 2025)      | Deterministic-first stats, optional customer/local AI boundary, closed-loop findings and Control evidence | Smaller brand, newer product                            |
 
 **VariScout's moat:** Measurement-backed improvement knowledge inside
 customer-owned data. Minitab is analysis-first; InfinityQS is
@@ -693,12 +725,18 @@ architecture is naturally compliant.
 
 - [Positioning Bible](positioning.md) — Customer-facing language, category,
   audience messaging, the two-product roadmap.
-- [Membership Philosophy](../08-products/membership-philosophy.md) — How V1
-  access control works (one product, role-based access inside).
+- [Membership Philosophy](../08-products/membership-philosophy.md) — the
+  retired V1 access-control model (roles/ACLs deleted per ADR-093; historical
+  context only).
 - [ADR-082](../07-decisions/adr-082-wedge-architecture.md) — V1 single-SKU
-  architecture decision (supersedes ADR-007 + ADR-033 in part).
+  architecture decision (supersedes ADR-007 + ADR-033 in part; persona/ACL
+  model amended by ADR-093).
 - [ADR-092](../07-decisions/adr-092-local-first-variscout-product-model.md) —
   Local-first product model.
+- [ADR-093](../07-decisions/adr-093-v1-simplification-cuts.md) — the
+  simplification cuts + three-channel model.
+- [Consultation-loop spec](../superpowers/specs/2026-06-11-consultation-loop-design.md)
+  — V1's collaboration model.
 - [V1 architecture spec](../superpowers/specs/2026-05-16-wedge-architecture-design.md)
   — Canonical V1 product anatomy.
 - [Philosophy](philosophy.md) — Four Lenses, Two Voices, EDA for Process

@@ -23,7 +23,7 @@ related:
 
 # Report — the compilation surface
 
-> **Last material edit 2026-06-11** — Report is now the source surface for local-first Analysis Packs per [ADR-092](../../07-decisions/adr-092-local-first-variscout-product-model.md). Current shipped print/PDF and `.vrs` exports remain; HTML Analysis Packs are the product direction.
+> **Last material edit 2026-06-11** — Report is now the source surface for local-first Analysis Packs per [ADR-092](../../07-decisions/adr-092-local-first-variscout-product-model.md) + [ADR-093](../../07-decisions/adr-093-v1-simplification-cuts.md). Current shipped print/PDF and `.vrs` exports remain; HTML Analysis Packs are the product direction, and the artifact layer becomes paid-only (build-time gate on the free deployment) when the channel model lands.
 
 The terminal, **read-mostly** surface: Findings, Hypotheses, Actions, and Control evidence compile into a narrative report the analyst can share. Under the Workspace model, Report always renders the single-project/workspace report because every Workspace is backed by one active Project. Informal Projects get one soft formalization hint; the retired Hub portfolio fallback is gone.
 
@@ -83,17 +83,19 @@ Capability is shown as **per-step boxplot distributions side-by-side, never an a
 
 ## Access
 
+> **Roles scheduled for deletion (ADR-093 D1).** The Lead/Member/Sponsor role model below is shipped code scheduled for deletion; "Sponsor" survives as a pack _audience_ (the executive Analysis Pack), not a role with access.
+
 The **Sponsor** is read-only on the Report (the role's primary surface); Lead/Member edit upstream. Sign-off is optional + out-of-band in V1.
 
 ## Azure vs PWA
 
-|                        | Company-approved / Azure | PWA (free)      |
-| ---------------------- | ------------------------ | --------------- |
-| Report tab             | ✓                        | ✓ (read-mostly) |
-| Print / PDF            | ✓ (print)                | ✓ (print)       |
-| `.vrs` snapshot export | ✓                        | ✓               |
-| Analysis Pack direction | ✓                       | ✓               |
-| AI narrative           | Optional customer AI     | — / future local provider |
+|                         | Company-approved / Azure | PWA (free)                |
+| ----------------------- | ------------------------ | ------------------------- |
+| Report tab              | ✓                        | ✓ (read-mostly)           |
+| Print / PDF             | ✓ (print)                | ✓ (print)                 |
+| `.vrs` snapshot export  | ✓                        | ✓                         |
+| Analysis Pack direction | ✓                        | ✓                         |
+| AI narrative            | Optional customer AI     | — / future local provider |
 
 ## Not yet built (do not document as live)
 

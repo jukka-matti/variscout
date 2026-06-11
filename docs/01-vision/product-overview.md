@@ -12,7 +12,7 @@ layer: L1
 
 # VariScout: Product Overview
 
-> **Last material edit 2026-06-11** — V1 positioning reframed around [ADR-092](../07-decisions/adr-092-local-first-variscout-product-model.md): local-first Workspace, practical Minitab displacement, artifact-first sharing, and optional Azure services.
+> **Last material edit 2026-06-11** — V1 positioning reframed around [ADR-092](../07-decisions/adr-092-local-first-variscout-product-model.md) + [ADR-093](../07-decisions/adr-093-v1-simplification-cuts.md): local-first desktop Workspace, practical Minitab displacement, the consultation loop as the collaboration model, three access channels (free / individual / company). Live membership, cloud persistence, and mobile are deleted from V1.
 
 ## Philosophy
 
@@ -32,7 +32,7 @@ VariScout ships as **two products on a roadmap**: local-first VariScout V1 first
 
 | Product                        | Audience                                                                                  | Status                                                                                                                    |
 | ------------------------------ | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **VariScout (V1, this doc)**   | Improvement specialists replacing the practical Minitab + Excel + PowerPoint workflow      | **Ship-target.** Local-first Workspace; free PWA; optional company-approved/Azure distribution and services.              |
+| **VariScout (V1, this doc)**   | Improvement specialists replacing the practical Minitab + Excel + PowerPoint workflow     | **Ship-target.** Local-first Workspace; free PWA; optional company-approved/Azure distribution and services.              |
 | **VariScout Process** (future) | Enterprises with ongoing process ownership, multi-project portfolios, 4-persona workflows | Internal roadmap commitment only. Not announced in V1 marketing; mentioned when customers ask about enterprise use cases. |
 
 The breadth-first features (Hub portfolios, automated data pipelines, Process Owner cadence, 4-persona routing) are not lost — they migrate to VariScout Process as a separate product. V1 is the focused, coherent thing: **a private process improvement workspace that can produce shareable evidence without needing a live collaboration platform.**
@@ -43,11 +43,13 @@ The breadth-first features (Hub portfolios, automated data pipelines, Process Ow
 
 The Specialist works in a **Workspace** — the place they bring data, map the process, explore variation, analyze evidence, plan improvements, verify Control, and compile the report.
 
-Three working postures are first-class:
+Three access channels, one Workspace (ADR-093 D5):
 
-- **Local Workspace.** Paste data, explore charts, capture findings, create actions, verify Control, and export `.vrs` / Analysis Packs. This is the default and the free PWA's core.
-- **Company-approved Workspace.** The same local-first experience, distributed or licensed through an IT-approved route such as Azure Marketplace, without requiring customer process data to live in Azure.
-- **Formalized Project.** When governance is needed, formalize the Workspace — name it, set a charter, optionally invite teammates (Lead / Member / Sponsor roles), and use customer-tenant services for persistence or sharing. Each Project can produce a Report the Sponsor reviews; sign-off is optional and out-of-band.
+- **Free web deployment.** Paste data, explore charts, capture findings — the full analysis loop, in-session only. No save/export (build-time gate), no AI. Training, education, evaluation.
+- **Individual (€17+VAT/mo or €99+VAT/yr via Paddle).** Installable desktop PWA on the user's own machine; adds the artifact layer (`.vrs` save, Analysis Packs, the consultation loop) and BYOK CoScout (the user's own AI key, direct browser→provider).
+- **Company (€120/mo via Azure Marketplace).** Deployed into the customer's own tenant, tenant-wide users; the artifact layer plus CoScout on the tenant's IT-governed AI endpoint and the security review pack.
+
+When the work needs governance, the Specialist **formalizes** the Workspace into a Project — name it, set a charter, run Charter → Approach → Control. Formalization is a solo act: there is no membership, invite flow, or roles (deleted per ADR-093 D1). The Sponsor is a Report/pack _audience_; sign-off is optional and out-of-band. Collaboration runs through the [consultation loop](../superpowers/specs/2026-06-11-consultation-loop-design.md).
 
 Every Workspace is backed by exactly one Project from first data entry; that Project stays **informal** (no project chrome) until a deliberate formalization act. There is no "activate / exit / switch project" — the Workspace's one Project is always the context; you narrow and broaden attention with **Analysis Scope** (outcome · factor · process step · filters), the only active lens. Internally a Workspace is backed by a **Hub** storage container (code-only — never a user-facing noun); multi-project portfolios are a VariScout Process (future) concern, not V1.
 
@@ -103,12 +105,13 @@ Mode resolution lives in `packages/core/src/analysisStrategy.ts`. CoScout's meth
 
 ## Pricing (V1)
 
-The product is local-first. Paid distribution/licensing and optional customer-tenant services can still use a single SKU, but the product value is not dependent on live Azure collaboration.
+One product, three access channels — a license-scope ladder, never a feature ladder (ADR-093 D5). The paid product runs on the user's machine or in the customer's tenant; the public website carries only the free deployment.
 
-| Tier      | Distribution                          | Price          | What you get                                                                                                                                                                   |
-| --------- | ------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **PWA**   | Public URL                            | Free           | Full local analysis, session-only by default, `.vrs` export/import, Analysis Pack export. Training, education, evaluation, and real local work.                                |
-| **Company-approved / Azure** | Azure Marketplace or another IT-approved route | **€120/month target** | Licensed/distributed company use. Optional customer-tenant persistence, customer AI, managed sharing, project membership, and governance services.                              |
+| Channel        | Distribution                                         | Price                        | What you get                                                                                                                |
+| -------------- | ---------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Free**       | Public URL                                           | Free                         | Full in-session analysis. No save/export (build-time gate), no AI. Training, education, evaluation.                         |
+| **Individual** | Installable desktop PWA, Paddle-gated app origin     | **€17+VAT/mo or €99+VAT/yr** | Artifact layer (`.vrs`, Analysis Packs, consultation loop) + BYOK CoScout (own AI key, direct calls). Personal-use license. |
+| **Company**    | Azure Marketplace, deployed in the customer's tenant | **€120/month per tenant**    | Tenant-wide use, artifact layer, CoScout on the tenant's IT-governed AI endpoint, security review pack.                     |
 
 This supersedes the legacy €79 Standard + €199 Team split (see [feature-parity.md](../08-products/feature-parity.md) for the consolidated matrix).
 
@@ -120,8 +123,9 @@ CoScout is an assistant, not an oracle. It coaches methodology, asks targeted qu
 
 The AI boundary is provider-based:
 
-- **No AI** — deterministic local analysis only.
-- **Customer Azure AI** — CoScout calls the customer's Azure OpenAI / Foundry endpoint.
+- **No AI** — deterministic local analysis only (the free deployment).
+- **Customer Azure AI** — CoScout calls the customer's Azure OpenAI / Foundry endpoint (company channel; IT-governed).
+- **BYOK** — the individual user's own AI key; direct browser→provider calls against a supported-provider list, never a VariScout-operated proxy.
 - **Future local LLM** — on-device or local-network model support when practical.
 - **Future MCP agent** — Claude Code or another company-approved agent reads a controlled workspace bundle or local VariScout MCP tools.
 
@@ -131,14 +135,14 @@ No AI provider silently mutates canonical workspace state. Agents review, draft,
 
 ## Customer-owned data
 
-Processing happens in the browser. The default durable artifacts are user-controlled files: `.vrs` snapshots and Analysis Packs. When optional services are enabled (Blob Storage sync, AI calls, optional Azure voice transcription), data stays in the customer's Azure tenant — no VariScout-operated cloud. This is a core product principle (ADR-059 and ADR-092), not a feature.
+Processing happens in the browser. The durable artifacts are user-controlled files: `.vrs` snapshots and Analysis Packs — there is no cloud document store (ADR-093). AI calls go to the customer's own endpoint (tenant or BYOK key) — no VariScout-operated cloud, ever. This is a core product principle (ADR-059, ADR-092, ADR-093), not a feature.
 
 ---
 
 ## Design Principles
 
-1. **Offline by default** — Works without internet after first visit.
-2. **Local-first data** — Browser processing and user-controlled files first; optional customer-tenant services second.
+1. **Offline by default** — Works without internet after first visit (paid channels; the free deployment is online-evaluation).
+2. **Local-first data** — Browser processing and user-controlled files; no cloud document store. Desktop browsers only (ADR-093 D3).
 3. **Transparent math** — Show formulas, explain metrics. Deterministic engine is the authority.
 4. **CSV exportable** — All data can be opened in Excel.
 5. **Linked exploration** — Charts talk to each other through filtering.
@@ -150,15 +154,15 @@ Processing happens in the browser. The default durable artifacts are user-contro
 
 ## Technical Highlights
 
-| Aspect    | Implementation                                                |
-| --------- | ------------------------------------------------------------- |
-| Runtime   | PWA with Service Worker                                       |
-| Framework | React + TypeScript + Vite                                     |
-| Styling   | Tailwind v4                                                   |
-| Charts    | Visx (D3 primitives)                                          |
-| State     | Zustand (3-layer: Document / Annotation / View, ADR-078 + F4) |
-| Storage   | In-memory + `.vrs` snapshot by default; optional IndexedDB (Dexie) + Azure Blob Storage services |
-| Bundle    | ~700KB gzipped                                                |
+| Aspect    | Implementation                                                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Runtime   | PWA with Service Worker                                                                                                                          |
+| Framework | React + TypeScript + Vite                                                                                                                        |
+| Styling   | Tailwind v4                                                                                                                                      |
+| Charts    | Visx (D3 primitives)                                                                                                                             |
+| State     | Zustand (3-layer: Document / Annotation / View, ADR-078 + F4)                                                                                    |
+| Storage   | In-memory + `.vrs` snapshot + local autosave (IndexedDB); no cloud document store (ADR-093; Blob/EasyAuth-document stack scheduled for deletion) |
+| Bundle    | ~700KB gzipped                                                                                                                                   |
 
 ---
 
@@ -196,11 +200,16 @@ The following migrate to VariScout Process as a future, separate product. Not "c
 - Tier-gating philosophy as a public-facing concept
 - Cross-Azure-AD-tenant invitations (Azure AD guest accounts handle the edge case)
 
-The following are V1-adjacent, not default V1 center:
+The following are **deleted from V1** by ADR-093 (not deferred features — scheduled code deletions; multi-user collaboration re-emerges only in VariScout Process):
 
-- Live multi-user project collaboration as the primary sharing path
-- Centralized customer-tenant Blob persistence as a prerequisite for value
+- Live multi-user project collaboration (membership, roles, invites, ACLs)
+- Customer-tenant Blob persistence / cloud document identity
+- Mobile and touch-specific surfaces (desktop-only hard cut)
+
+And the following stay named-future:
+
 - Local LLM / MCP agent execution as shipped behavior
+- A true downloadable desktop build (Tauri) for air-gapped demand
 
 See [V1 spec §7 + §10](../superpowers/specs/2026-05-16-wedge-architecture-design.md) for the canonical out-of-V1 list.
 
