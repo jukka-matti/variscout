@@ -36,19 +36,15 @@ import {
 import { formatMessage } from '@variscout/core/i18n';
 import { useWallLocale } from './hooks/useWallLocale';
 
-/** Snapshot of the model the analyst chose to capture (capture-as-Finding). */
-export interface CapturedModelSnapshot {
-  /** The kept factors, in the order shown. */
-  factors: string[];
-  /** Adjusted R² of the kept-factor subset. */
-  rSquaredAdj: number;
-  /** Per-factor p for the kept factors. */
-  perFactorP: Record<string, number>;
-  /** Human-readable scope label ('All data' or the drill condition). */
-  scopeLabel: string;
-  /** The single most-explanatory kept factor (for linkedFactor on the Finding). */
-  topFactor: string | null;
-}
+/**
+ * Snapshot of the model the analyst chose to capture (capture-as-Finding).
+ *
+ * The canonical definition MOVED to the ModelDrawer module in ER-3 (Task 4 will
+ * re-point all consumers there + delete this band). Imported for local use and
+ * re-exported untouched so nothing breaks before Task 4 lands.
+ */
+import type { CapturedModelSnapshot } from '../ModelDrawer';
+export type { CapturedModelSnapshot };
 
 export interface ModelBuilderBandProps {
   /** Rows in the active scope (drilled subset, or full dataset). */

@@ -190,6 +190,12 @@ export {
 
 export * from './components/AnalyzeWall';
 
+// ModelDrawer (ER-3). `CapturedModelSnapshot` already flows through AnalyzeWall
+// (the band re-exports the moved type) — export only the net-new names here to
+// avoid a duplicate barrel export.
+export { ModelDrawerBase } from './components/ModelDrawer';
+export type { ModelDrawerBaseProps, ModelDrawerStats } from './components/ModelDrawer';
+
 export {
   VerificationCard,
   type VerificationCardProps,

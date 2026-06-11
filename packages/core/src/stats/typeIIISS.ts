@@ -65,7 +65,23 @@ export function computeTypeIIISS(
   // 2. For each factor, build reduced model without it
   for (let fi = 0; fi < factorSpecs.length; fi++) {
     const factorToRemove = factorSpecs[fi];
-    const reducedSpecs = factorSpecs.filter((_, i) => i !== fi);
+
+    // Marginality / hierarchy: an interaction term cannot remain in the model
+    // without one of its parent main effects (buildDesignMatrix requires the
+    // sources to precede the interaction). So when we drop a MAIN effect we must
+    // also drop every interaction term that references it; dropping an
+    // interaction term itself drops only that term. This makes Type III SS
+    // computable for interaction-augmented models (the model-drawer ANOVA path)
+    // — without it, removing a main effect throws "references unknown source
+    // factors" and the whole decomposition is lost.
+    const reducedSpecs = factorSpecs.filter((spec, i) => {
+      if (i === fi) return false;
+      if (spec.type === 'interaction') {
+        const sources: readonly string[] = spec.sourceFactors ?? [];
+        if (sources.includes(factorToRemove.name)) return false;
+      }
+      return true;
+    });
 
     // Number of columns this factor contributes to the design matrix
     const encoding = fullMatrix.encodings[fi];
@@ -95,8 +111,14 @@ export function computeTypeIIISS(
       continue;
     }
 
-    // Build reduced model
-    const reducedMatrix = buildDesignMatrix(data, outcome, reducedSpecs);
+    // Build reduced model (defensive: a hierarchy-pruned reduced model should
+    // always build, but never let a malformed spec set abort the whole map).
+    let reducedMatrix;
+    try {
+      reducedMatrix = buildDesignMatrix(data, outcome, reducedSpecs);
+    } catch {
+      continue;
+    }
     if (reducedMatrix.n < reducedMatrix.p + 1) {
       // Can't fit reduced model — skip this factor
       continue;
