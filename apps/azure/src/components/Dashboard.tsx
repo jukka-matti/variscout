@@ -14,6 +14,7 @@ import {
   useViewStore,
   useAnalysisScopeStore,
   useAnalyzeStore,
+  useCanvasStore,
   usePreferencesStore,
 } from '@variscout/stores';
 import {
@@ -32,7 +33,11 @@ import {
 } from '@variscout/hooks';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
-import { subgroupAxisColumns } from '@variscout/core/frame';
+import {
+  buildStepFactorDecorations,
+  processStageColumnCandidates,
+  subgroupAxisColumns,
+} from '@variscout/core/frame';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
@@ -257,6 +262,7 @@ const Dashboard = ({
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
   const processContext = useProjectStore(s => s.processContext);
+  const canonicalMap = useCanvasStore(s => s.canonicalMap);
   const setOutcome = useProjectStore(s => s.setOutcome);
   const rawData = useProjectStore(s => s.rawData);
   const setRawData = useProjectStore(s => s.setRawData);
@@ -473,6 +479,19 @@ const Dashboard = ({
     onViewStateChange,
     categoricalValuesByColumn,
   });
+
+  const stepFactorDecorations = useMemo(
+    () => buildStepFactorDecorations(canonicalMap),
+    [canonicalMap]
+  );
+  const availableStageColumnsWithSteps = useMemo(() => {
+    const dataColumns = new Set(getColumnNames(rawData));
+    const merged = new Set(availableStageColumns);
+    for (const column of processStageColumnCandidates(canonicalMap)) {
+      if (dataColumns.has(column)) merged.add(column);
+    }
+    return Array.from(merged);
+  }, [availableStageColumns, canonicalMap, rawData]);
 
   // Build filter chip data from filter stack for breadcrumb display
   const filterChipData: FilterChipData[] = useMemo(() => {
@@ -1028,6 +1047,7 @@ const Dashboard = ({
     selectedFactors: effectiveFactors,
     specs: effectiveSpecs,
     bindings: binnedFactorBindings,
+    stepDecorations: stepFactorDecorations,
   });
 
   // Examined keys are stored `${outcome}::${factor}`; the component takes a
@@ -1155,7 +1175,7 @@ const Dashboard = ({
                 />
               ) : undefined
             }
-            availableStageColumns={availableStageColumns}
+            availableStageColumns={availableStageColumnsWithSteps}
             stageColumn={stageColumn}
             setStageColumn={setStageColumn}
             stageOrderMode={stageOrderMode}
@@ -1655,7 +1675,7 @@ const Dashboard = ({
                       outcome={outcome}
                       availableOutcomes={availableOutcomes}
                       stageColumn={stageColumn}
-                      availableStageColumns={availableStageColumns}
+                      availableStageColumns={availableStageColumnsWithSteps}
                       stageOrderMode={stageOrderMode}
                       stagedStats={stagedStats}
                       stats={stats}

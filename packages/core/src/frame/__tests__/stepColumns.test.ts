@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { getStepColumnAssignments } from '../stepColumns';
+import {
+  buildStepFactorDecorations,
+  getStepColumnAssignments,
+  processStageColumnCandidates,
+} from '../stepColumns';
 import type { ProcessMap } from '../types';
 
 const ISO = '2026-05-13T00:00:00.000Z';
@@ -103,5 +107,32 @@ describe('getStepColumnAssignments', () => {
     expect(result.tributaryColumns).not.toContain('Temperature');
     expect(result.tributaryColumns).toEqual(['Shift']);
     expect(result.assigned).toEqual(expect.arrayContaining(['Temperature', 'Machine']));
+  });
+});
+
+describe('buildStepFactorDecorations', () => {
+  it('maps assigned and tributary factor columns to their process step', () => {
+    const map = mapOf({
+      nodes: [
+        { id: 'step-1', name: 'Mix', order: 0 },
+        { id: 'step-2', name: 'Fill', order: 1 },
+      ],
+      assignments: { Machine: 'step-1' },
+      tributaries: [{ id: 't-shift', stepId: 'step-2', column: 'Shift' }],
+    });
+
+    const decorations = buildStepFactorDecorations(map);
+
+    expect(decorations.get('Machine')).toEqual({ stepId: 'step-1', stepName: 'Mix' });
+    expect(decorations.get('Shift')).toEqual({ stepId: 'step-2', stepName: 'Fill' });
+  });
+
+  it('uses the same process-step mapped columns as stage lens candidates', () => {
+    const map = mapOf({
+      assignments: { Machine: 'step-1' },
+      tributaries: [{ id: 't-shift', stepId: 'step-1', column: 'Shift' }],
+    });
+
+    expect(processStageColumnCandidates(map)).toEqual(['Machine', 'Shift']);
   });
 });

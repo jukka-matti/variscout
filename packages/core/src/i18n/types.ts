@@ -1169,6 +1169,7 @@ export interface MessageCatalog {
   'frame.b0.q1.hint': string;
   'frame.b0.q2.headline': string;
   'frame.b0.q2.hint': string;
+  'frame.b0.q2.bridge': string;
   'frame.b0.runOrderHint': string;
   'frame.b0.addProcessSteps.label': string;
   'frame.b0.addProcessSteps.helper': string;
@@ -1217,9 +1218,11 @@ export interface MessageCatalog {
   'factorStrip.title': string;
   'factorStrip.title.scoped': string;
   'factorStrip.subtitle': string;
+  'factorStrip.bridge': string;
   'factorStrip.modelLink': string;
   'factorStrip.modelLink.stub': string;
   'factorStrip.star.title': string;
+  'factorStrip.stepBadge.title': string;
   'factorStrip.binned': string;
   'factorStrip.examined': string;
   'factorStrip.chip.hover': string;

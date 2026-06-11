@@ -42,7 +42,7 @@ export interface FactorStripBaseProps {
  * Props-based, store-free (ui *Base convention). All copy via i18n; all numbers
  * via formatStat (never toFixed). The strip NEVER auto-selects a factor —
  * onFactorSelect fires only from a user click. P5: ★ says "largest share",
- * never "strongest"; D3: parallel bars only, never stacked/pie.
+ * never force-ranked language; D3: parallel bars only, never stacked/pie.
  */
 export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
   chips,
@@ -161,6 +161,15 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
       >
         <span className="flex items-center gap-1.5 text-xs font-semibold text-content">
           <span>{chip.factor}</span>
+          {chip.step && (
+            <span
+              data-testid="factor-chip-step-badge"
+              title={tf('factorStrip.stepBadge.title', { step: chip.step.stepName })}
+              className="rounded border border-edge bg-surface-secondary px-1 py-0.5 text-[10px] font-medium text-content-secondary"
+            >
+              {chip.step.stepName}
+            </span>
+          )}
           {chip.binnedForRanking && (
             <span className="text-content-muted font-normal">{t('factorStrip.binned')}</span>
           )}
@@ -212,6 +221,7 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
       <div className="flex items-baseline gap-2.5 flex-wrap">
         <h2 className="text-[12.5px] font-semibold text-content">{title}</h2>
         <span className="text-[11px] text-content-muted">{t('factorStrip.subtitle')}</span>
+        <span className="basis-full text-[11px] text-content-muted">{t('factorStrip.bridge')}</span>
         <a
           href="#"
           onClick={handleLinkClick}

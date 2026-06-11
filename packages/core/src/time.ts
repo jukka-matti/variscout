@@ -201,6 +201,67 @@ export function detectNaturalVocabComparator(
   return null;
 }
 
+function normalizedTimeLabel(value: unknown, key: keyof TimeComponents): string | null {
+  if (value === null || value === undefined || value === '') return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const lowered = raw.toLowerCase();
+
+  if (key === 'dayOfWeek') {
+    const indexMap = buildVocabIndex(NATURAL_VOCABULARIES[0]);
+    const index = indexMap.get(lowered);
+    return index === undefined ? lowered : WEEKDAY_DISPLAY_ORDER[index].toLowerCase();
+  }
+
+  if (key === 'month') {
+    const indexMap = buildVocabIndex(NATURAL_VOCABULARIES[1]);
+    const index = indexMap.get(lowered);
+    return index === undefined ? lowered : MONTH_ABBR[index].toLowerCase();
+  }
+
+  return lowered;
+}
+
+function hasEquivalentExistingTimeColumn(
+  data: DataRow[],
+  timeColumn: string,
+  newColumnName: string,
+  key: keyof TimeComponents,
+  valuesByRow: Array<DataCellValue | null>
+): boolean {
+  if (data.length === 0) return false;
+  const generatedComparable = valuesByRow.map(value => normalizedTimeLabel(value, key));
+  const hasGeneratedValue = generatedComparable.some(value => value !== null);
+  if (!hasGeneratedValue) return false;
+
+  const existingColumns = new Set<string>();
+  for (const row of data) {
+    for (const column of Object.keys(row)) existingColumns.add(column);
+  }
+
+  for (const column of existingColumns) {
+    if (column === timeColumn || column === newColumnName) continue;
+    let comparableRows = 0;
+    let mismatches = 0;
+
+    for (let i = 0; i < data.length; i++) {
+      const generated = generatedComparable[i];
+      if (generated === null) continue;
+      const existing = normalizedTimeLabel(data[i][column], key);
+      if (existing === null) {
+        mismatches += 1;
+        continue;
+      }
+      comparableRows += 1;
+      if (existing !== generated) mismatches += 1;
+    }
+
+    if (comparableRows > 0 && mismatches === 0) return true;
+  }
+
+  return false;
+}
+
 /**
  * Parse a value into a Date object
  *
@@ -465,7 +526,6 @@ export function augmentWithTimeColumns(
   const newColumns: string[] = [];
   let hasHourColumn = false;
 
-  // Define column mappings
   const columnMap: Array<{ key: keyof TimeComponents; suffix: string; enabled: boolean }> = [
     { key: 'year', suffix: 'Year', enabled: config.extractYear },
     { key: 'month', suffix: 'Month', enabled: config.extractMonth },
@@ -474,24 +534,25 @@ export function augmentWithTimeColumns(
     { key: 'hour', suffix: 'Hour', enabled: config.extractHour },
   ];
 
-  // Extract components for each row
-  for (const row of data) {
-    const value = row[timeColumn];
-    const components = extractTimeComponents(value, config);
+  const componentsByRow = data.map(row => extractTimeComponents(row[timeColumn], config));
 
-    for (const { key, suffix, enabled } of columnMap) {
-      if (!enabled) continue;
+  for (const { key, suffix, enabled } of columnMap) {
+    if (!enabled) continue;
 
-      const columnName = `${timeColumn}_${suffix}`;
+    const columnName = `${timeColumn}_${suffix}`;
+    const valuesByRow = componentsByRow.map(components => components[key] ?? null);
+    const hasAnyValue = valuesByRow.some(value => value !== null);
+    if (!hasAnyValue) continue;
 
-      // Track new columns (first row only)
-      if (row === data[0] && components[key] !== undefined) {
-        newColumns.push(columnName);
-        if (key === 'hour') hasHourColumn = true;
-      }
+    if (hasEquivalentExistingTimeColumn(data, timeColumn, columnName, key, valuesByRow)) {
+      continue;
+    }
 
-      // Add component to row
-      row[columnName] = components[key] ?? null;
+    newColumns.push(columnName);
+    if (key === 'hour') hasHourColumn = true;
+
+    for (let i = 0; i < data.length; i++) {
+      data[i][columnName] = valuesByRow[i];
     }
   }
 
@@ -499,13 +560,17 @@ export function augmentWithTimeColumns(
   if (config.extractMinuteInterval && config.extractMinuteInterval > 0) {
     const interval = config.extractMinuteInterval;
     const colName = `${timeColumn}_${interval}min`;
-    newColumns.push(colName);
-    for (const row of data) {
+    const valuesByRow = data.map(row => {
       const date = parseTimeValue(row[timeColumn]);
-      if (date) {
-        row[colName] = formatTimeBucket(date, 'minute', interval);
-      } else {
-        row[colName] = '';
+      return date ? formatTimeBucket(date, 'minute', interval) : '';
+    });
+    if (
+      !hasEquivalentExistingTimeColumn(data, timeColumn, colName, 'hour', valuesByRow) &&
+      valuesByRow.some(value => value !== '')
+    ) {
+      newColumns.push(colName);
+      for (let i = 0; i < data.length; i++) {
+        data[i][colName] = valuesByRow[i];
       }
     }
   }

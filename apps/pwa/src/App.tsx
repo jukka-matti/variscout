@@ -214,6 +214,7 @@ function AppMain() {
     projectCpkTarget,
   });
   const processContext = useProjectStore(s => s.processContext);
+  const setProcessContext = useProjectStore(s => s.setProcessContext);
   const defectMapping = useProjectStore(s => s.defectMapping);
 
   // Investigation store (domain — hypotheses). IM-1: Question entity retired.
@@ -1671,6 +1672,17 @@ function AppMain() {
         open={stageFive.open}
         mode={stageFive.mode}
         onOpenInvestigation={brief => {
+          if (brief.issueStatement || brief.target) {
+            const updatedContext = { ...(processContext ?? {}) };
+            if (brief.issueStatement) updatedContext.issueStatement = brief.issueStatement;
+            if (brief.target) {
+              updatedContext.targetMetric = brief.target
+                .metric as import('@variscout/core').TargetMetric;
+              updatedContext.targetValue = brief.target.value;
+              updatedContext.targetDirection = brief.target.direction;
+            }
+            setProcessContext(updatedContext);
+          }
           // IM-1 (F5, ADR-085): AnalysisBrief no longer seeds Question entities —
           // the Question entity is retired. Brief capture is informational only;
           // the analyst forms hypothesis hubs on the Wall.
@@ -1679,8 +1691,6 @@ function AppMain() {
           if (brief.hypothesisDraft) {
             useAnalyzeStore.getState().createHub(brief.hypothesisDraft, '');
           }
-          // TODO (slice 4): wire brief.target into processContext once PWA gains a
-          // processContext or equivalent improvement-target store field.
           stageFive.close();
         }}
         onSkip={stageFive.close}

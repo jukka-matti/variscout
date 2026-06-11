@@ -33,6 +33,11 @@ import type { BinnedFactorBinding } from '@variscout/core/binning';
 /** What-if hover payload — ephemeral, never persisted. */
 export type FactorStripWhatIf = MatchedBestProjection;
 
+export interface FactorStripStepDecoration {
+  stepId: string;
+  stepName: string;
+}
+
 /**
  * One ranked factor chip produced by useFactorStripModel.
  * Raw numbers only — formatting is the UI's responsibility (P5 / ADR-069 B3).
@@ -74,6 +79,8 @@ export interface FactorStripChip {
    * bars reflect quartile-grouped data, not raw values.
    */
   binnedForRanking: boolean;
+  /** Process-step attribution from Frame/Canvas, if this factor belongs to a step. */
+  step?: FactorStripStepDecoration;
   /**
    * Matched-best projection for the what-if hover card.  Undefined when:
    *   - no spec limits / direction are inferable (spec empty or 'nominal');
@@ -115,6 +122,8 @@ export interface UseFactorStripModelArgs {
    * name matches the `${outcome}_bin` convention).
    */
   bindings?: BinnedFactorBinding[];
+  /** Optional process-step decorations keyed by factor column name. */
+  stepDecorations?: ReadonlyMap<string, FactorStripStepDecoration>;
 }
 
 /** Output from useFactorStripModel. */
@@ -154,6 +163,7 @@ export function useFactorStripModel({
   selectedFactors,
   specs,
   bindings,
+  stepDecorations,
 }: UseFactorStripModelArgs): UseFactorStripModelResult | null {
   return useMemo(() => {
     if (!outcome) return null;
@@ -191,6 +201,7 @@ export function useFactorStripModel({
         isWeak,
         isSelected: selectedSet.has(fe.factor),
         binnedForRanking: fe.binnedForRanking,
+        step: stepDecorations?.get(fe.factor),
         whatIf,
       };
     });
@@ -200,5 +211,5 @@ export function useFactorStripModel({
     const residualPct = maxAdjustedPct !== null ? Math.max(0, 100 - maxAdjustedPct) : null;
 
     return { chips, residualPct, n };
-  }, [rows, outcome, allFactors, selectedFactors, specs, bindings]);
+  }, [rows, outcome, allFactors, selectedFactors, specs, bindings, stepDecorations]);
 }
