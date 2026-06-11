@@ -27,7 +27,7 @@ import {
   examinedFactorKey,
 } from '@variscout/stores';
 import { createProblemStatementScope, buildConditionFromCategoricalFilters } from '@variscout/core';
-import type { FactorStripBaseProps } from '@variscout/ui';
+import type { FactorStripBaseProps, ModelDrawerBaseProps } from '@variscout/ui';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import Dashboard from '../Dashboard';
 
@@ -55,6 +55,7 @@ vi.mock('../../workers/useStatsWorker', () => ({ useStatsWorker: () => null }));
 const captured = vi.hoisted(() => ({
   factorStrip: undefined as React.ReactNode,
   stripProps: undefined as FactorStripBaseProps | undefined,
+  drawerProps: undefined as ModelDrawerBaseProps | undefined,
 }));
 
 vi.mock('@variscout/ui', async () => {
@@ -80,6 +81,22 @@ vi.mock('@variscout/ui', async () => {
               {c.factor}
             </button>
           ))}
+          {props.onAnovaLinkClick && (
+            <button data-testid="strip-anova-link" onClick={() => props.onAnovaLinkClick!()}>
+              ANOVA
+            </button>
+          )}
+        </div>
+      );
+    },
+    ModelDrawerBase: (props: ModelDrawerBaseProps) => {
+      captured.drawerProps = props;
+      if (!props.open) return null;
+      return (
+        <div data-testid="model-drawer">
+          <button data-testid="model-drawer-close" onClick={props.onClose}>
+            ×
+          </button>
         </div>
       );
     },
@@ -109,6 +126,7 @@ describe('Azure Dashboard — factor strip wiring (ER-2)', () => {
     vi.clearAllMocks();
     captured.factorStrip = undefined;
     captured.stripProps = undefined;
+    captured.drawerProps = undefined;
     useViewStore.setState(useViewStore.getInitialState());
     useAnalyzeStore.setState(getAnalyzeInitialState());
     useAnalysisScopeStore.setState(getAnalysisScopeInitialState());
@@ -196,5 +214,47 @@ describe('Azure Dashboard — factor strip wiring (ER-2)', () => {
     expect(spy).not.toHaveBeenCalled();
     // The scope under the other projectId is left untouched.
     expect(useAnalyzeStore.getState().scopes).toHaveLength(1);
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ER-3: Explore door — ANOVA link opens the model drawer
+  // ─────────────────────────────────────────────────────────────────────────
+
+  it('ER-3: clicking the ANOVA link opens the model drawer (testid present)', async () => {
+    const { getByTestId } = render(<Dashboard scopeProjectId="general-unassigned" />);
+    await flushRaf();
+
+    // Drawer is initially closed.
+    expect(captured.drawerProps?.open).toBe(false);
+
+    fireEvent.click(getByTestId('strip-anova-link'));
+
+    // After clicking, the drawer renders (open=true).
+    expect(getByTestId('model-drawer')).toBeTruthy();
+    expect(captured.drawerProps?.open).toBe(true);
+  });
+
+  it('ER-3: model drawer receives the same rows length and outcome as the strip', async () => {
+    const { getByTestId } = render(<Dashboard scopeProjectId="general-unassigned" />);
+    await flushRaf();
+
+    fireEvent.click(getByTestId('strip-anova-link'));
+
+    // Drawer shares effectiveData and effectiveOutcome with the strip.
+    expect(captured.drawerProps?.rows).toHaveLength(ROWS.length);
+    expect(captured.drawerProps?.outcome).toBe('Result');
+  });
+
+  it('ER-3: clicking × on the model drawer closes it', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <Dashboard scopeProjectId="general-unassigned" />
+    );
+    await flushRaf();
+
+    fireEvent.click(getByTestId('strip-anova-link'));
+    expect(getByTestId('model-drawer')).toBeTruthy();
+
+    fireEvent.click(getByTestId('model-drawer-close'));
+    expect(queryByTestId('model-drawer')).toBeNull();
   });
 });

@@ -77,6 +77,8 @@ New `@variscout/ui` strip component fed by an ω²-adjusted `computeMainEffects`
 
 ## ER-3 — The model drawer (§6, D5)
 
+**Sub-plan:** [`2026-06-11-er-3-model-drawer.md`](2026-06-11-er-3-model-drawer.md).
+
 Core: expose coefficient SE/covariance from the ADR-067 GLM/QR solver (NIST tests extended — never weaken thresholds). UI: the drawer (summary · equation · coefficients · ANOVA · best-subsets ladder · predict widget), re-homing `EquationDisplay` + `BestSubsetsCard` content; mounted from the strip link **and** wired to the Analyze tab's Model toggle. **This PR owns the Model-toggle geometry bug outright** (the AW plan is delivered and never shipped this fix — walkthrough finding A2): `WallCanvas.tsx` mounts `ModelBuilderBand` inside the SVG at the factor-band row (y≈960) while the populated `readableWallContentBBox` crops to ≈y768, so the toggle changes zero pixels. The drawer replaces the in-SVG band as the Model surface (screen-space HTML, never viewBox-cropped); add the missing populated-branch geometry assertion to `WallCanvas.modelBuilder.seam.test.tsx`.
 
 ## ER-4 — The condition loop (§7.1–7.2, D6)

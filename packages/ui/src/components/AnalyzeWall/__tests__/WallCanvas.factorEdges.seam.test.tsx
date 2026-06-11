@@ -67,8 +67,19 @@ const bandRows = [
 
 const modelBuilderProps: WallCanvasModelBuilderProps = {
   candidateFactors: ['Line', 'Temp', 'Noise'],
-  scopeLabel: 'All data',
-  scopeRows: bandRows,
+};
+
+// ER-3: the DOI feed is now the `modelStats` prop (the open/closed ModelDrawerBase
+// reports its live kept+ΔR² via the app; here we feed it directly). Noise is the
+// top-ΔR² factor → contribution01 normalizes to 1.0 (the always-live weighting the
+// glyph bars + domain-weighted DOI consume). No band-opening step is needed.
+const modelStats = {
+  kept: ['Noise'],
+  deltaR2: new Map<string, number>([
+    ['Noise', 0.9],
+    ['Line', 0.1],
+    ['Temp', 0.05],
+  ]),
 };
 
 const findings: Finding[] = [supportFinding, counterFinding];
@@ -88,6 +99,7 @@ function renderWall() {
       rows={bandRows}
       outcomeColumn="lead_time"
       modelBuilderProps={modelBuilderProps}
+      modelStats={modelStats}
     />
   );
 }
@@ -137,12 +149,15 @@ describe('WallCanvas factor glyphs + Finding-mediated edges', () => {
 
   it('MUTATION GUARD: domain weighting lifts a high-contribution distant factor off the DIM floor', () => {
     // Focus the hub: Noise is graph-distant (no Finding mentions it → DOI 2,
-    // unweighted = 0.25 DIM). But Noise drives the outcome → top ΔR² →
+    // unweighted = 0.25 DIM). But Noise is the top-ΔR² factor in `modelStats` →
     // contribution01 = 1.0 → domainWeightedOpacity(2, 1) = 0.55 (MID).
-    // Reverting focusFor to unweighted focusOpacity yields 0.25 → fails here.
+    //
+    // ER-3: the weighting is ALWAYS-LIVE — fed via the `modelStats` prop (the
+    // always-mounted ModelDrawerBase's onModelStats feed), NOT gated on opening a
+    // band. No toggle-click step. Reverting focusFor to unweighted focusOpacity
+    // yields 0.25 → fails here.
     useViewStore.getState().setFocusedWallEntity('hub-1');
     const { getByTestId } = renderWall();
-    fireEvent.click(getByTestId('wall-model-builder-toggle'));
     const noise = getByTestId('factor-glyph-Noise');
     expect(Number(noise.getAttribute('opacity'))).toBeCloseTo(0.55, 2);
   });

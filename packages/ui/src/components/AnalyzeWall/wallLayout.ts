@@ -260,7 +260,7 @@ export function computeWallLayout(args: WallLayoutArgs): WallLayout {
 
   // ── Factor band (ordered by contribution desc) ──────────────────────────
   // `factorPositions` places the candidate-factor band in the unified
-  // coordinate space; WallCanvas anchors the ModelBuilderBand to these
+  // coordinate space; WallCanvas anchors the factor glyphs to these
   // positions. Factors stay scope-level by design; a cause's factors are a
   // DERIVED projection, never stored (ADR-086 Amendment 2026-05-31).
   [...factors]

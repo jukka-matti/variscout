@@ -423,6 +423,15 @@ vi.mock('@variscout/ui', () => ({
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
   // LV1-E Task 7: ScopeChrome stub — renders data-testid so render-smoke tests work
   ScopeChrome: () => <div data-testid="scope-chrome">ScopeChrome</div>,
+  // ER-3: Model drawer stub — closed by default so existing tests are unaffected.
+  ModelDrawerBase: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
+    open ? (
+      <div data-testid="model-drawer">
+        <button data-testid="model-drawer-close" onClick={onClose}>
+          ×
+        </button>
+      </div>
+    ) : null,
 }));
 
 // Hoisted spies for useDashboardCharts setters — shared so tests can assert
