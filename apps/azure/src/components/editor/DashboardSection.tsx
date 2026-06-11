@@ -71,6 +71,8 @@ export interface DashboardSectionProps {
   binnedFactorBindings?: BinnedFactorBinding[];
   /** G1 Task 7: synchronous patch handler for `binnedFactorBindings`. */
   onBindingsChange?: (next: BinnedFactorBinding[]) => void;
+  /** ER-2: active scope project id (for the factor strip's scope what-if refresh). */
+  scopeProjectId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -97,6 +99,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   categoricalValuesByColumn,
   binnedFactorBindings,
   onBindingsChange,
+  scopeProjectId,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
@@ -124,6 +127,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
       categoricalValuesByColumn={categoricalValuesByColumn}
       binnedFactorBindings={binnedFactorBindings}
       onBindingsChange={onBindingsChange}
+      scopeProjectId={scopeProjectId}
       performance={{
         drillFromPerformance: dataFlow.drillFromPerformance,
         onBackToPerformance: dataFlow.handleBackToPerformance,

@@ -40,6 +40,13 @@ export interface UseDashboardChartsResult {
   setBoxplotFactor: (f: string) => void;
   paretoFactor: string;
   setParetoFactor: (f: string) => void;
+  /**
+   * ER-2: merged candidate factor columns (framing-selected + every derived/raw
+   * column) from useDashboardChartsBase — fed to useFactorStripModel. This
+   * wrapper returns fields explicitly (no `...base` spread), so the passthrough
+   * is added to both the interface and the return object.
+   */
+  allFactors: string[];
   focusedChart: FocusedChart;
   setFocusedChart: (c: FocusedChart) => void;
   handleNextChart: () => void;
@@ -173,6 +180,7 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     setBoxplotFactor,
     paretoFactor: base.paretoFactor,
     setParetoFactor,
+    allFactors: base.allFactors,
     focusedChart,
     setFocusedChart,
     handleNextChart,

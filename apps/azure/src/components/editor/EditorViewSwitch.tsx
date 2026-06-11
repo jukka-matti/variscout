@@ -505,6 +505,7 @@ function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.R
         categoricalValuesByColumn={filteredCategoricalValuesByColumn}
         binnedFactorBindings={workspaceProject?.binnedFactorBindings ?? undefined}
         onBindingsChange={workspaceProject ? handleBinningBindingsChange : undefined}
+        scopeProjectId={workspaceProject?.id ?? 'general-unassigned'}
         onOpenWall={() => {
           useCanvasViewportStore.getState().setViewMode('wall');
           usePanelsStore.getState().showAnalyze();

@@ -18,6 +18,7 @@ import {
   CaptureCard,
   DashboardLayoutBase,
   DashboardChartCard,
+  FactorStripBase,
   FocusedViewOverlay,
   CapabilityMetricToggle,
   SubgroupConfigPopover,
@@ -47,9 +48,17 @@ import {
   buildValueBandDerivedColumn,
   applyDerivedFactorToFilters,
   resolveDerivedFactorName,
+  useFactorStripModel,
+  matchActiveScopeId,
   type CaptureDraft,
 } from '@variscout/hooks';
-import { usePreferencesStore, useProjectStore, useViewStore } from '@variscout/stores';
+import {
+  usePreferencesStore,
+  useProjectStore,
+  useViewStore,
+  useAnalyzeStore,
+  useAnalysisScopeStore,
+} from '@variscout/stores';
 import {
   useFilteredData,
   useAnalysisStats,
@@ -67,6 +76,7 @@ import {
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
   timeLensIndices,
+  DEFAULT_PROCESS_HUB_ID,
   type SpecLimits,
   type Finding,
   type IChartDataPoint,
@@ -119,6 +129,13 @@ interface DashboardProps {
     title: string;
     labels: WorkspaceProjectScopeLabels;
   } | null;
+  /**
+   * Project-id key the scope what-if write-through matches against. MUST mirror
+   * the value AnalyzeView stores scopes under (`String(canvasViewportHubId)` in
+   * App.tsx) — re-deriving it here drifts from that key (sessionHub is a
+   * randomUUID in the normal paste flow). Absent → falls back to the sentinel.
+   */
+  scopeProjectId?: string;
   onOpenWall?: () => void;
 }
 
@@ -142,6 +159,7 @@ const Dashboard = ({
   onExportVrs,
   onExportImage: _onExportImage,
   requestedFactor,
+  scopeProjectId = DEFAULT_PROCESS_HUB_ID,
   onOpenWall,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding, onOpenFinding } =
@@ -275,6 +293,7 @@ const Dashboard = ({
     availableStageColumns,
     anovaResult,
     boxplotData,
+    allFactors,
     // Filter navigation state
     filterStack,
     clearFilters,
@@ -780,6 +799,77 @@ const Dashboard = ({
         }
       : undefined;
 
+  // ── ER-2 Factor strip ──────────────────────────────────────────────────────
+  // Ranks every candidate factor by cardinality-penalised share of variation over
+  // the SAME rows + outcome the rendered Variation Sources boxplot uses
+  // (effectiveData / effectiveOutcome), so the strip and the comparison agree.
+  // bindings: the PWA Dashboard has no live ImprovementProject handle (binnings
+  // live on the IP, not threaded here) → undefined; D11 still keys off the
+  // `${outcome}_bin` name convention. The strip is hidden when the model is null.
+  const stripModel = useFactorStripModel({
+    rows: effectiveData,
+    outcome: effectiveOutcome,
+    allFactors,
+    selectedFactors: effectiveFactors,
+    specs: effectiveSpecs,
+    bindings: undefined,
+  });
+
+  // Examined keys are stored `${outcome}::${factor}`; the component takes a
+  // factor-name Set for the active outcome — project it here.
+  const examinedFactors = useViewStore(s => s.examinedFactors);
+  const markFactorExamined = useViewStore(s => s.markFactorExamined);
+  const examinedFactorNames = useMemo(() => {
+    const prefix = `${effectiveOutcome ?? ''}::`;
+    const names = new Set<string>();
+    examinedFactors.forEach(key => {
+      if (key.startsWith(prefix)) names.add(key.slice(prefix.length));
+    });
+    return names;
+  }, [examinedFactors, effectiveOutcome]);
+
+  const isDrilling = Object.keys(filters ?? {}).length > 0;
+
+  // Scope what-if write-through: when a chip is selected AND the live drill
+  // matches an EXISTING ProblemStatementScope, refresh that scope's stored
+  // what-if number. NEVER creates a scope (ER-4 owns creation). The drill source
+  // is analysisScopeStore.categoricalFilters (the canonical scope-drill bridge),
+  // keyed by `scopeProjectId` — threaded from App.tsx as String(canvasViewportHubId)
+  // so it mirrors the key AnalyzeView stores scopes under (NOT re-derived here:
+  // sessionHub.id is a randomUUID in the normal paste flow, which would miss).
+  const maybeRefreshScopeWhatIf = useCallback(() => {
+    const scopeId = matchActiveScopeId({
+      categoricalFilters: useAnalysisScopeStore.getState().categoricalFilters,
+      outcome: effectiveOutcome,
+      scopeProjectId,
+      scopes: useAnalyzeStore.getState().scopes,
+    });
+    if (scopeId) useAnalyzeStore.getState().recomputeScopeWhatIf(scopeId);
+  }, [effectiveOutcome, scopeProjectId]);
+
+  const factorStripNode =
+    stripModel && effectiveOutcome ? (
+      <FactorStripBase
+        chips={stripModel.chips}
+        residualPct={stripModel.residualPct}
+        selectedFactor={boxplotFactor}
+        examinedKeys={examinedFactorNames}
+        isScoped={isDrilling}
+        cpkTarget={
+          resolveCpkTarget(effectiveOutcome, {
+            measureSpecs,
+            projectCpkTarget: cpkTarget,
+          }).value
+        }
+        outcomeLabel={columnAliases[effectiveOutcome] ?? effectiveOutcome}
+        onFactorSelect={f => {
+          setBoxplotFactor(f);
+          markFactorExamined(effectiveOutcome, f);
+          maybeRefreshScopeWhatIf();
+        }}
+      />
+    ) : undefined;
+
   if (!effectiveOutcome) return null;
 
   // Embed Focus Mode - render only the specified chart (for iframe embeds)
@@ -989,6 +1079,7 @@ const Dashboard = ({
       <DashboardLayoutBase
         outcome={effectiveOutcome}
         factors={effectiveFactors}
+        factorStrip={factorStripNode}
         columnAliases={columnAliases}
         filters={filters}
         showFilterContext={displayOptions.showFilterContext !== false}

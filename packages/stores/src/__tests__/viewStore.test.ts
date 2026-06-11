@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { useViewStore } from '../viewStore';
+import { useViewStore, examinedFactorKey } from '../viewStore';
 
 beforeEach(() => {
   useViewStore.setState(useViewStore.getInitialState());
@@ -103,5 +103,54 @@ describe('useViewStore — relocation assertions (ADR-085 / IM-1)', () => {
   it('does not own expandedQuestionId (Questions retired in ADR-085)', () => {
     const state = useViewStore.getState() as unknown as Record<string, unknown>;
     expect('expandedQuestionId' in state).toBe(false);
+  });
+});
+
+describe('useViewStore — factor strip examined-state (ER-2)', () => {
+  it('initialises examinedFactors to an empty Set', () => {
+    expect(useViewStore.getState().examinedFactors.size).toBe(0);
+  });
+
+  it('markFactorExamined adds the `${outcome}::${factor}` key', () => {
+    useViewStore.getState().markFactorExamined('CycleTime', 'Shift');
+    const { examinedFactors } = useViewStore.getState();
+    expect(examinedFactors.has(examinedFactorKey('CycleTime', 'Shift'))).toBe(true);
+    expect(examinedFactors.has('CycleTime::Shift')).toBe(true);
+    expect(examinedFactors.size).toBe(1);
+  });
+
+  it('keys are scoped per outcome — same factor under two outcomes coexist', () => {
+    useViewStore.getState().markFactorExamined('CycleTime', 'Shift');
+    useViewStore.getState().markFactorExamined('Defects', 'Shift');
+    const { examinedFactors } = useViewStore.getState();
+    expect(examinedFactors.size).toBe(2);
+    expect(examinedFactors.has('CycleTime::Shift')).toBe(true);
+    expect(examinedFactors.has('Defects::Shift')).toBe(true);
+  });
+
+  it('markFactorExamined is idempotent and preserves Set identity on re-mark', () => {
+    useViewStore.getState().markFactorExamined('CycleTime', 'Shift');
+    const first = useViewStore.getState().examinedFactors;
+    useViewStore.getState().markFactorExamined('CycleTime', 'Shift');
+    const second = useViewStore.getState().examinedFactors;
+    expect(second.size).toBe(1);
+    // Re-marking an existing key must not allocate a new Set (memo-stable).
+    expect(second).toBe(first);
+  });
+
+  it('clearExaminedFactors empties only the examined set', () => {
+    useViewStore.getState().markFactorExamined('CycleTime', 'Shift');
+    useViewStore.getState().setSelectedPoints(new Set([1, 2]));
+    useViewStore.getState().clearExaminedFactors();
+    expect(useViewStore.getState().examinedFactors.size).toBe(0);
+    expect(useViewStore.getState().selectedPoints.size).toBe(2);
+  });
+
+  it('clearTransientSelections also clears examinedFactors (loadProject / newProject reset path)', () => {
+    useViewStore.getState().markFactorExamined('CycleTime', 'Shift');
+    useViewStore.getState().markFactorExamined('CycleTime', 'Line');
+    expect(useViewStore.getState().examinedFactors.size).toBe(2);
+    useViewStore.getState().clearTransientSelections();
+    expect(useViewStore.getState().examinedFactors.size).toBe(0);
   });
 });

@@ -33,6 +33,13 @@ export interface UseDashboardChartsResult {
   setBoxplotFactor: (factor: string) => void;
   paretoFactor: string;
   setParetoFactor: (factor: string) => void;
+  /**
+   * ER-2: merged candidate factor columns (framing-selected + every other
+   * derived/raw column) from useDashboardChartsBase — fed to useFactorStripModel.
+   * Re-exposed here (the wrapper spreads `...base`, but the interface must
+   * declare it for tsc).
+   */
+  allFactors: string[];
   focusedChart: ReturnType<typeof useFocusMode>['focusedChart'];
   setFocusedChart: ReturnType<typeof useFocusMode>['setFocusedChart'];
   handleNextChart: () => void;

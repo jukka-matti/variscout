@@ -396,6 +396,7 @@ function AppReportView({ props }: { props: AppViewSwitchProps }): React.ReactEle
 
 function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactElement {
   const {
+    canvasViewportHubId,
     chartFindings,
     embedFocusChart,
     embedStatsTab,
@@ -436,6 +437,7 @@ function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactEl
       onPinFinding={handlePinFinding}
       requestedFactor={workspaceProjectAnalyzeFactorRequest}
       workspaceProjectScope={workspaceProjectScope}
+      scopeProjectId={canvasViewportHubId != null ? String(canvasViewportHubId) : undefined}
       onOpenWall={() => {
         useCanvasViewportStore.getState().setViewMode('wall');
         panels.showAnalyze();

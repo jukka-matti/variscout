@@ -76,6 +76,13 @@ interface EditorDashboardViewProps {
   binnedFactorBindings?: BinnedFactorBinding[];
   /** G1 Task 7: synchronous patch handler for `binnedFactorBindings`. */
   onBindingsChange?: (next: BinnedFactorBinding[]) => void;
+  /**
+   * ER-2: the active scope project id (Workspace Project id, or the
+   * 'general-unassigned' sentinel). Used by the factor strip to refresh an
+   * existing scope's what-if number — must match the id scopes are stored
+   * under (the same value AnalyzeWorkspace receives).
+   */
+  scopeProjectId?: string;
   onOpenWall?: () => void;
 }
 
@@ -105,6 +112,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   categoricalValuesByColumn,
   binnedFactorBindings,
   onBindingsChange,
+  scopeProjectId,
   onOpenWall,
 }) => {
   // ── Store selectors ──────────────────────────────────────────────────────
@@ -199,6 +207,7 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           categoricalValuesByColumn={categoricalValuesByColumn}
           binnedFactorBindings={binnedFactorBindings}
           onBindingsChange={onBindingsChange}
+          scopeProjectId={scopeProjectId}
         />
 
         {/* AI onboarding tooltip */}

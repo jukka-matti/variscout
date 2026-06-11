@@ -299,6 +299,9 @@ export {
   type FactorStripWhatIf,
 } from './useFactorStripModel';
 
+// Scope match (ER-2 — shared drill→scope lookup for the strip's what-if refresh)
+export { matchActiveScopeId, type MatchActiveScopeArgs } from './matchActiveScope';
+
 // Factor list utilities (G1 Task 4 — derived categorical column support)
 export {
   buildFactorList,
