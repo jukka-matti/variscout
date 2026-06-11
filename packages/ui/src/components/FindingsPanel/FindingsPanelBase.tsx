@@ -8,6 +8,8 @@ import {
   List,
   LayoutGrid,
   User,
+  Download,
+  ArrowRight,
 } from 'lucide-react';
 import type {
   Finding,
@@ -121,6 +123,14 @@ export interface FindingsPanelBaseProps {
   linkedFindings?: Array<{ id: string; text: string }>;
   /** Optional Azure-only voice input that transcribes into finding/comment editors */
   voiceInput?: VoiceInputConfig;
+  /** Mark a finding as supporting evidence for the selected hypothesis. */
+  onMarkSupport?: (findingId: string) => void;
+  /** Mark a finding as evidence that counts against the selected hypothesis. */
+  onMarkCounter?: (findingId: string) => void;
+  /** Export the current evidence package. */
+  onExportFindings?: () => void;
+  /** Carry captured evidence to Analyze. */
+  onTakeToAnalyze?: () => void;
 }
 
 const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
@@ -173,11 +183,16 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   synthesis,
   linkedFindings,
   voiceInput,
+  onMarkSupport,
+  onMarkCounter,
+  onExportFindings,
+  onTakeToAnalyze,
 }) => {
   const { t, formatStat } = useTranslation();
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [coScoutExpanded, setCoScoutExpanded] = useState(false);
   const [localViewMode, setLocalViewMode] = useState<'list' | 'board'>('list');
+  const [activeTab, setActiveTab] = useState<'findings' | 'journal'>('findings');
   const viewMode = externalViewMode ?? localViewMode;
   const [showAssignedToMe, setShowAssignedToMe] = useState(false);
 
@@ -330,42 +345,104 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           </div>
         </div>
 
+        <div className="flex border-b border-edge px-3" role="tablist" aria-label="Findings drawer">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'findings'}
+            className={`px-3 py-2 text-xs font-medium ${
+              activeTab === 'findings'
+                ? 'border-b-2 border-blue-400 text-content'
+                : 'text-content-muted hover:text-content-secondary'
+            }`}
+            onClick={() => setActiveTab('findings')}
+          >
+            Findings
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'journal'}
+            className={`px-3 py-2 text-xs font-medium ${
+              activeTab === 'journal'
+                ? 'border-b-2 border-blue-400 text-content'
+                : 'text-content-muted hover:text-content-secondary'
+            }`}
+            onClick={() => setActiveTab('journal')}
+          >
+            Journal
+          </button>
+        </div>
+
         {/* Findings list/board */}
-        <FindingsLog
-          findings={displayFindings}
-          onEditFinding={onEditFinding}
-          onDeleteFinding={onDeleteFinding}
-          onRestoreFinding={onRestoreFinding}
-          onSetFindingStatus={onSetFindingStatus}
-          onSetFindingTag={onSetFindingTag}
-          onSetFindingEvidenceType={onSetFindingEvidenceType}
-          onAddComment={onAddComment}
-          onEditComment={onEditComment}
-          onDeleteComment={onDeleteComment}
-          onAddPhoto={onAddPhoto}
-          onCaptureFromTeams={onCaptureFromTeams}
-          showAuthors={showAuthors}
-          columnAliases={columnAliases}
-          activeFindingId={activeFindingId}
-          onShareFinding={onShareFinding}
-          onAssignFinding={onAssignFinding}
-          renderAssignSlot={renderAssignSlot}
-          onNavigateToChart={onNavigateToChart}
-          viewMode={viewMode}
-          maxStatuses={maxStatuses}
-          onAddAction={onAddAction}
-          onCompleteAction={onCompleteAction}
-          onDeleteAction={onDeleteAction}
-          onPromoteAction={onPromoteAction}
-          originStepNameByFindingId={originStepNameByFindingId}
-          onSetOutcome={onSetOutcome}
-          renderActionAssigneePicker={renderActionAssigneePicker}
-          onAskCoScoutAboutFinding={onAskCoScoutAboutFinding}
-          projectedCpkMap={projectedCpkMap}
-          synthesis={synthesis}
-          linkedFindings={linkedFindings}
-          voiceInput={voiceInput}
-        />
+        {activeTab === 'findings' ? (
+          <FindingsLog
+            findings={displayFindings}
+            onEditFinding={onEditFinding}
+            onDeleteFinding={onDeleteFinding}
+            onRestoreFinding={onRestoreFinding}
+            onSetFindingStatus={onSetFindingStatus}
+            onSetFindingTag={onSetFindingTag}
+            onSetFindingEvidenceType={onSetFindingEvidenceType}
+            onAddComment={onAddComment}
+            onEditComment={onEditComment}
+            onDeleteComment={onDeleteComment}
+            onAddPhoto={onAddPhoto}
+            onCaptureFromTeams={onCaptureFromTeams}
+            showAuthors={showAuthors}
+            columnAliases={columnAliases}
+            activeFindingId={activeFindingId}
+            onShareFinding={onShareFinding}
+            onAssignFinding={onAssignFinding}
+            renderAssignSlot={renderAssignSlot}
+            onNavigateToChart={onNavigateToChart}
+            viewMode={viewMode}
+            maxStatuses={maxStatuses}
+            onAddAction={onAddAction}
+            onCompleteAction={onCompleteAction}
+            onDeleteAction={onDeleteAction}
+            onPromoteAction={onPromoteAction}
+            originStepNameByFindingId={originStepNameByFindingId}
+            onSetOutcome={onSetOutcome}
+            renderActionAssigneePicker={renderActionAssigneePicker}
+            onAskCoScoutAboutFinding={onAskCoScoutAboutFinding}
+            projectedCpkMap={projectedCpkMap}
+            synthesis={synthesis}
+            linkedFindings={linkedFindings}
+            voiceInput={voiceInput}
+            onMarkSupport={onMarkSupport}
+            onMarkCounter={onMarkCounter}
+          />
+        ) : (
+          <div
+            className="flex-1 overflow-y-auto px-4 py-3 text-xs text-content-muted"
+            data-testid="findings-journal-tab"
+          >
+            Journal records session actions automatically. Findings are the captured evidence
+            objects that travel to Analyze.
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 border-t border-edge px-3 py-2">
+          <button
+            type="button"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded border border-edge bg-surface px-2 py-1.5 text-xs text-content-secondary hover:text-content"
+            onClick={onExportFindings}
+            aria-label="Export .vrs"
+          >
+            <Download size={12} />
+            Export .vrs
+          </button>
+          <button
+            type="button"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded bg-blue-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-blue-500"
+            onClick={onTakeToAnalyze}
+            aria-label="Take it to Analyze"
+          >
+            Take it to Analyze
+            <ArrowRight size={12} />
+          </button>
+        </div>
 
         {/* CoScout inline (Azure only) */}
         {coScoutMessages && coScoutOnSend && (

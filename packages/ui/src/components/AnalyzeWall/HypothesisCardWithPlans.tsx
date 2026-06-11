@@ -21,6 +21,7 @@ import React, { useState } from 'react';
 import type {
   Finding,
   ActionItem,
+  FindingAssignee,
   ImprovementIdea,
   IdeaImpact,
   HypothesisStatus,
@@ -64,7 +65,7 @@ const STALLED_ACTIVITY_H = 84;
 /** Height of one ActionItem task row in the foreignObject (px). */
 const ACTION_ROW_H = 32;
 /** Height of the inline add-task form (px). */
-const ADD_TASK_FORM_H = 72;
+const ADD_TASK_FORM_H = 108;
 /** Height of the + Add Plan button row (px). */
 const ADD_BTN_H = 32;
 /** Height of the expanded disconfirmation form (description + verdict + actions). */
@@ -194,7 +195,7 @@ export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
    * Receives (hypothesisId, text, assignee?). Parent dispatches HYPOTHESIS_ACTION_ADD.
    * When omitted, the "+ Add Task" button is not rendered.
    */
-  onAddHypothesisAction?: (hypothesisId: string, text: string) => void;
+  onAddHypothesisAction?: (hypothesisId: string, text: string, assignee?: FindingAssignee) => void;
   /**
    * Task 3 (IM-4b) — called when the user clicks "Mark Done" on an open action item.
    * Receives (hypothesisId, actionId). Parent dispatches HYPOTHESIS_ACTION_COMPLETE.
@@ -443,6 +444,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   // Add Task form state (Task 3 IM-4b)
   const [addTaskFormOpen, setAddTaskFormOpen] = useState(false);
   const [taskText, setTaskText] = useState('');
+  const [taskAssigneeUserId, setTaskAssigneeUserId] = useState('');
   // FE-2b — per-factor "Try to break it" toggle + the optional premortem
   // prediction. Keyed by factor column so each triad row owns its own gesture.
   const [breakItByFactor, setBreakItByFactor] = useState<Record<string, boolean>>({});
@@ -1163,6 +1165,24 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     autoFocus
                   />
                 </label>
+                {members.length > 0 && (
+                  <label className="block text-xs font-medium text-gray-700">
+                    Assignee
+                    <select
+                      aria-label="Assignee"
+                      className="mt-1 w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                      value={taskAssigneeUserId}
+                      onChange={e => setTaskAssigneeUserId(e.target.value)}
+                    >
+                      <option value="">Unassigned</option>
+                      {members.map(member => (
+                        <option key={member.id} value={member.userId}>
+                          {member.displayName}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -1170,8 +1190,18 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     disabled={taskText.trim().length === 0}
                     onClick={() => {
                       if (onAddHypothesisAction && taskText.trim()) {
-                        onAddHypothesisAction(cardProps.hub.id, taskText.trim());
+                        const assignee = members.find(
+                          member => member.userId === taskAssigneeUserId
+                        );
+                        onAddHypothesisAction(
+                          cardProps.hub.id,
+                          taskText.trim(),
+                          assignee
+                            ? { upn: assignee.userId, displayName: assignee.displayName }
+                            : undefined
+                        );
                         setTaskText('');
+                        setTaskAssigneeUserId('');
                         setAddTaskFormOpen(false);
                       }
                     }}
@@ -1184,6 +1214,7 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
                     onClick={() => {
                       setAddTaskFormOpen(false);
                       setTaskText('');
+                      setTaskAssigneeUserId('');
                     }}
                   >
                     {getMessage(locale, 'wall.task.cancel')}

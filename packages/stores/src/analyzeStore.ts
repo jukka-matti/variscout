@@ -53,6 +53,7 @@ import {
   insertHubAsAndChild,
   type GatePath,
 } from '@variscout/core';
+import { deriveConditionFromFindingSource } from '@variscout/core/findings';
 import { computeScopeWhatIfProjection } from '@variscout/core/variation';
 
 export const STORE_LAYER = 'document' as const;
@@ -63,6 +64,16 @@ type HypothesisUpdate = Partial<
     'name' | 'synthesis' | 'status' | 'nextMove' | 'counterFindingIds' | 'supersededByHypothesisId'
   >
 >;
+
+function findConditionColumnForCategory(
+  activeFilters: FindingContext['activeFilters'],
+  category: string
+): string | undefined {
+  const match = Object.entries(activeFilters).find(([, values]) =>
+    values.some(value => String(value) === category)
+  );
+  return match?.[0];
+}
 
 // ============================================================================
 // State + Actions
@@ -427,6 +438,10 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     // signature untouched. Optional + back-compat: omit → the field stays absent.
     const finding = {
       ...base,
+      context: {
+        ...base.context,
+        ...(context.yColumn ? { yColumn: context.yColumn } : {}),
+      },
       ...(scopeId ? { scopeId } : {}),
       ...(originStepId ? { originStepId } : {}),
       ...(evidenceType ? { evidenceType } : {}),
@@ -886,7 +901,29 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     if (!finding) return null;
     const excerpt = finding.text.trim().slice(0, 80);
     const name = excerpt.length > 0 ? `Suspected cause: ${excerpt}` : 'New suspected cause';
-    const hub = createHypothesis(name, '', [findingId]);
+    const condition = finding.source
+      ? deriveConditionFromFindingSource(finding.source, {
+          groupColumn:
+            finding.source.chart === 'boxplot'
+              ? findConditionColumnForCategory(
+                  finding.context.activeFilters,
+                  finding.source.category
+                )
+              : undefined,
+          dimensionColumn:
+            finding.source.chart === 'pareto'
+              ? findConditionColumnForCategory(
+                  finding.context.activeFilters,
+                  finding.source.category
+                )
+              : undefined,
+          metricColumn:
+            finding.source.chart === 'ichart' || finding.source.chart === 'probability'
+              ? finding.context.yColumn
+              : undefined,
+        })
+      : undefined;
+    const hub = { ...createHypothesis(name, '', [findingId]), condition };
     set(state => ({ hypotheses: [...state.hypotheses, hub] }));
     return hub;
   },

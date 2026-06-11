@@ -189,7 +189,7 @@ describe('WallCanvas', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /What might cause this\?/i }));
 
-    const input = screen.getByLabelText(/What might cause this\?/i);
+    const input = screen.getByLabelText(/Why do you think this happens\?/i);
     expect(input).toHaveValue('');
     expect(screen.getByRole('button', { name: /Create hypothesis/i })).toBeDisabled();
 

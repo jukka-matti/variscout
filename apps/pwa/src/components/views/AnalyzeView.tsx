@@ -333,6 +333,10 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // the Minimap + command palette use. Gated on `wallViewMode === 'wall'`.
   const focusedWallEntityId = useViewStore(s => s.focusedWallEntityId);
   const setFocusedWallEntity = useViewStore(s => s.setFocusedWallEntity);
+  const focusedHub = useMemo(
+    () => hubs.find(h => h.id === focusedWallEntityId),
+    [focusedWallEntityId, hubs]
+  );
   useEffect(() => {
     if (wallViewMode !== 'wall') return;
     if (!focusedWallEntityId) return;
@@ -361,6 +365,34 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     const hub = store.createHub(name, '');
     store.connectFindingToHub(hub.id, findingId);
   }, []);
+
+  const handleMarkFindingSupport = useCallback(
+    (findingId: string) => {
+      if (!focusedHub) return;
+      const store = useAnalyzeStore.getState();
+      store.connectFindingToHub(focusedHub.id, findingId);
+      store.setFindingValidation(findingId, 'supports', false);
+    },
+    [focusedHub]
+  );
+
+  const handleMarkFindingCounter = useCallback(
+    (findingId: string) => {
+      if (!focusedHub) return;
+      const store = useAnalyzeStore.getState();
+      const existingCounter = focusedHub.counterFindingIds ?? [];
+      if (!existingCounter.includes(findingId)) {
+        store.updateHub(focusedHub.id, {
+          counterFindingIds: [...existingCounter, findingId],
+        });
+      }
+      if (!focusedHub.findingIds.includes(findingId)) {
+        store.connectFindingToHub(focusedHub.id, findingId);
+      }
+      store.setFindingValidation(findingId, 'contradicts', false);
+    },
+    [focusedHub]
+  );
 
   // AW-9 — carry active categorical WHERE into analysisScopeStore +
   // projectStore.filters so Explore charts and chrome align. Numeric ranges
@@ -968,6 +1000,8 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 onPromoteAction={onPromoteFindingAction}
                 originStepNameByFindingId={originStepNameByFindingId}
                 onSetOutcome={useAnalyzeStore.getState().setFindingOutcome}
+                onMarkSupport={focusedHub ? handleMarkFindingSupport : undefined}
+                onMarkCounter={focusedHub ? handleMarkFindingCounter : undefined}
               />
             </div>
           )}

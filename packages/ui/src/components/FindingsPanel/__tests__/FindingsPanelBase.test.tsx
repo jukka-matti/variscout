@@ -40,6 +40,10 @@ vi.mock('lucide-react', () => ({
   List: ({ size }: { size?: number }) => <span data-testid="icon-list" data-size={size} />,
   LayoutGrid: ({ size }: { size?: number }) => <span data-testid="icon-grid" data-size={size} />,
   GitBranch: ({ size }: { size?: number }) => <span data-testid="icon-branch" data-size={size} />,
+  Download: ({ size }: { size?: number }) => <span data-testid="icon-download" data-size={size} />,
+  ArrowRight: ({ size }: { size?: number }) => (
+    <span data-testid="icon-arrow-right" data-size={size} />
+  ),
 }));
 
 import { FindingsPanelBase, type FindingsPanelBaseProps } from '../FindingsPanelBase';
@@ -115,6 +119,27 @@ describe('FindingsPanelBase', () => {
     expect(screen.getByTestId('grip')).toBeTruthy();
     expect(screen.getByText('panel.findings')).toBeTruthy();
     expect(screen.getByTestId('findings-log')).toBeTruthy();
+  });
+
+  it('renders Findings and Journal tabs plus Explore drawer footer actions', () => {
+    const onExportFindings = vi.fn();
+    const onTakeToAnalyze = vi.fn();
+    render(
+      <FindingsPanelBase
+        {...defaultProps}
+        onExportFindings={onExportFindings}
+        onTakeToAnalyze={onTakeToAnalyze}
+      />
+    );
+
+    expect(screen.getByRole('tab', { name: /findings/i })).toBeTruthy();
+    fireEvent.click(screen.getByRole('tab', { name: /journal/i }));
+    expect(screen.getByTestId('findings-journal-tab')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: /export \.vrs/i }));
+    fireEvent.click(screen.getByRole('button', { name: /take it to analyze/i }));
+    expect(onExportFindings).toHaveBeenCalledOnce();
+    expect(onTakeToAnalyze).toHaveBeenCalledOnce();
   });
 
   it('shows count badge when findings exist', () => {

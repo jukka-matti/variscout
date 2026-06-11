@@ -442,6 +442,8 @@ export interface WindowContext {
 export interface FindingContext {
   /** Active filters at time of capture: factor → selected values */
   activeFilters: Record<string, (string | number)[]>;
+  /** Active outcome/Y column at time of capture. */
+  yColumn?: string;
   /** Cumulative variation % in focus (0–100), or null if no filters */
   cumulativeScope: number | null;
   /** Key statistics at time of capture */

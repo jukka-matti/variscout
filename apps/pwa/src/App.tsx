@@ -1206,8 +1206,12 @@ function AppMain() {
         useAnalyzeStore.getState().deleteHubComment(hubId, commentId),
       showCommentAuthors: wallWorkspaceProjectMembers.length > 0,
       // IM-4b Task 3 — ActionItem tasks
-      onAddHypothesisAction: (hypothesisId: string, text: string) => {
-        useAnalyzeStore.getState().addHypothesisAction(hypothesisId, text);
+      onAddHypothesisAction: (
+        hypothesisId: string,
+        text: string,
+        assignee?: import('@variscout/core').FindingAssignee
+      ) => {
+        useAnalyzeStore.getState().addHypothesisAction(hypothesisId, text, assignee);
       },
       onCompleteHypothesisAction: (hypothesisId: string, actionId: string) =>
         useAnalyzeStore.getState().completeHypothesisAction(hypothesisId, actionId),
@@ -1612,6 +1616,8 @@ function AppMain() {
                 activeFindingId={highlightedFindingId}
                 onPopout={handleOpenFindingsPopout}
                 maxStatuses={3}
+                onExportFindings={handleExportVrs}
+                onTakeToAnalyze={panels.showAnalyze}
               />
             )}
         </Suspense>
