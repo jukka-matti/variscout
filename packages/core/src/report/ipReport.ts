@@ -38,6 +38,7 @@ export interface IPReportScopeInput {
 export interface IPReportScope {
   hypotheses: Hypothesis[];
   findings: Finding[];
+  orphanFindings: Finding[];
   controlRecord?: ControlRecord;
   controlReviews: ControlReview[];
   controlHandoff?: ControlHandoff;
@@ -47,6 +48,13 @@ export interface IPReportOverviewSection {
   title: IPReportOverviewSectionTitle;
   items: string[];
 }
+
+export type IPReportOverviewSectionStatus = 'done' | 'active' | 'future';
+
+export const IP_REPORT_EMPTY_FOUND_DONE_LINE =
+  'No findings, actions, or suspected causes have been recorded for this report yet.';
+
+export const IP_REPORT_ORPHAN_FINDING_PREFIX = 'Findings not yet attached to a suspected cause';
 
 export interface IPCauseRow {
   hypothesisId: Hypothesis['id'];
@@ -70,6 +78,15 @@ function reportFindingIds(ip: ImprovementProject, hypotheses: readonly Hypothesi
     for (const id of hypothesis.counterFindingIds ?? []) ids.add(id);
   }
   return ids;
+}
+
+function orphanReportFindings(input: {
+  ip: ImprovementProject;
+  hypotheses: readonly Hypothesis[];
+  findings: readonly Finding[];
+}): Finding[] {
+  const linkedIds = reportFindingIds(input.ip, input.hypotheses);
+  return input.findings.filter(finding => !linkedIds.has(finding.id));
 }
 
 function selectControlRecord(
@@ -104,14 +121,20 @@ export function selectIPReportScope(input: IPReportScopeInput): IPReportScope {
   // (narrative / tested-and-excluded / open questions per its status).
   const hypotheses = [...input.hypotheses];
   const findingIds = reportFindingIds(input.ip, hypotheses);
-  const findings = input.findings.filter(finding => findingIds.has(finding.id));
+  const linkedFindings = input.findings.filter(finding => findingIds.has(finding.id));
+  const orphanFindings = orphanReportFindings({
+    ip: input.ip,
+    hypotheses,
+    findings: input.findings,
+  });
+  const findings = [...linkedFindings, ...orphanFindings];
   const controlRecord = selectControlRecord(input.ip, input.controlRecords);
   const controlReviews = (input.controlReviews ?? [])
     .filter(review => review.deletedAt === null && review.recordId === controlRecord?.id)
     .sort((a, b) => a.reviewedAt - b.reviewedAt);
   const controlHandoff = selectControlHandoff(input.ip, input.controlHandoffs, controlRecord);
 
-  return { hypotheses, findings, controlRecord, controlReviews, controlHandoff };
+  return { hypotheses, findings, orphanFindings, controlRecord, controlReviews, controlHandoff };
 }
 
 function selectedIdeaText(hypothesis: Hypothesis): string | undefined {
@@ -144,6 +167,23 @@ function verificationLabel(record?: ControlRecord, reviews: readonly ControlRevi
   if (record.status === 'confirmed-sustained') return 'Control confirmed sustained';
   if (record.status === 'drifted') return 'Control analyst-marked drift';
   return 'Control verifying';
+}
+
+function foundAndDoneItems(input: {
+  ip: ImprovementProject;
+  hypotheses: readonly Hypothesis[];
+  findings: readonly Finding[];
+  causeRows: readonly IPCauseRow[];
+}): string[] {
+  const causeItems = input.causeRows.map(row => {
+    const idea = row.selectedIdea ? ` Tried: ${row.selectedIdea}.` : '';
+    return `${row.title}: ${row.synthesis}${idea}`;
+  });
+  const orphanItems = orphanReportFindings(input).map(
+    finding => `${IP_REPORT_ORPHAN_FINDING_PREFIX}: ${humanizeReportFindingLabel(finding)}`
+  );
+  const items = [...causeItems, ...orphanItems];
+  return items.length > 0 ? items : [IP_REPORT_EMPTY_FOUND_DONE_LINE];
 }
 
 function reportCauseTitle(hypothesis: Hypothesis, findings: readonly Finding[]): string {
@@ -328,9 +368,11 @@ export function deriveIPReportNarrative(input: {
     },
     {
       title: 'What we found + what we did',
-      items: causeRows.map(row => {
-        const idea = row.selectedIdea ? ` Tried: ${row.selectedIdea}.` : '';
-        return `${row.title}: ${row.synthesis}${idea}`;
+      items: foundAndDoneItems({
+        ip: input.ip,
+        hypotheses: input.hypotheses,
+        findings: input.findings,
+        causeRows,
       }),
     },
     {
@@ -355,4 +397,23 @@ export function deriveIPReportNarrative(input: {
       ],
     },
   ];
+}
+
+function sectionHasReportContent(section: IPReportOverviewSection): boolean {
+  return section.items.some(item => item !== IP_REPORT_EMPTY_FOUND_DONE_LINE);
+}
+
+export function deriveIPReportOverviewSectionStatuses(
+  sections: readonly IPReportOverviewSection[]
+): IPReportOverviewSectionStatus[] {
+  let activeAssigned = false;
+  return sections.map(section => {
+    if (sectionHasReportContent(section)) return 'done';
+    if (section.items.length > 0) return 'active';
+    if (!activeAssigned) {
+      activeAssigned = true;
+      return 'active';
+    }
+    return 'future';
+  });
 }

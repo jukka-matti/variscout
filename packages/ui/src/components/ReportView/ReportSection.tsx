@@ -78,6 +78,7 @@ export const ReportSection: React.FC<ReportSectionProps> = ({
       id={id}
       ref={sectionRef}
       data-report-section
+      data-report-status={status}
       className={`${scheme.container} ${borderClass} ${isFuture ? 'opacity-50' : ''}`}
     >
       {/* Header */}

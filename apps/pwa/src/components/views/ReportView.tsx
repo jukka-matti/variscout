@@ -35,6 +35,7 @@ import type {
 import {
   deriveIPCauseRows,
   deriveIPReportNarrative,
+  deriveIPReportOverviewSectionStatuses,
   formatFindingFilters,
   humanizeReportFindingLabel,
   selectIPReportScope,
@@ -197,11 +198,12 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   const plan4Sections = useMemo(() => {
     if (workspaceProject && reportAudienceMode === 'overview') {
+      const statuses = deriveIPReportOverviewSectionStatuses(ipNarrative);
       return ipNarrative.map((section, index) => ({
         id: `ip-overview-${index}`,
         stepNumber: index + 1,
         title: section.title,
-        status: 'done' as const,
+        status: statuses[index] ?? 'future',
         workspace:
           index <= 2
             ? ('analysis' as const)
@@ -285,8 +287,8 @@ const ReportView: React.FC<ReportViewProps> = ({
             sectionRef={ref}
           >
             <ul className="space-y-2">
-              {(overviewSection?.items ?? []).map(item => (
-                <li key={item} className="text-sm text-content-secondary">
+              {(overviewSection?.items ?? []).map((item, index) => (
+                <li key={`${sectionId}-${index}`} className="text-sm text-content-secondary">
                   {item}
                 </li>
               ))}

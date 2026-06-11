@@ -29,6 +29,7 @@ import {
 } from '@variscout/stores';
 import { createProblemStatementScope, buildConditionFromCategoricalFilters } from '@variscout/core';
 import type { FactorStripBaseProps, ModelDrawerBaseProps } from '@variscout/ui';
+import Dashboard from '../Dashboard';
 
 // Worker-free chart stubs (real charts need ResizeObserver, unavailable in jsdom).
 vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
@@ -45,6 +46,14 @@ vi.mock('../charts/ProbabilityPlot', () => ({
 vi.mock('../ProcessIntelligencePanel', () => ({
   default: () => <div data-testid="stats-panel">PI</div>,
 }));
+vi.mock('../PerformanceDashboard', () => ({
+  default: () => <div data-testid="performance-dashboard">Perf</div>,
+}));
+vi.mock('../MobileDashboard', () => ({
+  default: () => <div data-testid="mobile-dashboard">Mobile</div>,
+}));
+vi.mock('../settings/SpecEditor', () => ({ default: () => <div data-testid="spec-editor" /> }));
+vi.mock('html-to-image', () => ({ toBlob: vi.fn() }));
 
 vi.mock('../../workers/useStatsWorker', () => ({ useStatsWorker: () => null }));
 
@@ -139,7 +148,6 @@ describe('PWA Dashboard — factor strip wiring (ER-2)', () => {
   });
 
   it('passes the strip model to DashboardLayoutBase with a ranked chip', async () => {
-    const Dashboard = (await import('../Dashboard')).default;
     render(<Dashboard />);
     await flushRaf();
     expect(captured.factorStrip).toBeTruthy();
@@ -149,7 +157,6 @@ describe('PWA Dashboard — factor strip wiring (ER-2)', () => {
   });
 
   it('chip select rebinds the comparison factor + marks it examined', async () => {
-    const Dashboard = (await import('../Dashboard')).default;
     const { getByTestId } = render(<Dashboard />);
     await flushRaf();
 
@@ -177,7 +184,6 @@ describe('PWA Dashboard — factor strip wiring (ER-2)', () => {
 
     const spy = vi.spyOn(useAnalyzeStore.getState(), 'recomputeScopeWhatIf');
 
-    const Dashboard = (await import('../Dashboard')).default;
     const { getByTestId } = render(<Dashboard scopeProjectId={HUB_ID} />);
     await flushRaf();
 
@@ -194,7 +200,6 @@ describe('PWA Dashboard — factor strip wiring (ER-2)', () => {
 
     const spy = vi.spyOn(useAnalyzeStore.getState(), 'recomputeScopeWhatIf');
 
-    const Dashboard = (await import('../Dashboard')).default;
     const { getByTestId } = render(<Dashboard scopeProjectId={HUB_ID} />);
     await flushRaf();
 
@@ -220,7 +225,6 @@ describe('PWA Dashboard — factor strip wiring (ER-2)', () => {
 
     const spy = vi.spyOn(useAnalyzeStore.getState(), 'recomputeScopeWhatIf');
 
-    const Dashboard = (await import('../Dashboard')).default;
     const { getByTestId } = render(<Dashboard scopeProjectId={HUB_ID} />);
     await flushRaf();
 
@@ -236,7 +240,6 @@ describe('PWA Dashboard — factor strip wiring (ER-2)', () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   it('ER-3: clicking the ANOVA link opens the model drawer (testid present)', async () => {
-    const Dashboard = (await import('../Dashboard')).default;
     const { getByTestId } = render(<Dashboard />);
     await flushRaf();
 
@@ -251,7 +254,6 @@ describe('PWA Dashboard — factor strip wiring (ER-2)', () => {
   });
 
   it('ER-3: model drawer receives the same rows length and outcome as the strip', async () => {
-    const Dashboard = (await import('../Dashboard')).default;
     const { getByTestId } = render(<Dashboard />);
     await flushRaf();
 
@@ -263,7 +265,6 @@ describe('PWA Dashboard — factor strip wiring (ER-2)', () => {
   });
 
   it('ER-3: clicking × on the model drawer closes it', async () => {
-    const Dashboard = (await import('../Dashboard')).default;
     const { getByTestId, queryByTestId } = render(<Dashboard />);
     await flushRaf();
 
