@@ -1818,6 +1818,20 @@ ER-10's LTTB revival addresses the **dominant render cost** (SVG node count). Th
 
 **Severity:** low — no functional impact; the spec pointer would mislead a future implementer reading §5 in isolation.
 
+## Always-mounted-closed drawer runs `computeBestSubsets` eagerly on main thread — candidate optimization [LOGGED 2026-06-11]
+
+**Surfaced by:** ER-3 review — the drawer is mounted always-closed so the DOI-feed `onModelStats` callback stays live for glyph contribution weighting without the analyst opening the drawer.
+
+**Observation:** `ModelDrawerBase` runs `computeBestSubsets` (+ `buildSubsetIndex` + `selectVitalFew`) in a `useMemo` unconditionally — not gated on `open`. This is the trade that makes the glyph DOI weighting always-live. Previously `ModelBuilderBand` ran best-subsets only when the band was open. The regression is: every Analyze mount and every scope-drill now pays a best-subsets enumeration on the React main thread.
+
+**Bounded:** the enumeration is O(2^k) with k ≤ 10 factors, but in practice k ≤ 6 (Azure tier limit) → ≤ 63 OLS solves per mount. Desktop-only surface. Not observed as a perceptible lag in the ER-3 chrome-verify.
+
+**`computeBestSubsetsWorker` exists and is bypassed:** `packages/core/src/stats/bestSubsets.ts` ships a `computeBestSubsetsWorker` Web Worker wrapper (already used by the Explore charts path). The drawer does not use it — the worker path returns a Promise, and the `onModelStats` DOI feed has no async variant.
+
+**Candidate optimization:** if Analyze-mount profiling ever flags this — extract `computeBestSubsets` into a stable `useEffect` + worker call; update `onModelStats` to accept `Promise<ModelDrawerStats | null>`; or move the DOI computation to the Explore-charts worker result already computed upstream and pass it down as a prop. No action now; the perf profile is bounded and unobserved.
+
+**Severity:** low — bounded + unobserved. Revive trigger = Analyze-mount flame graph with k > 4 factors in a real user session.
+
 ## Band interactivity cut in the v1 read-only model drawer — ER-6 revival candidates [LOGGED 2026-06-11]
 
 **Surfaced by:** ER-3 settled-dispositions §"v1 drawer is read-only."
