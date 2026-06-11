@@ -1207,4 +1207,18 @@ export const da: MessageCatalog = {
   'canvas.localMechanism.handoff': 'Handoff',
   'canvas.localMechanism.controlAria': 'Open control for {column}',
   'canvas.localMechanism.handoffAria': 'Open handoff for {column}',
+  // ── Condition pill (ER-4) ──
+  'conditionPill.statDefault': 'x̄',
+  'conditionPill.summaryWithMeans':
+    '{gesture}{summary} · n={n} · {statLabel} {meanIn} vs {meanOut}',
+  'conditionPill.summaryNoMeans': '{gesture}{summary} · n={n}',
+  'conditionPill.capture': '✚ Capture finding',
+  'conditionPill.apply': 'view as condition →',
+  'conditionPill.ariaLabel': 'Condition: {summary}',
+  // ── Scope bar (ER-4) ──
+  'scopeBar.viewing': '⌖ Viewing condition:',
+  'scopeBar.rows': '{nIn} of {nTotal} rows',
+  'scopeBar.clear': '× back to all data',
+  'scopeBar.analyze': 'Take it to Analyze →',
+  'scopeBar.ariaLabel': 'Viewing condition: {label}',
 };
