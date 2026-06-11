@@ -1,9 +1,9 @@
 /**
  * Azure ParetoChart - Thin wrapper that connects stores to shared ParetoChartWrapperBase
  */
-import React, { useCallback } from 'react';
+import React from 'react';
 import { withParentSize } from '@visx/responsive';
-import { useProjectStore, useAnalysisScopeStore } from '@variscout/stores';
+import { useProjectStore } from '@variscout/stores';
 import { useFilteredData } from '@variscout/hooks';
 import { ParetoChartWrapperBase } from '@variscout/ui';
 import type { HighlightColor } from '@variscout/hooks';
@@ -14,6 +14,8 @@ interface ParetoChartProps {
   parentWidth: number;
   parentHeight: number;
   onDrillDown?: (factor: string, value: string) => void;
+  /** ER-4 (D6): neutral group click — host sets transient highlight + shows the pill. */
+  onGroupClick?: (factor: string, level: string | number) => void;
   showComparison?: boolean;
   onToggleComparison?: () => void;
   onHide?: () => void;
@@ -57,10 +59,6 @@ const ParetoChart = ({
   const paretoMode = useProjectStore(s => s.paretoMode);
   const separateParetoData = useProjectStore(s => s.separateParetoData);
 
-  const onScopeAccumulate = useCallback((factor: string, key: string | number) => {
-    useAnalysisScopeStore.getState().addCategoricalValue(factor, key);
-  }, []);
-
   return (
     <div className="relative h-full w-full">
       <ParetoChartWrapperBase
@@ -77,7 +75,6 @@ const ParetoChart = ({
         separateParetoData={separateParetoData}
         showBranding={false}
         onFactorSwitch={onFactorSwitch}
-        onScopeAccumulate={onScopeAccumulate}
         {...props}
       />
       {isComputing && (

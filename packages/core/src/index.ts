@@ -821,6 +821,12 @@ export {
   updateAt,
   insertHubAsAndChild,
   removeAt,
+  // ER-4 condition-loop: row evaluator + range-aware scope bridges + gesture builders
+  rowMatchesConditionLeaves,
+  conditionLeavesToScopeState,
+  buildConditionLeavesFromScopeState,
+  buildBandLeaf,
+  buildGroupLeaf,
 } from './findings';
 export type {
   GatePath,

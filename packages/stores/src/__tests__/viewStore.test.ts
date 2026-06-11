@@ -47,6 +47,29 @@ describe('useViewStore', () => {
   });
 });
 
+describe('useViewStore.transientHighlight (ER-4 tier-2 cross-chart highlight)', () => {
+  it('initialises to null', () => {
+    expect(useViewStore.getState().transientHighlight).toBeNull();
+  });
+
+  it('setTransientHighlight sets the group-keyed highlight', () => {
+    useViewStore.getState().setTransientHighlight({ column: 'Cavity', value: 'Cav1' });
+    expect(useViewStore.getState().transientHighlight).toEqual({ column: 'Cavity', value: 'Cav1' });
+  });
+
+  it('setTransientHighlight(null) clears it', () => {
+    useViewStore.getState().setTransientHighlight({ column: 'Cavity', value: 'Cav1' });
+    useViewStore.getState().setTransientHighlight(null);
+    expect(useViewStore.getState().transientHighlight).toBeNull();
+  });
+
+  it('clearTransientSelections also clears transientHighlight', () => {
+    useViewStore.getState().setTransientHighlight({ column: 'Cavity', value: 'Cav1' });
+    useViewStore.getState().clearTransientSelections();
+    expect(useViewStore.getState().transientHighlight).toBeNull();
+  });
+});
+
 describe('useViewStore.selectedPoints (relocated from projectStore in F4)', () => {
   it('setSelectedPoints stores the set', () => {
     useViewStore.getState().setSelectedPoints(new Set([1, 2, 3]));

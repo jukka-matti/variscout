@@ -44,6 +44,12 @@ export {
   formatConditionLeaves,
   predicateSetKey,
   predicateSetsEqual,
+  // ER-4 condition-loop additions
+  rowMatchesConditionLeaves,
+  conditionLeavesToScopeState,
+  buildConditionLeavesFromScopeState,
+  buildBandLeaf,
+  buildGroupLeaf,
 } from './hypothesisCondition';
 export type { AndCheckResult } from './hypothesisConditionEvaluator';
 export { evaluateCondition, runAndCheck } from './hypothesisConditionEvaluator';

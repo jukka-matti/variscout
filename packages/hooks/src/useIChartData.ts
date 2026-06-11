@@ -31,7 +31,14 @@ export function useIChartData(
   /** Stats with control limits — used to force-include violation points in decimation */
   stats?: StatsResult | null,
   /** Factor column names — values included in tooltip display */
-  factors?: string[]
+  factors?: string[],
+  /**
+   * Condition-membership set in DISPLAY-index space (post-NaN-filter), the same index
+   * space `selectedPoints`/brush uses. When supplied, each point carries an `isMember`
+   * flag and members are force-included through LTTB exactly like violations (ER-4 /
+   * ER-10). Pass `undefined` to leave behavior identical to today.
+   */
+  conditionMemberIndices?: Set<number>
 ): IChartDataPoint[] {
   const timeLens = usePreferencesStore(s => s.timeLens);
 
@@ -43,23 +50,33 @@ export function useIChartData(
 
   const fullData = useMemo(() => {
     if (!outcome) return [];
-    return lensedData
-      .map(
-        (d, i): IChartDataPoint => ({
-          x: i,
-          y: Number(d[outcome]),
-          stage: stageColumn ? String(d[stageColumn] ?? '') : undefined,
-          timeValue: timeColumn ? formatTimeValue(d[timeColumn] as DataCellValue) : undefined,
-          isoTimestamp: timeColumn ? toISOTimestamp(d[timeColumn] as DataCellValue) : undefined,
-          originalIndex: i,
-          factorValues:
-            factors && factors.length > 0
-              ? Object.fromEntries(factors.map(f => [f, d[f] != null ? String(d[f]) : '']))
-              : undefined,
-        })
-      )
-      .filter(d => !isNaN(d.y));
-  }, [lensedData, outcome, stageColumn, timeColumn, factors]);
+    return (
+      lensedData
+        .map(
+          (d, i): IChartDataPoint => ({
+            x: i,
+            y: Number(d[outcome]),
+            stage: stageColumn ? String(d[stageColumn] ?? '') : undefined,
+            timeValue: timeColumn ? formatTimeValue(d[timeColumn] as DataCellValue) : undefined,
+            isoTimestamp: timeColumn ? toISOTimestamp(d[timeColumn] as DataCellValue) : undefined,
+            originalIndex: i,
+            factorValues:
+              factors && factors.length > 0
+                ? Object.fromEntries(factors.map(f => [f, d[f] != null ? String(d[f]) : '']))
+                : undefined,
+          })
+        )
+        .filter(d => !isNaN(d.y))
+        // Membership is keyed on DISPLAY index (post-NaN-filter), the same index space
+        // `selectedPoints`/brush uses — so assign it after the filter reindexes the series.
+        .map(
+          (d, displayIndex): IChartDataPoint =>
+            conditionMemberIndices
+              ? { ...d, isMember: conditionMemberIndices.has(displayIndex) }
+              : d
+        )
+    );
+  }, [lensedData, outcome, stageColumn, timeColumn, factors, conditionMemberIndices]);
 
   // Apply LTTB decimation for large datasets
   if (!chartWidth || fullData.length <= chartWidth * 2) return fullData;
@@ -73,6 +90,12 @@ export function useIChartData(
       }
     });
   }
+
+  // Condition members are force-included EXACTLY like violations — they must survive
+  // decimation so the highlight tier keeps every lit point (ER-4 / ER-10).
+  fullData.forEach(p => {
+    if (p.isMember && p.originalIndex !== undefined) forceInclude.add(p.originalIndex);
+  });
 
   return lttb(fullData, chartWidth * 2, forceInclude.size > 0 ? forceInclude : undefined);
 }

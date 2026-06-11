@@ -1316,4 +1316,22 @@ export interface MessageCatalog {
   'canvas.localMechanism.handoff': string;
   'canvas.localMechanism.controlAria': string;
   'canvas.localMechanism.handoffAria': string;
+  // ── Condition pill (ER-4 — one pattern for minting a condition from a chart gesture) ──
+  /** Default statistic label rendered before the in-vs-out means (caller may override). */
+  'conditionPill.statDefault': string;
+  /** Copy with the in-vs-out mean comparison: "{gesture}{summary} · n={n} · {statLabel} {meanIn} vs {meanOut}". */
+  'conditionPill.summaryWithMeans': string;
+  /** Copy without means: "{gesture}{summary} · n={n}". */
+  'conditionPill.summaryNoMeans': string;
+  'conditionPill.capture': string;
+  'conditionPill.apply': string;
+  'conditionPill.ariaLabel': string;
+  // ── Scope bar (ER-4 — the conditional "Viewing condition" row under the context line) ──
+  'scopeBar.viewing': string;
+  /** Row-count fragment: "{nIn} of {nTotal} rows". */
+  'scopeBar.rows': string;
+  'scopeBar.clear': string;
+  'scopeBar.analyze': string;
+  /** Accessible label for the whole row: "Viewing condition: {label}". */
+  'scopeBar.ariaLabel': string;
 }

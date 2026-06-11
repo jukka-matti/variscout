@@ -546,6 +546,12 @@ export interface IChartDataPoint {
   isoTimestamp?: string | null;
   /** Factor column values for tooltip display (e.g., {Month: "Jul", Year: "2019"}) */
   factorValues?: Record<string, string>;
+  /**
+   * Membership-highlight flag (ER-4 condition loop): true when this point belongs to the
+   * applied/transient condition's display-index set. Drives the I-Chart highlight tier
+   * (members lit, non-members dim) and force-inclusion through LTTB like violations.
+   */
+  isMember?: boolean;
 }
 
 /**

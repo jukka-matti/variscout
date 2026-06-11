@@ -48,6 +48,7 @@ import {
   useDefectTransform,
   useDefectSummary,
   useReingestAutoLink,
+  matchActiveScopeIdByLeaves,
 } from '@variscout/hooks';
 import type { FindingsActionMessage } from '@variscout/hooks';
 import {
@@ -171,14 +172,16 @@ function AppMain() {
   const scopeBoxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
   const scopeStepId = useAnalysisScopeStore(s => s.stepId);
   const scopeCategoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const scopeConditionLeaves = useAnalysisScopeStore(s => s.conditionLeaves);
   const workspaceAnalysisScope = useMemo(
     () => ({
       yColumn: scopeYColumn,
       boxplotFactor: scopeBoxplotFactor,
       stepId: scopeStepId,
       categoricalFilters: scopeCategoricalFilters,
+      conditionLeaves: scopeConditionLeaves,
     }),
-    [scopeBoxplotFactor, scopeCategoricalFilters, scopeStepId, scopeYColumn]
+    [scopeBoxplotFactor, scopeCategoricalFilters, scopeConditionLeaves, scopeStepId, scopeYColumn]
   );
   const workspaceViewModel = useMemo(
     () =>
@@ -662,6 +665,26 @@ function AppMain() {
     return () => clearTimeout(timer);
   }, [highlightedFindingId]);
 
+  // ER-4: resolve the active condition's ProblemStatementScope id for a capture.
+  // Mint-or-match (range-capable) when a condition is applied; undefined otherwise.
+  // The scope key MUST mirror the value AnalyzeView stores scopes under
+  // (String(canvasViewportHubId), the same key threaded to the Dashboard's
+  // scopeProjectId) — re-deriving it from sessionHub would miss (randomUUID).
+  const resolveActiveScopeIdForCapture = useCallback((): string | undefined => {
+    const leaves = useAnalysisScopeStore.getState().conditionLeaves;
+    if (leaves.length === 0 || !outcome) return undefined;
+    const scopeProjectId =
+      canvasViewportHubId != null ? String(canvasViewportHubId) : DEFAULT_PROCESS_HUB_ID;
+    const matched = matchActiveScopeIdByLeaves({
+      leaves,
+      outcome,
+      scopeProjectId,
+      scopes: useAnalyzeStore.getState().scopes,
+    });
+    if (matched) return matched;
+    return useAnalyzeStore.getState().syncScopeFromCondition(scopeProjectId, outcome, [...leaves]);
+  }, [outcome, canvasViewportHubId]);
+
   // Findings: pin current filter state (one-click with duplicate detection)
   const handlePinFinding = useCallback(() => {
     const existing = findDuplicateFinding(findings, filters);
@@ -671,11 +694,23 @@ function AppMain() {
       return;
     }
     const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
-    const newFinding = useAnalyzeStore.getState().addFinding('', context);
+    // ER-4: a pin made INSIDE an applied condition links to that scope.
+    const scopeId = resolveActiveScopeIdForCapture();
+    const newFinding = useAnalyzeStore.getState().addFinding('', context, undefined, scopeId);
     markOwnFindingCaptured();
     panels.setIsFindingsPanelOpen(true);
     setHighlightedFindingId(newFinding.id);
-  }, [filters, drillPath, filteredData, outcome, specs, findings, panels, markOwnFindingCaptured]);
+  }, [
+    filters,
+    drillPath,
+    filteredData,
+    outcome,
+    specs,
+    findings,
+    panels,
+    markOwnFindingCaptured,
+    resolveActiveScopeIdForCapture,
+  ]);
 
   // Chart observation: create a Finding with source metadata
   const handleAddChartObservation = useCallback(
@@ -725,13 +760,17 @@ function AppMain() {
         conditionSpecs,
         drillPath
       );
+      // ER-4: a capture made INSIDE an applied condition links to that condition's
+      // ProblemStatementScope — mint-or-match the scope id (range-capable) and pass
+      // it to addFinding. A capture without a condition stays unlinked (undefined).
+      const scopeId = resolveActiveScopeIdForCapture();
       const newFinding = useAnalyzeStore
         .getState()
         .addFinding(
           noteText ?? '',
           context,
           source,
-          undefined,
+          scopeId,
           undefined,
           captureOptions?.evidenceType
         );
@@ -742,7 +781,17 @@ function AppMain() {
       // (Question entity gone); analysts promote findings to hubs on the Wall.
       return newFinding;
     },
-    [filters, drillPath, filteredData, outcome, specs, findings, panels, markOwnFindingCaptured]
+    [
+      filters,
+      drillPath,
+      filteredData,
+      outcome,
+      specs,
+      findings,
+      panels,
+      markOwnFindingCaptured,
+      resolveActiveScopeIdForCapture,
+    ]
   );
 
   const handleOpenFinding = useCallback(

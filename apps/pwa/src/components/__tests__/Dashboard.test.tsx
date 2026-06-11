@@ -9,11 +9,22 @@ import {
   usePreferencesStore,
   useProjectStore,
   useViewStore,
+  useAnalysisScopeStore,
+  useAnalyzeStore,
   getProjectInitialState,
 } from '@variscout/stores';
 
-// Mock components
-vi.mock('../charts/IChart', () => ({ default: () => <div data-testid="i-chart">I-Chart</div> }));
+// Mock components. Capture the I-Chart props so the ER-4 highlight-tier contract
+// (full lensed series + the member Set) can be asserted under a condition.
+const capturedIChartProps = vi.hoisted(() => ({
+  value: undefined as Record<string, unknown> | undefined,
+}));
+vi.mock('../charts/IChart', () => ({
+  default: (props: Record<string, unknown>) => {
+    capturedIChartProps.value = props;
+    return <div data-testid="i-chart">I-Chart</div>;
+  },
+}));
 vi.mock('../charts/Boxplot', () => ({ default: () => <div data-testid="boxplot">Boxplot</div> }));
 vi.mock('../charts/ParetoChart', () => ({
   default: () => <div data-testid="pareto-chart">Pareto</div>,
@@ -148,6 +159,7 @@ describe('Dashboard', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    mockClearFilters.mockClear();
 
     // Seed project store with test data (useDashboardCharts reads from stores)
     useProjectStore.setState({
@@ -165,6 +177,9 @@ describe('Dashboard', () => {
       displayOptions: { showFilterContext: true },
     });
     useViewStore.getState().clearTransientSelections();
+    useViewStore.getState().setTransientHighlight(null);
+    useAnalysisScopeStore.setState(useAnalysisScopeStore.getInitialState());
+    useAnalyzeStore.setState({ scopes: [] });
     usePreferencesStore.setState({ timeLens: { mode: 'cumulative' } });
 
     vi.spyOn(UseFilterNavigationModule, 'useFilterNavigation').mockReturnValue(
@@ -304,6 +319,11 @@ describe('Dashboard', () => {
       />
     );
 
+    // ER-4: a brush no longer auto-opens the CaptureCard — it shows the brush PILL.
+    // The CaptureCard opens only via the pill's ✚ Capture finding.
+    expect(screen.getByTestId('condition-pill')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('condition-pill-capture'));
+
     expect(screen.getByRole('dialog', { name: 'New Finding' })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Factor name'), { target: { value: 'Launch window' } });
     fireEvent.click(screen.getByRole('button', { name: 'Capture' }));
@@ -325,10 +345,10 @@ describe('Dashboard', () => {
       })
     );
     expect(useViewStore.getState().selectedPoints.size).toBe(0);
-    expect(screen.getByRole('button', { name: /Take it to Analyze ->/i })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Take it to Analyze ->/i }));
-    expect(onOpenWall).toHaveBeenCalledTimes(1);
+    // ER-4: the capture-afterglow toast retired (subsumed by the scope bar). The
+    // "Take it to Analyze →" verb now lives on the scope bar, which appears only
+    // when a condition is APPLIED (not merely after a capture) — so it is absent here.
+    expect(screen.queryByRole('button', { name: /Take it to Analyze/i })).not.toBeInTheDocument();
   });
 
   it('suffixes edited brush factor names instead of overwriting existing raw columns', () => {
@@ -338,6 +358,8 @@ describe('Dashboard', () => {
       <Dashboard findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }} />
     );
 
+    // ER-4: open the CaptureCard via the brush pill's ✚ Capture.
+    fireEvent.click(screen.getByTestId('condition-pill-capture'));
     fireEvent.change(screen.getByLabelText('Factor name'), { target: { value: 'Machine' } });
     fireEvent.click(screen.getByRole('button', { name: 'Factor only' }));
 
@@ -385,6 +407,8 @@ describe('Dashboard', () => {
       <Dashboard findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }} />
     );
 
+    // ER-4: open the CaptureCard via the brush pill's ✚ Capture.
+    fireEvent.click(screen.getByTestId('condition-pill-capture'));
     fireEvent.change(screen.getByLabelText('Factor name'), { target: { value: 'Recent window' } });
     fireEvent.click(screen.getByRole('button', { name: 'Factor only' }));
 
@@ -394,5 +418,112 @@ describe('Dashboard', () => {
       'in',
       'in',
     ]);
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // ER-4: the condition loop (group pill → view-as-condition → scope bar; the
+  // coherent clear; the retired afterglow / auto-CaptureCard paths).
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('ER-4 condition loop', () => {
+    it('a transient highlight shows the group pill with honest n/x̄', () => {
+      // Simulate a boxplot group click (the chart is mocked; drive the store).
+      useViewStore.getState().setTransientHighlight({ column: 'Machine', value: 'A' });
+      render(
+        <Dashboard findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }} />
+      );
+
+      const pill = screen.getByTestId('condition-pill');
+      expect(pill).toBeInTheDocument();
+      // Machine=A → Result 10,20 (mean 15) vs B → 30,40 (mean 35); n=2.
+      expect(pill.textContent).toContain('Machine');
+      expect(pill.textContent).toContain('n=2');
+    });
+
+    it('view-as-condition applies the condition → scope bar + scope-store leaves; NO filters write', () => {
+      useViewStore.getState().setTransientHighlight({ column: 'Machine', value: 'A' });
+      render(
+        <Dashboard findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }} />
+      );
+      fireEvent.click(screen.getByTestId('condition-pill-apply'));
+
+      // The scope bar appears with the condition + its coverage.
+      expect(screen.getByTestId('scope-bar')).toBeInTheDocument();
+      // A condition is scope-store-only: it does NOT write projectStore.filters.
+      // useFilteredData / useAnalysisStats therefore stay full-series for the I-Chart.
+      expect(useProjectStore.getState().filters).toEqual({});
+      // The full leaves live in the scope store (the only home of an applied condition).
+      expect(useAnalysisScopeStore.getState().conditionLeaves).toEqual([
+        { kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' },
+      ]);
+      // The transient highlight cleared on apply.
+      expect(useViewStore.getState().transientHighlight).toBeNull();
+    });
+
+    it('the I-Chart plots the FULL lensed series + lights the CATEGORICAL members (D6)', () => {
+      // 4 rows: Result 10/20 (Machine A), 30/40 (Machine B) — all finite Y, no
+      // filters. Under a Machine=A condition the I-Chart series stays the full 4
+      // points; only the Machine=A rows (display indices 0,1) are lit.
+      useViewStore.getState().setTransientHighlight({ column: 'Machine', value: 'A' });
+      render(
+        <Dashboard findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }} />
+      );
+      fireEvent.click(screen.getByTestId('condition-pill-apply'));
+
+      // No filters write → useFilteredData is the full series (the I-Chart reads it
+      // internally); the membership Set is the categorical subset within that series.
+      expect(useProjectStore.getState().filters).toEqual({});
+      const members = capturedIChartProps.value?.conditionMemberIndices as Set<number>;
+      expect(members).toBeInstanceOf(Set);
+      expect([...members].sort((a, b) => a - b)).toEqual([0, 1]);
+    });
+
+    it('Take it to Analyze → mints the PSS then navigates', () => {
+      const onOpenWall = vi.fn();
+      useViewStore.getState().setTransientHighlight({ column: 'Machine', value: 'A' });
+      render(
+        <Dashboard
+          onOpenWall={onOpenWall}
+          findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }}
+        />
+      );
+      fireEvent.click(screen.getByTestId('condition-pill-apply'));
+      fireEvent.click(screen.getByTestId('scope-bar-analyze'));
+
+      // The PSS was minted (range-capable producer) BEFORE navigation.
+      const scopes = useAnalyzeStore.getState().scopes;
+      expect(scopes).toHaveLength(1);
+      expect(scopes[0].outcome).toBe('Result');
+      expect(onOpenWall).toHaveBeenCalledTimes(1);
+    });
+
+    it('the scope-bar × is the coherent clear (filters + scope store + leaves)', () => {
+      useViewStore.getState().setTransientHighlight({ column: 'Machine', value: 'A' });
+      render(
+        <Dashboard findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }} />
+      );
+      fireEvent.click(screen.getByTestId('condition-pill-apply'));
+      expect(screen.getByTestId('scope-bar')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('scope-bar-clear'));
+
+      expect(screen.queryByTestId('scope-bar')).not.toBeInTheDocument();
+      expect(useAnalysisScopeStore.getState().conditionLeaves).toEqual([]);
+      expect(useAnalysisScopeStore.getState().categoricalFilters).toEqual([]);
+      expect(useViewStore.getState().transientHighlight).toBeNull();
+      // mockFilterNavigationReturn.clearFilters fired (the coherent clear routes
+      // through it).
+      expect(mockFilterNavigationReturn.clearFilters).toHaveBeenCalled();
+    });
+
+    it('the capture-afterglow toast is GONE (retired path)', () => {
+      render(
+        <Dashboard findingsCallbacks={{ chartFindings: { boxplot: [], pareto: [], ichart: [] } }} />
+      );
+      // No condition, no capture: the "Take it to Analyze →" verb is absent (it
+      // only lives on the scope bar under an applied condition).
+      expect(
+        screen.queryByRole('button', { name: /Dismiss Analyze afterglow/i })
+      ).not.toBeInTheDocument();
+    });
   });
 });

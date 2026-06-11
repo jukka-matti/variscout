@@ -22,6 +22,15 @@ export interface PersistentScopeChipProps {
    * is non-interactive text.
    */
   readonly onOpen?: () => void;
+  /**
+   * ER-4: the coherent clear. When provided, the × invokes THIS (apps wire it to
+   * the one handler that clears projectStore.filters + filterStack + the scope
+   * store together) instead of the scope-store-only `clearScope`. Fixes the
+   * pre-existing one-sided clear (the chip used to clear only the scope store,
+   * leaving the categorical filters / breadcrumbs behind). When omitted, falls
+   * back to `clearScope()` (scope store only — the legacy behaviour).
+   */
+  readonly onClear?: () => void;
 }
 
 const chipStyle: React.CSSProperties = {
@@ -33,12 +42,14 @@ const chipStyle: React.CSSProperties = {
 };
 
 /** Compact, scope-aware chip for the app header. Self-hides when no scope is set. */
-export function PersistentScopeChip({ columnAliases, onOpen }: PersistentScopeChipProps) {
+export function PersistentScopeChip({ columnAliases, onOpen, onClear }: PersistentScopeChipProps) {
   const yColumn = useAnalysisScopeStore(s => s.yColumn);
   const boxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
   const stepId = useAnalysisScopeStore(s => s.stepId);
   const categoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
   const clearScope = useAnalysisScopeStore(s => s.clearScope);
+  // ER-4: prefer the injected coherent clear; fall back to scope-store-only.
+  const handleClear = onClear ?? clearScope;
 
   const hasScope =
     Boolean(yColumn) || Boolean(boxplotFactor) || Boolean(stepId) || categoricalFilters.length > 0;
@@ -81,7 +92,7 @@ export function PersistentScopeChip({ columnAliases, onOpen }: PersistentScopeCh
       <button
         type="button"
         data-testid="persistent-scope-chip-clear"
-        onClick={() => clearScope()}
+        onClick={() => handleClear()}
         className="shrink-0 rounded p-0.5 hover:bg-[rgba(99,102,241,0.12)] focus:outline-none focus:ring-2 focus:ring-primary"
         aria-label="Clear analysis scope"
       >

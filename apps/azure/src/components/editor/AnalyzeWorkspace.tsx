@@ -471,17 +471,39 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     (scopeId: string) => {
       const scope = scopes.find(s => s.id === scopeId);
       if (!scope) return;
+      // ER-4: re-anchor on the scope's FULL predicate set. eq/in leaves re-anchor
+      // via categoricalFilters (chips); range leaves (between/gte/…) cannot become
+      // chips, so they re-anchor via the scope store's conditionLeaves.
       const byColumn = new Map<string, (string | number)[]>();
+      const rangeLeaves: typeof scope.predicates = [];
       for (const leaf of scope.predicates) {
-        if (leaf.op !== 'eq') continue;
-        const vals = byColumn.get(leaf.column) ?? [];
-        vals.push(leaf.value as string | number);
-        byColumn.set(leaf.column, vals);
+        if (leaf.kind !== 'leaf') continue;
+        if (
+          leaf.op === 'eq' &&
+          (typeof leaf.value === 'string' || typeof leaf.value === 'number')
+        ) {
+          const vals = byColumn.get(leaf.column) ?? [];
+          vals.push(leaf.value);
+          byColumn.set(leaf.column, vals);
+        } else if (leaf.op === 'in' && Array.isArray(leaf.value)) {
+          const vals = byColumn.get(leaf.column) ?? [];
+          for (const v of leaf.value) {
+            if (typeof v === 'string' || typeof v === 'number') vals.push(v);
+          }
+          byColumn.set(leaf.column, vals);
+        } else {
+          rangeLeaves.push(leaf);
+        }
       }
       const scopeStore = useAnalysisScopeStore.getState();
       scopeStore.clearScope();
       for (const [column, values] of byColumn) {
         scopeStore.setCategoricalValues(column, values);
+      }
+      // Range leaves re-anchor via conditionLeaves (the scope store) — they cannot
+      // become projectStore.filters.
+      if (rangeLeaves.length > 0) {
+        scopeStore.setConditionLeaves(scope.predicates);
       }
     },
     [scopes]
@@ -548,9 +570,13 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         hypothesesState.updateHub(refutedHypothesisId, { supersededByHypothesisId: newHub.id });
         if (refuting) {
           // The finding that REFUTED H1 is positive evidence for the sharper H2.
+          // ER-4 drive-by: link the carried finding to the active scope (so the
+          // refutation-carried evidence inherits the condition the analyst is in).
           const carried = findingsState.addFinding(
             `Carried from the refutation of “${h1?.name ?? 'the prior hypothesis'}”: ${refuting.text}`,
-            { activeFilters: refuting.context.activeFilters, cumulativeScope: null }
+            { activeFilters: refuting.context.activeFilters, cumulativeScope: null },
+            undefined,
+            activeScope?.id
           );
           findingsState.setValidation(carried.id, 'supports', false);
           hypothesesState.connectFinding(newHub.id, carried.id);
@@ -584,6 +610,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     ideaImpacts,
     onProjectIdea,
     handleEvaluateFactor,
+    activeScope,
   ]);
   // Live Problem-card base values for the scoped subset (no longer hardcoded):
   // Cpk from the filtered-data stats, and the out-of-spec event COUNT as the

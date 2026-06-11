@@ -8,6 +8,7 @@
  * Spec: docs/superpowers/specs/2026-05-28-state-edit-mode-and-ip-scoped-presentation-design.md §3 D10
  */
 import { create } from 'zustand';
+import type { ConditionLeaf } from '@variscout/core';
 
 export const STORE_LAYER = 'view' as const;
 
@@ -21,6 +22,15 @@ export interface AnalysisScopeState {
   readonly boxplotFactor?: string;
   readonly stepId?: string;
   readonly categoricalFilters: ReadonlyArray<CategoricalFilter>;
+  /**
+   * ER-4 condition-loop: the active pill condition as a flat leaf list.
+   *
+   * Carries range predicates (between / gte / lte / etc.) that cannot be
+   * represented as categorical chips. Set by the pill on brush-up; read by
+   * the scope-bar to drive `syncScopeFromCondition`. Persists only for the
+   * session (View layer — no middleware). Default [].
+   */
+  readonly conditionLeaves: ReadonlyArray<ConditionLeaf>;
 }
 
 export interface AnalysisScopeActions {
@@ -31,6 +41,8 @@ export interface AnalysisScopeActions {
   removeCategoricalValue: (column: string, value: string | number) => void;
   setCategoricalValues: (column: string, values: ReadonlyArray<string | number>) => void;
   removeCategoricalFilter: (column: string) => void;
+  /** ER-4: Replace the active pill condition leaves. Pass [] to clear. */
+  setConditionLeaves: (leaves: ReadonlyArray<ConditionLeaf>) => void;
   clearScope: () => void;
 }
 
@@ -41,6 +53,7 @@ export const getAnalysisScopeInitialState = (): AnalysisScopeState => ({
   boxplotFactor: undefined,
   stepId: undefined,
   categoricalFilters: [],
+  conditionLeaves: [],
 });
 
 export const useAnalysisScopeStore = create<AnalysisScopeStore>(set => ({
@@ -107,6 +120,7 @@ export const useAnalysisScopeStore = create<AnalysisScopeStore>(set => ({
         categoricalFilters: s.categoricalFilters.filter(f => f.column !== column),
       };
     }),
+  setConditionLeaves: leaves => set({ conditionLeaves: [...leaves] }),
   clearScope: () => set(getAnalysisScopeInitialState()),
 }));
 

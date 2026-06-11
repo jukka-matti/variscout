@@ -14,6 +14,7 @@ import {
   useViewStore,
   useAnalysisScopeStore,
   useAnalyzeStore,
+  usePreferencesStore,
 } from '@variscout/stores';
 import {
   useFilteredData,
@@ -53,7 +54,8 @@ import {
   SubgroupConfigPopover,
   DefectSummary,
   InflectionSidePanelView,
-  ScopeChrome,
+  ConditionPillBase,
+  ScopeBarBase,
   ModelDrawerBase,
   useInflectionBinningState,
   useIsMobile,
@@ -68,6 +70,7 @@ import {
   getNelsonRule3Sequences,
   DEFAULT_PROCESS_HUB_ID,
   excludeYDerivedFactors,
+  applyTimeLens,
 } from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
@@ -84,6 +87,7 @@ import {
   useCapabilityIChartData,
   useTranslation,
   useFactorStripModel,
+  useConditionLoop,
   matchActiveScopeId,
 } from '@variscout/hooks';
 import type { AIContext } from '@variscout/core';
@@ -228,7 +232,9 @@ const Dashboard = ({
   projectedCpkMap: externalProjectedCpkMap,
   onOpenWall,
   categoricalValuesByColumn,
-  workspaceProjectProcessSteps = [],
+  // ER-4: workspaceProjectProcessSteps was consumed only by the now-deleted
+  // ScopeChrome mount. The prop stays on the interface (callers pass it) but is
+  // no longer read here; revive if a step-scoped surface returns.
   binnedFactorBindings,
   onBindingsChange,
   scopeProjectId = DEFAULT_PROCESS_HUB_ID,
@@ -278,6 +284,9 @@ const Dashboard = ({
   const cpkTarget = useProjectStore(s => s.cpkTarget);
   const selectedPoints = useViewStore(s => s.selectedPoints);
   const clearSelection = useViewStore(s => s.clearTransientSelections);
+  const transientHighlight = useViewStore(s => s.transientHighlight);
+  const setTransientHighlight = useViewStore(s => s.setTransientHighlight);
+  const timeLens = usePreferencesStore(s => s.timeLens);
   const defectMapping = useProjectStore(s => s.defectMapping);
   const { filteredData, filteredIndexMap } = useFilteredData();
   const lensedSampleCount = useLensedSampleCount();
@@ -294,7 +303,6 @@ const Dashboard = ({
   type AzureAnalysisLensTab = 'probability' | 'distribution';
   const [analysisLensTab, setAnalysisLensTab] = useState<AzureAnalysisLensTab>('probability');
   const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
-  const [showCaptureAfterglow, setShowCaptureAfterglow] = useState(false);
   // ER-3: Model drawer open state (Explore door).
   const [modelDrawerOpen, setModelDrawerOpen] = useState(false);
 
@@ -329,6 +337,66 @@ const Dashboard = ({
 
   // Compute DefectSummary props from transformed data
   const defectSummaryProps = useDefectSummary(isDefectMode ? defectResult : null, defectMapping);
+
+  // ── ER-4 condition loop ─────────────────────────────────────────────────────
+  // The LENSED rows the I-Chart plots = applyTimeLens(effectiveData) — the same
+  // projection useIChartData applies internally, so the brush y-band + the member
+  // Set agree with the plotted series. The brush pill / group pill / scope bar /
+  // apply / clear / take-to-Analyze orchestration runs over these rows.
+  // An applied condition lives in analysisScopeStore.conditionLeaves ONLY — it does
+  // NOT write projectStore.filters, so useFilteredData / useAnalysisStats stay
+  // full-series for the I-Chart (D6). The condition (categorical AND range) is
+  // evaluated at this seam via conditionRows, which feed the FILTER-tier charts.
+  const lensedEffectiveData = useMemo(
+    () => applyTimeLens(effectiveData, timeLens, timeColumn ?? ''),
+    [effectiveData, timeLens, timeColumn]
+  );
+  const conditionLoop = useConditionLoop({
+    lensedRows: lensedEffectiveData,
+    outcome: effectiveOutcome,
+    scopeProjectId,
+  });
+  // The I-Chart membership channel = the applied condition's members, OR (when no
+  // condition is applied) the transient highlight's members. Both display-index Sets.
+  const ichartMemberIndices = useMemo(() => {
+    if (conditionLoop.hasCondition) return conditionLoop.conditionMemberIndices;
+    if (conditionLoop.transientMemberIndices.size > 0) return conditionLoop.transientMemberIndices;
+    return undefined;
+  }, [
+    conditionLoop.hasCondition,
+    conditionLoop.conditionMemberIndices,
+    conditionLoop.transientMemberIndices,
+  ]);
+  // The brush pill summary (recomputed from the live brush). The brush is mappable
+  // only when no stage column / not defect mode.
+  const brushPill = useMemo(() => {
+    const canMapBrushToFilteredRows = !stageColumn && !isDefectMode;
+    if (!canMapBrushToFilteredRows || selectedPoints.size === 0) return null;
+    return conditionLoop.buildBrushPill(selectedPoints);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- buildBrushPill is stable per lensedRows/outcome
+  }, [selectedPoints, stageColumn, isDefectMode, conditionLoop.buildBrushPill]);
+  // FILTER-tier dataOverride (boxplot / Pareto / histogram / probability): the
+  // conditionRows under an applied condition (the FULL condition — categorical AND
+  // range; no double-filter since projectStore.filters is empty under a condition),
+  // defect rows in defect mode, else undefined.
+  const filterTierData = useMemo(() => {
+    if (isDefectMode) return effectiveData;
+    if (conditionLoop.hasCondition) return conditionLoop.conditionRows;
+    return effectiveData;
+  }, [isDefectMode, effectiveData, conditionLoop.hasCondition, conditionLoop.conditionRows]);
+  const filterTierDataOverride =
+    isDefectMode && defectResult
+      ? effectiveData
+      : conditionLoop.hasCondition
+        ? conditionLoop.conditionRows
+        : undefined;
+  // Boxplot/Pareto group click → set the transient highlight + show the group pill.
+  const handleGroupClick = useCallback(
+    (column: string, level: string | number) => {
+      setTransientHighlight({ column, value: level });
+    },
+    [setTransientHighlight]
+  );
 
   const [activeTab, setActiveTabRaw] = useState<DashboardTab>(
     initialViewState?.activeTab ?? 'analysis'
@@ -586,21 +654,32 @@ const Dashboard = ({
     setHighlight,
   } = useAnnotations({ displayOptions, setDisplayOptions });
 
-  // Histogram data for standalone chart cards (grid mode)
+  // Histogram data for standalone chart cards (grid mode). ER-4: under an applied
+  // condition the FILTER-tier distribution charts re-check the regime over
+  // conditionRows (filterTierData) — the probability plot recomputes within scope.
   const histogramData = useMemo(() => {
-    if (!effectiveOutcome || !effectiveData || effectiveData.length === 0) return [];
-    return effectiveData
+    if (!effectiveOutcome || !filterTierData || filterTierData.length === 0) return [];
+    return filterTierData
       .map((d: Record<string, unknown>) => Number(d[effectiveOutcome]))
       .filter((v: number) => !isNaN(v));
-  }, [effectiveData, effectiveOutcome]);
+  }, [filterTierData, effectiveOutcome]);
+
+  // ER-4 honesty: the histogram's mean line must describe ITS OWN bars. Under an
+  // applied condition stats.mean stays full-series by design (D6), so derive the
+  // reference line from the plotted values instead of the full-population stats.
+  const histogramMean = useMemo(() => {
+    if (histogramData.length === 0) return 0;
+    return histogramData.reduce((sum: number, v: number) => sum + v, 0) / histogramData.length;
+  }, [histogramData]);
 
   // Probability plot series — linked to boxplot factor for multi-series grouping
   // G1 Task 4: pass categoricalValuesByColumn so derived factors (e.g. Reactor_temp_bin)
   // are resolved even though raw filteredData rows don't carry those keys.
+  // ER-4: rows = filterTierData so the regime is recomputed within the condition.
   const probabilitySeries = useProbabilityPlotData({
     values: histogramData,
     factorColumn: boxplotFactor,
-    rows: filteredData,
+    rows: filterTierData,
     categoricalValuesByColumn,
   });
 
@@ -718,7 +797,7 @@ const Dashboard = ({
       id: 'distribution',
       label: hasSpecs ? t('verify.tab.capability') : t('verify.tab.distribution'),
       content: (
-        <CapabilityHistogram data={histogramData} specs={effectiveSpecs} mean={stats?.mean ?? 0} />
+        <CapabilityHistogram data={histogramData} specs={effectiveSpecs} mean={histogramMean} />
       ),
     },
   ];
@@ -726,16 +805,22 @@ const Dashboard = ({
     ? analysisLensTab
     : (azureAnalysisLensTabs[0]?.id ?? 'probability');
 
-  // Keyboard: clear selection on Escape (complement to hook's focused-mode ESC)
+  // ER-4 Esc cascade: transient highlight (+ its group pill) FIRST, then the brush
+  // selection. (Complements the focused-mode ESC handled by the charts hook.)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && selectedPoints.size > 0) {
+      if (e.key !== 'Escape') return;
+      if (transientHighlight) {
+        setTransientHighlight(null);
+        return;
+      }
+      if (selectedPoints.size > 0) {
         clearSelection();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedPoints, clearSelection]);
+  }, [transientHighlight, setTransientHighlight, selectedPoints, clearSelection]);
 
   // Shared filter handler callbacks
   const { handleClearAllFilters, handleRemoveFilter, handleUpdateFilterValues } = useFilterHandlers(
@@ -745,6 +830,37 @@ const Dashboard = ({
       updateFilterValues,
     }
   );
+
+  // ── ER-4 condition-loop commit handlers ──
+  // Apply a condition (from either pill): leaves → scope store ONLY (NOT
+  // projectStore.filters); clears the live brush so the pill dismisses. With filters
+  // untouched, useFilteredData / useAnalysisStats stay full-series for the I-Chart
+  // (D6); the FILTER-tier charts feed via the conditionRows dataOverride below.
+  const handleApplyCondition = useCallback(
+    (leaves: Parameters<typeof conditionLoop.applyCondition>[0]) => {
+      conditionLoop.applyCondition(leaves);
+      clearSelection();
+    },
+    [conditionLoop, clearSelection]
+  );
+  // The ONE coherent clear: projectStore.filters + filterStack + scope store +
+  // transient highlight, together. Used by the scope-bar × AND the context-line
+  // clear-all (so neither leaves a half-cleared condition behind).
+  const handleCoherentClear = useCallback(() => {
+    conditionLoop.clearCondition(() => handleClearAllFilters());
+  }, [conditionLoop, handleClearAllFilters]);
+  // ER-4 Azure pill-capture path: the brush pill's ✚ routes through the existing
+  // chart-observation handler (Azure has no PWA-style brush-capture-draft flow — the
+  // SelectionPanel→CreateFactorModal is a different job and stays). A capture under a
+  // condition links via the scopeId minted in handleAddChartObservation.
+  const handleBrushPillCapture = useCallback(() => {
+    if (!brushPill || !effectiveOutcome) return;
+    onAddChartObservation?.('ichart', undefined, undefined, undefined, undefined, {
+      captureMode: 'capture',
+      activeFilters: filters,
+      evidenceType: 'data',
+    });
+  }, [brushPill, effectiveOutcome, onAddChartObservation, filters]);
 
   const saveEngineSignalCaptureDraft = useCallback(
     (captureMode: 'capture' | 'factor-only') => {
@@ -770,7 +886,9 @@ const Dashboard = ({
       setParetoFactor(factorName);
 
       if (captureMode === 'capture') {
-        const finding = onAddChartObservation?.(
+        // ER-4: the capture-afterglow toast retired (subsumed by the scope bar's
+        // "Take it to Analyze →"); this handler no longer tracks the finding result.
+        onAddChartObservation?.(
           'ichart',
           undefined,
           captureDraft.note,
@@ -782,7 +900,6 @@ const Dashboard = ({
             evidenceType: captureDraft.evidenceType,
           }
         );
-        if (finding) setShowCaptureAfterglow(true);
       }
       setCaptureDraft(null);
     },
@@ -1020,7 +1137,10 @@ const Dashboard = ({
             columnAliases={columnAliases}
             onUpdateFilterValues={handleUpdateFilterValues}
             onRemoveFilter={handleRemoveFilter}
-            onClearAll={handleClearAllFilters}
+            // ER-4: the context-line clear-all is the ONE coherent clear (it also
+            // clears the scope store + transient highlight — fixing the pre-existing
+            // one-sided clear).
+            onClearAll={handleCoherentClear}
             onPinFinding={onPinFinding}
             subgroupSlot={
               displayOptions.standardIChartMetric === 'capability' ? (
@@ -1057,7 +1177,53 @@ const Dashboard = ({
           />
         )}
 
-        {/* Selection Panel (desktop only — multi-point selection is a desktop feature) */}
+        {/* ER-4: the brush pill — appears on a non-empty I-Chart brush with the
+            y-band condition + honest n/x̄. ✚ Capture routes through the chart-
+            observation handler (scopeId-linked under a condition); view-as-condition
+            applies the band. SUBSUMES the auto-capture-afterglow. The SelectionPanel
+            (factor creation — a different job) COEXISTS below. */}
+        {!isPhone && brushPill && (
+          <div className="mx-4 mb-2">
+            <ConditionPillBase
+              summary={brushPill.summary}
+              nIn={brushPill.nIn}
+              meanIn={brushPill.meanIn}
+              meanOut={brushPill.meanOut}
+              gestureLabel="brushed: "
+              onCapture={handleBrushPillCapture}
+              onViewAsCondition={() => handleApplyCondition([brushPill.leaf])}
+              onDismiss={clearSelection}
+            />
+          </div>
+        )}
+        {/* ER-4: the group pill — appears on a boxplot/Pareto group click (transient
+            highlight). Same one pill pattern; view-as-condition applies the eq leaf. */}
+        {!isPhone && conditionLoop.groupPill && (
+          <div className="mx-4 mb-2">
+            <ConditionPillBase
+              summary={conditionLoop.groupPill.summary}
+              nIn={conditionLoop.groupPill.nIn}
+              meanIn={conditionLoop.groupPill.meanIn}
+              meanOut={conditionLoop.groupPill.meanOut}
+              onCapture={() =>
+                onAddChartObservation?.(
+                  'boxplot',
+                  String(transientHighlight!.value),
+                  undefined,
+                  undefined,
+                  undefined,
+                  { captureMode: 'capture', activeFilters: filters, evidenceType: 'data' }
+                )
+              }
+              onViewAsCondition={() => handleApplyCondition([conditionLoop.groupPill!.leaf])}
+              onDismiss={() => setTransientHighlight(null)}
+            />
+          </div>
+        )}
+
+        {/* Selection Panel (desktop only — multi-point selection is a desktop feature).
+            ER-4: COEXISTS with the brush pill — factor creation (CreateFactorModal) is
+            a different job from minting a condition. */}
         {!isPhone && selectedPoints.size > 0 && (
           <SelectionPanel
             selectedIndices={selectedPoints}
@@ -1082,31 +1248,19 @@ const Dashboard = ({
             onCancel={() => setCaptureDraft(null)}
           />
         )}
-        {showCaptureAfterglow && onOpenWall ? (
-          <div
-            role="status"
-            className="mx-4 mb-3 rounded border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-950"
-          >
-            <button
-              type="button"
-              className="font-semibold underline"
-              onClick={() => {
-                setShowCaptureAfterglow(false);
-                onOpenWall();
-              }}
-            >
-              Take it to Analyze -&gt;
-            </button>
-            <button
-              type="button"
-              aria-label="Dismiss Analyze afterglow"
-              className="ml-3 text-blue-700"
-              onClick={() => setShowCaptureAfterglow(false)}
-            >
-              Dismiss
-            </button>
-          </div>
-        ) : null}
+
+        {/* ER-4 scope bar: the conditional "Viewing condition" row under the context
+            line. × = the ONE coherent clear; Take it to Analyze → mints the PSS
+            (range-capable) then opens the Wall. ABSORBS the retired afterglow toast. */}
+        {!isPhone && conditionLoop.hasCondition && (
+          <ScopeBarBase
+            conditionLabel={conditionLoop.scopeBarLabel}
+            nIn={conditionLoop.scopeBarNIn}
+            nTotal={conditionLoop.scopeBarNTotal}
+            onClear={handleCoherentClear}
+            onTakeToAnalyze={() => conditionLoop.takeToAnalyze(onOpenWall)}
+          />
+        )}
 
         {/* Tab Navigation */}
         <div
@@ -1176,34 +1330,11 @@ const Dashboard = ({
             </div>
           )}
 
-          {/* LV1-E Task 7: ScopeChrome — IP-scoped Y / factor / step / filter chrome.
-              Desktop-only: mobile carousel is compact and doesn't have room for
-              the full chip row. ScopeChrome reads + writes analysisScopeStore
-              natively; reverse-mirror effects above propagate writes back into
-              the existing chart-wiring layer. */}
-          {!isPhone && (
-            <ScopeChrome
-              availableOutcomes={availableOutcomes.map(col => ({
-                columnName: col,
-                label: columnAliases[col] ?? col,
-              }))}
-              availableFactors={effectiveFactors.map(col => ({
-                columnName: col,
-                label: columnAliases[col] ?? col,
-              }))}
-              availableSteps={workspaceProjectProcessSteps}
-              categoricalValuesByColumn={
-                // Filter out nulls: ScopeChrome expects (string | number)[], not (string | null)[]
-                Object.fromEntries(
-                  Object.entries(categoricalValuesByColumn ?? {}).map(([col, vals]) => [
-                    col,
-                    vals.filter((v): v is string => v !== null),
-                  ])
-                )
-              }
-              onNavigateToProcess={() => usePanelsStore.getState().showFrame()}
-            />
-          )}
+          {/* ER-4: the ScopeChrome mount is DELETED — the conditional scope bar (the
+              "⌖ Viewing condition" row above) is the single scope-chrome surface, and
+              the PersistentScopeChip (header) carries the cross-tab scope indicator.
+              The full ScopeChrome chip row overlapped the scope bar. The ScopeChrome
+              component itself stays in @variscout/ui for now (only the mount goes). */}
 
           {isPhone ? (
             <MobileChartCarousel
@@ -1376,6 +1507,10 @@ const Dashboard = ({
                       outcomeOverride={
                         isDefectMode && defectResult ? (effectiveOutcome ?? undefined) : undefined
                       }
+                      // ER-4 highlight tier: the I-Chart keeps the FULL lensed series +
+                      // the member Set (applied condition, or the transient highlight
+                      // when none is applied). Limits/stats stay full-series.
+                      conditionMemberIndices={ichartMemberIndices}
                     />
                   </ErrorBoundary>
                 }
@@ -1384,14 +1519,21 @@ const Dashboard = ({
                     {boxplotFactor && (
                       <Boxplot
                         factor={boxplotFactor}
-                        onDrillDown={handleDrillDown}
+                        // ER-4 (D6): the click sets a transient highlight + shows the
+                        // pill (commit is explicit). The legacy click→drill retires.
+                        onGroupClick={handleGroupClick}
+                        transientHighlightLevel={
+                          transientHighlight && transientHighlight.column === boxplotFactor
+                            ? String(transientHighlight.value)
+                            : undefined
+                        }
                         highlightedCategories={boxplotHighlights}
                         onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
                         findings={chartFindings?.boxplot}
                         onEditFinding={onEditFinding}
                         onDeleteFinding={onDeleteFinding}
                         isComputing={isComputing}
-                        dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
+                        dataOverride={filterTierDataOverride}
                         outcomeOverride={
                           isDefectMode && defectResult ? (effectiveOutcome ?? undefined) : undefined
                         }
@@ -1405,7 +1547,8 @@ const Dashboard = ({
                     {paretoFactor && (
                       <ParetoChart
                         factor={paretoFactor}
-                        onDrillDown={handleDrillDown}
+                        // ER-4 (D6): neutral group click → transient highlight + pill.
+                        onGroupClick={handleGroupClick}
                         showComparison={showParetoComparison}
                         onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
                         onHide={() => setShowParetoPanel(false)}
@@ -1421,7 +1564,7 @@ const Dashboard = ({
                         onEditFinding={onEditFinding}
                         onDeleteFinding={onDeleteFinding}
                         isComputing={isComputing}
-                        dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
+                        dataOverride={filterTierDataOverride}
                         outcomeOverride={
                           isDefectMode && defectResult
                             ? (defectParetoOutcome ?? effectiveOutcome ?? undefined)
@@ -1480,7 +1623,7 @@ const Dashboard = ({
                           <CapabilityHistogram
                             data={histogramData}
                             specs={effectiveSpecs}
-                            mean={stats.mean}
+                            mean={histogramMean}
                           />
                         ) : focusedChart === 'probability-plot' &&
                           histogramData.length > 0 &&

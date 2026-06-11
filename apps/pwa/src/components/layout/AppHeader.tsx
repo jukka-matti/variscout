@@ -15,7 +15,12 @@ import {
   WorkflowNav,
   type WorkflowTabId,
 } from '@variscout/ui';
-import { useAnalyzeStore } from '@variscout/stores';
+import {
+  useAnalyzeStore,
+  useProjectStore,
+  useAnalysisScopeStore,
+  useViewStore,
+} from '@variscout/stores';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
@@ -176,7 +181,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
       {/* PR-CS-3a: always-visible live analysis-scope chip (self-hides when no scope). */}
       {hasData && (
-        <PersistentScopeChip onOpen={onPhaseChange ? () => onPhaseChange('explore') : undefined} />
+        <PersistentScopeChip
+          onOpen={onPhaseChange ? () => onPhaseChange('explore') : undefined}
+          // ER-4: the chip's × is the coherent clear (filters + the filter-stack
+          // breadcrumbs + scope store + transient highlight) — fixes the
+          // pre-existing scope-store-only clear.
+          onClear={() => {
+            useProjectStore.getState().setFilters({});
+            useProjectStore.getState().setFilterStack([]);
+            useAnalysisScopeStore.getState().clearScope();
+            useViewStore.getState().setTransientHighlight(null);
+          }}
+        />
       )}
 
       {/* Toolbar */}
