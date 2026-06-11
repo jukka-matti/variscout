@@ -5,37 +5,42 @@ title: VariScout — What It Does In Practice
 audience: human
 category: reference
 status: active
-last-reviewed: 2026-05-16
-related: [product-overview, modes, single-sku, coscout, journey, v1-architecture]
+last-reviewed: 2026-06-11
+related: [product-overview, modes, single-sku, coscout, journey, v1-architecture, local-first]
 ---
 
 # VariScout — What It Does In Practice
 
-VariScout is **structured investigation for process improvement**. A browser-based tool for improvement specialists — quality engineers, Lean practitioners, Six Sigma belts (Green/Black/MBB), CI engineers — to explore variation in process data, identify suspected causes, drive improvement actions, and verify whether changes worked. Data stays in the customer's environment throughout.
+> **Last material edit 2026-06-11** — V1 now follows [ADR-092](07-decisions/adr-092-local-first-variscout-product-model.md): local-first practical Minitab replacement, artifact-first sharing, and optional Azure services.
 
-Two ways to use it, both first-class:
+VariScout is **local-first structured investigation for process improvement**. A browser-based tool for improvement specialists — quality engineers, Lean practitioners, Six Sigma belts (Green/Black/MBB), CI engineers — to explore variation in process data, connect evidence to the process, drive improvement actions, verify whether changes worked, and export a polished Analysis Pack. Data stays in the customer's environment throughout.
 
-- **Quick analysis.** Paste data, explore in charts, save findings. No project ceremony required. Quick-analysis findings and pins round-trip through `.vrs` export/import without a Project (PO-6, PR #303). Free PWA supports session-only use; Azure tier adds persistence.
-- **Project-anchored investigation.** Create a Project (Charter ceremony), invite your team (Lead / Member / Sponsor roles), run the formal lifecycle: **Charter → Approach → Control**. Each project produces a report a Sponsor can sign off.
+Three ways to use it, all anchored in the same Workspace model:
 
-Canonical V1 design lives in the [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](07-decisions/adr-082-wedge-architecture.md).
+- **Local Workspace.** Paste data, explore in charts, capture findings, create actions, verify Control, and export `.vrs` / Analysis Packs. No project ceremony required.
+- **Company-approved Workspace.** Same local-first experience, distributed or licensed through an IT-approved route such as Azure Marketplace, without requiring customer process data to live in Azure.
+- **Formalized Project.** When governance is needed, formalize the Workspace — name it, set a charter, optionally invite teammates (Lead / Member / Sponsor roles), and use customer-tenant services for persistence or sharing.
+
+Canonical V1 design lives in the [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md), [ADR-082](07-decisions/adr-082-wedge-architecture.md), and the local-first reframing in [ADR-092](07-decisions/adr-092-local-first-variscout-product-model.md).
 
 ## The journey model
 
-Every investigation — whether quick or project-anchored — follows one methodological spine:
+Every investigation follows one methodological spine:
 
-**FRAME → SCOUT → INVESTIGATE → IMPROVE**
+**Process → Explore → Analyze → Improve → Control → Report**
 
-- **FRAME.** State the problem (data-first or hypothesis-first entry). CoScout helps articulate.
-- **SCOUT.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
-- **INVESTIGATE.** Pick suspected causes — data-derived, gemba-observed, or expert-supplied — and examine each with the Evidence Map, statistics, and targeted questions. The Investigation Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection (hypothesis-first path).
-- **IMPROVE.** Hypotheses converge on improvement actions. Inside a Project this becomes the **Improve tab** (action tracker) — top-level verb tab per the 2026-05-16 amendment — then Control ("did it work? + close").
+- **Process.** Map the process, orient the measure, specs, steps, and likely sources of variation.
+- **Explore.** Data is parsed and characterized. Four Lenses of variation emerge (central tendency, spread, pattern, distribution).
+- **Analyze.** Pick suspected causes — data-derived, gemba-observed, or expert-supplied — and examine each with the Evidence Map, statistics, and targeted questions. The Investigation Wall accumulates Findings linked to Hypotheses; Measurement Plans capture what evidence still needs collection.
+- **Improve.** Hypotheses converge on improvement actions: owner, due date, expected effect, linked evidence.
+- **Control.** Verify whether the change held.
+- **Report.** Export an Analysis Pack for the right audience.
 
 The spine never changes. Analysis modes vary the tools used inside each phase.
 
 ## Project — the optional formal wrapper
 
-A **Project** wraps a body of analysis with formal lifecycle and team membership. Use it when the work needs to be tracked, when a Sponsor wants a signoff-able report, or when collaborators need scoped access. Skip it when you're exploring or producing a quick analysis for personal use.
+A **Project** wraps a Workspace with formal lifecycle and optional team membership. Use it when governance, persistence, or managed sharing is needed. Skip project ceremony when you are doing private/local analysis and sharing by `.vrs` or Analysis Pack.
 
 | Stage        | Function                                                                                                                                                                                        |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -43,9 +48,9 @@ A **Project** wraps a body of analysis with formal lifecycle and team membership
 | **Approach** | Analyze strategy → produces suspected causes. Anchor surface is the Investigation Wall (Hypotheses + Findings + Measurement Plans).                                                             |
 | **Control**  | "Did it work?" closure — Cpk delta + action completion + drift check. Absorbs the legacy Handoff stage.                                                                                         |
 
-Improvement actions are tracked in the **Improve tab** — a top-level verb tab (not a Project stage) scoped to the active project via active-IP cascade.
+Improvement actions are tracked in the **Improve tab** — a top-level verb tab, not a Project stage.
 
-The data underneath a Project (the Hub) is tenant-wide — anyone in your Azure tenant can paste data and analyze without creating a Project. The Project's formal artifacts (Charter, Approach, Control, Report) are membership-gated.
+The internal Hub remains storage vocabulary, not a user-facing product noun. Local `.vrs` and Analysis Packs are file/share artifacts; managed Azure documents are membership-gated only when optional customer-tenant services are enabled.
 
 ## Project membership roles
 
@@ -73,25 +78,26 @@ Mode resolution lives in `packages/core/src/analysisStrategy.ts`. CoScout's meth
 
 | Tier      | Distribution                          | Price          | What you get                                                                                                                                                                                            |
 | --------- | ------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PWA**   | Public URL                            | Free           | Full analysis, session-only, no persistence. Training, education, evaluation.                                                                                                                           |
-| **Azure** | Azure Marketplace Managed Application | **€120/month** | Full product: Azure tenant-wide, unlimited org users, unlimited projects. Persistence (IndexedDB + Blob), CoScout AI, project membership ACLs, Report sharing, signoff workflows. Optional voice input. |
+| **PWA**   | Public URL                            | Free           | Full local analysis, session-only by default, `.vrs` export/import, Analysis Pack export. Training, education, evaluation, and real local work.                                                          |
+| **Company-approved / Azure** | Azure Marketplace or another IT-approved route | **€120/month target** | Licensed/distributed company use. Optional customer-tenant persistence, customer AI, managed sharing, project membership, and governance services.                                                        |
 
-Same analytical capability everywhere — V1's promise is **one product**, not feature-gating. Team-capability features (photo evidence, Knowledge Catalyst, project membership) are membership-role-gated inside the €120 SKU rather than tier-gated.
+Same analytical capability everywhere — V1's promise is **one product**, not feature-gating. Optional services add company-approved distribution, AI, persistence, governance, and managed sharing.
 
 A future **VariScout Process** product (enterprise platform with Hub portfolios, process ownership, automated data pipelines, 4-persona model) is named-future on the roadmap; not announced in V1 marketing.
 
 ## CoScout — the AI assistant
 
-CoScout is an assistant, not an oracle. It coaches methodology, asks targeted questions, surfaces references, and proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override. CoScout is modular (tier1/2/3 prompt layering), mode-aware (methodology coaching varies by analysis mode), and tool-calling (27-tool registry gated by phase/mode). On Azure, CoScout accepts **voice input** in a transcript-first way: speak, text lands in the draft box, review/edit, send. v1 replies remain text.
+CoScout is an assistant, not an oracle. It coaches methodology, asks targeted questions, surfaces references, and proposes actions. The deterministic stats engine is the authority on numbers — CoScout quotes it, doesn't override. AI is provider-boundary based: no AI, optional customer Azure AI, future local LLM, and future local MCP/agent surfaces.
 
 ## Customer-owned data
 
-Processing happens in the browser. When data moves (Blob Storage sync, AI calls, optional Azure voice transcription), it stays in the customer's Azure tenant — no VariScout-operated cloud. This is a core product principle, not a feature. Voice input does not create a durable audio layer; the saved artifact is the transcript inside the normal investigation model.
+Processing happens in the browser. The default durable artifacts are user-controlled files: `.vrs` snapshots and Analysis Packs. When optional services are enabled (Blob Storage sync, AI calls, optional Azure voice transcription), data stays in the customer's Azure tenant — no VariScout-operated cloud. This is a core product principle, not a feature.
 
 ## Where to go next
 
 - **Canonical V1 design**: [V1 architecture spec](superpowers/specs/2026-05-16-wedge-architecture-design.md)
 - **Architectural record**: [ADR-082](07-decisions/adr-082-wedge-architecture.md)
+- **Local-first product model**: [ADR-092](07-decisions/adr-092-local-first-variscout-product-model.md)
 - User flows: [USER-JOURNEYS.md](USER-JOURNEYS.md)
 - Data lifecycle (parse → stats → persist → sync): [DATA-FLOW.md](DATA-FLOW.md)
 - Investigation Wall + Measurement Plans: [V1 spec §3.6](superpowers/specs/2026-05-16-wedge-architecture-design.md#§36-investigation-wall--measurement-plans)
