@@ -1872,3 +1872,19 @@ The ER-4 final adversarial review returned READY with two IMPORTANT findings (fi
 ## InflectionSidePanel is entirely un-internationalized — ER-5a matched the local convention [LOGGED 2026-06-11]
 
 ER-5a added the per-segment "view as condition →" CTA to `InflectionSidePanelView` (Azure binding editor). The label is hardcoded English — a deliberate convention-match, not an oversight: every string in the panel ("Detect inflections", "Create bin column →", "Remove binning") is hardcoded today; the component uses no `useTranslation`. Adding one lone catalog key would be incoherent. The right fix is a single pass internationalizing the whole inflection panel (≈10 strings × 32 catalogs). Related asymmetry, also deliberate: the inflection-binning surface exists only in Azure (the PWA mounts no binding editor), so the segment-as-condition CTA is Azure-only; the PWA still consumes committed bin columns and their conditions normally.
+
+## Copilot agent channel — growth-stage milestone, marked down only (deliberately NOT started) [LOGGED 2026-06-11]
+
+**Surfaced by:** the 2026-06-11 GTM/procurement deep-research session (decision-log Replayed Decision same date, option 3). Owner call: mark it down now, investigate later.
+
+**Summary:** the Microsoft 365 Copilot agent store is a real, monetizable channel for a domain-specialized SPC/variation-analysis agent — Microsoft's validation gate (commercial marketplace policy 1140.9) has a blocking "differentiated value beyond base Copilot" bar that VariScout's deterministic stats engine plausibly clears (Microsoft's own worked example of differentiated value is a domain-tuned pharma agent). It is deliberately deferred because store-published agents carry blocking operational SLOs (response ≤9s p99 / ≤5s p75 / ≤2s p50; 99.9% meaningful-response availability) and the channel needs Microsoft AI Cloud Partner Program + "Microsoft 365 and Copilot" program enrollment — premature for a solo vendor pre-revenue-traction.
+
+**Cheap early step (no Copilot work implied):** enroll in Partner Center / the Microsoft AI Cloud Partner Program — the transactable Marketplace listing (ranked option 1, the now-work) needs the same account, so enrollment is shared groundwork, not Copilot-specific effort.
+
+**Architecture principle (binding on any future agent design):** the agent's backend is the customer's tenant-deployed VariScout instance — keeps the ADR-059 data-never-leaves story intact and VariScout's hosting bill at zero. How a per-customer in-tenant backend satisfies the store SLOs is the first design question when this picks up.
+
+**Refuted-claim warning (from adversarial verification):** the M365/Copilot program and the Commercial Marketplace program are **distinct** programs with distinct enrollment, validation, and surfacing — a single listing does not cover both surfaces. Plan as two channels.
+
+**Promotion path:** own brainstorm → spec session once (a) the transactable Marketplace listing is live and (b) early tenant traction exists. Graduates via the decision log; the MACC/co-sell milestone (~60–70 concurrent tenants) is the natural calendar anchor.
+
+**Severity:** n/a — strategic, time-gated by design; nothing is broken.

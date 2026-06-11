@@ -5,7 +5,7 @@ title: Business Bible
 audience: human
 category: reference
 status: active
-last-reviewed: 2026-05-17
+last-reviewed: 2026-06-11
 related: [strategy, hypotheses, value-levers, flywheel, pricing, single-sku]
 layer: L1
 ---
@@ -143,7 +143,14 @@ containing supplier performance and process secrets.
   tenant, project-formal data is scoped to invited members only.
 - EU AI Act and ISO 9001:2026 favor transparent, auditable architectures.
 
-**Evidence against:** None.
+**Evidence against:** First field signal (2026-06-11): a large-enterprise
+prospect reported that buying external software is hard regardless of
+architecture — certifications, vendor risk assessment, data concerns.
+Customer-tenant deployment _answers_ the security review but does not waive
+it by itself: the privacy story must be packaged as a procurement artifact
+(security review pack: architecture brief, data-flow diagram, DPA template,
+pre-filled vendor security questionnaire — "your data never reaches us;
+review the ARM template instead"). See decision-log 2026-06-11 GTM entry.
 
 **Invalidation criteria:** If enterprise buyers consistently request
 centralized cloud analytics (multi-site dashboards, cross-tenant aggregation),
@@ -167,7 +174,13 @@ for the paid Azure App. The free-to-paid funnel is the primary growth engine.
 - ADR-007: PWA repositioned as free training tool; same funnel role as the
   shelved Excel Add-in at zero marginal cost.
 
-**Evidence against:** None (pre-launch).
+**Evidence against:** None in funnel data (pre-launch). One structural risk
+logged 2026-06-11: the large-company procurement objection lands exactly on
+the PWA→Azure conversion step — the practitioner adopts the free PWA without
+friction, but the €120 deployment still passes vendor onboarding unless the
+purchase rides existing Microsoft agreements (transactable Marketplace offer)
+or enters via the training budget (trainer-network land motion). See
+decision-log 2026-06-11 GTM entry.
 
 **Invalidation criteria:** If <5% of PWA users visit the Azure Marketplace
 listing within 12 months, the funnel is broken.
@@ -370,6 +383,20 @@ Team. Reasoning:
   One landing page. One Marketplace listing.
 - **Sales motion is self-serve.** Marketplace install → free PWA evaluation →
   Azure deploy. No enterprise sales cycle until VariScout Process arrives.
+- **Marketplace removes the contracting leg of procurement, not the
+  security-review leg** (verified 2026-06-11 against Microsoft Learn). A
+  transactable listing makes Microsoft the billing counterparty under the
+  customer's existing Azure agreement (agency model, 3% store fee; private
+  plans for negotiated per-customer deals) — but customers typically still
+  run vendor security review. The security-review answer is ADR-059
+  packaged as a procurement artifact (see H4 evidence-against).
+- **MACC is a named growth milestone, not a launch lever.** At ~60–70
+  concurrent tenants (~USD 100K trailing-12-month Azure-attributable
+  revenue) VariScout qualifies for Azure IP co-sell → MACC eligibility,
+  letting purchases draw down customers' pre-committed Azure spend — the
+  strongest procurement sentence available ("this draws down the Azure
+  commitment you already signed"). Watch Microsoft's App Accelerate
+  nomination path (2026 rollout) as a possible earlier route.
 
 ### 3.4 Customer-owned data is non-negotiable
 
