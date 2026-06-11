@@ -197,6 +197,24 @@ describe('ModelDrawerBase — six sections (ANOVA path / fitSubsetGLM)', () => {
     expect(ss('model-drawer-anova-row-Total')).toBe('504');
   });
 
+  it('GLM-path Total SS = glm.sst (same listwise-deleted population as Error row)', () => {
+    // This is the population-consistency regression guard: the Total row must come
+    // from glm.sst (solver-owned, listwise-complete rows only), NOT from a
+    // separate Σ(y − ȳ)² pass over ALL finite-y rows. On the balanced fixture
+    // (no missing values) both numbers are equal, so this test verifies the render
+    // value is correct regardless of which source is used; when factors have missing
+    // values the two diverge and only glm.sst is consistent with Error SS.
+    //
+    // Hand-check: balanced 2×2 fixture, 4 reps/cell, deterministic wobble ±1/±2.
+    //   Grand mean: (10+11+9+12+8 + 14+15+13+16+12 + 20+21+19+22+18 + 24+25+23+26+22) / 16
+    //   Cell means: a1b1=10, a1b2=14, a2b1=20, a2b2=24 (wobble averages to 0 per cell)
+    //   Σ(y − ȳ)² = SST = 504 (hand-verified in the ANOVA fixture comment above)
+    render(<ModelDrawerBase {...anovaProps} />);
+    const totalRow = screen.getByTestId('model-drawer-anova-row-Total');
+    const ss = (totalRow.querySelectorAll('td')[2]?.textContent ?? '').trim();
+    expect(ss).toBe('504');
+  });
+
   it('best-subsets ladder marks the SHOWN row with ✓ shown', () => {
     render(<ModelDrawerBase {...anovaProps} />);
     const ladder = screen.getByTestId('model-drawer-ladder');

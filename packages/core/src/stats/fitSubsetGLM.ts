@@ -61,6 +61,14 @@ export interface FitSubsetGLMResult {
   rmse: number;
   /** Residual (error) sum of squares. */
   sse: number;
+  /**
+   * Total sum of squares Σ(y − ȳ)² — computed over the SAME listwise-deleted
+   * rows as `sse` and `n` (the OLS fit uses only complete cases). Exposed so
+   * consumers (e.g. the ANOVA Total row in the model drawer) can use the same
+   * population as the Error row, avoiding inconsistency when factors have
+   * missing values. Satisfies: sst = sse + model SS (within floating-point).
+   */
+  sst: number;
   /** R² — proportion of total variation explained. */
   rSquared: number;
   /** Adjusted R². */
@@ -217,6 +225,8 @@ export function fitSubsetGLM(
     intercept: interceptCoef,
     rmse: Number.isFinite(solution.rmse) ? solution.rmse : 0,
     sse: Number.isFinite(solution.sse) ? solution.sse : 0,
+    // sst from the OLS solver — same listwise-deleted population as sse/n.
+    sst: Number.isFinite(solution.sst) ? solution.sst : 0,
     rSquared: Number.isFinite(solution.rSquared) ? solution.rSquared : 0,
     rSquaredAdj: Number.isFinite(solution.rSquaredAdj) ? solution.rSquaredAdj : 0,
     n: matrix.n,

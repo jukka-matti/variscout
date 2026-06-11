@@ -255,9 +255,16 @@ export const ModelDrawerBase: React.FC<ModelDrawerBaseProps> = ({
     });
   }, [glm, shown, rows]);
 
-  // Total SS computed DIRECTLY from the rows (Σ(y − ȳ)²) — the honest total,
-  // never the fragile sse/(1−R²) near R²→1. Used for the ANOVA Total row.
-  const sst = useMemo(() => {
+  // Total SS for the OLS path (BestSubsetsResult.ssTotal) — computed over the
+  // same listwise-deleted population as the fit. Falls back to a direct
+  // Σ(y − ȳ)² pass over ALL finite-y rows only when the engine result is
+  // unavailable (defensive fallback, should not occur on live data).
+  //
+  // NOTE: the GLM path uses glm.sst (fitSubsetGLM exposes the solver's own sst,
+  // same listwise-deleted population as glm.sse and glm.n), NOT this memo —
+  // ensuring Error and Total share the same population even when factors have
+  // missing values.
+  const sstFallback = useMemo(() => {
     if (!outcome) return 0;
     let sum = 0;
     let count = 0;
@@ -289,7 +296,10 @@ export const ModelDrawerBase: React.FC<ModelDrawerBaseProps> = ({
         rSquaredAdj: glm.rSquaredAdj,
         n: glm.n,
         sse: glm.sse,
-        sst,
+        // Use the solver's own sst — same listwise-deleted population as sse and n.
+        // This ensures Error and Total share one population even when factors have
+        // missing values (the component-level sstFallback covers ALL finite-y rows).
+        sst: glm.sst,
         modelDf,
         intercept: glm.intercept,
         referenceLevels: glm.referenceLevels,
@@ -298,7 +308,7 @@ export const ModelDrawerBase: React.FC<ModelDrawerBaseProps> = ({
     }
     if (shown) {
       const n = engine?.result.n ?? rows.length;
-      const sstEngine = engine?.result.ssTotal ?? sst;
+      const sstEngine = engine?.result.ssTotal ?? sstFallback;
       // BestSubsetResult has no `sse`; derive honestly from (1 − R²)·SST (same fit).
       const sse = (1 - shown.rSquared) * sstEngine;
 
@@ -336,7 +346,7 @@ export const ModelDrawerBase: React.FC<ModelDrawerBaseProps> = ({
       };
     }
     return null;
-  }, [glm, engine, rows, sst]);
+  }, [glm, engine, rows, sstFallback]);
 
   // ── Equation (largest |coef| first; reference-coded) ──
   const equation = useMemo(() => {

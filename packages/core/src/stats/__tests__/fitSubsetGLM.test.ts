@@ -180,7 +180,51 @@ describe('fitSubsetGLM — all-categorical path (the ANOVA-dispatch shape)', () 
 });
 
 // ===========================================================================
-// Test 2 — rmse² ≈ SSE / dfRes hand-check
+// Test 2 — sst is exposed and satisfies sst = sse + model SS
+// ===========================================================================
+
+describe('fitSubsetGLM — sst exposure and population consistency', () => {
+  it('exposes a finite sst field (same listwise-deleted population as sse)', () => {
+    const data = buildNoisyCategoricalFixture();
+    const result = fitSubsetGLM(data, 'Y', ['A', 'B'])!;
+
+    expect(Number.isFinite(result.sst)).toBe(true);
+    expect(result.sst).toBeGreaterThan(0);
+    // sst ≥ sse (sse is the unexplained portion)
+    expect(result.sst).toBeGreaterThanOrEqual(result.sse);
+  });
+
+  it('sst > 0 and sst > sse on the additive fixture (perfect fit has sse=0)', () => {
+    // Perfect additive fit: SSE = 0 → sst should equal model SS entirely.
+    // (Note: Type III SS are partial / model-comparison SS, not a simple additive
+    // partition of SST — they do NOT necessarily sum to SST even on balanced data.
+    // We only assert the structural invariant: sst > sse ≥ 0.)
+    const data = buildAdditiveCategoricalFixture();
+    const result = fitSubsetGLM(data, 'Y', ['A', 'B'])!;
+
+    expect(result.sse).toBeCloseTo(0, 9);
+    expect(result.sst).toBeGreaterThan(0);
+    // When R²=1: sst = sse + model SS → sst > sse (strictly, since model SS > 0)
+    expect(result.sst).toBeGreaterThan(result.sse);
+  });
+
+  it('sst matches a direct Σ(y − ȳ)² computed from the SAME listwise-complete rows', () => {
+    // The noisyFixture has no missing values, so the listwise population = all rows.
+    // A direct sst computation must agree with the solver's sst to machine precision.
+    const data = buildNoisyCategoricalFixture();
+    const result = fitSubsetGLM(data, 'Y', ['A', 'B'])!;
+
+    // Hand-compute sst over the same rows
+    const yVals = data.map(d => d.Y as number).filter(Number.isFinite);
+    const mean = yVals.reduce((a, b) => a + b, 0) / yVals.length;
+    const directSst = yVals.reduce((a, y) => a + (y - mean) ** 2, 0);
+
+    expect(result.sst).toBeCloseTo(directSst, 9);
+  });
+});
+
+// ===========================================================================
+// Test 3 — rmse² ≈ SSE / dfRes hand-check
 // ===========================================================================
 
 describe('fitSubsetGLM — residual variance identity', () => {
