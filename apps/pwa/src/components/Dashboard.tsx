@@ -785,6 +785,14 @@ const Dashboard = ({
       .filter((v: number) => !isNaN(v));
   }, [filterTierData, effectiveOutcome]);
 
+  // ER-4 honesty: the histogram's mean line must describe ITS OWN bars. Under an
+  // applied condition stats.mean stays full-series by design (D6), so derive the
+  // reference line from the plotted values instead of the full-population stats.
+  const histogramMean = useMemo(() => {
+    if (histogramData.length === 0) return 0;
+    return histogramData.reduce((sum: number, v: number) => sum + v, 0) / histogramData.length;
+  }, [histogramData]);
+
   // Probability plot series — linked to boxplot factor for multi-series grouping.
   // ER-4: rows = filterTierData so the regime is recomputed within the condition.
   const probabilitySeries = useProbabilityPlotData({
@@ -834,7 +842,7 @@ const Dashboard = ({
       id: 'distribution',
       label: hasSpecs ? t('verify.tab.capability') : t('verify.tab.distribution'),
       content: (
-        <CapabilityHistogram data={histogramData} specs={effectiveSpecs} mean={stats?.mean ?? 0} />
+        <CapabilityHistogram data={histogramData} specs={effectiveSpecs} mean={histogramMean} />
       ),
     },
   ] satisfies Array<{ id: AnalysisLensTab; label: string; content: React.ReactNode }>;
@@ -1482,7 +1490,7 @@ const Dashboard = ({
                   <CapabilityHistogram
                     data={histogramData}
                     specs={effectiveSpecs}
-                    mean={stats.mean}
+                    mean={histogramMean}
                   />
                 ) : focusedChart === 'probability-plot' && histogramData.length > 0 && stats ? (
                   <ProbabilityPlot

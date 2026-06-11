@@ -227,10 +227,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     else panels.showReport();
   };
 
-  // ER-4: the persistent scope chip's × is the coherent clear (filters + scope
-  // store + transient highlight) — fixes the pre-existing scope-store-only clear.
+  // ER-4: the persistent scope chip's × is the coherent clear (filters + the
+  // filter-stack breadcrumbs + scope store + transient highlight) — fixes the
+  // pre-existing scope-store-only clear.
   const handleCoherentScopeClear = () => {
     useProjectStore.getState().setFilters({});
+    useProjectStore.getState().setFilterStack([]);
     useAnalysisScopeStore.getState().clearScope();
     useViewStore.getState().setTransientHighlight(null);
   };

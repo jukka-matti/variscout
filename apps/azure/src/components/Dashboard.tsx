@@ -664,6 +664,14 @@ const Dashboard = ({
       .filter((v: number) => !isNaN(v));
   }, [filterTierData, effectiveOutcome]);
 
+  // ER-4 honesty: the histogram's mean line must describe ITS OWN bars. Under an
+  // applied condition stats.mean stays full-series by design (D6), so derive the
+  // reference line from the plotted values instead of the full-population stats.
+  const histogramMean = useMemo(() => {
+    if (histogramData.length === 0) return 0;
+    return histogramData.reduce((sum: number, v: number) => sum + v, 0) / histogramData.length;
+  }, [histogramData]);
+
   // Probability plot series — linked to boxplot factor for multi-series grouping
   // G1 Task 4: pass categoricalValuesByColumn so derived factors (e.g. Reactor_temp_bin)
   // are resolved even though raw filteredData rows don't carry those keys.
@@ -789,7 +797,7 @@ const Dashboard = ({
       id: 'distribution',
       label: hasSpecs ? t('verify.tab.capability') : t('verify.tab.distribution'),
       content: (
-        <CapabilityHistogram data={histogramData} specs={effectiveSpecs} mean={stats?.mean ?? 0} />
+        <CapabilityHistogram data={histogramData} specs={effectiveSpecs} mean={histogramMean} />
       ),
     },
   ];
@@ -1615,7 +1623,7 @@ const Dashboard = ({
                           <CapabilityHistogram
                             data={histogramData}
                             specs={effectiveSpecs}
-                            mean={stats.mean}
+                            mean={histogramMean}
                           />
                         ) : focusedChart === 'probability-plot' &&
                           histogramData.length > 0 &&

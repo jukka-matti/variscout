@@ -183,10 +183,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       {hasData && (
         <PersistentScopeChip
           onOpen={onPhaseChange ? () => onPhaseChange('explore') : undefined}
-          // ER-4: the chip's × is the coherent clear (filters + scope store +
-          // transient highlight) — fixes the pre-existing scope-store-only clear.
+          // ER-4: the chip's × is the coherent clear (filters + the filter-stack
+          // breadcrumbs + scope store + transient highlight) — fixes the
+          // pre-existing scope-store-only clear.
           onClear={() => {
             useProjectStore.getState().setFilters({});
+            useProjectStore.getState().setFilterStack([]);
             useAnalysisScopeStore.getState().clearScope();
             useViewStore.getState().setTransientHighlight(null);
           }}
