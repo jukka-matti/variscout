@@ -275,10 +275,9 @@ describe('Dashboard', () => {
       expect(props.measureLabel).toBeTruthy();
     });
 
-    it('passes the relocated Subgroup slot only when the capability metric is active', () => {
-      // Default standardIChartMetric is measurement → no subgroup slot.
+    it('passes the relocated Subgroup slot from the context line before capability is active', () => {
       render(<Dashboard />);
-      expect(capturedHealthBarProps.value!.subgroupSlot).toBeUndefined();
+      expect(capturedHealthBarProps.value!.subgroupSlot).toBeTruthy();
 
       useProjectStore.setState({
         displayOptions: {

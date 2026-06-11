@@ -90,6 +90,8 @@ interface DataPointsProps {
   hideTooltip: () => void;
   /** Secondary data series */
   secondaryData?: IChartDataPoint[];
+  /** Full pre-decimation point count for marker sizing. */
+  fullPointCount?: number;
   /**
    * Condition-membership set (ER-4) in display-index space. When present and non-empty the
    * highlight tier is ACTIVE: members keep their violation color/shape but lit; non-members
@@ -141,6 +143,7 @@ const DataPoints: React.FC<DataPointsProps> = ({
   showTooltipAtCoords,
   hideTooltip,
   secondaryData,
+  fullPointCount,
   conditionMemberIndices,
 }) => {
   const hasSecondary = secondaryData && secondaryData.length > 0;
@@ -302,26 +305,37 @@ const DataPoints: React.FC<DataPointsProps> = ({
       {data.map((d, i) => {
         const isHighlighted = highlightedPointIndex === i;
         const isSelected = enableBrushSelection && isPointSelected(i);
+        const signalIndex = d.originalIndex ?? i;
 
         // --- Membership highlight tier (ER-4) ---
         // When active, the tier OWNS opacity + size (orthogonal to violation color/shape):
         // members lit, non-members dim; a non-member that is a violation floors at .3.
-        const isMember = membershipActive ? conditionMemberIndices!.has(i) : false;
-        const pointColor = getPointColor(d.y, i, d.stage);
+        const isMember = membershipActive ? (d.isMember ?? conditionMemberIndices!.has(i)) : false;
+        const pointColor = getPointColor(d.y, signalIndex, d.stage);
         const isViolation = pointColor !== chartColors.mean;
+        const isLargeSeries = (fullPointCount ?? data.length) >= 800;
         let pointOpacity: number;
         let pointSize: number;
         if (membershipActive) {
           if (isMember) {
             pointOpacity = MEMBER_OPACITY;
-            pointSize = MEMBER_POINT_SIZE;
+            pointSize = isLargeSeries ? 1.9 : MEMBER_POINT_SIZE;
           } else {
             pointOpacity = isViolation ? DIMMED_VIOLATION_FLOOR : NON_MEMBER_OPACITY;
-            pointSize = NON_MEMBER_POINT_SIZE;
+            pointSize = isLargeSeries ? (isViolation ? 1.9 : 1.4) : NON_MEMBER_POINT_SIZE;
           }
         } else {
           pointOpacity = enableBrushSelection ? getPointOpacity(i) : 1;
-          pointSize = enableBrushSelection && isSelected ? getPointSize(i) : isHighlighted ? 6 : 4;
+          pointSize =
+            enableBrushSelection && isSelected
+              ? getPointSize(i)
+              : isHighlighted
+                ? 6
+                : isLargeSeries
+                  ? isViolation
+                    ? 1.9
+                    : 1.4
+                  : 4;
         }
         const strokeWidth =
           enableBrushSelection && isSelected ? getPointStrokeWidth(i) : isHighlighted ? 2 : 1;
@@ -331,6 +345,8 @@ const DataPoints: React.FC<DataPointsProps> = ({
             key={i}
             opacity={pointOpacity}
             data-member={membershipActive ? String(isMember) : undefined}
+            data-original-index={d.originalIndex}
+            data-point-size={isViolation ? 'violation' : 'quiet'}
           >
             {/* Highlight ring for selected point */}
             {isHighlighted && (
@@ -348,7 +364,7 @@ const DataPoints: React.FC<DataPointsProps> = ({
               cx={xScale(d.x)}
               cy={yScale(d.y)}
               r={pointSize}
-              shape={getPointShape(d.y, i, d.stage)}
+              shape={getPointShape(d.y, signalIndex, d.stage)}
               fill={pointColor}
               stroke={
                 isSelected

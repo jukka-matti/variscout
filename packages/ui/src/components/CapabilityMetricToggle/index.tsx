@@ -1,6 +1,6 @@
 /**
  * CapabilityMetricToggle - Segmented control to switch between
- * "Measurements" (raw values) and "Cpk stability" (Cp/Cpk per subgroup
+ * "Measurements" (raw values) and "Capability over time" (Cpk per subgroup
  * plotted as a control chart — ADR-038).
  *
  * The labels match the story VariScout tells: you're either looking at
@@ -19,35 +19,41 @@ export interface CapabilityMetricToggleProps {
   metric: StandardIChartMetric;
   /** Callback when metric changes */
   onMetricChange: (metric: StandardIChartMetric) => void;
-  /** Disabled when no specs are set */
+  /** Legacy disabled flag; prefer disabledReason for a legible prerequisite label. */
   disabled?: boolean;
+  /** When set, the capability lens is disabled and this text explains why. */
+  disabledReason?: string;
 }
 
 const OPTIONS: { value: StandardIChartMetric; label: string }[] = [
   { value: 'measurement', label: 'Measurements' },
-  { value: 'capability', label: 'Cpk stability' },
+  { value: 'capability', label: 'Capability over time' },
 ];
 
 export const CapabilityMetricToggle: React.FC<CapabilityMetricToggleProps> = ({
   metric,
   onMetricChange,
   disabled = false,
+  disabledReason,
 }) => {
+  const capabilityDisabled = disabled || !!disabledReason;
+  const reason = disabledReason ?? 'Set specs and choose a subgroup to view capability over time';
   return (
-    <div
-      className="flex items-center gap-0.5 bg-surface-secondary rounded-lg p-0.5"
-      title={disabled ? 'Set specification limits to enable the Cpk stability view' : undefined}
-    >
+    <div className="flex items-center gap-0.5 bg-surface-secondary rounded-lg p-0.5">
       {OPTIONS.map(opt => (
         <button
           key={opt.value}
-          onClick={() => !disabled && onMetricChange(opt.value)}
-          disabled={disabled}
+          onClick={() => {
+            if (opt.value === 'capability' && capabilityDisabled) return;
+            onMetricChange(opt.value);
+          }}
+          aria-disabled={opt.value === 'capability' && capabilityDisabled ? 'true' : undefined}
+          title={opt.value === 'capability' && capabilityDisabled ? reason : undefined}
           className={`px-2 py-1 text-xs rounded-md transition-colors ${
             metric === opt.value
               ? 'bg-surface-primary text-content font-medium shadow-sm'
               : 'text-content-secondary hover:text-content'
-          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          } ${opt.value === 'capability' && capabilityDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {opt.label}
         </button>

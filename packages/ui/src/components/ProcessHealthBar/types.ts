@@ -58,6 +58,8 @@ export interface ProcessHealthBarProps {
   onSetSpecs?: () => void;
   /** Called when user clicks the Cpk stat to open capability editor */
   onCpkClick?: () => void;
+  /** Explains why the Cpk stat cannot activate the capability lens. */
+  cpkDisabledReason?: string;
 
   // --- ER-1: context-line right cluster ---
 

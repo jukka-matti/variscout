@@ -43,6 +43,7 @@ const IChartBase: React.FC<IChartProps> = ({
   stagedStats,
   specs,
   yAxisLabel = 'Value',
+  xAxisLabel,
   axisSettings,
   yDomainOverride,
   parentWidth,
@@ -71,6 +72,11 @@ const IChartBase: React.FC<IChartProps> = ({
   phaseSplit,
   phaseLimits,
   eventFlags,
+  fullPointCount,
+  nelsonRule2Violations: nelsonRule2ViolationsProp,
+  nelsonRule2Sequences: nelsonRule2SequencesProp,
+  nelsonRule3Violations: nelsonRule3ViolationsProp,
+  nelsonRule3Sequences: nelsonRule3SequencesProp,
   conditionMemberIndices,
 }) => {
   const { chrome, formatStat, t, tf } = useChartTheme();
@@ -138,13 +144,22 @@ const IChartBase: React.FC<IChartProps> = ({
     secondaryStats,
   ]);
 
+  const xDomain = useMemo((): [number, number] => {
+    if (data.length === 0) return [0, 1];
+    const values = data.map(d => d.x).filter(Number.isFinite);
+    if (values.length === 0) return [0, Math.max(data.length - 1, 1)];
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return min === max ? [min, min + 1] : [min, max];
+  }, [data]);
+
   const xScale = useMemo(
     () =>
       scaleLinear({
         range: [0, width],
-        domain: [0, Math.max(data.length - 1, 1)],
+        domain: xDomain,
       }),
-    [data.length, width]
+    [xDomain, width]
   );
 
   const yScale = useMemo(
@@ -185,18 +200,25 @@ const IChartBase: React.FC<IChartProps> = ({
   });
 
   // Compute Nelson Rule 2 & 3 violations
-  const {
-    nelsonRule2Violations,
-    nelsonRule2Sequences,
-    nelsonRule3Violations,
-    nelsonRule3Sequences,
-  } = useNelsonViolations({
+  const computedNelson = useNelsonViolations({
     data,
     stats,
     isStaged,
     stagedStats,
     stageBoundaries,
   });
+
+  const {
+    nelsonRule2Violations,
+    nelsonRule2Sequences,
+    nelsonRule3Violations,
+    nelsonRule3Sequences,
+  } = {
+    nelsonRule2Violations: nelsonRule2ViolationsProp ?? computedNelson.nelsonRule2Violations,
+    nelsonRule2Sequences: nelsonRule2SequencesProp ?? computedNelson.nelsonRule2Sequences,
+    nelsonRule3Violations: nelsonRule3ViolationsProp ?? computedNelson.nelsonRule3Violations,
+    nelsonRule3Sequences: nelsonRule3SequencesProp ?? computedNelson.nelsonRule3Sequences,
+  };
 
   if (data.length === 0) return null;
 
@@ -327,6 +349,7 @@ const IChartBase: React.FC<IChartProps> = ({
             showTooltipAtCoords={showTooltipAtCoords}
             hideTooltip={hideTooltip}
             secondaryData={secondaryData}
+            fullPointCount={fullPointCount ?? sampleSize ?? data.length}
             conditionMemberIndices={membershipActive ? conditionMemberIndices : undefined}
           />
 
@@ -401,7 +424,7 @@ const IChartBase: React.FC<IChartProps> = ({
             fontSize={fonts.axisLabel}
             fontWeight={500}
           >
-            {t('chart.observation')}
+            {xAxisLabel ?? t('chart.observation')}
           </text>
 
           {/* Chart Legend */}

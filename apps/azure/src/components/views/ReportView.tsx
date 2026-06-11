@@ -43,7 +43,7 @@ import {
   useVerificationCharts,
   useBoxplotData,
   useBoxplotWrapperData,
-  useIChartData,
+  useIChartModel,
   useCapabilityIChartData,
   useDefectTransform,
   useDefectSummary,
@@ -347,7 +347,16 @@ const ReportView: React.FC<ReportViewProps> = ({
   const stageOrder = useMemo(() => stagedStats?.stageOrder ?? [], [stagedStats]);
 
   // I-Chart data for staged view
-  const ichartData = useIChartData(filteredData, outcome, stageColumn, null);
+  const ichartModel = useIChartModel({
+    sourceData: filteredData,
+    outcome,
+    stageColumn,
+    timeColumn: null,
+    chartWidth: REPORT_CHART_WIDTH,
+    stats,
+    stagedStats,
+    specs,
+  });
 
   // Boxplot data for staged view
   const { data: boxplotData, stageInfo } = useBoxplotData(
@@ -661,13 +670,18 @@ const ReportView: React.FC<ReportViewProps> = ({
         return stagedStats && stats && outcome ? (
           <div style={{ pointerEvents: 'none' }}>
             <IChartBase
-              data={ichartData}
+              data={ichartModel.renderData}
               stats={stats}
               stagedStats={stagedStats}
               specs={specs}
               parentWidth={REPORT_CHART_WIDTH}
               parentHeight={REPORT_CHART_HEIGHT}
               showBranding={false}
+              fullPointCount={ichartModel.fullPointCount}
+              nelsonRule2Violations={ichartModel.nelsonRule2Violations}
+              nelsonRule2Sequences={ichartModel.nelsonRule2Sequences}
+              nelsonRule3Violations={ichartModel.nelsonRule3Violations}
+              nelsonRule3Sequences={ichartModel.nelsonRule3Sequences}
             />
           </div>
         ) : null;
@@ -908,7 +922,7 @@ const ReportView: React.FC<ReportViewProps> = ({
             )}
             {workspaceProject && reportAudienceMode === 'technical' ? (
               <IPTechnicalReport
-                outcomeSeries={ichartData}
+                outcomeSeries={ichartModel.renderData}
                 stats={stats}
                 specs={specs}
                 beforeValues={beforeHistogramValues}

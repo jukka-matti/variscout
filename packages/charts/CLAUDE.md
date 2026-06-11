@@ -15,7 +15,7 @@ React + visx chart components. Standard (I-Chart, Boxplot, Pareto), Performance 
 - Responsive utilities: `getResponsiveMargins(width, chartType)`, `getResponsiveFonts(width)`, `getResponsiveTickCount(size, axis)` from `@variscout/core/responsive`.
 - Boxplot auto-switches to jittered dots when a category has < `MIN_BOXPLOT_VALUES` (7) points. Per-category, not per-chart.
 - Adaptive category limits: Boxplot uses `MIN_BOX_STEP=50px`; Pareto uses `PARETO_MAX_CATEGORIES=20` with "Others" aggregation.
-- I-Chart control-limit violations are force-included in LTTB decimation (never hidden — naive dropping is a signal-hiding correctness bug). `lttb()` lives in `@variscout/core/stats`.
+- I-Chart LTTB decimation is live in Explore and Azure ReportView via `@variscout/hooks/useIChartModel`. Control-limit violations, spec violations, Nelson signal points, and condition members are force-included. After decimation, charts key signals by `originalIndex` / point flags, not rendered array index.
 - Export dimensions are fixed via `EXPORT_SIZES` keys in `useChartCopy.ts` (`scatter` 1200×800, `slide` 1920×1080, etc). Charts re-render at fixed dimensions via ResizeObserver — output is identical across view contexts. Don't inline new sizes.
 
 ## Evidence Map

@@ -311,6 +311,23 @@ describe('DashboardLayoutBase', () => {
     expect(screen.getByTestId('custom-title')).toBeDefined();
   });
 
+  it('swaps capability content inside the existing I-Chart slot without adding a fifth card', () => {
+    render(
+      <DashboardLayoutBase
+        {...baseProps}
+        ichartTitleSlot={<h2>Capability over time · Cpk per 5 observations</h2>}
+        renderIChartContent={<div data-testid="capability-trajectory">Capability marks</div>}
+      />
+    );
+
+    expect(screen.getByText('Capability over time · Cpk per 5 observations')).toBeDefined();
+    expect(screen.getByTestId('capability-trajectory')).toBeDefined();
+    expect(screen.getByTestId('chart-ichart')).toBeDefined();
+    expect(screen.getByTestId('chart-boxplot')).toBeDefined();
+    expect(screen.getByTestId('chart-pareto')).toBeDefined();
+    expect(screen.getByTestId('chart-stats')).toBeDefined();
+  });
+
   describe('boxplot card title + factor-strip absorption (ER-2)', () => {
     it('RETIRES the boxplot factor dropdown (absorbed by the factor strip)', () => {
       render(<DashboardLayoutBase {...baseProps} />);

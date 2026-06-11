@@ -43,6 +43,7 @@ export type {
   StepErrorParetoProps,
   StepErrorParetoStep,
   CapabilityGapTrendChartProps,
+  CpkTrajectoryChartProps,
 } from './types';
 
 // Color constants
@@ -154,5 +155,6 @@ export {
   default as CapabilityGapTrendChart,
   CapabilityGapTrendChartBase,
 } from './CapabilityGapTrendChart';
+export { default as CpkTrajectoryChart, CpkTrajectoryChartBase } from './CpkTrajectoryChart';
 export { default as CapabilityBoxplot, CapabilityBoxplotBase } from './CapabilityBoxplot';
 export { default as StepErrorPareto, StepErrorParetoBase } from './StepErrorPareto';

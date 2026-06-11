@@ -77,6 +77,7 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
   onExportVrs,
   onSetSpecs,
   onCpkClick,
+  cpkDisabledReason,
   subgroupSlot,
   availableStageColumns = [],
   stageColumn,
@@ -410,7 +411,8 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
           <button
             onClick={onCpkClick}
             data-testid="stat-cpk"
-            title={onCpkClick ? 'View capability on the I-Chart' : undefined}
+            title={onCpkClick ? 'View capability on the I-Chart' : cpkDisabledReason}
+            aria-disabled={!onCpkClick && cpkDisabledReason ? 'true' : undefined}
             className={`font-mono font-medium ${colorClass} ${onCpkClick ? 'hover:underline cursor-pointer' : 'cursor-default'}`}
           >
             Cpk {cpkStr}

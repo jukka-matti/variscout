@@ -946,11 +946,46 @@ const Dashboard = ({
   const capabilityIChartData = useCapabilityIChartData({
     filteredData,
     outcome: outcome ?? '',
-    specs,
+    specs: outcomeSpecs,
     subgroupConfig,
     cpkTarget,
-    enabled: isCapabilityMode,
+    enabled: !!outcome,
   });
+
+  const usableCapabilityPointCount = useMemo(
+    () => capabilityIChartData.cpkData.filter(point => Number.isFinite(point.y)).length,
+    [capabilityIChartData.cpkData]
+  );
+  const capabilityLensDisabledReason = useMemo(() => {
+    if (outcomeSpecs.usl === undefined && outcomeSpecs.lsl === undefined) {
+      return 'Set specs to view capability over time';
+    }
+    if (usableCapabilityPointCount < 2) {
+      return 'Choose a subgroup with at least two Cpk points';
+    }
+    return undefined;
+  }, [outcomeSpecs.lsl, outcomeSpecs.usl, usableCapabilityPointCount]);
+  const canUseCapabilityLens = capabilityLensDisabledReason === undefined;
+  const subgroupLabel = useMemo(() => {
+    if (subgroupConfig.method === 'column' && subgroupConfig.column) {
+      return columnAliases[subgroupConfig.column] ?? subgroupConfig.column;
+    }
+    return `${subgroupConfig.size ?? 5} observations`;
+  }, [columnAliases, subgroupConfig.column, subgroupConfig.method, subgroupConfig.size]);
+  const capabilityTitle = `Capability over time · Cpk per ${subgroupLabel}`;
+  const handleCapabilityMetricChange = useCallback(
+    (metric: 'measurement' | 'capability') => {
+      if (metric === 'capability' && !canUseCapabilityLens) return;
+      setDisplayOptions({ ...displayOptions, standardIChartMetric: metric });
+    },
+    [canUseCapabilityLens, displayOptions, setDisplayOptions]
+  );
+
+  useEffect(() => {
+    if (isCapabilityMode && !canUseCapabilityLens) {
+      setDisplayOptions({ ...displayOptions, standardIChartMetric: 'measurement' });
+    }
+  }, [canUseCapabilityLens, displayOptions, isCapabilityMode, setDisplayOptions]);
 
   const capabilityStats =
     isCapabilityMode && capabilityIChartData.subgroupResults.length > 0
@@ -1260,17 +1295,15 @@ const Dashboard = ({
           onClearAll={handleCoherentClear}
           onPinFinding={onPinFinding}
           subgroupSlot={
-            displayOptions.standardIChartMetric === 'capability' ? (
-              <SubgroupConfigPopover
-                config={subgroupConfig}
-                onConfigChange={setSubgroupConfig}
-                availableColumns={(() => {
-                  const fromMap = subgroupAxisColumns(processContext?.processMap);
-                  return fromMap.length > 0 ? fromMap : factors;
-                })()}
-                columnAliases={columnAliases}
-              />
-            ) : undefined
+            <SubgroupConfigPopover
+              config={subgroupConfig}
+              onConfigChange={setSubgroupConfig}
+              availableColumns={(() => {
+                const fromMap = subgroupAxisColumns(processContext?.processMap);
+                return fromMap.length > 0 ? fromMap : factors;
+              })()}
+              columnAliases={columnAliases}
+            />
           }
           availableStageColumns={availableStageColumnsWithSteps}
           stageColumn={stageColumn}
@@ -1282,7 +1315,8 @@ const Dashboard = ({
           onExportCSV={onExportCSV}
           onExportVrs={onExportVrs}
           onSetSpecs={() => setShowSpecEditor(true)}
-          onCpkClick={!isCapabilityMode ? handleCpkClick : undefined}
+          onCpkClick={!isCapabilityMode && canUseCapabilityLens ? handleCpkClick : undefined}
+          cpkDisabledReason={!isCapabilityMode ? capabilityLensDisabledReason : undefined}
           centeringOpportunity={centeringOpportunity}
           specSuggestion={specSuggestion}
           activeProjection={activeProjection}
@@ -1460,11 +1494,15 @@ const Dashboard = ({
             <Activity className="text-blue-400 self-start mt-1" />
             <div className="flex flex-col">
               <h2 className="text-xl font-bold text-white leading-none">
-                <EditableChartTitle
-                  defaultTitle={`I-Chart: ${effectiveOutcome}`}
-                  value={chartTitles.ichart || ''}
-                  onChange={title => setChartTitles({ ...chartTitles, ichart: title })}
-                />
+                {isCapabilityMode ? (
+                  capabilityTitle
+                ) : (
+                  <EditableChartTitle
+                    defaultTitle={`I-Chart: ${effectiveOutcome}`}
+                    value={chartTitles.ichart || ''}
+                    onChange={title => setChartTitles({ ...chartTitles, ichart: title })}
+                  />
+                )}
               </h2>
               <span className="text-xs font-bold text-blue-400 opacity-80 tracking-widest mt-1">
                 VARISCOUT
@@ -1480,10 +1518,8 @@ const Dashboard = ({
           <div className="flex items-center gap-2">
             <CapabilityMetricToggle
               metric={displayOptions.standardIChartMetric ?? 'measurement'}
-              onMetricChange={m =>
-                setDisplayOptions({ ...displayOptions, standardIChartMetric: m })
-              }
-              disabled={specs.usl === undefined && specs.lsl === undefined}
+              onMetricChange={handleCapabilityMetricChange}
+              disabledReason={capabilityLensDisabledReason}
             />
             {onManageFactors && (
               <button

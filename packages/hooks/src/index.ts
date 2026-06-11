@@ -208,7 +208,8 @@ export type {
   UseBoxplotCategoryLimitOptions,
   UseBoxplotCategoryLimitReturn,
 } from './useBoxplotCategoryLimit';
-export { useIChartData } from './useIChartData';
+export { useIChartData, useIChartModel } from './useIChartData';
+export type { UseIChartModelOptions, UseIChartModelResult } from './useIChartData';
 
 // Focused Chart Navigation
 export { useFocusedChartNav, type UseFocusedChartNavReturn } from './useFocusedChartNav';

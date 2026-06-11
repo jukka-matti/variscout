@@ -4,8 +4,12 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@variscout/charts', async () => {
   const React = await import('react');
   return {
-    IChart: ({ data }: { data: unknown[] }) =>
-      React.createElement('div', { 'data-testid': 'mock-cpk-trend' }, `IChart:${data.length}`),
+    CpkTrajectoryChart: ({ data }: { data: unknown[] }) =>
+      React.createElement(
+        'div',
+        { 'data-testid': 'mock-cpk-trajectory' },
+        `CpkTrajectory:${data.length}`
+      ),
     CapabilityGapTrendChart: ({ gapSeries }: { gapSeries: unknown[] }) =>
       React.createElement('div', { 'data-testid': 'mock-gap-trend' }, `Gap:${gapSeries.length}`),
     CapabilityBoxplot: ({ nodes }: { nodes: unknown[] }) =>
@@ -53,7 +57,7 @@ const baseProps: ProductionLineGlanceDashboardProps = {
 describe('ProductionLineGlanceDashboard', () => {
   it('renders all four chart slots', () => {
     render(<ProductionLineGlanceDashboard {...baseProps} />);
-    expect(screen.getByTestId('mock-cpk-trend')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-cpk-trajectory')).toBeInTheDocument();
     expect(screen.getByTestId('mock-gap-trend')).toBeInTheDocument();
     expect(screen.getByTestId('mock-capability-boxplot')).toBeInTheDocument();
     expect(screen.getByTestId('mock-step-pareto')).toBeInTheDocument();
@@ -72,6 +76,7 @@ describe('ProductionLineGlanceDashboard', () => {
         ]}
       />
     );
+    expect(screen.getByTestId('mock-cpk-trajectory').textContent).toBe('CpkTrajectory:1');
     expect(screen.getByTestId('mock-capability-boxplot').textContent).toBe('Boxplot:1');
     expect(screen.getByTestId('mock-step-pareto').textContent).toBe('Pareto:1');
   });
