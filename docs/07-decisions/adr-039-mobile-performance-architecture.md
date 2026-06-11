@@ -9,6 +9,8 @@ layer: L5
 
 **Status**: Accepted
 
+> Accepted 2026-03-21 | Amended 2026-06-11 (see amendment at bottom).
+
 **Date**: 2026-03-21
 
 ## Context
@@ -61,3 +63,9 @@ All four decisions have been implemented:
 - AI context builder already handles null stats — minimal change needed
 - Comlink added as dependency (~1.4 KB gzipped)
 - Mobile users get lower row limits with clear messaging
+
+## Amendment — 2026-06-11
+
+The March implementation created `lttb()` and optional I-Chart hook parameters, but the Explore and Azure report call sites did not pass chart width, stats, or specs. In practice, full-size I-Charts still rendered every point until ER-10.
+
+ER-10 makes LTTB live at the hooks layer via `useIChartModel`: Nelson Rule 2/3 signals are computed on the full data before decimation; render points are then downsampled with marker-aware thresholds. Control-limit violations, spec violations, Nelson signal points, and condition members are force-included. Chart-side rendering must treat `originalIndex` and point flags as the signal identity after decimation; rendered array index is not a stable data identity.

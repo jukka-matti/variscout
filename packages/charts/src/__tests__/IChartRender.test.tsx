@@ -504,4 +504,65 @@ describe('IChartBase membership highlight tier (ER-4)', () => {
     // The data line is NOT suppressed for an empty set.
     expect(container.querySelectorAll('path').length).toBeGreaterThan(0);
   });
+
+  it('uses each point isMember flag after decimation instead of rendered index membership', () => {
+    const data = makeMixedData().map((point, i) => ({
+      ...point,
+      x: i * 20,
+      originalIndex: i * 20,
+      isMember: i === 1,
+    }));
+    const stalePreDecimationMembers = new Set<number>([20]);
+    const { container } = render(
+      <IChartBase
+        data={data}
+        stats={mixedStats}
+        {...defaultProps}
+        conditionMemberIndices={stalePreDecimationMembers}
+      />
+    );
+
+    const groups = pointGroups(container);
+    expect(groups[0].getAttribute('data-member')).toBe('false');
+    expect(groups[1].getAttribute('data-member')).toBe('true');
+  });
+});
+
+describe('IChartBase large-n rendering policy', () => {
+  it('scales sparse LTTB x coordinates across the plot width', () => {
+    const data = [
+      { x: 0, y: 10, originalIndex: 0 },
+      { x: 500, y: 12, originalIndex: 500 },
+      { x: 999, y: 11, originalIndex: 999 },
+    ];
+    const stats = makeStats(data);
+    const { container } = render(<IChartBase data={data} stats={stats} {...defaultProps} />);
+    const circles = Array.from(
+      container.querySelectorAll('g[data-original-index] circle')
+    ) as SVGCircleElement[];
+    const cxValues = circles.map(c => Number(c.getAttribute('cx'))).filter(Number.isFinite);
+
+    expect(Math.max(...cxValues)).toBeGreaterThan(640);
+  });
+
+  it('renders quiet large-n points smaller than violations', () => {
+    const data = [
+      { x: 0, y: 10, originalIndex: 0 },
+      { x: 1, y: 30, originalIndex: 1 },
+    ];
+    const stats = { ...makeStats(data), ucl: 15, lcl: 5 } as StatsResult;
+    const { container } = render(
+      <IChartBase data={data} stats={stats} {...defaultProps} fullPointCount={1000} />
+    );
+    const groups = Array.from(container.querySelectorAll('g[data-original-index]'));
+    const quiet = groups
+      .find(g => g.getAttribute('data-original-index') === '0')
+      ?.querySelector('circle');
+    const violation = groups.find(g => g.getAttribute('data-original-index') === '1');
+    const violationPolygon = violation?.querySelector('polygon');
+
+    expect(Number(quiet?.getAttribute('r'))).toBeLessThan(2);
+    expect(violationPolygon).not.toBeNull();
+    expect(violation?.getAttribute('data-point-size')).toBe('violation');
+  });
 });

@@ -11,8 +11,8 @@
  * and spreads the result as props.
  */
 import React, { useState } from 'react';
-import { IChartBase, getScaledFonts } from '@variscout/charts';
-import { useIChartData, useIChartWrapperData } from '@variscout/hooks';
+import { CpkTrajectoryChartBase, IChartBase, getScaledFonts } from '@variscout/charts';
+import { useIChartModel, useIChartWrapperData } from '@variscout/hooks';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
 import { YAxisPopover } from '../YAxisPopover';
 import type {
@@ -151,17 +151,6 @@ export const IChartWrapperBase = ({
   // Use staged data when stage column is active
   const sourceData = stageColumn ? stagedData : filteredData;
 
-  const data = useIChartData(
-    sourceData,
-    outcome,
-    stageColumn,
-    timeColumn,
-    undefined,
-    undefined,
-    undefined,
-    isCapabilityMode ? undefined : conditionMemberIndices
-  );
-
   const { effectiveStats, effectiveStagedStats, categoryPositions, handleContextMenu } =
     useIChartWrapperData({
       parentWidth,
@@ -172,6 +161,20 @@ export const IChartWrapperBase = ({
       ichartFindings,
       onCreateObservation,
     });
+
+  const chartModel = useIChartModel({
+    sourceData,
+    outcome,
+    stageColumn,
+    timeColumn,
+    chartWidth: parentWidth,
+    stats: effectiveStats,
+    stagedStats: effectiveStagedStats,
+    specs,
+    conditionMemberIndices: isCapabilityMode ? undefined : conditionMemberIndices,
+  });
+
+  const data = chartModel.renderData;
 
   if (!outcome || data.length === 0) {
     return (
@@ -189,6 +192,23 @@ export const IChartWrapperBase = ({
   const chartData = isCapabilityMode && capabilityCpkData?.length ? capabilityCpkData : data;
   const chartStats = isCapabilityMode && capabilityCpkStats ? capabilityCpkStats : effectiveStats;
   const chartYLabel = isCapabilityMode ? 'Cpk' : columnAliases[outcome] || outcome;
+
+  if (isCapabilityMode) {
+    return (
+      <div className="relative w-full h-full" onContextMenu={handleContextMenu}>
+        <CpkTrajectoryChartBase
+          parentWidth={parentWidth}
+          parentHeight={parentHeight}
+          data={capabilityCpkData ?? []}
+          stats={capabilityCpkStats ?? null}
+          cpkTarget={cpkTarget}
+          fullPointCount={capabilityCpkData?.length ?? 0}
+          showBranding={showBranding}
+          brandingText={showBranding ? brandingText : undefined}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full" onContextMenu={handleContextMenu}>
@@ -228,6 +248,11 @@ export const IChartWrapperBase = ({
         secondaryLabel={isCapabilityMode ? 'Cp' : undefined}
         targetLabel={isCapabilityMode && cpkTarget !== undefined ? 'Cpk target' : undefined}
         conditionMemberIndices={isCapabilityMode ? undefined : conditionMemberIndices}
+        fullPointCount={isCapabilityMode ? chartData.length : chartModel.fullPointCount}
+        nelsonRule2Violations={isCapabilityMode ? undefined : chartModel.nelsonRule2Violations}
+        nelsonRule2Sequences={isCapabilityMode ? undefined : chartModel.nelsonRule2Sequences}
+        nelsonRule3Violations={isCapabilityMode ? undefined : chartModel.nelsonRule3Violations}
+        nelsonRule3Sequences={isCapabilityMode ? undefined : chartModel.nelsonRule3Sequences}
       />
 
       {ichartFindings.length > 0 && onEditFinding && onDeleteFinding && (

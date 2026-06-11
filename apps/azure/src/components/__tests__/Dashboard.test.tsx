@@ -866,20 +866,7 @@ describe('Dashboard', () => {
       expect(props.measureLabel).toBeTruthy();
     });
 
-    it('does not pass the relocated Subgroup slot unless capability metric is active', () => {
-      render(<Dashboard />);
-      // Default standardIChartMetric is measurement → no subgroup slot.
-      expect(capturedHealthBarProps.value!.subgroupSlot).toBeUndefined();
-    });
-
-    it('passes a Subgroup slot when the capability metric is active', () => {
-      useProjectStore.setState({
-        displayOptions: {
-          ...useProjectStore.getState().displayOptions,
-          standardIChartMetric: 'capability',
-        },
-        specs: { lsl: 5, usl: 45 },
-      });
+    it('passes the relocated Subgroup slot from the context line before capability is active', () => {
       render(<Dashboard />);
       expect(capturedHealthBarProps.value!.subgroupSlot).toBeTruthy();
     });

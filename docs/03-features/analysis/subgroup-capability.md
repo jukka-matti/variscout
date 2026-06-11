@@ -11,8 +11,8 @@ kind: ui
 serves:
   - docs/02-journeys/personas/lead.md
   - docs/02-journeys/personas/member.md
-last-verified: 2026-06-02
-verified-against-commit: c289d920
+last-verified: 2026-06-11
+verified-against-commit: pending-er-10
 ---
 
 # Subgroup Capability Analysis
@@ -31,7 +31,7 @@ A single overall capability number is a black box — it tells you the result bu
 
 ## Journey Context
 
-Values ⇄ Capability is the one surviving analysis **view** ([ADR-089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md)) — a specs-gated toggle on the I-Chart, _not_ a mode or lens. The analyst switches between Values (variation analysis) and Capability (target compliance) at any point during analysis. Both views work on the same filtered data — drill-down, findings, and investigation are identical in both.
+Values ⇄ Capability is the one surviving specs-gated I-Chart identity ([ADR-089](../../07-decisions/adr-089-retire-mode-lens-user-axis.md)). Explore labels the toggle **Capability over time** and swaps the existing I-Chart slot in place; it never adds a fifth dashboard card. The lens is disabled until the active measure has specs and the subgroup configuration yields at least two finite Cpk points. The context-line Cpk number opens the same lens when those prerequisites are met and otherwise explains the missing prerequisite.
 
 Time-based subgrouping uses extracted time columns from the Frame stage (TimeExtractionPanel with minute-interval support), ensuring subgroups appear as Boxplot-filterable categories and work seamlessly with findings. For fixed-size subgroups where a specific subgroup fails, the analyst can use the Brush → Create Factor flow to isolate problematic data points for deeper investigation.
 
@@ -64,7 +64,11 @@ Grey vertical connectors visualize centering loss per subgroup pair. Long lines 
 
 ## Dual Cp/Cpk Series
 
-The I-Chart in the Capability view shows **both Cp and Cpk** as two series on the same chart:
+The Explore I-Chart in the Capability view plots Cpk over subgroups with axis/title identity `Capability over time · Cpk per <subgroup>`, y-axis `Cpk`, and a subgroup-oriented x-axis. The context chip reports subgroup target coverage.
+
+The shared `CpkTrajectoryChart` component is also used by Control / production-line glance surfaces, so Explore and Control read the same Cpk-over-time grammar.
+
+The deeper subgroup capability data model still carries **both Cp and Cpk**:
 
 - **Cpk** (primary, blue dots): Actual capability accounting for centering
 - **Cp** (secondary, purple dots): Potential capability assuming perfect centering

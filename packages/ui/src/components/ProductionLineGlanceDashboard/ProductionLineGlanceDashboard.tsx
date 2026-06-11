@@ -5,7 +5,7 @@
  * | Per-step Cpk boxplot  | Per-step error Pareto |
  *
  * Pure props-based composition — Plan C owns the data wiring that produces
- * the four slot inputs. Top-left slot reuses `IChart` directly; the other
+ * the four slot inputs. Top-left slot reuses the shared Cpk trajectory chart; the other
  * three use the W1'/W3 components from @variscout/charts.
  *
  * See spec docs/superpowers/specs/2026-04-28-production-line-glance-design.md
@@ -13,7 +13,7 @@
  */
 import React from 'react';
 import {
-  IChart,
+  CpkTrajectoryChart,
   CapabilityGapTrendChart,
   CapabilityBoxplot,
   StepErrorPareto,
@@ -65,10 +65,10 @@ export const ProductionLineGlanceDashboard: React.FC<ProductionLineGlanceDashboa
             }`}
           >
             <div data-testid="slot-cpk-trend" className="bg-surface p-3">
-              <IChart
+              <CpkTrajectoryChart
                 data={[...cpkTrend.data]}
                 stats={cpkTrend.stats}
-                specs={cpkTrend.specs}
+                cpkTarget={cpkTrend.specs.target}
                 yAxisLabel={cpkTrend.yAxisLabel ?? 'Cpk'}
               />
             </div>

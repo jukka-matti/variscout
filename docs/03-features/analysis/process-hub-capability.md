@@ -5,7 +5,7 @@ title: 'Process Hub Capability Tab'
 audience: human
 category: analysis
 status: active
-last-reviewed: 2026-05-18
+last-reviewed: 2026-06-11
 related: [production-line-glance, process-hub, capability, hub-cadence-review]
 layer: L3
 kind: ui
@@ -24,7 +24,7 @@ A hub contains many steps, each with its own spec context. Process owners need a
 
 ## Capability claim
 
-When a process owner opens the Capability tab on a Hub, four charts render the per-step Cpk trend, the Cp-Cpk centering gap over time, the per-step Cpk distribution, and the per-step error Pareto — all within a hub-level URL-shareable filter context. Clicking any step opens the investigation that maps it (Drill A); unmapped scopes surface a non-blocking B0 banner to FRAME.
+When a process owner opens the Capability tab on a Hub, four charts render the per-step Cpk trend, the Cp-Cpk centering gap over time, the per-step Cpk distribution, and the per-step error Pareto — all within a hub-level URL-shareable filter context. The Cpk trend uses the shared `CpkTrajectoryChart` grammar that Explore's **Capability over time** lens uses for subgroup Cpk. Clicking any step opens the investigation that maps it (Drill A); unmapped scopes surface a non-blocking B0 banner to FRAME.
 
 ## Intent diagram (2x2 chart grid)
 

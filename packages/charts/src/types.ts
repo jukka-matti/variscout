@@ -99,6 +99,8 @@ export interface IChartProps extends BaseChartProps {
   specs: SpecLimits;
   /** Y-axis label */
   yAxisLabel?: string;
+  /** X-axis label */
+  xAxisLabel?: string;
   /** Axis settings for manual scaling */
   axisSettings?: { min?: number; max?: number };
   /** Override Y-axis domain (for locking scale to full dataset) */
@@ -147,6 +149,20 @@ export interface IChartProps extends BaseChartProps {
   phaseLimits?: IChartPhaseLimits;
   /** Optional time-based re-check/event markers */
   eventFlags?: IChartEventFlag[];
+  /** Full pre-decimation point count, used for scale-aware marker policy. */
+  fullPointCount?: number;
+  /** Nelson Rule 2 violation original indices computed before render decimation. */
+  nelsonRule2Violations?: Set<number>;
+  /** Nelson Rule 2 sequences keyed by original index bounds. */
+  nelsonRule2Sequences?: Array<{ startIndex: number; endIndex: number; side: 'above' | 'below' }>;
+  /** Nelson Rule 3 violation original indices computed before render decimation. */
+  nelsonRule3Violations?: Set<number>;
+  /** Nelson Rule 3 sequences keyed by original index bounds. */
+  nelsonRule3Sequences?: Array<{
+    startIndex: number;
+    endIndex: number;
+    direction: 'increasing' | 'decreasing';
+  }>;
   /**
    * Condition-membership highlight tier (ER-4, D6). Display-index space — the same index
    * space `selectedPoints`/brush uses. When present and non-empty, the chart plots the FULL
@@ -478,6 +494,8 @@ export interface CapabilityBoxplotProps extends BaseChartProps {
   hideTargetTicks?: boolean;
   /** Override the Y-axis label. Defaults to "Cpk". */
   yAxisLabel?: string;
+  /** Override the X-axis label. Defaults to "Subgroup". */
+  xAxisLabel?: string;
   /** Click handler — called with the clicked node's `nodeId`. */
   onNodeClick?: (nodeId: string) => void;
 }
@@ -525,4 +543,21 @@ export interface CapabilityGapTrendChartProps extends BaseChartProps {
   yAxisLabel?: string;
   /** Override the target line label. Defaults to "0" (perfect centering). */
   targetLabel?: string;
+}
+
+export interface CpkTrajectoryChartProps extends BaseChartProps {
+  /** Cpk series, one point per rational subgroup or capability snapshot. */
+  data: ReadonlyArray<IChartDataPoint>;
+  /** Stats (mean, sd, ucl, lcl) computed on the Cpk series. */
+  stats: StatsResult | null;
+  /** Cpk target reference. Defaults to 1.33 when omitted. */
+  cpkTarget?: number;
+  /** Override the Y-axis label. Defaults to "Cpk". */
+  yAxisLabel?: string;
+  /** Override the X-axis label. Defaults to "Subgroup". */
+  xAxisLabel?: string;
+  /** Override the target line label. Defaults to "Cpk target". */
+  targetLabel?: string;
+  /** Full pre-decimation point count for marker sizing. */
+  fullPointCount?: number;
 }

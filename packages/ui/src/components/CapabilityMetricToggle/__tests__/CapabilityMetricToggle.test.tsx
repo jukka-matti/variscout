@@ -10,16 +10,16 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { CapabilityMetricToggle } from '../index';
 
 describe('CapabilityMetricToggle (Values ⇄ Capability survivor — ADR-089 §6.2)', () => {
-  it('renders both Measurements and Cpk stability options', () => {
+  it('renders both Measurements and Capability over time options', () => {
     render(<CapabilityMetricToggle metric="measurement" onMetricChange={vi.fn()} />);
     expect(screen.getByRole('button', { name: 'Measurements' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Cpk stability' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Capability over time' })).toBeTruthy();
   });
 
-  it('flips measurement → capability when Cpk stability is clicked', () => {
+  it('flips measurement → capability when Capability over time is clicked', () => {
     const onMetricChange = vi.fn();
     render(<CapabilityMetricToggle metric="measurement" onMetricChange={onMetricChange} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Cpk stability' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Capability over time' }));
     expect(onMetricChange).toHaveBeenCalledWith('capability');
   });
 
@@ -33,9 +33,19 @@ describe('CapabilityMetricToggle (Values ⇄ Capability survivor — ADR-089 §6
   it('does not flip when disabled (no specs)', () => {
     const onMetricChange = vi.fn();
     render(
-      <CapabilityMetricToggle metric="measurement" onMetricChange={onMetricChange} disabled />
+      <CapabilityMetricToggle
+        metric="measurement"
+        onMetricChange={onMetricChange}
+        disabledReason="Set specs and choose a subgroup to view capability over time"
+      />
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Cpk stability' }));
+    const capabilityButton = screen.getByRole('button', { name: 'Capability over time' });
+    expect(capabilityButton).toHaveAttribute(
+      'title',
+      'Set specs and choose a subgroup to view capability over time'
+    );
+    expect(capabilityButton).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(capabilityButton);
     expect(onMetricChange).not.toHaveBeenCalled();
   });
 

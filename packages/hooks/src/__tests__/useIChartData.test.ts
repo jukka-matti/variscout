@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { StatsResult } from '@variscout/core';
-import { useIChartData } from '../useIChartData';
+import { useIChartData, useIChartModel } from '../useIChartData';
 
 // Module-level constants for stable references (prevents re-render loops)
 const EMPTY_DATA: Record<string, unknown>[] = [];
@@ -163,5 +163,47 @@ describe('useIChartData LTTB force-include', () => {
     expect(result.current.some(d => d.originalIndex === 7)).toBe(true);
     // The member that survived is flagged.
     expect(result.current.find(d => d.originalIndex === 7)?.isMember).toBe(true);
+  });
+});
+
+describe('useIChartModel full-data signals before LTTB', () => {
+  const CHART_WIDTH = 2;
+  const SHIFT_DATA: Record<string, unknown>[] = Array.from({ length: 120 }, (_, i) => ({
+    V: i >= 40 && i < 49 ? 20 : i % 2 === 0 ? 10.2 : 11.8,
+  }));
+
+  const STATS: StatsResult = {
+    mean: 11,
+    median: 11,
+    stdDev: 1,
+    sigmaWithin: 1,
+    mrBar: 1.128,
+    ucl: 30,
+    lcl: 0,
+    outOfSpecPercentage: 0,
+    sampleSize: 120,
+    min: 10,
+    max: 20,
+  } as StatsResult;
+
+  it('computes Nelson Rule 2 on the full series before decimation and force-includes signal points', () => {
+    const { result } = renderHook(() =>
+      useIChartModel({
+        sourceData: SHIFT_DATA,
+        outcome: 'V',
+        stageColumn: null,
+        timeColumn: null,
+        chartWidth: CHART_WIDTH,
+        stats: STATS,
+      })
+    );
+
+    expect(result.current.fullData).toHaveLength(120);
+    expect(result.current.renderData.length).toBeLessThan(120);
+    expect(result.current.nelsonRule2Violations.has(40)).toBe(true);
+    expect(result.current.nelsonRule2Violations.has(48)).toBe(true);
+    expect(result.current.renderData.some(d => d.originalIndex === 40)).toBe(true);
+    expect(result.current.renderData.some(d => d.originalIndex === 48)).toBe(true);
+    expect(result.current.renderData.every(d => Number.isFinite(d.y))).toBe(true);
   });
 });
