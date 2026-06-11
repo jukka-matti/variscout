@@ -1888,3 +1888,23 @@ ER-5a added the per-segment "view as condition →" CTA to `InflectionSidePanelV
 **Promotion path:** own brainstorm → spec session once (a) the transactable Marketplace listing is live and (b) early tenant traction exists. Graduates via the decision log; the MACC/co-sell milestone (~60–70 concurrent tenants) is the natural calendar anchor.
 
 **Severity:** n/a — strategic, time-gated by design; nothing is broken.
+
+## Ishikawa lens (fishbone) — design points settled in brainstorm, queued for own spec session [LOGGED 2026-06-11]
+
+**Surfaced by:** owner brainstorm reading Watson & Spiridonova, "Fish(bone) Stories," _Quality Progress_ 52-8 (Aug 2019) — the QP call to digitize Ishikawa analysis (mind-map substrate, C/N/M/X bone labels, multi-Y tagging, "stratification is the content, not the fish shape"). VariScout already answers most of that call (ER-8 multi-Y with specs; ω²-evidenced factors; Measurement Plans as the "M" label; provenance as "smart tags") — what's missing is the **generation half**: grounding (2026-06-11 Explore agent) confirmed VariScout is strictly column-centric — no surface exists for stratifying candidate causes beyond the dataset's columns, no cause-category taxonomy, no controllability tag. RPS V1 D16 (archive spec 2026-05-09) already named "HypothesisGroup + Fishbone view (Ishikawa 6M preset)" as V2 named-future and shipped `Hypothesis.themeTags` as its signal capture.
+
+**Settled design points (brainstorm 2026-06-11):**
+
+1. **Head = Y + spec + scope, never free text.** Resolves the problem-first vs desired-outcome-first tension (Kano: "quality characteristics diagram," not cause-and-effect): the ER-8 Y-with-spec carries both readings; the problem statement is a condition on Y.
+2. **Bones = X's, sub-bones = small x's, level-native glow.** X-bones map to columns and glow with ω² (the factor strip, re-projected); x-sub-bones are levels/conditions/derived bins glowing with condition lift (ER-5a membership machinery). No cross-level roll-up (ADR-073 spirit). Unmapped bones carry a wanted-factor label → one-click Measurement Plan ("explore what exists; plan what doesn't").
+3. **Hypotheses are NOT bones.** Bones = places to look (stratification); hypotheses = mechanism claims attached to bones as a derived layer (CS-12 factor↔hypothesis derivation, re-laid-out as a tree), rendering Wall status. The paper fishbone conflates these; VariScout separates them.
+4. **Pure projection, no new surface state.** Joins the Wall's lens family (ACH matrix lens = precedent) on the Analyze tab: diverge in the fishbone lens, converge on the Wall. Domain delta is small and deliberate: cause-category on Hypothesis (6M/7M preset + free-form, per D16), optional wanted-factor label, and a **C/N controllability tag** (Watson-citable; controllable → Improve actions, noncontrollable → mitigation).
+5. **Interrogation layer.** Canonical per-bone questions, each with a deterministic answer where data exists and a human route where it doesn't: "what changed?" (change-point/I-chart/baseline-vs-now ‖ gemba/consultation), "what can go wrong?" (FMEA-style prompting minus RPN → proposed hypotheses; CoScout as asker), "are we missing a factor?" (**residual indicator: 1 − R²adj = unexplained-variation share** + suggested bones from the also-screened band ‖ Measurement Plan/consultation when the missing factor isn't in the dataset).
+6. **One projection, two renderings.** Working view = mind-map/tree on the canvas substrate; presentation/export = classic fish shape for Consultation Packs, training, and gate reviews (the familiarity bridge IS the feature). `ConsultationQuestion` anchoring gains bone/factor as an anchor type (trivial extension to the loop spec).
+7. **Evidence Map relationship:** derived-vs-authored, graph-vs-tree, attention-vs-coverage. The fishbone is the leading candidate answer to the open "does the Evidence Map survive post-Model-B?" question (this file, CS-12) — evaluate subsumption at the queued post-demo review, not before.
+
+**Dependencies / sequencing:** interlocks with the Analysis Pack + consultation loop work (the fish-shaped pack rendering and bone-anchored questions are loop deliverables); the strategic frame is the 2026-06-11 local-first pivot (ADR-092/093). Positioning bonus: "the answer to the QP 2019 call to digitize Ishikawa analysis" — Watson (past ASQ/IAQ president, Finland) + Spiridonova (Neste, Helsinki) + Turtiainen 2019 = same-year, same-community credibility stack; trainer-network material.
+
+**Promotion path:** own brainstorm → spec session, scheduled with (ideally just after) the pack/consultation-loop design work. Graduates via the decision log.
+
+**Severity:** n/a — net-new design idea; nothing is broken.
