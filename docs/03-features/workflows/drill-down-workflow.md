@@ -81,6 +81,20 @@ Drill-down analysis lets you progressively filter data to isolate specific varia
 
 > **Note on Factor Intelligence:** the η² ranking previously surfaced inside the `FactorIntelligencePanel` (Stats sidebar). That η² ranking re-homes to the Explore factor strip (ER-2, 2026-06-11); the PI-panel `FactorIntelligencePanel` retires in ER-7.
 
+## The condition loop (ER-4, 2026-06-11)
+
+On the redesigned Explore surface a chart click is **no longer a direct filter commit** — the gesture proposes, the pill commits:
+
+1. **Gesture** — brush a y-band on the I-Chart, or click a boxplot category. The gesture sets an Esc-clearable **transient highlight** (cross-chart: the I-Chart lights member points; the boxplot dims non-highlighted categories) and shows the **condition pill** with the honest split — n in the band and the in-vs-out means.
+2. **Commit is explicit** — the pill is the only condition minter. **✚ Capture** records a Finding stamped with the condition + its `scopeId`; **view as condition →** applies the condition.
+3. **The scope bar** appears under the chrome: `⌖ Viewing condition: <label> · n of N rows · × back to all data · Take it to Analyze →`.
+4. **Per-chart tiers (D6)** — the I-Chart **highlights** (the full series stays plotted, condition members emphasized; control limits and stats remain full-series — statistical honesty), comparison charts (boxplot / Pareto / histogram) **filter** to the condition rows, and the probability plot **re-checks its regime** within the condition.
+5. **Take it to Analyze →** mints (or reuses, idempotently) a `ProblemStatementScope` — range predicates carry as `between`/`≥` leaves, not just category levels — and lands on the Wall with the scope active. **×** restores all-data everywhere.
+
+Esc cascade: the first press clears the transient highlight, the second clears the brush selection.
+
+> **Conditions vs filter chips:** an applied condition does **not** write filter chips — it renders in the scope bar and leaves the filter state untouched (filters remain the carrier for state set outside the condition loop: focused views, mobile, saved-state restore). This is what keeps the plotted I-Chart series and its stats reading from the same population.
+
 ## The Drill-Down Pattern
 
 ```mermaid
@@ -138,7 +152,7 @@ Useful for comparing similar groups or establishing baselines.
 
 The **factor strip** renders automatically beneath the I-Chart hero and ranks all candidate factors by ω²-adjusted η² (cardinality-penalised). The ★ chip is the largest significant contributor. Click a chip to rebind the Variation Sources boxplot comparison to that factor — no scrolling or carousel navigation required. The model drawer (ER-3) exposes factor-combination rankings (R²adj) for analysts who want to check whether a pair of factors together explains more than either alone.
 
-### Step 2: Click to Filter
+### Step 2: Click to highlight, commit via the pill
 
 Click on the bar (or box) for the level you want to investigate:
 
@@ -146,12 +160,14 @@ Click on the bar (or box) for the level you want to investigate:
 - Click an **outlier** level to focus on the problem area
 - Click a **good** level to understand what works
 
+> **ER-4 click semantics:** on the main Explore dashboard the click sets a transient highlight and offers the condition pill — committing is explicit via the pill's "view as condition →" (see [§The condition loop](#the-condition-loop-er-4-2026-06-11)). The legacy direct click-to-filter is preserved only where the pill chrome is absent: focused views, mobile, and embedded charts.
+
 ### Step 3: Observe Changes
 
-After filtering:
+After committing the condition (or, on legacy surfaces, applying the filter):
 
-- Filter chip appears with `Factor = Value (n=X)`
-- All charts update to show filtered subset
+- The scope bar shows `⌖ Viewing condition: Factor = Value · n of N rows` (legacy surfaces: a filter chip with `Factor = Value (n=X)`)
+- Comparison charts update to the condition rows; the I-Chart keeps the full series with members emphasized (D6)
 - Boxplot recalculates η² for remaining factors
 - Capability shows filtered Cpk
 

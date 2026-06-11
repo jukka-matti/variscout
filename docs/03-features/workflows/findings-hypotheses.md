@@ -5,8 +5,8 @@ title: 'Findings & Hypotheses — the evidence domain'
 audience: both
 status: active
 date: 2026-06-02
-last-verified: 2026-06-02
-verified-against-commit: 668c481d
+last-verified: 2026-06-11
+verified-against-commit: 44a05085f
 layer: L3
 kind: workflow
 topic: [findings, hypotheses, evidence, causal-link, action-items, wedge-v1]
@@ -46,6 +46,14 @@ stateDiagram-v2
 - **`validationStatus`** (`supports` | `contradicts` | `inconclusive`) — _how the finding relates to its hypothesis_. `supports` counts as evidence; `inconclusive` routes to **not-tested** (never silently supports); `contradicts` + `refutes:true` short-circuits the hypothesis to refuted.
 - **`FindingProjection`** — baseline + projected stats (mean/sigma/cpk/yield) with deltas + `modelContext` (R²adj, gap closure) for What-If.
 - **`FindingOutcome`** — post-action effectiveness (`yes`/`no`/`partial`, Cpk before/after) to close the loop.
+
+## Condition & scope linkage (ER-4, 2026-06-11)
+
+The condition is the WHERE that travels between Explore and Analyze:
+
+- **`ConditionLeaf`** (`findings/hypothesisCondition.ts`) is the predicate grammar — leaf ops `eq`/`neq`/`in`/`gt`/`gte`/`lt`/`lte`/`between`. ER-4 added the Explore-side bridges: `rowMatchesConditionLeaves(row, leaves)` (flat-AND row evaluation), `buildBandLeaf` (I-Chart y-brush → `between`/`gte`), `buildGroupLeaf` (category click → `eq`), and `conditionLeavesToScopeState` / `buildConditionLeavesFromScopeState` (the scope-store round-trip).
+- **`Finding.scopeId`** (optional FK, added in CS-0) is now **written**: capturing under an active condition mints-or-matches a `ProblemStatementScope` (`syncScopeFromCondition` — `predicateSetKey`-idempotent, soft-deleted scopes excluded) and stamps the finding. PSS's zero-live-caller state (the PR-CS-0 finding) ended with ER-4.
+- The minting gesture is the **condition pill** — one pattern on both apps; the chart click itself is an Esc-clearable transient highlight, never a silent commit. Surface behavior (scope bar, D6 per-chart tiers): [drill-down-workflow.md §The condition loop](drill-down-workflow.md#the-condition-loop-er-4-2026-06-11).
 
 ## Hypothesis
 
