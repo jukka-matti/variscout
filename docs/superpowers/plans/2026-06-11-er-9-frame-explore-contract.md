@@ -1,3 +1,20 @@
+---
+tier: living
+purpose: build
+title: 'ER-9 Frame to Explore contract implementation sub-plan'
+audience: agent
+status: active
+date: 2026-06-11
+layer: spec
+topic: [explore, frame, process, time, factor-strip, stages, wedge-v1]
+related:
+  - docs/superpowers/plans/2026-06-10-explore-redesign-master-plan.md
+  - docs/superpowers/specs/2026-06-10-explore-redesign-design.md
+implements:
+  - docs/02-journeys/flows/process-to-explore.md
+  - docs/03-features/workflows/analysis-flow.md
+---
+
 # ER-9 — Frame to Explore Contract Implementation Plan
 
 ## Goal
