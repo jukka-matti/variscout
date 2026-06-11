@@ -185,7 +185,16 @@ export function useFindingsOrchestration({
         useFindingsStore.getState().setHighlightedFindingId(existing.id);
         return;
       }
-      const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
+      const resolvedSpecs = outcome
+        ? (useProjectStore.getState().measureSpecs[outcome] ?? specs)
+        : specs;
+      const context = buildFindingContext(
+        filters,
+        filteredData,
+        outcome!,
+        resolvedSpecs,
+        drillPath
+      );
       // ER-4: a pin made INSIDE an applied condition links to that scope.
       const scopeId = resolveActiveScopeIdForCapture();
       const newFinding = findingsState.addFinding(text, context, undefined, scopeId);

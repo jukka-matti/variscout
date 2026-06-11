@@ -408,12 +408,14 @@ function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactEl
     handleExportVrs,
     handleOpenFinding,
     handlePinFinding,
+    handleTrackOutcome,
     highlightedChart,
     highlightIntensity,
     importFlow,
     isEmbedMode,
     notifyChartClicked,
     panels,
+    sessionHub,
     workspaceProjectAnalyzeFactorRequest,
     workspaceProjectScope,
   } = props;
@@ -438,6 +440,8 @@ function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactEl
       requestedFactor={workspaceProjectAnalyzeFactorRequest}
       workspaceProjectScope={workspaceProjectScope}
       scopeProjectId={canvasViewportHubId != null ? String(canvasViewportHubId) : undefined}
+      trackedOutcomeSpecs={sessionHub?.outcomes}
+      onTrackOutcome={handleTrackOutcome}
       onOpenWall={() => {
         useCanvasViewportStore.getState().setViewMode('wall');
         panels.showAnalyze();

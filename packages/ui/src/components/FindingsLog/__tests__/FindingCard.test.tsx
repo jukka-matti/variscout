@@ -210,4 +210,25 @@ describe('FindingCard — ER-7 evidence affordances', () => {
     expect(onMarkSupport).toHaveBeenCalledWith(finding.id);
     expect(onMarkCounter).toHaveBeenCalledWith(finding.id);
   });
+
+  it('renders the captured Y column', () => {
+    const finding = makeFinding({
+      context: {
+        activeFilters: { Shift: ['Night'] },
+        cumulativeScope: 40,
+        yColumn: 'FillWeight',
+        stats: { mean: 612, samples: 64 },
+      },
+    });
+
+    render(
+      <FindingCard
+        finding={finding}
+        {...noopHandlers}
+        columnAliases={{ FillWeight: 'Fill weight' }}
+      />
+    );
+
+    expect(screen.getByTestId('finding-y-column')).toHaveTextContent('Y: Fill weight');
+  });
 });

@@ -54,6 +54,27 @@ describe('FindingsLog', () => {
     expect(screen.getByText(/Second finding/)).toBeDefined();
   });
 
+  it('groups findings by Y when multiple Y columns exist', () => {
+    const findings = [
+      makeFinding({
+        id: 'f-weight',
+        text: 'Weight finding',
+        context: { activeFilters: {}, cumulativeScope: null, yColumn: 'Weight' },
+      }),
+      makeFinding({
+        id: 'f-yield',
+        text: 'Yield finding',
+        context: { activeFilters: {}, cumulativeScope: null, yColumn: 'Yield' },
+      }),
+    ];
+
+    render(<FindingsLog {...defaultProps} findings={findings} />);
+
+    expect(screen.getAllByTestId('findings-y-group')).toHaveLength(2);
+    expect(screen.getAllByText('Y: Weight')).toHaveLength(2);
+    expect(screen.getAllByText('Y: Yield')).toHaveLength(2);
+  });
+
   it('shows filter chips from finding context', () => {
     const findings = [
       makeFinding({

@@ -29,6 +29,7 @@ export function buildFindingContext(
 
   return {
     activeFilters: { ...filters },
+    yColumn: outcome,
     cumulativeScope:
       drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
     stats,

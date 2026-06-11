@@ -39,6 +39,17 @@ The framing toolbar is **Process-tab chrome only** — it does not appear on Exp
 
 This structure mirrors the EDA flow: orient on the hero I-Chart, use the context-line lenses (Subgroup / Time / Stages) to slice and compare, read the stats summary inline, then drill into variation sources on the lower panels.
 
+### Y Model
+
+Explore has one **active Y** at a time and a separate list of **tracked outcomes** for the process hub. The I-Chart header is the global Y switcher:
+
+- **Tracked outcomes** appear first and show spec badges when `measureSpecs[y] ?? specs` contains LSL, target, USL, or Cpk target.
+- **Other numeric columns** appear after tracked outcomes. Selecting one switches the active Y across the I-Chart, factor strip, boxplot, Pareto, histogram, and verification lens without automatically tracking it.
+- An untracked active Y shows inline `track this outcome?`; clicking it promotes that Y into the tracked outcome list. The old Frame `+ track another outcome` wizard jump is not the tracking mechanism.
+- Findings stamp the active Y in `FindingContext.yColumn`, so Analyze can distinguish evidence captured for different outcomes.
+
+Per-measure specs resolve consistently as `measureSpecs[outcome] ?? specs`; empty specs do not imply a direction of goodness.
+
 Canonical wireframe: [`docs/02-journeys/wireframes/assets/explore-redesign-mockup-2026-06-10.html`](../../02-journeys/wireframes/assets/explore-redesign-mockup-2026-06-10.html)
 
 ```mermaid
@@ -116,7 +127,7 @@ The first question the analyst asks depends on the entry path — not a fixed se
 
 - **Data input** — Upload, paste, or open file. Parser detects delimiters and validates structure.
 - **Column mapping** — Assign measurement column and factor columns. Data-rich cards with type badges and preview values.
-- **Specification limits** — Enter USL, LSL, and optional target via SpecsPopover. These flow through to capability calculations and enable the capability thread.
+- **Specification limits** — Enter USL, LSL, and optional target via `SpecEditor`. These flow through to capability calculations and enable the capability thread.
 - **Cpk target setting** — Enables the capability thread's target line. Without a Cpk target, capability mode still works but has no compliance reference.
 - **Characteristic type** — Nominal, smaller-is-better, or larger-is-better. Affects both threads (one-sided specs change Cp/Cpk calculation).
 - **Time factor extraction** — TimeExtractionPanel creates categorical columns from timestamps (Year, Month, Week, DayOfWeek, Hour, and minute intervals). These become regular factor columns usable in Boxplot drill-down, findings, AND as subgroup columns in capability mode. This unification means time-based subgroups are fully integrated with the variation analysis infrastructure.

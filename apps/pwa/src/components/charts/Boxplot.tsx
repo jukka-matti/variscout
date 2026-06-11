@@ -49,6 +49,7 @@ const Boxplot = ({
   const storeOutcome = useProjectStore(s => s.outcome);
   const outcome = outcomeOverride ?? storeOutcome;
   const specs = useProjectStore(s => s.specs);
+  const measureSpecs = useProjectStore(s => s.measureSpecs);
   const filters = useProjectStore(s => s.filters);
   const setFilters = useProjectStore(s => s.setFilters);
   const columnAliases = useProjectStore(s => s.columnAliases);
@@ -58,7 +59,7 @@ const Boxplot = ({
   const displayOptions = useProjectStore(s => s.displayOptions);
   const subgroupConfig = useProjectStore(s => s.subgroupConfig);
   const projectCpkTarget = useProjectStore(s => s.cpkTarget);
-  const measureSpecs = useProjectStore(s => s.measureSpecs);
+  const resolvedSpecs = outcome ? (measureSpecs[outcome] ?? specs) : specs;
   const { value: cpkTarget } = resolveCpkTarget(outcome ?? '', {
     measureSpecs,
     projectCpkTarget,
@@ -70,7 +71,7 @@ const Boxplot = ({
   const capabilityData = useCapabilityBoxplotData({
     filteredData,
     outcome: outcome ?? '',
-    specs,
+    specs: resolvedSpecs,
     subgroupConfig,
     factor: props.factor,
     metric: 'cpk',
@@ -86,7 +87,7 @@ const Boxplot = ({
         parentHeight={parentHeight}
         filteredData={filteredData}
         outcome={outcome}
-        specs={isCapabilityMode ? {} : specs}
+        specs={isCapabilityMode ? {} : resolvedSpecs}
         filters={filters}
         onFiltersChange={setFilters}
         columnAliases={columnAliases}

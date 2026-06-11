@@ -270,7 +270,7 @@ export const PISection: React.FC<PISectionProps> = ({
       {/* Spec Editor overlay — rendered above the sidebar */}
       {isEditingSpecs && outcome && (
         <SpecEditor
-          specs={measureSpecs[outcome] ?? {}}
+          specs={resolvedSpecs}
           onSave={newSpecs => {
             useProjectStore.getState().setMeasureSpec(outcome, newSpecs);
             setIsEditingSpecs(false);

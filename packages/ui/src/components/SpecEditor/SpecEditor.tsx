@@ -47,11 +47,15 @@ const SpecEditor = ({
   );
   const isMobile = useIsMobile(BREAKPOINTS.phone);
 
-  // Compute what "Auto" would infer for display hint
-  const autoInferred = inferCharacteristicType({
-    usl: localSpecs.usl ? parseFloat(localSpecs.usl) : undefined,
-    lsl: localSpecs.lsl ? parseFloat(localSpecs.lsl) : undefined,
-  });
+  // Compute what "Auto" would infer for display hint only when a limit exists.
+  const autoInferred =
+    localSpecs.usl || localSpecs.lsl
+      ? inferCharacteristicType({
+          usl: localSpecs.usl ? parseFloat(localSpecs.usl) : undefined,
+          lsl: localSpecs.lsl ? parseFloat(localSpecs.lsl) : undefined,
+        })
+      : null;
+  const directionEcho = getDirectionEcho(localSpecs.lsl, localSpecs.usl);
 
   const handleSave = () => {
     const parsedCpkTarget =
@@ -117,9 +121,9 @@ const SpecEditor = ({
                 autoInferred={autoInferred}
                 className="flex justify-center gap-1 mt-1.5"
               />
-              {!typeSelection && (localSpecs.usl || localSpecs.lsl) && (
+              {!typeSelection && directionEcho && (
                 <p className="mt-1 text-[0.625rem] text-content-muted text-center">
-                  detected: <span className="text-content-secondary">{autoInferred}</span>
+                  <span className="text-content-secondary">{directionEcho}</span>
                 </p>
               )}
             </div>
@@ -272,5 +276,14 @@ const SpecEditor = ({
     </div>
   );
 };
+
+function getDirectionEcho(lsl: string, usl: string): string | null {
+  const hasLsl = lsl.trim().length > 0;
+  const hasUsl = usl.trim().length > 0;
+  if (hasLsl && hasUsl) return 'LSL + USL -> target-centered';
+  if (hasUsl) return 'USL only -> smaller is better';
+  if (hasLsl) return 'LSL only -> larger is better';
+  return null;
+}
 
 export default SpecEditor;

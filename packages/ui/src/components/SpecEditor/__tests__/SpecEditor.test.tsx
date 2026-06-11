@@ -58,6 +58,7 @@ describe('SpecEditor', () => {
   beforeEach(() => {
     onSave = vi.fn();
     onClose = vi.fn();
+    mockedInfer.mockReset();
     mockedInfer.mockReturnValue('nominal');
   });
 
@@ -191,29 +192,42 @@ describe('SpecEditor', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  // --- Test 11: Shows auto-detected type hint when no icon selected and limits are set ---
-  it('shows detected type hint when no icon is selected and limits are set', () => {
+  // --- Test 11: Shows inferred direction when no icon selected and limits are set ---
+  it('shows USL-only inferred direction when no icon is selected', () => {
     mockedInfer.mockReturnValue('smaller');
 
     render(<SpecEditor specs={{ usl: 20 }} onSave={onSave} onClose={onClose} />);
 
-    expect(screen.getByText('detected:')).toBeTruthy();
-    expect(screen.getByText('smaller')).toBeTruthy();
+    expect(screen.getByText('USL only -> smaller is better')).toBeTruthy();
   });
 
-  it('does not show detected hint when no limits are set', () => {
+  it('shows LSL-only inferred direction when no icon is selected', () => {
+    render(<SpecEditor specs={{ lsl: 5 }} onSave={onSave} onClose={onClose} />);
+
+    expect(screen.getByText('LSL only -> larger is better')).toBeTruthy();
+  });
+
+  it('shows target-centered inferred direction when both limits are set', () => {
+    render(<SpecEditor specs={defaultSpecs} onSave={onSave} onClose={onClose} />);
+
+    expect(screen.getByText('LSL + USL -> target-centered')).toBeTruthy();
+  });
+
+  it('does not show inferred direction when no limits are set', () => {
     render(<SpecEditor specs={emptySpecs} onSave={onSave} onClose={onClose} />);
 
-    expect(screen.queryByText('detected:')).toBeNull();
+    expect(screen.queryByText(/->/)).toBeNull();
+    expect(mockedInfer).not.toHaveBeenCalled();
+    expect(screen.getByLabelText(/^Nominal/).className).not.toContain('border-dashed');
   });
 
-  it('does not show detected hint when an icon is explicitly selected', () => {
+  it('does not show inferred direction when an icon is explicitly selected', () => {
     render(<SpecEditor specs={{ usl: 20 }} onSave={onSave} onClose={onClose} />);
 
     // Click Nominal icon to explicitly select
     fireEvent.click(screen.getByLabelText(/^Nominal/));
 
-    expect(screen.queryByText('detected:')).toBeNull();
+    expect(screen.queryByText('USL only -> smaller is better')).toBeNull();
   });
 
   it('passes undefined for empty numeric inputs', () => {

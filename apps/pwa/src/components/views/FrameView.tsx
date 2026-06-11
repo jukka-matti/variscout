@@ -850,16 +850,16 @@ const FrameView: React.FC<FrameViewProps> = ({
           ) : null}
         </div>
       ),
-      belowY: onFixData ? (
+      belowY: (
         <button
           type="button"
           data-testid="b0-track-another-outcome"
-          onClick={onFixData}
+          onClick={handleSeeData}
           className="text-xs text-content-muted hover:text-content underline-offset-2 hover:underline"
         >
           ＋ track another outcome
         </button>
-      ) : undefined,
+      ),
       // Deliberately constructed unconditionally (unlike belowY): FrameViewB0 owns
       // the no-Y gate (yCandidates is derived inside CanvasWorkspace, not here —
       // duplicating that detection heuristic in this file would couple two layers).

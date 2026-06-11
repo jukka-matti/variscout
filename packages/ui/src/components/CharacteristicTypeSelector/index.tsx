@@ -34,8 +34,8 @@ export interface CharacteristicTypeSelectorProps {
   value: CharacteristicType | null;
   /** Called when user clicks a type button (null = deselect / back to auto) */
   onChange: (type: CharacteristicType | null) => void;
-  /** The type that would be inferred from specs (shown with dotted border) */
-  autoInferred: CharacteristicType;
+  /** The type that would be inferred from specs (shown with dotted border), or null when no direction is inferable. */
+  autoInferred: CharacteristicType | null;
   /** Additional class name for the container div */
   className?: string;
 }

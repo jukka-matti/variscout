@@ -8,10 +8,8 @@ layer: L3
 kind: ui
 serves:
   - docs/02-journeys/index.md
-last-reviewed: 2026-05-18
+last-reviewed: 2026-06-11
 ---
-
-> **L3 feature stub** — created 2026-05-18 as part of M0 SDD migration inventory (Option A). Body to be expanded in M3 audit or on next feature edit.
 
 # Spec Editor
 
@@ -25,23 +23,19 @@ Each measured column needs editable specification limits (USL / LSL / target) pl
 
 ## Intent diagram
 
-Single per-column form, surfaces inline (popover desktop / bottom-sheet mobile):
+Single per-column form, surfaces inline (popover desktop / bottom-sheet mobile). Consumers must resolve the active column's specs as `measureSpecs[outcome] ?? specs` before rendering charts or opening the editor.
 
 ```
-┌────── Spec Editor — Weight ─────── ✕ ──┐
-│  LIMITS                                │
-│  USL        [ 12.5  ]                  │
-│  LSL        [ 11.5  ]                  │
-│  Target     [ 12.0  ]                  │
+┌────── Edit Specifications ─────── ✕ ──┐
+│  LIMITS                               │
+│  LSL (Min) [ 11.5 ] Target [ 12.0 ]   │
+│  USL (Max) [ 12.5 ]                   │
+│            LSL + USL -> target-centered│
 │                                        │
-│  CHARACTERISTIC TYPE                   │
-│  ( ) Auto (inferred: two-sided)        │
-│  (•) Two-sided   ( ) Upper   ( ) Lower │
+│  Capability target (Cpk)              │
+│  ☑ [ 1.50 ]                           │
 │                                        │
-│  ADVANCED                              │
-│  ☑ Custom Cpk target [ 1.50 ]          │
-│                                        │
-│             [ Cancel ]  [ Save ]       │
+│                 [ Save ]              │
 └────────────────────────────────────────┘
          │
          ▼ onSave({ usl, lsl, target, characteristicType, cpkTarget })
@@ -53,11 +47,16 @@ One form, one column. `SpecsPopover` (deleted) is forbidden — `SpecEditor` is 
 
 ## Acceptance signals
 
-TBD — testable conditions to be added on next edit. See related tests at `packages/ui/src/components/SpecEditor/__tests__/SpecEditor.test.tsx` for current verification.
+- USL-only specs echo `USL only -> smaller is better`.
+- LSL-only specs echo `LSL only -> larger is better`.
+- LSL + USL specs echo `LSL + USL -> target-centered`.
+- Empty specs show no best-direction inference.
+- I-Chart, boxplot, histogram, and capability/stat surfaces read per-measure specs with `measureSpecs[outcome] ?? specs`.
 
 ## Out of scope / non-goals
 
-TBD.
+- Reintroducing `SpecsPopover`.
+- Inferring a best direction from an empty spec.
 
 ## Links
 
