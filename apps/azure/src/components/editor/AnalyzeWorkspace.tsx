@@ -6,6 +6,7 @@ import {
   CausesMatrix,
   ScopeRail,
   ObjectDetailDrawer,
+  ModelDrawerBase,
   CommandPalette,
   Minimap,
   CANVAS_W,
@@ -208,6 +209,9 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // IM-1: highlightedFactor read removed here; its only consumer was the retired
   // question-driven evidence header.
   const setAnalyzeViewMode = usePanelsStore(s => s.setAnalyzeViewMode);
+  // ER-3 — the CoScout drawer's open state (right-slot collision: model drawer
+  // and CoScout are mutually exclusive).
+  const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
 
   // Map/Wall sub-toggle (within the Evidence Map view)
   const wallViewMode = useCanvasViewportStore(s => s.viewMode);
@@ -322,7 +326,16 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     },
     [findingsState, activeScope]
   );
+  // ER-3 — the factor band WallCanvas keeps (just the candidate-factor list it
+  // renders as glyphs + gates the "Model" toggle on). The full model surface moved
+  // to the screen-space ModelDrawerBase (`modelDrawerProps` below).
   const modelBuilderProps = useMemo<WallCanvasModelBuilderProps | undefined>(() => {
+    if (!outcome || factors.length === 0) return undefined;
+    return { candidateFactors: factors };
+  }, [outcome, factors]);
+  // ER-3 — the screen-space ModelDrawerBase props (the in-SVG band's data, now fed
+  // to the drawer). The drawer re-ranks on the ACTIVE scope (drilled subset).
+  const modelDrawerProps = useMemo(() => {
     if (!outcome || factors.length === 0) return undefined;
     // Single-value drill columns that are also factors are constant in scope.
     const constantFactors = categoricalFilters
@@ -330,14 +343,27 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
       .map(f => f.column);
     const scopeLabel = activeScope ? formatConditionLeaves(activeScope.predicates) : 'All data';
     return {
+      rows: filteredData as DataRow[],
+      outcome,
       candidateFactors: factors,
       scopeLabel,
-      // The band re-ranks on the ACTIVE scope (drilled subset), not rawData.
-      scopeRows: filteredData,
       constantFactors,
-      onCaptureModel: handleCaptureModel,
     };
-  }, [outcome, factors, filteredData, categoricalFilters, activeScope, handleCaptureModel]);
+  }, [outcome, factors, filteredData, categoricalFilters, activeScope]);
+  // Mutual exclusion with the CoScout right drawer (the EvidenceMap convention):
+  // opening the model drawer closes CoScout (+ clears the selected Wall object so
+  // the shell-hosted CoScout follows); selecting a Wall object closes the model
+  // drawer (handled in handleSelectWallObject).
+  const handleOpenModelDrawer = useCallback(() => {
+    usePanelsStore.getState().setCoScoutOpen(false);
+    setSelectedWallObject(null);
+    setObjectDetailOpen(false);
+    setModelDrawerOpen(true);
+  }, []);
+  // The other exclusion direction: when CoScout opens, close the model drawer.
+  useEffect(() => {
+    if (isCoScoutOpen) setModelDrawerOpen(false);
+  }, [isCoScoutOpen]);
 
   // ── FE-2a — one-tap evaluate of a hypothesis factor ──────────────────────
   // The PRODUCTION seam: run the real `evaluateHypothesisFactor` on the active
@@ -583,6 +609,15 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const [conclusionsOpen, setConclusionsOpen] = useState(false);
   const [selectedWallObject, setSelectedWallObject] = useState<ObjectDetailSelection | null>(null);
   const [objectDetailOpen, setObjectDetailOpen] = useState(false);
+  // ER-3 — model drawer open state + the DOI feed (replaces the band's
+  // onModelStatsChange). The drawer is mounted ALWAYS (closed); its engine memo +
+  // onModelStats fire on data-change regardless of open, so glyph weighting is
+  // always-live.
+  const [modelDrawerOpen, setModelDrawerOpen] = useState(false);
+  const [wallModelStats, setWallModelStats] = useState<{
+    kept: string[];
+    deltaR2: Map<string, number>;
+  } | null>(null);
   const fitWallToContent = useCallback(() => {
     useCanvasViewportStore.getState().fitToContent(wallHubId, 'l2', {
       zoom: 1,
@@ -703,6 +738,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           ? 'finding'
           : null;
       if (!kind) return;
+      // ER-3 mutual exclusion: selecting a Wall object closes the model drawer.
+      setModelDrawerOpen(false);
       setSelectedWallObject({ kind, id });
       setObjectDetailOpen(true);
     },
@@ -1344,12 +1381,30 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 groupByTributary={Boolean(processMap && wallGroupByTributary)}
                 planningProps={enrichedPlanningProps}
                 modelBuilderProps={modelBuilderProps}
+                onOpenModelDrawer={modelDrawerProps ? handleOpenModelDrawer : undefined}
+                modelStats={wallModelStats}
                 onWriteHypothesis={handleWriteHypothesis}
                 onSeedFromFactorIntel={factors.length > 0 ? handleSeedFromFactorIntel : undefined}
                 onProposeHypothesis={handleProposeHypothesis}
                 onExploreFactor={handleExploreFactor}
                 onSelectHub={handleSelectWallObject}
               />
+              {/* ER-3 — the model drawer (the screen-space surface that replaced
+                  the in-SVG band). Mounted ALWAYS (closed) so its engine run feeds
+                  the glyph-weighting DOI even before the analyst opens it. */}
+              {!wallIsMobile && modelDrawerProps ? (
+                <ModelDrawerBase
+                  open={modelDrawerOpen}
+                  onClose={() => setModelDrawerOpen(false)}
+                  rows={modelDrawerProps.rows}
+                  outcome={modelDrawerProps.outcome}
+                  candidateFactors={modelDrawerProps.candidateFactors}
+                  scopeLabel={modelDrawerProps.scopeLabel}
+                  constantFactors={modelDrawerProps.constantFactors}
+                  onCaptureModel={handleCaptureModel}
+                  onModelStats={setWallModelStats}
+                />
+              ) : null}
               {!wallIsMobile ? (
                 <ObjectDetailDrawer
                   selectedObject={selectedWallObject}

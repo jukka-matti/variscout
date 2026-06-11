@@ -25,6 +25,9 @@ const capturedWallCanvasProps = vi.hoisted(() => ({
 const capturedFindingsLogProps = vi.hoisted(() => ({
   current: null as Record<string, unknown> | null,
 }));
+const capturedModelDrawerProps = vi.hoisted(() => ({
+  current: null as Record<string, unknown> | null,
+}));
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -89,6 +92,12 @@ vi.mock('@variscout/ui', async importOriginal => {
           )}
         </div>
       );
+    },
+    // ER-3 — capture the app-mounted model drawer's props (the seam that replaced
+    // the in-SVG band).
+    ModelDrawerBase: (props: Record<string, unknown>) => {
+      capturedModelDrawerProps.current = props;
+      return <div data-testid="model-drawer-mock" data-open={String(props.open)} />;
     },
   };
 });
@@ -651,19 +660,21 @@ describe('PWA AnalyzeView Wall/Causes/Findings lenses', () => {
     });
   });
 
-  // FE-1 — the model-builder band is wired through AnalyzeView into WallCanvas.
-  // WallCanvas is mocked (capturedWallCanvasProps), so we assert the APP-OWNED
-  // seam: AnalyzeView builds modelBuilderProps from the store outcome + the
-  // factors prop, threads the scope rows, and routes onCaptureModel to
-  // findingsState (Finding + projection.modelContext). Dead wiring fails these.
-  describe('model-builder band wiring (FE-1)', () => {
+  // ER-3 (was FE-1) — the model surface is the screen-space ModelDrawerBase,
+  // mounted by AnalyzeView as a sibling of WallCanvas. Both are mocked, so we
+  // assert the APP-OWNED seam: AnalyzeView feeds the drawer rows/outcome/
+  // candidateFactors/scopeLabel from the store outcome + the factors prop, threads
+  // the toggle via WallCanvas.onOpenModelDrawer, and routes onCaptureModel to
+  // useAnalyzeStore (Finding + projection.modelContext). Dead wiring fails these.
+  describe('model drawer wiring (ER-3)', () => {
     beforeEach(() => {
       capturedWallCanvasProps.current = null;
+      capturedModelDrawerProps.current = null;
       useCanvasViewportStore.getState().setViewMode('wall');
       useProjectStore.setState({ outcome: 'Y' });
     });
 
-    it('threads modelBuilderProps (candidateFactors + scopeLabel + onCaptureModel) to WallCanvas', () => {
+    it('mounts the drawer + threads the factor band + a live onOpenModelDrawer toggle', () => {
       render(
         <AnalyzeView
           {...makeMinimalProps({
@@ -672,18 +683,26 @@ describe('PWA AnalyzeView Wall/Causes/Findings lenses', () => {
           })}
         />
       );
+      const dp = capturedModelDrawerProps.current as Record<string, unknown> | null;
+      expect(dp).not.toBeNull();
+      expect(dp!.candidateFactors).toEqual(['Shift', 'Noise']);
+      expect(dp!.scopeLabel).toBe('All data');
+      expect(dp!.outcome).toBe('Y');
+      expect(typeof dp!.onCaptureModel).toBe('function');
+      expect(typeof dp!.onModelStats).toBe('function');
+      // The factor band + a live toggle reach WallCanvas (never a dead control).
       const mbp = capturedWallCanvasProps.current?.modelBuilderProps as
         | Record<string, unknown>
         | undefined;
-      expect(mbp).toBeDefined();
-      expect(mbp!.candidateFactors).toEqual(['Shift', 'Noise']);
-      expect(mbp!.scopeLabel).toBe('All data');
-      expect(typeof mbp!.onCaptureModel).toBe('function');
+      expect(mbp?.candidateFactors).toEqual(['Shift', 'Noise']);
+      expect(typeof capturedWallCanvasProps.current?.onOpenModelDrawer).toBe('function');
     });
 
-    it('does NOT thread modelBuilderProps when no factors are provided', () => {
+    it('does NOT mount the drawer / thread the band when no factors are provided', () => {
       render(<AnalyzeView {...makeMinimalProps({ factors: [] })} />);
+      expect(capturedModelDrawerProps.current).toBeNull();
       expect(capturedWallCanvasProps.current?.modelBuilderProps).toBeUndefined();
+      expect(capturedWallCanvasProps.current?.onOpenModelDrawer).toBeUndefined();
     });
 
     it('onCaptureModel creates a Finding + stamps the model snapshot into projection.modelContext', () => {
@@ -699,9 +718,8 @@ describe('PWA AnalyzeView Wall/Causes/Findings lenses', () => {
           })}
         />
       );
-      const onCaptureModel = (
-        capturedWallCanvasProps.current!.modelBuilderProps as Record<string, unknown>
-      ).onCaptureModel as (s: {
+      const onCaptureModel = (capturedModelDrawerProps.current as Record<string, unknown>)
+        .onCaptureModel as (s: {
         factors: string[];
         rSquaredAdj: number;
         perFactorP: Record<string, number>;

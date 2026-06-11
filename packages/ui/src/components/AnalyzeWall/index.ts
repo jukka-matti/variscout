@@ -16,8 +16,6 @@ export { GateBadge } from './GateBadge';
 export type { GateBadgeProps } from './GateBadge';
 export { TributaryFooter } from './TributaryFooter';
 export type { TributaryFooterProps } from './TributaryFooter';
-export { ModelBuilderBand } from './ModelBuilderBand';
-export type { ModelBuilderBandProps, CapturedModelSnapshot } from './ModelBuilderBand';
 export { MissingEvidencePanel } from './MissingEvidencePanel';
 export type { MissingEvidencePanelProps } from './MissingEvidencePanel';
 export { EmptyState } from './EmptyState';

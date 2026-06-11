@@ -1,16 +1,19 @@
 /**
- * PWA Wall capture-as-Finding SEAM test (FE-1 fix).
+ * PWA Wall capture-as-Finding SEAM test (FE-1 fix, ER-3 re-pointed).
  *
  * The PWA Wall reads its findings from `useAnalyzeStore` (the reactive source of
- * truth), but FE-1's original `handleCaptureModel` wrote the captured-model
- * Finding into the SEPARATE `useFindings` engine, so the captured model never
- * reached the PWA Wall. This seam wires `onCaptureModel` to the EXACT routing
- * AnalyzeView now uses — write the Finding + projection into `useAnalyzeStore` —
- * and renders the PRODUCTION WallCanvas with `findings` taken from that store.
+ * truth). FE-1's original `handleCaptureModel` wrote the captured-model Finding
+ * into the SEPARATE `useFindings` engine, so the captured model never reached the
+ * PWA Wall. This seam wires `onCaptureModel` to the EXACT routing AnalyzeView now
+ * uses — write the Finding + projection into `useAnalyzeStore`.
+ *
+ * ER-3: the Capture button moved from the in-SVG ModelBuilderBand to the
+ * screen-space `ModelDrawerBase` footer. We render the REAL drawer (open) and fire
+ * its capture button; the Wall render-through still reads `useAnalyzeStore`.
  *
  *   - Live wire: tapping Capture lands a Finding in `useAnalyzeStore.findings`
  *     carrying the model snapshot (projection.modelContext), and the unlinked
- *     Finding renders on the Wall's findings-forward arrival (render-through, not a spy).
+ *     Finding renders on the Wall's findings-forward arrival (render-through).
  *   - Regression guard (the FE-1 bug): if the handler wrote to `useFindings`
  *     instead, `useAnalyzeStore.findings` would stay empty and the Wall node
  *     would be absent → this fails.
@@ -27,7 +30,7 @@ vi.mock('@variscout/hooks', async importOriginal => {
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { WallCanvas, type WallCanvasModelBuilderProps } from '@variscout/ui';
+import { WallCanvas, ModelDrawerBase } from '@variscout/ui';
 import type { CapturedModelSnapshot } from '@variscout/ui';
 import {
   getAnalyzeInitialState,
@@ -37,7 +40,7 @@ import {
 } from '@variscout/stores';
 import type { DataRow, FindingProjection } from '@variscout/core';
 
-// Shift dominates Y; Noise + Machine are decoupled junk → vital few = {Shift}.
+// Shift dominates Y; Noise is decoupled junk → vital few = {Shift}.
 function scopeRows(): DataRow[] {
   const rows: DataRow[] = [];
   const shiftMean: Record<string, number> = { A: 10, B: 20, C: 30 };
@@ -77,34 +80,19 @@ function pwaCaptureModel(snapshot: CapturedModelSnapshot) {
   store.setFindingProjection(finding.id, projection);
 }
 
-function modelBuilderProps(
-  overrides?: Partial<WallCanvasModelBuilderProps>
-): WallCanvasModelBuilderProps {
-  return {
-    candidateFactors: ['Shift', 'Noise'],
-    scopeLabel: 'All data',
-    onCaptureModel: pwaCaptureModel,
-    ...overrides,
-  };
-}
-
-function renderWall() {
-  const findings = useAnalyzeStore.getState().findings;
+/** Render the model drawer the way AnalyzeView mounts it (rows/outcome/candidateFactors + capture). */
+function renderDrawer() {
   return render(
-    <WallCanvas
-      hubs={[]}
-      findings={findings}
-      problemCpk={0.8}
-      eventsPerWeek={10}
+    <ModelDrawerBase
+      open
+      onClose={vi.fn()}
       rows={scopeRows()}
-      outcomeColumn="Y"
-      modelBuilderProps={modelBuilderProps()}
+      outcome="Y"
+      candidateFactors={['Shift', 'Noise']}
+      scopeLabel="All data"
+      onCaptureModel={pwaCaptureModel}
     />
   );
-}
-
-function openModelBuilder() {
-  fireEvent.click(screen.getByTestId('wall-model-builder-toggle'));
 }
 
 beforeEach(() => {
@@ -112,11 +100,10 @@ beforeEach(() => {
   useCanvasViewportStore.setState(getCanvasViewportInitialState());
 });
 
-describe('PWA Wall capture-as-Finding seam (FE-1 fix)', () => {
+describe('PWA Wall capture-as-Finding seam (FE-1 fix, ER-3 drawer)', () => {
   it('tapping Capture lands the model Finding in useAnalyzeStore (the Wall’s store)', () => {
-    renderWall();
-    openModelBuilder();
-    fireEvent.click(screen.getByTestId('model-capture'));
+    renderDrawer();
+    fireEvent.click(screen.getByTestId('model-drawer-capture'));
 
     const findings = useAnalyzeStore.getState().findings;
     expect(findings).toHaveLength(1);
@@ -132,16 +119,26 @@ describe('PWA Wall capture-as-Finding seam (FE-1 fix)', () => {
       // after capture (mirrors AnalyzeView's reactive subscription).
       const findings = useAnalyzeStore(s => s.findings);
       return (
-        <WallCanvas
-          hubs={[]}
-          findings={findings}
-          problemCpk={0.8}
-          eventsPerWeek={10}
-          rows={scopeRows()}
-          outcomeColumn="Y"
-          modelBuilderProps={modelBuilderProps()}
-          onProposeHypothesis={vi.fn()}
-        />
+        <>
+          <ModelDrawerBase
+            open
+            onClose={vi.fn()}
+            rows={scopeRows()}
+            outcome="Y"
+            candidateFactors={['Shift', 'Noise']}
+            scopeLabel="All data"
+            onCaptureModel={pwaCaptureModel}
+          />
+          <WallCanvas
+            hubs={[]}
+            findings={findings}
+            problemCpk={0.8}
+            eventsPerWeek={10}
+            rows={scopeRows()}
+            outcomeColumn="Y"
+            onProposeHypothesis={vi.fn()}
+          />
+        </>
       );
     }
     const { container } = render(<Harness />);
@@ -149,8 +146,7 @@ describe('PWA Wall capture-as-Finding seam (FE-1 fix)', () => {
     expect(container.querySelector('[data-wall-orphan-lane]')).toBeNull();
     expect(screen.queryByText(/You've observed:/i)).toBeNull();
 
-    openModelBuilder();
-    fireEvent.click(screen.getByTestId('model-capture'));
+    fireEvent.click(screen.getByTestId('model-drawer-capture'));
 
     const finding = useAnalyzeStore.getState().findings[0];
     expect(screen.getByText(/You've observed:/i)).toBeTruthy();

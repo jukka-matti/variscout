@@ -70,8 +70,6 @@ import type {
 } from './HypothesisCardWithPlans';
 import { DraggableHypothesisCard } from './DraggableHypothesisCard';
 import { TributaryFooter } from './TributaryFooter';
-import { ModelBuilderBand } from './ModelBuilderBand';
-import type { CapturedModelSnapshot } from './ModelBuilderBand';
 import { EmptyState } from './EmptyState';
 import { WallArrival } from './WallArrival';
 import { MissingEvidencePanel } from './MissingEvidencePanel';
@@ -353,43 +351,42 @@ export interface WallCanvasProps {
    */
   planningProps?: WallCanvasPlanningProps;
   /**
-   * Factors & Evaluation Increment 1 — the scope-level vital-few model-builder
-   * band. When provided AND `outcomeColumn` + `rows` + at least one candidate
-   * factor are available, the `ModelBuilderBand` mounts in the factor-band zone
-   * (the IM-4c `computeWallLayout` factor hook) for the ACTIVE scope. Omit to
-   * keep the legacy factor-less Wall.
+   * Factors & Evaluation Increment 1 — the scope-level factor band. When provided
+   * AND at least one candidate factor is available, the factor-glyph row mounts in
+   * the factor-band zone (the IM-4c `computeWallLayout` factor hook) for the ACTIVE
+   * scope, and (with `onOpenModelDrawer`) the "Model" toggle renders. Omit to keep
+   * the legacy factor-less Wall.
+   *
+   * ER-3: the in-SVG ModelBuilderBand is retired — the full model surface is now
+   * the screen-space `ModelDrawerBase`, mounted by the app and opened via
+   * `onOpenModelDrawer`. WallCanvas keeps only the candidate-factor list it needs
+   * for the glyph band; the drawer owns rows / scope rows / constant factors /
+   * capture (the app passes those to `ModelDrawerBase` directly).
    */
   modelBuilderProps?: WallCanvasModelBuilderProps;
+  /**
+   * ER-3 — opens the app-owned `ModelDrawerBase` (the screen-space model surface
+   * that replaced the in-SVG band). When provided, the "Model" toggle renders and
+   * fires this on click. NEVER a dead control: omit → the toggle is hidden.
+   */
+  onOpenModelDrawer?: () => void;
+  /**
+   * ER-3 — the live model stats lifted from the open/closed `ModelDrawerBase`
+   * (replacing the band's `onModelStatsChange` feed). Drives the factor-glyph
+   * contribution bars + the domain-weighted DOI (PR-CS-12). The app threads the
+   * drawer's `onModelStats` callback into a state setter and passes the result
+   * here. `null`/omitted → glyphs render at zero contribution.
+   */
+  modelStats?: { kept: string[]; deltaR2: ReadonlyMap<string, number> } | null;
 }
 
 /**
- * Model-builder band affordances (Factors & Evaluation Increment 1, spec §3).
+ * Factor-band affordances (Factors & Evaluation Increment 1, spec §3 / ER-3).
  * Bagged like `planningProps` to keep `WallCanvasProps` lean.
  */
 export interface WallCanvasModelBuilderProps {
-  /** Candidate factor columns the analyst may toggle into/out of the model. */
+  /** Candidate factor columns rendered as the factor-glyph band. */
   candidateFactors: ReadonlyArray<string>;
-  /** Human-readable label for the active scope ('All data' or the drill WHERE). */
-  scopeLabel: string;
-  /**
-   * Rows for the ACTIVE scope (the drilled subset) the band re-ranks on. The
-   * Wall's own `rows` prop stays the full window (HOLDS / scope-anchor); the band
-   * runs the engine on THIS scoped subset so it re-ranks on drill. When omitted,
-   * the band falls back to the Wall's `rows`.
-   */
-  scopeRows?: ReadonlyArray<Record<string, unknown>>;
-  /**
-   * Factors that are CONSTANT in the active scope (drilled on) — chipped
-   * "constant in scope" and excluded from the model. Empty for the global scope.
-   */
-  constantFactors?: ReadonlyArray<string>;
-  /**
-   * Capture-as-Finding affordance. When provided, the band renders a "Capture
-   * model" button; firing it calls back with the kept-factor model snapshot. The
-   * APP creates the Finding + stamps its projection's `modelContext`
-   * (rSquaredAdj / scopeLabel / linkedFactor). Omit to hide.
-   */
-  onCaptureModel?: (snapshot: CapturedModelSnapshot) => void;
 }
 
 /**
@@ -434,6 +431,8 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   filterByStepId,
   planningProps,
   modelBuilderProps,
+  onOpenModelDrawer,
+  modelStats = null,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const locale = useWallLocale();
@@ -685,16 +684,14 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     return map;
   }, [focusedWallEntityId, hubTriadById, rows, outcomeColumn]);
   const setFocusedWallEntity = useViewStore(s => s.setFocusedWallEntity);
-  // PR-CS-12: the band reports its live kept+ΔR² (single source of truth — the
-  // Wall never recomputes best-subsets). Drives glyph bars + DOI weighting.
-  const [modelStats, setModelStats] = useState<{
-    kept: string[];
-    deltaR2: ReadonlyMap<string, number>;
-  } | null>(null);
-  const [modelBuilderOpen, setModelBuilderOpen] = useState(false);
-  // Normalize the band's per-factor association strength (ΔR²) to 0..1 (keyed by
-  // the namespaced `factor:${key}` DOI node id). Read-only over the band's live
-  // map — never mutated (ADR-086 Amendment §4: weighting reads, never recomputes).
+  // PR-CS-12 / ER-3: the open-or-closed ModelDrawerBase reports its live kept+ΔR²
+  // via the `modelStats` prop (single source of truth — the Wall never recomputes
+  // best-subsets). The app mounts the drawer ALWAYS (closed), so this feed stays
+  // live without the analyst opening it: glyph weighting is now always-on. Drives
+  // glyph bars + DOI weighting.
+  // Normalize the per-factor association strength (ΔR²) to 0..1 (keyed by the
+  // namespaced `factor:${key}` DOI node id). Read-only over the live map — never
+  // mutated (ADR-086 Amendment §4: weighting reads, never recomputes).
   const factorContribution01 = useMemo(() => {
     const map = new Map<string, number>();
     if (!modelStats) return map;
@@ -715,81 +712,46 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     [focusedWallEntityId, wallLayout.edges, factorContribution01]
   );
 
-  // FE-1 model-builder band (spec §3). Anchored in the factor-band zone from the
-  // IM-4c layout authority (first factorPosition x), placed ABOVE the
-  // TributaryFooter so the two coexist: the footer shows process-map tributary
-  // COVERAGE; this band shows best-subset STATS. View-state only — nothing
-  // persists until capture-as-Finding.
-  //
-  // Computed here (before the EmptyState short-circuit) so it can mount BOTH in
-  // the normal body AND at cold start: a fresh drilled scope with candidate
-  // factors but no hubs/orphans yet is exactly when an analyst screens, so the
-  // screening tool must not be hidden behind the zero-hub EmptyState (spec §3
-  // "screen-first"). The `factorPositions` come from candidateFactors, not hubs,
-  // so the anchor exists even with zero hubs.
-  const modelBuilderBand = useMemo(() => {
-    if (!modelBuilderProps || !outcomeColumn || modelBuilderProps.candidateFactors.length === 0) {
-      return null;
-    }
-    // The band re-ranks on the ACTIVE scope (the drilled subset). Prefer the
-    // explicit scopeRows; fall back to the Wall's window rows.
-    const bandRows = modelBuilderProps.scopeRows
-      ? [...modelBuilderProps.scopeRows]
-      : rows
-        ? [...rows]
-        : [];
-    if (bandRows.length === 0) return null;
-    const firstFactor = wallLayout.factorPositions.values().next().value;
-    const bandX = firstFactor?.x ?? 120;
-    const PANEL_W = 460;
-    const PANEL_H = 300;
-    const factorBandY = firstFactor?.y ?? 1300;
-    return (
-      <ModelBuilderBand
-        rows={bandRows as DataRow[]}
-        candidateFactors={modelBuilderProps.candidateFactors}
-        outcome={outcomeColumn}
-        scopeLabel={modelBuilderProps.scopeLabel}
-        constantFactors={modelBuilderProps.constantFactors}
-        x={Math.max(40, bandX - 40)}
-        y={factorBandY - PANEL_H - 40}
-        width={PANEL_W}
-        height={PANEL_H}
-        onCaptureModel={modelBuilderProps.onCaptureModel}
-        // PR-CS-12: lift the live kept+ΔR² to the Wall. Pass the useState setter
-        // DIRECTLY (stable identity) — do NOT wrap or add to this dep array, or
-        // the band→memo→engine→effect→setState cycle would loop.
-        onModelStatsChange={setModelStats}
-      />
-    );
-  }, [modelBuilderProps, outcomeColumn, rows, wallLayout.factorPositions]);
+  // FE-1 / ER-3 factor band (spec §3). The in-SVG ModelBuilderBand is retired —
+  // the model surface is now the screen-space ModelDrawerBase (app-mounted, opened
+  // via `onOpenModelDrawer`). WallCanvas keeps only the factor-glyph band + the
+  // "Model" toggle. `hasFactorBand` gates both the toggle and the cold-start
+  // wrapper: a fresh drilled scope with candidate factors but no hubs/orphans yet
+  // is exactly when an analyst screens, so the toggle must not be hidden behind the
+  // zero-hub EmptyState (spec §3 "screen-first"). The factor positions come from
+  // candidateFactors, not hubs, so the band exists even with zero hubs.
+  const hasFactorBand =
+    Boolean(modelBuilderProps) &&
+    (modelBuilderProps?.candidateFactors.length ?? 0) > 0 &&
+    wallLayout.factorPositions.size > 0;
+  // The toggle only renders when a factor band exists AND a drawer-open handler is
+  // wired — NEVER a dead control (no handler → no toggle).
+  const showModelToggle = hasFactorBand && Boolean(onOpenModelDrawer);
 
   // Cold-start cropped viewBox (FE-1 item 3): when there are no hubs/orphans but
-  // candidate factors exist, the content (band + glyph row) sits near y≈1300 in
-  // the full 2000×1400 space — everything renders tiny with the default viewBox.
-  // Compute a box that covers just the band top → glyph row bottom + 80px padding
-  // on all sides, min-width 700 (prevents over-zoom on narrow factor sets).
-  // Only used by the cold-start branch; the main populated-Wall SVG, Minimap, and
-  // pan/zoom state are untouched.
+  // candidate factors exist, the factor-glyph row sits near y≈1300 in the full
+  // 2000×1400 space — everything renders tiny with the default viewBox. Compute a
+  // box that covers the glyph row + 80px padding on all sides, min-width 700
+  // (prevents over-zoom on narrow factor sets). Only used by the cold-start branch;
+  // the main populated-Wall SVG, Minimap, and pan/zoom state are untouched.
   const coldStartViewBox = useMemo(() => {
     const firstFactor = wallLayout.factorPositions.values().next().value;
     if (!firstFactor) return `0 0 ${CANVAS_W} ${CANVAS_H}`;
-    const BAND_PANEL_H = 300;
-    const BAND_PANEL_W = 460;
     const GLYPH_RADIUS = 24;
     const PADDING = 80;
-    const bandX = Math.max(40, (firstFactor.x as number) - 40);
-    const bandY = (firstFactor.y as number) - BAND_PANEL_H - 40;
-    const glyphBottom = (firstFactor.y as number) + GLYPH_RADIUS;
-    const contentTop = bandY;
-    const contentBottom = glyphBottom;
-    // Include all factor glyph x positions to cover multi-factor rows.
+    // Frame the glyph row with generous headroom above (where the old band sat) so
+    // the glyphs land in the lower portion of the viewport, not flush at the top.
+    const HEADROOM = 340;
+    const glyphY = firstFactor.y as number;
+    const contentTop = glyphY - HEADROOM;
+    const contentBottom = glyphY + GLYPH_RADIUS;
+    const minFactorX =
+      Math.min(...[...wallLayout.factorPositions.values()].map(p => p.x as number)) - GLYPH_RADIUS;
     const maxFactorX =
       Math.max(...[...wallLayout.factorPositions.values()].map(p => p.x as number)) + GLYPH_RADIUS;
-    const contentRight = Math.max(bandX + BAND_PANEL_W, maxFactorX);
-    const vbX = Math.max(0, bandX - PADDING);
+    const vbX = Math.max(0, minFactorX - PADDING);
     const vbY = Math.max(0, contentTop - PADDING);
-    const vbW = Math.max(700, contentRight - vbX + PADDING);
+    const vbW = Math.max(700, maxFactorX - vbX + PADDING);
     const vbH = contentBottom - vbY + PADDING;
     return `${vbX} ${vbY} ${vbW} ${vbH}`;
   }, [wallLayout.factorPositions]);
@@ -1075,21 +1037,23 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
     filteredHubs.length === 0 &&
     wallLayout.orphanFindingIds.length === 0
   ) {
-    if (modelBuilderBand) {
+    if (hasFactorBand) {
       return (
         <div
           className="relative w-full h-full flex flex-col"
           data-testid="wall-cold-start-with-band"
         >
-          <button
-            type="button"
-            data-testid="wall-model-builder-toggle"
-            onClick={() => setModelBuilderOpen(open => !open)}
-            className="absolute right-3 top-3 z-20 rounded border border-edge bg-surface/95 px-2 py-1 text-xs font-medium text-content shadow-sm hover:bg-surface-secondary"
-            aria-expanded={modelBuilderOpen}
-          >
-            Model
-          </button>
+          {showModelToggle && (
+            <button
+              type="button"
+              data-testid="wall-model-builder-toggle"
+              aria-haspopup="dialog"
+              onClick={onOpenModelDrawer}
+              className="absolute right-3 top-3 z-20 rounded border border-edge bg-surface/95 px-2 py-1 text-xs font-medium text-content shadow-sm hover:bg-surface-secondary"
+            >
+              Model
+            </button>
+          )}
           <svg
             viewBox={coldStartViewBox}
             preserveAspectRatio="xMidYMid meet"
@@ -1098,9 +1062,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
           >
             {/* PR-CS-12 glyphs render at cold start too (screen-first); no edge
-                layer here — zero hubs means zero factor↔hub edges. */}
+                layer here — zero hubs means zero factor↔hub edges. The model
+                surface is the app-mounted ModelDrawerBase (ER-3) — never in-SVG. */}
             {factorGlyphLayer}
-            {modelBuilderOpen ? modelBuilderBand : null}
           </svg>
           <EmptyState
             onWriteHypothesis={onWriteHypothesis}
@@ -1363,13 +1327,13 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
 
   const body = (
     <div className="relative w-full h-full flex flex-col">
-      {modelBuilderBand ? (
+      {showModelToggle ? (
         <button
           type="button"
           data-testid="wall-model-builder-toggle"
-          onClick={() => setModelBuilderOpen(open => !open)}
+          aria-haspopup="dialog"
+          onClick={onOpenModelDrawer}
           className="absolute right-3 top-3 z-20 rounded border border-edge bg-surface/95 px-2 py-1 text-xs font-medium text-content shadow-sm hover:bg-surface-secondary"
-          aria-expanded={modelBuilderOpen}
         >
           Model
         </button>
@@ -1521,11 +1485,9 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
             </g>
           )}
 
-          {/* PR-CS-12 factor glyphs — painted OVER the edges + below the band. */}
+          {/* PR-CS-12 factor glyphs — painted OVER the edges. The model surface is
+              the app-mounted ModelDrawerBase (ER-3) — never in-SVG. */}
           {factorGlyphLayer}
-
-          {/* FE-1 model-builder band (spec §3) — see the memoized `modelBuilderBand`. */}
-          {modelBuilderOpen ? modelBuilderBand : null}
 
           {processMap && (
             <TributaryFooter

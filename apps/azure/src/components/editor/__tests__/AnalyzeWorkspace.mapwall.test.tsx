@@ -28,6 +28,9 @@ const capturedFindingsLogProps = vi.hoisted(() => ({
 const capturedMapViewProps = vi.hoisted(() => ({
   current: null as Record<string, unknown> | null,
 }));
+const capturedModelDrawerProps = vi.hoisted(() => ({
+  current: null as Record<string, unknown> | null,
+}));
 
 vi.mock('@variscout/charts', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/charts')>();
@@ -125,6 +128,13 @@ vi.mock('@variscout/ui', async importOriginal => {
           )}
         </div>
       );
+    },
+    // ER-3 — capture the app-mounted model drawer's props (the seam that replaced
+    // the in-SVG band). The FE-1 wiring test reads candidateFactors / scopeLabel /
+    // onCaptureModel off THIS mock.
+    ModelDrawerBase: (props: Record<string, unknown>) => {
+      capturedModelDrawerProps.current = props;
+      return <div data-testid="model-drawer-mock" data-open={String(props.open)} />;
     },
   };
 });
@@ -1067,14 +1077,15 @@ describe('AnalyzeWorkspace current scope switcher seam (AW-6)', () => {
   });
 });
 
-// FE-1 — the model-builder band is wired through AnalyzeWorkspace into WallCanvas.
-// WallCanvas is mocked here (capturedWallCanvasProps), so we assert the APP-OWNED
-// seam: AnalyzeWorkspace builds modelBuilderProps from the project store
-// (outcome + factors), threads the ACTIVE-scope rows, and that firing
-// onCaptureModel creates a Finding carrying the model snapshot in its
-// projection.modelContext. A dead app wiring (no modelBuilderProps, or capture
-// not routed to findingsState) fails these.
-describe('AnalyzeWorkspace — model-builder band wiring (FE-1)', () => {
+// ER-3 (was FE-1) — the model surface is now the screen-space ModelDrawerBase,
+// mounted by AnalyzeWorkspace as a sibling of WallCanvas. Both WallCanvas and
+// ModelDrawerBase are mocked here, so we assert the APP-OWNED seam: AnalyzeWorkspace
+// feeds the drawer rows/outcome/candidateFactors/scopeLabel/constantFactors from
+// the project store + active scope, threads the toggle via WallCanvas.onOpenModelDrawer,
+// and routes onCaptureModel to a Finding carrying the model snapshot in its
+// projection.modelContext. A dead app wiring (no drawer props, or capture not routed
+// to findingsState) fails these.
+describe('AnalyzeWorkspace — model drawer wiring (ER-3)', () => {
   beforeEach(() => {
     useCanvasViewportStore.setState(getCanvasViewportInitialState());
     useCanvasViewportStore.getState().setViewMode('wall');
@@ -1083,32 +1094,46 @@ describe('AnalyzeWorkspace — model-builder band wiring (FE-1)', () => {
     useAnalyzeStore.setState({ scopes: [] });
     useProjectStore.setState({ outcome: 'Y', factors: ['Shift', 'Noise'] });
     capturedWallCanvasProps.current = null;
+    capturedModelDrawerProps.current = null;
   });
 
-  it('threads modelBuilderProps (candidateFactors + scopeLabel + onCaptureModel) to WallCanvas', () => {
+  it('mounts the model drawer with candidateFactors + scopeLabel + outcome + onCaptureModel', () => {
+    render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    const dp = capturedModelDrawerProps.current as Record<string, unknown> | null;
+    expect(dp).not.toBeNull();
+    expect(dp!.candidateFactors).toEqual(['Shift', 'Noise']);
+    expect(dp!.scopeLabel).toBe('All data');
+    expect(dp!.outcome).toBe('Y');
+    expect(typeof dp!.onCaptureModel).toBe('function');
+    expect(typeof dp!.onModelStats).toBe('function');
+  });
+
+  it('threads the candidate-factor band + a live onOpenModelDrawer toggle to WallCanvas', () => {
     render(<AnalyzeWorkspace {...makeMinimalProps()} />);
     const mbp = capturedWallCanvasProps.current?.modelBuilderProps as
       | Record<string, unknown>
       | undefined;
     expect(mbp).toBeDefined();
     expect(mbp!.candidateFactors).toEqual(['Shift', 'Noise']);
-    expect(mbp!.scopeLabel).toBe('All data');
-    expect(typeof mbp!.onCaptureModel).toBe('function');
+    // The toggle is wired (never a dead control) — opening routes to the drawer.
+    expect(typeof capturedWallCanvasProps.current?.onOpenModelDrawer).toBe('function');
   });
 
-  it('does NOT thread modelBuilderProps when no outcome is set', () => {
+  it('does NOT mount the drawer / thread the band when no outcome is set', () => {
     useProjectStore.setState({ outcome: null, factors: ['Shift'] });
     render(<AnalyzeWorkspace {...makeMinimalProps()} />);
+    expect(capturedModelDrawerProps.current).toBeNull();
     expect(capturedWallCanvasProps.current?.modelBuilderProps).toBeUndefined();
+    expect(capturedWallCanvasProps.current?.onOpenModelDrawer).toBeUndefined();
   });
 
-  it('chips a single-value drill factor as constant in scope', () => {
+  it('chips a single-value drill factor as constant in scope (on the drawer)', () => {
     useAnalysisScopeStore.setState({
       categoricalFilters: [{ column: 'Shift', values: ['A'] }],
     });
     render(<AnalyzeWorkspace {...makeMinimalProps()} />);
-    const mbp = capturedWallCanvasProps.current?.modelBuilderProps as Record<string, unknown>;
-    expect(mbp.constantFactors).toEqual(['Shift']);
+    const dp = capturedModelDrawerProps.current as Record<string, unknown>;
+    expect(dp.constantFactors).toEqual(['Shift']);
   });
 
   it('onCaptureModel creates a Finding + stamps the model snapshot into its projection.modelContext', () => {
@@ -1118,9 +1143,8 @@ describe('AnalyzeWorkspace — model-builder band wiring (FE-1)', () => {
     props.findingsState = { ...props.findingsState, addFinding, setProjection } as never;
 
     render(<AnalyzeWorkspace {...props} />);
-    const onCaptureModel = (
-      capturedWallCanvasProps.current!.modelBuilderProps as Record<string, unknown>
-    ).onCaptureModel as (s: CapturedModelSnapshot) => void;
+    const onCaptureModel = (capturedModelDrawerProps.current as Record<string, unknown>)
+      .onCaptureModel as (s: CapturedModelSnapshot) => void;
 
     onCaptureModel({
       factors: ['Shift'],

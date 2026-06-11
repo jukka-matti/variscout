@@ -692,8 +692,6 @@ describe('WallCanvas', () => {
           eventsPerWeek={42}
           modelBuilderProps={{
             candidateFactors: ['Shift'],
-            scopeLabel: 'All data',
-            scopeRows: [{ Shift: 'Night', CycleTime: 12 }],
           }}
           outcomeColumn="CycleTime"
           rows={[{ Shift: 'Night', CycleTime: 12 }]}
@@ -719,8 +717,6 @@ describe('WallCanvas', () => {
           eventsPerWeek={42}
           modelBuilderProps={{
             candidateFactors: ['Shift'],
-            scopeLabel: 'All data',
-            scopeRows: [{ Shift: 'Night', CycleTime: 12 }],
           }}
           outcomeColumn="CycleTime"
           rows={[{ Shift: 'Night', CycleTime: 12 }]}
@@ -739,8 +735,9 @@ describe('WallCanvas', () => {
       expect(effectiveScale).toBeGreaterThanOrEqual(0.75);
     });
 
-    it('keeps the model-builder band hidden until the canvas nudge is opened', () => {
-      render(
+    it('ER-3: the "Model" toggle is gated on onOpenModelDrawer (never a dead control) and fires it', () => {
+      const onOpenModelDrawer = vi.fn();
+      const { rerender } = render(
         <WallCanvas
           hubs={[hub]}
           findings={[]}
@@ -749,19 +746,36 @@ describe('WallCanvas', () => {
           eventsPerWeek={42}
           modelBuilderProps={{
             candidateFactors: ['Shift'],
-            scopeLabel: 'All data',
-            scopeRows: [{ Shift: 'Night', CycleTime: 12 }],
           }}
           outcomeColumn="CycleTime"
           rows={[{ Shift: 'Night', CycleTime: 12 }]}
         />
       );
 
+      // No drawer-open handler → no toggle (dead-control guard).
+      expect(screen.queryByTestId('wall-model-builder-toggle')).not.toBeInTheDocument();
+      // The in-SVG band is gone for good.
       expect(screen.queryByTestId('model-builder-band')).not.toBeInTheDocument();
 
+      // With the handler → the toggle renders and firing it opens the drawer.
+      rerender(
+        <WallCanvas
+          hubs={[hub]}
+          findings={[]}
+          processMap={processMap}
+          problemCpk={0.78}
+          eventsPerWeek={42}
+          modelBuilderProps={{
+            candidateFactors: ['Shift'],
+          }}
+          outcomeColumn="CycleTime"
+          rows={[{ Shift: 'Night', CycleTime: 12 }]}
+          onOpenModelDrawer={onOpenModelDrawer}
+        />
+      );
       fireEvent.click(screen.getByTestId('wall-model-builder-toggle'));
-
-      expect(screen.getByTestId('model-builder-band')).toBeInTheDocument();
+      expect(onOpenModelDrawer).toHaveBeenCalledTimes(1);
+      expect(screen.queryByTestId('model-builder-band')).not.toBeInTheDocument();
     });
 
     it('ignores stale zoom-out state below fitted scale for populated destination Walls', () => {

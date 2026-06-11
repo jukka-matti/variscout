@@ -238,6 +238,21 @@ describe('ModelDrawerBase — six sections (ANOVA path / fitSubsetGLM)', () => {
     expect(arg.deltaR2.has('A')).toBe(true);
   });
 
+  it('ER-3 ALWAYS-LIVE: onModelStats fires even when the drawer is CLOSED (the DOI feed without opening)', () => {
+    // The app mounts the drawer ALWAYS (closed) so the glyph-weighting DOI feed
+    // stays live without the analyst opening it. The engine memo + onModelStats
+    // effect run before the `if (!open) return null` guard — proven here: with
+    // open={false} the surface renders nothing but the stats still flow.
+    const onModelStats = vi.fn();
+    render(<ModelDrawerBase {...anovaProps} open={false} onModelStats={onModelStats} />);
+    expect(screen.queryByTestId('model-drawer')).toBeNull();
+    expect(onModelStats).toHaveBeenCalled();
+    const arg = onModelStats.mock.calls.at(-1)?.[0];
+    expect(arg).not.toBeNull();
+    expect(arg.kept).toEqual(expect.arrayContaining(['A', 'B']));
+    expect(arg.deltaR2.has('A')).toBe(true);
+  });
+
   it('Escape closes the drawer', () => {
     const onClose = vi.fn();
     render(<ModelDrawerBase {...anovaProps} onClose={onClose} />);

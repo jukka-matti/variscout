@@ -190,11 +190,15 @@ export {
 
 export * from './components/AnalyzeWall';
 
-// ModelDrawer (ER-3). `CapturedModelSnapshot` already flows through AnalyzeWall
-// (the band re-exports the moved type) — export only the net-new names here to
-// avoid a duplicate barrel export.
+// ModelDrawer (ER-3). The in-SVG ModelBuilderBand was deleted in Task 4 —
+// `CapturedModelSnapshot` is now sourced from its canonical home in ModelDrawer
+// (apps import it from `@variscout/ui`).
 export { ModelDrawerBase } from './components/ModelDrawer';
-export type { ModelDrawerBaseProps, ModelDrawerStats } from './components/ModelDrawer';
+export type {
+  ModelDrawerBaseProps,
+  ModelDrawerStats,
+  CapturedModelSnapshot,
+} from './components/ModelDrawer';
 
 export {
   VerificationCard,

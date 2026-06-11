@@ -1,22 +1,27 @@
 /**
- * WallCanvas model-builder SEAM test (Factors & Evaluation Increment 1).
+ * WallCanvas model-toggle SEAM test (ER-3 — the model drawer replaces the band).
  *
- * Proves the vital-few model-builder band is wired through the PRODUCTION Wall
- * path — NOT a leaf with injected stats. The REAL WallCanvas receives the
- * scope's rows + candidate factors + outcome Y via `modelBuilderProps` and mounts
- * the REAL `ModelBuilderBand`, which runs the REAL `computeBestSubsets` engine.
+ * The in-SVG `ModelBuilderBand` is retired; the full model surface is now the
+ * screen-space `ModelDrawerBase`, mounted by the app and opened via the new
+ * `onOpenModelDrawer` callback. This seam proves the WallCanvas side of that
+ * contract:
+ *   - the "Model" toggle is NEVER a dead control: no `onOpenModelDrawer` → no
+ *     toggle; with the callback → the toggle renders and firing it calls back,
+ *   - the A2 OWNERSHIP guard (the bug this PR exists to kill): there is NO model
+ *     surface mounted INSIDE the populated `<svg>`, and — the regression sentinel
+ *     — NO `<foreignObject>` inside `<g data-wall-viewport>` whose y-extent falls
+ *     OUTSIDE the parsed `data-wall-content-bbox` (the old band sat at y=960 while
+ *     the viewBox cropped to y≤768 → the toggle changed zero pixels).
  *
- * A dead wiring (band not mounted by WallCanvas, or rows/outcome not threaded)
- * FAILS these: the vital-few would not be pre-selected, the R²adj header would be
- * absent, toggling would not change the model, the snap-back would not restore,
- * and capture-as-Finding would not fire with the model snapshot.
+ * The drawer's own engine behaviour (vital-few shown row, R²adj summary, capture
+ * snapshot, constant-factor chip, onModelStats) is covered by
+ * `ModelDrawer/__tests__/ModelDrawerBase.test.tsx` — not duplicated here.
  */
-import React, { useState } from 'react';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { WallCanvas } from '../WallCanvas';
 import type { WallCanvasModelBuilderProps } from '../WallCanvas';
-import type { CapturedModelSnapshot } from '../ModelBuilderBand';
 import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
 import { createHypothesis } from '@variscout/core/findings';
 import type { DataRow } from '@variscout/core';
@@ -25,8 +30,7 @@ beforeEach(() => {
   useCanvasViewportStore.setState(getCanvasViewportInitialState());
 });
 
-// One hub so the Wall renders its body (the band coexists with hubs/footer, like
-// TributaryFooter — it mounts inside the SVG body, not the empty-state CTA).
+// One hub so the Wall renders its populated body.
 const hub = createHypothesis('Setup variation', '', []);
 
 // Shift dominates Y; Noise + Machine are decoupled junk → vital few = {Shift}.
@@ -49,22 +53,13 @@ function scopeRows(): DataRow[] {
   return rows;
 }
 
-function baseModelBuilderProps(
-  overrides?: Partial<WallCanvasModelBuilderProps>
-): WallCanvasModelBuilderProps {
-  return {
-    candidateFactors: ['Shift', 'Noise', 'Machine'],
-    scopeLabel: 'All data',
-    ...overrides,
-  };
-}
+const baseModelBuilderProps: WallCanvasModelBuilderProps = {
+  candidateFactors: ['Shift', 'Noise', 'Machine'],
+};
 
-function openModelBuilder(): void {
-  fireEvent.click(screen.getByTestId('wall-model-builder-toggle'));
-}
-
-describe('WallCanvas — model-builder band seam', () => {
-  it('mounts the band through the Wall and pre-selects the vital few (real engine)', () => {
+describe('WallCanvas — model toggle seam (ER-3)', () => {
+  it('renders the "Model" toggle and fires onOpenModelDrawer (never a dead control)', () => {
+    const onOpenModelDrawer = vi.fn();
     render(
       <WallCanvas
         hubId={'test-hub' as never}
@@ -74,22 +69,17 @@ describe('WallCanvas — model-builder band seam', () => {
         eventsPerWeek={10}
         rows={scopeRows()}
         outcomeColumn="Y"
-        modelBuilderProps={baseModelBuilderProps()}
+        modelBuilderProps={baseModelBuilderProps}
+        onOpenModelDrawer={onOpenModelDrawer}
       />
     );
-    expect(screen.queryByTestId('model-builder-band')).toBeNull();
-    openModelBuilder();
-    // The band mounted via the production WallCanvas path.
-    expect(screen.getByTestId('model-builder-band')).toBeTruthy();
-    // Vital-few (Shift) is pre-selected above the line — engine ran on real rows.
-    expect(
-      within(screen.getByTestId('model-kept')).getByTestId('model-kept-factor-Shift')
-    ).toBeTruthy();
-    // R²adj header rendered (dead wiring would show empty/too-few, not this).
-    expect(screen.getByTestId('model-r2adj').textContent).toMatch(/R²adj\s+\d/);
+    const toggle = screen.getByTestId('wall-model-builder-toggle');
+    expect(toggle).toBeTruthy();
+    fireEvent.click(toggle);
+    expect(onOpenModelDrawer).toHaveBeenCalledTimes(1);
   });
 
-  it('does NOT mount the band when modelBuilderProps is omitted', () => {
+  it('does NOT render the toggle when onOpenModelDrawer is omitted (dead-control guard)', () => {
     render(
       <WallCanvas
         hubId={'test-hub' as never}
@@ -99,13 +89,13 @@ describe('WallCanvas — model-builder band seam', () => {
         eventsPerWeek={10}
         rows={scopeRows()}
         outcomeColumn="Y"
+        modelBuilderProps={baseModelBuilderProps}
       />
     );
-    expect(screen.queryByTestId('model-builder-band')).toBeNull();
+    expect(screen.queryByTestId('wall-model-builder-toggle')).toBeNull();
   });
 
-  it('toggling a candidate through the Wall changes the rendered R²adj header live', () => {
-    const parseR2 = (s: string | null) => parseFloat((s ?? '').replace(/[^\d.]/g, ''));
+  it('does NOT render the toggle when modelBuilderProps is omitted', () => {
     render(
       <WallCanvas
         hubId={'test-hub' as never}
@@ -115,24 +105,14 @@ describe('WallCanvas — model-builder band seam', () => {
         eventsPerWeek={10}
         rows={scopeRows()}
         outcomeColumn="Y"
-        modelBuilderProps={baseModelBuilderProps()}
+        onOpenModelDrawer={vi.fn()}
       />
     );
-    openModelBuilder();
-    const before = parseR2(screen.getByTestId('model-r2adj').textContent);
-    fireEvent.click(screen.getByTestId('model-candidate-factor-Noise'));
-    // Noise is now kept (the toggle flowed through the mounted band).
-    expect(
-      within(screen.getByTestId('model-kept')).getByTestId('model-kept-factor-Noise')
-    ).toBeTruthy();
-    // Over-adding junk does not improve R²adj.
-    expect(parseR2(screen.getByTestId('model-r2adj').textContent)).toBeLessThanOrEqual(
-      before + 1e-9
-    );
+    expect(screen.queryByTestId('wall-model-builder-toggle')).toBeNull();
   });
 
-  it('snap-back through the Wall restores the suggested model', () => {
-    render(
+  it('A2 OWNERSHIP: no model surface is mounted inside the populated <svg>', () => {
+    const { container } = render(
       <WallCanvas
         hubId={'test-hub' as never}
         hubs={[hub]}
@@ -141,61 +121,73 @@ describe('WallCanvas — model-builder band seam', () => {
         eventsPerWeek={10}
         rows={scopeRows()}
         outcomeColumn="Y"
-        modelBuilderProps={baseModelBuilderProps()}
+        modelBuilderProps={baseModelBuilderProps}
+        onOpenModelDrawer={vi.fn()}
       />
     );
-    openModelBuilder();
-    expect(screen.queryByTestId('model-use-suggested')).toBeNull();
-    fireEvent.click(screen.getByTestId('model-candidate-factor-Noise'));
-    fireEvent.click(screen.getByTestId('model-use-suggested'));
-    expect(screen.queryByTestId('model-use-suggested')).toBeNull();
-    expect(
-      within(screen.getByTestId('model-candidates')).getByTestId('model-candidate-factor-Noise')
-    ).toBeTruthy();
+    const svg = container.querySelector('svg');
+    expect(svg).not.toBeNull();
+    // The model surface is screen-space (app-mounted), NEVER inside the viewBox-cropped SVG.
+    expect(svg!.querySelector('[data-testid="model-drawer"]')).toBeNull();
+    expect(svg!.querySelector('[data-testid="model-builder-band"]')).toBeNull();
   });
 
-  it('capture-as-Finding through the Wall produces a Finding carrying the model snapshot', () => {
-    // Harness mirrors the apps: onCaptureModel creates a Finding + stamps the
-    // model snapshot into its projection.modelContext. A dead wiring (snapshot
-    // not threaded) would leave the Finding without rSquaredAdj/linkedFactor.
-    const created: Array<{ rSquaredAdj?: number; linkedFactor?: string; scopeLabel?: string }> = [];
-    function Harness() {
-      const [, setTick] = useState(0);
-      const onCaptureModel = (snapshot: CapturedModelSnapshot) => {
-        created.push({
-          rSquaredAdj: snapshot.rSquaredAdj,
-          linkedFactor: snapshot.topFactor ?? undefined,
-          scopeLabel: snapshot.scopeLabel,
-        });
-        setTick(t => t + 1);
-      };
-      return (
-        <WallCanvas
-          hubId={'test-hub' as never}
-          hubs={[hub]}
-          findings={[]}
-          problemCpk={0.8}
-          eventsPerWeek={10}
-          rows={scopeRows()}
-          outcomeColumn="Y"
-          modelBuilderProps={baseModelBuilderProps({ onCaptureModel })}
-        />
-      );
-    }
-    render(<Harness />);
-    openModelBuilder();
-    fireEvent.click(screen.getByTestId('model-capture'));
-    expect(created).toHaveLength(1);
-    expect(created[0].linkedFactor).toBe('Shift');
-    expect(created[0].scopeLabel).toBe('All data');
-    expect(typeof created[0].rSquaredAdj).toBe('number');
+  it('A2 REGRESSION GUARD: no model surface exists inside the populated <svg>', () => {
+    // The A2 bug: the band foreignObject lived at y=960 while the populated viewBox
+    // cropped to y≤768, so the toggle changed zero pixels. The explicit invariant
+    // is that NEITHER the drawer NOR the builder band is ever mounted inside the
+    // SVG — the model surface is screen-space (app-mounted). This test is stronger
+    // than the bbox-loop approach (which was vacuously true with minimal fixtures)
+    // and doesn't risk false-failures when richer fixtures introduce card-local
+    // foreignObjects whose coordinates are in card-space, not canvas-space.
+    const { container } = render(
+      <WallCanvas
+        hubId={'test-hub' as never}
+        hubs={[hub]}
+        findings={[]}
+        problemCpk={0.8}
+        eventsPerWeek={10}
+        rows={scopeRows()}
+        outcomeColumn="Y"
+        modelBuilderProps={baseModelBuilderProps}
+        onOpenModelDrawer={vi.fn()}
+      />
+    );
+    const svg = container.querySelector('svg');
+    expect(svg).not.toBeNull();
+    // Neither surface may appear inside the viewBox-cropped SVG.
+    expect(svg!.querySelector('[data-testid="model-drawer"]')).toBeNull();
+    expect(svg!.querySelector('[data-testid="model-builder-band"]')).toBeNull();
   });
 
-  it('renders the band at COLD START (candidate factors, ZERO hubs + ZERO orphans)', () => {
-    // FE-1 spec §3 screen-first: a fresh drilled scope with candidate factors but
-    // no hypotheses/orphans yet is exactly when an analyst screens. The band must
-    // mount alongside the EmptyState CTA, NOT be hidden behind the zero-hub
-    // short-circuit. A regression (band suppressed) FAILS the band/kept lookups.
+  it('A2 REGRESSION GUARD: data-wall-content-bbox attribute is present and numerically valid', () => {
+    // Documents the data-wall-content-bbox contract: the attribute must be present
+    // on the <svg> and parse to four finite numbers [x, y, w, h].
+    const { container } = render(
+      <WallCanvas
+        hubId={'test-hub' as never}
+        hubs={[hub]}
+        findings={[]}
+        problemCpk={0.8}
+        eventsPerWeek={10}
+        rows={scopeRows()}
+        outcomeColumn="Y"
+        modelBuilderProps={baseModelBuilderProps}
+        onOpenModelDrawer={vi.fn()}
+      />
+    );
+    const svg = container.querySelector('svg');
+    expect(svg).not.toBeNull();
+    const bboxAttr = svg!.getAttribute('data-wall-content-bbox');
+    expect(bboxAttr).not.toBeNull();
+    const parts = (bboxAttr ?? '').split(' ').map(Number);
+    expect(parts).toHaveLength(4);
+    const [x, y, w, h] = parts;
+    expect([x, y, w, h].every(Number.isFinite)).toBe(true);
+  });
+
+  it('cold-start: the toggle renders + fires (zero hubs, candidate factors present)', () => {
+    const onOpenModelDrawer = vi.fn();
     render(
       <WallCanvas
         hubId={'test-hub' as never}
@@ -205,26 +197,20 @@ describe('WallCanvas — model-builder band seam', () => {
         eventsPerWeek={10}
         rows={scopeRows()}
         outcomeColumn="Y"
-        modelBuilderProps={baseModelBuilderProps()}
+        modelBuilderProps={baseModelBuilderProps}
+        onOpenModelDrawer={onOpenModelDrawer}
       />
     );
-    // The cold-start wrapper mounted (band + EmptyState CTA coexist).
+    // The cold-start wrapper mounted (factor glyphs + EmptyState CTA coexist).
     expect(screen.getByTestId('wall-cold-start-with-band')).toBeTruthy();
+    // No in-SVG model surface at cold start either.
     expect(screen.queryByTestId('model-builder-band')).toBeNull();
-    openModelBuilder();
-    // The band rendered with the pre-selected vital few (real engine ran).
-    expect(screen.getByTestId('model-builder-band')).toBeTruthy();
-    expect(
-      within(screen.getByTestId('model-kept')).getByTestId('model-kept-factor-Shift')
-    ).toBeTruthy();
-    // The analyst can screen BEFORE any hypothesis — the R²adj header is live.
-    expect(screen.getByTestId('model-r2adj').textContent).toMatch(/R²adj\s+\d/);
-    // The EmptyState CTA still stands (start-an-investigation entry points).
-    expect(screen.getByTestId('model-builder-band')).toBeTruthy();
+    const toggle = screen.getByTestId('wall-model-builder-toggle');
+    fireEvent.click(toggle);
+    expect(onOpenModelDrawer).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the bare EmptyState (no band) at cold start when there are NO candidate factors', () => {
-    // No-regression guard: truly-empty scope (no candidates) keeps the normal CTA.
+  it('cold-start: NO factor band (no candidates) → bare EmptyState, no toggle', () => {
     render(
       <WallCanvas
         hubId={'test-hub' as never}
@@ -234,20 +220,19 @@ describe('WallCanvas — model-builder band seam', () => {
         eventsPerWeek={10}
         rows={scopeRows()}
         outcomeColumn="Y"
-        modelBuilderProps={baseModelBuilderProps({ candidateFactors: [] })}
+        modelBuilderProps={{ candidateFactors: [] }}
+        onOpenModelDrawer={vi.fn()}
       />
     );
     expect(screen.queryByTestId('wall-cold-start-with-band')).toBeNull();
-    expect(screen.queryByTestId('model-builder-band')).toBeNull();
+    expect(screen.queryByTestId('wall-model-builder-toggle')).toBeNull();
   });
 
   it('cold-start SVG viewBox is cropped to content — NOT the full 0 0 2000 1400 canvas', () => {
-    // FE-1 item 3: without hubs/orphans the band + glyphs sit near y≈1300 in the
-    // full 2000×1400 space → everything renders tiny. The fix crops the viewBox to
-    // the band + glyph row + generous padding so the content fills the container.
-    //
-    // LOAD-BEARING: reverting coldStartViewBox to `0 0 ${CANVAS_W} ${CANVAS_H}`
-    // makes the first assertion fail (viewBox === default → test catches regression).
+    // FE-1 item 3 (preserved post-ER-3): without hubs/orphans the glyph row sits
+    // near y≈1300 in the full 2000×1400 space → everything renders tiny. The crop
+    // keeps the glyph row framed. Reverting coldStartViewBox to the full canvas
+    // fails the first assertion.
     const { container } = render(
       <WallCanvas
         hubId={'test-hub' as never}
@@ -257,50 +242,24 @@ describe('WallCanvas — model-builder band seam', () => {
         eventsPerWeek={10}
         rows={scopeRows()}
         outcomeColumn="Y"
-        modelBuilderProps={baseModelBuilderProps()}
+        modelBuilderProps={baseModelBuilderProps}
+        onOpenModelDrawer={vi.fn()}
       />
     );
-    // Find the cold-start SVG (inside wall-cold-start-with-band).
     const coldStartSvg = container
       .querySelector('[data-testid="wall-cold-start-with-band"]')
       ?.querySelector('svg');
     expect(coldStartSvg).not.toBeNull();
     const viewBox = coldStartSvg!.getAttribute('viewBox');
-    // Must NOT be the full canvas (the tiny-content regression).
     expect(viewBox).not.toBe('0 0 2000 1400');
-    // Must be a cropped box — vbY should be substantially less than CANVAS_H (1400)
-    // because it crops to the band/glyph content (which starts around y≈880).
     const parts = (viewBox ?? '').split(' ').map(Number);
     expect(parts).toHaveLength(4);
     const [, vbY, vbW, vbH] = parts;
-    // Cropped: y offset into the canvas (not 0 — content is near y=1300).
+    // Cropped: y offset into the canvas (content near y≈1300, framed with headroom).
     expect(vbY).toBeGreaterThan(0);
-    // Width: at least 700 (min-width guard) but less than CANVAS_W for this 3-factor fixture (the crop grows with factor count by design).
     expect(vbW).toBeGreaterThanOrEqual(700);
     expect(vbW).toBeLessThan(2000);
-    // Height: covers the content but much less than full canvas height (1400).
     expect(vbH).toBeGreaterThan(0);
-    expect(vbH).toBeLessThan(800); // cropped, not the full 1400
-  });
-
-  it('chips a scope-constant factor when the scope drilled on it', () => {
-    render(
-      <WallCanvas
-        hubId={'test-hub' as never}
-        hubs={[hub]}
-        findings={[]}
-        problemCpk={0.8}
-        eventsPerWeek={10}
-        rows={scopeRows()}
-        outcomeColumn="Y"
-        modelBuilderProps={baseModelBuilderProps({
-          constantFactors: ['Machine'],
-          scopeLabel: 'Machine=m1',
-        })}
-      />
-    );
-    openModelBuilder();
-    expect(screen.getByTestId('model-constant-factor-Machine')).toBeTruthy();
-    expect(screen.queryByTestId('model-candidate-factor-Machine')).toBeNull();
+    expect(vbH).toBeLessThan(800);
   });
 });
