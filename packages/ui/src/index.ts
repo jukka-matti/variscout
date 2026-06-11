@@ -839,6 +839,9 @@ export type {
 // Explore tab — the condition loop: ConditionPill (mint) + ScopeBar (show) (ER-4)
 export { ConditionPillBase, ScopeBarBase } from './components/Explore';
 export type { ConditionPillBaseProps, ScopeBarBaseProps } from './components/Explore';
+// Explore tab — composition view (ER-5a — paired share bars per level, ⊕ compound condition)
+export { CompositionViewBase } from './components/Explore';
+export type { CompositionViewBaseProps } from './components/Explore';
 export { SingleSelectPopover } from './components/SingleSelectPopover';
 export type {
   SingleSelectPopoverProps,

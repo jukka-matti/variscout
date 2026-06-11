@@ -1337,4 +1337,56 @@ export interface MessageCatalog {
   'scopeBar.analyze': string;
   /** Accessible label for the whole row: "Viewing condition: {label}". */
   'scopeBar.ariaLabel': string;
+
+  // ── Membership strip variant (ER-5a — "What distinguishes these rows?") ──
+  /** Title for the membership variant: "What distinguishes these rows?" */
+  'factorStrip.title.membership': string;
+  /** Subtitle for the membership variant — explains Cramér's Ṽ is separation, NOT % of variation. */
+  'factorStrip.membership.subtitle': string;
+  /** Label for the separation bar/value on each chip ("separation" — never "% of variation"). */
+  'factorStrip.membership.separation': string;
+  /**
+   * Hover title for a membership chip — p-value + chi-squared df.
+   * Params: {p}, {df}, {n}.
+   */
+  'factorStrip.membership.chip.hover': string;
+  /**
+   * Over-represented level annotation: "{level} ×{lift}".
+   * Params: {level}, {lift} (formatted to 1 decimal by caller).
+   */
+  'factorStrip.membership.chip.topLevel': string;
+  /**
+   * Label rendered instead of "×{lift}" when lift is Infinity
+   * (level appears exclusively inside the condition).
+   * Never render the bare ∞ glyph alone.
+   */
+  'factorStrip.membership.chip.onlyInCondition': string;
+
+  // ── Composition view (ER-5a — paired share bars per level + ⊕) ──
+  /** Heading: "Composition by {factor}". Param: {factor}. */
+  'compositionView.title': string;
+  /** Toggle label for lift view (default). */
+  'compositionView.toggle.lift': string;
+  /** Toggle label for count view (nIn desc). */
+  'compositionView.toggle.count': string;
+  /** Legend label for the in-condition share bar. */
+  'compositionView.shareIn': string;
+  /** Legend label for the out-of-condition share bar. */
+  'compositionView.shareOut': string;
+  /**
+   * Lift annotation shown on the top-lift level:
+   * "×{lift}" (formatted to 1 decimal). Param: {lift}.
+   */
+  'compositionView.lift': string;
+  /**
+   * Lift annotation when lift is Infinity.
+   * Rendered instead of "×∞" for statistical honesty.
+   */
+  'compositionView.liftOnlyInCondition': string;
+  /** ⊕ button accessible label. Param: {level}. */
+  'compositionView.addAria': string;
+  /** Empty / degenerate state line when the composition cannot be computed. */
+  'compositionView.empty': string;
+  /** Count view column header: "in condition". */
+  'compositionView.countIn': string;
 }

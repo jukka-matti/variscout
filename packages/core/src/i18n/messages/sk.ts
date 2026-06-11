@@ -1260,4 +1260,25 @@ export const sk: MessageCatalog = {
   'scopeBar.clear': '× back to all data',
   'scopeBar.analyze': 'Take it to Analyze →',
   'scopeBar.ariaLabel': 'Viewing condition: {label}',
+
+  // -- Membership strip variant (ER-5a) --
+  'factorStrip.title.membership': 'What distinguishes these rows?',
+  'factorStrip.membership.subtitle':
+    'how strongly each factor distinguishes the rows in this condition from the rest (separation -- not % of variation)',
+  'factorStrip.membership.separation': 'separation',
+  'factorStrip.membership.chip.hover': 'p={p} · χ² df={df} · n={n}',
+  'factorStrip.membership.chip.topLevel': '{level} ×{lift}',
+  'factorStrip.membership.chip.onlyInCondition': 'only in condition',
+
+  // -- Composition view (ER-5a) --
+  'compositionView.title': 'Composition by {factor}',
+  'compositionView.toggle.lift': 'lift',
+  'compositionView.toggle.count': 'count',
+  'compositionView.shareIn': 'share in condition',
+  'compositionView.shareOut': 'share outside',
+  'compositionView.lift': '×{lift}',
+  'compositionView.liftOnlyInCondition': 'only in condition',
+  'compositionView.addAria': 'Add {level} to condition',
+  'compositionView.empty': 'No composition data -- condition may be degenerate.',
+  'compositionView.countIn': 'in condition',
 };

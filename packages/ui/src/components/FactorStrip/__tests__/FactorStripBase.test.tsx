@@ -14,7 +14,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { en } from '@variscout/core/i18n';
 import { formatStatistic } from '@variscout/core/i18n';
-import type { FactorStripChip } from '@variscout/hooks';
+import type { FactorStripChip, MembershipChip } from '@variscout/hooks';
 
 // ---- Mock useTranslation BEFORE the component import (vi.mock is hoisted) ----
 vi.mock('@variscout/hooks', () => {
@@ -396,5 +396,154 @@ describe('FactorStripBase', () => {
     const { container } = render(<FactorStripBase chips={[]} {...baseProps} residualPct={null} />);
     expect(screen.queryByTestId(/^factor-chip-/)).toBeNull();
     expect(container).toBeDefined();
+  });
+});
+
+// ── Membership variant (ER-5a) ─────────────────────────────────────────────────
+
+// MembershipChip factory
+function makeMembershipChip(over: Partial<MembershipChip> = {}): MembershipChip {
+  return {
+    factor: 'Team',
+    separation: 0.45,
+    pValue: 0.0003,
+    isSignificant: true,
+    binnedForRanking: false,
+    topLevel: { level: 'Billing', lift: 2.8 },
+    isSelected: false,
+    ...over,
+  };
+}
+
+const membershipBaseProps = {
+  chips: [] as FactorStripChip[],
+  residualPct: null,
+  examinedKeys: new Set<string>(),
+  onFactorSelect: vi.fn(),
+  variant: 'membership' as const,
+};
+
+describe('FactorStripBase — membership variant (ER-5a)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // ── Default magnitude variant byte-identical ────────────────────────────────
+  it('default variant renders the magnitude title (byte-identical path)', () => {
+    render(
+      <FactorStripBase
+        chips={[makeChip()]}
+        residualPct={null}
+        examinedKeys={new Set()}
+        onFactorSelect={vi.fn()}
+      />
+    );
+    expect(screen.getByText('What does explain it?')).toBeDefined();
+    // No membership title
+    expect(screen.queryByText('What distinguishes these rows?')).toBeNull();
+  });
+
+  // ── Membership title ────────────────────────────────────────────────────────
+  it('renders the membership title when variant="membership"', () => {
+    render(<FactorStripBase {...membershipBaseProps} membershipChips={[makeMembershipChip()]} />);
+    expect(screen.getByText('What distinguishes these rows?')).toBeDefined();
+    // Magnitude title absent
+    expect(screen.queryByText('What does explain it?')).toBeNull();
+  });
+
+  // ── Membership chip renders level ×lift ─────────────────────────────────────
+  it('renders "Level ×lift" annotation when topLevel is present', () => {
+    const chip = makeMembershipChip({ factor: 'Queue', topLevel: { level: 'Billing', lift: 2.8 } });
+    render(<FactorStripBase {...membershipBaseProps} membershipChips={[chip]} />);
+    const chipEl = screen.getByTestId('factor-chip-Queue');
+    const topLevel = within(chipEl).getByTestId('factor-chip-membership-top-level');
+    // topLevel annotation: "Billing ×2.8"
+    expect(topLevel.textContent).toContain('Billing');
+    expect(topLevel.textContent).toContain('×2.8');
+  });
+
+  // ── Infinity lift renders only-in-condition label ───────────────────────────
+  it('renders the "only in condition" label when lift is Infinity (not bare ∞)', () => {
+    const chip = makeMembershipChip({
+      factor: 'Shift',
+      topLevel: { level: 'NightShift', lift: Infinity },
+    });
+    render(<FactorStripBase {...membershipBaseProps} membershipChips={[chip]} />);
+    const chipEl = screen.getByTestId('factor-chip-Shift');
+    const topLevel = within(chipEl).getByTestId('factor-chip-membership-top-level');
+    expect(topLevel.textContent).toContain('only in condition');
+    expect(topLevel.textContent).not.toContain('∞');
+  });
+
+  // ── No topLevel → annotation absent ────────────────────────────────────────
+  it('does NOT render top-level annotation when topLevel is null', () => {
+    const chip = makeMembershipChip({ factor: 'Site', topLevel: null });
+    render(<FactorStripBase {...membershipBaseProps} membershipChips={[chip]} />);
+    expect(
+      within(screen.getByTestId('factor-chip-Site')).queryByTestId(
+        'factor-chip-membership-top-level'
+      )
+    ).toBeNull();
+  });
+
+  // ── Separation label is NOT "% of variation" ────────────────────────────────
+  it('separation label contains "separation" and NOT "% of variation"', () => {
+    const chip = makeMembershipChip({ factor: 'Team', separation: 0.45 });
+    render(<FactorStripBase {...membershipBaseProps} membershipChips={[chip]} />);
+    const chipEl = screen.getByTestId('factor-chip-Team');
+    const sepLabel = within(chipEl).getByTestId('factor-chip-separation-label');
+    expect(sepLabel.textContent).toContain('separation');
+    expect(sepLabel.textContent).not.toContain('% of variation');
+    expect(sepLabel.textContent).not.toMatch(/\d+%\s*of\s*variation/);
+  });
+
+  // ── Binned annotation preserved ─────────────────────────────────────────────
+  it('annotates binned-for-ranking chips with (binned) suffix in membership mode', () => {
+    const chip = makeMembershipChip({ factor: 'CallLength', binnedForRanking: true });
+    render(<FactorStripBase {...membershipBaseProps} membershipChips={[chip]} />);
+    expect(
+      within(screen.getByTestId('factor-chip-CallLength')).getByText('(binned)')
+    ).toBeDefined();
+  });
+
+  // ── Step badge preserved (ER-9 contract) ────────────────────────────────────
+  it('renders step badge when membershipStepDecorations contains the factor', () => {
+    const chip = makeMembershipChip({ factor: 'Shift' });
+    const stepDecorations = new Map([['Shift', { stepId: 'step-fill', stepName: 'Fill' }]]);
+    render(
+      <FactorStripBase
+        {...membershipBaseProps}
+        membershipChips={[chip]}
+        membershipStepDecorations={stepDecorations}
+      />
+    );
+    const badge = within(screen.getByTestId('factor-chip-Shift')).getByTestId(
+      'factor-chip-step-badge'
+    );
+    expect(badge.textContent).toBe('Fill');
+    expect(badge.getAttribute('title')).toBe('Process step: Fill');
+  });
+
+  it('omits step badge when membershipStepDecorations is absent', () => {
+    const chip = makeMembershipChip({ factor: 'Shift' });
+    render(<FactorStripBase {...membershipBaseProps} membershipChips={[chip]} />);
+    expect(
+      within(screen.getByTestId('factor-chip-Shift')).queryByTestId('factor-chip-step-badge')
+    ).toBeNull();
+  });
+
+  // ── Chip click fires onFactorSelect ─────────────────────────────────────────
+  it('fires onFactorSelect on membership chip click', () => {
+    const onFactorSelect = vi.fn();
+    const chip = makeMembershipChip({ factor: 'Queue' });
+    render(
+      <FactorStripBase
+        {...membershipBaseProps}
+        membershipChips={[chip]}
+        onFactorSelect={onFactorSelect}
+      />
+    );
+    fireEvent.click(screen.getByTestId('factor-chip-Queue'));
+    expect(onFactorSelect).toHaveBeenCalledWith('Queue');
   });
 });

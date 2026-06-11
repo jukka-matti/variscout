@@ -297,6 +297,7 @@ export {
   type UseFactorStripModelResult,
   type FactorStripChip,
   type FactorStripWhatIf,
+  type FactorStripStepDecoration,
 } from './useFactorStripModel';
 
 // Scope match (ER-2 — shared drill→scope lookup for the strip's what-if refresh)
