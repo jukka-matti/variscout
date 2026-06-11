@@ -5,13 +5,15 @@ title: VariScout Data Lifecycle
 audience: human
 category: architecture
 status: active
-last-reviewed: 2026-06-01
-related: [data-flow, persistence, sync, customer-owned, blob-storage, indexeddb, easyauth]
+last-reviewed: 2026-06-11
+related: [data-flow, persistence, sync, customer-owned, blob-storage, indexeddb, easyauth, local-first]
 ---
 
 # VariScout Data Lifecycle
 
-Data enters VariScout in the browser, stays in the browser for analysis, and — on the Azure tier — can sync to storage **in the customer's own Azure tenant**. No data ever touches VariScout-operated cloud infrastructure. This is the **customer-owned data** principle, and every architectural decision downstream respects it (ADR-059).
+> **Last material edit 2026-06-11** — Data lifecycle aligned with [ADR-092](07-decisions/adr-092-local-first-variscout-product-model.md): local browser processing and user-controlled files are the default; Azure persistence, AI, and managed sharing are optional customer-tenant services.
+
+Data enters VariScout in the browser and stays in the browser for analysis. The default durable artifacts are user-controlled files: `.vrs` workspace snapshots and Analysis Packs. When optional services are enabled, data can sync to storage **in the customer's own Azure tenant** or flow to the customer's AI endpoint. No data ever touches VariScout-operated cloud infrastructure. This is the **local-first / customer-owned data** principle, and every architectural decision downstream respects it (ADR-059, ADR-092).
 
 ## 1. Parse boundary (B1 — the first numeric gate)
 
@@ -51,22 +53,23 @@ Two-pass best subsets with interaction screening (ADR-067) drives Evidence Map. 
 
 ## 4. Persistence
 
-VariScout V1 is a single SKU (€120/month, Azure tenant-wide). There is no tier-based feature split in persistence — the distinction is between the **PWA capability** (session-only, no backend required, offline-first funnel) and the **Azure capability** (full persistence, team sync, CoScout AI). Both are first-class capabilities of the single product.
+VariScout V1 is local-first. There is no tier-based split in analytical capability — the distinction is between the **local/PWA capability** (browser runtime, `.vrs`, Analysis Packs, no backend required) and **optional customer-tenant services** (Azure persistence, customer AI, managed sharing). Both are part of the same product direction, but the local path is the default proof of value.
 
-| Capability   | Storage                      | Scope                                                                |
-| ------------ | ---------------------------- | -------------------------------------------------------------------- |
-| PWA session  | In-memory stores             | Session-only by default. Refresh = unsaved data gone. Intentional.   |
-| PWA `.vrs`   | User-downloaded JSON file    | Snapshot-only portable envelope for backup/share/start-import.       |
-| Azure        | IndexedDB (local to browser) | Access-aware `DocumentSnapshot` cache across sessions on the device. |
-| Azure + Blob | IndexedDB + Blob Storage     | Same snapshot document syncs within the customer's tenant.           |
+| Capability | Storage | Scope |
+| --- | --- | --- |
+| Browser session | In-memory stores | Session-only by default. Refresh = unsaved data gone unless exported. |
+| `.vrs` snapshot | User-downloaded JSON file | Portable workspace envelope for backup, transfer, and reproducible review. |
+| Analysis Pack | Self-contained export artifact | Executive, technical, reproducible, or redacted share output. |
+| Optional local cache | IndexedDB (local to browser) | Device-local convenience cache where product slice enables it. |
+| Optional Azure services | IndexedDB + Blob Storage | Customer-tenant persistence and managed sharing when explicitly enabled. |
 
 IndexedDB schema in `apps/azure/src/db/schema.ts` (Dexie). `services/localDb.ts` is the facade. Document-level persistence goes through the R6 `DocumentSnapshot` boundary in `@variscout/stores`: Project config/data, Analyze state, Canvas document state, and zero-or-one hub-scoped `ImprovementProject`.
 
-PWA has no browser save identity or reload-from-browser promise. Exported `.vrs` files are user-owned backups or share artifacts; importing one starts a new unsaved in-memory session. Azure owns durable document identity: Save updates the active Azure document, Save As forks a new document, and dirty state is based on the canonical `DocumentSnapshot` fingerprint versus the saved baseline.
+PWA has no browser save identity or reload-from-browser promise. Exported `.vrs` files are user-owned backups or share artifacts; importing one starts a new unsaved in-memory session. Analysis Packs are read/share artifacts, not canonical save state unless they include or link a `.vrs` snapshot. Azure owns durable document identity only when optional customer-tenant persistence is enabled: Save updates the active Azure document, Save As forks a new document, and dirty state is based on the canonical `DocumentSnapshot` fingerprint versus the saved baseline.
 
 ## 5. Project-membership ACL as data-isolation layer
 
-Saved Azure documents are access-aware. Quick analyses without a formal `ImprovementProject` are private to the creator/current user. Formal Projects derive allowed users from `improvementProject.metadata.members`; only the Lead/Member/Sponsor roster should see or load the document.
+Saved Azure documents are access-aware when optional customer-tenant persistence is enabled. Local `.vrs` files and Analysis Packs rely on file/share discipline: the analyst chooses which artifact to export and where to send it. Formal Projects derive allowed users from `improvementProject.metadata.members`; only the Lead/Member/Sponsor roster should see or load a managed Azure document.
 
 Access checks are role-based: `canAccess(userId, members, action)` from `@variscout/core/projectMembership`. Roles are Lead (full edit + advance stages + close hypotheses + manage membership), Member + Sponsor (read everywhere + edit contributions: Findings, evidence, action items, ideas, comments). Per Spec 2 §7. R6c applies this model to saved document listing/loading; R6e is the current slice that moves enforcement to the same-origin server API / storage boundary before any Blob list/read/write operation.
 
@@ -77,9 +80,9 @@ and profile-specific; ordinary process datasets do not yet have a general
 promotion path from one-off project to recurring Evidence Source or Current
 Process State review.
 
-## 6. Sync (Azure — Blob Storage)
+## 6. Sync (optional Azure — Blob Storage)
 
-`services/cloudSync.ts` pushes/pulls project documents to/from Blob Storage in the **customer's tenant**. Flow:
+`services/cloudSync.ts` pushes/pulls project documents to/from Blob Storage in the **customer's tenant** when optional Azure persistence is enabled. Flow:
 
 1. User authenticates via EasyAuth (`/api/me` returns identity). No MSAL in the client.
 2. Client calls same-origin storage APIs in `apps/azure/server.js` for document list/load/save operations.
@@ -98,9 +101,13 @@ slice. The logical namespace remains:
 
 UI code never calls `.toFixed()` on stat values. `formatStatistic()` from `@variscout/core/i18n` guards every displayed number with `Number.isFinite()` and locale-aware formatting. ESLint enforces this (in Phase 3 of the doc architecture migration; currently a text convention).
 
-## 8. AI boundary (CoScout)
+## 8. AI boundary (CoScout / local agents)
 
-CoScout calls leave the browser but stay in the customer's tenant (Azure OpenAI endpoint provisioned in the customer's subscription). Prompts include investigation state (findings, hubs, causal links, evidence map topology) but **never raw data rows beyond what the user has exposed in charts**. Visual grounding markers (ADR-057) reference chart elements by ID, not data. Tool calls (27-tool registry) return structured diffs the user confirms before applying.
+AI is provider-boundary based. VariScout can run with no AI, with customer Azure AI, and later with local LLM or MCP agent surfaces. The deterministic stats engine remains the authority.
+
+Customer Azure AI calls leave the browser but stay in the customer's tenant (Azure OpenAI endpoint provisioned in the customer's subscription). Prompts include investigation state (findings, hubs, causal links, evidence map topology) but **never raw data rows beyond what the user has exposed in charts**. Visual grounding markers (ADR-057) reference chart elements by ID, not data. Tool calls return structured diffs the user confirms before applying.
+
+Future local MCP/agent access should use controlled Agent Workspace Bundles or a local server surface. Agents may read computed results and propose report copy, actions, Control plans, or redacted Analysis Packs. They must not silently mutate canonical workspace state.
 
 Azure voice input uses the same tenant boundary:
 
@@ -117,7 +124,7 @@ There is no persisted audio object in IndexedDB or Blob Storage, and PWA keeps t
 
 ## Trust chain summary
 
-Parse → transform → stats → persist → sync → display → AI. Every boundary either validates or passes through, never silently corrupts. Three numeric gates (B1, B2, B3) guarantee no `NaN`/`Infinity` reaches the user. Customer-owned principle guarantees no data leaves customer tenant. Project-membership ACLs (ADR-082 §4) scope formal Project documents to invited members; quick-analysis documents are private to their creator. Voice input, when enabled on Azure, follows the same tenant-owned-data rule: audio is transient, transcript is durable.
+Parse -> transform -> stats -> persist/export -> optional sync -> display -> optional AI. Every boundary either validates or passes through, never silently corrupts. Three numeric gates (B1, B2, B3) guarantee no `NaN`/`Infinity` reaches the user. Local-first/customer-owned principle guarantees no data leaves the browser or customer environment unless the user enables an explicit export/service path. Project-membership ACLs (ADR-082 §4) scope formal Azure Project documents to invited members; local `.vrs` and Analysis Packs are controlled by the analyst's file-sharing choices. Voice input, when enabled on Azure, follows the same tenant-owned-data rule: audio is transient, transcript is durable.
 
 ## Reference
 
@@ -126,6 +133,7 @@ Parse → transform → stats → persist → sync → display → AI. Every bou
 - ADR-059 Web-first deployment architecture
 - ADR-069 Three-boundary numeric safety
 - ADR-082 V1 architecture (single-SKU + project-membership ACL)
+- ADR-092 Local-first VariScout product model
 - docs/05-technical/architecture/data-flow.md
 - docs/05-technical/architecture/data-pipeline-map.md
 - docs/08-products/azure/blob-storage-sync.md

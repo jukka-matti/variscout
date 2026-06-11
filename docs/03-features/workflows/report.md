@@ -5,7 +5,7 @@ title: 'Report — the compilation surface'
 audience: both
 status: active
 date: 2026-06-02
-last-verified: 2026-06-10
+last-verified: 2026-06-11
 verified-against-commit: fef2c110
 layer: L3
 kind: workflow
@@ -18,11 +18,16 @@ related:
   - docs/07-decisions/adr-037-reporting-workspaces.md
   - docs/07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md
   - docs/07-decisions/adr-031-report-export.md
+  - docs/07-decisions/adr-092-local-first-variscout-product-model.md
 ---
 
 # Report — the compilation surface
 
-The terminal, **read-mostly** surface: Findings, Hypotheses, Actions, and Control evidence compile into a narrative report the Sponsor reviews and the team shares. Under the Workspace model, Report always renders the single-project report because every Workspace is backed by one active Project. Informal Projects get one soft formalization hint; the retired Hub portfolio fallback is gone.
+> **Last material edit 2026-06-11** — Report is now the source surface for local-first Analysis Packs per [ADR-092](../../07-decisions/adr-092-local-first-variscout-product-model.md). Current shipped print/PDF and `.vrs` exports remain; HTML Analysis Packs are the product direction.
+
+The terminal, **read-mostly** surface: Findings, Hypotheses, Actions, and Control evidence compile into a narrative report the analyst can share. Under the Workspace model, Report always renders the single-project/workspace report because every Workspace is backed by one active Project. Informal Projects get one soft formalization hint; the retired Hub portfolio fallback is gone.
+
+In the local-first model, Report is also the source for **Analysis Packs**: self-contained evidence artifacts that replace manual PowerPoint/PDF reporting for the common Minitab + Excel + PowerPoint workflow.
 
 ## Three report types (auto-detected)
 
@@ -71,9 +76,10 @@ Capability is shown as **per-step boxplot distributions side-by-side, never an a
 
 ## Export
 
-- **Print / PDF (both apps)** via the browser print dialog (`handlePrintReport` → `window.print()` + an `@media print` stylesheet — no PDF library; expands all sections, switches to a light theme). _(ADR-031 predates the PWA Report view and is stale on its "Azure-only" claim — both apps print.)_
-- **`.vrs` snapshot (both apps)** — the report's `DocumentSnapshot` envelope; on PWA this is the only _durable_ path (R6d export-only).
-- **AI narrative** — Azure only (CoScout, labelled "AI-generated"); PWA has no AI (P8).
+- **Analysis Pack (product direction)** — self-contained HTML export generated from Report/workspace state. Variants: Executive, Technical, Reproducible, Redacted. See [export.md](../data/export.md).
+- **Print / PDF (both apps)** via the browser print dialog (`handlePrintReport` → `window.print()` + an `@media print` stylesheet — no PDF library; expands all sections, switches to a light theme). Print/PDF is the lightweight derived form of the Report, not the long-term highest-quality share artifact. _(ADR-031 predates the PWA Report view and is stale on its "Azure-only" claim — both apps print.)_
+- **`.vrs` snapshot (both apps)** — the report's `DocumentSnapshot` envelope; on PWA this is the only _durable_ workspace path (R6d export-only). Reproducible Analysis Packs may include or link this snapshot.
+- **AI narrative** — optional provider-boundary capability. Azure CoScout can draft narrative today; future local LLM/MCP agents may draft or critique through controlled bundles. Deterministic report data remains authoritative.
 
 ## Access
 
@@ -81,18 +87,19 @@ The **Sponsor** is read-only on the Report (the role's primary surface); Lead/Me
 
 ## Azure vs PWA
 
-|                        | Azure (€120) | PWA (free)      |
-| ---------------------- | ------------ | --------------- |
-| Report tab             | ✓            | ✓ (read-mostly) |
-| Print / PDF            | ✓ (print)    | ✓ (print)       |
-| `.vrs` snapshot export | ✓            | ✓               |
-| AI narrative           | ✓            | —               |
+|                        | Company-approved / Azure | PWA (free)      |
+| ---------------------- | ------------------------ | --------------- |
+| Report tab             | ✓                        | ✓ (read-mostly) |
+| Print / PDF            | ✓ (print)                | ✓ (print)       |
+| `.vrs` snapshot export | ✓                        | ✓               |
+| Analysis Pack direction | ✓                       | ✓               |
+| AI narrative           | Optional customer AI     | — / future local provider |
 
 ## Not yet built (do not document as live)
 
-No cross-hub / cross-investigation statistical aggregation (ADR-073 — by design, not a gap); no Hub portfolio report fallback; in-product sign-off workflow is out-of-band in V1.
+No cross-hub / cross-investigation statistical aggregation (ADR-073 — by design, not a gap); no Hub portfolio report fallback; in-product sign-off workflow is out-of-band in V1; no shipped HTML Analysis Pack generator yet.
 
 ## See also
 
-- [export.md](../data/export.md) — the export channels. · [save-and-load.md](../data/save-and-load.md) — the `.vrs` snapshot.
-- [ADR-037](../../07-decisions/adr-037-reporting-workspaces.md) (report types) · [ADR-073](../../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md) (distributions-not-aggregates) · [ADR-031](../../07-decisions/adr-031-report-export.md) (export).
+- [export.md](../data/export.md) — export channels and Analysis Packs. · [save-and-load.md](../data/save-and-load.md) — the `.vrs` snapshot.
+- [ADR-037](../../07-decisions/adr-037-reporting-workspaces.md) (report types) · [ADR-073](../../07-decisions/adr-073-no-statistical-rollup-across-heterogeneous-units.md) (distributions-not-aggregates) · [ADR-031](../../07-decisions/adr-031-report-export.md) (export) · [ADR-092](../../07-decisions/adr-092-local-first-variscout-product-model.md) (local-first product model).
