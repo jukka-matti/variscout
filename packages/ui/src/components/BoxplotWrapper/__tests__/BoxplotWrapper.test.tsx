@@ -51,11 +51,14 @@ vi.mock('@variscout/charts', async importOriginal => {
     BoxplotBase: ({
       data,
       onBoxClick,
+      selectedGroups,
     }: {
       data: Array<{ key: string }>;
       onBoxClick?: (key: string) => void;
+      selectedGroups?: string[];
     }) => (
       <div>
+        <div data-testid="selected-groups">{(selectedGroups ?? []).join(',')}</div>
         {data.map(d => (
           <button key={d.key} data-testid={`box-${d.key}`} onClick={() => onBoxClick?.(d.key)}>
             {d.key}
@@ -140,5 +143,25 @@ describe('BoxplotWrapper click semantics (ER-4 D6)', () => {
     render(<BoxplotWrapperBase {...baseProps} onDrillDown={onDrillDown} />);
     fireEvent.click(screen.getByTestId('box-A'));
     expect(onDrillDown).toHaveBeenCalledWith('vessel', 'A');
+  });
+});
+
+describe('BoxplotWrapper transient highlight dim (ER-4 tier 2)', () => {
+  it('merges transientHighlightLevel into the dim channel (selectedGroups)', () => {
+    render(<BoxplotWrapperBase {...baseProps} transientHighlightLevel="B" />);
+    // With a selection present, BoxplotBase dims every non-selected category.
+    expect(screen.getByTestId('selected-groups')).toHaveTextContent('B');
+  });
+
+  it('does not duplicate a level already selected via filters', () => {
+    render(
+      <BoxplotWrapperBase {...baseProps} filters={{ vessel: ['A'] }} transientHighlightLevel="A" />
+    );
+    expect(screen.getByTestId('selected-groups')).toHaveTextContent(/^A$/);
+  });
+
+  it('passes no selection when the transient highlight is absent', () => {
+    render(<BoxplotWrapperBase {...baseProps} />);
+    expect(screen.getByTestId('selected-groups')).toHaveTextContent(/^$/);
   });
 });

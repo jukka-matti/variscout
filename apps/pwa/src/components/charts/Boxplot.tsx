@@ -18,6 +18,8 @@ interface BoxplotProps {
   onDrillDown?: (factor: string, value: string) => void;
   /** ER-4 (D6): neutral group click — host sets transient highlight + shows the pill. */
   onGroupClick?: (factor: string, level: string | number) => void;
+  /** ER-4 tier-2: transient highlight level for THIS factor — dims other categories. */
+  transientHighlightLevel?: string;
   onCaptureCategory?: (factor: string, value: string) => void;
   showBranding?: boolean;
   highlightedCategories?: Record<string, HighlightColor>;

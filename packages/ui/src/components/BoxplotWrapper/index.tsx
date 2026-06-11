@@ -65,6 +65,15 @@ export interface BoxplotWrapperBaseProps {
    * legacy click behaviour is preserved (focused views, mobile, embed).
    */
   onGroupClick?: (factor: string, level: string | number) => void;
+  /**
+   * ER-4 tier-2 transient highlight: when the host's transient highlight targets
+   * THIS factor, the level renders emphasized and every other category dims
+   * (merged into `selectedGroups`, the chart's existing dim channel). Distinct
+   * from `highlightedCategories` (persisted annotation colors) — this is the
+   * ephemeral, Esc-clearable click state. Host passes undefined when the
+   * transient column differs from `factor`.
+   */
+  transientHighlightLevel?: string;
   /** Render the VariScout source-bar branding when true. Defaults to false. */
   showBranding?: boolean;
   /** Branding text (only used when showBranding=true). Defaults to "VariScout Lite". */
@@ -121,6 +130,7 @@ export const BoxplotWrapperBase = ({
   onDrillDown,
   onCaptureCategory,
   onGroupClick,
+  transientHighlightLevel,
   showBranding: showBrandingProp,
   brandingText: brandingTextProp,
   highlightedCategories,
@@ -193,7 +203,13 @@ export const BoxplotWrapperBase = ({
   const factorLabels = valueLabels[factor] || {};
   const showBranding = showBrandingProp ?? false;
   const brandingText = brandingTextProp ?? 'VariScout Lite';
-  const selectedGroups = (filters[factor] || []).map(String);
+  // ER-4: the transient click-highlight joins the filter selections on the
+  // chart's existing dim channel — non-selected categories drop to 0.3 opacity.
+  const filterSelections = (filters[factor] || []).map(String);
+  const selectedGroups =
+    transientHighlightLevel !== undefined && !filterSelections.includes(transientHighlightLevel)
+      ? [...filterSelections, transientHighlightLevel]
+      : filterSelections;
   const fonts = getScaledFonts(parentWidth);
 
   return (

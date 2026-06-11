@@ -1379,6 +1379,11 @@ const Dashboard = ({
                 // ER-4 (D6): the click sets a transient highlight + shows the pill
                 // (commit is explicit, via the pill). The legacy click→drill retires.
                 onGroupClick={handleGroupClick}
+                transientHighlightLevel={
+                  transientHighlight && transientHighlight.column === boxplotFactor
+                    ? String(transientHighlight.value)
+                    : undefined
+                }
                 showBranding={false}
                 highlightedCategories={boxplotHighlights}
                 onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
