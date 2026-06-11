@@ -53,12 +53,12 @@ describe('DashboardGrid', () => {
     expect(container).toBeDefined();
   });
 
-  it('grows the I-Chart deduction (356px) when the strip is present', () => {
+  it('grows the I-Chart deduction (324px) when the strip is present', () => {
     render(
       <DashboardGrid {...baseProps} factorStrip={<div data-testid="strip-content">Strip</div>} />
     );
     const ichartWrapper = screen.getByTestId('ichart-card').parentElement!;
-    expect(ichartWrapper.className).toContain('h-[calc(100dvh_-_356px)]');
+    expect(ichartWrapper.className).toContain('h-[calc(100dvh_-_324px)]');
     expect(ichartWrapper.className).toContain('min-h-[440px]');
     expect(ichartWrapper.className).not.toContain('h-[calc(100dvh_-_240px)]');
   });

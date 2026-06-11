@@ -35,12 +35,15 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
   // so the I-Chart wrapper deducts that much more viewport. Without the strip
   // the original 240px deduction is unchanged.
   //
-  // NOTE: 356px = the 240px base chrome (see breakdown below) + ~116px strip
+  // NOTE: 324px = the 240px base chrome (see breakdown below) + ~84px strip allowance
+  // (measured at the ER-2 browser gate: strip ≈96px tall, band must stay ≥3× the 121px
+  // pre-redesign baseline — 324 yields ≈370px ≈ 3.06× at a 932px viewport with the strip
+  // fully visible above the fold; 356 measured 338px = 2.79×, failing the acceptance)
   // estimate. The exact strip height is tuned at the `--chrome` browser gate
   // (the strip is content-sized, not a fixed 116px); the floor (min-h-[440px])
   // keeps the hero usable if the estimate runs short.
   const ichartHeightClass = factorStrip
-    ? 'h-[calc(100dvh_-_356px)] min-h-[440px] shrink-0 rounded-2xl'
+    ? 'h-[calc(100dvh_-_324px)] min-h-[440px] shrink-0 rounded-2xl'
     : 'h-[calc(100dvh_-_240px)] min-h-[500px] shrink-0 rounded-2xl';
 
   return (
@@ -57,7 +60,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({
        *     there is more content to scroll to)
        *   Total                              = 240px
        *
-       * When the factor strip is mounted, add ~116px (strip + gap) → 356px.
+       * When the factor strip is mounted, add ~84px allowance → 324px (gate-tuned).
        *
        * GoalBanner is conditional (variable height, not included). If it is
        * visible the I-Chart card simply overflows into the scroll area — the
