@@ -137,8 +137,15 @@ export {
   computeInteractionEffects,
   generateFollowUpQuestions,
   excludeYDerivedFactors,
+  // Membership-separation engine (ER-5a — condition loop membership strip)
+  computeMembershipSeparation,
   // Finding text generation
   generateFindingText,
+} from './stats';
+export type {
+  MembershipLevelComposition,
+  MembershipFactorSeparation,
+  MembershipSeparationResult,
 } from './stats';
 
 export { computeSustainmentComparison, freezeBaseline } from './control/comparison';

@@ -729,3 +729,15 @@ export {
   type UseConditionLoopReturn,
   type ConditionPillSummary,
 } from './useConditionLoop';
+
+// ER-5a membership models — separation strip + composition view
+export {
+  useMembershipModel,
+  useCompositionModel,
+  type UseMembershipModelArgs,
+  type UseMembershipModelResult,
+  type UseCompositionModelArgs,
+  type UseCompositionModelResult,
+  type MembershipChip,
+  type MembershipChipTopLevel,
+} from './useMembershipModel';
