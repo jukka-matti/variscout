@@ -107,6 +107,9 @@ export function XPickerSection({
         <span className="text-xs text-content-muted" data-testid="x-picker-hint">
           {hint}
         </span>
+        <p className="basis-full text-xs text-content-muted" data-testid="x-picker-bridge">
+          {t('frame.b0.q2.bridge')}
+        </p>
       </header>
 
       {/* Empty-state path: no X candidates available. */}

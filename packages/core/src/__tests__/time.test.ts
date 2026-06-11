@@ -299,6 +299,45 @@ describe('augmentWithTimeColumns', () => {
     expect((data[0] as Record<string, unknown>).Timestamp_Hour).toBe('14:00');
   });
 
+  it('skips a derived weekday column when an equivalent user column already exists', () => {
+    const data = [
+      { Timestamp: new Date(2025, 0, 13), Weekday: 'Monday', Value: 10 },
+      { Timestamp: new Date(2025, 0, 14), Weekday: 'Tuesday', Value: 20 },
+      { Timestamp: new Date(2025, 0, 15), Weekday: 'Wednesday', Value: 30 },
+    ];
+
+    const result = augmentWithTimeColumns(asRows(data), 'Timestamp', {
+      extractYear: false,
+      extractMonth: false,
+      extractWeek: false,
+      extractDayOfWeek: true,
+      extractHour: false,
+    });
+
+    expect(result.newColumns).not.toContain('Timestamp_DayOfWeek');
+    expect('Timestamp_DayOfWeek' in data[0]).toBe(false);
+    expect(data[0].Weekday).toBe('Monday');
+  });
+
+  it('returns only columns that were actually created when some time columns are deduped', () => {
+    const data = [
+      { Timestamp: new Date(2025, 0, 13), Weekday: 'Mon', Value: 10 },
+      { Timestamp: new Date(2025, 0, 14), Weekday: 'Tue', Value: 20 },
+    ];
+
+    const result = augmentWithTimeColumns(asRows(data), 'Timestamp', {
+      extractYear: true,
+      extractMonth: false,
+      extractWeek: false,
+      extractDayOfWeek: true,
+      extractHour: false,
+    });
+
+    expect(result.newColumns).toEqual(['Timestamp_Year']);
+    expect((data[0] as Record<string, unknown>).Timestamp_Year).toBe('2025');
+    expect('Timestamp_DayOfWeek' in data[0]).toBe(false);
+  });
+
   it('does not add hour column for date-only values', () => {
     const data = [{ Date: new Date(2025, 0, 15, 0, 0), Value: 10 }];
 
@@ -306,7 +345,7 @@ describe('augmentWithTimeColumns', () => {
 
     // Hour column not created because date has no time component
     expect(result.hasHourColumn).toBe(false);
-    expect((data[0] as Record<string, unknown>).Date_Hour).toBeNull(); // Still added but null
+    expect((data[0] as Record<string, unknown>).Date_Hour).toBeUndefined();
   });
 
   it('handles missing/invalid values gracefully', () => {

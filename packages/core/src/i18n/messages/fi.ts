@@ -1088,6 +1088,7 @@ export const fi: MessageCatalog = {
   'frame.b0.q1.hint': 'Y-mittari / lopputulos',
   'frame.b0.q2.headline': 'Mikä saattaa vaikuttaa siihen?',
   'frame.b0.q2.hint': 'X-tekijät / syötteet',
+  'frame.b0.q2.bridge': 'These are the same candidate factors Explore will rank from the data.',
   'frame.b0.runOrderHint': '(juoksujärjestys: {column})',
   'frame.b0.addProcessSteps.label': 'Lisää prosessivaiheet',
   'frame.b0.addProcessSteps.helper':
@@ -1138,13 +1139,15 @@ export const fi: MessageCatalog = {
   'healthBar.rows': 'rows',
 
   // Factor strip (ER-2 — "What explains the variation?")
-  'factorStrip.title': 'What explains the variation?',
-  'factorStrip.title.scoped': 'What explains the variation within this condition?',
+  'factorStrip.title': 'What does explain it?',
+  'factorStrip.title.scoped': 'What does explain it within this condition?',
   'factorStrip.subtitle':
     "how much of the row-to-row differences each factor accounts for (η²) — shares overlap, won't sum to 100%",
+  'factorStrip.bridge': 'Same candidate factors as Frame; ranked here from the data.',
   'factorStrip.modelLink': 'How these % are computed (model & ANOVA) →',
   'factorStrip.modelLink.stub': 'coming with the model drawer',
   'factorStrip.star.title': 'largest share',
+  'factorStrip.stepBadge.title': 'Process step: {step}',
   'factorStrip.binned': '(binned)',
   'factorStrip.examined': 'examined',
   'factorStrip.chip.hover': 'p={p} · df={dfB},{dfW} · joint n={n}',

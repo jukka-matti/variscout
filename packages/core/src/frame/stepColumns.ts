@@ -29,6 +29,11 @@ export interface StepColumnAssignments {
   tributaryColumns: string[];
 }
 
+export interface StepFactorDecoration {
+  stepId: string;
+  stepName: string;
+}
+
 /**
  * Derive the column assignments for a single process step.
  *
@@ -59,4 +64,27 @@ export function getStepColumnAssignments(
     ctqColumn,
     tributaryColumns,
   };
+}
+
+export function buildStepFactorDecorations(
+  map: ProcessMap | null | undefined
+): Map<string, StepFactorDecoration> {
+  const decorations = new Map<string, StepFactorDecoration>();
+  if (!map) return decorations;
+
+  const stepNameById = new Map(map.nodes.map(node => [node.id, node.name]));
+  const add = (column: string, stepId: string) => {
+    const stepName = stepNameById.get(stepId);
+    if (!stepName || decorations.has(column)) return;
+    decorations.set(column, { stepId, stepName });
+  };
+
+  for (const [column, stepId] of Object.entries(map.assignments ?? {})) add(column, stepId);
+  for (const tributary of map.tributaries) add(tributary.column, tributary.stepId);
+
+  return decorations;
+}
+
+export function processStageColumnCandidates(map: ProcessMap | null | undefined): string[] {
+  return Array.from(buildStepFactorDecorations(map).keys());
 }

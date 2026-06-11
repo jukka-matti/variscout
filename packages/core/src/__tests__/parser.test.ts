@@ -176,6 +176,22 @@ describe('parser module', () => {
       expect(result.factors.length).toBeLessThanOrEqual(3);
     });
 
+    it('does not let a low-value keyword factor displace a better default seed', () => {
+      const data: DataRow[] = [
+        { value: 10, operator: 'same', queue: 'Q1', cell: 'C1', product: 'P1', region: 'North' },
+        { value: 12, operator: 'same', queue: 'Q2', cell: 'C2', product: 'P2', region: 'South' },
+        { value: 14, operator: 'same', queue: 'Q1', cell: 'C2', product: 'P3', region: 'North' },
+        { value: 16, operator: 'same', queue: 'Q2', cell: 'C1', product: 'P1', region: 'South' },
+      ];
+
+      const result = detectColumns(data);
+
+      expect(result.factors).toHaveLength(3);
+      expect(result.factors).toEqual(expect.arrayContaining(['queue', 'cell', 'product']));
+      expect(result.factors).not.toContain('operator');
+      expect(result.columnAnalysis.find(c => c.name === 'region')?.type).toBe('categorical');
+    });
+
     it('should handle mixed type columns', () => {
       const data: DataRow[] = [
         { value: 10, mixed: '5' },

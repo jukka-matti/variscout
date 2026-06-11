@@ -316,6 +316,7 @@ describe('PendingInvitesBanner — mounted in App.tsx Home view (Workspace Proje
 describe('Stage-5 hypothesisDraft → proposed Hypothesis hub (PO-6)', () => {
   beforeEach(async () => {
     useAnalyzeStore.setState({ hypotheses: [] });
+    useProjectStore.setState({ processContext: null, specs: {} });
     usePanelsStore.setState(initialPanelsState);
     stageFiveCapture.onOpenInvestigation = undefined;
     await act(async () => {
@@ -325,6 +326,7 @@ describe('Stage-5 hypothesisDraft → proposed Hypothesis hub (PO-6)', () => {
 
   afterEach(() => {
     useAnalyzeStore.setState({ hypotheses: [] });
+    useProjectStore.setState({ processContext: null });
     usePanelsStore.setState(initialPanelsState);
   });
 
@@ -343,5 +345,24 @@ describe('Stage-5 hypothesisDraft → proposed Hypothesis hub (PO-6)', () => {
       stageFiveCapture.onOpenInvestigation!({});
     });
     expect(useAnalyzeStore.getState().hypotheses).toHaveLength(0);
+  });
+
+  it('persists the Stage-5 target on processContext for Report intent without changing specs', () => {
+    useProjectStore.setState({ specs: { target: 12 } });
+
+    act(() => {
+      stageFiveCapture.onOpenInvestigation!({
+        issueStatement: 'Cycle time varies by station.',
+        target: { metric: 'cycleTime', direction: 'minimize', value: 30 },
+      });
+    });
+
+    expect(useProjectStore.getState().processContext).toMatchObject({
+      issueStatement: 'Cycle time varies by station.',
+      targetMetric: 'cycleTime',
+      targetDirection: 'minimize',
+      targetValue: 30,
+    });
+    expect(useProjectStore.getState().specs).toEqual({ target: 12 });
   });
 });

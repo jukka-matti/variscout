@@ -59,6 +59,7 @@ import {
   useViewStore,
   useAnalyzeStore,
   useAnalysisScopeStore,
+  useCanvasStore,
 } from '@variscout/stores';
 import {
   useFilteredData,
@@ -85,7 +86,11 @@ import {
 } from '@variscout/core';
 import { resolveMode as resolveModeUtil } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
-import { subgroupAxisColumns } from '@variscout/core/frame';
+import {
+  buildStepFactorDecorations,
+  processStageColumnCandidates,
+  subgroupAxisColumns,
+} from '@variscout/core/frame';
 import { useProjectionStore } from '../features/projection/projectionStore';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -169,6 +174,7 @@ const Dashboard = ({
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
   const processContext = useProjectStore(s => s.processContext);
+  const canonicalMap = useCanvasStore(s => s.canonicalMap);
   const setOutcome = useProjectStore(s => s.setOutcome);
   const rawData = useProjectStore(s => s.rawData);
   const setRawData = useProjectStore(s => s.setRawData);
@@ -319,6 +325,19 @@ const Dashboard = ({
     highlightIntensity,
     onChartClick,
   });
+
+  const stepFactorDecorations = useMemo(
+    () => buildStepFactorDecorations(canonicalMap),
+    [canonicalMap]
+  );
+  const availableStageColumnsWithSteps = useMemo(() => {
+    const dataColumns = new Set(getColumnNames(rawData));
+    const merged = new Set(availableStageColumns);
+    for (const column of processStageColumnCandidates(canonicalMap)) {
+      if (dataColumns.has(column)) merged.add(column);
+    }
+    return Array.from(merged);
+  }, [availableStageColumns, canonicalMap, rawData]);
 
   // Apply external factor switch (from question click)
   useEffect(() => {
@@ -817,6 +836,7 @@ const Dashboard = ({
     selectedFactors: effectiveFactors,
     specs: effectiveSpecs,
     bindings: undefined,
+    stepDecorations: stepFactorDecorations,
   });
 
   // Examined keys are stored `${outcome}::${factor}`; the component takes a
@@ -1019,7 +1039,7 @@ const Dashboard = ({
               />
             ) : undefined
           }
-          availableStageColumns={availableStageColumns}
+          availableStageColumns={availableStageColumnsWithSteps}
           stageColumn={stageColumn}
           setStageColumn={setStageColumn}
           stageOrderMode={stageOrderMode}

@@ -109,6 +109,8 @@ Grouped Y-switcher (tracked-with-spec-badges first, other numerics after; inline
 
 Vocabulary symmetry copy on both surfaces · auto-X dedup gate in `augmentWithTimeColumns` (`packages/core/src/time.ts`) + seed-cap/keyword rethink in `detection.ts:189-206` (now non-load-bearing but still wrong) · steps→stages auto-bind + step badges · goal/AnalysisBrief.target vs spec story implemented per D13.4 (goal lives with the Issue, feeds Report's "what we aimed for").
 
+Sub-plan: [ER-9 — Frame to Explore Contract Implementation Plan](2026-06-11-er-9-frame-explore-contract.md).
+
 ## ER-10 — I-Chart at scale + the capability lens (§4, D14) — ⛔ after ALL CC PRs land
 
 Nelson 2/3 lift to the full-data hooks layer (correctness prerequisite) → LTTB activation with a marker-aware threshold (`IChartWrapper/index.tsx:145` + Azure ReportView call site) → marker policy (size-by-n, violations-only, line-under-points) → signals digest chip honoring the Subgroup lens → the capability lens: **a within-slot identity change of the I-Chart slot — never a 5th slot** (the 4-slot contract is mechanically enforced); title/axis/marks change per D14; Cpk-number entry from the context line; the legacy "Cpk stability" toggle (today a silent no-op even with specs+stages — Explore sweep item 2) is replaced by this lens, with a legible disabled state naming its prerequisites when unmet; share the Cpk-trajectory component with Control's CC-4 band. Amend ADR-039 + `packages/charts/CLAUDE.md`. Re-ground hard: CC rewrote parts of this surface.
