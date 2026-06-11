@@ -297,6 +297,7 @@ export {
   type UseFactorStripModelResult,
   type FactorStripChip,
   type FactorStripWhatIf,
+  type FactorStripStepDecoration,
 } from './useFactorStripModel';
 
 // Scope match (ER-2 — shared drill→scope lookup for the strip's what-if refresh)
@@ -729,3 +730,15 @@ export {
   type UseConditionLoopReturn,
   type ConditionPillSummary,
 } from './useConditionLoop';
+
+// ER-5a membership models — separation strip + composition view
+export {
+  useMembershipModel,
+  useCompositionModel,
+  type UseMembershipModelArgs,
+  type UseMembershipModelResult,
+  type UseCompositionModelArgs,
+  type UseCompositionModelResult,
+  type MembershipChip,
+  type MembershipChipTopLevel,
+} from './useMembershipModel';

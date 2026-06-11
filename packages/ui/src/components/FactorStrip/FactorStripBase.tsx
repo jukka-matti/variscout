@@ -1,11 +1,13 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { Star, Check } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
-import type { FactorStripChip } from '@variscout/hooks';
+import type { FactorStripChip, MembershipChip, FactorStripStepDecoration } from '@variscout/hooks';
 
 /** Width budget for the common-scale bar (wireframe: max share → 72px). */
 const BAR_MAX_PX = 72;
 const BAR_MIN_PX = 4;
+/** Max width for the membership separation bar (Ṽ is [0,1] bounded). */
+const MEMBERSHIP_BAR_MAX_PX = 72;
 /** Default what-if reference target when the caller cascade resolves nothing. */
 const DEFAULT_CPK_TARGET = 1.33;
 /** Ranked chips always shown expanded (disclosure — top-N by global rank). */
@@ -30,6 +32,25 @@ export interface FactorStripBaseProps {
   onFactorSelect(factor: string): void;
   /** Model/ANOVA link handler — absent → a transient stub tooltip. */
   onAnovaLinkClick?(): void;
+  /**
+   * Strip variant. Default 'magnitude' — renders exactly as before (byte-identical).
+   * 'membership' renders the membership-separation view when a condition is applied
+   * (ER-5a, D7): factors ranked by Cramér's Ṽ, each chip showing its over-represented
+   * level + separation bar. The magnitude rendering path is 100% unchanged.
+   */
+  variant?: 'magnitude' | 'membership';
+  /**
+   * Membership chips from useMembershipModel (required when variant='membership').
+   * Ignored when variant is 'magnitude' (default).
+   */
+  membershipChips?: MembershipChip[];
+  /**
+   * Optional step decorations for the membership variant (ER-9 preservation).
+   * Keyed by factor column name — mirrors the stepDecorations prop in
+   * useFactorStripModel so the step badge still renders on membership chips.
+   * Absent → no step badge rendered (safe default).
+   */
+  membershipStepDecorations?: ReadonlyMap<string, FactorStripStepDecoration>;
 }
 
 /**
@@ -54,6 +75,9 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
   outcomeLabel,
   onFactorSelect,
   onAnovaLinkClick,
+  variant = 'magnitude',
+  membershipChips,
+  membershipStepDecorations,
 }) => {
   const { t, tf, formatStat } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -209,26 +233,175 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
     );
   };
 
-  const title = isScoped ? t('factorStrip.title.scoped') : t('factorStrip.title');
+  // ── Membership variant helpers ──────────────────────────────────────────
+  // Ṽ separation → bar width: Ṽ is bounded [0,1]; the largest Ṽ maps to
+  // MEMBERSHIP_BAR_MAX_PX (common-scale, same honesty principle as magnitude).
+  const maxSeparation = useMemo(
+    () => (membershipChips ?? []).reduce((m, c) => Math.max(m, c.separation), 0),
+    [membershipChips]
+  );
+
+  const membershipBarWidthPx = (separation: number): number => {
+    if (maxSeparation <= 0) return BAR_MIN_PX;
+    return Math.max(BAR_MIN_PX, Math.round((separation / maxSeparation) * MEMBERSHIP_BAR_MAX_PX));
+  };
+
+  const renderMembershipChip = (chip: MembershipChip) => {
+    const isActive = selectedFactor === chip.factor;
+    const isExamined = examinedKeys.has(chip.factor);
+    // ER-9 step badge: look up from the caller-supplied decorations map.
+    const stepDecoration = membershipStepDecorations?.get(chip.factor) ?? null;
+
+    // Lift rendering: undefined (only-in-condition) → i18n label; finite → formatted to 1 decimal.
+    let topLevelAnnotation: string | null = null;
+    if (chip.topLevel !== null) {
+      const { level, lift } = chip.topLevel;
+      if (lift === undefined || !Number.isFinite(lift)) {
+        topLevelAnnotation = `${level} — ${t('factorStrip.membership.chip.onlyInCondition')}`;
+      } else {
+        topLevelAnnotation = tf('factorStrip.membership.chip.topLevel', {
+          level,
+          lift: formatStat(lift, 1),
+        });
+      }
+    }
+
+    // Chip hover: p-value + χ² df (k−1 for the factor's level count) + n.
+    // Both df and n are forwarded from the engine — never hardcoded constants.
+    const hoverTitle = tf('factorStrip.membership.chip.hover', {
+      p: formatStat(chip.pValue, 4),
+      df: chip.df,
+      n: chip.n,
+    });
+
+    return (
+      <div
+        key={chip.factor}
+        data-testid={`factor-chip-${chip.factor}`}
+        data-factor={chip.factor}
+        data-active={isActive ? 'true' : 'false'}
+        title={hoverTitle}
+        aria-label={chip.factor}
+        onClick={() => onFactorSelect(chip.factor)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onFactorSelect(chip.factor);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        className={[
+          'flex flex-col gap-1 rounded-lg border px-2.5 py-1.5 cursor-pointer transition-colors',
+          isActive
+            ? 'border-status-info bg-status-info-soft'
+            : 'border-edge bg-surface-elevated hover:bg-surface-secondary',
+          chip.isSignificant ? '' : 'opacity-70',
+        ].join(' ')}
+      >
+        {/* Row 1: factor name + step badge + binned annotation + examined glyph */}
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-content">
+          <span>{chip.factor}</span>
+          {/* ER-9 preservation: step badge from caller-supplied decorations map */}
+          {stepDecoration && (
+            <span
+              data-testid="factor-chip-step-badge"
+              title={tf('factorStrip.stepBadge.title', { step: stepDecoration.stepName })}
+              className="rounded border border-edge bg-surface-secondary px-1 py-0.5 text-[10px] font-medium text-content-secondary"
+            >
+              {stepDecoration.stepName}
+            </span>
+          )}
+          {chip.binnedForRanking && (
+            <span className="text-content-muted font-normal">{t('factorStrip.binned')}</span>
+          )}
+          {isExamined && (
+            <span
+              data-testid="factor-chip-check"
+              title={t('factorStrip.examined')}
+              className="ml-auto text-status-pass"
+            >
+              <Check size={11} />
+            </span>
+          )}
+        </span>
+        {/* Row 2: top-level annotation ("Level ×N.N" or "only in condition") */}
+        {topLevelAnnotation && (
+          <span
+            data-testid="factor-chip-membership-top-level"
+            className="text-[11px] font-medium text-content-secondary"
+          >
+            {topLevelAnnotation}
+          </span>
+        )}
+        {/* Row 3: separation bar + separation label (NOT "% of variation" — P5) */}
+        <span className="flex items-center gap-2">
+          <span
+            data-testid="factor-chip-bar"
+            className="h-1 rounded-full bg-status-info"
+            style={{ width: `${membershipBarWidthPx(chip.separation)}px` }}
+          />
+          <span
+            data-testid="factor-chip-separation-label"
+            className="text-[11px] text-content-secondary"
+          >
+            {t('factorStrip.membership.separation')} {formatStat(chip.separation, 2)}
+          </span>
+        </span>
+      </div>
+    );
+  };
+
+  const title =
+    variant === 'membership'
+      ? t('factorStrip.title.membership')
+      : isScoped
+        ? t('factorStrip.title.scoped')
+        : t('factorStrip.title');
 
   // Resolve the what-if card for the currently-hovered chip (skip when absent).
   const hoveredChip = hoveredFactor ? (chips.find(c => c.factor === hoveredFactor) ?? null) : null;
   const whatIf = hoveredChip?.whatIf;
+
+  // ── Membership chip list (disclosure: same top-3 + selected rule) ──
+  const { primaryMembershipChips, collapsedMembershipChips } = useMemo(() => {
+    const chips = membershipChips ?? [];
+    const primary: MembershipChip[] = [];
+    const collapsed: MembershipChip[] = [];
+    chips.forEach((chip, idx) => {
+      if (idx < TOP_N_EXPANDED || chip.isSelected) primary.push(chip);
+      else collapsed.push(chip);
+    });
+    return { primaryMembershipChips: primary, collapsedMembershipChips: collapsed };
+  }, [membershipChips]);
+
+  const visibleMembershipChips = expanded ? (membershipChips ?? []) : primaryMembershipChips;
+  const hiddenMembershipCount = collapsedMembershipChips.length;
 
   return (
     <div className="relative flex flex-col gap-2 px-3.5 py-2.5">
       {/* ── Label row ── */}
       <div className="flex items-baseline gap-2.5 flex-wrap">
         <h2 className="text-[12.5px] font-semibold text-content">{title}</h2>
-        <span className="text-[11px] text-content-muted">{t('factorStrip.subtitle')}</span>
-        <span className="basis-full text-[11px] text-content-muted">{t('factorStrip.bridge')}</span>
-        <a
-          href="#"
-          onClick={handleLinkClick}
-          className="ml-auto text-[11px] text-status-info no-underline hover:underline"
-        >
-          {t('factorStrip.modelLink')}
-        </a>
+        {variant === 'membership' ? (
+          <span className="text-[11px] text-content-muted">
+            {t('factorStrip.membership.subtitle')}
+          </span>
+        ) : (
+          <>
+            <span className="text-[11px] text-content-muted">{t('factorStrip.subtitle')}</span>
+            <span className="basis-full text-[11px] text-content-muted">
+              {t('factorStrip.bridge')}
+            </span>
+            <a
+              href="#"
+              onClick={handleLinkClick}
+              className="ml-auto text-[11px] text-status-info no-underline hover:underline"
+            >
+              {t('factorStrip.modelLink')}
+            </a>
+          </>
+        )}
       </div>
 
       {stubVisible && (
@@ -242,36 +415,53 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
       )}
 
       {/* ── Chip row ── */}
-      <div className="flex flex-wrap items-stretch gap-1.5">
-        {visibleChips.map(chip => {
-          // rankIndex is the GLOBAL rank (chips is engine-ordered), so the star
-          // gate keys off true rank, not the position within the visible slice.
-          // I-3: O(1) Map look-up instead of identity-fragile chips.indexOf.
-          const rankIndex = rankIndexMap.get(chip.factor) ?? 0;
-          return renderChip(chip, rankIndex);
-        })}
+      {variant === 'membership' ? (
+        <div className="flex flex-wrap items-stretch gap-1.5">
+          {visibleMembershipChips.map(chip => renderMembershipChip(chip))}
 
-        {!expanded && hiddenCount > 0 && (
-          <button
-            type="button"
-            data-testid="factor-strip-also-screened"
-            onClick={() => setExpanded(true)}
-            className="flex items-center rounded-lg border border-dashed border-edge px-2.5 py-1.5 text-[11px] font-medium text-content-muted hover:bg-surface-secondary transition-colors"
-          >
-            {tf('factorStrip.alsoScreened', { n: hiddenCount })}
-          </button>
-        )}
+          {!expanded && hiddenMembershipCount > 0 && (
+            <button
+              type="button"
+              data-testid="factor-strip-also-screened"
+              onClick={() => setExpanded(true)}
+              className="flex items-center rounded-lg border border-dashed border-edge px-2.5 py-1.5 text-[11px] font-medium text-content-muted hover:bg-surface-secondary transition-colors"
+            >
+              {tf('factorStrip.alsoScreened', { n: hiddenMembershipCount })}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-stretch gap-1.5">
+          {visibleChips.map(chip => {
+            // rankIndex is the GLOBAL rank (chips is engine-ordered), so the star
+            // gate keys off true rank, not the position within the visible slice.
+            // I-3: O(1) Map look-up instead of identity-fragile chips.indexOf.
+            const rankIndex = rankIndexMap.get(chip.factor) ?? 0;
+            return renderChip(chip, rankIndex);
+          })}
 
-        {residualPct !== null && (
-          <div
-            data-testid="factor-chip-residual"
-            title={t('factorStrip.residual.hover')}
-            className="flex flex-col justify-center px-2.5 py-1.5 text-[11px] text-content-muted"
-          >
-            {tf('factorStrip.residual', { n: formatStat(residualPct, 0) })}
-          </div>
-        )}
-      </div>
+          {!expanded && hiddenCount > 0 && (
+            <button
+              type="button"
+              data-testid="factor-strip-also-screened"
+              onClick={() => setExpanded(true)}
+              className="flex items-center rounded-lg border border-dashed border-edge px-2.5 py-1.5 text-[11px] font-medium text-content-muted hover:bg-surface-secondary transition-colors"
+            >
+              {tf('factorStrip.alsoScreened', { n: hiddenCount })}
+            </button>
+          )}
+
+          {residualPct !== null && (
+            <div
+              data-testid="factor-chip-residual"
+              title={t('factorStrip.residual.hover')}
+              className="flex flex-col justify-center px-2.5 py-1.5 text-[11px] text-content-muted"
+            >
+              {tf('factorStrip.residual', { n: formatStat(residualPct, 0) })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── What-if hover card (absent when the chip carries no projection) ── */}
       {whatIf && hoveredChip && (

@@ -3,6 +3,7 @@ export { computeSegmentStats } from './segmentConfidence';
 export { applyCuts } from './applyCuts';
 export { quartileBin } from './quantileCuts';
 export type { QuartileBinning } from './quantileCuts';
+export { buildSegmentLeaf } from './buildSegmentLeaf';
 export type {
   BinnedFactorBinding,
   InflectionDetectionInput,

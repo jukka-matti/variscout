@@ -247,3 +247,11 @@ export type { StepErrorRollupInput, StepErrorRollupResult } from './stepErrorAgg
 // Time lens — global observation-set filter (consumed by chart hooks + page stats)
 export type { TimeLens, TimeLensMode } from './timeLens';
 export { DEFAULT_TIME_LENS, applyTimeLens, timeLensIndices } from './timeLens';
+
+// Membership-separation engine (ER-5a — condition loop membership strip)
+export type {
+  MembershipLevelComposition,
+  MembershipFactorSeparation,
+  MembershipSeparationResult,
+} from './membershipSeparation';
+export { computeMembershipSeparation } from './membershipSeparation';

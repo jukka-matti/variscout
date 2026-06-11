@@ -723,13 +723,11 @@ describe('analyzeStore — hypothesis hubs', () => {
 
   it('createHubFromFinding derives a boxplot condition from the captured filter context', () => {
     const ctx = makeContext({ activeFilters: { Shift: ['Night'] } });
-    const finding = useAnalyzeStore
-      .getState()
-      .addFinding('Night shift is higher', ctx, {
-        chart: 'boxplot',
-        category: 'Night',
-        timeLens: DEFAULT_TIME_LENS,
-      });
+    const finding = useAnalyzeStore.getState().addFinding('Night shift is higher', ctx, {
+      chart: 'boxplot',
+      category: 'Night',
+      timeLens: DEFAULT_TIME_LENS,
+    });
 
     const hub = useAnalyzeStore.getState().createHubFromFinding(finding.id);
 
@@ -740,13 +738,11 @@ describe('analyzeStore — hypothesis hubs', () => {
 
   it('createHubFromFinding derives a pareto condition from the captured filter context', () => {
     const ctx = makeContext({ activeFilters: { Queue: ['Billing'] } });
-    const finding = useAnalyzeStore
-      .getState()
-      .addFinding('Billing has the most misses', ctx, {
-        chart: 'pareto',
-        category: 'Billing',
-        timeLens: DEFAULT_TIME_LENS,
-      });
+    const finding = useAnalyzeStore.getState().addFinding('Billing has the most misses', ctx, {
+      chart: 'pareto',
+      category: 'Billing',
+      timeLens: DEFAULT_TIME_LENS,
+    });
 
     const hub = useAnalyzeStore.getState().createHubFromFinding(finding.id);
 
@@ -755,14 +751,12 @@ describe('analyzeStore — hypothesis hubs', () => {
 
   it('createHubFromFinding derives an I-Chart condition from the captured Y column', () => {
     const ctx = makeContext({ yColumn: 'Handle_Time' });
-    const finding = useAnalyzeStore
-      .getState()
-      .addFinding('Long calls cluster', ctx, {
-        chart: 'ichart',
-        anchorX: 12,
-        anchorY: 580,
-        timeLens: DEFAULT_TIME_LENS,
-      });
+    const finding = useAnalyzeStore.getState().addFinding('Long calls cluster', ctx, {
+      chart: 'ichart',
+      anchorX: 12,
+      anchorY: 580,
+      timeLens: DEFAULT_TIME_LENS,
+    });
 
     const hub = useAnalyzeStore.getState().createHubFromFinding(finding.id);
 

@@ -20,6 +20,18 @@ export interface BinnedFactorBinding {
   id: string;
   /** Raw numeric source column being binned. */
   sourceColumn: string;
+  /**
+   * Generic provenance field (spec §10/D11) — the column this binding was derived from.
+   *
+   * `sourceColumn` remains the operational field used at runtime (applyCuts, factor
+   * effects, segment-leaf building). `derivedFrom` exists so NON-binding derived
+   * columns (e.g. a bin column surfaced from a different engine) can also be
+   * provenance-tracked and excluded from Y-derived factor ranking without requiring a
+   * `sourceColumn` match. Optional for backward compatibility — existing bindings
+   * without the field keep working; `excludeYDerivedFactors` falls back to the
+   * `sourceColumn` convention when `derivedFrom` is absent.
+   */
+  derivedFrom?: string;
   /** Sorted cut values in source-column value space. */
   cuts: number[];
   /** Level names; length === cuts.length + 1. */
