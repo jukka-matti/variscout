@@ -29,6 +29,8 @@ interface IChartProps {
   dataOverride?: DataRow[];
   /** Override outcome column (e.g., defect mode outcome) */
   outcomeOverride?: string;
+  /** ER-4 condition-membership highlight tier (display-index space). */
+  conditionMemberIndices?: Set<number>;
 }
 
 const IChart = ({

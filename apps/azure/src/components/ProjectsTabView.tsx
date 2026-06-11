@@ -120,14 +120,16 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   const scopeBoxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
   const scopeStepId = useAnalysisScopeStore(s => s.stepId);
   const scopeCategoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const scopeConditionLeaves = useAnalysisScopeStore(s => s.conditionLeaves);
   const analysisScope = React.useMemo(
     () => ({
       yColumn: scopeYColumn,
       boxplotFactor: scopeBoxplotFactor,
       stepId: scopeStepId,
       categoricalFilters: scopeCategoricalFilters,
+      conditionLeaves: scopeConditionLeaves,
     }),
-    [scopeBoxplotFactor, scopeCategoricalFilters, scopeStepId, scopeYColumn]
+    [scopeBoxplotFactor, scopeCategoricalFilters, scopeConditionLeaves, scopeStepId, scopeYColumn]
   );
   const setProjectForHub = useImprovementProjectStore(s => s.setProjectForHub);
   const upsertProject = useImprovementProjectStore(s => s.upsertProject);

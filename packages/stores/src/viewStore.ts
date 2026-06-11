@@ -45,6 +45,18 @@ export interface ViewState {
    * this to a per-outcome factor-name Set for the active outcome.
    */
   examinedFactors: Set<string>;
+
+  /**
+   * ER-4 tier-2 transient highlight (D6/Principle 6): the boxplot/Pareto group
+   * the analyst clicked, as `{ column, value }`. Group-keyed — each chart derives
+   * its own row membership Set (no persisted index lists). A group click sets
+   * THIS (NOT `selectedPoints`, which triggers the brush CaptureCard effect) and
+   * shows the group pill; commit happens only via the pill's actions. Cross-chart:
+   * the boxplot dims non-highlighted categories; the I-Chart lights the rows whose
+   * `row[column] === value`. Cleared by `clearTransientSelections`, by Esc (first
+   * in the cascade), and on apply. Default null.
+   */
+  transientHighlight: { column: string; value: string | number } | null;
 }
 
 export interface ViewActions {
@@ -90,6 +102,10 @@ export interface ViewActions {
   markFactorExamined: (outcome: string, factor: string) => void;
   /** Clear ONLY the examined-factors set. */
   clearExaminedFactors: () => void;
+
+  // Tier-2 transient highlight (ER-4)
+  /** Set (or clear with null) the group-keyed transient highlight. */
+  setTransientHighlight: (highlight: { column: string; value: string | number } | null) => void;
 }
 
 export type ViewStore = ViewState & ViewActions;
@@ -107,6 +123,7 @@ export const getViewInitialState = (): ViewState => ({
   selectedPoints: new Set(),
   selectionIndexMap: new Map(),
   examinedFactors: new Set(),
+  transientHighlight: null,
 });
 
 /** Compose the canonical examined-factors Set key. */
@@ -136,6 +153,8 @@ export const useViewStore = create<ViewStore>(set => ({
       selectionIndexMap: new Map(),
       // ER-2: examined-factor marks are project-scoped — reset on load/new.
       examinedFactors: new Set(),
+      // ER-4: the tier-2 transient highlight is session-transient — reset too.
+      transientHighlight: null,
     }),
 
   addToSelection: indices =>
@@ -168,6 +187,8 @@ export const useViewStore = create<ViewStore>(set => ({
       return { examinedFactors: next };
     }),
   clearExaminedFactors: () => set({ examinedFactors: new Set() }),
+
+  setTransientHighlight: highlight => set({ transientHighlight: highlight }),
 }));
 
 // Expose getInitialState on the store instance for the canonical test reset

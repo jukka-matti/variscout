@@ -63,6 +63,17 @@ vi.mock('@variscout/stores', () => ({
   usePreferencesStore: {
     getState: () => ({ setTimeLens: vi.fn() }),
   },
+  useProjectStore: {
+    getState: () => ({ rawData: [], measureSpecs: {} }),
+  },
+  // ER-4: the orchestration's scopeId resolver reads these. No applied condition
+  // in these tests → conditionLeaves: [] → resolver returns undefined (no mint).
+  useAnalysisScopeStore: {
+    getState: () => ({ conditionLeaves: [] }),
+  },
+  useAnalyzeStore: {
+    getState: () => ({ scopes: [], syncScopeFromCondition: vi.fn() }),
+  },
 }));
 
 vi.mock('../../findings/usePopoutSync', () => ({

@@ -190,19 +190,37 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     (scopeId: string) => {
       const scope = scopes.find(s => s.id === scopeId);
       if (!scope) return;
+      // ER-4: re-anchor on the scope's FULL predicate set. eq/in leaves re-anchor
+      // via categoricalFilters (chips); range leaves (between/gte/…) cannot become
+      // chips, so they re-anchor via the scope store's conditionLeaves.
       const valuesByColumn = new Map<string, Array<string | number>>();
+      const rangeLeaves: typeof scope.predicates = [];
       for (const leaf of scope.predicates) {
-        if (leaf.kind !== 'leaf' || leaf.op !== 'eq') continue;
-        const values = valuesByColumn.get(leaf.column) ?? [];
-        if (typeof leaf.value === 'string' || typeof leaf.value === 'number') {
+        if (leaf.kind !== 'leaf') continue;
+        if (
+          leaf.op === 'eq' &&
+          (typeof leaf.value === 'string' || typeof leaf.value === 'number')
+        ) {
+          const values = valuesByColumn.get(leaf.column) ?? [];
           values.push(leaf.value);
           valuesByColumn.set(leaf.column, values);
+        } else if (leaf.op === 'in' && Array.isArray(leaf.value)) {
+          const values = valuesByColumn.get(leaf.column) ?? [];
+          for (const v of leaf.value) {
+            if (typeof v === 'string' || typeof v === 'number') values.push(v);
+          }
+          valuesByColumn.set(leaf.column, values);
+        } else {
+          rangeLeaves.push(leaf);
         }
       }
       const scopeStore = useAnalysisScopeStore.getState();
       scopeStore.clearScope();
       for (const [column, values] of valuesByColumn) {
         scopeStore.setCategoricalValues(column, values);
+      }
+      if (rangeLeaves.length > 0) {
+        scopeStore.setConditionLeaves(scope.predicates);
       }
     },
     [scopes]

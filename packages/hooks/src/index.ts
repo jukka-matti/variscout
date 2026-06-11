@@ -720,3 +720,12 @@ export { useLiveProjection } from './useLiveProjection';
 
 // IM-3 reactive auto-link cascade (shared by Azure + PWA)
 export { useReingestAutoLink, type UseReingestAutoLinkOptions } from './useReingestAutoLink';
+
+// ER-4 condition loop — the shared brush-pill / group-pill / scope-bar / apply /
+// clear / take-to-Analyze orchestration consumed by both apps' Dashboards.
+export {
+  useConditionLoop,
+  type UseConditionLoopArgs,
+  type UseConditionLoopReturn,
+  type ConditionPillSummary,
+} from './useConditionLoop';

@@ -16,6 +16,8 @@ interface BoxplotProps {
   parentWidth: number;
   parentHeight: number;
   onDrillDown?: (factor: string, value: string) => void;
+  /** ER-4 (D6): neutral group click — host sets transient highlight + shows the pill. */
+  onGroupClick?: (factor: string, level: string | number) => void;
   onCaptureCategory?: (factor: string, value: string) => void;
   showBranding?: boolean;
   highlightedCategories?: Record<string, HighlightColor>;
@@ -74,9 +76,9 @@ const Boxplot = ({
 
   return (
     <div className="relative h-full w-full">
-      {/* TODO(lv1-f-pwa): Pass onScopeAccumulate={(f,k)=>useAnalysisScopeStore.getState().addCategoricalValue(f,k)}
-          once PWA mounts <ScopeChrome>. See docs/superpowers/plans/2026-05-28-linked-views-phase-1-master-plan.md
-          §PWA-Mount-Deferral (decision 2026-05-29). */}
+      {/* ER-4 (D6): the legacy onScopeAccumulate TODO stub is RETIRED — no chart
+          click accumulates scope directly. The condition pill (minted from the
+          neutral onGroupClick the Dashboard wires) is the only scope writer. */}
       <BoxplotWrapperBase
         parentWidth={parentWidth}
         parentHeight={parentHeight}

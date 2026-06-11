@@ -1,9 +1,9 @@
 /**
  * Azure Boxplot - Thin wrapper that connects stores to shared BoxplotWrapperBase
  */
-import React, { useCallback } from 'react';
+import React from 'react';
 import { withParentSize } from '@visx/responsive';
-import { useProjectStore, useAnalysisScopeStore } from '@variscout/stores';
+import { useProjectStore } from '@variscout/stores';
 import { useFilteredData, useCapabilityBoxplotData } from '@variscout/hooks';
 import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotWrapperBase } from '@variscout/ui';
@@ -16,6 +16,8 @@ interface BoxplotProps {
   parentWidth: number;
   parentHeight: number;
   onDrillDown?: (factor: string, value: string) => void;
+  /** ER-4 (D6): neutral group click — host sets transient highlight + shows the pill. */
+  onGroupClick?: (factor: string, level: string | number) => void;
   highlightedCategories?: Record<string, HighlightColor>;
   onContextMenu?: (key: string, event: React.MouseEvent) => void;
   findings?: Finding[];
@@ -75,10 +77,6 @@ const Boxplot = ({
 
   const isCapabilityMode = displayOptions.standardIChartMetric === 'capability';
 
-  const onScopeAccumulate = useCallback((factor: string, key: string | number) => {
-    useAnalysisScopeStore.getState().addCategoricalValue(factor, key);
-  }, []);
-
   const capabilityData = useCapabilityBoxplotData({
     filteredData,
     outcome: outcome ?? '',
@@ -109,7 +107,6 @@ const Boxplot = ({
         capabilityData={isCapabilityMode ? capabilityData : undefined}
         isCapabilityMode={isCapabilityMode}
         cpkTarget={cpkTarget}
-        onScopeAccumulate={onScopeAccumulate}
         {...props}
       />
       {isComputing && (

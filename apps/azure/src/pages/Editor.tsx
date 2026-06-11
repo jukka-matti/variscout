@@ -553,14 +553,16 @@ export const Editor: React.FC<EditorProps> = ({
   const scopeBoxplotFactor = useAnalysisScopeStore(s => s.boxplotFactor);
   const scopeStepId = useAnalysisScopeStore(s => s.stepId);
   const scopeCategoricalFilters = useAnalysisScopeStore(s => s.categoricalFilters);
+  const scopeConditionLeaves = useAnalysisScopeStore(s => s.conditionLeaves);
   const workspaceAnalysisScope = useMemo(
     () => ({
       yColumn: scopeYColumn,
       boxplotFactor: scopeBoxplotFactor,
       stepId: scopeStepId,
       categoricalFilters: scopeCategoricalFilters,
+      conditionLeaves: scopeConditionLeaves,
     }),
-    [scopeBoxplotFactor, scopeCategoricalFilters, scopeStepId, scopeYColumn]
+    [scopeBoxplotFactor, scopeCategoricalFilters, scopeConditionLeaves, scopeStepId, scopeYColumn]
   );
   const workspaceViewModel = useMemo(
     () =>
@@ -1200,6 +1202,11 @@ export const Editor: React.FC<EditorProps> = ({
     factorRoles: processContext?.factorRoles,
     aiAvailable: aiEnabled && isAIAvailable(),
     onOwnFindingCaptured: handleOwnFindingCaptured,
+    // ER-4: the scope key MUST mirror the value the Dashboard receives as
+    // scopeProjectId + AnalyzeWorkspace stores scopes under (workspaceProject.id,
+    // falling back to the 'general-unassigned' sentinel) so a capture under a
+    // condition mints-or-matches the SAME ProblemStatementScope.
+    scopeProjectId: workspaceProjectContext.workspaceProject?.id ?? 'general-unassigned',
   });
 
   // IM-1 (ADR-085): the Question entity is retired, so the post-observation

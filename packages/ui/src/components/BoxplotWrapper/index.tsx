@@ -57,11 +57,14 @@ export interface BoxplotWrapperBaseProps {
   /** Visible capture affordance callback for a category. */
   onCaptureCategory?: (factor: string, value: string) => void;
   /**
-   * LV1-F: Linked-views scope accumulation. Fires `(factor, key)` on every box /
-   * whisker click. Caller (Azure thin wrapper) wires this to
-   * `useAnalysisScopeStore.addCategoricalValue`. Spec §5.4.
+   * ER-4 (D6/Principle 6) — neutral group-click handler. When provided, a box
+   * click no longer commits a drill or toggles a filter: it fires
+   * `onGroupClick(factor, level)` so the host can set a TRANSIENT highlight + show
+   * the condition pill (commit is explicit, via the pill's actions). Takes
+   * precedence over the legacy `onDrillDown` / filter-toggle path. When ABSENT the
+   * legacy click behaviour is preserved (focused views, mobile, embed).
    */
-  onScopeAccumulate?: (factor: string, key: string | number) => void;
+  onGroupClick?: (factor: string, level: string | number) => void;
   /** Render the VariScout source-bar branding when true. Defaults to false. */
   showBranding?: boolean;
   /** Branding text (only used when showBranding=true). Defaults to "VariScout Lite". */
@@ -117,7 +120,7 @@ export const BoxplotWrapperBase = ({
   yDomainMax,
   onDrillDown,
   onCaptureCategory,
-  onScopeAccumulate,
+  onGroupClick,
   showBranding: showBrandingProp,
   brandingText: brandingTextProp,
   highlightedCategories,
@@ -157,7 +160,15 @@ export const BoxplotWrapperBase = ({
   });
 
   const handleBoxClick = (key: string) => {
-    onScopeAccumulate?.(factor, key);
+    // ER-4 (D6): the neutral group-click path. When the host supplies
+    // `onGroupClick`, a click NEVER commits a filter/drill — it only sets the
+    // transient highlight + opens the condition pill (commit is explicit). The
+    // legacy filter-toggle / drill path is preserved ONLY when `onGroupClick` is
+    // absent (focused views, mobile, embed callers that haven't migrated).
+    if (onGroupClick) {
+      onGroupClick(factor, key);
+      return;
+    }
     if (onDrillDown) {
       onDrillDown(factor, key);
     } else {

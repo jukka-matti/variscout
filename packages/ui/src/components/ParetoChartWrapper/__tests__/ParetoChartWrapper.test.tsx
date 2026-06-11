@@ -254,13 +254,39 @@ describe('ParetoChartWrapperBase — Y-metric picker', () => {
   });
 });
 
-describe('onScopeAccumulate (LV1-F)', () => {
+describe('ParetoChartWrapper click semantics (ER-4 D6)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('fires onScopeAccumulate(factor, key) on bar click, alongside legacy filter toggle', () => {
-    const onScopeAccumulate = vi.fn();
+  it('fires the NEUTRAL onGroupClick(factor, level) on bar click — no commit', () => {
+    const onGroupClick = vi.fn();
+    const onFiltersChange = vi.fn();
+    const onDrillDown = vi.fn();
+    render(
+      <ParetoChartWrapperBase
+        parentWidth={400}
+        parentHeight={300}
+        factor="vessel"
+        rawData={[]}
+        filteredData={[]}
+        outcome="rate"
+        filters={{}}
+        onFiltersChange={onFiltersChange}
+        columnAliases={{}}
+        onColumnAliasesChange={() => {}}
+        onGroupClick={onGroupClick}
+        onDrillDown={onDrillDown}
+      />
+    );
+    fireEvent.click(screen.getByTestId('bar-A'));
+    expect(onGroupClick).toHaveBeenCalledWith('vessel', 'A');
+    // ER-4: onGroupClick takes precedence — NO filter toggle, NO drill commit.
+    expect(onFiltersChange).not.toHaveBeenCalled();
+    expect(onDrillDown).not.toHaveBeenCalled();
+  });
+
+  it('preserves the legacy filter-toggle path when onGroupClick is absent', () => {
     const onFiltersChange = vi.fn();
     render(
       <ParetoChartWrapperBase
@@ -274,19 +300,13 @@ describe('onScopeAccumulate (LV1-F)', () => {
         onFiltersChange={onFiltersChange}
         columnAliases={{}}
         onColumnAliasesChange={() => {}}
-        onScopeAccumulate={onScopeAccumulate}
       />
     );
-    // Use data-testid selector from the chart stub (bar-A is the first bar from mock data)
-    const firstBar = screen.getByTestId('bar-A');
-    fireEvent.click(firstBar);
-    expect(onScopeAccumulate).toHaveBeenCalledWith('vessel', 'A');
-    // Legacy filter-toggle ALSO fires (no onDrillDown provided)
+    fireEvent.click(screen.getByTestId('bar-A'));
     expect(onFiltersChange).toHaveBeenCalled();
   });
 
-  it('fires onScopeAccumulate alongside onDrillDown when both provided', () => {
-    const onScopeAccumulate = vi.fn();
+  it('preserves the legacy onDrillDown path when onGroupClick is absent', () => {
     const onDrillDown = vi.fn();
     render(
       <ParetoChartWrapperBase
@@ -301,12 +321,9 @@ describe('onScopeAccumulate (LV1-F)', () => {
         columnAliases={{}}
         onColumnAliasesChange={() => {}}
         onDrillDown={onDrillDown}
-        onScopeAccumulate={onScopeAccumulate}
       />
     );
-    const firstBar = screen.getByTestId('bar-A');
-    fireEvent.click(firstBar);
-    expect(onScopeAccumulate).toHaveBeenCalledWith('vessel', 'A');
+    fireEvent.click(screen.getByTestId('bar-A'));
     expect(onDrillDown).toHaveBeenCalledWith('vessel', 'A');
   });
 });

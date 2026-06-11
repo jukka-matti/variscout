@@ -1,8 +1,15 @@
 /**
  * BoxplotWrapperBase tests
  *
- * Tests the onScopeAccumulate (LV1-F) wiring: fires (factor, key) on every
- * box/whisker click, alongside the existing filter-toggle and onDrillDown paths.
+ * ER-4 (D6/Principle 6) — click semantics change: a box click no longer commits
+ * a drill or toggles a filter when the host supplies `onGroupClick`. It fires the
+ * NEUTRAL `onGroupClick(factor, level)` so the host sets a transient highlight +
+ * shows the condition pill (commit is explicit, via the pill). The legacy
+ * filter-toggle / drill path is preserved ONLY when `onGroupClick` is absent
+ * (focused views / mobile / embed). The old `onScopeAccumulate` prop was DELETED
+ * (the pill is the only scope writer — see the ER-4 sub-plan §"PWA chart scope-store
+ * TODO stubs … RESOLVED BY DELETION").
+ *
  * The BoxplotBase stub renders <button data-testid="box-{key}"> per group so
  * tests exercise the same dispatch contract as the real chart's
  * <Group onClick={() => onBoxClick?.(d.key)}> at Boxplot.tsx:238.
@@ -97,39 +104,41 @@ const baseProps = {
   yDomainMax: 100,
 };
 
-describe('onScopeAccumulate (LV1-F)', () => {
+describe('BoxplotWrapper click semantics (ER-4 D6)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('fires onScopeAccumulate(factor, key) on box click, alongside legacy filter toggle', () => {
-    const onScopeAccumulate = vi.fn();
+  it('fires the NEUTRAL onGroupClick(factor, level) on box click — no commit', () => {
+    const onGroupClick = vi.fn();
     const onFiltersChange = vi.fn();
-    render(
-      <BoxplotWrapperBase
-        {...baseProps}
-        onFiltersChange={onFiltersChange}
-        onScopeAccumulate={onScopeAccumulate}
-      />
-    );
-    fireEvent.click(screen.getByTestId('box-A'));
-    expect(onScopeAccumulate).toHaveBeenCalledWith('vessel', 'A');
-    // Legacy filter-toggle ALSO fires (no onDrillDown provided)
-    expect(onFiltersChange).toHaveBeenCalled();
-  });
-
-  it('fires onScopeAccumulate alongside onDrillDown when both provided', () => {
-    const onScopeAccumulate = vi.fn();
     const onDrillDown = vi.fn();
     render(
       <BoxplotWrapperBase
         {...baseProps}
+        onGroupClick={onGroupClick}
+        onFiltersChange={onFiltersChange}
         onDrillDown={onDrillDown}
-        onScopeAccumulate={onScopeAccumulate}
       />
     );
     fireEvent.click(screen.getByTestId('box-A'));
-    expect(onScopeAccumulate).toHaveBeenCalledWith('vessel', 'A');
+    expect(onGroupClick).toHaveBeenCalledWith('vessel', 'A');
+    // ER-4: onGroupClick takes precedence — NO filter toggle, NO drill commit.
+    expect(onFiltersChange).not.toHaveBeenCalled();
+    expect(onDrillDown).not.toHaveBeenCalled();
+  });
+
+  it('preserves the legacy filter-toggle path when onGroupClick is absent', () => {
+    const onFiltersChange = vi.fn();
+    render(<BoxplotWrapperBase {...baseProps} onFiltersChange={onFiltersChange} />);
+    fireEvent.click(screen.getByTestId('box-A'));
+    expect(onFiltersChange).toHaveBeenCalled();
+  });
+
+  it('preserves the legacy onDrillDown path when onGroupClick is absent', () => {
+    const onDrillDown = vi.fn();
+    render(<BoxplotWrapperBase {...baseProps} onDrillDown={onDrillDown} />);
+    fireEvent.click(screen.getByTestId('box-A'));
     expect(onDrillDown).toHaveBeenCalledWith('vessel', 'A');
   });
 });
