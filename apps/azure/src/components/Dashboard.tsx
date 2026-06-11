@@ -79,6 +79,7 @@ import {
   buildGroupLeaf,
   predicateSetKey,
   applyTimeLens,
+  type ProcessHub,
 } from '@variscout/core';
 import { getScopedFindings, formatFindingFilters } from '@variscout/core/findings';
 import type { Finding } from '@variscout/core';
@@ -106,6 +107,7 @@ import { Activity, BarChart3, Gauge, ArrowLeft, Settings2 } from 'lucide-react';
 import { usePanelsStore } from '../features/panels/panelsStore';
 
 type DashboardTab = 'analysis' | 'performance';
+type OutcomeSpec = NonNullable<ProcessHub['outcomes']>[number];
 
 /** Mode-dispatched tab configuration (ADR-047 pattern). */
 interface ModeTab {
@@ -221,6 +223,8 @@ interface DashboardProps {
    * AnalyzeWorkspace receives). Absent → falls back to DEFAULT_PROCESS_HUB_ID.
    */
   scopeProjectId?: string;
+  trackedOutcomeSpecs?: readonly OutcomeSpec[];
+  onTrackOutcome?: (columnName: string) => void;
 }
 
 const Dashboard = ({
@@ -248,6 +252,8 @@ const Dashboard = ({
   binnedFactorBindings,
   onBindingsChange,
   scopeProjectId = DEFAULT_PROCESS_HUB_ID,
+  trackedOutcomeSpecs: trackedOutcomeSpecsProp,
+  onTrackOutcome,
 }: DashboardProps) => {
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -268,6 +274,8 @@ const Dashboard = ({
   const factors = useProjectStore(s => s.factors);
   const processContext = useProjectStore(s => s.processContext);
   const canonicalMap = useCanvasStore(s => s.canonicalMap);
+  const trackedOutcomeSpecsFromCanvas = useCanvasStore(s => s.outcomes);
+  const trackOutcome = useCanvasStore(s => s.trackOutcome);
   const setOutcome = useProjectStore(s => s.setOutcome);
   const rawData = useProjectStore(s => s.rawData);
   const setRawData = useProjectStore(s => s.setRawData);
@@ -337,6 +345,24 @@ const Dashboard = ({
   // on `outcome`. Match that source so the Cpk chip never hides while stats.cpk
   // is defined (the histogram, in contrast, follows effectiveOutcome).
   const outcomeSpecs = outcome ? (measureSpecs[outcome] ?? specs) : specs;
+  const trackedOutcomes = useMemo(
+    () =>
+      (trackedOutcomeSpecsProp ?? trackedOutcomeSpecsFromCanvas)
+        .filter(outcomeSpec => outcomeSpec.deletedAt === null)
+        .map(outcomeSpec => outcomeSpec.columnName),
+    [trackedOutcomeSpecsProp, trackedOutcomeSpecsFromCanvas]
+  );
+  const handleTrackOutcome = useCallback(
+    (columnName: string) => {
+      if (onTrackOutcome) {
+        onTrackOutcome(columnName);
+        return;
+      }
+      const hubId = processContext?.processHubId ?? DEFAULT_PROCESS_HUB_ID;
+      trackOutcome(hubId, columnName);
+    },
+    [onTrackOutcome, processContext?.processHubId, trackOutcome]
+  );
 
   // In defect mode + value aggregation, use cost/duration column for Pareto value mode
   const defectParetoOutcome = (() => {
@@ -1550,6 +1576,10 @@ const Dashboard = ({
                 }
                 availableOutcomes={availableOutcomes}
                 setOutcome={setOutcome}
+                trackedOutcomes={trackedOutcomes}
+                measureSpecs={measureSpecs}
+                specs={specs}
+                onTrackOutcome={handleTrackOutcome}
                 stageColumn={stageColumn}
                 stagedStats={stagedStats}
                 controlStats={
@@ -1866,7 +1896,7 @@ const Dashboard = ({
                 renderSpecEditor={
                   showSpecEditor && outcome ? (
                     <SpecEditor
-                      specs={measureSpecs[outcome] ?? {}}
+                      specs={measureSpecs[outcome] ?? specs}
                       onSave={next => setMeasureSpec(outcome, next)}
                       onClose={() => setShowSpecEditor(false)}
                       style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}

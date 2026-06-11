@@ -22,6 +22,9 @@ import type { AzureFindingsCallbacks, WorkspaceProjectScopeLabels } from '@varis
 import type { ViewState } from '@variscout/hooks';
 import type { FactorMainEffect } from '@variscout/core/stats';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
+import type { ProcessHub } from '@variscout/core';
+
+type OutcomeSpec = NonNullable<ProcessHub['outcomes']>[number];
 
 // ---------------------------------------------------------------------------
 // Props
@@ -73,6 +76,10 @@ export interface DashboardSectionProps {
   onBindingsChange?: (next: BinnedFactorBinding[]) => void;
   /** ER-2: active scope project id (for the factor strip's scope what-if refresh). */
   scopeProjectId?: string;
+  /** ER-8: tracked outcome specs from the active hub. */
+  trackedOutcomeSpecs?: readonly OutcomeSpec[];
+  /** ER-8: explicit active-Y promotion into the active hub's tracked outcomes. */
+  onTrackOutcome?: (columnName: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -100,6 +107,8 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   binnedFactorBindings,
   onBindingsChange,
   scopeProjectId,
+  trackedOutcomeSpecs,
+  onTrackOutcome,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
@@ -128,6 +137,8 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
       binnedFactorBindings={binnedFactorBindings}
       onBindingsChange={onBindingsChange}
       scopeProjectId={scopeProjectId}
+      trackedOutcomeSpecs={trackedOutcomeSpecs}
+      onTrackOutcome={onTrackOutcome}
       performance={{
         drillFromPerformance: dataFlow.drillFromPerformance,
         onBackToPerformance: dataFlow.handleBackToPerformance,

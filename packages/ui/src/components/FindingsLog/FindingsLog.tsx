@@ -156,6 +156,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onMarkSupport,
   onMarkCounter,
 }) => {
+  const yGroups = groupFindingsByY(findings);
+  const showYGroups = yGroups.length > 1;
+
   if (findings.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
@@ -219,48 +222,69 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
         />
       </div>
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2" data-testid="findings-list">
-        {findings.map(finding => (
-          <FindingCard
-            key={finding.id}
-            finding={finding}
-            onEdit={onEditFinding}
-            onDelete={onDeleteFinding}
-            onRestore={onRestoreFinding}
-            onSetStatus={onSetFindingStatus}
-            onSetTag={onSetFindingTag}
-            onSetEvidenceType={onSetFindingEvidenceType}
-            onAddComment={onAddComment}
-            onEditComment={onEditComment}
-            onDeleteComment={onDeleteComment}
-            onAddPhoto={onAddPhoto}
-            onCaptureFromTeams={onCaptureFromTeams}
-            showAuthors={showAuthors}
-            columnAliases={columnAliases}
-            isActive={finding.id === activeFindingId}
-            onShare={onShareFinding}
-            onAssign={onAssignFinding}
-            renderAssignSlot={renderAssignSlot?.(finding.id)}
-            onNavigateToChart={onNavigateToChart}
-            maxStatuses={maxStatuses}
-            onAddAction={onAddAction}
-            onCompleteAction={onCompleteAction}
-            onDeleteAction={onDeleteAction}
-            onPromoteAction={onPromoteAction}
-            originStepName={originStepNameByFindingId?.get(finding.id)}
-            onSetOutcome={onSetOutcome}
-            onProjectImprovement={onProjectImprovement}
-            hasSpecs={hasSpecs}
-            renderActionAssigneePicker={renderActionAssigneePicker}
-            onAskCoScout={onAskCoScoutAboutFinding}
-            projectedCpk={projectedCpkMap?.[finding.id]}
-            voiceInput={voiceInput}
-            onMarkSupport={onMarkSupport}
-            onMarkCounter={onMarkCounter}
-          />
+        {yGroups.map(group => (
+          <div key={group.yColumn} className="space-y-2" data-testid="findings-y-group">
+            {showYGroups && (
+              <div className="px-1 pt-1 text-[0.625rem] font-semibold uppercase tracking-wider text-content-muted">
+                Y: {columnAliases?.[group.yColumn] ?? group.yColumn}
+              </div>
+            )}
+            {group.findings.map(finding => (
+              <FindingCard
+                key={finding.id}
+                finding={finding}
+                onEdit={onEditFinding}
+                onDelete={onDeleteFinding}
+                onRestore={onRestoreFinding}
+                onSetStatus={onSetFindingStatus}
+                onSetTag={onSetFindingTag}
+                onSetEvidenceType={onSetFindingEvidenceType}
+                onAddComment={onAddComment}
+                onEditComment={onEditComment}
+                onDeleteComment={onDeleteComment}
+                onAddPhoto={onAddPhoto}
+                onCaptureFromTeams={onCaptureFromTeams}
+                showAuthors={showAuthors}
+                columnAliases={columnAliases}
+                isActive={finding.id === activeFindingId}
+                onShare={onShareFinding}
+                onAssign={onAssignFinding}
+                renderAssignSlot={renderAssignSlot?.(finding.id)}
+                onNavigateToChart={onNavigateToChart}
+                maxStatuses={maxStatuses}
+                onAddAction={onAddAction}
+                onCompleteAction={onCompleteAction}
+                onDeleteAction={onDeleteAction}
+                onPromoteAction={onPromoteAction}
+                originStepName={originStepNameByFindingId?.get(finding.id)}
+                onSetOutcome={onSetOutcome}
+                onProjectImprovement={onProjectImprovement}
+                hasSpecs={hasSpecs}
+                renderActionAssigneePicker={renderActionAssigneePicker}
+                onAskCoScout={onAskCoScoutAboutFinding}
+                projectedCpk={projectedCpkMap?.[finding.id]}
+                voiceInput={voiceInput}
+                onMarkSupport={onMarkSupport}
+                onMarkCounter={onMarkCounter}
+              />
+            ))}
+          </div>
         ))}
       </div>
     </div>
   );
 };
+
+function groupFindingsByY(findings: Finding[]): Array<{ yColumn: string; findings: Finding[] }> {
+  const groups = new Map<string, Finding[]>();
+  for (const finding of findings) {
+    const yColumn = finding.context.yColumn ?? 'Unspecified Y';
+    groups.set(yColumn, [...(groups.get(yColumn) ?? []), finding]);
+  }
+  return Array.from(groups, ([yColumn, groupedFindings]) => ({
+    yColumn,
+    findings: groupedFindings,
+  }));
+}
 
 export default FindingsLog;

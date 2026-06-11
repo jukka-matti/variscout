@@ -83,6 +83,7 @@ import {
   findDuplicateFinding,
   findDuplicateBySource,
   applyFilters,
+  type ProcessHub,
 } from '@variscout/core';
 import { resolveMode } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -119,6 +120,19 @@ const FindingsPanel = lazyWithRetry(() => import('./components/FindingsPanel'));
 const ProcessIntelligencePanel = lazyWithRetry(
   () => import('./components/ProcessIntelligencePanel')
 );
+type OutcomeSpec = NonNullable<ProcessHub['outcomes']>[number];
+
+function buildTrackedOutcomeSpec(hubId: ProcessHub['id'], columnName: string): OutcomeSpec {
+  return {
+    id: generateDeterministicId(),
+    hubId,
+    columnName,
+    characteristicType: 'nominalIsBest',
+    cpkTarget: 1.33,
+    createdAt: Date.now(),
+    deletedAt: null,
+  };
+}
 
 const LazyFallback = () => (
   <div className="flex items-center justify-center h-dvh">
@@ -694,7 +708,10 @@ function AppMain() {
       setHighlightedFindingId(existing.id);
       return;
     }
-    const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
+    const resolvedSpecs = outcome
+      ? (useProjectStore.getState().measureSpecs[outcome] ?? specs)
+      : specs;
+    const context = buildFindingContext(filters, filteredData, outcome!, resolvedSpecs, drillPath);
     // ER-4: a pin made INSIDE an applied condition links to that scope.
     const scopeId = resolveActiveScopeIdForCapture();
     const newFinding = useAnalyzeStore.getState().addFinding('', context, undefined, scopeId);
@@ -712,6 +729,24 @@ function AppMain() {
     markOwnFindingCaptured,
     resolveActiveScopeIdForCapture,
   ]);
+
+  const handleTrackOutcome = useCallback(
+    (columnName: string) => {
+      if (!sessionHub) return;
+      const trimmedColumn = columnName.trim();
+      if (!trimmedColumn) return;
+      const liveOutcomes = (sessionHub.outcomes ?? []).filter(entry => entry.deletedAt === null);
+      if (liveOutcomes.some(entry => entry.columnName === trimmedColumn)) return;
+      setSessionHub({
+        ...sessionHub,
+        outcomes: [
+          ...(sessionHub.outcomes ?? []),
+          buildTrackedOutcomeSpec(sessionHub.id, trimmedColumn),
+        ],
+      });
+    },
+    [sessionHub, setSessionHub]
+  );
 
   // Chart observation: create a Finding with source metadata
   const handleAddChartObservation = useCallback(
@@ -1539,6 +1574,7 @@ function AppMain() {
               handlePinFinding={handlePinFinding}
               handlePromoteFindingAction={handlePromoteFindingAction}
               handleRestoreFinding={handleRestoreFinding}
+              handleTrackOutcome={handleTrackOutcome}
               highlightedChart={highlightedChart}
               highlightedPointIndex={panels.highlightedChartPoint}
               highlightIntensity={highlightIntensity}

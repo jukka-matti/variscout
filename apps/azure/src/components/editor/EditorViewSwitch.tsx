@@ -1,7 +1,8 @@
 import React, { Suspense } from 'react';
 import { lazyWithRetry } from '../../lib/chunkReload';
 import { isAIAvailable } from '../../services/aiService';
-import { extractHubName } from '@variscout/core';
+import { extractHubName, type ProcessHub } from '@variscout/core';
+import { generateDeterministicId } from '@variscout/core/identity';
 import { createProjectActionItem } from '@variscout/core/findings';
 import { useCanvasViewportStore } from '@variscout/stores';
 import {
@@ -21,6 +22,19 @@ import ControlPanel from '../control/ControlPanel';
 import ProjectDashboard from '../ProjectDashboard';
 import ProjectsTabView from '../ProjectsTabView';
 const ReportView = lazyWithRetry(() => import('../views/ReportView'));
+type OutcomeSpec = NonNullable<ProcessHub['outcomes']>[number];
+
+function buildTrackedOutcomeSpec(hubId: ProcessHub['id'], columnName: string): OutcomeSpec {
+  return {
+    id: generateDeterministicId(),
+    hubId,
+    columnName,
+    characteristicType: 'nominalIsBest',
+    cpkTarget: 1.33,
+    createdAt: Date.now(),
+    deletedAt: null,
+  };
+}
 
 // The switch receives the shell's already-derived view contract. W6 keeps the
 // orchestration hooks in Editor.tsx to avoid hook-order regressions.
@@ -458,7 +472,9 @@ function EditorReportView({ props }: { props: EditorViewSwitchProps }): React.Re
 
 function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.ReactElement {
   const {
+    activeHub,
     aiOrch,
+    commitHubChange,
     controlViolations,
     dataFlow,
     excludedReasons,
@@ -481,6 +497,22 @@ function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.R
     workspaceProjectAnalyzeFactorRequest,
     workspaceProjectScope,
   } = props;
+  const handleTrackOutcome = (columnName: string) => {
+    if (!activeHub || typeof commitHubChange !== 'function') return;
+    const trimmedColumn = columnName.trim();
+    if (!trimmedColumn) return;
+    const liveOutcomes = (activeHub.outcomes ?? []).filter(
+      (entry: OutcomeSpec) => entry.deletedAt === null
+    );
+    if (liveOutcomes.some((entry: OutcomeSpec) => entry.columnName === trimmedColumn)) return;
+    void commitHubChange({
+      ...activeHub,
+      outcomes: [
+        ...(activeHub.outcomes ?? []),
+        buildTrackedOutcomeSpec(activeHub.id, trimmedColumn),
+      ],
+    });
+  };
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <EditorDashboardView
@@ -506,6 +538,8 @@ function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.R
         binnedFactorBindings={workspaceProject?.binnedFactorBindings ?? undefined}
         onBindingsChange={workspaceProject ? handleBinningBindingsChange : undefined}
         scopeProjectId={workspaceProject?.id ?? 'general-unassigned'}
+        trackedOutcomeSpecs={activeHub?.outcomes}
+        onTrackOutcome={handleTrackOutcome}
         onOpenWall={() => {
           useCanvasViewportStore.getState().setViewMode('wall');
           usePanelsStore.getState().showAnalyze();

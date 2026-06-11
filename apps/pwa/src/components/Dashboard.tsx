@@ -91,6 +91,7 @@ import {
   type SpecLimits,
   type Finding,
   type IChartDataPoint,
+  type ProcessHub,
 } from '@variscout/core';
 import { resolveMode as resolveModeUtil } from '@variscout/core/strategy';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -110,6 +111,7 @@ import type { FindingsCallbacks } from '@variscout/ui';
 // distribution diagnostics (Probability Plot ⇄ Distribution/Capability
 // histogram), converged with the Azure app.
 type AnalysisLensTab = 'probability' | 'distribution';
+type OutcomeSpec = NonNullable<ProcessHub['outcomes']>[number];
 
 interface DashboardProps {
   onPointClick?: (index: number) => void;
@@ -151,6 +153,8 @@ interface DashboardProps {
    * randomUUID in the normal paste flow). Absent → falls back to the sentinel.
    */
   scopeProjectId?: string;
+  trackedOutcomeSpecs?: readonly OutcomeSpec[];
+  onTrackOutcome?: (columnName: string) => void;
   onOpenWall?: () => void;
 }
 
@@ -175,6 +179,8 @@ const Dashboard = ({
   onExportImage: _onExportImage,
   requestedFactor,
   scopeProjectId = DEFAULT_PROCESS_HUB_ID,
+  trackedOutcomeSpecs: trackedOutcomeSpecsProp,
+  onTrackOutcome,
   onOpenWall,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding, onOpenFinding } =
@@ -183,6 +189,8 @@ const Dashboard = ({
   const factors = useProjectStore(s => s.factors);
   const processContext = useProjectStore(s => s.processContext);
   const canonicalMap = useCanvasStore(s => s.canonicalMap);
+  const trackedOutcomeSpecsFromCanvas = useCanvasStore(s => s.outcomes);
+  const trackOutcome = useCanvasStore(s => s.trackOutcome);
   const setOutcome = useProjectStore(s => s.setOutcome);
   const rawData = useProjectStore(s => s.rawData);
   const setRawData = useProjectStore(s => s.setRawData);
@@ -248,6 +256,24 @@ const Dashboard = ({
   // also key on `outcome`. Match that source so the Cpk chip never hides while
   // stats.cpk is defined (the histogram, in contrast, follows effectiveOutcome).
   const outcomeSpecs = outcome ? (measureSpecs[outcome] ?? specs) : specs;
+  const trackedOutcomes = useMemo(
+    () =>
+      (trackedOutcomeSpecsProp ?? trackedOutcomeSpecsFromCanvas)
+        .filter(outcomeSpec => outcomeSpec.deletedAt === null)
+        .map(outcomeSpec => outcomeSpec.columnName),
+    [trackedOutcomeSpecsProp, trackedOutcomeSpecsFromCanvas]
+  );
+  const handleTrackOutcome = useCallback(
+    (columnName: string) => {
+      if (onTrackOutcome) {
+        onTrackOutcome(columnName);
+        return;
+      }
+      const hubId = processContext?.processHubId ?? DEFAULT_PROCESS_HUB_ID;
+      trackOutcome(hubId, columnName);
+    },
+    [onTrackOutcome, processContext?.processHubId, trackOutcome]
+  );
   const effectiveLensWindow = useMemo(
     () => timeLensIndices(effectiveData.length, timeLens),
     [effectiveData.length, timeLens]
@@ -1368,6 +1394,10 @@ const Dashboard = ({
         }
         availableOutcomes={availableOutcomes}
         setOutcome={setOutcome}
+        trackedOutcomes={trackedOutcomes}
+        measureSpecs={measureSpecs}
+        specs={specs}
+        onTrackOutcome={handleTrackOutcome}
         stageColumn={stageColumn}
         stagedStats={stagedStats}
         controlStats={stats}

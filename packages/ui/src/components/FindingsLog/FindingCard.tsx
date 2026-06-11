@@ -286,6 +286,15 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 <span>from {originStepName}</span>
               </span>
             )}
+            {context.yColumn && (
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/10 text-[0.625rem] text-blue-400 rounded"
+                title={`Y: ${columnAliases[context.yColumn] ?? context.yColumn}`}
+                data-testid="finding-y-column"
+              >
+                Y: {columnAliases[context.yColumn] ?? context.yColumn}
+              </span>
+            )}
             {filterEntries.map(([factor, values]) => {
               const label = columnAliases[factor] || factor;
               const valStr =

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { assertNever, type ProcessHub } from '@variscout/core';
+import { assertNever, generateDeterministicId, type ProcessHub } from '@variscout/core';
 import type { SpecRule } from '@variscout/core/types';
 import type { CanvasAction } from '@variscout/core/actions';
 import { createEmptyMap, type ProcessMap, type ProcessMapNode } from '@variscout/core/frame';
@@ -75,6 +75,8 @@ export interface CanvasStoreActions {
     stepId: string,
     edit: { index: number; rule: SpecRule | undefined }
   ) => void;
+  /** Track a numeric outcome in the hub-level outcome list. */
+  trackOutcome: (hubId: ProcessHub['id'], columnName: string) => void;
   /** Add a tributary (an x) feeding a step. Deterministic id. */
   addTributary: (stepId: string, column: string) => void;
   /** Remove a tributary; cascades its `subgroupAxes` + pinned-`hunches` refs. */
@@ -572,6 +574,27 @@ export const useCanvasStore = create<CanvasStore>()(
             } else {
               node.capabilityScope = { specRules: nextRules };
             }
+            return true;
+          });
+        },
+
+        trackOutcome: (hubId, columnName) => {
+          applyUndoable('canvas/trackOutcome', draft => {
+            const name = columnName.trim();
+            if (!name) return false;
+            const existing = draft.outcomes.find(
+              outcome => outcome.deletedAt === null && outcome.columnName === name
+            );
+            if (existing) return false;
+            const now = Date.now();
+            draft.outcomes.push({
+              id: generateDeterministicId(),
+              hubId,
+              createdAt: now,
+              deletedAt: null,
+              columnName: name,
+              characteristicType: 'nominalIsBest',
+            });
             return true;
           });
         },

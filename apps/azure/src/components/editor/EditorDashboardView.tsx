@@ -29,6 +29,7 @@ import type { AzureFindingsCallbacks, WorkspaceProjectScopeLabels } from '@varis
 import type { UseFindingsOrchestrationReturn } from '../../features/findings/useFindingsOrchestration';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
+import type { ProcessHub } from '@variscout/core';
 
 import DataTableModal from '../data/DataTableModal';
 import { PISection } from './PISection';
@@ -83,6 +84,8 @@ interface EditorDashboardViewProps {
    * under (the same value AnalyzeWorkspace receives).
    */
   scopeProjectId?: string;
+  trackedOutcomeSpecs?: readonly NonNullable<ProcessHub['outcomes']>[number][];
+  onTrackOutcome?: (columnName: string) => void;
   onOpenWall?: () => void;
 }
 
@@ -113,6 +116,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   binnedFactorBindings,
   onBindingsChange,
   scopeProjectId,
+  trackedOutcomeSpecs,
+  onTrackOutcome,
   onOpenWall,
 }) => {
   // ── Store selectors ──────────────────────────────────────────────────────
@@ -208,6 +213,8 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           binnedFactorBindings={binnedFactorBindings}
           onBindingsChange={onBindingsChange}
           scopeProjectId={scopeProjectId}
+          trackedOutcomeSpecs={trackedOutcomeSpecs}
+          onTrackOutcome={onTrackOutcome}
         />
 
         {/* AI onboarding tooltip */}

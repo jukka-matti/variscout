@@ -384,10 +384,11 @@ describe('FrameView b0 — happy-path integration', () => {
     expect(onDismissQuietTimeExtraction).toHaveBeenCalledTimes(1);
   });
 
-  it('"+ track another outcome" reaches the multi-outcome surface (fires onFixData — wizard parity, spec §7)', () => {
+  it('"+ track another outcome" opens Explore instead of the mapping wizard (ER-8 D10)', () => {
     renderFrameView({ onFixData: onFixDataMock });
     fireEvent.click(screen.getByTestId('b0-track-another-outcome'));
-    expect(onFixDataMock).toHaveBeenCalledTimes(1);
+    expect(onFixDataMock).not.toHaveBeenCalled();
+    expect(showExploreMock).toHaveBeenCalledTimes(1);
   });
 
   it('renders the defect proposal and accepts the inline confirm sequence', () => {

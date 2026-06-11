@@ -111,6 +111,8 @@ Sub-plan: [ER-7 Findings Drawer + Hypothesis Wiring Implementation Plan](2026-06
 
 Grouped Y-switcher (tracked-with-spec-badges first, other numerics after; inline "track this outcome?" promotion) replacing the raw `availableOutcomes` dropdown (`DashboardLayoutBase.tsx:322`); sever "+ track another outcome"→wizard (`apps/pwa/src/components/views/FrameView.tsx:860`); findings stamp their Y; spec popover echoes the inferred direction; spec lines on every chart of the measure.
 
+Sub-plan: [ER-8 — Y-model and Specs Everywhere Implementation Plan](2026-06-11-er-8-y-model-specs-everywhere.md).
+
 ## ER-9 — Frame→Explore contract + ingestion fixes (§13, D13)
 
 Vocabulary symmetry copy on both surfaces · auto-X dedup gate in `augmentWithTimeColumns` (`packages/core/src/time.ts`) + seed-cap/keyword rethink in `detection.ts:189-206` (now non-load-bearing but still wrong) · steps→stages auto-bind + step badges · goal/AnalysisBrief.target vs spec story implemented per D13.4 (goal lives with the Issue, feeds Report's "what we aimed for").

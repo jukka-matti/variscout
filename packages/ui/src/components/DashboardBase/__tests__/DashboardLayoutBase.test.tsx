@@ -256,6 +256,51 @@ describe('DashboardLayoutBase', () => {
     expect(select).toBeDefined();
   });
 
+  it('groups tracked outcomes before other numeric outcomes with spec badges', () => {
+    render(
+      <DashboardLayoutBase
+        {...baseProps}
+        availableOutcomes={['CycleTime', 'Weight', 'Yield']}
+        outcome="CycleTime"
+        trackedOutcomes={['Weight']}
+        measureSpecs={{ Weight: { lsl: 9, usl: 11 } }}
+      />
+    );
+
+    const groups = screen.getByTestId('y-switcher').querySelectorAll('optgroup');
+    expect(groups).toHaveLength(2);
+    expect(groups[0].getAttribute('label')).toBe('Tracked outcomes');
+    expect(groups[1].getAttribute('label')).toBe('Other numeric columns');
+    expect(groups[0].querySelector('option')?.textContent).toBe('Weight (LSL · USL)');
+    expect(Array.from(groups[1].querySelectorAll('option')).map(option => option.value)).toEqual([
+      'CycleTime',
+      'Yield',
+    ]);
+  });
+
+  it('shows inline tracking promotion for an untracked active Y without auto-tracking', () => {
+    const setOutcome = vi.fn();
+    const onTrackOutcome = vi.fn();
+    render(
+      <DashboardLayoutBase
+        {...baseProps}
+        outcome="CycleTime"
+        availableOutcomes={['Weight', 'CycleTime']}
+        trackedOutcomes={['Weight']}
+        setOutcome={setOutcome}
+        onTrackOutcome={onTrackOutcome}
+      />
+    );
+
+    expect(screen.getByTestId('track-active-outcome')).toHaveTextContent('track this outcome?');
+    fireEvent.change(screen.getByTestId('y-switcher'), { target: { value: 'Weight' } });
+    expect(setOutcome).toHaveBeenCalledWith('Weight');
+    expect(onTrackOutcome).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByTestId('track-active-outcome'));
+    expect(onTrackOutcome).toHaveBeenCalledWith('CycleTime');
+  });
+
   it('uses custom ichartTitleSlot when provided', () => {
     render(
       <DashboardLayoutBase

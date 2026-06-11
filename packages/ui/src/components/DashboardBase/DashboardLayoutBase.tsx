@@ -13,7 +13,7 @@ import type { HighlightColor } from '../ChartAnnotationLayer/types';
 import type { UseChartInsightsReturn, ChartTitles } from '@variscout/hooks';
 import type { FilterChipData } from '../filterTypes';
 import type { ChartObservationCaptureOptions } from '../../types/findingsCallbacks';
-import type { GlossaryTerm } from '@variscout/core';
+import type { GlossaryTerm, SpecLimits } from '@variscout/core';
 
 // ---------- Annotations shape ----------
 export interface DashboardAnnotations {
@@ -78,6 +78,10 @@ export interface DashboardLayoutBaseProps {
   // ---- Outcome selector ----
   availableOutcomes: string[];
   setOutcome: (o: string) => void;
+  trackedOutcomes?: string[];
+  measureSpecs?: Record<string, SpecLimits>;
+  specs?: SpecLimits;
+  onTrackOutcome?: (outcome: string) => void;
 
   // ---- Stage controls ----
   // The stage-column + stage-order SELECTS moved to the context line
@@ -233,6 +237,10 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   onDisplayOptionChange,
   availableOutcomes,
   setOutcome,
+  trackedOutcomes = [],
+  measureSpecs = {},
+  specs = {},
+  onTrackOutcome,
   stageColumn,
   stagedStats,
   controlStats: _controlStats,
@@ -312,6 +320,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
       show={showFilterContext}
     />
   );
+  const outcomeGroups = buildOutcomeGroups(availableOutcomes, trackedOutcomes);
 
   // ---- I-Chart title (default or override) ----
   const ichartTitle = ichartTitleSlot ?? (
@@ -329,18 +338,44 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   const ichartControls = (
     <>
       <div className="flex items-center gap-4" data-export-hide>
-        <select
-          value={outcome}
-          onChange={e => setOutcome(e.target.value)}
-          aria-label="Select outcome variable"
-          className="bg-surface border border-edge text-sm font-medium text-content rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
-        >
-          {availableOutcomes.map(o => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            value={outcome}
+            onChange={e => setOutcome(e.target.value)}
+            aria-label="Select outcome variable"
+            data-testid="y-switcher"
+            className="bg-surface border border-edge text-sm font-medium text-content rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
+          >
+            {outcomeGroups.tracked.length > 0 && (
+              <optgroup label="Tracked outcomes">
+                {outcomeGroups.tracked.map(o => (
+                  <option key={o} value={o}>
+                    {formatOutcomeOption(o, resolveSpecsForOutcome(o, measureSpecs, specs))}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {outcomeGroups.other.length > 0 && (
+              <optgroup label="Other numeric columns">
+                {outcomeGroups.other.map(o => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+          {!trackedOutcomes.includes(outcome) && onTrackOutcome && (
+            <button
+              type="button"
+              data-testid="track-active-outcome"
+              onClick={() => onTrackOutcome(outcome)}
+              className="rounded border border-blue-400/40 px-2 py-1 text-xs font-medium text-blue-400 hover:bg-blue-500/10"
+            >
+              track this outcome?
+            </button>
+          )}
+        </div>
 
         {/* Stage-column + stage-order selects relocated to the context line
             (ProcessHealthBar right cluster) in ER-1 Task 2. The staged-stats
@@ -629,6 +664,33 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
 
 function isIChartSignalInsight(chipText: string): boolean {
   return chipText.startsWith('Process shift:') || chipText.startsWith('Trend detected:');
+}
+
+function buildOutcomeGroups(availableOutcomes: string[], trackedOutcomes: string[]) {
+  const available = new Set(availableOutcomes);
+  const tracked = trackedOutcomes.filter(outcome => available.has(outcome));
+  const trackedSet = new Set(tracked);
+  return {
+    tracked,
+    other: availableOutcomes.filter(outcome => !trackedSet.has(outcome)),
+  };
+}
+
+function resolveSpecsForOutcome(
+  outcome: string,
+  measureSpecs: Record<string, SpecLimits>,
+  specs: SpecLimits
+): SpecLimits {
+  return measureSpecs[outcome] ?? specs;
+}
+
+function formatOutcomeOption(outcome: string, specs: SpecLimits): string {
+  const badges: string[] = [];
+  if (specs.lsl !== undefined) badges.push('LSL');
+  if (specs.target !== undefined) badges.push('Target');
+  if (specs.usl !== undefined) badges.push('USL');
+  if (specs.cpkTarget !== undefined) badges.push('Cpk');
+  return badges.length > 0 ? `${outcome} (${badges.join(' · ')})` : outcome;
 }
 
 export default DashboardLayoutBase;
