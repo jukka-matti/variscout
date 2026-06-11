@@ -1688,7 +1688,7 @@ The toggle (`WallCanvas.tsx:1367-1375`) mounts `ModelBuilderBand` at SVG y≈960
 
 Both handlers (`apps/pwa/src/components/views/AnalyzeView.tsx:371-376`, `apps/azure/src/components/editor/AnalyzeWorkspace.tsx:946-950`) seed the first three mapped X's. Walkthrough effect: zero-effect Site seeded, largest-effect Queue skipped — actively misleading under the "tool assists, analyst decides / best-subsets guides attention" principle. The real ranking exists unused right there (`computeMainEffects` η²-sorted in core; Azure already computes `computeBestSubsets` at `AnalyzeWorkspace.tsx:604`). PR #295 wired the dead CTAs (2026-06-04 entry above) as a deliberate stopgap; the label over-promises. Fix: rank top-3 by η² (prefer significant) or relabel the CTA.
 
-**[RESOLVED 2026-06-11 via ER-2]** Both seed handlers now rank top-3 by `adjustedEtaSquared` from the Task-1 ω²-adjusted engine (D11 exclusion applied; fallback to column order when n<3 or all factors single-level). CTA relabelled "Seed 3 strongest factors" across 32 i18n catalogs. The ω²-adjusted ranking also powers the new factor strip (`FactorStripBase`) on the default Explore surface.
+**[RESOLVED 2026-06-11 via ER-2]** Both seed handlers now rank top-3 by `adjustedEtaSquared` from the Task-1 ω²-adjusted engine (D11 exclusion applied; fallback to column order when n<3 or all factors single-level). CTA relabelled "Seed 3 largest contributors" across 32 i18n catalogs ("strongest" rejected on P5 vocabulary grounds). The ω²-adjusted ranking also powers the new factor strip (`FactorStripBase`) on the default Explore surface.
 
 ### B1. What-If Explorer (PWA): wrong factor binding, blind to per-measure specs, degenerate "best" [LOGGED 2026-06-10] [RESOLVED 2026-06-10 via ER-0]
 

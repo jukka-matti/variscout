@@ -22,11 +22,15 @@ describe('EmptyState', () => {
   it('renders "Seed…" button ONLY when onSeedFromFactorIntel is provided', () => {
     // Without handler: hidden (LOAD-BEARING negative control — fails if gating is dropped)
     const { rerender } = render(<EmptyState />);
-    expect(screen.queryByRole('button', { name: /seed.*factor intel/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /seed 3 largest contributors/i })
+    ).not.toBeInTheDocument();
 
     // With handler: visible
     rerender(<EmptyState onSeedFromFactorIntel={vi.fn()} />);
-    expect(screen.getByRole('button', { name: /seed.*factor intel/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /seed 3 largest contributors/i })
+    ).toBeInTheDocument();
   });
 
   it('never renders "promote from a question" button (IM-1 retirement)', () => {
@@ -46,7 +50,7 @@ describe('EmptyState', () => {
   it('fires onSeedFromFactorIntel when the button is clicked', () => {
     const fn = vi.fn();
     render(<EmptyState onSeedFromFactorIntel={fn} />);
-    fireEvent.click(screen.getByRole('button', { name: /seed 3 from factor intelligence/i }));
+    fireEvent.click(screen.getByRole('button', { name: /seed 3 largest contributors/i }));
     expect(fn).toHaveBeenCalled();
   });
 });
