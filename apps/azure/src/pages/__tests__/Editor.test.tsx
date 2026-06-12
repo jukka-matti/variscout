@@ -10,15 +10,7 @@ import * as StorageModule from '../../services/storage';
 import { azurePersistenceAdapter } from '../../lib/persistenceAdapter';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useUnsavedHubsStore } from '../../features/hubs/unsavedHubsStore';
-import {
-  useProjectStore,
-  useAnalyzeStore,
-  usePreferencesStore,
-  useProjectMembershipStore,
-  getProjectMembershipInitialState,
-  projectMembershipStorageKey,
-} from '@variscout/stores';
-import type { Invitation } from '@variscout/core/projectMembership';
+import { useProjectStore, useAnalyzeStore, usePreferencesStore } from '@variscout/stores';
 import type {
   AnalysisBrief,
   DefectDetection,
@@ -509,8 +501,6 @@ describe('Editor', () => {
 
     // Reset stores to clean state
     seedStores();
-    useProjectMembershipStore.setState(getProjectMembershipInitialState());
-    localStorage.removeItem(projectMembershipStorageKey('test@test.com'));
     useUnsavedHubsStore.setState(useUnsavedHubsStore.getInitialState(), true);
   });
 
@@ -932,39 +922,6 @@ describe('Editor', () => {
     const [, deps, enabled] = mockUseAutoSave.mock.calls.at(-1)!;
     expect(deps).toHaveLength(1);
     expect(enabled).toBe(false);
-  });
-
-  // ── PendingInvitesBanner integration ──
-
-  const inviteA: Invitation = {
-    id: 'inv-1',
-    projectId: 'ip-1',
-    createdAt: 1,
-    deletedAt: null,
-    userId: 'mira@org',
-    displayName: 'Mira',
-    role: 'member',
-    invitedAt: 1,
-    status: 'pending',
-  };
-
-  it('does not render the invitations banner when there are no pending invites', () => {
-    renderEditor();
-    expect(screen.queryByRole('region', { name: /pending invitations/i })).not.toBeInTheDocument();
-  });
-
-  it('renders the invitations banner when pending invites exist', async () => {
-    // Editor reads currentUser.email as the membership user id (see Editor.tsx);
-    // getCurrentUser is mocked to resolve 'test@test.com' at file top.
-    // Seed BOTH localStorage and in-memory state: Editor mounts a useEffect that
-    // calls `rehydrateInvites(userId)`, which reads from localStorage and would
-    // otherwise clobber an in-memory-only seed. Banner appears only after the
-    // async getCurrentUser() resolves — use findBy.
-    const membershipKey = projectMembershipStorageKey('test@test.com');
-    localStorage.setItem(membershipKey, JSON.stringify([inviteA]));
-    useProjectMembershipStore.setState({ invitesByUser: { [membershipKey]: [inviteA] } });
-    renderEditor();
-    expect(await screen.findByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });
 
   // ── GoalBanner opt-in on the Process tab (FSJ-3b, spec §3) ──

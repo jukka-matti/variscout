@@ -50,7 +50,7 @@ import { render, screen, fireEvent, within } from '@testing-library/react';
 import { WallCanvas, type WallCanvasPlanningProps } from '../WallCanvas';
 import { getCanvasViewportInitialState, useCanvasViewportStore } from '@variscout/stores';
 import type { Hypothesis, ProcessMap, ActionItem, ImprovementIdea } from '@variscout/core';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 
 const processMap: ProcessMap = {
   version: 1,
@@ -61,12 +61,10 @@ const processMap: ProcessMap = {
   updatedAt: '2026-05-09T00:00:00.000Z',
 };
 
-const leadMember: ProjectMember = {
+const leadMember: ProjectContributor = {
   id: 'm1',
   userId: 'user-lead',
   displayName: 'Alice Lead',
-  role: 'lead',
-  invitedAt: 1,
   createdAt: 1,
   deletedAt: null,
 };

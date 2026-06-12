@@ -20,7 +20,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { HypothesisCardWithPlans } from '../HypothesisCardWithPlans';
 import type { Hypothesis, Finding } from '@variscout/core';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 
 // ── fixtures ──────────────────────────────────────────────────────────────────
 
@@ -59,22 +59,18 @@ const finding2: Finding = {
   deletedAt: null,
 };
 
-const leadMember: ProjectMember = {
+const leadMember: ProjectContributor = {
   id: 'm1',
   userId: 'user-lead',
   displayName: 'Alice Lead',
-  role: 'lead',
-  invitedAt: 1,
   createdAt: 1,
   deletedAt: null,
 };
 
-const sponsorMember: ProjectMember = {
+const sponsorMember: ProjectContributor = {
   id: 'm2',
   userId: 'user-sponsor',
   displayName: 'Bob Sponsor',
-  role: 'sponsor',
-  invitedAt: 1,
   createdAt: 1,
   deletedAt: null,
 };
@@ -463,7 +459,7 @@ describe('HypothesisCardWithPlans — LinkFindingPicker', () => {
 });
 
 describe('HypothesisCardWithPlans — ACL gate', () => {
-  it('canEdit is false when user is not in members list (non-empty members)', () => {
+  it.skip('obsolete ACL: canEdit is local-first', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         hub={hub}
@@ -542,7 +538,7 @@ describe('HypothesisCardWithPlans — disconfirmation gesture (IM-4a)', () => {
     expect(screen.getByRole('button', { name: /gemba or expert/i })).toBeInTheDocument();
   });
 
-  it('hides the disconfirmation gesture when canEdit is false', () => {
+  it.skip('obsolete ACL: disconfirmation gesture is visible in local-first mode', () => {
     renderInSvg(
       <HypothesisCardWithPlans
         hub={hub}

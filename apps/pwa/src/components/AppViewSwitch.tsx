@@ -2,8 +2,7 @@ import React from 'react';
 import { lazyWithRetry } from '../lib/chunkReload';
 import { normalizeProcessHubId } from '@variscout/core';
 import { useAnalyzeStore, useCanvasViewportStore } from '@variscout/stores';
-import { ColumnMapping, PendingInvitesBanner, WorkspaceProjectLaunchpadCard } from '@variscout/ui';
-import { pwaHubRepository } from '../persistence';
+import { ColumnMapping, WorkspaceProjectLaunchpadCard } from '@variscout/ui';
 import { usePanelsStore } from '../features/panels/panelsStore';
 const Dashboard = lazyWithRetry(() => import('./Dashboard'));
 const HomeScreen = lazyWithRetry(() => import('./HomeScreen'));
@@ -45,8 +44,6 @@ export function AppViewSwitch(props: AppViewSwitchProps): React.ReactElement {
     timeColumn,
     workspaceProjectContext,
     workspaceProjectScope,
-    workspaceProjectTitle,
-    workspaceViewModel,
   } = props;
 
   return (
@@ -68,11 +65,6 @@ export function AppViewSwitch(props: AppViewSwitchProps): React.ReactElement {
           onOpenPaste={importFlow.handleOpenPaste}
           onOpenManualEntry={importFlow.handleOpenManualEntry}
           onImportVrs={handleImportVrs}
-          resolveProjectName={id =>
-            workspaceViewModel?.project.id === id && workspaceProjectTitle
-              ? workspaceProjectTitle
-              : undefined
-          }
         />
       ) : panels.activeView === 'home' ? (
         <AppWorkspaceHomeView props={props} />
@@ -157,27 +149,9 @@ export function AppViewSwitch(props: AppViewSwitchProps): React.ReactElement {
 }
 
 function AppWorkspaceHomeView({ props }: { props: AppViewSwitchProps }): React.ReactElement {
-  const {
-    acceptInvite,
-    pendingInvites,
-    panels,
-    revokeInvite,
-    sessionHub,
-    workspaceProjectTitle,
-    workspaceViewModel,
-  } = props;
+  const { panels, sessionHub, workspaceViewModel } = props;
   return (
     <div className="h-full overflow-auto p-4 sm:p-6">
-      <PendingInvitesBanner
-        invites={pendingInvites}
-        onAccept={acceptInvite}
-        onDecline={revokeInvite}
-        resolveProjectName={id =>
-          workspaceViewModel?.project.id === id && workspaceProjectTitle
-            ? workspaceProjectTitle
-            : undefined
-        }
-      />
       <WorkspaceProjectLaunchpadCard
         projects={
           sessionHub?.improvementProject &&
@@ -322,13 +296,6 @@ function AppProjectsView({ props }: { props: AppViewSwitchProps }): React.ReactE
       onNudgeProcessOwner={() => {
         // Plan 3 will emit EngagementEvent webhook here.
         console.info('[handoff] Nudge process owner — Plan 3 will wire EngagementEvent');
-      }}
-      onProjectPatch={(projectId, patch) => {
-        void pwaHubRepository
-          .dispatch({ kind: 'IMPROVEMENT_PROJECT_UPDATE', projectId, patch })
-          .catch(error => {
-            console.error('[projects] Failed to persist Improvement Project patch', error);
-          });
       }}
       onStartNewProject={panels.showCharter}
     />

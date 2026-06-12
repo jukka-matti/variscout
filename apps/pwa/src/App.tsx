@@ -52,7 +52,6 @@ import {
   usePreferencesStore,
   useCanvasViewportStore,
   useViewStore,
-  useProjectMembershipStore,
   useAnalysisScopeStore,
   useImprovementProjectStore,
   buildDocumentSnapshotVrs,
@@ -294,21 +293,6 @@ function AppMain() {
   const clearPendingMatchesForPlan = useCallback((planId: string) => {
     setPendingMatches(prev => prev.filter(m => m.planId !== planId));
   }, []);
-
-  // Project membership store — pending invitations for the Home view banner.
-  // PWA is single-user; use 'analyst@local' as the stable per-user key.
-  const PWA_MEMBERSHIP_USER_ID = 'analyst@local';
-  const pendingInvites = useProjectMembershipStore(s =>
-    s.getPendingInvites(PWA_MEMBERSHIP_USER_ID)
-  );
-  const membershipAcceptInvite = useProjectMembershipStore(s => s.acceptInvite);
-  const membershipRevokeInvite = useProjectMembershipStore(s => s.revokeInvite);
-  const rehydrateInvites = useProjectMembershipStore(s => s.rehydrateInvites);
-  const acceptInvite = (id: string) => membershipAcceptInvite(PWA_MEMBERSHIP_USER_ID, id);
-  const revokeInvite = (id: string) => membershipRevokeInvite(PWA_MEMBERSHIP_USER_ID, id);
-  useEffect(() => {
-    rehydrateInvites(PWA_MEMBERSHIP_USER_ID);
-  }, [rehydrateInvites]);
 
   // Derived hooks (replaces computed state from useDataState)
   const { filteredData } = useFilteredData();
@@ -1097,14 +1081,14 @@ function AppMain() {
   // ── Measurement plan callbacks for WallCanvas planningProps ─────────────
   // PWA uses 'analyst@local' as the single-user identity (no auth).
   const PWA_WALL_USER_ID = 'analyst@local';
-  const wallWorkspaceProjectMembers = useMemo(
-    () => workspaceProjectContext.workspaceProject?.metadata.members ?? [],
+  const wallWorkspaceProjectContributors = useMemo(
+    () => workspaceProjectContext.workspaceProject?.metadata.contributors ?? [],
     [workspaceProjectContext.workspaceProject]
   );
   const wallPlanningProps = useMemo(
     () => ({
       plans: wallMeasurementPlans,
-      members: wallWorkspaceProjectMembers,
+      members: wallWorkspaceProjectContributors,
       currentUserId: PWA_WALL_USER_ID,
       onAddPlan: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => {
         const stamped: MeasurementPlan = {
@@ -1205,7 +1189,7 @@ function AppMain() {
       // from useAnalyzeStore, so comment/task/idea writes route through the store
       // (its source of truth). parseMentions resolves @-tags against members.
       onAddHubComment: (hubId: string, text: string) => {
-        const mentionedUserIds = parseMentions(text, wallWorkspaceProjectMembers);
+        const mentionedUserIds = parseMentions(text, wallWorkspaceProjectContributors);
         void useAnalyzeStore
           .getState()
           .addHubComment(hubId, text, PWA_WALL_USER_ID, mentionedUserIds);
@@ -1214,7 +1198,7 @@ function AppMain() {
         useAnalyzeStore.getState().editHubComment(hubId, commentId, text),
       onDeleteHubComment: (hubId: string, commentId: string) =>
         useAnalyzeStore.getState().deleteHubComment(hubId, commentId),
-      showCommentAuthors: wallWorkspaceProjectMembers.length > 0,
+      showCommentAuthors: wallWorkspaceProjectContributors.length > 0,
       // IM-4b Task 3 — ActionItem tasks
       onAddHypothesisAction: (
         hypothesisId: string,
@@ -1245,7 +1229,7 @@ function AppMain() {
 
     [
       wallMeasurementPlans,
-      wallWorkspaceProjectMembers,
+      wallWorkspaceProjectContributors,
       PWA_WALL_USER_ID,
       investigation,
       pendingMatchByPlanId,
@@ -1567,9 +1551,6 @@ function AppMain() {
               rawData={rawData}
               timeColumn={importFlow.timeExtractionPrompt?.timeColumn}
               resolved={resolved}
-              revokeInvite={revokeInvite}
-              acceptInvite={acceptInvite}
-              pendingInvites={pendingInvites}
               selectedOrActiveProjectId={selectedOrActiveProjectId}
               separateParetoFilename={separateParetoFilename}
               sessionHub={sessionHub}

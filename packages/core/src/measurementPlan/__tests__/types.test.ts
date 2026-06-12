@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { MeasurementPlan, MeasurementMethod, MeasurementPlanStatus } from '../types';
 import type { ConditionLeaf } from '../../findings/hypothesisCondition';
-import type { ProjectMember } from '../../projectMembership/types';
+import type { ProjectContributor } from '../../improvementProject/types';
 
 describe('MeasurementMethod', () => {
   it('exhaustively enumerates 5 method values', () => {
@@ -25,7 +25,7 @@ describe('MeasurementPlanStatus', () => {
 
 describe('MeasurementPlan — DCP shape (spec §7.1)', () => {
   it('has the full DCP field set', () => {
-    const ownerId: ProjectMember['id'] = 'pm-1';
+    const ownerId: ProjectContributor['id'] = 'pm-1';
     const scope: ConditionLeaf[] = [{ kind: 'leaf', column: 'SHIFT', op: 'eq', value: 'night' }];
     const plan: MeasurementPlan = {
       id: 'mp-1',

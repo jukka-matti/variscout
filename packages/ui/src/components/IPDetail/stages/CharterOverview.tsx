@@ -1,9 +1,5 @@
-import React, { useState } from 'react';
+import type React from 'react';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import type { ProjectRole } from '@variscout/core/projectMembership';
-import { canAccess } from '@variscout/core/projectMembership';
-import { InviteModal } from '../../projects/InviteModal';
-import { MemberList } from '../../projects/MemberList';
 import ProjectSignalChips from '../ProjectSignalChips';
 import type { ProjectOverviewSignals } from '../projectOverviewSignals';
 
@@ -14,14 +10,8 @@ interface CharterOverviewProps {
   surveyHint?: string;
   onSetGoal?: () => void;
   overviewSignals?: ProjectOverviewSignals;
-  /** Current user's id — required to show the Team section. */
+  /** Current local user id, retained for caller compatibility. */
   currentUserId?: string;
-  /** Called when the InviteModal is submitted. Caller builds the ProjectMember + dispatches IP UPDATE. */
-  onInvite?: (data: { email: string; role: ProjectRole }) => void;
-  /** When set, keep Invite visible but disabled with this explanation. */
-  inviteDisabledReason?: string;
-  /** Called when a lead removes a member. Caller dispatches IP UPDATE. */
-  onMemberRemove?: (memberId: string) => void;
 }
 
 function isGoalSet(ip: ImprovementProject): boolean {
@@ -38,17 +28,8 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
   onSetGoal,
   overviewSignals,
   currentUserId,
-  onInvite,
-  inviteDisabledReason,
-  onMemberRemove,
 }) => {
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const members = ip.metadata.members ?? [];
-  // Empty members[] is open-access (mirrors IPDetailPage hasIdentity escape): legacy IPs
-  // without wedge membership data fall back to pre-WV1-1 behavior where Invite was visible.
-  const canManageMembership =
-    currentUserId !== undefined &&
-    (members.length === 0 || canAccess(currentUserId, members, 'manage-membership'));
+  void currentUserId;
   const issueSnapshot = ip.sections.background.snapshotText ?? '—';
   const goalSet = isGoalSet(ip);
 
@@ -65,10 +46,7 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
         </div>
       </div>
 
-      <ProjectSignalChips
-        signals={overviewSignals}
-        groups={['hypotheses', 'findings', 'measurementPlans', 'team']}
-      />
+      <ProjectSignalChips signals={overviewSignals} groups={['hypotheses', 'findings']} />
 
       {/* KPI strip */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -141,54 +119,6 @@ const CharterOverview: React.FC<CharterOverviewProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Team section — wedge V1 members[] (additive; legacy team[] lives in IPDetailTeamRail) */}
-      {onInvite ? (
-        <div data-testid="charter-team-section">
-          <div className="flex items-center justify-between">
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-content-tertiary">
-              Team
-            </div>
-            {canManageMembership && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (!inviteDisabledReason) setInviteOpen(true);
-                }}
-                disabled={inviteDisabledReason !== undefined}
-                title={inviteDisabledReason}
-                className="rounded-md border border-edge px-2 py-1 text-xs text-content-secondary hover:text-content disabled:cursor-not-allowed disabled:text-content-tertiary"
-              >
-                Invite team
-              </button>
-            )}
-          </div>
-          {inviteDisabledReason ? (
-            <p className="mt-2 text-xs text-content-secondary">{inviteDisabledReason}</p>
-          ) : null}
-          {members.length > 0 && currentUserId !== undefined ? (
-            <div className="mt-2">
-              <MemberList
-                members={members}
-                currentUserId={currentUserId}
-                onRemove={id => onMemberRemove?.(id)}
-              />
-            </div>
-          ) : members.length === 0 ? (
-            <p className="mt-2 text-xs text-content-secondary">
-              No members yet — invite your team.
-            </p>
-          ) : null}
-          <InviteModal
-            isOpen={inviteOpen}
-            onClose={() => setInviteOpen(false)}
-            onInvite={data => {
-              onInvite(data);
-              setInviteOpen(false);
-            }}
-          />
-        </div>
-      ) : null}
     </div>
   );
 };

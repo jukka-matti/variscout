@@ -10,7 +10,6 @@
 
 import type { ImprovementProject, ImprovementProjectStatus } from './types';
 import type { ProcessHub } from '../processHub';
-import type { ProjectMember } from '../projectMembership/types';
 import { generateDeterministicId } from '../identity';
 
 export interface CreateNewIPInput {
@@ -22,10 +21,9 @@ export interface CreateNewIPInput {
    *  produced IP root when undefined; the caller (modal) is responsible for
    *  trimming + treating whitespace-only as undefined. */
   issueStatement?: string;
-  /** User id of the current user — populated as the project's Lead member. */
+  /** User id of the current user — populated as a local contributor label. */
   currentUserId: string;
-  /** Optional display name for the Lead member. Falls back to `currentUserId`
-   *  so the member roster always has a renderable label. */
+  /** Optional display name for the local contributor label. */
   currentUserDisplayName?: string;
   /** Optional status override; defaults to `'active'` per the E1 wedge V1
    *  lifecycle decision (no draft → active gating in V1). */
@@ -42,7 +40,7 @@ export interface CreateNewIPInput {
  *
  * Defaults:
  * - `status` → `'active'` (E1 lifecycle decision: no draft gating in V1).
- * - `metadata.members` → `[{ role: 'lead', userId: currentUserId }]`.
+ * - `metadata.contributors` → `[{ userId: currentUserId }]`.
  * - `goal.outcomeGoals` → `[]` (Charter authoring populates).
  * - `sections.*` → `{}` empty narrative containers.
  * - `createdAt` === `updatedAt` (single clock read).
@@ -54,17 +52,12 @@ export interface CreateNewIPInput {
 export function createNewIP(input: CreateNewIPInput): ImprovementProject {
   const now = input.now ? input.now() : Date.now();
   const id = input.id ?? generateDeterministicId();
-  const memberId = input.id ? `${input.id}-lead` : generateDeterministicId();
-
-  const leadMember: ProjectMember = {
-    id: memberId,
+  const contributor = {
+    id: input.id ? `${input.id}-contributor` : generateDeterministicId(),
     createdAt: now,
     deletedAt: null,
     userId: input.currentUserId,
     displayName: input.currentUserDisplayName ?? input.currentUserId,
-    role: 'lead',
-    invitedAt: now,
-    acceptedAt: now,
   };
 
   return {
@@ -73,7 +66,7 @@ export function createNewIP(input: CreateNewIPInput): ImprovementProject {
     status: input.status ?? 'active',
     metadata: {
       title: input.title,
-      members: [leadMember],
+      contributors: [contributor],
     },
     goal: {
       outcomeGoals: [],

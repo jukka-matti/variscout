@@ -132,8 +132,7 @@ export interface CanvasWorkspaceProps {
   actionItems?: ActionItem[];
   /** When false, hides the Edit/State toggle and forces State mode.
    *  When undefined or true, the toggle is shown and Edit mode is reachable.
-   *  Azure derives this from canAccess(currentUserId, members, 'edit');
-   *  PWA passes true (no membership model). */
+   *  App shells pass this from local workspace state. */
   canEditCanvas?: boolean;
   /** The Workspace Project (CCJ E1 T5). When provided, the four
    *  Canvas-Edit-mode binding arrays (`processSteps`, `stepTimings`,

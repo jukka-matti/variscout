@@ -7,7 +7,6 @@ import type {
 } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import type { HubAction } from '@variscout/core/actions';
-import type { ProjectMember } from '@variscout/core/projectMembership';
 import { useAnalysisScopeStore, useImprovementProjectStore } from '@variscout/stores';
 import { deriveWorkspaceViewModel } from '@variscout/hooks';
 import { deriveProjectOverviewSignals, IPDetailPage } from '@variscout/ui/ipDetail';
@@ -34,8 +33,6 @@ interface ProjectsTabViewProps {
   onStartNewProject?: () => void;
   /** Current user's identifier (EasyAuth email/UPN). Threads into IPDetailPage for wedge ACL guards. */
   currentUserId?: string;
-  /** When set, invite affordances remain visible but disabled with this explanation. */
-  inviteDisabledReason?: string;
   /**
    * App-provided Control region (PR-PO-2). Forwarded into IPDetailPage's Control
    * stage. Editor builds it from the single active project + its scoped control
@@ -51,13 +48,9 @@ interface ProjectsTabViewProps {
  * fallback when the user is unknown (no auth context in tests).
  */
 function actingApprover(
-  project: ImprovementProject,
+  _project: ImprovementProject,
   currentUserId: string | undefined
 ): ProcessParticipantRef {
-  const me = project.metadata.members?.find(m => m.userId === currentUserId);
-  if (me) {
-    return { userId: me.userId, displayName: me.displayName };
-  }
   return { userId: currentUserId, displayName: 'Reviewer' };
 }
 
@@ -109,7 +102,6 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   onNudgeSignoff,
   onStartNewProject,
   currentUserId,
-  inviteDisabledReason,
   controlRegionSlot,
 }) => {
   const [now] = React.useState(() => Date.now());
@@ -215,19 +207,6 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         actions={approachInputs?.actions}
         now={now}
         currentUserId={currentUserId}
-        inviteDisabledReason={inviteDisabledReason}
-        onMembersChange={(members: ProjectMember[]) => {
-          const prevCount = selected.metadata.members?.length ?? 0;
-          // Set the durable collaboration marker ONCE, when the roster first
-          // grows beyond its solo creator (first invite). Never re-stamped and
-          // never cleared on removal — see ImprovementProject.collaboratedAt.
-          const markFirstInvite =
-            members.length > prevCount && !selected.collaboratedAt ? { collaboratedAt: now } : {};
-          applyProjectPatch(selected, {
-            metadata: { ...selected.metadata, members },
-            ...markFirstInvite,
-          });
-        }}
         onRequestSignoff={() =>
           applyProjectPatch(selected, {
             signoff: {

@@ -2,6 +2,7 @@ export type {
   ImprovementProject,
   ImprovementProjectStatus,
   ImprovementProjectMetadata,
+  ProjectContributor,
   ImprovementProjectOutcomeGoal,
   ImprovementProjectFactorControl,
   ImprovementProjectMechanismGoal,

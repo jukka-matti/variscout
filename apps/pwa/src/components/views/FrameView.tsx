@@ -947,8 +947,7 @@ const FrameView: React.FC<FrameViewProps> = ({
         onNavigateContextLink={handleNavigateContextLink}
         onCaptureFindingFromStep={handleCaptureFindingFromStep}
         priorStepStats={priorStepStats}
-        // PWA has no project-membership model (education tier per apps/pwa/CLAUDE.md);
-        // Edit mode is always reachable. Azure derives this from canAccess(..., 'edit').
+        // Local-first Workspace edit mode is always reachable in the PWA.
         canEditCanvas={true}
         actionItems={actionItems}
         workspaceProject={workspaceProject}

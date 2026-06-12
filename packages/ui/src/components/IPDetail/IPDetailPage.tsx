@@ -1,16 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePreferencesStore } from '@variscout/stores';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import type { ProjectMember, ProjectRole } from '@variscout/core/projectMembership';
-import { canAccess } from '@variscout/core/projectMembership';
-import { generateDeterministicId } from '@variscout/core';
-import { reduceProjectMembers, type MembershipAction } from '@variscout/core/actions';
 import IPDetailHeader from './IPDetailHeader';
 import IPDetailStageTabs, { type StageName } from './IPDetailStageTabs';
-import NoAccessRedirect from './NoAccessRedirect';
 import IPDetailModeToggle, { type IPDetailMode } from './IPDetailModeToggle';
-import IPDetailTeamRail, { type RaciAssignment } from './IPDetailTeamRail';
+import IPDetailTeamRail from './IPDetailTeamRail';
 import { deriveStageState, type StageStateInputs } from './stageState';
 import CharterOverview from './stages/CharterOverview';
 import CharterSections from './stages/CharterSections';
@@ -29,14 +23,8 @@ export interface IPDetailPageProps {
   onBackToList: () => void;
   /** Optional stage-state inputs (derived from linked ControlRecord + ControlHandoff at the caller). */
   stageStateInputs?: StageStateInputs;
-  /** Optional invite handler (Plan 3 wires this). */
-  onInviteClick?: () => void;
-  /** When set, invite affordances remain visible but disabled with this explanation. */
-  inviteDisabledReason?: string;
-  /** Current user's id — used by Charter team section for remove-button gating. */
+  /** Current user's id — retained only for local author/provenance display. */
   currentUserId?: string;
-  /** Emits the updated wedge members[] roster after add/remove. Caller dispatches IMPROVEMENT_PROJECT_UPDATE. */
-  onMembersChange?: (members: ProjectMember[]) => void;
   /** Active hub gives the rail access to Process Owner signoff context. */
   activeHub?: ProcessHub;
   /** Optional day counter passed to header. */
@@ -89,10 +77,7 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   ip,
   onBackToList,
   stageStateInputs,
-  onInviteClick,
-  inviteDisabledReason,
   currentUserId,
-  onMembersChange,
   activeHub,
   dayCounter,
   onJumpOut,
@@ -117,59 +102,11 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
   const stages = useMemo(() => deriveStageState(ip, stageStateInputs), [ip, stageStateInputs]);
   const [activeStage, setActiveStage] = useState<StageName>(() => defaultActiveStage(stages));
   const [mode, setMode] = useState<IPDetailMode>('overview');
-  const [mobileTeamOpen, setMobileTeamOpen] = useState(false);
-  // Reserved for per-member RACI override UI; no mutator surfaced in wedge V1.
-  const raciOverrides: Record<string, RaciAssignment> = {};
   const isTabletRailExpanded = usePreferencesStore(s => s.isIPTeamRailExpanded);
   const setTabletRailExpanded = usePreferencesStore(s => s.setIPTeamRailExpanded);
-  const members = ip.metadata.members ?? [];
-
-  // ACL guard: only apply when we have an identified user AND an explicit members list.
-  // If currentUserId is absent OR members[] is empty/absent → backward-compatible open access.
-  const hasIdentity = currentUserId !== undefined && members.length > 0;
-  const isExplicitlyExcluded = hasIdentity && !canAccess(currentUserId, members, 'view-report');
-  const isSponsor =
-    hasIdentity && members.find(m => m.userId === currentUserId)?.role === 'sponsor';
-  const canManageMembership =
-    !hasIdentity || canAccess(currentUserId, members, 'manage-membership');
-
-  const handleInviteClick = () => {
-    onInviteClick?.();
-  };
-
-  const handleMemberInvite = (data: { email: string; role: ProjectRole }) => {
-    if (!onMembersChange) return;
-    const inviteTime = Date.now();
-    const newMember: ProjectMember = {
-      id: generateDeterministicId(),
-      createdAt: inviteTime,
-      deletedAt: null,
-      userId: data.email,
-      displayName: data.email.split('@')[0],
-      role: data.role,
-      invitedAt: inviteTime,
-    };
-    const action: MembershipAction = {
-      kind: 'PROJECT_MEMBER_ADD',
-      projectId: ip.id,
-      member: newMember,
-    };
-    onMembersChange(reduceProjectMembers(members, action));
-  };
-
-  const handleMemberRemove = (memberId: string) => {
-    if (!onMembersChange) return;
-    const action: MembershipAction = {
-      kind: 'PROJECT_MEMBER_REMOVE',
-      projectId: ip.id,
-      memberId,
-    };
-    onMembersChange(reduceProjectMembers(members, action));
-  };
 
   const railProps = {
     ip,
-    raciOverrides,
     activeHub,
     ideas,
     actions,
@@ -181,21 +118,9 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
     onApproveSignoff,
   };
 
-  // Non-member: show access denial instead of the project detail.
-  if (isExplicitlyExcluded) {
-    return <NoAccessRedirect projectTitle={ip.metadata.title ?? '(untitled)'} />;
-  }
-
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <IPDetailHeader
-        ip={ip}
-        onBackToList={onBackToList}
-        onInviteClick={canManageMembership ? handleInviteClick : undefined}
-        inviteDisabledReason={canManageMembership ? inviteDisabledReason : undefined}
-        onOpenTeamWorkspace={() => setMobileTeamOpen(true)}
-        dayCounter={dayCounter}
-      />
+      <IPDetailHeader ip={ip} onBackToList={onBackToList} dayCounter={dayCounter} />
 
       <div className="flex items-center justify-between border-b border-edge bg-surface px-6 py-2">
         <IPDetailStageTabs stages={stages} active={activeStage} onStageChange={setActiveStage} />
@@ -211,9 +136,6 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
               onOpenAnalyze={() => onJumpOut?.('analyze')}
               overviewSignals={overviewSignals}
               currentUserId={currentUserId}
-              onInvite={onMembersChange && canManageMembership ? handleMemberInvite : undefined}
-              inviteDisabledReason={canManageMembership ? inviteDisabledReason : undefined}
-              onMemberRemove={onMembersChange && !isSponsor ? handleMemberRemove : undefined}
             />
           )}
           {activeStage === 'charter' && mode === 'sections' && (
@@ -278,20 +200,16 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
         </main>
         <div
           className="hidden border-l border-edge bg-slate-50 md:block lg:hidden"
-          data-testid="ip-detail-team-rail-tablet"
+          data-testid="ip-detail-activity-rail-tablet"
         >
           <button
             type="button"
             className="flex h-full w-8 items-start justify-center border-r border-edge py-3 text-content-secondary hover:text-content"
-            aria-label={isTabletRailExpanded ? 'Collapse team rail' : 'Expand team rail'}
+            aria-label={isTabletRailExpanded ? 'Collapse activity rail' : 'Expand activity rail'}
             aria-expanded={isTabletRailExpanded}
             onClick={() => setTabletRailExpanded(!isTabletRailExpanded)}
           >
-            {isTabletRailExpanded ? (
-              <ChevronRight size={16} aria-hidden="true" />
-            ) : (
-              <ChevronLeft size={16} aria-hidden="true" />
-            )}
+            {isTabletRailExpanded ? '›' : '‹'}
           </button>
           {isTabletRailExpanded ? (
             <div aria-hidden="false">
@@ -304,28 +222,6 @@ const IPDetailPage: React.FC<IPDetailPageProps> = ({
         </div>
         <IPDetailTeamRail {...railProps} />
       </div>
-      {mobileTeamOpen ? (
-        <div
-          className="fixed inset-0 z-50 flex items-end bg-black/30 md:hidden"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Team workspace"
-        >
-          <div className="max-h-[85vh] w-full overflow-auto rounded-t-lg bg-slate-50 shadow-xl">
-            <div className="flex items-center justify-between border-b border-edge bg-surface px-4 py-3">
-              <h2 className="text-sm font-semibold text-content">Team workspace</h2>
-              <button
-                type="button"
-                className="text-xs text-content-secondary hover:text-content"
-                onClick={() => setMobileTeamOpen(false)}
-              >
-                Close team workspace
-              </button>
-            </div>
-            <IPDetailTeamRail {...railProps} className="block w-full bg-slate-50 p-4 text-xs" />
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 };

@@ -21,7 +21,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { HypothesisCardWithPlans, type TestPlanFactorView } from '../HypothesisCardWithPlans';
 import type { Hypothesis, Finding } from '@variscout/core';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 
 const hub: Hypothesis = {
   id: 'h1',
@@ -46,7 +46,7 @@ const baseProps = {
   x: 100,
   y: 100,
   plans: [],
-  members: [] as ProjectMember[], // open-access (V1 single-user)
+  members: [] as ProjectContributor[], // open-access (V1 single-user)
   currentUserId: null,
   findings,
   onAddPlan: vi.fn(),

@@ -334,8 +334,7 @@ function priorStepStatsFromSnapshots(
 }
 
 interface FrameViewProps {
-  /** Lead-only Edit mode gate. Computed in Editor.tsx from canAccess(currentUserId, members, 'edit').
-   *  When omitted, the workspace defaults to permissive (used by tests + non-membership callers like PWA). */
+  /** Canvas edit-mode availability. When omitted, the workspace defaults to permissive. */
   canEditCanvas?: boolean;
   /** The active ImprovementProject (E1 T5). Resolved by Editor.tsx via
    *  `useWorkspaceProjectContext(activeHub, { userId: currentUser?.email })`. Forwarded to

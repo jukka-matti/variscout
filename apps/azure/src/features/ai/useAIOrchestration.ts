@@ -27,7 +27,6 @@ import type {
   Locale,
   AnalysisMode,
   CoScoutSurface,
-  ProjectRole,
   ProblemStatementScope,
   CoScoutScope,
 } from '@variscout/core';
@@ -94,7 +93,6 @@ export interface UseAIOrchestrationOptions {
   locale?: Locale;
   knowledgeSearchFolder?: string;
   coscoutSurface?: CoScoutSurface | null;
-  projectRole?: ProjectRole;
   analysisScope?: ProblemStatementScope;
   entryScenario?: EntryScenario;
   capabilityData?: BuildAIContextOptions['capabilityData'];
@@ -151,7 +149,6 @@ export function useAIOrchestration({
   locale,
   knowledgeSearchFolder,
   coscoutSurface = null,
-  projectRole,
   analysisScope,
   entryScenario,
   capabilityData,
@@ -307,7 +304,6 @@ export function useAIOrchestration({
     entryScenario,
     capabilityData,
     analysisMode,
-    projectRole,
     analysisScope,
     focusedQuestionId,
     evidenceMapTopology: effectiveTopology,

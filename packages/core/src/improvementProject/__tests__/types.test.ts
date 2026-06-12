@@ -5,7 +5,7 @@ import type {
   ImprovementProjectStatus,
   ProcessStepEntry,
 } from '../types';
-import type { ProjectMember } from '../../projectMembership/types';
+import type { ProjectContributor } from '../../improvementProject/types';
 import type { StepTimingBinding, TimeDecompositionBinding } from '../../derived/types';
 import type { FormulaBinding } from '../../derived/formula/types';
 
@@ -44,22 +44,20 @@ describe('ImprovementProject', () => {
     expect(statuses).toHaveLength(3);
   });
 
-  it('accepts members[] field on metadata (type-level compile check)', () => {
-    const member: ProjectMember = {
+  it('accepts contributors[] field on metadata (type-level compile check)', () => {
+    const member: ProjectContributor = {
       id: 'pm-1',
       createdAt: 2000,
       deletedAt: null,
       userId: 'u@org',
       displayName: 'Alice',
-      role: 'lead',
-      invitedAt: 2000,
     };
     const meta: ImprovementProjectMetadata = {
       title: 'Test',
-      members: [member],
+      contributors: [member],
     };
-    expect(meta.members).toHaveLength(1);
-    expect(meta.members![0].role).toBe('lead');
+    expect(meta.contributors).toHaveLength(1);
+    expect(meta.contributors![0].displayName).toBe('Alice');
   });
 
   it('accepts optional reflection narrative field', () => {

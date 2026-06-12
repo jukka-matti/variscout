@@ -1,14 +1,11 @@
 import React from 'react';
 import type { ImprovementProjectMetadata } from '@variscout/core/improvementProject';
-import type { ProjectMember, ProjectRole } from '@variscout/core/projectMembership';
 
 type FinancialImpact = NonNullable<ImprovementProjectMetadata['financialImpact']>;
 
 export interface HeaderMetadataSectionProps {
   title: string;
   onTitleChange?: (title: string) => void;
-  members?: ProjectMember[];
-  onMembersChange?: (members: ProjectMember[]) => void;
   businessCase?: string;
   onBusinessCaseChange?: (value: string) => void;
   financialImpact?: ImprovementProjectMetadata['financialImpact'];
@@ -18,12 +15,6 @@ export interface HeaderMetadataSectionProps {
   onProjectIdChange?: (id: string | undefined) => void;
 }
 
-const MEMBER_ROLES: Array<{ value: ProjectRole; label: string }> = [
-  { value: 'lead', label: 'Lead' },
-  { value: 'member', label: 'Member' },
-  { value: 'sponsor', label: 'Sponsor' },
-];
-
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'SEK', 'NOK', 'DKK'];
 const DEFAULT_CURRENCY = 'USD';
 
@@ -32,31 +23,9 @@ const inputClassName =
 
 const labelClassName = 'text-sm font-medium text-content';
 
-function updateMember(
-  members: ProjectMember[],
-  index: number,
-  nextMember: ProjectMember
-): ProjectMember[] {
-  return members.map((m, i) => (i === index ? nextMember : m));
-}
-
-function createBlankMember(now: number): ProjectMember {
-  return {
-    id: `pm-draft-${now}`,
-    createdAt: now,
-    deletedAt: null,
-    userId: '',
-    displayName: '',
-    role: 'member',
-    invitedAt: now,
-  };
-}
-
 export const HeaderMetadataSection: React.FC<HeaderMetadataSectionProps> = ({
   title,
   onTitleChange,
-  members = [],
-  onMembersChange,
   businessCase = '',
   onBusinessCaseChange,
   financialImpact,
@@ -97,83 +66,6 @@ export const HeaderMetadataSection: React.FC<HeaderMetadataSectionProps> = ({
             Project title is required.
           </p>
         ) : null}
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-semibold text-content">Team</h3>
-          <button
-            type="button"
-            className="rounded-md border border-edge bg-surface px-3 py-2 text-sm font-medium text-content hover:bg-surface-secondary focus:outline-none focus:ring-2 focus:ring-accent/20"
-            onClick={() => onMembersChange?.([...members, createBlankMember(Date.now())])}
-          >
-            Add team member
-          </button>
-        </div>
-
-        {members.length > 0 ? (
-          <div className="space-y-3">
-            {members.map((member, index) => (
-              <div
-                key={member.id}
-                className="grid gap-3 rounded-md border border-edge bg-surface-secondary p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-                data-testid="metadata-team-row"
-              >
-                <label className="space-y-1">
-                  <span className={labelClassName}>Role</span>
-                  <select
-                    className={inputClassName}
-                    value={member.role}
-                    onChange={event =>
-                      onMembersChange?.(
-                        updateMember(members, index, {
-                          ...member,
-                          role: event.target.value as ProjectRole,
-                        })
-                      )
-                    }
-                  >
-                    {MEMBER_ROLES.map(role => (
-                      <option key={role.value} value={role.value}>
-                        {role.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="space-y-1">
-                  <span className={labelClassName}>Display name</span>
-                  <input
-                    className={inputClassName}
-                    value={member.displayName}
-                    onChange={event =>
-                      onMembersChange?.(
-                        updateMember(members, index, {
-                          ...member,
-                          displayName: event.target.value,
-                        })
-                      )
-                    }
-                  />
-                </label>
-
-                <div className="flex items-end">
-                  <button
-                    type="button"
-                    className="w-full rounded-md border border-edge bg-surface px-3 py-2 text-sm font-medium text-content hover:bg-surface-secondary focus:outline-none focus:ring-2 focus:ring-accent/20"
-                    onClick={() =>
-                      onMembersChange?.(members.filter((_, memberIndex) => memberIndex !== index))
-                    }
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-content/60">No team members added.</p>
-        )}
       </div>
 
       <div className="space-y-2">

@@ -12,10 +12,9 @@ describe('ensureSessionProject', () => {
     expect(hub.improvementProject!.metadata.title).toBe('Case: The Bottleneck');
     expect(hub.improvementProject!.hubId).toBe(hub.id);
     expect(hub.improvementProject!.deletedAt).toBeNull();
-    const members = hub.improvementProject?.metadata.members ?? [];
+    const members = hub.improvementProject?.metadata.contributors ?? [];
     expect(members).toHaveLength(1);
     expect(members[0]).toMatchObject({
-      role: 'lead',
       userId: 'analyst@local',
     });
   });

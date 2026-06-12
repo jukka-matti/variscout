@@ -18,7 +18,7 @@ import { useState } from 'react';
 import type { Hypothesis } from '@variscout/core';
 import type { MeasurementPlan, MeasurementMethod } from '@variscout/core/measurementPlan';
 import type { ConditionLeaf } from '@variscout/core/findings';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 
 /** A process-step option for the processLocation picker. */
 export interface StepOption {
@@ -28,7 +28,7 @@ export interface StepOption {
 
 export interface AddPlanFormProps {
   hypothesisId: Hypothesis['id'];
-  members: ProjectMember[];
+  members: ProjectContributor[];
   onSave: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => void;
   onCancel: () => void;
   /**
@@ -74,7 +74,7 @@ export function AddPlanForm({
   defaultOutcome,
   defaultPrimaryFactor,
 }: AddPlanFormProps) {
-  const eligibleOwners = members.filter(m => m.role !== 'sponsor' && m.deletedAt === null);
+  const eligibleOwners = members.filter(m => m.deletedAt === null);
   const [primaryFactor, setPrimaryFactor] = useState(defaultPrimaryFactor ?? '');
   const [outcome, setOutcome] = useState(defaultOutcome ?? '');
   const [neededFactorsRaw, setNeededFactorsRaw] = useState('');

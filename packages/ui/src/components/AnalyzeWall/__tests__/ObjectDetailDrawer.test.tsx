@@ -30,16 +30,14 @@ import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { Finding, FindingComment, Hypothesis } from '@variscout/core';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 
 import { ObjectDetailDrawer } from '../ObjectDetailDrawer';
 
-const leadMember: ProjectMember = {
+const leadMember: ProjectContributor = {
   id: 'm1',
   userId: 'user-lead',
   displayName: 'Alice Lead',
-  role: 'lead',
-  invitedAt: 1,
   createdAt: 1,
   deletedAt: null,
 };

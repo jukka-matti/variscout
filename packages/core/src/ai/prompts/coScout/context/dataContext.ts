@@ -21,10 +21,6 @@ import type { AIContext } from '../../../types';
 export function formatDataContext(context: AIContext): string {
   const lines: string[] = [];
 
-  if (context.projectRole) {
-    lines.push(`Project role: ${context.projectRole}`);
-  }
-
   // Active chart with factor info
   if (context.activeChart) {
     const filters = context.filters;

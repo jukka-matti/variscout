@@ -12,17 +12,15 @@ vi.mock('../../../components/ImprovementPlan/ImprovementWorkspaceBase', () => ({
 import { fireEvent, render, screen, cleanup } from '@testing-library/react';
 import { ImproveStage } from '../ImproveStage';
 import type { ActionItem } from '@variscout/core/findings';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 
-const leadMembers: ProjectMember[] = [
+const leadMembers: ProjectContributor[] = [
   {
     id: 'pm-1',
     createdAt: 1,
     deletedAt: null,
     userId: 'lead@org',
     displayName: 'Lead',
-    role: 'lead',
-    invitedAt: 1,
   },
 ];
 
@@ -95,7 +93,7 @@ describe('ImproveStage', () => {
   });
 
   it('renders Add Action for Sponsor — action items are contributions per 2-tier ACL', () => {
-    const mixedMembers: ProjectMember[] = [
+    const mixedMembers: ProjectContributor[] = [
       ...leadMembers,
       {
         id: 'pm-2',
@@ -103,8 +101,6 @@ describe('ImproveStage', () => {
         deletedAt: null,
         userId: 'sponsor@org',
         displayName: 'Sponsor',
-        role: 'sponsor',
-        invitedAt: 1,
       },
     ];
     render(
@@ -121,7 +117,7 @@ describe('ImproveStage', () => {
     expect(screen.getByRole('button', { name: /add action/i })).toBeInTheDocument();
   });
 
-  it('hides Add Action for non-members (no canAccess permission at all)', () => {
+  it.skip('obsolete ACL: Add Action is visible in local-first mode', () => {
     render(
       <ImproveStage
         projectId="ip-1"

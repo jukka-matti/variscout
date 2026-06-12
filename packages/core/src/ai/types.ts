@@ -11,7 +11,6 @@ import type { EvidenceSource, EvidenceSnapshot } from '../evidenceSources';
 import type { ProcessMomentDefinition } from '../processMoments';
 import type { SignalCard } from '../signalCards';
 import type { HypothesisStatus, ProblemStatementScope } from '../findings/types';
-import type { ProjectRole } from '../projectMembership/types';
 
 /** AI model tier — maps to ARM deployment names ('fast' or 'reasoning') */
 export type AITier = 'fast' | 'reasoning';
@@ -151,8 +150,6 @@ export interface ProcessContext {
 export interface AIContext {
   /** Process context from user */
   process: ProcessContext;
-  /** Current member role in the Project, when known */
-  projectRole?: ProjectRole;
   /** Current Analysis Scope: outcome/measure + factor + step + filters */
   analysisScope?: {
     id?: ProblemStatementScope['id'];

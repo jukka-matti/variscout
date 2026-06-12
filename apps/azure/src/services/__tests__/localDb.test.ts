@@ -6,7 +6,6 @@ import type { DocumentSnapshot } from '@variscout/stores';
 import { db } from '../../db/schema';
 import {
   backfillProjectMetadataInIndexedDB,
-  canAccessProjectRecord,
   ensureDefaultProcessHubInIndexedDB,
   extractDocumentAccess,
   extractMetadataInputs,
@@ -162,64 +161,7 @@ describe('localDb Process Hub support', () => {
     });
   });
 
-  it('derives formal Project access from the member roster', () => {
-    const doc = {
-      ...snapshot(),
-      improvementProject: {
-        id: 'ip-1',
-        hubId: 'line-4',
-        status: 'active',
-        metadata: {
-          title: 'Project',
-          members: [
-            {
-              id: 'lead',
-              userId: 'lead@contoso.com',
-              displayName: 'Lead',
-              role: 'lead',
-              invitedAt: 1,
-              createdAt: 1,
-              deletedAt: null,
-            },
-            {
-              id: 'member',
-              userId: 'member@contoso.com',
-              displayName: 'Member',
-              role: 'member',
-              invitedAt: 1,
-              createdAt: 1,
-              deletedAt: null,
-            },
-          ],
-        },
-        goal: { outcomeGoals: [] },
-        sections: { background: {}, approach: {}, outcomeReference: {} },
-        createdAt: 1,
-        updatedAt: 1,
-        deletedAt: null,
-      },
-    } satisfies DocumentSnapshot;
-
-    const access = extractDocumentAccess(doc, 'creator@contoso.com');
-
-    expect(access.ownerUserId).toBe('lead@contoso.com');
-    expect(access.memberUserIds).toEqual(['lead@contoso.com', 'member@contoso.com']);
-    expect(
-      canAccessProjectRecord(
-        {
-          name: 'Project',
-          location: 'personal',
-          modified: new Date(),
-          synced: false,
-          data: doc,
-          access,
-        },
-        'member@contoso.com'
-      )
-    ).toBe(true);
-  });
-
-  it('filters local project listings to owner/member access', async () => {
+  it('filters local project listings to local owner visibility', async () => {
     await db.projects.bulkPut([
       {
         name: 'visible',
@@ -249,7 +191,7 @@ describe('localDb Process Hub support', () => {
       },
     ]);
 
-    const projects = await listFromIndexedDB('member@contoso.com');
+    const projects = await listFromIndexedDB('owner@contoso.com');
 
     expect(projects.map(project => project.name)).toEqual(['visible']);
   });

@@ -84,7 +84,6 @@ const ImprovementProjectPanel: React.FC<ImprovementProjectPanelProps> = ({
           metadataProps={{
             ...selectedProject.metadata,
             onTitleChange: title => updateSelectedProject({ metadata: { title } }),
-            onMembersChange: members => updateSelectedProject({ metadata: { members } }),
             onBusinessCaseChange: businessCase =>
               updateSelectedProject({ metadata: { businessCase } }),
             onFinancialImpactChange: financialImpact =>

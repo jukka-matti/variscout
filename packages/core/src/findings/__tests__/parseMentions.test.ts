@@ -3,7 +3,7 @@
  *
  * Acceptance:
  *   - Typing "@<member-display-name>" in the comment composer is parsed to a
- *     mention (resolved to the matching ProjectMember's userId).
+ *     mention (resolved to the matching ProjectContributor's userId).
  *   - Unresolved @-tags (no member with that display name) are ignored (no crash).
  *   - Multiple mentions in one comment are all parsed.
  *   - Case-insensitive match on display name.
@@ -19,43 +19,37 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { ProjectMember } from '../../projectMembership/types';
+import type { ProjectContributor } from '../../improvementProject/types';
 // ── The function under test — does NOT exist yet (RED) ───────────────────────
 import { parseMentions } from '../parseMentions';
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-const alice: ProjectMember = {
+const alice: ProjectContributor = {
   id: 'm1',
   userId: 'user-alice',
   displayName: 'Alice Lead',
-  role: 'lead',
-  invitedAt: 1,
   createdAt: 1,
   deletedAt: null,
 };
 
-const bob: ProjectMember = {
+const bob: ProjectContributor = {
   id: 'm2',
   userId: 'user-bob',
   displayName: 'Bob Member',
-  role: 'member',
-  invitedAt: 1,
   createdAt: 1,
   deletedAt: null,
 };
 
-const carol: ProjectMember = {
+const carol: ProjectContributor = {
   id: 'm3',
   userId: 'user-carol',
   displayName: 'Carol Sponsor',
-  role: 'sponsor',
-  invitedAt: 1,
   createdAt: 1,
   deletedAt: null,
 };
 
-const members: ReadonlyArray<ProjectMember> = [alice, bob, carol];
+const members: ReadonlyArray<ProjectContributor> = [alice, bob, carol];
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
@@ -119,17 +113,15 @@ describe('parseMentions', () => {
 
   // ── Longest-match-wins for prefix-overlapping display names ──────────────────
   describe('longest-match-wins (prefix-overlapping names)', () => {
-    const bobShort: ProjectMember = {
+    const bobShort: ProjectContributor = {
       id: 'm-short',
       userId: 'user-bob-short',
       displayName: 'Bob',
-      role: 'member',
-      invitedAt: 1,
       createdAt: 1,
       deletedAt: null,
     };
     // bob (above) has displayName 'Bob Member' / userId 'user-bob'.
-    const overlapping: ReadonlyArray<ProjectMember> = [bobShort, bob];
+    const overlapping: ReadonlyArray<ProjectContributor> = [bobShort, bob];
 
     it('resolves "@Bob Member" to the LONGER name only (Bob Member), not the prefix (Bob)', () => {
       const result = parseMentions('@Bob Member please validate', overlapping);

@@ -316,7 +316,7 @@ function EditorAnalyzeView({ props }: { props: EditorViewSwitchProps }): React.R
     sharedCoScoutSection,
     viewState,
     wallPlanningProps,
-    wallWorkspaceProjectMembers,
+    wallWorkspaceProjectContributors,
     workspaceProject,
     workspaceProjectContext,
     workspaceProjectScope,
@@ -336,7 +336,7 @@ function EditorAnalyzeView({ props }: { props: EditorViewSwitchProps }): React.R
         handleAddCommentWithAuthor={handleAddCommentWithAuthor}
         handleAddPhoto={handleAddPhoto}
         userId={currentUser?.email ?? null}
-        members={wallWorkspaceProjectMembers}
+        members={wallWorkspaceProjectContributors}
         onCoScoutObjectChange={handleAnalyzeCoScoutObjectChange}
         columnAliases={columnAliases}
         viewMode={
@@ -362,7 +362,6 @@ function EditorProjectsView({ props }: { props: EditorViewSwitchProps }): React.
     activeHub,
     currentUser,
     hypotheses,
-    inviteDisabledReason,
     persistedFindings,
     projectsClosureInputs,
     projectsControlHandoff,
@@ -427,7 +426,6 @@ function EditorProjectsView({ props }: { props: EditorViewSwitchProps }): React.
       }}
       onStartNewProject={() => usePanelsStore.getState().showCharter()}
       currentUserId={currentUser?.email ?? undefined}
-      inviteDisabledReason={inviteDisabledReason}
     />
   );
 }

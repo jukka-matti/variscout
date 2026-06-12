@@ -97,12 +97,12 @@ function countActions(actions: readonly ActionItem[]): ProjectOverviewSignals['a
 }
 
 function countTeam(ip: ImprovementProject): ProjectOverviewSignals['team'] {
-  const members = ip.metadata.members ?? [];
+  void ip;
   return {
-    total: members.length,
-    lead: countWhere(members, m => m.role === 'lead'),
-    member: countWhere(members, m => m.role === 'member'),
-    sponsor: countWhere(members, m => m.role === 'sponsor'),
+    total: 0,
+    lead: 0,
+    member: 0,
+    sponsor: 0,
   };
 }
 

@@ -28,7 +28,7 @@ export function ImproveTabRoot({
   if (workspaceProject === null) {
     return <NoActiveProjectGuidance onGoHome={onGoHome} />;
   }
-  const members = workspaceProject.metadata.members ?? [];
+  const members = workspaceProject.metadata.contributors ?? [];
   const scopedActions = actions.filter(a => a.parentImprovementProjectId === workspaceProject.id);
   return (
     <ImproveStage

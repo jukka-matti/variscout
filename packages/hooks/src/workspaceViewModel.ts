@@ -61,7 +61,7 @@ export function deriveWorkspaceViewModel({
       status: liveProject.status,
       createdAt: liveProject.createdAt,
       updatedAt: liveProject.updatedAt,
-      memberCount: liveProject.metadata.members?.length ?? 0,
+      memberCount: liveProject.metadata.contributors?.length ?? 0,
     },
     isFormalized,
     analysisScope,

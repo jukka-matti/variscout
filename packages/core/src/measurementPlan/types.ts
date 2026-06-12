@@ -1,7 +1,7 @@
 import type { EntityBase } from '../identity';
 import type { Finding } from '../findings/types';
 import type { Hypothesis } from '../findings/types';
-import type { ProjectMember } from '../projectMembership/types';
+import type { ProjectContributor } from '../improvementProject/types';
 import type { ConditionLeaf } from '../findings/hypothesisCondition';
 
 export type MeasurementMethod =
@@ -44,7 +44,7 @@ export interface MeasurementPlan extends EntityBase {
   neededFactors: string[];
   sampleSize: number;
   method: MeasurementMethod;
-  owner: ProjectMember['id'];
+  owner: ProjectContributor['id'];
   status: MeasurementPlanStatus;
   /**
    * Active WHERE drill-chip conditions captured at plan creation time.

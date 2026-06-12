@@ -70,12 +70,7 @@ import { LocaleProvider } from '../context/LocaleContext';
 import { db } from '../db/schema';
 import { registerLocaleLoaders, type MessageCatalog } from '@variscout/core';
 import { usePanelsStore, initialPanelsState } from '../features/panels/panelsStore';
-import {
-  useProjectStore,
-  useAnalyzeStore,
-  useProjectMembershipStore,
-  projectMembershipStorageKey,
-} from '@variscout/stores';
+import { useProjectStore, useAnalyzeStore } from '@variscout/stores';
 
 // Register locale loaders (mirrors main.tsx) so useTranslation works.
 registerLocaleLoaders(
@@ -263,53 +258,6 @@ describe('CapabilitySuggestionModal — FSJ-5 PWA retirement', () => {
     });
 
     expect(screen.queryByTestId('capability-suggestion-modal')).toBeNull();
-  });
-});
-
-// Minimal invite fixture — only the fields PendingInvitesBanner reads.
-const testInvite = {
-  id: 'inv-test-1',
-  projectId: 'proj-test-1',
-  userId: 'user-test-1',
-  displayName: 'Test User',
-  role: 'member' as const,
-  invitedAt: 1_700_000_000_000,
-  status: 'pending' as const,
-  createdAt: 1_700_000_000_000,
-  deletedAt: null,
-};
-
-describe('PendingInvitesBanner — mounted in App.tsx Home view (Workspace Project launchpad path)', () => {
-  beforeEach(() => {
-    // Non-empty rawData so the HomeScreen empty-state branch is skipped and the
-    // panels.activeView branch is reached.
-    useProjectStore.setState({ rawData: [{ x: 1 }] as never });
-    // Put the app on the Home view so panels.activeView === 'home' triggers.
-    usePanelsStore.setState({ ...initialPanelsState, activeView: 'home' });
-    // Seed one pending invitation so the banner renders (non-null).
-    // PWA uses 'analyst@local' as the stable per-user membership key (see App.tsx).
-    // Write to BOTH localStorage and in-memory state: App.tsx mounts a useEffect
-    // that calls `rehydrateInvites(userId)`, which reads from localStorage and
-    // would otherwise clobber an in-memory-only seed.
-    const membershipKey = projectMembershipStorageKey('analyst@local');
-    localStorage.setItem(membershipKey, JSON.stringify([testInvite]));
-    useProjectMembershipStore.setState({ invitesByUser: { [membershipKey]: [testInvite] } });
-  });
-
-  afterEach(() => {
-    // Restore stores to their initial state after each test.
-    useProjectStore.setState({ rawData: [], outcome: null, factors: [] });
-    usePanelsStore.setState(initialPanelsState);
-    useProjectMembershipStore.setState(useProjectMembershipStore.getInitialState());
-    localStorage.removeItem(projectMembershipStorageKey('analyst@local'));
-  });
-
-  it('renders PendingInvitesBanner above the launchpad when on the Home view with pending invites', async () => {
-    await act(async () => {
-      renderApp();
-    });
-
-    expect(screen.getByRole('region', { name: /pending invitations/i })).toBeInTheDocument();
   });
 });
 

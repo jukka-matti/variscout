@@ -3,13 +3,10 @@ import type { ActionItem, ImprovementIdea } from '@variscout/core/findings';
 import type { ControlHandoff, ProcessHub, ControlRecord } from '@variscout/core';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { isCollaborative } from '@variscout/core/improvementProject';
-import type { ProjectMember, ProjectRole } from '@variscout/core/projectMembership';
-import IPDetailAvatar from './IPDetailAvatar';
 import { deriveIPActivityEvents, type IPActivityEvent } from './activityEvents';
 
 interface IPDetailTeamRailProps {
   ip: ImprovementProject;
-  raciOverrides?: Record<string, RaciAssignment>;
   activeHub?: ProcessHub;
   ideas?: readonly ImprovementIdea[];
   actions?: readonly ActionItem[];
@@ -20,42 +17,6 @@ interface IPDetailTeamRailProps {
   onNudgeSignoff?: () => void;
   onApproveSignoff?: () => void;
   className?: string;
-}
-
-export type RaciAssignment = 'R' | 'A' | 'C' | 'I';
-
-const ROLE_LABELS: Record<ProjectRole, string> = {
-  lead: 'Lead',
-  member: 'Member',
-  sponsor: 'Sponsor',
-};
-
-/**
- * Derive a display-layer RACI tag from the wedge V1 project role. RACI is NOT
- * stored on the entity in wedge V1 — it is computed for the team-rail chip
- * (and overridable per-member via raciOverrides for local UI scratchpad use).
- * Kept local to TeamRail because RACI is a display concern, not a domain rule.
- */
-function roleToRaci(role: ProjectRole): RaciAssignment {
-  switch (role) {
-    case 'lead':
-      return 'R';
-    case 'sponsor':
-      return 'A';
-    case 'member':
-      return 'C';
-  }
-}
-
-export function memberKey(member: ProjectMember): string {
-  return member.userId || member.displayName;
-}
-
-function memberRaci(
-  member: ProjectMember,
-  raciOverrides: Record<string, RaciAssignment>
-): RaciAssignment {
-  return raciOverrides[memberKey(member)] ?? roleToRaci(member.role);
 }
 
 function formatDate(timestamp: number): string {
@@ -88,7 +49,6 @@ function ActivityList({ events }: { events: IPActivityEvent[] }) {
 
 const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
   ip,
-  raciOverrides = {},
   // `activeHub` stays on the props contract (callers still pass it) but the rail
   // no longer reads `processOwner`: sign-off is decoupled from the process owner
   // (IM-7 Task 3). Intentionally not destructured here.
@@ -102,7 +62,6 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
   onApproveSignoff,
   className = 'hidden w-[280px] flex-shrink-0 border-l border-edge bg-slate-50 p-4 text-xs lg:block',
 }) => {
-  const members = ip.metadata.members ?? [];
   const [activityOpen, setActivityOpen] = useState(false);
   const effectiveNow = now ?? Date.now();
   const events = useMemo(
@@ -123,43 +82,16 @@ const IPDetailTeamRail: React.FC<IPDetailTeamRailProps> = ({
   // any acting reviewer may approve while a request is pending. The approver
   // identity is captured at the dispatch site (the acting user), not here.
   const canApprove = pendingSignoff;
-  // Sign-off section is shown only when the project is collaborative (has a
-  // collaboratedAt marker) AND the rendering surface has wired at least one
-  // sign-off callback. The PWA wires none (§9.2 solo surface contract), so this
-  // evaluates to false even after an invite stamps collaboratedAt — the section
-  // is fully absent, not disabled. Azure wires all three callbacks so it always
-  // shows the section once the project is collaborative.
   const collaborative =
     isCollaborative(ip) && (!!onRequestSignoff || !!onApproveSignoff || !!onNudgeSignoff);
 
   return (
-    <aside className={className} data-testid="ip-detail-team-rail" aria-label="Team workspace">
-      <div className="uppercase tracking-wide text-content-tertiary">Team · {members.length}</div>
-      {members.length === 0 ? (
-        <p className="mt-3 text-content-secondary">No team members yet</p>
-      ) : (
-        <div className="mt-3 space-y-2">
-          {members.map((member, index) => (
-            <div
-              key={member.id}
-              className="flex items-center gap-2 rounded-md border border-edge bg-surface p-2"
-              data-testid={`ip-team-row-${index}`}
-            >
-              <IPDetailAvatar person={{ displayName: member.displayName }} />
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-medium text-content">{member.displayName}</div>
-                <div className="text-[11px] text-content-secondary">{ROLE_LABELS[member.role]}</div>
-              </div>
-              <span
-                className="flex h-6 min-w-6 items-center justify-center rounded-md bg-slate-100 px-2 text-[11px] font-semibold text-content-secondary"
-                aria-label={`RACI ${memberRaci(member, raciOverrides)}`}
-              >
-                {memberRaci(member, raciOverrides)}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+    <aside
+      className={className}
+      data-testid="ip-detail-activity-rail"
+      aria-label="Project activity"
+    >
+      <div className="uppercase tracking-wide text-content-tertiary">Project activity</div>
       <section className="mt-5" aria-labelledby="ip-activity-heading">
         <div className="flex items-center justify-between gap-2">
           <h2

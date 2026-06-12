@@ -15,7 +15,6 @@ import type {
   Locale,
   EntryScenario,
   Hypothesis,
-  ProjectRole,
   ProblemStatementScope,
 } from '@variscout/core';
 import type {
@@ -71,8 +70,6 @@ export interface UseAIContextOptions {
   entryScenario?: EntryScenario;
   /** Current analysis mode */
   analysisMode?: AnalysisMode;
-  /** Current project role for role-aware CoScout context */
-  projectRole?: ProjectRole;
   /** Active Analysis Scope for surface-aware CoScout context */
   analysisScope?: ProblemStatementScope;
   /** Cumulative scope fraction from drill path (0-1) */
@@ -129,7 +126,6 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     locale,
     entryScenario,
     analysisMode,
-    projectRole,
     analysisScope,
     cumulativeScope,
     drillPathEnriched,
@@ -162,7 +158,6 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       stagedComparison,
       locale,
       analysisMode,
-      projectRole,
       analysisScope,
       cumulativeScope,
       drillPathEnriched,
@@ -211,7 +206,6 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     locale,
     entryScenario,
     analysisMode,
-    projectRole,
     analysisScope,
     cumulativeScope,
     drillPathEnriched,
