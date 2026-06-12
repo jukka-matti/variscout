@@ -12,16 +12,14 @@
  * - Calls `useCoScoutProps` to assemble the 20+ CoScoutPanelBase props
  * - Sets up visual grounding callbacks via `useVisualGrounding`
  * - Manages session-close prompt state (pending unsaved insights)
- * - Renders `CoScoutPanelBase` when CoScout is open (phone overlay or sidebar)
+ * - Renders `CoScoutPanelBase` when CoScout is open
  * - Renders `SessionClosePrompt` when the user tries to close with pending items
  */
 
 import React, { useCallback, useState } from 'react';
-import { X } from 'lucide-react';
 import { CoScoutPanelBase, CoScoutRightDrawer, SessionClosePrompt } from '@variscout/ui';
 import type { SessionClosePromptItem } from '@variscout/ui';
 import type { CoScoutDrawerObject } from '@variscout/ui';
-import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { usePreferencesStore } from '@variscout/stores';
 import { useVisualGrounding } from '@variscout/hooks';
 import { useCoScoutProps } from '@variscout/hooks';
@@ -86,7 +84,6 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
   selectedObject = null,
   drawerMode = false,
 }) => {
-  const isPhone = useIsMobile(BREAKPOINTS.phone);
   const isCoScoutOpen = usePanelsStore(s => s.isCoScoutOpen);
   const aiEnabled = usePreferencesStore(s => s.aiEnabled);
   const filters = useProjectStore(s => s.filters);
@@ -229,8 +226,7 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
 
   return (
     <>
-      {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}
-      {drawerMode && !isPhone ? (
+      {drawerMode ? (
         <CoScoutRightDrawer
           isOpen={isCoScoutOpen}
           onOpenChange={open =>
@@ -242,21 +238,6 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
         >
           <CoScoutPanelBase isOpen={isCoScoutOpen} onClose={handleCoScoutClose} {...coScoutProps} />
         </CoScoutRightDrawer>
-      ) : isPhone && isCoScoutOpen ? (
-        <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
-            <h2 className="text-sm font-semibold text-content">CoScout</h2>
-            <button
-              onClick={handleCoScoutClose}
-              className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-              style={{ minWidth: 44, minHeight: 44 }}
-              aria-label="Close CoScout"
-            >
-              <X size={20} />
-            </button>
-          </div>
-          <CoScoutPanelBase isOpen={true} onClose={handleCoScoutClose} {...coScoutProps} />
-        </div>
       ) : (
         <CoScoutPanelBase isOpen={isCoScoutOpen} onClose={handleCoScoutClose} {...coScoutProps} />
       )}

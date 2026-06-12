@@ -40,7 +40,6 @@ vi.mock('@variscout/ui', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/ui')>();
   return {
     ...actual,
-    useIsMobile: () => false,
     PIPanelBase: ({ overflowItems }: { overflowItems?: Array<{ id: string; label: string }> }) => (
       <div data-testid="pi-panel">
         {(overflowItems ?? []).map(item => (

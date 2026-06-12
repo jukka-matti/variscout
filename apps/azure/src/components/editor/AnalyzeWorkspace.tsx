@@ -15,7 +15,6 @@ import {
   buildWallLayoutArgs,
   OverallProblemHeader,
   useWallKeyboard,
-  useWallIsMobile,
   navigateToExploreForChip,
   type HubComposerBranchFields,
 } from '@variscout/ui';
@@ -630,10 +629,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   // Phase 13 — ⌘K command palette. Only responds when Wall is visible.
   // (pan-to-node helper is defined after `hubs` is available, below.)
   const [wallPaletteOpen, setWallPaletteOpen] = useState(false);
-  // Phase 14.1 — viewport-aware rendering. Below 768px the WallCanvas swaps
-  // to MobileCardList; the Minimap and CommandPalette are sibling controls,
-  // so we gate their mount on the same breakpoint.
-  const wallIsMobile = useWallIsMobile();
   const [conclusionsOpen, setConclusionsOpen] = useState(false);
   const [selectedWallObject, setSelectedWallObject] = useState<ObjectDetailSelection | null>(null);
   const [objectDetailOpen, setObjectDetailOpen] = useState(false);
@@ -654,10 +649,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   }, [wallHubId]);
   useWallKeyboard({
     onSearch: () => {
-      if (wallViewMode === 'wall' && !wallIsMobile) setWallPaletteOpen(true);
+      if (wallViewMode === 'wall') setWallPaletteOpen(true);
     },
     onFit: () => {
-      if (wallViewMode === 'wall' && !wallIsMobile) fitWallToContent();
+      if (wallViewMode === 'wall') fitWallToContent();
     },
   });
 
@@ -1307,7 +1302,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                     chip re-anchors the Problem card (rewrites the drill filters
                     → IM-4a's producer re-selects the scope). Hidden when no scopes
                     have been captured yet. */}
-              {!wallIsMobile && railScopes.length > 0 && (
+              {railScopes.length > 0 && (
                 <div className="border-edge bg-surface-secondary/40 border-b px-3 py-2">
                   <ScopeRail
                     scopes={railScopes}
@@ -1317,74 +1312,72 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   />
                 </div>
               )}
-              {!wallIsMobile && (
+              <div
+                data-testid="analyze-wall-floating-controls"
+                className="absolute left-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1 rounded border border-edge bg-surface/95 p-1 shadow-sm"
+              >
+                <button
+                  type="button"
+                  onClick={() => setConclusionsOpen(open => !open)}
+                  className="rounded px-2 py-0.5 text-xs font-medium text-content-secondary hover:bg-surface-secondary hover:text-content"
+                  aria-expanded={conclusionsOpen}
+                >
+                  Investigation conclusions
+                </button>
                 <div
-                  data-testid="analyze-wall-floating-controls"
-                  className="absolute left-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1 rounded border border-edge bg-surface/95 p-1 shadow-sm"
+                  role="group"
+                  aria-label="Analyze view mode"
+                  className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
                 >
                   <button
                     type="button"
-                    onClick={() => setConclusionsOpen(open => !open)}
-                    className="rounded px-2 py-0.5 text-xs font-medium text-content-secondary hover:bg-surface-secondary hover:text-content"
-                    aria-expanded={conclusionsOpen}
+                    aria-pressed={false}
+                    onClick={() => setAnalyzeViewMode('findings')}
+                    className="px-2 py-0.5 text-xs font-medium rounded transition-colors text-content-secondary hover:text-content"
                   >
-                    Investigation conclusions
+                    Findings
                   </button>
-                  <div
-                    role="group"
-                    aria-label="Analyze view mode"
-                    className="inline-flex items-center gap-0.5 rounded border border-edge p-0.5"
-                  >
+                  {(['wall', 'causes'] as const).map(mode => (
                     <button
+                      key={mode}
                       type="button"
-                      aria-pressed={false}
-                      onClick={() => setAnalyzeViewMode('findings')}
-                      className="px-2 py-0.5 text-xs font-medium rounded transition-colors text-content-secondary hover:text-content"
-                    >
-                      Findings
-                    </button>
-                    {(['wall', 'causes'] as const).map(mode => (
-                      <button
-                        key={mode}
-                        type="button"
-                        aria-pressed={wallViewMode === mode}
-                        onClick={() => setWallViewMode(mode)}
-                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                          wallViewMode === mode
-                            ? 'bg-surface-secondary text-content'
-                            : 'text-content-secondary hover:text-content'
-                        }`}
-                      >
-                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                  {canReturnToImprovementProject && (
-                    <button
-                      type="button"
-                      onClick={handleReturnToImprovementProject}
-                      className="rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
-                    >
-                      Back to Project
-                    </button>
-                  )}
-                  {processMap ? (
-                    <button
-                      type="button"
-                      aria-pressed={wallGroupByTributary}
-                      onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
+                      aria-pressed={wallViewMode === mode}
+                      onClick={() => setWallViewMode(mode)}
                       className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                        wallGroupByTributary
+                        wallViewMode === mode
                           ? 'bg-surface-secondary text-content'
                           : 'text-content-secondary hover:text-content'
                       }`}
                     >
-                      Group by tributary
+                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
                     </button>
-                  ) : null}
+                  ))}
                 </div>
-              )}
-              {conclusionsOpen && !wallIsMobile ? (
+                {canReturnToImprovementProject && (
+                  <button
+                    type="button"
+                    onClick={handleReturnToImprovementProject}
+                    className="rounded border border-edge bg-surface-secondary px-2 py-0.5 text-xs font-medium text-content hover:bg-surface-tertiary focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    Back to Project
+                  </button>
+                )}
+                {processMap ? (
+                  <button
+                    type="button"
+                    aria-pressed={wallGroupByTributary}
+                    onClick={() => setWallGroupByTributary(wallHubId, !wallGroupByTributary)}
+                    className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                      wallGroupByTributary
+                        ? 'bg-surface-secondary text-content'
+                        : 'text-content-secondary hover:text-content'
+                    }`}
+                  >
+                    Group by tributary
+                  </button>
+                ) : null}
+              </div>
+              {conclusionsOpen ? (
                 <div className="absolute left-3 top-14 z-20 max-h-[70%] w-[min(380px,calc(100%-1.5rem))] overflow-y-auto rounded border border-edge bg-surface p-3 shadow-lg">
                   <label className="block text-xs font-medium text-content-secondary mb-1">
                     Issue statement
@@ -1451,7 +1444,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
               {/* ER-3 — the model drawer (the screen-space surface that replaced
                   the in-SVG band). Mounted ALWAYS (closed) so its engine run feeds
                   the glyph-weighting DOI even before the analyst opens it. */}
-              {!wallIsMobile && modelDrawerProps ? (
+              {modelDrawerProps ? (
                 <ModelDrawerBase
                   open={modelDrawerOpen}
                   onClose={() => setModelDrawerOpen(false)}
@@ -1464,60 +1457,51 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   onModelStats={setWallModelStats}
                 />
               ) : null}
-              {!wallIsMobile ? (
-                <ObjectDetailDrawer
-                  selectedObject={selectedWallObject}
-                  isOpen={objectDetailOpen}
-                  onOpenChange={setObjectDetailOpen}
+              <ObjectDetailDrawer
+                selectedObject={selectedWallObject}
+                isOpen={objectDetailOpen}
+                onOpenChange={setObjectDetailOpen}
+                hubs={hubs}
+                findings={scopedFindings}
+                members={members}
+                currentUserId={userId}
+                onAddHubComment={enrichedPlanningProps?.onAddHubComment}
+                onEditHubComment={enrichedPlanningProps?.onEditHubComment}
+                onDeleteHubComment={enrichedPlanningProps?.onDeleteHubComment}
+                onAddFindingComment={(id, text, attachment) =>
+                  handleAddCommentWithAuthor(id, text, attachment)
+                }
+                onEditFindingComment={findingsState.editFindingComment}
+                onDeleteFindingComment={findingsState.deleteFindingComment}
+                onAddFindingPhoto={handleAddPhoto}
+                showAuthors={members.length > 0}
+              />
+              <button
+                type="button"
+                onClick={fitWallToContent}
+                aria-label="Fit Wall to content"
+                title="Fit Wall to content"
+                className="border-edge bg-surface-secondary text-content hover:bg-surface-tertiary focus:ring-ring absolute bottom-4 right-40 rounded border px-2.5 py-1 text-xs font-medium shadow-sm focus:outline-none focus:ring-2"
+              >
+                ⌖ Fit
+              </button>
+              <div className="absolute bottom-4 right-4 pointer-events-auto">
+                <Minimap
                   hubs={hubs}
-                  findings={scopedFindings}
-                  members={members}
-                  currentUserId={userId}
-                  onAddHubComment={enrichedPlanningProps?.onAddHubComment}
-                  onEditHubComment={enrichedPlanningProps?.onEditHubComment}
-                  onDeleteHubComment={enrichedPlanningProps?.onDeleteHubComment}
-                  onAddFindingComment={(id, text, attachment) =>
-                    handleAddCommentWithAuthor(id, text, attachment)
-                  }
-                  onEditFindingComment={findingsState.editFindingComment}
-                  onDeleteFindingComment={findingsState.deleteFindingComment}
-                  onAddFindingPhoto={handleAddPhoto}
-                  showAuthors={members.length > 0}
+                  zoom={wallZoom}
+                  pan={wallPan}
+                  onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
+                  processMap={processMap}
+                  groupByTributary={Boolean(processMap && wallGroupByTributary)}
                 />
-              ) : null}
-              {/* Minimap + CommandPalette are desktop-only. WallCanvas
-                  self-gates to MobileCardList below 768px, so these
-                  sibling controls would overlap the mobile list. */}
-              {!wallIsMobile && (
-                <>
-                  <button
-                    type="button"
-                    onClick={fitWallToContent}
-                    aria-label="Fit Wall to content"
-                    title="Fit Wall to content"
-                    className="border-edge bg-surface-secondary text-content hover:bg-surface-tertiary focus:ring-ring absolute bottom-4 right-40 rounded border px-2.5 py-1 text-xs font-medium shadow-sm focus:outline-none focus:ring-2"
-                  >
-                    ⌖ Fit
-                  </button>
-                  <div className="absolute bottom-4 right-4 pointer-events-auto">
-                    <Minimap
-                      hubs={hubs}
-                      zoom={wallZoom}
-                      pan={wallPan}
-                      onPanTo={(x, y) => setWallPan(wallHubId, { x, y })}
-                      processMap={processMap}
-                      groupByTributary={Boolean(processMap && wallGroupByTributary)}
-                    />
-                  </div>
-                  <CommandPalette
-                    open={wallPaletteOpen}
-                    onClose={() => setWallPaletteOpen(false)}
-                    onPanTo={handleWallPanToNode}
-                    hubs={hubs}
-                    findings={scopedFindings}
-                  />
-                </>
-              )}
+              </div>
+              <CommandPalette
+                open={wallPaletteOpen}
+                onClose={() => setWallPaletteOpen(false)}
+                onPanTo={handleWallPanToNode}
+                hubs={hubs}
+                findings={scopedFindings}
+              />
             </div>
           )}
         </div>

@@ -14,10 +14,6 @@ import {
   FindingsWindow,
   openFindingsPopout,
   updateFindingsPopout,
-  MobileTabBar,
-  type MobileTab,
-  useIsMobile,
-  BREAKPOINTS,
   JournalTabView,
   GoalBanner,
   OutcomePin,
@@ -35,7 +31,6 @@ import { pwaHubRepository } from './persistence';
 import { generateDeterministicId } from '@variscout/core/identity';
 import type { MeasurementPlan, MeasurementPlanStatus } from '@variscout/core/measurementPlan';
 import type { ReingestPendingMatch } from '@variscout/core/autoLink';
-import { Beaker, Settings, Download, Table2, RotateCcw, FileText } from 'lucide-react';
 import {
   useDrillPath,
   buildFindingContext,
@@ -476,32 +471,12 @@ function AppMain() {
   // Stage 5 modal — opens after Mode B Stage 3 confirm and via on-demand button.
   const stageFive = useStageFiveOpener();
 
-  // Mobile tab bar (phone only, <640px)
-  const isPhone = useIsMobile(BREAKPOINTS.phone);
-  const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('explore');
-
-  // Reset mobile tab and workspace when data is cleared
+  // Reset workspace when data is cleared.
   useEffect(() => {
     if (rawData.length === 0) {
-      setMobileActiveTab('explore');
       panels.showExplore();
     }
   }, [rawData.length]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleMobileTabChange = useCallback(
-    (tab: MobileTab) => {
-      setMobileActiveTab(tab);
-      if (tab === 'findings') {
-        panels.showAnalyze();
-      } else if (tab === 'explore') {
-        panels.showExplore();
-      } else if (tab === 'improve') {
-        panels.showImprovement();
-      }
-      // 'more' is handled by the bottom sheet overlay
-    },
-    [panels]
-  );
 
   // Embed mode state
   const [isEmbedMode, setIsEmbedMode] = useState(false);
@@ -1346,9 +1321,7 @@ function AppMain() {
   }
 
   return (
-    <div
-      className={`flex flex-col h-dvh bg-surface text-content font-sans selection:bg-blue-500/30${isPhone && rawData.length > 0 ? ' pb-[50px]' : ''}`}
-    >
+    <div className="flex flex-col h-dvh bg-surface text-content font-sans selection:bg-blue-500/30">
       {/* Offline status banner */}
       {!isOnline && (
         <div
@@ -1619,43 +1592,38 @@ function AppMain() {
           </Suspense>
         </div>
 
-        {/* Findings Panel (inline desktop, or mobile when findings tab active) */}
+        {/* Findings Panel */}
         {/* Hidden when in analyze workspace — the workspace IS the findings view */}
         <Suspense fallback={null}>
-          {panels.activeView !== 'analyze' &&
-            (panels.isDesktop || (isPhone && mobileActiveTab === 'findings')) &&
-            outcome && (
-              <FindingsPanel
-                isOpen={panels.isDesktop ? panels.isFindingsPanelOpen : true}
-                onClose={() => {
-                  if (isPhone) {
-                    setMobileActiveTab('explore');
-                  }
-                  panels.handleCloseFindingsPanel();
-                  setHighlightedFindingId(null);
-                }}
-                findings={findings}
-                onEditFinding={useAnalyzeStore.getState().editFinding}
-                onDeleteFinding={useAnalyzeStore.getState().deleteFinding}
-                onRestoreFinding={handleRestoreFinding}
-                onSetFindingStatus={investigation.handleSetFindingStatus}
-                onSetFindingTag={useAnalyzeStore.getState().setFindingTag}
-                onSetFindingEvidenceType={useAnalyzeStore.getState().editFindingEvidenceType}
-                onAddComment={(id, text) => {
-                  // wrapper: the attachment param (Azure-only) is intentionally dropped in PWA
-                  useAnalyzeStore.getState().addFindingComment(id, text);
-                }}
-                onEditComment={useAnalyzeStore.getState().editFindingComment}
-                onDeleteComment={useAnalyzeStore.getState().deleteFindingComment}
-                columnAliases={columnAliases}
-                drillPath={drillPath}
-                activeFindingId={highlightedFindingId}
-                onPopout={handleOpenFindingsPopout}
-                maxStatuses={3}
-                onExportFindings={handleExportVrs}
-                onTakeToAnalyze={panels.showAnalyze}
-              />
-            )}
+          {panels.activeView !== 'analyze' && panels.isDesktop && outcome && (
+            <FindingsPanel
+              isOpen={panels.isFindingsPanelOpen}
+              onClose={() => {
+                panels.handleCloseFindingsPanel();
+                setHighlightedFindingId(null);
+              }}
+              findings={findings}
+              onEditFinding={useAnalyzeStore.getState().editFinding}
+              onDeleteFinding={useAnalyzeStore.getState().deleteFinding}
+              onRestoreFinding={handleRestoreFinding}
+              onSetFindingStatus={investigation.handleSetFindingStatus}
+              onSetFindingTag={useAnalyzeStore.getState().setFindingTag}
+              onSetFindingEvidenceType={useAnalyzeStore.getState().editFindingEvidenceType}
+              onAddComment={(id, text) => {
+                // wrapper: the attachment param (Azure-only) is intentionally dropped in PWA
+                useAnalyzeStore.getState().addFindingComment(id, text);
+              }}
+              onEditComment={useAnalyzeStore.getState().editFindingComment}
+              onDeleteComment={useAnalyzeStore.getState().deleteFindingComment}
+              columnAliases={columnAliases}
+              drillPath={drillPath}
+              activeFindingId={highlightedFindingId}
+              onPopout={handleOpenFindingsPopout}
+              maxStatuses={3}
+              onExportFindings={handleExportVrs}
+              onTakeToAnalyze={panels.showAnalyze}
+            />
+          )}
         </Suspense>
       </main>
 
@@ -1738,92 +1706,6 @@ function AppMain() {
         onSkip={stageFive.close}
         onClose={stageFive.close}
       />
-
-      {/* Mobile Tab Bar (phone only) */}
-      {isPhone && rawData.length > 0 && (
-        <MobileTabBar
-          activeTab={mobileActiveTab}
-          onTabChange={handleMobileTabChange}
-          findingsCount={findings.length}
-          showImproveTab={true}
-        />
-      )}
-
-      {/* More bottom sheet (phone only) */}
-      {mobileActiveTab === 'more' && isPhone && rawData.length > 0 && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setMobileActiveTab('explore')}
-          />
-          <div className="fixed bottom-[50px] left-0 right-0 bg-surface-primary border-t border-edge rounded-t-2xl z-50 animate-slide-up safe-area-bottom">
-            <div className="py-2">
-              <button
-                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
-                onClick={() => {
-                  setMobileActiveTab('explore');
-                  panels.showReport();
-                }}
-              >
-                <FileText size={18} className="text-content-secondary" />
-                Report
-              </button>
-              <button
-                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
-                onClick={() => {
-                  setMobileActiveTab('explore');
-                  panels.setIsWhatIfPageOpen(true);
-                }}
-              >
-                <Beaker size={18} className="text-content-secondary" />
-                What-If Simulator
-              </button>
-              <button
-                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
-                onClick={() => {
-                  setMobileActiveTab('explore');
-                  panels.setIsSettingsOpen(true);
-                }}
-              >
-                <Settings size={18} className="text-content-secondary" />
-                Settings
-              </button>
-              <button
-                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
-                onClick={() => {
-                  setMobileActiveTab('explore');
-                  handleExportCSV();
-                }}
-              >
-                <Download size={18} className="text-content-secondary" />
-                Export CSV
-              </button>
-              <button
-                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-content hover:bg-surface-secondary transition-colors"
-                onClick={() => {
-                  setMobileActiveTab('explore');
-                  panels.setHighlightRowIndex(null);
-                  panels.setIsDataTableOpen(true);
-                }}
-              >
-                <Table2 size={18} className="text-content-secondary" />
-                Data Table
-              </button>
-              <div className="border-t border-edge my-1" />
-              <button
-                className="flex items-center gap-3 w-full px-5 py-3 min-h-[44px] text-sm text-red-400 hover:bg-surface-secondary transition-colors"
-                onClick={() => {
-                  setMobileActiveTab('explore');
-                  panels.handleResetRequest();
-                }}
-              >
-                <RotateCcw size={18} />
-                New Analysis
-              </button>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 }

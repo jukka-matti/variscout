@@ -6,11 +6,6 @@ export interface SpecEditorColorScheme {
   label: string;
   // Inputs
   input: string;
-  // Mobile bottom sheet
-  mobileSheet: string;
-  mobileDragHandle: string;
-  mobileHeaderBorder: string;
-  mobileCloseButton: string;
   // Desktop popup
   desktopContainer: string;
   desktopHeaderBorder: string;

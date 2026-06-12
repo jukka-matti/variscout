@@ -38,7 +38,6 @@ vi.mock('@variscout/ui', async importOriginal => {
   const actual = await importOriginal<typeof import('@variscout/ui')>();
   return {
     ...actual,
-    useIsMobile: () => false,
     PIPanelBase: ({
       tabs,
     }: {

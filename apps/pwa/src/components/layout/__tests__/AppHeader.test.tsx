@@ -35,7 +35,6 @@ vi.mock('@variscout/hooks', async () => {
 });
 
 // Stub sub-components so we only test AppHeader's own rendering
-vi.mock('../MobileMenu', () => ({ default: () => null }));
 vi.mock('../../SharePopover', () => ({ default: () => null }));
 
 import React from 'react';

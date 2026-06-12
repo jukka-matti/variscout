@@ -1,10 +1,7 @@
 // vi.mock() calls MUST be placed before component imports to avoid infinite re-render loops.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../../../hooks', () => ({
-  useIsMobile: () => false,
-  BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
-}));
+vi.mock('../../../hooks', () => ({}));
 
 vi.mock('@variscout/hooks', () => {
   const catalog: Record<string, string> = {

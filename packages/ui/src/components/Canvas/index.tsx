@@ -12,7 +12,6 @@ import {
   useCanvasViewportInput,
   useCanvasViewportShortcuts,
   useCanvasKeyboard,
-  useHasAnalyzeContent,
   useChipDragAndDrop,
   useHypothesisDrawTool,
   useCanvasHypothesisDrawing,
@@ -50,7 +49,6 @@ import {
 import type { ProductionLineGlanceDashboardProps } from '../ProductionLineGlanceDashboard/types';
 import { ProcessMap } from './internal/ProcessMap';
 import { CanvasViewport } from './internal/CanvasViewport';
-import { MobileLevelPicker } from './internal/MobileLevelPicker';
 import { CanvasLevelRouter, type CanvasL3Archetype } from './internal/CanvasLevelRouter';
 import { ChipRail, type ChipRailEntry } from '../ChipRail';
 import { AutoStepCreatePrompt } from '../AutoStepCreatePrompt';
@@ -65,9 +63,7 @@ import {
 } from './internal/HypothesisDraftPopover';
 import { CanvasStepCard } from './internal/CanvasStepCard';
 import { CanvasStepOverlay, type CanvasOverlayAnchorRect } from './internal/CanvasStepOverlay';
-import { WallShortcutButton } from './internal/WallShortcutButton';
 import { sortedProcessSteps } from './internal/NoFocalStepPrompt';
-import { useWallIsMobile } from '../AnalyzeWall';
 import type { ContextLinkGroup, ContextLinkItem } from '../CrossSurface';
 import type { LogActionPayload } from '../QuickAction';
 import {
@@ -315,7 +311,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   actionItems = EMPTY_ACTION_ITEMS,
   findings = EMPTY_FINDINGS,
   onOpenScout,
-  onOpenWall,
   onOpenColumnDetail,
   rows,
   stepTimings = [],
@@ -330,8 +325,6 @@ export const Canvas: React.FC<CanvasProps> = ({
     () => coerceCanvasOverlays(activeOverlays),
     [activeOverlays]
   );
-  const hasInvestigationContent = useHasAnalyzeContent({ findingsCount: findings.length });
-  const wallIsMobile = useWallIsMobile();
   const sortedSteps = React.useMemo(() => sortedProcessSteps(map), [map]);
   const firstStepId = sortedSteps[0]?.id;
   const columnTypes = React.useMemo<ColumnTypeMap>(() => {
@@ -446,7 +439,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   useCanvasViewportInput({
     hubId,
     ref: lodInputSurfaceRef,
-    disabled: wallIsMobile || disabled || activeCanvasTool === 'draw-hypothesis',
+    disabled: disabled || activeCanvasTool === 'draw-hypothesis',
   });
   useCanvasViewportShortcuts({
     hubId,
@@ -576,9 +569,6 @@ export const Canvas: React.FC<CanvasProps> = ({
           availableOverlays={AVAILABLE_OVERLAYS}
           onToggle={onOverlayToggle}
         />
-        {wallIsMobile && hasInvestigationContent && onOpenWall ? (
-          <WallShortcutButton onClick={onOpenWall} disabled={disabled} />
-        ) : null}
         <HypothesisDrawToolButton
           activeTool={activeCanvasTool}
           onChange={next => onCanvasToolChange?.(next)}
@@ -659,13 +649,9 @@ export const Canvas: React.FC<CanvasProps> = ({
             />
           </svg>
         ) : null}
-        {wallIsMobile ? (
-          stepCardGrid
-        ) : (
-          <CanvasViewport zoom={viewport.zoom} pan={viewport.pan}>
-            {stepCardGrid}
-          </CanvasViewport>
-        )}
+        <CanvasViewport zoom={viewport.zoom} pan={viewport.pan}>
+          {stepCardGrid}
+        </CanvasViewport>
         {drawTool.state.phase === 'awaitingForm' ? (
           <HypothesisDraftPopover
             sourceLabel={endpointLabel(drawTool.state.source)}
@@ -770,22 +756,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         {showChipRail ? (
           <ChipRail chips={chips} className="w-64 shrink-0" onKeyboardPickUp={setKeyboardChipId} />
         ) : null}
-        <div className="min-w-0 flex-1">
-          {wallIsMobile ? (
-            <>
-              <MobileLevelPicker
-                hubId={hubId}
-                currentLevel={viewport.currentLevel}
-                focalStepId={viewport.focalStepId}
-                availableStepIds={sortedSteps.map(step => step.id)}
-                disabled={disabled}
-              />
-              {levelContent}
-            </>
-          ) : (
-            desktopLevelContent
-          )}
-        </div>
+        <div className="min-w-0 flex-1">{desktopLevelContent}</div>
         {activePendingStepChip ? (
           <AutoStepCreatePrompt
             chipLabel={activePendingStepChip.label}

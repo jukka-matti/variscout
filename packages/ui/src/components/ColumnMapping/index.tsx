@@ -14,7 +14,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { ArrowLeft, ArrowRight, Settings2, Eye, Search } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
-import { useIsMobile, BREAKPOINTS } from '../../hooks';
 import { DataQualityBanner } from '../DataQualityBanner';
 import { ColumnCard } from './ColumnCard';
 import { DataPreviewTable } from './DataPreviewTable';
@@ -303,7 +302,6 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   hubId = '',
 }) => {
   const { t } = useTranslation();
-  const isPhone = useIsMobile(BREAKPOINTS.phone);
 
   // ── Stack config ─────────────────────────────────────────────────────────
   const [stackConfig, setStackConfig] = useState<StackConfig | null>(() => {
@@ -978,9 +976,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
         </div>
 
         {/* Footer */}
-        <div
-          className={`p-6 border-t border-slate-700 bg-slate-800 flex justify-between items-center${isPhone ? ' sticky bottom-0 z-10 safe-area-bottom' : ''}`}
-        >
+        <div className="p-6 border-t border-slate-700 bg-slate-800 flex justify-between items-center">
           <button
             onClick={onBack || onCancel}
             className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm font-medium px-4 py-2 hover:bg-slate-700 rounded-lg transition-colors"

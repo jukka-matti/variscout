@@ -27,7 +27,6 @@ import {
   computePresets,
 } from '@variscout/ui';
 import type { PITabConfig, PIOverflowItem } from '@variscout/ui';
-import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import {
   useResizablePanel,
   useFilteredData,
@@ -82,8 +81,6 @@ export const PISection: React.FC<PISectionProps> = ({
   findingsState: _findingsState,
   projectId,
 }) => {
-  const isPhone = useIsMobile(BREAKPOINTS.phone);
-
   // Store reads
   const specs = useProjectStore(s => s.specs);
   const measureSpecs = useProjectStore(s => s.measureSpecs);
@@ -178,8 +175,7 @@ export const PISection: React.FC<PISectionProps> = ({
     });
   };
 
-  // Don't render on phone or when closed
-  if (!isPISidebarOpen || isPhone) {
+  if (!isPISidebarOpen) {
     return null;
   }
 

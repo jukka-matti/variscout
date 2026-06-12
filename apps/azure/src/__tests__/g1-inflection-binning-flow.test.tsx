@@ -252,8 +252,6 @@ vi.mock('@variscout/ui', async importOriginal => {
     ChartInsightChip: () => null,
     InboxDigest: () => null,
     useGlossary: () => ({ getTerm: () => undefined }),
-    useIsMobile: () => false,
-    BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
     // NOTE: useInflectionBinningState and InflectionSidePanelView are
     // intentionally NOT overridden here — the ...actual spread above keeps
     // the real implementations from @variscout/ui.
@@ -288,7 +286,6 @@ vi.mock('../components/charts/ProbabilityPlot', () => ({
   default: () => React.createElement('div', { 'data-testid': 'probability-plot' }),
 }));
 vi.mock('../components/PerformanceDashboard', () => ({ default: () => null }));
-vi.mock('../components/MobileChartCarousel', () => ({ default: () => null }));
 vi.mock('../components/settings/SpecEditor', () => ({ default: () => null }));
 vi.mock('html-to-image', () => ({ toBlob: vi.fn() }));
 

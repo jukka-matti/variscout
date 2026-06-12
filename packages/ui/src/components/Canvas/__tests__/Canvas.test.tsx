@@ -528,27 +528,10 @@ describe('Canvas', () => {
     expect(screen.getByRole('button', { name: 'Time' })).toBeInTheDocument();
   });
 
-  it('renders the mobile Wall shortcut button only when on mobile, investigation content exists, and onOpenWall is wired', () => {
+  it('does not render the removed wall shortcut button', () => {
     wallIsMobileRef.current = true;
-    hasInvestigationContentRef.current = false;
-    const onOpenWall = vi.fn();
-    const { unmount } = render(
-      <Canvas
-        map={mapWithSteps}
-        availableColumns={['Pressure', 'Defect']}
-        onChange={vi.fn()}
-        data={baseData}
-        filter={baseFilter}
-        stepCards={baseStepCards}
-        findings={[]}
-        investigationOverlays={investigationOverlays}
-        onOpenWall={onOpenWall}
-      />
-    );
-    expect(screen.queryByTestId('canvas-wall-shortcut-button')).not.toBeInTheDocument();
-    unmount();
-
     hasInvestigationContentRef.current = true;
+    const onOpenWall = vi.fn();
     render(
       <Canvas
         map={mapWithSteps}
@@ -562,9 +545,7 @@ describe('Canvas', () => {
         onOpenWall={onOpenWall}
       />
     );
-    expect(screen.getByTestId('canvas-wall-shortcut-button')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByTestId('canvas-wall-shortcut-button'));
-    expect(onOpenWall).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('canvas-wall-shortcut-button')).not.toBeInTheDocument();
+    expect(onOpenWall).not.toHaveBeenCalled();
   });
 });

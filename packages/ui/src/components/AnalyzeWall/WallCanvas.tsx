@@ -74,10 +74,8 @@ import { TributaryFooter } from './TributaryFooter';
 import { EmptyState } from './EmptyState';
 import { WallArrival } from './WallArrival';
 import { MissingEvidencePanel } from './MissingEvidencePanel';
-import { MobileCardList } from './MobileCardList';
 import { useWallLocale } from './hooks/useWallLocale';
 import { useWallDragDrop } from './hooks/useWallDragDrop';
-import { useWallIsMobile } from './hooks/useWallBreakpoint';
 
 type RenderableGateKind = Extract<GateNode['kind'], 'and' | 'or' | 'not'>;
 
@@ -903,7 +901,6 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
 
   const dndEnabled = mode === 'destination' && Boolean(onComposeGate);
   const { onDragEnd } = useWallDragDrop({ onDrop: onComposeGate });
-  const isMobile = useWallIsMobile();
   const [promotionFindingId, setPromotionFindingId] = useState<string | null>(null);
   const [promotionName, setPromotionName] = useState('');
   const handleStartPromotion = useCallback((findingId: string) => {
@@ -963,7 +960,7 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
   useCanvasViewportInput({
     hubId: hubId ?? null,
     ref: svgRef,
-    disabled: mode !== 'destination' || !hubId || isMobile || filteredHubs.length === 0,
+    disabled: mode !== 'destination' || !hubId || filteredHubs.length === 0,
     filter: shouldHandleWallPanInput,
   });
   if (mode === 'overlay' && filteredHubs.length === 0) {
@@ -977,34 +974,6 @@ export const WallCanvas: React.FC<WallCanvasProps> = ({
         role="img"
         aria-label={getMessage(locale, 'wall.canvas.ariaLabel')}
       />
-    );
-  }
-
-  // Mobile (<768px): swap the 2000×1400 SVG for a vertical card stack.
-  // MissingEvidencePanel still renders below the list on mobile so gap
-  // coaching stays visible. MobileCardList handles its own empty state,
-  // so this branch supersedes the hubs-empty short-circuit below.
-  if (mode === 'destination' && isMobile) {
-    return (
-      <div className="w-full h-full flex flex-col">
-        <MobileCardList
-          hubs={filteredHubs}
-          findings={findings}
-          processMap={processMap}
-          onSelectHub={onSelectHub}
-          onWriteHypothesis={onWriteHypothesis}
-          onSeedFromFactorIntel={onSeedFromFactorIntel}
-          onProposeHypothesis={onProposeHypothesis ? handleStartPromotion : undefined}
-        />
-        {promotionPrompt}
-        {mode === 'destination' ? (
-          <MissingEvidencePanel
-            hints={surveyHints}
-            onFocusHub={onFocusHubFromGap}
-            onTriadAction={onFocusHubFromGap}
-          />
-        ) : null}
-      </div>
     );
   }
 

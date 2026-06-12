@@ -45,9 +45,6 @@ vi.mock('../charts/ProbabilityPlot', () => ({
 vi.mock('../PerformanceDashboard', () => ({
   default: () => <div data-testid="performance-dashboard">Perf</div>,
 }));
-vi.mock('../MobileChartCarousel', () => ({
-  default: () => <div data-testid="mobile-carousel">Mobile</div>,
-}));
 vi.mock('../settings/SpecEditor', () => ({ default: () => <div data-testid="spec-editor" /> }));
 vi.mock('html-to-image', () => ({ toBlob: vi.fn() }));
 vi.mock('../../workers/useStatsWorker', () => ({ useStatsWorker: () => null }));

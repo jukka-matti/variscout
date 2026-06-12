@@ -6,7 +6,6 @@ import ParetoChart from './charts/ParetoChart';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import { useProbabilityPlotData } from '@variscout/hooks';
-import MobileDashboard from './MobileDashboard';
 import SpecEditor from './settings/SpecEditor';
 import { EmbedFocusView, FocusedChartView } from './views';
 import { EditableChartTitle } from '@variscout/ui';
@@ -27,8 +26,6 @@ import {
   ModelDrawerBase,
   ConditionPillBase,
   ScopeBarBase,
-  useIsMobile,
-  BREAKPOINTS,
   type ChartId,
   type WorkspaceProjectScopeLabels,
 } from '@variscout/ui';
@@ -484,9 +481,6 @@ const Dashboard = ({
         };
       });
   }, [filterStack, rawData]);
-
-  // Responsive mobile detection
-  const isMobile = useIsMobile(BREAKPOINTS.phone);
 
   // Process projection intelligence (Phase 2-4)
   const journeyPhase = useJourneyPhase(!!rawData?.length, _allFindings ?? []);
@@ -1210,49 +1204,6 @@ const Dashboard = ({
     );
   }
 
-  // Mobile Layout
-  if (isMobile) {
-    return (
-      <div id="dashboard-export-container" className="h-full">
-        <MobileDashboard
-          outcome={effectiveOutcome}
-          factors={effectiveFactors}
-          stats={stats}
-          specs={outcomeSpecs}
-          boxplotFactor={boxplotFactor}
-          paretoFactor={paretoFactor}
-          filteredData={filteredData}
-          anovaResult={anovaResult}
-          filters={filters}
-          columnAliases={columnAliases}
-          onSetBoxplotFactor={setBoxplotFactor}
-          onSetParetoFactor={setParetoFactor}
-          onPointClick={onPointClick}
-          onDrillDown={handleDrillDown}
-          onRemoveFilter={handleRemoveFilter}
-          onClearAllFilters={handleClearAllFilters}
-          filterChipData={filterChipData}
-          onUpdateFilterValues={handleUpdateFilterValues}
-          onHideParetoPanel={() => setShowParetoPanel(false)}
-          onUploadPareto={onManageFactors}
-          paretoAggregation={paretoAggregation}
-          onToggleParetoAggregation={() =>
-            setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
-          }
-          defectResult={defectResult}
-          defectMapping={defectMapping}
-          isDefectMode={isDefectMode}
-          onPinFinding={onPinFinding}
-          onAddChartObservation={onAddChartObservation}
-          findings={_allFindings}
-          onEditFinding={onEditFinding}
-          onDeleteFinding={onDeleteFinding}
-        />
-      </div>
-    );
-  }
-
-  // Desktop Layout
   return (
     <div
       id="dashboard-export-container"
