@@ -86,11 +86,6 @@ vi.mock('../../../services/aiService', () => ({
   isAIAvailable: () => true,
 }));
 
-vi.mock('../../../services/speechService', () => ({
-  isSpeechToTextAvailable: () => false,
-  transcribeAudio: vi.fn(),
-}));
-
 vi.mock('../../../features/ai/aiStore', () => ({
   useAIStore: {
     getState: () => ({

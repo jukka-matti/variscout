@@ -4,7 +4,6 @@ import type { FindingEvidenceType } from '@variscout/core/findings';
 import { FINDING_STATUSES, FINDING_STATUS_LABELS, groupFindingsByStatus } from '@variscout/core';
 import FindingCard from './FindingCard';
 import { STATUS_DOT_COLORS } from './FindingStatusBadge';
-import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingBoardColumnsProps {
   findings: Finding[];
@@ -40,7 +39,6 @@ export interface FindingBoardColumnsProps {
       verifiedAt: number;
     }
   ) => void;
-  voiceInput?: VoiceInputConfig;
 }
 
 /**
@@ -69,7 +67,6 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
   onCompleteAction,
   onDeleteAction,
   onSetOutcome,
-  voiceInput,
 }) => {
   const groups = groupFindingsByStatus(findings);
 
@@ -146,7 +143,6 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
                     onCompleteAction={onCompleteAction}
                     onDeleteAction={onDeleteAction}
                     onSetOutcome={onSetOutcome}
-                    voiceInput={voiceInput}
                   />
                 </div>
               ))}

@@ -12,8 +12,6 @@ export interface RuntimeConfig {
   aiSearchEndpoint: string;
   aiSearchIndex: string;
   appInsightsConnectionString: string;
-  voiceInputEnabled: boolean;
-  speechToTextDeployment: string;
 }
 
 let cached: RuntimeConfig | null = null;
@@ -25,8 +23,6 @@ function normalizeRuntimeConfig(data: Partial<RuntimeConfig> | null | undefined)
     aiSearchEndpoint: data?.aiSearchEndpoint || '',
     aiSearchIndex: data?.aiSearchIndex || '',
     appInsightsConnectionString: data?.appInsightsConnectionString || '',
-    voiceInputEnabled: data?.voiceInputEnabled === true,
-    speechToTextDeployment: data?.speechToTextDeployment || '',
   };
 }
 

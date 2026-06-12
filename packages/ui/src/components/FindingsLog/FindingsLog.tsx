@@ -5,7 +5,6 @@ import type { FindingEvidenceType } from '@variscout/core/findings';
 import FindingCard from './FindingCard';
 import FindingBoardView from './FindingBoardView';
 import FindingsExportMenu from './FindingsExportMenu';
-import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingsLogProps {
   /** Optional className for the root wrapper */
@@ -101,8 +100,6 @@ export interface FindingsLogProps {
   synthesis?: string;
   /** Linked findings for board view synthesis card */
   linkedFindings?: Array<{ id: string; text: string }>;
-  /** Optional Azure-only voice input that transcribes into finding/comment editors */
-  voiceInput?: VoiceInputConfig;
   /** Mark a finding as supporting evidence for the selected hypothesis. */
   onMarkSupport?: (findingId: string) => void;
   /** Mark a finding as evidence that counts against the selected hypothesis. */
@@ -152,7 +149,6 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   projectedCpkMap,
   synthesis,
   linkedFindings,
-  voiceInput,
   onMarkSupport,
   onMarkCounter,
 }) => {
@@ -205,7 +201,6 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onPromoteAction={onPromoteAction}
           originStepNameByFindingId={originStepNameByFindingId}
           onSetOutcome={onSetOutcome}
-          voiceInput={voiceInput}
         />
       </div>
     );
@@ -263,7 +258,6 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
                 renderActionAssigneePicker={renderActionAssigneePicker}
                 onAskCoScout={onAskCoScoutAboutFinding}
                 projectedCpk={projectedCpkMap?.[finding.id]}
-                voiceInput={voiceInput}
                 onMarkSupport={onMarkSupport}
                 onMarkCounter={onMarkCounter}
               />

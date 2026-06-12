@@ -27,7 +27,6 @@ import { useVisualGrounding } from '@variscout/hooks';
 import { useCoScoutProps } from '@variscout/hooks';
 import type { UseFindingsReturn } from '@variscout/hooks';
 import { isAIAvailable } from '../../services/aiService';
-import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useAIStore } from '../../features/ai/aiStore';
 import type { UseAIOrchestrationReturn } from '../../features/ai';
@@ -216,8 +215,6 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
   }, []);
 
   const aiAvailable = aiEnabled && isAIAvailable();
-  const voiceInput = isSpeechToTextAvailable() ? { isAvailable: true, transcribeAudio } : undefined;
-
   // Don't render anything if AI is not available (CoScoutPanelBase handles isOpen=false)
   if (!drawerMode && !aiAvailable && !isCoScoutOpen) {
     return null;
@@ -243,12 +240,7 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
           refTarget={drawerRefTarget}
           onRefActivate={coScoutProps.onRefActivate}
         >
-          <CoScoutPanelBase
-            isOpen={isCoScoutOpen}
-            onClose={handleCoScoutClose}
-            {...coScoutProps}
-            voiceInput={voiceInput}
-          />
+          <CoScoutPanelBase isOpen={isCoScoutOpen} onClose={handleCoScoutClose} {...coScoutProps} />
         </CoScoutRightDrawer>
       ) : isPhone && isCoScoutOpen ? (
         <div className="fixed inset-0 z-[60] bg-surface flex flex-col animate-slide-up safe-area-bottom">
@@ -263,20 +255,10 @@ export const CoScoutSection: React.FC<CoScoutSectionProps> = ({
               <X size={20} />
             </button>
           </div>
-          <CoScoutPanelBase
-            isOpen={true}
-            onClose={handleCoScoutClose}
-            {...coScoutProps}
-            voiceInput={voiceInput}
-          />
+          <CoScoutPanelBase isOpen={true} onClose={handleCoScoutClose} {...coScoutProps} />
         </div>
       ) : (
-        <CoScoutPanelBase
-          isOpen={isCoScoutOpen}
-          onClose={handleCoScoutClose}
-          {...coScoutProps}
-          voiceInput={voiceInput}
-        />
+        <CoScoutPanelBase isOpen={isCoScoutOpen} onClose={handleCoScoutClose} {...coScoutProps} />
       )}
 
       {/* Session-close save prompt (ADR-049) */}

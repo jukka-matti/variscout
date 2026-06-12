@@ -25,8 +25,6 @@ describe('runtimeConfig', () => {
       aiSearchEndpoint: 'https://search.windows.net',
       aiSearchIndex: 'findings',
       appInsightsConnectionString: 'InstrumentationKey=test',
-      voiceInputEnabled: true,
-      speechToTextDeployment: 'gpt-4o-mini-transcribe',
     };
 
     fetchSpy.mockResolvedValue({
@@ -48,8 +46,6 @@ describe('runtimeConfig', () => {
       aiSearchEndpoint: 'https://search.windows.net',
       aiSearchIndex: 'findings',
       appInsightsConnectionString: 'InstrumentationKey=test',
-      voiceInputEnabled: true,
-      speechToTextDeployment: 'gpt-4o-mini-transcribe',
     };
 
     fetchSpy.mockResolvedValue({
@@ -81,8 +77,6 @@ describe('runtimeConfig', () => {
       aiSearchEndpoint: '',
       aiSearchIndex: '',
       appInsightsConnectionString: '',
-      voiceInputEnabled: false,
-      speechToTextDeployment: '',
     });
   });
 
@@ -98,8 +92,6 @@ describe('runtimeConfig', () => {
       aiSearchEndpoint: '',
       aiSearchIndex: '',
       appInsightsConnectionString: '',
-      voiceInputEnabled: false,
-      speechToTextDeployment: '',
     });
   });
 
@@ -110,8 +102,6 @@ describe('runtimeConfig', () => {
       aiSearchEndpoint: 'https://search.windows.net',
       aiSearchIndex: 'findings',
       appInsightsConnectionString: 'InstrumentationKey=test',
-      voiceInputEnabled: true,
-      speechToTextDeployment: 'gpt-4o-mini-transcribe',
     };
 
     fetchSpy.mockResolvedValue({
@@ -129,8 +119,6 @@ describe('runtimeConfig', () => {
       aiSearchEndpoint: '',
       aiSearchIndex: '',
       appInsightsConnectionString: '',
-      voiceInputEnabled: false,
-      speechToTextDeployment: '',
     });
   });
 
@@ -141,8 +129,6 @@ describe('runtimeConfig', () => {
       aiSearchEndpoint: '',
       aiSearchIndex: '',
       appInsightsConnectionString: '',
-      voiceInputEnabled: false,
-      speechToTextDeployment: '',
     };
 
     fetchSpy.mockResolvedValue({
@@ -169,8 +155,6 @@ describe('runtimeConfig', () => {
       aiSearchEndpoint: 'https://search.windows.net',
       aiSearchIndex: 'findings',
       appInsightsConnectionString: 'InstrumentationKey=test',
-      voiceInputEnabled: true,
-      speechToTextDeployment: 'gpt-4o-mini-transcribe',
     };
 
     fetchSpy.mockResolvedValue({
@@ -184,27 +168,31 @@ describe('runtimeConfig', () => {
     expect(getRuntimeConfig()).toEqual(validConfig);
   });
 
-  it('normalizes a missing voice flag to false and deployment to empty string', async () => {
-    const configWithoutVoiceFields = {
+  it('ignores unknown runtime config payload fields', async () => {
+    const configWithUnknownFields = {
       plan: 'standard',
       aiEndpoint: 'https://ai.openai.azure.com',
       aiSearchEndpoint: 'https://search.windows.net',
       aiSearchIndex: 'findings',
       appInsightsConnectionString: '',
+      retiredFeatureEnabled: true,
+      retiredFeatureDeployment: 'unused',
     };
 
     fetchSpy.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve(configWithoutVoiceFields),
+      json: () => Promise.resolve(configWithUnknownFields),
     } as Response);
 
     const { loadRuntimeConfig } = await importModule();
     const result = await loadRuntimeConfig();
 
     expect(result).toEqual({
-      ...configWithoutVoiceFields,
-      voiceInputEnabled: false,
-      speechToTextDeployment: '',
+      plan: 'standard',
+      aiEndpoint: 'https://ai.openai.azure.com',
+      aiSearchEndpoint: 'https://search.windows.net',
+      aiSearchIndex: 'findings',
+      appInsightsConnectionString: '',
     });
   });
 });

@@ -81,7 +81,6 @@ import type {
   ObjectDetailSelection,
 } from '@variscout/ui';
 import type { FindingProjection } from '@variscout/core';
-import { isSpeechToTextAvailable, transcribeAudio } from '../../services/speechService';
 import { useFilteredData, useAnalysisStats } from '@variscout/hooks';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import { useFindingsStore } from '../../features/findings/findingsStore';
@@ -189,7 +188,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   ideaImpacts,
   onProjectIdea,
 }) => {
-  const voiceInput = isSpeechToTextAvailable() ? { isAvailable: true, transcribeAudio } : undefined;
   const outcome = useProjectStore(s => s.outcome);
   const factors = useProjectStore(s => s.factors);
   const specs = useProjectStore(s => s.specs);
@@ -1290,7 +1288,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 onMarkSupport={focusedHub ? handleMarkFindingSupport : undefined}
                 onMarkCounter={focusedHub ? handleMarkFindingCounter : undefined}
                 showAuthors
-                voiceInput={voiceInput}
               />
             </div>
           ) : wallViewMode === 'causes' ? (

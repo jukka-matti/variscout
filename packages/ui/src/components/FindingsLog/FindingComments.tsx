@@ -13,7 +13,6 @@ import {
 import type { FindingComment, CommentAttachment } from '@variscout/core';
 import { validateAttachmentFile, SUPPORTED_ATTACHMENT_TYPES } from '@variscout/core/ai';
 import FindingEditor from './FindingEditor';
-import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingCommentsProps {
   comments: FindingComment[];
@@ -27,8 +26,6 @@ export interface FindingCommentsProps {
   onCaptureFromTeams?: (findingId: string, commentId: string) => void;
   /** Show author names on comments */
   showAuthors?: boolean;
-  /** Optional Azure-only voice input that transcribes into the comment draft */
-  voiceInput?: VoiceInputConfig;
   /**
    * Controls whether add/edit/delete affordances are rendered.
    * Defaults to `true` (open access) — pass `false` to hide all write surfaces.
@@ -87,7 +84,6 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
   onAddPhoto,
   onCaptureFromTeams,
   showAuthors,
-  voiceInput,
   canEdit = true,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -229,7 +225,6 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                   placeholder="Edit comment..."
                   onSave={text => handleEdit(comment.id, text)}
                   onCancel={() => setEditingId(null)}
-                  voiceInput={voiceInput}
                 />
               ) : (
                 <div className="flex items-start gap-1 pl-2 border-l-2 border-edge">
@@ -409,7 +404,6 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                     placeholder="Add a comment..."
                     onSave={handleAdd}
                     onCancel={handleCancelAdd}
-                    voiceInput={voiceInput}
                   />
                 </div>
                 {/* Paperclip button — attach file to this comment */}

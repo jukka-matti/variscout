@@ -41,12 +41,8 @@ if (aiIngestMatch) {
   try { connectSrc += ` ${new URL(aiIngestMatch[1]).origin}`; } catch { /* ignore */ }
 }
 
-function isVoiceInputEnabled() {
-  return process.env.VOICE_INPUT_ENABLED === 'true';
-}
-
 function getPermissionsPolicy() {
-  return `camera=(self), microphone=${isVoiceInputEnabled() ? '(self)' : '()'}, geolocation=(), payment=()`;
+  return 'camera=(self), microphone=(), geolocation=(), payment=()';
 }
 
 const SECURITY_HEADERS = {
@@ -121,8 +117,6 @@ app.get('/config', (_req, res) => {
     aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
     aiSearchIndex: process.env.AI_SEARCH_INDEX || 'findings',
     appInsightsConnectionString: process.env.APPINSIGHTS_CONNECTION_STRING || process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
-    voiceInputEnabled: isVoiceInputEnabled(),
-    speechToTextDeployment: process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT || '',
     storageAccountName: process.env.STORAGE_ACCOUNT_NAME || '',
     storageContainerName: process.env.STORAGE_CONTAINER_NAME || 'variscout-projects',
   };

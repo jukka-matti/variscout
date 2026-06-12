@@ -11,7 +11,6 @@ import {
 import FindingCard from './FindingCard';
 import { STATUS_DOT_COLORS } from './FindingStatusBadge';
 import { SynthesisCard } from '../ImprovementPlan/SynthesisCard';
-import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingBoardViewProps {
   findings: Finding[];
@@ -58,7 +57,6 @@ export interface FindingBoardViewProps {
       verifiedAt: number;
     }
   ) => void;
-  voiceInput?: VoiceInputConfig;
 }
 
 /**
@@ -94,7 +92,6 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   onPromoteAction,
   originStepNameByFindingId,
   onSetOutcome,
-  voiceInput,
 }) => {
   const groups = groupFindingsByStatus(findings);
 
@@ -184,7 +181,6 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     onPromoteAction={onPromoteAction}
                     originStepName={originStepNameByFindingId?.get(finding.id)}
                     onSetOutcome={onSetOutcome}
-                    voiceInput={voiceInput}
                   />
                 ))}
               </div>

@@ -25,7 +25,6 @@ import type { DrillStep } from '@variscout/hooks';
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
 import { CoScoutInline } from '../CoScoutInline';
-import type { VoiceInputConfig } from '../VoiceInput';
 
 export interface FindingsPanelResizeConfig {
   storageKey: string;
@@ -121,8 +120,6 @@ export interface FindingsPanelBaseProps {
   synthesis?: string;
   /** Linked findings for board view synthesis card */
   linkedFindings?: Array<{ id: string; text: string }>;
-  /** Optional Azure-only voice input that transcribes into finding/comment editors */
-  voiceInput?: VoiceInputConfig;
   /** Mark a finding as supporting evidence for the selected hypothesis. */
   onMarkSupport?: (findingId: string) => void;
   /** Mark a finding as evidence that counts against the selected hypothesis. */
@@ -182,7 +179,6 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   projectedCpkMap,
   synthesis,
   linkedFindings,
-  voiceInput,
   onMarkSupport,
   onMarkCounter,
   onExportFindings,
@@ -409,7 +405,6 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
             projectedCpkMap={projectedCpkMap}
             synthesis={synthesis}
             linkedFindings={linkedFindings}
-            voiceInput={voiceInput}
             onMarkSupport={onMarkSupport}
             onMarkCounter={onMarkCounter}
           />
