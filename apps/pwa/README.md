@@ -1,24 +1,23 @@
-# @variscout/pwa
+# @variscout/workspace-app
 
-Free, offline-first PWA for training and education in process variation analysis.
+Local-first Workspace client for free, individual, and company channels.
 
 ## Quick Start
 
 ```bash
-pnpm --filter @variscout/pwa dev    # Dev server at localhost:5173
-pnpm --filter @variscout/pwa build  # Production build
+pnpm --filter @variscout/workspace-app dev    # Dev server at localhost:5173
+pnpm build:workspace:free                     # Free channel production build
+pnpm build:workspace:individual               # Individual channel production build
+pnpm build:workspace:company                  # Company channel production build
 ```
 
 ## Scope
 
-The PWA is **forever free** — a training tool for quality professionals:
+The Workspace app is one client assembled with build-time channel gates:
 
-- Core analysis: I-Chart, Boxplot, Pareto, Capability
-- Sample datasets (coffee, journey, bottleneck, sachets)
-- Copy-paste data input only (no file upload/save)
-- Max 3 factors, 50K rows
-- VariScout branding on chart exports
-- No Performance Mode, no file persistence
+- `free`: in-session analysis, sample datasets, paste/manual data entry, no artifact export code.
+- `individual`: `.vrs` import/export and local artifact support.
+- `company`: same Workspace client with company capabilities and server-provided runtime config.
 
 ## Architecture
 
@@ -30,11 +29,10 @@ The PWA is **forever free** — a training tool for quality professionals:
 ## Testing
 
 ```bash
-pnpm --filter @variscout/pwa test       # Unit/component tests (Vitest)
-pnpm --filter @variscout/pwa test:e2e   # E2E tests (Playwright)
+pnpm --filter @variscout/workspace-app test       # Unit/component tests (Vitest)
+pnpm --filter @variscout/workspace-app test:e2e   # E2E tests (Playwright)
 ```
 
 ## Related
 
-- [Azure App](../../apps/azure/README.md) — paid product with persistence, Teams, AI
-- [PWA Product Spec](../../docs/08-products/pwa/index.md)
+- [Company server](../../apps/azure/README.md) — EasyAuth/runtime config/static host

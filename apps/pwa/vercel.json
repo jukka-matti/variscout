@@ -1,6 +1,6 @@
 {
   "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm --filter @variscout/pwa... build",
+  "buildCommand": "cd ../.. && pnpm --filter @variscout/workspace-app... build",
   "outputDirectory": "dist",
   "framework": "vite",
   "headers": [

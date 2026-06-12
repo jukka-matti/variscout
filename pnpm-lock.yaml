@@ -123,6 +123,9 @@ importers:
       '@variscout/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@variscout/workspace-app':
+        specifier: workspace:*
+        version: link:../pwa
       '@visx/responsive':
         specifier: ^3.12.0
         version: 3.12.0(react@19.2.6)
