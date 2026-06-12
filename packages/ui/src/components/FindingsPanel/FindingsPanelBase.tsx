@@ -25,6 +25,7 @@ import type { DrillStep } from '@variscout/hooks';
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
 import { CoScoutInline } from '../CoScoutInline';
+import { artifactExportsEnabled } from '../../buildFlags';
 
 export interface FindingsPanelResizeConfig {
   storageKey: string;
@@ -419,15 +420,17 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
         )}
 
         <div className="flex items-center gap-2 border-t border-edge px-3 py-2">
-          <button
-            type="button"
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded border border-edge bg-surface px-2 py-1.5 text-xs text-content-secondary hover:text-content"
-            onClick={onExportFindings}
-            aria-label="Export .vrs"
-          >
-            <Download size={12} />
-            Export .vrs
-          </button>
+          {artifactExportsEnabled && onExportFindings ? (
+            <button
+              type="button"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded border border-edge bg-surface px-2 py-1.5 text-xs text-content-secondary hover:text-content"
+              onClick={onExportFindings}
+              aria-label="Export .vrs"
+            >
+              <Download size={12} />
+              Export .vrs
+            </button>
+          ) : null}
           <button
             type="button"
             className="inline-flex flex-1 items-center justify-center gap-1.5 rounded bg-blue-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-blue-500"

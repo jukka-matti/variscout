@@ -7,12 +7,13 @@
 
 import type { ProjectExportContext, ProjectImportPayload } from '@variscout/hooks';
 import { generateDeterministicId } from '@variscout/core/identity';
+import type { DocumentSnapshot } from '@variscout/stores';
 import {
   buildDocumentSnapshotVrs,
-  type DocumentSnapshot,
   parseDocumentSnapshotVrs,
-} from '@variscout/stores';
+} from '@variscout/stores/document-snapshot-vrs';
 import { db } from '../db/schema';
+import { workspaceCapabilities } from '../config/capabilities';
 
 export interface SavedProject {
   id: string;
@@ -146,6 +147,9 @@ export async function renameProjectLocally(oldName: string, newName: string): Pr
 
 // Export state to downloadable .vrs file
 export function exportToFile(filename: string, context: ProjectExportContext): void {
+  if (!workspaceCapabilities.artifacts) {
+    throw new Error('.vrs export is not available in this Workspace channel.');
+  }
   if (!context.activeHub) {
     throw new Error('Cannot export .vrs without an active hub.');
   }
@@ -167,6 +171,9 @@ export function exportToFile(filename: string, context: ProjectExportContext): v
 
 // Import state from .vrs file
 export function importFromFile(file: File): Promise<ProjectImportPayload> {
+  if (!workspaceCapabilities.artifacts) {
+    return Promise.reject(new Error('.vrs import is not available in this Workspace channel.'));
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = e => {

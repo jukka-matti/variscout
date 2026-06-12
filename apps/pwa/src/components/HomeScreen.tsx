@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { BarChart2, ClipboardPaste, PenLine, ArrowUpRight } from 'lucide-react';
 import type { SampleDataset } from '@variscout/data';
 import { useTranslation } from '@variscout/hooks';
-import type { DocumentSnapshotVrsFile } from '@variscout/stores';
-import { VrsImportButton } from './VrsImportButton';
+import type { DocumentSnapshotVrsFile } from '@variscout/stores/document-snapshot-vrs';
 import SampleSection from './data/SampleSection';
+
+/* global __WORKSPACE_ARTIFACTS__ */
+
+const artifactControlsEnabled =
+  __WORKSPACE_ARTIFACTS__ || import.meta.env.MODE === 'test' || import.meta.env.VITEST === 'true';
 
 interface HomeScreenProps {
   onLoadSample: (sample: SampleDataset) => void;
@@ -26,6 +30,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onImportVrs,
 }) => {
   const { t } = useTranslation();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleImportChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!artifactControlsEnabled || !file || !onImportVrs) return;
+    const { parseVrsFile } = await import('@pwa-artifacts');
+    onImportVrs(await parseVrsFile(file));
+  };
 
   return (
     <div className="h-full flex flex-col items-center justify-start p-4 sm:p-8 overflow-auto animate-in fade-in duration-500">
@@ -81,9 +94,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             <PenLine size={12} />
             {t('home.manualEntry')}
           </button>
-          {onImportVrs && (
+          {artifactControlsEnabled && onImportVrs && (
             <div>
-              <VrsImportButton onImport={onImportVrs} />
+              <input
+                ref={fileInputRef}
+                type="file"
+                aria-label="Import .vrs file"
+                accept=".vrs,application/json"
+                className="hidden"
+                onChange={handleImportChange}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-xs text-content-muted hover:text-content-secondary transition-colors"
+              >
+                Import .vrs file
+              </button>
             </div>
           )}
           <div>

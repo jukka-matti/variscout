@@ -54,9 +54,8 @@ import {
   useViewStore,
   useAnalysisScopeStore,
   useImprovementProjectStore,
-  buildDocumentSnapshotVrs,
-  type DocumentSnapshotVrsFile,
 } from '@variscout/stores';
+import type { DocumentSnapshotVrsFile } from '@variscout/stores/document-snapshot-vrs';
 import { createProjectActionItem } from '@variscout/core/findings';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import AppHeader, { type PhaseId } from './components/layout/AppHeader';
@@ -93,6 +92,8 @@ import { useStatsWorker } from './workers/useStatsWorker';
 import { deriveWorkspaceViewModel, useWorkspaceProjectContext } from '@variscout/hooks';
 import { AppViewSwitch } from './components/AppViewSwitch';
 
+/* global __WORKSPACE_ARTIFACTS__ */
+
 // Lazy-loaded heavy components for code splitting
 const dashboardImport = () => import('./components/Dashboard');
 void dashboardImport(); // Prefetch so sample→Dashboard transition is instant
@@ -115,6 +116,8 @@ const ProcessIntelligencePanel = lazyWithRetry(
   () => import('./components/ProcessIntelligencePanel')
 );
 type OutcomeSpec = NonNullable<ProcessHub['outcomes']>[number];
+const artifactControlsEnabled =
+  __WORKSPACE_ARTIFACTS__ || import.meta.env.MODE === 'test' || import.meta.env.VITEST === 'true';
 
 function buildTrackedOutcomeSpec(hubId: ProcessHub['id'], columnName: string): OutcomeSpec {
   return {
@@ -603,23 +606,15 @@ function AppMain() {
   // .vrs export — the single source of truth (ER-1 retired VrsExportButton). Shared
   // by the Process-tab framing toolbar button + the Explore context-line Export menu.
   const handleExportVrs = useCallback(() => {
-    if (!sessionHub) return;
-    const json = buildDocumentSnapshotVrs({
-      activeHub: sessionHub,
-      metadata: {
-        exportSource: 'pwa',
+    if (!artifactControlsEnabled || !sessionHub) return;
+    void (async () => {
+      const { exportVrs } = await import('@pwa-artifacts');
+      exportVrs({
+        activeHub: sessionHub,
         appVersion: import.meta.env.VITE_APP_VERSION ?? 'dev',
-      },
-    });
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const safeName = (sessionHub.processGoal ?? 'hub').slice(0, 32).replace(/[^a-z0-9-]+/gi, '-');
-    a.download = `${safeName}.vrs`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setHasOwnCaptureSinceExport(false);
+      });
+      setHasOwnCaptureSinceExport(false);
+    })();
   }, [sessionHub]);
 
   useEffect(() => {
@@ -1453,13 +1448,15 @@ function AppMain() {
             >
               + New analyze
             </button>
-            <button
-              type="button"
-              className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-              onClick={handleExportVrs}
-            >
-              Export .vrs
-            </button>
+            {artifactControlsEnabled ? (
+              <button
+                type="button"
+                className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+                onClick={handleExportVrs}
+              >
+                Export .vrs
+              </button>
+            ) : null}
             <button
               type="button"
               className="text-xs px-2 py-1 rounded border border-edge text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
@@ -1522,8 +1519,8 @@ function AppMain() {
               handleAddChartObservation={handleAddChartObservation}
               handleExport={handleExport}
               handleExportCSV={handleExportCSV}
-              handleExportVrs={handleExportVrs}
-              handleImportVrs={handleImportVrs}
+              handleExportVrs={artifactControlsEnabled ? handleExportVrs : undefined}
+              handleImportVrs={artifactControlsEnabled ? handleImportVrs : undefined}
               handleLoadSample={handleLoadSample}
               handleManualAnalyze={handleManualAnalyze}
               handleMappingConfirmToHub={handleMappingConfirmToHub}
@@ -1601,7 +1598,7 @@ function AppMain() {
               activeFindingId={highlightedFindingId}
               onPopout={handleOpenFindingsPopout}
               maxStatuses={3}
-              onExportFindings={handleExportVrs}
+              onExportFindings={artifactControlsEnabled ? handleExportVrs : undefined}
               onTakeToAnalyze={panels.showAnalyze}
             />
           )}

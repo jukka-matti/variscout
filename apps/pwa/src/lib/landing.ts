@@ -6,8 +6,8 @@ import type { ImprovementProject } from '@variscout/core/improvementProject';
 import {
   hydrateDocumentSnapshot,
   reconstructProcessHubFromDocumentSnapshot,
-  type DocumentSnapshotVrsFile,
 } from '@variscout/stores';
+import type { DocumentSnapshotVrsFile } from '@variscout/stores/document-snapshot-vrs';
 import { ensureSessionProject } from './ensureSessionProject';
 
 /**

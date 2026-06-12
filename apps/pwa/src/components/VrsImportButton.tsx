@@ -1,7 +1,10 @@
 // apps/pwa/src/components/VrsImportButton.tsx
 import { useRef, type ChangeEvent } from 'react';
 import { FileUp } from 'lucide-react';
-import { parseDocumentSnapshotVrs, type DocumentSnapshotVrsFile } from '@variscout/stores';
+import {
+  parseDocumentSnapshotVrs,
+  type DocumentSnapshotVrsFile,
+} from '@variscout/stores/document-snapshot-vrs';
 
 export interface VrsImportButtonProps {
   onImport: (imported: DocumentSnapshotVrsFile) => void;

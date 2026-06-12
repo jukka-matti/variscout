@@ -13,7 +13,8 @@ import type {
   ParetoRow,
   ProcessHub,
 } from '@variscout/core';
-import type { DocumentSnapshot, DocumentSnapshotVrsFile } from '@variscout/stores';
+import type { DocumentSnapshot } from '@variscout/stores';
+import type { DocumentSnapshotVrsFile } from '@variscout/stores/document-snapshot-vrs';
 
 // Re-export canonical UI types from @variscout/core/ui-types
 export type {

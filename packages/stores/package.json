@@ -5,6 +5,7 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./document-snapshot-vrs": "./src/documentSnapshotVrs.ts",
     "./feature-factories": "./src/feature-factories/index.ts"
   },
   "scripts": {

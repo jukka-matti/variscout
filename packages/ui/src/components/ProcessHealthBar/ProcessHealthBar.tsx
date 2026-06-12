@@ -8,6 +8,7 @@ import { assertNever } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import { usePreferencesStore } from '@variscout/stores';
 import type { TimeLens } from '@variscout/core/stats';
+import { artifactExportsEnabled } from '../../buildFlags';
 
 /**
  * Format selected values for chip display.
@@ -712,7 +713,7 @@ const ProcessHealthBar: React.FC<ProcessHealthBarProps> = ({
                 >
                   Export CSV
                 </button>
-                {onExportVrs && (
+                {artifactExportsEnabled && onExportVrs && (
                   <button
                     role="menuitem"
                     onClick={() => {

@@ -19,6 +19,7 @@ import {
   traceAICall,
 } from '@variscout/core';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
+import { workspaceCapabilities } from '../config/capabilities';
 
 const CACHE_KEY_PREFIX = 'variscout-ai-cache-';
 const CHIP_CACHE_KEY_PREFIX = 'variscout-ai-chip-';
@@ -59,7 +60,7 @@ export function getAIEndpoint(): string | null {
  * AI is included in all plans — just requires a configured endpoint.
  */
 export function isAIAvailable(): boolean {
-  return getAIEndpoint() !== null;
+  return workspaceCapabilities.ai && getAIEndpoint() !== null;
 }
 
 /**
