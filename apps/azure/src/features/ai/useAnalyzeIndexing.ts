@@ -1,20 +1,12 @@
 /**
- * useAnalyzeIndexing — Wire investigation serializer to Blob Storage
+ * useAnalyzeIndexing — local-first no-op after ADR-093 D2.
  *
- * ADR-060 Pillar 2: Automatically serializes findings and scopes to
- * JSONL blobs in Blob Storage so Foundry IQ can index them for CoScout
- * knowledge retrieval.
- *
- * Only active when:
- * - `enabled` is true (Team plan + KB preview gate)
- * - `projectId` is defined
- *
- * On disable or unmount: disposes debounce timers cleanly.
+ * The previous implementation serialized investigation artifacts to Blob
+ * Storage for Foundry IQ indexing. V1 keeps typed CoScout but removes Azure
+ * document persistence and Blob-backed artifact indexing.
  */
 
-import { useRef, useEffect, useCallback } from 'react';
-import { createInvestigationSerializer } from '../../services/analyzeSerializer';
-import { uploadTextBlob } from '../../services/blobClient';
+import { useCallback } from 'react';
 import type { Finding, ProblemStatementScope } from '@variscout/core';
 
 export interface UseInvestigationIndexingOptions {
@@ -32,37 +24,15 @@ export interface UseInvestigationIndexingReturn {
 }
 
 export function useAnalyzeIndexing({
-  projectId,
-  enabled,
+  projectId: _projectId,
+  enabled: _enabled,
 }: UseInvestigationIndexingOptions): UseInvestigationIndexingReturn {
-  const serializerRef = useRef<ReturnType<typeof createInvestigationSerializer> | null>(null);
-
-  useEffect(() => {
-    if (!enabled || !projectId) {
-      serializerRef.current?.dispose();
-      serializerRef.current = null;
-      return;
-    }
-
-    serializerRef.current = createInvestigationSerializer({
-      projectId,
-      uploadBlob: async (path: string, content: string) => {
-        await uploadTextBlob(path, content);
-      },
-    });
-
-    return () => {
-      serializerRef.current?.dispose();
-      serializerRef.current = null;
-    };
-  }, [enabled, projectId]);
-
-  const onFindingsChange = useCallback((findings: Finding[]) => {
-    serializerRef.current?.onFindingsChange(findings);
+  const onFindingsChange = useCallback((_findings: Finding[]) => {
+    // Intentionally no-op: no Blob indexing in the local-first V1 product.
   }, []);
 
-  const onScopesChange = useCallback((scopes: ProblemStatementScope[]) => {
-    serializerRef.current?.onScopesChange(scopes);
+  const onScopesChange = useCallback((_scopes: ProblemStatementScope[]) => {
+    // Intentionally no-op: no Blob indexing in the local-first V1 product.
   }, []);
 
   return { onFindingsChange, onScopesChange };

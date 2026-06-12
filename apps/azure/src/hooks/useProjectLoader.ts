@@ -85,7 +85,7 @@ export function useProjectLoader({
           }
           const classified = classifySyncError(error);
           const code: LoadErrorCode =
-            classified.category === 'not_found'
+            classified.category === 'not-found'
               ? 'not-found'
               : classified.category === 'forbidden'
                 ? 'forbidden'

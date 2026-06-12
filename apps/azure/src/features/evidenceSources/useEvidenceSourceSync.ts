@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import { listEvidenceSnapshotsFromCloud } from '../../services/cloudSync';
 import { azureHubRepository } from '../../persistence';
 import type { EvidenceSnapshot } from '@variscout/core';
 
@@ -42,17 +41,17 @@ export function useEvidenceSourceSync(
       try {
         // Option B-1: read via repository (P5.1 read API) — no direct Dexie access.
         const cursor = await azureHubRepository.evidenceSources.getCursor(hubId, sourceId);
-        const cloudSnapshots = await listEvidenceSnapshotsFromCloud(token, hubId, sourceId);
+        const localSnapshots = await azureHubRepository.evidenceSnapshots.listByHub(hubId);
         if (cancelled) return;
         const cursorTime = cursor ? cursor.lastSeenAt : -Infinity;
-        const filtered = cloudSnapshots
+        const filtered = localSnapshots
+          .filter((s: EvidenceSnapshot) => s.sourceId === sourceId)
           .filter(s => new Date(s.capturedAt).getTime() > cursorTime)
           .sort((a, b) => new Date(a.capturedAt).getTime() - new Date(b.capturedAt).getTime());
         setNewSnapshots(filtered);
         setColumnDriftMessage(detectColumnDrift(filtered));
       } catch {
-        // Quiet failure — telemetry is logged at the cloudSync layer.
-        // No PII allowed in App Insights.
+        // Local cache read failure leaves the chip empty; save paths surface errors separately.
       } finally {
         if (!cancelled) setIsLoading(false);
       }

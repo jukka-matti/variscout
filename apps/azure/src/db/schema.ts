@@ -22,23 +22,6 @@ export interface ProjectRecord {
   access?: DocumentAccess;
 }
 
-export interface SyncStateRecord {
-  name: string;
-  cloudId: string;
-  lastSynced: string;
-  etag: string;
-  /** JSON snapshot of the cloud state at last load - used as merge base */
-  baseStateJson?: string;
-}
-
-export interface SyncItem {
-  id?: number;
-  name: string;
-  location: 'team' | 'personal';
-  project: DocumentSnapshot;
-  queuedAt: string;
-}
-
 import type { EvidenceSourceCursor } from '@variscout/core';
 
 export type { EvidenceSourceCursor };
@@ -53,8 +36,6 @@ export type ActionItemRecord = import('@variscout/core/findings').ActionItem & {
 
 export class VariScoutDatabase extends Dexie {
   projects!: Dexie.Table<ProjectRecord, string>;
-  syncQueue!: Dexie.Table<SyncItem, number>;
-  syncState!: Dexie.Table<SyncStateRecord, string>;
   processHubs!: Dexie.Table<ProcessHubRecord, string>;
   evidenceSources!: Dexie.Table<EvidenceSourceRecord, string>;
   evidenceSnapshots!: Dexie.Table<EvidenceSnapshotRecord, string>;
@@ -68,12 +49,10 @@ export class VariScoutDatabase extends Dexie {
 
   constructor() {
     super('VaRiScoutAzureV1');
-    // Clean pre-launch schema. Azure keeps its document/cloud-sync overlay
-    // stores alongside the current hub-domain stores.
+    // Clean pre-launch schema. Azure keeps a local cache alongside the current
+    // hub-domain stores; cloud document identity was removed in ADR-093 D2.
     this.version(1).stores({
       projects: 'name, location, modified, synced',
-      syncQueue: '++id, name, location, queuedAt',
-      syncState: 'name, cloudId, lastSynced, etag',
       processHubs: 'id, name, updatedAt',
       evidenceSources: 'id, hubId, name, profileId, updatedAt',
       evidenceSnapshots: 'id, hubId, sourceId, capturedAt',
@@ -94,28 +73,4 @@ export const db = new VariScoutDatabase();
 export async function openDb(): Promise<VariScoutDatabase> {
   await db.open();
   return db;
-}
-
-// Sync queue operations
-export async function addToSyncQueue(item: Omit<SyncItem, 'id' | 'queuedAt'>) {
-  await db.syncQueue.put({
-    name: item.name,
-    location: item.location,
-    project: item.project,
-    queuedAt: new Date().toISOString(),
-  });
-}
-
-export async function getPendingSyncItems(): Promise<SyncItem[]> {
-  return await db.syncQueue.toArray();
-}
-
-export async function removeFromSyncQueue(name: string) {
-  await db.syncQueue.where('name').equals(name).delete();
-}
-
-/** Remove sync queue items older than `daysOld` days (default 30). */
-export async function pruneSyncQueue(daysOld = 30): Promise<number> {
-  const cutoff = new Date(Date.now() - daysOld * 86_400_000).toISOString();
-  return db.syncQueue.where('queuedAt').below(cutoff).delete();
 }

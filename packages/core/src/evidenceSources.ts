@@ -89,7 +89,8 @@ export interface EvidenceSnapshot extends EntityBase {
    * Both undefined and [] round-trip cleanly through JSON.stringify / JSON.parse.
    *
    * Architecture: OpenLineage-style envelope facet pattern (ADR-077 amendment 2026-05-07).
-   * One field on EvidenceSnapshot → one Blob Storage object → atomicity for free.
+   * One field on EvidenceSnapshot carries the complete profile application
+   * payload so local snapshot writes stay atomic.
    */
   provenance?: RowProvenanceTag[];
   /**

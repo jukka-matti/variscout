@@ -14,7 +14,7 @@ import type {
 } from '@variscout/core';
 import { db } from '../db/schema';
 import type { DocumentAccess, ProjectRecord } from '../db/schema';
-import type { StorageLocation, CloudProject } from './cloudSync';
+import type { StorageLocation, CloudProject } from './storageTypes';
 import type { DocumentSnapshot } from '@variscout/stores';
 
 export type Project = DocumentSnapshot;
@@ -150,29 +150,11 @@ export async function listFromIndexedDB(userId = 'local'): Promise<CloudProject[
       id: r.name,
       name: r.name,
       modified: r.modified?.toISOString() || new Date().toISOString(),
+      modifiedBy: 'Local',
       location: r.location,
       metadata: r.meta,
       access: r.access,
     }));
-}
-
-export async function markAsSynced(
-  name: string,
-  cloudId: string,
-  etag: string,
-  baseStateJson?: string
-) {
-  const record = await db.projects.get(name);
-  if (record) {
-    await db.projects.update(name, { synced: true });
-    await db.syncState.put({
-      name,
-      cloudId,
-      lastSynced: new Date().toISOString(),
-      etag,
-      baseStateJson,
-    });
-  }
 }
 
 // ── Process Hub catalog ────────────────────────────────────────────────
