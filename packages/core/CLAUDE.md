@@ -13,6 +13,7 @@ Pure TypeScript domain layer. Stats, parser, glossary, tier, i18n, findings, var
 
 - Sub-path exports are public API. Adding a new sub-path requires updating `packages/core/package.json` exports field + `tsconfig.json` paths.
 - Available sub-paths: root (barrel), /stats, /ai, /capability, /parser, /processHub (CharacteristicType, OutcomeSpec, ProcessHub, ProcessStepCapabilitySource, etc.), /findings (incl. `findings/drift.ts`), /variation, /tier, /types, /i18n, /glossary, /export, /navigation, /responsive, /performance, /time, /timeline (TimelineWindow + applyWindow), /throughput (computeOutputRate, computeBottleneck), /projectMetadata, /strategy, /ui-types, /evidenceMap, /defect.
+- ADR-093 removed the V1 live membership/ACL domain. Do not add project-member, invite, or access-control exports back to `core`; collaboration is artifact-first through `.vrs`, packs, typed CoScout, and future transcript distillation.
 - `resolveMode()` + `getStrategy()` in `src/analysisStrategy.ts` is the mode dispatch point. New analysis modes must register here.
 - The stats engine is the authority for numeric claims. CoScout receives stat results; it does not recompute.
 - Numeric safety has three boundaries (ADR-069): B1 parser rejects NaN via `toNumericValue`; B2 stats functions return `undefined`; B3 display uses `formatStatistic`.
@@ -66,7 +67,6 @@ Float assertions use `toBeCloseTo(expected, precision)`. NIST regression tests i
 Agents searching code may miss these — they live in `core` despite "package-like" names:
 
 - `src/ai/` — CoScout prompts + 5 V1 response paths; entry: `assembleCoScoutPrompt()`. ADR-080 (Sustainment auto-fire).
-- `src/projectMembership/` — pure-TS ACL: `canAccess()`, `ROLE_PERMISSIONS`, `ProjectAction` union. Pairs with `useProjectMembershipStore` per wedge V1 (ADR-082). Used by both PWA + Azure.
 
 ## Related
 

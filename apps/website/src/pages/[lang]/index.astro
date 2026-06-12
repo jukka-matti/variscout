@@ -50,8 +50,8 @@ const useCases = [
 ];
 
 const products = [
-	{ id: "pwa", title: "Web App", description: "Free training & education tool. Paste data or explore samples.", price: "FREE forever", cta: { text: "Try Free", href: "/app" }, badge: "Best for Learning" },
-	{ id: "azure", title: "Azure App", description: "Full analysis for teams. All features, unlimited users.", price: "€150/month", cta: { text: "Learn More", href: `/${lang}/product/azure` }, badge: "Full Power" },
+	{ id: "pwa", title: "Free Workspace", description: "Session-only local analysis. Paste data or explore samples.", price: "FREE forever", cta: { text: "Try Free", href: "/app" }, badge: "Best for Learning" },
+	{ id: "azure", title: "Paid Workspace", description: "Planned artifact layer for saving, packs, and CoScout.", price: "Planned", cta: { text: "Learn More", href: `/${lang}/product/azure` }, badge: "Artifact Layer" },
 ];
 ---
 
@@ -66,7 +66,7 @@ const products = [
 		<div class="container-wide">
 			<div class="text-center mb-16">
 				<h2 class="text-3xl font-bold mb-4">Two Ways to Start</h2>
-				<p class="text-neutral-600">Try it free. When you're ready for your team, get it on Azure Marketplace.</p>
+				<p class="text-neutral-600">Try the Workspace free. Paid channels will add the artifact layer for keeping and sharing work.</p>
 			</div>
 			<div class="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
 				{products.map((product) => <ProductCard {...product} />)}

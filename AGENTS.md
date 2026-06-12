@@ -1,12 +1,13 @@
 # VariScout for Codex
 
-Structured analysis for process improvement. Browser-based, customer-owned data, local-cache capable. **V1 strategic direction (single-SKU pivot 2026-05-16):** single-product tool for improvement specialists; €120/mo Azure tenant-wide; 7-tab workflow nav (`Home · Project · Process · Explore · Analyze · Improve · Report`); 3 personas within each Project (Lead / Member / Sponsor). Canonical: [V1 architecture spec](docs/superpowers/specs/2026-05-16-wedge-architecture-design.md) + [ADR-082](docs/07-decisions/adr-082-wedge-architecture.md).
+Structured analysis for process improvement. Browser-based, customer-owned data, local-cache capable. **V1 strategic direction (local-first pivot 2026-06-11):** one desktop Workspace app with build-time `free`, `individual`, and `company` channels; `.vrs` and packs are paid artifact infrastructure; live membership/ACLs, Azure document persistence, product-mobile surfaces, and in-product voice capture are cut from V1. Canonical: [ADR-092](docs/07-decisions/adr-092-local-first-variscout-product-model.md) + [ADR-093](docs/07-decisions/adr-093-v1-simplification-cuts.md).
 
 ## Invariants
 
-- Browser-only processing; data stays in customer's tenant (ADR-059).
+- Browser-only processing; data stays local by default or in the customer's tenant-governed runtime (ADR-059/092).
 - 9 Zustand stores split across 3 layers per ADR-078 + F4 (Document x4, Annotation x4 — 1 per-hub + 3 per-user, View x1); no DataContext. Authoritative table: `packages/stores/CLAUDE.md`.
 - Deterministic stats engine is authority; CoScout (AI) adds context.
+- V1 collaboration is artifact-first: `.vrs`, Analysis/Consultation Packs, typed CoScout, and future transcript distillation. Do not reintroduce live project membership, ACL gates, Blob document sync, product-mobile shells, or in-product microphone capture.
 - Package dependencies flow downward: core -> hooks -> ui -> apps.
 - Never write "root cause" in code, comments, or UI copy — say "contribution" / "suspected cause" / "mechanism" (P5; ESLint enforces). Never call interactions "moderator/primary" — use `'ordinal'` / `'disordinal'`.
 
@@ -16,6 +17,7 @@ Structured analysis for process improvement. Browser-based, customer-owned data,
 - `pnpm --filter @variscout/azure-app preview` - company server serving built Workspace dist
 - `pnpm test` - all packages via turbo
 - `pnpm build` - all packages and apps
+- `pnpm check:adr-093-guardrails` - static guards for ADR-093 deleted concepts
 - `pnpm codex:ruflo-check` - verify Codex can reach the expected Ruflo version and print recovery steps if missing or stale
 
 ## Where To Look

@@ -14,7 +14,7 @@ const lang = getLangFromUrl(Astro.url);
 const faqs = [
 	{
 		question: "Where is my data stored?",
-		answer: "Your data stays in your Azure tenant. VaRiScout is deployed as a Managed Application in your subscription. No data leaves your environment — there are no external API calls, no telemetry, no third-party analytics.",
+		answer: "Analysis data stays in the browser and in user-controlled artifacts such as .vrs snapshots and packs. The company server does not provide document storage or shared workspaces.",
 	},
 	{
 		question: "How does SSO work?",
@@ -22,7 +22,7 @@ const faqs = [
 	},
 	{
 		question: "How are users provisioned?",
-		answer: "Any user in your Entra ID tenant with access to the App Service can sign in. Control access through Entra ID groups and App Service access restrictions. No per-user licenses or seat management required — the plan covers unlimited users.",
+		answer: "Company-channel access is tenant-governed through Entra ID and App Service access controls. Production entitlement and pricing are separate follow-up work.",
 	},
 	{
 		question: "What compliance certifications apply?",
@@ -30,43 +30,43 @@ const faqs = [
 	},
 	{
 		question: "What is the support model?",
-		answer: "Documentation-first support. The Azure App includes comprehensive in-app guidance, help tooltips, and sample datasets. For deployment assistance, your existing IT team or Lean Six Sigma consultants can deploy using the ARM template.",
+		answer: "Documentation-first support. The Workspace includes in-app guidance, help tooltips, and sample datasets. For company hosting, your existing IT team or Lean Six Sigma consultants can deploy the slim server/static host.",
 	},
 	{
 		question: "How are updates delivered?",
-		answer: "Updates are delivered through Azure Marketplace as new versions of the Managed Application. Your IT team controls when to apply updates — there are no forced upgrades or breaking changes to your running instance.",
+		answer: "During convergence, updates are ordinary Workspace build releases. Production Marketplace update delivery is planned after entitlement work.",
 	},
 	{
 		question: "Can we integrate with Microsoft Teams?",
-		answer: "Yes. The Azure App includes an admin setup page that generates a Teams manifest package. Upload the .zip to your Teams admin center to make VaRiScout available as a Teams tab for your organization.",
+		answer: "Teams distribution remains a company-channel option, but live project membership is not part of V1. Consultation happens through packs and existing enterprise communication rails.",
 	},
 	{
 		question: "What is the exit strategy?",
-		answer: "All your data is stored in standard formats in your Azure tenant. Export analysis results, datasets, and configurations at any time. There is no vendor lock-in — your data is always yours.",
+		answer: "Paid artifacts use .vrs snapshots and export packs. There is no vendor-hosted document database to migrate away from.",
 	},
 ];
 ---
 
 <BaseLayout
-	title="VaRiScout | Enterprise-Ready Variation Analysis"
-	description="Deploy VaRiScout in your Azure tenant. EasyAuth SSO, data residency, ARM template deployment, Teams integration. Built for IT evaluators and enterprise teams."
+	title="VaRiScout | Company-Ready Variation Analysis"
+	description="Company-channel VaRiScout: local-first Workspace build, EasyAuth SSO, tenant CoScout plumbing, and no shared document storage."
 >
 	<!-- Hero -->
 	<section class="py-20 md:py-28 bg-white">
 		<div class="container-wide">
 			<div class="max-w-3xl">
 				<a href={`/${lang}/product/azure`} class="text-sm font-medium text-brand-primary mb-4 block hover:underline">
-					&larr; Back to Azure App
+					&larr; Back to Company Channel
 				</a>
 				<h1 class="text-4xl md:text-5xl font-bold mb-6 text-neutral-900">
-					Enterprise-Ready Variation Analysis
+					Company-Ready Variation Analysis
 				</h1>
 				<p class="text-xl text-neutral-600 mb-8 leading-relaxed">
-					Deploy in your Azure tenant. Authenticate with Entra ID. Keep data where it belongs — with you. One ARM template, unlimited users, no external dependencies.
+					Serve the local-first Workspace through your company environment. Authenticate with Entra ID, keep analysis artifacts under user control, and route CoScout through tenant-governed plumbing.
 				</p>
 				<div class="flex flex-wrap gap-4">
-					<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">
-						Deploy from Azure Marketplace
+					<a href={`/${lang}/getting-started`} class="btn btn-primary px-8 py-3">
+						View Company Preview Guide
 					</a>
 					<a href={`/${lang}/pricing`} class="btn btn-secondary px-8 py-3">
 						View Pricing
@@ -89,7 +89,7 @@ const faqs = [
 				<div class="bg-white border border-neutral-200 rounded-xl p-6">
 					<h3 class="font-bold text-lg mb-2 text-neutral-900">Data Residency</h3>
 					<p class="text-neutral-600 text-sm leading-relaxed">
-						All data stays in your Azure tenant. No external API calls, no telemetry sent to third parties. You choose the Azure region — your data never leaves your environment.
+						Analysis data stays in the browser and in explicit user-controlled artifacts. The company server does not list, save, or sync customer documents.
 					</p>
 				</div>
 				<div class="bg-white border border-neutral-200 rounded-xl p-6">
@@ -119,7 +119,7 @@ const faqs = [
 				<div class="bg-white border border-neutral-200 rounded-xl p-6">
 					<h3 class="font-bold text-lg mb-2 text-neutral-900">Marketplace Billing</h3>
 					<p class="text-neutral-600 text-sm leading-relaxed">
-						Billed through Azure Marketplace on your existing Enterprise Agreement. No separate procurement process, no new vendor onboarding.
+						Production Azure Marketplace entitlement is planned after the local-first Workspace convergence is stable.
 					</p>
 				</div>
 			</div>
@@ -137,26 +137,26 @@ const faqs = [
 			</div>
 			<div class="grid md:grid-cols-2 gap-12 items-start">
 				<div>
-					<h3 class="font-bold text-xl mb-4 text-neutral-900">One ARM Template, Ready in Minutes</h3>
+					<h3 class="font-bold text-xl mb-4 text-neutral-900">Slim Company Host</h3>
 					<p class="text-neutral-600 mb-6 leading-relaxed">
-						VaRiScout deploys as a Managed Application from Azure Marketplace. The ARM template provisions an App Service Plan, Web App, and EasyAuth configuration — nothing else.
+						The company channel serves the same Workspace build with company capabilities. The server owns health/config/auth, tenant CoScout plumbing, and static hosting.
 					</p>
 					<ul class="space-y-3">
 						<li class="flex items-start gap-3">
 							<span class="text-brand-primary font-bold mt-0.5">1.</span>
-							<span class="text-neutral-700">Find VaRiScout in Azure Marketplace and click Deploy</span>
+							<span class="text-neutral-700">Build the Workspace with company capabilities</span>
 						</li>
 						<li class="flex items-start gap-3">
 							<span class="text-brand-primary font-bold mt-0.5">2.</span>
-							<span class="text-neutral-700">Select your subscription, resource group, and region</span>
+							<span class="text-neutral-700">Host the slim server/static build in your Azure subscription</span>
 						</li>
 						<li class="flex items-start gap-3">
 							<span class="text-brand-primary font-bold mt-0.5">3.</span>
-							<span class="text-neutral-700">ARM template provisions App Service + EasyAuth SSO</span>
+							<span class="text-neutral-700">Configure App Service + EasyAuth SSO</span>
 						</li>
 						<li class="flex items-start gap-3">
 							<span class="text-brand-primary font-bold mt-0.5">4.</span>
-							<span class="text-neutral-700">Users sign in with their Entra ID accounts — done</span>
+							<span class="text-neutral-700">Users sign in with Entra ID and work locally with artifacts</span>
 						</li>
 					</ul>
 					<a href={`/${lang}/getting-started`} class="inline-flex items-center gap-2 text-brand-primary font-medium hover:gap-3 transition-all text-sm mt-6">
@@ -176,7 +176,7 @@ const faqs = [
 						</li>
 						<li class="flex items-start gap-3">
 							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">Storage</span>
-							<span class="text-neutral-600">Azure Blob Storage in the customer's tenant, with browser cache</span>
+							<span class="text-neutral-600">.vrs files, packs, and minimal local autosave cache</span>
 						</li>
 						<li class="flex items-start gap-3">
 							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">Teams</span>
@@ -203,12 +203,12 @@ const faqs = [
 			</div>
 			<div class="max-w-3xl">
 				<p class="text-neutral-600 mb-6 leading-relaxed">
-					Make VaRiScout available as a Teams tab for your organization. The Azure App includes an admin setup page that generates a Teams manifest package — download the .zip and upload it to your Teams admin center.
+					Make VaRiScout available through your existing Microsoft surfaces. V1 collaboration is artifact-first: share Analysis and Consultation Packs through Teams, email, or SharePoint; recipients do not join a live project workspace.
 				</p>
 				<ul class="space-y-3 text-neutral-700">
 					<li class="flex items-start gap-3">
 						<Users size={18} class="text-brand-primary mt-0.5 shrink-0" />
-						<span>Team members access VaRiScout directly from their Teams workspace</span>
+						<span>Colleagues review exported packs through existing enterprise channels</span>
 					</li>
 					<li class="flex items-start gap-3">
 						<ShieldCheck size={18} class="text-brand-primary mt-0.5 shrink-0" />
@@ -246,13 +246,13 @@ const faqs = [
 	<!-- CTA -->
 	<section class="py-20 bg-brand-secondary text-white">
 		<div class="container-wide text-center">
-			<h2 class="text-3xl font-bold mb-4">Ready to Deploy?</h2>
+			<h2 class="text-3xl font-bold mb-4">Ready to Evaluate?</h2>
 			<p class="text-neutral-400 mb-10 max-w-2xl mx-auto">
-				One Managed Application, unlimited users, &euro;150/month on your Azure EA. No sales calls, no demos required — deploy directly from Azure Marketplace.
+				Start with the free Workspace and evaluate the company-channel shape before production Marketplace entitlement lands.
 			</p>
 			<div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-				<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">
-					Deploy from Azure Marketplace
+				<a href={`/${lang}/getting-started`} class="btn btn-primary px-8 py-3">
+					View Company Preview Guide
 				</a>
 				<a href={`/${lang}/pricing`} class="btn btn-outline border-white/20 text-white hover:bg-white/10 px-8 py-3">
 					Compare Plans
