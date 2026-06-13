@@ -3,7 +3,7 @@ tier: living
 purpose: build
 title: 'Explore redesign — master plan'
 audience: human
-status: active
+status: delivered
 date: 2026-06-10
 layer: spec
 topic: [explore, ichart, factor-strip, conditions, findings, capability, pareto, wedge-v1]

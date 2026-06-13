@@ -3,7 +3,7 @@ tier: living
 purpose: design
 title: 'Explore redesign — chart-as-hero, the factor strip, and the condition loop'
 audience: human
-status: active
+status: delivered
 date: 2026-06-10
 layer: spec
 topic:
