@@ -42,19 +42,12 @@ interface CanvasStepOverlayProps {
 const DESKTOP_WIDTH = 440;
 const DESKTOP_ESTIMATED_HEIGHT = 360;
 const VIEWPORT_MARGIN = 16;
-const MOBILE_BREAKPOINT = 768;
-
-function isMobileViewport(): boolean {
-  return typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
-}
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(value, max));
 }
 
 function desktopOverlayStyle(anchorRect?: CanvasOverlayAnchorRect | null): React.CSSProperties {
-  if (isMobileViewport()) return {};
-
   const viewportWidth = typeof window === 'undefined' ? 1024 : window.innerWidth;
   const viewportHeight = typeof window === 'undefined' ? 768 : window.innerHeight;
   const maxLeft = Math.max(VIEWPORT_MARGIN, viewportWidth - DESKTOP_WIDTH - VIEWPORT_MARGIN);
@@ -106,9 +99,6 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
   actionItems = [],
   onCaptureFindingFromStep,
 }) => {
-  const touchStartY = React.useRef<number | null>(null);
-  const mobile = isMobileViewport();
-
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -117,24 +107,8 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  const handleTouchStart = React.useCallback((event: React.TouchEvent) => {
-    touchStartY.current = event.touches[0]?.clientY ?? null;
-  }, []);
-
-  const handleTouchEnd = React.useCallback(
-    (event: React.TouchEvent) => {
-      if (touchStartY.current === null) return;
-      const endY = event.changedTouches[0]?.clientY ?? touchStartY.current;
-      const deltaY = endY - touchStartY.current;
-      touchStartY.current = null;
-      if (deltaY > 60) onClose();
-    },
-    [onClose]
-  );
-
-  const panelClassName = mobile
-    ? 'absolute bottom-0 left-0 right-0 max-h-[82vh] overflow-auto rounded-t-lg border border-edge bg-surface-primary p-4 shadow-xl'
-    : 'absolute max-h-[82vh] overflow-auto rounded-lg border border-edge bg-surface-primary p-4 shadow-xl';
+  const panelClassName =
+    'absolute max-h-[82vh] overflow-auto rounded-lg border border-edge bg-surface-primary p-4 shadow-xl';
 
   return (
     <div className="fixed inset-0 z-50" data-testid="canvas-step-overlay-root">
@@ -158,17 +132,7 @@ export const CanvasStepOverlay: React.FC<CanvasStepOverlayProps> = ({
           className={panelClassName}
           style={desktopOverlayStyle(anchorRect)}
           data-testid="canvas-step-overlay"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
         >
-          {mobile ? (
-            <div className="mb-3 flex justify-center" aria-hidden="true">
-              <span
-                className="h-1 w-10 rounded-full bg-content-muted/50"
-                data-testid="canvas-step-overlay-handle"
-              />
-            </div>
-          ) : null}
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="text-base font-semibold text-content">{card.stepName}</h3>
