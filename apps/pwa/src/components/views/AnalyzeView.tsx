@@ -31,7 +31,7 @@ import {
   useWallKeyboard,
 } from '@variscout/ui';
 import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
-import { useResizablePanel, useReturnNavigation, useAnalysisStats } from '@variscout/hooks';
+import { useResizablePanel, useReturnNavigation } from '@variscout/hooks';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
 import type { CapturedModelSnapshot, ObjectDetailSelection } from '@variscout/ui';
 import {
@@ -57,7 +57,8 @@ import type { EvaluateFactorOptions } from '@variscout/ui';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { detectColumns } from '@variscout/core/parser';
 import { deriveProcessSteps } from '@variscout/core/frame';
-import type { ColumnTypeMap } from '@variscout/core/findings';
+import type { ColumnTypeMap, ConditionLeaf } from '@variscout/core/findings';
+import { computeScopeProblemStats } from '@variscout/core/variation';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
 import {
@@ -673,16 +674,32 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // flat (per-hub STATUS_STYLES badges; no internal bucketing). The one canonical
   // status→bucket mapping now lives in core (`groupHypothesesByStatus`).
 
-  // PR-2 (D4 Cpk honesty fix): read the scoped Cpk + out-of-spec rate from
-  // useAnalysisStats, which reads the same filtered subset and spec as the rest
-  // of AnalyzeView. stats?.cpk is undefined when no spec limits are set —
-  // ProblemConditionCard renders "no specs set" in that case instead of "Cpk 0.00".
-  const { stats: analysisStats } = useAnalysisStats();
-  const problemCpk = analysisStats?.cpk;
-  const problemEvents = useMemo(() => {
-    if (analysisStats?.outOfSpecPercentage == null || filteredData.length === 0) return 0;
-    return Math.round((analysisStats.outOfSpecPercentage / 100) * filteredData.length);
-  }, [analysisStats, filteredData]);
+  // PR-2 (D4 Cpk honesty fix): the Wall problem card represents `activeScope`
+  // evaluated over `rawData` (its conditionText / coverage% / what-If all read
+  // `activeScope.predicates` over the `rows={rawData}` prop). Its observed Cpk +
+  // out-of-spec count MUST be computed over that SAME subset — NOT over
+  // `useAnalysisStats` (which reads `projectStore.filters`). Condition/range drills
+  // write `analysisScopeStore.conditionLeaves` ONLY (NOT filters; see
+  // useConditionLoop), so under such a drill `useAnalysisStats` stays full-series
+  // and would report the WRONG (wider) Cpk for the displayed condition. Computing
+  // over `rawData` ∩ predicates matches the card for ALL paths: no scope → full
+  // series; categorical drill → same rows filters yields; condition/range drill →
+  // the conditioned subset (the fix). `cpk` stays undefined when no spec limit is
+  // set so the card renders "no specs set" instead of "Cpk 0.00".
+  const problemStats = useMemo(
+    () =>
+      outcome
+        ? computeScopeProblemStats(
+            (activeScope?.predicates ?? []) as ConditionLeaf[],
+            rawData as DataRow[],
+            outcome,
+            wallScopeSpecs
+          )
+        : undefined,
+    [activeScope, rawData, outcome, wallScopeSpecs]
+  );
+  const problemCpk = problemStats?.cpk;
+  const problemEvents = problemStats?.events ?? 0;
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">

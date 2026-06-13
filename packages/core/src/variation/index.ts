@@ -48,7 +48,12 @@ export {
 export type { MatchedBestProjection } from './projection';
 
 // Scope-level contribution (IM-5 — What-If projection + descriptive coverage %)
-export { computeScopeWhatIfProjection, computeConditionCoverage } from './scopeContribution';
+export {
+  computeScopeWhatIfProjection,
+  computeConditionCoverage,
+  computeScopeProblemStats,
+} from './scopeContribution';
+export type { ScopeProblemStats } from './scopeContribution';
 
 // Direction-aware category coloring
 export type { DirectionColor } from './directionColors';

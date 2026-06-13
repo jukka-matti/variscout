@@ -29,6 +29,7 @@ import {
   type DataRow as EvalDataRow,
 } from '../findings/hypothesisConditionEvaluator';
 import { simulateOverallImpact } from './simulation';
+import { calculateStats } from '../stats/basic';
 import { toNumericValue } from '../types';
 
 /** Minimum rows in complement for a meaningful simulation. Mirrors projection.ts. */
@@ -129,4 +130,64 @@ export function computeConditionCoverage(predicates: ConditionLeaf[], rawData: D
   const matchCount = rawData.filter(row => evaluateCondition(andCond, row as EvalDataRow)).length;
 
   return (matchCount / rawData.length) * 100;
+}
+
+/** The Wall problem-condition card's observed Cpk + out-of-spec count over the scoped subset. */
+export interface ScopeProblemStats {
+  /**
+   * Observed Cpk of the scoped subset (σ_within), `undefined` when no spec limit
+   * is set, when the subset is empty, or when σ_within is 0 (all identical). The
+   * Wall card renders "no specs set" when this is `undefined` with no spec limits.
+   */
+  cpk: number | undefined;
+  /** Count of scoped rows that fall outside the spec limits (0 when no specs). */
+  events: number;
+  /** Numeric-valued row count the stats were computed over (the scoped subset). */
+  n: number;
+}
+
+/**
+ * Compute the Wall problem-condition card's OBSERVED Cpk + out-of-spec count over
+ * exactly the subset the card represents: `rawData` narrowed to the scope's
+ * predicates (the same `evaluateCondition` partition `computeConditionCoverage`
+ * and `computeScopeWhatIfProjection` use). Empty `predicates` → the full series
+ * (no active scope). This MUST drive the card's Cpk because a condition/range
+ * drill writes `analysisScopeStore.conditionLeaves` only — NOT
+ * `projectStore.filters` — so `useAnalysisStats` (which reads filters) stays
+ * full-series and would report the WRONG (wider) Cpk for the displayed condition.
+ *
+ * Distinct from `computeScopeWhatIfProjection` (the if-fixed PROJECTED Cpk): this
+ * is the descriptive OBSERVED capability of the scoped rows as-is. `cpk` is
+ * `undefined` when no spec limit is set (the no-specs honesty case) so the card
+ * renders "no specs set" rather than "Cpk 0.00".
+ *
+ * @param predicates - The scope's flat AND of ConditionLeaf conditions (any op); empty = full series.
+ * @param rawData    - The full dataset the card's coverage/whatIf also read.
+ * @param outcome    - The numeric Y column the scope sharpens.
+ * @param specs      - Spec limits for the outcome (Cpk requires at least one).
+ */
+export function computeScopeProblemStats(
+  predicates: ConditionLeaf[],
+  rawData: DataRow[],
+  outcome: string,
+  specs?: Pick<SpecLimits, 'usl' | 'lsl'>
+): ScopeProblemStats {
+  const subset =
+    predicates.length === 0
+      ? rawData
+      : rawData.filter(row =>
+          evaluateCondition(predicatesToAndCondition(predicates), row as EvalDataRow)
+        );
+
+  const values = subset
+    .map(r => toNumericValue(r[outcome]))
+    .filter((v): v is number => v !== undefined);
+
+  if (values.length === 0) return { cpk: undefined, events: 0, n: 0 };
+
+  const stats = calculateStats(values, specs?.usl, specs?.lsl);
+  const hasSpecs = specs?.usl !== undefined || specs?.lsl !== undefined;
+  const events = hasSpecs ? Math.round((stats.outOfSpecPercentage / 100) * values.length) : 0;
+
+  return { cpk: stats.cpk, events, n: values.length };
 }
