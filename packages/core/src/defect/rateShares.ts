@@ -175,6 +175,20 @@ export function computeDefectRateShares(
     // Sort by rate descending (highest-defect level first)
     perLevelData.sort((a, b) => b.rate - a.rate);
 
+    /**
+     * Ranking statistic: exposure-weighted MAD (mean absolute deviation) of
+     * per-level defect rates from the overall rate, where each level's weight
+     * is its row share (n_level / n_total).
+     *
+     * Design intent (ADR-088 / defect-BURDEN attribution): down-weighting tiny
+     * levels means a factor that broadly separates rates across many common
+     * conditions outranks one that spikes only in a rare level. A perfect
+     * separator observed in 2 out of 1000 rows contributes almost nothing to
+     * the weighted MAD — which is correct: the analyst's attention should go to
+     * patterns that affect the bulk of the process, not to statistical artefacts
+     * of small cells. Do NOT change this to unweighted MAD: an unweighted rank
+     * would surface rare spikes as the top factor and mislead triage.
+     */
     // Concentration = weighted mean absolute deviation of per-level rates from overall rate
     // weight = n_level / n_total
     const totalN = perLevelData.reduce((s, l) => s + l.n, 0);

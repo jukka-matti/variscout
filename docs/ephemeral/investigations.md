@@ -1914,3 +1914,15 @@ ER-5a added the per-segment "view as condition →" CTA to `InflectionSidePanelV
 **Addendum 2 (same day) — voice + CoScout OUT of the fishbone design (owner call, 2026-06-11):** the lens carries **no voice and no CoScout dependency**. Capture path (d) above (live voice→CoScout propose→accept) is **cut from the design** — later enrichment at most, never a design principle. Point 5's interrogation layer accordingly de-AIs: the canonical questions ("what changed / what can go wrong / are we missing a factor") render as **static per-bone affordances** backed by deterministic answers (change-points, residual 1 − R²adj, suggested bones) — no AI asker. Consequence for sequencing: the working lens is now fully deterministic and decoupled from the consultation-loop/AI machinery — only the fish-shaped Consultation Pack rendering depends on the pack work; the lens itself could be built independently and runs in every channel.
 
 **Addendum 2 (same day) — voice cut product-wide; CoScout stays in the lens:** owner call clarified against ADR-093 **D6** (added same day): CoScout **voice input** is cut from V1 (ADR-071 superseded; typed-first CoScout; voice is not a design principle). For the Ishikawa lens this trims capture path (d) to its non-voice form — paste/import a workshop transcript or list → CoScout proposes bones with categories → facilitator accepts (the loop's distill-propose-accept pattern, no microphone involved). CoScout's other lens roles (interrogation asker, propose-accept) are unaffected.
+
+## Defect-rate strip: exposure-weighted MAD ranking is intentional — do NOT change to unweighted [LOGGED 2026-06-13]
+
+**Surfaced by:** ER-5b adversarial review (ADR-088 / `packages/core/src/defect/rateShares.ts`).
+
+`computeDefectRateShares` ranks candidate factors by the **exposure-weighted** mean absolute deviation (MAD) of per-level defect rates from the overall rate. The weight for each level is its row share (n_level / n_total). This deliberately down-weights tiny levels so that a factor causing a broad rate elevation across many common production conditions outranks one that spikes only in a rare, low-exposure level — even if the rare level is a "perfect separator" (100% defect rate in 2 out of 1000 rows vs. 30% elevation across 500 rows each).
+
+**Why weighted MAD is correct here (ADR-088 / defect-BURDEN attribution):** the goal of the strip is to direct the analyst's attention to defect BURDEN — the factors that, if improved, reduce the most failures across the whole process. A rare spike affects almost no units; the weighted MAD gives it near-zero weight, which is the right triage signal. An unweighted MAD would reverse the order and surface rare artefacts as the top contributor.
+
+**Do NOT "fix" this to unweighted MAD.** If an analyst specifically asks "what causes 100% defect rate in the rare Batch X?", the drill-down path (select level → apply condition → re-rank within condition) is the right tool, not changing the global ranking statistic.
+
+**Severity:** n/a — working as designed; this entry exists so a future reader doesn't misread the weighting as an oversight.
