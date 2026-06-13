@@ -1,11 +1,10 @@
 /**
- * HypothesisComments — team comment thread for a Hypothesis card (Investigation Wall).
+ * HypothesisComments — local comment thread for a Hypothesis card (Investigation Wall).
  *
  * Lifts/parameterizes FindingComments: reuses the existing thread widget and
  * editor, wiring hub.comments as the data source and the hub id as the
- * "findingId" context. ACL gate mirrors HypothesisCardWithPlans:
- *   - members.length === 0  → open-access (V1 single-user scenario)
- *   - otherwise             → canAccess(currentUserId, members, 'edit-contributions')
+ * "findingId" context. ADR-093 makes comments local-first and typed; there is
+ * no in-product membership ACL.
  *
  * SSE sync: addHubComment (+ useHubCommentStream) are wired at the app level;
  * this component receives callbacks (onAdd/onEdit/onDelete) and is agnostic to
@@ -17,19 +16,15 @@
 
 import React from 'react';
 import type { Hypothesis } from '@variscout/core';
-import type { ProjectMember } from '@variscout/core/projectMembership';
-import { canAccess } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 import FindingComments from '../FindingsLog/FindingComments';
 
 export interface HypothesisCommentsProps {
   /** The hypothesis whose comments to display. */
   hub: Hypothesis;
-  /** Project members for ACL checks. Pass `[]` for open-access (single-user). */
-  members: ReadonlyArray<ProjectMember>;
-  /**
-   * Current user's userId (ProjectMember.userId). Pass `null` when unauthenticated.
-   * Ignored when `members` is empty (open-access escape).
-   */
+  /** Local contributor labels used for author display and future mention resolution. */
+  members: ReadonlyArray<ProjectContributor>;
+  /** Current local user id. */
   currentUserId: string | null;
   /** Called when the user submits a new comment. */
   onAdd: (hubId: string, text: string, attachment?: File) => void;
@@ -50,10 +45,8 @@ export const HypothesisComments: React.FC<HypothesisCommentsProps> = ({
   onDelete,
   showAuthors,
 }) => {
-  // ACL gate — open-access when no members configured (V1 single-user scenario)
-  const canEdit =
-    members.length === 0 ||
-    (currentUserId !== null && canAccess(currentUserId, [...members], 'edit-contributions'));
+  void members;
+  void currentUserId;
 
   return (
     <FindingComments
@@ -63,7 +56,7 @@ export const HypothesisComments: React.FC<HypothesisCommentsProps> = ({
       onEdit={onEdit}
       onDelete={onDelete}
       showAuthors={showAuthors}
-      canEdit={canEdit}
+      canEdit
     />
   );
 };

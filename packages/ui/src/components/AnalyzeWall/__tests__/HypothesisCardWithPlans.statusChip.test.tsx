@@ -19,7 +19,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { HypothesisCardWithPlans } from '../HypothesisCardWithPlans';
 import type { Hypothesis, Finding } from '@variscout/core';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 
 const supportFinding: Finding = {
   id: 'f-support',
@@ -66,7 +66,7 @@ const baseProps = {
   x: 100,
   y: 100,
   plans: [],
-  members: [] as ProjectMember[],
+  members: [] as ProjectContributor[],
   currentUserId: null,
   findings: [supportFinding] as Finding[],
   onAddPlan: vi.fn(),

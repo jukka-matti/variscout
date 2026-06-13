@@ -29,7 +29,7 @@ import type {
 import type { DataRow } from '@variscout/core';
 import type { ColumnTypeMap, ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan, MeasurementPlanStatus } from '@variscout/core/measurementPlan';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 import {
   conditionHasMissingColumn,
   conditionReferencesStep,
@@ -108,10 +108,10 @@ const formatGateExpression = (node: GateNode, hubIndexById: Map<string, number>)
 export interface WallCanvasPlanningProps {
   /** All measurement plans for the active investigation (across all hypotheses). */
   plans: MeasurementPlan[];
-  /** Project members for ACL checks and owner name resolution. */
-  members: ReadonlyArray<ProjectMember>;
+  /** Local contributor labels for owner name resolution. */
+  members: ReadonlyArray<ProjectContributor>;
   /**
-   * Current user's userId. Matches ProjectMember.userId.
+   * Current local user id.
    * Pass null when unauthenticated.
    */
   currentUserId: string | null;

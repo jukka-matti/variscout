@@ -841,7 +841,7 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
     });
   });
 
-  describe('canAccess photo gate (2-tier ACL — photos are contributions)', () => {
+  describe('local photo capture', () => {
     const makeMember = (userId: string, role: 'lead' | 'member' | 'sponsor') => ({
       id: `pm-${userId}`,
       createdAt: 1,
@@ -886,7 +886,7 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
       expect(capturedFindingsLogProps.current?.onAddPhoto).toBeDefined();
     });
 
-    it('Non-member receives onAddPhoto=undefined (no canAccess permission)', () => {
+    it('photo capture remains wired when the callback exists', () => {
       const handleAddPhoto = vi.fn();
       const props = makeMinimalProps();
       render(
@@ -897,10 +897,10 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
           members={[makeMember('lead@org', 'lead')]}
         />
       );
-      expect(capturedFindingsLogProps.current?.onAddPhoto).toBeUndefined();
+      expect(capturedFindingsLogProps.current?.onAddPhoto).toBeDefined();
     });
 
-    it('null userId always yields onAddPhoto=undefined', () => {
+    it('null userId still receives onAddPhoto when the callback exists', () => {
       const handleAddPhoto = vi.fn();
       const props = makeMinimalProps();
       render(
@@ -911,7 +911,7 @@ describe('AnalyzeWorkspace Wall/Causes/Findings lenses', () => {
           members={[makeMember('lead@org', 'lead')]}
         />
       );
-      expect(capturedFindingsLogProps.current?.onAddPhoto).toBeUndefined();
+      expect(capturedFindingsLogProps.current?.onAddPhoto).toBeDefined();
     });
 
     it('empty members array (quick-analysis flow) receives onAddPhoto regardless of role check', () => {

@@ -43,7 +43,7 @@ import { render } from '@testing-library/react';
 import { HypothesisCardWithPlans } from '../HypothesisCardWithPlans';
 import type { Hypothesis } from '@variscout/core';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 
 // ── fixtures ──────────────────────────────────────────────────────────────────
 
@@ -58,22 +58,18 @@ const hub: Hypothesis = {
   deletedAt: null,
 };
 
-const leadMember: ProjectMember = {
+const leadMember: ProjectContributor = {
   id: 'm1',
   userId: 'user-lead',
   displayName: 'Alice Lead',
-  role: 'lead',
-  invitedAt: 1_748_649_600_000,
   createdAt: 1_748_649_600_000,
   deletedAt: null,
 };
 
-const memberCollector: ProjectMember = {
+const memberCollector: ProjectContributor = {
   id: 'm2',
   userId: 'user-member',
   displayName: 'Bob Collector',
-  role: 'member',
-  invitedAt: 1_748_649_600_000,
   createdAt: 1_748_649_600_000,
   deletedAt: null,
 };
@@ -344,7 +340,7 @@ describe('HypothesisCardWithPlans — data-collection task section visibility (n
       <HypothesisCardWithPlans
         {...baseProps([plannedPlan], {
           currentUserId: 'user-not-a-member',
-          // members is non-empty → canAccess returns false for 'user-not-a-member'
+          // local contributor labels do not gate editing
           members: [leadMember, memberCollector],
         })}
       />

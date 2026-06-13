@@ -5,12 +5,9 @@
  * Composition strategy B: wrap, not extend. HypothesisCard's contract is
  * unchanged; measurement-plan affordances live entirely in the extension zone.
  *
- * ACL gate:
- *   - members.length === 0  → open-access (V1 single-user scenario)
- *   - otherwise             → canAccess(currentUserId, members, 'edit-contributions')
- *
- * Measurement plans are contributions per the 2-tier ACL — Lead + Member +
- * Sponsor can add/link plans.
+ * ADR-093 makes this a local-first workspace surface: planning and comments are
+ * editable when callbacks are wired; `members` is only a local contributor list
+ * for owner labels.
  *
  * Dispatch pattern: callbacks bubble up to parent (WallCanvas → app) exactly
  * as existing onSelectHub / onComposeGate do. No new dispatch mechanism
@@ -28,8 +25,7 @@ import type {
 } from '@variscout/core';
 import type { ConditionLeaf } from '@variscout/core/findings';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
-import type { ProjectMember } from '@variscout/core/projectMembership';
-import { canAccess } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 import {
   deriveHypothesisActivity,
   displayHypothesisStatus,
@@ -127,12 +123,9 @@ const STATUS_OPTIONS: ReadonlyArray<HypothesisStatus> = [
 export interface HypothesisCardWithPlansProps extends HypothesisCardProps {
   /** All measurement plans for this hypothesis (non-deleted). */
   plans: MeasurementPlan[];
-  /** Project members for ACL checks and owner name resolution. */
-  members: ReadonlyArray<ProjectMember>;
-  /**
-   * Current user's userId (not entity id). Matches ProjectMember.userId.
-   * Pass null when unauthenticated.
-   */
+  /** Local contributor labels for owner name resolution. */
+  members: ReadonlyArray<ProjectContributor>;
+  /** Current local user id. */
   currentUserId: string | null;
   /** All findings available on this hypothesis (for the picker). */
   findings: Finding[];
@@ -453,10 +446,8 @@ export const HypothesisCardWithPlans: React.FC<HypothesisCardWithPlansProps> = (
   const [respawnFormOpen, setRespawnFormOpen] = useState(false);
   const [respawnName, setRespawnName] = useState('');
 
-  // ACL gate — open-access when no members configured (V1 single-user scenario)
-  const canEdit =
-    members.length === 0 ||
-    (currentUserId !== null && canAccess(currentUserId, members, 'edit-contributions'));
+  void currentUserId;
+  const canEdit = true;
 
   // Plans section is positioned below CARD_H + PLANS_GAP from card's (x, y).
   // HypothesisCard is anchored at center-top (cx = x, top = y), so card spans

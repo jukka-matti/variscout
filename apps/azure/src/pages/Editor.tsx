@@ -11,7 +11,6 @@ import {
   usePreferencesStore,
   useCanvasViewportStore,
   useViewStore,
-  useProjectMembershipStore,
   useImprovementProjectStore,
   useAnalysisScopeStore,
   buildDocumentSnapshot,
@@ -41,7 +40,6 @@ import {
   type ColumnMappingConfirmPayload,
   StageFiveModal,
   MatchSummaryCard,
-  PendingInvitesBanner,
   CreateProjectModal,
   DurabilityNudge,
   deriveWorkspaceProjectCanvasFocus,
@@ -78,14 +76,12 @@ import type {
   ProcessHub,
   DisconfirmationAttempt,
   HypothesisStatus,
-  ProjectRole,
 } from '@variscout/core';
 import { resolveCpkTarget } from '@variscout/core/capability';
 import { createProjectActionItem, type BrainstormIdea } from '@variscout/core/findings';
 import { generateDeterministicId } from '@variscout/core/identity';
 import { createNewIP, type ImprovementProject } from '@variscout/core/improvementProject';
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
-import { canAccess } from '@variscout/core/projectMembership';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
 import { Check } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
@@ -144,18 +140,6 @@ function cleanProjectName(filename: string | null): string {
 
 function defaultSaveName(filename: string | null): string {
   return cleanProjectName(filename) || cleanProjectName(null);
-}
-
-const DEFAULT_INVITE_BLOCKING_TITLES = new Set([
-  'untitled project',
-  'untitled hub',
-  'untitled',
-  'new analysis',
-]);
-
-function isDefaultInviteTitle(title: string | null | undefined): boolean {
-  const normalized = (title ?? '').trim().toLowerCase();
-  return normalized.length === 0 || DEFAULT_INVITE_BLOCKING_TITLES.has(normalized);
 }
 
 interface EditorProps {
@@ -438,19 +422,6 @@ export const Editor: React.FC<EditorProps> = ({
     getCurrentUser().then(setCurrentUser);
   }, []);
 
-  // Project membership store (annotation-per-user — per-user localStorage key).
-  // currentUser loads async; fall back to '' until resolved (getPendingInvites returns []).
-  const membershipUserId = currentUser?.email ?? '';
-  const pendingInvites = useProjectMembershipStore(s => s.getPendingInvites(membershipUserId));
-  const membershipAcceptInvite = useProjectMembershipStore(s => s.acceptInvite);
-  const membershipRevokeInvite = useProjectMembershipStore(s => s.revokeInvite);
-  const rehydrateInvites = useProjectMembershipStore(s => s.rehydrateInvites);
-  const acceptInvite = (id: string) => membershipAcceptInvite(membershipUserId, id);
-  const revokeInvite = (id: string) => membershipRevokeInvite(membershipUserId, id);
-  useEffect(() => {
-    if (membershipUserId) rehydrateInvites(membershipUserId);
-  }, [membershipUserId, rehydrateInvites]);
-
   // Data flow hook
   const activeHub = processHubs.find(h => h.id === processContext?.processHubId);
   const currentFingerprint = useCurrentDocumentFingerprint(activeHub);
@@ -531,21 +502,7 @@ export const Editor: React.FC<EditorProps> = ({
     [activeHub, workspaceProjectContext.workspaceProject, workspaceAnalysisScope]
   );
   const workspaceProjectTitle = workspaceViewModel?.project.title ?? null;
-  const canEditCanvas = useMemo(() => {
-    const userId = currentUser?.email;
-    if (!userId) return false; // Pre-auth (user still loading) — gate is closed.
-    const members = workspaceProjectContext.workspaceProject?.metadata.members ?? [];
-    // Wedge V1: no back-compat fallback. An empty members[] has no Lead, so canAccess
-    // returns false and the gate stays closed (per feedback_wedge_v1_no_migration_no_backcompat).
-    return canAccess(userId, members, 'edit');
-  }, [workspaceProjectContext.workspaceProject, currentUser?.email]);
-  const projectRole = useMemo<ProjectRole | undefined>(() => {
-    const userId = currentUser?.email;
-    if (!userId) return undefined;
-    return workspaceProjectContext.workspaceProject?.metadata.members?.find(
-      member => member.userId === userId
-    )?.role;
-  }, [workspaceProjectContext.workspaceProject, currentUser?.email]);
+  const canEditCanvas = true;
   const selectedOrActiveProjectId = workspaceViewModel?.project.id ?? selectedProjectId;
   const workspaceProjectScopeLabels = useMemo(
     () =>
@@ -590,14 +547,14 @@ export const Editor: React.FC<EditorProps> = ({
     console.warn('[wall] setHubStatus called before hypothesesState was ready');
   });
 
-  const wallWorkspaceProjectMembers = useMemo(
-    () => workspaceProjectContext.workspaceProject?.metadata.members ?? [],
+  const wallWorkspaceProjectContributors = useMemo(
+    () => workspaceProjectContext.workspaceProject?.metadata.contributors ?? [],
     [workspaceProjectContext.workspaceProject]
   );
   const wallPlanningProps = useMemo(
     () => ({
       plans: wallMeasurementPlans,
-      members: wallWorkspaceProjectMembers,
+      members: wallWorkspaceProjectContributors,
       currentUserId: currentUser?.email ?? null,
       onAddPlan: (plan: Omit<MeasurementPlan, 'id' | 'createdAt' | 'deletedAt'>) => {
         const stamped: MeasurementPlan = {
@@ -714,7 +671,7 @@ export const Editor: React.FC<EditorProps> = ({
     }),
     [
       wallMeasurementPlans,
-      wallWorkspaceProjectMembers,
+      wallWorkspaceProjectContributors,
       currentUser?.email,
       currentUser?.name,
       pendingMatchByPlanId,
@@ -1509,7 +1466,6 @@ export const Editor: React.FC<EditorProps> = ({
     locale,
     knowledgeSearchFolder,
     coscoutSurface,
-    projectRole,
     analysisScope: activeAnalysisScope,
     entryScenario,
     capabilityData: aiCapabilityData,
@@ -1790,16 +1746,6 @@ export const Editor: React.FC<EditorProps> = ({
     hasDocumentContent &&
     (!hasActiveSavedAzureDocument || !savedFingerprint || currentFingerprint !== savedFingerprint);
   const activeHubIsUnsaved = activeHub ? unsavedHubs.some(hub => hub.id === activeHub.id) : false;
-  const workspaceProjectTitleForInvite =
-    workspaceProjectTitle ?? workspaceProject?.metadata.title ?? null;
-  const inviteDisabledReason =
-    workspaceProject &&
-    (!hasActiveSavedAzureDocument ||
-      activeHubIsUnsaved ||
-      isDefaultInviteTitle(workspaceProjectTitleForInvite))
-      ? 'Save and rename this project before inviting others.'
-      : undefined;
-
   useEffect(() => {
     if (!isDocumentDirty && !activeHubIsUnsaved) return;
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -2028,16 +1974,6 @@ export const Editor: React.FC<EditorProps> = ({
           </div>
         )}
 
-      {/* Pending invitations banner — layout chrome above tab content */}
-      <PendingInvitesBanner
-        invites={pendingInvites}
-        onAccept={acceptInvite}
-        onDecline={revokeInvite}
-        resolveProjectName={id =>
-          workspaceViewModel?.project.id === id ? workspaceViewModel.project.title : undefined
-        }
-      />
-
       {/* Main Content */}
       <div
         ref={el => {
@@ -2101,7 +2037,6 @@ export const Editor: React.FC<EditorProps> = ({
           hypothesesState={hypothesesState}
           ideaImpacts={ideaImpacts}
           improvementProjectedCpkMap={improvementProjectedCpkMap}
-          inviteDisabledReason={inviteDisabledReason}
           isAnalyzeWallCanvasFirst={isAnalyzeWallCanvasFirst}
           lastViewedAt={lastViewedAt}
           loadError={loadError}
@@ -2122,7 +2057,7 @@ export const Editor: React.FC<EditorProps> = ({
           stageFive={stageFive}
           viewState={viewState}
           wallPlanningProps={wallPlanningProps}
-          wallWorkspaceProjectMembers={wallWorkspaceProjectMembers}
+          wallWorkspaceProjectContributors={wallWorkspaceProjectContributors}
           workspaceProject={workspaceProject}
           workspaceProjectAnalyzeFactorRequest={workspaceProjectAnalyzeFactorRequest}
           workspaceProjectContext={workspaceProjectContext}

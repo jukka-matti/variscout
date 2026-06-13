@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Finding, Hypothesis } from '@variscout/core';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 import FindingComments from '../FindingsLog/FindingComments';
 import { HypothesisComments } from './HypothesisComments';
 
@@ -15,7 +15,7 @@ export interface ObjectDetailDrawerProps {
   onOpenChange: (isOpen: boolean) => void;
   hubs: ReadonlyArray<Hypothesis>;
   findings: ReadonlyArray<Finding>;
-  members: ReadonlyArray<ProjectMember>;
+  members: ReadonlyArray<ProjectContributor>;
   currentUserId: string | null;
   onAddHubComment?: (hubId: string, text: string, attachment?: File) => void;
   onEditHubComment?: (hubId: string, commentId: string, text: string) => void;

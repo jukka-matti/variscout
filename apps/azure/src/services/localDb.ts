@@ -50,22 +50,17 @@ export function extractMetadataInputs(
 }
 
 export function extractDocumentAccess(project: Project, userId: string): DocumentAccess {
-  const members = project.improvementProject?.metadata.members ?? [];
-  const memberUserIds = members.map(member => member.userId).filter(Boolean);
-  const lead = members.find(member => member.role === 'lead')?.userId;
-  const ownerUserId = lead ?? userId;
-
   return {
-    ownerUserId,
-    memberUserIds: memberUserIds.length > 0 ? memberUserIds : [ownerUserId],
+    ownerUserId: userId,
+    memberUserIds: [userId],
     hubId: project.hubId,
     projectId: project.improvementProject?.id ?? null,
   };
 }
 
-export function canAccessProjectRecord(record: ProjectRecord, userId: string): boolean {
+export function isProjectRecordVisibleToLocalUser(record: ProjectRecord, userId: string): boolean {
   const access = record.access ?? extractDocumentAccess(record.data, userId);
-  return access.ownerUserId === userId || access.memberUserIds.includes(userId);
+  return access.ownerUserId === userId;
 }
 
 export function metadataChanged(
@@ -150,7 +145,7 @@ export async function listFromIndexedDB(userId = 'local'): Promise<CloudProject[
   const records = await db.projects.toArray();
   const result = await backfillProjectMetadataRecords(records, userId);
   return result.records
-    .filter(record => canAccessProjectRecord(record, userId))
+    .filter(record => isProjectRecordVisibleToLocalUser(record, userId))
     .map(r => ({
       id: r.name,
       name: r.name,

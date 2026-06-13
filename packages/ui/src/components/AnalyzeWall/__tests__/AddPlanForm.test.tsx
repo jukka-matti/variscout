@@ -1,18 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AddPlanForm } from '../AddPlanForm';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 import type { ConditionLeaf } from '@variscout/core/findings';
 
-const members: ProjectMember[] = [
+const members: ProjectContributor[] = [
   {
     id: 'pm-alice',
     createdAt: 1,
     deletedAt: null,
     userId: 'alice@org',
     displayName: 'Alice',
-    role: 'lead',
-    invitedAt: 1,
   },
   {
     id: 'pm-bob',
@@ -20,8 +18,6 @@ const members: ProjectMember[] = [
     deletedAt: null,
     userId: 'bob@org',
     displayName: 'Bob',
-    role: 'member',
-    invitedAt: 1,
   },
   {
     id: 'pm-carol',
@@ -29,8 +25,6 @@ const members: ProjectMember[] = [
     deletedAt: null,
     userId: 'carol@org',
     displayName: 'Carol',
-    role: 'sponsor',
-    invitedAt: 1,
   },
 ];
 
@@ -57,7 +51,7 @@ describe('<AddPlanForm />', () => {
     expect(checkboxes.length).toBe(0);
   });
 
-  it('omits sponsors from the owner picker', () => {
+  it('includes all local contributors in the owner picker', () => {
     render(
       <AddPlanForm hypothesisId="h-1" members={members} onSave={vi.fn()} onCancel={vi.fn()} />
     );
@@ -65,7 +59,7 @@ describe('<AddPlanForm />', () => {
     const optionValues = Array.from(ownerSelect.options).map(o => o.value);
     expect(optionValues).toContain('pm-alice');
     expect(optionValues).toContain('pm-bob');
-    expect(optionValues).not.toContain('pm-carol');
+    expect(optionValues).toContain('pm-carol');
   });
 
   it('fires onSave with the DCP plan shape', () => {
@@ -127,14 +121,12 @@ describe('<AddPlanForm />', () => {
   });
 
   it('omits soft-deleted members from the owner picker', () => {
-    const membersWithSoftDeleted: ProjectMember[] = [
+    const membersWithSoftDeleted: ProjectContributor[] = [
       ...members,
       {
         id: 'pm-deleted',
         userId: 'u-4',
         displayName: 'Removed',
-        role: 'member',
-        invitedAt: 4,
         createdAt: 4,
         deletedAt: 100,
       },

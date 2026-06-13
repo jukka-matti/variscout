@@ -131,17 +131,6 @@ export type {
   DocumentSnapshotVrsFile,
 } from './documentSnapshotVrs';
 export {
-  useProjectMembershipStore,
-  getProjectMembershipInitialState,
-  projectMembershipStorageKey,
-  STORE_LAYER as PROJECT_MEMBERSHIP_STORE_LAYER,
-} from './useProjectMembershipStore';
-export type {
-  ProjectMembershipState,
-  ProjectMembershipActions,
-  ProjectMembershipStore,
-} from './useProjectMembershipStore';
-export {
   useImprovementProjectStore,
   getImprovementProjectInitialState,
   STORE_LAYER as IMPROVEMENT_PROJECT_STORE_LAYER,

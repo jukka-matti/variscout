@@ -2,12 +2,16 @@ import type { EntityBase } from '../identity';
 import type { ProcessHub, OutcomeSpec, ProcessParticipantRef } from '../processHub';
 import type { Hypothesis, Finding, ImprovementIdea, ActionItem } from '../findings/types';
 import type { ControlRecord, ControlHandoff } from '../control';
-import type { ProjectMember } from '../projectMembership/types';
 import type { StepTimingBinding, TimeDecompositionBinding } from '../derived/types';
 import type { FormulaBinding } from '../derived/formula/types';
 import type { BinnedFactorBinding } from '../binning';
 
 export type ImprovementProjectStatus = 'draft' | 'active' | 'closed';
+
+export interface ProjectContributor extends EntityBase {
+  userId: string;
+  displayName: string;
+}
 
 /**
  * Flat projection of one canonical `ProcessMap` node ({ id, name, order }).
@@ -36,11 +40,9 @@ export interface ImprovementProjectMetadata {
   formalizedAt?: number;
   businessCase?: string;
   financialImpact?: { amount?: number; currency: string };
-  /** Wedge V1 membership roster (lead / member / sponsor) — the canonical project
-   *  roster. ACL gated via `canAccess()` from `@variscout/core/projectMembership`
-   *  per ADR-082. Optional only for the bootstrap window; future schema work may
-   *  promote to required. */
-  members?: ProjectMember[];
+  /** Local author/provenance labels used for mentions and measurement ownership.
+   *  Not an ACL, invitation list, or live membership roster. */
+  contributors?: ProjectContributor[];
   /** The project self-FK (PO-7 honest rename of the former FK) under Project⟷Hub 1:1. */
   projectId?: ImprovementProject['id'];
   /** Improvement actions tracked at the project level. Read-write via reduceActionItems. */
@@ -132,14 +134,6 @@ export interface ImprovementProject extends EntityBase {
   };
   updatedAt: number;
   signoff?: ImprovementProjectSignoff;
-  /** Durable collaboration marker (Unix ms). Set ONCE when the project roster
-   *  first grows beyond its solo creator (first invite), and NEVER cleared on
-   *  member removal. Gates the Azure-only collaboration affordances (the
-   *  optional, non-blocking sign-off section) via `isCollaborative(ip)`. A
-   *  solo PWA investigation never sets it — the project stays in Mode-1 solo.
-   *  Distinct from `metadata.members.length > 1`, which is derived + reversible;
-   *  this marker records that collaboration *happened*. (IM-7 §11 #6.) */
-  collaboratedAt?: number;
   /** Optional analyst-authored lessons-learned narrative. Authored in
    *  Sections mode (Control or Handoff stages typically); surfaces in
    *  the Report Overview "What we standardized + learned" section. */

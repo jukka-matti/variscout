@@ -53,10 +53,9 @@ describe('useNewHubProvision — in-memory Untitled pair (FSJ-3a spec §3)', () 
     expect(ip).toBeTruthy();
     expect(ip!.metadata.title).toBe('Untitled project');
 
-    // Lead member uses the mocked email
-    const lead = ip!.metadata.members[0];
-    expect(lead.role).toBe('lead');
-    expect(lead.userId).toBe('analyst@contoso.com');
+    // Local contributor label uses the mocked email
+    const contributor = ip!.metadata.contributors![0];
+    expect(contributor.userId).toBe('analyst@contoso.com');
 
     // Registered in the unsaved store
     expect(useUnsavedHubsStore.getState().isUnsaved(hub!.id)).toBe(true);

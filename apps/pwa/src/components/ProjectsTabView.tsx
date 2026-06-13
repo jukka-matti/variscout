@@ -1,8 +1,5 @@
 import React from 'react';
 import type { ProcessHub, ControlRecord, ControlHandoff } from '@variscout/core';
-import type { ImprovementProject } from '@variscout/core/improvementProject';
-import type { HubAction } from '@variscout/core/actions';
-import type { ProjectMember } from '@variscout/core/projectMembership';
 import { useAnalysisScopeStore, useImprovementProjectStore } from '@variscout/stores';
 import { deriveWorkspaceViewModel } from '@variscout/hooks';
 import { deriveProjectOverviewSignals, IPDetailPage } from '@variscout/ui/ipDetail';
@@ -22,44 +19,8 @@ interface ProjectsTabViewProps {
   closureInputs?: ControlClosureInputs;
   onOpenLegacyControl?: () => void;
   onNudgeProcessOwner?: () => void;
-  onProjectPatch?: (
-    projectId: ImprovementProject['id'],
-    patch: Extract<HubAction, { kind: 'IMPROVEMENT_PROJECT_UPDATE' }>['patch']
-  ) => void;
   // PWA never exposes sign-off (IM-7 §9.2): no onNudgeSignoff / onApproveSignoff.
   onStartNewProject?: () => void;
-}
-
-function mergeProjectPatch(
-  project: ImprovementProject,
-  patch: Extract<HubAction, { kind: 'IMPROVEMENT_PROJECT_UPDATE' }>['patch'],
-  updatedAt: number
-): ImprovementProject {
-  return {
-    ...project,
-    ...patch,
-    metadata: patch.metadata ? { ...project.metadata, ...patch.metadata } : project.metadata,
-    goal: patch.goal
-      ? {
-          ...project.goal,
-          ...patch.goal,
-          // outcomeGoals[] replaces wholesale (consistent with other arrays in the contract).
-          outcomeGoals: patch.goal.outcomeGoals ?? project.goal.outcomeGoals,
-        }
-      : project.goal,
-    signoff: patch.signoff ? { ...(project.signoff ?? {}), ...patch.signoff } : project.signoff,
-    sections: patch.sections
-      ? {
-          background: { ...project.sections.background, ...(patch.sections.background ?? {}) },
-          approach: { ...project.sections.approach, ...(patch.sections.approach ?? {}) },
-          outcomeReference: {
-            ...project.sections.outcomeReference,
-            ...(patch.sections.outcomeReference ?? {}),
-          },
-        }
-      : project.sections,
-    updatedAt,
-  };
 }
 
 const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
@@ -74,7 +35,6 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
   closureInputs,
   onOpenLegacyControl,
   onNudgeProcessOwner,
-  onProjectPatch,
   onStartNewProject,
 }) => {
   const [now] = React.useState(() => Date.now());
@@ -97,7 +57,6 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
     [scopeBoxplotFactor, scopeCategoricalFilters, scopeConditionLeaves, scopeStepId, scopeYColumn]
   );
   const setProjectForHub = useImprovementProjectStore(s => s.setProjectForHub);
-  const upsertProject = useImprovementProjectStore(s => s.upsertProject);
 
   React.useEffect(() => {
     if (!activeHub || !activeHub.improvementProject) return;
@@ -120,18 +79,6 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         ? activeHub.improvementProject
         : null;
   const projects = workspace && workspaceProject ? [workspaceProject] : [];
-
-  const applyProjectPatch = React.useCallback(
-    (
-      project: ImprovementProject,
-      patch: Extract<HubAction, { kind: 'IMPROVEMENT_PROJECT_UPDATE' }>['patch']
-    ) => {
-      const updatedAt = Date.now();
-      upsertProject(mergeProjectPatch(project, patch, updatedAt));
-      onProjectPatch?.(project.id, patch);
-    },
-    [onProjectPatch, upsertProject]
-  );
 
   const selectedProject = selectedProjectId
     ? (projects.find(p => p.id === selectedProjectId) ?? null)
@@ -179,24 +126,6 @@ const ProjectsTabView: React.FC<ProjectsTabViewProps> = ({
         actions={approachInputs?.actions}
         now={now}
         currentUserId={PWA_USER_ID}
-        onMembersChange={(members: ProjectMember[]) => {
-          const prevCount = selected.metadata.members?.length ?? 0;
-          // Set the durable collaboration marker ONCE, when the roster first
-          // grows beyond its solo creator (first invite). Never re-stamped and
-          // never cleared on removal — see ImprovementProject.collaboratedAt.
-          const markFirstInvite =
-            members.length > prevCount && !selected.collaboratedAt ? { collaboratedAt: now } : {};
-          applyProjectPatch(selected, {
-            metadata: { ...selected.metadata, members },
-            ...markFirstInvite,
-          });
-        }}
-        // PWA never exposes sign-off (IM-7 §9.2): it is a single-user, Mode-1
-        // solo surface. No onRequestSignoff / onNudgeSignoff / onApproveSignoff
-        // is wired here. The team rail gates the sign-off section on BOTH
-        // isCollaborative(ip) AND at least one sign-off callback being present,
-        // so the section is fully absent — even after collaboratedAt is stamped
-        // by a local invite — because no callbacks are wired in the PWA.
       />
     );
   }

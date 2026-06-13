@@ -1,14 +1,9 @@
 import React from 'react';
-import { Users } from 'lucide-react';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import IPDetailAvatar from './IPDetailAvatar';
 
 interface IPDetailHeaderProps {
   ip: ImprovementProject;
   onBackToList: () => void;
-  onInviteClick?: () => void;
-  inviteDisabledReason?: string;
-  onOpenTeamWorkspace?: () => void;
   /** Day counter — computed by caller (typically Math.floor((now - createdAt) / DAY_MS)). */
   dayCounter?: number;
 }
@@ -19,18 +14,7 @@ const STATUS_COLORS: Record<ImprovementProject['status'], string> = {
   closed: 'bg-indigo-100 text-indigo-700',
 };
 
-const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
-  ip,
-  onBackToList,
-  onInviteClick,
-  inviteDisabledReason,
-  onOpenTeamWorkspace,
-  dayCounter,
-}) => {
-  const members = ip.metadata.members ?? [];
-  const visible = members.slice(0, 5);
-  const overflow = members.length - visible.length;
-
+const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({ ip, onBackToList, dayCounter }) => {
   const goalSummary = (() => {
     // Legacy first-outcome read — multi-outcome header summary is a later phase
     // (Spec 2 §3.2.2 / PR-CCJ-C1).
@@ -74,46 +58,8 @@ const IPDetailHeader: React.FC<IPDetailHeaderProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex">
-            {visible.map((member, idx) => (
-              <IPDetailAvatar
-                key={member.id}
-                person={{ displayName: member.displayName }}
-                className={idx > 0 ? '-ml-2' : ''}
-              />
-            ))}
-            {overflow > 0 ? (
-              <div className="-ml-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-slate-200 text-xs font-semibold text-content">
-                +{overflow}
-              </div>
-            ) : null}
-          </div>
-          {onInviteClick || inviteDisabledReason ? (
-            <button
-              type="button"
-              onClick={onInviteClick}
-              disabled={inviteDisabledReason !== undefined}
-              title={inviteDisabledReason}
-              className="text-xs text-[var(--vs-accent)] hover:text-[var(--vs-accent-hover)] disabled:cursor-not-allowed disabled:text-content-tertiary"
-              data-testid="ip-detail-invite"
-            >
-              + Invite
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={onOpenTeamWorkspace}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-edge text-content-secondary hover:text-content md:hidden"
-            aria-label="Open team workspace"
-          >
-            <Users size={16} aria-hidden="true" />
-          </button>
-        </div>
+        <div className="text-right text-xs text-content-secondary">Local Workspace</div>
       </div>
-      {inviteDisabledReason ? (
-        <p className="mt-2 text-xs text-content-secondary">{inviteDisabledReason}</p>
-      ) : null}
     </div>
   );
 };

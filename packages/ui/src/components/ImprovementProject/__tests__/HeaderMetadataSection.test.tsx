@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { HeaderMetadataSection } from '../sections/HeaderMetadataSection';
 import { ImprovementProjectForm } from '../ImprovementProjectForm';
@@ -95,65 +95,6 @@ describe('HeaderMetadataSection', () => {
 
     expect(onProjectIdChange).toHaveBeenNthCalledWith(1, 'inv-2');
     expect(onProjectIdChange).toHaveBeenNthCalledWith(2, undefined);
-  });
-
-  it('calls onMembersChange with full next arrays for add, remove, role, and display name edits', () => {
-    const onMembersChange = vi.fn();
-    const members: import('@variscout/core/projectMembership').ProjectMember[] = [
-      {
-        id: 'pm-ari',
-        createdAt: 1,
-        deletedAt: null,
-        userId: 'ari@org',
-        displayName: 'Ari Lead',
-        role: 'lead',
-        invitedAt: 1,
-      },
-      {
-        id: 'pm-tia',
-        createdAt: 1,
-        deletedAt: null,
-        userId: 'tia@org',
-        displayName: 'Tia Member',
-        role: 'member',
-        invitedAt: 1,
-      },
-    ];
-
-    render(
-      <HeaderMetadataSection
-        title="Reduce rework"
-        members={members}
-        onMembersChange={onMembersChange}
-      />
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: /add team member/i }));
-    const firstCall = onMembersChange.mock.calls[0][0] as typeof members;
-    expect(firstCall).toHaveLength(3);
-    expect(firstCall[0]).toEqual(members[0]);
-    expect(firstCall[1]).toEqual(members[1]);
-    expect(firstCall[2]).toMatchObject({ displayName: '', role: 'member' });
-
-    const rows = screen.getAllByTestId('metadata-team-row');
-    fireEvent.change(within(rows[0]).getByLabelText(/role/i), {
-      target: { value: 'sponsor' },
-    });
-    expect(onMembersChange).toHaveBeenNthCalledWith(2, [
-      { ...members[0], role: 'sponsor' },
-      members[1],
-    ]);
-
-    fireEvent.change(within(rows[1]).getByLabelText(/display name/i), {
-      target: { value: 'Taylor Lead' },
-    });
-    expect(onMembersChange).toHaveBeenNthCalledWith(3, [
-      members[0],
-      { ...members[1], displayName: 'Taylor Lead' },
-    ]);
-
-    fireEvent.click(within(rows[0]).getByRole('button', { name: /remove/i }));
-    expect(onMembersChange).toHaveBeenNthCalledWith(4, [members[1]]);
   });
 });
 

@@ -10,7 +10,7 @@ import type { ImprovementProject } from '../improvementProject';
  *   - nested object `metadata.financialImpact` also shallow-merges if both
  *     sides are present.
  *   - all arrays REPLACE wholesale: callers pass the full new value for
- *     `metadata.members[]`, `goal.outcomeGoals[]`, `goal.factorControls[]`,
+ *     `metadata.contributors[]`, `goal.outcomeGoals[]`, `goal.factorControls[]`,
  *     `goal.mechanismGoals[]`, and all FK arrays inside `sections.*`.
  *   - `id`, `createdAt`, `hubId` are immutable (excluded from patch typing).
  *   - `updatedAt` is set to `Date.now()` by the persistence handler, not by the caller.

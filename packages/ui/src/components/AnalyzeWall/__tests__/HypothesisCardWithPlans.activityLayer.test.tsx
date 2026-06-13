@@ -12,18 +12,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { Hypothesis } from '@variscout/core';
 import type { MeasurementPlan } from '@variscout/core/measurementPlan';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 import { HypothesisCardWithPlans, type TestPlanFactorView } from '../HypothesisCardWithPlans';
 
 const NOW = Date.UTC(2026, 5, 8, 12, 0, 0);
 const UPDATED = Date.UTC(2026, 5, 1, 12, 0, 0);
 
-const member: ProjectMember = {
+const member: ProjectContributor = {
   id: 'm1',
   userId: 'user-lead',
   displayName: 'Matti Lead',
-  role: 'lead',
-  invitedAt: UPDATED,
   createdAt: UPDATED,
   deletedAt: null,
 };

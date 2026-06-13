@@ -1,12 +1,12 @@
 import { useState, type FormEvent, type ComponentProps } from 'react';
 import type { ActionItem } from '@variscout/core/findings';
-import { canAccess, type ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 import { ImprovementWorkspaceBase } from '../ImprovementPlan/ImprovementWorkspaceBase';
 
 export interface ImproveStageProps {
   projectId: string;
   actions: ActionItem[];
-  members: ProjectMember[];
+  members: ProjectContributor[];
   currentUserId?: string;
   onActionAdd: (action: Pick<ActionItem, 'text' | 'parentImprovementProjectId'>) => void;
   onActionUpdate: (
@@ -29,12 +29,9 @@ export function ImproveStage({
   onActionRemove,
   advancedProps,
 }: ImproveStageProps) {
-  // Empty members[] is open-access (mirrors IPDetailPage hasIdentity escape): legacy IPs
-  // without wedge membership data fall back to pre-WV1-1 behavior where edits were visible.
-  // Action items are contributions per the 2-tier ACL — Lead + Member + Sponsor can edit.
-  const canEdit =
-    currentUserId !== undefined &&
-    (members.length === 0 || canAccess(currentUserId, members, 'edit-contributions'));
+  void members;
+  void currentUserId;
+  const canEdit = true;
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');

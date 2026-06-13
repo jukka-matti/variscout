@@ -636,7 +636,6 @@ export {
 // Improvement Project workspace
 export * from './components/WorkspaceProject';
 export * from './components/ImprovementProject';
-export * from './components/projects';
 export * from './components/Control';
 export * from './components/Inbox';
 

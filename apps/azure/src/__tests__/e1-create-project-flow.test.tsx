@@ -305,11 +305,10 @@ describe('PR-CCJ-E1 Task 7 — Home create → Process edit → state persists e
     expect(newIP.status).toBe('active');
     expect(newIP.metadata.title).toBe('Yield investigation');
     expect(newIP.issueStatement).toBe('Reactor B yields 3% lower than Reactor A');
-    expect(newIP.metadata.members ?? []).toHaveLength(1);
-    expect((newIP.metadata.members ?? [])[0]).toMatchObject({
+    expect(newIP.metadata.contributors ?? []).toHaveLength(1);
+    expect((newIP.metadata.contributors ?? [])[0]).toMatchObject({
       userId: 'tester@example.com',
       displayName: 'Tester',
-      role: 'lead',
     });
     expect(newIP.goal.outcomeGoals).toEqual([]);
     // Canvas-Edit-mode binding fields start absent — populated by later modal

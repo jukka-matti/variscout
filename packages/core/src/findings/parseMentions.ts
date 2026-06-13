@@ -17,17 +17,20 @@
  * as consumed before a shorter prefix can match the same start position.
  */
 
-import type { ProjectMember } from '../projectMembership/types';
+import type { ProjectContributor } from '../improvementProject/types';
 
 /**
  * Parse @mentions in `text` and return the resolved userId strings.
  *
  * @param text - Comment text (may be empty).
- * @param members - Project member roster to resolve against.
+ * @param contributors - Local contributor labels to resolve against.
  * @returns Deduplicated array of userId strings for matched members.
  */
-export function parseMentions(text: string, members: ReadonlyArray<ProjectMember>): string[] {
-  if (!text || members.length === 0) return [];
+export function parseMentions(
+  text: string,
+  contributors: ReadonlyArray<ProjectContributor>
+): string[] {
+  if (!text || contributors.length === 0) return [];
 
   const lower = text.toLowerCase();
   const found = new Set<string>();
@@ -37,7 +40,7 @@ export function parseMentions(text: string, members: ReadonlyArray<ProjectMember
   // start index. `consumed[i] === true` means index `i` already belongs to a
   // resolved (longer) mention's token span.
   const consumed = new Array<boolean>(lower.length).fill(false);
-  const ordered = [...members].sort((a, b) => b.displayName.length - a.displayName.length);
+  const ordered = [...contributors].sort((a, b) => b.displayName.length - a.displayName.length);
 
   for (const member of ordered) {
     const name = member.displayName.toLowerCase();

@@ -10,7 +10,7 @@ vi.mock('../../../components/ImprovementPlan/ImprovementWorkspaceBase', () => ({
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ImproveTabRoot } from '../ImproveTabRoot';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 import type { ActionItem } from '@variscout/core/findings';
 
 const ip: ImprovementProject = {
@@ -22,16 +22,14 @@ const ip: ImprovementProject = {
   status: 'active',
   metadata: {
     title: 'Test IP',
-    members: [
+    contributors: [
       {
         id: 'pm-1',
         createdAt: 1,
         deletedAt: null,
         userId: 'lead@org',
         displayName: 'Lead',
-        role: 'lead',
-        invitedAt: 1,
-      } satisfies ProjectMember,
+      } satisfies ProjectContributor,
     ],
   },
   goal: { outcomeGoals: [{ outcomeSpecId: 'o-1', baseline: 0.5, target: 1.33 }] },

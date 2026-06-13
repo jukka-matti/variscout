@@ -1,10 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BarChart2, ClipboardPaste, PenLine, ArrowUpRight } from 'lucide-react';
 import type { SampleDataset } from '@variscout/data';
 import { useTranslation } from '@variscout/hooks';
 import type { DocumentSnapshotVrsFile } from '@variscout/stores';
-import { PendingInvitesBanner } from '@variscout/ui';
-import { useProjectMembershipStore } from '@variscout/stores';
 import { VrsImportButton } from './VrsImportButton';
 import SampleSection from './data/SampleSection';
 
@@ -14,7 +12,6 @@ interface HomeScreenProps {
   onOpenManualEntry: () => void;
   onOpenSettings?: () => void;
   onImportVrs?: (imported: DocumentSnapshotVrsFile) => void;
-  resolveProjectName?: (projectId: string) => string | undefined;
 }
 
 /**
@@ -27,32 +24,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenPaste,
   onOpenManualEntry,
   onImportVrs,
-  resolveProjectName,
 }) => {
   const { t } = useTranslation();
-  // PWA is single-user; use 'analyst@local' as the stable per-user key.
-  const PWA_MEMBERSHIP_USER_ID = 'analyst@local';
-  const pendingInvites = useProjectMembershipStore(s =>
-    s.getPendingInvites(PWA_MEMBERSHIP_USER_ID)
-  );
-  const membershipAcceptInvite = useProjectMembershipStore(s => s.acceptInvite);
-  const membershipRevokeInvite = useProjectMembershipStore(s => s.revokeInvite);
-  const rehydrateInvites = useProjectMembershipStore(s => s.rehydrateInvites);
-  const acceptInvite = (id: string) => membershipAcceptInvite(PWA_MEMBERSHIP_USER_ID, id);
-  const revokeInvite = (id: string) => membershipRevokeInvite(PWA_MEMBERSHIP_USER_ID, id);
-  useEffect(() => {
-    rehydrateInvites(PWA_MEMBERSHIP_USER_ID);
-  }, [rehydrateInvites]);
 
   return (
     <div className="h-full flex flex-col items-center justify-start p-4 sm:p-8 overflow-auto animate-in fade-in duration-500">
       <div className="max-w-xl w-full space-y-6 sm:space-y-8 py-4">
-        <PendingInvitesBanner
-          invites={pendingInvites}
-          onAccept={acceptInvite}
-          onDecline={revokeInvite}
-          resolveProjectName={resolveProjectName}
-        />
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex p-4 bg-surface-secondary/50 rounded-full border border-edge">

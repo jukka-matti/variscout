@@ -59,8 +59,7 @@ import type { DisconfirmationAttempt } from '@variscout/core';
 import { generateDeterministicId } from '@variscout/core/identity';
 import type { EvaluateFactorOptions } from '@variscout/ui';
 import type { ColumnTypeMap } from '@variscout/core/findings';
-import { canAccess } from '@variscout/core/projectMembership';
-import type { ProjectMember } from '@variscout/core/projectMembership';
+import type { ProjectContributor } from '@variscout/core/improvementProject';
 import { detectColumns } from '@variscout/core/parser';
 import { deriveProcessSteps } from '@variscout/core/frame';
 import { resolveCpkTarget } from '@variscout/core/capability';
@@ -123,10 +122,10 @@ interface AnalyzeWorkspaceProps {
     attachment?: File
   ) => void | Promise<void>;
   handleAddPhoto: ((findingId: string, commentId: string, file: File) => Promise<void>) | undefined;
-  /** userId of the currently signed-in user — used for canAccess('edit-contributions') role check. */
+  /** Current local user id. */
   userId: string | null;
-  /** Members of the active improvement project — used for canAccess role check. Empty = open-access (quick-analysis flow). */
-  members: ProjectMember[];
+  /** Local contributor labels for owner and mention display. */
+  members: ProjectContributor[];
   /** Reports the currently selected Wall object so the Editor shell can host CoScout once. */
   onCoScoutObjectChange?: (object: CoScoutDrawerObject | null) => void;
   // Column aliases
@@ -1264,8 +1263,6 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 columnAliases={columnAliases}
                 activeFindingId={highlightedFindingId}
                 onAddPhoto={
-                  (members.length === 0 ||
-                    (userId !== null && canAccess(userId, members, 'edit-contributions'))) &&
                   handleAddPhoto
                     ? (fId: string, cId: string, file: File) => {
                         handleAddPhoto(fId, cId, file);
