@@ -250,7 +250,8 @@ export interface WallCanvasProps {
   hubs: Hypothesis[];
   findings: Finding[];
   processMap?: ProcessMap;
-  problemCpk: number;
+  /** `undefined` when no spec limits are set — forwarded to ProblemConditionCard which renders "no specs set". */
+  problemCpk: number | undefined;
   eventsPerWeek: number;
   problemContributionTree?: GateNode;
   /**
