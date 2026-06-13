@@ -99,6 +99,13 @@ company deployment adds tenant licensing, tenant-governed CoScout, and the
 artifact layer. This kills the feature-parity burden, mirrored components,
 and the dual-store seam.
 
+Build-level convergence shipped via PR #388 + #389 (workspace-app is the
+canonical client; all three channels build from it). The source-level cleanup —
+deleting the now-dead `apps/azure/src` legacy client and folding in the Cpk-no-
+specs honesty fix — is designed in
+[D4 app convergence design](../superpowers/specs/2026-06-14-d4-app-convergence-design.md)
+(cleanup-only scope: company-channel licensing/CoScout wiring stays deferred).
+
 ### D5 — Channel boundaries (build-time enforced)
 
 | Capability                               | Free web             | Individual (Paddle, €17/mo or €99/yr +VAT)                             | Company (Marketplace, €120/mo)                                        |
