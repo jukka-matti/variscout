@@ -30,6 +30,7 @@ export default defineConfig(async ({ mode }) => {
     process.env.npm_lifecycle_event === 'test'
       ? 'individual'
       : 'free');
+  const outDir = process.env.VITE_VARISCOUT_OUT_DIR ?? 'dist';
   const artifactsModule =
     channel === 'individual' || channel === 'company'
       ? path.resolve(__dirname, 'src/artifacts/paidArtifacts.ts')
@@ -140,7 +141,7 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     build: {
-      outDir: 'dist',
+      outDir,
       emptyOutDir: true,
       rollupOptions: {
         output: {

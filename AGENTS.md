@@ -12,8 +12,8 @@ Structured analysis for process improvement. Browser-based, customer-owned data,
 
 ## Commands
 
-- `pnpm dev` - PWA at `:5173`
-- `pnpm --filter @variscout/azure-app dev` - Azure app
+- `pnpm dev` - Workspace app at `:5173`
+- `pnpm --filter @variscout/azure-app preview` - company server serving built Workspace dist
 - `pnpm test` - all packages via turbo
 - `pnpm build` - all packages and apps
 - `pnpm codex:ruflo-check` - verify Codex can reach the expected Ruflo version and print recovery steps if missing or stale

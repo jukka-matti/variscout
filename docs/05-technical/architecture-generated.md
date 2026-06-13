@@ -30,7 +30,7 @@ graph LR
   Ui["ui"]
   AzureApp["azure-app (app)"]
   Docs["docs (app)"]
-  Pwa["pwa (app)"]
+  WorkspaceApp["workspace-app (app)"]
   Website["website (app)"]
 
   Charts --> Core
@@ -49,12 +49,13 @@ graph LR
   AzureApp --> Hooks
   AzureApp --> Stores
   AzureApp --> Ui
-  Pwa --> Charts
-  Pwa --> Core
-  Pwa --> Data
-  Pwa --> Hooks
-  Pwa --> Stores
-  Pwa --> Ui
+  AzureApp --> WorkspaceApp
+  WorkspaceApp --> Charts
+  WorkspaceApp --> Core
+  WorkspaceApp --> Data
+  WorkspaceApp --> Hooks
+  WorkspaceApp --> Stores
+  WorkspaceApp --> Ui
   Website --> Charts
   Website --> Core
   Website --> Data
@@ -76,7 +77,7 @@ Sub-path exports declared in `package.json#exports` and corresponding TypeScript
 | `@variscout/stores` | `.`, `./document-snapshot-vrs`, `./feature-factories` | _(none)_ |
 | `@variscout/ui` | `.`, `./ipDetail`, `./styles/components.css`, `./styles/report-print.css`, `./styles/theme.css`, `./test-utils` | _(none)_ |
 | `@variscout/azure-app` | _(none)_ | `@/*`, `@variscout/charts`, `@variscout/charts/*`, `@variscout/core`, `@variscout/core/*`, `@variscout/data`, `@variscout/data/*`, `@variscout/hooks`, `@variscout/hooks/*`, `@variscout/ui`, `@variscout/ui/*`, `@variscout/ui/ipDetail`, `@variscout/ui/test-utils` |
-| `@variscout/pwa` | _(none)_ | `@variscout/charts`, `@variscout/charts/*`, `@variscout/core`, `@variscout/core/*`, `@variscout/data`, `@variscout/data/*`, `@variscout/hooks`, `@variscout/hooks/*`, `@variscout/ui`, `@variscout/ui/*`, `@variscout/ui/ipDetail`, `@variscout/ui/test-utils` |
+| `@variscout/workspace-app` | _(none)_ | `@variscout/charts`, `@variscout/charts/*`, `@variscout/core`, `@variscout/core/*`, `@variscout/data`, `@variscout/data/*`, `@variscout/hooks`, `@variscout/hooks/*`, `@variscout/ui`, `@variscout/ui/*`, `@variscout/ui/ipDetail`, `@variscout/ui/test-utils` |
 
 ---
 
@@ -88,5 +89,5 @@ Each app must declare `@source` directives for every shared package whose class 
 |-----|------------------------------------------|
 | `@variscout/azure-app` | `../../../packages/ui/src/**/*.tsx`<br>`../../../packages/charts/src/**/*.tsx`<br>`../../../packages/hooks/src/**/*.ts` |
 | `@variscout/docs` | _(no src/index.css — not a Tailwind app)_ |
-| `@variscout/pwa` | `../../../packages/ui/src/**/*.tsx`<br>`../../../packages/charts/src/**/*.tsx`<br>`../../../packages/hooks/src/**/*.ts` |
+| `@variscout/workspace-app` | `../../../packages/ui/src/**/*.tsx`<br>`../../../packages/charts/src/**/*.tsx`<br>`../../../packages/hooks/src/**/*.ts` |
 | `@variscout/website` | _(no src/index.css — not a Tailwind app)_ |
