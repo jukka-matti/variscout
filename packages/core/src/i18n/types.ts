@@ -966,6 +966,7 @@ export interface MessageCatalog {
   'wall.card.oneStepAway': string;
   'wall.problem.title': string;
   'wall.problem.eventsPerWeek': string;
+  'wall.problem.noSpecs': string;
   'wall.problem.ariaLabel': string;
   'wall.scope.whatIf': string;
   'wall.scope.coverage': string;
