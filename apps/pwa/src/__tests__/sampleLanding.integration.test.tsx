@@ -25,7 +25,8 @@ const loadSampleMock = vi.fn();
 import type { SampleDataset } from '@variscout/data';
 import type { ProcessHub } from '@variscout/core/processHub';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
-import type { DocumentSnapshot, DocumentSnapshotVrsFile } from '@variscout/stores';
+import type { DocumentSnapshot } from '@variscout/stores';
+import type { DocumentSnapshotVrsFile } from '@variscout/stores/document-snapshot-vrs';
 import { resetDocumentStores } from '@variscout/stores';
 import { usePanelsStore, initialPanelsState } from '../features/panels/panelsStore';
 import {

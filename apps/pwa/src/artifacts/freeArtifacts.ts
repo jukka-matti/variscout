@@ -1,0 +1,15 @@
+import type { ProcessHub } from '@variscout/core';
+import type { DocumentSnapshotVrsFile } from '@variscout/stores/document-snapshot-vrs';
+
+interface ExportVrsOptions {
+  activeHub: ProcessHub;
+  appVersion: string;
+}
+
+export function exportVrs(_options: ExportVrsOptions): void {
+  throw new Error('Artifact export is not available in this Workspace channel.');
+}
+
+export async function parseVrsFile(_file: File): Promise<DocumentSnapshotVrsFile> {
+  throw new Error('Artifact import is not available in this Workspace channel.');
+}

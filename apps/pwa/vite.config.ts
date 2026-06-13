@@ -4,9 +4,10 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { variscoutManualChunks } from '../../config/viteChunks';
+import path from 'node:path';
 
 // https://vitejs.dev/config/
-export default defineConfig(async () => {
+export default defineConfig(async ({ mode }) => {
   // Bundle analysis: run with ANALYZE=true pnpm build
   // Requires: pnpm add -D rollup-plugin-visualizer
   const analyzePlugins: PluginOption[] = [];
@@ -21,7 +22,29 @@ export default defineConfig(async () => {
     );
   }
 
+  const channel =
+    process.env.VITE_VARISCOUT_CHANNEL ??
+    (mode === 'test' ||
+    process.env.VITEST ||
+    process.env.NODE_ENV === 'test' ||
+    process.env.npm_lifecycle_event === 'test'
+      ? 'individual'
+      : 'free');
+  const artifactsModule =
+    channel === 'individual' || channel === 'company'
+      ? path.resolve(__dirname, 'src/artifacts/paidArtifacts.ts')
+      : path.resolve(__dirname, 'src/artifacts/freeArtifacts.ts');
+  const artifactsEnabled = channel === 'individual' || channel === 'company';
+
   return {
+    define: {
+      __WORKSPACE_ARTIFACTS__: JSON.stringify(artifactsEnabled),
+    },
+    resolve: {
+      alias: {
+        '@pwa-artifacts': artifactsModule,
+      },
+    },
     plugins: [
       react({
         babel: {

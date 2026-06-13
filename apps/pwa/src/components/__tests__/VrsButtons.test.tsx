@@ -9,11 +9,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { VrsImportButton } from '../VrsImportButton';
 import { DEFAULT_PROCESS_HUB } from '@variscout/core/processHub';
-import {
-  buildDocumentSnapshotVrs,
-  getProjectInitialState,
-  useProjectStore,
-} from '@variscout/stores';
+import { getProjectInitialState, useProjectStore } from '@variscout/stores';
+import { buildDocumentSnapshotVrs } from '@variscout/stores/document-snapshot-vrs';
 
 const hub = { ...DEFAULT_PROCESS_HUB, processGoal: 'Test goal.' };
 

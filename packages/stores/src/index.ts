@@ -113,11 +113,6 @@ export {
   isDocumentSnapshot,
   validateDocumentSnapshot,
 } from './documentSnapshotValidation';
-export {
-  buildDocumentSnapshotVrs,
-  isDocumentSnapshotVrsFile,
-  parseDocumentSnapshotVrs,
-} from './documentSnapshotVrs';
 export type {
   AnalyzeDocumentSnapshot,
   BuildDocumentSnapshotOptions,
@@ -125,11 +120,6 @@ export type {
   DocumentSnapshot,
   ProjectDocumentSnapshot,
 } from './documentSnapshot';
-export type {
-  BuildDocumentSnapshotVrsOptions,
-  DocumentSnapshotVrsMetadata,
-  DocumentSnapshotVrsFile,
-} from './documentSnapshotVrs';
 export {
   useImprovementProjectStore,
   getImprovementProjectInitialState,

@@ -72,12 +72,12 @@ import { db } from '../db/schema';
 import { pwaHubRepository } from '../persistence';
 import { usePanelsStore } from '../features/panels/panelsStore';
 import {
-  buildDocumentSnapshotVrs,
   getCanvasInitialState,
   getProjectInitialState,
   useCanvasStore,
   useProjectStore,
 } from '@variscout/stores';
+import { buildDocumentSnapshotVrs } from '@variscout/stores/document-snapshot-vrs';
 import {
   DEFAULT_PROCESS_HUB,
   registerLocaleLoaders,
