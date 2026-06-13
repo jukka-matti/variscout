@@ -1930,3 +1930,21 @@ ER-5a added the per-segment "view as condition →" CTA to `InflectionSidePanelV
 **Do NOT "fix" this to unweighted MAD.** If an analyst specifically asks "what causes 100% defect rate in the rare Batch X?", the drill-down path (select level → apply condition → re-rank within condition) is the right tool, not changing the global ranking statistic.
 
 **Severity:** n/a — working as designed; this entry exists so a future reader doesn't misread the weighting as an oversight.
+
+## apps/azure e2e specs run against workspace-app DOM — semantic validity unverified [LOGGED 2026-06-14]
+
+**Surfaced by:** D4 PR-1 (#397) code-quality review (delete dead `apps/azure/src` client).
+
+PR-1 deleted the legacy Azure React client but **kept** the `apps/azure/e2e/` Playwright suite, because those specs don't import `apps/azure/src` and the webServer now serves the `@variscout/workspace-app` company bundle (`pnpm build && LOCAL_DEV=1 PORT=5174 node server.js`). The keep decision was correct on the reachability test (no `src` imports). **But** ~15 specs (`editor-workflow`, `modeB-framing`, `performance-mode`, `mobile-responsive`, etc.) were written against the _legacy Azure UI's_ DOM/selectors and now exercise workspace-app's DOM. Whether they still **pass** is unverified: Playwright e2e is not part of `pnpm test` / `pr-ready-check.sh` (it's the separate `test:e2e`, needs a live build + browser), so neither CI nor the merge gate runs them. They're effectively dormant, possibly-broken debt.
+
+**Resolution path (D4 arc):** during/after the PR-2 verification chrome walk, run `pnpm --filter @variscout/azure-app test:e2e` against the converged build; triage each spec — update selectors for ones that still describe valid workspace-app flows, delete ones that tested deleted Azure-only surfaces (admin/control/performance/mobile). `performance-mode` + `mobile-responsive` are prime deletion candidates (those surfaces are gone per ADR-093 D3 + V1 scope). Consider wiring the surviving suite into CI once green.
+
+**Severity:** low — dormant tests, no production impact; cleanup so the e2e suite means something again.
+
+## Root CLAUDE.md "Commands" — azure-app dev line now misleading post-D4 [LOGGED 2026-06-14]
+
+**Surfaced by:** D4 PR-1 (#397) reviews.
+
+Root `CLAUDE.md` §Commands still reads `pnpm --filter @variscout/azure-app dev — Azure app`. After #388 + PR-1, `apps/azure` has no client dev server — `dev` = `node server.js` serving the prebuilt `dist/` (the workspace-app company bundle). The line should be reframed (e.g. "`pnpm --filter @variscout/azure-app dev` — company server hosting the workspace-app company bundle (requires a prior build)") or dropped. Deferred from PR-1 deliberately (a root-doc edit shouldn't ride in a code-deletion PR); fold into the D4 convergence doc pass or a standalone main commit.
+
+**Severity:** trivial — doc accuracy nit.
