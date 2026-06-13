@@ -89,10 +89,12 @@ export interface ModelInteraction {
    */
   pattern: 'ordinal' | 'disordinal';
   /**
-   * The level of the winning interaction term with the largest |coefficient|.
-   * Used as the focal level for the paired comparison on the Explore strip.
+   * The level of the categorical source factor in the winning interaction term
+   * with the largest |coefficient|. Used as the focal level for the paired
+   * comparison on the Explore strip.
+   * Null for cont×cont interactions (no discrete level exists).
    */
-  focalLevel: string;
+  focalLevel: string | null;
 }
 
 /** The live model stats handed up for the DOI feed (glyph bars + domain-weighted DOI). */
@@ -258,7 +260,8 @@ export const ModelDrawerBase: React.FC<ModelDrawerBaseProps> = ({
   // ── ER-6: Winning interaction from the drawer's existing Pass-2 results ──
   // Consumes the drawer's already-computed `shown.interactionScreenResults` — no new fit.
   // Picks the most significant (largest deltaRSquaredAdj) significant result.
-  // focalLevel = largest |coefficient| level in the winning interaction term's predictors.
+  // focalLevel = level from the interaction predictor with the largest |coefficient|.
+  // For cont×cont interactions there is no discrete categorical level → focalLevel = null.
   const interaction = useMemo<ModelInteraction | null>(() => {
     if (!shown?.interactionScreenResults || !shown.hasInteractionTerms) return null;
     const significant = shown.interactionScreenResults.filter(r => r.isSignificant);
@@ -268,28 +271,26 @@ export const ModelDrawerBase: React.FC<ModelDrawerBaseProps> = ({
       (a, b) => b.deltaRSquaredAdj - a.deltaRSquaredAdj
     )[0];
     const [factorA, factorB] = winner.factors;
-    // Derive focalLevel from the winning term's predictor coefficients.
-    // The interaction predictors in `shown.predictors` carry compound names like "G×X[level]".
-    // We look for predictors whose factorName matches the compound key or whose name contains
-    // the interaction term, then pick the one with largest |coefficient|.
-    let focalLevel = '';
+
+    // Derive focalLevel from the interaction predictors.
+    // extractPredictors() now attaches the `level` field to each interaction predictor
+    // for cont×cat and cat×cat interactions (one level per non-reference column).
+    // For cont×cont there is no discrete level → focalLevel = null.
+    let focalLevel: string | null = null;
     if (shown.predictors && shown.predictors.length > 0) {
       const interactionKey = `${factorA}×${factorB}`;
-      const altKey = `${factorB}×${factorA}`;
       const interactionPreds = shown.predictors.filter(
-        p => p.factorName === interactionKey || p.factorName === altKey
+        p => p.factorName === interactionKey && p.type === 'interaction'
       );
       if (interactionPreds.length > 0) {
         const largest = [...interactionPreds].sort(
           (a, b) => Math.abs(b.coefficient) - Math.abs(a.coefficient)
         )[0];
-        // The level is encoded in the predictor `level` field when present,
-        // or can be extracted from the name (e.g. "G×X[hi]" → "hi").
-        focalLevel = largest.level ?? largest.name.replace(/^.*\[/, '').replace(/\]$/, '');
+        // Use the `level` field set by extractPredictors() for cont×cat / cat×cat.
+        // Remains undefined (→ null) for cont×cont.
+        focalLevel = largest.level ?? null;
       }
     }
-    // Fallback: if we couldn't derive a level from predictors, use the winning factor's name.
-    if (!focalLevel) focalLevel = factorA;
 
     return {
       factorA,

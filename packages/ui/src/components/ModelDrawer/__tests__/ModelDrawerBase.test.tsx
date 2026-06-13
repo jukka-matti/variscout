@@ -449,19 +449,42 @@ describe('ModelDrawerBase — ER-6 extended ModelDrawerStats (rSquaredAdj + inte
     expect(Number.isFinite(arg.rSquaredAdj)).toBe(true);
   });
 
-  it('ER-6: onModelStats carries interaction with ordinal/disordinal pattern when the engine detects one', () => {
+  it('ER-6 I2: interaction pattern is exactly "disordinal" for the crossover fixture (not just a 2-element set)', () => {
+    /**
+     * Load-bearing B1/I2 test. The differential-slope fixture has G='lo' (slope 9)
+     * vs G='hi' (slope 1 + offset 40). Lines cross at X≈4.4 → classifyInteractionPattern
+     * returns 'disordinal'. A hardcoded string or wrong pass would fail this exact match.
+     */
     const onModelStats = vi.fn();
     render(<ModelDrawerBase {...crossoverProps} onModelStats={onModelStats} />);
     const arg = onModelStats.mock.calls.at(-1)?.[0];
     expect(arg).not.toBeNull();
-    // The crossover fixture has a significant X·G interaction — it must surface.
     expect(arg.interaction).not.toBeNull();
-    expect(['ordinal', 'disordinal']).toContain(arg.interaction.pattern);
-    expect(typeof arg.interaction.factorA).toBe('string');
-    expect(typeof arg.interaction.factorB).toBe('string');
-    expect(typeof arg.interaction.deltaR2).toBe('number');
-    expect(typeof arg.interaction.focalLevel).toBe('string');
-    expect(arg.interaction.focalLevel.length).toBeGreaterThan(0);
+    // Exact geometric classification — must be 'disordinal', not just in the set.
+    expect(arg.interaction.pattern).toBe('disordinal');
+  });
+
+  it('ER-6 I3: focalLevel is the specific non-reference level "lo", NOT the compound term name "G×X"', () => {
+    /**
+     * Load-bearing B1/I3 test. The crossover fixture uses G (categorical, levels
+     * ['hi','lo'], reference='hi' by alphabetical tie-break) × X (continuous).
+     * The interaction encoding has one column for the non-reference level 'lo'.
+     * Its coefficient (slope-difference = 9−1 = 8) has the largest |value|, so
+     * focalLevel MUST be 'lo'. Before the B1 fix, focalLevel was "G×X" (the
+     * compound term name) because interaction predictors had no `level` field —
+     * this test fails against that buggy output.
+     */
+    const onModelStats = vi.fn();
+    render(<ModelDrawerBase {...crossoverProps} onModelStats={onModelStats} />);
+    const arg = onModelStats.mock.calls.at(-1)?.[0];
+    expect(arg).not.toBeNull();
+    expect(arg.interaction).not.toBeNull();
+    // Must be exactly 'lo' — the non-reference categorical level with the largest
+    // |interaction coefficient|. 'G×X' is wrong; 'hi' (the reference) is wrong.
+    expect(arg.interaction.focalLevel).toBe('lo');
+    // Ensure factorA/factorB are the alphabetically-sorted source pair.
+    expect(arg.interaction.factorA).toBe('G');
+    expect(arg.interaction.factorB).toBe('X');
   });
 
   it('ER-6: onModelStats.interaction is null when no significant interaction exists', () => {

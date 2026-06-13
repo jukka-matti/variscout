@@ -304,12 +304,53 @@ function extractPredictors(solution: OLSSolution, encodings: FactorEncoding[]): 
 
   for (const enc of encodings) {
     if (enc.type === 'interaction') {
+      // Resolve the categorical source encoding (if any) so we can attach the
+      // non-reference level to each interaction predictor.
+      // cont×cat: one interaction column per non-reference level of the cat source.
+      // cat×cat:  (a-1)(b-1) columns, outer-loop = encA non-ref levels.
+      // cont×cont: one column, no categorical level.
+      const [srcA, srcB] = enc.sourceFactors as [string, string];
+      const encA = encodings.find(e => e.factorName === srcA);
+      const encB = encodings.find(e => e.factorName === srcB);
+
       for (let ci = 0; ci < enc.columnIndices.length; ci++) {
         const colIdx = enc.columnIndices[ci];
+
+        // Derive the categorical source level for this interaction column.
+        let interactionLevel: string | undefined;
+        if (enc.interactionType === 'cont×cat') {
+          // catEnc is whichever source is categorical; columns map 1-to-1 to its
+          // non-reference levels in the same order as catEnc.columnIndices.
+          const catEnc = encA?.type === 'categorical' ? encA : encB;
+          if (catEnc?.levels && catEnc.referenceLevel) {
+            const nonRef = catEnc.levels.filter(l => l !== catEnc.referenceLevel);
+            interactionLevel = nonRef[ci];
+          }
+        } else if (enc.interactionType === 'cat×cat') {
+          // Outer loop = encA non-ref levels, inner = encB non-ref levels.
+          const nonRefA =
+            encA?.levels && encA.referenceLevel
+              ? encA.levels.filter(l => l !== encA.referenceLevel)
+              : [];
+          const nonRefB =
+            encB?.levels && encB.referenceLevel
+              ? encB.levels.filter(l => l !== encB.referenceLevel)
+              : [];
+          const bLen = nonRefB.length || 1;
+          const ai = Math.floor(ci / bLen);
+          const bi = ci % bLen;
+          // Represent as "levelA:levelB" for cat×cat so consumers can show the focal cell.
+          if (nonRefA[ai] !== undefined && nonRefB[bi] !== undefined) {
+            interactionLevel = `${nonRefA[ai]}:${nonRefB[bi]}`;
+          }
+        }
+        // cont×cont: interactionLevel stays undefined (no discrete level).
+
         predictors.push({
           name: enc.factorName,
           factorName: enc.factorName,
           type: 'interaction',
+          ...(interactionLevel !== undefined ? { level: interactionLevel } : {}),
           coefficient: solution.coefficients[colIdx],
           standardError: solution.standardErrors[colIdx],
           tStatistic: solution.tStatistics[colIdx],
