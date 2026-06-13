@@ -3,7 +3,6 @@ import { FindingsPanelBase, type FindingsPanelBaseProps } from '@variscout/ui';
 import type { FindingAssignee, FindingSource } from '@variscout/core';
 import { AssigneeInput } from './AssigneeInput';
 import { getEasyAuthUser } from '../auth/easyAuth';
-import { isSpeechToTextAvailable, transcribeAudio } from '../services/speechService';
 
 const RESIZE_CONFIG = {
   storageKey: 'variscout-azure-findings-panel-width',
@@ -82,8 +81,6 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
     []
   );
 
-  const voiceInput = isSpeechToTextAvailable() ? { isAvailable: true, transcribeAudio } : undefined;
-
   return (
     <FindingsPanelBase
       {...props}
@@ -93,7 +90,6 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
       onNavigateToChart={onNavigateToChart}
       renderActionAssigneePicker={renderActionAssigneePicker}
       currentUserUpn={currentUserUpn}
-      voiceInput={voiceInput}
     />
   );
 };

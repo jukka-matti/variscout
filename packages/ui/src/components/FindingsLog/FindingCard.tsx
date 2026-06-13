@@ -36,7 +36,6 @@ import ActionItemsSection from './FindingCardActions';
 import ProjectionSection from './FindingCardProjection';
 import { OutcomeSection } from './FindingCardExpanded';
 import { EvidenceAnglePicker } from '../EvidenceAnglePicker';
-import type { VoiceInputConfig } from '../VoiceInput';
 
 const EVIDENCE_ANGLE_GLYPH: Record<FindingEvidenceType, string> = {
   data: '📊',
@@ -127,8 +126,6 @@ export interface FindingCardProps {
   }) => void;
   /** Callback to send a direct question to CoScout (used by per-action "Ask" buttons) */
   onAskCoScoutQuestion?: (question: string) => void;
-  /** Optional Azure-only voice input that transcribes into finding/comment editors */
-  voiceInput?: VoiceInputConfig;
   /** Mark this finding as supporting evidence for the selected hypothesis. */
   onMarkSupport?: (findingId: string) => void;
   /** Mark this finding as evidence that counts against the selected hypothesis. */
@@ -193,7 +190,6 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAskCoScout,
   onAskCoScoutQuestion,
   renderActionAssigneePicker,
-  voiceInput,
   onMarkSupport,
   onMarkCounter,
 }) => {
@@ -364,7 +360,6 @@ const FindingCard: React.FC<FindingCardProps> = ({
               initialText={finding.text}
               onSave={handleSave}
               onCancel={() => setIsEditing(false)}
-              voiceInput={voiceInput}
             />
             {onSetEvidenceType && (
               <EvidenceAnglePicker
@@ -560,7 +555,6 @@ const FindingCard: React.FC<FindingCardProps> = ({
             onAddPhoto={onAddPhoto}
             onCaptureFromTeams={onCaptureFromTeams}
             showAuthors={showAuthors}
-            voiceInput={voiceInput}
           />
         )}
 

@@ -218,8 +218,6 @@ beforeAll(async () => {
   // Use connection string path so we avoid DefaultAzureCredential flow
   process.env.AZURE_STORAGE_CONNECTION_STRING =
     'DefaultEndpointsProtocol=https;AccountName=teststorage;AccountKey=dGVzdGtleQ==;EndpointSuffix=core.windows.net';
-  process.env.VOICE_INPUT_ENABLED = 'true';
-  process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT = 'gpt-4o-mini-transcribe';
 
   // Dynamically import so mocks are active before server.js runs
   const { app } = (await import('../../server.js')) as { app: Express };
@@ -231,8 +229,6 @@ afterAll(() => {
   delete process.env.STORAGE_ACCOUNT_NAME;
   delete process.env.STORAGE_CONTAINER_NAME;
   delete process.env.AZURE_STORAGE_CONNECTION_STRING;
-  delete process.env.VOICE_INPUT_ENABLED;
-  delete process.env.AI_SPEECH_TO_TEXT_DEPLOYMENT;
 });
 
 beforeEach(() => {
@@ -267,8 +263,8 @@ describe('GET /config', () => {
     expect(body).toHaveProperty('plan');
     expect(body).toHaveProperty('aiEndpoint');
     expect(body).toHaveProperty('storageAccountName');
-    expect(body).toHaveProperty('voiceInputEnabled');
-    expect(body).toHaveProperty('speechToTextDeployment');
+    expect(body).not.toHaveProperty('voiceInputEnabled');
+    expect(body).not.toHaveProperty('speechToTextDeployment');
   });
 
   it('sets Cache-Control: no-cache', async () => {
@@ -276,13 +272,13 @@ describe('GET /config', () => {
     expect(res.headers['cache-control']).toBe('no-cache');
   });
 
-  it('enables microphone permissions and runtime fields when voice input is configured', async () => {
+  it('keeps microphone permissions disabled', async () => {
     const res = await request.get('/config');
     const body = JSON.parse(res.text);
 
-    expect(body.voiceInputEnabled).toBe(true);
-    expect(body.speechToTextDeployment).toBe('gpt-4o-mini-transcribe');
-    expect(res.headers['permissions-policy']).toContain('microphone=(self)');
+    expect(body).not.toHaveProperty('voiceInputEnabled');
+    expect(body).not.toHaveProperty('speechToTextDeployment');
+    expect(res.headers['permissions-policy']).toContain('microphone=()');
   });
 });
 

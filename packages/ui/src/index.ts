@@ -286,8 +286,6 @@ export {
   type FindingsExportMenuProps,
 } from './components/FindingsLog';
 
-export { type VoiceInputConfig } from './components/VoiceInput';
-
 export {
   default as PasteScreenBase,
   pasteScreenDefaultColorScheme,
