@@ -66,9 +66,6 @@ vi.mock('../charts/ProbabilityPlot', () => ({
 vi.mock('../PerformanceDashboard', () => ({
   default: () => <div data-testid="performance-dashboard">Performance Dashboard</div>,
 }));
-vi.mock('../MobileChartCarousel', () => ({
-  default: () => <div data-testid="mobile-carousel">Mobile Carousel</div>,
-}));
 vi.mock('../settings/SpecEditor', () => ({
   default: () => <div data-testid="spec-editor">Spec Editor</div>,
 }));
@@ -455,8 +452,6 @@ vi.mock('@variscout/ui', () => ({
   ChartInsightChip: () => null,
   NarrativeBar: () => null,
   DefectSummary: () => <div data-testid="defect-summary">Defect Summary</div>,
-  useIsMobile: () => false,
-  BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
   // LV1-E Task 7: ScopeChrome stub — renders data-testid so render-smoke tests work
   ScopeChrome: () => <div data-testid="scope-chrome">ScopeChrome</div>,
   // ER-4: ConditionPill + ScopeBar stubs — expose the testids + action buttons the
@@ -1048,7 +1043,6 @@ describe('Dashboard', () => {
   // ────────────────────────────────────────────────────────────────────────
   describe('ER-4: ScopeChrome mount deleted; reverse-mirror effects retained', () => {
     it('does NOT render the ScopeChrome mount in the analysis tab (ER-4 deletion)', () => {
-      // useIsMobile returns false by default (desktop)
       render(<Dashboard />);
 
       expect(screen.queryByTestId('scope-chrome')).not.toBeInTheDocument();

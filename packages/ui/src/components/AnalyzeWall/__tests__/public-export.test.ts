@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  CANVAS_H,
-  CANVAS_W,
-  HypothesisCard,
-  WallCanvas,
-  WALL_MOBILE_BREAKPOINT,
-  useWallIsMobile,
-} from '../../../index';
+import { CANVAS_H, CANVAS_W, HypothesisCard, WallCanvas } from '../../../index';
 import type { HypothesisStatus } from '@variscout/core';
 import type * as UiPublicApi from '../../../index';
 
@@ -15,7 +8,7 @@ type RemovedExportName = `Wall${'Status'}`;
 type RemovedStatusIsNotExported = RemovedExportName extends keyof typeof UiPublicApi ? false : true;
 
 describe('AnalyzeWall public exports', () => {
-  it('exposes wall components, hooks, constants, and types from @variscout/ui', () => {
+  it('exposes wall components, constants, and types from @variscout/ui', () => {
     const status: HypothesisStatus = 'needs-disconfirmation';
     const removedStatusIsNotExported: RemovedStatusIsNotExported = true;
 
@@ -23,8 +16,6 @@ describe('AnalyzeWall public exports', () => {
     expect(removedStatusIsNotExported).toBe(true);
     expect(WallCanvas).toBeTypeOf('function');
     expect(HypothesisCard).toBeTypeOf('function');
-    expect(useWallIsMobile).toBeTypeOf('function');
-    expect(WALL_MOBILE_BREAKPOINT).toBe(768);
     expect(CANVAS_W).toBeGreaterThan(0);
     expect(CANVAS_H).toBeGreaterThan(0);
   });

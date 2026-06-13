@@ -213,7 +213,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
 
                 {/* Action buttons — editors only (data-mutating affordances) */}
                 {canEdit && (
-                  <div className="flex items-center gap-1 opacity-0 group-hover/idea:opacity-100 touch-show transition-opacity flex-shrink-0">
+                  <div className="flex items-center gap-1 opacity-0 group-hover/idea:opacity-100 transition-opacity flex-shrink-0">
                     {/* Project button */}
                     {onProjectIdea && (
                       <button

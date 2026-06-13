@@ -131,10 +131,10 @@ export function useDashboardCharts({
     setShowParetoPanel(true);
   }, [rawData, factors]);
 
-  // Open spec editor when requested from MobileMenu
+  // Open spec editor when requested from header controls
   useEffect(() => {
     if (openSpecEditorRequested) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to external request from MobileMenu
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to external request from header controls
       setShowSpecEditor(true);
       onSpecEditorOpened?.();
     }

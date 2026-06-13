@@ -353,14 +353,7 @@ export {
   type ParetoChartWrapperBaseProps,
 } from './components/ParetoChartWrapper';
 
-// Mobile Category Sheet
-export {
-  MobileCategorySheet,
-  type MobileCategorySheetProps,
-  type MobileCategorySheetData,
-} from './components/MobileCategorySheet';
-
-// Evidence Map Sheets (mobile bottom sheets for factor nodes and relationship edges)
+// Evidence Map Sheets
 export {
   EvidenceMapNodeSheet,
   type EvidenceMapNodeSheetProps,
@@ -471,9 +464,6 @@ export {
   CrossTypeEvidenceMap,
   type CrossTypeEvidenceMapProps,
 } from './components/EvidenceMap/CrossTypeEvidenceMap';
-
-// Mobile Tab Bar
-export { MobileTabBar, type MobileTabBarProps, type MobileTab } from './components/MobileTabBar';
 
 // Focused Chart View
 export {
@@ -686,13 +676,7 @@ export { ExploreJumpButton } from './components/Canvas';
 export { CanvasWorkspace, type CanvasWorkspaceProps } from './components/Canvas/CanvasWorkspace';
 
 // Hooks
-export {
-  useIsMobile,
-  BREAKPOINTS,
-  useGlossary,
-  type UseGlossaryOptions,
-  type UseGlossaryResult,
-} from './hooks';
+export { useGlossary, type UseGlossaryOptions, type UseGlossaryResult } from './hooks';
 
 // Context
 export {

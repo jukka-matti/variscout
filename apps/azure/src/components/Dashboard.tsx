@@ -5,7 +5,6 @@ import ParetoChart from './charts/ParetoChart';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import { useProbabilityPlotData } from '@variscout/hooks';
-import MobileChartCarousel from './MobileChartCarousel';
 import PerformanceDashboard from './PerformanceDashboard';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
@@ -64,9 +63,7 @@ import {
   ScopeBarBase,
   ModelDrawerBase,
   useInflectionBinningState,
-  useIsMobile,
   useGlossary,
-  BREAKPOINTS,
   type WorkspaceProjectScopeLabels,
 } from '@variscout/ui';
 import {
@@ -239,7 +236,6 @@ const Dashboard = ({
   onExportCSV,
   findingsCallbacks,
   findings: allFindings,
-  onInvestigateFactor,
   requestedFactor,
   performance = {},
   ai = {},
@@ -266,7 +262,6 @@ const Dashboard = ({
     narrativeError,
     onNarrativeAsk,
     onNarrativeRetry,
-    onAskCoScoutFromCategory,
   } = ai;
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
     findingsCallbacks ?? {};
@@ -317,8 +312,6 @@ const Dashboard = ({
   const { stagedStats } = useStagedAnalysis();
   const { getTerm } = useGlossary();
   const { t } = useTranslation();
-  const isPhone = useIsMobile(BREAKPOINTS.phone);
-
   type AzureAnalysisLensTab = 'probability' | 'distribution';
   const [analysisLensTab, setAnalysisLensTab] = useState<AzureAnalysisLensTab>('probability');
   const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
@@ -1324,75 +1317,73 @@ const Dashboard = ({
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface flex-shrink-0">
         {/* Process Health Bar — replaces FilterBreadcrumb + Toolbar */}
-        {!isPhone && (
-          <ProcessHealthBar
-            stats={stats}
-            specs={outcomeSpecs}
-            cpkTarget={
-              resolveCpkTarget(outcome ?? '', {
-                measureSpecs,
-                projectCpkTarget: cpkTarget,
-              }).value
-            }
-            cpkTargetSource={
-              resolveCpkTarget(outcome ?? '', {
-                measureSpecs,
-                projectCpkTarget: cpkTarget,
-              }).source
-            }
-            onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
-            columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
-            sampleCount={lensedSampleCount}
-            dateRange={dataDateRange}
-            filterChipData={filterChipData}
-            columnAliases={columnAliases}
-            onUpdateFilterValues={handleUpdateFilterValues}
-            onRemoveFilter={handleRemoveFilter}
-            // ER-4: the context-line clear-all is the ONE coherent clear (it also
-            // clears the scope store + transient highlight — fixing the pre-existing
-            // one-sided clear).
-            onClearAll={handleCoherentClear}
-            onPinFinding={onPinFinding}
-            subgroupSlot={
-              <SubgroupConfigPopover
-                config={subgroupConfig}
-                onConfigChange={setSubgroupConfig}
-                availableColumns={(() => {
-                  const fromMap = subgroupAxisColumns(processContext?.processMap);
-                  return fromMap.length > 0 ? fromMap : factors;
-                })()}
-                columnAliases={columnAliases}
-              />
-            }
-            availableStageColumns={availableStageColumnsWithSteps}
-            stageColumn={stageColumn}
-            setStageColumn={setStageColumn}
-            stageOrderMode={stageOrderMode}
-            onStageOrderModeChange={setStageOrderMode}
-            measureLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
-            onEditFraming={onManageFactors}
-            onExportCSV={onExportCSV}
-            onSetSpecs={() => setShowSpecEditor(true)}
-            onCpkClick={!isCapabilityMode && canUseCapabilityLens ? handleCpkClick : undefined}
-            cpkDisabledReason={!isCapabilityMode ? capabilityLensDisabledReason : undefined}
-            centeringOpportunity={centeringOpportunity}
-            specSuggestion={specSuggestion}
-            activeProjection={activeProjection}
-            onAcceptSpecSuggestion={(lsl, usl) => {
-              setSpecs({ ...specs, lsl, usl });
-              setShowSpecEditor(true);
-            }}
-            isCapabilityMode={isCapabilityMode}
-            capabilityStats={capabilityStats}
-          />
-        )}
+        <ProcessHealthBar
+          stats={stats}
+          specs={outcomeSpecs}
+          cpkTarget={
+            resolveCpkTarget(outcome ?? '', {
+              measureSpecs,
+              projectCpkTarget: cpkTarget,
+            }).value
+          }
+          cpkTargetSource={
+            resolveCpkTarget(outcome ?? '', {
+              measureSpecs,
+              projectCpkTarget: cpkTarget,
+            }).source
+          }
+          onCpkTargetCommit={outcome ? n => setMeasureSpec(outcome, { cpkTarget: n }) : undefined}
+          columnLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
+          sampleCount={lensedSampleCount}
+          dateRange={dataDateRange}
+          filterChipData={filterChipData}
+          columnAliases={columnAliases}
+          onUpdateFilterValues={handleUpdateFilterValues}
+          onRemoveFilter={handleRemoveFilter}
+          // ER-4: the context-line clear-all is the ONE coherent clear (it also
+          // clears the scope store + transient highlight — fixing the pre-existing
+          // one-sided clear).
+          onClearAll={handleCoherentClear}
+          onPinFinding={onPinFinding}
+          subgroupSlot={
+            <SubgroupConfigPopover
+              config={subgroupConfig}
+              onConfigChange={setSubgroupConfig}
+              availableColumns={(() => {
+                const fromMap = subgroupAxisColumns(processContext?.processMap);
+                return fromMap.length > 0 ? fromMap : factors;
+              })()}
+              columnAliases={columnAliases}
+            />
+          }
+          availableStageColumns={availableStageColumnsWithSteps}
+          stageColumn={stageColumn}
+          setStageColumn={setStageColumn}
+          stageOrderMode={stageOrderMode}
+          onStageOrderModeChange={setStageOrderMode}
+          measureLabel={outcome ? (columnAliases[outcome] ?? outcome) : undefined}
+          onEditFraming={onManageFactors}
+          onExportCSV={onExportCSV}
+          onSetSpecs={() => setShowSpecEditor(true)}
+          onCpkClick={!isCapabilityMode && canUseCapabilityLens ? handleCpkClick : undefined}
+          cpkDisabledReason={!isCapabilityMode ? capabilityLensDisabledReason : undefined}
+          centeringOpportunity={centeringOpportunity}
+          specSuggestion={specSuggestion}
+          activeProjection={activeProjection}
+          onAcceptSpecSuggestion={(lsl, usl) => {
+            setSpecs({ ...specs, lsl, usl });
+            setShowSpecEditor(true);
+          }}
+          isCapabilityMode={isCapabilityMode}
+          capabilityStats={capabilityStats}
+        />
 
         {/* ER-4: the brush pill — appears on a non-empty I-Chart brush with the
             y-band condition + honest n/x̄. ✚ Capture routes through the chart-
             observation handler (scopeId-linked under a condition); view-as-condition
             applies the band. SUBSUMES the auto-capture-afterglow. The SelectionPanel
             (factor creation — a different job) COEXISTS below. */}
-        {!isPhone && brushPill && (
+        {brushPill && (
           <div className="mx-4 mb-2">
             <ConditionPillBase
               summary={brushPill.summary}
@@ -1408,7 +1399,7 @@ const Dashboard = ({
         )}
         {/* ER-4: the group pill — appears on a boxplot/Pareto group click (transient
             highlight). Same one pill pattern; view-as-condition applies the eq leaf. */}
-        {!isPhone && conditionLoop.groupPill && (
+        {conditionLoop.groupPill && (
           <div className="mx-4 mb-2">
             <ConditionPillBase
               summary={conditionLoop.groupPill.summary}
@@ -1431,10 +1422,10 @@ const Dashboard = ({
           </div>
         )}
 
-        {/* Selection Panel (desktop only — multi-point selection is a desktop feature).
+        {/* Selection Panel.
             ER-4: COEXISTS with the brush pill — factor creation (CreateFactorModal) is
             a different job from minting a condition. */}
-        {!isPhone && selectedPoints.size > 0 && (
+        {selectedPoints.size > 0 && (
           <SelectionPanel
             selectedIndices={selectedPoints}
             data={filteredData}
@@ -1462,7 +1453,7 @@ const Dashboard = ({
         {/* ER-4 scope bar: the conditional "Viewing condition" row under the context
             line. × = the ONE coherent clear; Take it to Analyze → mints the PSS
             (range-capable) then opens the Wall. ABSORBS the retired afterglow toast. */}
-        {!isPhone && conditionLoop.hasCondition && (
+        {conditionLoop.hasCondition && (
           <ScopeBarBase
             conditionLabel={conditionLoop.scopeBarLabel}
             nIn={conditionLoop.scopeBarNIn}
@@ -1546,408 +1537,345 @@ const Dashboard = ({
               The full ScopeChrome chip row overlapped the scope bar. The ScopeChrome
               component itself stays in @variscout/ui for now (only the mount goes). */}
 
-          {isPhone ? (
-            <MobileChartCarousel
-              factorState={{
-                boxplotFactor,
-                paretoFactor,
-                factors,
-                onSetBoxplotFactor: setBoxplotFactor,
-                onSetParetoFactor: setParetoFactor,
-              }}
-              filterContext={{
-                filters,
-                columnAliases,
-                filterChipData,
-                onUpdateFilterValues: handleUpdateFilterValues,
-                onRemoveFilter: handleRemoveFilter,
-                onClearAllFilters: handleClearAllFilters,
-              }}
-              paretoOptions={{
-                paretoAggregation,
-                onToggleParetoAggregation: () =>
-                  setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count'),
-                showParetoComparison,
-                onToggleParetoComparison: () => setShowParetoComparison(!showParetoComparison),
-              }}
-              highlights={{
+          <div className="flex flex-1 min-h-0">
+            <DashboardLayoutBase
+              outcome={outcome}
+              factors={factors}
+              factorStrip={factorStripNode}
+              columnAliases={columnAliases}
+              filters={filters}
+              showFilterContext={displayOptions.showFilterContext !== false}
+              showViolin={displayOptions.showViolin ?? false}
+              boxplotSortBy={displayOptions.boxplotSortBy ?? 'name'}
+              boxplotSortDirection={displayOptions.boxplotSortDirection ?? 'asc'}
+              onDisplayOptionChange={(key, value) =>
+                setDisplayOptions({ ...displayOptions, [key]: value })
+              }
+              availableOutcomes={availableOutcomes}
+              setOutcome={setOutcome}
+              trackedOutcomes={trackedOutcomes}
+              measureSpecs={measureSpecs}
+              specs={specs}
+              onTrackOutcome={handleTrackOutcome}
+              stageColumn={stageColumn}
+              stagedStats={stagedStats}
+              controlStats={
+                isCapabilityMode && capabilityIChartData?.cpkStats
+                  ? capabilityIChartData.cpkStats
+                  : stats
+              }
+              ichartLoading={!stats || isComputing}
+              getTermUcl={getTerm('ucl')}
+              getTermMean={getTerm('mean')}
+              getTermLcl={getTerm('lcl')}
+              chartTitles={chartTitles}
+              onChartTitleChange={handleChartTitleChange}
+              boxplotFactor={boxplotFactor}
+              setBoxplotFactor={setBoxplotFactor}
+              paretoFactor={paretoFactor}
+              setParetoFactor={setParetoFactor}
+              showParetoPanel={showParetoPanel}
+              focusedChart={focusedChart}
+              setFocusedChart={setFocusedChart}
+              filterChipData={filterChipData}
+              annotations={{
+                contextMenu,
+                handleContextMenu,
+                closeContextMenu,
                 boxplotHighlights,
                 paretoHighlights,
-                onSetHighlight: setHighlight,
+                setHighlight,
+                hasAnnotations,
+                clearAnnotations,
               }}
-              onDrillDown={handleDrillDown}
-              stats={stats}
-              specs={outcomeSpecs}
-              filteredData={filteredData}
-              outcome={outcome}
-              onSaveSpecs={
-                outcome ? (next: typeof specs) => setMeasureSpec(outcome, next) : setSpecs
-              }
-              showCpk={displayOptions.showCpk !== false}
-              anovaResult={anovaResult}
-              onPinFinding={onPinFinding}
-              boxplotData={boxplotData}
-              findingsCallbacks={findingsCallbacks}
-              onOpenWall={onOpenWall}
-              onAskCoScout={onAskCoScoutFromCategory}
-              onInvestigateFactor={onInvestigateFactor}
-              categoricalValuesByColumn={categoricalValuesByColumn}
-            />
-          ) : (
-            <div className="flex flex-1 min-h-0">
-              <DashboardLayoutBase
-                outcome={outcome}
-                factors={factors}
-                factorStrip={factorStripNode}
-                columnAliases={columnAliases}
-                filters={filters}
-                showFilterContext={displayOptions.showFilterContext !== false}
-                showViolin={displayOptions.showViolin ?? false}
-                boxplotSortBy={displayOptions.boxplotSortBy ?? 'name'}
-                boxplotSortDirection={displayOptions.boxplotSortDirection ?? 'asc'}
-                onDisplayOptionChange={(key, value) =>
-                  setDisplayOptions({ ...displayOptions, [key]: value })
+              chartFindings={chartFindings}
+              onAddChartObservation={onAddChartObservation}
+              copyFeedback={copyFeedback}
+              onCopyChart={handleCopyChart}
+              onDownloadPng={handleDownloadPng}
+              onDownloadSvg={handleDownloadSvg}
+              onShareChart={onShareChart}
+              ichartInsight={ichartInsight}
+              boxplotInsight={boxplotInsight}
+              paretoInsight={paretoInsight}
+              statsInsight={statsInsight}
+              onInsightAction={(factor, value) => {
+                if (value) {
+                  handleDrillDown(factor, value);
+                } else {
+                  // Switch factor view (e.g., boxplot drill suggestion)
+                  setBoxplotFactor(factor);
+                  setParetoFactor(factor);
                 }
-                availableOutcomes={availableOutcomes}
-                setOutcome={setOutcome}
-                trackedOutcomes={trackedOutcomes}
-                measureSpecs={measureSpecs}
-                specs={specs}
-                onTrackOutcome={handleTrackOutcome}
-                stageColumn={stageColumn}
-                stagedStats={stagedStats}
-                controlStats={
-                  isCapabilityMode && capabilityIChartData?.cpkStats
-                    ? capabilityIChartData.cpkStats
-                    : stats
-                }
-                ichartLoading={!stats || isComputing}
-                getTermUcl={getTerm('ucl')}
-                getTermMean={getTerm('mean')}
-                getTermLcl={getTerm('lcl')}
-                chartTitles={chartTitles}
-                onChartTitleChange={handleChartTitleChange}
-                boxplotFactor={boxplotFactor}
-                setBoxplotFactor={setBoxplotFactor}
-                paretoFactor={paretoFactor}
-                setParetoFactor={setParetoFactor}
-                showParetoPanel={showParetoPanel}
-                focusedChart={focusedChart}
-                setFocusedChart={setFocusedChart}
-                filterChipData={filterChipData}
-                annotations={{
-                  contextMenu: isPhone
-                    ? {
-                        isOpen: false,
-                        position: { x: 0, y: 0 },
-                        categoryKey: '',
-                        chartType: 'boxplot',
-                      }
-                    : contextMenu,
-                  handleContextMenu,
-                  closeContextMenu,
-                  boxplotHighlights,
-                  paretoHighlights,
-                  setHighlight,
-                  hasAnnotations,
-                  clearAnnotations,
-                }}
-                chartFindings={chartFindings}
-                onAddChartObservation={onAddChartObservation}
-                copyFeedback={copyFeedback}
-                onCopyChart={handleCopyChart}
-                onDownloadPng={handleDownloadPng}
-                onDownloadSvg={handleDownloadSvg}
-                onShareChart={onShareChart}
-                ichartInsight={ichartInsight}
-                boxplotInsight={boxplotInsight}
-                paretoInsight={paretoInsight}
-                statsInsight={statsInsight}
-                onInsightAction={(factor, value) => {
-                  if (value) {
-                    handleDrillDown(factor, value);
-                  } else {
-                    // Switch factor view (e.g., boxplot drill suggestion)
-                    setBoxplotFactor(factor);
-                    setParetoFactor(factor);
-                  }
-                }}
-                onInsightCapture={!isDefectMode ? () => openEngineSignalCaptureDraft() : undefined}
-                ichartTitleSlot={
-                  isCapabilityMode ? (
-                    <div className="flex items-center gap-2">
-                      <Activity className="text-blue-400 self-start mt-1" />
-                      <h2 className="text-xl font-bold text-white leading-none">
-                        {capabilityTitle}
-                      </h2>
-                    </div>
-                  ) : undefined
-                }
-                // Azure-specific: Manage Factors button in I-Chart header
-                ichartHeaderExtra={
-                  // CapabilityMetricToggle + the Factors(N) twin STAY here
-                  // (chart identity + the ER-2 interim Factors home). The
-                  // SubgroupConfigPopover relocated to the context-line
-                  // `subgroupSlot` (ER-1 Task 2).
+              }}
+              onInsightCapture={!isDefectMode ? () => openEngineSignalCaptureDraft() : undefined}
+              ichartTitleSlot={
+                isCapabilityMode ? (
                   <div className="flex items-center gap-2">
-                    <CapabilityMetricToggle
-                      metric={displayOptions.standardIChartMetric ?? 'measurement'}
-                      onMetricChange={handleCapabilityMetricChange}
-                      disabledReason={capabilityLensDisabledReason}
-                    />
-                    {onManageFactors && (
-                      <button
-                        onClick={onManageFactors}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-content-secondary hover:text-content bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
-                        title="Manage analysis factors"
-                        aria-label="Manage factors"
-                        data-testid="btn-manage-factors"
-                      >
-                        <Settings2 size={14} />
-                        <span>Factors ({effectiveFactors.length})</span>
-                      </button>
-                    )}
+                    <Activity className="text-blue-400 self-start mt-1" />
+                    <h2 className="text-xl font-bold text-white leading-none">{capabilityTitle}</h2>
                   </div>
-                }
-                // ER-2: boxplotFactorWrapper retired — the factor strip absorbs
-                // factor selection (the dropdown it wrapped is gone). The strip
-                // node itself is wired in Task 4 (apps).
-                // Render slots
-                renderIChartContent={
-                  <ErrorBoundary componentName="I-Chart">
-                    <IChart
-                      onPointClick={onPointClick}
-                      highlightedPointIndex={highlightedPointIndex}
-                      onSpecClick={() => setShowSpecEditor(true)}
-                      ichartFindings={chartFindings?.ichart}
-                      onCreateObservation={(anchorX, anchorY) =>
-                        onAddChartObservation?.('ichart', undefined, undefined, anchorX, anchorY)
-                      }
-                      onEditFinding={onEditFinding}
-                      onDeleteFinding={onDeleteFinding}
-                      dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
-                      outcomeOverride={
-                        isDefectMode && defectResult ? (effectiveOutcome ?? undefined) : undefined
-                      }
-                      // ER-4 highlight tier: the I-Chart keeps the FULL lensed series +
-                      // the member Set (applied condition, or the transient highlight
-                      // when none is applied). Limits/stats stay full-series.
-                      conditionMemberIndices={ichartMemberIndices}
-                    />
-                  </ErrorBoundary>
-                }
-                renderBoxplotContent={
-                  <ErrorBoundary componentName="Boxplot">
-                    {/* ER-5a: under a condition with a selected factor, the freed
+                ) : undefined
+              }
+              // Azure-specific: Manage Factors button in I-Chart header
+              ichartHeaderExtra={
+                // CapabilityMetricToggle + the Factors(N) twin STAY here
+                // (chart identity + the ER-2 interim Factors home). The
+                // SubgroupConfigPopover relocated to the context-line
+                // `subgroupSlot` (ER-1 Task 2).
+                <div className="flex items-center gap-2">
+                  <CapabilityMetricToggle
+                    metric={displayOptions.standardIChartMetric ?? 'measurement'}
+                    onMetricChange={handleCapabilityMetricChange}
+                    disabledReason={capabilityLensDisabledReason}
+                  />
+                  {onManageFactors && (
+                    <button
+                      onClick={onManageFactors}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-content-secondary hover:text-content bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
+                      title="Manage analysis factors"
+                      aria-label="Manage factors"
+                      data-testid="btn-manage-factors"
+                    >
+                      <Settings2 size={14} />
+                      <span>Factors ({effectiveFactors.length})</span>
+                    </button>
+                  )}
+                </div>
+              }
+              // ER-2: boxplotFactorWrapper retired — the factor strip absorbs
+              // factor selection (the dropdown it wrapped is gone). The strip
+              // node itself is wired in Task 4 (apps).
+              // Render slots
+              renderIChartContent={
+                <ErrorBoundary componentName="I-Chart">
+                  <IChart
+                    onPointClick={onPointClick}
+                    highlightedPointIndex={highlightedPointIndex}
+                    onSpecClick={() => setShowSpecEditor(true)}
+                    ichartFindings={chartFindings?.ichart}
+                    onCreateObservation={(anchorX, anchorY) =>
+                      onAddChartObservation?.('ichart', undefined, undefined, anchorX, anchorY)
+                    }
+                    onEditFinding={onEditFinding}
+                    onDeleteFinding={onDeleteFinding}
+                    dataOverride={isDefectMode && defectResult ? effectiveData : undefined}
+                    outcomeOverride={
+                      isDefectMode && defectResult ? (effectiveOutcome ?? undefined) : undefined
+                    }
+                    // ER-4 highlight tier: the I-Chart keeps the FULL lensed series +
+                    // the member Set (applied condition, or the transient highlight
+                    // when none is applied). Limits/stats stay full-series.
+                    conditionMemberIndices={ichartMemberIndices}
+                  />
+                </ErrorBoundary>
+              }
+              renderBoxplotContent={
+                <ErrorBoundary componentName="Boxplot">
+                  {/* ER-5a: under a condition with a selected factor, the freed
                         comparison slot hosts the composition view (paired share
                         bars + lift + ⊕). Within-slot content change — the 4-slot
                         contract holds. */}
-                    {compositionViewNode ? (
-                      compositionViewNode
-                    ) : boxplotFactor ? (
-                      <Boxplot
-                        factor={boxplotFactor}
-                        // ER-4 (D6): the click sets a transient highlight + shows the
-                        // pill (commit is explicit). The legacy click→drill retires.
-                        onGroupClick={handleGroupClick}
-                        transientHighlightLevel={
-                          transientHighlight && transientHighlight.column === boxplotFactor
-                            ? String(transientHighlight.value)
-                            : undefined
-                        }
-                        highlightedCategories={boxplotHighlights}
-                        onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
-                        findings={chartFindings?.boxplot}
-                        onEditFinding={onEditFinding}
-                        onDeleteFinding={onDeleteFinding}
-                        isComputing={isComputing}
-                        dataOverride={filterTierDataOverride}
-                        outcomeOverride={
-                          isDefectMode && defectResult ? (effectiveOutcome ?? undefined) : undefined
-                        }
-                        categoricalValuesByColumn={categoricalValuesByColumn}
-                      />
-                    ) : null}
-                  </ErrorBoundary>
-                }
-                renderParetoContent={
-                  <ErrorBoundary componentName="Pareto Chart">
-                    {paretoFactor && (
-                      <ParetoChart
-                        factor={paretoFactor}
-                        // ER-4 (D6): neutral group click → transient highlight + pill.
-                        onGroupClick={handleGroupClick}
-                        showComparison={showParetoComparison}
-                        onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
-                        onHide={() => setShowParetoPanel(false)}
-                        onUploadPareto={onManageFactors}
-                        availableFactors={effectiveFactors}
-                        aggregation={paretoAggregation}
-                        onToggleAggregation={() =>
-                          setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
-                        }
-                        highlightedCategories={paretoHighlights}
-                        onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
-                        findings={chartFindings?.pareto}
-                        onEditFinding={onEditFinding}
-                        onDeleteFinding={onDeleteFinding}
-                        isComputing={isComputing}
-                        dataOverride={filterTierDataOverride}
-                        outcomeOverride={
-                          isDefectMode && defectResult
-                            ? (defectParetoOutcome ?? effectiveOutcome ?? undefined)
-                            : undefined
-                        }
-                        onFactorSwitch={isDefectMode ? setParetoFactor : undefined}
-                      />
-                    )}
-                  </ErrorBoundary>
-                }
-                /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
+                  {compositionViewNode ? (
+                    compositionViewNode
+                  ) : boxplotFactor ? (
+                    <Boxplot
+                      factor={boxplotFactor}
+                      // ER-4 (D6): the click sets a transient highlight + shows the
+                      // pill (commit is explicit). The legacy click→drill retires.
+                      onGroupClick={handleGroupClick}
+                      transientHighlightLevel={
+                        transientHighlight && transientHighlight.column === boxplotFactor
+                          ? String(transientHighlight.value)
+                          : undefined
+                      }
+                      highlightedCategories={boxplotHighlights}
+                      onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
+                      findings={chartFindings?.boxplot}
+                      onEditFinding={onEditFinding}
+                      onDeleteFinding={onDeleteFinding}
+                      isComputing={isComputing}
+                      dataOverride={filterTierDataOverride}
+                      outcomeOverride={
+                        isDefectMode && defectResult ? (effectiveOutcome ?? undefined) : undefined
+                      }
+                      categoricalValuesByColumn={categoricalValuesByColumn}
+                    />
+                  ) : null}
+                </ErrorBoundary>
+              }
+              renderParetoContent={
+                <ErrorBoundary componentName="Pareto Chart">
+                  {paretoFactor && (
+                    <ParetoChart
+                      factor={paretoFactor}
+                      // ER-4 (D6): neutral group click → transient highlight + pill.
+                      onGroupClick={handleGroupClick}
+                      showComparison={showParetoComparison}
+                      onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
+                      onHide={() => setShowParetoPanel(false)}
+                      onUploadPareto={onManageFactors}
+                      availableFactors={effectiveFactors}
+                      aggregation={paretoAggregation}
+                      onToggleAggregation={() =>
+                        setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
+                      }
+                      highlightedCategories={paretoHighlights}
+                      onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+                      findings={chartFindings?.pareto}
+                      onEditFinding={onEditFinding}
+                      onDeleteFinding={onDeleteFinding}
+                      isComputing={isComputing}
+                      dataOverride={filterTierDataOverride}
+                      outcomeOverride={
+                        isDefectMode && defectResult
+                          ? (defectParetoOutcome ?? effectiveOutcome ?? undefined)
+                          : undefined
+                      }
+                      onFactorSwitch={isDefectMode ? setParetoFactor : undefined}
+                    />
+                  )}
+                </ErrorBoundary>
+              }
+              /* Stats panel removed from grid — key stats now in ProcessHealthBar toolbar.
                    Stats sidebar (left) provides detailed view when toggled. */
-                verificationCardTitle={
-                  histogramData.length > 0 && stats && !(isDefectMode && defectSummaryProps) ? (
-                    <SegmentedControl
-                      options={azureAnalysisLensTabs.map(tab => ({
-                        value: tab.id,
-                        label: tab.label,
-                      }))}
-                      value={activeAzureAnalysisLensTab}
-                      onChange={tabId => setAnalysisLensTab(tabId as AzureAnalysisLensTab)}
-                      aria-label={t('verify.tabs.label')}
-                      testId="verify-tab"
-                    />
-                  ) : undefined
-                }
-                renderVerificationCard={
-                  isDefectMode && defectSummaryProps ? (
-                    <DefectSummary {...defectSummaryProps} />
-                  ) : histogramData.length > 0 && stats ? (
-                    <VerificationCard
-                      tabs={azureAnalysisLensTabs}
-                      activeTab={activeAzureAnalysisLensTab}
-                    />
-                  ) : undefined
-                }
-                renderFocusedView={
-                  focusedChart === 'histogram' || focusedChart === 'probability-plot' ? (
-                    <FocusedViewOverlay onPrev={handlePrevChart} onNext={handleNextChart}>
-                      <DashboardChartCard
-                        id={`${focusedChart}-focused`}
-                        testId={`chart-${focusedChart}-focused`}
-                        chartName={focusedChart}
-                        onMaximize={() => setFocusedChart(null)}
-                        copyFeedback={copyFeedback}
-                        onCopyChart={handleCopyChart}
-                        onDownloadPng={handleDownloadPng}
-                        onDownloadSvg={handleDownloadSvg}
-                        title={
-                          <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                            {focusedChart === 'histogram' ? 'Histogram' : 'Probability Plot'}
-                          </h3>
-                        }
-                      >
-                        {focusedChart === 'histogram' && histogramData.length > 0 && stats ? (
-                          <CapabilityHistogram
-                            data={histogramData}
-                            specs={effectiveSpecs}
-                            mean={histogramMean}
-                          />
-                        ) : focusedChart === 'probability-plot' &&
-                          histogramData.length > 0 &&
-                          stats ? (
-                          // G1 Task 7: forward the same overlay render-prop so
-                          // focused mode shows the inflection cuts. Side panel
-                          // is suppressed in focused mode by design — focused
-                          // view is read-only chart-only.
-                          <ProbabilityPlot
-                            series={probabilitySeries}
-                            overlay={probabilityOverlay}
-                          />
-                        ) : null}
-                      </DashboardChartCard>
-                    </FocusedViewOverlay>
-                  ) : focusedChart ? (
-                    <FocusedChartView
-                      focusedChart={focusedChart as 'ichart' | 'boxplot' | 'pareto'}
-                      onPrev={handlePrevChart}
-                      onNext={handleNextChart}
-                      onExit={() => setFocusedChart(null)}
-                      displayOptions={displayOptions}
-                      columnAliases={columnAliases}
-                      filterChipData={filterChipData}
+              verificationCardTitle={
+                histogramData.length > 0 && stats && !(isDefectMode && defectSummaryProps) ? (
+                  <SegmentedControl
+                    options={azureAnalysisLensTabs.map(tab => ({
+                      value: tab.id,
+                      label: tab.label,
+                    }))}
+                    value={activeAzureAnalysisLensTab}
+                    onChange={tabId => setAnalysisLensTab(tabId as AzureAnalysisLensTab)}
+                    aria-label={t('verify.tabs.label')}
+                    testId="verify-tab"
+                  />
+                ) : undefined
+              }
+              renderVerificationCard={
+                isDefectMode && defectSummaryProps ? (
+                  <DefectSummary {...defectSummaryProps} />
+                ) : histogramData.length > 0 && stats ? (
+                  <VerificationCard
+                    tabs={azureAnalysisLensTabs}
+                    activeTab={activeAzureAnalysisLensTab}
+                  />
+                ) : undefined
+              }
+              renderFocusedView={
+                focusedChart === 'histogram' || focusedChart === 'probability-plot' ? (
+                  <FocusedViewOverlay onPrev={handlePrevChart} onNext={handleNextChart}>
+                    <DashboardChartCard
+                      id={`${focusedChart}-focused`}
+                      testId={`chart-${focusedChart}-focused`}
+                      chartName={focusedChart}
+                      onMaximize={() => setFocusedChart(null)}
                       copyFeedback={copyFeedback}
                       onCopyChart={handleCopyChart}
                       onDownloadPng={handleDownloadPng}
                       onDownloadSvg={handleDownloadSvg}
-                      outcome={outcome}
-                      availableOutcomes={availableOutcomes}
-                      stageColumn={stageColumn}
-                      availableStageColumns={availableStageColumnsWithSteps}
-                      stageOrderMode={stageOrderMode}
-                      stagedStats={stagedStats}
-                      stats={stats}
-                      ichartLoading={!stats || isComputing}
-                      ichartChartTitle={chartTitles.ichart || ''}
-                      onSetOutcome={setOutcome}
-                      onSetStageColumn={setStageColumn}
-                      onSetStageOrderMode={setStageOrderMode}
-                      onSpecClick={() => setShowSpecEditor(true)}
-                      onIChartTitleChange={title => handleChartTitleChange('ichart', title)}
-                      onPointClick={onPointClick}
-                      highlightedPointIndex={highlightedPointIndex}
-                      ichartFindings={chartFindings?.ichart}
-                      onCreateIChartObservation={(anchorX: number, anchorY: number) =>
-                        onAddChartObservation?.('ichart', undefined, undefined, anchorX, anchorY)
+                      title={
+                        <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
+                          {focusedChart === 'histogram' ? 'Histogram' : 'Probability Plot'}
+                        </h3>
                       }
-                      onEditFinding={onEditFinding}
-                      onDeleteFinding={onDeleteFinding}
-                      boxplotFactor={boxplotFactor}
-                      factors={factors}
-                      filters={filters}
-                      anovaResult={anovaResult}
-                      boxplotData={boxplotData}
-                      boxplotChartTitle={chartTitles.boxplot || ''}
-                      onSetBoxplotFactor={setBoxplotFactor}
-                      onDrillDown={handleDrillDown}
-                      onBoxplotTitleChange={title => handleChartTitleChange('boxplot', title)}
-                      boxplotHighlightedCategories={boxplotHighlights}
-                      onBoxplotContextMenu={(key, event) =>
-                        handleContextMenu('boxplot', key, event)
-                      }
-                      boxplotFindings={chartFindings?.boxplot}
-                      paretoFactor={paretoFactor}
-                      showParetoComparison={showParetoComparison}
-                      paretoAggregation={paretoAggregation}
-                      paretoChartTitle={chartTitles.pareto || ''}
-                      onSetParetoFactor={setParetoFactor}
-                      onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
-                      onToggleAggregation={() =>
-                        setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
-                      }
-                      onParetoTitleChange={title => handleChartTitleChange('pareto', title)}
-                      onHidePareto={() => setShowParetoPanel(false)}
-                      onUploadPareto={onManageFactors}
-                      paretoHighlightedCategories={paretoHighlights}
-                      onParetoContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
-                      paretoFindings={chartFindings?.pareto}
-                      categoricalValuesByColumn={categoricalValuesByColumn}
-                    />
-                  ) : undefined
-                }
-                renderSpecEditor={
-                  showSpecEditor && outcome ? (
-                    <SpecEditor
-                      specs={measureSpecs[outcome] ?? specs}
-                      onSave={next => setMeasureSpec(outcome, next)}
-                      onClose={() => setShowSpecEditor(false)}
-                      style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}
-                    />
-                  ) : undefined
-                }
-              />
-            </div>
-          )}
+                    >
+                      {focusedChart === 'histogram' && histogramData.length > 0 && stats ? (
+                        <CapabilityHistogram
+                          data={histogramData}
+                          specs={effectiveSpecs}
+                          mean={histogramMean}
+                        />
+                      ) : focusedChart === 'probability-plot' &&
+                        histogramData.length > 0 &&
+                        stats ? (
+                        // G1 Task 7: forward the same overlay render-prop so
+                        // focused mode shows the inflection cuts. Side panel
+                        // is suppressed in focused mode by design — focused
+                        // view is read-only chart-only.
+                        <ProbabilityPlot series={probabilitySeries} overlay={probabilityOverlay} />
+                      ) : null}
+                    </DashboardChartCard>
+                  </FocusedViewOverlay>
+                ) : focusedChart ? (
+                  <FocusedChartView
+                    focusedChart={focusedChart as 'ichart' | 'boxplot' | 'pareto'}
+                    onPrev={handlePrevChart}
+                    onNext={handleNextChart}
+                    onExit={() => setFocusedChart(null)}
+                    displayOptions={displayOptions}
+                    columnAliases={columnAliases}
+                    filterChipData={filterChipData}
+                    copyFeedback={copyFeedback}
+                    onCopyChart={handleCopyChart}
+                    onDownloadPng={handleDownloadPng}
+                    onDownloadSvg={handleDownloadSvg}
+                    outcome={outcome}
+                    availableOutcomes={availableOutcomes}
+                    stageColumn={stageColumn}
+                    availableStageColumns={availableStageColumnsWithSteps}
+                    stageOrderMode={stageOrderMode}
+                    stagedStats={stagedStats}
+                    stats={stats}
+                    ichartLoading={!stats || isComputing}
+                    ichartChartTitle={chartTitles.ichart || ''}
+                    onSetOutcome={setOutcome}
+                    onSetStageColumn={setStageColumn}
+                    onSetStageOrderMode={setStageOrderMode}
+                    onSpecClick={() => setShowSpecEditor(true)}
+                    onIChartTitleChange={title => handleChartTitleChange('ichart', title)}
+                    onPointClick={onPointClick}
+                    highlightedPointIndex={highlightedPointIndex}
+                    ichartFindings={chartFindings?.ichart}
+                    onCreateIChartObservation={(anchorX: number, anchorY: number) =>
+                      onAddChartObservation?.('ichart', undefined, undefined, anchorX, anchorY)
+                    }
+                    onEditFinding={onEditFinding}
+                    onDeleteFinding={onDeleteFinding}
+                    boxplotFactor={boxplotFactor}
+                    factors={factors}
+                    filters={filters}
+                    anovaResult={anovaResult}
+                    boxplotData={boxplotData}
+                    boxplotChartTitle={chartTitles.boxplot || ''}
+                    onSetBoxplotFactor={setBoxplotFactor}
+                    onDrillDown={handleDrillDown}
+                    onBoxplotTitleChange={title => handleChartTitleChange('boxplot', title)}
+                    boxplotHighlightedCategories={boxplotHighlights}
+                    onBoxplotContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
+                    boxplotFindings={chartFindings?.boxplot}
+                    paretoFactor={paretoFactor}
+                    showParetoComparison={showParetoComparison}
+                    paretoAggregation={paretoAggregation}
+                    paretoChartTitle={chartTitles.pareto || ''}
+                    onSetParetoFactor={setParetoFactor}
+                    onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
+                    onToggleAggregation={() =>
+                      setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
+                    }
+                    onParetoTitleChange={title => handleChartTitleChange('pareto', title)}
+                    onHidePareto={() => setShowParetoPanel(false)}
+                    onUploadPareto={onManageFactors}
+                    paretoHighlightedCategories={paretoHighlights}
+                    onParetoContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+                    paretoFindings={chartFindings?.pareto}
+                    categoricalValuesByColumn={categoricalValuesByColumn}
+                  />
+                ) : undefined
+              }
+              renderSpecEditor={
+                showSpecEditor && outcome ? (
+                  <SpecEditor
+                    specs={measureSpecs[outcome] ?? specs}
+                    onSave={next => setMeasureSpec(outcome, next)}
+                    onClose={() => setShowSpecEditor(false)}
+                    style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}
+                  />
+                ) : undefined
+              }
+            />
+          </div>
         </div>
       )}
 

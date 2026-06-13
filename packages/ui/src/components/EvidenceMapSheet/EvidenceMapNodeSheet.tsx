@@ -2,7 +2,7 @@
  * EvidenceMapNodeSheet - Bottom action sheet for mobile Evidence Map factor node taps
  *
  * Shows factor details (R²adj, best/worst levels, relationships) and actions
- * (drill down, ask CoScout). Follows MobileCategorySheet patterns:
+ * (drill down, ask CoScout). Follows evidence detail sheet patterns:
  * drag handle, swipe dismiss >60px, overlay backdrop, FocusTrap.
  */
 import React, { useCallback, useRef } from 'react';
@@ -188,7 +188,7 @@ export const EvidenceMapNodeSheet: React.FC<EvidenceMapNodeSheetProps> = ({
             {onDrillDown && (
               <button
                 onClick={handleDrillDown}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors touch-feedback"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
                 style={{ minHeight: 48 }}
                 data-testid="node-sheet-drill-down"
               >
@@ -199,7 +199,7 @@ export const EvidenceMapNodeSheet: React.FC<EvidenceMapNodeSheetProps> = ({
             {onAskCoScout && (
               <button
                 onClick={handleAskCoScout}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-xl transition-colors touch-feedback"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-xl transition-colors"
                 style={{ minHeight: 48 }}
                 data-testid="node-sheet-ask-coscout"
               >

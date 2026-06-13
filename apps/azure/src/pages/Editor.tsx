@@ -37,7 +37,6 @@ import ManualEntry from '../components/data/ManualEntry';
 import {
   VerificationPrompt,
   BrainstormModal,
-  SurveyNotebookBase,
   ColumnMapping,
   type ColumnMappingConfirmPayload,
   StageFiveModal,
@@ -62,7 +61,6 @@ import {
   DEFAULT_PROCESS_HUB_ID,
   downloadCSV,
   computeBestSubsets,
-  evaluateSurvey,
   isControlEligible,
   normalizeProcessHubId,
   computeTimeDecompositionColumns,
@@ -89,9 +87,8 @@ import { createNewIP, type ImprovementProject } from '@variscout/core/improvemen
 import { reduceActionItems, type ActionItemAction } from '@variscout/core/actions';
 import { canAccess } from '@variscout/core/projectMembership';
 import type { BinnedFactorBinding } from '@variscout/core/binning';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { type FilePickerResult } from '../components/FileBrowseButton';
-import { useIsMobile, BREAKPOINTS, MobileTabBar, type MobileTab } from '@variscout/ui';
 import { useAIOrchestration, useActionProposals, useAnalyzeIndexing } from '../features/ai';
 import { getCoScoutSurfaceForView } from '../features/ai/coscoutSurface';
 import { useAnalyzeOrchestration } from '../features/analyze';
@@ -126,7 +123,6 @@ import {
 } from '../lib/landing';
 import { SaveConflictDialog } from '../components/SaveConflictDialog';
 import { requestPersistentStorageOnce } from '../services/storageDurability';
-import { EditorMobileSheet } from '../components/editor/EditorMobileSheet';
 import ProcessHubControlRegion from '../components/ProcessHubControlRegion';
 import { useAIStore } from '../features/ai/aiStore';
 import { EditorViewSwitch } from '../components/editor/EditorViewSwitch';
@@ -363,12 +359,8 @@ export const Editor: React.FC<EditorProps> = ({
     getOutcome: () => outcome,
     getFactors: () => factors,
   });
-  const isPhone = useIsMobile(BREAKPOINTS.phone);
   useTranslation();
 
-  // Mobile tab bar state (phone only)
-  const [mobileActiveTab, setMobileActiveTab] = useState<MobileTab>('explore');
-  const [isMobileSurveyOpen, setIsMobileSurveyOpen] = useState(false);
   const [catalogHubs, setCatalogHubs] = useState<ProcessHub[]>([]); // backing storage only — read via processHubs
   const unsavedHubs = useUnsavedHubsStore(s => s.hubs);
   // Word-style durability (FSJ-3a, spec §3): in-memory hubs join the storage
@@ -382,11 +374,6 @@ export const Editor: React.FC<EditorProps> = ({
   // flow replaces the legacy `showCharter()` ceremony; modal owns Title +
   // optional Issue Statement, Editor owns project creation + navigation.
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
-  // Reset mobile tab when data is cleared
-  useEffect(() => {
-    if (rawData.length === 0) setMobileActiveTab('explore');
-  }, [rawData.length]);
-
   useEffect(() => {
     listProcessHubs()
       .then(setCatalogHubs)
@@ -444,36 +431,6 @@ export const Editor: React.FC<EditorProps> = ({
     });
     usePanelsStore.getState().setPendingChartFocus(null);
   }, [pendingChartFocus, handleViewStateChange]);
-
-  // Focus return refs for mobile overlays (F-19)
-  const findingsTriggerRef = useRef<Element | null>(null);
-  const coScoutTriggerRef = useRef<Element | null>(null);
-
-  // Restore focus when mobile CoScout overlay closes
-  useEffect(() => {
-    if (!isPhone || isCoScoutOpen) return;
-    if (coScoutTriggerRef.current instanceof HTMLElement) {
-      coScoutTriggerRef.current.focus();
-      coScoutTriggerRef.current = null;
-    }
-  }, [isPhone, isCoScoutOpen]);
-
-  // Mobile tab bar navigation handler
-  const handleMobileTabChange = useCallback(
-    (tab: MobileTab) => {
-      setMobileActiveTab(tab);
-      const ps = usePanelsStore.getState();
-      if (tab === 'findings') {
-        if (isPhone) findingsTriggerRef.current = document.activeElement;
-        ps.showAnalyze();
-      } else if (tab === 'improve') {
-        ps.showImprovement();
-      } else if (tab === 'explore') {
-        ps.showExplore();
-      }
-    },
-    [isPhone]
-  );
 
   // Current user (for comment author attribution and per-user Workspace Project scope)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
@@ -703,7 +660,7 @@ export const Editor: React.FC<EditorProps> = ({
           linkedFindingIds: [],
         };
         // Route through the HOOK (via the ref below) so the local hook state —
-        // which is the source of truth for WallCanvas / MobileCardList — is
+        // which is the source of truth for WallCanvas — is
         // updated immediately. The `onHubsChange` callback then syncs the domain
         // store (useAnalyzeStore.resetHubs) as a side-effect, keeping both in
         // step. Bypassing the hook (calling store.recordDisconfirmation directly)
@@ -942,70 +899,6 @@ export const Editor: React.FC<EditorProps> = ({
     dataFlow.startPaste();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Mobile "More" sheet action handler
-  const handleMobileMore = useCallback(
-    (action: string) => {
-      setMobileActiveTab('explore');
-      const ps = usePanelsStore.getState();
-      switch (action) {
-        case 'report':
-          ps.showReport();
-          break;
-        case 'whatif':
-          ps.setWhatIfOpen(true);
-          break;
-        case 'survey':
-          setIsMobileSurveyOpen(true);
-          break;
-        case 'datatable':
-          ps.openDataTable();
-          break;
-        case 'addpaste':
-          dataFlow.startAppendPaste();
-          break;
-        case 'addfile':
-          dataFlow.startAppendFileUpload();
-          break;
-        case 'addmanual':
-          dataFlow.handleAddMoreData();
-          break;
-        case 'editdata':
-          ps.openDataTable();
-          break;
-        case 'csv':
-          if (outcome) downloadCSV(filteredData, outcome, specs);
-          break;
-      }
-    },
-    [dataFlow, filteredData, outcome, specs]
-  );
-
-  const surveyEvaluation = useMemo(
-    () =>
-      evaluateSurvey({
-        data: rawData,
-        outcomeColumn: outcome,
-        factorColumns: factors,
-        timeColumn,
-        specs,
-        defectMapping,
-        processContext,
-        findings: persistedFindings,
-        branches: hypotheses,
-      }),
-    [
-      rawData,
-      outcome,
-      factors,
-      timeColumn,
-      specs,
-      defectMapping,
-      processContext,
-      persistedFindings,
-      hypotheses,
-    ]
-  );
 
   // Ref to allow ingestion callbacks to reach dataFlow setters
   const dataFlowRef = React.useRef(dataFlow);
@@ -1623,11 +1516,9 @@ export const Editor: React.FC<EditorProps> = ({
     analysisMode,
     bestSubsetsResult: bestSubsetsForAI ?? undefined,
     onOpenCoScout: () => {
-      if (isPhone) coScoutTriggerRef.current = document.activeElement;
       usePanelsStore.getState().setCoScoutOpen(true);
     },
     onOpenFindings: () => {
-      if (isPhone) findingsTriggerRef.current = document.activeElement;
       usePanelsStore.getState().setFindingsOpen(true);
     },
   });
@@ -2047,7 +1938,7 @@ export const Editor: React.FC<EditorProps> = ({
   // ── Main editor layout ───────────────────────────────────────────────────
 
   return (
-    <div className={`flex flex-col h-screen ${isPhone && rawData.length > 0 ? 'pb-[62px]' : ''}`}>
+    <div className="flex flex-col h-screen">
       <AppHeader
         mode="project"
         projectName={currentProjectName || (projectId ? `Analysis ${projectId}` : 'New Analysis')}
@@ -2147,15 +2038,11 @@ export const Editor: React.FC<EditorProps> = ({
         }
       />
 
-      {/* Main Content -- inert when phone overlay is open (F-18 focus trap) */}
+      {/* Main Content */}
       <div
         ref={el => {
           if (!el) return;
-          if (isPhone && isCoScoutOpen) {
-            el.setAttribute('inert', '');
-          } else {
-            el.removeAttribute('inert');
-          }
+          el.removeAttribute('inert');
         }}
         className="flex-1 flex flex-col min-h-0 bg-surface rounded-xl border border-edge overflow-hidden"
       >
@@ -2253,49 +2140,6 @@ export const Editor: React.FC<EditorProps> = ({
         onBranch={handleConflictBranch}
         onDismiss={handleConflictDismiss}
       />
-
-      {/* Mobile Tab Bar (phone only, when data loaded) */}
-      {isPhone && rawData.length > 0 && (
-        <MobileTabBar
-          activeTab={mobileActiveTab}
-          onTabChange={handleMobileTabChange}
-          findingsCount={findingsState.findings.length}
-          showImproveTab={factors.length > 0}
-        />
-      )}
-
-      {/* More bottom sheet (phone only) */}
-      {mobileActiveTab === 'more' && isPhone && (
-        <EditorMobileSheet
-          onAction={handleMobileMore}
-          onClose={() => setMobileActiveTab('explore')}
-        />
-      )}
-
-      {isMobileSurveyOpen && isPhone && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setIsMobileSurveyOpen(false)}
-          />
-          <div className="fixed bottom-[50px] left-0 right-0 z-50 max-h-[80vh] rounded-t-2xl border-t border-edge bg-surface-primary safe-area-bottom">
-            <div className="flex items-center justify-between border-b border-edge px-4 py-3">
-              <div className="text-sm font-semibold text-content">Survey</div>
-              <button
-                type="button"
-                aria-label="Close Survey"
-                onClick={() => setIsMobileSurveyOpen(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-md text-content-secondary hover:bg-surface-tertiary hover:text-content"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="max-h-[calc(80vh-52px)] overflow-auto">
-              <SurveyNotebookBase compact={true} evaluation={surveyEvaluation} />
-            </div>
-          </div>
-        </>
-      )}
 
       {/* Verification prompt: shown when data uploaded while findings are improving */}
       {showVerificationPrompt && (

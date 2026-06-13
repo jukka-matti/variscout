@@ -12,9 +12,7 @@ import type {
   FindingsActionMessage,
   DrillStep,
 } from '@variscout/hooks';
-import { formatForMobile } from '@variscout/core/ai';
 import { ClipboardCopy, Check, List, LayoutGrid, Copy } from 'lucide-react';
-import { useIsMobile } from '../../hooks';
 import type {
   Finding,
   FindingStatus,
@@ -44,7 +42,6 @@ import { AnalyzeSidebar } from './AnalyzeSidebar';
  */
 const FindingsWindow: React.FC = () => {
   const { t, formatStat } = useTranslation();
-  const isMobile = useIsMobile();
 
   const { lastMessage, sendMessage, hydrationData } = usePopoutChannel<
     FindingsSyncMessage | FindingsActionMessage
@@ -403,7 +400,7 @@ const FindingsWindow: React.FC = () => {
                 className="inline-flex items-center gap-1 bg-surface-tertiary text-content-secondary text-[0.625rem] px-2.5 py-1 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
                 title="Copy to clipboard"
               >
-                {isMobile ? formatForMobile(q) : q}
+                {q}
                 <Copy size={8} className="opacity-50" />
               </button>
             ))}

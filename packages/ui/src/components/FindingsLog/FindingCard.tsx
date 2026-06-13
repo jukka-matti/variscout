@@ -379,7 +379,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 No note
               </p>
             )}
-            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 touch-show transition-opacity flex-shrink-0">
+            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
               {onAssign && (
                 <button
                   onClick={e => {

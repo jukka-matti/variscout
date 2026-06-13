@@ -817,7 +817,7 @@ describe('WallCanvas', () => {
       expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 2000 1400');
     });
 
-    it('keeps mobile destination rendering on MobileCardList instead of SVG fitting', () => {
+    it('keeps wall destination rendering on the SVG wall canvas', () => {
       const restoreMatchMedia = installMobileMatchMedia();
       try {
         const { container } = render(
@@ -830,8 +830,8 @@ describe('WallCanvas', () => {
           />
         );
 
-        expect(screen.getByTestId('wall-mobile-card-list')).toBeInTheDocument();
-        expect(container.querySelector('svg')).toBeNull();
+        expect(container.querySelector('svg')).toBeInTheDocument();
+        expect(container.querySelector('[data-wall-viewport]')).toBeInTheDocument();
       } finally {
         restoreMatchMedia();
       }
@@ -927,7 +927,7 @@ describe('WallCanvas', () => {
     expect(svg.__on?.some(listener => listener.name === 'zoom')).not.toBe(true);
   });
 
-  describe('mobile breakpoint', () => {
+  describe('small viewport rendering', () => {
     let restoreMatchMedia: (() => void) | undefined;
 
     afterEach(() => {
@@ -935,7 +935,7 @@ describe('WallCanvas', () => {
       restoreMatchMedia = undefined;
     });
 
-    it('renders MobileCardList instead of the SVG canvas below 768px', () => {
+    it('renders the SVG canvas', () => {
       restoreMatchMedia = installMobileMatchMedia();
       const { container } = render(
         <WallCanvas
@@ -947,15 +947,12 @@ describe('WallCanvas', () => {
           eventsPerWeek={42}
         />
       );
-      // Mobile card list is present...
-      expect(screen.getByTestId('wall-mobile-card-list')).toBeInTheDocument();
-      expect(screen.getByTestId('wall-mobile-hub-h1')).toBeInTheDocument();
-      // ...and the desktop SVG viewport group is not.
-      expect(container.querySelector('[data-wall-viewport]')).toBeNull();
-      expect(container.querySelector('svg')).toBeNull();
+      expect(container.querySelector('svg')).toBeInTheDocument();
+      expect(container.querySelector('[data-wall-viewport]')).toBeInTheDocument();
+      expect(container.querySelector('[data-wall-node-id="h1"]')).toBeInTheDocument();
     });
 
-    it('filters mobile card list hubs by focal step referenced through condition columns', () => {
+    it('filters wall hubs by focal step referenced through condition columns', () => {
       restoreMatchMedia = installMobileMatchMedia();
       const fillHub: Hypothesis = {
         ...hub,
@@ -970,7 +967,7 @@ describe('WallCanvas', () => {
         condition: { kind: 'leaf', column: 'Operator', op: 'eq', value: 'alice' },
       };
 
-      render(
+      const { container } = render(
         <WallCanvas
           hubs={[fillHub, packHub]}
           findings={[]}
@@ -985,11 +982,11 @@ describe('WallCanvas', () => {
         />
       );
 
-      expect(screen.getByTestId('wall-mobile-hub-h-fill')).toBeInTheDocument();
-      expect(screen.queryByTestId('wall-mobile-hub-h-pack')).not.toBeInTheDocument();
+      expect(container.querySelector('[data-wall-node-id="h-fill"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-wall-node-id="h-pack"]')).not.toBeInTheDocument();
     });
 
-    it('still renders MissingEvidencePanel below the card list on mobile', () => {
+    it('still renders MissingEvidencePanel below the wall canvas on small viewports', () => {
       restoreMatchMedia = installMobileMatchMedia();
       render(
         <WallCanvas

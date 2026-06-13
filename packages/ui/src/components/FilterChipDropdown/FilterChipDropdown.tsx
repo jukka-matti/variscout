@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { X, Check } from 'lucide-react';
-import { useIsMobile, BREAKPOINTS } from '../../hooks';
 import type { FilterChipData } from '../filterTypes';
 
 /**
@@ -68,8 +67,7 @@ export interface FilterChipDropdownProps {
  * - Sample count (n=X) per value
  * - Combined sample count of selected values
  *
- * On mobile: renders as a bottom sheet
- * On desktop: renders as a positioned dropdown
+ * Renders as a positioned dropdown.
  *
  * @example
  * ```tsx
@@ -100,7 +98,6 @@ const FilterChipDropdown: React.FC<FilterChipDropdownProps> = ({
   anchorRect,
   colorScheme = defaultColorScheme,
 }) => {
-  const isMobile = useIsMobile(BREAKPOINTS.phone);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [localValues, setLocalValues] = useState<Set<string>>(new Set(chipData.values.map(String)));
 
@@ -195,54 +192,6 @@ const FilterChipDropdown: React.FC<FilterChipDropdownProps> = ({
     </div>
   );
 
-  // Mobile: Bottom sheet
-  if (isMobile) {
-    return (
-      <>
-        {/* Backdrop */}
-        <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
-
-        {/* Bottom sheet */}
-        <div
-          ref={dropdownRef}
-          className={`fixed bottom-0 left-0 right-0 ${colorScheme.secondaryBg} rounded-t-2xl z-50 animate-slide-up`}
-        >
-          {/* Handle */}
-          <div className="flex justify-center py-2">
-            <div
-              className={`w-10 h-1 ${colorScheme.border.replace('border-', 'bg-')} rounded-full`}
-            />
-          </div>
-
-          {/* Header */}
-          <div
-            className={`flex items-center justify-between px-4 py-2 border-b ${colorScheme.border}`}
-          >
-            <span className="text-sm font-medium text-white">{factorLabel}</span>
-            <button
-              onClick={onClose}
-              className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center ${colorScheme.textSecondary} hover:text-white rounded transition-colors`}
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          {/* Value list */}
-          {renderValueList()}
-
-          {/* Footer with selected count */}
-          <div className={`px-4 py-3 border-t ${colorScheme.border} ${colorScheme.surfaceBg}`}>
-            <div className="flex items-center justify-between text-sm">
-              <span className={colorScheme.textSecondary}>Selected:</span>
-              <span className="text-blue-400 font-medium">n={combinedCount}</span>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // Desktop: Positioned dropdown
   const dropdownStyle: React.CSSProperties = anchorRect
     ? {
         position: 'fixed',

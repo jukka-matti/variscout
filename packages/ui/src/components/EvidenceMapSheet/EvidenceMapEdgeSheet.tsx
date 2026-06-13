@@ -2,7 +2,7 @@
  * EvidenceMapEdgeSheet - Bottom action sheet for mobile Evidence Map relationship edge taps
  *
  * Shows relationship details (type, strength, evidence badge, why-statement)
- * and a "View Details" action. Follows MobileCategorySheet patterns:
+ * and a "View Details" action. Follows evidence detail sheet patterns:
  * drag handle, swipe dismiss >60px, overlay backdrop, FocusTrap.
  */
 import React, { useCallback, useRef } from 'react';

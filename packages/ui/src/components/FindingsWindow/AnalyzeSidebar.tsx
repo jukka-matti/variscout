@@ -1,9 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Copy, Check, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import type { AnalyzePhase } from '@variscout/core';
-import { formatForMobile } from '@variscout/core/ai';
 import { useTranslation } from '@variscout/hooks';
-import { useIsMobile } from '../../hooks';
 
 export interface AnalyzeSidebarProps {
   phase?: AnalyzePhase;
@@ -48,7 +46,6 @@ const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
   hasStagedData,
 }) => {
   const { t } = useTranslation();
-  const isMobile = useIsMobile();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const handleCopyQuestion = useCallback((question: string, index: number) => {
@@ -172,9 +169,7 @@ const AnalyzeSidebar: React.FC<AnalyzeSidebarProps> = ({
                   title="Copy to clipboard — paste in main window CoScout"
                   data-testid={`sidebar-question-${i}`}
                 >
-                  <span className="flex-1 leading-relaxed">
-                    {isMobile ? formatForMobile(q) : q}
-                  </span>
+                  <span className="flex-1 leading-relaxed">{q}</span>
                   {copiedIndex === i ? (
                     <Check size={10} className="flex-shrink-0 mt-0.5 text-green-400" />
                   ) : (

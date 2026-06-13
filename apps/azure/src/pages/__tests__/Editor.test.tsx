@@ -262,9 +262,7 @@ vi.mock('@variscout/ui', async importOriginal => {
       return null;
     },
     computePresets: vi.fn(() => undefined),
-    useIsMobile: () => false,
     useGlossary: () => ({ getTerm: (key: string) => key }),
-    BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
   };
 });
 

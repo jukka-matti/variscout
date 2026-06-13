@@ -4,8 +4,6 @@ import {
   WorkspaceProjectChip,
   PersistentScopeChip,
   WorkflowNav,
-  useIsMobile,
-  BREAKPOINTS,
   type WorkflowTabId,
 } from '@variscout/ui';
 import {
@@ -129,7 +127,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   workspaceProjectTitle,
   onOpenWorkspaceProject,
 }) => {
-  const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
   // PO-6 §4.4: useAnalyzeStore.findings is the single findings source
   const findingsCount = useAnalyzeStore(s => s.findings.length);
@@ -257,79 +254,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     </div>
   );
 
-  // ── Phone layout ────────────────────────────────────────────────────────
-  if (isPhone) {
-    return (
-      <div className="flex items-center justify-between h-11 px-2 border-b border-edge bg-surface flex-shrink-0 sticky top-0 z-50">
-        {/* Left: logo mark + title + dot */}
-        <div className="flex items-center gap-2 min-w-0">
-          {logoMark}
-          <h2 className="text-sm font-semibold text-content truncate">{projectName}</h2>
-          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
-        </div>
-
-        {/* Right: panel toggles + settings */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {/* Sync icon on phone */}
-          <div
-            className={`flex-shrink-0 ${syncColor}`}
-            title={syncStatus.message || syncStatus.status}
-          >
-            <SyncIcon
-              size={16}
-              className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
-            />
-          </div>
-          {hasData && onTogglePISidebar && (
-            <button
-              onClick={onTogglePISidebar}
-              className={toggleBtnClass(!!isPISidebarOpen)}
-              title="Process Intelligence"
-              data-testid="btn-stats-sidebar"
-            >
-              <BarChart3 size={16} />
-            </button>
-          )}
-          {hasData && onToggleCoScout && (
-            <button
-              onClick={onToggleCoScout}
-              className={toggleBtnClass(!!isCoScoutOpen)}
-              title="AI assistant"
-              data-testid="btn-coscout"
-            >
-              <MessageSquare size={16} />
-            </button>
-          )}
-          {onOpenSettings && (
-            <button
-              onClick={onOpenSettings}
-              className="p-1.5 rounded-md text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-              title={t('nav.settings')}
-              aria-label={t('nav.settings')}
-              data-testid="btn-settings"
-            >
-              <Settings size={16} />
-            </button>
-          )}
-          {hasData && workspaceProjectTitle && onOpenWorkspaceProject && (
-            <WorkspaceProjectChip
-              title={workspaceProjectTitle}
-              onTitleClick={onOpenWorkspaceProject}
-            />
-          )}
-          {/* PR-CS-3a: persistent live-scope chip (self-hides when no scope). */}
-          {hasData && (
-            <PersistentScopeChip
-              onOpen={() => handleWorkflowTabChange('explore')}
-              onClear={handleCoherentScopeClear}
-            />
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // ── Desktop layout ──────────────────────────────────────────────────────
+  // ── Project layout ──────────────────────────────────────────────────────
   return (
     <div className="flex items-center h-11 px-3 border-b border-edge bg-surface flex-shrink-0 gap-1 sticky top-0 z-50">
       {/* ── Left zone: Logo mark + Project name + row count + status dot ── */}

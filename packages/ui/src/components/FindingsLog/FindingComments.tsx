@@ -321,7 +321,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                       {relativeTime(comment.createdAt)}
                     </span>
                     {canEdit && (
-                      <div className="flex items-center gap-0.5 opacity-0 group-hover/comment:opacity-100 touch-show transition-opacity">
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover/comment:opacity-100 transition-opacity">
                         {onAddPhoto && (
                           <button
                             onClick={e => handlePhotoClick(e, comment.id)}

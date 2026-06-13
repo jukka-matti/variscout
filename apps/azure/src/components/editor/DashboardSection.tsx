@@ -7,12 +7,10 @@
  *
  * Props it reads from stores:
  * - panelsStore: highlightedChartPoint, highlightedFactor
- * - useIsMobile for phone detection
  */
 
 import React from 'react';
 import Dashboard from '../Dashboard';
-import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { usePanelsStore } from '../../features/panels/panelsStore';
 import type { UseEditorDataFlowReturn } from '../../hooks/useEditorDataFlow';
 import type { UseFilterNavigationReturn } from '../../hooks';
@@ -110,7 +108,6 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   trackedOutcomeSpecs,
   onTrackOutcome,
 }) => {
-  const isPhone = useIsMobile(BREAKPOINTS.phone);
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
 
   const { narration, fetchChartInsight, handleNarrativeAsk, handleAskCoScoutFromCategory } = aiOrch;
@@ -118,8 +115,8 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   return (
     <Dashboard
       projectedCpkMap={projectedCpkMap}
-      onPointClick={isPhone ? undefined : usePanelsStore.getState().handlePointClick}
-      highlightedPointIndex={isPhone ? undefined : highlightedChartPoint}
+      onPointClick={usePanelsStore.getState().handlePointClick}
+      highlightedPointIndex={highlightedChartPoint}
       filterNav={filterNav}
       initialViewState={viewState}
       onViewStateChange={onViewStateChange}

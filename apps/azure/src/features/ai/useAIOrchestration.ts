@@ -436,7 +436,7 @@ export function useAIOrchestration({
     [onOpenFindings, coscout]
   );
 
-  // Ask CoScout about a category (from MobileCategorySheet)
+  // Ask CoScout about a category (from evidence detail sheet)
   const handleAskCoScoutFromCategory = useCallback(
     (ctx: AIContext['focusContext']) => {
       setFocusContext(ctx);

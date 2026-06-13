@@ -111,9 +111,6 @@ vi.mock('../ProcessIntelligencePanel', () => ({
 vi.mock('../PerformanceDashboard', () => ({
   default: () => <div data-testid="performance-dashboard">Perf</div>,
 }));
-vi.mock('../MobileDashboard', () => ({
-  default: () => <div data-testid="mobile-dashboard">Mobile</div>,
-}));
 vi.mock('../settings/SpecEditor', () => ({ default: () => <div data-testid="spec-editor" /> }));
 vi.mock('html-to-image', () => ({ toBlob: vi.fn() }));
 

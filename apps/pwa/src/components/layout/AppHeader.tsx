@@ -1,13 +1,5 @@
 import React, { useState, useRef } from 'react';
-import {
-  Activity,
-  Settings,
-  MoreVertical,
-  Share2,
-  ClipboardList,
-  Beaker,
-  BarChart3,
-} from 'lucide-react';
+import { Activity, Settings, Share2, ClipboardList, Beaker, BarChart3 } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 import {
   WorkspaceProjectChip,
@@ -21,7 +13,6 @@ import {
   useAnalysisScopeStore,
   useViewStore,
 } from '@variscout/stores';
-import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
 const share2Icon = <Share2 size={18} />;
@@ -111,12 +102,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   isFindingsPanelOpen = false,
   onNewAnalysis,
   onToggleFindingsPanel,
-  onOpenDataTable,
+  onOpenDataTable: _onOpenDataTable,
   onExportCSV,
   onExportImage,
   onOpenSettings,
-  onReset,
-  onOpenSpecEditor,
+  onReset: _onReset,
+  onOpenSpecEditor: _onOpenSpecEditor,
   onOpenWhatIf,
   isWhatIfOpen = false,
   isPISidebarOpen = false,
@@ -128,7 +119,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenWorkspaceProject,
 }) => {
   const { t } = useTranslation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const shareButtonRef = useRef<HTMLButtonElement>(null);
   // PO-6 §4.4: useAnalyzeStore.findings is the single findings source
@@ -282,20 +272,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               </div>
             </nav>
 
-            {/* Mobile: Menu button */}
-            <div className="flex sm:hidden items-center gap-1">
-              <button
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 text-content-secondary hover:text-white hover:bg-surface-secondary rounded-lg transition-colors touch-feedback"
-                title={t('nav.menu')}
-                aria-label={t('nav.menu')}
-                aria-expanded={isMobileMenuOpen}
-                style={{ minWidth: 44, minHeight: 44 }}
-              >
-                <MoreVertical size={18} />
-              </button>
-            </div>
-
             {/* Share Popover */}
             <SharePopover
               isOpen={isShareOpen}
@@ -303,18 +279,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               onExportCSV={onExportCSV}
               onExportImage={onExportImage}
               anchorRef={shareButtonRef}
-            />
-
-            {/* Mobile Menu */}
-            <MobileMenu
-              isOpen={isMobileMenuOpen}
-              onClose={() => setIsMobileMenuOpen(false)}
-              onExportCSV={onExportCSV}
-              onExportImage={onExportImage}
-              onOpenSettings={onOpenSettings}
-              onReset={onReset}
-              onOpenDataTable={onOpenDataTable}
-              onOpenSpecEditor={onOpenSpecEditor}
             />
           </>
         ) : null}
