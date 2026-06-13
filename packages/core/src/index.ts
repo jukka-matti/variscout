@@ -887,8 +887,15 @@ export type {
   DefectStepRollup,
   DefectTransformResult,
   DefectQuestionInput,
+  DefectRateShare,
+  DefectRateLevelData,
 } from './defect';
-export { detectDefectFormat, computeDefectRates, generateDefectAnalysisQuestions } from './defect';
+export {
+  detectDefectFormat,
+  computeDefectRates,
+  generateDefectAnalysisQuestions,
+  computeDefectRateShares,
+} from './defect';
 
 // Worker types (for app-level Worker integration)
 export type {
