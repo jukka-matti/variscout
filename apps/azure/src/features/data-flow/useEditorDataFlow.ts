@@ -528,7 +528,10 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
       if (landsAtB0) {
         if (defectResult.isDefectFormat) {
-          setDefectDetection(defectResult);
+          // ER-5b: route through the confidence fork so high-confidence detections
+          // auto-apply (onHighConfidenceDefect callback) instead of always opening
+          // the modal. Medium-confidence still sets defectDetection for confirm UI.
+          handleDefectDetectedFromIngestion(defectResult);
         }
         if (wideFormat.isWideFormat) {
           setWideFormatDetection(wideFormat);
@@ -605,6 +608,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       timeExtractionConfig,
       onFreshPasteLanded,
       onFreshPasteAnalyzed,
+      // ER-5b: handleDefectDetectedFromIngestion carries the high/medium confidence fork;
+      // include it so _proceedWithParsedData sees the current onHighConfidenceDefect closure.
+      handleDefectDetectedFromIngestion,
     ]
   );
 

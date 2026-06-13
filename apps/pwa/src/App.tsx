@@ -398,23 +398,36 @@ function AppMain() {
     // the closure re-captures sessionHub each render (FSJ-1 stale-closure lesson).
     // showFrame is read via showFrameRef because panels is declared below (panels
     // depends on importFlow — see useAppPanels call).
-    onFreshPasteLanded: () =>
+    onFreshPasteLanded: () => {
+      // NIT: any fresh NON-defect ingestion clears a stale defect banner so the
+      // analyst isn't looking at count-data guidance after switching to standard data.
+      setDefectBannerVisible(false);
       landPasteOnProcess({
         sessionHub,
         setSessionHub,
         showFrame: () => showFrameRef.current?.(),
         isEmbedMode,
-      }),
+      });
+    },
     // FSJ-2 (spec §3): wizard-path paste (defect/wide/low-confidence) still gets
     // an Untitled project so the no-Y floor is reachable — provision WITHOUT
     // routing (the wizard keeps today's landing until P2). Inline arrow so the
     // closure re-captures sessionHub each render (FSJ-1 stale-closure lesson).
-    onFreshPasteAnalyzed: () => provisionPasteProject({ sessionHub, setSessionHub }),
+    onFreshPasteAnalyzed: () => {
+      // NIT: wizard-path non-defect ingestion also clears a stale defect banner.
+      setDefectBannerVisible(false);
+      provisionPasteProject({ sessionHub, setSessionHub });
+    },
     // ER-5b: high-confidence defect detection auto-applies without the modal gate.
     // The banner provides a correctable post-hoc affordance (adjust / use-standard).
     onHighConfidenceDefect: detection => {
       lastHighConfidenceDefectRef.current = detection;
-      setDefectMapping(detection.suggestedMapping as import('@variscout/core').DefectMapping);
+      // Merge detection.dataShape into the mapping — suggestedMapping is Partial<DefectMapping>
+      // and the dataShape discriminant lives on DefectDetection itself.
+      setDefectMapping({
+        ...detection.suggestedMapping,
+        dataShape: detection.dataShape,
+      } as import('@variscout/core').DefectMapping);
       setAnalysisMode('defect');
       setDefectBannerVisible(true);
     },

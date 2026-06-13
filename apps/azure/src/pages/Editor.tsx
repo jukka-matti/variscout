@@ -771,6 +771,9 @@ export const Editor: React.FC<EditorProps> = ({
   // FSJ-10: fresh paste now always provisions and routes to b0. The analyzed
   // callback remains for non-primary hatch/re-ingest compatibility only.
   const handleFreshPasteLanded = useCallback(() => {
+    // NIT: any fresh NON-defect ingestion clears a stale defect banner so the
+    // analyst isn't looking at count-data guidance after switching to standard data.
+    setDefectBannerVisible(false);
     void (async () => {
       const user = currentUser ?? (await getCurrentUser().catch(() => null));
       if (!user) return;
@@ -779,6 +782,8 @@ export const Editor: React.FC<EditorProps> = ({
   }, [currentUser, makeLandingDeps]);
 
   const handleFreshPasteAnalyzed = useCallback(() => {
+    // NIT: wizard-path non-defect ingestion also clears a stale defect banner.
+    setDefectBannerVisible(false);
     void (async () => {
       const user = currentUser ?? (await getCurrentUser().catch(() => null));
       if (!user) return;
@@ -824,7 +829,12 @@ export const Editor: React.FC<EditorProps> = ({
     // ER-5b: high-confidence defect detection auto-applies without the modal gate.
     onHighConfidenceDefect: detection => {
       lastHighConfidenceDefectRef.current = detection;
-      setDefectMapping(detection.suggestedMapping as import('@variscout/core').DefectMapping);
+      // Merge detection.dataShape into the mapping — suggestedMapping is Partial<DefectMapping>
+      // and the dataShape discriminant lives on DefectDetection itself.
+      setDefectMapping({
+        ...detection.suggestedMapping,
+        dataShape: detection.dataShape,
+      } as import('@variscout/core').DefectMapping);
       setAnalysisMode('defect');
       setDefectBannerVisible(true);
     },
