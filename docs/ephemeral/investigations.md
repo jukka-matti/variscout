@@ -1638,7 +1638,9 @@ Owner-in-the-loop chrome walk of the full PWA first-session journey (2026-06-07,
 - **Wall ergonomics benchmark = Miro/FigJam** (navigation primitives only; Model C stays rejected) — fit-to-content on entry, cursor-centered zoom, minimap with viewport rect, content centered (sidebar shouldn't reserve dead width).
 - **PWA durability is the top first-session risk** — see the dedicated entry above; design sessions should treat draft-persistence/restore as a candidate launch blocker, not polish.
 
-## No user-reachable affordance links an EXISTING finding to a hypothesis [LOGGED 2026-06-07]
+## No user-reachable affordance links an EXISTING finding to a hypothesis [RESOLVED 2026-06-13 via ER-7 #379]
+
+**Resolved:** ER-7 added `onMarkSupport`/`onMarkCounter` on the finding card (`FindingsPanel`/`FindingsLog`/`FindingCard`), wired in both apps (`AnalyzeView.tsx:989`, `AnalyzeWorkspace.tsx:1280`) gated on a focused hypothesis → `store.connectFindingToHub(focusedHub.id, findingId)`. The third linking path now exists: focus the suspected cause, then mark an existing finding as support / counts-against. Realized as "focus-then-mark" rather than the entry's imagined pick-from-finding-card or drag-chip-onto-hub, but the triangulation move is user-reachable. (Original below.)
 
 L-1 gate verification: once a finding exists, the only hypothesis-linking paths are "What might cause this?" (mints a NEW hypothesis) and the per-plan LinkFindingPicker (plan-scoped). A user who captures a gemba finding cannot attach it to the suspected cause they already have — which is exactly the triangulation move the evidence-angle work exists for. Candidate fixes: a "link to existing cause" option on the finding card/capture confirmation, or drag-chip-onto-hub (river spec's drop-to-compose). Route with L-3 (activity layer) or L-5 (matrix row click-to-link).
 
