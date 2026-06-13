@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { mulberry32 } from '../../__tests__/helpers/stressDataGenerator';
-import { computeScopeWhatIfProjection, computeConditionCoverage } from '../scopeContribution';
+import {
+  computeScopeWhatIfProjection,
+  computeConditionCoverage,
+  computeScopeProblemStats,
+} from '../scopeContribution';
+import { calculateStats } from '../../stats/basic';
 import { simulateOverallImpact } from '../simulation';
 import type { ConditionLeaf } from '../../findings/hypothesisCondition';
 import type { DataRow } from '../../types';
@@ -247,5 +252,96 @@ describe('computeConditionCoverage', () => {
     const coverageMixed = computeConditionCoverage(mixed, data);
     expect(coverageMixed).toBeLessThan(coverageEqOnly);
     expect(coverageMixed).toBeGreaterThan(0);
+  });
+});
+
+describe('computeScopeProblemStats', () => {
+  // The Wall problem card's OBSERVED Cpk + out-of-spec count must be computed over
+  // EXACTLY the subset the card represents — `rawData` ∩ predicates — NOT the full
+  // series. This is the PR-2 (#398) honesty fix: condition/range drills write
+  // conditionLeaves only (NOT projectStore.filters), so a stats source that reads
+  // filters stays full-series and reports the WRONG (wider) Cpk for the displayed
+  // condition. These tests would FAIL against the old useAnalysisStats-over-
+  // filteredData implementation, which ignored the condition predicate entirely.
+
+  it('computes Cpk over the conditioned subset, NOT the full series (the bug)', () => {
+    const data = makeFixture(); // 60 Machine-A (~12.2, near USL=13) + 60 Machine-B (~10.0)
+    // Full-series Cpk (what the buggy full-series path returns):
+    const fullValues = data.map(r => r['Value'] as number);
+    const fullCpk = calculateStats(fullValues, SPECS.usl, SPECS.lsl).cpk;
+    // Conditioned (Machine=A) Cpk computed by hand:
+    const aValues = data.filter(r => r['Machine'] === 'A').map(r => r['Value'] as number);
+    const aCpk = calculateStats(aValues, SPECS.usl, SPECS.lsl).cpk;
+
+    // The two MUST differ (A runs hot near USL) — otherwise the test proves nothing.
+    expect(fullCpk).toBeDefined();
+    expect(aCpk).toBeDefined();
+    expect(aCpk).not.toBeCloseTo(fullCpk!, 3);
+
+    // The helper, given the Machine=A predicate, must return A's Cpk — the
+    // conditioned subset — never the full-series Cpk.
+    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }];
+    const result = computeScopeProblemStats(predicates, data, 'Value', SPECS);
+    expect(result.cpk).toBeCloseTo(aCpk!, 10);
+    expect(result.cpk).not.toBeCloseTo(fullCpk!, 3);
+    expect(result.n).toBe(60);
+  });
+
+  it('honours range/between predicates (the divergent condition/range-drill path)', () => {
+    const data = makeFixture();
+    // A pure RANGE drill — the path that writes conditionLeaves only, never filters.
+    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Value', op: 'gte', value: 12.0 }];
+    const subsetValues = data.map(r => r['Value'] as number).filter(v => v >= 12.0);
+    const expected = calculateStats(subsetValues, SPECS.usl, SPECS.lsl);
+    const result = computeScopeProblemStats(predicates, data, 'Value', SPECS);
+    expect(result.n).toBe(subsetValues.length);
+    expect(result.cpk).toBeCloseTo(expected.cpk!, 10);
+    // out-of-spec count = rounded outOfSpec% × n, over the SAME subset.
+    expect(result.events).toBe(
+      Math.round((expected.outOfSpecPercentage / 100) * subsetValues.length)
+    );
+  });
+
+  it('empty predicates → the full series (no active scope)', () => {
+    const data = makeFixture();
+    const fullValues = data.map(r => r['Value'] as number);
+    const full = calculateStats(fullValues, SPECS.usl, SPECS.lsl);
+    const result = computeScopeProblemStats([], data, 'Value', SPECS);
+    expect(result.n).toBe(120);
+    expect(result.cpk).toBeCloseTo(full.cpk!, 10);
+  });
+
+  it('cpk is undefined when no spec limits are set (the no-specs honesty case)', () => {
+    const data = makeFixture();
+    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }];
+    const result = computeScopeProblemStats(predicates, data, 'Value', undefined);
+    expect(result.cpk).toBeUndefined();
+    expect(result.events).toBe(0);
+    expect(result.n).toBe(60); // still computed the subset; just no Cpk/events
+  });
+
+  it('empty subset (no match) → cpk undefined, events 0, n 0', () => {
+    const data = makeFixture();
+    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'Z' }];
+    const result = computeScopeProblemStats(predicates, data, 'Value', SPECS);
+    expect(result.cpk).toBeUndefined();
+    expect(result.events).toBe(0);
+    expect(result.n).toBe(0);
+  });
+
+  it('counts out-of-spec events over the conditioned subset only', () => {
+    // 3 in-spec, 2 above USL within Machine=A; Machine=B all in-spec.
+    const data: DataRow[] = [
+      { Machine: 'A', Value: 10 },
+      { Machine: 'A', Value: 11 },
+      { Machine: 'A', Value: 12 },
+      { Machine: 'A', Value: 20 }, // > USL
+      { Machine: 'A', Value: 21 }, // > USL
+      { Machine: 'B', Value: 30 }, // > USL but NOT in the condition
+    ];
+    const predicates: ConditionLeaf[] = [{ kind: 'leaf', column: 'Machine', op: 'eq', value: 'A' }];
+    const result = computeScopeProblemStats(predicates, data, 'Value', { usl: 13, lsl: 0 });
+    expect(result.n).toBe(5);
+    expect(result.events).toBe(2); // only the 2 Machine-A overshoots, not Machine-B's
   });
 });

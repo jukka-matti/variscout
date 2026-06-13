@@ -57,7 +57,8 @@ import type { EvaluateFactorOptions } from '@variscout/ui';
 import type { ResolvedMode } from '@variscout/core/strategy';
 import { detectColumns } from '@variscout/core/parser';
 import { deriveProcessSteps } from '@variscout/core/frame';
-import type { ColumnTypeMap } from '@variscout/core/findings';
+import type { ColumnTypeMap, ConditionLeaf } from '@variscout/core/findings';
+import { computeScopeProblemStats } from '@variscout/core/variation';
 import type { DrillStep } from '@variscout/hooks';
 import { GripVertical } from 'lucide-react';
 import {
@@ -673,6 +674,33 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // flat (per-hub STATUS_STYLES badges; no internal bucketing). The one canonical
   // status→bucket mapping now lives in core (`groupHypothesesByStatus`).
 
+  // PR-2 (D4 Cpk honesty fix): the Wall problem card represents `activeScope`
+  // evaluated over `rawData` (its conditionText / coverage% / what-If all read
+  // `activeScope.predicates` over the `rows={rawData}` prop). Its observed Cpk +
+  // out-of-spec count MUST be computed over that SAME subset — NOT over
+  // `useAnalysisStats` (which reads `projectStore.filters`). Condition/range drills
+  // write `analysisScopeStore.conditionLeaves` ONLY (NOT filters; see
+  // useConditionLoop), so under such a drill `useAnalysisStats` stays full-series
+  // and would report the WRONG (wider) Cpk for the displayed condition. Computing
+  // over `rawData` ∩ predicates matches the card for ALL paths: no scope → full
+  // series; categorical drill → same rows filters yields; condition/range drill →
+  // the conditioned subset (the fix). `cpk` stays undefined when no spec limit is
+  // set so the card renders "no specs set" instead of "Cpk 0.00".
+  const problemStats = useMemo(
+    () =>
+      outcome
+        ? computeScopeProblemStats(
+            (activeScope?.predicates ?? []) as ConditionLeaf[],
+            rawData as DataRow[],
+            outcome,
+            wallScopeSpecs
+          )
+        : undefined,
+    [activeScope, rawData, outcome, wallScopeSpecs]
+  );
+  const problemCpk = problemStats?.cpk;
+  const problemEvents = problemStats?.events ?? 0;
+
   return (
     <div className="flex flex-1 min-h-0 flex-col">
       <OverallProblemHeader
@@ -872,8 +900,8 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 hubs={hubs}
                 findings={scopedFindings}
                 processMap={processMap}
-                problemCpk={0}
-                eventsPerWeek={0}
+                problemCpk={problemCpk}
+                eventsPerWeek={problemEvents}
                 activeScope={activeScope}
                 activeScopeSpecs={wallScopeSpecs}
                 activeColumns={wallActiveColumns}

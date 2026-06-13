@@ -861,6 +861,7 @@ export const ar: MessageCatalog = {
     '1 step away — running a disconfirmation test would let you mark this Supported',
   'wall.problem.title': 'Problem condition',
   'wall.problem.eventsPerWeek': '{count} events',
+  'wall.problem.noSpecs': 'no specs set',
   'wall.problem.ariaLabel': 'Problem condition: {column}, Cpk {cpk}, {count} events per week',
   'wall.scope.whatIf': 'If fixed: Cpk {value}',
   'wall.scope.coverage': 'Covers {value}%',

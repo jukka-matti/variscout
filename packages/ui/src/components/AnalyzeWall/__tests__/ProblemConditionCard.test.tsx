@@ -108,4 +108,32 @@ describe('ProblemConditionCard', () => {
       expect(container.querySelector('[data-testid="problem-scope-holds"]')).toBeNull();
     });
   });
+
+  describe('cpk optional — honest no-specs render', () => {
+    it('renders "no specs set" when cpk is undefined, not "Cpk 0.00"', () => {
+      render(
+        <svg>
+          <ProblemConditionCard
+            ctsColumn="Fill_Weight"
+            cpk={undefined}
+            eventsPerWeek={0}
+            x={0}
+            y={0}
+          />
+        </svg>
+      );
+      expect(screen.getByText(/no specs set/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Cpk 0\.00/)).not.toBeInTheDocument();
+    });
+
+    it('renders "Cpk 1.33" when cpk is 1.33, not "no specs set"', () => {
+      render(
+        <svg>
+          <ProblemConditionCard ctsColumn="Fill_Weight" cpk={1.33} eventsPerWeek={5} x={0} y={0} />
+        </svg>
+      );
+      expect(screen.getByText(/1\.33/)).toBeInTheDocument();
+      expect(screen.queryByText(/no specs set/i)).not.toBeInTheDocument();
+    });
+  });
 });

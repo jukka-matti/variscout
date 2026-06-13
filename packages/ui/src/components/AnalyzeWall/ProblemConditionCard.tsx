@@ -21,7 +21,8 @@ import { useWallLocale } from './hooks/useWallLocale';
 
 export interface ProblemConditionCardProps {
   ctsColumn: string;
-  cpk: number;
+  /** `undefined` when no spec limits are set — renders "no specs set" instead of a misleading 0.00. */
+  cpk: number | undefined;
   eventsPerWeek: number;
   x: number;
   y: number;
@@ -63,12 +64,20 @@ export const ProblemConditionCard: React.FC<ProblemConditionCardProps> = ({
   coveragePct,
 }) => {
   const locale = useWallLocale();
-  const cpkFormatted = formatStatistic(cpk, locale, 2);
-  const label = formatMessage(locale, 'wall.problem.ariaLabel', {
-    column: ctsColumn,
-    cpk: cpkFormatted,
-    count: eventsPerWeek,
-  });
+  const noSpecsLabel = getMessage(locale, 'wall.problem.noSpecs');
+  const cpkText = cpk === undefined ? noSpecsLabel : `Cpk ${formatStatistic(cpk, locale, 2)}`;
+  const label =
+    cpk === undefined
+      ? formatMessage(locale, 'wall.problem.ariaLabel', {
+          column: ctsColumn,
+          cpk: noSpecsLabel,
+          count: eventsPerWeek,
+        })
+      : formatMessage(locale, 'wall.problem.ariaLabel', {
+          column: ctsColumn,
+          cpk: formatStatistic(cpk, locale, 2),
+          count: eventsPerWeek,
+        });
   const eventsLabel = formatMessage(locale, 'wall.problem.eventsPerWeek', {
     count: eventsPerWeek,
   });
@@ -129,7 +138,7 @@ export const ProblemConditionCard: React.FC<ProblemConditionCardProps> = ({
         {getMessage(locale, 'wall.problem.title')}
       </text>
       <text x={CARD_W / 2} y={50} textAnchor="middle" className="fill-content-muted text-xs">
-        {ctsColumn} · Cpk {cpkFormatted}
+        {ctsColumn} · {cpkText}
       </text>
       <text
         x={CARD_W / 2}
