@@ -31,7 +31,7 @@ import {
   useWallKeyboard,
 } from '@variscout/ui';
 import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
-import { useResizablePanel, useReturnNavigation } from '@variscout/hooks';
+import { useResizablePanel, useReturnNavigation, useAnalysisStats } from '@variscout/hooks';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
 import type { CapturedModelSnapshot, ObjectDetailSelection } from '@variscout/ui';
 import {
@@ -673,6 +673,17 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // flat (per-hub STATUS_STYLES badges; no internal bucketing). The one canonical
   // status→bucket mapping now lives in core (`groupHypothesesByStatus`).
 
+  // PR-2 (D4 Cpk honesty fix): read the scoped Cpk + out-of-spec rate from
+  // useAnalysisStats, which reads the same filtered subset and spec as the rest
+  // of AnalyzeView. stats?.cpk is undefined when no spec limits are set —
+  // ProblemConditionCard renders "no specs set" in that case instead of "Cpk 0.00".
+  const { stats: analysisStats } = useAnalysisStats();
+  const problemCpk = analysisStats?.cpk;
+  const problemEvents = useMemo(() => {
+    if (analysisStats?.outOfSpecPercentage == null || filteredData.length === 0) return 0;
+    return Math.round((analysisStats.outOfSpecPercentage / 100) * filteredData.length);
+  }, [analysisStats, filteredData]);
+
   return (
     <div className="flex flex-1 min-h-0 flex-col">
       <OverallProblemHeader
@@ -872,8 +883,8 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 hubs={hubs}
                 findings={scopedFindings}
                 processMap={processMap}
-                problemCpk={0}
-                eventsPerWeek={0}
+                problemCpk={problemCpk}
+                eventsPerWeek={problemEvents}
                 activeScope={activeScope}
                 activeScopeSpecs={wallScopeSpecs}
                 activeColumns={wallActiveColumns}
