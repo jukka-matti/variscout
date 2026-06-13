@@ -420,3 +420,56 @@ describe('ModelDrawerBase — interaction-augmented winner (ANOVA compound row)'
     expect(rows[0].getAttribute('data-testid')).toBe('model-drawer-coef-row-(Intercept)');
   });
 });
+
+describe('ModelDrawerBase — ER-6 extended ModelDrawerStats (rSquaredAdj + interaction)', () => {
+  const crossoverProps = {
+    open: true,
+    onClose: vi.fn(),
+    rows: crossoverInteractionRows(),
+    outcome: 'Y',
+    candidateFactors: ['X', 'G'],
+    scopeLabel: 'All data',
+  };
+
+  const noInteractionProps = {
+    open: true,
+    onClose: vi.fn(),
+    rows: balancedAnovaRows(),
+    outcome: 'Y',
+    candidateFactors: ['A', 'B'],
+    scopeLabel: 'All data',
+  };
+
+  it('ER-6: onModelStats carries rSquaredAdj (finite number) when the engine produces a model', () => {
+    const onModelStats = vi.fn();
+    render(<ModelDrawerBase {...crossoverProps} onModelStats={onModelStats} />);
+    const arg = onModelStats.mock.calls.at(-1)?.[0];
+    expect(arg).not.toBeNull();
+    expect(typeof arg.rSquaredAdj).toBe('number');
+    expect(Number.isFinite(arg.rSquaredAdj)).toBe(true);
+  });
+
+  it('ER-6: onModelStats carries interaction with ordinal/disordinal pattern when the engine detects one', () => {
+    const onModelStats = vi.fn();
+    render(<ModelDrawerBase {...crossoverProps} onModelStats={onModelStats} />);
+    const arg = onModelStats.mock.calls.at(-1)?.[0];
+    expect(arg).not.toBeNull();
+    // The crossover fixture has a significant X·G interaction — it must surface.
+    expect(arg.interaction).not.toBeNull();
+    expect(['ordinal', 'disordinal']).toContain(arg.interaction.pattern);
+    expect(typeof arg.interaction.factorA).toBe('string');
+    expect(typeof arg.interaction.factorB).toBe('string');
+    expect(typeof arg.interaction.deltaR2).toBe('number');
+    expect(typeof arg.interaction.focalLevel).toBe('string');
+    expect(arg.interaction.focalLevel.length).toBeGreaterThan(0);
+  });
+
+  it('ER-6: onModelStats.interaction is null when no significant interaction exists', () => {
+    const onModelStats = vi.fn();
+    render(<ModelDrawerBase {...noInteractionProps} onModelStats={onModelStats} />);
+    const arg = onModelStats.mock.calls.at(-1)?.[0];
+    expect(arg).not.toBeNull();
+    // The balanced 2×2 ANOVA fixture has no continuous predictor → no Pass-2 screening.
+    expect(arg.interaction).toBeNull();
+  });
+});
