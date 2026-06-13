@@ -743,3 +743,11 @@ export {
   type MembershipChip,
   type MembershipChipTopLevel,
 } from './useMembershipModel';
+
+// ER-5b defect-rate model — level-native rate contribution strip
+export {
+  useDefectRateModel,
+  type UseDefectRateModelArgs,
+  type DefectRateChip,
+  type DefectRateChipTopLevel,
+} from './useDefectRateModel';

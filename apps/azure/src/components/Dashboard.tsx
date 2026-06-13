@@ -62,6 +62,7 @@ import {
   ConditionPillBase,
   ScopeBarBase,
   ModelDrawerBase,
+  DefectDispatchBanner,
   useInflectionBinningState,
   useGlossary,
   type WorkspaceProjectScopeLabels,
@@ -94,6 +95,7 @@ import {
   useTranslation,
   useFactorStripModel,
   useMembershipModel,
+  useDefectRateModel,
   useCompositionModel,
   useConditionLoop,
   matchActiveScopeId,
@@ -222,6 +224,17 @@ interface DashboardProps {
   scopeProjectId?: string;
   trackedOutcomeSpecs?: readonly OutcomeSpec[];
   onTrackOutcome?: (columnName: string) => void;
+  /**
+   * ER-5b: when true, the DefectDispatchBanner is shown in the sticky nav.
+   * Set after high-confidence defect auto-apply; false by default.
+   */
+  defectBannerVisible?: boolean;
+  /** ER-5b: fires when analyst clicks [adjust columns ▾] on the banner. */
+  onDefectBannerAdjust?: () => void;
+  /** ER-5b: fires when analyst clicks [use as standard data] on the banner. */
+  onDefectBannerUseStandard?: () => void;
+  /** ER-5b: fires when analyst clicks × to dismiss the banner. */
+  onDefectBannerDismiss?: () => void;
 }
 
 const Dashboard = ({
@@ -250,6 +263,10 @@ const Dashboard = ({
   scopeProjectId = DEFAULT_PROCESS_HUB_ID,
   trackedOutcomeSpecs: trackedOutcomeSpecsProp,
   onTrackOutcome,
+  defectBannerVisible = false,
+  onDefectBannerAdjust,
+  onDefectBannerUseStandard,
+  onDefectBannerDismiss,
 }: DashboardProps) => {
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -1165,6 +1182,19 @@ const Dashboard = ({
   });
   const useMembershipStrip = conditionLoop.hasCondition && membershipModel !== null;
 
+  // ── ER-5b defect-rate strip ─────────────────────────────────────────────────
+  // In defect dispatch the strip flips to defect-rate-share (ADR-088 level-native
+  // weighted MAD of per-level rates). Prioritised over membership (defect mode
+  // = no condition loop; two strips cannot coexist meaningfully). Null model
+  // (< 2 valid levels) falls back to the magnitude strip.
+  const defectRateModel = useDefectRateModel({
+    workingRows: isDefectMode && defectResult ? defectResult.data : [],
+    allFactors: effectiveFactors,
+    defectOutcome: isDefectMode && defectResult ? defectResult.outcomeColumn : null,
+    bindings: binnedFactorBindings,
+  });
+  const useDefectRateStrip = isDefectMode && defectRateModel !== null;
+
   // Composition view for the freed comparison slot: when a factor is selected
   // under a condition, decompose it by membership composition (paired share bars
   // + lift + ⊕). FULL lensed rows + leaves (D7). Null → keep the boxplot.
@@ -1243,11 +1273,30 @@ const Dashboard = ({
     if (scopeId) useAnalyzeStore.getState().recomputeScopeWhatIf(scopeId);
   }, [effectiveOutcome, scopeProjectId]);
 
-  // ER-5a: under a condition with a resolved membership model, the strip flips to
-  // the membership variant (over-represented-level chips). Otherwise — including
-  // the degenerate-model fallback — the magnitude strip renders exactly as today.
+  // ER-5b: in defect dispatch the strip flips to defect-rate-share. Otherwise,
+  // ER-5a: under a condition with a resolved membership model the strip flips to
+  // membership. Otherwise — including degenerate-model fallback — magnitude.
   const factorStripNode =
-    useMembershipStrip && membershipModel && effectiveOutcome ? (
+    useDefectRateStrip && defectRateModel && effectiveOutcome ? (
+      <FactorStripBase
+        variant="defect-rate-share"
+        defectRateChips={defectRateModel}
+        isDefectRate={defectResult?.outcomeColumn === 'DefectRate'}
+        chips={stripModel?.chips ?? []}
+        residualPct={stripModel?.residualPct ?? 0}
+        selectedFactor={boxplotFactor}
+        examinedKeys={examinedFactorNames}
+        isScoped={isDrilling}
+        cpkTarget={undefined}
+        outcomeLabel={columnAliases[effectiveOutcome] ?? effectiveOutcome}
+        onFactorSelect={f => {
+          setBoxplotFactor(f);
+          markFactorExamined(effectiveOutcome, f);
+          maybeRefreshScopeWhatIf();
+        }}
+        onAnovaLinkClick={() => setModelDrawerOpen(true)}
+      />
+    ) : useMembershipStrip && membershipModel && effectiveOutcome ? (
       <FactorStripBase
         variant="membership"
         membershipChips={membershipModel.chips}
@@ -1462,6 +1511,19 @@ const Dashboard = ({
             onTakeToAnalyze={() => conditionLoop.takeToAnalyze(onOpenWall)}
           />
         )}
+        {/* ER-5b: defect auto-apply confirmation banner. */}
+        {defectBannerVisible &&
+          onDefectBannerAdjust &&
+          onDefectBannerUseStandard &&
+          onDefectBannerDismiss && (
+            <div className="mx-4 mb-2">
+              <DefectDispatchBanner
+                onAdjust={onDefectBannerAdjust}
+                onUseStandard={onDefectBannerUseStandard}
+                onDismiss={onDefectBannerDismiss}
+              />
+            </div>
+          )}
 
         {/* Tab Navigation */}
         <div

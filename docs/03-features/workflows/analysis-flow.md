@@ -204,6 +204,26 @@ Concrete switching examples:
 - Capability mode respects current drill-down filters
 - Boxplot and Pareto always show variation perspective (they do not change when toggling the I-Chart)
 
+### Count/Event-Log Y — Auto-Dispatch (ER-5b)
+
+When the Y column is count- or event-log-shaped, the engine detects this at paste time and
+auto-dispatches to defect handling — **no user mode switch required**:
+
+- **High confidence** (clearly count-shaped): mapping is applied automatically, `analysisMode` is set to
+  `'defect'`, and a **`DefectDispatchBanner`** appears in the sticky chrome. The banner offers two
+  corrections: `[adjust columns ▾]` (re-opens the mapping modal) and `[use as standard data]`
+  (reverts to `'standard'` mode). This makes the dispatch post-hoc correctable without blocking the
+  analyst's flow.
+- **Medium confidence**: the `DefectDetectedModal` gate is preserved — the analyst confirms before
+  dispatch proceeds.
+
+In defect dispatch mode, the chart slot layout shifts to `ichart → boxplot → pareto → defect-summary`
+(Pareto promoted to a primary slot) and the **factor strip flips to the defect-rate-share variant**:
+factors are ranked by weighted MAD of per-level defect rates against the overall rate (ADR-088 §level-native
+defect-rate share), NOT by η²-variance share. The strip title confirms the rate basis ("rate contribution").
+The transform-before-stats boundary is **never compromised**: `computeDefectRates()` runs before the
+stats engine; the continuous-Y engine never sees raw event-log data.
+
 ### Brush to Create Factor Flow (for Fixed-Size Subgroups)
 
 When capability mode uses fixed-size subgroups and a specific subgroup fails:
@@ -321,14 +341,14 @@ Complaint data loaded. I-Chart: when did the shift happen? Boxplot: Machine C et
 
 ## 11. Code Traceability
 
-| Activity             | Thread     | Key Hooks                                                                                               | Key Components                                                                         |
-| -------------------- | ---------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Frame                | Both       | `useDataIngestion`, `useDataState`                                                                      | `ColumnMapping`, `SpecsPopover`, `TimeExtractionPanel`, `CapabilitySuggestionModal`    |
-| Explore (variation)  | Variation  | `useFilterNavigation`, `useVariationTracking`, `useIChartData`, `useBoxplotData`, `useFactorStripModel` | `IChartWrapperBase`, `BoxplotWrapperBase`, `ParetoChartWrapperBase`, `FactorStripBase` |
-| Explore (capability) | Capability | `useCapabilityIChartData`                                                                               | `CapabilityMetricToggle`, `SubgroupConfig`                                             |
-| Explore (both)       | Both       | `useFindings`, `useChartScale`                                                                          | `FindingsLog`, `ChartAnnotationLayer`, `CreateFactorModal`                             |
-| Analyze              | Both       | `useHypotheses`, `useFindings`                                                                          | `HypothesisTreeView`, `FindingBoardView`, `SynthesisCard`                              |
-| Improve / Control    | Both       | `useFindings` (actions, outcome)                                                                        | `WhatIfPageBase`, `StagedComparisonCard`, `ImprovementWorkspaceBase`                   |
+| Activity             | Thread     | Key Hooks                                                                                                                     | Key Components                                                                                                 |
+| -------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Frame                | Both       | `useDataIngestion`, `useDataState`                                                                                            | `ColumnMapping`, `SpecsPopover`, `TimeExtractionPanel`, `CapabilitySuggestionModal`                            |
+| Explore (variation)  | Variation  | `useFilterNavigation`, `useVariationTracking`, `useIChartData`, `useBoxplotData`, `useFactorStripModel`, `useDefectRateModel` | `IChartWrapperBase`, `BoxplotWrapperBase`, `ParetoChartWrapperBase`, `FactorStripBase`, `DefectDispatchBanner` |
+| Explore (capability) | Capability | `useCapabilityIChartData`                                                                                                     | `CapabilityMetricToggle`, `SubgroupConfig`                                                                     |
+| Explore (both)       | Both       | `useFindings`, `useChartScale`                                                                                                | `FindingsLog`, `ChartAnnotationLayer`, `CreateFactorModal`                                                     |
+| Analyze              | Both       | `useHypotheses`, `useFindings`                                                                                                | `HypothesisTreeView`, `FindingBoardView`, `SynthesisCard`                                                      |
+| Improve / Control    | Both       | `useFindings` (actions, outcome)                                                                                              | `WhatIfPageBase`, `StagedComparisonCard`, `ImprovementWorkspaceBase`                                           |
 
 ---
 

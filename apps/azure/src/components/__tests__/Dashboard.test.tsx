@@ -726,6 +726,9 @@ vi.mock('@variscout/hooks', () => ({
   // strip stays magnitude-or-hidden, composition slot stays the boxplot.
   useMembershipModel: () => null,
   useCompositionModel: () => null,
+  // ER-5b: defect-rate model null in legacy tests (no defect mode) →
+  // strip stays membership-or-magnitude.
+  useDefectRateModel: () => null,
   matchActiveScopeId: () => null,
   // ER-4: condition loop — default-empty (no condition applied) so the legacy
   // render tests don't see the pill / scope bar. Tests that exercise the loop

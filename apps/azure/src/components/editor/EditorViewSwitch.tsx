@@ -475,6 +475,7 @@ function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.R
     commitHubChange,
     controlViolations,
     dataFlow,
+    defectBannerVisible,
     excludedReasons,
     excludedRowIndices,
     filteredCategoricalValuesByColumn,
@@ -488,6 +489,9 @@ function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.R
     handleShareChart,
     handleViewStateChange,
     improvementProjectedCpkMap,
+    onDefectBannerAdjust,
+    onDefectBannerDismiss,
+    onDefectBannerUseStandard,
     projectId,
     sharedCoScoutSection,
     viewState,
@@ -542,6 +546,10 @@ function EditorExploreView({ props }: { props: EditorViewSwitchProps }): React.R
           useCanvasViewportStore.getState().setViewMode('wall');
           usePanelsStore.getState().showAnalyze();
         }}
+        defectBannerVisible={defectBannerVisible}
+        onDefectBannerAdjust={onDefectBannerAdjust}
+        onDefectBannerUseStandard={onDefectBannerUseStandard}
+        onDefectBannerDismiss={onDefectBannerDismiss}
       />
       {sharedCoScoutSection}
     </div>

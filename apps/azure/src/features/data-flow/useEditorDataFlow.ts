@@ -263,6 +263,13 @@ export interface UseEditorDataFlowOptions {
    *  paste, retiring Stage-1's provisioning role. Mutually exclusive with
    *  onFreshPasteLanded; neither fires on re-ingest. */
   onFreshPasteAnalyzed?: () => void;
+  /**
+   * ER-5b: fired when a HIGH-confidence defect detection lands.
+   * The editor auto-applies the suggested mapping (setDefectMapping +
+   * setAnalysisMode('defect')) and shows the correctable DefectDispatchBanner.
+   * Medium-confidence detection still shows the existing confirm banner.
+   */
+  onHighConfidenceDefect?: (detection: DefectDetection) => void;
 }
 
 export interface UseEditorDataFlowReturn {
@@ -326,6 +333,8 @@ export interface UseEditorDataFlowReturn {
   undoQuietTimeExtraction: () => void;
   // Defect detection
   defectDetection: DefectDetection | null;
+  /** ER-5b: allows re-surfacing the confirm modal (e.g. "adjust columns" from banner). */
+  setDefectDetection: (detection: DefectDetection | null) => void;
   dismissDefectDetection: () => void;
   handleDefectDetectedFromIngestion: (result: DefectDetection) => void;
   // Wide-format detection
@@ -382,6 +391,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     applyTimeExtraction,
     onFreshPasteLanded,
     onFreshPasteAnalyzed,
+    onHighConfidenceDefect,
   } = options;
 
   const [flowState, dispatch] = useReducer(editorFlowReducer, initialFlowState);
@@ -407,8 +417,17 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   const [defectDetection, setDefectDetection] = useState<DefectDetection | null>(null);
   const dismissDefectDetection = useCallback(() => setDefectDetection(null), []);
   const handleDefectDetectedFromIngestion = useCallback(
-    (result: DefectDetection) => setDefectDetection(result),
-    []
+    (result: DefectDetection) => {
+      if (result.confidence === 'high') {
+        // ER-5b: auto-apply — no modal gate. Editor wires onHighConfidenceDefect to
+        // setDefectMapping + setAnalysisMode('defect') + show the correctable banner.
+        onHighConfidenceDefect?.(result);
+      } else {
+        // Medium confidence: keep the modal-confirm path.
+        setDefectDetection(result);
+      }
+    },
+    [onHighConfidenceDefect]
   );
 
   // Wide-format detection state
@@ -509,7 +528,10 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
       if (landsAtB0) {
         if (defectResult.isDefectFormat) {
-          setDefectDetection(defectResult);
+          // ER-5b: route through the confidence fork so high-confidence detections
+          // auto-apply (onHighConfidenceDefect callback) instead of always opening
+          // the modal. Medium-confidence still sets defectDetection for confirm UI.
+          handleDefectDetectedFromIngestion(defectResult);
         }
         if (wideFormat.isWideFormat) {
           setWideFormatDetection(wideFormat);
@@ -586,6 +608,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       timeExtractionConfig,
       onFreshPasteLanded,
       onFreshPasteAnalyzed,
+      // ER-5b: handleDefectDetectedFromIngestion carries the high/medium confidence fork;
+      // include it so _proceedWithParsedData sees the current onHighConfidenceDefect closure.
+      handleDefectDetectedFromIngestion,
     ]
   );
 
@@ -1154,6 +1179,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     undoQuietTimeExtraction,
     // Defect detection
     defectDetection,
+    setDefectDetection,
     dismissDefectDetection,
     handleDefectDetectedFromIngestion,
     // Wide-format detection

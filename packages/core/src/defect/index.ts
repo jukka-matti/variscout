@@ -4,3 +4,5 @@ export type { DefectTransformResult } from './transform';
 export { computeDefectRates } from './transform';
 export type { DefectQuestionInput } from './questions';
 export { generateDefectAnalysisQuestions } from './questions';
+export type { DefectRateShare, DefectRateLevelData } from './rateShares';
+export { computeDefectRateShares } from './rateShares';

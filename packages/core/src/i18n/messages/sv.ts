@@ -708,6 +708,11 @@ export const sv: MessageCatalog = {
   'defect.detected.stepOfOriginHint':
     'Identifies which step caught each defect. Optional — defects anchor to outcome when not set.',
 
+  // ── DefectDispatchBanner (ER-5b) ──
+  'defect.dispatch.banner.label': '⌖ Detected count data — analyzing defect rates',
+  'defect.dispatch.banner.adjust': 'adjust columns ▾',
+  'defect.dispatch.banner.useStandard': 'use as standard data',
+
   // Report workspace view
   'report.cpkLearningLoop': 'Cpk Learning Loop',
   'report.verdict.effective': 'Effective',
@@ -1231,6 +1236,15 @@ export const sv: MessageCatalog = {
   'factorStrip.membership.chip.hover': 'p={p} · χ² df={df} · n={n}',
   'factorStrip.membership.chip.topLevel': '{level} ×{lift}',
   'factorStrip.membership.chip.onlyInCondition': 'only in condition',
+
+  // ── Defect-rate-share strip variant (ER-5b) ──
+  'factorStrip.title.defectRate': 'What drives the defect rate?',
+  'factorStrip.defectRate.subtitle':
+    'how strongly each factor concentrates the defect rate across its levels (rate concentration — not % of variation)',
+  'factorStrip.defectRate.chip.topLevel': '{level} {rate}%',
+  'factorStrip.defectRate.chip.topLevelCount': '{level} {count}',
+  'factorStrip.defectRate.chip.concentration': 'concentration {value}',
+  'factorStrip.defectRate.star.title': 'largest share',
 
   // -- Composition view (ER-5a) --
   'compositionView.title': 'Composition by {factor}',

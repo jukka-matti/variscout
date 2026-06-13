@@ -78,6 +78,14 @@ export interface DashboardSectionProps {
   trackedOutcomeSpecs?: readonly OutcomeSpec[];
   /** ER-8: explicit active-Y promotion into the active hub's tracked outcomes. */
   onTrackOutcome?: (columnName: string) => void;
+  /** ER-5b: when true, the DefectDispatchBanner is shown. */
+  defectBannerVisible?: boolean;
+  /** ER-5b: fires when analyst clicks [adjust columns ▾] on the banner. */
+  onDefectBannerAdjust?: () => void;
+  /** ER-5b: fires when analyst clicks [use as standard data] on the banner. */
+  onDefectBannerUseStandard?: () => void;
+  /** ER-5b: fires when analyst dismisses the banner. */
+  onDefectBannerDismiss?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,6 +115,10 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
   scopeProjectId,
   trackedOutcomeSpecs,
   onTrackOutcome,
+  defectBannerVisible,
+  onDefectBannerAdjust,
+  onDefectBannerUseStandard,
+  onDefectBannerDismiss,
 }) => {
   const highlightedChartPoint = usePanelsStore(s => s.highlightedChartPoint);
 
@@ -136,6 +148,10 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({
       scopeProjectId={scopeProjectId}
       trackedOutcomeSpecs={trackedOutcomeSpecs}
       onTrackOutcome={onTrackOutcome}
+      defectBannerVisible={defectBannerVisible}
+      onDefectBannerAdjust={onDefectBannerAdjust}
+      onDefectBannerUseStandard={onDefectBannerUseStandard}
+      onDefectBannerDismiss={onDefectBannerDismiss}
       performance={{
         drillFromPerformance: dataFlow.drillFromPerformance,
         onBackToPerformance: dataFlow.handleBackToPerformance,

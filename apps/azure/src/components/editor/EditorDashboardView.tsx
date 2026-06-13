@@ -87,6 +87,14 @@ interface EditorDashboardViewProps {
   trackedOutcomeSpecs?: readonly NonNullable<ProcessHub['outcomes']>[number][];
   onTrackOutcome?: (columnName: string) => void;
   onOpenWall?: () => void;
+  /** ER-5b: when true, the DefectDispatchBanner is shown. */
+  defectBannerVisible?: boolean;
+  /** ER-5b: fires when analyst clicks [adjust columns ▾] on the banner. */
+  onDefectBannerAdjust?: () => void;
+  /** ER-5b: fires when analyst clicks [use as standard data] on the banner. */
+  onDefectBannerUseStandard?: () => void;
+  /** ER-5b: fires when analyst dismisses the banner. */
+  onDefectBannerDismiss?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +127,10 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
   trackedOutcomeSpecs,
   onTrackOutcome,
   onOpenWall,
+  defectBannerVisible,
+  onDefectBannerAdjust,
+  onDefectBannerUseStandard,
+  onDefectBannerDismiss,
 }) => {
   // ── Store selectors ──────────────────────────────────────────────────────
   const factors = useProjectStore(s => s.factors);
@@ -215,6 +227,10 @@ export const EditorDashboardView: React.FC<EditorDashboardViewProps> = ({
           scopeProjectId={scopeProjectId}
           trackedOutcomeSpecs={trackedOutcomeSpecs}
           onTrackOutcome={onTrackOutcome}
+          defectBannerVisible={defectBannerVisible}
+          onDefectBannerAdjust={onDefectBannerAdjust}
+          onDefectBannerUseStandard={onDefectBannerUseStandard}
+          onDefectBannerDismiss={onDefectBannerDismiss}
         />
 
         {/* AI onboarding tooltip */}

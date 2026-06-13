@@ -851,6 +851,14 @@ export interface MessageCatalog {
   'defect.detected.stepOfOrigin': string;
   'defect.detected.stepOfOriginHint': string;
 
+  // ── DefectDispatchBanner (ER-5b auto-apply correction affordance) ──
+  /** Main label: "⌖ Detected count data — analyzing defect rates" */
+  'defect.dispatch.banner.label': string;
+  /** "adjust columns ▾" button to open the correction modal */
+  'defect.dispatch.banner.adjust': string;
+  /** "use as standard data" button to revert to standard analysis */
+  'defect.dispatch.banner.useStandard': string;
+
   // Factor Intelligence
   'fi.title': string;
   'fi.ranking': string;
@@ -1361,6 +1369,35 @@ export interface MessageCatalog {
    * Never render the bare ∞ glyph alone.
    */
   'factorStrip.membership.chip.onlyInCondition': string;
+
+  // ── Defect-rate-share strip variant (ER-5b — "What drives the defect rate?") ──
+  /** Title for the defect-rate-share variant: "What drives the defect rate?" */
+  'factorStrip.title.defectRate': string;
+  /**
+   * Honesty subtitle for the defect-rate-share variant — explains this is rate
+   * concentration, NOT % of variation.
+   */
+  'factorStrip.defectRate.subtitle': string;
+  /**
+   * Per-level annotation for RATE outcome: "{level} {rate}%".
+   * Used when outcomeColumn === 'DefectRate' (0–1 proportion × 100 = %).
+   * Params: {level}, {rate} (caller multiplies ×100 and formats via formatStat).
+   */
+  'factorStrip.defectRate.chip.topLevel': string;
+  /**
+   * Per-level annotation for COUNT outcome: "{level} {count}".
+   * Used when outcomeColumn === 'DefectCount' (raw mean count, no ×100, no %).
+   * Params: {level}, {count} (formatted by caller via formatStat — NO multiplication).
+   */
+  'factorStrip.defectRate.chip.topLevelCount': string;
+  /**
+   * Concentration readout line rendered below the bar in defect-rate chips.
+   * Honesty note: this is a rate dispersion statistic, NOT a % of variation.
+   * Params: {value} (formatted by caller via formatStat).
+   */
+  'factorStrip.defectRate.chip.concentration': string;
+  /** Star annotation label — "largest share" (never "strongest"). */
+  'factorStrip.defectRate.star.title': string;
 
   // ── Composition view (ER-5a — paired share bars per level + ⊕) ──
   /** Heading: "Composition by {factor}". Param: {factor}. */

@@ -365,6 +365,7 @@ function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactEl
   const {
     canvasViewportHubId,
     chartFindings,
+    defectBannerVisible,
     embedFocusChart,
     embedStatsTab,
     filterNav,
@@ -381,6 +382,9 @@ function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactEl
     importFlow,
     isEmbedMode,
     notifyChartClicked,
+    onDefectBannerAdjust,
+    onDefectBannerDismiss,
+    onDefectBannerUseStandard,
     panels,
     sessionHub,
     workspaceProjectAnalyzeFactorRequest,
@@ -421,6 +425,10 @@ function AppExploreView({ props }: { props: AppViewSwitchProps }): React.ReactEl
         onOpenFinding: handleOpenFinding,
       }}
       findings={findings}
+      defectBannerVisible={defectBannerVisible}
+      onDefectBannerAdjust={onDefectBannerAdjust}
+      onDefectBannerUseStandard={onDefectBannerUseStandard}
+      onDefectBannerDismiss={onDefectBannerDismiss}
     />
   );
 }

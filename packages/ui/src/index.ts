@@ -704,6 +704,10 @@ export {
   DefectDetectedModal,
   type DefectDetectedModalProps,
 } from './components/DefectDetectedModal';
+export {
+  DefectDispatchBanner,
+  type DefectDispatchBannerProps,
+} from './components/DefectDispatchBanner';
 export { DefectSummary, type DefectSummaryProps } from './components/DefectSummary';
 
 // Investigation components (regression sweet spot, etc.)
