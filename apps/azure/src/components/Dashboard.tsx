@@ -1277,13 +1277,19 @@ const Dashboard = ({
     if (scopeId) useAnalyzeStore.getState().recomputeScopeWhatIf(scopeId);
   }, [effectiveOutcome, scopeProjectId]);
 
-  // ER-6: Interaction chip click — renders the factorA × {focalLevel, rest}
-  // paired comparison in the existing comparison/boxplot slot (reuse chip-click rebind).
+  // ER-6: Interaction chip click — shows factor A's boxplot with the focal level
+  // of factor B highlighted (transient highlight = focal subset vs rest).
+  // This produces a genuine paired comparison: factorA distribution with
+  // factorB === focalLevel rows lit against the complement.
+  // When focalLevel is null (cont×cont interaction), only factor A is set.
   const handleInteractionSelect = useCallback(
     (interaction: ModelInteraction) => {
       setBoxplotFactor(interaction.factorA);
+      if (interaction.focalLevel !== null) {
+        setTransientHighlight({ column: interaction.factorB, value: interaction.focalLevel });
+      }
     },
-    [setBoxplotFactor]
+    [setBoxplotFactor, setTransientHighlight]
   );
 
   // The modelStats to pass to the magnitude strip (v2). Only on the magnitude
