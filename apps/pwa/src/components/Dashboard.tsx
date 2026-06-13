@@ -28,6 +28,7 @@ import {
   ScopeBarBase,
   type ChartId,
   type WorkspaceProjectScopeLabels,
+  DefectDispatchBanner,
 } from '@variscout/ui';
 import {
   useKeyboardNavigation,
@@ -153,6 +154,17 @@ interface DashboardProps {
   trackedOutcomeSpecs?: readonly OutcomeSpec[];
   onTrackOutcome?: (columnName: string) => void;
   onOpenWall?: () => void;
+  /**
+   * ER-5b: when true, the DefectDispatchBanner is shown in the sticky nav.
+   * Set after high-confidence defect auto-apply; false by default.
+   */
+  defectBannerVisible?: boolean;
+  /** ER-5b: fires when analyst clicks [adjust columns ▾] on the banner. */
+  onDefectBannerAdjust?: () => void;
+  /** ER-5b: fires when analyst clicks [use as standard data] on the banner. */
+  onDefectBannerUseStandard?: () => void;
+  /** ER-5b: fires when analyst clicks × to dismiss the banner. */
+  onDefectBannerDismiss?: () => void;
 }
 
 const Dashboard = ({
@@ -179,6 +191,10 @@ const Dashboard = ({
   trackedOutcomeSpecs: trackedOutcomeSpecsProp,
   onTrackOutcome,
   onOpenWall,
+  defectBannerVisible = false,
+  onDefectBannerAdjust,
+  onDefectBannerUseStandard,
+  onDefectBannerDismiss,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding, onOpenFinding } =
     findingsCallbacks ?? {};
@@ -1355,6 +1371,21 @@ const Dashboard = ({
             onTakeToAnalyze={() => conditionLoop.takeToAnalyze(onOpenWall)}
           />
         )}
+        {/* ER-5b: defect auto-apply confirmation banner. Shown after high-confidence
+            detection auto-applies the defect mapping without the modal gate.
+            Offers "adjust columns" (opens demoted modal) + "use as standard data". */}
+        {defectBannerVisible &&
+          onDefectBannerAdjust &&
+          onDefectBannerUseStandard &&
+          onDefectBannerDismiss && (
+            <div className="mx-4 mb-2">
+              <DefectDispatchBanner
+                onAdjust={onDefectBannerAdjust}
+                onUseStandard={onDefectBannerUseStandard}
+                onDismiss={onDefectBannerDismiss}
+              />
+            </div>
+          )}
       </div>
 
       {/* DEFERRED(lv1-pwa-mount): Mount <ScopeChrome> when PWA gains a Process tab

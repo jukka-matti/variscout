@@ -149,6 +149,14 @@ export interface UsePasteImportFlowOptions {
    * Mutually exclusive with onFreshPasteLanded; neither fires on re-ingestion.
    */
   onFreshPasteAnalyzed?: () => void;
+  /**
+   * ER-5b: fired when a HIGH-confidence defect detection lands at b0.
+   * The app auto-applies the suggested mapping (setDefectMapping +
+   * setAnalysisMode('defect')) and shows the correctable DefectDispatchBanner
+   * instead of the blocking modal. Medium-confidence still dispatches
+   * DEFECT_DETECTED and shows the existing confirm banner.
+   */
+  onHighConfidenceDefect?: (detection: DefectDetection) => void;
 }
 
 export interface MatchSummaryPending {
@@ -269,6 +277,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     applyTimeExtraction,
     onFreshPasteLanded,
     onFreshPasteAnalyzed,
+    onHighConfidenceDefect,
   } = options;
 
   // Flow state machine
@@ -355,6 +364,8 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       const defectFired =
         defectResult.isDefectFormat &&
         (defectResult.confidence === 'high' || defectResult.confidence === 'medium');
+      const isHighConfidenceDefect = defectFired && defectResult.confidence === 'high';
+      const isMediumConfidenceDefect = defectFired && defectResult.confidence === 'medium';
       const wideFormat = detectWideFormat(data);
 
       // FSJ-10 (spec §8/§9 P4): fresh paste is a seed writer only, then b0 owns
@@ -364,7 +375,12 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       const landsAtB0 = !opts?.reingest;
 
       if (landsAtB0) {
-        if (defectFired) {
+        if (isHighConfidenceDefect) {
+          // ER-5b: auto-apply — no modal gate. The App will call setDefectMapping +
+          // setAnalysisMode('defect') and surface the correctable DefectDispatchBanner.
+          onHighConfidenceDefect?.(defectResult);
+        } else if (isMediumConfidenceDefect) {
+          // Medium confidence: keep the modal-confirm path (detection is less sure).
           dispatch({ type: 'DEFECT_DETECTED', detection: defectResult });
         }
         if (wideFormat.isWideFormat) {
@@ -386,7 +402,10 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
         return;
       }
 
-      if (defectFired) {
+      if (isHighConfidenceDefect) {
+        // ER-5b: auto-apply on re-ingestion too — no modal gate.
+        onHighConfidenceDefect?.(defectResult);
+      } else if (isMediumConfidenceDefect) {
         dispatch({ type: 'DEFECT_DETECTED', detection: defectResult });
       }
       if (wideFormat.isWideFormat) {
@@ -427,6 +446,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       timeExtractionConfig,
       onFreshPasteLanded,
       onFreshPasteAnalyzed,
+      onHighConfidenceDefect,
     ]
   );
 

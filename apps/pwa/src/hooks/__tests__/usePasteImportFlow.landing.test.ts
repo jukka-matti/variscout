@@ -312,7 +312,7 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
   });
 
-  it('lands a defect-shaped fresh paste at b0 with the defect proposal intact', async () => {
+  it('lands a defect-shaped fresh paste at b0 — high confidence auto-applies, medium opens modal', async () => {
     // Precondition: defect format at high|medium confidence.
     const parsed = await parseText(tsvOf(defectRows));
     const defect = detectDefectFormat(parsed, detectColumns(parsed).columnAnalysis);
@@ -321,8 +321,11 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
 
     const onFreshPasteLanded = vi.fn();
     const onFreshPasteAnalyzed = vi.fn();
+    const onHighConfidenceDefect = vi.fn();
     const { result } = renderHook(() =>
-      usePasteImportFlow(makeOptions({ onFreshPasteLanded, onFreshPasteAnalyzed }))
+      usePasteImportFlow(
+        makeOptions({ onFreshPasteLanded, onFreshPasteAnalyzed, onHighConfidenceDefect })
+      )
     );
 
     await act(async () => {
@@ -330,7 +333,15 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     });
 
     expect(result.current.isMapping).toBe(false);
-    expect(result.current.defectDetection).not.toBeNull();
+    if (defect.confidence === 'high') {
+      // ER-5b: auto-apply — callback fires, defectDetection stays null (no modal).
+      expect(onHighConfidenceDefect).toHaveBeenCalledTimes(1);
+      expect(result.current.defectDetection).toBeNull();
+    } else {
+      // Medium: modal-confirm path — defectDetection is set (modal shown).
+      expect(onHighConfidenceDefect).not.toHaveBeenCalled();
+      expect(result.current.defectDetection).not.toBeNull();
+    }
     expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
     expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
   });

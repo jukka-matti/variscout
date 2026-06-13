@@ -761,6 +761,13 @@ export const Editor: React.FC<EditorProps> = ({
     [activeHub]
   );
 
+  // ER-5b: defect dispatch banner — shown after high-confidence auto-apply instead
+  // of the blocking modal gate.
+  const [defectBannerVisible, setDefectBannerVisible] = useState(false);
+  const lastHighConfidenceDefectRef = React.useRef<
+    import('@variscout/core').DefectDetection | null
+  >(null);
+
   // FSJ-10: fresh paste now always provisions and routes to b0. The analyzed
   // callback remains for non-primary hatch/re-ingest compatibility only.
   const handleFreshPasteLanded = useCallback(() => {
@@ -814,6 +821,13 @@ export const Editor: React.FC<EditorProps> = ({
     applyTimeExtraction: ingestion.applyTimeExtraction,
     onFreshPasteLanded: handleFreshPasteLanded,
     onFreshPasteAnalyzed: handleFreshPasteAnalyzed,
+    // ER-5b: high-confidence defect detection auto-applies without the modal gate.
+    onHighConfidenceDefect: detection => {
+      lastHighConfidenceDefectRef.current = detection;
+      setDefectMapping(detection.suggestedMapping as import('@variscout/core').DefectMapping);
+      setAnalysisMode('defect');
+      setDefectBannerVisible(true);
+    },
   });
 
   const hasB0ModeProposal =
@@ -1998,6 +2012,20 @@ export const Editor: React.FC<EditorProps> = ({
           workspaceProjectScope={workspaceProjectScope}
           workspaceProjectTitle={workspaceProjectTitle}
           workspaceViewModel={workspaceViewModel}
+          defectBannerVisible={defectBannerVisible}
+          onDefectBannerAdjust={() => {
+            // Re-surface the confirm modal with the last detected mapping for correction.
+            if (lastHighConfidenceDefectRef.current) {
+              dataFlow.setDefectDetection(lastHighConfidenceDefectRef.current);
+            }
+            setDefectBannerVisible(false);
+          }}
+          onDefectBannerUseStandard={() => {
+            setDefectMapping(null);
+            setAnalysisMode('standard');
+            setDefectBannerVisible(false);
+          }}
+          onDefectBannerDismiss={() => setDefectBannerVisible(false)}
         />
       </div>
 

@@ -368,6 +368,14 @@ function AppMain() {
   // live null-deref risk. Do NOT "simplify" to a direct panels.showFrame reference.
   const showFrameRef = React.useRef<(() => void) | null>(null);
 
+  // ER-5b: defect dispatch banner — shown after high-confidence auto-apply instead
+  // of the blocking modal. Dismissed by [×], [use as standard data], or new ingestion.
+  const [defectBannerVisible, setDefectBannerVisible] = React.useState(false);
+  // Ref to most-recently auto-applied detection (for the "adjust columns" path).
+  const lastHighConfidenceDefectRef = React.useRef<
+    import('@variscout/core').DefectDetection | null
+  >(null);
+
   const importFlow = usePasteImportFlow({
     rawData,
     outcome,
@@ -402,6 +410,14 @@ function AppMain() {
     // routing (the wizard keeps today's landing until P2). Inline arrow so the
     // closure re-captures sessionHub each render (FSJ-1 stale-closure lesson).
     onFreshPasteAnalyzed: () => provisionPasteProject({ sessionHub, setSessionHub }),
+    // ER-5b: high-confidence defect detection auto-applies without the modal gate.
+    // The banner provides a correctable post-hoc affordance (adjust / use-standard).
+    onHighConfidenceDefect: detection => {
+      lastHighConfidenceDefectRef.current = detection;
+      setDefectMapping(detection.suggestedMapping as import('@variscout/core').DefectMapping);
+      setAnalysisMode('defect');
+      setDefectBannerVisible(true);
+    },
   });
 
   // Ref to allow ingestion callbacks to reach importFlow setters
@@ -1566,6 +1582,20 @@ function AppMain() {
               workspaceViewModel={workspaceViewModel}
               _liveControlHandoffs={_liveControlHandoffs}
               _liveControlRecords={_liveControlRecords}
+              defectBannerVisible={defectBannerVisible}
+              onDefectBannerAdjust={() => {
+                // Re-surface the existing modal with the last detected mapping for correction.
+                if (lastHighConfidenceDefectRef.current) {
+                  importFlowRef.current?.handleDefectDetected(lastHighConfidenceDefectRef.current);
+                }
+                setDefectBannerVisible(false);
+              }}
+              onDefectBannerUseStandard={() => {
+                setDefectMapping(null);
+                setAnalysisMode('standard');
+                setDefectBannerVisible(false);
+              }}
+              onDefectBannerDismiss={() => setDefectBannerVisible(false)}
             />
           </Suspense>
         </div>

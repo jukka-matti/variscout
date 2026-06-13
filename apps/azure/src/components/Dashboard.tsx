@@ -62,6 +62,7 @@ import {
   ConditionPillBase,
   ScopeBarBase,
   ModelDrawerBase,
+  DefectDispatchBanner,
   useInflectionBinningState,
   useGlossary,
   type WorkspaceProjectScopeLabels,
@@ -222,6 +223,17 @@ interface DashboardProps {
   scopeProjectId?: string;
   trackedOutcomeSpecs?: readonly OutcomeSpec[];
   onTrackOutcome?: (columnName: string) => void;
+  /**
+   * ER-5b: when true, the DefectDispatchBanner is shown in the sticky nav.
+   * Set after high-confidence defect auto-apply; false by default.
+   */
+  defectBannerVisible?: boolean;
+  /** ER-5b: fires when analyst clicks [adjust columns ▾] on the banner. */
+  onDefectBannerAdjust?: () => void;
+  /** ER-5b: fires when analyst clicks [use as standard data] on the banner. */
+  onDefectBannerUseStandard?: () => void;
+  /** ER-5b: fires when analyst clicks × to dismiss the banner. */
+  onDefectBannerDismiss?: () => void;
 }
 
 const Dashboard = ({
@@ -250,6 +262,10 @@ const Dashboard = ({
   scopeProjectId = DEFAULT_PROCESS_HUB_ID,
   trackedOutcomeSpecs: trackedOutcomeSpecsProp,
   onTrackOutcome,
+  defectBannerVisible = false,
+  onDefectBannerAdjust,
+  onDefectBannerUseStandard,
+  onDefectBannerDismiss,
 }: DashboardProps) => {
   const { drillFromPerformance, onBackToPerformance, onDrillToMeasure } = performance;
   const {
@@ -1462,6 +1478,19 @@ const Dashboard = ({
             onTakeToAnalyze={() => conditionLoop.takeToAnalyze(onOpenWall)}
           />
         )}
+        {/* ER-5b: defect auto-apply confirmation banner. */}
+        {defectBannerVisible &&
+          onDefectBannerAdjust &&
+          onDefectBannerUseStandard &&
+          onDefectBannerDismiss && (
+            <div className="mx-4 mb-2">
+              <DefectDispatchBanner
+                onAdjust={onDefectBannerAdjust}
+                onUseStandard={onDefectBannerUseStandard}
+                onDismiss={onDefectBannerDismiss}
+              />
+            </div>
+          )}
 
         {/* Tab Navigation */}
         <div
