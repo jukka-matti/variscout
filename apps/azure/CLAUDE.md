@@ -1,30 +1,31 @@
 # @variscout/azure-app
 
-Company server/static host for the canonical Workspace app. It should not grow
-new product UI; product UI belongs in `apps/pwa` (`@variscout/workspace-app`) and
-is assembled by channel gates.
+**Server / deployment host package — not a client app.** Serves the
+`@variscout/workspace-app` company-channel bundle
+(`scripts/build-company-workspace.mjs` → `dist/`) via `server.js` (CSP,
+`/health`, `/config`, EasyAuth client-principal parse, ephemeral SSE relays).
+No client source lives here; the client is `@variscout/workspace-app` at
+`apps/pwa/`. It should not grow new product UI; product UI belongs in `apps/pwa`
+and is assembled by channel gates.
 
 ## Hard Rules
 
 - Never log PII to App Insights or telemetry. Log only structural events such as counts, types, and durations.
 - Never import MSAL or roll custom auth. Company deployment uses EasyAuth; server-owned identity endpoints live in `server.js`.
-- Default `build` must serve the company-channel Workspace bundle, not the retired Azure React client.
+- Default `build` builds the company-channel Workspace bundle into `dist/`. The legacy Azure React client (`src/`) was deleted in the D4 convergence — do not reintroduce a client tree here.
 - Keep server responsibilities narrow: `/health`, `/config`, `/api/me`, tenant CoScout/runtime plumbing, and static hosting.
 - Do not reintroduce cloud document sync, Blob document identity, conflict dialogs, live membership/ACLs, product-mobile surfaces, or in-product voice capture.
 
 ## Commands
 
 ```bash
-pnpm --filter @variscout/azure-app build
-pnpm --filter @variscout/azure-app preview
-pnpm --filter @variscout/azure-app test
+pnpm --filter @variscout/azure-app build     # build workspace-app company bundle → dist/
+pnpm --filter @variscout/azure-app preview   # serve dist/ via server.js
+pnpm --filter @variscout/azure-app test:e2e  # Playwright against the served bundle
 ```
 
-Temporary legacy-client escape hatch while convergence finishes:
-
-```bash
-pnpm --filter @variscout/azure-app build:legacy-client
-```
+There are no unit tests in this package (it is server/host only); `test` is a
+no-op. Client tests live in `@variscout/workspace-app` (`apps/pwa/`).
 
 ## Invariants
 

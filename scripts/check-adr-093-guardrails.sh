@@ -21,22 +21,22 @@ check_absent() {
 check_absent \
   "in-product voice capture returned" \
   'VoiceInput|VoiceDraftButton|speechService|transcribeAudio|VOICE_INPUT|MediaRecorder|getUserMedia|SpeechRecognition' \
-  apps/pwa/src apps/azure/src packages/*/src
+  apps/pwa/src packages/*/src
 
 check_absent \
   "live membership or ACL surface returned" \
   'ProjectMember|Invitation|canAccess|useProjectMembershipStore|PendingInvitesBanner|InviteModal|NoAccess' \
-  apps/pwa/src apps/azure/src packages/*/src
+  apps/pwa/src packages/*/src
 
 check_absent \
   "Azure Blob document persistence returned" \
   'cloudSync|blobClient|SaveConflict|If-Match|STORAGE_ACCOUNT|Blob document|Azure Storage' \
-  apps/pwa/src apps/azure/src apps/azure/server.js packages/*/src
+  apps/pwa/src apps/azure/server.js packages/*/src
 
 check_absent \
   "product-mobile surface returned" \
   'MobileTabBar|MobileMenu|MobileDashboard|MobileChartCarousel|EditorMobileSheet|MobileCategorySheet|mobileAnalyzeWall|AnalyzeWallMobile' \
-  apps/pwa/src apps/azure/src packages/*/src
+  apps/pwa/src packages/*/src
 
 bash scripts/check-free-artifact-bundle.sh
 

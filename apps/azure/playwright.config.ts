@@ -18,10 +18,14 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
+  // The e2e suite drives the SERVED company-channel Workspace bundle, not any
+  // client source in this package (the legacy Azure React client was deleted in
+  // the D4 convergence). server.js serves ./dist/ (built by
+  // scripts/build-company-workspace.mjs); LOCAL_DEV=1 bypasses EasyAuth.
   webServer: {
-    command: 'pnpm dev --port 5174',
+    command: 'pnpm build && LOCAL_DEV=1 PORT=5174 node server.js',
     url: 'http://localhost:5174',
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
+    timeout: 180000,
   },
 });

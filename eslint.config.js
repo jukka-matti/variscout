@@ -134,7 +134,6 @@ export default [
         { type: 'data', pattern: 'packages/data/src/**' },
         { type: 'stores', pattern: 'packages/stores/src/**' },
         { type: 'pwa', pattern: 'apps/pwa/src/**' },
-        { type: 'azure', pattern: 'apps/azure/src/**' },
         { type: 'website', pattern: 'apps/website/src/**' },
         { type: 'docs', pattern: 'apps/docs/src/**' },
       ],
@@ -158,9 +157,8 @@ export default [
             // ui → core, charts, hooks, stores
             // ui → stores is the documented exception for shared state selectors/actions.
             { from: { type: 'ui' }, allow: { to: { type: ['core', 'charts', 'hooks', 'stores'] } } },
-            // pwa/azure → core, charts, hooks, ui, data, stores
+            // pwa → core, charts, hooks, ui, data, stores
             { from: { type: 'pwa' }, allow: { to: { type: ['core', 'charts', 'hooks', 'ui', 'data', 'stores'] } } },
-            { from: { type: 'azure' }, allow: { to: { type: ['core', 'charts', 'hooks', 'ui', 'data', 'stores'] } } },
             // website → core, charts, ui, data (manifest has no stores dependency)
             { from: { type: 'website' }, allow: { to: { type: ['core', 'charts', 'ui', 'data'] } } },
             // docs → no source imports from internal packages
@@ -248,13 +246,11 @@ export default [
       ],
     },
   },
-  // Persistence boundary guard (F1+F2 P7.2, audit R12+R13):
+  // Persistence boundary guard (F1+F2 P7.2, audit R12):
   // Domain stores and non-persistence app code must not import `dexie` directly.
-  // Persistence access is via @variscout/core HubRepository (pwaHubRepository /
-  // azureHubRepository .dispatch). Exceptions: documented R12 (canvasViewportStore
-  // separate DB) and R13 (azure services/storage, services/localDb, services/cloudSync,
-  // lib/persistence — cloud-sync + project-overlay writes pre-dating HubAction dispatch).
-  // Also blocks direct `db` imports from app db/schema modules (R12+R13 same policy).
+  // Persistence access is via @variscout/core HubRepository (pwaHubRepository
+  // .dispatch). Exception: documented R12 (canvasViewportStore separate DB).
+  // Also blocks direct `db` imports from app db/schema modules (same policy).
   {
     files: ['packages/stores/**/*.ts', 'apps/*/src/**/*.{ts,tsx}'],
     ignores: [
@@ -263,11 +259,6 @@ export default [
       // R13 / persistence layer: all files under persistence/ and db/ are the designated home
       'apps/*/src/persistence/**',
       'apps/*/src/db/**',
-      // R13: Azure services that pre-date HubAction dispatch
-      'apps/azure/src/services/storage.ts',
-      'apps/azure/src/services/localDb.ts',
-      'apps/azure/src/services/cloudSync.ts',
-      'apps/azure/src/lib/persistence.ts',
       // Test files: mocks routinely import db/dexie for setup
       '**/*.test.ts',
       '**/*.test.tsx',
@@ -279,14 +270,14 @@ export default [
           {
             name: 'dexie',
             message:
-              'Persistence access is via @variscout/core HubRepository. Use pwaHubRepository.dispatch / azureHubRepository.dispatch or see apps/<app>/src/persistence/ for the implementation.',
+              'Persistence access is via @variscout/core HubRepository. Use pwaHubRepository.dispatch or see apps/<app>/src/persistence/ for the implementation.',
           },
         ],
         patterns: [
           {
             group: ['**/db/schema'],
             message:
-              'Direct `db` access from db/schema bypasses the repository dispatch boundary. Use azureHubRepository.dispatch / pwaHubRepository.dispatch or a service in apps/<app>/src/persistence/.',
+              'Direct `db` access from db/schema bypasses the repository dispatch boundary. Use pwaHubRepository.dispatch or a service in apps/<app>/src/persistence/.',
           },
         ],
       }],
