@@ -1379,10 +1379,23 @@ export interface MessageCatalog {
    */
   'factorStrip.defectRate.subtitle': string;
   /**
-   * Per-level annotation: "{level} {rate}%".
-   * Params: {level}, {rate} (formatted by caller via formatStat).
+   * Per-level annotation for RATE outcome: "{level} {rate}%".
+   * Used when outcomeColumn === 'DefectRate' (0–1 proportion × 100 = %).
+   * Params: {level}, {rate} (caller multiplies ×100 and formats via formatStat).
    */
   'factorStrip.defectRate.chip.topLevel': string;
+  /**
+   * Per-level annotation for COUNT outcome: "{level} {count}".
+   * Used when outcomeColumn === 'DefectCount' (raw mean count, no ×100, no %).
+   * Params: {level}, {count} (formatted by caller via formatStat — NO multiplication).
+   */
+  'factorStrip.defectRate.chip.topLevelCount': string;
+  /**
+   * Concentration readout line rendered below the bar in defect-rate chips.
+   * Honesty note: this is a rate dispersion statistic, NOT a % of variation.
+   * Params: {value} (formatted by caller via formatStat).
+   */
+  'factorStrip.defectRate.chip.concentration': string;
   /** Star annotation label — "largest share" (never "strongest"). */
   'factorStrip.defectRate.star.title': string;
 

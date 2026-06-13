@@ -158,16 +158,71 @@ describe('FactorStripBase — defect-rate-share variant', () => {
     expect(screen.getAllByTestId('factor-chip-defect-rate-star')).toHaveLength(1);
   });
 
-  it('magnitude render path is byte-identical (snapshot guard)', () => {
+  it('magnitude render path snapshot guard', () => {
     const { container } = render(<FactorStripBase {...baseProps} />);
     expect(container.innerHTML).toMatchSnapshot();
   });
 
-  it('membership render path is byte-identical (snapshot guard)', () => {
+  it('membership render path snapshot guard', () => {
     const membershipChips: MembershipChip[] = [makeMembershipChip()];
     const { container } = render(
       <FactorStripBase {...baseProps} variant="membership" membershipChips={membershipChips} />
     );
     expect(container.innerHTML).toMatchSnapshot();
+  });
+
+  it('rate path renders top-level annotation with % suffix (isDefectRate=true)', () => {
+    // Rate: topLevel.rate = 0.9 → formatted as 90.0%
+    const drChips: DefectRateChip[] = [
+      makeDefectRateChip({ topLevel: { level: 'Billing', rate: 0.9 } }),
+    ];
+    render(
+      <FactorStripBase
+        {...baseProps}
+        variant="defect-rate-share"
+        defectRateChips={drChips}
+        isDefectRate={true}
+      />
+    );
+    const annotationEl = screen.getByTestId('factor-chip-defect-rate-top-level');
+    // Should contain "%" — rate path
+    expect(annotationEl.textContent).toContain('%');
+    expect(annotationEl.textContent).toContain('Billing');
+    // Should NOT contain the raw 0.9 — must be multiplied to ~90
+    expect(annotationEl.textContent).not.toContain('0.9');
+  });
+
+  it('count path renders top-level annotation WITHOUT % suffix (isDefectRate=false)', () => {
+    // Count: topLevel.rate = 3.2 (a mean count) → must render "3.2", never "320.0%"
+    const drChips: DefectRateChip[] = [
+      makeDefectRateChip({ topLevel: { level: 'Billing', rate: 3.2 } }),
+    ];
+    render(
+      <FactorStripBase
+        {...baseProps}
+        variant="defect-rate-share"
+        defectRateChips={drChips}
+        isDefectRate={false}
+      />
+    );
+    const annotationEl = screen.getByTestId('factor-chip-defect-rate-top-level');
+    // Must NOT contain "%" — count path has no percent symbol
+    expect(annotationEl.textContent).not.toContain('%');
+    expect(annotationEl.textContent).toContain('Billing');
+    // Must NOT render as 320 (×100 bug) — raw count only
+    expect(annotationEl.textContent).not.toContain('320');
+  });
+
+  it('renders concentration readout line with "concentration" label', () => {
+    const drChips: DefectRateChip[] = [makeDefectRateChip({ concentration: 0.45 })];
+    render(
+      <FactorStripBase {...baseProps} variant="defect-rate-share" defectRateChips={drChips} />
+    );
+    const concEl = screen.getByTestId('factor-chip-defect-rate-concentration');
+    expect(concEl).toBeDefined();
+    // The concentration readout must NOT contain '%'
+    expect(concEl.textContent).not.toContain('%');
+    // It must mention the word "concentration"
+    expect(concEl.textContent).toContain('concentration');
   });
 });

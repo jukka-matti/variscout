@@ -1292,6 +1292,8 @@ export const en: MessageCatalog = {
   'factorStrip.defectRate.subtitle':
     'how strongly each factor concentrates the defect rate across its levels (rate concentration — not % of variation)',
   'factorStrip.defectRate.chip.topLevel': '{level} {rate}%',
+  'factorStrip.defectRate.chip.topLevelCount': '{level} {count}',
+  'factorStrip.defectRate.chip.concentration': 'concentration {value}',
   'factorStrip.defectRate.star.title': 'largest share',
 
   // ── Composition view (ER-5a) ──

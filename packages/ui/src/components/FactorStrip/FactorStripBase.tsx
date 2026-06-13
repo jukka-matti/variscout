@@ -64,6 +64,22 @@ export interface FactorStripBaseProps {
    * Ignored when variant is 'magnitude' or 'membership'.
    */
   defectRateChips?: DefectRateChip[];
+  /**
+   * Whether the defect outcome is a rate (0–1 proportion → DefectRate) or a raw
+   * mean count (→ DefectCount). Controls whether the per-level top-level annotation
+   * multiplies by 100 and appends "%" (rate path) or formats the count directly
+   * without scaling (count path). Statistical honesty requirement (P5 / ADR-069):
+   * a count of 3.2 must NEVER render as "320.0%" — that would be an honesty violation.
+   *
+   * true  → DefectRate path: topLevel annotation uses i18n key `factorStrip.defectRate.chip.topLevel`
+   *          with `rate = formatStat(value * 100, 1)` and a "%" suffix from the template.
+   * false → DefectCount path: annotation uses `factorStrip.defectRate.chip.topLevelCount`
+   *          with `count = formatStat(value, 1)` — no ×100, no %.
+   *
+   * Defaults to true (rate path) to preserve existing behaviour for callers that
+   * have not yet threaded outcomeColumn (backwards-compatible).
+   */
+  isDefectRate?: boolean;
 }
 
 /**
@@ -92,6 +108,7 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
   membershipChips,
   membershipStepDecorations,
   defectRateChips,
+  isDefectRate = true,
 }) => {
   const { t, tf, formatStat } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -383,12 +400,19 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
     const isExamined = examinedKeys.has(chip.factor);
     const isStarred = rankIndex === 0 && chip.isSignificant;
 
+    // Statistical-honesty branch (P5 / ADR-069): rate outcomes are ×100 + "%";
+    // count outcomes are formatted as-is with no scaling or percent symbol.
     const topLevelAnnotation =
       chip.topLevel !== null
-        ? tf('factorStrip.defectRate.chip.topLevel', {
-            level: chip.topLevel.level,
-            rate: formatStat(chip.topLevel.rate * 100, 1),
-          })
+        ? isDefectRate
+          ? tf('factorStrip.defectRate.chip.topLevel', {
+              level: chip.topLevel.level,
+              rate: formatStat(chip.topLevel.rate * 100, 1),
+            })
+          : tf('factorStrip.defectRate.chip.topLevelCount', {
+              level: chip.topLevel.level,
+              count: formatStat(chip.topLevel.rate, 1),
+            })
         : null;
 
     return (
@@ -446,13 +470,21 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
             {topLevelAnnotation}
           </span>
         )}
-        {/* Row 3: concentration bar (rate dispersion — NOT % of variation) */}
+        {/* Row 3: concentration bar + readout (rate dispersion — NOT % of variation) */}
         <span className="flex items-center gap-2">
           <span
             data-testid="factor-chip-bar"
             className="h-1 rounded-full bg-status-warning"
             style={{ width: `${defectRateBarWidthPx(chip.concentration)}px` }}
           />
+          <span
+            data-testid="factor-chip-defect-rate-concentration"
+            className="text-[11px] text-content-secondary"
+          >
+            {tf('factorStrip.defectRate.chip.concentration', {
+              value: formatStat(chip.concentration, 3),
+            })}
+          </span>
         </span>
       </div>
     );

@@ -1281,6 +1281,7 @@ const Dashboard = ({
       <FactorStripBase
         variant="defect-rate-share"
         defectRateChips={defectRateModel}
+        isDefectRate={defectResult?.outcomeColumn === 'DefectRate'}
         chips={stripModel?.chips ?? []}
         residualPct={stripModel?.residualPct ?? 0}
         selectedFactor={boxplotFactor}
