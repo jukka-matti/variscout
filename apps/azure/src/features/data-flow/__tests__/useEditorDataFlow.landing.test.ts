@@ -225,17 +225,23 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
     expect(setAnalysisMode).not.toHaveBeenCalledWith('performance');
   });
 
-  it('lands a defect-shaped fresh paste at b0 with a defect proposal', async () => {
-    // Precondition: defect format detected. FSJ-6 routes ANY isDefectFormat to b0
-    // for the inline confirm sequence (no high|medium filter in Azure).
+  it('lands a defect-shaped fresh paste at b0 — high confidence auto-applies via onHighConfidenceDefect', async () => {
+    // Precondition: defect format detected. ER-5b: Azure now has the same high/medium
+    // confidence fork as PWA — high confidence fires onHighConfidenceDefect (auto-apply,
+    // no modal); medium confidence sets defectDetection for the confirm UI.
     const parsed = await parseText(tsvOf(defectRows));
     const defect = detectDefectFormat(parsed, detectColumns(parsed).columnAnalysis);
     expect(defect.isDefectFormat).toBe(true);
+    // Fixture guard: assert exact confidence so fixture drift fails loudly.
+    expect(defect.confidence).toBe('high');
 
+    const onHighConfidenceDefect = vi.fn();
     const onFreshPasteLanded = vi.fn();
     const onFreshPasteAnalyzed = vi.fn();
     const { result } = renderHook(() =>
-      useEditorDataFlow(makeOptions({ onFreshPasteLanded, onFreshPasteAnalyzed }))
+      useEditorDataFlow(
+        makeOptions({ onHighConfidenceDefect, onFreshPasteLanded, onFreshPasteAnalyzed })
+      )
     );
 
     await act(async () => {
@@ -243,7 +249,9 @@ describe('useEditorDataFlow — FSJ-3b landing branch', () => {
     });
 
     expect(result.current.isMapping).toBe(false);
-    expect(result.current.defectDetection).not.toBeNull();
+    // ER-5b auto-apply: high confidence fires the callback, leaves defectDetection null.
+    expect(onHighConfidenceDefect).toHaveBeenCalledTimes(1);
+    expect(result.current.defectDetection).toBeNull();
     expect(onFreshPasteLanded).toHaveBeenCalledTimes(1);
     expect(onFreshPasteAnalyzed).not.toHaveBeenCalled();
   });

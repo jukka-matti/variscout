@@ -333,6 +333,10 @@ describe('usePasteImportFlow — FSJ-2 landing branch', () => {
     });
 
     expect(result.current.isMapping).toBe(false);
+    // Fixture guard: if the fixture stops producing high confidence the conditional
+    // branch below becomes dead and both assertion paths are silently untested.
+    // Assert the exact confidence value BEFORE branching so any fixture drift fails loudly.
+    expect(defect.confidence).toBe('high');
     if (defect.confidence === 'high') {
       // ER-5b: auto-apply — callback fires, defectDetection stays null (no modal).
       expect(onHighConfidenceDefect).toHaveBeenCalledTimes(1);
