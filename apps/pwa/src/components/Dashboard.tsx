@@ -29,6 +29,8 @@ import {
   type ChartId,
   type WorkspaceProjectScopeLabels,
   DefectDispatchBanner,
+  type ModelDrawerStats,
+  type ModelInteraction,
 } from '@variscout/ui';
 import {
   useKeyboardNavigation,
@@ -249,6 +251,8 @@ const Dashboard = ({
   const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
   // ER-3: Model drawer open state (Explore door).
   const [modelDrawerOpen, setModelDrawerOpen] = useState(false);
+  // ER-6: Live model stats from the Explore drawer (strip v2 + interaction chip).
+  const [exploreModelStats, setExploreModelStats] = useState<ModelDrawerStats | null>(null);
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveModeUtil(analysisMode) === 'defect';
@@ -1134,6 +1138,19 @@ const Dashboard = ({
     if (scopeId) useAnalyzeStore.getState().recomputeScopeWhatIf(scopeId);
   }, [effectiveOutcome, scopeProjectId]);
 
+  // ER-6: Interaction chip click — renders the factorA × {focalLevel, rest}
+  // paired comparison in the existing comparison/boxplot slot (reuse chip-click rebind).
+  const handleInteractionSelect = useCallback(
+    (interaction: ModelInteraction) => {
+      setBoxplotFactor(interaction.factorA);
+    },
+    [setBoxplotFactor]
+  );
+
+  // The modelStats to pass to the magnitude strip (v2). Only on the magnitude
+  // path; defect-rate and membership variants ignore modelStats.
+  const magnitudeModelStats = !useDefectRateStrip && !useMembershipStrip ? exploreModelStats : null;
+
   // ER-5b: in defect dispatch the strip flips to defect-rate-share. Otherwise,
   // ER-5a: under a condition with a resolved membership model the strip flips to
   // membership. Otherwise — including degenerate-model fallback — magnitude.
@@ -1201,6 +1218,8 @@ const Dashboard = ({
           maybeRefreshScopeWhatIf();
         }}
         onAnovaLinkClick={() => setModelDrawerOpen(true)}
+        modelStats={magnitudeModelStats}
+        onInteractionSelect={handleInteractionSelect}
       />
     ) : undefined;
 
@@ -1778,7 +1797,8 @@ const Dashboard = ({
       />
       {/* ER-3: Model drawer — Explore door. Mounted in the relative root so it
           is screen-space (never viewBox-cropped). No onCaptureModel (Explore
-          capture deferred). No onModelStats (DOI feed is Analyze-only). */}
+          capture deferred). ER-6: onModelStats wired so the strip upgrades to
+          in-model ΔR² + the ⚡ interaction chip once best-subsets completes. */}
       <ModelDrawerBase
         open={modelDrawerOpen}
         onClose={() => setModelDrawerOpen(false)}
@@ -1789,6 +1809,7 @@ const Dashboard = ({
         }
         candidateFactors={candidateFactorsForDrawer}
         scopeLabel={modelDrawerScopeLabel}
+        onModelStats={setExploreModelStats}
       />
     </div>
   );
