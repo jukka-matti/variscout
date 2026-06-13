@@ -6,12 +6,10 @@
   "scripts": {
     "dev": "LOCAL_DEV=1 node server.js",
     "build": "node scripts/build-company-workspace.mjs",
-    "build:legacy-client": "tsc && vite build",
     "preview": "node server.js",
-    "test": "vitest",
+    "test": "echo \"no unit tests — @variscout/azure-app is a server/deployment host; client tests live in @variscout/workspace-app; server behaviour is covered by e2e (test:e2e)\" && exit 0",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "lint": "eslint src"
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@microsoft/applicationinsights-web": "^3.4.1",
