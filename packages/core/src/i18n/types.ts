@@ -851,6 +851,14 @@ export interface MessageCatalog {
   'defect.detected.stepOfOrigin': string;
   'defect.detected.stepOfOriginHint': string;
 
+  // ── DefectDispatchBanner (ER-5b auto-apply correction affordance) ──
+  /** Main label: "⌖ Detected count data — analyzing defect rates" */
+  'defect.dispatch.banner.label': string;
+  /** "adjust columns ▾" button to open the correction modal */
+  'defect.dispatch.banner.adjust': string;
+  /** "use as standard data" button to revert to standard analysis */
+  'defect.dispatch.banner.useStandard': string;
+
   // Factor Intelligence
   'fi.title': string;
   'fi.ranking': string;

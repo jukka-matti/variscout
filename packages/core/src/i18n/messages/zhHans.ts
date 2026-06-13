@@ -699,6 +699,11 @@ export const zhHans: MessageCatalog = {
   'defect.detected.stepOfOriginHint':
     'Identifies which step caught each defect. Optional — defects anchor to outcome when not set.',
 
+  // ── DefectDispatchBanner (ER-5b) ──
+  'defect.dispatch.banner.label': '⌖ Detected count data — analyzing defect rates',
+  'defect.dispatch.banner.adjust': 'adjust columns ▾',
+  'defect.dispatch.banner.useStandard': 'use as standard data',
+
   // Report workspace view
   'report.cpkLearningLoop': 'Cpk Learning Loop',
   'report.verdict.effective': 'Effective',
