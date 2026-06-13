@@ -1948,3 +1948,13 @@ PR-1 deleted the legacy Azure React client but **kept** the `apps/azure/e2e/` Pl
 Root `CLAUDE.md` §Commands still reads `pnpm --filter @variscout/azure-app dev — Azure app`. After #388 + PR-1, `apps/azure` has no client dev server — `dev` = `node server.js` serving the prebuilt `dist/` (the workspace-app company bundle). The line should be reframed (e.g. "`pnpm --filter @variscout/azure-app dev` — company server hosting the workspace-app company bundle (requires a prior build)") or dropped. Deferred from PR-1 deliberately (a root-doc edit shouldn't ride in a code-deletion PR); fold into the D4 convergence doc pass or a standalone main commit.
 
 **Severity:** trivial — doc accuracy nit.
+
+## I-Chart canvas blanks after in-session tab navigation (visx renderer-wedge) [LOGGED 2026-06-14]
+
+**Surfaced by:** D4 verification chrome walk (converged workspace-app, `pnpm dev` :5173).
+
+The Explore-tab I-Chart renders correctly on first load of a case, but the chart **canvas goes blank** after in-session navigation (Analyze→Explore tab switches; clicking a factor then re-rendering). The surrounding surfaces (ΔR² factor strip, ⚡ interaction chip, stat strip, process-shift banner) keep rendering fine — only the visx I-Chart SVG blanks. A full page reload restores it (but resets the in-session free-tier session). Observed twice in one walk (Syringe case after Analyze→Explore; Sachet case on first Explore after loading via Analyze). Matches the ER-mission note "visx-interop blank page / session-restore across code versions can wedge the renderer."
+
+**Not introduced by D4** (PR-1 deletion / PR-2 Cpk fix don't touch the I-Chart render path) — pre-existing, surfaced because the converged app is now the single walk target. Worth a focused look during the D4 convergence arc since it's a visible flake on the hero surface: candidate causes = visx ResponsiveSVG/parent-size measurement returning 0 after a hidden→shown tab transition, or a memoized chart node not re-measuring on remount. The other ER surfaces being unaffected points at the chart container's size-observer, not the data pipeline.
+
+**Severity:** medium — visible blank on the hero chart after navigation; reload-recoverable so not a hard block, but it undercuts converged-app polish.
