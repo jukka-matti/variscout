@@ -21,13 +21,9 @@ The surviving server responsibilities are:
 ```bash
 pnpm --filter @variscout/azure-app build   # build company Workspace into apps/azure/dist
 pnpm --filter @variscout/azure-app preview # serve apps/azure/dist through server.js
-pnpm --filter @variscout/azure-app test    # remaining server/config/legacy tests
+pnpm --filter @variscout/azure-app test:e2e # Playwright against the served bundle
 ```
 
-The previous Azure React client build is retained temporarily as:
-
-```bash
-pnpm --filter @variscout/azure-app build:legacy-client
-```
-
-Use it only while retiring old Azure-client tests and references.
+The legacy Azure React client (`src/`) and its `build:legacy-client` script were
+deleted in the D4 convergence. This package no longer contains client source or
+unit tests; the client is `@variscout/workspace-app` at `apps/pwa/`.
