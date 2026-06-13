@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
@@ -15,8 +15,6 @@ export interface NarrativeBarProps {
   onAsk?: () => void;
   /** Callback to retry after error */
   onRetry?: () => void;
-  /** Enable tap-to-expand on mobile */
-  isMobile?: boolean;
   /** Data quality hint — 'limited' shows amber dot indicating small sample size */
   dataQualityHint?: 'limited' | null;
 }
@@ -32,17 +30,10 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
   error,
   onAsk,
   onRetry,
-  isMobile = false,
   dataQualityHint,
 }) => {
   const { t } = useTranslation();
-  const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleTextTap = useCallback(() => {
-    if (isMobile) {
-      setIsExpanded(prev => !prev);
-    }
-  }, [isMobile]);
   // Loading shimmer
   if (isLoading) {
     return (
@@ -100,16 +91,7 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
           aria-label="Limited data quality indicator"
         />
       )}
-      <p
-        className={`flex-1 text-xs text-content-secondary leading-relaxed ${
-          isMobile ? (isExpanded ? 'line-clamp-3' : 'truncate') : 'truncate'
-        } ${isMobile ? 'cursor-pointer' : ''}`}
-        style={isMobile ? { transition: 'max-height 200ms ease-out' } : undefined}
-        onClick={handleTextTap}
-        role={isMobile ? 'button' : undefined}
-        aria-expanded={isMobile ? isExpanded : undefined}
-        data-testid={isMobile ? 'narrative-text-toggle' : undefined}
-      >
+      <p className="flex-1 text-xs text-content-secondary leading-relaxed truncate">
         {narrative}
         {isCached ? (
           <span className="ml-1.5 text-[0.625rem] text-content-muted">({t('status.cached')})</span>

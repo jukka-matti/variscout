@@ -353,14 +353,6 @@ export {
   type ParetoChartWrapperBaseProps,
 } from './components/ParetoChartWrapper';
 
-// Evidence Map Sheets
-export {
-  EvidenceMapNodeSheet,
-  type EvidenceMapNodeSheetProps,
-  EvidenceMapEdgeSheet,
-  type EvidenceMapEdgeSheetProps,
-} from './components/EvidenceMapSheet';
-
 // Evidence Map Context Menu (right-click actions for factor nodes and relationship edges)
 export { NodeContextMenu, type NodeContextMenuProps } from './components/EvidenceMapContextMenu';
 export { EdgeContextMenu, type EdgeContextMenuProps } from './components/EvidenceMapContextMenu';

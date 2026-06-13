@@ -79,66 +79,18 @@ describe('NarrativeBar', () => {
     expect(screen.getByTestId('narrative-bar')).toBeTruthy();
   });
 
-  describe('mobile tap-to-expand', () => {
-    it('renders with truncate by default on mobile', () => {
-      render(
-        <NarrativeBar
-          narrative="Long text that should be truncated"
-          isLoading={false}
-          isCached={false}
-          error={null}
-          isMobile={true}
-        />
-      );
-      const toggle = screen.getByTestId('narrative-text-toggle');
-      expect(toggle.className).toContain('truncate');
-      expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    });
-
-    it('expands to line-clamp-3 on tap', () => {
-      render(
-        <NarrativeBar
-          narrative="Long text"
-          isLoading={false}
-          isCached={false}
-          error={null}
-          isMobile={true}
-        />
-      );
-      const toggle = screen.getByTestId('narrative-text-toggle');
-      fireEvent.click(toggle);
-      expect(toggle.className).toContain('line-clamp-3');
-      expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    });
-
-    it('collapses back on second tap', () => {
-      render(
-        <NarrativeBar
-          narrative="Long text"
-          isLoading={false}
-          isCached={false}
-          error={null}
-          isMobile={true}
-        />
-      );
-      const toggle = screen.getByTestId('narrative-text-toggle');
-      fireEvent.click(toggle); // expand
-      fireEvent.click(toggle); // collapse
-      expect(toggle.className).toContain('truncate');
-      expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    });
-
-    it('does not have toggle behavior when not mobile', () => {
-      render(
-        <NarrativeBar
-          narrative="Some text"
-          isLoading={false}
-          isCached={false}
-          error={null}
-          isMobile={false}
-        />
-      );
-      expect(screen.queryByTestId('narrative-text-toggle')).toBeNull();
-    });
+  // Desktop-only (ADR-093 D3): the narrative text always truncates; no mobile
+  // tap-to-expand toggle exists.
+  it('truncates narrative text with no expand toggle', () => {
+    render(
+      <NarrativeBar
+        narrative="Long text that should be truncated"
+        isLoading={false}
+        isCached={false}
+        error={null}
+      />
+    );
+    expect(screen.queryByTestId('narrative-text-toggle')).toBeNull();
+    expect(screen.getByText(/Long text/).className).toContain('truncate');
   });
 });
