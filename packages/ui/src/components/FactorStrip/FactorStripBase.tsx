@@ -168,36 +168,49 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
   }, [isV2, residualPct, modelStats]);
 
   // v2 chip value lookup: ΔR² from modelStats, scaled to percentage.
+  // In v2, only kept factors (present in deltaR2) have valid in-model values;
+  // factors absent from deltaR2 must not show a marginal η² under the "in the model" caption.
   const getChipPct = (factor: string, adjustedPct: number): number => {
     if (!isV2) return adjustedPct;
     const dr2 = modelStats?.deltaR2.get(factor);
+    // In v2 the caller must only call this for kept factors — absent ones are filtered out.
     return dr2 != null ? dr2 * 100 : adjustedPct;
   };
 
+  // v2: only render chips present in the deltaR2 map (the kept/shown factor set).
+  // This ensures the "in the model" caption is always truthful — we never silently
+  // show a marginal η² value under an in-model label.
+  const keptChips = useMemo(() => {
+    if (!isV2 || !modelStats) return chips;
+    return chips.filter(c => modelStats.deltaR2.has(c.factor));
+  }, [chips, isV2, modelStats]);
+
   // Common-scale normalization: the largest adjusted share maps to BAR_MAX_PX.
-  // v2: normalize over in-model ΔR² values; v1: over adjustedPct.
+  // v2: normalize over in-model ΔR² values of KEPT chips only; v1: over adjustedPct.
   const maxPct = useMemo(() => {
     if (isV2 && modelStats) {
-      const values = [...modelStats.deltaR2.values()].map(v => v * 100);
+      const values = keptChips.map(c => (modelStats.deltaR2.get(c.factor) ?? 0) * 100);
       return values.reduce((m, v) => Math.max(m, v), 0);
     }
     return chips.reduce((m, c) => Math.max(m, c.adjustedPct), 0);
-  }, [chips, isV2, modelStats]);
+  }, [chips, keptChips, isV2, modelStats]);
 
   // Disclosure: the top-N by global rank always render expanded; any
   // framing-selected chip outside the top-N also renders expanded (selection =
   // prominence). Everything else collapses under "+N also screened".
+  // In v2, disclosure operates over keptChips only (non-kept chips are omitted).
   const { primaryChips, collapsedChips } = useMemo(() => {
     const primary: FactorStripChip[] = [];
     const collapsed: FactorStripChip[] = [];
-    chips.forEach((chip, idx) => {
+    const source = isV2 ? keptChips : chips;
+    source.forEach((chip, idx) => {
       if (idx < TOP_N_EXPANDED || chip.isSelected) primary.push(chip);
       else collapsed.push(chip);
     });
     return { primaryChips: primary, collapsedChips: collapsed };
-  }, [chips]);
+  }, [chips, keptChips, isV2]);
 
-  const visibleChips = expanded ? chips : primaryChips;
+  const visibleChips = expanded ? (isV2 ? keptChips : chips) : primaryChips;
   const hiddenCount = collapsedChips.length;
 
   const barWidthPx = (pct: number): number => {
@@ -692,7 +705,7 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
               className="flex flex-col justify-center px-2.5 py-1.5 text-[11px] text-content-muted"
             >
               {isV2
-                ? tf('factorStrip.inModel.residual', { n: String(effectiveResidualPct) })
+                ? tf('factorStrip.inModel.residual', { n: formatStat(effectiveResidualPct, 0) })
                 : tf('factorStrip.residual', { n: formatStat(effectiveResidualPct, 0) })}
             </div>
           )}
@@ -713,11 +726,16 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
               className="flex flex-col gap-1 rounded-lg border border-dashed border-status-info px-2.5 py-1.5 cursor-pointer transition-colors hover:bg-surface-secondary"
             >
               <span className="text-[11px] font-medium text-content-secondary">
-                {tf('factorStrip.interaction.chip', {
-                  factorA: modelStats.interaction.factorA,
-                  factorB: modelStats.interaction.factorB,
-                  deltaR2Pct: formatStat(modelStats.interaction.deltaR2 * 100, 1),
-                })}
+                {tf(
+                  modelStats.interaction.pattern === 'disordinal'
+                    ? 'factorStrip.interaction.chip.disordinal'
+                    : 'factorStrip.interaction.chip.ordinal',
+                  {
+                    factorA: modelStats.interaction.factorA,
+                    factorB: modelStats.interaction.factorB,
+                    deltaR2Pct: formatStat(modelStats.interaction.deltaR2 * 100, 1),
+                  }
+                )}
               </span>
             </div>
           )}

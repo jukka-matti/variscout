@@ -1411,11 +1411,19 @@ export interface MessageCatalog {
    */
   'factorStrip.inModel.residual': string;
   /**
-   * Interaction chip conclusion text (ER-6 ⚡ chip).
+   * Interaction chip conclusion text — ordinal pattern (ER-6 ⚡ chip).
+   * Ordinal = lines differ in slope but do not cross.
    * Params: {factorA}, {factorB}, {deltaR2Pct} (percentage of ΔR² as string).
-   * The conclusion states the geometric dependency — NEVER uses "moderator"/"primary".
+   * NEVER uses "moderator"/"primary" — geometric vocabulary only.
    */
-  'factorStrip.interaction.chip': string;
+  'factorStrip.interaction.chip.ordinal': string;
+  /**
+   * Interaction chip conclusion text — disordinal pattern (ER-6 ⚡ chip).
+   * Disordinal = lines cross (the relationship reverses across levels).
+   * Params: {factorA}, {factorB}, {deltaR2Pct} (percentage of ΔR² as string).
+   * NEVER uses "moderator"/"primary" — geometric vocabulary only.
+   */
+  'factorStrip.interaction.chip.disordinal': string;
 
   // ── Composition view (ER-5a — paired share bars per level + ⊕) ──
   /** Heading: "Composition by {factor}". Param: {factor}. */

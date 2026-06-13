@@ -167,7 +167,12 @@ describe('FactorStripBase v2 — ⚡ interaction chip', () => {
     expect(chip.textContent).toMatch(/8\.0%/);
   });
 
-  it('interaction chip face carries the geometric conclusion, not role-based terms', () => {
+  it('interaction chip face carries pattern-specific geometric conclusion — disordinal says "reverses", never role-based terms', () => {
+    /**
+     * The fixture uses pattern='disordinal'. The chip must select the disordinal
+     * i18n key ("relationship reverses across") — NOT the ordinal key ("vary in magnitude"),
+     * and NEVER role-based vocabulary ("moderator"/"primary").
+     */
     render(
       <FactorStripBase
         {...baseProps}
@@ -177,11 +182,30 @@ describe('FactorStripBase v2 — ⚡ interaction chip', () => {
     );
     const chip = screen.getByTestId('factor-chip-interaction');
     const text = chip.textContent ?? '';
-    // Must describe the geometric dependency
-    expect(text).toMatch(/depend/i);
+    // Disordinal template: "relationship reverses across"
+    expect(text).toMatch(/revers/i);
+    // Must NOT use ordinal template language
+    expect(text).not.toMatch(/vary in magnitude/i);
     // Must NOT use forbidden role-based vocabulary
     expect(text).not.toMatch(/moderator/i);
     expect(text).not.toMatch(/primary/i);
+  });
+
+  it('interaction chip face uses ordinal template for ordinal pattern', () => {
+    const ordinalInteraction: ModelInteraction = { ...interaction, pattern: 'ordinal' };
+    render(
+      <FactorStripBase
+        {...baseProps}
+        modelStats={{ ...modelStats, interaction: ordinalInteraction }}
+        onInteractionSelect={vi.fn()}
+      />
+    );
+    const chip = screen.getByTestId('factor-chip-interaction');
+    const text = chip.textContent ?? '';
+    // Ordinal template: "vary in magnitude"
+    expect(text).toMatch(/vary in magnitude/i);
+    // Must NOT use disordinal template language
+    expect(text).not.toMatch(/revers/i);
   });
 
   it('interaction chip click fires onInteractionSelect with the interaction payload', () => {
