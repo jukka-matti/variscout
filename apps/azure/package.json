@@ -13,8 +13,6 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@azure/identity": "^4.13.1",
-    "@azure/storage-blob": "^12.31.0",
     "@microsoft/applicationinsights-web": "^3.4.1",
     "@variscout/charts": "workspace:*",
     "@variscout/core": "workspace:*",
@@ -30,7 +28,6 @@
     "html-to-image": "^1.11.13",
     "jszip": "^3.10.1",
     "lucide-react": "^1.16.0",
-    "multer": "^2.1.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "web-vitals": "^5.2.0",
@@ -44,7 +41,6 @@
     "@testing-library/react": "^16.3.2",
     "@types/d3-array": "^3.2.1",
     "@types/express": "^5.0.6",
-    "@types/multer": "^2.1.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.0.0",
     "@types/supertest": "^7.2.0",

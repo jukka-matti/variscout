@@ -31,9 +31,9 @@ describe('IndexedDB clean pre-launch schema', () => {
       'measurementPlans',
       'processHubs',
       'projects',
-      'syncQueue',
-      'syncState',
     ]);
+    expect(storeNames).not.toContain('syncQueue');
+    expect(storeNames).not.toContain('syncState');
     expect(storeNames).not.toContain('photoQueue');
     expect(storeNames).not.toContain('channelDriveCache');
   });

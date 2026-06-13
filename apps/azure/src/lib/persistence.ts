@@ -1,8 +1,8 @@
 /**
  * Persistence utilities for Azure app
  *
- * Similar to PWA persistence but integrates with cloud sync.
- * Local storage is used for auto-save; IndexedDB for offline cache.
+ * Similar to PWA persistence: local storage is used for auto-save and
+ * IndexedDB is used as the Workspace crash-recovery cache.
  */
 
 import type { ProjectExportContext, ProjectImportPayload } from '@variscout/hooks';
@@ -22,7 +22,6 @@ export interface SavedProject {
   savedAt: string;
   rowCount: number;
   synced: boolean;
-  cloudId?: string;
   modifiedBy?: string;
 }
 

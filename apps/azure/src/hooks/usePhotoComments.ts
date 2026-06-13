@@ -15,7 +15,6 @@ import {
 } from '@variscout/core/ai';
 import type { UseFindingsReturn } from '@variscout/hooks';
 import { processPhoto } from '../utils/photoProcessing';
-import { saveBlobPhoto } from '../services/blobClient';
 
 interface UsePhotoCommentsOptions {
   findingsState: UseFindingsReturn;
@@ -37,24 +36,10 @@ export function usePhotoComments({ findingsState, analysisId, author }: UsePhoto
         // 3. Add to UI
         findingsState.addPhotoToComment(findingId, commentId, photo);
 
-        // 4. Upload to Blob Storage (if online)
-        if (navigator.onLine && analysisId) {
-          try {
-            const remoteUrl = await saveBlobPhoto(
-              analysisId,
-              findingId,
-              photo.id,
-              processed.fullResBlob
-            );
-            findingsState.updatePhotoStatus(findingId, commentId, photo.id, 'uploaded', remoteUrl);
-            return;
-          } catch (uploadErr) {
-            if (import.meta.env.DEV)
-              console.warn('[PhotoComments] Blob upload failed, falling back to local:', uploadErr);
-          }
-        }
+        void analysisId;
+        void processed.fullResBlob;
 
-        // 5. Fallback: mark as local-only upload
+        // 4. Mark as local-only upload.
         findingsState.updatePhotoStatus(
           findingId,
           commentId,

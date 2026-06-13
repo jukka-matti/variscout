@@ -117,8 +117,6 @@ import {
   ensureHubProject,
   landFreshEntryOnProcess,
 } from '../lib/landing';
-import { SaveConflictDialog } from '../components/SaveConflictDialog';
-import { requestPersistentStorageOnce } from '../services/storageDurability';
 import ProcessHubControlRegion from '../components/ProcessHubControlRegion';
 import { useAIStore } from '../features/ai/aiStore';
 import { EditorViewSwitch } from '../components/editor/EditorViewSwitch';
@@ -182,11 +180,8 @@ export const Editor: React.FC<EditorProps> = ({
     syncStatus,
     listProjects,
     listProcessHubs,
-    saveProject: saveToCloud,
+    saveProject: saveDocumentLocally,
     saveProcessHub,
-    pendingConflict,
-    dismissConflict,
-    reloadProjectFromCloud,
   } = useStorage();
   const { locale } = useLocale();
   const { showToast } = useToast();
@@ -443,18 +438,17 @@ export const Editor: React.FC<EditorProps> = ({
     getActiveHub: () => activeHub,
   });
 
-  // Wrap saveProject with cloud sync
+  // Save the canonical document snapshot into the local Workspace cache.
   const saveProject = useCallback(
     async (name: string) => {
       const trimmedName = name.trim() || defaultSaveName(dataFilename);
       setDefaultLocation('personal');
       useProjectStore.setState({ projectName: trimmedName });
       await projectActions.saveProject(trimmedName);
-      // Trigger cloud sync with current store state snapshot
       const state = buildDocumentSnapshot({ activeHub });
-      return saveToCloud(state, trimmedName, 'personal');
+      return saveDocumentLocally(state, trimmedName, 'personal');
     },
-    [activeHub, dataFilename, projectActions, saveToCloud]
+    [activeHub, dataFilename, projectActions, saveDocumentLocally]
   );
 
   const loadProject = useCallback(
@@ -1646,21 +1640,15 @@ export const Editor: React.FC<EditorProps> = ({
 
       setSaveStatus('saving');
       try {
-        const result = await saveProject(targetName);
-        if (result?.status === 'conflict') {
-          // PO-8b: the cloud document was NOT saved — the reload-or-branch
-          // dialog owns resolution. Keep the dirty baseline (no false "saved").
-          setSaveStatus('idle');
-          return;
-        }
+        await saveProject(targetName);
         const savedName = useProjectStore.getState().projectName || targetName;
         setSavedDocumentName(savedName);
         setSavedFingerprint(computeCurrentFingerprint());
         // FSJ-3a (spec §3): the first explicit save flushes the in-memory hub to
         // the catalog so activeHub survives reload (the document snapshot already
         // carried it — buildDocumentSnapshot reads the activeHub closure). The hub
-        // catalog write is NOT under withDocumentSaveLock/ETag by design (it is a
-        // separate, fire-and-forget-cloud surface — azure CLAUDE.md); do not wrap.
+        // catalog write is a separate local cache update; do not wrap it in the
+        // document save callback.
         const unsaved = useUnsavedHubsStore.getState();
         if (activeHub && unsaved.isUnsaved(activeHub.id)) {
           await saveProcessHub(activeHub);
@@ -1687,58 +1675,8 @@ export const Editor: React.FC<EditorProps> = ({
     const promptedName = window.prompt('Save As', suggestedName);
     const newName = promptedName?.trim();
     if (!newName) return;
-    void requestPersistentStorageOnce(); // PO-8b: durable-by-default on a real save gesture
     await saveAndRecordBaseline(newName);
   }, [currentProjectName, dataFilename, saveAndRecordBaseline, savedDocumentName]);
-
-  // ── PO-8b conflict resolution (the reload-or-branch dialog) ──────────────
-  // Deferral latch: "Not now" suspends AUTOSAVE retries (each would re-412 and
-  // re-open the dialog every 2s); a MANUAL save re-opens it via a fresh 412.
-  const [conflictDeferred, setConflictDeferred] = useState(false);
-
-  const handleConflictBranch = useCallback(async () => {
-    const conflictedName = pendingConflict?.name;
-    if (!conflictedName) return;
-    dismissConflict();
-    setConflictDeferred(false);
-    void requestPersistentStorageOnce(); // real save gesture — same as handleSaveAs
-    // Branch = the shipped "(conflict copy)" naming, now user-chosen: a full
-    // save under the copy name; the Editor adopts the copy as its active
-    // document (copy identity → its own ETag → no conflict from the original
-    // document's stale ETag on the next save).
-    await saveAndRecordBaseline(`${conflictedName} (conflict copy)`);
-  }, [dismissConflict, pendingConflict, saveAndRecordBaseline]);
-
-  const handleConflictReload = useCallback(async () => {
-    const conflictedName = pendingConflict?.name;
-    const conflictedLocation = pendingConflict?.location ?? 'personal';
-    if (!conflictedName) return;
-    dismissConflict();
-    setConflictDeferred(false);
-    const remote = await reloadProjectFromCloud(conflictedName, conflictedLocation);
-    if (!remote) return; // storage surfaced the error notification; local copy unchanged
-    try {
-      await projectActions.loadProject(conflictedName);
-      setSavedDocumentName(conflictedName);
-      setSavedFingerprint(computeCurrentFingerprint());
-    } catch {
-      // PO-8a strict-assert seam: a corrupt fetched copy refuses to hydrate.
-      // The in-memory document is unchanged; the user can retry or branch.
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
-    }
-  }, [
-    computeCurrentFingerprint,
-    dismissConflict,
-    pendingConflict,
-    projectActions,
-    reloadProjectFromCloud,
-  ]);
-
-  const handleConflictDismiss = useCallback(() => {
-    dismissConflict();
-    setConflictDeferred(true);
-  }, [dismissConflict]);
 
   const hasActiveSavedAzureDocument = Boolean(currentProjectId && savedDocumentName);
   const hasDocumentContent = rawData.length > 0;
@@ -1761,11 +1699,7 @@ export const Editor: React.FC<EditorProps> = ({
    * compared with the saved baseline. projectStore.hasUnsavedChanges remains
    * internal store state, not Azure document truth.
    */
-  useAutoSave(
-    handleSave,
-    [currentFingerprint],
-    hasActiveSavedAzureDocument && isDocumentDirty && !pendingConflict && !conflictDeferred
-  );
+  useAutoSave(handleSave, [currentFingerprint], hasActiveSavedAzureDocument && isDocumentDirty);
 
   const handleRenameProject = useCallback(() => {
     const newName = window.prompt('Rename project', currentProjectName || '');
@@ -2066,15 +2000,6 @@ export const Editor: React.FC<EditorProps> = ({
           workspaceViewModel={workspaceViewModel}
         />
       </div>
-
-      {/* PO-8b: explicit reload-or-branch conflict resolution (replaces the silent auto-fork) */}
-      <SaveConflictDialog
-        isOpen={Boolean(pendingConflict)}
-        documentName={pendingConflict?.name ?? ''}
-        onReload={handleConflictReload}
-        onBranch={handleConflictBranch}
-        onDismiss={handleConflictDismiss}
-      />
 
       {/* Verification prompt: shown when data uploaded while findings are improving */}
       {showVerificationPrompt && (

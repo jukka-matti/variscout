@@ -45,7 +45,7 @@ const ISSUES: TroubleshootIssue[] = [
     id: 'onedrive',
     titleKey: 'admin.issue.onedrive',
     descKey: 'admin.issue.onedriveDesc',
-    // Graph API check removed per ADR-059 (OneDrive replaced by Blob Storage)
+    // Graph API check removed per ADR-059.
     checkFn: null,
     stepsKey: 'admin.issue.onedriveSteps',
     portalLink: {

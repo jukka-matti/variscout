@@ -80,8 +80,6 @@ export async function applyAction(action: HubAction): Promise<void> {
 
     // -------------------------------------------------------------------------
     // Hub meta — local IndexedDB read-modify-write via saveProcessHubToIndexedDB.
-    // This is not the Azure document/cloud conflict policy; document writes use
-    // ETag/If-Match handling at the repository/sync boundary.
     // -------------------------------------------------------------------------
 
     case 'HUB_UPDATE_GOAL': {
