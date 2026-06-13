@@ -1844,7 +1844,7 @@ Three interactive behaviours that lived in `ModelBuilderBand` were **deliberatel
 
 **Rationale for the cut:** the v1 drawer is a read surface. The engineering cost of safe toggle-state management (where does the override live: store, view-state, Finding?) exceeds the demo-phase value, and the capture-as-Finding flow (footer button) serves the "analyst decides, tool assists" principle without requiring live editing.
 
-**Revival trigger:** ER-6 (Strip v2 — in-model ΔR² upgrade + interaction chip) is the natural home; the strip's chip state and the drawer's kept/candidate rows would share the same `modelBuilderState` source. Revive all three together (toggle + hint + snap-back) rather than incrementally — the snap-back is only meaningful once toggling exists.
+**Revival trigger:** ER-6 (Strip v2 — in-model ΔR² upgrade + interaction chip) is the natural home; the strip's chip state and the drawer's kept/candidate rows would share the same `modelBuilderState` source. Revive all three together (toggle + hint + snap-back) rather than incrementally — the snap-back is only meaningful once toggling exists. **[UPDATE 2026-06-13: ER-6 delivered the strip v2 + interaction chip; the band interactivity (toggle/VIF hint/snap-back) remains deferred — the revival trigger still applies for a future ER.]**
 
 **Severity:** deferred by design — not a regression; the band with interactivity was never part of the Explore surface (band was Analyze-only); the drawer gives Explore its first Model surface at all.
 
