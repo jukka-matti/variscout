@@ -101,6 +101,8 @@ Core: a membership-separation ranking (factor vs binary membership; statistic ch
 
 ## ER-6 — Strip v2: in-model upgrade + the interaction chip (§5 v2, D2/D4)
 
+**Sub-plan:** [`2026-06-13-er-6-strip-v2-interaction.md`](2026-06-13-er-6-strip-v2-interaction.md). Crux settled 2026-06-13: the strip consumes ER-3's existing always-live `ModelDrawerStats` (extended with `rSquaredAdj` + the winning `interaction`) wired on Explore — **no second best-subsets fit**.
+
 Chips upgrade marginal→ΔR² when best subsets completes (visible state change, caption flips to "in the model"); the ⚡ interaction chip with its conclusion on the face; clicking it renders the paired `A × {focal level, rest}` comparison (focal level = largest coefficient in the winning term); pattern label via `classifyInteractionPattern()`.
 
 ## ER-7 — Findings drawer + finding→hypothesis wiring (§7.4, §8, D8/D9)
