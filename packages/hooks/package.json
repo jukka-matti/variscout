@@ -33,7 +33,7 @@
     "@types/d3-selection": "^3.0.11",
     "@types/d3-transition": "^3.0.9",
     "@types/d3-zoom": "^3.0.8",
-    "@types/react": "^19.2.15",
+    "@types/react": "^19.2.17",
     "jsdom": "^29.1.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.5"
