@@ -95,6 +95,8 @@ Core: a membership-separation ranking (factor vs binary membership; statistic ch
 
 ## ER-5b — Count-shaped-Y auto-detection + Pareto promotion (§12, D12's other half — split from 5a; touches `resolveMode()`)
 
+**Sub-plan:** [`2026-06-13-er-5b-count-y-pareto.md`](2026-06-13-er-5b-count-y-pareto.md). Auto-dispatch fork settled 2026-06-13: **auto-apply + correctable banner** (retire the `DefectDetectedModal` gate; keep mapping correction one click away) — NOT silent, NOT modal-gated.
+
 `resolveMode()`/`detectColumns` recognize event-log/count Y's automatically (replacing the user-facing defect-mode entry); the Pareto takes a primary slot by data-shape right (**within the existing 4-slot contract — a slot's content changes, no 5th slot ever**); the strip switches to the defect-rate-share variant (ADR-088 level-native). The `computeDefectRates`-before-stats boundary is untouchable; `AnalysisMode` persistence untouched (entity-surgery owns its fate); no mode switcher appears in the redesigned chrome. This slice is deliberately separate: it modifies the mode dispatch point (`core/src/analysisStrategy.ts` hard rule) and deserves its own adversarial review.
 
 ## ER-6 — Strip v2: in-model upgrade + the interaction chip (§5 v2, D2/D4)
