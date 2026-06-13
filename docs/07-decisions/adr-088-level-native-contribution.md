@@ -118,6 +118,16 @@ from Frame + level, not exposed as a user-facing picker.
 
 ## Consequences
 
+### Code-level (amended 2026-06-13, ER-5b)
+
+- **`computeDefectRateShares()` (`packages/core/src/defect/rateShares.ts`) is consumed by the
+  factor strip** in defect dispatch mode. The function computes weighted MAD of per-level defect
+  rates against the overall rate, returns `DefectRateShare[]` sorted DESC by concentration, and is
+  surfaced via `useDefectRateModel` → `FactorStripBase variant="defect-rate-share"`. This is the
+  canonical implementation of the level-native defect-rate share described in this ADR. The strip
+  title confirms the rate basis ("rate contribution") so analysts are never misled into reading it
+  as a variance share.
+
 ### Code-level
 
 - **Net-new `ProcessLevel` type** (`Outcome | Flow | Local`, Y/X/x) mapped onto `CanvasLevel`

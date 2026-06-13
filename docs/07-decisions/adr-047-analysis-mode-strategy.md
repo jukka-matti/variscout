@@ -10,6 +10,17 @@ layer: L5
 **Status:** Accepted (amended 2026-05-28)
 **Date:** 2026-03-23
 
+## Amendment — 2026-06-13 (ER-5b)
+
+Count/event-log-shaped Y columns now **auto-dispatch** to defect handling at paste time without a
+user mode switch. High-confidence detection auto-applies the mapping + sets `analysisMode = 'defect'`
+and shows a one-click-correctable `DefectDispatchBanner` (correction: adjust columns or revert to
+standard). Medium-confidence detection still opens the `DefectDetectedModal` gate. `resolveMode()`
+itself is **not changed** — auto-dispatch happens at ingestion, never inside `resolveMode()`.
+
+`AnalysisMode` values and `ResolvedMode` values are unchanged. The defect strategy's slot layout
+is locked at `ichart → boxplot → pareto → defect-summary` (Pareto in a primary slot — never slot4).
+
 ## Amendment — 2026-05-28
 
 Yamazumi mode is removed from the analysis-mode strategy registry as part of
