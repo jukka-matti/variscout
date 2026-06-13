@@ -1362,6 +1362,22 @@ export interface MessageCatalog {
    */
   'factorStrip.membership.chip.onlyInCondition': string;
 
+  // ── Defect-rate-share strip variant (ER-5b — "What drives the defect rate?") ──
+  /** Title for the defect-rate-share variant: "What drives the defect rate?" */
+  'factorStrip.title.defectRate': string;
+  /**
+   * Honesty subtitle for the defect-rate-share variant — explains this is rate
+   * concentration, NOT % of variation.
+   */
+  'factorStrip.defectRate.subtitle': string;
+  /**
+   * Per-level annotation: "{level} {rate}%".
+   * Params: {level}, {rate} (formatted by caller via formatStat).
+   */
+  'factorStrip.defectRate.chip.topLevel': string;
+  /** Star annotation label — "largest share" (never "strongest"). */
+  'factorStrip.defectRate.star.title': string;
+
   // ── Composition view (ER-5a — paired share bars per level + ⊕) ──
   /** Heading: "Composition by {factor}". Param: {factor}. */
   'compositionView.title': string;

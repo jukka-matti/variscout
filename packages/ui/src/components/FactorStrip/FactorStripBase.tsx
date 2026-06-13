@@ -1,7 +1,12 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { Star, Check } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
-import type { FactorStripChip, MembershipChip, FactorStripStepDecoration } from '@variscout/hooks';
+import type {
+  FactorStripChip,
+  MembershipChip,
+  FactorStripStepDecoration,
+  DefectRateChip,
+} from '@variscout/hooks';
 
 /** Width budget for the common-scale bar (wireframe: max share → 72px). */
 const BAR_MAX_PX = 72;
@@ -37,8 +42,11 @@ export interface FactorStripBaseProps {
    * 'membership' renders the membership-separation view when a condition is applied
    * (ER-5a, D7): factors ranked by Cramér's Ṽ, each chip showing its over-represented
    * level + separation bar. The magnitude rendering path is 100% unchanged.
+   * 'defect-rate-share' renders the defect-rate concentration view when in defect
+   * dispatch (ER-5b): factors ranked by how strongly their levels concentrate the
+   * defect rate. Rate concentration is NOT a variance share (ADR-088 / P5).
    */
-  variant?: 'magnitude' | 'membership';
+  variant?: 'magnitude' | 'membership' | 'defect-rate-share';
   /**
    * Membership chips from useMembershipModel (required when variant='membership').
    * Ignored when variant is 'magnitude' (default).
@@ -51,6 +59,11 @@ export interface FactorStripBaseProps {
    * Absent → no step badge rendered (safe default).
    */
   membershipStepDecorations?: ReadonlyMap<string, FactorStripStepDecoration>;
+  /**
+   * Defect-rate chips from useDefectRateModel (required when variant='defect-rate-share').
+   * Ignored when variant is 'magnitude' or 'membership'.
+   */
+  defectRateChips?: DefectRateChip[];
 }
 
 /**
@@ -78,6 +91,7 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
   variant = 'magnitude',
   membershipChips,
   membershipStepDecorations,
+  defectRateChips,
 }) => {
   const { t, tf, formatStat } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -352,12 +366,121 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
     );
   };
 
+  // ── Defect-rate-share variant helpers ──────────────────────────────────
+  // Concentration → bar width: the largest concentration maps to BAR_MAX_PX.
+  const maxConcentration = useMemo(
+    () => (defectRateChips ?? []).reduce((m, c) => Math.max(m, c.concentration), 0),
+    [defectRateChips]
+  );
+
+  const defectRateBarWidthPx = (concentration: number): number => {
+    if (maxConcentration <= 0) return BAR_MIN_PX;
+    return Math.max(BAR_MIN_PX, Math.round((concentration / maxConcentration) * BAR_MAX_PX));
+  };
+
+  const renderDefectRateChip = (chip: DefectRateChip, rankIndex: number) => {
+    const isActive = selectedFactor === chip.factor;
+    const isExamined = examinedKeys.has(chip.factor);
+    const isStarred = rankIndex === 0 && chip.isSignificant;
+
+    const topLevelAnnotation =
+      chip.topLevel !== null
+        ? tf('factorStrip.defectRate.chip.topLevel', {
+            level: chip.topLevel.level,
+            rate: formatStat(chip.topLevel.rate * 100, 1),
+          })
+        : null;
+
+    return (
+      <div
+        key={chip.factor}
+        data-testid={`factor-chip-${chip.factor}`}
+        data-factor={chip.factor}
+        data-active={isActive ? 'true' : 'false'}
+        aria-label={chip.factor}
+        onClick={() => onFactorSelect(chip.factor)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onFactorSelect(chip.factor);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        className={[
+          'flex flex-col gap-1 rounded-lg border px-2.5 py-1.5 cursor-pointer transition-colors',
+          isActive
+            ? 'border-status-info bg-status-info-soft'
+            : 'border-edge bg-surface-elevated hover:bg-surface-secondary',
+          chip.isSignificant ? '' : 'opacity-70',
+        ].join(' ')}
+      >
+        {/* Row 1: factor name + star + examined glyph */}
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-content">
+          <span>{chip.factor}</span>
+          {isStarred && (
+            <span
+              data-testid="factor-chip-defect-rate-star"
+              title={t('factorStrip.defectRate.star.title')}
+              className="text-status-warning"
+            >
+              <Star size={11} className="fill-status-warning text-status-warning" />
+            </span>
+          )}
+          {isExamined && (
+            <span
+              data-testid="factor-chip-check"
+              title={t('factorStrip.examined')}
+              className="ml-auto text-status-pass"
+            >
+              <Check size={11} />
+            </span>
+          )}
+        </span>
+        {/* Row 2: top-level annotation (most over-concentrated level) */}
+        {topLevelAnnotation && (
+          <span
+            data-testid="factor-chip-defect-rate-top-level"
+            className="text-[11px] font-medium text-content-secondary"
+          >
+            {topLevelAnnotation}
+          </span>
+        )}
+        {/* Row 3: concentration bar (rate dispersion — NOT % of variation) */}
+        <span className="flex items-center gap-2">
+          <span
+            data-testid="factor-chip-bar"
+            className="h-1 rounded-full bg-status-warning"
+            style={{ width: `${defectRateBarWidthPx(chip.concentration)}px` }}
+          />
+        </span>
+      </div>
+    );
+  };
+
+  // Defect-rate disclosure: same top-3 + significant rule
+  const { primaryDefectRateChips, collapsedDefectRateChips } = useMemo(() => {
+    const chips = defectRateChips ?? [];
+    const primary: DefectRateChip[] = [];
+    const collapsed: DefectRateChip[] = [];
+    chips.forEach((chip, idx) => {
+      if (idx < TOP_N_EXPANDED || chip.isSignificant) primary.push(chip);
+      else collapsed.push(chip);
+    });
+    return { primaryDefectRateChips: primary, collapsedDefectRateChips: collapsed };
+  }, [defectRateChips]);
+
+  const visibleDefectRateChips = expanded ? (defectRateChips ?? []) : primaryDefectRateChips;
+  const hiddenDefectRateCount = collapsedDefectRateChips.length;
+
   const title =
-    variant === 'membership'
-      ? t('factorStrip.title.membership')
-      : isScoped
-        ? t('factorStrip.title.scoped')
-        : t('factorStrip.title');
+    variant === 'defect-rate-share'
+      ? t('factorStrip.title.defectRate')
+      : variant === 'membership'
+        ? t('factorStrip.title.membership')
+        : isScoped
+          ? t('factorStrip.title.scoped')
+          : t('factorStrip.title');
 
   // Resolve the what-if card for the currently-hovered chip (skip when absent).
   const hoveredChip = hoveredFactor ? (chips.find(c => c.factor === hoveredFactor) ?? null) : null;
@@ -383,7 +506,11 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
       {/* ── Label row ── */}
       <div className="flex items-baseline gap-2.5 flex-wrap">
         <h2 className="text-[12.5px] font-semibold text-content">{title}</h2>
-        {variant === 'membership' ? (
+        {variant === 'defect-rate-share' ? (
+          <span className="text-[11px] text-content-muted">
+            {t('factorStrip.defectRate.subtitle')}
+          </span>
+        ) : variant === 'membership' ? (
           <span className="text-[11px] text-content-muted">
             {t('factorStrip.membership.subtitle')}
           </span>
@@ -415,7 +542,22 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
       )}
 
       {/* ── Chip row ── */}
-      {variant === 'membership' ? (
+      {variant === 'defect-rate-share' ? (
+        <div className="flex flex-wrap items-stretch gap-1.5">
+          {visibleDefectRateChips.map((chip, idx) => renderDefectRateChip(chip, idx))}
+
+          {!expanded && hiddenDefectRateCount > 0 && (
+            <button
+              type="button"
+              data-testid="factor-strip-also-screened"
+              onClick={() => setExpanded(true)}
+              className="flex items-center rounded-lg border border-dashed border-edge px-2.5 py-1.5 text-[11px] font-medium text-content-muted hover:bg-surface-secondary transition-colors"
+            >
+              {tf('factorStrip.alsoScreened', { n: hiddenDefectRateCount })}
+            </button>
+          )}
+        </div>
+      ) : variant === 'membership' ? (
         <div className="flex flex-wrap items-stretch gap-1.5">
           {visibleMembershipChips.map(chip => renderMembershipChip(chip))}
 

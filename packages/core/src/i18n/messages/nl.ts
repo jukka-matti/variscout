@@ -1242,6 +1242,13 @@ export const nl: MessageCatalog = {
   'factorStrip.membership.chip.topLevel': '{level} ×{lift}',
   'factorStrip.membership.chip.onlyInCondition': 'only in condition',
 
+  // ── Defect-rate-share strip variant (ER-5b) ──
+  'factorStrip.title.defectRate': 'What drives the defect rate?',
+  'factorStrip.defectRate.subtitle':
+    'how strongly each factor concentrates the defect rate across its levels (rate concentration — not % of variation)',
+  'factorStrip.defectRate.chip.topLevel': '{level} {rate}%',
+  'factorStrip.defectRate.star.title': 'largest share',
+
   // -- Composition view (ER-5a) --
   'compositionView.title': 'Composition by {factor}',
   'compositionView.toggle.lift': 'lift',
