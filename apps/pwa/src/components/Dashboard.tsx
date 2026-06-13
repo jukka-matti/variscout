@@ -52,6 +52,7 @@ import {
   resolveDerivedFactorName,
   useFactorStripModel,
   useMembershipModel,
+  useDefectRateModel,
   useCompositionModel,
   useConditionLoop,
   matchActiveScopeId,
@@ -1041,6 +1042,18 @@ const Dashboard = ({
   // membership model resolved (non-degenerate). Otherwise the magnitude path.
   const useMembershipStrip = conditionLoop.hasCondition && membershipModel !== null;
 
+  // ── ER-5b defect-rate analysis ──────────────────────────────────────────────
+  // In defect dispatch the strip answers "what drives the defect rate?" via
+  // level-native rate contribution (ADR-088). The strip flips to defect-rate-share
+  // when the resolved mode is 'defect'. Membership and magnitude paths are unchanged.
+  const defectRateModel = useDefectRateModel({
+    workingRows: isDefectMode && defectResult ? defectResult.data : [],
+    allFactors: effectiveFactors,
+    defectOutcome: isDefectMode && defectResult ? defectResult.outcomeColumn : null,
+    bindings: undefined,
+  });
+  const useDefectRateStrip = isDefectMode && defectRateModel !== null;
+
   // Composition view for the freed comparison slot: when a factor is selected
   // under a condition, decompose it by membership composition (paired share bars
   // + lift + ⊕). FULL lensed rows + leaves (D7). Null → keep the boxplot.
@@ -1121,11 +1134,29 @@ const Dashboard = ({
     if (scopeId) useAnalyzeStore.getState().recomputeScopeWhatIf(scopeId);
   }, [effectiveOutcome, scopeProjectId]);
 
-  // ER-5a: under a condition with a resolved membership model, the strip flips to
-  // the membership variant (over-represented-level chips). Otherwise — including
-  // the degenerate-model fallback — the magnitude strip renders exactly as today.
+  // ER-5b: in defect dispatch the strip flips to defect-rate-share. Otherwise,
+  // ER-5a: under a condition with a resolved membership model the strip flips to
+  // membership. Otherwise — including degenerate-model fallback — magnitude.
   const factorStripNode =
-    useMembershipStrip && membershipModel && effectiveOutcome ? (
+    useDefectRateStrip && defectRateModel && effectiveOutcome ? (
+      <FactorStripBase
+        variant="defect-rate-share"
+        defectRateChips={defectRateModel}
+        chips={stripModel?.chips ?? []}
+        residualPct={stripModel?.residualPct ?? 0}
+        selectedFactor={boxplotFactor}
+        examinedKeys={examinedFactorNames}
+        isScoped={isDrilling}
+        cpkTarget={undefined}
+        outcomeLabel={columnAliases[effectiveOutcome] ?? effectiveOutcome}
+        onFactorSelect={f => {
+          setBoxplotFactor(f);
+          markFactorExamined(effectiveOutcome, f);
+          maybeRefreshScopeWhatIf();
+        }}
+        onAnovaLinkClick={() => setModelDrawerOpen(true)}
+      />
+    ) : useMembershipStrip && membershipModel && effectiveOutcome ? (
       <FactorStripBase
         variant="membership"
         membershipChips={membershipModel.chips}

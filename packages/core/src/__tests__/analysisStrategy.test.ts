@@ -122,3 +122,32 @@ describe('AnalysisModeStrategy.paretoYOptions', () => {
     }
   });
 });
+
+describe('ER-5b: defect strategy Pareto slot contract', () => {
+  // ER-5b hard constraint: exactly 4 chart slots, Pareto in slot1–3.
+  // "Pareto promotion" = Pareto is a primary slot by data-shape right,
+  // not optional or in slot4. Changing slot count breaks Dashboard layout.
+  const defect = getStrategy('defect');
+
+  it('defect strategy has Pareto in a primary slot (slot1–slot3)', () => {
+    const slots = defect.chartSlots;
+    const primarySlots = [slots.slot1, slots.slot2, slots.slot3];
+    expect(primarySlots).toContain('pareto');
+  });
+
+  it('defect strategy has exactly 4 chart slots (no 5th slot)', () => {
+    const slots = defect.chartSlots;
+    // The ChartSlots interface defines exactly slot1–slot4.
+    const slotKeys = Object.keys(slots);
+    expect(slotKeys).toHaveLength(4);
+    expect(slotKeys).toEqual(['slot1', 'slot2', 'slot3', 'slot4']);
+  });
+
+  it('defect strategy slot layout is ichart > boxplot > pareto > defect-summary', () => {
+    const { slot1, slot2, slot3, slot4 } = defect.chartSlots;
+    expect(slot1).toBe('ichart');
+    expect(slot2).toBe('boxplot');
+    expect(slot3).toBe('pareto');
+    expect(slot4).toBe('defect-summary');
+  });
+});
