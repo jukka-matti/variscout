@@ -25,7 +25,8 @@ last-verified: 2026-06-13
 verified-against-commit: 017457d20503
 ---
 
-> **Status:** draft — brainstormed + owner-approved 2026-06-14. Implementation plan to follow via `writing-plans`.
+> **Status:** draft — brainstormed + owner-approved 2026-06-14. Implementation
+> plan: [2026-06-14-d4-app-convergence](../plans/2026-06-14-d4-app-convergence.md).
 
 # D4 app convergence — design
 
