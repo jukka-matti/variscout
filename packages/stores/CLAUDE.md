@@ -1,6 +1,6 @@
 # @variscout/stores
 
-9 Zustand stores across 3 layers (ADR-078 + F4, 2026-05-07; wedge V1 additions 2026-05-16):
+8 Zustand stores across 3 layers (ADR-078 + F4, 2026-05-07; ADR-093 removed the live membership/ACL store):
 
 | Layer           | Store                        | Persistence                                                                                                  |
 | --------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
@@ -10,7 +10,6 @@
 | Document        | `useImprovementProjectStore` | V1 user-facing Project entity (multiple per user, each wraps one Hub 1:1; `STORE_LAYER='document'`)          |
 | Annotation hub  | `useCanvasViewportStore`     | Dexie DB `variscout-canvas-viewport` (R12 ESLint exception, STORE_LAYER='annotation-per-hub')                |
 | Annotation user | `usePreferencesStore`        | idb-keyval, key `'variscout-preferences'`                                                                    |
-| Annotation user | `useProjectMembershipStore`  | localStorage per-user; wedge V1 per-project ACLs + pending invites                                           |
 | View            | `useViewStore`               | NONE — transient                                                                                             |
 | View            | `useAnalysisScopeStore`      | NONE — transient (linked-views bridge: Process tab ↔ Explore tab; session-scoped per spec 2026-05-28 §3 D10) |
 
@@ -25,6 +24,7 @@
 - Cross-app UI state lives here (`canvasViewportStore` pattern); app-local state → `apps/*/src/features/`.
 - `feature-factories/` exports construction helpers only; app-local singleton ownership stays in `apps/*/src/features/`.
 - Cross-store imperative action calls allowed; reactive subscriptions forbidden.
+- Do not reintroduce live project membership, invite state, or ACL stores in V1. Collaboration is `.vrs`/pack/consultation-loop artifact infrastructure per ADR-093.
 - Document stores never import `dexie` directly (ESLint P7.2). `canvasViewportStore` is R12 exception — call `rehydrateCanvasViewport(hubId)` on hub open, debounced `persistCanvasViewport(hubId)` on mutation.
 - `useViewStore` has no persist middleware; cleared by `projectStore.loadProject`/`newProject`. Tests: `beforeEach(() => useStore.setState(useStore.getInitialState()))`.
 

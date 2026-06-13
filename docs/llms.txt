@@ -1,6 +1,6 @@
 # VariScout
 
-> Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. PWA (free) + Azure Marketplace (€120/mo, single SKU per Azure tenant). VariScout Process (enterprise platform) named-future, not announced in V1 marketing.
+> Structured investigation for process improvement. Browser-based, customer-owned data, local-cache capable. V1 is a local-first desktop Workspace app with build-time `free`, `individual`, and `company` channels. Live membership/ACLs, Azure document persistence, product-mobile surfaces, and in-product voice capture are cut from V1. VariScout Process remains named-future.
 
 Entry points for AI agents working in this repo. Humans should start at [`docs/index.md`](index.md).
 
@@ -21,13 +21,15 @@ Entry points for AI agents working in this repo. Humans should start at [`docs/i
 - [`decision-log.md`](decision-log.md) — temporal index over canonical doc changes. Read BEFORE re-opening any topic. **Phase 3: now a generated aggregate from `cards/decisions/`; §1/§2/§3 emitted from cards, §4/§5 hand-authored inside HTML markers. Edit cards (or §4/§5 markers), not the aggregate.**
 - [`cards/decisions/`](cards/decisions/) — atomic decision cards (one decision per file). Queryable via `pnpm docs:find --tier=card --purpose=decide`.
 - [`OVERVIEW.md`](OVERVIEW.md) — what VariScout does + the FRAME → SCOUT → INVESTIGATE → IMPROVE journey.
-- [`USER-JOURNEYS.md`](USER-JOURNEYS.md) — V1 single persona (Improvement Specialist) + 3 project-membership roles (Lead / Member / Sponsor).
-- [`DATA-FLOW.md`](DATA-FLOW.md) — parse → transform → stats → persist → sync → display → AI pipeline.
+- [`USER-JOURNEYS.md`](USER-JOURNEYS.md) — V1 Improvement Specialist journey; historical Lead/Member/Sponsor role docs are superseded for V1 by ADR-093.
+- [`DATA-FLOW.md`](DATA-FLOW.md) — parse → transform → stats → local artifact/autosave → display → AI pipeline. Azure Blob document sync is historical after ADR-093.
 
 ## Canonical V1 strategic direction
 
-- [`superpowers/specs/2026-05-16-wedge-architecture-design.md`](superpowers/specs/2026-05-16-wedge-architecture-design.md) — V1 single-SKU design. 7-tab nav (`Home · Project · Process · Explore · Analyze · Improve · Report`). Improve as top-level verb tab with active-IP cascade. 3 personas per Project (Lead/Member/Sponsor). €120/mo single SKU.
-- [`07-decisions/adr-082-wedge-architecture.md`](07-decisions/adr-082-wedge-architecture.md) — V1 architectural record. Partial supersession of ADR-007 + ADR-033.
+- [`07-decisions/adr-092-local-first-variscout-product-model.md`](07-decisions/adr-092-local-first-variscout-product-model.md) — V1 product model: local-first Workspace, `.vrs`/packs as paid artifact boundary, typed CoScout, desktop browser target.
+- [`07-decisions/adr-093-v1-simplification-cuts.md`](07-decisions/adr-093-v1-simplification-cuts.md) — V1 deletion record: no live membership/ACLs, no Azure document persistence, no product-mobile shell, no in-product voice capture, one app with channel gates.
+- [`superpowers/specs/2026-06-11-local-first-variscout-product-vision-design.md`](superpowers/specs/2026-06-11-local-first-variscout-product-vision-design.md) — accepted local-first product vision.
+- [`07-decisions/adr-082-wedge-architecture.md`](07-decisions/adr-082-wedge-architecture.md) — historical May wedge record. Its specialist focus and workflow spine survive; its single-SKU membership model is superseded by ADR-092/093.
 - [`07-decisions/adr-084-capability-indices-cp-cpk-only.md`](07-decisions/adr-084-capability-indices-cp-cpk-only.md) — VariScout publishes only Cp/Cpk; Pp/Ppk are intentionally excluded from the product (educational comparison text retained on the marketing site).
 
 ## SDD 5-Layer Routing

@@ -15,12 +15,12 @@ const lang = getLangFromUrl(Astro.url);
 
 const pricingTiers = [
 	{
-		name: "Web App",
+		name: "Free Workspace",
 		price: "€0",
 		period: "forever",
-		description: "Free training & education tool for quality professionals",
+		description: "Session-only analysis workspace for quality professionals",
 		features: [
-			"Core analysis + Green Belt tools",
+			"Full in-session analysis loop",
 			"I-Chart, Boxplot, Pareto, Capability",
 			"ANOVA",
 			"20 sample datasets included",
@@ -36,69 +36,67 @@ const pricingTiers = [
 		ctaNote: "No signup required",
 	},
 	{
-		name: "Azure App",
-		price: "€150",
-		period: "/month",
-		description: "Full analysis platform for teams — all features, unlimited users",
+		name: "Paid Workspace",
+		price: "Planned",
+		period: "individual + company",
+		description: "Artifact layer for keeping, sharing, and consulting on work",
 		features: [
-			"Everything in Web App, plus:",
-			"Performance Mode (multi-channel)",
+			"Everything in Free Workspace, plus:",
 			"File upload (CSV, Excel)",
-			"Save & persistence",
-			"Customer-tenant Blob sync",
-			"SSO (Azure AD / Entra ID)",
-			"Shared Process Hubs",
+			".vrs snapshot save/import",
+			"Analysis Pack export",
+			"Consultation Pack workflow",
+			"Typed CoScout with channel-specific provider boundary",
 			"No branding on charts",
-			"Unlimited team members",
 		],
-		cta: { text: "Azure Marketplace", href: "https://azuremarketplace.microsoft.com/", external: true },
-		ctaNote: "Managed Application",
-		whereToGet: "Azure Marketplace",
+		cta: { text: "Enterprise & IT Details", href: `/${lang}/product/enterprise` },
+		ctaNote: "Commerce integration is not live",
+		whereToGet: "Individual and company channels",
 		highlight: true,
-		badge: "Full Power",
+		badge: "Artifact Layer",
 	},
 ];
 
 const faqs = [
 	{
 		question: "What can I do for free?",
-		answer: "The Web App is free forever. It gives you core analysis plus Green Belt tools (I-Chart, Boxplot, Pareto, Capability, ANOVA) with 20 sample datasets and copy-paste input. No signup required — just open it and start analyzing.",
+		answer: "The Free Workspace gives you the full in-session analysis loop with core tools (I-Chart, Boxplot, Pareto, Capability, ANOVA), sample datasets, and copy-paste input. No signup required — just open it and start analyzing.",
 	},
 	{
-		question: "What does the Azure App add?",
-		answer: "The Azure App unlocks Performance Mode for multi-channel analysis (100+ channels), file upload (CSV/Excel), save and persistence, customer-tenant Blob sync, SSO via Azure AD/Entra ID, shared Process Hubs, no branding on charts, and unlimited team members. It's deployed as a Managed Application in your Azure tenant.",
+		question: "What will paid channels add?",
+		answer: "Paid channels add the artifact layer: .vrs save/import, Analysis and Consultation Pack export, file upload, no chart branding, and typed CoScout behind an individual or company provider boundary.",
 	},
 	{
 		question: "Where does my data go?",
-		answer: "VaRiScout processes data in your browser and stores paid-tier data in your Azure tenant. We don't have servers that see your data — that's by design.",
+		answer: "VaRiScout processes data in your browser. Paid work is kept as local artifacts such as .vrs snapshots and exported packs; the company server is for tenant-governed access and CoScout plumbing, not document storage.",
 	},
 	{
 		question: "Can I use VaRiScout for training?",
 		answer: "Yes! The Web App is specifically designed for training and education. It includes 20 sample datasets covering real-world scenarios, works offline after the first visit, and requires no signup. Perfect for Green Belt training, university courses, and self-study.",
 	},
 	{
-		question: "How does €150/month compare to alternatives?",
-		answer: "Traditional statistical analysis software like Minitab costs €1,500+ per user per year. VaRiScout Azure App covers unlimited users for €150/month — that's €5/user/month for a team of 30.",
+		question: "When will production commerce be available?",
+		answer: "The local-first Workspace architecture is being converged first. Production Paddle and Azure Marketplace entitlement are separate follow-up work after the app boundary is stable.",
 	},
 ];
 
 const trustBadges = [
 	{ icon: ShieldCheck, text: "No signup required" },
 	{ icon: Zap, text: "Instant access" },
-	{ icon: FileText, text: "Azure Marketplace billing" },
+	{ icon: FileText, text: "Paid artifacts planned" },
 	{ icon: Lock, text: "Your data stays yours" },
 ];
 ---
 
 <BaseLayout
-	title="VaRiScout Pricing | Free Web App + Azure App for Teams"
-	description="VaRiScout pricing: Web App free forever for training and education. Azure App for teams at €150/month with all features."
+	title="VaRiScout Pricing | Free Workspace + Paid Artifact Layer"
+	description="VaRiScout pricing direction: Free Workspace for in-session analysis, paid individual and company channels for .vrs, packs, and CoScout."
 >
 	<section class="py-20 bg-white border-b border-neutral-200">
 		<div class="container-wide text-center">
 			<h1 class="text-4xl md:text-5xl font-bold mb-6">Simple pricing. <span class="text-brand-primary">Start free.</span></h1>
 			<p class="text-xl text-neutral-600 max-w-2xl mx-auto mb-16 italic">
-				Try it free at variscout.com. When you're ready for your team, get it on Azure Marketplace.
+				Try the local-first Workspace free. Paid channels will add the artifact layer for keeping, sharing, and consulting on work.
 			</p>
 
 			<div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto text-left">
@@ -111,12 +109,12 @@ const trustBadges = [
 				</a>
 				<br />
 				<a href={`/${lang}/getting-started`} class="inline-flex items-center gap-2 text-neutral-500 hover:text-brand-primary font-medium hover:gap-3 transition-all text-sm">
-					View deployment guide <ArrowRight size={16} />
+					View company preview guide <ArrowRight size={16} />
 				</a>
 			</div>
 
 			<p class="text-center text-sm text-neutral-500 mt-4 italic">
-				All prices exclude VAT where applicable. Azure App billed through Azure Marketplace.
+				Production Paddle and Azure Marketplace entitlement are planned follow-up work, not live checkout surfaces.
 			</p>
 		</div>
 	</section>
@@ -153,7 +151,7 @@ const trustBadges = [
 				<div class="flex-1 text-center md:text-left">
 					<h2 class="text-2xl font-bold mb-4">Your Data Stays Yours</h2>
 					<p class="text-neutral-400 max-w-2xl italic">
-						VaRiScout is designed for sensitive operational data. It runs entirely on your side — in your browser or your Azure tenant. We never see your data.
+						VaRiScout is designed for sensitive operational data. Analysis runs in your browser; paid artifacts stay under your control as files and packs.
 					</p>
 				</div>
 				<div>

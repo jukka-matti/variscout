@@ -13,25 +13,25 @@ const lang = getLangFromUrl(Astro.url);
 ---
 
 <BaseLayout
-	title="VaRiScout | Getting Started — Deploy in Minutes"
-	description="Step-by-step deployment guide for VaRiScout Azure App. Create an App Registration, deploy from Azure Marketplace, and start analyzing in under 10 minutes."
+	title="VaRiScout | Getting Started — Workspace Channels"
+	description="Getting started with the VaRiScout local-first Workspace and the company-channel preview host."
 >
 	<!-- Hero -->
 	<section class="py-20 md:py-28 bg-white">
 		<div class="container-wide">
 			<div class="max-w-3xl">
 				<h1 class="text-4xl md:text-5xl font-bold mb-6 text-neutral-900">
-					Deploy VaRiScout
+					Start VaRiScout
 				</h1>
 				<p class="text-xl text-neutral-600 mb-8 leading-relaxed">
-					Self-service deployment from Azure Marketplace. No sales calls, no demos. Create an App Registration, click Deploy, and your team is analyzing in under 10 minutes.
+					Start with the free local-first Workspace. The company channel serves the same Workspace build behind tenant-governed access and CoScout plumbing; production Marketplace entitlement is planned follow-up work.
 				</p>
 				<div class="flex flex-wrap gap-4">
-					<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">
-						Deploy from Marketplace
+					<a href="/app" class="btn btn-primary px-8 py-3">
+						Open Free Workspace
 					</a>
-					<a href="/app" class="btn btn-secondary px-8 py-3">
-						Try the Free Web App First
+					<a href={`/${lang}/product/enterprise`} class="btn btn-secondary px-8 py-3">
+						Company Channel Details
 					</a>
 				</div>
 			</div>
@@ -51,19 +51,19 @@ const lang = getLangFromUrl(Astro.url);
 				<div class="bg-white border border-neutral-200 rounded-xl p-6">
 					<h3 class="font-bold text-lg mb-2 text-neutral-900">Azure Subscription</h3>
 					<p class="text-neutral-600 text-sm leading-relaxed">
-						Any Azure subscription with Contributor access. The app deploys as a Managed Application billed through your existing Azure agreement.
+						For the company-channel preview, use an Azure subscription with permission to host the slim server/static Workspace build.
 					</p>
 				</div>
 				<div class="bg-white border border-neutral-200 rounded-xl p-6">
 					<h3 class="font-bold text-lg mb-2 text-neutral-900">Admin Role</h3>
 					<p class="text-neutral-600 text-sm leading-relaxed">
-						Global Administrator or Application Administrator role in Azure AD to create the App Registration. This is a one-time setup step.
+						Global Administrator or Application Administrator role in Entra ID to create the App Registration. This is a one-time setup step.
 					</p>
 				</div>
 				<div class="bg-white border border-neutral-200 rounded-xl p-6">
 					<h3 class="font-bold text-lg mb-2 text-neutral-900">10 Minutes</h3>
 					<p class="text-neutral-600 text-sm leading-relaxed">
-						About 5 minutes for the App Registration, then 2 minutes for the Marketplace deployment. That's it.
+						About 5 minutes for App Registration, then deploy the company server/static host through your normal Azure process.
 					</p>
 				</div>
 			</div>
@@ -156,12 +156,12 @@ const lang = getLangFromUrl(Astro.url);
 				<div class="p-2.5 bg-brand-primary/10 rounded-xl">
 					<Rocket size={28} class="text-brand-primary" />
 				</div>
-				<h2 class="text-3xl font-bold text-neutral-900">Step 2: Deploy from Azure Marketplace</h2>
+				<h2 class="text-3xl font-bold text-neutral-900">Step 2: Deploy the Company Host</h2>
 			</div>
 			<div class="grid md:grid-cols-2 gap-12 items-start">
 				<div>
 					<p class="text-neutral-600 mb-6 leading-relaxed">
-						Find VaRiScout on Azure Marketplace and click Create. The deployment wizard asks for four things:
+						The company host serves the same Workspace app built with company capabilities. The server stays narrow: health/config/auth, tenant CoScout plumbing, and static hosting.
 					</p>
 					<ol class="space-y-4">
 						<li class="flex items-start gap-3">
@@ -182,7 +182,7 @@ const lang = getLangFromUrl(Astro.url);
 						</li>
 					</ol>
 					<p class="text-neutral-600 mt-6 leading-relaxed">
-						Click <strong>Review + Create</strong>. The ARM template deploys in about 2 minutes.
+						Production Azure Marketplace entitlement is intentionally outside this convergence program.
 					</p>
 				</div>
 				<div class="bg-white border border-neutral-200 rounded-xl p-8">
@@ -199,7 +199,7 @@ const lang = getLangFromUrl(Astro.url);
 							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">2</span>
 							<div>
 								<span class="font-medium text-neutral-900">App Service</span>
-								<span class="text-neutral-500 block">Serves VaRiScout as a static build (no backend)</span>
+								<span class="text-neutral-500 block">Serves the company-channel Workspace bundle</span>
 							</div>
 						</li>
 						<li class="flex items-start gap-3">
@@ -211,7 +211,7 @@ const lang = getLangFromUrl(Astro.url);
 						</li>
 					</ul>
 					<p class="mt-6 text-xs text-neutral-500 leading-relaxed">
-						No database, no storage account, no backend API. All computation happens in the browser.
+						No document database and no Blob document sync. All analysis computation happens in the browser.
 					</p>
 				</div>
 			</div>
@@ -314,8 +314,8 @@ const lang = getLangFromUrl(Astro.url);
 				<a href="mailto:support@rdmaic.com" class="text-neutral-300 underline hover:text-white transition-colors">support@rdmaic.com</a>
 			</div>
 			<div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-				<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">
-					Deploy from Azure Marketplace
+				<a href="/app" class="btn btn-primary px-8 py-3">
+					Open Free Workspace
 				</a>
 				<a href={`/${lang}/product/enterprise`} class="btn btn-outline border-white/20 text-white hover:bg-white/10 px-8 py-3">
 					Enterprise &amp; IT Details
