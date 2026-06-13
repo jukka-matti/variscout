@@ -42,7 +42,12 @@ import {
   INTERCEPT_TERM,
   computeTypeIIISS,
 } from '@variscout/core/stats';
-import type { PredictorInfo, TypeIIIResult, FactorSpec } from '@variscout/core/stats';
+import type {
+  PredictorInfo,
+  TypeIIIResult,
+  FactorSpec,
+  InteractionScreenResult,
+} from '@variscout/core/stats';
 import { useWallLocale } from '../AnalyzeWall/hooks/useWallLocale';
 
 /**
@@ -65,12 +70,51 @@ export interface CapturedModelSnapshot {
   topFactor: string | null;
 }
 
+/**
+ * The winning interaction term to surface on the Explore strip (ER-6).
+ * Pattern is geometric only — ordinal or disordinal — never role-based.
+ */
+export interface ModelInteraction {
+  /** First factor in the interaction pair (alphabetical order). */
+  factorA: string;
+  /** Second factor in the interaction pair (alphabetical order). */
+  factorB: string;
+  /** Semipartial ΔR²adj from adding this interaction term. */
+  deltaR2: number;
+  /**
+   * Geometric classification of the interaction pattern.
+   * Derived from classifyInteractionPattern() — NEVER hardcoded.
+   * 'ordinal' = lines differ in slope but do not cross.
+   * 'disordinal' = lines cross (pattern reverses).
+   */
+  pattern: 'ordinal' | 'disordinal';
+  /**
+   * The level of the categorical source factor in the winning interaction term
+   * with the largest |coefficient|. Used as the focal level for the paired
+   * comparison on the Explore strip.
+   * Null for cont×cont interactions (no discrete level exists).
+   */
+  focalLevel: string | null;
+}
+
 /** The live model stats handed up for the DOI feed (glyph bars + domain-weighted DOI). */
 export interface ModelDrawerStats {
   /** The kept (shown) factor set. */
   kept: string[];
   /** Per-factor association strength (semipartial ΔR²). */
   deltaR2: Map<string, number>;
+  /**
+   * Adjusted R² of the currently shown model (ER-6).
+   * Used by the Explore strip to compute residual = 1 − R²adj.
+   * Null when no model is available.
+   */
+  rSquaredAdj: number | null;
+  /**
+   * The single winning interaction term from Pass-2 best subsets (ER-6).
+   * Null when there is no significant interaction (no Pass-2 candidates or
+   * none reached significance).
+   */
+  interaction: ModelInteraction | null;
 }
 
 export interface ModelDrawerBaseProps {
@@ -206,11 +250,62 @@ export const ModelDrawerBase: React.FC<ModelDrawerBaseProps> = ({
     return perFactorDeltaR2(shownFactors, eligibleFactors, engine.index);
   }, [engine, shownFactors, eligibleFactors]);
 
+  // ── ER-6: rSquaredAdj from the SAME fit in play ──
+  const rSquaredAdj = useMemo<number | null>(() => {
+    if (glm) return glm.rSquaredAdj;
+    if (shown) return shown.rSquaredAdj;
+    return null;
+  }, [glm, shown]);
+
+  // ── ER-6: Winning interaction from the drawer's existing Pass-2 results ──
+  // Consumes the drawer's already-computed `shown.interactionScreenResults` — no new fit.
+  // Picks the most significant (largest deltaRSquaredAdj) significant result.
+  // focalLevel = level from the interaction predictor with the largest |coefficient|.
+  // For cont×cont interactions there is no discrete categorical level → focalLevel = null.
+  const interaction = useMemo<ModelInteraction | null>(() => {
+    if (!shown?.interactionScreenResults || !shown.hasInteractionTerms) return null;
+    const significant = shown.interactionScreenResults.filter(r => r.isSignificant);
+    if (significant.length === 0) return null;
+    // Pick the most significant interaction by largest ΔR²adj.
+    const winner: InteractionScreenResult = [...significant].sort(
+      (a, b) => b.deltaRSquaredAdj - a.deltaRSquaredAdj
+    )[0];
+    const [factorA, factorB] = winner.factors;
+
+    // Derive focalLevel from the interaction predictors.
+    // extractPredictors() now attaches the `level` field to each interaction predictor
+    // for cont×cat and cat×cat interactions (one level per non-reference column).
+    // For cont×cont there is no discrete level → focalLevel = null.
+    let focalLevel: string | null = null;
+    if (shown.predictors && shown.predictors.length > 0) {
+      const interactionKey = `${factorA}×${factorB}`;
+      const interactionPreds = shown.predictors.filter(
+        p => p.factorName === interactionKey && p.type === 'interaction'
+      );
+      if (interactionPreds.length > 0) {
+        const largest = [...interactionPreds].sort(
+          (a, b) => Math.abs(b.coefficient) - Math.abs(a.coefficient)
+        )[0];
+        // Use the `level` field set by extractPredictors() for cont×cat / cat×cat.
+        // Remains undefined (→ null) for cont×cont.
+        focalLevel = largest.level ?? null;
+      }
+    }
+
+    return {
+      factorA,
+      factorB,
+      deltaR2: winner.deltaRSquaredAdj,
+      pattern: winner.pattern,
+      focalLevel,
+    };
+  }, [shown]);
+
   // Lift the live model stats to the Wall (glyph bars + DOI weights).
   useEffect(() => {
     if (!onModelStats) return;
-    onModelStats(engine ? { kept: shownFactors, deltaR2 } : null);
-  }, [onModelStats, engine, shownFactors, deltaR2]);
+    onModelStats(engine ? { kept: shownFactors, deltaR2, rSquaredAdj, interaction } : null);
+  }, [onModelStats, engine, shownFactors, deltaR2, rSquaredAdj, interaction]);
 
   // ── Escape closes (document-level while open — the EvidenceMapContextMenu convention) ──
   useEffect(() => {

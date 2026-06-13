@@ -66,6 +66,8 @@ import {
   useInflectionBinningState,
   useGlossary,
   type WorkspaceProjectScopeLabels,
+  type ModelDrawerStats,
+  type ModelInteraction,
 } from '@variscout/ui';
 import {
   getColumnNames,
@@ -334,6 +336,8 @@ const Dashboard = ({
   const [captureDraft, setCaptureDraft] = useState<CaptureDraft | null>(null);
   // ER-3: Model drawer open state (Explore door).
   const [modelDrawerOpen, setModelDrawerOpen] = useState(false);
+  // ER-6: Live model stats from the Explore drawer (strip v2 + interaction chip).
+  const [exploreModelStats, setExploreModelStats] = useState<ModelDrawerStats | null>(null);
 
   // Defect mode: transform filtered data into aggregated defect rates
   const isDefectMode = resolveMode(analysisMode) === 'defect';
@@ -1273,6 +1277,25 @@ const Dashboard = ({
     if (scopeId) useAnalyzeStore.getState().recomputeScopeWhatIf(scopeId);
   }, [effectiveOutcome, scopeProjectId]);
 
+  // ER-6: Interaction chip click — shows factor A's boxplot with the focal level
+  // of factor B highlighted (transient highlight = focal subset vs rest).
+  // This produces a genuine paired comparison: factorA distribution with
+  // factorB === focalLevel rows lit against the complement.
+  // When focalLevel is null (cont×cont interaction), only factor A is set.
+  const handleInteractionSelect = useCallback(
+    (interaction: ModelInteraction) => {
+      setBoxplotFactor(interaction.factorA);
+      if (interaction.focalLevel !== null) {
+        setTransientHighlight({ column: interaction.factorB, value: interaction.focalLevel });
+      }
+    },
+    [setBoxplotFactor, setTransientHighlight]
+  );
+
+  // The modelStats to pass to the magnitude strip (v2). Only on the magnitude
+  // path; defect-rate and membership variants ignore modelStats.
+  const magnitudeModelStats = !useDefectRateStrip && !useMembershipStrip ? exploreModelStats : null;
+
   // ER-5b: in defect dispatch the strip flips to defect-rate-share. Otherwise,
   // ER-5a: under a condition with a resolved membership model the strip flips to
   // membership. Otherwise — including degenerate-model fallback — magnitude.
@@ -1340,6 +1363,8 @@ const Dashboard = ({
           maybeRefreshScopeWhatIf();
         }}
         onAnovaLinkClick={() => setModelDrawerOpen(true)}
+        modelStats={magnitudeModelStats}
+        onInteractionSelect={handleInteractionSelect}
       />
     ) : undefined;
 
@@ -1954,7 +1979,8 @@ const Dashboard = ({
       )}
       {/* ER-3: Model drawer — Explore door. Mounted in the relative root so it
           is screen-space (never viewBox-cropped). No onCaptureModel (Explore
-          capture deferred). No onModelStats (DOI feed is Analyze-only). */}
+          capture deferred). ER-6: onModelStats wired so the strip upgrades to
+          in-model ΔR² + the ⚡ interaction chip once best-subsets completes. */}
       <ModelDrawerBase
         open={modelDrawerOpen}
         onClose={() => setModelDrawerOpen(false)}
@@ -1965,6 +1991,7 @@ const Dashboard = ({
         }
         candidateFactors={candidateFactorsForDrawer}
         scopeLabel={modelDrawerScopeLabel}
+        onModelStats={setExploreModelStats}
       />
     </div>
   );

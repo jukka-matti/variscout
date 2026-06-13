@@ -197,6 +197,7 @@ export { ModelDrawerBase } from './components/ModelDrawer';
 export type {
   ModelDrawerBaseProps,
   ModelDrawerStats,
+  ModelInteraction,
   CapturedModelSnapshot,
 } from './components/ModelDrawer';
 

@@ -162,6 +162,8 @@ Useful for comparing similar groups or establishing baselines.
 
 The **factor strip** renders automatically beneath the I-Chart hero and ranks all candidate factors by ω²-adjusted η² (cardinality-penalised). The ★ chip is the largest significant contributor. Click a chip to rebind the Variation Sources boxplot comparison to that factor — no scrolling or carousel navigation required. The model drawer (ER-3) exposes factor-combination rankings (R²adj) for analysts who want to check whether a pair of factors together explains more than either alone.
 
+**Strip v2 (ER-6):** Once the model drawer completes the two-pass best-subsets run, the strip upgrades transparently: chips switch to in-model semipartial ΔR² (jointly-fitted contribution), and a ⚡ interaction chip appears when the Pass-2 screening finds a significant factor-factor interaction. The chip face states the geometric conclusion adapted to the pattern (ordinal: "magnitude varies"; disordinal: "relationship reverses"). Clicking the chip binds the boxplot to factor A and applies a transient highlight on the focal level of factor B (the categorical level with the largest |interaction coefficient|), showing factor A's distribution with the focal subset lit against the rest. For continuous×continuous interactions no discrete focal level exists and only factor A is bound. Interaction patterns are classified as **ordinal** or **disordinal** — never "moderator"/"primary".
+
 ### Step 2: Click to highlight, commit via the pill
 
 Click on the bar (or box) for the level you want to investigate:

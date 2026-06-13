@@ -420,3 +420,79 @@ describe('ModelDrawerBase — interaction-augmented winner (ANOVA compound row)'
     expect(rows[0].getAttribute('data-testid')).toBe('model-drawer-coef-row-(Intercept)');
   });
 });
+
+describe('ModelDrawerBase — ER-6 extended ModelDrawerStats (rSquaredAdj + interaction)', () => {
+  const crossoverProps = {
+    open: true,
+    onClose: vi.fn(),
+    rows: crossoverInteractionRows(),
+    outcome: 'Y',
+    candidateFactors: ['X', 'G'],
+    scopeLabel: 'All data',
+  };
+
+  const noInteractionProps = {
+    open: true,
+    onClose: vi.fn(),
+    rows: balancedAnovaRows(),
+    outcome: 'Y',
+    candidateFactors: ['A', 'B'],
+    scopeLabel: 'All data',
+  };
+
+  it('ER-6: onModelStats carries rSquaredAdj (finite number) when the engine produces a model', () => {
+    const onModelStats = vi.fn();
+    render(<ModelDrawerBase {...crossoverProps} onModelStats={onModelStats} />);
+    const arg = onModelStats.mock.calls.at(-1)?.[0];
+    expect(arg).not.toBeNull();
+    expect(typeof arg.rSquaredAdj).toBe('number');
+    expect(Number.isFinite(arg.rSquaredAdj)).toBe(true);
+  });
+
+  it('ER-6 I2: interaction pattern is exactly "disordinal" for the crossover fixture (not just a 2-element set)', () => {
+    /**
+     * Load-bearing B1/I2 test. The differential-slope fixture has G='lo' (slope 9)
+     * vs G='hi' (slope 1 + offset 40). Lines cross at X≈4.4 → classifyInteractionPattern
+     * returns 'disordinal'. A hardcoded string or wrong pass would fail this exact match.
+     */
+    const onModelStats = vi.fn();
+    render(<ModelDrawerBase {...crossoverProps} onModelStats={onModelStats} />);
+    const arg = onModelStats.mock.calls.at(-1)?.[0];
+    expect(arg).not.toBeNull();
+    expect(arg.interaction).not.toBeNull();
+    // Exact geometric classification — must be 'disordinal', not just in the set.
+    expect(arg.interaction.pattern).toBe('disordinal');
+  });
+
+  it('ER-6 I3: focalLevel is the specific non-reference level "lo", NOT the compound term name "G×X"', () => {
+    /**
+     * Load-bearing B1/I3 test. The crossover fixture uses G (categorical, levels
+     * ['hi','lo'], reference='hi' by alphabetical tie-break) × X (continuous).
+     * The interaction encoding has one column for the non-reference level 'lo'.
+     * Its coefficient (slope-difference = 9−1 = 8) has the largest |value|, so
+     * focalLevel MUST be 'lo'. Before the B1 fix, focalLevel was "G×X" (the
+     * compound term name) because interaction predictors had no `level` field —
+     * this test fails against that buggy output.
+     */
+    const onModelStats = vi.fn();
+    render(<ModelDrawerBase {...crossoverProps} onModelStats={onModelStats} />);
+    const arg = onModelStats.mock.calls.at(-1)?.[0];
+    expect(arg).not.toBeNull();
+    expect(arg.interaction).not.toBeNull();
+    // Must be exactly 'lo' — the non-reference categorical level with the largest
+    // |interaction coefficient|. 'G×X' is wrong; 'hi' (the reference) is wrong.
+    expect(arg.interaction.focalLevel).toBe('lo');
+    // Ensure factorA/factorB are the alphabetically-sorted source pair.
+    expect(arg.interaction.factorA).toBe('G');
+    expect(arg.interaction.factorB).toBe('X');
+  });
+
+  it('ER-6: onModelStats.interaction is null when no significant interaction exists', () => {
+    const onModelStats = vi.fn();
+    render(<ModelDrawerBase {...noInteractionProps} onModelStats={onModelStats} />);
+    const arg = onModelStats.mock.calls.at(-1)?.[0];
+    expect(arg).not.toBeNull();
+    // The balanced 2×2 ANOVA fixture has no continuous predictor → no Pass-2 screening.
+    expect(arg.interaction).toBeNull();
+  });
+});

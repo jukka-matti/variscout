@@ -1296,6 +1296,15 @@ export const en: MessageCatalog = {
   'factorStrip.defectRate.chip.concentration': 'concentration {value}',
   'factorStrip.defectRate.star.title': 'largest share',
 
+  // ── Strip v2: in-model ΔR² upgrade (ER-6) ──
+  'factorStrip.inModel.subtitle':
+    'how much each factor adds to the fitted model (in-model ΔR² — semipartial, factors overlap less once jointly fitted)',
+  'factorStrip.inModel.residual': 'unexplained · ~{n}% — not in this model',
+  'factorStrip.interaction.chip.ordinal':
+    '⚡ {factorA} × {factorB} +{deltaR2Pct}% — {factorA} differences vary in magnitude across {factorB}',
+  'factorStrip.interaction.chip.disordinal':
+    '⚡ {factorA} × {factorB} +{deltaR2Pct}% — {factorA} relationship reverses across {factorB}',
+
   // ── Composition view (ER-5a) ──
   'compositionView.title': 'Composition by {factor}',
   'compositionView.toggle.lift': 'lift',

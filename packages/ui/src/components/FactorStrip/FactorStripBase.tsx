@@ -7,6 +7,15 @@ import type {
   FactorStripStepDecoration,
   DefectRateChip,
 } from '@variscout/hooks';
+import type { ModelInteraction } from '../ModelDrawer/ModelDrawerBase';
+
+/**
+ * Winning interaction from the model drawer (ER-6).
+ * Re-exported here so callers can reference the type from @variscout/ui
+ * without importing from @variscout/ui/model-drawer.
+ * Pattern is geometric only — ordinal or disordinal — never role-based.
+ */
+export type { ModelInteraction };
 
 /** Width budget for the common-scale bar (wireframe: max share → 72px). */
 const BAR_MAX_PX = 72;
@@ -80,6 +89,24 @@ export interface FactorStripBaseProps {
    * have not yet threaded outcomeColumn (backwards-compatible).
    */
   isDefectRate?: boolean;
+  /**
+   * Strip v2 (ER-6): live model stats from the model drawer.
+   * When present (magnitude variant only), chips render in-model semipartial ΔR²
+   * instead of marginal adjusted-η², the caption flips to "in the model", and the
+   * residual becomes 1 − R²adj. When absent, v1 marginal output is preserved exactly.
+   * Membership and defect-rate variants ignore this prop.
+   */
+  modelStats?: {
+    deltaR2: Map<string, number>;
+    rSquaredAdj: number | null;
+    interaction?: ModelInteraction | null;
+  } | null;
+  /**
+   * ER-6: fired when the analyst clicks the ⚡ interaction chip.
+   * Receives the interaction payload so the caller can render the focal comparison.
+   * Optional — omit when the interaction chip is not wired.
+   */
+  onInteractionSelect?: (interaction: ModelInteraction) => void;
 }
 
 /**
@@ -109,6 +136,8 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
   membershipStepDecorations,
   defectRateChips,
   isDefectRate = true,
+  modelStats,
+  onInteractionSelect,
 }) => {
   const { t, tf, formatStat } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -125,23 +154,63 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
     };
   }, []);
 
+  // ER-6: strip v2. When modelStats is present on the magnitude variant, chips render
+  // in-model ΔR² and the residual is 1 − R²adj. When absent, the v1 marginal path
+  // is preserved exactly (progressive non-regressive enhancement).
+  const isV2 = variant === 'magnitude' && !!modelStats;
+
+  // v2 residual: 1 − R²adj (percentage). v1: the passed residualPct.
+  const effectiveResidualPct = useMemo<number | null>(() => {
+    if (!isV2) return residualPct;
+    const rAdj = modelStats?.rSquaredAdj;
+    if (rAdj == null || !Number.isFinite(rAdj)) return residualPct;
+    return Math.round((1 - rAdj) * 100);
+  }, [isV2, residualPct, modelStats]);
+
+  // v2 chip value lookup: ΔR² from modelStats, scaled to percentage.
+  // In v2, only kept factors (present in deltaR2) have valid in-model values;
+  // factors absent from deltaR2 must not show a marginal η² under the "in the model" caption.
+  const getChipPct = (factor: string, adjustedPct: number): number => {
+    if (!isV2) return adjustedPct;
+    const dr2 = modelStats?.deltaR2.get(factor);
+    // In v2 the caller must only call this for kept factors — absent ones are filtered out.
+    return dr2 != null ? dr2 * 100 : adjustedPct;
+  };
+
+  // v2: only render chips present in the deltaR2 map (the kept/shown factor set).
+  // This ensures the "in the model" caption is always truthful — we never silently
+  // show a marginal η² value under an in-model label.
+  const keptChips = useMemo(() => {
+    if (!isV2 || !modelStats) return chips;
+    return chips.filter(c => modelStats.deltaR2.has(c.factor));
+  }, [chips, isV2, modelStats]);
+
   // Common-scale normalization: the largest adjusted share maps to BAR_MAX_PX.
-  const maxPct = useMemo(() => chips.reduce((m, c) => Math.max(m, c.adjustedPct), 0), [chips]);
+  // v2: normalize over in-model ΔR² values of KEPT chips only; v1: over adjustedPct.
+  const maxPct = useMemo(() => {
+    if (isV2 && modelStats) {
+      const values = keptChips.map(c => (modelStats.deltaR2.get(c.factor) ?? 0) * 100);
+      return values.reduce((m, v) => Math.max(m, v), 0);
+    }
+    return chips.reduce((m, c) => Math.max(m, c.adjustedPct), 0);
+  }, [chips, keptChips, isV2, modelStats]);
 
   // Disclosure: the top-N by global rank always render expanded; any
   // framing-selected chip outside the top-N also renders expanded (selection =
   // prominence). Everything else collapses under "+N also screened".
+  // In v2, disclosure operates over keptChips only (non-kept chips are omitted).
   const { primaryChips, collapsedChips } = useMemo(() => {
     const primary: FactorStripChip[] = [];
     const collapsed: FactorStripChip[] = [];
-    chips.forEach((chip, idx) => {
+    const source = isV2 ? keptChips : chips;
+    source.forEach((chip, idx) => {
       if (idx < TOP_N_EXPANDED || chip.isSelected) primary.push(chip);
       else collapsed.push(chip);
     });
     return { primaryChips: primary, collapsedChips: collapsed };
-  }, [chips]);
+  }, [chips, keptChips, isV2]);
 
-  const visibleChips = expanded ? chips : primaryChips;
+  const visibleChips = expanded ? (isV2 ? keptChips : chips) : primaryChips;
   const hiddenCount = collapsedChips.length;
 
   const barWidthPx = (pct: number): number => {
@@ -254,10 +323,10 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
               'h-1 rounded-full',
               chip.isWeak ? 'bg-edge-secondary' : 'bg-status-info',
             ].join(' ')}
-            style={{ width: `${barWidthPx(chip.adjustedPct)}px` }}
+            style={{ width: `${barWidthPx(getChipPct(chip.factor, chip.adjustedPct))}px` }}
           />
           <span className="text-[11px] text-content-secondary">
-            {formatStat(chip.adjustedPct, 1)}%
+            {formatStat(getChipPct(chip.factor, chip.adjustedPct), 1)}%
           </span>
         </span>
       </div>
@@ -548,10 +617,14 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
           </span>
         ) : (
           <>
-            <span className="text-[11px] text-content-muted">{t('factorStrip.subtitle')}</span>
-            <span className="basis-full text-[11px] text-content-muted">
-              {t('factorStrip.bridge')}
+            <span className="text-[11px] text-content-muted">
+              {isV2 ? t('factorStrip.inModel.subtitle') : t('factorStrip.subtitle')}
             </span>
+            {!isV2 && (
+              <span className="basis-full text-[11px] text-content-muted">
+                {t('factorStrip.bridge')}
+              </span>
+            )}
             <a
               href="#"
               onClick={handleLinkClick}
@@ -625,13 +698,45 @@ export const FactorStripBase: React.FC<FactorStripBaseProps> = ({
             </button>
           )}
 
-          {residualPct !== null && (
+          {effectiveResidualPct !== null && (
             <div
               data-testid="factor-chip-residual"
               title={t('factorStrip.residual.hover')}
               className="flex flex-col justify-center px-2.5 py-1.5 text-[11px] text-content-muted"
             >
-              {tf('factorStrip.residual', { n: formatStat(residualPct, 0) })}
+              {isV2
+                ? tf('factorStrip.inModel.residual', { n: formatStat(effectiveResidualPct, 0) })
+                : tf('factorStrip.residual', { n: formatStat(effectiveResidualPct, 0) })}
+            </div>
+          )}
+
+          {/* ER-6: ⚡ interaction chip — only on magnitude variant with modelStats.interaction */}
+          {isV2 && modelStats?.interaction && (
+            <div
+              data-testid="factor-chip-interaction"
+              role="button"
+              tabIndex={0}
+              onClick={() => onInteractionSelect?.(modelStats.interaction!)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onInteractionSelect?.(modelStats.interaction!);
+                }
+              }}
+              className="flex flex-col gap-1 rounded-lg border border-dashed border-status-info px-2.5 py-1.5 cursor-pointer transition-colors hover:bg-surface-secondary"
+            >
+              <span className="text-[11px] font-medium text-content-secondary">
+                {tf(
+                  modelStats.interaction.pattern === 'disordinal'
+                    ? 'factorStrip.interaction.chip.disordinal'
+                    : 'factorStrip.interaction.chip.ordinal',
+                  {
+                    factorA: modelStats.interaction.factorA,
+                    factorB: modelStats.interaction.factorB,
+                    deltaR2Pct: formatStat(modelStats.interaction.deltaR2 * 100, 1),
+                  }
+                )}
+              </span>
             </div>
           )}
         </div>
