@@ -256,7 +256,13 @@ export function hydrateDocumentSnapshot(snapshot: DocumentSnapshot): void {
   };
 
   useProjectStore.getState().loadProject(serializedProject);
-  useAnalyzeStore.getState().loadAnalyzeState(cloneJson(snapshot.analyze));
+  const analyzePayload = cloneJson(snapshot.analyze);
+  // Ensure legacy snapshots (pre-CL-1, no `consultations` field) reset the store's
+  // consultations to [] rather than falling back to the current in-memory state via
+  // `?? state.consultations` inside loadAnalyzeState.  `consultations` is the only
+  // analyze field that can legitimately be absent on a valid legacy snapshot.
+  analyzePayload.consultations = analyzePayload.consultations ?? [];
+  useAnalyzeStore.getState().loadAnalyzeState(analyzePayload);
   useCanvasStore.getState().hydrateCanvasDocument(cloneJson(snapshot.canvas));
 
   const improvementStore = useImprovementProjectStore.getState();
