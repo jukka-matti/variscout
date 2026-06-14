@@ -92,7 +92,12 @@ export function parseMarkdownResponse(raw: string, consultation: Consultation): 
   for (const line of lines) {
     const match = ID_ANCHOR_RE.exec(line);
     if (match) {
-      // Start a new section
+      // Start a new section.
+      // NOTE: a duplicate [id: <uuid>] heading (same UUID appearing twice) produces
+      // two separate sections — and therefore two insights — for the one question.
+      // This is intentional for hand-edited files where a respondent may split a
+      // long answer into multiple labelled blocks. CL-3's template generator never
+      // emits duplicate IDs; the analyst reviews each resulting insight in the UI.
       if (current) sections.push(current);
       current = { questionId: match[1].toLowerCase(), bodyLines: [] };
     } else if (current) {

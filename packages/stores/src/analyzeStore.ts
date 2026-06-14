@@ -1453,6 +1453,15 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     if (!consultation || !insight) {
       throw new Error(`acceptInsight: insight ${insightId} not found`);
     }
+    // Idempotency guard: already accepted → return the existing Finding without creating a duplicate.
+    if (insight.status === 'accepted' && insight.acceptedAs) {
+      const existing = get().findings.find(f => f.id === insight.acceptedAs!.id);
+      if (existing) return existing;
+    }
+    // Rejected insight: no-op (creating a Finding for rejected evidence is unsound).
+    if (insight.status === 'rejected') {
+      return undefined as unknown as Finding;
+    }
     const response = consultation.responses.find(r => r.id === insight.responseId);
     const base = createFinding(insight.text, {}, null);
     const finding: Finding = {
@@ -1503,13 +1512,16 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
   },
 
   editInsight: (consultationId, insightId, text) => {
+    // Only mutate pending insights. Editing an accepted insight would desync the
+    // insight text from the already-created Finding snapshot; editing a rejected
+    // insight has no effect either way.
     set(state => ({
       consultations: state.consultations.map(c =>
         c.id === consultationId
           ? {
               ...c,
               proposedInsights: c.proposedInsights.map(i =>
-                i.id === insightId ? { ...i, text } : i
+                i.id === insightId && i.status === 'pending' ? { ...i, text } : i
               ),
               updatedAt: Date.now(),
             }
