@@ -105,7 +105,10 @@ export {
   ConversationHistory,
 } from './responsesApi';
 
-export { narrationResponseSchema, chartInsightResponseSchema } from './schemas';
+export { narrationResponseSchema, chartInsightResponseSchema, proposedInsightSchema } from './schemas';
+
+export { distillTranscriptToInsights } from './distillation';
+export type { DistillInput, DistilledProposal } from './distillation';
 
 export type { AIFeature, TraceMetadata, TokenUsage, TraceRecord, TraceStats } from './tracing';
 export { traceAICall, getRecentTraces, clearTraces, getTraceStats } from './tracing';
