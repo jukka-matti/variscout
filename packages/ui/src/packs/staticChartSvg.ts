@@ -58,7 +58,21 @@ const COLORS = {
 const MARGIN = { top: 16, right: 16, bottom: 36, left: 48 };
 
 function clamp(v: number, lo: number, hi: number): number {
+  // Non-finite (NaN / Infinity) coordinates produce invalid SVG attributes
+  // (e.g. cy="NaN"). Degenerate conditions (n=1, all-equal y, missing limits)
+  // legitimately yield non-finite scale outputs, so clamp to the low bound
+  // rather than emitting NaN.
+  if (!Number.isFinite(v)) return lo;
   return Math.max(lo, Math.min(hi, v));
+}
+
+/**
+ * Coerce a possibly non-finite number to a finite fallback. Used at the input
+ * boundary before any arithmetic so NaN/Infinity never propagate into scales
+ * or SVG coordinate attributes.
+ */
+function safeNum(v: number, fallback = 0): number {
+  return Number.isFinite(v) ? v : fallback;
 }
 
 function linearScale(
@@ -90,6 +104,10 @@ function bandScale(
   };
 }
 
+// NOTE: intentionally diverges from renderPackHtml.tsx's escapeHtml — this one
+// escapes only the four XML entities (no `'`) since it targets SVG text-node
+// content, not HTML attributes. Kept separate deliberately (no cross-file shared
+// module) to avoid an export-wiring ripple; the divergence is intentional.
 function escapeXml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -109,7 +127,20 @@ function formatTickLabel(v: number): string {
 
 /** Renders an I-Chart (individual values + control limits) as a static SVG string. */
 export function renderStaticIChartSvg(input: StaticIChartInput): string {
-  const { data, mean, ucl, lcl, width, height, yAxisLabel = 'Value', xAxisLabel = 'Index' } = input;
+  const {
+    data: rawData,
+    width,
+    height,
+    yAxisLabel = 'Value',
+    xAxisLabel = 'Index',
+  } = input;
+
+  // Sanitize every numeric input at the boundary so non-finite values
+  // (NaN / Infinity) never poison the min/max domain or reach SVG coords.
+  const mean = safeNum(input.mean);
+  const ucl = safeNum(input.ucl);
+  const lcl = safeNum(input.lcl);
+  const data = rawData.map(d => ({ x: safeNum(d.x), y: safeNum(d.y) }));
 
   const innerW = width - MARGIN.left - MARGIN.right;
   const innerH = height - MARGIN.top - MARGIN.bottom;
@@ -223,7 +254,18 @@ export function renderStaticIChartSvg(input: StaticIChartInput): string {
 
 /** Renders a boxplot as a static SVG string. */
 export function renderStaticBoxplotSvg(input: StaticBoxplotInput): string {
-  const { groups, width, height, yAxisLabel = 'Value' } = input;
+  const { groups: rawGroups, width, height, yAxisLabel = 'Value' } = input;
+
+  // Sanitize every numeric stat at the boundary so non-finite values never
+  // poison the min/max domain or reach SVG coords.
+  const groups = rawGroups.map(g => ({
+    key: g.key,
+    q1: safeNum(g.q1),
+    median: safeNum(g.median),
+    q3: safeNum(g.q3),
+    min: safeNum(g.min),
+    max: safeNum(g.max),
+  }));
 
   const innerW = width - MARGIN.left - MARGIN.right;
   const innerH = height - MARGIN.top - MARGIN.bottom;

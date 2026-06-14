@@ -419,19 +419,20 @@ function renderRawRowsSection(s: RawRowsSection): string {
 export function renderPackHtml(model: PackModel, options: RenderPackHtmlOptions): string {
   const { redaction } = options;
 
+  // Build metaParts from RAW values; escape exactly once in the final map below.
   const metaParts: string[] = [];
-  if (model.meta.packId) metaParts.push(`Pack ID: ${escapeHtml(model.meta.packId)}`);
-  if (model.meta.from) metaParts.push(`From: ${escapeHtml(model.meta.from)}`);
-  if (model.meta.consultationId)
-    metaParts.push(`Consultation: ${escapeHtml(model.meta.consultationId)}`);
+  if (model.meta.packId) metaParts.push(`Pack ID: ${model.meta.packId}`);
+  if (model.meta.from) metaParts.push(`From: ${model.meta.from}`);
+  if (model.meta.consultationId) metaParts.push(`Consultation: ${model.meta.consultationId}`);
 
-  const metaHtml = metaParts.map(part => `<span>${escapeHtml(part)}</span>`).join('\n        ');
-
-  // Count questions for the header
+  // Count questions for the header. Must push BEFORE the join below, otherwise
+  // the chip never renders (the array would be mutated too late).
   const questionCount = model.sections.filter(s => s.kind === 'question').length;
   if (questionCount > 0) {
     metaParts.push(`${questionCount} question${questionCount !== 1 ? 's' : ''}`);
   }
+
+  const metaHtml = metaParts.map(part => `<span>${escapeHtml(part)}</span>`).join('\n        ');
 
   let questionIndex = 0;
   const sectionsHtml = model.sections
@@ -488,6 +489,10 @@ export function renderPackHtml(model: PackModel, options: RenderPackHtmlOptions)
 
 // ── Utility ───────────────────────────────────────────────────────────────────
 
+// NOTE: intentionally diverges from staticChartSvg.ts's escapeXml — this one also
+// escapes `'` -> `&#39;` for HTML attribute safety (escapeXml escapes only the
+// four XML entities for SVG text-node content). Kept separate to avoid a cross-file
+// shared module / export-wiring ripple; the divergence is deliberate, not drift.
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
