@@ -103,7 +103,8 @@ export async function distillTranscriptToInsights(
     });
 
     const rawText = extractResponseText(response);
-    return parseAndValidatePayload(rawText);
+    const validQuestionIds = new Set(questions.map(q => q.id));
+    return parseAndValidatePayload(rawText, validQuestionIds);
   } catch {
     // Network or API errors: return [] rather than propagating — the analyst
     // can always use the deterministic path.
@@ -136,24 +137,34 @@ Your task: extract structured insights from the expert's words.
 ${questionList}
 
 **Output rules:**
-- Return a JSON array of insight objects matching the schema.
+- Return a JSON object with key "insights" containing an array, matching the schema.
 - For each insight, classify it as one of:
     "answer" — directly addresses one of the questions above (set questionId to the question's id)
     "context" — useful background knowledge that does not directly answer a question
     "new-hypothesis-proposal" — a mechanism or suspected cause the expert raised that is NOT in the existing questions
     "contradiction" — a statement that conflicts with the current investigation direction
-- Set "questionId" only when the insight clearly answers that specific question; omit it otherwise.
+- Set "questionId" to the question's id when the insight clearly answers it; set to null otherwise.
 - Extract mechanisms and suspected causes; never say "root cause" — use "suspected cause".
 - Each insight must be one clear statement (one to three sentences).
 - Drop pleasantries, scheduling talk, and off-topic content.
-- If the transcript contains no extractable insights, return an empty array [].`;
+- If the transcript contains no extractable insights, return an object with an empty insights array.`;
 }
 
 /**
  * Parse the raw model text as JSON and validate each item against the schema.
- * Drops malformed items; never throws.
+ *
+ * The model response is an object `{ insights: [...] }` (object-rooted per
+ * Azure strict-mode requirement). Drops malformed items; never throws.
+ *
+ * @param raw - Raw text from the model response.
+ * @param validQuestionIds - Set of valid question ids from the consultation.
+ *   A questionId not present in this set is treated as absent (the insight is
+ *   kept but unanchored — I1: prevents dangling FKs).
  */
-function parseAndValidatePayload(raw: string): DistilledProposal[] {
+function parseAndValidatePayload(
+  raw: string,
+  validQuestionIds: Set<string>
+): DistilledProposal[] {
   if (!raw || !raw.trim()) return [];
 
   let parsed: unknown;
@@ -163,11 +174,15 @@ function parseAndValidatePayload(raw: string): DistilledProposal[] {
     return [];
   }
 
-  if (!Array.isArray(parsed)) return [];
+  // The model response must be an object with an `insights` array (B1: object root).
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return [];
+
+  const insightsRaw = (parsed as Record<string, unknown>).insights;
+  if (!Array.isArray(insightsRaw)) return [];
 
   const results: DistilledProposal[] = [];
 
-  for (const item of parsed) {
+  for (const item of insightsRaw) {
     if (!item || typeof item !== 'object') continue;
 
     const { questionId, text, kind } = item as Record<string, unknown>;
@@ -183,8 +198,14 @@ function parseAndValidatePayload(raw: string): DistilledProposal[] {
       kind: kind as ProposedInsightKind,
     };
 
-    // questionId is optional — only include when it's a non-empty string
-    if (typeof questionId === 'string' && questionId.trim()) {
+    // questionId is optional — include only when it's a non-empty string AND
+    // matches a question that was actually supplied (I1: drop hallucinated ids).
+    // The model may return null for "no anchor" (per the nullable schema type).
+    if (
+      typeof questionId === 'string' &&
+      questionId.trim() &&
+      validQuestionIds.has(questionId.trim())
+    ) {
       proposal.questionId = questionId.trim();
     }
 

@@ -45,11 +45,13 @@ const mockQuestions = [
   { id: 'q-2', text: 'Is there a temperature pattern on cold mornings?' },
 ];
 
-const VALID_PAYLOAD = JSON.stringify([
-  { questionId: 'q-1', text: 'Monday crew runs a cold startup — oven not pre-heated.', kind: 'answer' },
-  { questionId: 'q-2', text: 'Temperature drops 15°C below spec on cold mornings.', kind: 'context' },
-  { text: 'Different operator on Mondays may be a suspected cause.', kind: 'new-hypothesis-proposal' },
-]);
+const VALID_PAYLOAD = JSON.stringify({
+  insights: [
+    { questionId: 'q-1', text: 'Monday crew runs a cold startup — oven not pre-heated.', kind: 'answer' },
+    { questionId: 'q-2', text: 'Temperature drops 15°C below spec on cold mornings.', kind: 'context' },
+    { questionId: null, text: 'Different operator on Mondays may be a suspected cause.', kind: 'new-hypothesis-proposal' },
+  ],
+});
 
 function mockApiResponse(payload: string) {
   mockSendResponsesTurn.mockResolvedValueOnce({
@@ -162,13 +164,15 @@ describe('distillTranscriptToInsights — active path (mock config)', () => {
   });
 
   it('drops malformed items without throwing', async () => {
-    const mixedPayload = JSON.stringify([
-      { questionId: 'q-1', text: 'Valid insight.', kind: 'answer' },
-      { questionId: 'q-2', text: 'Missing kind field — should be dropped.' }, // no kind
-      { text: 123, kind: 'context' }, // text not a string
-      { text: '', kind: 'context' }, // empty text — dropped
-      { text: 'Another valid one.', kind: 'contradiction' },
-    ]);
+    const mixedPayload = JSON.stringify({
+      insights: [
+        { questionId: 'q-1', text: 'Valid insight.', kind: 'answer' },
+        { questionId: 'q-2', text: 'Missing kind field — should be dropped.', kind: null }, // no kind
+        { questionId: null, text: 123, kind: 'context' }, // text not a string
+        { questionId: null, text: '', kind: 'context' }, // empty text — dropped
+        { questionId: null, text: 'Another valid one.', kind: 'contradiction' },
+      ],
+    });
 
     mockApiResponse(mixedPayload);
 
@@ -182,6 +186,59 @@ describe('distillTranscriptToInsights — active path (mock config)', () => {
     expect(result).toHaveLength(2);
     expect(result.every(i => typeof i.text === 'string' && i.text.length > 0)).toBe(true);
     expect(result.every(i => ['answer', 'context', 'new-hypothesis-proposal', 'contradiction'].includes(i.kind))).toBe(true);
+  });
+
+  it('drops items with an invalid (present but wrong) kind value', async () => {
+    // I2: test the invalid-kind reject path with a present-but-wrong kind string
+    const mixedPayload = JSON.stringify({
+      insights: [
+        { questionId: 'q-1', text: 'Valid insight.', kind: 'answer' },
+        { questionId: null, text: 'Invalid kind — should be dropped.', kind: 'observation' },
+      ],
+    });
+
+    mockApiResponse(mixedPayload);
+
+    const result = await distillTranscriptToInsights({
+      config: mockConfig,
+      transcript: 'Some content.',
+      questions: mockQuestions,
+    });
+
+    // Only the valid item survives; the 'observation' item is dropped by VALID_KINDS guard
+    expect(result).toHaveLength(1);
+    expect(result[0].kind).toBe('answer');
+  });
+
+  it('keeps insight but drops questionId when it does not match any supplied question (I1)', async () => {
+    // I1: a hallucinated questionId must not produce a dangling FK
+    const payload = JSON.stringify({
+      insights: [
+        { questionId: 'q-does-not-exist', text: 'Unanchored insight.', kind: 'context' },
+        { questionId: 'q-1', text: 'Anchored insight.', kind: 'answer' },
+      ],
+    });
+
+    mockApiResponse(payload);
+
+    const result = await distillTranscriptToInsights({
+      config: mockConfig,
+      transcript: 'Some transcript.',
+      questions: mockQuestions, // only has q-1 and q-2
+    });
+
+    expect(result).toHaveLength(2);
+
+    // The insight with the invalid questionId is kept but its questionId is dropped
+    const unanchored = result.find(i => i.text === 'Unanchored insight.');
+    expect(unanchored).toBeDefined();
+    expect(unanchored!.questionId).toBeUndefined();
+    expect(unanchored!.kind).toBe('context');
+
+    // The insight with a valid questionId retains it
+    const anchored = result.find(i => i.text === 'Anchored insight.');
+    expect(anchored).toBeDefined();
+    expect(anchored!.questionId).toBe('q-1');
   });
 
   it('does not throw when model returns unparseable JSON — returns []', async () => {
