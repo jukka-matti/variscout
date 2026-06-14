@@ -71,6 +71,13 @@ export {
   type ChartType,
 } from './responsive';
 
+// Resilient sizing HOC (drop-in for visx's deprecated withParentSize)
+export {
+  withResponsiveSize,
+  type WithResponsiveSizeProvidedProps,
+  type WithResponsiveSizeConfigProps,
+} from './responsive/withResponsiveSize';
+
 // Interaction hooks
 export { useChartTooltip, type UseChartTooltipReturn } from './hooks';
 export {

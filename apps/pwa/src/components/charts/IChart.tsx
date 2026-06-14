@@ -1,7 +1,7 @@
 /**
  * PWA IChart - Thin wrapper that connects stores to shared IChartWrapperBase
  */
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from '@variscout/charts';
 import { useProjectStore, useViewStore } from '@variscout/stores';
 import {
   useFilteredData,
@@ -122,4 +122,4 @@ const IChart = ({
   );
 };
 
-export default withParentSize(IChart);
+export default withResponsiveSize(IChart);

@@ -2,7 +2,7 @@
  * PWA Boxplot - Thin wrapper that connects stores to shared BoxplotWrapperBase
  */
 import React from 'react';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from '@variscout/charts';
 import { useProjectStore } from '@variscout/stores';
 import { useFilteredData, useCapabilityBoxplotData } from '@variscout/hooks';
 import { useChartScale } from '../../hooks/useChartScale';
@@ -110,4 +110,4 @@ const Boxplot = ({
   );
 };
 
-export default withParentSize(Boxplot);
+export default withResponsiveSize(Boxplot);

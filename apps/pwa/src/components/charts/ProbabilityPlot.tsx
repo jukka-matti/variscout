@@ -1,5 +1,5 @@
 import React from 'react';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from '@variscout/charts';
 import { ProbabilityPlot, type ProbabilityPlotProps } from '@variscout/ui';
 
 // PWA defaults to showing branding (free tier per ADR-082 wedge); Azure does not.
@@ -7,4 +7,4 @@ const ProbabilityPlotPwa = ({ showBranding = true, ...props }: ProbabilityPlotPr
   <ProbabilityPlot {...props} showBranding={showBranding} />
 );
 
-export default withParentSize(ProbabilityPlotPwa);
+export default withResponsiveSize(ProbabilityPlotPwa);
