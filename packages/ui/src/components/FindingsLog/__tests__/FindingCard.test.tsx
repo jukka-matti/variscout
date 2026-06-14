@@ -232,3 +232,24 @@ describe('FindingCard — ER-7 evidence affordances', () => {
     expect(screen.getByTestId('finding-y-column')).toHaveTextContent('Y: Fill weight');
   });
 });
+
+describe('FindingCard — CL-5b Ask an expert', () => {
+  it('renders the Ask-an-expert button and calls onAskExpert with the finding id', () => {
+    const finding = makeFinding({ id: 'f-ask-expert-1' });
+    const onAskExpert = vi.fn();
+
+    render(<FindingCard finding={finding} {...noopHandlers} onAskExpert={onAskExpert} />);
+
+    const btn = screen.getByTestId('ask-expert-finding');
+    fireEvent.click(btn);
+
+    expect(onAskExpert).toHaveBeenCalledTimes(1);
+    expect(onAskExpert).toHaveBeenCalledWith('f-ask-expert-1');
+  });
+
+  it('does not render the Ask-an-expert button when onAskExpert is absent', () => {
+    const finding = makeFinding({ id: 'f-ask-expert-2' });
+    render(<FindingCard finding={finding} {...noopHandlers} />);
+    expect(screen.queryByTestId('ask-expert-finding')).toBeNull();
+  });
+});

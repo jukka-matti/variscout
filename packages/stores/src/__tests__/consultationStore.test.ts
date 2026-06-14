@@ -76,4 +76,106 @@ describe('analyzeStore — consultations', () => {
     expect(useAnalyzeStore.getState().consultations[0].proposedInsights[0].status).toBe('rejected');
     expect(useAnalyzeStore.getState().findings).toHaveLength(0);
   });
+
+  // ── Regression: FIX 1 — acceptInsight must be idempotent ─────────────────
+
+  it('acceptInsight is idempotent: double-accept produces exactly one Finding with a stable id', () => {
+    const c = useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    useAnalyzeStore.getState().importResponse(c.id, {
+      source: 'typed',
+      respondentLabel: 'J. Operator',
+      insights: [{ text: 'Cold oven Mondays.', kind: 'answer' }],
+    });
+    const insight = useAnalyzeStore.getState().consultations[0].proposedInsights[0];
+
+    const finding1 = useAnalyzeStore.getState().acceptInsight(c.id, insight.id);
+    const finding2 = useAnalyzeStore.getState().acceptInsight(c.id, insight.id);
+
+    // Must not create a second Finding
+    expect(useAnalyzeStore.getState().findings).toHaveLength(1);
+    // Second call must return the same Finding object (same id)
+    expect(finding2.id).toBe(finding1.id);
+  });
+
+  it('acceptInsight on a rejected insight is a no-op and creates no Finding', () => {
+    const c = useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    useAnalyzeStore.getState().importResponse(c.id, {
+      source: 'typed',
+      respondentLabel: 'J. Operator',
+      insights: [{ text: 'Noise.', kind: 'context' }],
+    });
+    const insight = useAnalyzeStore.getState().consultations[0].proposedInsights[0];
+    useAnalyzeStore.getState().rejectInsight(c.id, insight.id);
+
+    // Attempting to accept a rejected insight should not create a Finding
+    const result = useAnalyzeStore.getState().acceptInsight(c.id, insight.id);
+    expect(result).toBeUndefined();
+    expect(useAnalyzeStore.getState().findings).toHaveLength(0);
+  });
+
+  // ── Regression: FIX 2 — editInsight must not mutate an accepted insight ──
+
+  it('editInsight on an accepted insight is a no-op: text and linked Finding unchanged', () => {
+    const c = useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    useAnalyzeStore.getState().importResponse(c.id, {
+      source: 'typed',
+      respondentLabel: 'J. Operator',
+      insights: [{ text: 'Original text.', kind: 'answer' }],
+    });
+    const insight = useAnalyzeStore.getState().consultations[0].proposedInsights[0];
+    const finding = useAnalyzeStore.getState().acceptInsight(c.id, insight.id);
+
+    // Try to edit the now-accepted insight
+    useAnalyzeStore.getState().editInsight(c.id, insight.id, 'Rewritten text.');
+
+    const updatedInsight = useAnalyzeStore.getState().consultations[0].proposedInsights[0];
+    // Insight text must not change
+    expect(updatedInsight.text).toBe('Original text.');
+    // The Finding created from the original snapshot must be unchanged
+    const updatedFinding = useAnalyzeStore.getState().findings.find(f => f.id === finding.id);
+    expect(updatedFinding?.text).toBe('Original text.');
+  });
+
+  // ── CL-5a: markConsultationSent / closeConsultation ──────────────────────
+
+  it('markConsultationSent flips status from draft to sent and updates updatedAt', () => {
+    const c = useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    const before = useAnalyzeStore.getState().consultations[0].updatedAt;
+    expect(c.status).toBe('draft');
+
+    useAnalyzeStore.getState().markConsultationSent(c.id);
+
+    const updated = useAnalyzeStore.getState().consultations[0];
+    expect(updated.status).toBe('sent');
+    expect(updated.updatedAt).toBeGreaterThanOrEqual(before);
+  });
+
+  it('markConsultationSent is a no-op on an unknown id (does not throw)', () => {
+    useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    expect(() =>
+      useAnalyzeStore.getState().markConsultationSent('non-existent-id')
+    ).not.toThrow();
+    // The real consultation is unaffected
+    expect(useAnalyzeStore.getState().consultations[0].status).toBe('draft');
+  });
+
+  it('closeConsultation sets status to closed and updates updatedAt', () => {
+    const c = useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    const before = useAnalyzeStore.getState().consultations[0].updatedAt;
+
+    useAnalyzeStore.getState().closeConsultation(c.id);
+
+    const updated = useAnalyzeStore.getState().consultations[0];
+    expect(updated.status).toBe('closed');
+    expect(updated.updatedAt).toBeGreaterThanOrEqual(before);
+  });
+
+  it('closeConsultation is a no-op on an unknown id (does not throw)', () => {
+    useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    expect(() =>
+      useAnalyzeStore.getState().closeConsultation('non-existent-id')
+    ).not.toThrow();
+    // The real consultation is unaffected
+    expect(useAnalyzeStore.getState().consultations[0].status).toBe('draft');
+  });
 });

@@ -47,6 +47,8 @@ export interface FindingBoardViewProps {
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
   onPromoteAction?: (findingId: string, actionId: string) => void;
+  /** Ask a human expert about a specific finding (CL-5b — opens consultation panel) */
+  onAskExpert?: (findingId: string) => void;
   originStepNameByFindingId?: ReadonlyMap<string, string>;
   onSetOutcome?: (
     id: string,
@@ -90,6 +92,7 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   onCompleteAction,
   onDeleteAction,
   onPromoteAction,
+  onAskExpert,
   originStepNameByFindingId,
   onSetOutcome,
 }) => {
@@ -179,6 +182,7 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     onCompleteAction={onCompleteAction}
                     onDeleteAction={onDeleteAction}
                     onPromoteAction={onPromoteAction}
+                    onAskExpert={onAskExpert}
                     originStepName={originStepNameByFindingId?.get(finding.id)}
                     onSetOutcome={onSetOutcome}
                   />

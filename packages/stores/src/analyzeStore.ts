@@ -406,6 +406,24 @@ export interface AnalyzeActions {
   ) => void;
   acceptInsight: (consultationId: string, insightId: string) => Finding;
   rejectInsight: (consultationId: string, insightId: string) => void;
+  /**
+   * Edit a pending insight's text in place (analyst correction before accepting).
+   * No-op when the consultationId or insightId does not exist.
+   * Mirrors editFinding / editHubComment — serialize-safe (plain string).
+   */
+  editInsight: (consultationId: string, insightId: string, text: string) => void;
+  /**
+   * CL-5a: Mark a consultation as sent to the expert.
+   * Sets status to 'sent' and updates updatedAt.
+   * No-op (does not throw) when the consultationId is unknown.
+   */
+  markConsultationSent: (consultationId: string) => void;
+  /**
+   * CL-5a: Close a consultation (no further responses expected).
+   * Sets status to 'closed' and updates updatedAt.
+   * No-op (does not throw) when the consultationId is unknown.
+   */
+  closeConsultation: (consultationId: string) => void;
 }
 
 // ============================================================================
@@ -1447,6 +1465,15 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
     if (!consultation || !insight) {
       throw new Error(`acceptInsight: insight ${insightId} not found`);
     }
+    // Idempotency guard: already accepted → return the existing Finding without creating a duplicate.
+    if (insight.status === 'accepted' && insight.acceptedAs) {
+      const existing = get().findings.find(f => f.id === insight.acceptedAs!.id);
+      if (existing) return existing;
+    }
+    // Rejected insight: no-op (creating a Finding for rejected evidence is unsound).
+    if (insight.status === 'rejected') {
+      return undefined as unknown as Finding;
+    }
     const response = consultation.responses.find(r => r.id === insight.responseId);
     const base = createFinding(insight.text, {}, null);
     const finding: Finding = {
@@ -1492,6 +1519,41 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
               updatedAt: Date.now(),
             }
           : c
+      ),
+    }));
+  },
+
+  editInsight: (consultationId, insightId, text) => {
+    // Only mutate pending insights. Editing an accepted insight would desync the
+    // insight text from the already-created Finding snapshot; editing a rejected
+    // insight has no effect either way.
+    set(state => ({
+      consultations: state.consultations.map(c =>
+        c.id === consultationId
+          ? {
+              ...c,
+              proposedInsights: c.proposedInsights.map(i =>
+                i.id === insightId && i.status === 'pending' ? { ...i, text } : i
+              ),
+              updatedAt: Date.now(),
+            }
+          : c
+      ),
+    }));
+  },
+
+  markConsultationSent: consultationId => {
+    set(state => ({
+      consultations: state.consultations.map(c =>
+        c.id === consultationId ? { ...c, status: 'sent', updatedAt: Date.now() } : c
+      ),
+    }));
+  },
+
+  closeConsultation: consultationId => {
+    set(state => ({
+      consultations: state.consultations.map(c =>
+        c.id === consultationId ? { ...c, status: 'closed', updatedAt: Date.now() } : c
       ),
     }));
   },

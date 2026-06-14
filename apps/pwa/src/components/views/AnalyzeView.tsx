@@ -29,9 +29,13 @@ import {
   OverallProblemHeader,
   ScopeRail,
   useWallKeyboard,
+  ConsultationReviewPanel,
+  resolveConsultationViews,
 } from '@variscout/ui';
+import type { ResolvedView } from '@variscout/ui';
+import { ConsultationBuilder } from '../consultations/ConsultationBuilder';
 import type { WorkspaceProjectScopeLabels } from '@variscout/ui';
-import { useResizablePanel, useReturnNavigation } from '@variscout/hooks';
+import { useResizablePanel, useReturnNavigation, useTranslation } from '@variscout/hooks';
 import type { WallCanvasPlanningProps, WallCanvasModelBuilderProps } from '@variscout/ui';
 import type { CapturedModelSnapshot, ObjectDetailSelection } from '@variscout/ui';
 import {
@@ -282,6 +286,11 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   // Phase 13 — ⌘K command palette trigger. Only active when Wall is visible.
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [conclusionsOpen, setConclusionsOpen] = useState(false);
+
+  // CL-5b: consultation loop panel (right-side builder + review).
+  const { t, formatStat } = useTranslation();
+  const [consultationPanelOpen, setConsultationPanelOpen] = useState(false);
+  const [activeConsultationId, setActiveConsultationId] = useState<string | undefined>(undefined);
   const fitWallToContent = useCallback(() => {
     useCanvasViewportStore.getState().fitToContent(wallHubId, 'l2', {
       zoom: 1,
@@ -701,6 +710,80 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
   const problemCpk = problemStats?.cpk;
   const problemEvents = problemStats?.events ?? 0;
 
+  // CL-5b: resolve the views the consultation pack will include. V1 ships the
+  // CONDITION view reliably (active scope label + a stats string); chart-series
+  // plumbing is deferred (see resolveConsultationViews input contract).
+  // TODO(CL-5): add chart views (I-Chart / boxplot series).
+  const resolvedConsultationViews = useMemo<ResolvedView[]>(() => {
+    if (!activeScope) return [];
+    const label = formatConditionLeaves(activeScope.predicates);
+    const cpkText =
+      problemStats?.cpk !== undefined ? `Cpk ${formatStat(problemStats.cpk)} · ` : '';
+    const statsText = `${cpkText}${problemStats?.events ?? 0} events`;
+    return resolveConsultationViews({ condition: { label, statsText } });
+  }, [activeScope, problemStats, formatStat]);
+
+  // CL-5b: synchronous creation latch. A ref mutation survives StrictMode's
+  // double effect/callback invoke (unlike React state), so two synchronous
+  // calls to ensureActiveConsultation can never both mint a draft. We re-read
+  // store membership right before creating as a second guard.
+  const consultationCreationLatchRef = useRef(false);
+
+  // CL-5b (I1/I2): ensure an OPEN (draft) consultation exists, returning its id.
+  // Reads the STORE unconditionally (never the stale `activeConsultationId`
+  // React state) so it is idempotent and StrictMode-safe. A `sent`/`closed`/
+  // `responses-imported` active consultation is treated as ABSENT — the analyst's
+  // next ask mints a fresh draft rather than re-opening a finished one. NEVER
+  // mutates the store inside a setState updater.
+  const ensureActiveConsultation = useCallback((): string => {
+    const store = useAnalyzeStore.getState();
+    // Reuse the current active consultation only when it still exists AND is a
+    // draft (the analyst's open, editable consultation).
+    const current = activeConsultationId
+      ? store.consultations.find(c => c.id === activeConsultationId)
+      : undefined;
+    if (current && current.status === 'draft') return current.id;
+    // No reusable draft. Guard creation so two synchronous invocations (or a
+    // StrictMode double-invoke) cannot both create one: latch + a fresh
+    // store-membership re-read.
+    if (!consultationCreationLatchRef.current) {
+      const existingDraft = store.consultations.find(c => c.status === 'draft');
+      consultationCreationLatchRef.current = true;
+      const draftId = existingDraft ? existingDraft.id : store.createConsultation('').id;
+      setActiveConsultationId(draftId);
+      // Release the latch after the synchronous burst settles so a LATER,
+      // post-send ask can mint the next draft.
+      queueMicrotask(() => {
+        consultationCreationLatchRef.current = false;
+      });
+      return draftId;
+    }
+    // Latch held: a sibling synchronous call already (re)seated the draft.
+    const seated = useAnalyzeStore.getState().consultations.find(c => c.status === 'draft');
+    return seated ? seated.id : store.createConsultation('').id;
+  }, [activeConsultationId]);
+
+  // CL-5b: "Ask an expert" from a finding card — open the panel and seed a
+  // question anchored to that finding.
+  const handleAskExpertAboutFinding = useCallback(
+    (findingId: string) => {
+      const consultationId = ensureActiveConsultation();
+      useAnalyzeStore
+        .getState()
+        .addConsultationQuestion(consultationId, '', { kind: 'finding', id: findingId });
+      setConsultationPanelOpen(true);
+    },
+    [ensureActiveConsultation]
+  );
+
+  // I2: compute the next open state purely, then mutate the store OUTSIDE the
+  // setState updater (never inside it — StrictMode double-invokes updaters).
+  const handleToggleConsultationPanel = useCallback(() => {
+    const next = !consultationPanelOpen;
+    if (next) ensureActiveConsultation();
+    setConsultationPanelOpen(next);
+  }, [consultationPanelOpen, ensureActiveConsultation]);
+
   return (
     <div className="flex flex-1 min-h-0 flex-col">
       <OverallProblemHeader
@@ -802,7 +885,20 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 </button>
               )}
 
-              <span className="ml-auto text-xs text-content-tertiary">
+              <button
+                type="button"
+                onClick={handleToggleConsultationPanel}
+                aria-pressed={consultationPanelOpen}
+                className={`ml-auto rounded border border-edge px-2 py-0.5 text-xs font-medium transition-colors ${
+                  consultationPanelOpen
+                    ? 'bg-surface-secondary text-content'
+                    : 'text-content-secondary hover:text-content'
+                }`}
+              >
+                {t('consultation.panel.consultationButton')}
+              </button>
+
+              <span className="ml-2 text-xs text-content-tertiary">
                 {scopedFindings.length} finding
                 {scopedFindings.length !== 1 ? 's' : ''}
               </span>
@@ -829,6 +925,18 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 data-testid="analyze-wall-floating-controls"
                 className="absolute left-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1 rounded border border-edge bg-surface/95 p-1 shadow-sm"
               >
+                <button
+                  type="button"
+                  onClick={handleToggleConsultationPanel}
+                  aria-pressed={consultationPanelOpen}
+                  className={`rounded px-2 py-0.5 text-xs font-medium ${
+                    consultationPanelOpen
+                      ? 'bg-surface-secondary text-content'
+                      : 'text-content-secondary hover:bg-surface-secondary hover:text-content'
+                  }`}
+                >
+                  {t('consultation.panel.consultationButton')}
+                </button>
                 <button
                   type="button"
                   onClick={() => setConclusionsOpen(open => !open)}
@@ -1016,10 +1124,27 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
                 onSetOutcome={useAnalyzeStore.getState().setFindingOutcome}
                 onMarkSupport={focusedHub ? handleMarkFindingSupport : undefined}
                 onMarkCounter={focusedHub ? handleMarkFindingCounter : undefined}
+                onAskExpertAboutFinding={handleAskExpertAboutFinding}
               />
             </div>
           )}
         </div>
+
+        {/* CL-5b: right-side consultation panel (builder + review). */}
+        {consultationPanelOpen && (
+          <div
+            data-testid="analyze-consultation-panel"
+            className="hidden md:flex w-80 flex-shrink-0 flex-col border-l border-edge overflow-y-auto"
+          >
+            <ConsultationBuilder
+              resolvedViews={resolvedConsultationViews}
+              activeConsultationId={activeConsultationId}
+            />
+            {activeConsultationId && (
+              <ConsultationReviewPanel consultationId={activeConsultationId} />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

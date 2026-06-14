@@ -90,6 +90,8 @@ export interface FindingsLogProps {
   hasSpecs?: boolean;
   /** Ask CoScout about a specific finding (from FindingCard action button) */
   onAskCoScoutAboutFinding?: (focusContext: { finding: { text: string; status: string } }) => void;
+  /** Ask a human expert about a specific finding (CL-5b — opens consultation panel) */
+  onAskExpertAboutFinding?: (findingId: string) => void;
   /** Process context for JSON export */
   processContext?: ProcessContext;
   /** Callback for AI report generation (requires AI endpoint) */
@@ -144,6 +146,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   hasSpecs,
   renderActionAssigneePicker,
   onAskCoScoutAboutFinding,
+  onAskExpertAboutFinding,
   processContext,
   onGenerateAIReport,
   projectedCpkMap,
@@ -199,6 +202,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
           onPromoteAction={onPromoteAction}
+          onAskExpert={onAskExpertAboutFinding}
           originStepNameByFindingId={originStepNameByFindingId}
           onSetOutcome={onSetOutcome}
         />
@@ -257,6 +261,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
                 hasSpecs={hasSpecs}
                 renderActionAssigneePicker={renderActionAssigneePicker}
                 onAskCoScout={onAskCoScoutAboutFinding}
+                onAskExpert={onAskExpertAboutFinding}
                 projectedCpk={projectedCpkMap?.[finding.id]}
                 onMarkSupport={onMarkSupport}
                 onMarkCounter={onMarkCounter}

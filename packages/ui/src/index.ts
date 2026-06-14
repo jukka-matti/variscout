@@ -829,3 +829,36 @@ export type {
 
 // Shared confirm dialog primitive (wedge V1 PR-CCJ-H1)
 export { ConfirmDialog, type ConfirmDialogProps } from './components/ConfirmDialog';
+
+// CL-2: Pack renderer
+export {
+  renderPackHtml,
+  type PackModel,
+  type PackSection,
+  type PackMeta,
+  type ConditionSection,
+  type ChartSection,
+  type QuestionSection,
+  type RawRowsSection,
+  type RedactionLevel,
+  type RenderPackHtmlOptions,
+} from './packs/renderPackHtml';
+
+// CL-3: Consultation pack builder
+export {
+  buildConsultationPack,
+  buildResponseTemplateMarkdown,
+  type ResolvedView,
+} from './packs/buildConsultationPack';
+
+// CL-5a: Pure view resolver for the consultation pack builder
+export {
+  resolveConsultationViews,
+  type ResolveViewsInput,
+} from './packs/resolveConsultationViews';
+
+// CL-4 / CL-5b: Consultation review panel
+export {
+  ConsultationReviewPanel,
+  type ConsultationReviewPanelProps,
+} from './components/consultations/ConsultationReviewPanel';
