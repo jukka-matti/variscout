@@ -47,6 +47,7 @@ describe('analyzeStore — consultations', () => {
       insights: [{ text: 'Cold oven Mondays.', kind: 'answer' }],
     });
     const insight = useAnalyzeStore.getState().consultations[0].proposedInsights[0];
+    const response = useAnalyzeStore.getState().consultations[0].responses[0];
     const finding = useAnalyzeStore.getState().acceptInsight(c.id, insight.id);
     expect(finding.evidenceType).toBe('expert');
     expect(finding.provenance).toMatchObject({
@@ -54,6 +55,9 @@ describe('analyzeStore — consultations', () => {
       consultationId: c.id,
       respondentLabel: 'J. Operator',
     });
+    // Spec-required: provenance must carry import timestamp + responseId.
+    expect(finding.provenance?.importedAt).toBe(response.importedAt);
+    expect(finding.provenance?.responseId).toBe(insight.responseId);
     expect(useAnalyzeStore.getState().findings).toHaveLength(1);
     const updatedInsight = useAnalyzeStore.getState().consultations[0].proposedInsights[0];
     expect(updatedInsight.status).toBe('accepted');
