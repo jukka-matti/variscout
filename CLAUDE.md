@@ -15,8 +15,8 @@ Full index with canonical homes + enforcement mechanisms: `.claude/INVARIANTS.md
 
 ## Commands
 
-- `pnpm dev` — PWA at :5173
-- `pnpm --filter @variscout/azure-app dev` — Azure app
+- `pnpm dev` — Workspace app (`@variscout/workspace-app`) at :5173
+- `pnpm --filter @variscout/azure-app dev` — company server hosting the workspace-app company bundle from `dist/` (requires a prior `build`; no client dev server lives in `apps/azure` post-D4)
 - `pnpm test` — all packages (turbo)
 - `pnpm build` — all packages + apps
 - `claude --chrome` — enable the **official [Claude for Chrome extension](https://claude.com/claude-for-chrome)** for browser-assisted E2E (drives your real Chrome with your login state).

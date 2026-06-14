@@ -1949,7 +1949,9 @@ Root `CLAUDE.md` §Commands still reads `pnpm --filter @variscout/azure-app dev 
 
 **Severity:** trivial — doc accuracy nit.
 
-## I-Chart canvas blanks after in-session tab navigation (visx renderer-wedge) [LOGGED 2026-06-14]
+## I-Chart canvas blanks after in-session tab navigation (visx renderer-wedge) [LOGGED 2026-06-14] [RESOLVED 2026-06-14 → PR #399]
+
+**[RESOLVED 2026-06-14 → PR #399]** Fixed class-wide: replaced the deprecated `withParentSize` (20 chart wrappers) with a shared resilient `withResponsiveSize` primitive (seeds initial dims so the child is never blank; ignores <1px measurements so a transient 0 can't latch). Unit-tested ignore-zero guard (fails on old behavior) + a live remount-stress browser walk on the branch (rapid Explore↔Analyze switching → I-Chart rendered every time). Merged `883c4a175`. Root-cause detail retained below.
 
 **Surfaced by:** D4 verification chrome walk (converged workspace-app, `pnpm dev` :5173).
 
