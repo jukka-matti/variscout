@@ -6,6 +6,7 @@ import type {
   ProblemStatementScope,
   ProcessHub,
 } from '@variscout/core';
+import type { Consultation } from '@variscout/core/consultations';
 import type { ImprovementProject } from '@variscout/core/improvementProject';
 import { useAnalyzeStore } from './analyzeStore';
 import { useCanvasStore, type CanvasDocumentSnapshot } from './canvasStore';
@@ -23,6 +24,7 @@ export interface AnalyzeDocumentSnapshot {
   hypotheses: Hypothesis[];
   causalLinks: CausalLink[];
   scopes: ProblemStatementScope[];
+  consultations: Consultation[];
 }
 
 export type ProjectDocumentSnapshot = Omit<
@@ -105,6 +107,7 @@ function buildAnalyzeSnapshot(): AnalyzeDocumentSnapshot {
     hypotheses: state.hypotheses,
     causalLinks: state.causalLinks,
     scopes: state.scopes,
+    consultations: state.consultations,
   });
 }
 
