@@ -1,14 +1,25 @@
 /**
- * CL-5a: Response file import handler.
+ * CL-5a / CL-6: Response file import handler.
  *
- * Reads a File, routes to the correct parser (JSON vs Markdown) based on
- * filename extension, and returns the parsed result.
+ * Reads a File, routes to the correct parser based on filename extension:
+ *   - `.json`                   → `parseJsonResponse` (deterministic)
+ *   - `.md` / `.txt` (non-VTT) → `parseMarkdownResponse` (deterministic)
+ *   - `.vtt` / transcript       → `distillTranscriptToInsights` (AI-gated, CL-6)
+ *
+ * The transcript path is **dormant** when `config` is `undefined` — it returns a
+ * `ParsedResponse` with `[]` insights and makes no network call. CoScout is
+ * `ai: false` in every channel today; this path stays inert until BYOK/tenant
+ * wiring lands (named-future).
+ *
+ * TODO(CL-6): pass CoScout config when BYOK/tenant wiring lands (call site in
+ * `ConsultationBuilder` currently passes `undefined`).
  *
  * This function does NOT call the store — the caller (CL-5b) is responsible
  * for passing the result to `useAnalyzeStore.getState().importResponse(...)`.
  * Keeping this layer store-free makes it independently testable.
  *
- * Parse errors propagate to the caller (the CL-5b UI will surface them).
+ * Parse errors from the deterministic path propagate to the caller.
+ * The AI path never throws — network errors yield `[]` insights.
  */
 
 import {
@@ -17,23 +28,75 @@ import {
   type ParsedResponse,
 } from '@variscout/core/consultations';
 import type { Consultation } from '@variscout/core/consultations';
+import { distillTranscriptToInsights } from '@variscout/core/ai';
+import type { ResponsesApiConfig } from '@variscout/core/ai';
+
+/** Extensions that signal a transcript file rather than a typed response. */
+const TRANSCRIPT_EXTENSIONS = new Set(['.vtt']);
 
 /**
  * Read a response file and parse it into a `ParsedResponse`.
  *
  * Routing rule:
- *   - filename ends with `.json` → `parseJsonResponse`
- *   - all other extensions     → `parseMarkdownResponse`
+ *   - `.json`  → `parseJsonResponse` (deterministic)
+ *   - `.vtt`   → `distillTranscriptToInsights` (AI-gated; dormant when config is undefined)
+ *   - all else → `parseMarkdownResponse` (deterministic)
  *
- * @throws {Error} when the file content cannot be parsed (parse errors propagate).
+ * @param config - CoScout provider config. Pass `undefined` (the default today)
+ *   to keep the transcript path dormant.
+ * @throws {Error} when a deterministic parser cannot parse the file content.
  */
 export async function importConsultationResponseFile(
   file: { name: string; text(): Promise<string> },
-  consultation: Consultation
+  consultation: Consultation,
+  config?: ResponsesApiConfig
 ): Promise<ParsedResponse> {
   const raw = await file.text();
+
+  // Structured JSON response
   if (file.name.endsWith('.json')) {
     return parseJsonResponse(raw, consultation);
   }
+
+  // Transcript file — AI-gated path (CL-6)
+  const ext = getExtension(file.name);
+  if (TRANSCRIPT_EXTENSIONS.has(ext)) {
+    return distillToResponse(raw, consultation, config);
+  }
+
+  // Default: deterministic Markdown/typed path (CL-4)
   return parseMarkdownResponse(raw, consultation);
+}
+
+// ── Private helpers ────────────────────────────────────────────────────────────
+
+function getExtension(filename: string): string {
+  const dot = filename.lastIndexOf('.');
+  return dot >= 0 ? filename.slice(dot).toLowerCase() : '';
+}
+
+/**
+ * Route a transcript through `distillTranscriptToInsights`.
+ *
+ * When `config` is undefined (dormant path), this returns an empty `ParsedResponse`
+ * without making any network call — the correct V1 behavior.
+ */
+async function distillToResponse(
+  transcript: string,
+  consultation: Consultation,
+  config: ResponsesApiConfig | undefined
+): Promise<ParsedResponse> {
+  const questions = consultation.questions.map(q => ({ id: q.id, text: q.text }));
+
+  const proposals = await distillTranscriptToInsights({
+    config,
+    transcript,
+    questions,
+  });
+
+  return {
+    // No respondent label from a transcript — the analyst can fill it in via the UI
+    respondentLabel: '',
+    insights: proposals,
+  };
 }
