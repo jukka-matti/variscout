@@ -2,7 +2,7 @@
 tier: ephemeral
 purpose: build
 title: 'Consultation loop — implementation plan'
-status: active
+status: delivered
 date: 2026-06-14
 layer: spec
 implements:

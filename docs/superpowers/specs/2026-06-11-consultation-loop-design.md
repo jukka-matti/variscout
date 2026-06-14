@@ -4,7 +4,7 @@ purpose: design
 title: 'Consultation loop — data-anchored expert consultation via Analysis Packs'
 audience: human
 category: design-spec
-status: active
+status: delivered
 date: 2026-06-11
 last-verified: 2026-06-14
 related:
