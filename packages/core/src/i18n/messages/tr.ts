@@ -1294,4 +1294,20 @@ export const tr: MessageCatalog = {
   'consultation.review.empty': 'No pending insights to review.',
   'consultation.review.save': 'Save',
   'consultation.review.cancelEdit': 'Cancel',
+
+  // ── Consultation builder panel (CL-5b) ────────────────────────────────────
+  'consultation.builder.title': 'Consultation',
+  'consultation.builder.titleLabel': 'Title',
+  'consultation.builder.titlePlaceholder': 'Consultation title',
+  'consultation.builder.questions': 'Questions',
+  'consultation.builder.addQuestion': 'Add question',
+  'consultation.builder.removeQuestion': 'Remove question',
+  'consultation.builder.questionPlaceholder': 'Question for the expert',
+  'consultation.builder.anchoredToFinding': 'anchored to finding',
+  'consultation.builder.viewsIncluded': 'Views included',
+  'consultation.builder.noViews': 'No views to include yet.',
+  'consultation.builder.exportPack': 'Export pack',
+  'consultation.builder.importResponse': 'Import response',
+  'consultation.builder.importError': 'Could not read this response file: {error}',
+  'consultation.panel.consultationButton': 'Consultation',
 };

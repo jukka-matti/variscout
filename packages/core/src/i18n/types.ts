@@ -1489,4 +1489,34 @@ export interface MessageCatalog {
   'consultation.review.save': string;
   /** Cancel button label for edit mode. */
   'consultation.review.cancelEdit': string;
+
+  // ── Consultation builder panel (CL-5b) ────────────────────────────────────
+  /** Builder panel title. */
+  'consultation.builder.title': string;
+  /** Title input label. */
+  'consultation.builder.titleLabel': string;
+  /** Title input placeholder. */
+  'consultation.builder.titlePlaceholder': string;
+  /** Questions section heading. */
+  'consultation.builder.questions': string;
+  /** Add-question button label. */
+  'consultation.builder.addQuestion': string;
+  /** Remove-question button aria-label. */
+  'consultation.builder.removeQuestion': string;
+  /** Question text input placeholder. */
+  'consultation.builder.questionPlaceholder': string;
+  /** Anchor hint shown on a finding-anchored question. */
+  'consultation.builder.anchoredToFinding': string;
+  /** Views-included summary heading. */
+  'consultation.builder.viewsIncluded': string;
+  /** Empty state when no views resolve. */
+  'consultation.builder.noViews': string;
+  /** Export-pack button label. */
+  'consultation.builder.exportPack': string;
+  /** Import-response button label. */
+  'consultation.builder.importResponse': string;
+  /** Readable parse-error message. Param: {error}. */
+  'consultation.builder.importError': string;
+  /** Toolbar toggle button label opening the consultation panel. */
+  'consultation.panel.consultationButton': string;
 }
