@@ -138,6 +138,7 @@ describe('PO-8a v1 shape freeze — the post-PO-7 cleaned shape IS schema v1', (
     expect(Object.keys(snapshot.analyze).sort()).toEqual([
       'categories',
       'causalLinks',
+      'consultations',
       'findings',
       'hypotheses',
       'scopes',
