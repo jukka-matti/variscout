@@ -3,7 +3,7 @@ import { Group } from '@visx/group';
 import { scaleLinear } from '@visx/scale';
 import { AxisLeft, AxisBottom } from '@visx/axis';
 import { LinePath, Circle } from '@visx/shape';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { GridRows } from '@visx/grid';
 import { normalQuantile, safeMin, safeMax } from '@variscout/core';
 import type { ProbabilityPlotProps } from './types';
@@ -536,6 +536,6 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
 };
 
 // Export with responsive wrapper
-const ProbabilityPlot = withParentSize(ProbabilityPlotBase);
+const ProbabilityPlot = withResponsiveSize(ProbabilityPlotBase);
 export default ProbabilityPlot;
 export { ProbabilityPlotBase };

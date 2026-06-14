@@ -4,7 +4,7 @@ import { Circle } from '@visx/shape';
 import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { GridRows } from '@visx/grid';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { getStageBoundaries } from '@variscout/core';
 import type { StageBoundary } from './types';
 import type { IChartProps } from './types';
@@ -518,7 +518,7 @@ const IChartBase: React.FC<IChartProps> = ({
 };
 
 // Export with responsive wrapper
-const IChart = withParentSize(IChartBase);
+const IChart = withResponsiveSize(IChartBase);
 export default IChart;
 
 // Also export the base component for custom sizing

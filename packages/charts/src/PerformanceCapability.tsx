@@ -13,7 +13,7 @@ import { Bar, Line } from '@visx/shape';
 import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { GridRows } from '@visx/grid';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import type { PerformanceCapabilityProps } from './types';
 import { chartColors } from './colors';
 import { useChartTheme, getDocumentFontScale } from './useChartTheme';
@@ -310,5 +310,5 @@ export const PerformanceCapabilityBase: React.FC<PerformanceCapabilityProps> = (
   );
 };
 
-const PerformanceCapability = withParentSize(PerformanceCapabilityBase);
+const PerformanceCapability = withResponsiveSize(PerformanceCapabilityBase);
 export default PerformanceCapability;

@@ -17,7 +17,7 @@ import { Circle } from '@visx/shape';
 import { scaleLinear, scaleBand } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { GridRows } from '@visx/grid';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { safeMin, safeMax } from '@variscout/core';
 import type { PerformanceIChartProps, ChannelResult } from './types';
@@ -675,5 +675,5 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
   );
 };
 
-const PerformanceIChart = withParentSize(PerformanceIChartBase);
+const PerformanceIChart = withResponsiveSize(PerformanceIChartBase);
 export default PerformanceIChart;

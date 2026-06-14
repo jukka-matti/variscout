@@ -6,7 +6,7 @@
  * surfaces do not fork capability trajectory rendering.
  */
 import React from 'react';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { IChartBase } from './IChart';
 import type { CpkTrajectoryChartProps } from './types';
 
@@ -38,6 +38,6 @@ export const CpkTrajectoryChartBase: React.FC<CpkTrajectoryChartProps> = ({
   />
 );
 
-const CpkTrajectoryChart = withParentSize(CpkTrajectoryChartBase);
+const CpkTrajectoryChart = withResponsiveSize(CpkTrajectoryChartBase);
 export default CpkTrajectoryChart;
 export { CpkTrajectoryChart };

@@ -10,7 +10,7 @@
  * top-right slot.
  */
 import React from 'react';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { IChartBase } from './IChart';
 import type { CapabilityGapTrendChartProps } from './types';
 
@@ -39,6 +39,6 @@ export const CapabilityGapTrendChartBase: React.FC<CapabilityGapTrendChartProps>
   );
 };
 
-const CapabilityGapTrendChart = withParentSize(CapabilityGapTrendChartBase);
+const CapabilityGapTrendChart = withResponsiveSize(CapabilityGapTrendChartBase);
 export default CapabilityGapTrendChart;
 export { CapabilityGapTrendChart };

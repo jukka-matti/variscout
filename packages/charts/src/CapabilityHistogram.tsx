@@ -3,7 +3,7 @@ import { Group } from '@visx/group';
 import { Bar, Line } from '@visx/shape';
 import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { bin } from 'd3-array';
 import { safeMin, safeMax } from '@variscout/core';
 import type { CapabilityHistogramProps } from './types';
@@ -258,7 +258,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
 };
 
 // Export with responsive wrapper
-const CapabilityHistogram = withParentSize(CapabilityHistogramBase);
+const CapabilityHistogram = withResponsiveSize(CapabilityHistogramBase);
 export default CapabilityHistogram;
 
 // Also export the base component for custom sizing
