@@ -103,6 +103,24 @@ describe('importConsultationResponseFile — .vtt transcript (no config)', () =>
     const [call] = mockDistill.mock.calls;
     expect(call[0].config).toBeUndefined();
   });
+
+  // M1: dormant path with config undefined → returns { insights: [] }, no network
+  it('M1: .vtt with config:undefined returns insights:[] (dormant) without network call', async () => {
+    const consultation = makeConsultationWithQuestion();
+    const file = makeFile(
+      'meeting.vtt',
+      'WEBVTT\n\n00:00:01.000 --> 00:00:05.000\nMonday startup is cold.'
+    );
+
+    const result = await importConsultationResponseFile(file, consultation, undefined);
+
+    // Returns empty insights (dormant) — no network was made
+    expect(result.insights).toEqual([]);
+    // mockDistill is called but immediately returns [] (config undefined)
+    expect(mockDistill).toHaveBeenCalledOnce();
+    // distillTranscriptToInsights received config=undefined — the no-network path
+    expect(mockDistill.mock.calls[0][0].config).toBeUndefined();
+  });
 });
 
 // ── .vtt transcript routing — active (mock config) ───────────────────────────
@@ -179,6 +197,55 @@ describe('importConsultationResponseFile — .md still uses deterministic parser
     expect(result.respondentLabel).toBe('Maria Expert');
     expect(result.insights).toHaveLength(1);
     expect(mockDistill).not.toHaveBeenCalled();
+  });
+});
+
+// ── I3: source label propagation ─────────────────────────────────────────────
+
+describe('importConsultationResponseFile — source label (I3)', () => {
+  it('returns source: "transcript" for a .vtt file', async () => {
+    const consultation = makeConsultationWithQuestion();
+    const file = makeFile(
+      'meeting.vtt',
+      'WEBVTT\n\n00:00:01.000 --> 00:00:05.000\nMonday startup is cold.'
+    );
+
+    const result = await importConsultationResponseFile(file, consultation, undefined);
+
+    expect(result.source).toBe('transcript');
+  });
+
+  it('returns source: "typed" for a .md file', async () => {
+    const consultation = makeConsultationWithQuestion();
+    const file = makeFile('response.md', makeMdResponse(consultation));
+
+    const result = await importConsultationResponseFile(file, consultation);
+
+    expect(result.source).toBe('typed');
+  });
+
+  it('returns source: "typed" for a .json file', async () => {
+    const consultation = makeConsultationWithQuestion();
+    const q = consultation.questions[0];
+    const jsonContent = JSON.stringify({
+      consultationId: consultation.id,
+      respondentLabel: 'Maria Expert',
+      answers: [{ questionId: q.id, text: 'Cold startup.' }],
+    });
+    const file = makeFile('response.json', jsonContent);
+
+    const result = await importConsultationResponseFile(file, consultation);
+
+    expect(result.source).toBe('typed');
+  });
+
+  it('returns source: "typed" for a .txt file', async () => {
+    const consultation = makeConsultationWithQuestion();
+    const file = makeFile('response.txt', makeMdResponse(consultation));
+
+    const result = await importConsultationResponseFile(file, consultation);
+
+    expect(result.source).toBe('typed');
   });
 });
 

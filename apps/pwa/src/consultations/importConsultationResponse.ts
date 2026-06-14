@@ -35,12 +35,22 @@ import type { ResponsesApiConfig } from '@variscout/core/ai';
 const TRANSCRIPT_EXTENSIONS = new Set(['.vtt']);
 
 /**
- * Read a response file and parse it into a `ParsedResponse`.
+ * The result of importing a consultation response file — a `ParsedResponse`
+ * augmented with the resolved `source` so the caller can pass the correct
+ * source to `importResponse` without re-inspecting the filename.
+ */
+export interface ImportedConsultationResponse extends ParsedResponse {
+  /** How the response was produced — affects insight status and review UX. */
+  source: 'typed' | 'transcript';
+}
+
+/**
+ * Read a response file and parse it into an `ImportedConsultationResponse`.
  *
  * Routing rule:
- *   - `.json`  → `parseJsonResponse` (deterministic)
- *   - `.vtt`   → `distillTranscriptToInsights` (AI-gated; dormant when config is undefined)
- *   - all else → `parseMarkdownResponse` (deterministic)
+ *   - `.json` (case-insensitive) → `parseJsonResponse` (deterministic, source='typed')
+ *   - `.vtt`                     → `distillTranscriptToInsights` (AI-gated, source='transcript')
+ *   - all else                   → `parseMarkdownResponse` (deterministic, source='typed')
  *
  * @param config - CoScout provider config. Pass `undefined` (the default today)
  *   to keep the transcript path dormant.
@@ -50,22 +60,22 @@ export async function importConsultationResponseFile(
   file: { name: string; text(): Promise<string> },
   consultation: Consultation,
   config?: ResponsesApiConfig
-): Promise<ParsedResponse> {
+): Promise<ImportedConsultationResponse> {
   const raw = await file.text();
+  const ext = getExtension(file.name);
 
-  // Structured JSON response
-  if (file.name.endsWith('.json')) {
-    return parseJsonResponse(raw, consultation);
+  // Structured JSON response — case-insensitive (M2: handles .JSON etc.)
+  if (ext === '.json') {
+    return { ...parseJsonResponse(raw, consultation), source: 'typed' };
   }
 
   // Transcript file — AI-gated path (CL-6)
-  const ext = getExtension(file.name);
   if (TRANSCRIPT_EXTENSIONS.has(ext)) {
     return distillToResponse(raw, consultation, config);
   }
 
   // Default: deterministic Markdown/typed path (CL-4)
-  return parseMarkdownResponse(raw, consultation);
+  return { ...parseMarkdownResponse(raw, consultation), source: 'typed' };
 }
 
 // ── Private helpers ────────────────────────────────────────────────────────────
@@ -78,14 +88,14 @@ function getExtension(filename: string): string {
 /**
  * Route a transcript through `distillTranscriptToInsights`.
  *
- * When `config` is undefined (dormant path), this returns an empty `ParsedResponse`
+ * When `config` is undefined (dormant path), this returns an empty response
  * without making any network call — the correct V1 behavior.
  */
 async function distillToResponse(
   transcript: string,
   consultation: Consultation,
   config: ResponsesApiConfig | undefined
-): Promise<ParsedResponse> {
+): Promise<ImportedConsultationResponse> {
   const questions = consultation.questions.map(q => ({ id: q.id, text: q.text }));
 
   const proposals = await distillTranscriptToInsights({
@@ -98,5 +108,6 @@ async function distillToResponse(
     // No respondent label from a transcript — the analyst can fill it in via the UI
     respondentLabel: '',
     insights: proposals,
+    source: 'transcript',
   };
 }

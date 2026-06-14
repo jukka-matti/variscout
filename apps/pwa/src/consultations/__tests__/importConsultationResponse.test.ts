@@ -95,6 +95,18 @@ describe('importConsultationResponseFile — JSON routing', () => {
     expect(result.insights[0].text).toBe('The Monday crew runs a cold startup.');
     expect(result.insights[0].questionId).toBe(consultation.questions[0].id);
   });
+
+  // M2: case-insensitive .json routing — Response.JSON uses uppercase extension
+  it('M2: routes a .JSON file (uppercase) to parseJsonResponse (case-insensitive)', async () => {
+    const consultation = makeConsultationWithQuestion();
+    const file = makeFile('response.JSON', makeJsonResponse(consultation));
+
+    const result = await importConsultationResponseFile(file, consultation);
+
+    expect(result.respondentLabel).toBe('Maria Expert');
+    expect(result.insights).toHaveLength(1);
+    expect(result.insights[0].text).toBe('The Monday crew runs a cold startup.');
+  });
 });
 
 // ── Error propagation ─────────────────────────────────────────────────────────

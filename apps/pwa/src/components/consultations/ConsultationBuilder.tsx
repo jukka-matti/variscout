@@ -173,7 +173,7 @@ export const ConsultationBuilder: React.FC<ConsultationBuilderProps> = ({
     try {
       const parsed = await importConsultationResponseFile(file, latest);
       useAnalyzeStore.getState().importResponse(consultationId, {
-        source: 'typed',
+        source: parsed.source,
         respondentLabel: parsed.respondentLabel,
         rawArtifactRef: file.name,
         insights: parsed.insights,
