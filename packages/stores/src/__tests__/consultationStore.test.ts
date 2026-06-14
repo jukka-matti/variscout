@@ -135,4 +135,47 @@ describe('analyzeStore — consultations', () => {
     const updatedFinding = useAnalyzeStore.getState().findings.find(f => f.id === finding.id);
     expect(updatedFinding?.text).toBe('Original text.');
   });
+
+  // ── CL-5a: markConsultationSent / closeConsultation ──────────────────────
+
+  it('markConsultationSent flips status from draft to sent and updates updatedAt', () => {
+    const c = useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    const before = useAnalyzeStore.getState().consultations[0].updatedAt;
+    expect(c.status).toBe('draft');
+
+    useAnalyzeStore.getState().markConsultationSent(c.id);
+
+    const updated = useAnalyzeStore.getState().consultations[0];
+    expect(updated.status).toBe('sent');
+    expect(updated.updatedAt).toBeGreaterThanOrEqual(before);
+  });
+
+  it('markConsultationSent is a no-op on an unknown id (does not throw)', () => {
+    useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    expect(() =>
+      useAnalyzeStore.getState().markConsultationSent('non-existent-id')
+    ).not.toThrow();
+    // The real consultation is unaffected
+    expect(useAnalyzeStore.getState().consultations[0].status).toBe('draft');
+  });
+
+  it('closeConsultation sets status to closed and updates updatedAt', () => {
+    const c = useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    const before = useAnalyzeStore.getState().consultations[0].updatedAt;
+
+    useAnalyzeStore.getState().closeConsultation(c.id);
+
+    const updated = useAnalyzeStore.getState().consultations[0];
+    expect(updated.status).toBe('closed');
+    expect(updated.updatedAt).toBeGreaterThanOrEqual(before);
+  });
+
+  it('closeConsultation is a no-op on an unknown id (does not throw)', () => {
+    useAnalyzeStore.getState().createConsultation('Line 3 drift');
+    expect(() =>
+      useAnalyzeStore.getState().closeConsultation('non-existent-id')
+    ).not.toThrow();
+    // The real consultation is unaffected
+    expect(useAnalyzeStore.getState().consultations[0].status).toBe('draft');
+  });
 });

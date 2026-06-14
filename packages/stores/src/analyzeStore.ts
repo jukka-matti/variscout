@@ -412,6 +412,18 @@ export interface AnalyzeActions {
    * Mirrors editFinding / editHubComment — serialize-safe (plain string).
    */
   editInsight: (consultationId: string, insightId: string, text: string) => void;
+  /**
+   * CL-5a: Mark a consultation as sent to the expert.
+   * Sets status to 'sent' and updates updatedAt.
+   * No-op (does not throw) when the consultationId is unknown.
+   */
+  markConsultationSent: (consultationId: string) => void;
+  /**
+   * CL-5a: Close a consultation (no further responses expected).
+   * Sets status to 'closed' and updates updatedAt.
+   * No-op (does not throw) when the consultationId is unknown.
+   */
+  closeConsultation: (consultationId: string) => void;
 }
 
 // ============================================================================
@@ -1526,6 +1538,22 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
               updatedAt: Date.now(),
             }
           : c
+      ),
+    }));
+  },
+
+  markConsultationSent: consultationId => {
+    set(state => ({
+      consultations: state.consultations.map(c =>
+        c.id === consultationId ? { ...c, status: 'sent', updatedAt: Date.now() } : c
+      ),
+    }));
+  },
+
+  closeConsultation: consultationId => {
+    set(state => ({
+      consultations: state.consultations.map(c =>
+        c.id === consultationId ? { ...c, status: 'closed', updatedAt: Date.now() } : c
       ),
     }));
   },
