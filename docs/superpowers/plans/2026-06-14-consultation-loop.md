@@ -1,17 +1,10 @@
 ---
 tier: ephemeral
-purpose: plan
+purpose: build
 title: 'Consultation loop — implementation plan'
-audience: agent
-category: implementation-plan
 status: active
 date: 2026-06-14
-last-verified: 2026-06-14
-related:
-  - docs/superpowers/specs/2026-06-11-consultation-loop-design.md
-  - docs/07-decisions/adr-092-local-first-variscout-product-model.md
-  - docs/07-decisions/adr-093-v1-simplification-cuts.md
-layer: plan
+layer: spec
 implements:
   - docs/superpowers/specs/2026-06-11-consultation-loop-design.md
 ---
