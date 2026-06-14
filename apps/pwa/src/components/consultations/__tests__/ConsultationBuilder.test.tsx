@@ -129,7 +129,6 @@ describe('ConsultationBuilder', () => {
 
   it('once sent, the Export button is hidden and a "Sent" badge shows', async () => {
     render(<ConsultationBuilder resolvedViews={VIEWS} />);
-    const consultationId = useAnalyzeStore.getState().consultations[0].id;
     fireEvent.click(screen.getByText('consultation.builder.addQuestion'));
     fireEvent.change(
       screen.getByPlaceholderText('consultation.builder.questionPlaceholder'),
