@@ -3,7 +3,7 @@ import { Group } from '@visx/group';
 import { LinePath, Circle, Line } from '@visx/shape';
 import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { safeMin, safeMax } from '@variscout/core';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout } from './hooks';
@@ -235,7 +235,7 @@ const ScatterFitBase: React.FC<ScatterFitProps> = ({
 };
 
 // Export with responsive wrapper
-const ScatterFit = withParentSize(ScatterFitBase);
+const ScatterFit = withResponsiveSize(ScatterFitBase);
 export default ScatterFit;
 
 // Also export the base component for custom sizing

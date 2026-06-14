@@ -13,7 +13,7 @@ import { Group } from '@visx/group';
 import { Bar, Line } from '@visx/shape';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { getWorstChannels, CPK_THRESHOLDS, calculateKDE, safeMin, safeMax } from '@variscout/core';
 import type { PerformanceBoxplotProps, ChannelResult } from './types';
@@ -641,5 +641,5 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
   );
 };
 
-const PerformanceBoxplot = withParentSize(PerformanceBoxplotBase);
+const PerformanceBoxplot = withResponsiveSize(PerformanceBoxplotBase);
 export default PerformanceBoxplot;

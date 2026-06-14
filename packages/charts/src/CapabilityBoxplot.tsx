@@ -14,7 +14,7 @@
  * Cpks without ever collapsing them to a single aggregate.
  */
 import React, { useMemo } from 'react';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { Group } from '@visx/group';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { calculateBoxplotStats } from '@variscout/core';
@@ -205,6 +205,6 @@ export const CapabilityBoxplotBase: React.FC<CapabilityBoxplotProps> = ({
   );
 };
 
-const CapabilityBoxplot = withParentSize(CapabilityBoxplotBase);
+const CapabilityBoxplot = withResponsiveSize(CapabilityBoxplotBase);
 export default CapabilityBoxplot;
 export { CapabilityBoxplot };

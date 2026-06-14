@@ -2,7 +2,7 @@
  * PWA ParetoChart - Thin wrapper that connects stores to shared ParetoChartWrapperBase
  */
 import React from 'react';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from '@variscout/charts';
 import { useProjectStore } from '@variscout/stores';
 import { useFilteredData } from '@variscout/hooks';
 import { ParetoChartWrapperBase } from '@variscout/ui';
@@ -88,4 +88,4 @@ const ParetoChart = ({
   );
 };
 
-export default withParentSize(ParetoChart);
+export default withResponsiveSize(ParetoChart);

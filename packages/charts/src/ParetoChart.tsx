@@ -4,7 +4,7 @@ import { Bar, LinePath, Circle } from '@visx/shape';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft, AxisRight } from '@visx/axis';
 import { GridRows } from '@visx/grid';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import type { ParetoChartProps, ParetoDataPoint } from './types';
 import ChartSourceBar from './ChartSourceBar';
@@ -441,7 +441,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
 };
 
 // Export with responsive wrapper
-const ParetoChart = withParentSize(ParetoChartBase);
+const ParetoChart = withResponsiveSize(ParetoChartBase);
 export default ParetoChart;
 
 // Also export the base component for custom sizing

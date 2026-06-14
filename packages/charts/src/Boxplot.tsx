@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Group } from '@visx/group';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { ViolinPlot } from '@visx/stats';
 import type { BoxplotProps, BoxplotGroupData } from './types';
@@ -689,7 +689,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
 };
 
 // Export with responsive wrapper
-const Boxplot = withParentSize(BoxplotBase);
+const Boxplot = withResponsiveSize(BoxplotBase);
 export default Boxplot;
 
 // Also export the base component for custom sizing

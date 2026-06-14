@@ -13,7 +13,7 @@ import { Bar, LinePath, Circle } from '@visx/shape';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft, AxisRight } from '@visx/axis';
 import { GridRows } from '@visx/grid';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { sortChannels, CPK_THRESHOLDS } from '@variscout/core';
 import { PARETO_Y_METRICS } from '@variscout/core/pareto';
@@ -458,5 +458,5 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
   );
 };
 
-const PerformancePareto = withParentSize(PerformanceParetoBase);
+const PerformancePareto = withResponsiveSize(PerformanceParetoBase);
 export default PerformancePareto;

@@ -9,7 +9,7 @@
  * section "Bottom-right: Per-step error Pareto (W1')".
  */
 import React, { useMemo } from 'react';
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from './responsive/withResponsiveSize';
 import { ParetoChartBase } from './ParetoChart';
 import type { StepErrorParetoProps, StepErrorParetoStep, ParetoDataPoint } from './types';
 
@@ -113,6 +113,6 @@ export const StepErrorParetoBase: React.FC<StepErrorParetoProps> = ({
   );
 };
 
-const StepErrorPareto = withParentSize(StepErrorParetoBase);
+const StepErrorPareto = withResponsiveSize(StepErrorParetoBase);
 export default StepErrorPareto;
 export { StepErrorPareto };

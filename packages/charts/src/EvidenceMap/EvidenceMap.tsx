@@ -1,14 +1,14 @@
 /**
  * EvidenceMap — Responsive wrapper for EvidenceMapBase
  *
- * Uses withParentSize for auto-sizing, following the same pattern
+ * Uses withResponsiveSize for auto-sizing, following the same pattern
  * as IChart, Boxplot, ParetoChart, etc.
  */
 
-import { withParentSize } from '@visx/responsive';
+import { withResponsiveSize } from '../responsive/withResponsiveSize';
 import EvidenceMapBase from './EvidenceMapBase';
 
-const EvidenceMap = withParentSize(EvidenceMapBase);
+const EvidenceMap = withResponsiveSize(EvidenceMapBase);
 
 export default EvidenceMap;
 export { EvidenceMapBase };
