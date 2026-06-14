@@ -1278,4 +1278,23 @@ export const it: MessageCatalog = {
   'compositionView.addAria': 'Add {level} to condition',
   'compositionView.empty': 'No composition data -- condition may be degenerate.',
   'compositionView.countIn': 'in condition',
+
+  // -- Consultation review panel (CL-4) --
+  'consultation.review.title': 'Consultation review \u00b7 {title}',
+  'consultation.review.responses': 'responses: {count}',
+  'consultation.review.respondent': 'Respondent: {name} \u00b7 imported {date}',
+  'consultation.review.proposedInsight': 'Proposed insight',
+  'consultation.review.anchoredTo': 'anchored to: {label}',
+  'consultation.review.accept': 'Accept as expert evidence',
+  'consultation.review.edit': 'Edit',
+  'consultation.review.reject': 'Reject',
+  'consultation.review.accepted': 'Accepted as expert evidence',
+  'consultation.review.rejected': 'Rejected',
+  'consultation.review.kind.answer': 'answer',
+  'consultation.review.kind.context': 'context',
+  'consultation.review.kind.newHypothesisProposal': 'new hypothesis proposal',
+  'consultation.review.kind.contradiction': 'contradiction',
+  'consultation.review.empty': 'No pending insights to review.',
+  'consultation.review.save': 'Save',
+  'consultation.review.cancelEdit': 'Cancel',
 };

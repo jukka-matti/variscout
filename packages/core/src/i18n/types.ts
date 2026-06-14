@@ -1453,4 +1453,40 @@ export interface MessageCatalog {
   'compositionView.empty': string;
   /** Count view column header: "in condition". */
   'compositionView.countIn': string;
+
+  // ── Consultation review panel (CL-4) ──────────────────────────────────────
+  /** Panel title: "Consultation review". Param: {title} = consultation title. */
+  'consultation.review.title': string;
+  /** Responses count line: "responses: {count}". Param: {count}. */
+  'consultation.review.responses': string;
+  /** Respondent + import date line: "Respondent: {name} · imported {date}". */
+  'consultation.review.respondent': string;
+  /** Proposed insight section header. */
+  'consultation.review.proposedInsight': string;
+  /** "anchored to: {label}" label shown when a question has an anchor. Param: {label}. */
+  'consultation.review.anchoredTo': string;
+  /** Accept button label. */
+  'consultation.review.accept': string;
+  /** Edit button label (reuses action.edit if available, but registered here for panel-specific context). */
+  'consultation.review.edit': string;
+  /** Reject button label. */
+  'consultation.review.reject': string;
+  /** Accepted state badge: "Accepted as expert evidence". */
+  'consultation.review.accepted': string;
+  /** Rejected state badge: "Rejected". */
+  'consultation.review.rejected': string;
+  /** Kind badge: "answer". */
+  'consultation.review.kind.answer': string;
+  /** Kind badge: "context". */
+  'consultation.review.kind.context': string;
+  /** Kind badge: "new hypothesis proposal". */
+  'consultation.review.kind.newHypothesisProposal': string;
+  /** Kind badge: "contradiction". */
+  'consultation.review.kind.contradiction': string;
+  /** Empty state when no pending insights in the review queue. */
+  'consultation.review.empty': string;
+  /** Save button label for edit mode. */
+  'consultation.review.save': string;
+  /** Cancel button label for edit mode. */
+  'consultation.review.cancelEdit': string;
 }
