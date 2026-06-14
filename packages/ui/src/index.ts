@@ -850,3 +850,15 @@ export {
   buildResponseTemplateMarkdown,
   type ResolvedView,
 } from './packs/buildConsultationPack';
+
+// CL-5a: Pure view resolver for the consultation pack builder
+export {
+  resolveConsultationViews,
+  type ResolveViewsInput,
+} from './packs/resolveConsultationViews';
+
+// CL-4 / CL-5b: Consultation review panel
+export {
+  ConsultationReviewPanel,
+  type ConsultationReviewPanelProps,
+} from './components/consultations/ConsultationReviewPanel';

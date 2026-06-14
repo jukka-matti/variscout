@@ -5,6 +5,7 @@ import {
   Layers,
   MapPin,
   MessageCircle,
+  MessagesSquare,
   Pencil,
   Share2,
   TrendingDown,
@@ -126,6 +127,12 @@ export interface FindingCardProps {
   }) => void;
   /** Callback to send a direct question to CoScout (used by per-action "Ask" buttons) */
   onAskCoScoutQuestion?: (question: string) => void;
+  /**
+   * CL-5b: Ask a human expert about this finding. When provided, shows an
+   * "Ask an expert" button that opens the consultation panel and seeds a
+   * question anchored to this finding.
+   */
+  onAskExpert?: (findingId: string) => void;
   /** Mark this finding as supporting evidence for the selected hypothesis. */
   onMarkSupport?: (findingId: string) => void;
   /** Mark this finding as evidence that counts against the selected hypothesis. */
@@ -189,6 +196,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   hasSpecs = false,
   onAskCoScout,
   onAskCoScoutQuestion,
+  onAskExpert,
   renderActionAssigneePicker,
   onMarkSupport,
   onMarkCounter,
@@ -423,6 +431,20 @@ const FindingCard: React.FC<FindingCardProps> = ({
                   data-testid="ask-coscout-finding"
                 >
                   <MessageCircle size={12} />
+                </button>
+              )}
+              {onAskExpert && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onAskExpert(finding.id);
+                  }}
+                  className="p-1 rounded text-content-muted hover:text-amber-500 hover:bg-amber-400/10 transition-colors"
+                  title="Ask an expert about this finding"
+                  aria-label="Ask an expert about this finding"
+                  data-testid="ask-expert-finding"
+                >
+                  <MessagesSquare size={12} />
                 </button>
               )}
               <button
