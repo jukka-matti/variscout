@@ -62,11 +62,18 @@ export function exportConsultationPack({
   consultation,
   views,
   from,
+  // appVersion is intentionally unused in V1 — the pack carries no build stamp yet.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  appVersion: _appVersion,
 }: ExportConsultationPackOptions): void {
   const model = buildConsultationPack({ consultation, views, from });
   const html = renderPackHtml(model, { redaction: 'no-raw-rows' });
 
-  const safeName = consultation.title.slice(0, 48).replace(/[^a-z0-9-]+/gi, '-');
+  const stem = (consultation.title ?? '')
+    .slice(0, 48)
+    .replace(/[^a-z0-9-]+/gi, '-')
+    .replace(/^-+|-+$/g, '');
+  const safeName = stem || 'consultation';
 
   // Download 1: HTML pack.
   triggerDownload(html, `${safeName}.html`, 'text/html');

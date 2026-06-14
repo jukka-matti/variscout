@@ -157,6 +157,40 @@ describe('buildConsultationPack', () => {
     const questionSections = model.sections.filter(s => s.kind === 'question');
     expect(questionSections).toHaveLength(0);
   });
+
+  it('derives anchorLabel as "<kind> <id>" for a question WITH an anchor', () => {
+    const q = createConsultationQuestion('Does the Monday startup differ?', {
+      kind: 'hypothesis',
+      id: 'hyp-1',
+    });
+    const consultation = { ...createConsultation('Line 3 drift'), questions: [q] };
+    const model = buildConsultationPack({ consultation, views: [] });
+
+    const questionSections = model.sections.filter(s => s.kind === 'question') as Array<{
+      kind: 'question';
+      questionId: string;
+      text: string;
+      anchorLabel?: string;
+    }>;
+    expect(questionSections).toHaveLength(1);
+    // Builder derives anchorLabel as `${anchor.kind} ${anchor.id}`.
+    expect(questionSections[0].anchorLabel).toBe('hypothesis hyp-1');
+  });
+
+  it('leaves anchorLabel undefined for a question WITHOUT an anchor', () => {
+    const q = createConsultationQuestion('What is the machine warm-up time?');
+    const consultation = { ...createConsultation('Line 3 drift'), questions: [q] };
+    const model = buildConsultationPack({ consultation, views: [] });
+
+    const questionSections = model.sections.filter(s => s.kind === 'question') as Array<{
+      kind: 'question';
+      questionId: string;
+      text: string;
+      anchorLabel?: string;
+    }>;
+    expect(questionSections).toHaveLength(1);
+    expect(questionSections[0].anchorLabel).toBeUndefined();
+  });
 });
 
 // ── buildResponseTemplateMarkdown ────────────────────────────────────────────
