@@ -41,6 +41,15 @@ import type {
 } from '@variscout/core';
 import type { FindingEvidenceType } from '@variscout/core/findings';
 import {
+  createConsultation as consultationFactory,
+  createConsultationQuestion,
+  createConsultationResponse,
+  createProposedInsight,
+  type Consultation,
+  type ConsultationAnchor,
+  type ProposedInsightKind,
+} from '@variscout/core/consultations';
+import {
   createFinding,
   createFindingComment,
   createActionItem,
@@ -86,6 +95,8 @@ export interface AnalyzeState {
   categories: AnalyzeCategory[];
   /** First-class WHERE entities (ADR-085). Each scope owns its own gateNode. */
   scopes: ProblemStatementScope[];
+  /** Consultation loop entities (CL-1). */
+  consultations: Consultation[];
 }
 
 export interface AnalyzeActions {
@@ -376,6 +387,25 @@ export interface AnalyzeActions {
    * `@variscout/core/findings`.
    */
   composeScopeGate: (scopeId: string, path: GatePath, hubId: string) => void;
+
+  // --- Consultation loop actions (CL-1) ---
+  createConsultation: (title: string) => Consultation;
+  addConsultationQuestion: (
+    consultationId: string,
+    text: string,
+    anchor?: ConsultationAnchor
+  ) => void;
+  importResponse: (
+    consultationId: string,
+    input: {
+      source: 'typed' | 'transcript';
+      respondentLabel: string;
+      rawArtifactRef?: string;
+      insights: Array<{ text: string; kind: ProposedInsightKind; questionId?: string }>;
+    }
+  ) => void;
+  acceptInsight: (consultationId: string, insightId: string) => Finding;
+  rejectInsight: (consultationId: string, insightId: string) => void;
 }
 
 // ============================================================================
@@ -411,6 +441,7 @@ const initialState: AnalyzeState = {
   causalLinks: [],
   categories: [],
   scopes: [],
+  consultations: [],
 };
 
 // ============================================================================
@@ -1327,6 +1358,7 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
       causalLinks: partial.causalLinks ?? state.causalLinks,
       categories: partial.categories ?? state.categories,
       scopes: partial.scopes ?? state.scopes,
+      consultations: partial.consultations ?? state.consultations,
     }));
   },
 
@@ -1363,9 +1395,113 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
         ),
       };
     }),
+
+  // ==========================================================================
+  // Consultation loop actions (CL-1)
+  // ==========================================================================
+
+  createConsultation: title => {
+    const consultation = consultationFactory(title);
+    set(state => ({ consultations: [consultation, ...state.consultations] }));
+    return consultation;
+  },
+
+  addConsultationQuestion: (consultationId, text, anchor) => {
+    const question = createConsultationQuestion(text, anchor);
+    set(state => ({
+      consultations: state.consultations.map(c =>
+        c.id === consultationId
+          ? { ...c, questions: [...c.questions, question], updatedAt: Date.now() }
+          : c
+      ),
+    }));
+  },
+
+  importResponse: (consultationId, input) => {
+    const response = createConsultationResponse(
+      input.source,
+      input.respondentLabel,
+      input.rawArtifactRef
+    );
+    const insights = input.insights.map(i =>
+      createProposedInsight(response.id, i.text, i.kind, i.questionId)
+    );
+    set(state => ({
+      consultations: state.consultations.map(c =>
+        c.id === consultationId
+          ? {
+              ...c,
+              status: 'responses-imported',
+              responses: [...c.responses, response],
+              proposedInsights: [...c.proposedInsights, ...insights],
+              updatedAt: Date.now(),
+            }
+          : c
+      ),
+    }));
+  },
+
+  acceptInsight: (consultationId, insightId) => {
+    const consultation = get().consultations.find(c => c.id === consultationId);
+    const insight = consultation?.proposedInsights.find(i => i.id === insightId);
+    if (!consultation || !insight) {
+      throw new Error(`acceptInsight: insight ${insightId} not found`);
+    }
+    const response = consultation.responses.find(r => r.id === insight.responseId);
+    const base = createFinding(insight.text, {}, null);
+    const finding: Finding = {
+      ...base,
+      evidenceType: 'expert',
+      provenance: {
+        kind: 'consultation',
+        consultationId,
+        responseId: insight.responseId,
+        ...(insight.questionId ? { questionId: insight.questionId } : {}),
+        respondentLabel: response?.respondentLabel ?? '',
+        importedAt: response?.importedAt ?? Date.now(),
+      },
+    };
+    set(state => ({
+      findings: [finding, ...state.findings],
+      consultations: state.consultations.map(c =>
+        c.id === consultationId
+          ? {
+              ...c,
+              proposedInsights: c.proposedInsights.map(i =>
+                i.id === insightId
+                  ? { ...i, status: 'accepted', acceptedAs: { kind: 'finding', id: finding.id } }
+                  : i
+              ),
+              updatedAt: Date.now(),
+            }
+          : c
+      ),
+    }));
+    return finding;
+  },
+
+  rejectInsight: (consultationId, insightId) => {
+    set(state => ({
+      consultations: state.consultations.map(c =>
+        c.id === consultationId
+          ? {
+              ...c,
+              proposedInsights: c.proposedInsights.map(i =>
+                i.id === insightId ? { ...i, status: 'rejected' } : i
+              ),
+              updatedAt: Date.now(),
+            }
+          : c
+      ),
+    }));
+  },
 }));
 
 /** Get the initial state (for test resets) */
 export function getAnalyzeInitialState(): AnalyzeState {
   return { ...initialState };
 }
+
+// Expose getInitialState on the store object (consistent with canvasStore pattern).
+(useAnalyzeStore as unknown as { getInitialState: () => AnalyzeState }).getInitialState =
+  getAnalyzeInitialState;

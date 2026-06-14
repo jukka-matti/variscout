@@ -42,7 +42,8 @@
     "./measurementPlan": "./src/measurementPlan/index.ts",
     "./exploreRouting": "./src/exploreRouting/index.ts",
     "./binning": "./src/binning/index.ts",
-    "./autoLink": "./src/autoLink/index.ts"
+    "./autoLink": "./src/autoLink/index.ts",
+    "./consultations": "./src/consultations/index.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json --noEmit",

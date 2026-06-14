@@ -10,7 +10,8 @@
       "@variscout/core/measurementPlan": ["./src/measurementPlan/index.ts"],
       "@variscout/core/exploreRouting": ["./src/exploreRouting/index.ts"],
       "@variscout/core/binning": ["./src/binning/index.ts"],
-      "@variscout/core/autoLink": ["./src/autoLink/index.ts"]
+      "@variscout/core/autoLink": ["./src/autoLink/index.ts"],
+      "@variscout/core/consultations": ["./src/consultations/index.ts"]
     }
   },
   "include": ["src"]
