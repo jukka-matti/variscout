@@ -155,6 +155,31 @@ describe('AnalyzeView — consultation loop mount (CL-5b)', () => {
     });
   });
 
+  it('"Ask an expert" is reachable in the DEFAULT board view (no list switch)', async () => {
+    useCanvasViewportStore.getState().setViewMode('map');
+    const finding = { ...createFinding('Monday startup spike', {}, null), id: 'f-board-1' };
+    useAnalyzeStore.setState({ ...getAnalyzeInitialState(), findings: [finding] });
+
+    render(<AnalyzeView {...makeMinimalProps()} />);
+
+    // Findings-exist arrival routing lands on the Wall; switch to the Findings
+    // lens but DO NOT switch to list — board is the default sub-view.
+    fireEvent.click(screen.getByRole('button', { name: /^findings$/i }));
+
+    // The ask-expert affordance is present in board mode.
+    fireEvent.click(screen.getByTestId('ask-expert-finding'));
+
+    expect(screen.getByTestId('consultation-builder-panel')).toBeInTheDocument();
+    await waitFor(() => {
+      const consultations = useAnalyzeStore.getState().consultations;
+      expect(consultations.length).toBe(1);
+      const q = consultations[0].questions.find(
+        qq => qq.anchor?.kind === 'finding' && qq.anchor.id === 'f-board-1'
+      );
+      expect(q).toBeDefined();
+    });
+  });
+
   it('accepting a pending insight from the mounted review panel creates an expert Finding', async () => {
     useCanvasViewportStore.getState().setViewMode('map');
     render(<AnalyzeView {...makeMinimalProps()} />);

@@ -202,6 +202,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
           onPromoteAction={onPromoteAction}
+          onAskExpert={onAskExpertAboutFinding}
           originStepNameByFindingId={originStepNameByFindingId}
           onSetOutcome={onSetOutcome}
         />
