@@ -406,6 +406,12 @@ export interface AnalyzeActions {
   ) => void;
   acceptInsight: (consultationId: string, insightId: string) => Finding;
   rejectInsight: (consultationId: string, insightId: string) => void;
+  /**
+   * Edit a pending insight's text in place (analyst correction before accepting).
+   * No-op when the consultationId or insightId does not exist.
+   * Mirrors editFinding / editHubComment — serialize-safe (plain string).
+   */
+  editInsight: (consultationId: string, insightId: string, text: string) => void;
 }
 
 // ============================================================================
@@ -1488,6 +1494,22 @@ export const useAnalyzeStore = create<AnalyzeState & AnalyzeActions>()((set, get
               ...c,
               proposedInsights: c.proposedInsights.map(i =>
                 i.id === insightId ? { ...i, status: 'rejected' } : i
+              ),
+              updatedAt: Date.now(),
+            }
+          : c
+      ),
+    }));
+  },
+
+  editInsight: (consultationId, insightId, text) => {
+    set(state => ({
+      consultations: state.consultations.map(c =>
+        c.id === consultationId
+          ? {
+              ...c,
+              proposedInsights: c.proposedInsights.map(i =>
+                i.id === insightId ? { ...i, text } : i
               ),
               updatedAt: Date.now(),
             }
