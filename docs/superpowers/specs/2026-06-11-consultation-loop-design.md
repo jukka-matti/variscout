@@ -246,13 +246,17 @@ interface ProposedInsight {
   round trip and snapshot validation for free.
 - **Accept = expert evidence.** Accepting a `ProposedInsight` creates an
   `evidenceType: 'expert'` Finding (existing union, `findings/types.ts:461`)
-  carrying provenance via a **new `FindingSource` variant**
-  `{ kind: 'consultation', consultationId, responseId, questionId?, respondentLabel, importedAt }`,
+  carrying provenance via a **new optional `Finding.provenance` field**
+  `{ kind: 'consultation'; consultationId; responseId; questionId?; respondentLabel; importedAt }`,
   and — when anchored to a hypothesis — links into `hypothesis.findingIds`.
-  This reuses the existing evidence + provenance machinery
-  (`DisconfirmationAttempt` is the pattern reference) rather than inventing a
-  parallel one. **Nothing enters the stats engine** (qualitative evidence
-  only); **no canonical state mutates without an explicit accept.**
+  **Note (grounding correction 2026-06-14):** provenance is a _new field_, not
+  a `FindingSource` variant — `FindingSource` is documented chart-observation-
+  only (`packages/core/CLAUDE.md`; `findings/types.ts:506`), so a consultation
+  origin must not be forced into it. This reuses the existing evidence model
+  (the `DisconfirmationAttempt` `verdict` + `attemptedBy/attemptedAt` shape is
+  the provenance pattern reference) rather than inventing a parallel one.
+  **Nothing enters the stats engine** (qualitative evidence only); **no
+  canonical state mutates without an explicit accept.**
 
 ### Render architecture — the pack-renderer spine
 
@@ -389,8 +393,9 @@ questions[]}` as `<script type="application/json">` (data, not executable),
 **Active as of 2026-06-14.** The prior queue (ER-5b/ER-6 closeout, D4 app
 convergence) is delivered; demo-readiness is retired as a gate. The
 consultation loop is the **next arc** and is now in execution: brainstorm/
-scope confirmed → this spec amended → implementation plan (writing-plans) →
-subagent-driven build per the CL-1…CL-6 slices above (one worktree per PR,
+scope confirmed → this spec amended → implementation plan
+([`2026-06-14-consultation-loop.md`](../plans/2026-06-14-consultation-loop.md))
+→ subagent-driven build per the CL-1…CL-6 slices above (one worktree per PR,
 adversarial review per slice). Within the arc, the **deterministic path ships
 first** (it is the only functional return mode at V1 ship time); transcript
 distillation (CL-6) is built last and stays provider-gated.
