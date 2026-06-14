@@ -21,6 +21,8 @@ related:
 
 ## 1. Just shipped (the closed chapter)
 
+**D4 app convergence — source cleanup: COMPLETE 2026-06-14** (PRs #397/#398). Build-level convergence (#388/#389) already ships `@variscout/workspace-app` for all three channels, so the `apps/azure/src` legacy client was dead — PR #397 deleted it (CoScout engine preserved in `packages/`; `apps/azure` is now a server-only host) and PR #398 fixed the Wall "Cpk 0.00 with no specs" honesty bug. Cleanup-only scope; the company-channel feature layer (licensing/tenant CoScout) stays deferred. See [decision-log 2026-06-14](decision-log.md) + [D4 design](superpowers/specs/2026-06-14-d4-app-convergence-design.md).
+
 **Projects tab V1 redesign: COMPLETE 2026-05-14/15.** Spec [`docs/archive/specs/2026-05-14-projects-tab-design.md`](archive/specs/2026-05-14-projects-tab-design.md) (amended by the V1 single-SKU pivot — Sustainment+Handoff → Improve+Sustainment + de-personalization). 4 plans shipped via 9 PRs (#172–#181, plus the foundation 5 PRs #172–#176): Projects tab + IP detail anatomy (Charter/Approach/Sustainment/Handoff stages, Overview/Sections toggle, 280px team rail), Home as active-IP launchpad, IP-context cascade across all 7 tabs, team workspace right rail, IP-scoped Report (Overview/Technical modes + Hub portfolio). Resolved Coherence §15 carry-forward.
 
 **Canvas migration: COMPLETE 2026-05-08.** PR1–PR9 + Polish v1 sequence merged over ~3 weeks (PRs #119–#143). Strangler facade fully replaced legacy `LayeredProcessView` / `ProcessMapBase` / `FrameView`; Canvas is the only canvas-shaped surface in the codebase.
