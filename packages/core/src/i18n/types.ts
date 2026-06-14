@@ -1517,6 +1517,10 @@ export interface MessageCatalog {
   'consultation.builder.importResponse': string;
   /** Readable parse-error message. Param: {error}. */
   'consultation.builder.importError': string;
+  /** Badge shown in the header once a consultation is no longer a draft. */
+  'consultation.builder.sentBadge': string;
+  /** Alert shown when Export is blocked because no non-blank question exists. */
+  'consultation.builder.blockedNoQuestions': string;
   /** Toolbar toggle button label opening the consultation panel. */
   'consultation.panel.consultationButton': string;
 }

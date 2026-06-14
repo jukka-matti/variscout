@@ -180,6 +180,41 @@ describe('AnalyzeView — consultation loop mount (CL-5b)', () => {
     });
   });
 
+  it('after a consultation is sent, a new Ask-an-expert mints a fresh draft (does not append)', async () => {
+    useCanvasViewportStore.getState().setViewMode('map');
+    const finding = { ...createFinding('Monday startup spike', {}, null), id: 'f-send-1' };
+    useAnalyzeStore.setState({ ...getAnalyzeInitialState(), findings: [finding] });
+
+    render(<AnalyzeView {...makeMinimalProps()} />);
+    fireEvent.click(screen.getByRole('button', { name: /^findings$/i }));
+
+    // First ask → one draft consultation with one question.
+    fireEvent.click(screen.getByTestId('ask-expert-finding'));
+    await waitFor(() => {
+      expect(useAnalyzeStore.getState().consultations.length).toBe(1);
+    });
+    const firstId = useAnalyzeStore.getState().consultations[0].id;
+
+    // Simulate the consultation being sent (export marks it sent).
+    useAnalyzeStore.getState().markConsultationSent(firstId);
+    expect(useAnalyzeStore.getState().consultations[0].status).toBe('sent');
+
+    // Second ask → must NOT append to the sent consultation; a fresh draft.
+    fireEvent.click(screen.getByTestId('ask-expert-finding'));
+
+    await waitFor(() => {
+      expect(useAnalyzeStore.getState().consultations.length).toBe(2);
+    });
+    const sent = useAnalyzeStore.getState().consultations.find(c => c.id === firstId)!;
+    const fresh = useAnalyzeStore.getState().consultations.find(c => c.id !== firstId)!;
+    // The sent consultation kept exactly its one question (no absorption).
+    expect(sent.questions.length).toBe(1);
+    expect(sent.status).toBe('sent');
+    // The fresh draft carries the new anchored question.
+    expect(fresh.status).toBe('draft');
+    expect(fresh.questions.some(q => q.anchor?.id === 'f-send-1')).toBe(true);
+  });
+
   it('accepting a pending insight from the mounted review panel creates an expert Finding', async () => {
     useCanvasViewportStore.getState().setViewMode('map');
     render(<AnalyzeView {...makeMinimalProps()} />);

@@ -158,6 +158,21 @@ describe('buildConsultationPack', () => {
     expect(questionSections).toHaveLength(0);
   });
 
+  it('M1: skips blank/whitespace-only questions (no blank question sections)', () => {
+    const qReal = createConsultationQuestion('Does the Monday startup differ?');
+    const qBlank = createConsultationQuestion('');
+    const qSpace = createConsultationQuestion('   ');
+    const consultation = {
+      ...createConsultation('Line 3 drift'),
+      questions: [qReal, qBlank, qSpace],
+    };
+    const model = buildConsultationPack({ consultation, views: [] });
+
+    const questionSections = model.sections.filter(s => s.kind === 'question');
+    expect(questionSections).toHaveLength(1);
+    expect((questionSections[0] as { text: string }).text).toBe('Does the Monday startup differ?');
+  });
+
   it('derives anchorLabel as "<kind> <id>" for a question WITH an anchor', () => {
     const q = createConsultationQuestion('Does the Monday startup differ?', {
       kind: 'hypothesis',
@@ -247,6 +262,22 @@ describe('buildResponseTemplateMarkdown', () => {
 
     // The heading references the pack/consultation id.
     expect(md).toContain(consultation.id);
+  });
+
+  it('M1: omits blank questions from the response template (no orphan ### Qn block)', () => {
+    const qReal = createConsultationQuestion('Does the Monday startup differ?');
+    const qBlank = createConsultationQuestion('   ');
+    const consultation = {
+      ...createConsultation('Line 3 drift'),
+      questions: [qReal, qBlank],
+    };
+    const md = buildResponseTemplateMarkdown(consultation);
+
+    // Only the non-blank question yields an anchor + a single Q1 block.
+    expect(md).toContain(`[id: ${qReal.id}]`);
+    expect(md).not.toContain(`[id: ${qBlank.id}]`);
+    expect(md).toContain('Q1');
+    expect(md).not.toContain('Q2');
   });
 
   it('produces an empty anchor list for a no-question consultation', () => {

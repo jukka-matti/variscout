@@ -1335,5 +1335,7 @@ export const hr: MessageCatalog = {
   'consultation.builder.exportPack': 'Export pack',
   'consultation.builder.importResponse': 'Import response',
   'consultation.builder.importError': 'Could not read this response file: {error}',
+  'consultation.builder.sentBadge': 'Sent',
+  'consultation.builder.blockedNoQuestions': 'Add at least one question before exporting the consultation pack.',
   'consultation.panel.consultationButton': 'Consultation',
 };

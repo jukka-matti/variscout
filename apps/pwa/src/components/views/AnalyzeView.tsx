@@ -723,17 +723,44 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     return resolveConsultationViews({ condition: { label, statsText } });
   }, [activeScope, problemStats, formatStat]);
 
-  // CL-5b: ensure an active consultation exists, returning its id.
+  // CL-5b: synchronous creation latch. A ref mutation survives StrictMode's
+  // double effect/callback invoke (unlike React state), so two synchronous
+  // calls to ensureActiveConsultation can never both mint a draft. We re-read
+  // store membership right before creating as a second guard.
+  const consultationCreationLatchRef = useRef(false);
+
+  // CL-5b (I1/I2): ensure an OPEN (draft) consultation exists, returning its id.
+  // Reads the STORE unconditionally (never the stale `activeConsultationId`
+  // React state) so it is idempotent and StrictMode-safe. A `sent`/`closed`/
+  // `responses-imported` active consultation is treated as ABSENT — the analyst's
+  // next ask mints a fresh draft rather than re-opening a finished one. NEVER
+  // mutates the store inside a setState updater.
   const ensureActiveConsultation = useCallback((): string => {
-    const existing =
-      activeConsultationId &&
-      useAnalyzeStore.getState().consultations.some(c => c.id === activeConsultationId)
-        ? activeConsultationId
-        : undefined;
-    if (existing) return existing;
-    const created = useAnalyzeStore.getState().createConsultation('');
-    setActiveConsultationId(created.id);
-    return created.id;
+    const store = useAnalyzeStore.getState();
+    // Reuse the current active consultation only when it still exists AND is a
+    // draft (the analyst's open, editable consultation).
+    const current = activeConsultationId
+      ? store.consultations.find(c => c.id === activeConsultationId)
+      : undefined;
+    if (current && current.status === 'draft') return current.id;
+    // No reusable draft. Guard creation so two synchronous invocations (or a
+    // StrictMode double-invoke) cannot both create one: latch + a fresh
+    // store-membership re-read.
+    if (!consultationCreationLatchRef.current) {
+      const existingDraft = store.consultations.find(c => c.status === 'draft');
+      consultationCreationLatchRef.current = true;
+      const draftId = existingDraft ? existingDraft.id : store.createConsultation('').id;
+      setActiveConsultationId(draftId);
+      // Release the latch after the synchronous burst settles so a LATER,
+      // post-send ask can mint the next draft.
+      queueMicrotask(() => {
+        consultationCreationLatchRef.current = false;
+      });
+      return draftId;
+    }
+    // Latch held: a sibling synchronous call already (re)seated the draft.
+    const seated = useAnalyzeStore.getState().consultations.find(c => c.status === 'draft');
+    return seated ? seated.id : store.createConsultation('').id;
   }, [activeConsultationId]);
 
   // CL-5b: "Ask an expert" from a finding card — open the panel and seed a
@@ -749,13 +776,13 @@ const AnalyzeView: React.FC<AnalyzeViewProps> = ({
     [ensureActiveConsultation]
   );
 
+  // I2: compute the next open state purely, then mutate the store OUTSIDE the
+  // setState updater (never inside it — StrictMode double-invokes updaters).
   const handleToggleConsultationPanel = useCallback(() => {
-    setConsultationPanelOpen(open => {
-      const next = !open;
-      if (next) ensureActiveConsultation();
-      return next;
-    });
-  }, [ensureActiveConsultation]);
+    const next = !consultationPanelOpen;
+    if (next) ensureActiveConsultation();
+    setConsultationPanelOpen(next);
+  }, [consultationPanelOpen, ensureActiveConsultation]);
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">

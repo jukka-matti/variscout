@@ -103,16 +103,20 @@ export function buildConsultationPack(input: {
   });
 
   // Map consultation questions → QuestionSection cards.
-  const questionSections: PackSection[] = consultation.questions.map(q => {
-    const section: QuestionSection = {
-      kind: 'question',
-      questionId: q.id,
-      text: q.text,
-      // If the question has an anchor, surface a label derived from it.
-      anchorLabel: q.anchor ? `${q.anchor.kind} ${q.anchor.id}` : undefined,
-    };
-    return section;
-  });
+  // M1: SKIP questions whose text is empty/whitespace — they would otherwise
+  // ship as blank `### Qn [id:...]` blocks the expert cannot answer.
+  const questionSections: PackSection[] = consultation.questions
+    .filter(q => q.text.trim().length > 0)
+    .map(q => {
+      const section: QuestionSection = {
+        kind: 'question',
+        questionId: q.id,
+        text: q.text,
+        // If the question has an anchor, surface a label derived from it.
+        anchorLabel: q.anchor ? `${q.anchor.kind} ${q.anchor.id}` : undefined,
+      };
+      return section;
+    });
 
   const responseTemplateMarkdown = buildResponseTemplateMarkdown(consultation);
 
@@ -159,8 +163,12 @@ export function buildResponseTemplateMarkdown(consultation: Consultation): strin
     ``,
   ];
 
-  for (let i = 0; i < consultation.questions.length; i++) {
-    const q = consultation.questions[i];
+  // M1: skip blank questions so the response template never carries an
+  // unanswerable `### Qn` block. Numbering stays sequential over the non-blank
+  // questions actually emitted.
+  const answerable = consultation.questions.filter(q => q.text.trim().length > 0);
+  for (let i = 0; i < answerable.length; i++) {
+    const q = answerable[i];
     const num = i + 1;
     lines.push(`### Q${num} [id: ${q.id}]`);
     lines.push(`> (type your answer here)`);

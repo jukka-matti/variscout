@@ -23,12 +23,17 @@ import type { Consultation } from '@variscout/core/consultations';
 import { importConsultationResponseFile } from '../../consultations/importConsultationResponse';
 
 // The same artifact gate App.tsx uses (App.tsx:119). Computed locally to avoid
-// deep prop-drilling; the actual export is a gated dynamic import.
+// deep prop-drilling; the actual export is a gated dynamic import. Evaluated at
+// CALL time (not module load) so the free-channel guard is unit-testable via
+// `vi.stubEnv`.
 declare const __WORKSPACE_ARTIFACTS__: boolean;
-const artifactControlsEnabled =
-  (typeof __WORKSPACE_ARTIFACTS__ !== 'undefined' && __WORKSPACE_ARTIFACTS__) ||
-  import.meta.env.MODE === 'test' ||
-  import.meta.env.VITEST === 'true';
+export function isArtifactControlsEnabled(): boolean {
+  return (
+    (typeof __WORKSPACE_ARTIFACTS__ !== 'undefined' && __WORKSPACE_ARTIFACTS__) ||
+    import.meta.env.MODE === 'test' ||
+    import.meta.env.VITEST === 'true'
+  );
+}
 
 export interface ConsultationBuilderProps {
   /**
@@ -56,6 +61,12 @@ export const ConsultationBuilder: React.FC<ConsultationBuilderProps> = ({
 
   const [localId, setLocalId] = useState<string | undefined>(activeConsultationId);
 
+  // I3: synchronous creation latch. The mount effect runs twice under
+  // React.StrictMode; an async `useState` guard (`localId`) has not committed
+  // yet on the second invoke, so it would double-create. A ref mutation IS
+  // synchronous and survives the re-invoke, so it blocks the second creation.
+  const createdRef = useRef(false);
+
   // Resolve the working consultation: the explicit prop wins, else our local id.
   const consultation: Consultation | undefined = useMemo(() => {
     const id = activeConsultationId ?? localId;
@@ -66,6 +77,8 @@ export const ConsultationBuilder: React.FC<ConsultationBuilderProps> = ({
   useEffect(() => {
     if (activeConsultationId) return; // caller owns the id
     if (localId && consultations.some(c => c.id === localId)) return;
+    if (createdRef.current) return; // I3: StrictMode double-invoke guard (synchronous)
+    createdRef.current = true;
     const created = createConsultation('');
     setLocalId(created.id);
     // createConsultation is store-stable; consultations is read fresh each render.
@@ -85,6 +98,9 @@ export const ConsultationBuilder: React.FC<ConsultationBuilderProps> = ({
   }
 
   const consultationId = consultation.id;
+  // I1: a sent/closed/responses-imported consultation is no longer editable for
+  // export — the Export button hides and a "Sent" badge surfaces the state.
+  const isDraft = consultation.status === 'draft';
 
   const handleAddQuestion = () => {
     addConsultationQuestion(consultationId, '');
@@ -122,9 +138,19 @@ export const ConsultationBuilder: React.FC<ConsultationBuilderProps> = ({
   };
 
   const handleExport = async () => {
-    if (!artifactControlsEnabled) return;
+    if (!isArtifactControlsEnabled()) return;
     const latest = useAnalyzeStore.getState().consultations.find(c => c.id === consultationId);
     if (!latest) return;
+    // I1: only a draft can be exported. A sent/closed consultation re-export
+    // would double-send the same pack.
+    if (latest.status !== 'draft') return;
+    // M1: block an empty pack — exporting zero non-blank questions ships a pack
+    // with only blank `### Qn` blocks. Surface a readable hint instead.
+    const hasQuestion = latest.questions.some(q => q.text.trim().length > 0);
+    if (!hasQuestion) {
+      window.alert(t('consultation.builder.blockedNoQuestions'));
+      return;
+    }
     const { exportConsultationPack } = await import('@pwa-artifacts');
     exportConsultationPack({
       consultation: latest,
@@ -165,9 +191,19 @@ export const ConsultationBuilder: React.FC<ConsultationBuilderProps> = ({
     >
       {/* Header */}
       <div className="px-4 py-3 border-b border-edge">
-        <h2 className="text-sm font-semibold text-content mb-2">
-          {t('consultation.builder.title')}
-        </h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-semibold text-content">
+            {t('consultation.builder.title')}
+          </h2>
+          {!isDraft && (
+            <span
+              data-testid="consultation-sent-badge"
+              className="rounded bg-surface-tertiary px-1.5 py-0.5 text-[0.625rem] font-medium text-content-secondary"
+            >
+              {t('consultation.builder.sentBadge')}
+            </span>
+          )}
+        </div>
         <label className="block text-xs text-content-secondary mb-1">
           {t('consultation.builder.titleLabel')}
         </label>
@@ -254,14 +290,16 @@ export const ConsultationBuilder: React.FC<ConsultationBuilderProps> = ({
 
       {/* Actions */}
       <div className="px-4 py-3 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={handleExport}
-          className="flex items-center gap-1 flex-1 justify-center rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-500"
-        >
-          <Send size={12} />
-          {t('consultation.builder.exportPack')}
-        </button>
+        {isDraft && (
+          <button
+            type="button"
+            onClick={handleExport}
+            className="flex items-center gap-1 flex-1 justify-center rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-500"
+          >
+            <Send size={12} />
+            {t('consultation.builder.exportPack')}
+          </button>
+        )}
         <button
           type="button"
           onClick={handleImportClick}

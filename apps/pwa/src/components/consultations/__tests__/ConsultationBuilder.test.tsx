@@ -103,6 +103,12 @@ describe('ConsultationBuilder', () => {
   it('Export calls exportConsultationPack once with consultation + views and marks it sent', async () => {
     render(<ConsultationBuilder resolvedViews={VIEWS} />);
     const consultationId = useAnalyzeStore.getState().consultations[0].id;
+    // M1: a non-blank question so Export is not blocked by the empty-pack guard.
+    fireEvent.click(screen.getByText('consultation.builder.addQuestion'));
+    fireEvent.change(
+      screen.getByPlaceholderText('consultation.builder.questionPlaceholder'),
+      { target: { value: 'Why is Monday slow?' } }
+    );
 
     fireEvent.click(screen.getByText('consultation.builder.exportPack'));
 
@@ -119,6 +125,62 @@ describe('ConsultationBuilder', () => {
     await waitFor(() => {
       expect(useAnalyzeStore.getState().consultations[0].status).toBe('sent');
     });
+  });
+
+  it('once sent, the Export button is hidden and a "Sent" badge shows', async () => {
+    render(<ConsultationBuilder resolvedViews={VIEWS} />);
+    const consultationId = useAnalyzeStore.getState().consultations[0].id;
+    fireEvent.click(screen.getByText('consultation.builder.addQuestion'));
+    fireEvent.change(
+      screen.getByPlaceholderText('consultation.builder.questionPlaceholder'),
+      { target: { value: 'Why is Monday slow?' } }
+    );
+
+    fireEvent.click(screen.getByText('consultation.builder.exportPack'));
+    await waitFor(() => {
+      expect(useAnalyzeStore.getState().consultations[0].status).toBe('sent');
+    });
+
+    expect(screen.queryByText('consultation.builder.exportPack')).toBeNull();
+    expect(screen.getByTestId('consultation-sent-badge')).toBeTruthy();
+  });
+
+  it('M1: Export is blocked with a hint when there is no non-blank question', async () => {
+    const alertMock = vi.fn();
+    vi.stubGlobal('alert', alertMock);
+    render(<ConsultationBuilder resolvedViews={VIEWS} />);
+    // A blank-text question only — must not produce an exportable pack.
+    fireEvent.click(screen.getByText('consultation.builder.addQuestion'));
+
+    fireEvent.click(screen.getByText('consultation.builder.exportPack'));
+
+    await waitFor(() => {
+      expect(alertMock).toHaveBeenCalledWith('consultation.builder.blockedNoQuestions');
+    });
+    expect(exportConsultationPackMock).not.toHaveBeenCalled();
+    expect(useAnalyzeStore.getState().consultations[0].status).toBe('draft');
+    vi.unstubAllGlobals();
+  });
+
+  it('M5: in the free channel the Export does nothing (no export, no status flip)', async () => {
+    // Force the artifact gate false: clear the VITEST flag and set a non-test MODE
+    // so isArtifactControlsEnabled() returns false at call time.
+    vi.stubEnv('VITEST', '');
+    vi.stubEnv('MODE', 'production');
+    render(<ConsultationBuilder resolvedViews={VIEWS} />);
+    fireEvent.click(screen.getByText('consultation.builder.addQuestion'));
+    fireEvent.change(
+      screen.getByPlaceholderText('consultation.builder.questionPlaceholder'),
+      { target: { value: 'Why is Monday slow?' } }
+    );
+
+    fireEvent.click(screen.getByText('consultation.builder.exportPack'));
+
+    // Give any (would-be) async export a tick to settle.
+    await Promise.resolve();
+    expect(exportConsultationPackMock).not.toHaveBeenCalled();
+    expect(useAnalyzeStore.getState().consultations[0].status).toBe('draft');
+    vi.unstubAllEnvs();
   });
 
   it('Import feeds importResponse → a pending insight appears', async () => {
