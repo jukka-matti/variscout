@@ -461,6 +461,20 @@ export type FindingRole = 'observation' | 'benchmark';
  */
 export type FindingEvidenceType = 'data' | 'gemba' | 'expert';
 
+/**
+ * Origin provenance for a Finding created outside chart observation — e.g.
+ * accepted from a consultation insight. Distinct from `FindingSource`, which
+ * is documented chart-observation-only (do not extend it for this).
+ */
+export interface FindingProvenance {
+  kind: 'consultation';
+  consultationId: string;
+  responseId: string;
+  questionId?: string;
+  respondentLabel: string;
+  importedAt: number;
+}
+
 /** Stats snapshot for benchmark findings */
 export interface BenchmarkStats {
   mean: number;
@@ -513,6 +527,9 @@ export interface Finding extends EntityBase {
   originStepId?: string;
   /** Chart observation origin — links finding to a specific chart element */
   source?: FindingSource;
+  /** Provenance for findings promoted from external evidence (e.g. a
+   *  consultation insight). Absent for chart-captured findings. */
+  provenance?: FindingProvenance;
   /** Optional assignee for Team plan @mention workflow */
   assignee?: FindingAssignee;
   /**
